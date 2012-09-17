@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This example copies the png image "colorrobot.png" into "out.jpg" using the IKAROS
+    modules: InputJPEG and OutputJPEG. The image is displayed if run from the viewer.
+
+-->
+
+<group title = "PNG">
+    
+	<module class = "InputPNG" name = "IN" 
+	    filename = "../../../../../../Examples/Media/colorrobot.png" 
+	    iterations = "1000" 
+	    />
+
+	<module  class = "OutputJPEG" name = "OUT" 
+	    scale = "1.0" suppress = "1" offset = "0" 
+	    filename = "Out.jpg" 
+	    />
+
+	<connection sourcemodule = "IN" source = "RED" 
+		    targetmodule = "OUT" target = "RED" />
+		
+	<connection sourcemodule = "IN" source = "GREEN" 
+		    targetmodule = "OUT" target = "GREEN" />
+		
+	<connection sourcemodule = "IN" source = "BLUE" 
+		    targetmodule = "OUT" target = "BLUE" />
+		
+	<view name = "View 1">
+	    <object class="Image" type ="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0" h="1" w="1" />
+	</view>	
+	
+</group>

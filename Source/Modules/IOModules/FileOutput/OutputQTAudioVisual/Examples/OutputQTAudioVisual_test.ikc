@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!--
+	Example network file for OutputQTAudioVisual module.
+-->
+
+<group>
+    <module
+        class = "InputQTMovie"
+        name = "visual"
+        filename = "../../../../../../Examples/Media/ikaros.mov"
+    />
+
+    <module
+        class = "InputQTAudio"
+        name = "audio"
+        filename = "../../../../../../Examples/Media/ikaros.mov"
+    />
+
+    <module
+        class = "OutputQTAudioVisual"
+        name = "outputAV"
+        visual_time_scale = "2997"
+        visual_sample_duration = "100"
+        audio_sample_rate = "44100"
+        upper_bound_pixel_visual_input = "25.0"
+        filename = "ikaros_copy.mov"
+    />
+
+    <connection 
+        sourcemodule = "visual"  source = "INTENSITY" 
+        targetmodule = "outputAV"  target = "VISUAL"
+        delay = "0"
+    />
+
+    <connection
+        sourcemodule = "audio" source = "NUMBER_SAMPLES"
+        targetmodule = "outputAV" target = "NUMBER_AUDIO_SAMPLES"
+        delay = "0"
+    />
+
+    <connection
+        sourcemodule = "audio" source = "CHANNELS"
+        targetmodule = "outputAV" target = "AUDIO_CHANNELS"
+        delay = "0"
+    />
+
+    <view name="Movie View">
+        <object class="Image" module = "visual" source = "INTENSITY" 
+			     x="0" y="0" w="2" h="2" />
+    </view>
+    
+</group>

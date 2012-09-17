@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group name="Polynomial" description="calculates polynomial">
+
+	<description type="html">
+	<p>
+		Module that calculates a polynomial function of ints input.
+		The order of the polynomial is set by the attribute order and
+		the coefficients are set by coefficients. This example will calculate the function:
+	</p>
+	<p>
+		The example will calculate the function:
+		<i>y</i> = <i>x</i>-2<i>x</i><sup>2</sup>+3<i>x</i><sup>3</sup>+2<i>x</i><sup>5</sup>
+		for each input element.
+	</p>
+	</description>
+
+	<example description="Example">
+		<module
+			class="Polynomial"
+			name="Polynomial"
+			order = "5"
+			coefficients = "1 -2 3 0 2"
+		/>
+	</example>
+	
+	<parameter name="order" type="int" default="1" />
+	<parameter name="coefficients" type="array" default="1" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The polynomial of the input" size_set="INPUT" />
+
+	<module class="Polynomial" />
+
+    <view title="Polynomial">
+        <object
+            x="0" y="0" w="2"
+            class="Plot"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Polynomial"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Polynomial.h</file>
+   		<file>Polynomial.cc</file>
+   		<file>Polynomial.ikc</file>
+   </files>
+
+</group>

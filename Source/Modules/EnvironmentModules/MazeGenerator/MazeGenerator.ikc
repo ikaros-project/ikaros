@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<group name="MazeGenerator" description="generates a perfect maze">
+
+	<description type="xhtml">
+		<p>
+			Module that implements a depth-first method that generates a perfect maze. A partfect maze is
+            one with exactly one path between any two locations in the maze. The maze is randomly generated.
+            use -z# at the command line with different numbers for # to get different mazes each time.
+		</p>
+	</description>
+
+	<example description="A simple example">
+		<module
+			class = "MazeGenerator"
+			name = "MazeGenerator"
+			height = "2"
+			width = "2"
+			/>
+	</example>
+
+	<parameter name="size" type="int" default="8" description="The size of the maze. The actual matrix width and height will depend on the type of maze" />
+	<parameter name="type" type="list" values="perfect/l-maze/t-maze/" default="0" description="The size of the maze. The actual matrix width and height will depend on the type of maze" />
+	<parameter name="regenerate" type="int" default="0" description="When to regenerate the maze in ticks (0 = never)" />
+
+	<output name="OUTPUT" description="The generated maze" />
+
+	<module class="MazeGenerator" />
+	
+	<created>2009</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MazeGenerator.h</file>
+   		<file>MazeGenerator.cc</file>
+   		<file>MazeGenerator.ikc</file>
+   </files>
+
+</group>
+

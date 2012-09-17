@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		class = "InputFile"
+		name = "MULTI_DATA"
+		filename = "multi.data"
+		iterations = "10"
+	/>
+
+
+	<module
+		class = "Perceptron"
+		name = "PERCEPTRON"
+		learning_rule = "mu_lms"
+		activation_type = "step"
+		normalize_target = "true"
+		learning_rate = "0.24"
+		learning_rate_mod = "none"
+		learning_type = "instant"
+		momentum_ratio = "0.5"
+		batch_size = "50"
+	/>
+
+	<module
+		class = "Average"
+		name = "AVERAGE"
+	/>
+
+
+	<module
+		class = "OutputFile"
+		name = "RESULTS"
+		filename = "multi.output"
+		>
+			<column name = "OUT"/>
+			<column name = "ERR"/>
+			<column name = "CORR"/>
+	</module>
+
+
+	<connection sourcemodule = "MULTI_DATA"  source = "INPUT"
+		targetmodule = "PERCEPTRON"  target = "INPUT" />
+
+	<connection sourcemodule = "MULTI_DATA"  source = "INPUT"
+		targetmodule = "PERCEPTRON"  target = "T_INPUT" />
+
+	<connection sourcemodule = "MULTI_DATA"  source = "TARGET"
+		targetmodule = "PERCEPTRON"  target = "T_TARGET" />
+
+	<connection sourcemodule = "MULTI_DATA"  source = "TRAIN"
+		targetmodule = "PERCEPTRON"  target = "TRAIN" />
+
+
+	<connection sourcemodule = "PERCEPTRON"  source = "OUTPUT"
+		targetmodule = "RESULTS"  target = "OUT" />
+
+	<connection sourcemodule = "PERCEPTRON"  source = "ERROR"
+		targetmodule = "RESULTS"  target = "ERR" />
+
+	<connection sourcemodule = "PERCEPTRON"  source = "CORRECT"
+		targetmodule = "RESULTS"  target = "CORR" />
+
+	<connection sourcemodule = "PERCEPTRON"  source = "ERROR"
+		targetmodule = "AVERAGE"  target = "INPUT" />
+
+	<view name="Table Test">
+	<object
+		class="Plot"
+		module="AVERAGE"
+		source="OUTPUT"
+		x="0"
+		y="0"
+		w="3"
+	/>
+	<object
+		class="Plot"
+		module="PERCEPTRON"
+		source="CORRECT"
+		x="0"
+		y="1"
+		w="3"
+	/>
+	</view>
+
+
+</group>

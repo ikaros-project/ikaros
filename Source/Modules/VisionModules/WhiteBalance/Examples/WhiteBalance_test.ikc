@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This network reads the jpeg image "rgb.jpeg" and applies von Kries adaptation
+	based on the top left white reference in the image. No output is generated since there
+	is no module for color image output in IKAROS yet.
+	
+-->
+
+<group>
+		<module
+			class = "InputJPEG"
+			name = "IN"
+			filename = "../../../../../Examples/Media/rgb.jpg"
+			iterations = "5"
+		/>
+		
+		<module 
+			class = "WhiteBalance"
+			x0 = "0"
+			y0 = "0"
+			x1 = "10"
+			y1 = "10"
+			name = "VK"
+		/>
+
+		<connection sourcemodule = "IN" source = "RED" targetmodule = "VK" target = "INPUT0" />
+		<connection sourcemodule = "IN" source = "GREEN" targetmodule = "VK" target = "INPUT1" />
+		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "VK" target = "INPUT2" />
+
+		<view name = "View 1">
+			<object class="Image" module="IN" source="RED" x="0" y="0" min="0" max="255" />
+			<object class="Image" module="IN" source="GREEN" x="1" y="0" min="0" max="255" />
+			<object class="Image" module="IN" source="BLUE" x="2" y="0" min="0" max="255" />
+
+			<object class="Image" module="VK" source="OUTPUT0" x="0" y="1" min="0" max="255"/>
+			<object class="Image" module="VK" source="OUTPUT1" x="1" y="1" min="0" max="255" />
+			<object class="Image" module="VK" source="OUTPUT2" x="2" y="1" min="0" max="255" />
+		</view>
+
+</group>
+

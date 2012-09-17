@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "grayrobot.jpeg" and applies the Canny edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group title = "Canny Edge Detector">
+	
+    <module
+        class = "InputJPEG" 
+        name = "IN"
+        filename = "../Media/grayrobot.jpg"
+    />
+		
+	<module 
+		class = "CannyEdgeDetector"
+		name = "Canny1"
+		scale = "2"
+		T0 	= "0.7"
+		T1 	= "0.8"
+		T2 	= "0.1"
+	/>
+
+	<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Canny1" target = "INPUT" delay="0" />
+
+	<view name = "Demo view">
+			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" />
+
+			<object class="Image" module="Canny1" source="dGx" x="0" y="2"  />
+			<object class="Image" module="Canny1" source="dGy" x="1" y="2"  />
+
+			<object class="Image" module="Canny1" source="dx" x="1" y="0" />
+			<object class="Image" module="Canny1" source="dy" x="2" y="0"  />
+
+			<object class="Image" module="Canny1" source="EDGES" x="0" y="1" />
+			<object class="Image" module="Canny1" source="MAXIMA" x="1" y="1" />
+			<object class="Image" module="Canny1" source="OUTPUT" x="2" y="1"  />
+	</view>
+    
+</group>
+

@@ -1,0 +1,6 @@
+# MOvement sequence for the motors
+
+VELOCITY/2
+
+0.00 0.07
+0.07 0.00

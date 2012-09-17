@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "grayrobot.jpeg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group>
+
+		<module class = "InputJPEG" name = "IN" filename = "../../../../../../Examples/Media/grayrobot.jpg" iterations = "1000" />
+		
+		<module 
+			class = "GaborFilter"
+			name = "Gabor0"
+			scale = "10"
+			theta = "0.0"
+			lambda = "20"
+			sigma = "3"
+		/>
+
+		<module 
+			class = "GaborFilter"
+			name = "Gabor1"
+			scale = "10"
+			theta = "0.77"
+			lambda = "20"
+			sigma = "3"
+		/>
+
+		<module 
+			class = "GaborFilter"
+			name = "Gabor2"
+			scale = "10"
+			theta = "1.57"
+			lambda = "20"
+			sigma = "3"
+		/>
+
+		<module 
+			class = "GaborFilter"
+			name = "Gabor3"
+			scale = "10"
+			theta = "2.27"
+			lambda = "20"
+			sigma = "3"
+		/>
+
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor0" target = "INPUT" delay="0" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor1" target = "INPUT" delay="0" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor2" target = "INPUT" delay="0" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor3" target = "INPUT" delay="0" />
+
+		<view name = "V1">
+        <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2"  />
+			
+        <object class="Image" module="Gabor0" source="GAUSSIAN" x="2" y="0" h="1" w="1" />
+        <object class="Image" module="Gabor1" source="GAUSSIAN" x="2" y="1" h="1" w="1" />
+        <object class="Image" module="Gabor2" source="GAUSSIAN" x="2" y="2" h="1" w="1" />
+        <object class="Image" module="Gabor3" source="GAUSSIAN" x="2" y="3" h="1" w="1" />
+
+        <object class="Image" module="Gabor0" source="GRATING" x="3" y="0" h="1" w="1" />
+        <object class="Image" module="Gabor1" source="GRATING" x="3" y="1" h="1" w="1" />
+        <object class="Image" module="Gabor2" source="GRATING" x="3" y="2" h="1" w="1" />
+        <object class="Image" module="Gabor3" source="GRATING" x="3" y="3" h="1" w="1" />
+
+        <object class="Image" module="Gabor0" source="FILTER" x="4" y="0" h="1" w="1" />
+        <object class="Image" module="Gabor1" source="FILTER" x="4" y="1" h="1" w="1" />
+        <object class="Image" module="Gabor2" source="FILTER" x="4" y="2" h="1" w="1" />
+        <object class="Image" module="Gabor3" source="FILTER" x="4" y="3" h="1" w="1" />
+
+        <object class="Image" module="Gabor0" source="OUTPUT" x="5" y="0"  />
+        <object class="Image" module="Gabor1" source="OUTPUT" x="5" y="1"  />
+        <object class="Image" module="Gabor2" source="OUTPUT" x="5" y="2"  />
+        <object class="Image" module="Gabor3" source="OUTPUT" x="5" y="3"  />
+    </view>
+
+</group>
+

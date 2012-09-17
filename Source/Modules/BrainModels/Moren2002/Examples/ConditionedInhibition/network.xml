@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<network>
+    <modules>
+	<module class = "InputFile" name = "DATA" 
+	    filename = "input.txt"/>
+	<module class = "OutputFile" name = "OUT" filename = "output.txt">
+	    <column name = "E"/>
+	    <column name = "CS"/>
+	    <column name = "Rew"/>
+	    <column name = "LOC"/>
+	    <column name = "V"/>
+	    <column name = "CON"/>
+	    <column name = "BIND"/>
+	</module>
+	<module class = "Amygdala" name = "AMY">
+	    <alpha>0.2</alpha>
+	</module>
+	<module class = "OFC" name = "OFC">
+	    <beta>0.2</beta>
+	</module>
+	<module class = "Thalamus" name = "THA">
+	</module>
+	<module class = "Hippocampus" name = "HIPP">
+	    <bindsize>4</bindsize>
+	    <contextsize>4</contextsize>
+	</module>
+	<module class = "Delay" name = "BINDELAY">
+	    <delay>2</delay>
+	</module>
+	<module class = "Delay" name = "CONDELAY">
+	    <delay>2</delay>
+	</module>
+	<module class = "Delay" name = "LOCDELAY">
+	    <delay>2</delay>
+	</module>
+	<module class = "Delay" name = "CSDELAY">
+	    <delay>2</delay>
+	</module>
+	<module class = "Delay" name = "RDELAY2">
+	    <delay>2</delay>
+	</module>
+	<module class = "Delay" name = "RDELAY">
+	    <delay>1</delay>
+	</module>
+    </modules>		
+    <connections>
+
+	<connection sourcemodule = "DATA"	source = "CS"
+		    targetmodule = "THA"	target = "CS"/>
+	<connection sourcemodule = "DATA"	source = "CS"
+		    targetmodule = "HIPP"	target = "STIMULUS"/>
+	<connection sourcemodule = "DATA"	source = "LOC"
+		    targetmodule = "HIPP"	target = "LOCATION"/>
+	<connection sourcemodule = "DATA"	source = "R"
+		    targetmodule = "RDELAY"	target = "INPUT"/>
+	<connection sourcemodule = "DATA"       source = "LOC"
+		    targetmodule = "LOCDELAY"   target = "INPUT"/>
+	<connection sourcemodule = "DATA"       source = "R"
+		    targetmodule = "RDELAY2"	target = "INPUT"/>
+	<connection sourcemodule = "DATA"       source = "CS"
+		    targetmodule = "CSDELAY"	target = "INPUT"/>
+
+	<connection sourcemodule = "HIPP"       source = "BIND"
+		    targetmodule = "BINDELAY"   target = "INPUT"/>
+	<connection sourcemodule = "HIPP"       source = "CONTEXT"
+		    targetmodule = "CONDELAY"   target = "INPUT"/>
+
+	<connection sourcemodule = "BINDELAY"	source = "OUTPUT"
+		    targetmodule = "OUT"	target = "BIND"/>
+	<connection sourcemodule = "CONDELAY"	source = "OUTPUT"
+		    targetmodule = "OUT"	target = "CON"/>
+	<connection sourcemodule = "LOCDELAY"	source = "OUTPUT"
+		    targetmodule = "OUT"	target = "LOC"/>
+	<connection sourcemodule = "CSDELAY"	source = "OUTPUT"
+		    targetmodule = "OUT"	target = "CS"/>
+	<connection sourcemodule = "RDELAY2"	source = "OUTPUT"
+		    targetmodule = "OUT"	target = "Rew"/>
+    	<connection sourcemodule = "AMY"        source = "E"
+		    targetmodule = "OUT"	target = "E"/>
+	<connection sourcemodule = "AMY"        source = "V"
+		    targetmodule = "OUT"	target = "V"/>
+	
+	<connection sourcemodule = "THA"	source = "CSout"
+		    targetmodule = "AMY"	target = "CS"/>
+	<connection sourcemodule = "THA"	source = "CSout"
+		    targetmodule = "OFC"	target = "CS"/>
+	
+	<connection sourcemodule = "HIPP"	source = "CONTEXT"
+		    targetmodule = "OFC"	target = "CON"/>
+	<connection sourcemodule = "HIPP"	source = "BIND"
+		    targetmodule = "OFC"	target = "BIND"/>
+	<connection sourcemodule = "HIPP"	source = "BIND"
+		    targetmodule = "AMY"	target = "BIND"/>
+	
+	<connection sourcemodule = "RDELAY"	source = "OUTPUT"
+		    targetmodule = "AMY"	target = "Rew"/>
+	<connection sourcemodule = "RDELAY"	source = "OUTPUT"
+		    targetmodule = "OFC"	target = "Rew"/>
+
+	<connection sourcemodule = "AMY"	source = "O"
+		    targetmodule = "OFC"	target = "A"/>
+	<connection sourcemodule = "OFC"	source = "EO"
+		    targetmodule = "AMY"	target = "EO"/>
+
+    </connections>
+</network>
+
+

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+		<module
+			class = "InputQTMovie"
+			name = "IN"
+			filename = "../../../../../../Examples/Media/ikaros.mov"
+			loop = "yes"
+		/>
+
+		<module 
+			class = "ChangeDetector"
+			name = "Change"
+			border = "0"
+		/>
+
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Change" target = "INPUT" />	
+
+		<view name = "View 1">
+			<object class="Image" name="Input" module="IN" source="INTENSITY" x="0" y="0" />
+			<object class="Image" name="Changes" module="Change" source="OUTPUT" x="1" y="0" />
+		</view>
+
+</group>
+

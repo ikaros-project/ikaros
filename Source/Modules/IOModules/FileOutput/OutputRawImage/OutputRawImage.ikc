@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="OutputRawImage" description="writes images in RAW format">
+
+	<description type="text">
+		Module used for writing an image (or sequences of images) to file(s).
+		The files are saved in RAW format with one byte per pixel. Since Ikaros uses floats between 0 and 1 to represent images the input is first multiplied with 255. This can be changed using the scale parameter.
+		The size of the file is not saved in the file.
+	</description>
+
+	<example description="Example">
+		<module
+			class = "OutputRawImage"
+			name = "OUT"
+			scale = "1.0"
+			suppress = "1"
+			offset = "0"
+			filename = "image%02d.raw"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to write the output to. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of the file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'." />
+	<parameter name="scale" type="float" default="255.0" description="Factor to multiply each element of the input matrix with" />
+	<parameter name="suppress" type="int" default="0" description="Number of initial files to supress. Used to stop the write of the first images in a sequence before any output is available." />
+	<parameter name="offset" type="int" default="0" description="Value to add to the file index." />
+
+	<input name="INPUT" description="The image data to be written to the file" />
+
+	<module class="OutputRawImage" />
+
+	<bug>
+		If %d is not in the filename each new file will overwrite the previous.
+		Maybe this is a feature.
+	</bug>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>OutputRawImage.h</file>
+   		<file>OutputRawImage.cc</file>
+   		<file>OutputRawImage.ikc</file>
+   </files>
+
+</group>

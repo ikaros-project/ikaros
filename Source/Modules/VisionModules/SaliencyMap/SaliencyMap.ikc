@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="SaliencyMap" description="a saliency map">
+
+	<description type="text">
+		A minimal saliency map implementation.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SaliencyMap"
+			name="SaliencyMap"
+		/>
+	</example>
+
+	<parameter name="integration_radius" type="int" default="2" description="Smoothness" />
+	<parameter name="reinforcement_delay" type="int" default="0" description="" />
+	<parameter name="type" type="list" values="max/boltzmann/exponential" default="max" description="Selection type" />
+	<parameter name="alpha" type="float" default="0.01" description="Learning rate" />
+	<parameter name="temperature" type="float" default="0.1" description="Temperature for Bolzmann selection" />
+
+	<input name="*" description="The inputs" />
+	<input name="REINFORCEMENT" description="The reinforcement input" />
+	<input name="SPATIAL_BIAS" description="Preferred location" />
+
+	<output name="GAIN" description="The gain vector for the different channels." />
+	<output name="SALIENCE" description="The saliency map." />
+	<output name="FOCUS" description="The focus of attention (x, y)." />
+	<output name="ESTIMATION" description="The estimated reinforcement at (x, y)." />
+
+	<module class="SaliencyMap" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SaliencyMap.h</file>
+   		<file>SaliencyMap.cc</file>
+   		<file>SaliencyMap.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,22 @@
+
+.object_background
+{
+    stroke: #1D1D1D;
+    fill: #1D1D1D;
+}
+
+.object_title
+{
+    font-size: 11px;
+    font-family: sans-serif;
+    fill: #BABABA;
+}
+
+.object_titlebar
+{
+    stroke: black;
+    fill: black;
+    stroke-opacity: 0.5;
+    fill-opacity: 0.5;
+}
+

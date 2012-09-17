@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+
+<group name="M02_OFC" description="an model of orbitofrontal cortex">
+
+<description type="text">
+The module implements the model of the orbitofrontal cortex described in the PhD thesis by Jan Morén 2002.
+</description>
+
+<example description="A simple example">
+<module
+    class="M02_OFC"
+    name="OFC"
+    beta="0.2"
+/>
+</example>
+
+<parameter
+    name="beta"
+    type="float"
+    default="0.2"
+    description="The learning rate"
+/>
+
+<input
+    name="INPUT"
+    description="The stimulus input"
+/>
+
+<input
+    name="A"
+    description="The input from the amygdala"
+/>
+
+<input
+    name="CON"
+    description="The context input"
+/>
+
+<input
+    name="Rew"
+    description="The reward input"
+/>
+
+<output
+    name="EO"
+    size="1"
+    description="The inhibitory output to the amygdala"
+/>
+
+<output
+    name="W"
+    description="The weights"
+/>
+
+<module class="M02_OFC" />
+
+<author>
+<name>Jan Moren</name>
+<email>jan.moren@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Jan.Moren/</homepage>
+</author>
+
+<reference>
+Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lund Univeristy Cognitive Studies, 93.
+</reference>
+
+<files>
+<file>M02_OFC.h</file>
+<file>M02_OFC.cc</file>
+<file>M02_OFC.ikc</file>
+</files>
+
+</group>
+
+

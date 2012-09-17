@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+<group name="M02_Amygdala" description="an amygdala model">
+
+<description type="text">
+The module implements the model of the amygdala cortex described in the PhD thesis by Jan Morén 2002.
+</description>
+
+<example description="A simple example">
+<module
+    class="M02_Amygdala"
+    name="Amygdala"
+    alpha="0.2"
+/>
+</example>
+
+<parameter
+    name="alpha"
+    type="float"
+    default="0.2"
+    description="The learning rate"
+/>
+
+<input
+    name="INPUT"
+    description="The conditioned stimulus input"
+/>
+
+<input
+    name="EO"
+    description="The input from the orbitofrontal cortex"
+/>
+
+<input
+    name="Rew"
+    description="The reward input"
+/>
+
+<output
+    name="A"
+    size_set="INPUT"
+    description="The activity nodes; output to the orbitofrontal cortex"
+/>
+
+<output
+    name="E"
+    size="1"
+    description="The emotional reaction"
+/>
+
+<output
+    name="V"
+    size_set="INPUT"
+    description="The weight output for visualization"
+/>
+
+<module class="M02_Amygdala" />
+
+<author>
+<name>Jan Moren</name>
+<email>jan.moren@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Jan.Moren/</homepage>
+</author>
+
+<reference>
+Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lund Univeristy Cognitive Studies, 93.
+</reference>
+
+<files>
+<file>M02_Amygdala.h</file>
+<file>M02_Amygdala.cc</file>
+<file>M02_Amygdala.ikc</file>
+</files>
+
+</group>
+
+

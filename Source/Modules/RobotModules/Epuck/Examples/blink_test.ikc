@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<group title="E-puck system">
+
+	<module
+		class = "Epuck"
+		name = "Epuck"
+		port = "COM4"
+	      _port = "/dev/cu.e-puck_1022-COM1-1"
+		camera = "gray"
+		height = "32"
+		width = "32"
+		zoom = "8"
+		binary = "true"
+	/>
+
+	<module
+		class = "InputFile"
+		name = "Data"
+		filename = "data.txt"
+		iterations = "10000"
+	/>
+
+	<connection sourcemodule="Data" source = "BODY" targetmodule="Epuck" target="BODY" />
+	<connection sourcemodule="Data" source = "LIGHT" targetmodule="Epuck" target="LIGHT" />
+	<connection sourcemodule="Data" source = "LED" targetmodule="Epuck" target="LED" />
+
+	<view>
+		<object class="Image" module="Epuck" source="IMAGE" x="0" y="0" w="2" h="2"/>
+		<object class="Table" module="Epuck" source="PROXIMITY" x="0" y="2" w="4" />
+	</view>
+
+</group>
+

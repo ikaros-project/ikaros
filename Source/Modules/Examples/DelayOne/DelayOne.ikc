@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group name="WhiteBalance" description="adds two inputs">
+
+	<description type="text">
+		Module that sums its two inputs element by element,
+		which can be one or two dimensional.
+		Both inputs must have the same size.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="WhiteBalance"
+			name="WhiteBalance"
+		/>
+	</example>
+
+	<parameter name="QQQ" type="ZZZ" description="" />
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="WhiteBalance" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>WhiteBalance.h</file>
+   		<file>WhiteBalance.cc</file>
+   		<file>WhiteBalance.ikc</file>
+   </files>
+
+</group>

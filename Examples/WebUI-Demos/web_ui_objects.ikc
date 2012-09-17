@@ -1,0 +1,860 @@
+<?xml version="1.0"?>
+
+<!-- Example of the different WebUI objects fillled with random values. -->
+
+<group title="WebUI Demo">
+	
+    <module class="InputJPEG" name="Image" filename="../Media/colorrobot.jpg" size_x="256" size_y="256" />
+
+    <module
+        class = "Randomizer"
+        name = "R5"
+        outputsize = "5"
+    />
+
+    <module
+        class = "Constant"
+        name = "C"
+        outputsize = "5"
+        data= "-1 -0.5 0 0.5 1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R5X"
+        outputsize = "5"
+        min = "-1"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23"
+        outputsize_x = "2"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R33"
+        outputsize_x = "3"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23T"
+        outputsize_x = "2"
+        outputsize_y = "3"
+        min="-1"
+        max="1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "PM28"
+        min = "-1"
+        max ="1"
+        outputsize_x = "2"
+        outputsize_y = "8"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "G"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "B"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R25"
+        outputsize = "25"
+        max = "1"
+        min = "-1"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "PP25"
+        outputsize = "13"
+        max = "0.5"
+        min = "1.0"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "X"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+        min = "-1"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "Y"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+        min = "-1"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "R2"
+        outputsize = "2"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RColorGrid"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "MaxGrayGrid"
+        outputsize_x = "25"
+        outputsize_y = "25"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RGrayGrid"
+        outputsize_x = "25"
+        outputsize_y = "25"
+        max = "1"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "FG"
+        type = "sin"
+        frequency = "0.1"
+    />
+		  
+    <module
+        class = "FunctionGenerator"
+        name = "FG2"
+        type = "sin"
+        frequency = "0.04"
+        offset = "0.2"
+        amplitude = "0.2"
+    />
+		  
+	<module
+		class="InputJPEG"
+		name="SmallImage"
+		filename="../Media/SmallSequence/img%d.jpg"
+		filecount = "32"
+    />
+
+    <module
+        class = "Constant"
+        name = "Lines"
+        outputsize_x = "4"
+        outputsize_y = "4"
+        data= "0.1 0.4 0.9 0.4; 0.9 0.4 0.9 0.9; 0.9 0.9 0.1 0.9; 0.1 0.9 0.1 0.4"
+    />
+
+    <view name="Bar Graph" _object_size="80" _object_spacing="5">
+        <object
+            x="0" y="0" 
+            class="BarGraph" 
+            module="R5" 
+            source="OUTPUT"
+            title = "Bar Graph 1"
+        />
+
+        <object
+            x="1" y="0" 
+            class="BarGraph" 
+            module="R5X" 
+            source="OUTPUT"
+            min="-1" max="1"
+            title = "Bar Graph 2"
+        />
+			
+        <object
+            x="0" y="1" 
+            class="BarGraph" 
+            module="R5" 
+            source="OUTPUT"
+            title = "Bar Graph 3"
+            color = "red,green,blue,yellow"
+            fill = "red,green,blue,yellow"
+        />
+
+        <object
+            x="1" y="1" 
+            class="BarGraph" 
+            module="R5X" 
+            source="OUTPUT"
+            min="-1" max="1"
+            title = "Bar Graph 2"
+            positive_color = "blue"
+            positive_fill = "darkblue"
+            negative_color = "red"
+            negative_fill = "darkred"
+        />
+    </view>
+
+
+	<view name="Images">
+		<object class="Image" title="Color Image"  type="rgb" module="Image" source="RED+GREEN+BLUE" x="0" y="0" />
+		<object class="Text" text="The viewobject to the left shows an RGB image. The images below are different pseudo color version of the intensity channel." x="1" y="0" w="2" />
+
+		<object class="Image" title="Fire"  type="fire" module="Image" source="INTENSITY" x="0" y="1" />
+		<object class="Image" title="Spectrum"  type="spectrum" module="Image" source="INTENSITY" x="1" y="1" />
+		<object class="Image" title="Green"  type="green" module="Image" source="INTENSITY" x="2" y="1" />
+
+		<object class="Image" title="Image File" type="file" file="bike.jpg" x="0" y="2" />
+
+		<object class="Image" opaque="no"  type="fire" module="Image" source="INTENSITY" x="1" y="2" />
+		<object class="Image" opaque="no"  type="file" file="bike.png" x="1" y="2" />
+
+		<object class="Image" opaque="no"  type="file" file="bike2.png" x="2" y="2" />
+	</view>
+
+    <view name="Grids">
+        <object class="Grid" title="Gray Grid" module="RGrayGrid" source="OUTPUT" x="0" y="0" color="LUT_gray" />
+        <object class="Grid" title="Color Grid" module="RColorGrid" source="OUTPUT" x="1" y="0"  color = "black, yellow, red, green, blue" />
+        <object
+            x="0"
+            y="1"
+            w="2"
+            class="Text" 
+            text="These are two Grid objects, one in gray scale and one in color."
+        />
+    </view>
+
+    <view name="Plot">
+        <object
+            x="0"
+            y="0"
+            w="1"
+            title = "Plot"
+            class="Plot"
+            module="FG" source="OUTPUT"
+            min="-1" max="1"
+            select="[0,0]"
+        />
+        <object
+            x="1"
+            y="0"
+            w="1"
+            title = "Plot"
+            class="Plot"
+            module="FG2" source="OUTPUT"
+            min="-1" max="1"
+            color = "red"
+        />
+        <object
+            x="0"
+            y="1"
+            w="2" h="2"
+            title = "Plot (stack)"
+            class="Plot"
+            type="stack"
+            select="0, 1, 2"
+            module="R5" source="OUTPUT"
+            min="0" max="1"
+            color = "red, green, yellow"
+        />
+        <object
+            x="2"
+            y="1"
+            w="2" h="2"
+            title = "Plot (not stack)"
+            class="Plot"
+            select="0, 1, 2"
+            module="R5" source="OUTPUT"
+            min="0" max="1"
+            color = "red, green, yellow"
+        />
+    </view>
+
+    <view name="Vectors">
+        <object
+            x="0" y="0" 
+            class="Vector"
+            title="Vectors"
+            module="PM28" source="OUTPUT"
+        />
+			
+        <object
+            x="1" y="0" 
+            class="Vector"
+            title="Unnormalized Vectors"
+            normalize = "no"
+            module="PM28" source="OUTPUT"
+        />
+			
+        <object
+            x="2" y="0" 
+            class="Vector"
+            title="Colored Lines"
+            arrow = "no"
+            margin = "0.1"
+            color = "red, green, blue, yellow, violet, magenta, cyan"
+            stroke_width = "5"
+            circle_color = "brown"
+            module="PM28" source="OUTPUT"
+        />
+			
+        <object
+            x="0" y="1"
+            class="VectorField"
+            title="Vector Field"
+            circle_color = "#CCCCCC"
+            x_module="X" x_source="OUTPUT"
+            y_module="Y" y_source="OUTPUT"
+        />
+    </view>
+
+    <view name="Scatter Plot">
+        <object class="ScatterPlot" title="Default Scatter Plot" module="RGrayGrid" source="OUTPUT" x="0" y="0" w="1" h="1" />
+        <object class="ScatterPlot" title="Flipped Scatter Plot" module="RGrayGrid" source="OUTPUT" x="1" y="0" w="1" h="1" flip_y_axis="yes" />
+
+        <object class="ScatterPlot" title="Spectrum Scatter Plot" module="RGrayGrid" source="OUTPUT" color="LUT_spectrum" x="0" y="1" w="1" h="1" />
+        <object class="ScatterPlot" title="Custom Scatter Plot" module="RGrayGrid" source="OUTPUT" color="red,green,blue,yellow" x="1" y="1" w="1" h="1" />
+    </view>
+
+    <view name="Table">
+        <object class="Table" title="Default Table" module="R23T" source="OUTPUT" x="0" y="0" />
+        <object class="Table" title="Colored Table" module="R23T" source="OUTPUT" x="1" y="0" color="red, green, blue" />
+        <object class="Table" title="Color by Sign" module="R23T" source="OUTPUT" x="2" y="0" positive_color="blue" negative_color="red" font_size="24px" />
+    </view>
+		
+    <view name="Compositing">
+        <object
+            class="Image" 
+            title="Color Image"  
+            type="rgb" 
+            module="Image" 
+            source="RED+GREEN+BLUE" 
+            x="0" 
+            y="0"
+        />
+        <object
+            x="1" y="0" 
+            class="Trace" 
+            module="R5" 
+            source="OUTPUT"
+            trace_width="2"
+            title = "Trace"
+            _frame="visible"
+        />
+        <object
+            x="2" y="0" 
+            class="Circle" 
+            title = "Haircross"
+            _frame="visible"
+            stroke_width="1"
+            size="0.1"
+            color="red"
+        />
+        <object
+            x="2" y="0" 
+            class="Cross"
+            stroke_width="1"
+            size="0.2"
+            color="red"
+        />
+        <object
+            class="Image" 
+            title="Color Image"  
+            type="rgb" 
+            module="Image" 
+            source="RED+GREEN+BLUE" 
+            x="1" 
+            y="1"
+        />
+        <object
+            x="1" y="1" 
+            class="Trace" 
+            module="R5" 
+            source="OUTPUT"
+            trace_width="2"
+            _frame="none"
+        />
+        <object
+            x="1" y="1" 
+            class="Circle" 
+            stroke_width="1"
+            size="0.1"
+            color="red"
+        />
+        <object
+            x="1" y="1" 
+            class="Cross"
+            stroke_width="1"
+            size="0.2"
+            color="red"
+        />
+        <object
+            x="2" y="1"
+            class="Text" 
+            text="The three objects above are placed on top of each other. The frame attribute is set to none for the trace and haircross."
+        />
+    </view>
+		
+    <view name="Plot 3D">
+        <object class="Plot3D" title="Fire" color="LUT_fire" module="SmallImage" source="INTENSITY" x="0" y="0" />
+        <object class="Plot3D" title="Spectrum" color="LUT_spectrum" module="SmallImage" source="INTENSITY" x="1" y="0" />
+        <object class="Plot3D" title="Gray" color="LUT_gray" module="SmallImage" source="INTENSITY" x="2" y="0" />
+
+        <object class="Plot3D" title="Fire with Lines" color="LUT_fire" stroke="black" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="0" y="1" />
+        <object class="Plot3D" title="Red and Transparent" color="none" stroke="red" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="1" y="1" />
+        <object class="Plot3D" title="Custom LUT" color="white, white, white, blue"  stroke="black" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="2" y="1" />
+    </view>
+
+    <view name="Plot 3D Large">
+        <object class="Plot3D" title="Fire with Lines" color="LUT_fire" stroke="black" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="0" y="0" w="3" h="3" />
+    </view>
+
+    <view name="Polar Plot">
+		<object class="PolarPlot" title="Default Polar Plot" module="PP25" source="OUTPUT"
+			x="0" y="0" h="1" w="1" />
+        
+        <object class="PolarPlot" title="Radar" module="PP25" source="OUTPUT"
+			grid_color = "green"
+			grid_fill = "#020"
+			grid_stroke_width = "1"
+			color = "green"
+			fill = "#040"
+			stroke_width = "3"
+            opaque="no"
+			x="1" y="0" h="1" w="1" />
+		
+        <object class="PolarPlot" title="Bull\'s Eye" module="PP25" source="OUTPUT"
+			grid_color = "red"
+			grid_fill = "white"
+			grid_stroke_width = "5"
+			color = "black"
+			fill = "yellow"
+			stroke_width = "9"
+			axes = "4"
+			x="0" y="1" h="1" w="1" />
+
+		<object class="PolarPlot" title="Web" module="PP25" source="OUTPUT"
+			axes = "0"
+			grid_color = "none"
+			grid_fill = "gray"
+			grid_stroke_width = "5"
+			color = "black"
+			fill = "none"
+			stroke_width = "1"
+			line_color = "black"
+			x="1" y="1" h="1" w="1" />
+	</view>
+
+	<view name="Markers">
+		<object
+            x="0" y="0" 
+			class="Circle" 
+			title="Default Circle"
+			frame="visible"
+		/>
+
+		<object
+			x="1" y="0" 
+			class="Circle" 
+			title="Fixed Circle"
+			frame="visible"
+			stroke_width="1"
+			size="0.3"
+			color="red"
+		/>
+
+		<object
+			x="2" y="0" 
+			class="Circle" 
+			title="Controlled Circles"
+			frame="visible"
+			size="0.05"
+			stroke_width = "5"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+
+		<object
+			x="3" y="0" 
+			class="Circle" 
+			title="Scaled Circles"
+			frame="visible"
+            min="-1"
+            max="2"
+			size="0.025"
+			stroke_width = "5"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+
+		<object
+			x="4" y="0" 
+			class="Circle" 
+			title="Flipped Circles"
+			frame="visible"
+            min="0"
+            max="1"
+            flip_y_axis="yes"
+			size="0.05"
+			stroke_width = "5"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+
+		<object
+			x="0" y="1" 
+			class="Cross" 
+			title="Default Cross"
+			frame="visible"
+		/>
+
+		<object
+			x="1" y="1" 
+			class="Cross" 
+			title="Fixed Cross"
+			frame="visible"
+			stroke_width="1"
+			size="1"
+			color="red"
+		/>
+
+		<object
+			x="2" y="1" 
+			class="Cross" 
+			title="Controlled Cross"
+			frame="visible"
+			size="0.05"
+			stroke_width = "5"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+		<object
+			x="3" y="1" 
+			class="Cross" 
+			title="Scaled Cross"
+			frame="visible"
+            min="-1"
+            max="2"
+			size="0.025"
+			stroke_width = "5"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+
+		<object
+			x="4" y="1" 
+			class="Cross" 
+			title="Flipped Cross"
+			frame="visible"
+            min="0"
+            max="1"
+            flip_y_axis="yes"
+			size="0.05"
+			stroke_width = "5"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+
+        <object
+			x="0" y="2" 
+			class="Label" 
+			title="Default Label"
+            text="Label"
+		/>
+
+		<object
+			x="1" y="2" 
+			class="Label" 
+			title="Fixed Label"
+			text="Large Red"
+			size="24"
+			color="red"
+            offset_y = "0.30"
+		/>
+
+		<object
+			x="2" y="2" 
+			class="Label" 
+            type="labels"
+			title="Controlled Labels"
+			text = "X,Y,Z"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+		<object
+			x="3" y="2" 
+			class="Label" 
+			title="Numbered Labels"
+            type = "numbered"
+            prefix = "( "
+            postfix= " )"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+		<object
+			x="4" y="2" 
+			class="Label" 
+			title="XY-Labels"
+            type = "xy_value"
+            prefix = "[ "
+            postfix= " ]"
+            size = "9"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+        <!-- combined markers -->
+
+		<object
+			x="0" y="3" 
+            h="2" w="2"
+			class="Circle" 
+			title="Combined"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+		<object
+			x="0" y="3" 
+            h="2" w="2"
+			class="Label" 
+            text = "Red,Green,Yellow"
+            size = "13"
+            offset_y = "0.017"
+			color="red,green,yellow,blue"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+        <!-- more combined markers with offset -->
+
+		<object
+			x="2" y="3" 
+            h="2" w="2"
+			class="Cross" 
+			title="Combined 2"
+			color="red,green,yellow,blue"
+            stroke_width = "1"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+		<object
+			x="2" y="3" 
+            h="2" w="2"
+			class="Label" 
+            type = "xy_value"
+            size = "9"
+			color="red,green,yellow,blue"
+            text_anchor="start"
+            offset_x = "0.025"
+            offset_y = "-0.025"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+		<object
+			x="2" y="3" 
+            h="2" w="2"
+			class="Label" 
+            type = "labels"
+            size = "18"
+            text = "No,Yes,Maybe"
+			color="red,green,yellow,blue"
+            text_anchor="end"
+            offset_x = "-0.025"
+            offset_y = "0.075"
+			module="R23"
+			source="OUTPUT"
+		/>
+        
+        <object
+			x="4" y="3" 
+			class="Rectangle" 
+			title="Controlled Rectangle"
+			frame="visible"
+			size="0.05"
+			stroke_width = "1"
+			color="red,green,yellow,blue"
+			module="R33"
+			source="OUTPUT"
+		/>
+
+		<object
+			x="4" y="4" 
+			class="Rectangle" 
+			title="Scaled Rectangle"
+			frame="visible"
+            min="-1"
+            max="2"
+			size="0.025"
+			stroke_width = "1"
+			color="red,green,yellow,blue"
+			module="R33"
+			source="OUTPUT"
+		/>
+
+	</view>
+
+	<view name="Compositing 2" object_size="80" object_spacing="5">
+	
+		<object class="Image" title="Color Image"  type="rgb"
+            module="Image" source="RED+GREEN+BLUE"
+            frame="none"
+            h = "4" w = "4"
+            x="0" y="0" 
+        />
+		
+		<object
+			x="0" y="0" 
+			class="BarGraph" 
+			module="R5" 
+			source="OUTPUT"
+			title = "Bar Graph 1"
+			fill = "#567"
+			color = "black"
+			frame="none"
+		/>
+		
+		<object
+			x="4" y="0" 
+			class="BarGraph" 
+			title="BarGraph" 
+			module="R5" 
+			source="OUTPUT"
+		/>
+		
+		<object class="PolarPlot" module="PP25" source="OUTPUT"
+			axes = "0"
+			grid_color = "none"
+			grid_fill = "gray"
+			grid_stroke_width = "5"
+			color = "black"
+			fill = "none"
+			stroke_width = "1"
+			line_color = "black"
+			x="3" y="3"
+			frame="none"
+		/>
+
+		<object class="PolarPlot" title="PolarPlot" module="PP25" source="OUTPUT"
+			x="4" y="1"
+		/>
+	</view>
+
+	<view name="Scaling" object_size="70" object_spacing="5">
+
+		<object
+			x="0" y="0" 
+			class="BarGraph" 
+			title="BarGraph" 
+			module="R5" 
+			source="OUTPUT"
+		/>
+		
+		<object class="PolarPlot" module="PP25" source="OUTPUT"
+			x="1" y="0"
+		/>
+
+		<object
+				class="Plot"
+				module="FG" source="OUTPUT"
+				min="-1" max="1"
+				x="2"
+				y="0"
+				title = "Plot"
+        />
+	</view>
+
+	<view name="Lines">
+
+		<object
+			x="0" y="0" 
+			class="Lines" 
+			title="Lines" 
+			module="Lines" 
+			source="OUTPUT"
+            color = "red, green, blue, yellow"
+		/>
+		
+	</view>
+
+	<view name="Grab Bag">
+
+        <object
+            x="0" y="0" 
+            class="BarGraph" 
+            module="R5" 
+            source="OUTPUT"
+            title = "Bar Graph 1"
+        />
+		
+         <object class="Grid" title="Color Grid" module="RColorGrid" source="OUTPUT" x="1" y="0"  color = "black, yellow, red, green, blue" />
+         
+        <object
+            x="2"
+            y="0"
+            w="1"
+            title = "Plot"
+            class="Plot"
+            module="FG" source="OUTPUT"
+            min="-1" max="1"
+            select="[0,0]"
+            color="green"
+            stroke_width="3"
+        />
+
+        <object
+            x="0" y="1"
+            class="VectorField"
+            title="Vector Field"
+            circle_color = "#CCCCCC"
+            x_module="X" x_source="OUTPUT"
+            y_module="Y" y_source="OUTPUT"
+        />
+
+        <object class="Table" title="Color by Sign" module="R23T" source="OUTPUT" x="1" y="1" positive_color="blue" negative_color="red" font_size="24px" />
+        
+         <object class="Plot3D" title="Fire" color="LUT_fire" module="SmallImage" source="INTENSITY" x="2" y="1" />
+         
+         <object class="Switch" title="Switch" x="0" y="2" />
+	</view>
+
+</group>
+ 
+

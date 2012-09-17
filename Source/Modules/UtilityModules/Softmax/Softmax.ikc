@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<group name="Softmax" description="calculates softmax">
+
+	<description type="text">
+		Module used to calculate the softmax over its input.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Softmax"
+			name="Softmax"
+		/>
+	</example>
+
+	<parameter name="type" type="list" values="polynomial/exponential" default="polynomial" description="Scale factor" />
+    
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Softmax" />
+
+    <view title="Softmax">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Softmax"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Softmax.h</file>
+   		<file>Softmax.cc</file>
+   		<file>Softmax.ikc</file>
+   </files>
+
+</group>

@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<group name="M02_Thalamus" description="a thalamus model">
+
+<description type="text">
+The module implements the thalamus model described in the PhD thesis by Jan Morén 2002.
+</description>
+
+<example description="A simple example">
+<module
+    class="M02_Thalamus"
+    name="Thalamus"
+/>
+</example>
+
+<input
+    name="INPUT"
+    description="The conditioned stimulus input"
+/>
+
+<output
+    name="OUTPUT"
+    size_set="INPUT"
+    description="The output to cortex"
+/>
+
+<output
+    name="TH"
+    size="1"
+    description="The thalamic output"
+/>
+
+<module class="M02_Thalamus" />
+
+<author>
+<name>Jan Moren</name>
+<email>jan.moren@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Jan.Moren/</homepage>
+</author>
+
+<reference>
+Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lund Univeristy Cognitive Studies, 93.
+</reference>
+
+<files>
+<file>M02_Amygdala.h</file>
+<file>M02_Amygdala.cc</file>
+<file>M02_Amygdala.ikc</file>
+</files>
+
+</group>
+
+

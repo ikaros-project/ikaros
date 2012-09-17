@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group name="OuterProduct" description="outer product of two inputs">
+
+	<description type="text">
+		Module that calculates the outer product of its two input vectors.
+		The outer product is a matrix of size s1*s2, where s1 is the size
+		of the first input and s2 is the size of the second input. Each
+		element in the output matrix is the product of one element i
+		each of the inputs:
+
+		output[j][i] = input1[j]*input2[i].
+
+		If the inputs will be flattened before the elements are multiplied
+		if they are not one-dimensional . The output is thus always a
+		two-dimensional matrix regardless of the dimensions of the inputs.
+
+		The outer product is also somtimes called the tensor product.
+	</description>
+
+	<example description="Example">
+		<module
+			class="OuterProduct"
+			name="OuterProduct"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output is the outer product of the two inputs in matrix form" />
+
+	<module class="OuterProduct" />
+
+    <view title="OuterProduct">
+        <object
+            x="0" y="0" w="2" h="2"
+            class="Grid"
+            module="*"
+            source="OUTPUT"
+            title="Default view for OuterProduct"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>OuterProduct.h</file>
+   		<file>OuterProduct.cc</file>
+   		<file>OuterProduct.ikc</file>
+   </files>
+
+</group>

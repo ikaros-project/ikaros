@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<group name="Abs" description="rectifies a signal">
+
+	<description type="text">
+		Module used to rectify its input. The output is calculated as,
+		output(t) = | input(t) |
+		The module calculates the absolute value of each input component.	
+	</description>
+
+	<example description="Example">
+		<module
+			class="Abs"
+			name="Abs"
+		/>
+	</example>
+
+	<input name="INPUT" description="The  input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Abs" />
+
+    <view title="Abs">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Abs"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Abs.h</file>
+   		<file>Abs.cc</file>
+   		<file>Abs.ikc</file>
+   </files>
+
+</group>

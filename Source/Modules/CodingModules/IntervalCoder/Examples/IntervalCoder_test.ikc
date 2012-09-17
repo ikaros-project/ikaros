@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group title="IntervalCoder">
+    
+    <module
+        class = "Sweep"
+        name = "Signal"
+        outputsize = "1"
+        min = "0"
+        max = "10"
+        step = "-0.1"
+    />
+        
+    <module
+        class = "IntervalCoder"
+        name = "IntervalCoder"
+        min  = "0"
+        max  = "10"
+        radius = "7"
+        outputsize = "20"
+    />
+        
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="IntervalCoder" target="INPUT" delay = "0" />
+    
+    <view name="View">
+        <object class="BarGraph" module="IntervalCoder" source="OUTPUT" x="0" y="0" w="2"/>
+        <object class="Plot" module="Signal" source="OUTPUT" max="10" colors="['yellow']"  x="0" y="1" w="2"/>
+    </view>
+
+</group>
+

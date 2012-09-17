@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="MyModule" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "MyModule" to the name of your new module in
+		MyModule.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MyModule"
+			name="MyModule"
+			parameter1 = "3.14"
+			parameter2 = "42"
+		/>
+	</example>
+
+	<parameter name="parameter1" type="float" default="7.0" description="The first parameter" />
+	<parameter name="parameter2" type="int" default="2" description="The second parameter" />
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT1" description="The first output" size="10" />
+	<output name="OUTPUT2" description="The second output" size_set="INPUT2" />
+
+	<module class="MyModule" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MyModule.h</file>
+   		<file>MyModule.cc</file>
+   		<file>MyModule.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<!-- Class file for Randomizer -->
+
+<group name="Randomizer" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module
+			class = "Randomizer"
+			name = "Randomizer"
+			outputsize = "10"
+			min="0"
+			max = "1"
+		/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output" />
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output" />
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output" />
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0" />
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1" />
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer" />
+
+    <view title="Randomizer">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Randomizer"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+
+

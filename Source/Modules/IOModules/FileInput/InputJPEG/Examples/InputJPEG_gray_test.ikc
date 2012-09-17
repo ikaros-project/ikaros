@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This example copies the jpeg image "grayrobot.jpeg" into a raw gray scale image file
+	called "copy.raw" using two IKAROS modules: InputJPEG and OutputRawImage
+
+-->
+
+<group title = "JPEG">
+    
+    <module class = "InputJPEG" name = "IN" filename = "../../../../../../Examples/Media/grayrobot.jpg" iterations = "1000" />
+    <module  class = "OutputRawImage" name = "OUT" scale = "1.0" suppress = "1" offset = "0" filename = "copy.raw" />
+
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "OUT" target = "INPUT" />
+
+    <view name = "View 1">
+        <object class="Image" type ="gray" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+    </view>	
+	
+</group>

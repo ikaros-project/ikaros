@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This network reads the jpeg image "rgb.jpeg" five times and writes a new numbered JPEG image with the red channel.
+	
+-->
+
+<group>
+		<module
+			class = "InputJPEG"
+			name = "IN"
+            filename = "../../../../../../Examples/Media/colorrobot.jpg"
+			iterations = "5"
+		/>
+		
+		<module 
+			class = "OutputJPEG"
+			name = "OUT"
+			filename = "red%0d.jpg"
+		/>
+
+		<connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "INTENSITY" />
+
+		<view name = "View 1">
+			<object class="Image" module="IN" source="RED" x="0" y="0" min="0" max="255" />
+			<object class="Image" module="IN" source="GREEN" x="1" y="0" min="0" max="255" />
+			<object class="Image" module="IN" source="BLUE" x="2" y="0" min="0" max="255" />
+		</view>
+</group>
+

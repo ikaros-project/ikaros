@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "rgb.jpeg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group>
+		<module class = "InputJPEG" name = "IN"
+        filename = "../../../../../../../Examples/Media/grayrobot.jpg" iterations = "3" />
+		
+		<module 
+			class = "GaussianEdgeDetector"
+			name = "Gaussian10"
+			scale = "10"
+		/>
+		
+		<module 
+			class = "GaussianEdgeDetector"
+			name = "Gaussian5"
+			scale = "5"
+		/>
+		
+		<module 
+			class = "GaussianEdgeDetector"
+			name = "Gaussian2"
+			scale = "1"
+		/>
+
+
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian10" target = "INPUT" delay="0" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian5" target = "INPUT" delay="0" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian2" target = "INPUT" delay="0" />
+
+		<view name = "V1">
+			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+
+			<object class="Image" module="Gaussian10" source="dGx" x="2" y="0"  />
+			<object class="Image" module="Gaussian10" source="dGy" x="2" y="1"  />
+
+			<object class="Image" module="Gaussian2" source="dx" x="3" y="0"  />
+			<object class="Image" module="Gaussian2" source="dy" x="3" y="1"  />
+
+			<object class="Image" module="Gaussian5" source="ORIENTATION" x="4" y="0"  h="2" w="2" />
+
+			<object class="Image" module="Gaussian10" source="OUTPUT" x="0" y="2"  h="2" w="2" />
+			<object class="Image" module="Gaussian5" source="OUTPUT" x="2" y="2"  h="2" w="2" />
+			<object class="Image" module="Gaussian2" source="OUTPUT" x="4" y="2"  h="2" w="2" />
+		</view>
+
+</group>
+

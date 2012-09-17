@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<group title="Kalman Filter Example">
+	
+    <module
+        class = "Constant"
+        name = "Control"
+        outputsize = "1"
+        data = "0"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "F1"
+        type = "triangle"
+        frequency = "0.05"
+        offset = "0.0"
+        amplitude = "1.0"
+        shift = "0.0"
+    />
+          
+    <module
+        class = "FunctionGenerator"
+        name = "F2"
+        type = "triangle"
+        frequency = "0.032"
+        offset = "0.0"
+        amplitude = "1.0"
+        shift = "0.0"
+    />
+          
+    <module
+        class = "Noise"
+        name = "Noise"
+        sigma = "0.0025"
+    />
+
+    <module
+        class = "KalmanFilter"
+        name = "K"
+        state_size = "6"
+        observation_size = "2"
+            
+        process_noise = "1"
+        observation_noise = "0.0025"
+            
+            A = "1 0 1 0 1 0;
+                 0 1 0 1 0 1;
+                 0 0 1 0 1 0;
+                 0 0 0 1 0 1;
+                 0 0 0 0 1 0;
+                 0 0 0 0 0 1;"
+                 
+            B = "0 0 0 0 0 0"
+            
+            H = "1 0 0 0 0 0;
+                 0 1 0 0 0 0"
+        />
+
+        <connection sourcemodule="F1" source="OUTPUT" targetmodule="Noise" target="INPUT" delay="1" />
+        <connection sourcemodule="F2" source="OUTPUT" targetmodule="Noise" target="INPUT" delay="1" />
+
+        <connection sourcemodule="Noise" source="OUTPUT" targetmodule="K" target="OBSERVATION" delay="0" />
+        <connection sourcemodule="Control" source="OUTPUT" targetmodule="K" target="INPUT" delay="0" />
+
+		<view name="View">
+			<object class="Trace" module="Noise" source="OUTPUT" x="0" y="0" />
+			<object class="Trace" module="K" source="STATE" color="red" x="0" y="0" />
+
+            <object class="Trace" module = "K" source="STATE" x="1" y="0" />
+            
+            <object class="Table" module = "K" source="KALMAN_GAIN" title="Kalman gain" x="0" y="1" />
+
+            <object class="Slider" module = "K" parameter="observation_noise" title="observation noise" x="1" y="1" />
+            <object class="Table" module = "K" source="observation_noise" title="observation noise" x="1" y="1" />
+            <object class="Slider" module = "K" parameter="process_noise" title="process noise" x="1" y="2" />
+            <object class="Table" module = "K" source="process_noise" title="process noise" x="1" y="2" />
+            
+            <object title="p" class="Plot" module = "K" source="STATE" select="0, 1" color="red, green" x="2" y="0" w="2"/>
+            <object title="v" class="Plot" module = "K" source="STATE" min="-0.025" max="0.025" select="2, 3" color="red, green" x="2" y="1" w="2"/>
+            <object title="a" class="Plot" module = "K" source="STATE" min="-0.025" max="0.025" select="4, 5" color="red, green" x="2" y="2" w="2"/>
+		</view>
+
+</group>
+ 

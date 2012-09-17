@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="SpatialClustering" description="finds clusters of pixels">
+
+	<description type="text">
+		Module used to find clusters in an image. Clusters are made up of pixels of value 1. The maximum number of clusters to be found as well as the minimu area 
+        of the cluster that is filled with 1's can be set. In addition, the module can track clusters between frames to give consistent numbering of the clusters.
+        The output is a table of target coordinates.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class           = "SpatialClustering"
+			name            = "SpatialClustering"
+  			cluster_radius	= "0.1"
+			no_of_clusters	= "6"
+		/>
+	</example>
+
+	<parameter name="no_of_clusters" type="int" default="1.0" min="1.0" max="100" description="The maximum number of clusters to find in the scene. No of rows in the output matrix" />
+	<parameter name="cluster_radius" type="float" default="0.1" min="0" max="1.0" description="The radius of a cluster (in relation to the width input image)." />
+	<parameter name="min_cluster_area" type="float" default="0.2" min="0" max="1.0" description="The minimium filled region of a cluster (in relation to the area of the input image)." />
+	<parameter name="tracking_distance" type="float" default="0.25" min="0" max="1.0" description="The maximum movement of a cluster between frames in relaion to image width." />
+	<parameter name="sorting" type="bool" default="false" description="Should the clusters be sorted according to size? This will select the largets clusters regardless of position." />
+
+
+	<input name="INPUT" description="The input image with white for target elements" />
+	<output name="OUTPUT" description="The positions of the found objects, (x, y) for each object." size_x="2" size_param_y="no_of_clusters" />
+	<output name="CONFIDENCE" description="The fraction of the circle area around the center of each cluster filled with pixels." size_param="no_of_clusters" />
+
+	<module class="SpatialClustering" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SpatialClustering.h</file>
+   		<file>SpatialClustering.cc</file>
+   		<file>SpatialClustering.ikc</file>
+   </files>
+
+</group>
+

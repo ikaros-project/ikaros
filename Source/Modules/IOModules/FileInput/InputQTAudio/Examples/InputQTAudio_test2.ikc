@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example network file for InputQTAudio
+	This network will read each frame from the file "test.mpg" and scale it to the size 128x128
+	If size_x and size_y are left out, the output from the module will be determined by the size of the movie file
+
+-->
+
+<group>
+		<module
+			class = "InputQTAudio"
+			name = "Audio"
+			filename = "../../../../../../Examples/Media/ikaros.aif"
+			samples_per_buffer = "1024"
+		/>
+
+</group>

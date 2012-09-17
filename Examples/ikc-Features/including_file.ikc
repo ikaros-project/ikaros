@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<!--
+
+	including_file.ikc
+	
+    This is an advanced example of some features of the IKC file format
+	
+	This file demonstrates how to include an external file to be used as a module
+    Here, the file double_randomizer.ikc is included
+	
+    The result is analogous to using the single file group.ikc
+-->
+
+<group>
+	
+	<module
+		class = "double_randomizer"
+		name = "DoubleRandomizer"
+		max = "5"
+	/>
+
+	<!-- The add module is used to add the two outputs from DoubleRandomizer -->
+
+	<module
+		class = "Add"
+		name = "Add"
+	/>
+	
+	<!-- The connections from the group are automatically mapped to the outputs of R1 and R2 -->
+	
+	<connection sourcemodule="DoubleRandomizer" source="X" targetmodule="Add" target="INPUT1" />
+	<connection sourcemodule="DoubleRandomizer" source="Y" targetmodule="Add" target="INPUT2" />
+
+	<!-- The views can only refer to the outputs at the outer level (not directly to R1.OUTPUT) -->
+
+	<view name="Main View">
+		<object class="BarGraph" name="X" module="DoubleRandomizer" source="X" x="0" y="0" max="10"/>
+		<object class="BarGraph" name="Y" module="DoubleRandomizer" source="Y" x="1" y="0" max="10" />
+		<object class="BarGraph" name="Sum" module="Add" source="OUTPUT" x="0" y="1" max="10" />
+	</view>
+
+</group>
+

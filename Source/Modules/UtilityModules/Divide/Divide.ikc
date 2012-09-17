@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Divide" description="divides the first input with the second">
+
+	<description type="text">
+		Module that divides its two inputs component by component.
+        Both inputs must have the same size. The division is safe
+        when input2 = 0. In this case the result will be set to 0.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Divide"
+			name="Divide"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output is the quotient of each elements of the two inputs: INPUT1 / INPUT2" size_set="INPUT1, INPUT2" />
+
+	<module class="Divide" />
+
+    <view title="Divide">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Divide"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Divide.h</file>
+   		<file>Divide.cc</file>
+   		<file>Divide.ikc</file>
+   </files>
+
+</group>

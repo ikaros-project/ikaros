@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="GaborFilter" description="filters an image">
+
+	<description type="text">
+		Module that constructs a Gabor filter and applies it to an image.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="GaborFilter"
+			name="GaborFilter"
+		/>
+	</example>
+
+	<parameter name="scale" type="float" description="The scale of the filter" />
+	<parameter name="gamma" type="float" description="Aspect ration" />
+	<parameter name="lambda" type="float" description="Wavelength" />
+	<parameter name="theta" type="float" description="Orientation" />
+	<parameter name="phi" type="float" description="Phase offset" />
+	<parameter name="sigma" type="float" description="Width" />
+
+	<input name="INPUT" description="The first input" />
+	<output name="OUTPUT" description="The output" />
+	<output name="FILTER" description="The filter kernel" />
+	<output name="GAUSSIAN" description="The gaussian window" />
+	<output name="GRATING" description="The sinusoidal grating" />
+
+	<module class="GaborFilter" />
+
+    <limitation>
+        The current implementation is incredibly slow.
+    </limitation>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>GaborFilter.h</file>
+   		<file>GaborFilter.cc</file>
+   		<file>GaborFilter.ikc</file>
+   </files>
+
+</group>

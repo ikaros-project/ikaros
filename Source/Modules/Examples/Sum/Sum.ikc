@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<group name="Sum" description="adds two inputs">
+
+	<description type="text">
+		Module that sums its two inputs element by element.
+		Both inputs must have the same size.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Sum"
+			name="Sum"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="Sum" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Sum.h</file>
+   		<file>Sum.cc</file>
+   		<file>Sum.ikc</file>
+   </files>
+
+</group>

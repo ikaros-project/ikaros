@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "rgb.jpeg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group>
+		<module
+			class   = "InputVideoQT"
+			name	= "IN"			
+			size_x  = "128"
+			size_y  = "128"
+			camera  = "iSight"
+		/>
+		
+		<module class = "ImageConvolution" name = "C1" offset = "0.0" scale = "1"  rectify="yes" >
+			<kernel sizex = "3" sizey = "3" >
+				1   0  -1
+				2   0  -2
+				1   0  -1
+			</kernel>
+		</module>	
+
+		<module class = "ImageConvolution" name = "C2" offset = "0.0" scale = "1"  rectify="yes" >
+			<kernel sizex = "3" sizey = "3" >
+				1   2	1
+				0   0	0
+			   -1  -2  -1
+			</kernel>
+		</module>	
+
+		<module class = "ImageConvolution" name = "C3" offset = "0.0" scale = "1"  rectify="yes" >
+			<kernel sizex = "3" sizey = "5" >
+				-1	2	-1
+				-1	2	-1
+				-1	2	-1
+			</kernel>
+		</module>	
+
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C1" target = "INPUT" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C2" target = "INPUT" />
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C3" target = "INPUT" />
+
+		<view name = "V1">
+			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+			<object class="Image" type="fire" module="C1" source="OUTPUT" x="0" y="2" h="2" w="2" />
+			<object class="Image" type="fire" module="C2" source="OUTPUT" x="2" y="2" h="2" w="2" />
+			<object class="Image" type="fire" module="C3" source="OUTPUT" x="2" y="0" h="2" w="2" />
+		</view>
+
+</group>

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group name="NetworkCamera" description="grabs images from network camera">
+
+	<description type="text">
+		Module used for grabbing images from a network camera. The module has
+		been tested with the the Axis 2130 pan-til-zoom camera and probably works
+		also with other Axis cameras. It requests a MJPEG stream.
+    </description>
+
+	<example description="A simple example">
+		<module
+			class="NetworkCamera"
+			name="NetworkCamera"
+		/>
+	</example>
+
+	<parameter name="size_x" type="int" description="The size of the image" />
+	<parameter name="size_y" type="int" description="The size of the image" />
+	<parameter name="host_ip" type="string" description="The IP address of the camera" />
+	<parameter name="host_port" type="int" default="80" description="The port used for the camera" />
+
+	<parameter name="image_request" type="string" default="AXIS streaming" description="Not currently used" />
+
+	<parameter name="fps" type="int" default="10" description="Desired frames per seond" />
+	<parameter name="compression" type="int" default="50" description="Requested compression" />
+
+	<output name="INTENSITY" description="The intensity of the image" />
+	<output name="RED" description="The red channel of the image" />
+	<output name="GREEN" description="The green channel of the image" />
+	<output name="BLUE" description="The blue channel of the image" />
+
+	<module class="NetworkCamera" />
+
+	<bug>
+		The image sizes should be calculated automatically from the first image.
+	</bug>
+	
+	<bug>
+		The module currently ignores the image_request parameter and works only with AXIS cameras.
+	</bug>
+	
+	<created>2003</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>NetworkCamera.h</file>
+   		<file>NetworkCamera.cc</file>
+   		<file>NetworkCamera.ikc</file>
+   </files>
+
+</group>

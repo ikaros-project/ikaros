@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<group name="Shift" description="shifts matrix elements">
+
+	<description type="text">
+		Module that shifts the elements of a matrix the
+		distance in the x and y direction indicated by the input SHIFT.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Shift"
+			name="Shift"
+		/>
+	</example>
+
+	<parameter name="offset_x" type="float" default="0.0" description="Initial shift of the matrix" />
+	<parameter name="offset_y" type="float" default="0.0" description="Initial shift of the matrix" />
+	<parameter name="direction" type="float" default="1.0" description="The direction and scaling of the shift" />
+	
+	<input name="INPUT" description="The first input" />
+	<input name="SHIFT" description="The distance to shift the input in [X, Y] form" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="Shift" />
+
+    <view title="Shift">
+        <object
+            x="0" y="0" w="2"
+            class="Image"
+            type="gray"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Shift"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Shift.h</file>
+   		<file>Shift.cc</file>
+   		<file>Shift.ikc</file>
+   </files>
+
+</group>
+

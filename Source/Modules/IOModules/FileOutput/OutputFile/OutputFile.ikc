@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+<group name="OutputFile" description="generates a text file">
+
+	<description type="xhtml">
+		<p>
+			Module used for writing numerical data to a text file. The data is represented in the
+			file as a number of columns given names in a header. The first column is called "T"
+			and contains the time (in ticks) when the row was written. All other columns in the
+			output file are defined in the XML file.
+		</p>
+		<h2>
+			Example XML definitions
+		</h2>
+		<pre>
+  &lt;module
+    class = "OutputFile"
+    name = "OUT"
+    filename = "data.txt"
+  &gt;
+    &lt;column name = "X" /&gt;  
+    &lt;column name = "Y" /&gt;  
+  &lt;/module&gt;
+</pre>
+		<p>
+			The following example shows how the header describes the number of'
+			columns in each output column and its name. The file could have been
+			produced by the above module definition if the input vector to "X" had one
+			value and the input to "Y" had two values.
+		</p>
+		<pre class="textfile">
+  T/1  X/1       Y/2
+  0     2.0000   12.0000     5.0102
+  1    31.0000    5.4000    10.4321
+   :
+   :
+</pre>
+		<p>
+			As default there are four decimals in each column. This can be changed with the decimals attribute:
+		</p>
+		<pre>
+  &lt;module
+    class = "OutputFile"
+    name = "OUT"
+    filename = "data.txt"
+    decimals = "0"
+  &gt;
+    &lt;column name = "X" /&gt;  
+    &lt;column name = "Y" decimals = "2" /&gt;  
+  &lt;/module&gt;
+</pre>
+		<p>
+			Here, the attribute decimals in the module tag sets the default decimals to none for all columns. This is changed locally for column Y where 2 decimals are used. The example above will now become:
+		</p>
+		<pre class="textfile">
+  T/1  X/1  Y/2
+  0     2   12.00     5.01
+  1    31    5.40    10.43
+   :
+   :
+</pre>
+	</description>
+
+	<example description="Example">
+		<module
+			class = "OutputFile"
+			name = "OutputFile"
+			filename = "data.txt"
+		>
+			<column name = "X" />  
+			<column name = "Y" />  
+		</module>
+	</example>
+
+	<parameter name="filename" type="string" description="File to write the data to" />
+	<parameter name="decimals" type="int" default="0" description="Number of decimals for all columns" />
+
+	<parameter name="column" type="element" description="Definition of a column in the output file; name attribute sets the name of the column; decimals sets the number decimals of this column" />
+
+	<input name="*" description="The module can have any number of inputs; each will generate a column in the output" />
+
+	<module class="OutputFile" />
+
+	<limitation>
+		It should be possible to supress the timing column "T".
+	</limitation>
+	
+	<created>2002</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>OutputFile.h</file>
+   		<file>OutputFile.cc</file>
+   		<file>OutputFile.ikc</file>
+   </files>
+
+</group>

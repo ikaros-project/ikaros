@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="SSC32" description="interfaces the SSC-32 RC servos">
+
+	<description type="text">
+		Driver for the SSC-32 RC servo controller by Lynxmotion. 
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SSC32"
+			name="SSC32"
+			min = "1000 1000 1000 1000"
+			max = "1500 1500 1500 1500"
+			home = "0.5 0.5 0.5 0.5"
+		/>
+	</example>
+
+	<parameter name="min" type="float" default="" min="500" max="2500" description="Minimum positions of the servos (in ms)" />
+	<parameter name="max" type="float" default="" min="500" max="2500" description="Maximum positions of the servos (in ms)" />
+	<parameter name="home" type="float" default="" min="0" max="1" description="Home positions of the servos" />
+
+	<input name="INPUT" description="The desired servo positions (range 0-1)" />
+	<output name="OUTPUT" description="The current servo positions based on last pulses sent from the SSC32 (range 0-1)" />
+
+	<module class="SSC32" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SSC32.h</file>
+   		<file>SSC32.cc</file>
+   		<file>SSC32.ikc</file>
+   </files>
+
+</group>
+

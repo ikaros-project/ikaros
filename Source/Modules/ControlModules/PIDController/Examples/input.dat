@@ -1,0 +1,16 @@
+#
+#	input.dat
+#
+#	Example data for to test PIDController
+#
+# 	The data consists of two columns X and S 
+#	with one value in each.
+#	
+
+X/1 S/1
+1 3
+2 3
+3 3
+4 3
+5 3
+6 3

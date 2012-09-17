@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+<group name="GridWorld" description="simple agent and world simulator">
+
+	<description type="xhtml">
+		<p>
+			Module that implements a simple grid world with obstacles and rewards/reinforcement.
+			Movements are given either as absolute  or relative directions in the MOVE input.
+		</p>
+		<p>
+			In absolute mode set by move = "max", the maximum direction in the MOVE array sets the
+			direction of movement. The four components in the array correspond to north (up), east (right),
+			south (down) and west (left). In absolute mode with summation, set by move = "sum", the movement
+			is the result of adding all directions in the MOVE input before finding the maximum direction.
+		</p>
+		<p>
+			In relative mode, set by move = "relative", the array MOVE is interpreted as having 
+			three components: move-ahead, turn-left, turn-right. With mode = "relative_sum", the components
+			turn-left and turn-right are subtracted before the maximum is found.
+		</p>
+		<p>	
+			No action is performed if MOVE is the zero vector.
+		</p>
+		<p>
+			The agent is automatically moved to the initial location when a reward location is reached.
+		</p>
+	</description>
+
+	<example description="A simple example">
+		<module
+			class = "GridWorld"
+			name = "GridWorld"
+			start_x = "2"
+			start_y = "2"
+			move = "absolute"
+			/>
+	</example>
+
+	<parameter name="move" type="list" values=" max/sum/relative_max/relative_sum" default="max" description="How to use the MOVE input" />
+	<parameter name="start_x" type="int" default="1" description="Starting x coordinate for the agent" />
+	<parameter name="start_y" type="int" default="1" description="Starting y coordinate for the agent" />
+	<parameter name="normalize_coordinate" type="bool" default="no" description="Map coordinate output to the interval 0..1" />
+
+	<input name="MOVE" description="Move in absolute directions (N, E, S, W) or relative (Forward, Turn-Left, Turn-Right)." />
+
+	<input name="OBSTACLES" description="Matrix with obstacles" />
+	<input name="VALUES" description="Matrix with values" />
+
+	<output name="LOCATION" description="Matrix with location of agent" />
+	<output name="COORDINATE" description="Array with location of agent as an x, y value" />
+	<output name="LOCAL_OBSTACLES" description="3x3 grid around agent" />
+	<output name="LOCAL_VALUES" description="3x3 grid around agent" />
+	<output name="REWARD" description="The current reward value" />
+	<output name="COLLISION" description="The action makes the agent collide with a wall" />
+	<output name="IMAGE" description="An image of the world with agent. Can be used by a viewer to visualize the world" />
+
+	<module class="GridWorld" />
+	
+	<limitation>
+		It should be possible to turn off the automatic movement of the agent from goal to start locations.
+	</limitation>
+
+	<created>2003</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>GridWorld.h</file>
+   		<file>GridWorld.cc</file>
+   		<file>GridWorld.ikc</file>
+   </files>
+
+</group>

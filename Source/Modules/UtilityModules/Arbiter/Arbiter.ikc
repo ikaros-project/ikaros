@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<group name="Arbiter" description="selects between two inputs">
+
+	<description type="text">
+		Module that selects between its two inputs based on the values in the value inputs.
+		The output is a copy of the input with the highest corresponding value input.
+		The inputs can be one or two dimensional. Both inputs must have the same size.
+		When the values are equal, INPUT1 is selected. If the value inputs are not connected,
+		the euclidean norm of the corresponding input is used instead.
+	</description>
+
+	<example description="An example">
+		<module
+			class="Arbiter"
+			name="Arbiter"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+	<input name="VALUE1" description="The first value" />
+	<input name="VALUE2" description="The second value" />
+
+	<output name="OUTPUT" description="The output" size_set="INPUT1,INPUT2" />
+	<output name="VALUE" size="1" description="The maximum value" />
+
+	<module class="Arbiter" />
+
+    <view title="Arbiter">
+        <object
+            title = "OUTPUT"
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+        />
+
+        <object
+            title = "VALUE"
+            x="3" y="0" w="1"
+            class="BarGraph"
+            module="*"
+            source="VALUE"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Arbiter.h</file>
+   		<file>Arbiter.cc</file>
+   		<file>Arbiter.ikc</file>
+   </files>
+
+</group>

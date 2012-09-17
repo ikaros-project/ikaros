@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<group name="InputPNG" description="reads PNG files">
+
+	<description type="text">
+		Module used for reading an image (or sequences of
+		images) from a PNG file or a sequence of PNG files. 
+		The files can be either gray-scale or RGB.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="InputPNG"
+			name="InputPNG"
+			filename = "image.png"
+		/>
+	</example>
+
+	<example description="Read a sequence of three files ten times (e. g. image00.png,image01.png, image02.png):">
+		<module
+			class = "InputPNG"
+			name = "IN"
+			filename = "image%02d.jpg"
+			filecount = "3"
+			iterations = "10"
+		/>
+	</example>
+
+	<parameter name="size_x" type="int" description="Size of the input images." optional="yes" />
+	<parameter name="size_y" type="int" description="Size of the input images." optional="yes" />
+
+	<parameter name="filename" type="int" description="File to read the image from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'."  />
+	<parameter name="filecount" type="int" default="1" description="Number of files to read" min="0" max="filecount-1" />
+	<parameter name="iterations" type="int" default="inf" description="Number of times to read the image(s)" min="1" max="filecount-1" />
+
+	<output name="INTENSITY" description="The gray level image data read from the file" />
+	<output name="RED" description="The red channel image data read from the file" />
+	<output name="GREEN" description="The green channel image data read from the file" />
+	<output name="BLUE" description="The blue channel image data read from the file" />
+
+	<module class="InputPNG" />
+    
+    <acknowledgement>
+	This module borrows heavily from the InputJPEG module by Christian Balkenius. 
+    </acknowledgement>
+	
+	<created>2007</created>
+	<author>
+		<name>Jan Moren</name>
+		<email>jan.moren@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/People/Jan.Moren</homepage>
+	</author>
+
+   <files>
+   		<file>InputPNG.h</file>
+   		<file>InputPNG.cc</file>
+   		<file>InputPNG.ikc</file>
+   </files>
+
+</group>
+

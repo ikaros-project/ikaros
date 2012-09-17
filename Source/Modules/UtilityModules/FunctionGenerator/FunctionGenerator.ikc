@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<group name="FunctionGenerator" description="functions of times">
+
+	<description type="text">
+		Module that produces a function of time as its output.
+        ramp: get an inverse ramp by setting offset=1 and amplitude=-1.
+	</description>
+
+	<example description="Example">
+		<module
+			class="FunctionGenerator"
+			name="FunctionGenerator"
+            type = "sin"
+            frequency = "0.314"
+            offset = "0.5"
+            amplitude = "0.4"
+            shift = "0.1"
+		/>
+	</example>
+
+    <parameter name="type" type="list" values="sin/triangle/ramp/square/ticksquare" defult="sin" description="Function selector" />
+    <parameter name="offset" type="float" default="0.0" description="A constant value added to the output" />
+    <parameter name="amplitude" type="float" default="1.0" description="The amplitide of the signal" />
+    <parameter name="frequency" type="float" default="0.15707963267949" description="Frequency of the signal." />
+    <parameter name="shift" type="float" default="0.0" description="Temporal shift of the function" />
+    <parameter name="duty" type="float" default="0.5" description="Duty cycle of the square wave" />
+    <parameter name="basetime" type="int" default="2" description="Length of a cycle in ticks for ticksqare" />
+    <parameter name="tickduty" type="int" default="1" description="Duty cycle of the ticksqare wave in ticks" />
+    
+	<output name="OUTPUT" description="The time dependent output signal" size="1" />
+
+	<module class="FunctionGenerator" />
+
+    <view title="FunctionGenerator">
+        <object
+            x="0" y="0" w="2"
+            class="Plot"
+            module="*"
+            source="OUTPUT"
+            title="Default view for FunctionGenerator"
+            min="-1"
+            max="1"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>FunctionGenerator.h</file>
+   		<file>FunctionGenerator.cc</file>
+   		<file>FunctionGenerator.ikc</file>
+   </files>
+
+</group>

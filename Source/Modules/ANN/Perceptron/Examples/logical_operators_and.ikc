@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+
+<group title= "Perceptron">
+
+	<module
+		class = "InputFile"
+		name = "LOGOP_DATA"
+		filename = "logical_operators_and.data"
+		iterations = "10"
+	/>
+
+
+	<module
+		class = "Perceptron"
+		name = "PERCEPTRON"
+		learning_rule = "delta"
+		margin = ""
+		normalize_target = "true"
+		activation_type = "tanh"
+		learning_type = "instant"
+		momentum_ratio = "0.42"
+		batch_size = "10"
+
+	/>
+
+
+	<module
+		class = "OutputFile"
+		name = "RESULTS"
+		filename = "logical_operators_and.output"
+		>
+			<column name = "OUT"/>
+			<column name = "ERR"/>
+	</module>
+
+
+	<module
+		class = "Average"
+		name = "AVERAGE"
+	/>
+
+
+	<connection sourcemodule = "LOGOP_DATA"  source = "IN"
+		targetmodule = "PERCEPTRON"  target = "INPUT" />
+
+	<connection sourcemodule = "LOGOP_DATA"  source = "IN"
+		targetmodule = "PERCEPTRON"  target = "T_INPUT" />
+
+	<connection sourcemodule = "LOGOP_DATA"  source = "TA"
+		targetmodule = "PERCEPTRON"  target = "T_TARGET" />
+
+	<connection sourcemodule = "LOGOP_DATA"  source = "TR"
+		targetmodule = "PERCEPTRON"  target = "TRAIN" />
+
+
+	<connection sourcemodule = "PERCEPTRON"  source = "OUTPUT"
+		targetmodule = "RESULTS"  target = "OUT" />
+
+	<connection sourcemodule = "PERCEPTRON"  source = "ERROR"
+		targetmodule = "RESULTS"  target = "ERR" />
+
+	<connection sourcemodule = "PERCEPTRON"  source = "ERROR"
+		targetmodule = "AVERAGE"  target = "INPUT" />
+	<view name="Table Test">
+	<object
+		class="Plot"
+		module="AVERAGE"
+		source="OUTPUT"
+		x="0"
+		y="0"
+		w="3"
+	/>
+	<object
+		class="Plot"
+		module="PERCEPTRON"
+		source="CORRECT"
+		x="0"
+		y="1"
+		w="3"
+	/>
+	</view>
+
+</group>

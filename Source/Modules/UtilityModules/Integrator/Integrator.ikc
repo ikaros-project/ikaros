@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group name="Integrator" description="sums input over time">
+
+	<description type="text">
+		Module used to integrate its input over time.
+		The output is calculated as,
+		output(t) = alpha * output(t) + beta * input(t).
+		Depending on the constants alpha and beta,
+		the module can be used as leaky integrator or an accumulator.
+		If they are set in the XML-file the constants minimum and
+		maximum set the allowed range of the output. It will be clipped
+		if it is outside the range.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Integrator"
+			name="Integrator"
+			alpha = "0.9"
+			beta = "0.1"
+		/>
+	</example>
+
+	<parameter name="alpha" type="float" default="0.9" description="How much does the integrater leak?" />
+	<parameter name="beta" type="float" default="0.1" description="How much of the input is stored in the integrator?" />
+	<parameter name="min" type="float" default="" description="The minimum value of the output (if set)" />
+	<parameter name="max" type="float" default="" description="The maximum value of the output (if set)" />
+	
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Integrator" />
+
+    <view title="Integrator">
+        <object
+            x="0" y="0" w="2"
+            class="Plot"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Integrator"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Integrator.h</file>
+   		<file>Integrator.cc</file>
+   		<file>Integrator.ikc</file>
+   </files>
+
+</group>
+

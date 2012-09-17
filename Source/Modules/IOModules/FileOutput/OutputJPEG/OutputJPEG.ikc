@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group name="OutputJPEG" description="writes JPEG files">
+
+	<description type="text">
+		Module used for writing an image (or sequences of images) to file(s).
+		The files are saved in JPEG format. For a gray scale image, connect only
+		the INTENSITY input. For a color image, connect all of RED, GREEN and
+		BLUE input (but not INTENSITY). It is assumed that the values lies in the range 0..1.
+		This can be adjusted with the scale factor which is multiplied with each intensity value.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OutputJPEG"
+			name="OutputJPEG"
+			filename = "image%02d.jpg"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to write the output to. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of the file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'." />
+	<parameter name="scale" type="float" default="1.0" description="Factor to multiply each element of the input matrix with" />
+	<parameter name="suppress" type="int" default="0" description="Number of initial files to supress. Used to stop the write of the first images in a sequence before any output is available." />
+	<parameter name="offset" type="int" default="none" description="Value to add to the file index" />
+
+	<input name="INTENSITY" description="The gray level image data to be written to the file" />
+	<input name="RED" description="The red channel image data to be written to the file" />
+	<input name="GREEN" description="The green channel image data to be written to the file" />
+	<input name="BLUE" description="The blue channel image data to be written to the file" />
+
+	<input name="WRITE" description="Signal to write or suppress a given
+	    image. If connected, an image will only actually be written if the
+	    value of the WRITE input is greter than 0. The file counter will
+	    still increase." />
+
+	<module class="OutputJPEG" />
+
+	<bug>
+		If %d is not in the filename each new file will overwrite the
+		previous. On Unix systems this is actually useful.
+	</bug>
+	
+	<created>2005</created>
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>OutputJPEG.h</file>
+   		<file>OutputJPEG.cc</file>
+   		<file>OutputJPEG.ikc</file>
+   </files>
+
+</group>
+

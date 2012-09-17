@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="M02_SensoryCortex" description="a (naive) cortex model">
+
+<description type="text">
+The module implements the cortex model described in the PhD thesis by Jan Morén 2002.
+</description>
+
+<example description="A simple example">
+<module
+    class="M02_SensoryCortex"
+    name="SensoryCortex"
+/>
+</example>
+
+<input
+    name="INPUT"
+    description="The cortex input"
+/>
+
+
+<output
+    name="OUTPUT"
+    size_set="INPUT"
+    description="The cortex output"
+/>
+
+<module class="M02_SensoryCortex" />
+
+<author>
+<name>Jan Moren</name>
+<email>jan.moren@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Jan.Moren/</homepage>
+</author>
+
+<files>
+<file>M02_SensoryCortex.h</file>
+<file>M02_SensoryCortex.cc</file>
+<file>M02_SensoryCortex.ikc</file>
+</files>
+
+</group>
+
+

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "Gate"
+			name = "Gate1"
+			open  = "yes"
+		/>
+		
+		<module
+			class = "Gate"
+			name = "Gate2"
+			open  = "no"
+		/>
+
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Gate1" target="INPUT" />
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Gate2" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Gate1" source="OUTPUT" max="5" x="0" y="0" />
+			<object class="BarGraph" module="Gate2" source="OUTPUT" max="5" x="1" y="0" />
+		</view>
+</group>
+ 

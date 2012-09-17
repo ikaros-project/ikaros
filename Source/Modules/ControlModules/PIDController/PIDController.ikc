@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<group name="PIDController" description="standard PID controller">
+
+	<description type="text">
+		Module that applies PID control independently to each of its inputs.
+        
+        All inputs and the control output can be filtered using the exponentially moving average. The filter constant
+        is set by the parameters Fs, Fm and Fc. Also the error used for propertional, integral and derivative
+        control can be filtered by setting the constants Fp, Fi and Fd to a value below 1.
+        
+        The integrator will not integerate the error when the control output has reached its minimum or maximum.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="PIDController"
+			name="PIDController"
+			Kp = "0.1"
+			Kd = "0.1"
+			Ki = "0.1"
+		/>
+	</example>
+
+	<parameter name="Kb" type="float" description="The controller bias" default="0.0" />
+	<parameter name="Kp" type="float" description="The proportional gain" default="0.1" />
+	<parameter name="Ki" type="float" description="The integral gain" default="0.0" />
+	<parameter name="Kd" type="float" description="The derivative gain" default="0.0" />
+
+	<parameter name="Fs" type="float" description="Set-point filter constant" default="0.0" />
+	<parameter name="Fm" type="float" description="Measurement filter constant" default="0.0" />
+	<parameter name="Fp" type="float" description="Proportional error filter constant" default="0.0" />
+	<parameter name="Fi" type="float" description="Integral error filter constant" default="0.0" />
+	<parameter name="Fd" type="float" description="Differential error filter constant" default="0.0" />
+	<parameter name="Fc" type="float" description="Control filter constant" default="0.0" />
+
+	<parameter name="Cmax" type="float" description="Maximum control output" default="1000.0" />
+	<parameter name="Cmin" type="float" description="Minimum control output" default="-1000.0" />
+
+	<input name="INPUT" description="The curent signal" />
+	<input name="SETPOINT" description="The desired value" />
+    
+	<output name="OUTPUT" description="The control output." size_set="INPUT, SETPOINT"/>
+	<output name="DELTA" description="The current deviation from the set point." size_set="INPUT, SETPOINT"/>
+
+	<output name="FILTERED_SETPOINT" description="Set point filtered by exponentially moving average." size_set="INPUT, SETPOINT"/>
+	<output name="FILTERED_INPUT" description="Input filtered by exponentially moving average." size_set="INPUT, SETPOINT"/>
+	<output name="FILTERED_ERROR_P" description="Error term used for proportional control filtered by exponentially moving average." size_set="INPUT, SETPOINT"/>
+	<output name="FILTERED_ERROR_I" description="Error term used for integral control filtered by exponentially moving average." size_set="INPUT, SETPOINT"/>
+	<output name="FILTERED_ERROR_D" description="Error term used for derivate control filtered by exponentially moving average" size_set="INPUT, SETPOINT"/>
+	<output name="INTEGRAL" description="The current integrated error." size_set="INPUT, SETPOINT"/>
+
+	<module class="PIDController" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>PIDController.h</file>
+   		<file>PIDController.cc</file>
+   		<file>PIDController.ikc</file>
+   </files>
+
+</group>
+

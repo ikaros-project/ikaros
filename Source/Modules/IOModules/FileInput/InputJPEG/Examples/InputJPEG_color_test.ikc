@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This example copies the jpeg image "colorrobot.jpeg" into three raw gray scale image file
+	called "R.raw",  "G.raw", and  "B.raw"  using the IKAROS modules: InputJPEG and OutputRawImage.
+	The image is displayed if run from the viewer.
+
+-->
+
+<group title = "JPEG">
+    
+	<module class = "InputJPEG" name = "IN" filename = "../../../../../../Examples/Media/colorrobot.jpg" iterations = "1000" />
+	<module  class = "OutputRawImage" name = "REDOUT" scale = "1.0" suppress = "1" offset = "0" filename = "R.raw" />
+	<module  class = "OutputRawImage" name = "GREENOUT" scale = "1.0" suppress = "1" offset = "0" filename = "G.raw" />
+	<module  class = "OutputRawImage" name = "BLUEOUT" scale = "1.0" suppress = "1" offset = "0" filename = "B.raw" />
+
+	<connection sourcemodule = "IN" source = "RED" targetmodule = "REDOUT" target = "INPUT" />
+	<connection sourcemodule = "IN" source = "GREEN" targetmodule = "GREENOUT" target = "INPUT" />
+	<connection sourcemodule = "IN" source = "BLUE" targetmodule = "BLUEOUT" target = "INPUT" />
+
+	<view name = "View 1">
+		<object class="Image" name="Color Image" type ="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0" h="1" w="1" />
+		<object class="Text" title="Description" text="This file demonstrates/the use of the module/InputJPEG" x="1" y="0" />
+	</view>	
+	
+</group>

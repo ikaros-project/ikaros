@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<group name="InputRawImage" description="reads images RAW format">
+
+	<description type="text">
+		Module that reads images in Raw format. The pixel values are scaled from 0-255 in the image to 0-1 in the output.
+	</description>
+
+	<example description="Read a single file once">
+		<module
+			class = "InputRawImage"
+			name = "IN"
+			size_x = "128"
+			size_y = "128"
+			filename = "image.raw"
+		/>
+  	</example>
+
+	<example description="Read a sequence of three files ten times (e. g. image00.raw, image01.raw, image02.raw)">
+		<module
+			class = "InputRawImage"
+			name = "IN"
+			size_x = "128"
+			size_y = "128"
+			filename = "image%02d.raw"
+			filecount = "3"
+			iterations = "10"
+		/>  	
+	</example>
+
+	<parameter name="size_x" type="int" description="Size of the image file" />
+	<parameter name="size_y" type="int" description="Size of the image file" />
+	<parameter name="filename" type="string" description="File to read from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'." />
+	<parameter name="filecount" type="int"  default="1" min="0" max="filecount-1" description="Number of files to read" />
+	<parameter name="iterations" type="int" default="inf" description="No of times to read the images" />
+	<parameter name="repeats" type="int" default="1" description="" />
+
+	<output name="OUTPUT" description="The image." />
+
+	<module class="InputRawImage" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>InputRawImage.h</file>
+   		<file>InputRawImage.cc</file>
+   		<file>InputRawImage.ikc</file>
+   </files>
+
+</group>

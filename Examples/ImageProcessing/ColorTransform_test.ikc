@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This network reads the jpeg image "cannes.jpg" and transforms the RGB image
+	to L*a*b* form that can bee seen in the viewer. No output is generated.
+	
+-->
+
+<group title="Color Transform">
+    
+    <module 
+        class = "InputJPEG" 
+        name = "IN" 
+        filename = "../Media/cannes.jpg" 
+    />
+    <module 
+        class = "ColorTransform" 
+        name = "XYZ" 
+        transform = "RGB->XYZ" 
+    />
+    <module 
+        class = "ColorTransform" 
+        name = "LAB" 
+        transform = "RGB->Lab" 
+    />
+
+    <connection sourcemodule = "IN" source = "RED" targetmodule = "XYZ" target = "INPUT0" />
+    <connection sourcemodule = "IN" source = "GREEN" targetmodule = "XYZ" target = "INPUT1" />
+    <connection sourcemodule = "IN" source = "BLUE" targetmodule = "XYZ" target = "INPUT2" />
+
+    <connection sourcemodule = "IN" source = "RED" targetmodule = "LAB" target = "INPUT0" />
+    <connection sourcemodule = "IN" source = "GREEN" targetmodule = "LAB" target = "INPUT1" />
+    <connection sourcemodule = "IN" source = "BLUE" targetmodule = "LAB" target = "INPUT2" />
+
+    <view name = "Demo view">
+        <object class="Image" module="IN" source="RED" x="0" y="0" />
+        <object class="Image" module="IN" source="GREEN" x="1" y="0" />
+        <object class="Image" module="IN" source="BLUE" x="2" y="0" />
+        
+        <object class="Image" name="Color" module="IN" type = "rgb" source="RED+GREEN+BLUE" x="3" y="0" />
+
+        <object class="Image" module="XYZ" source="OUTPUT0" x="0" y="1" />
+        <object class="Image" module="XYZ" source="OUTPUT1" x="1" y="1" />
+        <object class="Image" module="XYZ" source="OUTPUT2" x="2" y="1" />
+
+        <object class="Image" module="LAB" source="OUTPUT0" x="0" y="2" />
+        <object class="Image" module="LAB" source="OUTPUT1" x="1" y="2" />
+        <object class="Image" module="LAB" source="OUTPUT2" x="2" y="2" />
+    </view>
+
+</group>

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="GaussianEdgeDetector" description="finds edges and orientations">
+
+	<description type="text">
+		Module that applies a Gaussian edge filter to an image.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="GaussianEdgeDetector"
+			name="GaussianEdgeDetector"
+		/>
+	</example>
+
+	<parameter name="scale" type="float" description="Scale of the filter" />
+
+	<input name="INPUT" description="The input" />
+
+	<output name="ORIENTATION" description="Edge orientation" />
+	<output name="MAXIMA" description="Orinetation estimate" />
+	<output name="OUTPUT" description="Final edges" />
+	<output name="dx" description="Gradient estimation x" />
+	<output name="dy" description="Gradient estimation y" />
+	<output name="dGx" description="Filter kernel" />
+	<output name="dGy" description="Filter kernel" />
+
+	<module class="GaussianEdgeDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>GaussianEdgeDetector.h</file>
+   		<file>GaussianEdgeDetector.cc</file>
+   		<file>GaussianEdgeDetector.ikc</file>
+   </files>
+
+</group>

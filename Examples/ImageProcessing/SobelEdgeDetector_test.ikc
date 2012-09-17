@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "grayrobot.jpg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group title = "Sobel Edge Detection">
+
+    <module
+        class = "InputJPEG"
+        name = "IN"
+        filename = "../Media/grayrobot.jpg"
+    />
+		
+    <module class = "SobelEdgeDetector" name = "Sobel" />
+
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Sobel" target = "INPUT" delay="0" />
+
+    <view name = "Demo view">
+        <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+        <object class="Image" module="Sobel" source="OUTPUT" x="2" y="0"  h="2" w="2" />
+    </view>
+
+</group>
+

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<group name="IntervalDecoder" description="decodes an interval coded vector">
+
+	<description type="text">
+		Module used to decode an interval coded vector.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="IntervalDecoder"
+			name="IntervalDecoder"
+		/>
+	</example>
+
+	<parameter name="radius" type="int" default="1" description="Size of the code" />
+	<parameter name="min" type="float" default="0.0" description="The minumim coded value" />
+	<parameter name="max" type="float" default="1.0" description="The maximum coded value" />
+
+	<input name="INPUT" description="The input" />
+
+	<output name="OUTPUT" description="The output" size="1" />
+
+	<module class="IntervalDecoder" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>IntervalDecoder.h</file>
+   		<file>IntervalDecoder.cc</file>
+   		<file>IntervalDecoder.ikc</file>
+   </files>
+
+</group>

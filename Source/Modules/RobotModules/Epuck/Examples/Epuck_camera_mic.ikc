@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		class = "Epuck"
+		name = "EPUCK"
+		port = "/dev/cu.e-puck_1022-COM1"
+        _port = "/dev/rfcomm0"
+		camera = "gray"
+		microphone_volume_on = "true"
+	/>
+
+
+	<view name="Cam and Mic Test">
+		<object class="Image" module="EPUCK" source="IMAGE" type="gray" />
+		<object class="Plot" module="EPUCK" source="MICROPHONE_VOLUME" min="0" max="4000" x="1" y="0"/>
+	</view>
+
+
+</group>

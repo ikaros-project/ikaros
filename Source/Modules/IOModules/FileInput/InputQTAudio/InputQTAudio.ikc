@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<group name="InputQTAudio" description="reads audio from a QuickTime movie">
+
+	<description type="text">
+		Module that reads audio from a QuickTime file. This module only works in 32bit mode and requires that USE_QUICKTIME_OLD is defined in the IKAROS_System.h file.
+	</description>
+
+	<example description="Example">
+		<module
+			class="InputQTAudio"
+			name="InputQTAudio"
+			filename = "movie.mov"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to read the data from" />
+	<parameter name="samples_per_buffer" type="int" description="If this integer valued attribute is not present, then the module defaults to reading the audio in a manner synchronized with a track of visual frames that is also assumed to be present in the Quicktime file. Buffers of audio data are returned corresponding to the visual frames that would successively be obtained from the Quicktime file. If this attribute is present, then it should provide a positive integer number of samples to be provided on each tick by this module. In this case, no synchronization with a visual track is provided and hence no visual track is required in the file indicated by the filename. In this case, when using the samples_per_buffer attribute, the last buffer returned by this module may not have the requested size." />
+	<parameter name="iterations" type="int" default="1" description="Number of times to iterate the files" />
+	<parameter name="extend" type="int" default="0" description="Number of additional time steps to run before the module sends the end-of-file signal to the IKAROS kernel. This attribute is used to allow the data in the input file to propagate through the network of modules before the execution is terminated." />
+
+	<output name="CHANNELS" description="The data output by this module is a block with m rows and n columns. Each row corresponds to a sample (frame) of audio. Each column corresponds to a channel of audio obtained from the input file." />
+	<output name="NUMBER_SAMPLES" description="This output will contain a single float number on each tick-- the number of rows that have values assigned in the CHANNELS output."  />
+
+	<module class="InputQTAudio" />
+
+	<limitation>
+		OS X only.
+	</limitation>
+
+	<bug>
+		May not close all files in certain cases.
+	</bug>
+	
+	<bug>
+		I have been unable to get a match with the number of samples I read from the file with other Quicktime programs when I use the samples_per_buffer attribute in my module. My code generates a different number of samples from the program http://developer.apple.com/samplecode/QTAudioExtractionPanel/QTAudioExtractionPanel.html, which also generates a different number of samples from Quicktime Pro 7.0.1. In my file example "JanetWerker-5-17-05.mov", I get the following results in the number of audio samples:
+		Program: Number of samples
+		My audio module, with the samples_per_buffer attribute: 1930571
+		QTAudioExtractionPanel: 1930570
+		Quicktime Pro 7.0.1 used to determine the number of samples in the original Quicktime movie: 1931882
+		Quicktime Pro 7.0.1, used to extract the audio track into an AIFF file and then determine the number of audio samples in that AIFF file.	1930556
+		However, the contents of the samples (except for the last one, which was extra, and was zero valued) that I extracted in my module were the same as in the QTAudioExtractionPanel.
+	</bug>
+	
+	<author>
+		<name>Chistopher G. Prince</name>
+	</author>
+
+	<created>2005</created>
+
+   <files>
+   		<file>InputQTAudio.h</file>
+   		<file>InputQTAudio.cc</file>
+   		<file>InputQTAudio.ikc</file>
+		<file>QuickTimeAudioUtils.h</file>
+		<file>QuickTimeAudioUtils.cc</file>
+		<file>MTAudioBufferListUtils.h</file>
+		<file>MTAudioBufferListUtils.cc</file>
+   </files>
+
+</group>

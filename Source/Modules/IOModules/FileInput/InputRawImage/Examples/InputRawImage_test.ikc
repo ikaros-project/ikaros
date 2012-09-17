@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<!-- This example file reads a raw image and makes a copy of it into the file "copy.raw" -->
+<!-- The image is displayed if run from the viewer -->
+
+<group title = "Raw Image">
+
+		<module
+			class = "InputRawImage" 
+			name = "IN" 
+			size_x = "256" 
+			size_y = "256" 
+            filename = "../../../../../../Examples/Media/grayrobot.raw"
+			iterations = "2000"
+		/>
+
+		<module  
+			class = "OutputRawImage" 
+			name = "OUT" 
+			scale = "1.0" 
+			suppress = "1" 
+			offset = "0" 
+			filename = "copy.raw"
+		/>
+	
+		<connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "OUT" target = "INPUT" />
+
+		<view name="View">
+			<object class="Image" type ="gray" module="IN" source="OUTPUT" x="0" y="0"  h="4" w="4"/>
+		</view>
+	
+</group>
+

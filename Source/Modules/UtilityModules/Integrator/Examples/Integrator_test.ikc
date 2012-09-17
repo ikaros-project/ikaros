@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!-- This example shows how to use the Intergtaor module as a leaky integrator -->
+
+<group>
+	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "Integrator"
+			name = "Integrator"
+			alpha  = "0.9"
+			beta  = "0.1"
+		/>
+		
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Integrator" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Integrator" source="OUTPUT" x="0" y="0" max = "5" />
+		</view>
+</group>
+
+

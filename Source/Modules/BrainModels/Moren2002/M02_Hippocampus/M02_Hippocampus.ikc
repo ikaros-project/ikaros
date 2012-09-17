@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+
+<group name="M02_Hippocampus" description="a hippocampus model">
+
+<description type="text">
+The module implements the model of context processing described in the PhD thesis by Jan Morén 2002.
+The model was originally published by Balkenius and Morén in 2000.
+</description>
+
+<example description="A simple example">
+<module
+    class="M02_Hippocampus"
+    name="Hippocampus"
+/>
+</example>
+
+<parameter
+    name="bindsize"
+    type="int"
+    default = "4"
+    description="The bind size"
+/>
+
+<parameter
+    name="contextsize"
+    type="int"
+    default = "4"
+    description="The contex size"
+/>
+
+<input
+    name="STIMULUS"
+    description="The observed stimulus"
+/>
+
+<input
+    name="LOCATION"
+    description="The observed location"
+/>
+
+<output
+    name="BIND"
+    size_param="bindsize"
+    description="The output of the bind layer"
+/>
+
+<output
+    name="BIND_DELTA"
+    size_param="bindsize"
+    description="The positive edge of the bind layer"
+/>
+
+<output
+    name="CONTEXT"
+    size_param="contextsize"
+    description="The current context"
+/>
+
+<output
+    name="RESET"
+    size="1"
+    description="The reset output"
+/>
+
+<module class="M02_Hippocampus" />
+
+<author>
+<name>Christian Balkenius</name>
+<email>christian.balkenius@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Christian.Balkenius/</homepage>
+</author>
+
+<author>
+<name>Jan Moren</name>
+<email>jan.moren@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Jan.Moren/</homepage>
+</author>
+
+<reference>
+Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lund Univeristy Cognitive Studies, 93.
+</reference>
+
+<reference>
+Balkenius, C. and Morén, J. (2000) A Computational Model of Context Processing. In Jean-Arcady Meyer, Alain Berthoz,
+Dario Floreano, Herbert L. Roitblat, Stewart W. Wilson, (Eds) From Animals to Animats 6:  Proceedings of the 6th
+International Conference on the Simulation of Adaptive Behaviour, Cambridge, MA. The MIT Press.
+</reference>
+
+<files>
+<file>M02_Hippocampus.h</file>
+<file>M02_Hippocampus.cc</file>
+<file>M02_Hippocampus.ikc</file>
+</files>
+
+</group>
+
+

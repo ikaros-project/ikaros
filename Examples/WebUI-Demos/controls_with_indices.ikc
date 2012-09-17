@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<group title="Controls">
+    
+    <description>
+         This example demonstrates how use controls in the WebUI to change parts of an array constant
+         using the parameters xindex and yindex to set the element to change from the control
+    </description>
+    
+    <module
+        class = "Constant"
+        name = "C"
+        outputsize = "3"
+        data="0.1 0.2 0.3"
+    />
+    
+    <view name="Three Sliders" object_size="45" >
+        <object class="Slider" title="F1" module="C" parameter="data" select="0" x="0" y="0" h="2" />
+        <object class="Slider" title="F2" module="C" parameter="data" select="1" x="1" y="0" h="2" />
+        <object class="Slider" title="F2" module="C" parameter="data" select="2" x="2" y="0" h="2" />
+        
+        <object class="BarGraph" title="Constant" module="C" source="OUTPUT" x="3" y="0" w="2" h="2" />         
+    </view>
+    
+</group>
+

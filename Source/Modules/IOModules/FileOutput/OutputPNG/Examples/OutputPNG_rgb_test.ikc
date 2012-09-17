@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+
+This network reads the jpeg image "rgb.jpg" five times and writes a
+three numbered rgb PNG images from the input.
+
+-->
+
+<group title = "PNG">
+
+	<module
+	    class = "InputJPEG"
+	    name = "IN"
+	    size_x = "256"
+	    size_y = "256"
+        filename = "../../../../../../Examples/Media/colorrobot.jpg"
+	    iterations = "3"
+	    />
+
+	<module 
+	    class = "OutputPNG"
+	    name = "OUT"
+	    filename = "Int%0d.png"
+    />
+        
+	<connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "RED" />
+	<connection sourcemodule = "IN" source = "GREEN" targetmodule = "OUT" target = "GREEN" />
+	<connection sourcemodule = "IN" source = "BLUE" targetmodule = "OUT" target = "BLUE" />
+
+
+	<view name = "View 1">
+	    <object class="Image" module="IN" source="RED" x="0" y="0" min="0" max="255" />
+	    <object class="Image" module="IN" source="GREEN" x="1" y="0" min="0" max="255" />
+	    <object class="Image" module="IN" source="BLUE" x="2" y="0" min="0" max="255" />
+	</view>
+
+</group>
+

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="Multiply" description="multiplies two inputs">
+
+	<description type="text">
+		Module that multiplies its two inputs component
+		by component. Both inputs must have the same size.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Multiply"
+			name="Multiply"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output" size_set="INPUT1, INPUT2" />
+
+	<module class="Multiply" />
+
+    <view title="Multiply">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Multiply"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Multiply.h</file>
+   		<file>Multiply.cc</file>
+   		<file>Multiply.ikc</file>
+   </files>
+
+</group>

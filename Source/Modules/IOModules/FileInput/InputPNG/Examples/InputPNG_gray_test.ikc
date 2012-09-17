@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This example copies the png image "grayrobot.png" into the
+	grayscale jpeg image "OutBW.jpg" 
+-->
+
+<group title = "PNG">
+    
+	<module class = "InputPNG" name = "IN" 
+	    filename = "../../../../../../Examples/Media/grayrobot.png" 
+	    iterations = "1000" 
+	    />
+
+	<module  class = "OutputJPEG" name = "OUT" 
+	    scale = "1.0" suppress = "1" offset = "0" 
+	    filename = "OutBW.jpg" 
+	    />
+
+	<connection sourcemodule = "IN" source = "INTENSITY" 
+		    targetmodule = "OUT" target = "INTENSITY" />
+		
+
+	<view name = "View 1">
+	    <object class="Image" type ="gray" module="IN"
+		source="INTENSITY" x="0" y="0" h="4" w="4" />
+	</view>	
+
+</group>

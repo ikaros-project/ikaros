@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+
+<group title="Dynamixel Example">
+	
+    <description>
+        This example scans the bus of a single Dynamixel servo that can be controlled through the WebUI.
+        The device name will have to be changed to fit your USB2Dynamixel. The name can be found by looking
+        in the /dev directory for something similar to the device name in the example below.
+    </description>
+    
+     <module
+        class = "Dynamixel"
+        name = "Dynamixel"
+        device  = "/dev/cu.usbserial-A600cUuc"
+        index_mode = "indirect"
+    />
+
+    
+    <module
+        class = "Constant"
+        name = "Positions"
+        outputsize = "1"
+        data = "180"
+    />
+    
+    <module
+        class = "Constant"
+        name = "Speed"
+        outputsize = "1"
+        data = "0"
+    />
+    
+    <module
+        class = "Constant"
+        name = "Torque"
+        outputsize = "1"
+        data = "0.5"
+    />
+    
+    <connection
+        sourcemodule="Positions"
+        source="OUTPUT" 
+        targetmodule="Dynamixel"
+        target="INPUT"
+    />
+    
+    <connection
+        sourcemodule="Speed"
+        source="OUTPUT" 
+        targetmodule="Dynamixel"
+        target="SPEED"
+    />
+    
+    <connection
+        sourcemodule="Torque"
+        source="OUTPUT" 
+        targetmodule="Dynamixel"
+        target="TORQUE"
+    />
+    
+    <view name="Dynamixel Control" object_size="50" >
+        <object
+            class="BarGraph"
+            title="Desired Positions"
+            module = "Positions"
+            source = "OUTPUT"
+            x="0" y="0"
+            w="2" h="2"
+            max="360"
+        />
+
+        <object
+            class="BarGraph"
+            title="Actual Positions"
+            module = "Dynamixel"
+            source = "OUTPUT"
+            x="2" y="0"
+            w="2" h="2" 
+            max="360"
+        />
+
+        <object
+            class="BarGraph"
+            title="Speed"
+            module = "Speed"
+            source = "OUTPUT"
+            x="4" y="0"
+            w="2" h="2" 
+            max="1"
+        />
+
+        <object
+            class="Slider"
+            title="Pos"
+            module = "Positions"
+            parameter = "data"
+            select = "0"
+            x="0" y="4" h="3"
+            max="360"
+        />
+
+         <object
+            class="Slider"
+            title="Pos Speed"
+            module = "Dynamixel"
+            parameter = "position_speed"
+            xindex = "0"
+            x="1" y="4" h="3"
+            max="1"
+        />
+
+        <object
+            class="Slider"
+            title="Torque"
+            module = "Torque"
+            parameter = "data"
+            xindex = "0"
+            x="2" y="4" h="3"
+            max="1"
+        />
+                
+        <object
+            class="Slider"
+            title="Speed"
+            module = "Speed"
+            parameter = "data"
+            xindex = "0"
+            x="3" y="4" h="3"
+            max="1"
+        />
+
+        <object
+            class="Plot"
+            title="Load"
+            module = "Dynamixel"
+            source = "LOAD"
+            x="0" y="2"
+            w="2" h="2"
+            min="-1"
+            max="1"
+        />
+        <object
+            class="BarGraph"
+            title="Voltage (V)"
+            module = "Dynamixel"
+            source = "VOLTAGE"
+            x="2" y="2"
+            w="2" h="2" 
+            max="20"
+        />
+
+        <object
+            class="BarGraph"
+            title="Temperature (°C)"
+            module = "Dynamixel"
+            source = "TEMPERATURE"
+            x="4" y="2"
+            w="2" h="2" 
+            max="100"
+        />
+
+        <object
+            class="Text"
+            text="The first three sliders control the position, speed and torque of a servo in position control mode while the last slider controls the speed of a servo in continuous (wheel) mode."
+            x="4" y="4"
+            w="4" h="2"
+        />
+
+    </view>
+</group>
+ 

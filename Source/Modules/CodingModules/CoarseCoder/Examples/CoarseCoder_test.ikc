@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group title="Tile Coder">
+	
+    <module
+        class = "Sweep"
+        name = "Signal"
+        outputsize = "1"
+        min = "0"
+        max = "10"
+        step = "-0.1"
+    />
+		
+    <module
+        class = "CoarseCoder"
+        name = "CoarseCoder"
+        min  = "0"
+        max  = "10"
+        width = "3"
+        output_size = "20"
+    />
+		
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="CoarseCoder" target="INPUT"  delay = "1" />
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="CoarseCoder" target="INPUT"  delay = "1" />
+
+    <view name="View">
+        <object class="Grid" module="CoarseCoder" source="OUTPUT" x="0" y="0"/>
+    </view>
+
+</group>
+ 

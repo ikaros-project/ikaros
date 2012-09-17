@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Min" description="minimum of two inputs">
+
+	<description type="text">
+		Module that calculates the minimum of each elementy of
+		its two inputs, which can be one or two dimensional.
+		Both inputs must have the same size.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Min"
+			name="Min"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output with the minimum of each element of the two inputs" size_set="INPUT1,INPUT2" />
+
+	<module class="Min" />
+
+    <view title="Min">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Min"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Min.h</file>
+   		<file>Min.cc</file>
+   		<file>Min.ikc</file>
+   </files>
+
+</group>

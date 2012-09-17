@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<group name="InputFile" description="reads a text file">
+
+	<description type="text">
+		<p>
+			Module used for reading numerical input data from a text file. The data is represented in the file as a number of columns given names in a header. Each set of columns will be available as an output vector from the module with the same name as the columns.
+		</p>
+		<p>
+			The following example shows how the header describes the number of columns in each output vector and its name:
+		</p>
+		<pre>
+  X/2 Y/3
+  10   2.0    12     5     8
+   2    31   5.4    10     1
+   :
+   :
+</pre>
+		<p>
+			The first output will get the name "X" and consists of two values while the second output will be called "Y" and contain three elements. Each row in the file corresponds to the output from an InputFile module at each time step.
+		</p>
+		<p>
+			Comments can be added in the data file after a hash sign (#) as in the following example:
+		</p>
+		<pre>
+ # This is a comment; this line will be ignored in the input
+   X/2 Y/3
+  10   2.0    12     5     8	# This is also a comment
+   2    31   5.4    10     1	# and this
+   :
+   :
+</pre>		
+		<p>
+			Blank lines in the file are skipped. When the whole file has been read, the module send an end-of-file signal to the IKAROS kernel that will stop the execution. This is useful in off-line simulations.
+		</p>
+		<p>
+			InputFile can read files using any of the three popular line terminators: CR, LF, or CR+LF.
+		</p>
+	</description>
+
+	<example description="Example">
+		<module
+			class="InputFile"
+			name="InputFile"
+			filename = "data.txt"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to read the data from" />
+	<parameter name="iterations" type="int" deafult="1" description="Number of times to iterate the files" />
+	<parameter name="extend" type="int" default="0" description="Number of additional time steps to run before the module sends the end-of-file signal to the IKAROS kernel. This attribute is used to allow the data in the input file to propagate through the network of modules before the execution is terminated." />
+	<parameter name="print_iteration" type="bool" default="no" description="Print the iteration number to standard out" />
+
+	<output name="*" description="The outputs generated from columns in the file." />
+
+	<module class="InputFile" />
+
+	<limitation>
+		It is not possible to loop the data file indefinitely.
+	</limitation>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+	<created>2001</created>
+	
+   <files>
+   		<file>InputFile.h</file>
+   		<file>InputFile.cc</file>
+   		<file>InputFile.ikc</file>
+   </files>
+
+</group>

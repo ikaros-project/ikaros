@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!-- Pointless example xml file which demonstrates the Polynomial module -->
+<!-- The output can be viewed in the Viewer; without the viewer -->
+<!-- IKAROS will run in an endless loop.					 -->
+
+<group>
+	
+		<module class = "Randomizer" name = "Random" outputsize = "5" />
+		<module class = "Polynomial" name = "Polynomial" order="5" coefficients="1 2 -5 3 -4" />
+
+		<connection sourcemodule = "Random" source = "OUTPUT" targetmodule = "Polynomial" target = "INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Random" source="OUTPUT" x="0" y="0" w="2" />
+			<object class="BarGraph" module="Polynomial" source="OUTPUT" min="-2" max="2" x="0" y="1" w="2" />
+		</view>
+
+</group>
+ 

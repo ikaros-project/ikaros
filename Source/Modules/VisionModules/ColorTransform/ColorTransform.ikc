@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group name="ColorTransform" description="transforms between color spaces">
+
+	<description type="text">
+		Module used for transformation of color coordinates.
+		The RGB to CIE L*a*b* transformation is based on ITU-R Recommendation
+		BT.709 using the D65 white point reference.
+        The RGB to rgI transform maps black points on gray.
+	</description>
+
+	<example description="Example">
+		<module
+			class="ColorTransform"
+			name="ColorTransform"
+			transform = "RGB->Lab"
+		/>
+	</example>
+
+	<parameter name="transform" type="list" values="RGB->Lab/RGB->XYZ/Lab->RGB/XYZ->RGB/RGB->rgI" default="RGB->Lab" description="The type of transform" />
+	<parameter name="scale" type="float" default="1.0" description="Scaling of final values" />
+
+	<input name="INPUT0" description="The first input channel" />
+	<input name="INPUT1" description="The second input channel" />
+	<input name="INPUT2" description="The third input channel" />
+
+	<output name="OUTPUT0" description="The first output." size_set="INPUT0, INPUT1, INPUT2" />
+	<output name="OUTPUT1" description="The second output." size_set="INPUT0, INPUT1, INPUT2" />
+	<output name="OUTPUT2" description="The third output." size_set="INPUT0, INPUT1, INPUT2" />
+
+	<module class="ColorTransform" />
+
+	<created>2003</created>
+
+	<reference>
+		Commission Internationale de l'Eclairage (CIE) (1978). Official recommendation on color spaces,
+		color difference and metric color terms, Supplement No. 2 for CIE-Publication No. 15, Colorimetry
+		(E-1.3.1), 1971.	
+	</reference>
+	
+	<limitation>
+		The "XYZ->RGB" and "Lab->RGB" transformations have not been tested.
+	</limitation>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+	<files>
+   		<file>ColorTransform.h</file>
+   		<file>ColorTransform.cc</file>
+   		<file>ColorTransform.ikc</file>
+	</files>
+
+</group>

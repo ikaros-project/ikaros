@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<group title="Maze">
+	
+    <module
+        class = "MazeGenerator"
+        name = "Maze"
+        width = "9"
+        height = "9"
+        regenerate = "100"
+    />
+		
+
+	<view name="Maze View">
+		<object class="Grid" module="Maze" source="OUTPUT" x="0" y="0" h="4" w="4" color="black,white,red,green" max="3" />
+	</view>
+
+</group>
+ 
+

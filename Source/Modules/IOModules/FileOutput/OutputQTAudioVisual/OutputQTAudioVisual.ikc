@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="OutputQTAudioVisual" description="writes QuickTime movies with audio">
+
+	<description type="text">
+		Module that writes QuickTime movies with audio.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OutputQTAudioVisual"
+			name="OutputQTAudioVisual"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="" />
+	<parameter name="visual_time_scale" type="int" default="2997" description="" />
+	<parameter name="visual_sample_duration" type="int" default="100" description="" />
+	<parameter name="audio_sample_rate" type="int" default="44100" description="" />
+	<parameter name="upper_bound_pixel_visual_input" type="float" default="1.0" description="" />
+
+	<input name="VISUAL" description="" />
+	<input name="AUDIO_CHANNELS" description="" />
+	<input name="NUMBER_AUDIO_SAMPLES" description="" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="OutputQTAudioVisual" />
+
+	<author>
+		<name>Christiopher G. Prince</name>
+	</author>
+
+	<limitation>
+		OS X only
+	</limitation>
+	
+   <files>
+   		<file>OutputQTAudioVisual.h</file>
+   		<file>OutputQTAudioVisual.cc</file>
+   		<file>OutputQTAudioVisual.ikc</file>
+   </files>
+
+</group>

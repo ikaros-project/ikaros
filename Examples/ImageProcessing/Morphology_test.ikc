@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This file demonstrates the erode and dilate modules.
+	
+-->
+
+<group title = "Morphology">
+    
+    <module
+        class = "InputRawImage" 
+        name = "IN" 
+        size_x = "128" 
+        size_y = "128" 
+        filename = "../Media/pattern.raw" 
+    />
+
+    <module class = "Dilate" name = "D" />
+    <module class = "Erode" name = "E" />
+    <module class = "Dilate" name = "D2" />
+    <module class = "Erode" name = "E2" />
+
+    <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "D" target = "INPUT" />
+    <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "E" target = "INPUT" />
+
+    <connection sourcemodule = "D" source = "OUTPUT" targetmodule = "D2" target = "INPUT" />
+    <connection sourcemodule = "E" source = "OUTPUT" targetmodule = "E2" target = "INPUT" />
+
+    <view name = "Demo view">
+        <object class="Image" module="IN" source="OUTPUT" x="0" y="0" />
+
+        <object class="Image" module="D" source="OUTPUT" x="0" y="1"  />
+        <object class="Image" module="E" source="OUTPUT" x="1" y="1" />
+
+        <object class="Image" module="D2" source="OUTPUT" x="0" y="2"  />
+        <object class="Image" module="E2" source="OUTPUT" x="1" y="2"  />
+    </view>
+    
+</group>

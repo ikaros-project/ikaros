@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="Scale" description="scales a signal">
+
+	<description type="text">
+		Module that multiplies its input by a constant
+		factor.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Scale"
+			name="Scale"
+		/>
+	</example>
+
+	<parameter name="factor" type="float" description="Scale factor" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The scaled output" size_set="INPUT" />
+
+	<module class="Scale" />
+
+    <view title="Scale">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Scale"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Scale.h</file>
+   		<file>Scale.cc</file>
+   		<file>Scale.ikc</file>
+   </files>
+
+</group>

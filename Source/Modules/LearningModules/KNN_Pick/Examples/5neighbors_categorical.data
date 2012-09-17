@@ -1,0 +1,13 @@
+DT/7				OT/7
+
+# when weighed, class is (close to) 1, else around 0
+0.1 0.1 0.1 0.2 0.2 0.5 0.5	1 1 1 0 0 0 0
+
+# class is between 1.0 and 2.0
+0.5 0.5 0.2 0.2 0.2 0.5 0.5	1 1 2 2 2 0 0
+
+# always becomes class 0 since there is such an instance with distance=0.0
+0.5 0.2 0.2 0.1 0.2 0.5 0.0	5 1 1 2 2 0 0
+
+# when weighed, class is (close to) 6
+0.5 0.5 0.5 0.5 0.5 0.05 0.0001	5 1 1 1 1 0 6

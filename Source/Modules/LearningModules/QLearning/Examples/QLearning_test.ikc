@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This example demonstrates a simple grid world with a Q-learning controlled agent
+-->
+
+<group>
+	
+    <module
+        class = "Constant"
+        name = "Environment"
+        outputsize_x = "13"
+        outputsize_y = "13"
+        data = "
+            1	1	1   1	1	1	1	1	1	1   1   1   1
+            1	0	0   0	0	0	0	0	0	0   0   0   1
+            1	0	0   0	0	0	0	0	0	0   0   0   1
+            1	1	1   1	1	0   0   0   1	1   1   1   1
+            1	0	0   0	0	0	0	0	0	0   0   0   1
+            1	0	0   0	0	0	0	0	0	0   0   0   1
+            1	0	0   1	1   1   1   1   1   1   0   0   1
+            1	0	0   1	0   0	0	0	0   1	0   0	1
+            1	0	0   1	0   0	0	0	0   1	0   0	1
+            1	0	0   1	0   0	1	0	0   1	0   0	1
+            1	0	0	0	0   0   1	0	0   0	0   0	1
+            1	0	0	0	0   0   1	0   0	0	0   0	1
+            1	1	1	1	1	1	1	1	1   1   1   1   1"
+    />
+		
+    <module
+        class = "Constant"
+        name = "Goals"
+        outputsize_x = "13"
+        outputsize_y = "13"
+        data = "
+            0	0	0	0	0	0	0   0	0	0	0	0	0
+            0	0	0	0	0	0	0	0	0	0	0	1   0
+            0	0	0	0	0	0	0	0	0	0	0	0   0   
+            0	0	0	0	0	0	0	0	0	0	0	0   0
+            0	0	0	0	0	0	0	0	0	0	0	0   0
+            0	0	0	0	0	0	0	0	0	0	0	0   0
+            0	0	0	0	0	0	0	0	0	0	0	0   0
+            0	0	0	0	0	0	0	0	0	0	0	0   0   
+            0	0	0	0	0	0	0	0	0	0	0	0   0   
+            0	0	0	0	0	0	0	0	0	0	0	0   0   
+            0	0	0	0	0	0	0	0	0	0	0	0   0   
+            0	0	0	0	0	0	0	0	0	0	0	0   0
+            0	0	0	0	0	0	0	0	0	0	0	0   0"
+    />
+		
+    <module
+        class = "GridWorld"
+        name = "GW"
+        x_start = "7"
+        y_start = "12"
+        move = "relative_sum"		
+    />
+
+    <module
+        class = "QLearning"
+        name = "Q"
+        horizon = "infinite"
+        initial = "0.1"
+        epsilon = "0.0"
+    />
+
+    <connection sourcemodule = "Environment" source = "OUTPUT" targetmodule = "GW" target = "OBSTACLES" delay="0" />
+	<connection sourcemodule = "Goals" source = "OUTPUT" targetmodule = "GW" target = "VALUES" delay="0" />
+
+    <connection sourcemodule = "Q" source = "ACTION" targetmodule = "GW" target = "MOVE" />
+    <connection sourcemodule = "GW" source = "LOCATION" targetmodule = "Q" target = "STATE" delay="0" />
+    <connection sourcemodule = "GW" source = "REWARD" targetmodule = "Q" target = "REINFORCEMENT" delay="0" />	
+
+    <view name="Default">
+        <object class="Grid" module="GW" source="IMAGE" color="black, gray, red, green" max="3" x="0" y="0" />
+        <object class="Grid" module="Q" source="VALUE" max="1" x="1" y="0" />
+        <object class="Plot3D" module="Q" source="VALUE" max="1" x="0" y="1" h="2" w="2" />
+
+        <_object class="BarGraph" module="GW" source="REWARD" x="1" y="1" />
+    </view>
+
+    <view name="All">
+        <object class="Grid" module="GW" source="IMAGE" color="black, gray, red, green" max="3" x="0" y="0" />
+        <object class="Grid" module="GW" source="LOCAL_OBSTACLES" x="1" y="0" />
+        <object class="Grid" module="GW" source="LOCAL_VALUES" max="2" x="2" y="0" />
+        <object class="Grid" module="GW" source="LOCATION" x="3" y="0" />
+        <object class="BarGraph" module="GW" source="REWARD" x="1" y="1" />
+        <object class="BarGraph" module="GW" source="COORDINATE" x="2" y="1" max="13" />
+        <object class="BarGraph" module="Q" source="ACTION" x="0" y="1" />
+        <object class="Grid" module="Q" source="VALUE" max="1" x="0" y="2" />
+        <object class="Plot3D" module="Q" source="VALUE" max="1" x="1" y="2" h="1" w="1" />
+    </view>
+
+    <view name="Fast">
+        <object class="Image" module="GW" source="IMAGE" x="0" y="0" />
+    </view>
+
+    <view name="Field">
+        <object class="Plot3D" module="Q" source="VALUE" max="1" x="0" y="0" h="3" w="3" />
+    </view>
+
+</group>
+ 

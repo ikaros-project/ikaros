@@ -1,0 +1,292 @@
+
+html, body
+{
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+	background-color: black;
+	color: white;
+    
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	
+	-moz-user-select: none;
+	-moz-user-drag: none;
+    
+    font-family: Arial, sans-serif;
+}
+
+
+table
+{
+	table-layout:fixed;
+	border-collapse: collapse;
+	width: 100%;
+	height: 100%;
+}
+
+tr
+{
+	padding: 0px;
+	margin: 0px;
+}
+
+td
+{
+	padding: 0px;
+	margin: 0px;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+a
+{
+    cursor:hand;
+}
+
+
+/*
+ *
+ *	Controls
+ *
+ */
+
+
+td#controlframe
+{
+    width: 190px;
+    padding-left:20px;
+}
+
+div#controls
+{
+	height: 20px;
+	width: 150px;	
+	margin: 0px;
+	padding: 15px 0px 0px 5px;
+    vertical-align: middle;
+    display: span;
+}
+
+
+a.button
+{
+	display: block;
+	float : left;
+	overflow: hidden;
+	
+	height: 19px;
+	width: 30px;
+	
+	padding: 0px;
+	margin: 0px;
+	
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	
+	-moz-user-select: none;
+	-moz-user-drag: none;
+}
+
+a.selected
+{
+	display: block;
+	float : left;
+	overflow: hidden;
+	
+	height: 19px;
+	width: 30px;
+	
+	padding: 0px;
+	margin: 0px;
+	
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	
+	-moz-user-select: none;
+	-moz-user-drag: none;
+}
+
+a.button:active
+{
+}
+
+
+a.button img
+{
+}
+
+.button:active img,
+.selected img
+{
+	position: relative;
+	top: -19px;
+    
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	
+	-moz-user-select: none;
+	-moz-user-drag: none;
+}
+
+
+
+td#iteration
+{
+    width: 100px;
+    padding-top: 15px;
+    vertical-align: middle;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    color: #AAAAAA;
+}
+
+td#title
+{
+    padding-right: 40px;
+    padding-top: 20px;
+    font-size: 36px;
+    font-family: sans-serif;
+    text-align: right;
+    color: #AAAAAA;
+    height: 41;
+}
+
+td#footer
+{
+    padding-bottom: 7px;
+    padding-left:20px;
+    padding-right: 20px;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    color: #888888;
+    text-align: center;
+    height:25px;
+}
+
+div#viewcontrol
+{
+    float: right;
+    text-align: right;
+    width: 120;
+}
+
+
+div#viewdots
+{
+    font-size: 16px;
+    clear: both;
+    display: inline;
+}
+
+
+div#toggle
+{
+    float: left;
+    text-align: left;
+    width: 120;
+}
+
+
+/*
+ *
+ *	Group List Pane
+ *
+ */
+
+div#grouppane
+{
+    padding: 0px; 
+    margin:0px;
+    height:100%;
+    background-color: #303030; 
+    border: 1px solid #666666; 
+    -webkit-border-radius: 5px;
+}
+
+ul
+{
+    padding-left: 16px;
+    padding-top: 2px;
+    padding-bottom: 6px;
+}
+
+ul#grouplist
+{
+    padding: 0px 0px 0px 0px;
+    margin: 16px 0px 0px 16px;
+    list-style-type: none;
+    padding-left:0;
+    color: #CCCCCC;
+}
+
+ul.visible
+{
+    display: block;
+}
+
+
+ul.hidden
+{
+    display: none;
+}
+
+li {
+    font-family: Arial;
+    font-size: 9pt;
+    line-height: 1.5em;
+    margin-left: 0;
+    cursor:hand;
+    list-style-type: none;
+}
+
+span.group-bar,
+span.group-bar-selected
+{
+    -webkit-border-radius: 10px;
+    padding: 2px 15px 1px 10px;
+}
+
+span.group-bar:hover
+{
+    background-color: #111;
+}
+
+span.group-bar-selected
+{
+    color: #333;
+    background-color: #DDD;
+}
+
+td#pane
+{
+    width: 0px; 
+    -webkit-transition: width 0.5s ease-in-out; 
+    padding: 10px;margin: 0px;
+    padding-right: 0px;
+    padding-left:20px;       
+}
+
+td#viewbox
+{
+    padding: 10px; 
+    padding-right:20px;
+    padding-left:20px;
+    margin: 0px;
+}
+
+div#viewframe
+{
+    position: relative; 
+    top: 0; 
+    left:0; 
+    overflow: hidden; 
+    border: 1px solid #666666; 
+    background-color: #303030; 
+    padding: 4px; 
+    margin:0px;
+    height:100%;   
+    -webkit-border-radius: 5;
+}

@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+
+
+<group name="Perceptron" description="single layer of perceptrons">
+
+
+<description type="text">
+	This module creates a layer of (an arbitrary amount of)	perceptron
+	(or rather perceptronish) nodes. You have many learning rules and activation
+	types to choose from, and a variable or two to manipulate. The updates to
+	the net can be done instantly at each tick, in batches, or partially from
+	changes in this and the previous tick (called momentum update). Those 
+	different updates are called learning types. Finally this module has
+	separate inputs for training and mere activation (calculating an output).
+</description>
+
+
+<example description="A simple example">
+<module
+	class="Perceptron"
+	name="Perceptron"
+/>
+</example>
+
+
+<input name="INPUT" description="The inputs to the perceptrons to calculate the output from. An array of floats." />
+<input name="T_INPUT" description="The inputs to the perceptrons to learn from. An array of floats." />
+<input name="T_TARGET" description="The targets of the perceptrons (their desired output when training).
+	This array is expected to be filled with 0/1 or -1/1, depending on which activation_type
+	(step, sign, sigmoid or tanh) will be used. See the normalize_target parameter.
+	Determines the amount of perceptrons the layer will have." />
+<input name="TRAIN" description="Array with one single value. If this value is 0 in a certain
+	tick, the module will not do any training, otherwise it (tries to) learn." />
+
+
+<output name="OUTPUT" description="The output of the last input. This array will be the same size
+	as the TARGET input. It will contain 0/1's or -1/1's depending on which activation_type
+	is used." />
+<output name="ERROR" description="The error from the last input and target. An array of floats,
+	which is the root of the sum of the squared difference between the targets and outputs..." />
+<output name="CORRECT" description="Array with one float value. This is the percentage of how
+	many examples that were correctly classified lately (how many examples it averages over
+	depends on the parameter correct_average_size." />
+
+<parameter name="rand_weights_min"
+	description="Lower limit of the initial randomized weights."
+	type="float"
+	default="-0.5"/>
+<parameter name="rand_weights_max"
+	description="Upper limit of the initial randomized weights."
+	type="float"
+	default="0.5"/>
+<parameter name="learning_rate"
+	description="The factor which to multiply the change with."
+	type="float"
+	min="0.001"
+	default="0.1"/>
+<parameter name="learning_rate_mod"
+	description="Learning rate modifier How to modify (decrease) the learning rate over time.
+	sqrt has the formula 'learning_rate_now = learning_rate / (0.10 * sqrt(tick + 100));' and
+	log has the formula 'learning_rate_now = learning_rate / (0.42 * ikaros::log(tick + 10));'"
+	type="list"
+	values="none/sqrt/log"
+	default="none"/>
+<parameter name="bias"
+	description="A bias is an extra node that has a fixed weight. This is the value of that node.
+	0 is not an allowed value."
+	type="float"
+	default="1.0"/>
+<parameter name="learning_type"
+	description="Decides if the nodes should learn immediately, smeared out (momentum), or in batches."
+	type="list"
+	values="instant/batch/momentum"
+	default="instant"/>
+<parameter name="momentum_ratio"
+	description="If momentum is used, this is the percentage of the learning taken from the previous tick."
+	type="float"
+	default="0.42"/>
+<parameter name="activation_type"
+	description="What kind of activations the nodes should give."
+	type="list"
+	values="step/sign/sigmoid/tanh"
+	default="step"/>
+<parameter name="learning_rule"
+	description="Which learning rule? They correspond, in order, to the following formulas in
+	the book 'Fundamentals of Artificial Neural Networks', by Hassoun:
+	(3.1.2, 3.1.16, 3.1.29, 3.1.30, 3.1.35, 3.1.50).
+	[NOTE: About 'rosenblatt_margin' and 'may'. These learning rules do not work with the 'step'
+	and 'sigmoid' activation types. More specifically, these learning rules expect the targets
+	to be 0/1 while rosenblatt_margin and may expect the targets to be -1/1. So, even if you do
+	not use step/sigmoid, make sure the targets are -1/1 and nothing else].
+	[NOTE: About 'delta'. This learning rule only works with activation types 'tanh' and 'sigmoid']."
+	type="list"
+	values="rosenblatt/rosenblatt_margin/may/alpha_lms/mu_lms/delta"
+	default="rosenblatt"/>
+<parameter name="batch_size"
+	description="If learning type batch is used, how big should the batch be?
+	That is, after how many ticks should the nodes be updated?"
+	type="int"
+	default="42"/>
+<parameter name="step_threshold"
+	description="If activation type step is used, how big should the threshold for activation to occur be?"
+	type="float"
+	default="0.0"/>
+<parameter name="margin"
+	description="For rosenblatt_margin and may learning rules."
+	type="float"
+	default="0.2"/>
+<parameter name="alpha"
+	description="For alpha_lms learning rule."
+	type="float"
+	default="0.1"/>
+<parameter name="mu"
+	description="For mu learning rule."
+	type="float"
+	default="0.1"/>
+<parameter name="beta"
+	description="For delta learning rule."
+	type="float"
+	default="1.0"/>
+<parameter name="correct_average_size"
+	description="From how many previous ticks to calculate the CORRECT output."
+	type="int"
+	min="1"
+	default="42"/>
+<parameter name="normalize_target"
+	description="The different activation types expect different target values, sometimes -1/1 and sometimes 0/1.
+	If normalize_target is set to true the module tries to convert your target values to the expected values
+	if they do not suit the activation type chosen. More specifically: with step/sigmoid the target will be set
+	to 0.0 if it is 0.0 or less, otherwise set to 1.0, and with sign/tanh the target will be set to -1.0 if it
+	is 0.0 or less, otherwise set to 1.0."
+	type="bool"
+	default="false"/>
+
+
+<module class="Perceptron" />
+
+
+<view title="Perceptron">
+    <object
+        x="0" y="0" w="2"
+        class="BarGraph"
+        module="*"
+        source="OUTPUT"
+        title="OUTPUT"
+    />
+
+    <object
+        x="0" y="1" w="2"
+        class="BarGraph"
+        module="*"
+        source="ERROR"
+        title="ERROR"
+    />
+
+    <object
+        x="2" y="1"
+        class="Table"
+        module="*"
+        source="CORRECT"
+        title="CORRECT"
+    />
+</view>
+    
+
+<reference>
+Mohamad H. Hassoun (1995). Fundamentals of Artificial Neural Networks. MIT Press.
+</reference>
+
+<author>
+	<name>Alexander Kolodziej</name>
+	<_email>alexander.kolodziej@gmail.com</_email>
+	<affiliation>LUCS</affiliation>
+</author>
+
+<files>
+	<file>Perceptron.h</file>
+	<file>Perceptron.cc</file>
+	<file>Perceptron.ikc</file>
+</files>
+
+</group>

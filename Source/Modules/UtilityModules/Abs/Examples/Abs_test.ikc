@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="-2 -1 0 1 2" />
+	
+		<module
+			class = "Abs"
+			name = "Abs"
+		/>
+		
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Abs" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Constant" source="OUTPUT" min="-2" max="2" x="0" y="0" />
+			<object class="BarGraph" module="Abs" source="OUTPUT" min="-2" max="2" x="1" y="0" />
+		</view>
+</group>
+ 

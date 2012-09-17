@@ -1,0 +1,95 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Ikaros Viewer</title>
+<link rel="stylesheet" type="text/css" href="/style.css" />
+</head>
+<body>
+    
+<table>
+    <tr>
+        <td id="controlframe">
+                    
+            <div id="controls">
+                
+                <a class="button">
+                    <img src="Buttons/stop.png" onmousedown="do_stop();">
+                </a>
+                
+                <a class="button">
+                    <img src="Buttons/pause.png" onmousedown="do_pause();">
+                </a>
+                
+                <a class="button">
+                    <img src="Buttons/step.png" onmousedown="do_step();" onmouseup="do_pause();">
+                </a>
+                
+                <a class="button">
+                    <img src="Buttons/run.png" onmousedown="do_run();">
+                </a>
+                
+                <a class="button">
+                    <img src="Buttons/realtime.png" onmousedown="do_realtime();">
+                </a>
+            </div>
+                    
+        </td>
+        <td id="iteration">0</td>
+        <td id="title"></td>
+    </tr>
+    <tr>
+        <td colspan="3">
+        <table>
+         <tr>
+            <td id="pane" style="width: 0px">
+                <div id="grouppane">
+                    <ul id="grouplist">                
+                    </ul>
+                </div>
+            </td>
+        
+            <td id="viewbox" colspan="3">
+                <div id="viewframe">
+                    <iframe id="view" seamless="seamless" frameborder="0" src="" width="100%">
+                    </iframe>
+                    <script type="text/javascript">
+                        function resizeIframe() {
+                            var height = document.documentElement.clientHeight;
+                            height -= document.getElementById('view').offsetTop;
+                            height -= 115;
+                            document.getElementById('view').style.height = height +"px";
+                         };
+                        document.getElementById('view').onload = resizeIframe;
+                        window.onresize = resizeIframe;
+                    </script>
+                 </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+            </td>
+            <td id="footer" colspan="3" >
+                <div id="viewdots">
+                </div>
+                <div id="toggle">
+                    <a onclick="toggle_inspector();"><img src="split.png" id="split" style="margin-bottom: -2px;" width="13" height="13" /></a>
+                </div>
+                <div id="viewcontrol">
+                    <span id="viewname">View 0</span>
+                    &nbsp;
+                    <a onclick="prev_view();">◄</a>
+                    <a onclick="next_view();">►</a>
+                </div>
+            </td>
+        </tr>
+
+        </table>
+        </td>
+    </tr>
+</table>
+    
+<script src="control.js"></script>
+
+</body>
+</html>

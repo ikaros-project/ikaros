@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "Threshold"
+			name = "BinaryThreshold"
+			type  = "binary"
+			threshold = "3"
+		/>
+		
+		<module
+			class = "Threshold"
+			name = "LinearThreshold"
+			type  = "linear"
+			threshold = "3"
+		/>
+
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="BinaryThreshold" target="INPUT" />
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="LinearThreshold" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Constant" source="OUTPUT" max="5" x="0" y="0" />
+			<object class="BarGraph" module="BinaryThreshold" source="OUTPUT" max="5" x="0" y="1" />
+			<object class="BarGraph" module="LinearThreshold" source="OUTPUT" max="5" x="1" y="1" />
+		</view>
+
+</group>
+ 

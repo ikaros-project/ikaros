@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+
+<group title="Controls">
+    
+    <description>
+         This file demonstrates how use controls in the WebUI
+         
+         Slider - this demo shows how a slider can set a parameter of a module, in this case the factor input of a Scale module
+         
+         Switch - this demo shows a switch that toggles between 0 and 1. A slider is bound to the same parameter.
+         
+         Button - this demo shows how the button changes the parameter to 1 each time it is pressed; the same scale module as before is used
+         
+         Mouse - this demo shows how the mouse can be used to select a point in a view
+
+         When the first three examples were created there were no module to convert a parameter change to an output directly which is why the scale module is used for this purpose.
+    </description>
+    
+    <module 
+        class = "Constant" 
+        name = "C" 
+        outputsize = "5" 
+        data="0.1 0.2 0.3 0.4 0.5" 
+    />
+	
+    <module
+        class = "Scale"
+        name = "Scale"
+        factor = "0.25"
+    />
+    
+    <module
+        class = "Scale"
+        name = "Scale2"
+        factor = "0.25"
+    />
+
+    <module 
+        class = "Constant" 
+        name = "XY" 
+        outputsize = "2" 
+        data="2 3" 
+    />
+    
+    <group name="GroupWithControls">
+
+        <module class = "Constant"
+            name = "CW"
+            outputsize = "2"
+            data="0.1 0.9"
+        />
+
+        <module
+            class = "Scale"
+            name = "ScaleWithin"
+            factor = "0.25"
+        />    
+    
+        <connection sourcemodule="CW" source="OUTPUT" targetmodule="ScaleWithin" target="INPUT" />
+
+        <view name="SlidersWithin" object_size="45" >
+            <object class="BarGraph" title="Scaled" module="ScaleWithin" source="OUTPUT" x="0" y="0" w="2" h="2" />            
+            <object class="Slider" title="Inside" module="ScaleWithin" parameter="factor" x="2" y="0" h="2" />
+        </view>
+    
+    </group>
+    
+    <connection sourcemodule="C" source="OUTPUT" targetmodule="Scale" target="INPUT" />
+    <connection sourcemodule="C" source="OUTPUT" targetmodule="Scale2" target="INPUT" />
+    
+    <view name="Slider" object_size="45" >
+        <object class="BarGraph" title="Input" module="C" source="OUTPUT" x="0" y="0" w="2" h="2" />
+        
+        <object class="Slider" title="F1" module="Scale" parameter="factor" x="2" y="0" h="2" />
+        <object class="Slider" title="F2" module="Scale" parameter="factor" x="3" y="0" h="2" />
+        <object class="Table" title="factor" module="Scale" source="factor" x="4" y="0" w="2" h="2" />
+        <object class="BarGraph" title="factor" module="Scale" source="factor" x="6" y="0" w="2" h="2" />
+        <object class="BarGraph" title="Output" module="Scale" source="OUTPUT" x="8" y="0" w="2" h="2" />
+        
+        <object class="Slider" title="F1" module="Scale2" parameter="factor" x="2" y="2" h="2" />
+        <object class="Table" title="factor" module="Scale2" source="factor" x="4" y="2" w="2" h="2" />
+        <object class="BarGraph" title="factor" module="Scale2" source="factor" x="6" y="2" w="2" h="2" />
+        <object class="BarGraph" title="Output" module="Scale2" source="OUTPUT" x="8" y="2" w="2" h="2" />
+        
+    </view>
+    
+    <view name="Switch"  object_size="70" object_spacing="5" >
+        <object title = "Switch 1" class="Switch" module="Scale" parameter="factor" x="0" y="0" h="1" w="2" />
+        <object title = "Switch 2" class="Switch" module="Scale" x="0" y="1" h="1" w="2" />
+        <object title = "Slider" class="Slider" module="Scale" parameter="factor" x="2" y="0" h="2" />
+        <object title = "Value"  class="Table" module="Scale"  source="factor" font_size="64" x="3" y="0" w="2" h="2" />
+    </view>
+    
+    <view name="Button"  object_size="35" >
+        <object title = "Button 1" class="Button" module="Scale" parameter="factor" select="[0,0]" x="3" y="0" h="1" w="2" />
+        <object title = "Pressed" class="Plot" module="Scale" source="OUTPUT" x="0" y="0" h="3" w="3" max="0.1" />
+        
+        <object title = "Button 2" class="Button" module="Scale2" parameter="factor" x="3" y="1" h="1" w="2"  />
+        <object title = "Pressed" class="Plot" module="Scale2" source="OUTPUT" x="0" y="3" h="3" w="3" max="0.1" />
+
+        <object title = "Button 3" class="Button" x="3" y="2" h="1" w="2"  />
+    </view>
+    
+    <view name="Mouse" >
+        <object title = "Mouse Click" class="Mouse" module="XY" parameter="data" flip_y_axis="1" x="0" y="0" h="2" w="2" />
+        <object title = "Mouse Click" class="Mouse" module="XY" parameter="data" x="2" y="0" h="2" w="2" />
+        <object title = "Coordinate"  class="Table" module="XY" source="data" x="0" y="2" h="1" w="2" />
+    </view>
+
+</group>
+

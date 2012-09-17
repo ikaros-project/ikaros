@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example file for LinearAssociator
+
+	This file will iterate the data in the file "input.dat" which is a set of sums and differeces.
+
+-->
+
+<group title="Linear Associator">
+
+    <module 
+        class = "InputFile" 
+        name = "IN" 
+        filename = "input.dat" 
+        iterations = "100000"
+    />
+		
+    <module
+        class = "LinearAssociator"
+        name = "A"
+        alpha = "0.1"
+        beta = "0.1"
+    />
+
+    <connection sourcemodule = "IN" source = "X" targetmodule = "A" target = "INPUT" delay="0" />
+    <connection sourcemodule = "IN" source = "X" targetmodule = "A" target = "T-INPUT" delay="0" />
+    <connection sourcemodule = "IN" source = "Y" targetmodule = "A" target = "T-OUTPUT" delay="0" />
+
+    <view name="View">
+        <object x="0" y="0" class="BarGraph" title="X" module="IN" source="X" max="3" />
+        <object x="1" y="0" class="BarGraph" title="Y" module="IN" source="Y" min="-3" max="10" />
+        <object x="2" y="0" class="BarGraph" title="Learned Output" module="A" source="OUTPUT" min="-3" max="10" />
+
+        <object x="0" y="1" w="3" class="Plot" title="ERROR" module="A" source="ERROR" min="0" max="5" colors="yellow" />
+
+        <object x="0" y="2" w="3" class="Text" text="This IKC file demonstrates how a linear associator can learn to associate from two/values in X to a vector Y which consists of the sum and difference between the two/elements in X." />
+    </view>
+		
+</group>
+

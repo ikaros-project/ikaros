@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Noise" description="adds noise">
+
+	<description type="text">
+		Module used to add gaussian noise to a signal.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Noise"
+			name="Noise"
+			sigma = "0.1"
+		/>
+	</example>
+
+	<parameter name="sigma" type="float" default="1.0" description="The noise variance" />
+	<parameter name="mean" type="float" default="0.0" description="The noise mean" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Noise" />
+
+    <view title="Noise">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Noise"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Noise.h</file>
+   		<file>Noise.cc</file>
+   		<file>Noise.ikc</file>
+   </files>
+
+</group>

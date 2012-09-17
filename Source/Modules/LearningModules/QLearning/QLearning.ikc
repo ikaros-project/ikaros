@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group name="QLearning" description="simple Q-learning">
+
+	<description type="text">
+		Basic Q-learning.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class = "QLearning"
+			name = "QLearning"
+			/>
+	</example>
+
+	<parameter name="horizon" type="list" values="infinite/finite" default="0" description="Time horizon" />
+	<parameter name="alpha" type="float" default="0.1" description="Learning rate" />
+	<parameter name="gamma" type="float" default="0.9" description="Discount factor" />
+	<parameter name="epsilon" type="float" default="0.0" description="Selection parameter" />
+	<parameter name="initial" type="float" default="0.1" description="Initial weights" />
+
+	<input name="STATE" description="Sensory input" />
+	<input name="REINFORCEMENT" description="Current reinforcement" />
+
+	<output name="ACTION" description="Selected action" size="4" />
+	<output name="VALUE" description="Global value" size_set="STATE" />
+
+	<module class="QLearning" />
+	
+	<limitation>
+		It should be possible to turn off the automatic movement of the agent from goal to start locations.
+	</limitation>
+
+	<created>2003</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>QLearning.h</file>
+   		<file>QLearning.cc</file>
+   		<file>QLearning.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<group name="HysteresisThresholding" description="adaptive edge threshold">
+
+	<description type="text">
+		This module implements iterative hysteresis thresholding of image. There are two threshold
+        constants T1 and T2 that determines how to extract edge elements from an edge image. If an
+        edge has higher intensity than T2 it is included in the output image. If an edge has higher
+        intensity than T2 it will also be included in the output image, but only if there is an
+        adjacent edge element that is already included. The parameter range determines how close
+        the adjacent edge > T2 must be. The algorithm is applied iteratively to the image the number
+        of times specified by the parameter iterations. This will iteratively fill out edges below T1.
+        The maximum lenght of an extracted edge element that it is initially below T2 and above T1 is
+        thus range*iterations. Each found edge element is represented by the value 1.0 in the output.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="HysteresisThresholding"
+			name="HysteresisThresholding"
+            T1 = "50"
+            T2 = "200"
+            range = "1"
+            iterations = "10"
+		/>
+	</example>
+
+	<parameter name="range" type="int" default="1" description="How far away can an edge element be" />
+	<parameter name="iterations" type="int" default="1" description="How many times should the algorithm be iterated" />
+	<parameter name="range" type="int" default="0.3" description="Lower threshold" />
+	<parameter name="range" type="int" default="0.6" description="Higher threshold" />
+
+	<input name="INPUT" description="The  input" />
+	<output name="OUTPUT" description="The output" />
+
+	<module class="HysteresisThresholding" />
+
+    <bug>
+        This implementation is very slow and does not give very good results.
+    </bug>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>HysteresisThresholding.h</file>
+   		<file>HysteresisThresholding.cc</file>
+   		<file>HysteresisThresholding.ikc</file>
+   </files>
+
+</group>

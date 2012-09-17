@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Test of the Harris detector. 
+	No output is generated.
+	
+-->
+
+<group title = "Harris Detector">
+    
+    <module 
+        class = "InputJPEG" 
+        name = "IN" 
+        filename = "../Media/cannes.jpg" 
+    />
+
+    <module 
+        class = "GaussianEdgeDetector"
+        name = "Gaussian"
+        scale = "1"
+    />
+
+    <module class = "HarrisDetector" name = "HarrisDetector" />
+
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian" target = "INPUT" delay="0" />
+    <connection sourcemodule = "Gaussian" source = "dx" targetmodule = "HarrisDetector" target = "DX" delay="0" />
+    <connection sourcemodule = "Gaussian" source = "dy" targetmodule = "HarrisDetector" target = "DY" delay="0" />
+
+    <view name = "Demo view">
+        <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+        <object class="Image" module="HarrisDetector" source="OUTPUT" x="2" y="0" h="2" w="2"  />
+    </view>
+
+</group>

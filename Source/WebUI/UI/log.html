@@ -1,0 +1,92 @@
+<html>
+<head>
+<title>
+Ikaros Log
+</title>
+<script type="text/javascript">
+<!--
+var update_timer = null;
+
+function get(url, callback)
+{
+	function getURL_alt(url, callback)
+	{
+		function callCallback()
+		{
+			if (ajaxRequest.readyState == 4) //   || ajaxRequest.status == 0
+				if (ajaxCallback) ajaxCallback({content:ajaxRequest.responseText});
+		}
+
+		var ajaxRequest = null;
+		var ajaxCallback = callback;
+
+		ajaxRequest = new XMLHttpRequest();
+		ajaxRequest.onreadystatechange = callCallback;
+		ajaxRequest.open("GET", url, true);
+		ajaxRequest.send(null);
+	}			
+
+	if(window.getURL)
+		getURL(url, callback);
+	else if(window.XMLHttpRequest)
+		getURL_alt(url, callback);
+	else
+		alert("Error: This web browser does not have getURL or XMLHttpRequest");
+}
+
+
+function add_to_log(obj)
+{
+	if(obj.content == null || obj.content == "")
+		return
+
+	line = obj.content.split("\n");
+	for(L in line)
+	{
+		p = document.createElement("div");
+		t  = p.appendChild(document.createTextNode(line[L]));
+		document.getElementById("log").appendChild(p);
+	}
+}
+
+
+function do_update()
+{
+	clearTimeout(update_timer);
+	get("getlog", add_to_log);
+}
+
+
+function do_auto_update()
+{
+	get("getlog", add_to_log);
+	update_timer = setTimeout("do_auto_update()", 1000);
+}
+
+
+function do_clear()
+{
+	l = document.getElementById("log");
+	dd = l.getElementsByTagName("div");
+	ddl = dd.length;
+	for(d=0; d<ddl;d++)
+		l.removeChild(dd[0]);
+}
+
+do_update();
+ -->
+</script>
+</head>
+<body  style="margin: 0; padding: 0">
+
+<div style="background-color: #aaaaaa; padding: 5px">
+<button onclick="do_clear()">Clear</button>
+<button onclick="do_update()">Update</button>
+<button onclick="do_auto_update()">Auto</button>
+</div>
+
+<div id="log" style="padding:7px; font-size: 8pt; font-family: Verdana, sans-serif">
+</div>
+
+</body>
+</html>

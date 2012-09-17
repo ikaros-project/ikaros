@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Max" description="maximum of two inputs">
+
+	<description type="text">
+		Module that calculates the maximum of each elementy of
+		its two inputs, which can be one or two dimensional.
+		Both inputs must have the same size.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Max"
+			name="Max"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output with the maximum of each element of the two inputs" size_set="INPUT1,INPUT2"/>
+
+	<module class="Max" />
+
+    <view title="Max">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Max"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Max.h</file>
+   		<file>Max.cc</file>
+   		<file>Max.ikc</file>
+   </files>
+
+</group>

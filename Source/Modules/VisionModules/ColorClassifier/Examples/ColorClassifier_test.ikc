@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<group title="Color Classification">
+	
+        <module
+			class = "InputJPEG"
+			name = "Movie"
+			filecount = "273"
+			filename = "../../../../../Examples/Media/rgb.jpg"
+		/>
+
+        <module
+            class = "ColorTransform"
+            name = "ColorTransform"
+            transform = "RGB->rgI"
+        />
+  
+        <module
+			class			= "ColorClassifier"
+			name			= "ColorClassifier"
+
+			color			= "330 degrees"
+			width           = "3 degrees"
+			saturation_min	= "0.45"
+			saturation_max	= "1.0"
+            compensation	= "yes"			
+            statistics      = "yes"
+		/>
+        
+		<connection sourcemodule="Movie" source="RED" targetmodule="ColorTransform" target="INPUT0" delay="0" />
+		<connection sourcemodule="Movie" source="GREEN" targetmodule="ColorTransform" target="INPUT1" delay="0" />
+		<connection sourcemodule="Movie" source="BLUE" targetmodule="ColorTransform" target="INPUT2" delay="0" />
+
+		<connection sourcemodule="ColorTransform" source="OUTPUT0" targetmodule="ColorClassifier" target="R" delay="0" />
+		<connection sourcemodule="ColorTransform" source="OUTPUT1" targetmodule="ColorClassifier" target="G" delay="0" />
+		<connection sourcemodule="ColorTransform" source="OUTPUT2" targetmodule="ColorClassifier" target="I" delay="0" />
+
+		<view name="Color Space">
+			<object
+				class="Image" title="Color Space" type = "rgb"
+				module = "ColorClassifier"
+				source = "COLORSPACE_R+COLORSPACE_G+COLORSPACE_B" x="0" y="0" w="2" h="2" 
+			/>
+		</view>
+
+		<view name="Detection">
+			<object class="Image" title="Input" type = "rgb"
+				module = "Movie" source = "RED+GREEN+BLUE" x="0" y="0" w="2" h="2"
+			/>
+			<object
+				class="Image" title="Detection" type="gray"
+				module = "ColorClassifier"
+				source = "OUTPUT" x="2" y="0" w="2" h="2" 
+			/>
+		</view>
+
+		<view name="rgI Color Channels">
+			<object
+				class="Image" title="r" type = "gray"
+				module = "ColorTransform"
+				source = "OUTPUT0" x="0" y="0" 
+			/>
+			<object
+				class="Image" title="g" type = "gray"
+				module = "ColorTransform"
+				source = "OUTPUT1" x="1" y="0" 
+			/>
+			<object
+				class="Image" title="I" type = "gray"
+				module = "ColorTransform"
+				source = "OUTPUT2" x="2" y="0"
+			/>
+		</view>
+
+</group>
+

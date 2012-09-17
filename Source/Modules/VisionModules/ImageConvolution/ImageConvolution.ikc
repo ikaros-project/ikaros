@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<group name="ImageConvolution" description="filter an image">
+
+	<description type="text">
+		Module used for basic image filtering with user-defined filter kernels.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ImageConvolution"
+			name="SobelV"
+			bias = "1.0"
+			gain = "0.1"
+			size_x = "3"
+			size_y = "3"
+			kernel =
+				"1 0 -1
+				2 0 -2
+				1 0 -1"
+		/>
+	</example>
+
+	<parameter name="scale" type="float" default="1.0" description="Factor to multiply each element of the output matrix" />
+	<parameter name="bias" type="float" default="0.0" description="Value to add to each element in the output matrix. Added after the multiplication with the scale factor abov" />
+	<parameter name="rectify" type="bool" default="no" description="Should the result be rectified" />
+	<parameter name="size_x" type="int" default="0" description="Size of the filter kernel" />
+	<parameter name="size_y" type="int" default="0" description="Size of the filter kernel" />
+	<parameter name="kernel" type="matrix" description="Filter coefficients" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" />
+
+	<module class="ImageConvolution" />
+
+	<created>2002</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>ImageConvolution.h</file>
+	<file>ImageConvolution.cc</file>
+	<file>ImageConvolution.ikc</file>
+   </files>
+
+</group>

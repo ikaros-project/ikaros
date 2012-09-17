@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="Delay" description="delays a signal">
+
+	<description type="text">
+		Module used to delay its input a number of ticks. The delay is
+        set by the attribute delay. This module is mainly included for
+        compatibility with earlier versions of Ikaros. Starting with
+        version 0.7.8 the delay attribute (e.g. delay = "2") can be used
+        directly in the connection declarations in the ikc files.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Delay"
+			name="Delay"
+            delay="2"
+		/>
+	</example>
+
+    <parameter name="delay" type="int" default="1" description="The number of ticks to delay the input" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The delayed output" size_set="INPUT" />
+
+	<module class="Delay" />
+
+	<author>
+		<author>Jan Mor&#233;n</author>
+		<email>jan.moren@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/People/Jan.Moren/</homepage>
+	</author>
+
+   <files>
+   		<file>Delay.h</file>
+   		<file>Delay.cc</file>
+   		<file>Delay.ikc</file>
+   </files>
+
+</group>

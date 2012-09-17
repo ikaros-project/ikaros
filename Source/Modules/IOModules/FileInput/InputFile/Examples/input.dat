@@ -1,0 +1,19 @@
+#
+#	input.dat
+#
+#	Example data for InputModule
+#
+# 	The data consists of two columns X and Y 
+#	with two values in each.
+#	
+#	The module InputFile will create two outputs
+#	called X and Y that will output the values
+#	on each row.
+#
+
+X/2 Y/2
+1 2 3 4 
+2 3 5 7
+3 7 3 4
+9 7 6 2
+

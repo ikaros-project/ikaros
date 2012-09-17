@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+
+
+<group name="Epuck" description="interfaces the e-puck robot">
+
+
+<description type="text">
+	This module allows you to control the e-puck robot and to get data from it. By connecting
+	channels to the inputs and outputs of this module, you activate which functionality will
+	be used in the e-puck (e.g. if you do not connect anything to the VELOCITY channel, there
+	will not be any velocity commands sent to the e-puck). However, the outputs can also be
+	activated by the xoutput_on parameters to the module in the ikc file. The reason for this
+	is that even though nothing is connected to them, you might still want to observe them
+	through the WebUI. Just observing the outputs through the WebUI does not make the OutputConnected()
+	function return true.
+</description>
+
+
+<example description="A simple example">
+<module
+	class="Epuck"
+	name="EPUCK"
+	port="/dev/rfcomm0"
+/>
+</example>
+
+
+<input name="VELOCITY"
+	description="This channel controls the wheels of the e-puck (binary command -'D'). Positive values make the
+		wheel spin forward, negative backward. Array of size 2. First value is left
+		wheel, second value is right wheel. Values from -0.129 to 0.129 are allowed.
+		These values are meters/second." />
+<input name="LED"
+	description="Array of size 8, where each element corresponds to one of the LEDs on the
+		e-puck. Values accepted are natural numbers 0 (turn off led), 1 (turn on led) and 2
+		(toggle the led). Other values will be changed to one of the above mentioned numbers
+		(values less than 0 become 0 and the rest become 1). The command used is binary -'L'." />
+<input name="LIGHT"
+	description="Array of size 1. This controls the front light of the e-puck. Values accepted
+		are natural numbers 0 (turn off light), 1 (turn on light) and 2 (toggle the light).
+		Other values will be changed to one of the above mentioned numbers
+		(values less than 0 become 0 and the rest become 1). The command used is ascii 'F\n'." />
+<input name="BODY"
+	description="Array of size 1. This controls the body light of the e-puck. Values accepted
+		are natural numbers 0 (turn off body light), 1 (turn on body light) and 2 (toggle the body light).
+		Other values will be changed to one of the above mentioned numbers
+		(values less than 0 become 0 and the rest become 1). The command used is ascii 'B\n'." />
+<input name="SOUND"
+	description="Array of size 1. Values accepted are natural numbers 0-5. Numbers 1-5 play
+		the corresponding sounds in the e-puck (ascii command 'T,x\n') and number 0 means
+		no sound. When you want to play sound #2, you send 2 to this channel and the sound
+		will be played. Until it has finished it does no matter if something else is sent 
+		on this channel, the
+		sound is played to the end. When the sound has stopped playing, this module sends
+		a command to the e-puck to make it quiet, and then the next time it sees something
+		else than 0 in this channel, it starts playing the next sound. The sounds are of
+		varying length, the longest is just under 1.5s. The e-puck is made quiet after
+		this length of time no matter which sound is played, so at some sounds there is
+		a short while when the e-puck makes a quiet sparkeling noise." />
+
+<output name="PROXIMITY"
+	description="Array of size 8. Each value corresponds to one of the readings from the IR
+		sensors (binary command -'N'). These readings seem slightly unreliable, it is only at close range (an
+		inch or two) that you see differences in the output." />
+<output name="ACCELERATION_PLAIN"
+	description="Array of size 3. Gives you the values that the e-puck sends back when
+		given the ascii acceleration command ('A\n'). Values are unmodified." />
+<output name="ACCELERATION"
+	description="Array of size 1. Gives you part of the values that the e-puck sends back when
+		given the binary acceleration command (-'A'). This value is the first int of the three
+		ints that the e-puck sends. The value is divided by 4000, and hence between 0.0 and 1.0.
+		All of the ACCELERATION, ORIANTATION and INCLINATION output channels get their
+		data from the same e-puck command, so if one of them is activated, they all
+		automatically become activated." />
+<output name="ORIENTATION"
+	description="Array of size 2. Gives you part of the values that the e-puck sends back when
+		given the binary acceleration command (-'A'). This value is the second int of the three
+		ints that the e-puck sends. The output is modified like this:
+		element0 = cos( epuck_out * (2.0 * pi / 360.0) )  and 
+		element1 = sin( epuck_out * (2.0 * pi / 360.0) ).
+		All of the ACCELERATION, ORIANTATION and INCLINATION output channels get their
+		data from the same e-puck command, so if one of them is activated, they all
+		automatically become activated." />
+<output name="INCLINATION"
+	description="Array of size 2. Gives you part of the values that the e-puck sends back when
+		given the binary acceleration command (-'A'). This value is the third int of the three
+		ints that the e-puck sends. The output is modified like this:
+		element0 = cos( epuck_out * (2.0 * pi / 360.0) )  and 
+		element1 = sin( epuck_out * (2.0 * pi / 360.0) ).
+		All of the ACCELERATION, ORIANTATION and INCLINATION output channels get their
+		data from the same e-puck command, so if one of them is activated, they all
+		automatically become activated." />
+<output name="ENCODER"
+	description="Array of size 1. This channel gives info about how many steps the wheels
+		have turned since last tick (binary command -'Q'). One full circle (12.9cm distance)
+		is 1000 steps." />
+<output name="MICROPHONE_VOLUME"
+	description="Array of size 3. Gives the sound volumes of the three microphones in the
+		e-puck (ascii command 'U\n')." />
+<output name="MICROPHONE_BUFFER"
+	description="Matrix of size 3x100. These are the values that the e-puck gets via the
+		binary command -'U'. The values are the recordings in the e-pucks rotating microphone
+		buffer. When this channel is activated, the MICROPHONE_SCAN_ID channel is also activated." />
+<output name="MICROPHONE_SCAN_ID"
+	description="Array of size 1. This value is also gotten via the binary command -'U'. This
+		channel is activated when the MICROPHONE_BUFFER channel is activated." />
+<output name="IMAGE"
+	description="Matrix with output from camera when in gray scale mode. Sizes vary depending
+		on the image sizes. The output will be matrix[height][width]." />
+<output name="RED"
+	description="Matrix with output for red color from camera when in color mode. Sizes vary depending
+		on the image sizes. The output will be matrix[height][width]." />
+<output name="GREEN"
+	description="Matrix with output for green color from camera when in color mode. Sizes vary depending
+		on the image sizes. The output will be matrix[height][width]." />
+<output name="BLUE"
+	description="Matrix with output for blue color from camera when in color mode. Sizes vary depending
+		on the image sizes. The output will be matrix[height][width]." />
+
+<parameter name="port"
+	description="Decides the device used for Bluetooth communication."
+	type="string"
+	default="/dev/rfcomm"/>
+<parameter name="calibrate"
+	description="Decides if the e-puck should calibrate itself at start-up."
+	type="bool"
+	default="true"/>
+<parameter name="camera"
+	description="Decides if, and which, camera type should be used."
+	type="list"
+	values="none/gray/color"
+	default="none"/>
+<parameter name="height"
+	description="Height of the camera image."
+	type="int"
+	default="32"/>
+<parameter name="width"
+	description="Width of the camera image."
+	type="int"
+	default="32"/>
+<parameter name="zoom"
+	description="Zoom of the camera. Should be 2, 4 or 8."
+	type="int"
+	default="8"/>
+<parameter name="proximity_on"
+	description="Decides if the PROXIMITY output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="acceleration_on"
+	description="Decides if the ACCELERATION output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="acceleration_plain_on"
+	description="Decides if the ACCELERATION_PLAIN output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="orientation_on"
+	description="Decides if the ORIENTATION output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="inclination_on"
+	description="Decides if the INCLINATION output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="encoder_on"
+	description="Decides if the ENCODER output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="microphone_volume_on"
+	description="Decides if the MICROPHONE_VOLUME output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+<parameter name="microphone_buffer_on"
+	description="Decides if the MICROPHONE_BUFFER output channel should be on even if it is not connected."
+	type="bool"
+	default="false"/>
+
+
+<module class="Epuck" />
+
+
+<author>
+	<name>Christian Balkenius, Birger Johansson and Alexander Kolodziej</name>
+	<email></email>
+	<affiliation>Lund University Cognitive Science</affiliation>
+</author>
+
+<files>
+	<file>Epuck.h</file>
+	<file>Epuck.cc</file>
+	<file>Epuck.ikc</file>
+</files>
+
+</group>

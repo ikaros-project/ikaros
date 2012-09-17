@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group name="ColorClassifier" description="tracks colored objects">
+
+	<description type="text">
+		Module used to classify one or several objects of a particular color in a scene.
+        The input is a color image in rgI format which can be obained from the ColorTransform module.
+        The output is a table of target coordinates.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class           = "ColorClassifier"
+			name            = "ColorClassifier"
+            color			= "145 degrees"
+			width           = "30 degrees"
+			saturation_min	= "0.05"
+			saturation_max	= "0.35"
+			compensation	= "yes"			
+		/>
+	</example>
+
+	<parameter name="compensation" type="bool" default="no" description="Compensate for the illumination using a gray world assumption" />
+	<parameter name="diagnostics" type="bool" default="yes" description="Draw pixel locations in the diagnostic output COLORSPACE. This is slower but useful during set-up." />
+
+	<parameter name="color" type="float" default="225" min="0" max="360" description="The target hue (in degrees). red=135, green=315; blue = 225" />
+	<parameter name="width" type="float" default="20" min="0" max="360" description="The target width (in degrees)." />
+	<parameter name="saturation_min" type="float" default="0.05" min="0" max="1" description="The minimum saturation of the target color." />
+	<parameter name="saturation_max" type="float" default="0.50" min="0" max="1" description="The maximum saturation of the target color." />
+
+	<input name="R" description="The normalized red channel" />
+	<input name="G" description="The normalized green channel" />
+	<input name="I" description="The intensity channel" />
+
+	<output name="OUTPUT" description="Image with the detected points." size_set="R, G, I" />
+
+	<output name="COLORSPACE_R" description="Image with all pixels plotted in the rg color space. Red channel." size_x="256" size_y="256" />
+	<output name="COLORSPACE_G" description="Image with all pixels plotted in the rg color space. Green channel." size_x="256" size_y="256" />
+	<output name="COLORSPACE_B" description="Image with all pixels plotted in the rg color space. Blue channel." size_x="256" size_y="256" />
+
+	<module class="ColorClassifier" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>ColorClassifier.h</file>
+   		<file>ColorClassifier.cc</file>
+   		<file>ColorClassifier.ikc</file>
+   </files>
+
+</group>
+
