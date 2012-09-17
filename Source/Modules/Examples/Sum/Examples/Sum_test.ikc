@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<group>
+	<module class = "InputFile" name = "DATA" filename = "inputfile.txt" iterations="10000" />
+	
+	<module class = "OutputFile" name = "OUT" filename = "outputfile.txt">
+	    <column name = "OUT"/>
+	</module>
+	
+	<module class = "Sum" name = "SUM" />
+
+	<connection sourcemodule = "DATA"   source = "A"
+		    targetmodule = "SUM"    target = "INPUT1"/>
+	
+	<connection sourcemodule = "DATA"   source = "B"
+		    targetmodule = "SUM"    target = "INPUT2"/>
+	
+	<connection sourcemodule = "SUM"    source = "OUTPUT"
+		    targetmodule = "OUT"    target = "OUT"/>
+</group>

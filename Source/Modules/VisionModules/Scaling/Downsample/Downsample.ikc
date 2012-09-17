@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<group name="Downsample" description="halves an image">
+
+	<description type="text">
+		Module that downsamples an image to half size. No interpolation is done.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Downsample"
+			name="Downsample"
+		/>
+	</example>
+
+	<input name="INPUT" description="The  input" />
+	<output name="OUTPUT" description="The downsampled image" />
+
+	<module class="Downsample" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Downsample.h</file>
+   		<file>Downsample.cc</file>
+   		<file>Downsample.ikc</file>
+   </files>
+
+</group>

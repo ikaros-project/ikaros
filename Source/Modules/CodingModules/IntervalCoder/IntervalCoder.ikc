@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="IntervalCoder" description="encodes a value in a vector">
+
+	<description type="text">
+		Module that generates a simple interval code for a real-valued input.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="IntervalCoder"
+			name="IntervalCoder"
+		/>
+	</example>
+
+	<parameter name="outputsize" type="int" default="10" description="Number of output node" />
+	<parameter name="radius" type="float" default="1" description="The size of the the coding" />
+	<parameter name="min" type="float" default="0.0" description="Minimum value to be coded" />
+	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
+
+	<input name="INPUT" description="The input" />
+
+	<output name="OUTPUT" description="The interval coded output" size_param="outputsize" />
+
+	<module class="IntervalCoder" />
+
+	<created>2003</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>IntervalCoder.h</file>
+   		<file>IntervalCoder.cc</file>
+   		<file>IntervalCoder.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant1" outputsize = "5" data="1 2 3 4 5" />
+		<module class = "Constant" name = "Constant2" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "Divide"
+			name = "Divide"
+		/>
+		
+		<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="Divide" target="INPUT1" />
+		<connection sourcemodule="Constant2" source="OUTPUT" targetmodule="Divide" target="INPUT2" />
+
+		<view name="View">
+			<object class="BarGraph" module="Constant1" source="OUTPUT" max="5" x="0" y="0" />
+			<object class="BarGraph" module="Constant2" source="OUTPUT" max="5" x="0" y="1" />
+			<object class="BarGraph" module="Divide" source="OUTPUT" max="5" x="0" y="2" />
+		</view>
+</group>
+ 

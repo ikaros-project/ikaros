@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<group name="SelectMax" description="selects maximum element">
+
+	<description type="text">
+		A module sets the output element corresponding to its
+		maximum input element to 1. The rest of the output is 0.
+	</description>
+
+	<example description="Example">
+		<module
+			class="SelectMax"
+			name="SelectMax"
+		/>
+	</example>
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="Output with a single 1 at the maximum of the input" size_set="INPUT" />
+
+	<module class="SelectMax" />
+
+    <view title="SelectMax">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for SelectMax"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SelectMax.h</file>
+   		<file>SelectMax.cc</file>
+   		<file>SelectMax.ikc</file>
+   </files>
+
+</group>
+

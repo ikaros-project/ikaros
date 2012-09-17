@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!-- Example for the Arbiter module -->
+
+<group>
+	
+		<module
+			class = "Arbiter"
+			name = "Arbiter"
+		/>
+
+		<module class = "Constant" name = "C1" outputsize = "3" data = "1 2 3" />
+		<module class = "Constant" name = "C2" outputsize = "3" data = "5 6 7" />
+		<module class = "Constant" name = "V1" outputsize = "1" data = "2" />
+		<module class = "Constant" name = "V2" outputsize = "1" data = "1" />
+
+		<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT1" delay="0" />
+		<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT2" delay="0" />
+		<connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE1" delay="0" />		
+		<connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE2" delay="0" />
+
+		<view>
+			<object
+				class ="Text" x="0" y="0" w="4"
+				text="Demonstration of the Arbiter module (C1 will be selected over C2)." 
+			  />
+
+			<object class ="BarGraph" name="C1" module="C1" source="OUTPUT" x="0" y="1" min="0" max="10" />
+			<object class ="BarGraph" name="C2" module="C2" source="OUTPUT" x="1" y="1" min="0" max="10" />
+			<object class ="BarGraph" name="Selected" module="Arbiter" source="OUTPUT" x="2" y="1" min="0" max="10" />
+		</view>
+
+</group>
+
+

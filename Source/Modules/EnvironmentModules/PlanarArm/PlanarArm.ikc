@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group name="PlanarArm" description="simulation of a simple arm and a target object">
+
+	<description type="html">
+		<p>
+			Module that implements a simple arm simulation.
+		</p>
+	</description>
+
+	<example description="A simple example">
+		<module
+			class = "PlanarArm"
+			name = "PlanarArm"
+			/>
+	</example>
+
+	<parameter name="target_behavior" type="list" values=" random/linear/circular/lisajous" default="max" description="How to use the MOVE input" />
+	<parameter name="target_speed" type="float" default="0.05" description="Speed of target" />
+	<parameter name="target_size" type="float" default="0.05" description="Size of target" />
+	<parameter name="target_range" type="float" default="0.3" description="Range of target" />
+	<parameter name="target_noise" type="float" default="0.0" description="Noise of target" />
+
+	<parameter name="speed" type="float" default="0.1" description="Speed of the arm" />
+	<parameter name="grasp_limit" type="float" default="0.0" description="???" />
+
+	<input name="DESIRED_ANGLES" description="The desired position of the arm" />
+
+	<output name="TARGET" description="The location of the target in the environment" size="2" />
+	<output name="JOINTS" description="The locations of the joints of the arm" size_x="2" size_y="4" />
+	<output name="ANGLES" description="The angles of the joints of the arm" size="3" />
+	<output name="HAND_POSITION" description="The position of the hand" size="2" />
+	<output name="DISTANCE" description="The distance from the hand to the target" size="1" />
+	<output name="CONTACT" description="The hand is in contact with the target" size="1" />
+
+	<module class="PlanarArm" />
+	
+	<limitation>
+		Not yet fully implemented
+	</limitation>
+
+	<created>2007</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>PlanarArm.h</file>
+   		<file>PlanarArm.cc</file>
+   		<file>PlanarArm.ikc</file>
+   </files>
+
+</group>
+

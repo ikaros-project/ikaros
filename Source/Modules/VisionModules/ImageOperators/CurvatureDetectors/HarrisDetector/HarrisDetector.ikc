@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<group name="HarrisDetector" description="finds curvature points">
+
+	<description type="text">
+		Module for curvature (corner) detection. Operates on
+        two gradient images (DX and DY) rather than the original image
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="HarrisDetector"
+			name="HarrisDetector"
+		/>
+	</example>
+
+	<input name="DX" description="The gradient image (in the x-direction)" />
+	<input name="DY" description="The gradient image (in the y-direction)" />
+	<output name="OUTPUT" description="A matrix representing the curvature at each location" />
+
+	<module class="HarrisDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+    <created>2004</created>
+    
+   <files>
+   		<file>HarrisDetector.h</file>
+   		<file>HarrisDetector.cc</file>
+   		<file>HarrisDetector.ikc</file>
+   </files>
+
+</group>

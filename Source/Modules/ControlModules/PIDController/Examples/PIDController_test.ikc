@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group>
+
+    <description>
+    	Example experiment file for PIDController.
+        This file only tests that the PIDController is functional.
+        It is not a  good example of how to use the module.
+    </description>
+
+    <module 
+        class = "InputFile" 
+        name = "IN" 
+        filename = "input.dat" 
+        iterations = "100"
+    />
+    
+    <module
+        class = "PIDController"
+        name = "PID"
+        Kp = "1"
+        Ki = "0"
+        Kd = "0"
+    />
+
+    <connection sourcemodule = "IN" source = "X" targetmodule = "PID" target = "INPUT" />
+    <connection sourcemodule = "IN" source = "S" targetmodule = "PID" target = "SETPOINT" />
+	
+	<views>
+		<view name="V1">
+			<object class="Plot" module="PID" source="OUTPUT" x="0" y="0" w="4"/>
+		</view>
+	</views>
+	
+</group>

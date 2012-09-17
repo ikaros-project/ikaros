@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!-- Pointless example xml file with a Constant module -->
+<!-- The output can be viewed in the Viewer; without the viewer -->
+<!-- IKAROS will run in an endless loop.					 -->
+
+<group>
+	<module
+		class = "Constant"
+		name = "Constant"
+		outputsize = "5"
+		data =  "1 2 3 4 5"
+	/>
+	
+	<module
+		class = "Constant" 
+		name = "ConstantMatrix" 
+		outputsize_x = "5" 
+		outputsize_y = "7"
+		data = "0 0 0 0 0
+			    0 1 1 1 0
+			    0 2 0 0 0
+			    0 3 3 3 0
+                0 0 0 4 0
+			    0 5 5 5 0
+			    0 0 0 0 0"
+		/>
+
+	<view name="View">
+		<object class="BarGraph" module="Constant" source="OUTPUT" x="0" y="0" min="0" max="5" />
+		<object class="Image" module="ConstantMatrix" source="OUTPUT" x="1" y="0" />
+	</view>
+	
+</group>
+

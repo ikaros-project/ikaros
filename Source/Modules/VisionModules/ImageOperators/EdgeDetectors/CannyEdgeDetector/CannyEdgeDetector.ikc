@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<group name="CannyEdgeDetector" description="finds edges">
+
+	<description type="text">
+		Module that applies the Canny edge detector to an image. This edge detector works in five steps:
+    1. Gradient Estimation using a Gaussian edge detector.
+    2. Orientation Classification.
+    3. Nonmaximum Supression.
+    4. Hysteresis Thresholding.
+    This is not exactly the algorithm as described by Canny (the edge filter is different and edges are only found at a single scale) but it is reasonably similar.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="CannyEdgeDetector"
+			name="CannyEdgeDetector"
+		/>
+	</example>
+
+	<parameter name="scale" type="float" description="Scale parameter" />
+	<parameter name="T0" type="float" description="First threshold" />
+	<parameter name="T1" type="float" description="Second threshold" />
+	<parameter name="T2" type="float" description="Third threshold" />
+
+	<input name="INPUT" description="The iage input" />
+    
+	<output name="EDGES" description="Edge magnitude" />
+	<output name="MAXIMA" description="Orientation estimate" />
+	<output name="OUTPUT" description="Final edges" />
+	<output name="dx" description="Gradient estimation and categorization" />
+	<output name="dy" description="Gradient estimation and categorization" />
+	<output name="dGx" description="Filter kernel" />
+	<output name="dGy" description="Filter kernel" />
+
+	<module class="CannyEdgeDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>CannyEdgeDetector.h</file>
+   		<file>CannyEdgeDetector.cc</file>
+   		<file>CannyEdgeDetector.ikc</file>
+   </files>
+
+</group>

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group title="Arm Demo">
+	
+    <module
+        class = "FunctionGenerator"
+        name = "J1"
+        type = "sin"
+        frequency = "0.1"
+        offset = "0"
+        amplitude = "0.0"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "J2"
+        type = "sin"
+        frequency = "0.1"
+        offset = "0"
+        amplitude = "0.0"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "J3"
+        type = "sin"
+        frequency = "0.1"
+        offset = "0"
+        amplitude = "0.0"
+    />
+
+    <module
+        class = "PlanarArm"
+        name = "Arm"
+    />
+
+    <connection sourcemodule = "J3" source = "OUTPUT" targetmodule = "Arm" target = "DESIRED_ANGLES" />
+    <connection sourcemodule = "J2" source = "OUTPUT" targetmodule = "Arm" target = "DESIRED_ANGLES" />
+    <connection sourcemodule = "J1" source = "OUTPUT" targetmodule = "Arm" target = "DESIRED_ANGLES" />
+		
+
+	<view name="Arm View" object_size="50">
+    
+		<object class="Line" module="Arm" source="JOINTS" x="0" y="0" h="4" w="4" color="yellow" stroke_width="3" />
+
+        <object class="Slider" title="J1" module="J1" parameter="offset" min="-1" x="4" y="0" h="2" />
+        <object class="Slider" title="J2" module="J2" parameter="offset" min="0" max="2" x="5" y="0" h="2" />
+        <object class="Slider" title="J3" module="J3" parameter="offset" min="0" max="2" x="6" y="0" h="2" />
+
+        <object class="Slider" title="OSC1" module="J1" parameter="amplitude" x="4" y="2" h="2" min="-1" />
+        <object class="Slider" title="OSC2" module="J2" parameter="amplitude" x="5" y="2" h="2" min="-1" />
+        <object class="Slider" title="OSC3" module="J3" parameter="amplitude" x="6" y="2" h="2" min="-1" />
+	</view>
+
+</group>
+ 
+

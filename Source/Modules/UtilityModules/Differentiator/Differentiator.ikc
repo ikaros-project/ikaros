@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="Differentiator" description="calculates difference between inputs">
+
+	<description type="text">
+		Module used to differentiate its input over time.
+        The output is calculated as,
+        output(t) = input(t) - input(t-1)
+        The module retains the size of the input even if it is a matrix.
+        The module can thus be used to differentiate images.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Differentiator"
+			name="Differentiator"
+		/>
+	</example>
+    
+    <parameter name="rectify" type="bool" default="no" description="Should the output be rectified after subtraction?"  />
+    <parameter name="gain" type="float" default="1.0" description="The output is multiplied with this factor" />
+    <parameter name="reset_period" type="int" default="1" description="?" />
+    
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The differentiated output" size_set="INPUT" />
+
+	<module class="Differentiator" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Differentiator.h</file>
+   		<file>Differentiator.cc</file>
+   		<file>Differentiator.ikc</file>
+   </files>
+
+</group>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Normalize" description="normalizes its input">
+
+	<description type="text">
+		Module that normalizes its input in various ways. With type 'range' it maps its input onto the interval [0..1] such that the minimal element becomes o and the maximal 1.
+        With type 'euclidean' the input vector is divided by the eulidean norm and with 'cityblock' the input vector is divided by the cityblock norm of the input. Finally for
+        the type 'max', each element is divided by the maximal element making it 1. The output will be 0 when the input vector consists of only zeros.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Normalize"
+			name="Normalize"
+		/>
+	</example>
+
+	<parameter name="type" type="list" values="range/euclidean/cityblock/max" default="range" description="The type of normalization" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Normalize" />
+
+    <view title="Normalize">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Normalize"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Normalize.h</file>
+   		<file>Normalize.cc</file>
+   		<file>Normalize.ikc</file>
+   </files>
+
+</group>

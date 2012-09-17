@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+
+
+<group name="KNN_Pick" description="chooses a class based on some elements (neighbors)">
+
+
+<description type="text">
+	This module chooses a class based on some input elements (neighbors).
+	It can deal with categorical classes (then the amount of instances of the
+	classes decides), and with qualitative classes (then the mean is calculated).
+	The amount of instances and the mean can be weighed. If this is the case, then
+	instances will be counted more (or less) times, depending on their distance.	
+	This module can be connected to the KNN module (KNN.OUTPUT_TABLE to KNN_PICK.OUTPUT_TABLE
+	and KNN.DISTANCE_TABLE to KNN_PICK.DISTANCE_TABLE. Note: KNN.INPUT_TABLE is not
+	used by this module. This module is too simple to look at individual elements
+	coordinates.).
+</description>
+
+
+<example description="A simple example">
+<module
+	class="KNN_Pick"
+	name="KNN_PICK"
+/>
+</example>
+
+
+<input name="OUTPUT_TABLE"
+	description="The outputs (classes) of the elements (neighbors)." />
+
+<input name="DISTANCE_TABLE"
+	description="The distances of the elements (neighbors)." />
+
+<output	name="CLASS_OUTPUT"
+	description="The calculated class." />
+
+
+<parameter name="categorical"
+	description="Categorical means that the classes of the elements are discrete.
+	E.g. {1,2,3}. If 'categorical' is set to false it means the values
+	are qualitative, i.e. probably each element has a class of its own (or rather, there
+	are no discrete classes). For categorical
+	classes the amount of each class is counted, for qualitative classes a mean is
+	calculated. The result can be weighed in both cases."
+	type="bool"
+	default="true"/>
+<parameter name="weighed"
+	description="If this is set to true the elements with smaller distances are more
+	valuable for the result. If you want to edit exactly how this is calculated, look at
+	the function GetWeightFactor(distance)."
+	type="bool"
+	default="false"/>
+<parameter name="weight_divisor"
+	description="This is the divisor in the division when the weight factor is calculated.
+	The distance is part of the divider. If you want to edit exactly how this is calculated,
+	look at the function GetWeightFactor(distance)"
+	type="float"
+	default="1.0"/>
+
+
+<module class="KNN_Pick" />
+
+
+<author>
+	<name>Alexander Kolodziej</name>
+	<email>alexander.kolodziej@gmail.com</email>
+	<affiliation>LUCS</affiliation>
+</author>
+
+<files>
+	<file>KNN_Pick.h</file>
+	<file>KNN_Pick.cc</file>
+	<file>KNN_Pick.ikc</file>
+</files>
+
+</group>

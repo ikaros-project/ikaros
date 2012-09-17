@@ -1,0 +1,34 @@
+#
+#	input.dat
+#
+#	Example data for LinearAssociator
+#
+# 	The data consists of two columns X and Y 
+#	with two values in each.
+#	
+#	The values in Y are the sum and differences
+#	of the two values in X
+#
+
+X/2 Y/2
+
+0 0 0 0
+0 1 1 -1
+0 2 2 -2
+0 3 3 -3
+
+1 0 1 1
+1 1 2 0
+1 2 3 -1
+1 3 4 -2
+
+2 0 2 2
+2 1 3 1
+2 2 4 0
+2 3 5 -1
+
+3 0 3 3
+3 1 4 2
+3 2 5 1
+3 3 6 0
+

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "Softmax"
+			name = "Softmax"
+			exponent  = "1"
+		/>
+		
+		<module
+			class = "Softmax"
+			name = "Softmax5"
+			exponent  = "5"
+		/>
+		
+		<module
+			class = "Softmax"
+			name = "Softmax25"
+			exponent  = "25"
+		/>
+
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Softmax" target="INPUT" />
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Softmax5" target="INPUT" />
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Softmax25" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Softmax" source="OUTPUT" x="0" y="0" />
+			<object class="BarGraph" module="Softmax5" source="OUTPUT" x="1" y="0" />
+			<object class="BarGraph" module="Softmax25" source="OUTPUT" x="2" y="0" />
+		</view>
+
+</group>
+ 

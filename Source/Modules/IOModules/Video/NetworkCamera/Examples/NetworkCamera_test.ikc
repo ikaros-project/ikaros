@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example file for NetworkCamera (for the Axis2130 camera)
+
+		image_request		= "/jpg/image.jpg"
+		image_request		= "/axis-cgi/jpg/image.cgi?compression=50&colorlevel=1&resolution=176x120"
+
+		allowed resolutions 	= "704x480", "352x240", "176x144", "176x112"
+-->
+
+<group title = "Camera">
+
+    <module
+        class 			= "NetworkCamera"
+        name 			= "CAMERA"
+        size_x			= "176"
+        size_y			= "112"			
+        host_ip			= "192.168.0.1"
+        fps				= "10"
+        compression		= "50"
+    />
+
+    <view name="Color">
+        <object class="Image" name="CameraX" type = "rgb" module = "CAMERA+CAMERA+CAMERA" source = "RED+GREEN+BLUE" x="0" y="0" w="2" h="2" />
+    </view>
+    
+    <view name="Gray">
+        <object class="Image" name="Camera" module = "CAMERA" source = "INTENSITY" x="0" y="0" w="2" h="2" />
+    </view>
+
+</group>
+

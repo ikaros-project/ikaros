@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group name="Erode" description="erodes an image">
+
+	<description type="text">
+		Module that applies the 3x3 erode operator to an image (here generalized as
+        the max of the pixels in the area).
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Erode"
+			name="Erode"
+		/>
+	</example>
+
+	<input name="INPUT" description="The input image" />
+	<output name="OUTPUT" description="The output" />
+
+	<module class="Erode" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Erode.h</file>
+   		<file>Erode.cc</file>
+   		<file>Erode.ikc</file>
+   </files>
+
+</group>

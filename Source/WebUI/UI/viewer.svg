@@ -1,0 +1,55 @@
+<script xlink:href="/viewer.js" />
+
+<!-- UIClasses -->
+
+<script xlink:href="/Classes/Vector.js" />
+<script xlink:href="/Classes/BarGraph.js" />
+<script xlink:href="/Classes/Image.js" />
+<script xlink:href="/Classes/Grid.js" />
+<script xlink:href="/Classes/Plot.js" />
+<script xlink:href="/Classes/VectorField.js" />
+<script xlink:href="/Classes/Text.js" />
+<script xlink:href="/Classes/Table.js" />
+<script xlink:href="/Classes/ScatterPlot.js" />
+<script xlink:href="/Classes/PolarPlot.js" />
+<script xlink:href="/Classes/Trace.js" />
+<script xlink:href="/Classes/Circle.js" />
+<script xlink:href="/Classes/Cross.js" />
+<script xlink:href="/Classes/Rectangle.js" />
+<script xlink:href="/Classes/Label.js" />
+<script xlink:href="/Classes/Line.js" />
+<script xlink:href="/Classes/Lines.js" />
+<script xlink:href="/Classes/ArrayLine.js" />
+<script xlink:href="/Classes/Plot3D.js" />
+<script xlink:href="/Classes/Button.js" />
+<script xlink:href="/Classes/Switch.js" />
+<script xlink:href="/Classes/Slider.js" />
+<script xlink:href="/Classes/Mouse.js" />
+
+<!-- Graphical Elements -->
+
+<defs> 
+	<marker id="Triangle" 
+		viewBox="0 0 10 10" refX="2" refY="5" 
+		markerUnits="strokeWidth" 
+		markerWidth="4" markerHeight="3" 
+		orient="auto"> 
+		<path d="M 0 0 L 10 5 L 0 10 z" /> 
+	</marker> 
+    
+	<marker id="YellowTriangle" 
+		viewBox="0 0 10 10" refX="2" 
+        stroke="yellow" fill="yellow"
+        refY="5" 
+		markerUnits="strokeWidth" 
+		markerWidth="8" markerHeight="6" 
+		orient="auto"> 
+		<path d="M 0 0 L 10 5 L 0 10 z" /> 
+	</marker> 
+    
+    <filter id="filter" filterRes="100" x="0" y="0"> 
+        <feGaussianBlur stdDeviation="4 4"/> 
+        <feOffset dx="4" dy="4"/> 
+    </filter> 
+</defs>
+

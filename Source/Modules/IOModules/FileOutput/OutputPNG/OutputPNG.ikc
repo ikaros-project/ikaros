@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+
+<group name="OutputPNG" description="writes PNG files">
+
+	<description type="text">
+        Module used for writing an image (or sequences of images) to file(s).
+        The files are saved in PNG format.  For a gray scale image, connect
+        only the INTENSITY input.  For a color image, connect all of RED,
+        GREEN and BLUE input (but not INTENSITY).  To selectively output only
+        certain images, connect the WRITE input.
+        
+        The PNG format is, unlike JPEG, lossless but takes up
+        more space. If writing speed and small size is
+        important, please use Jpeg. If precise fidelity is
+        important, PNG is a good choice.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OutputPNG"
+			name="OutputPNG"
+			filename = "image%02d.jpg"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to write the output to. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of the file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'. With no sequence to generate, the module will repeatedly write to the same filename, leaving the last written image in the file." />
+	<parameter name="suppress" type="int" default="0" description="Number of initial files to supress. Used to stop the write of the first images in a sequence before any output is available." />
+	<parameter name="offset" type="int" default="none" description="Value to add to the file index" />
+
+	<input name="INTENSITY" description="The gray level image data to be written to the file" />
+	<input name="RED" description="The red channel image data to be written to the file" />
+	<input name="GREEN" description="The green channel image data to be written to the file" />
+	<input name="BLUE" description="The blue channel image data to be written to the file" />
+
+	<input name="WRITE" description="Signal to write or suppress a given
+	    image. If connected, an image will only actually be written if the
+	    value of the WRITE input is greter than 0. The file counter will
+	    still increase." />
+
+	<module class="OutputPNG" />
+    
+    <limitation>
+	    We aren't using all of PNG:s strenghts - no 16 bit output, no
+	    indexed color for smaller files and no way to create an alpha
+	    channel.    
+    </limitation>
+    
+	<bug>
+        If %d is not in the filename each new file will overwrite the
+        previous. This is a feature, since you can create
+        a named pipe and in that way stream images to another application.
+	</bug>
+	
+	<created>2007</created>
+	<author>
+		<name>Jan Moren</name>
+		<email>jan.moren@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/People/Jan.Moren</homepage>
+	</author>
+
+   <files>
+   		<file>OutputPNG.h</file>
+   		<file>OutputPNG.cc</file>
+   		<file>OutputPNG.ikc</file>
+   </files>
+
+</group>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<group>	
+		<module class = "Constant" name = "Constant" outputsize_x = "5" outputsize_y="5" data="1 2 3 4 5   1 2 3 9 5   1 2 7 2 5   4 2 3 3 5   6 2 3 6 5" />
+	
+		<module
+			class = "ArgMax"
+			name = "ArgMax"
+		/>
+
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="ArgMax" target="INPUT" />
+
+		<view name="View">
+			<object class="Image" type="gray" module="Constant" source="OUTPUT" max="5" x="0" y="0" />
+			<object class="Table" module="ArgMax" source="OUTPUT" x="0" y="1" />
+		</view>
+</group>
+ 

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="Distance" description="calculates a distance">
+
+	<description type="text">
+		Module that calculates the distance
+        between its two input vectors or matrices using the euclidean or citiblock norm.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Distance"
+			name="Distance"
+		/>
+	</example>
+
+	<parameter name="type" type="list" values="euclidean/cityblock" default="euclidean" description="The type of normalization" />
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output with the distance between the two inputs" size="1" />
+
+	<module class="Distance" />
+
+    <view title="Distance">
+        <object
+            x="0" y="0" w="1"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Distance"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Distance.h</file>
+   		<file>Distance.cc</file>
+   		<file>Distance.ikc</file>
+   </files>
+
+</group>

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<group name="Gate" description="gates a signal">
+
+	<description type="text">
+        Module that lets its input through to the output when the attribute
+        "open" is set to "true", otherwise it sets all its outputs to 0.
+    </description>
+
+	<example description="Example">
+		<module
+			class="Gate"
+			name="Gate"
+		/>
+	</example>
+
+    <parameter name="open" type="bool" default="yes" description="Is the gate open?" />
+    
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+    <limitation>
+        Should have an input that opens and closes the gate.
+    </limitation>
+    
+	<module class="Gate" />
+
+    <view title="Gate">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Gate"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Gate.h</file>
+   		<file>Gate.cc</file>
+   		<file>Gate.ikc</file>
+   </files>
+
+</group>

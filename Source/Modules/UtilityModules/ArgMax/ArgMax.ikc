@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="ArgMax" description="selects maximum element">
+
+	<description type="text">
+		A module that finds the maximum element of an array or matrix.
+	</description>
+
+	<example description="Example">
+		<module
+			class="ArgMax"
+			name="ArgMax"
+		/>
+	</example>
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="Output with the coordinate of the maximu element" size="2" />
+
+	<module class="ArgMax" />
+
+    <view title="ArgMax">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for ArgMax"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>ArgMax.h</file>
+   		<file>ArgMax.cc</file>
+   		<file>ArgMax.ikc</file>
+   </files>
+
+</group>
+

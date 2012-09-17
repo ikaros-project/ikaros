@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="Add" description="adds two inputs">
+
+	<description type="text">
+		Module that sums its two inputs element by element,
+		which can be one or two dimensional.
+		Both inputs must have the same size.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Add"
+			name="Add"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output" size_set="INPUT1, INPUT2" />
+
+	<module class="Add" />
+
+    <view title="Add">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Add"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Add.h</file>
+   		<file>Add.cc</file>
+   		<file>Add.ikc</file>
+   </files>
+
+</group>
+

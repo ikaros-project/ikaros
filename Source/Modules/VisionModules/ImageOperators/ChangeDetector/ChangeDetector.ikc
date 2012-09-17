@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<group name="ChangeDetector" description="detects flicker">
+
+	<description type="text">
+		Module that compares two successive input images and outputs the absolute value of their
+        difference. In addition, it is possible to throw away a border around the image to make
+        the output compatible with that of other image operators.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ChangeDetector"
+			name="ChangeDetector"
+		/>
+	</example>
+
+	<parameter name="border" type="int" description="Width of the border to ignore" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" />
+
+	<module class="ChangeDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>ChangeDetector.h</file>
+   		<file>ChangeDetector.cc</file>
+   		<file>ChangeDetector.ikc</file>
+   </files>
+
+</group>

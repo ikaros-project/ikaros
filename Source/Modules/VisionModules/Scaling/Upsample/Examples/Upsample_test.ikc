@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!-- Example for the Upsample module. -->
+
+<group title="Upsample Examples">
+	
+		<module
+			class = "InputJPEG"
+			name = "Image"
+			filename = "../../../../../../Examples/Media/cannes.jpg"
+			iterations = "1000"
+		/>
+
+		<module class = "Upsample" name = "D1" />
+		<module class = "Upsample" name = "D2" />
+		<module class = "Upsample" name = "D3" />
+		<module class = "Upsample" name = "D4" />
+
+		<connection sourcemodule = "Image" source = "INTENSITY" targetmodule = "D1" target = "INPUT" delay="0" />
+		<connection sourcemodule = "D1" source = "OUTPUT" targetmodule = "D2" target = "INPUT" delay="0" />
+		<connection sourcemodule = "D2" source = "OUTPUT" targetmodule = "D3" target = "INPUT" delay="0" />
+		<connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "D4" target = "INPUT" delay="0" />
+
+		<view name="View 1">
+			<object
+				class ="Text" x="0" y="0" w="4"
+				name="Demonstration of the Upsample module"
+				text="This example demonstrates the module Upsample module. Four modules are/connected in series to produce different scales of the image." 
+			  />
+
+			<object class= "Image" name="Image" type="gray" module="Image" source="INTENSITY" x="0" y="1"  />
+
+			<object class= "Image" name="Image" type="gray" module="D1" source="OUTPUT" x="0" y="2"  />
+			<object class= "Image" name="Image" type="gray" module="D2" source="OUTPUT" x="1" y="2"  />
+			<object class= "Image" name="Image" type="gray" module="D3" source="OUTPUT" x="2" y="2"  />
+			<object class= "Image" name="Image" type="gray" module="D4" source="OUTPUT" x="3" y="2"  />
+		</view>
+
+</group>
+ 

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example experiment file for InputModule
+
+	This file will iterate the data in the file "input.dat" four times.
+	The input will be followed by three ticks of zeros
+
+-->
+
+<group title = "Input file">
+
+    <module 
+        class = "InputFile" 
+        name = "IN" 
+        filename = "input.dat" 
+        iterations = "4" 
+        extend = "3" 
+        print_iteration = "yes" 
+    />
+		
+    <module  
+        class = "OutputFile" 
+        name = "OUT" 
+        filename = "output.dat"
+    >
+            <column name="A" />
+            <column name="B" />
+    </module>
+
+    <connection sourcemodule = "IN" source = "Y" targetmodule = "OUT" target = "A" />
+    <connection sourcemodule = "IN" source = "Y" targetmodule = "OUT" target = "B" />
+    
+    <view>
+        <object class="Table" module="IN" source="Y" x="0" y="0" max = "10"/>
+    </view>
+</group>
+

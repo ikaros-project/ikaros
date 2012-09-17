@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<group title="Morén's 2002 Disinhibition">
+
+	<module
+        class = "InputFile"
+        name = "Stimuli" 
+	    filename = "input.txt"
+    />
+
+	<module
+        class = "M02_Thalamus"
+        name = "Thalamus"
+	/>
+
+	<module
+        class = "M02_SensoryCortex"
+        name = "Cortex"
+	/>
+
+	<module
+        class = "M02_Amygdala"
+        name = "AMY"
+	    alpha = "0.2"
+	/>
+
+	<module
+        class = "M02_OFC"
+        name = "OFC"
+	    beta = "0.2"
+	/>
+
+	<module
+        class = "M02_Hippocampus"
+        name = "HIPP"
+	/>
+
+	<connection
+        sourcemodule = "Stimuli"
+        source = "CS"
+        targetmodule = "Thalamus"
+        target = "INPUT"
+    />
+
+	<connection
+        sourcemodule = "Thalamus"
+        source = "OUTPUT"
+        targetmodule = "Cortex"
+        target = "INPUT"
+    />
+
+	<connection
+        sourcemodule = "Thalamus"
+        source = "TH"
+        targetmodule = "AMY"
+        target = "INPUT"
+    />
+
+	<connection
+        sourcemodule = "Cortex"
+        source = "OUTPUT"
+        targetmodule = "AMY"
+        target = "INPUT"
+    />
+
+	<connection
+        sourcemodule = "Stimuli"
+        source = "R"
+        targetmodule = "AMY"
+        target = "Rew"
+        delay="3"
+    />
+
+
+    <!-- INPUT TO THE OFC NOW COMES FROM HIPPOCAMPUS -->
+
+	<connection
+        sourcemodule = "Cortex"
+        source = "OUTPUT"
+        targetmodule = "OFC"
+        target = "INPUT"
+    />
+
+	<connection
+        sourcemodule = "HIPP"
+        source = "CONTEXT"
+        targetmodule = "OFC"
+        target = "INPUT"
+    />
+
+
+
+	<connection
+        sourcemodule = "Stimuli"
+        source = "R"
+        targetmodule = "OFC"
+        target = "Rew"
+        delay="3"
+    />
+
+	<connection
+        sourcemodule = "AMY"
+        source = "A"
+        targetmodule = "OFC"
+        target = "A"
+    />
+
+	<connection
+        sourcemodule = "OFC"
+        source = "EO"
+        targetmodule = "AMY"
+        target = "EO"
+    />
+
+	<connection
+        sourcemodule = "Stimuli"
+        source = "CS"
+        targetmodule = "HIPP"
+        target = "STIMULUS"
+    />
+
+	<connection
+        sourcemodule = "Stimuli"
+        source = "LOC"
+        targetmodule = "HIPP"
+        target = "LOCATION"
+    />
+
+    <view name="Emotion" object_size="70" >
+        <object title="CR" class="Plot" module = "AMY" source="E" x="0" y="0" w="3"/>
+        <object title="CS0" class="Plot" module = "Stimuli" source="CS" select="0" x="0" y="1" w="3"/>
+        <object title="CS1" class="Plot" module = "Stimuli" source="CS" select="1" x="0" y="2" w="3"/>
+        <object title="CS2" class="Plot" module = "Stimuli" source="CS" select="2" x="0" y="3" w="3"/>
+        <object title="US" class="Plot" module = "Stimuli" source="R" x="0" y="4" w="3"/>
+
+        <object title="Cortex" class="Plot" module = "Cortex" source="OUTPUT" x="3" y="0" w="3"/>
+        <object title="Thalamus" class="Plot" module = "Thalamus" source="OUTPUT" x="3" y="1" w="3"/>
+        <object title="Hippocampus.BindDelta" class="Plot" module = "HIPP" source="BIND_DELTA" select="0,1,2,3" color="yellow,green,purple, red" x="3" y="2" w="3"/>
+        <object title="Hippocampus.Context" class="Plot" module = "HIPP" source="CONTEXT" select="0,1,2,3" color="yellow,green,purple,red" x="3" y="3" w="3"/>
+
+        <object title="V" class="Plot" module = "AMY" source="V" x="6" y="0" w="3"/>
+        <object title="W" class="Plot" module = "OFC" source="W" x="6" y="1" w="3"/>
+    </view>
+
+</group>
+
+

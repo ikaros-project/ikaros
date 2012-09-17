@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group name="SobelEdgeDetector" description="finds edges">
+
+	<description type="text">
+		Module that applies the Sobel edge filter to an image.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SobelEdgeDetector"
+			name="SobelEdgeDetector"
+		/>
+	</example>
+    
+    <parameter name="type" type="list" values="sqrt/abs/dx/dy/abs(dx)/abs(dy)" defaulr="sqtr" description="type of filtering" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" />
+
+	<module class="SobelEdgeDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SobelEdgeDetector.h</file>
+   		<file>SobelEdgeDetector.cc</file>
+   		<file>SobelEdgeDetector.ikc</file>
+   </files>
+
+</group>

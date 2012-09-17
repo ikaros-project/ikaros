@@ -1,0 +1,34 @@
+Examples/Emotional Learning
+---------------------------
+
+These are some representative experiments to be run with the amygdala,
+hippocampus and OFC models. As the result of any conditioning experiment
+depends on the exact schedule used, and, for these models, also on such things
+as the location of each stimulus, there are a number of possible variations of
+these. Thus do not take these experiments as gospel, but as some
+representative testfiles to run the models on.
+
+Jan Morén
+
+-------------------------------------------------------------------------------------
+To run the examples, start Ikaros with the file test.ikc and specify the
+experiment to run using the -b option at start up. The number after -b selects 
+the experimenat from the list:
+
+0: AcquisitionExtinction
+1: Blocking
+2: ConditionedInhibition
+3: Discrimination
+4: Disinhibition
+5: Disinhibition2
+6: Blocking
+7: NegativePatterning
+8: PositivePatterning
+9: SFPD
+
+For example, use the following to test blocking:
+
+IKAROS -b1 test.ikc
+
+There are old xml files in some of the directories that do not work anymore.
+They are included for documentational puraposes.

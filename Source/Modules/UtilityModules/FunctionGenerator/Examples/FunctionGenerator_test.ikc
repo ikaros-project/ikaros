@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<group title="Function Generators">
+	
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_SIN"
+			type		=	"sin"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_SIN2"
+			type		=	"sin"
+			frequency	=	"0.314"
+			offset      =	"0.5"
+			amplitude	=	"0.4"
+			shift		=	"0.1"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_RAMP"
+			type		=	"ramp"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_TRIANG"
+			type		=	"triangle"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_SQUARE"
+			type		=	"square"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_SQUARE25"
+			type		=	"square"
+			duty		=	"0.25"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"F_SQUARE10"
+			type		=	"square"
+			duty		=	"0.10"
+		/>
+
+		<module
+			class		=	"FunctionGenerator"
+			name		=	"T_SQUARE"
+			type		=	"ticksquare"
+			basetime	=	"40"
+			tickduty	=	"10"
+		/>
+
+		<view name="Functions" object_size="70" >
+			<object class="Plot"module="F_SIN" source="OUTPUT" title="sin(t)" min="-1" x="0" y="0" w="4" />
+			<object class="Plot"module="F_SIN2" source="OUTPUT" title="sin(t/2)" x="0" y="1" w="4" />
+			<object class="Plot"module="F_RAMP" source="OUTPUT" title="Ramp" x="0" y="2" w="4" />
+			<object class="Plot"module="F_TRIANG" source="OUTPUT" title="Triangle" x="0" y="3" w="4" />
+			
+            <object class="Plot"module="F_SQUARE" source="OUTPUT" title="Square Wave 50%" x="4" y="0" w="4" />
+			<object class="Plot"module="F_SQUARE25" source="OUTPUT" title="Square Wave 25%" x="4" y="1" w="4" />
+			<object class="Plot"module="F_SQUARE10" source="OUTPUT" title="Square Wave 10%" x="4" y="2" w="4" />
+			<object class="Plot"module="T_SQUARE" source="OUTPUT" title="Square Wave 10/40 ticks" x="4" y="3" w="4" />
+		</view>
+</group>
+ 

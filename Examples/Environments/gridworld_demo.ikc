@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+
+<!-- Example xml file with a GridWorld and a Randomizer moving -->
+<!-- the agent in a random way in the world -->
+<!-- The output can be viewed in the Viewer; without the viewer -->
+<!-- IKAROS will run in an endless loop.					    -->
+
+<group title="Grid World">
+	
+    <module
+        class = "Constant"
+        name = "Environment"
+        outputsize_x = "9"
+        outputsize_y = "9"
+        data = "
+            1	1	1	1	1	1	1	1	1
+            1	0	0	0	1	0	0	0	1
+            1	0	0	0	0	0	0	0	1
+            1	0	0	0	1	0	0	0	1
+            1	1	0	1	1	1	1	1	1
+            1	0	0	0	1	0	0	0	1
+            1	0	0	0	0	0	0	0	1
+            1	0	0	0	1	0	0	0	1
+            1	1	1	1	1	1	1	1	1"
+    />
+		
+    <module
+        class = "Constant"
+        name = "Goals"
+        outputsize_x = "9"
+        outputsize_y = "9"
+        data = "
+            0	0	0	0	0	0	0	0	0
+            0	0	0	0	0	0	0	0	0
+            0	0	0	0	0	0	1	0	0
+            0	0	0	0	0	0	0	0	0
+            0	0	0	0	0	0	0	0	0
+            0	0	0	0	0	0	0	0	0
+            0	0	2	0	0	0	0	0	0
+            0	0	0	0	0	0	0	0	0
+            0	0	0	0	0	0	0	0	0"
+    />
+		
+    <module
+        class = "GridWorld"
+        name = "GW"
+        x_start = "1"
+        y_start = "1"
+        move = "relative_sum"		
+    />
+	
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize = "4"
+    />
+
+	<connection sourcemodule = "Environment" source = "OUTPUT" targetmodule = "GW" target = "OBSTACLES" delay="0" />
+	<connection sourcemodule = "Goals" source = "OUTPUT" targetmodule = "GW" target = "VALUES" delay="0" />
+	<connection sourcemodule = "R" source = "OUTPUT" targetmodule = "GW" target = "MOVE" />
+
+	<view name="Full View">
+		<object class="Grid" module="GW" source="IMAGE" x="0" y="0" color="black,white,red,green" max="3" colors="['black','white','red','green']"/>
+		<object class="Grid" module="GW" source="LOCAL_OBSTACLES" x="1" y="0" />
+		<object class="Grid" module="GW" source="LOCAL_VALUES" x="2" y="0" color="black,orange,yellow" max="2" colors="['black','orange','yellow']"/>
+		<object class="Grid" module="GW" source="LOCATION" x="2" y="1" />
+		<object class="BarGraph" module="GW" source="REWARD" x="1" y="1" min="0" max="2" />
+		<object class="BarGraph" module="R" source="OUTPUT" x="0" y="1" min="0" max="10" />
+
+		<object class="Grid" module="Environment" source="OUTPUT" x="0" y="2" />
+		<object class="BarGraph" module="GW" source="COORDINATE" x="1" y="2" max="9" />
+		<object class="BarGraph" module="GW" source="COLLISION" x="2" y="2" max="1" />
+	</view>
+
+	<view name="Small View">
+		<object class="Grid" module="GW" source="IMAGE" x="0" y="0" color="black,white,red,green" max="3" />
+	</view>
+
+</group>

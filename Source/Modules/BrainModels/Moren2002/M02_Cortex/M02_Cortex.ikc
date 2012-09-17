@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="M02_Cortex" description="a cortex model">
+
+<description type="text">
+The module implements the cortex model described in the PhD thesis by Jan Morén 2002.
+This model does absolutely nothing and is just a placeholder.
+</description>
+
+<example description="A simple example">
+<module
+    class="M02_Cortex"
+    name="Cortex"
+/>
+</example>
+
+<input
+    name="INPUT"
+    description="The cortical input"
+/>
+
+<output
+    name="OUTPUT"
+    description="The cortical output"
+/>
+
+<module class="M02_Cortex" />
+
+<author>
+<name>Jan Moren</name>
+<email>jan.moren@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Jan.Moren/</homepage>
+</author>
+
+<files>
+<file>M02_Cortex.h</file>
+<file>M02_Cortex.cc</file>
+<file>M02_Cortex.ikc</file>
+</files>
+
+</group>
+
+

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "SelectMax"
+			name = "SelectMax"
+		/>
+
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="SelectMax" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="SelectMax" source="OUTPUT" x="0" y="0" />
+		</view>
+
+</group>
+ 

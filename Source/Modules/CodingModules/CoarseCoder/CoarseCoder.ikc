@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="CoarseCoder" description="encodes a two-dimensional value in a vector">
+
+	<description type="text">
+		Module that generates a tile or gaussian code for a two-dimensional real-valued input.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="CoarseCoder"
+			name="CoarseCoder"
+		/>
+	</example>
+
+	<parameter name="type" type="list" values="tile/gaussian" description="The type of activation" />
+	<parameter name="output_size" type="int" default="10" description="Number of output node" />
+	<parameter name="radius" type="float" default="1" description="The size of the the coding" />
+	<parameter name="min" type="float" default="0.0" description="Minimum value to be coded" />
+	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
+	<parameter name="normalize" type="bool" default="no" description="Normalize tile output" />
+
+	<input name="INPUT" description="The input" />
+
+	<output name="OUTPUT" description="The tile coded output" size_param_x="output_size" size_param_y="output_size"/>
+
+	<module class="CoarseCoder" />
+
+	<created>2007</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>CoarseCoder.h</file>
+   		<file>CoarseCoder.cc</file>
+   		<file>CoarseCoder.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="Average" description="calculates average over time">
+
+	<description type="text">
+		Module used to calculate the average of its input over time.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Average"
+			name="Average"
+		/>
+	</example>
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Average" />
+
+    <view title="Average">
+        <object
+            x="0" y="0" w="2"
+            class="Plot"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Average"
+        />
+    </view>
+    
+    <limitation>
+        If run for very long numerical problems are likely to occur when
+        the number of ticks or the sum of all inputs becomes too large.    
+    </limitation>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Average.h</file>
+   		<file>Average.cc</file>
+   		<file>Average.ikc</file>
+   </files>
+
+</group>

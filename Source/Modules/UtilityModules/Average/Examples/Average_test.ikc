@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<!-- This simple example of the Average module calculates the average of a random value over time -->
+
+<group>	
+		<module
+			class = "Randomizer"
+			name = "Randomizer"
+			outputsize = "1"
+			min = "-1"
+			max = "1"
+		/>
+	
+		<module
+			class = "Average"
+			name = "Average"
+		/>
+
+		<connection sourcemodule="Randomizer" source="OUTPUT" targetmodule="Average" target="INPUT" />
+
+		<view name="View">
+			<object class="Plot" module="Randomizer" source="OUTPUT" x="0" y="0" w = "4" min="-1" max="1" />
+			<object class="Plot" module="Average" source="OUTPUT" x="0" y="1" w = "4" min = "-2" max = "2" />
+		</view>
+</group>
+ 

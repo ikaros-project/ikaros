@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group name="Sweep" description="produces a sequence of values">
+
+	<description type="text">
+		Module that sweeps the output from min to max in steps set by step.
+		Restarts when min (or max) is reached. Can be one or two dimensional
+		depending on whether outputsize_x and outputsize_y or only outputsize
+		is used. When the output contains more than one
+		elements, they all have the same value.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Sweep"
+			name="Sweep"
+			outputsize_x = "5"
+			outputsize_y = "3"
+			min = "0"
+			max = "10"
+			step = "0.1"
+		/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output" />
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output" />
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output" />
+	<parameter name="min" type="float" default="0.0" description="Minimum output" />
+	<parameter name="max" type="float" default="1.0" description="Maximal output" />
+	<parameter name="step" type="float" default="0.1" description="Change each tick" />
+
+	<output name="OUTPUT" description="The output with value that sweeps between min and max" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
+
+	<module class="Sweep" />
+
+    <view title="Sweep">
+        <object
+            x="0" y="0" w="2"
+            class="Plot"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Sweep"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Sweep.h</file>
+   		<file>Sweep.cc</file>
+   		<file>Sweep.ikc</file>
+   </files>
+
+</group>

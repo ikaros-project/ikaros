@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="AttentionFocus" description="selects an image region">
+
+	<description type="text">
+		Module that extracts a region of an image around the
+		coordinates given in the FOCUS input.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="AttentionFocus"
+			name="AttentionFocus"
+			output_radius = "3"
+		/>
+	</example>
+
+	<parameter name="output_radius" type="int" description="The radius of the focus" />
+
+	<input name="INPUT" description="The input input" />
+	<input name="FOCUS" description="A 2x1 array that represents the center of the focus in the input image. Range from 0 to 1, where 0.5 is the center of the image" />
+
+	<output name="OUTPUT" description="The focus of attention output of size output_radius*2+1" />
+
+	<module class="AttentionFocus" />
+
+	<created>2003</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>AttentionFocus.h</file>
+   		<file>AttentionFocus.cc</file>
+   		<file>AttentionFocus.ikc</file>
+   </files>
+
+</group>

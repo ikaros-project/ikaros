@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Constant1" outputsize_x = "2" outputsize_y = "5"
+			data = "
+				1 0
+				2 0
+				3 0
+				4 0
+				5 0"
+			/>
+	
+		<module class = "Constant" name = "Constant2" outputsize_x = "5" outputsize_y = "2"
+			data = "
+				1 2 3 4 5
+				5 4 3 2 1"
+		/>
+
+		<module
+			class = "MatrixMultiply"
+			name = "Product1"
+		/>
+		
+		<module
+			class = "MatrixMultiply"
+			name = "Product2"
+		/>
+		
+		<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="Product1" target="INPUT1" />
+		<connection sourcemodule="Constant2" source="OUTPUT" targetmodule="Product1" target="INPUT2" />
+
+		<connection sourcemodule="Constant2" source="OUTPUT" targetmodule="Product2" target="INPUT1" />
+		<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="Product2" target="INPUT2" />
+
+		<view name="View">
+			<object class="Image" module="Constant1" source="OUTPUT" x="0" y="0" />
+			<object class="Image" module="Constant2" source="OUTPUT" x="0" y="1" />
+			<object class="Image" module="Product1" source="OUTPUT" x="1" y="0" />
+			<object class="Image" module="Product2" source="OUTPUT" x="1" y="1" />
+		</view>
+</group>
+ 

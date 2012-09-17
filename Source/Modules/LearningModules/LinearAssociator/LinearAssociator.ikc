@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group name="LinearAssociator" description="learns a linear mapping">
+
+	<description type="text">
+		Module that learns a linear mapping from INPUT to OUTPUT based on training samples
+		in T-INPUT and T-OUTPUT.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="LinearAssociator"
+			name="LinearAssociator"
+			alpha = "0.1"
+		/>
+	</example>
+
+	<parameter name="alpha" type="float" description="The learning rate" default="0.1" />
+	<parameter name="beta" type="float" description="The momentum rate" default="0.0" min="0" max="1" />
+	<parameter name="memory_max" type="int" description="Maximum number of stored training samples" default="1" />
+	<parameter name="memory_training" type="int" description="Number of times to train on each memorized sample" default="1" />
+
+	<input name="LEARNING" description="The learning rate" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="T-OUTPUT"/>
+
+	<input name="T-INPUT" description="The training input" />
+	<input name="T-OUTPUT" description="The training target input" />
+
+	<output name="ERROR" description="The error for the last training sample." size="1" />
+	<output name="CONFIDENCE" description="1-ERROR" size="1" />
+
+	<module class="LinearAssociator" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>LinearAssociator.h</file>
+   		<file>LinearAssociator.cc</file>
+   		<file>LinearAssociator.ikc</file>
+   </files>
+
+</group>
+

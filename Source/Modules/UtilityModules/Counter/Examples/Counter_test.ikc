@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!-- Example of how the Count module can be used. Here it counts how many times a random value is above 0.9 -->
+
+<group>
+
+		<module
+			class = "Randomizer"
+			name = "Randomizer"
+			outputsize = "1"
+			min = "0"
+			max = "1"
+		/>
+	
+		<module
+			class = "Counter"
+			name = "Counter"
+			threshold = "0.9"
+		/>
+		
+		<connection sourcemodule="Randomizer" source="OUTPUT" targetmodule="Counter" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="Randomizer" source="OUTPUT" x="0" y="0" />
+			<object class="Plot" module="Counter" source="COUNT" x="0" y="1" max="100" />
+			<object class="BarGraph" module="Counter" source="PERCENT" x="1" y="1" />
+		</view>
+
+</group>
+ 

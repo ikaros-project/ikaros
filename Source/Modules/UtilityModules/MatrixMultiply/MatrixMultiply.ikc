@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group name="MatrixMultiply" description="multiplies two matrices">
+
+	<description type="text">
+		Module that calculates the matrix product of its two inputs.
+		The matrix product is a matrix of size row1 x col2, where
+		row1 x col1 is the size of the first input and row2 x col2 is
+		the size of the second input. The usual rules for matrix
+		multiplications applies, i. e., col1 = row2 (Note that column = x and row = y).
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MatrixMultiply"
+			name="MatrixMultiply"
+		/>
+	</example>
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="MatrixMultiply" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MatrixMultiply.h</file>
+   		<file>MatrixMultiply.cc</file>
+   		<file>MatrixMultiply.ikc</file>
+   </files>
+
+</group>

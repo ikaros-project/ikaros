@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+<group name="WhiteBalance" description="removes colorisation from an image">
+
+	<description type="text">
+		Module used for white balancing adaptation of a color image. Given a reference image
+		area and a target color, for example a white part of the input image and the color coordinates
+		for white, applies von Kries adaptation to the image. This will transform the reference area
+		the target color and simultaneously change the color coordinates for all other pixels in the
+		image. The image region for the reference color is given by x0, y0, x1, and y1 and the color
+		of the reference region is given by red_target, green_target and blue_target. In addition,
+		the average color of an arbitrary region can be written to the output, This region is set by
+		the log-parameters.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="WhiteBalance"
+			name="WhiteBalance"
+		/>
+	</example>
+
+	<parameter name="red_target" type="float" default="255" description="Coordinate for the red channel of the target color" />
+	<parameter name="green_target" type="float" default="255" description="Coordinate for the green channel of the target color" />
+	<parameter name="blue_target" type="float" default="255" description="Coordinate for the blue channel of the target color" />
+
+	<parameter name="x0" type="int" default="10" description="Left coordinate for the reference region (inclusive)" />
+	<parameter name="x1" type="int" default="10" description="Top coordinate for the reference region (exclusive)" />
+	<parameter name="y0" type="int" default="20" description="Right coordinate for the reference region (inclusive)" />
+	<parameter name="y1" type="int" default="20" description="Bottom coordinate for the reference region (exclusive)" />
+
+	<parameter name="log_x0" type="int" default="0" description="Left coordinate for the logged region (inclusive)" />
+	<parameter name="log_x1" type="int" default="0" description="Top coordinate for the logged region (exclusive)" />
+	<parameter name="log_y0" type="int" default="0" description="Right coordinate for the logged region (inclusive)" />
+	<parameter name="log_y1" type="int" default="0" description="Bottom coordinate for the logged region (exclusive)" />
+
+	<input name="INPUT0" description="The first input" />
+	<input name="INPUT1" description="The second input" />
+	<input name="INPUT2" description="The third input" />
+
+	<output name="OUTPUT0" description="The output" size_set="INPUT0, INPUT1, INPUT2" />
+	<output name="OUTPUT1" description="The output" size_set="INPUT0, INPUT1, INPUT2" />
+	<output name="OUTPUT2" description="The output" size_set="INPUT0, INPUT1, INPUT2" />
+
+	<module class="WhiteBalance" />
+
+	<limitation>
+		The reference region can only be set in the XML-file and can not change during execution.
+		This should be changed in the future with either an adaptive white calcuation or an attention
+		based method.	
+	</limitation>
+	
+	<reference>
+		von Kries, J. (1902) Chromatic adaptation. In MacAdam, D. L. (Ed.) Sources of color vision,
+		109-119, Cambridge, MA: MIT Press.
+	</reference>
+	
+	<reference>
+		Balkenius, C., Johansson, A. J, and Balkenius, A. (2003). Color constancy in visual scene
+		perception. Lund University Cognitive Studies, 98.
+	</reference>
+	
+	<created>2003</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>WhiteBalance.h</file>
+   		<file>WhiteBalance.cc</file>
+   		<file>WhiteBalance.ikc</file>
+   </files>
+
+</group>

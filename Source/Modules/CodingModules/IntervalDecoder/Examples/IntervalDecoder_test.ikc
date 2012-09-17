@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+
+<group title="IntervalDectoder">
+	
+    <module
+        class = "Sweep"
+        name = "Input"
+        outputsize = "1"
+        min = "0"
+        max = "10"
+        step = "-0.1"
+    />
+	
+    <module
+        class = "IntervalCoder"
+        name = "IntervalCoder"
+        min  = "0"
+        max  = "10"
+        radius = "10"
+        output_size = "100"
+    />
+		
+    <module
+        class = "IntervalDecoder"
+        name = "IntervalDecoder1"
+			
+        min  = "0"
+        max  = "10"
+        radius = "10"
+    />
+
+    <module
+        class = "IntervalDecoder"
+        name = "IntervalDecoder2"
+        min  = "0"
+        max  = "10"
+        radius = "10"
+    />
+
+    <module
+        class = "Add"
+        name = "Sum"
+    />
+    
+    <module
+        class = "Randomizer"
+        name = "Noise"
+        outputsize = "100"
+        min = "-0.01"
+        max = "0.01"
+    />
+
+    <module
+        class = "Subtract"
+        name = "Difference1"
+    />
+    
+    <module
+        class = "Subtract"
+        name = "Difference2"
+    />
+
+    <connection sourcemodule="Input" source="OUTPUT" targetmodule="IntervalCoder" target="INPUT" delay = "0" />
+    <connection sourcemodule="IntervalCoder" source="OUTPUT" targetmodule="IntervalDecoder1" target="INPUT" delay = "0" />
+
+    <connection sourcemodule="IntervalCoder" source="OUTPUT" targetmodule="Sum" target="INPUT1" delay = "0" />
+    <connection sourcemodule="Noise" source="OUTPUT" targetmodule="Sum" target="INPUT2" delay = "0" />
+    <connection sourcemodule="Sum" source="OUTPUT" targetmodule="IntervalDecoder2" target="INPUT" delay = "0" />
+
+    <connection sourcemodule="IntervalDecoder1" source="OUTPUT" targetmodule="Difference1" target="INPUT1" delay = "0" />
+    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Difference1" target="INPUT2" delay = "0" />
+
+    <connection sourcemodule="IntervalDecoder2" source="OUTPUT" targetmodule="Difference2" target="INPUT1" delay = "0" />
+    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Difference2" target="INPUT2" delay = "0" />
+
+    <view name="View">
+        <object class="BarGraph" module="Input" source="OUTPUT" x="0" y="0" max = "10"/>
+        <!-- object class="BarGraph" module="Noise" source="OUTPUT" x="0" y="1" max = "10"/ -->
+
+        <object class="BarGraph" module="IntervalCoder" source="OUTPUT" x="1" y="0" max="0.2" w="4"/>
+        <object class="BarGraph" module="Sum" source="OUTPUT" x="1" y="1" max="0.2"  w="4"/>
+
+        <object class="BarGraph" module="IntervalDecoder1" source="OUTPUT" x="5" y="0" max = "10"/>
+        <object class="BarGraph" module="IntervalDecoder2" source="OUTPUT" x="5" y="1" max = "10"/>
+
+        <object class="Plot" module="Difference1" source="OUTPUT" x="1" y="2" w = "4" />
+        <object class="Plot" module="Difference2" source="OUTPUT" x="1" y="3" w = "4" />
+    </view>
+
+</group>
+ 

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<group name="Counter" description="counts signals">
+
+	<description type="text">
+        Module used to calculate statistics from signals in a simulation.
+        It counts how many times its input is above a threshold. It also
+        outputs the percent of the ticks the input has been above the threshold.
+
+        In "component" mode, each input component is counted individually.
+        In "any" mode, any component above the threshold is counted. In "component"
+        mode, the outputs have the same size as the input, while in "any" mode,
+        the output has size 1.
+
+        The counter can be set up to periodically reset the counter and/or print the count.
+        It is also possible to specify how often the counter checks its input.
+
+        NOTE: Only "any" mode has been implemented.
+    </description>
+
+	<example description="Example">
+		<module
+			class="Counter"
+			name="Counter"
+		/>
+	</example>
+
+    <parameter name="mode" type="list" values="component/any" default="component" description="" />
+    <parameter name="threshold" type="float" default="0.5" description="The threshold" />
+    <parameter name="reset_interval" type="int" default="1000000" description="How often to reset the counter" />
+    <parameter name="print_interval" type="int" default="1000" description="How often to print the counter" />
+    <parameter name="count_interval" type="int" default="1" description="How often to update the counter" />
+    
+	<input name="INPUT" description="The input" />
+
+	<output name="COUNT" description="The count" size="1" />
+	<output name="PERCENT" description="The counter divided with the number of ticks" size="1" />
+
+    <bug>
+        Only runs in "any" mode at the moment.
+    </bug>
+    
+	<module class="Counter" />
+
+    <view title="Counter">
+        <object
+            x="0" y="0" w="1"
+            class="BarGraph"
+            module="*"
+            source="COUNT"
+        />
+
+        <object
+            x="1" y="0" w="1"
+            class="BarGraph"
+            module="*"
+            source="PERCENT"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Counter.h</file>
+   		<file>Counter.cc</file>
+   		<file>Counter.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<group>	
+		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+	
+		<module
+			class = "Noise"
+			name = "Noise"
+		/>
+		
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Noise" target="INPUT" delay="1, 3, 5"/>
+
+		<view name="View">
+			<object class="BarGraph" module="Constant" source="OUTPUT" x="0" y="0" min="-10" max="10" />
+			<object class="BarGraph" module="Noise" source="OUTPUT" x="0" y="1" min="-10" max="10" />
+		</view>
+
+</group>
+ 

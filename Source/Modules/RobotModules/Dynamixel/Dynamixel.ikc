@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<group name="Dynamixel" description="interfaces Dynamixel servos">
+
+	<description type="xhtml">
+        <p>
+            Driver for the Dynamixel servos from ROBOTIS. The module can control servos both in position and continuous (wheel) mode. The IDs of the modules can be set with the parameter 'servo_id'. If this parameter is not set, the module will instead scan the bus for servos.
+        </p>
+        <p>
+            When the index_mode indirect is set, the input and output arrays ranges from 0 to N, where N is the number of connected servos. If the module scanned for the IDs, they will be in numerical order, otherwise they will be in the order listen in the pramater servo_id.
+        </p>
+        <p>
+            When the index_mode is set to direct, the input and output arrays ranges from 0 to the ID of the servos with highest ID. In this mode, some of the elements in the input and output arrays may not be used and will always be set to 0.
+        </p>    
+        <p>
+            If the parameter size is set, it will override the other calculations of the size of the arrays and either truncate or extend the array to the requested size.
+        </p>
+        <p>
+            It is usually necessary to install the drivers for the FTDI USB serial driver before using the
+			USB2Dynamixel with Ikaros. This driver is available from the FTDI site. When the driver is
+			installed a device called something like "cu.usbserial-A7005Lxn" will show up under the /dev directory.
+        </p>
+        <p>
+            If the servo is set up to run in continuous mode, the module uses the input SPEED to set the speed directly
+            between min (0) and max (1). No speed control is performed by this module.
+        </p>
+        <p>
+            If the TORQUE input is connected, the torque for each servo can be set individually between min (0) and max (1).
+        </p>
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Dynamixel"
+			name="Dynamixel"
+           speed="0.2"
+		/>
+	</example>
+
+
+    <parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
+	
+	<parameter name="servo_id" type="string" default="" description="The IDs of the Dynamixel servos. If this parameter is not set, the module will scan for servos" />
+    
+	<parameter name="index_mode" type="list" values="direct/indirect" default="direct" description="The relation between the indices of the input and output arrays and the IDs of the servos. In direct mode, the index of the arrays correponds to the IDs of the servos while in indirect mode the inputs and outputs has the same size as the number of servos." />
+    
+    <parameter name="angle_unit" type="list" values="degrees/radians/tau/range" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau) or the maximum angle for servo (range)" />
+    
+	<parameter name="max_servo_id" type="int" default="32" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
+    
+	<parameter name="size" type="int" default="0" description="This parameter forces a specific size of the output. In the normal case when it is not set, the size will be derived from the list of servo_ids" />
+    
+	<parameter name="feedback" type="bool" default="yes" description="Should the module ask the servos for data? If set to 'no' the module works faster and never receives any data from the servo. Instead, the OUTPUT is set to a copy of the last INPUT." />
+
+	<parameter name="position_speed" type="float" default="0.1" description="Overall speed in fraction of maximum speed. Not used in real time mode." />
+
+	<parameter name="start_up_delay" type="int" default="1" description="Number of ticks to wait before a position command is sent to the servos." />
+
+    <input name="INPUT" description="The desired servo positions (in units set by angle_unit)" />
+    <input name="TORQUE" description="The torque for each servo (0-1). A torque of 1 is used if this input is not connected." />
+    <input name="SPEED" description="The speed for each servo (0-1) that is run in continuous mode. This input is ignored for servos in position mode." />
+
+	<output name="OUTPUT" description="The current servo positions (in units set by angle_units)" />
+
+	<output name="LOAD" description="The current load of the servo (in percent)" />
+	<output name="VOLTAGE" description="The current voltage (in Volts)" />
+	<output name="TEMPERATURE" description="The current temperature (in degrees Celsius, °C)" />
+
+	<module class="Dynamixel" />
+
+    <limitation>
+        The module should ping the servos to see how many there are and set the output accordingly to 
+        allow automatic reconfiguration of the controller.
+    </limitation>
+    
+    <limitation>
+        The module should read additional data such as temperature and force from the servos.
+    </limitation>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Dynamixel.h</file>
+   		<file>Dynamixel.cc</file>
+   		<file>Dynamixel.ikc</file>
+   		<file>DynamixelComm.h</file>
+   		<file>DynamixelComm.cc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group name="Constant" description="outputs a constant value">
+
+	<description type="text">
+		Module that outputs a constant array or matrix each time step.
+		It can be one or two dimensional depending on whether outputsize_x and
+		outputsize_y or only outputsize is used in the ikc definition.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Constant"
+			name="Constant"
+			outputsize = "4"
+			data = "1 2 3 4"
+		/>
+	</example>
+
+	<example description="Matrix example">
+		<module
+			class="Constant"
+			name="MatrixConstant"
+			outputsize_x = "3"
+			outputsize_y = "3"
+			data = "1 2 3 2 3 4 3 4 5"
+		/>
+	</example>
+
+	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
+
+	<module class="Constant" />
+
+    <view title="Constant">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Constant"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Constant.h</file>
+   		<file>Constant.cc</file>
+   		<file>Constant.ikc</file>
+   </files>
+
+</group>

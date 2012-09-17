@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "cannes.jpg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group title = "Edge Detectors">
+    
+    <module
+        class = "InputJPEG"
+        name = "IN"
+        filename = "../Media/cannes.jpg"
+    />
+		
+    <module  class = "SobelEdgeDetector" name = "Sobel" />
+    <module  class = "PrewittEdgeDetector" name = "Prewitt" />
+    <module  class = "RobertsEdgeDetector" name = "Roberts" />
+
+    <module  class = "HysteresisThresholding" name = "HTSobel" T1 = "0.3" T2 = "0.6" />
+    <module  class = "HysteresisThresholding" name = "HTPrewitt" T1 = "0.3" T2 = "0.6" />
+    <module  class = "HysteresisThresholding" name = "HTRoberts" T1 = "0.1" T2 = "0.4" />
+
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Sobel" target = "INPUT" delay="0" />
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Prewitt" target = "INPUT" delay="0" />
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Roberts" target = "INPUT" delay="0" />
+
+    <connection sourcemodule = "Sobel" source = "OUTPUT" targetmodule = "HTSobel" target = "INPUT" delay="0" />
+    <connection sourcemodule = "Prewitt" source = "OUTPUT" targetmodule = "HTPrewitt" target = "INPUT" delay="0" />
+    <connection sourcemodule = "Roberts" source = "OUTPUT" targetmodule = "HTRoberts" target = "INPUT" delay="0" />
+
+    <view name = "Demo view">
+        <object class="Image" type="gray" module="IN" source="INTENSITY" x="0" y="0" />
+
+        <object class="Image" module="Sobel" source="OUTPUT" x="0" y="1"  />
+        <object class="Image" module="Prewitt" source="OUTPUT" x="1" y="1"  />
+        <object class="Image" module="Roberts" source="OUTPUT" x="2" y="1"  />
+
+        <object class="Image" module="HTSobel" source="OUTPUT" x="0" y="2"  />
+        <object class="Image" module="HTPrewitt" source="OUTPUT" x="1" y="2"   />
+        <object class="Image" module="HTRoberts" source="OUTPUT" x="2" y="2"   />
+    </view>
+    
+</group>
+

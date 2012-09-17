@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+	<module class = "Randomizer" name = "Constant1" outputsize = "5" max="4" />
+	<module class = "Randomizer" name = "Constant2" outputsize = "5" max="4" />
+
+	<module
+		class = "Add"
+		name = "Add"
+	/>
+	
+	<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="Add" target="INPUT1" />
+	<connection sourcemodule="Constant2" source="OUTPUT" targetmodule="Add" target="INPUT2" />
+
+	<view name="View">
+		<object class="BarGraph" name="Constant 1" module="Constant1" source="OUTPUT" x="0" y="0" max="10"/>
+		<object class="BarGraph" name="Constant 2" module="Constant2" source="OUTPUT" x="0" y="1" max="10" />
+		<object class="BarGraph" name="Sum" module="Add" source="OUTPUT" x="1" y="0" max="10" />
+	</view>
+</group>
+ 

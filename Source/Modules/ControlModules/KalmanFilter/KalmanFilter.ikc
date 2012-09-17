@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+
+<group name="KalmanFilter" description="a standard Kalman filter">
+
+<description type="xhtml">
+The module implements a standard Kalman filter. The process is described by the equation <i>x</i>(<i>t</i>+1) = <i>Ax</i>(<i>t</i>)+<i>Bu</i>(<i>t</i>),
+where <i>x</i> is the state of the process and <i>u</i> is the control input. The observation (or measurement) is described by
+<i>Hz</i>(<i>t</i>). The <i>a priori</i> process variance is set by the parameter <i>process_noise</i> and the measurement variance by
+<i>observation_noise</i>.
+</description>
+
+<limitation>
+It should be possible to specify the full covariance matrices for the process and measurements (R and Q).
+</limitation>
+
+<limitation>
+The matrices A, B and H should also be able to use inputs instead of parameters.
+</limitation>
+
+<limitation>
+Observation and state sizes should be inferred from the matrix parameters.
+</limitation>
+
+
+<example description="A simple example">
+<module
+class="KalmanFilter"
+name="KalmanFilter"
+observation_size="1"
+state_size="1"
+A = ""
+B = ""
+H = ""
+/>
+</example>
+
+<parameter
+    name="A"
+    type="matrix"
+    description="The state transition matrix (state gain) [n x n]"
+/>
+
+<parameter
+    name="B"
+    type="matrix"
+    description="The input gain [n x m]"
+/>
+
+<parameter
+    name="H"
+    type="matrix"
+    description="The output gain [m x n]"
+/>
+
+<parameter
+    name="state_size"
+    type="int"
+    default = "1"
+    description="The size of the state"
+    note = "Could be inferred from A if matrix size was read from matrix parameter"
+/>
+
+<parameter
+    name="observation_size"
+    type="int"
+    default = "1"
+    description="The size of the observation (measurement noise)"
+/>
+
+<parameter
+    name="process_noise"
+    type="float"
+    default = "1"
+    description="Noise for the process"
+/>
+
+<parameter
+    name="observation_noise"
+    type="float"
+    default = "1"
+    description="Noise for each observation"
+/>
+
+<input
+    name="INPUT"
+    description="The input [1 x m]"
+/>
+
+<input
+    name="OBSERVATION"
+    description="The observation [1 x m]"
+/>
+
+<output
+    name="STATE"
+    size_param="state_size"
+    description="The state [n x 1]"
+/>
+
+<output
+    name="INNOVATION"
+    size_set="OBSERVATION"
+    description="The state [m x 1]"
+/>
+
+<output
+    name="KALMAN_GAIN"
+    size_param_x="observation_size"
+    size_param_y="state_size"
+    description="The Kalman gain [n x m]"
+/>
+
+<module class="KalmanFilter" />
+
+<author>
+<name>Christian Balkenius</name>
+<email>christian.balkenius@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Christian.Balkenius/</homepage>
+</author>
+
+<files>
+<file>KalmanFilter.h</file>
+<file>KalmanFilter.cc</file>
+<file>KalmanFilter.ikc</file>
+</files>
+
+</group>
+
+

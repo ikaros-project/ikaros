@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<group title="SSC32 Example">
+	
+    <module
+      class = "InputVideoQT"
+      name = "VideoSource"
+      size_x = "160"
+      size_y = "120"
+    />
+
+    <module
+        class="ColorTracker"
+        class="FishTracker"
+
+        color			= "145 degrees"
+        width           = "30 degrees"
+        saturation_min	= "0.05"
+        saturation_max	= "0.35"
+
+        search_radius	= "0.1"
+        search_limit	= "0.0005"
+        cluster_size	= "30"
+        
+        statistics		= "yes"
+        compensation	= "yes"
+        
+        no_of_targets	= "1"
+        
+        fast_as_hell = "not"
+    />
+
+    <module
+        class = "SSC32"
+        name = "SSC32"
+        device  = "/dev/cu.USA19H1d1P1.1"
+        min  = "1350 1330 1465 1000 1500"
+        _min  = "1220 1330 1465 1000 1500" _comment="This is the  home position without a camera"
+        max  = "1500 1650 1670 1740 2500"
+        home  = "1350 1330 1465 1740 2500" _comment="This is the  home position without a camera"
+        timebase = "2500"
+    />
+
+    <module
+        class = "Constant"
+        name = "Constant"
+        outputsize = "5"
+        data = "0.5 0.5 0.5 0.5 0.5"
+    />
+
+    <module
+        class = "InputFile"
+        name = "InputFile"
+        filename = "data.txt"
+    />
+   
+    <connection sourcemodule="InputFile" source="OUTPUT" targetmodule="SSC32" target="INPUT" />
+
+		<view name="Color Space">
+			<object
+				class="Image" title="Color Space" type = "rgb"
+				module = "ColorTracker"
+				source = "COLORSPACE_R+COLORSPACE_G+COLORSPACE_B" x="0" y="0" w="2" h="2" 
+			/>
+		</view>
+
+		<view name="Detection">
+			<object class="Image" title="Input" type = "rgb"
+				module = "Movie" source = "RED+GREEN+BLUE" x="0" y="0" w="2" h="2"
+			/>
+			<object
+				class="Image" title="Detection" type = "rgb"
+				module = "ColorTracker"
+				source = "TARGET_R+TARGET_G+TARGET_B" x="2" y="0" w="2" h="2" 
+			/>
+
+			<object
+				class="Table" title="Positions"
+				module = "ColorTracker"
+				source = "TARGET_POSITION" x="0" y="2" w="1" h="1" 
+			/>
+		</view>
+
+</group>
+ 

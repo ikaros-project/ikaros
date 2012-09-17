@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<group title="Spatial Clustering">
+	
+        <module
+			class = "InputJPEG"
+			name = "Movie"
+			filecount = "8"
+			filename = "../../../../../Examples/Media/Sequence/img%d.jpg"
+		/>
+
+		<module 
+			class = "ChangeDetector"
+			name = "Change"
+			border = "0"
+		/>
+
+        <module
+            class = "SpatialClustering"
+            name = "SpatialClustering"
+			cluster_radius	= "0.2"
+            min_cluster_area = "0.0005"
+            tracking_distance = "0.25"
+            no_of_clusters = "2"
+        />
+  
+		<connection sourcemodule="Movie" source="INTENSITY" targetmodule="Change" target="INPUT" delay="0" />
+		<connection sourcemodule="Change" source="OUTPUT" targetmodule="SpatialClustering" target="INPUT" delay="0" />
+
+		<view name="Detection">
+			<object class="Image" title="Input" type = "rgb"
+				module = "Movie" source = "RED+GREEN+BLUE" x="0" y="0" w="2" h="2"
+			/>
+			<object
+				class="Image" title="Detection" type="gray"
+				module = "Change"
+				source = "OUTPUT" x="2" y="0" w="2" h="2" 
+			/>
+		</view>
+
+		<view name="Clustering">
+			<object class="Image" title="Input" type = "rgb"
+				module = "Movie" source = "RED+GREEN+BLUE" x="0" y="0" w="2" h="2"
+			/>
+			<object
+				class="Circle" title="Detection"
+				module = "SpatialClustering"
+                color = "red,green,blue,yellow,white,black"
+                size = "0.05"
+				source = "OUTPUT" x="0" y="0" w="2" h="2" 
+			/>
+		</view>
+
+</group>
+

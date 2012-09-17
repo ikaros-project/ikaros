@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<group name="Threshold" description="applies a threshold">
+
+	<description type="text">
+		Module used to apply a threshold to each element of its input.
+		When the input is below the threshold, the output is 0. When the
+		input is above the threshold, the output is 1 in binary mode, and
+		input - threshold in linear mode.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Threshold"
+			name="Threshold"
+			type = "binary"
+			threshold = "0.5"
+		/>
+	</example>
+
+	<parameter name="threshold" type="float" default="0.0" description="The threshold value" />
+	<parameter name="type" type="list" values="binary/linear" default="binary" description="The threshold value" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="Threshold" />
+
+    <view title="Threshold">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Threshold"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Threshold.h</file>
+   		<file>Threshold.cc</file>
+   		<file>Threshold.ikc</file>
+   </files>
+
+</group>

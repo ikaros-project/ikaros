@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<group name="ColorMatch" description="match a color">
+
+	<description type="text">
+		Module used match colors in an image to a prototype color.
+		The module can also learn the color based on its reinforcement
+		input and a target input image.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ColorMatch"
+			name="ColorMatch"
+		/>
+	</example>
+
+	<parameter name="alpha" type="float" default="0.01" description="Learning rate for the color prototype" />
+	<parameter name="sigma" type="float" default="25.0" description="Width of prototype" />
+	<parameter name="gain" type="float" default="1.0" description="Output gain" />
+	<parameter name="threshold" type="float" defaulr="0" description="Intensity threshold" />
+	<parameter name="target0" type="float" description="Initial color target 0" />
+	<parameter name="target1" type="float" description="Initial color target 1" />
+	<parameter name="target2" type="float" description="Initial color target 2" />
+
+	<input name="INPUT0" description="The first input channel" />
+	<input name="INPUT1" description="The second input channel" />
+	<input name="INPUT2" description="The third input channel" />
+
+	<input name="TARGETINPUT0" description="The first target channel" />
+	<input name="TARGETINPUT1" description="The second target channel" />
+	<input name="TARGETINPUT2" description="The third target channel" />
+
+	<input name="FOCUS" description="Pixel with the target color x, y" />
+
+	<input name="REINFORCEMENT" description="Reinforcement when the correct color is in focus" />
+
+	<output name="OUTPUT" description="The color map output" size_set="INPUT0, INPUT1, INPUT2" />
+
+	<module class="ColorMatch" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>ColorMatch.h</file>
+   		<file>ColorMatch.cc</file>
+   		<file>ColorMatch.ikc</file>
+   </files>
+
+</group>

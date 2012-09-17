@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+
+<!--
+
+    This is an advanced example of some features of the IKC file format
+	
+	This file demonstrates how the <group> element can be used to build new modules from group
+	of simpler modules. This can be useful for very complex systems of modules.
+	
+-->
+
+<group>
+	
+	<!--	
+		Here we define a group that consists of two Randomizer modules
+		Each of the modules produces one of the output X or Y from the group
+		
+		The group has a single parameter maximum that sets the maximum for
+		the two outputs	
+	-->
+	
+	<group name="DoubleRandomizer" maximum="5">
+	
+		<!-- The parameter "maximum" of the group is mapped to the parameter "max" of R1 and R2 -->
+		
+		<parameter name="max" target="max" />
+		
+		<!-- The outputs of R1 and R2 are renamed X and Y -->
+		
+		<output name="X" sourcemodule="R1" source="OUTPUT" />
+		<output name="Y" sourcemodule="R2" source="OUTPUT" />
+
+		<!-- Here we declare the two Randomizer modules as usual, but without the max attribute -->
+		
+		<module class = "Randomizer" name = "R1" outputsize = "5" min="0" />
+		<module class = "Randomizer" name = "R2" outputsize = "5" min="0" />
+		
+        <view name="SubView">
+            <object class="BarGraph" name="X" module="R1" source="OUTPUT" x="0" y="0" max="10"/>
+            <object class="BarGraph" name="Y" module="R2" source="OUTPUT" x="1" y="0" max="10" />
+        </view>
+
+	</group>
+
+	<!-- The add module is used to add the two outputs from DoubleRandomizer -->
+
+	<module
+		class = "Add"
+		name = "Add"
+	/>
+	
+	<!-- The connections from the group are automatically mapped to the outputs of R1 and R2 -->
+	
+	<connection sourcemodule="DoubleRandomizer" source="X" targetmodule="Add" target="INPUT1" />
+	<connection sourcemodule="DoubleRandomizer" source="Y" targetmodule="Add" target="INPUT2" />
+
+	<!-- The views can only refer to the outputs at the outer level (not directly to R1.OUTPUT) -->
+
+	<view name="Main View">
+		<object class="BarGraph" name="X" module="DoubleRandomizer" source="X" x="0" y="0" max="10"/>
+		<object class="BarGraph" name="Y" module="DoubleRandomizer" source="Y" x="1" y="0" max="10" />
+		<object class="BarGraph" name="Sum" module="Add" source="OUTPUT" x="0" y="1" max="10" />
+	</view>
+</group>
+
