@@ -3,7 +3,7 @@ Ikaros ReadMe
 
 Version 1.4
 -----------
-This is the eleventh public distribution of the Ikaros kernel together with a number of functional modules. This version is mainly intended for potential developers and not for more general use. The current distribution includes versions for OX X, Linux and Windows.
+This is the eleventh public distribution of the Ikaros kernel together with a number of functional modules. This version is mainly intended for potential developers and not for more general use. The current distribution includes versions for OS X, Linux and Windows.
 
 Installation instructions and other documentation can be found on the web site:
 
