@@ -1,28 +1,23 @@
 <?xml version="1.0"?>
 
-<group name="WhiteBalance" description="adds two inputs">
+<group name="DelayOne" description="Delay">
 
-	<description type="text">
-		Module that sums its two inputs element by element,
-		which can be one or two dimensional.
-		Both inputs must have the same size.
+	<description type="text">	
+		This module demonstrates how the output size can depend on the input size using the SetSizes function	
 	</description>
 
 	<example description="A simple example">
 		<module
-			class="WhiteBalance"
-			name="WhiteBalance"
+			class="DelayOne"
+			name="DelayOne"
 		/>
 	</example>
 
-	<parameter name="QQQ" type="ZZZ" description="" />
-
-	<input name="INPUT1" description="The first input" />
-	<input name="INPUT2" description="The second input" />
+	<input name="INPUT1" description="The input" />
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="WhiteBalance" />
+	<module class="DelayOne" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -32,9 +27,9 @@
 	</author>
 
    <files>
-   		<file>WhiteBalance.h</file>
-   		<file>WhiteBalance.cc</file>
-   		<file>WhiteBalance.ikc</file>
+   		<file>DelayOne.h</file>
+   		<file>DelayOne.cc</file>
+   		<file>DelayOne.ikc</file>
    </files>
 
 </group>
