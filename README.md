@@ -1,13 +1,9 @@
 Ikaros ReadMe
 =============
 
-Version 1.4
------------
-This is the eleventh public distribution of the Ikaros kernel together with a number of functional modules. This version is mainly intended for potential developers and not for more general use. The current distribution includes versions for OS X, Linux and Windows.
+This is the public distribution of the Ikaros kernel together with a number of functional modules. This version is mainly intended for potential developers and not for more general use. The current distribution includes versions for OS X, Linux and Windows.
 
-Installation instructions and other documentation can be found on the web site:
-
-	http://www.ikaros-project.org/
+Installation instructions and other documentation can be found on the web site: http://www.ikaros-project.org/installing/
 
 
 The Ikaros Project
@@ -23,16 +19,12 @@ The main components of the IKAROS systems are:
 -  A plug-in architecture that allows new models to be added to the system
 -  A database with data from learning experiments that can be used for validation of the computational models.
 
-Further information on the project can be found at:
-
-	http://www.ikaros-project.org/
+Further information on the project can be found at: http://www.ikaros-project.org/
 
 
 Distribution
 ------------
-This software can be downloaded from the Ikaros site:
-
-	http://www.ikaros-project.org/
+This software can be downloaded from GitHub: http://github.com/ikaros-project/ikaros/
 
 IKAROS is distributed under the GNU GPL licence.
 See the file Licence.txt for further information.
