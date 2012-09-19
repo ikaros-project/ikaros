@@ -1,22 +1,16 @@
 # Set cmake version
 cmake_minimum_required(VERSION 2.6)
 
-# elseif
+# To use elseif
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
 
 
 # Project name is not mandatory, but you should use it
 project(ikaros)
-MESSAGE( STATUS ${CMAKE_SYSTEM_NAME})
 
-
- if(WIN32)
-	MESSAGE( STATUS "Detected WIN32 system")
-	add_definitions(-DWIN32)
-
- elseif(APPLE)
- 	MESSAGE( STATUS "Detected APPLE system")
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   # Mac OS X specific code
+   	MESSAGE( STATUS "Detected APPLE system")
 	add_definitions(-DMAC_OS_X)
 
  	# Set compiler
@@ -35,15 +29,23 @@ MESSAGE( STATUS ${CMAKE_SYSTEM_NAME})
                      QTKIT_LIBRARY
                      QUARTZ_LIBRARY)
    SET(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${QTKIT_LIBRARY} ${QUARTZ_LIBRARY})
- else()
- 	MESSAGE( STATUS "Not Windows ... not Apple... Linux system?")
+   
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Linux specific code
+ 	MESSAGE( STATUS "Detected a Linux system")
 	add_definitions(-DMAC_OS_X)
 	set(CMAKE_C_COMPILER "gcc")
 	set(CMAKE_CXX_COMPILER "g++")
-	MESSAGE( STATUS "UNIX")
 	add_definitions(-DLINUX)
- endif()
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # Windows specific code
+	MESSAGE( STATUS "Detected a Windows system. Not yet implemented in CMake. See www.ikaros-project.org for compile instructions.")
+	add_definitions(-DWIN32)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 
 # Set Ikaros root path 
