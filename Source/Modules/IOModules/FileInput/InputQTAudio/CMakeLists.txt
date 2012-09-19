@@ -1,0 +1,9 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(SOURCE
+   ${SOURCE}
+   ${CMAKE_CURRENT_SOURCE_DIR}/InputQTAudio.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/MTAudioBufferListUtils.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/QuickTimeAudioUtils.cc
+   PARENT_SCOPE
+)
