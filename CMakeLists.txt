@@ -28,7 +28,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                      COCOA_LIBRARY
                      QTKIT_LIBRARY
                      QUARTZ_LIBRARY)
-   SET(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${QTKIT_LIBRARY} ${QUARTZ_LIBRARY})
+	SET(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${QTKIT_LIBRARY} ${QUARTZ_LIBRARY})
    
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
 
@@ -45,7 +45,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # Windows specific code
 	MESSAGE( STATUS "Detected a Windows system. Not yet implemented in CMake. See www.ikaros-project.org for compile instructions.")
 	add_definitions(-DWIN32)
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 
 # Set Ikaros root path 
