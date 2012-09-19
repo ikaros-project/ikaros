@@ -1,7 +1,14 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(SOURCE
    ${SOURCE}
    ${CMAKE_CURRENT_SOURCE_DIR}/InputQTMovie.M
    PARENT_SCOPE
 )
+else()
+set(SOURCE
+   ${SOURCE}
+   PARENT_SCOPE
+)
+endif()
