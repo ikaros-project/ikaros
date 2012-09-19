@@ -52,7 +52,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 set(IKAROS_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
 # Set where to put binary file
-set(EXECUTABLE_OUTPUT_PATH ${IKAROS_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${IKAROS_SOURCE_DIR}/Bin)
 
 # Include the source directory
 INCLUDE_DIRECTORIES(Source/)
@@ -66,7 +66,6 @@ ADD_EXECUTABLE(ikaros ${SOURCE})
 # Check libraries
 
 # BLAS
-
 find_package (BLAS)
 if (BLAS_FOUND)
   include_directories(${BLAS_INCLUDE_DIRS})
@@ -81,7 +80,6 @@ if (Threads_FOUND)
 endif (Threads_FOUND)
 
 # JPEG
-
 find_package (JPEG)
 if (JPEG_FOUND)
   include_directories(${JPEG_INCLUDE_DIRS})
@@ -89,7 +87,6 @@ if (JPEG_FOUND)
 endif (JPEG_FOUND)
 
 # PNG
-
 find_package (PNG)
 if (PNG_FOUND)
   include_directories(${PNG_INCLUDE_DIRS})
