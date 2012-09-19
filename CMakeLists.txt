@@ -35,7 +35,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
  	MESSAGE( STATUS "Detected a Linux system")
-	add_definitions(-DMAC_OS_X)
+	add_definitions(-DLINUX)
 	set(CMAKE_C_COMPILER "gcc")
 	set(CMAKE_CXX_COMPILER "g++")
 	add_definitions(-DLINUX)
@@ -66,15 +66,22 @@ ADD_EXECUTABLE(ikaros ${SOURCE})
 # Check libraries
 
 # BLAS
-FIND_PACKAGE(BLAS)
+
 find_package (BLAS)
 if (BLAS_FOUND)
   include_directories(${BLAS_INCLUDE_DIRS})
   target_link_libraries (ikaros ${BLAS_LIBRARIES})
 endif (BLAS_FOUND)
 
+# threads
+find_package(Threads)
+if (Threads_FOUND)
+  include_directories(${Threads_INCLUDE_DIRS})
+  target_link_libraries (ikaros ${CMAKE_THREAD_LIBS_INIT})
+endif (Threads_FOUND)
+
 # JPEG
-FIND_PACKAGE(JPEG)
+
 find_package (JPEG)
 if (JPEG_FOUND)
   include_directories(${JPEG_INCLUDE_DIRS})
@@ -82,7 +89,7 @@ if (JPEG_FOUND)
 endif (JPEG_FOUND)
 
 # PNG
-FIND_PACKAGE(PNG)
+
 find_package (PNG)
 if (PNG_FOUND)
   include_directories(${PNG_INCLUDE_DIRS})
