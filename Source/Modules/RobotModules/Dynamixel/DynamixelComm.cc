@@ -90,7 +90,7 @@ DynamixelComm::Receive(unsigned char * b)
 bool
 DynamixelComm::ReadMemoryBlock(int id, unsigned char * buffer, int fromAddress, int toAddress)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 4, INST_READ, fromAddress, toAddress, 0X00};
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 4, INST_READ, (unsigned char)fromAddress, (unsigned char)toAddress, 0X00};
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -121,7 +121,7 @@ DynamixelComm::ReadMemoryBlock(int id, unsigned char * buffer, int fromAddress, 
 bool
 DynamixelComm::ReadAllData(int id, unsigned char * buffer)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 4, INST_READ, 0, 50, 0X00};
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 4, INST_READ, 0, 50, 0X00};
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -148,7 +148,7 @@ DynamixelComm::ReadAllData(int id, unsigned char * buffer)
 int
 DynamixelComm::Move(int id, int pos, int speed)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 7, INST_WRITE, P_GOAL_POSITION_L, pos % 256, pos / 256, speed % 256, speed / 256, 0X00}; // move to position with speed
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 7, INST_WRITE, P_GOAL_POSITION_L, (unsigned char)(pos % 256), (unsigned char)(pos / 256), (unsigned char)(speed % 256), (unsigned char)(speed / 256), 0X00}; // move to position with speed
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -162,7 +162,7 @@ DynamixelComm::Move(int id, int pos, int speed)
 int
 DynamixelComm::SetSpeed(int id, int speed)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 5, INST_WRITE, P_GOAL_SPEED_L, speed % 256, speed / 256, 0X00}; // write two bytes for present position
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 5, INST_WRITE, P_GOAL_SPEED_L, (unsigned char)(speed % 256), (unsigned char)(speed / 256), 0X00}; // write two bytes for present position
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -176,7 +176,7 @@ DynamixelComm::SetSpeed(int id, int speed)
 int
 DynamixelComm::SetPosition(int id, int pos)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 5, INST_WRITE, P_GOAL_POSITION_L, pos % 256, pos / 256, 0X00}; // write two bytes for present position
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 5, INST_WRITE, P_GOAL_POSITION_L, (unsigned char)(pos % 256), (unsigned char)(pos / 256), 0X00}; // write two bytes for present position
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -190,7 +190,7 @@ DynamixelComm::SetPosition(int id, int pos)
 int
 DynamixelComm::SetTorque(int id, int value)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 4, INST_WRITE, P_TORQUE_ENABLE, value, 0X00}; // write two bytes for present position
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 4, INST_WRITE, P_TORQUE_ENABLE, (unsigned char)(value), 0X00}; // write two bytes for present position
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -208,7 +208,7 @@ DynamixelComm::SyncMoveWithSpeed(int * pos, int * speed, int n)
 {
     unsigned char outbuf[256] =
         {0XFF, 0XFF, 0XFE,
-        (4+1)*n+4,  // (datalength+1)*N+4 
+        (unsigned char)((4+1)*n+4),  // (datalength+1)*N+4
         0X83,       // sync_write
         0X1E,       // address
         0x04        // length
@@ -233,7 +233,7 @@ DynamixelComm::SyncMoveWithIdAndSpeed(int * servo_id, int * pos, int * speed, in
 {
     unsigned char outbuf[256] =
     {0XFF, 0XFF, 0XFE,
-        (4+1)*n+4,  // (datalength+1)*N+4 
+        (unsigned char)((4+1)*n+4),  // (datalength+1)*N+4
         0X83,       // sync_write
         0X1E,       // address
         0x04        // length
@@ -258,7 +258,7 @@ DynamixelComm::SyncMoveWithIdSpeedAndTorque(int * servo_id, int * pos, int * spe
 {
     unsigned char outbuf[256] =
     {0XFF, 0XFF, 0XFE,
-        (6+1)*n+4,  // (datalength+1)*N+4 
+        (unsigned char)((6+1)*n+4),  // (datalength+1)*N+4
         0X83,       // sync_write
         0X1E,       // address
         0x06        // length
@@ -283,7 +283,7 @@ DynamixelComm::SyncMoveWithIdSpeedAndTorque(int * servo_id, int * pos, int * spe
 int
 DynamixelComm::GetPosition(int id)
 {                                                      
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 4, INST_READ, P_PRESENT_POSITION_L, 2, 0X00}; // read two bytes for present position
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 4, INST_READ, P_PRESENT_POSITION_L, 2, 0X00}; // read two bytes for present position
     unsigned char inbuf[256];
     
     Send(outbuf);
@@ -307,7 +307,7 @@ DynamixelComm::GetPosition(int id)
 bool
 DynamixelComm::Ping(int id)
 {
-    unsigned char outbuf[256] = {0XFF, 0XFF, id, 2, INST_PING, 0X00};
+    unsigned char outbuf[256] = {0XFF, 0XFF, (unsigned char)id, 2, INST_PING, 0X00};
     unsigned char inbuf[256];
     
     Send(outbuf);
