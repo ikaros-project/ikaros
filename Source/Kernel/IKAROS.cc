@@ -1,7 +1,7 @@
 //
 //	  IKAROS.cc		Kernel code for the IKAROS project
 //
-//    Copyright (C) 2001-2011  Christian Balkenius
+//    Copyright (C) 2001-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -1152,7 +1152,7 @@ Module::Notify(int msg, const char *format, ...)
 {
     char 	message[512];
     int n = 0;
-    if (message == NULL)
+    if (message == NULL) // FIXME: This can never happen
     {
         global_fatal_error = true;
         return;
@@ -1168,7 +1168,9 @@ Module::Notify(int msg, const char *format, ...)
     else if (msg == msg_fatal_error)
     {
         global_fatal_error = true;
-        printf("IKAROS: ERROR: %s", message);
+        if(message[strlen(message)-1] == '\n')
+            message[strlen(message)-1] = '\0';
+        printf("IKAROS: ERROR: %s\n", message);
     }
 }
 
@@ -2261,7 +2263,7 @@ Kernel::Notify(int msg, const char * format, ...)
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
     printf("IKAROS: %s", message);
-    if(message[strlen(message)] != '\n')
+    if(message[strlen(message)-1] != '\n')
         printf("\n");
     if (logfile != NULL)
         fprintf(logfile, "%5ld: %s", tick, message);	// Print in both places
