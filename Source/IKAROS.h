@@ -147,11 +147,12 @@ private:
 public:
     const char *      name;
     const char *      path;
-    ModuleClass *           next;
+    ModuleClass *     next;
     
     ModuleClass(const char * n, ModuleCreator mc, const char * p, ModuleClass * nxt = NULL);
     ~ModuleClass();
     
+    void            SetClassPath(const char * class_name);
     const char *	GetClassPath(const char * class_name);
     friend Module *	CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);	// Return a module of class class_name initialized with parameters in p and attributes in a
 };
@@ -371,9 +372,11 @@ public:
     
     Options *       options;
     
+    Kernel();
     Kernel(Options * opt);
     ~Kernel();
     
+    void        SetOptions(Options * opt);
     void        AddClass(const char * name, ModuleCreator mcc, const char * path = NULL);    // Add a new class of modules to the kernel
     
     void        Notify(int msg, const char * format, ...);
@@ -421,7 +424,7 @@ public:
     void        PrintTiming();           // Print total timing information
     
 private:
-    ModuleClass        *     classes;          // List of module classes
+    ModuleClass        *     classes;    // List of module classes
     long               tick;             // Updated every iteration
     long               max_ticks;        // Max iterations, stop after these many ticks
     
@@ -482,7 +485,9 @@ private:
     friend class WebUI;
 };
 
+// Global reference to static kernel instance
 
+Kernel & kernel();
 
 #endif
 

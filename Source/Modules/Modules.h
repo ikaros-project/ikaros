@@ -42,7 +42,7 @@
 #include "Modules/IOModules/FileOutput/OutputPNG/OutputPNG.h"
 #include "Modules/IOModules/FileOutput/OutputQTAudioVisual/OutputQTAudioVisual.h"
 
-#include "Modules/IOModules/Video/InputVideoQT/InputVideoQT.h"
+//#include "Modules/IOModules/Video/InputVideoQT/InputVideoQT.h"
 #include "Modules/IOModules/Video/NetworkCamera/NetworkCamera.h"
 
 // UtilityModules
@@ -178,7 +178,7 @@ InitModules(Kernel & k)
     k.AddClass("OutputJPEG", &OutputJPEG::Create, "Source/Modules/IOModules/FileOutput/OutputJPEG/");
     k.AddClass("OutputPNG", &OutputPNG::Create, "Source/Modules/IOModules/FileOutput/OutputPNG/");
     k.AddClass("OutputQTAudioVisual", &OutputQTAudioVisual::Create, "Source/Modules/IOModules/FileOutput/OutputQTAudioVisual/");
-    k.AddClass("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
+//    k.AddClass("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
     k.AddClass("NetworkCamera", &NetworkCamera::Create, "Source/Modules/IOModules/Video/NetworkCamera/");
 
     // Utlity Modules
