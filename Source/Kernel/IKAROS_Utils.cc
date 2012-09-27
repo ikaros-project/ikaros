@@ -604,7 +604,7 @@ Options::Options(int argc, char *argv[])
 			bin_path = create_string(argv[0]);
         else
 #ifdef WINDOWS
-			bin_path = create_formatted_string("%s\\%s", working_dir, argv[0]);
+        bin_path = create_formatted_string("%s\\%s", working_dir, argv[0]);
 #else
 		bin_path = create_formatted_string("%s/%s", working_dir, argv[0]);
 #endif

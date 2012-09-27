@@ -251,8 +251,11 @@ main(int argc, char *argv[])
     
     // Create and Init kernel
 
-    Kernel	k(options);
+//    Kernel	k(options);
 
+    Kernel k = kernel();    // Get global kernel
+    k.SetOptions(options);
+    
     try
     {
         k.ListInfo();

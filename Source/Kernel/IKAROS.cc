@@ -61,6 +61,8 @@
 #include <fcntl.h>
 #include <ctype.h>
 
+#include <ftw.h>    //****************** TEMPORARY
+
 #ifdef WINDOWS
 #include <direct.h>
 #else
@@ -229,6 +231,7 @@ ModuleClass::~ModuleClass()
     delete path;
     delete next;
 }
+
 
 const char *
 ModuleClass::GetClassPath(const char * class_name)
@@ -1319,6 +1322,93 @@ ThreadGroup::Tick()
     }
 }
 
+
+Kernel::Kernel()
+{
+    options             = NULL;
+    useThreads          = false;
+    max_ticks           = -1;
+    tick_length         = 0;
+    nan_checks          = false;
+    
+    print_mode          = print_normal;
+    ikaros_dir          = NULL;
+    ikc_dir             = NULL;
+    ikc_file_name       = NULL;
+
+    tick                = 0;
+    xmlDoc              = NULL;
+    classes             = NULL;
+    modules             = NULL;
+    connections         = NULL;
+    module_count        = 0;
+    period_count        = 0;
+    phase_count         = 0;
+    end_of_file_reached = false;
+    fatal_error_occured	= false;
+    terminate			= false;
+    sizeChangeFlag      = false;
+    threadGroups        = NULL;
+    
+    logfile     = NULL;
+    timer		= new Timer();
+}
+
+
+
+void
+Kernel::SetOptions(Options * opt)
+{
+    options             = opt;
+    useThreads          = options->GetOption('t') || options->GetOption('T');
+    max_ticks           = string_to_int(options->GetArgument('s'), -1);
+    tick_length         = string_to_int(options->GetArgument('r'), 0);
+    nan_checks          = options->GetOption('n');
+    
+    print_mode		= print_normal;
+    if (options->GetOption('q'))
+        print_mode = print_silent;
+        if (options->GetOption('v'))
+            print_mode = print_verbose;
+
+    
+    // Compute ikaros root path
+    
+    ikaros_dir = NULL;
+    if(is_absolute_path(IKAROSPATH))
+        ikaros_dir = create_string(IKAROSPATH);
+    else if(options->GetBinaryDirectory() != NULL)
+        ikaros_dir = create_formatted_string("%s%s", options->GetBinaryDirectory(), IKAROSPATH);
+    else
+        Notify(msg_fatal_error, "The Ikaros root directory could not be established. Please set an absolute IKAROSPATH in IKAROS_System.h\n");
+    
+    // Compute ikc path and name
+                        
+   ikc_dir = options->GetFileDirectory();
+            ikc_file_name =  options->GetFileName();
+                        
+    // Seed random number generator
+                        
+    if(options->GetOption('z'))
+#ifdef WINDOWS32
+        srand(string_to_int(options->GetArgument('z')));
+#else
+        srandom(string_to_int(options->GetArgument('z')));
+#endif
+    
+    // Fix module paths
+    
+    for(ModuleClass * c = classes; c != NULL; c = c->next)
+        if(c->path != NULL && c->path[0] != '/')
+        {
+            const char * t = c->path;
+            c->path = create_formatted_string("%s%s", ikaros_dir, c->path);
+            destroy_string((char *)t);
+        }
+}
+
+
+
 Kernel::Kernel(Options * opt)
 {
     options             = opt;
@@ -1413,8 +1503,11 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
     
     // Test for backward compatibility and remove initial paths if needed
     
-    path_to_ikc_file = create_formatted_string("%s%s%s.ikc", ikaros_dir, path, name);
-    
+    if(ikaros_dir)
+        path_to_ikc_file = create_formatted_string("%s%s%s.ikc", ikaros_dir, path, name); // absolute path
+   else
+        path_to_ikc_file = create_formatted_string("%s%s.ikc", path, name); // relative path
+
     classes = new ModuleClass(name, mc, path_to_ikc_file, classes);
     destroy_string(path_to_ikc_file);
 }
@@ -2405,10 +2498,10 @@ Kernel::BuildClassGroup(XMLElement * xml_node, const char * class_name)
 	filename = (filename ? filename : file_exists(classes->GetClassPath(class_name)));
 	if(!filename)
 	{
-		Notify(msg_warning, "Class file for class \"%s\" could not be found.\n", class_name);	
+		Notify(msg_warning, "Class \"%s\" could not be found.\n", class_name);
 		return xml_node;
 	}
-	
+
 	XMLDocument * cDoc = new XMLDocument(filename);
 	XMLElement * cgroup = cDoc->xml;
 	cDoc->xml = NULL;
@@ -2554,4 +2647,13 @@ Kernel::ReadXML()
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
 }
+
+
+
+Kernel& kernel()
+{
+    static Kernel kernelInstance;
+    return kernelInstance;
+}
+
 
