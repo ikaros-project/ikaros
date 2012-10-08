@@ -253,7 +253,7 @@ main(int argc, char *argv[])
 
 //    Kernel	k(options);
 
-    Kernel k = kernel();    // Get global kernel
+    Kernel & k = kernel();    // Get global kernel
     k.SetOptions(options);
     
     try
