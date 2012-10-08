@@ -60,14 +60,6 @@ public:
     void            Tick();
 };
 
+
 #endif
-
-#ifndef USE_QUICKTIME
-class InputQTMovie {
-public:
-    static Module * Create(Parameter * p) { return NULL; }
-};
-#endif
-
-
 #endif
