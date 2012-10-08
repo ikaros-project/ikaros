@@ -27,7 +27,7 @@
 #define IKAROS
 
 
-#define VERSION "1.3"
+#define VERSION "1.4"
 
 #include "IKAROS_System.h"
 #include "Kernel/IKAROS_Timer.h"
