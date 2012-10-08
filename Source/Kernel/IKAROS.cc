@@ -228,6 +228,7 @@ ModuleClass::ModuleClass(const char * n, ModuleCreator mc, const char * p, Modul
 
 ModuleClass::~ModuleClass()
 {
+    printf("Delete class \"%s\"\n", name);
     delete path;
     delete next;
 }
