@@ -28,19 +28,18 @@
 
 // IO Modules
 
-
 #include "Modules/IOModules/FileInput/InputFile/InputFile.h"
 #include "Modules/IOModules/FileOutput/OutputFile/OutputFile.h"
 #include "Modules/IOModules/FileInput/InputRawImage/InputRawImage.h"
 #include "Modules/IOModules/FileInput/InputJPEG/InputJPEG.h"
 #include "Modules/IOModules/FileInput/InputPNG/InputPNG.h"
-#include "Modules/IOModules/FileInput/InputQTMovie/InputQTMovie.h"
-#include "Modules/IOModules/FileInput/InputQTAudio/InputQTAudio.h"
+//#include "Modules/IOModules/FileInput/InputQTMovie/InputQTMovie.h"
+//#include "Modules/IOModules/FileInput/InputQTAudio/InputQTAudio.h"
 
 #include "Modules/IOModules/FileOutput/OutputRawImage/OutputRawImage.h"
 #include "Modules/IOModules/FileOutput/OutputJPEG/OutputJPEG.h"
 #include "Modules/IOModules/FileOutput/OutputPNG/OutputPNG.h"
-#include "Modules/IOModules/FileOutput/OutputQTAudioVisual/OutputQTAudioVisual.h"
+//#include "Modules/IOModules/FileOutput/OutputQTAudioVisual/OutputQTAudioVisual.h"
 
 //#include "Modules/IOModules/Video/InputVideoQT/InputVideoQT.h"
 #include "Modules/IOModules/Video/NetworkCamera/NetworkCamera.h"
@@ -172,12 +171,12 @@ InitModules(Kernel & k)
     k.AddClass("InputRawImage", &InputRawImage::Create, "Source/Modules/IOModules/FileInput/InputRawImage/");
     k.AddClass("InputJPEG", &InputJPEG::Create, "Source/Modules/IOModules/FileInput/InputJPEG/");
     k.AddClass("InputPNG", &InputPNG::Create, "Source/Modules/IOModules/FileInput/InputPNG/");
-    k.AddClass("InputQTMovie", &InputQTMovie::Create, "Source/Modules/IOModules/FileInput/InputQTMovie/");
-    k.AddClass("InputQTAudio", &InputQTAudio::Create, "Source/Modules/IOModules/FileInput/InputQTAudio/");
+//    k.AddClass("InputQTMovie", &InputQTMovie::Create, "Source/Modules/IOModules/FileInput/InputQTMovie/");
+//    k.AddClass("InputQTAudio", &InputQTAudio::Create, "Source/Modules/IOModules/FileInput/InputQTAudio/");
     k.AddClass("OutputRawImage", &OutputRawImage::Create, "Source/Modules/IOModules/FileOutput/OutputRawImage/");
     k.AddClass("OutputJPEG", &OutputJPEG::Create, "Source/Modules/IOModules/FileOutput/OutputJPEG/");
     k.AddClass("OutputPNG", &OutputPNG::Create, "Source/Modules/IOModules/FileOutput/OutputPNG/");
-    k.AddClass("OutputQTAudioVisual", &OutputQTAudioVisual::Create, "Source/Modules/IOModules/FileOutput/OutputQTAudioVisual/");
+//    k.AddClass("OutputQTAudioVisual", &OutputQTAudioVisual::Create, "Source/Modules/IOModules/FileOutput/OutputQTAudioVisual/");
 //    k.AddClass("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
     k.AddClass("NetworkCamera", &NetworkCamera::Create, "Source/Modules/IOModules/Video/NetworkCamera/");
 

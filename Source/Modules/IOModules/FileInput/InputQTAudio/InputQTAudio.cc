@@ -417,3 +417,6 @@ InputQTAudio::Tick()
 }
 
 #endif
+
+static class init { public: init() { kernel().AddClass("InputQTAudio", &InputQTAudio::Create, "Source/Modules/IOModules/FileInput/InputQTAudio/");}} init;
+
