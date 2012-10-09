@@ -796,3 +796,4 @@ void OutputQTAudioVisual::CloseMovie()
 }
 #endif
 
+static class init { public: init() { kernel().AddClass("OutputQTAudioVisual", &OutputQTAudioVisual::Create, "Source/Modules/IOModules/FileOutput/OutputQTAudioVisual/");}} init;
