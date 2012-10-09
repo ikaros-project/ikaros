@@ -4,10 +4,13 @@ cmake_minimum_required(VERSION 2.6)
 # To use elseif
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
-
-# Project name is not mandatory, but you should use it
+# Project name
 project(ikaros)
 
+set_property(GLOBAL PROPERTY BIRGER)
+
+
+# Checking OS
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
    	MESSAGE( STATUS "Detected APPLE system")
@@ -47,11 +50,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_definitions(-DWIN32)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-
 # Set Ikaros root path 
 set(IKAROS_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
-# Set where to put binary file
+# Set binary path
 set(EXECUTABLE_OUTPUT_PATH ${IKAROS_SOURCE_DIR}/Bin)
 
 # Include the source directory
@@ -63,7 +65,7 @@ add_subdirectory(Source)
 # Crete a binary with source files
 ADD_EXECUTABLE(ikaros ${SOURCE})
 
-# Check libraries
+# Check and adding Kernel libraries
 
 # BLAS
 find_package (BLAS)
@@ -72,7 +74,7 @@ if (BLAS_FOUND)
   target_link_libraries (ikaros ${BLAS_LIBRARIES})
 endif (BLAS_FOUND)
 
-# threads
+# Threads
 find_package(Threads)
 if (Threads_FOUND)
   include_directories(${Threads_INCLUDE_DIRS})
@@ -96,6 +98,23 @@ endif (PNG_FOUND)
 # Add extra libraries when linking
 TARGET_LINK_LIBRARIES(ikaros ${EXTRA_LIBS} )
 
+# Ikaros modules' include directories and libraires
+
+set(MODULES_INCLUDS
+   ${MODULES_INCLUDS}
+)
+
+set(MODULES_LIBS
+   ${MODULES_LIBS}
+)
+
+include_directories(${MODULES_INCLUDS})
+target_link_libraries (ikaros ${MODULES_LIBS})
+  
+message(status ROOT ${MODULES_INCLUDS})
+#message(status ROOT ${MODULES_LIBS})
+
+#message(status ROOT ${BIRGER})
 # Clean 
 
 #SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Remote Operations On Files")
