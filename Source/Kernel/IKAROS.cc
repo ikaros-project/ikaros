@@ -1461,7 +1461,7 @@ Kernel::Kernel(Options * opt)
 	
 	if(options->GetOption('z'))
 #ifdef WINDOWS32
-		srand(string_to_int(options->GetArgument('z')));
+    srand(string_to_int(options->GetArgument('z')));
 #else
     srandom(string_to_int(options->GetArgument('z')));
 #endif
@@ -1507,7 +1507,7 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
     
     if(ikaros_dir)
         path_to_ikc_file = create_formatted_string("%s%s%s.ikc", ikaros_dir, path, name); // absolute path
-   else
+    else
         path_to_ikc_file = create_formatted_string("%s%s.ikc", path, name); // relative path
 
     classes = new ModuleClass(name, mc, path_to_ikc_file, classes);
@@ -2654,8 +2654,8 @@ Kernel::ReadXML()
 
 Kernel& kernel()
 {
-    static Kernel kernelInstance;
-    return kernelInstance;
+    static Kernel * kernelInstance = new Kernel();
+    return * kernelInstance;
 }
 
 

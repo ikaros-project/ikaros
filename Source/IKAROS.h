@@ -485,9 +485,22 @@ private:
     friend class WebUI;
 };
 
+
 // Global reference to static kernel instance
 
 Kernel & kernel();
+
+// Initialization class
+
+class InitClass
+{
+public:
+    InitClass(const char * name, ModuleCreator mcc, const char * path = NULL)
+    {
+        kernel().AddClass(name, mcc, path);
+    }
+};
+
 
 #endif
 

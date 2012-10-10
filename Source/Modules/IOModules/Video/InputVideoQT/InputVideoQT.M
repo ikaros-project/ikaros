@@ -221,7 +221,6 @@ InputVideoQT::Tick()
 }
 
 
-static class init { public: init() { kernel().AddClass("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");}} init;
-
+static InitClass init("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
 
 #endif

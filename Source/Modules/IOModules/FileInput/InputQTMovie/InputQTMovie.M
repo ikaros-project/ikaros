@@ -196,4 +196,5 @@ InputQTMovie::Tick()
 
 #endif
 
-static class init { public: init() { kernel().AddClass("InputQTMovie", &InputQTMovie::Create, "Source/Modules/IOModules/FileInput/InputQTMovie/");}} init;
+static InitClass init("InputQTMovie", &InputQTMovie::Create, "Source/Modules/IOModules/FileInput/InputQTMovie/");
+
