@@ -292,5 +292,6 @@ OutputJPEG::Tick()
     cur_image++;
 }
 
+static InitClass init("OutputJPEG", &OutputJPEG::Create, "Source/Modules/IOModules/FileOutput/OutputJPEG/");
 
 

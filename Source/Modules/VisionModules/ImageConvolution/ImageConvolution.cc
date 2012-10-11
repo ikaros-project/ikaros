@@ -123,4 +123,5 @@ ImageConvolution::Tick()
 }
 
 
+static InitClass init("ImageConvolution", &ImageConvolution::Create, "Source/Modules/VisionModules/ImageConvolution/");
 

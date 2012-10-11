@@ -76,3 +76,4 @@ Softmax::Tick()
 }
 
 
+static InitClass init("Softmax", &Softmax::Create, "Source/Modules/UtilityModules/Softmax/");

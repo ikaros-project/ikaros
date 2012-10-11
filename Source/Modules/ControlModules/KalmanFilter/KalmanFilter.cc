@@ -170,3 +170,4 @@ KalmanFilter::Tick()
 }
 
 
+static InitClass init("KalmanFilter", &KalmanFilter::Create, "Source/Modules/ControlModules/KalmanFilter/");

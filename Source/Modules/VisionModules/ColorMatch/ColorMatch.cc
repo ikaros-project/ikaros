@@ -106,5 +106,6 @@ ColorMatch::Tick()
     }
 }
 
+static InitClass init("ColorMatch", &ColorMatch::Create, "Source/Modules/VisionModules/ColorMatch/");
 
 

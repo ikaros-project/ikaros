@@ -1382,3 +1382,6 @@ Epuck::CheckParameters(void)
     microphone_volume_on = GetBoolValue("microphone_volume_on", false);
     microphone_buffer_on = GetBoolValue("microphone_buffer_on", false);
 }
+
+static InitClass init("Epuck", &Epuck::Create, "Source/Modules/RobotModules/Epuck/");
+

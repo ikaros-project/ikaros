@@ -129,4 +129,5 @@ LinearAssociator::Tick()
 	multiply(output, m, input, input_size, output_size);
 }
 
+static InitClass init("LinearAssociator", &LinearAssociator::Create, "Source/Modules/LearningModules/LinearAssociator/");
 

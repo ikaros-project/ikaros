@@ -169,3 +169,4 @@ OutputFile::WriteData()
 }
 
 
+static InitClass init("OutputFile", &OutputFile::Create, "Source/Modules/IOModules/FileOutput/OutputFile/");

@@ -129,4 +129,5 @@ QLearning::Tick()
     last_y = y;
 }
 
+static InitClass init("QLearning", &QLearning::Create, "Source/Modules/LearningModules/QLearning/");
 

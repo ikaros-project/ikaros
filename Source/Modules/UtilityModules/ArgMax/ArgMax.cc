@@ -48,3 +48,4 @@ ArgMax::Tick()
 }
 
 
+static InitClass init("ArgMax", &ArgMax::Create, "Source/Modules/UtilityModules/ArgMax/");

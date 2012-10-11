@@ -72,4 +72,6 @@ Normalize::Tick()
     }
 }
 
+static InitClass init("Normalize", &Normalize::Create, "Source/Modules/UtilityModules/Normalize/");
+
 

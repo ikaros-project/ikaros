@@ -57,3 +57,4 @@ Distance::Tick()
 }
 
 
+static InitClass init("Distance", &Distance::Create, "Source/Modules/UtilityModules/Distance/");

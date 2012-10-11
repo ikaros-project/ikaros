@@ -52,3 +52,4 @@ IntervalDecoder::Tick()
 }
 
 
+static InitClass init("IntervalDecoder", &IntervalDecoder::Create, "Source/Modules/CodingModules/IntervalDecoder/");

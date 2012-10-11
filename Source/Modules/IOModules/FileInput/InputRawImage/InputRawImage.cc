@@ -128,5 +128,6 @@ InputRawImage::Tick()
         Notify(msg_terminate);
 }
 
+static InitClass init("InputRawImage", &InputRawImage::Create, "Source/Modules/IOModules/FileInput/InputRawImage/");
 
 

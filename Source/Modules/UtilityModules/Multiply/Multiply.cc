@@ -62,3 +62,4 @@ Multiply::Tick()
 }
 
 
+static InitClass init("Multiply", &Multiply::Create, "Source/Modules/UtilityModules/Multiply/");

@@ -48,3 +48,4 @@ SelectMax::Tick()
 }
 
 
+static InitClass init("SelectMax", &SelectMax::Create, "Source/Modules/UtilityModules/SelectMax/");

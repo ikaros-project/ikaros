@@ -123,3 +123,5 @@ void Sum::Tick()
     }
 }
 
+static InitClass init("Sum", &Sum::Create, "Source/Modules/Examples/Sum/");
+

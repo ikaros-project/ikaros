@@ -93,5 +93,6 @@ Dilate::Tick()
         }
 }
 
+static InitClass init("Dilate", &Dilate::Create, "Source/Modules/ImageOperators/EdgeDetector/Dilate/");
 
 

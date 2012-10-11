@@ -97,5 +97,6 @@ HysteresisThresholding::Tick()
                                 output[j+jj][i+ii] = 1;
 }
 
+static InitClass init("HysteresisThresholding", &HysteresisThresholding::Create, "Source/Modules/ImageOperators/EdgeDetector/HysteresisThresholding/");
 
 

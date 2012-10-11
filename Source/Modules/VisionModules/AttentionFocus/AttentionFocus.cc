@@ -127,3 +127,4 @@ AttentionFocus::Tick()
 }
 
 
+static InitClass init("AttentionFocus", &AttentionFocus::Create, "Source/Modules/VisionModules/AttentionFocus/");

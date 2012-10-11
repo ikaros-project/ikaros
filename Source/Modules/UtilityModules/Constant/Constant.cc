@@ -43,4 +43,5 @@ Constant::Tick()
     copy_array(output, data, outputsize);   // Copy every iteration if parameter changed through the binding
 }
 
+static InitClass init("Constant", &Constant::Create, "Source/Modules/UtilityModules/Constant/");
 

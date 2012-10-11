@@ -399,4 +399,6 @@ InputPNG::Tick()
 	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 }
 
+static InitClass init("InputPNG", &InputPNG::Create, "Source/Modules/IOModules/FileInput/InputPNG/");
+
 #endif

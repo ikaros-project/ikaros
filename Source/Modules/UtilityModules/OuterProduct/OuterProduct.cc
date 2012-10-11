@@ -58,3 +58,4 @@ OuterProduct::Tick()
 }
 
 
+static InitClass init("OuterProduct", &OuterProduct::Create, "Source/Modules/UtilityModules/OuterProduct/");

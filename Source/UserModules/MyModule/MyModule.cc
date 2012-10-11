@@ -150,4 +150,6 @@ MyModule::Tick()
     random(output_array, 0.0, 1.0, output_array_size);
 }
 
+static InitClass init("MyModule", &MyModule::Create, "Source/UserModules/MyModule/");
+
 

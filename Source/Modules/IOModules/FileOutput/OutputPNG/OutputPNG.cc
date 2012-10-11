@@ -366,4 +366,5 @@ OutputPNG::Tick()
 }
 
 #endif
+static InitClass init("OutputPNG", &OutputPNG::Create, "Source/Modules/IOModules/FileOutput/OutputPNG/");
 

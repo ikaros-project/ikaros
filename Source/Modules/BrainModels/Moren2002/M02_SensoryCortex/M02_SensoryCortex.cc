@@ -41,4 +41,5 @@ M02_SensoryCortex::Tick()
     copy_array(output, input, size);
 }
 
+static InitClass init("M02_SensoryCortex", &M02_SensoryCortex::Create, "Source/Modules/BrainModels/M02_SensoryCortex/");
 

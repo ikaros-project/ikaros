@@ -263,5 +263,6 @@ YARPPort::Tick()
     }
 }
 
+static InitClass init("YARPPort", &YARPPort::Create, "Source/Modules/IOModules/Network/YARPPort/");
 
 

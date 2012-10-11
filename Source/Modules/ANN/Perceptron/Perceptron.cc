@@ -652,3 +652,5 @@ Perceptron::CheckParameters(float rw_min, float rw_max)
 
 
 }
+
+static InitClass init("Perceptron", &Perceptron::Create, "Source/Modules/ANN/Perceptron/");

@@ -60,4 +60,5 @@ IntervalCoder::Tick()
     }
 }
 
+static InitClass init("IntervalCoder", &IntervalCoder::Create, "Source/Modules/CodingModules/IntervalCoder/");
 

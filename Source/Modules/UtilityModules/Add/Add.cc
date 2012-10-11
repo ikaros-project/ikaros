@@ -43,4 +43,6 @@ Add::Tick()
     add(output, input1, input2, size);
 }
 
+static InitClass init("Add", &Add::Create, "Source/Modules/UtilityModules/Add/");
+
 

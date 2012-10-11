@@ -81,3 +81,4 @@ Counter::Tick()
 }
 
 
+static InitClass init("Counter", &Counter::Create, "Source/Modules/UtilityModules/Counter/");

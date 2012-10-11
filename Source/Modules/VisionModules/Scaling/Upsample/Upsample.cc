@@ -99,4 +99,5 @@ Upsample::Tick()
     }
 }
 
+static InitClass init("Upsample", &Upsample::Create, "Source/Modules/VisionModules/Scaling/Upsample/");
 

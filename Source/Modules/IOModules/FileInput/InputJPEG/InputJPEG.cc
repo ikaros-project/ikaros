@@ -267,4 +267,6 @@ InputJPEG::Tick()
         Notify(msg_terminate);
 }
 
+static InitClass init("InputJPEG", &InputJPEG::Create, "Source/Modules/IOModules/FileInput/InputJPEG/");
+
 #endif

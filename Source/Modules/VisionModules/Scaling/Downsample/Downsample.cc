@@ -95,4 +95,5 @@ Downsample::Tick()
     }
 }
 
+static InitClass init("Downsample", &Downsample::Create, "Source/Modules/VisionModules/Scaling/Downsample/");
 

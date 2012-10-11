@@ -45,3 +45,4 @@ Randomizer::Tick()
 }
 
 
+static InitClass init("Randomizer", &Randomizer::Create, "Source/Modules/UtilityModules/Randomizer/");

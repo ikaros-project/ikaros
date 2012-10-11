@@ -80,4 +80,5 @@ void Delay::Tick()
     }
 }
 
+static InitClass init("Delay", &Delay::Create, "Source/Modules/UtilityModules/Delay/");
 

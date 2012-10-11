@@ -1062,3 +1062,4 @@ KD_Tree::CheckAllParentPointers(KD_Node *top_node)
     }
 }
 
+

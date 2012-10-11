@@ -49,13 +49,6 @@
 #include "IKAROS.h"
 #include "WebUI/WebUI.h"
 
-//
-// Modules
-//
-
-#include "Modules/Modules.h"
-#include "UserModules/UserModules.h"
-
 
 void PrintInfo();
 
@@ -204,9 +197,6 @@ run_batch(Options * options)
 
             k.ListInfo();
 
-            InitModules(k);
-            InitUserModules(k);
-
             k.Init();
             k.ListClasses();
             k.ListModulesAndConnections();
@@ -259,9 +249,6 @@ main(int argc, char *argv[])
     try
     {
         k.ListInfo();
-
-        InitModules(k);
-        InitUserModules(k);
 
         k.Init();
 

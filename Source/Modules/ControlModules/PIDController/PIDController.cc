@@ -102,5 +102,5 @@ void PIDController::Tick()
 	copy_array(input_last, filtered_input, size);
 }
 
-
+static InitClass init("PIDController", &PIDController::Create, "Source/Modules/ControlModules/PIDController/");
 

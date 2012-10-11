@@ -47,3 +47,4 @@ void M02_Thalamus::Tick()
 }
 
 
+static InitClass init("M02_Thalamus", &M02_Thalamus::Create, "Source/Modules/BrainModels/M02_Thalamus/");

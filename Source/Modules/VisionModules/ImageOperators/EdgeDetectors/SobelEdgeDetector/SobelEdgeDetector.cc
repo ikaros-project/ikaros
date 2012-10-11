@@ -200,5 +200,6 @@ SobelEdgeDetector::Tick()
     }
 }
 
+static InitClass init("SobelEdgeDetector", &SobelEdgeDetector::Create, "Source/Modules/ImageOperators/EdgeDetector/SobelEdgeDetector/");
 
 

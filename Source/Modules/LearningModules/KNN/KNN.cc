@@ -458,3 +458,5 @@ KNN::Equals(float * sample, float * instance)
     return true;
 }
 #endif
+
+static InitClass init("KNN", &KNN::Create, "Source/Modules/LearningModules/KNN/");

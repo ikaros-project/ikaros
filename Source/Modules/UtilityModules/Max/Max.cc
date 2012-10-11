@@ -61,3 +61,4 @@ Max::Tick()
 }
 
 
+static InitClass init("Max", &Max::Create, "Source/Modules/UtilityModules/Max/");

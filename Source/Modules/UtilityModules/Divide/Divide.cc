@@ -64,3 +64,4 @@ Divide::Tick()
 }
 
 
+static InitClass init("Divide", &Divide::Create, "Source/Modules/UtilityModules/Divide/");
