@@ -68,4 +68,6 @@ MatrixMultiply::Tick()
     multiply(output, input1, input2, size2_x, size1_y, size1_x);
 }
 
+static InitClass init("MatrixMultiply", &MatrixMultiply::Create, "Source/Modules/UtilityModules/MatrixMultiply/");
+
 

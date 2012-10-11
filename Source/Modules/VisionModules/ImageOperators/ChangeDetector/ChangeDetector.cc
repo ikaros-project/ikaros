@@ -91,4 +91,5 @@ ChangeDetector::Tick()
 }
 
 
+static InitClass init("ChangeDetector", &ChangeDetector::Create, "Source/Modules/ImageOperators/EdgeDetector/ChangeDetector/");
 

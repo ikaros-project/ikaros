@@ -57,3 +57,4 @@ Sweep::Tick()
 }
 
 
+static InitClass init("Sweep", &Sweep::Create, "Source/Modules/UtilityModules/Sweep/");

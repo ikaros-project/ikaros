@@ -285,3 +285,4 @@ KNN_Pick::CheckParameters()
     weight_divisor = GetFloatValue("weight_divisor", 1.0);
 }
 
+static InitClass init("KNN_Pick", &KNN_Pick::Create, "Source/Modules/LearningModules/KNN_Pick/");

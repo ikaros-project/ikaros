@@ -136,4 +136,5 @@ HarrisDetector::Tick()
             output[j][i] = (dxs[j][i]*dys[j][i] - dxys[j][i]*dxys[j][i]) / (dxs[j][i] + dys[j][i]  + 0.00001);
 }
 
+static InitClass init("HarrisDetector", &HarrisDetector::Create, "Source/Modules/ImageOperators/EdgeDetector/HarrisDetector/");
 

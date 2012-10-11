@@ -284,4 +284,6 @@ GridWorld::Tick()
             local_values[j][i] = values[y+j-1][x+i-1];
 }
 
+static InitClass init("GridWorld", &GridWorld::Create, "Source/Modules/EnvironmentModules/GridWorld/");
+
 

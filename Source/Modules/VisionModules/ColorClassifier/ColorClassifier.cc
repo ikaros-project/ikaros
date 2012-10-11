@@ -76,6 +76,7 @@ ColorClassifier::~ColorClassifier()
     destroy_matrix(Dm);
 }
 
+static InitClass init("ColorClassifier", &ColorClassifier::Create, "Source/Modules/VisionModules/ColorClassifier/");
 
 
 //  float L2 = s(*Xp++)+s(*Yp++);

@@ -244,3 +244,4 @@ InputFile::Tick()
     }
 }
 
+static InitClass init("InputFile", &InputFile::Create, "Source/Modules/IOModules/FileInput/InputFile/");

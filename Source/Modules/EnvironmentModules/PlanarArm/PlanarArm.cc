@@ -201,4 +201,6 @@ PlanarArm::Tick()
     time++;
 }
 
+static InitClass init("PlanarArm", &PlanarArm::Create, "Source/Modules/EnvironmentModules/PlanarArm/");
+
 

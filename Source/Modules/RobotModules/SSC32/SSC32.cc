@@ -177,5 +177,6 @@ SSC32::Tick()
         ReceivePositions();
 }
 
+static InitClass init("SSC32", &SSC32::Create, "Source/Modules/RobotModules/SSC32/");
 
 

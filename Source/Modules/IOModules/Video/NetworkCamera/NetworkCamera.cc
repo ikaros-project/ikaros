@@ -231,6 +231,8 @@ NetworkCamera::Tick()
     jpeg_decode(red, green, blue, intensity, size_x, size_y, buffer, buffer_size);
 }
 
+static InitClass init("NetworkCamera", &NetworkCamera::Create, "Source/Modules/IOModules/Video/NetworkCamera/");
+
 #endif
 #endif
 

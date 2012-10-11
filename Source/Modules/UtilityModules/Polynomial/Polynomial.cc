@@ -61,3 +61,4 @@ Polynomial::Tick()
 }
 
 
+static InitClass init("Polynomial", &Polynomial::Create, "Source/Modules/UtilityModules/Polynomial/");

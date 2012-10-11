@@ -174,3 +174,4 @@ MazeGenerator::Tick()
         GeneratePerfectMaze();
 }
 
+static InitClass init("MazeGenerator", &MazeGenerator::Create, "Source/Modules/EnvironmentModules/MazeGenerator/");

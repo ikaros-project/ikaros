@@ -56,3 +56,4 @@ Gate::Tick()
 }
 
 
+static InitClass init("Gate", &Gate::Create, "Source/Modules/UtilityModules/Gate/");

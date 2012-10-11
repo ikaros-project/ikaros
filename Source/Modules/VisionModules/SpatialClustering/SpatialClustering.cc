@@ -301,3 +301,4 @@ SpatialClustering::Tick()
 */
 }
 
+static InitClass init("SpatialClustering", &SpatialClustering::Create, "Source/Modules/VisionModules/SpatialClustering/");

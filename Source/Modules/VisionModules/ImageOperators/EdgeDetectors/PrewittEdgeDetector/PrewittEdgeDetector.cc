@@ -89,5 +89,6 @@ PrewittEdgeDetector::Tick()
         }
 }
 
+static InitClass init("PrewittEdgeDetector", &PrewittEdgeDetector::Create, "Source/Modules/ImageOperators/EdgeDetector/PrewittEdgeDetector/");
 
 

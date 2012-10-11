@@ -253,4 +253,5 @@ ColorTransform::Tick()
 }
 
 
+static InitClass init("ColorTransform", &ColorTransform::Create, "Source/Modules/VisionModules/ColorTransform/");
 

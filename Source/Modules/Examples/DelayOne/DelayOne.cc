@@ -137,3 +137,5 @@ void DelayOne::Tick()
         output[i] = input[i];
 }
 
+static InitClass init("DelayOne", &DelayOne::Create, "Source/Modules/Examples/DelayOne/");
+

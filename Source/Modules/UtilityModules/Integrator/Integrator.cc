@@ -58,3 +58,4 @@ Integrator::Tick()
 }
 
 
+static InitClass init("Integrator", &Integrator::Create, "Source/Modules/UtilityModules/Integrator/");

@@ -96,4 +96,6 @@ CoarseCoder::Tick()
     }    
 }
 
+static InitClass init("CoarseCoder", &CoarseCoder::Create, "Source/Modules/CodingModules/CoarseCoder/");
+
 

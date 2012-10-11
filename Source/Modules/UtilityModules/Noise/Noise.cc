@@ -48,3 +48,4 @@ Noise::Tick()
 }
 
 
+static InitClass init("Noise", &Noise::Create, "Source/Modules/UtilityModules/Noise/");

@@ -102,4 +102,4 @@ OutputRawImage::Tick()
 }
 
 
-
+static InitClass init("OutputRawImage", &OutputRawImage::Create, "Source/Modules/IOModules/FileOutput/OutputRawImage/");

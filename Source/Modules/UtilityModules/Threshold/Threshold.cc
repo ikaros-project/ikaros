@@ -60,3 +60,4 @@ Threshold::Tick()
 }
 
 
+static InitClass init("Threshold", &Threshold::Create, "Source/Modules/UtilityModules/Threshold/");

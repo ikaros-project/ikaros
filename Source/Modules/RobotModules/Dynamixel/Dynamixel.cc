@@ -467,4 +467,5 @@ Dynamixel::Tick()
     }
 }
 
+static InitClass init("Dynamixel", &Dynamixel::Create, "Source/Modules/RobotModules/Dynamixel/");
 

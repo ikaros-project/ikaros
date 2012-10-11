@@ -56,3 +56,4 @@ Arbiter::Tick()
 }
 
 
+static InitClass init("Arbiter", &Arbiter::Create, "Source/Modules/UtilityModules/Arbiter/");

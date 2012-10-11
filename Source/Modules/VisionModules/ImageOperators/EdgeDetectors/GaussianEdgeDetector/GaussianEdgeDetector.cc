@@ -188,4 +188,5 @@ GaussianEdgeDetector::Tick()
 }
 
 
+static InitClass init("GaussianEdgeDetector", &GaussianEdgeDetector::Create, "Source/Modules/ImageOperators/EdgeDetector/GaussianEdgeDetector/");
 

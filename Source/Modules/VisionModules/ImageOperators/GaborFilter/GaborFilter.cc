@@ -140,5 +140,6 @@ GaborFilter::Tick()
     }
 }
 
+static InitClass init("GaborFilter", &GaborFilter::Create, "Source/Modules/ImageOperators/EdgeDetector/GaborFilter/");
 
 

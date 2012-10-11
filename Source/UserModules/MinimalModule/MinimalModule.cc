@@ -41,4 +41,6 @@ MinimalModule::Tick()
 {
 }
 
+static InitClass init("MinimalModule", &MinimalModule::Create, "Source/UserModules/MinimalModule/");
+
 

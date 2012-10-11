@@ -47,3 +47,4 @@ Scale::Tick()
 }
 
 
+static InitClass init("Scale", &Scale::Create, "Source/Modules/UtilityModules/Scale/");

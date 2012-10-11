@@ -44,3 +44,4 @@ Subtract::Tick()
 }
 
 
+static InitClass init("Subtract", &Subtract::Create, "Source/Modules/UtilityModules/Subtract/");

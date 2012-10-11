@@ -42,3 +42,4 @@ Abs::Tick()
 }
 
 
+static InitClass init("Abs", &Abs::Create, "Source/Modules/UtilityModules/Abs/");

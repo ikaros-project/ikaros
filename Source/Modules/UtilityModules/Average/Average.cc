@@ -52,3 +52,4 @@ Average::Tick()
 }
 
 
+static InitClass init("Average", &Average::Create, "Source/Modules/UtilityModules/Average/");

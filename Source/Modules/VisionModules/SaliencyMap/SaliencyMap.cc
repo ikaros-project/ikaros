@@ -259,3 +259,4 @@ SaliencyMap::Tick()
     }
 }
 
+static InitClass init("SaliencyMap", &SaliencyMap::Create, "Source/Modules/VisionModules/SaliencyMap/");

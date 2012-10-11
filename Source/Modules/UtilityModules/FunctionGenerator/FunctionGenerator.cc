@@ -125,4 +125,5 @@ FunctionGenerator::Tick()
     t++;
 }
 
+static InitClass init("FunctionGenerator", &FunctionGenerator::Create, "Source/Modules/UtilityModules/FunctionGenerator/");
 

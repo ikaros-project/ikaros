@@ -62,3 +62,4 @@ Shift::Tick()
 }
 
 
+static InitClass init("Shift", &Shift::Create, "Source/Modules/UtilityModules/Shift/");

@@ -60,3 +60,4 @@ Min::Tick()
 }
 
 
+static InitClass init("Min", &Min::Create, "Source/Modules/UtilityModules/Min/");
