@@ -1,8 +1,7 @@
 //
 //	MyModule.cc		This file is a part of the IKAROS project
-//                      <Short description of the module>
 //
-//    Copyright (C) 2011 <Author Name>
+//    Copyright (C) 2012 <Author Name>
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,20 +19,15 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//	Created: <date>
-//
 //  This example is intended as a starting point for writing new Ikaros modules
 //  The example includes most of the calls that you may want to use in a module.
 //  If you prefer to start with a clean example, use he module MinimalModule instead.
 //
-//  MyModule is a new version of MyModule that uses the IKC file rather than 
-//  function calls during initialization.
 
 #include "MyModule.h"
 
 // use the ikaros namespace to access the math library
 // this is preferred to using math.h
-
 
 using namespace ikaros;
 
@@ -41,34 +35,28 @@ using namespace ikaros;
 void
 MyModule::Init()
 {
-    // You can get parameters from the IKC file here or in any other
-    // member functions. Since the method for reading the values
-    // from the XML structure is not very efficient, it is best to store
-    // the parameters in member variables as below.
-    // GetFloatValue gets a parameter as a float with a particular
-    // name. If the parameter is not found, the default value 7.0
-    // is returned instead.
+    // To get the parameters from the IKC file, use the Bind
+    // function for each parameter. The parameters are initialized
+    // from the IKC and can optionally be changed from the
+    // user interface while Ikaros is running. If the parameter is not
+    // set, the default value will be used instead.
     
-    float_parameter = GetFloatValue("parameter1");
-    
-    // GetIntValue gets parameter2 from the XML structure or
-    // sets the parameter to the default value 2 if it is not found
-    
-    int_parameter = GetIntValue("parameter2");
+    Bind(float_parameter, "parameter1");
+    Bind(int_parameter, "parameter2");
     
     // This is were we get pointers to the inputs and outputs
 
     // Get a pointer to the input INPUT1 and its size which we set
     // to 10 above
     // It does not matter whether a matrix of array is connected
-    // to the inputs. We will teat it an array in this module
+    // to the inputs. We will treat it an array in this module
     // anyway.
 
     input_array = GetInputArray("INPUT1");
     input_array_size = GetInputSize("INPUT1");
 
     // Get pointer to a matrix and treat it as a matrix. If an array is
-    // connected to this input, the size_y will be 1.
+    // connected to this input, size_y will be 1.
 
     input_matrix = GetInputMatrix("INPUT2");
     input_matrix_size_x = GetInputSizeX("INPUT2");
@@ -99,6 +87,8 @@ MyModule::Init()
 
     // To acces the matrix use internal_matrix[y][x].
     //
+    // IMPORTANT: y is the first index and x the second,
+    //
     // It is also possible to use the new operator to
     // create arrays, but create_array and create_matix
     // should be used to make sure that memeory is
@@ -127,7 +117,7 @@ MyModule::Tick()
     // This is where you implement your algorithm
     // to calculate the outputs from the inputs
 
-    // Make a copy of the data on INPUT2 which is now
+    // This example makes a copy of the data on INPUT2 which is now
     // in input_matrix to internal_matrix
     // Arrays can be copied with copy_array
     // To clear an array or matrix use reset_array and reset_matrix
@@ -149,6 +139,10 @@ MyModule::Tick()
 
     random(output_array, 0.0, 1.0, output_array_size);
 }
+
+
+
+// Install the module. This code is executed during start-up.
 
 static InitClass init("MyModule", &MyModule::Create, "Source/UserModules/MyModule/");
 
