@@ -1,8 +1,7 @@
 //
 //	MyModule.h		This file is a part of the IKAROS project
-//                  <Short description of the module>
 //
-//    Copyright (C) 2011 <Author Name>
+//    Copyright (C) 2012 <Author Name>
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,9 +19,6 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//	Created: <date>
-//
-//	<Additional description of the module>
 
 #ifndef MyModule_
 #define MyModule_
