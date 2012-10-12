@@ -92,5 +92,5 @@ Erode::Tick()
 }
 
 
-static InitClass init("Erode", &Erode::Create, "Source/Modules/ImageOperators/EdgeDetector/Erode/");
+static InitClass init("Erode", &Erode::Create, "Source/Modules/VisionModules/ImageOperators/MorphologicalOperators/Erode/");
 
