@@ -87,6 +87,6 @@ RobertsEdgeDetector::Tick()
         }
 }
 
-static InitClass init("RobertsEdgeDetector", &RobertsEdgeDetector::Create, "Source/Modules/ImageOperators/EdgeDetector/RobertsEdgeDetector/");
+static InitClass init("RobertsEdgeDetector", &RobertsEdgeDetector::Create, "Source/Modules/VisionModules/ImageOperators/EdgeDetector/RobertsEdgeDetector/");
 
 
