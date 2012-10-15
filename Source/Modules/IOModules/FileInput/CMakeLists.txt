@@ -6,6 +6,8 @@ add_subdirectory(InputPNG)
 add_subdirectory(InputQTAudio)
 add_subdirectory(InputQTMovie)
 add_subdirectory(InputRawImage)
+add_subdirectory(InputVideoFile)
+
 
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
