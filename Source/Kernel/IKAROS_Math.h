@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.h		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2010  Christian Balkenius
+//    Copyright (C) 2006-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -23,8 +23,10 @@
 #ifndef IKAROS_MATH
 #define IKAROS_MATH
 
-// order of sizes is ALWAYS x before y
+// the first variable is often the result array or matrix
+// order of sizes is ALWAYS x before y in function calls
 // the sizes nearly always goes last of the arguments
+// unless there are optional arguments
 
 namespace ikaros
 {
@@ -55,7 +57,7 @@ namespace ikaros
 	float		atan2(float x, float y);
 	float *		atan2(float * r, float * a, float * b, int size);
 	float **	atan2(float ** r, float ** a, float ** b, int sizex, int sizey);
-
+    
 	float       mod(float x, float y);
 	
 	float		gaussian(float x, float sigma);
@@ -73,7 +75,7 @@ namespace ikaros
     
     float *     gaussian1(float * r, float * a, float sigma, int size);
     float **    gaussian1(float ** r, float ** m, float sigma, int sizex, int sizey);
-        
+    
 	float *		gaussian1(float * r, float sigma, int size);
 	float *		gaussian1(float * r, float x, float sigma, int size);
 	float **	gaussian1(float ** r, float sigma, int sizex, int sizey);
@@ -82,9 +84,9 @@ namespace ikaros
 	float		random(float low, float high);
 	float *		random(float * r, float low, float high, int size);
 	float **	random(float ** r, float low, float high, int sizex, int sizey);
-
+    
 	int         random(int high);   // 0 <= int < high
-    	
+    
 	float		gaussian_noise(float mean, float sigma);
 	
 	bool		zero(float * a, int size);
@@ -238,7 +240,7 @@ namespace ikaros
 	float **	divide(float ** r, float ** a, float ** b, int sizex, int sizey);
 	
     // linear algebra
-
+    
 	float **    eye(float ** a, int size); // identity matrix
     float **    transpose(float ** a_T, float ** a, int sizex, int sizey);
     float **    transpose(float ** a, int size); // transpose square matrix in place
@@ -248,15 +250,15 @@ namespace ikaros
     bool        inv(float ** a, float ** b, int size);  // invert matrix b and store in a; returns false if singular
     void        pinv(float ** a, float ** b, int sizex, int sizey); // pseudoinverse of b is stored in a; sizeof(a) = sizex x sizey; sizeof(b) = sizey x sizex
     float *     mldivide(float * r, float ** m, float * a, int size); // left divide; solves mr = a
-
+    
     void        lu(float ** l, float ** u, float ** a, int sizex, int sizey); // LU-decomposition of a
     bool        qr(float ** q, float ** r, float ** a, int size); // QR-decomposition of a (square matrix), returns false if a is ingular
     float **    chol(float ** r, float ** a, int size, bool & posdef); // Cholesky decomposition of a symmetric positive definite matrix a; posdef = false if not positive definite
     float **    chol(float ** r, float ** a, int size);
     int         svd(float ** u, float * s, float ** v, float ** m, int sizex, int sizey); // Singular value decomposition: u*diag(s)*v' = m; m has size sizex x sizey
-
-
-	// conversion 
+    
+    
+	// conversion
 	
 	float		trunc(float x);
 	int         lround(float x);
@@ -277,7 +279,6 @@ namespace ikaros
 	void		ascend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 	void		descend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 	
-	
 	//
 	// image processing
 	//
@@ -294,30 +295,37 @@ namespace ikaros
 	 float **	open(float ** result, int masksize, int sizex, int sizey);
 	 float **	close(float ** result, int masksize, int sizex, int sizey);
 	 */
-
+    
 	// image file formats
     
-    char *      create_jpeg(long int & size, float ** matrix, int sizex, int sizey, float minimum=0, float maximum=1);
-    char *      create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3]);
-    char *      create_jpeg(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey);
+    char *      create_jpeg(long int & size, float * array, int sizex, int sizey, float minimum=0, float maximum=1, int quality=100);
+    char *      create_jpeg(long int & size, float ** matrix, int sizex, int sizey, float minimum=0, float maximum=1, int quality=100);
+    char *      create_jpeg(long int & size, float * matrix, int sizex, int sizey, int color_table[256][3], int quality=100);
+    char *      create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality=100);
+    char *      create_jpeg(long int & size, float * red_array, float * green_array, float * blue_array, int sizex, int sizey, int quality=100);
+    char *      create_jpeg(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, int quality=100);
     
     void        destroy_jpeg(char * jpeg);
     
     void        decode_jpeg(float ** matrix, int sizex, int sizey, char * data, long int size);
     void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);
-
+    
     bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
     void        jpeg_decode(float ** matrix, int sizex, int sizey, char * data, long int size); // NOT IMPLEMENTED
     void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
-
+    
+    char *      create_bmp(long int & size, float ** matrix, int sizex, int sizey);  // NOT IMPLEMENTED
+    char *      create_bmp(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey);
+    void        destroy_bmp(char * bmp);
+    
     // drawing routines
     
     void        draw_line(float ** image, int sizex, int sizey, int x0, int y0, int x1, int x2, float color);
     void        draw_line(float ** red, float ** green, float ** blue, int sizex, int sizey, int x0, int y0, int x1, int x2, float r, float g, float b);
-
+    
     void        draw_circle(float ** image, int sizex, int sizey, int x, int y, int radius, float color);
     void        draw_circle(float ** red, float ** green, float ** blue, int sizex, int sizey, int x, int y, int radius, float r, float g, float b);
-
+    
 }
 
 #endif

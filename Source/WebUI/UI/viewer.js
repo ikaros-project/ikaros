@@ -77,12 +77,62 @@ function makeLUTArray(c, d)
 
 
 
+function WebUIObject(p, title)
+{
+	if(!p.title)
+		p.title = title;
+
+	if(!p.behind)
+        p.behind = false;
+    
+    this.width = p.width;
+	this.height = p.height;
+	
+    var view = document.getElementById("frame");
+    
+    var r = document.createElement("div");
+    r.className = "object_background"
+    r.style.left = p.x;
+    r.style.top = p.y;
+    r.style.width = p.width;
+    r.style.height = p.height;
+    view.appendChild(r);
+    
+    this.bg = r;
+    
+	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
+    {
+        r.style.background="none";
+        return;
+    }
+
+    var h = document.createElement("div");
+    h.className = "object_titlebar"
+    h.style.width = p.width;
+    r.appendChild(h);
+    
+    var t = document.createElement("div");
+    t.className = "object_title"
+    t.style.width = p.width;
+    r.appendChild(t);
+    
+    var tt = document.createTextNode(p.title);
+    t.appendChild(tt);
+}
+
+
+
 function Graph(p, title)
 {
-	clip_id++;
+    this.obj = 	new WebUIObject(p, p.module+'.'+p.source);
+
+    this.svg = document.createElementNS(svgns,"svg");
+    this.obj.bg.appendChild(this.svg);
+    
+    clip_id++;
 	this.clip = document.createElementNS(svgns,"clipPath");
 	this.clip.setAttribute('id', 'clip'+clip_id);
-	document.documentElement.appendChild(this.clip);
+	this.svg.appendChild(this.clip);
     
 	this.clipRect = document.createElementNS(svgns,"rect");
 	this.clipRect.setAttribute('x', '0');
@@ -92,56 +142,11 @@ function Graph(p, title)
 	this.clipRect.setAttribute('width', p.width);
 	this.clipRect.setAttribute('height', p.height);
 	this.clip.appendChild(this.clipRect);
-    
-	if(!p.title)
-		p.title = title;
-    
-    // Create outer group
-    
-    this.main = document.createElementNS(svgns,"g");
-	this.main.setAttribute("clip-path", 'url(#clip'+clip_id+')');
-	this.main.setAttribute("transform", "translate("+p.x+","+p.y+")");
-    
-    // Add contents group
-    
+
     this.group = document.createElementNS(svgns,"g");
-    
-	if(p.opaque != undefined ? p.opaque=='yes' : p.behind)
-	{
-		this.background = this.AddRect(0, 0, p.width-1, p.height-1);
-        this.background.setAttribute("class", "object_background");
-        //        this.background.setAttribute("filter", "url(#filter)");
-	}
-    
-	this.main.appendChild(this.group);
-    
-    // Add title bar
-    
-	this.titlebar = document.createElementNS(svgns,"g");
-    
-	if(p.opaque != undefined ? p.opaque=='yes' : p.behind)
-	{
-        this.dragarea = document.createElementNS(svgns,"rect");	
-        this.dragarea.setAttribute('x', 0);
-        this.dragarea.setAttribute('y', 0);
-        this.dragarea.setAttribute('width', p.width-1);
-        this.dragarea.setAttribute('height', 20+1);
-        this.dragarea.setAttribute('class','object_titlebar');
-        this.titlebar.appendChild(this.dragarea);
-        
-        this.title = document.createElementNS(svgns,"text");	
-        this.title.setAttribute('x', 10);
-        this.title.setAttribute('y', 14);
-        this.title.setAttribute('class', 'object_title');        
-        this.title.setAttribute('text-rendering','optimizeLegibility');
-        var tn = document.createTextNode(p.title);	
-        this.title.appendChild(tn);
-        this.titlebar.appendChild(this.title);
-	}
-    
-	this.main.appendChild(this.titlebar);
-    
-    document.documentElement.appendChild(this.main);
+	this.group.setAttribute("clip-path", 'url(#clip'+clip_id+')');
+	this.group.setAttribute("transform", "translate(+0.5,+0.5)");
+    this.svg.appendChild(this.group);
 }
 
 
@@ -235,6 +240,8 @@ Graph.prototype.AddLine = function (x1, y1, x2, y2, s, sw)
     return r;
 }
 
+
+
 Graph.prototype.AddImage = function (x, y, width, height, path)
 {
     var r = document.createElementNS(svgns,"image");	
@@ -274,7 +281,7 @@ Graph.prototype.AddText = function (x, y, t, width, height, anchor, fontsize, co
 
 Graph.prototype.AddHTMLText = function (x, y, t, width, height, style)
 {
-    var r = document.createElementNS(svgns,"foreignObject");	
+    var r = document.createElementNS(svgns,"foreignObject");
     r.setAttribute('x', x);
     r.setAttribute('y', y);
     r.setAttribute('width', width);
@@ -294,6 +301,30 @@ Graph.prototype.AddHTMLText = function (x, y, t, width, height, style)
     this.group.appendChild(r);
     
     return r;
+}
+
+
+
+Graph.prototype.AddHTMLCanvas = function (x, y, width, height)
+{
+    var r = document.createElementNS(svgns,"foreignObject");
+    r.setAttribute('x', x);
+    r.setAttribute('y', y);
+    r.setAttribute('width', width);
+    r.setAttribute('height', height);
+    
+    var b = document.createElementNS(xmlns,"body");
+    b.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    
+    var canvas = document.createElementNS(xmlns, "canvas");
+    canvas.setAttribute('width', width);
+    canvas.setAttribute('height', height);
+
+    b.appendChild(canvas);
+    r.appendChild(b);
+    this.group.appendChild(r);
+    
+    return canvas;
 }
 
 
@@ -372,4 +403,12 @@ function usesData(module, source)
 {
 	get("/uses/"+module+'/'+source, ignore_data);
 }
+
+
+
+function usesBase64Data(module, source, type)
+{
+	get("/usesBase64/"+module+'/'+source+'/'+type, ignore_data);
+}
+
 

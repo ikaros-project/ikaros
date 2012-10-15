@@ -559,7 +559,7 @@ function change_view(index)
     if(index==alist.length-1)
         v.setAttribute("src", "http://"+location.host+current_group_path+"/inspector.html");    //FIXME:  change order
     else
-        v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".svg");
+        v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".html"); // WAS SVG ***************************
     
     var vn = document.getElementById("viewname");
     if(vn)

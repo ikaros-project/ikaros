@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.cc		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2011  Christian Balkenius
+//    Copyright (C) 2006-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -2742,7 +2742,7 @@ namespace ikaros
     
     
     char *
-    create_jpeg(long int & size, float ** matrix, int sizex, int sizey, float minimum, float maximum)
+    create_jpeg(long int & size, float * matrix, int sizex, int sizey, float minimum, float maximum, int quality)
     {
         if (matrix == NULL)
         {
@@ -2757,7 +2757,68 @@ namespace ikaros
         struct jpeg_error_mgr       jerr;
         struct jpeg_destination     dst;
         
-        //int    row_stride;				// physical row width in image buffer 
+        cinfo.err = jpeg_std_error(&jerr);
+        
+        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
+        
+        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_height = sizey;
+        cinfo.input_components = 1;	// # of color components per pixel
+        cinfo.in_color_space = JCS_GRAYSCALE;
+        
+        jpeg_set_defaults(&cinfo);
+        jpeg_set_quality(&cinfo, quality, true);
+        jpeg_set_destination(&cinfo, &dst);
+        
+        // Do the compression
+        
+        jpeg_start_compress(&cinfo, true);
+        
+        while (cinfo.next_scanline < cinfo.image_height)
+        {
+            // Convert row to image buffer (assume max == 1 for now)
+            
+            JSAMPLE * ib = image_buffer;
+            if (maximum != minimum)
+                float_to_byte(image_buffer, matrix, minimum, maximum, sizex);
+            else
+                for (int i=0; i<sizex; i++)
+                    *ib++ = 0;
+            
+            // Write to compressor
+            row_pointer[0] = image_buffer;
+            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+            matrix += sizex;
+        }
+        
+        jpeg_finish_compress(&cinfo);
+        jpeg_destroy_compress(&cinfo);
+        
+        delete [] image_buffer;
+        
+        size = dst.used;
+        return (char *)dst.buffer;
+    }
+    
+    
+    
+    char *
+    create_jpeg(long int & size, float ** matrix, int sizex, int sizey, float minimum, float maximum, int quality)
+    {
+        if (matrix == NULL)
+        {
+            size = 0;
+            return NULL;
+        }
+        
+        JSAMPLE *   image_buffer = new JSAMPLE [sizex];
+        JSAMPROW    row_pointer[1];
+        
+        struct jpeg_compress_struct cinfo;
+        struct jpeg_error_mgr       jerr;
+        struct jpeg_destination     dst;
+        
+        //int    row_stride;				// physical row width in image buffer
         
         cinfo.err = jpeg_std_error(&jerr);
         
@@ -2769,7 +2830,7 @@ namespace ikaros
         cinfo.in_color_space = JCS_GRAYSCALE;
         
         jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, 100, true);	// Highest quality
+        jpeg_set_quality(&cinfo, quality, true);
         jpeg_set_destination(&cinfo, &dst);
         
         // Do the compression
@@ -2808,7 +2869,7 @@ namespace ikaros
     
     
     char *
-    create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3])
+    create_jpeg(long int & size, float * matrix, int sizex, int sizey, int color_table[256][3], int quality)
     {
         if (matrix == NULL)
         {
@@ -2823,7 +2884,72 @@ namespace ikaros
         struct jpeg_error_mgr       jerr;
         struct jpeg_destination     dst;
         
-        //int    row_stride;				// physical row width in image buffer 
+        cinfo.err = jpeg_std_error(&jerr);
+        
+        jpeg_create_compress(&cinfo); // TODO: Replace with ikaros error handler later
+        
+        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_height = sizey;
+        cinfo.input_components = 3;	// # of color components per pixel
+        cinfo.in_color_space = JCS_RGB;
+        
+        jpeg_set_defaults(&cinfo);
+        jpeg_set_quality(&cinfo, quality, true);
+        jpeg_set_destination(&cinfo, &dst);
+        
+        // Do the compression
+        
+        jpeg_start_compress(&cinfo, true);
+        
+        unsigned char * z = new unsigned char [sizex];
+        while (cinfo.next_scanline < cinfo.image_height)
+        {
+            float_to_byte(z, matrix, 0.0, 1.0, sizex);	// TODO: allow specification of min and max later
+            int x = 0;
+            unsigned char * zz = z;
+            
+            for (int i=0; i<sizex; i++)
+            {
+                image_buffer[x++] = color_table[*zz][0];
+                image_buffer[x++] = color_table[*zz][1];
+                image_buffer[x++] = color_table[*zz][2];
+                zz++;
+            }
+            
+            // Write to compressor
+            row_pointer[0] = image_buffer;
+            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+            matrix += sizex;
+        }
+        
+        jpeg_finish_compress(&cinfo);
+        jpeg_destroy_compress(&cinfo);
+        
+        delete [] image_buffer;
+        
+        size = dst.used;
+        return (char *)dst.buffer;
+    }
+    
+    
+    
+    char *
+    create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality)
+    {
+        if (matrix == NULL)
+        {
+            size = 0;
+            return NULL;
+        }
+        
+        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
+        JSAMPROW    row_pointer[1];
+        
+        struct jpeg_compress_struct cinfo;
+        struct jpeg_error_mgr       jerr;
+        struct jpeg_destination     dst;
+        
+        //int    row_stride;				// physical row width in image buffer
         
         cinfo.err = jpeg_std_error(&jerr);
         
@@ -2835,7 +2961,7 @@ namespace ikaros
         cinfo.in_color_space = JCS_RGB;
         
         jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, 100, true);	// Highest quality
+        jpeg_set_quality(&cinfo, quality, true);
         jpeg_set_destination(&cinfo, &dst);
         
         // Do the compression
@@ -2878,7 +3004,7 @@ namespace ikaros
     
     
     char *
-    create_jpeg(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey)
+    create_jpeg(long int & size, float * r, float * g, float * b, int sizex, int sizey, int quality)
     {
         size = 0;
         if (r ==NULL) return NULL;
@@ -2892,7 +3018,7 @@ namespace ikaros
         struct jpeg_error_mgr       jerr;
         struct jpeg_destination     dst;
         
-        //int    row_stride;				// physical row width in image buffer 
+        //int    row_stride;				// physical row width in image buffer
         
         cinfo.err = jpeg_std_error(&jerr);
         
@@ -2904,7 +3030,85 @@ namespace ikaros
         cinfo.in_color_space = JCS_RGB;
         
         jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, 100, true);	// Highest quality
+        jpeg_set_quality(&cinfo, quality, true);
+        jpeg_set_destination(&cinfo, &dst);
+        
+        // Do the compression
+        
+        jpeg_start_compress(&cinfo, true);
+        
+        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
+        int j=0;
+        
+        float * rp = r;
+        float * gp = g;
+        float * bp = b;
+        
+        while (cinfo.next_scanline < cinfo.image_height)
+        {
+            int x = 0;
+            for (int i=0; i<sizex; i++)
+            {
+                // TODO: use clip function instead
+                float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
+                float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
+                float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
+                
+                // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
+                
+                image_buffer[x++] = int(255.0*rr);
+                image_buffer[x++] = int(255.0*gg);
+                image_buffer[x++] = int(255.0*bb);
+                
+                rp++;
+                gp++;
+                bp++;
+            }
+            
+            // Write to compressor
+            row_pointer[0] = image_buffer;
+            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+            j++;
+        }
+        jpeg_finish_compress(&cinfo);
+        jpeg_destroy_compress(&cinfo);
+        
+        delete [] image_buffer;
+        
+        size = dst.used;
+        return (char *)dst.buffer;
+    }
+    
+    
+    
+    char *
+    create_jpeg(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey, int quality) // TODO: Call function above instead
+    {
+        size = 0;
+        if (r ==NULL) return NULL;
+        if (g ==NULL) return NULL;
+        if (b ==NULL) return NULL;
+        
+        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
+        JSAMPROW    row_pointer[1];
+        
+        struct jpeg_compress_struct cinfo;
+        struct jpeg_error_mgr       jerr;
+        struct jpeg_destination     dst;
+        
+        //int    row_stride;				// physical row width in image buffer
+        
+        cinfo.err = jpeg_std_error(&jerr);
+        
+        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
+        
+        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_height = sizey;
+        cinfo.input_components = 3;	// # of color components per pixel
+        cinfo.in_color_space = JCS_RGB;
+        
+        jpeg_set_defaults(&cinfo);
+        jpeg_set_quality(&cinfo, quality, true);
         jpeg_set_destination(&cinfo, &dst);
         
         // Do the compression
@@ -2920,7 +3124,7 @@ namespace ikaros
             for (int i=0; i<sizex; i++)
             {
                 // TODO: use clip function instead
-                float rr = (r[j][i] < 0.0 ? 0.0 : (r[j][i] > 1.0 ? 1.0 : r[j][i])); 
+                float rr = (r[j][i] < 0.0 ? 0.0 : (r[j][i] > 1.0 ? 1.0 : r[j][i]));
                 float gg = (g[j][i] < 0.0 ? 0.0 : (g[j][i] > 1.0 ? 1.0 : g[j][i]));
                 float bb = (b[j][i] < 0.0 ? 0.0 : (b[j][i] > 1.0 ? 1.0 : b[j][i]));
                 
@@ -3156,6 +3360,60 @@ namespace ikaros
     }
     
     
+    
+    char *
+    create_bmp(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey)
+    {
+        size = 54 + 4 * sizex * sizey;
+        
+        // character array is used rather than struct to
+        // avoid padding of the data structure
+        
+        unsigned char * bmp = new unsigned char [size];
+        
+        for(int i=0; i<54; i++)
+            bmp[i] =0;
+        
+        bmp[0] = 'B';
+        bmp[1] = 'M';
+        *(unsigned int *)(&bmp[2]) = 54 + 4 * sizex * sizey; // file size
+        *(unsigned int *)(&bmp[10]) = 54; // offset
+        *(unsigned int *)(&bmp[14]) = 40; // header size
+        *(unsigned int *)(&bmp[18]) = sizex; // size_x
+        *(unsigned int *)(&bmp[22]) = -sizey; // -size_y
+        *(unsigned short *)(&bmp[26]) = 1; // planes
+        *(unsigned short *)(&bmp[28]) = 4*8; // bits
+        *(unsigned short *)(&bmp[38]) = 2835; // 72 dpi
+        *(unsigned short *)(&bmp[42]) = 2835; // 72 dpi
+        
+        long int ix = 54;
+        for(int j=0; j<sizey; j++)
+            for(int i=0; i<sizex; i++)
+            {
+                bmp[ix++] = int(255.0*b[j][i]);
+                bmp[ix++] = int(255.0*g[j][i]);
+                bmp[ix++] = int(255.0*r[j][i]);
+                bmp[ix++] = 255;
+                /*
+                 float rr = (r[j][i] < 0.0 ? 0.0 : (r[j][i] > 1.0 ? 1.0 : r[j][i]));
+                 float gg = (g[j][i] < 0.0 ? 0.0 : (g[j][i] > 1.0 ? 1.0 : g[j][i]));
+                 float bb = (b[j][i] < 0.0 ? 0.0 : (b[j][i] > 1.0 ? 1.0 : b[j][i]));
+                 
+                 bmp[ix++] = int(255.0*rr);
+                 bmp[ix++] = int(255.0*gg);
+                 bmp[ix++] = int(255.0*bb);
+                 bmp[ix++] = 255;
+                 */            }
+        
+        return (char *)(bmp);
+    }
+    
+    
+    void
+    destroy_bmp(char * bmp)
+    {
+        delete [] bmp;
+    }
     
     // drawing functions
     // MARK: -
