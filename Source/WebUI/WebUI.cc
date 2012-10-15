@@ -1068,8 +1068,8 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
                 case data_source_list:
                 case data_source_bool:
                 case data_source_float:
-                    socket->Send("\t\"%s\": [[%d]]", sd->name, *p++);
-                    break;
+                    socket->Send("\t\"%s\": [[%f]]", sd->name, *p++);
+                     break;
 
                  case data_source_array:
                     SendJSONArrayData(socket, md->name, sd->name, p, sd->size_x);
@@ -1242,7 +1242,7 @@ WebUI::HandleHTTPRequest()
         delete output;
         delete type;
     }
-    
+
     else if (strstart(uri, "/uses"))
     {
         char * module = new char [256];
