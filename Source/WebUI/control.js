@@ -634,12 +634,12 @@ function toggle_inspector()
 	if(document.getElementById('pane').style.width == "0px")
     {
         document.getElementById('pane').style.width='300px';
-        document.getElementById('split').src="single.png";
+        document.getElementById('split').src="/Icons/single.png";
 	}
     else
 	{
         document.getElementById('pane').style.width='0px';
-        document.getElementById('split').src="split.png";
+        document.getElementById('split').src="/Icons/split.png";
     }
 }
 
