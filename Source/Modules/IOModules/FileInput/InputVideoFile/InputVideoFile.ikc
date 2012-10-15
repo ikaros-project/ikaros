@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="InputVideoFile" description="minimal example module">
+
+	<description type="text">
+		Module that reads a movie using FFMpeg. The movie can be optionally scaled by setting the parameters size_x and size_y.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="InputVideoFile"
+			name="InputVideoFile"
+            filename = "../../../../../../Examples/Media/ikaros.mov"
+		/>
+	</example>
+
+	<module class="InputVideoFile" />
+    <parameter name="filename" type="string" description="File to read the data from" />
+	<parameter name="size_x" type="int" default="original movie size" description="Size to scale the movie to" />
+	<parameter name="size_y" type="int" default="original movie size" description="Size to scale the movie to" />
+	<parameter name="loop" type="bool" default="no" description="Loop playback" />
+
+    <output name="RED" description="The red channel." />
+	<output name="GREEN" description="The green channel." />
+	<output name="BLUE" description="The blue channel." />
+	<output name="INTENSITY" description="The intensity channel." />
+	<output name="RESTART" description="This output is 1 on the first frame of the movie." />
+
+    <author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>InputVideoFile.h</file>
+   		<file>InputVideoFile.cc</file>
+   		<file>InputVideoFile.ikc</file>
+   </files>
+
+</group>
+
