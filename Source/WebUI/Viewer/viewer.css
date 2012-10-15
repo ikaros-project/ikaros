@@ -5,6 +5,12 @@
     border-radius: 11px;
     background-color: #1D1D1D;
     overflow: hidden";
+
+    -webkit-user-select: none;
+	-webkit-user-drag: none;
+	
+	-moz-user-select: none;
+	-moz-user-drag: none;
 }
 
 .object_title
@@ -13,11 +19,18 @@
     left: 0px;
     top: 0px;
     color: #BABABA;
+    fill: #BABABA;
     font-family: sans-serif;
     font-size: 11px;
     text-indent: 10px;
     line-height: 23px;
     overflow: hidden;
+    
+    -webkit-user-select: none;
+	-webkit-user-drag: none;
+	
+	-moz-user-select: none;
+	-moz-user-drag: none;
 }
 
 .object_titlebar

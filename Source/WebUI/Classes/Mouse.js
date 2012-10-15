@@ -70,7 +70,7 @@ function Mouse(p)
     this.value_y = 0;
     
     this.circle = this.graph.AddCircle(this.value_x, this.value_y , this.size*this.width, 'none', this.LUT[0], this.stroke_width);
-    this.graph.background.onmousedown = mouse_down;
+    this.graph.obj.bg.onmousedown = mouse_down;
         
     usesData(this.module, this.parameter);
 }
