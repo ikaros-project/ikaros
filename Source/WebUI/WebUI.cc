@@ -768,7 +768,7 @@ WebUI::SendView(const char * view)
 
             char path[1024] = "";
             append_string(path, webui_dir, 1024);
-            FILE * f = fopen(append_string(path, "viewer.html", 1024), "r");
+            FILE * f = fopen(append_string(path, "Viewer/viewer.html", 1024), "r");
             if(!f)
             {
                 printf("Cannot find \"viewer.html\"; webui_dir=\"%s\"\n", webui_dir);
