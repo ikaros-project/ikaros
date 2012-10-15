@@ -1,22 +1,39 @@
 
 .object_background
 {
-    stroke: #1D1D1D;
-    fill: #1D1D1D;
+    position: absolute;
+    border-radius: 11px;
+    background-color: #1D1D1D;
+    overflow: hidden";
 }
 
 .object_title
 {
-    font-size: 11px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    color: #BABABA;
     font-family: sans-serif;
-    fill: #BABABA;
+    font-size: 11px;
+    text-indent: 10px;
+    line-height: 23px;
+    overflow: hidden;
 }
 
 .object_titlebar
 {
-    stroke: black;
-    fill: black;
-    stroke-opacity: 0.5;
-    fill-opacity: 0.5;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 22px;
+    background-color: black;
+    color: white;
+    font-family: sans-serif;
+    font-size: 11px;
+    opacity: 0.5;
+    text-indent: 10px;
+    line-height: 23px;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
 }
 

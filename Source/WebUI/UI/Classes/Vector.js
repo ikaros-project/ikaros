@@ -16,8 +16,27 @@ function Vector(p)
 	this.circle_color = (p.circle_color ? p.circle_color : 'gray');
 	this.stroke_width = (p.stroke_width ? p.stroke_width : 3);
     
-	this.c = this.graph.AddCircle(this.cx,  this.cy,  this.r, this.circle_color, 'none');
+    var defs = document.createElementNS(svgns, "defs");
+    var marker = document.createElementNS(svgns, "marker");
+    var path = document.createElementNS(svgns, "path");
+    
+    marker.setAttribute("id", "Triangle");
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "2");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerUnits", "strokeWidth");
+    marker.setAttribute("markerWidth", "4");
+    marker.setAttribute("markerHeight", "3");
+    marker.setAttribute("orient", "auto");
+    
+    path.setAttribute("d","M 0 0 L 10 5 L 0 10 z");
+    
+    marker.appendChild(path);
+    defs.appendChild(marker);
+    this.graph.svg.appendChild(defs);
 
+	this.c = this.graph.AddCircle(this.cx,  this.cy,  this.r, this.circle_color, 'none');
+    
 	if(this.module)
 		usesData(this.module, this.source);
 }

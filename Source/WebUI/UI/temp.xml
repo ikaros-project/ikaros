@@ -1,0 +1,1183 @@
+<group name="Group-0" title="WebUI Demo">
+	
+    <group size_y="256" size_x="256" filename="../Media/colorrobot.jpg" class="InputJPEG" name="Image" description="reads JPEG files">
+
+	<description type="text">
+		Module used for reading an image (or sequences of images) from a JPEG
+		file or a sequence of JPEG files. The files can be either
+		gray-scale or RGB.
+	</description>
+
+	<example description="Read a single file once">
+		<module class="InputJPEG" name="IN" filename="image.jpg"/>	
+	</example>
+
+	<example description="Read a sequence of three files ten times (e. g. image00.jpg, image01.jpg, image02.jpg)">
+		<module class="InputJPEG" name="IN" filename="image%02d.jpg" filecount="3" iterations="10"/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to read the image from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'."/>
+	<parameter name="filecount" type="int" default="1" description="Number of files to read" min="0" max="filecount-1"/>
+	<parameter name="iterations" type="int" default="inf" description="Number of times to read the image(s)" min="1" max="filecount-1"/>
+	<parameter name="read_once" type="bool" default="yes" description="Makes the module only read each JPEG image once."/>
+
+	<output name="INTENSITY" description="The intensity of the image."/>
+	<output name="RED" description="The red channel of the image (or intensity for a gray image)"/>
+	<output name="GREEN" description="The green channel of the image (or intensity for a gray image)"/>
+	<output name="BLUE" description="The blue channel of the image (or intensity for a gray image)"/>
+
+	<module class="InputJPEG"/>
+    
+	<limitation>
+		The module  calculates the intensity as the average of the R, G, and B channels incorrectly.
+	</limitation>
+
+	<acknowledgement>
+		This software is based in part on the work of the Independent JPEG Group.
+	</acknowledgement>
+	
+	<created>2001</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>InputJPEG.h</file>
+   		<file>InputJPEG.cc</file>
+   		<file>InputJPEG.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize="5" class="Randomizer" name="R5" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group data="-1 -0.5 0 0.5 1" outputsize="5" class="Constant" name="C" description="outputs a constant value">
+
+	<description type="text">
+		Module that outputs a constant array or matrix each time step.
+		It can be one or two dimensional depending on whether outputsize_x and
+		outputsize_y or only outputsize is used in the ikc definition.
+	</description>
+
+	<example description="A simple example">
+		<module class="Constant" name="Constant" outputsize="4" data="1 2 3 4"/>
+	</example>
+
+	<example description="Matrix example">
+		<module class="Constant" name="MatrixConstant" outputsize_x="3" outputsize_y="3" data="1 2 3 2 3 4 3 4 5"/>
+	</example>
+
+	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Constant"/>
+
+    <view title="Constant">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Constant"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Constant.h</file>
+   		<file>Constant.cc</file>
+   		<file>Constant.ikc</file>
+   </files>
+
+</group>
+
+    <group max="1" min="-1" outputsize="5" class="Randomizer" name="R5X" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize_y="3" outputsize_x="2" class="Randomizer" name="R23" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize_y="3" outputsize_x="3" class="Randomizer" name="R33" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group max="1" min="-1" outputsize_y="3" outputsize_x="2" class="Randomizer" name="R23T" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize_y="8" outputsize_x="2" max="1" min="-1" class="Randomizer" name="PM28" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize_y="5" outputsize_x="5" class="Randomizer" name="R" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize_y="5" outputsize_x="5" class="Randomizer" name="G" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group outputsize_y="5" outputsize_x="5" class="Randomizer" name="B" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group min="-1" max="1" outputsize="25" class="Randomizer" name="R25" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+		
+    <group min="1.0" max="0.5" outputsize="13" class="Randomizer" name="PP25" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+		
+    <group min="-1" max="1" outputsize_y="5" outputsize_x="5" class="Randomizer" name="X" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+		
+    <group min="-1" max="1" outputsize_y="5" outputsize_x="5" class="Randomizer" name="Y" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+		
+    <group outputsize="2" class="Randomizer" name="R2" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group max="1" outputsize_y="5" outputsize_x="5" class="Randomizer" name="RColorGrid" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group max="1" outputsize_y="25" outputsize_x="25" class="Randomizer" name="MaxGrayGrid" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group max="1" outputsize_y="25" outputsize_x="25" class="Randomizer" name="RGrayGrid" description="generates random values">
+
+	<description type="text">
+		Module that outputs a random array each time step.
+		Can be one or two dimensional depending on whether
+		outputsize_x and outputsize_y or only outputsize is used
+		in the xml definition.
+	</description>
+
+	<example description="Example">
+		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
+	</example>
+
+	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
+	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
+	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
+	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
+	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+	
+	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Randomizer"/>
+
+    <view title="Randomizer">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Randomizer.h</file>
+   		<file>Randomizer.cc</file>
+   		<file>Randomizer.ikc</file>
+   </files>
+
+</group>
+
+    <group frequency="0.1" type="sin" class="FunctionGenerator" name="FG" description="functions of times">
+
+	<description type="text">
+		Module that produces a function of time as its output.
+        ramp: get an inverse ramp by setting offset=1 and amplitude=-1.
+	</description>
+
+	<example description="Example">
+		<module class="FunctionGenerator" name="FunctionGenerator" type="sin" frequency="0.314" offset="0.5" amplitude="0.4" shift="0.1"/>
+	</example>
+
+    <parameter name="type" type="list" values="sin/triangle/ramp/square/ticksquare" defult="sin" description="Function selector"/>
+    <parameter name="offset" type="float" default="0.0" description="A constant value added to the output"/>
+    <parameter name="amplitude" type="float" default="1.0" description="The amplitide of the signal"/>
+    <parameter name="frequency" type="float" default="0.15707963267949" description="Frequency of the signal."/>
+    <parameter name="shift" type="float" default="0.0" description="Temporal shift of the function"/>
+    <parameter name="duty" type="float" default="0.5" description="Duty cycle of the square wave"/>
+    <parameter name="basetime" type="int" default="2" description="Length of a cycle in ticks for ticksqare"/>
+    <parameter name="tickduty" type="int" default="1" description="Duty cycle of the ticksqare wave in ticks"/>
+    
+	<output name="OUTPUT" description="The time dependent output signal" size="1"/>
+
+	<module class="FunctionGenerator"/>
+
+    <view title="FunctionGenerator">
+        <object x="0" y="0" w="2" class="Plot" module="*" source="OUTPUT" title="Default view for FunctionGenerator" min="-1" max="1"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>FunctionGenerator.h</file>
+   		<file>FunctionGenerator.cc</file>
+   		<file>FunctionGenerator.ikc</file>
+   </files>
+
+</group>
+		  
+    <group amplitude="0.2" offset="0.2" frequency="0.04" type="sin" class="FunctionGenerator" name="FG2" description="functions of times">
+
+	<description type="text">
+		Module that produces a function of time as its output.
+        ramp: get an inverse ramp by setting offset=1 and amplitude=-1.
+	</description>
+
+	<example description="Example">
+		<module class="FunctionGenerator" name="FunctionGenerator" type="sin" frequency="0.314" offset="0.5" amplitude="0.4" shift="0.1"/>
+	</example>
+
+    <parameter name="type" type="list" values="sin/triangle/ramp/square/ticksquare" defult="sin" description="Function selector"/>
+    <parameter name="offset" type="float" default="0.0" description="A constant value added to the output"/>
+    <parameter name="amplitude" type="float" default="1.0" description="The amplitide of the signal"/>
+    <parameter name="frequency" type="float" default="0.15707963267949" description="Frequency of the signal."/>
+    <parameter name="shift" type="float" default="0.0" description="Temporal shift of the function"/>
+    <parameter name="duty" type="float" default="0.5" description="Duty cycle of the square wave"/>
+    <parameter name="basetime" type="int" default="2" description="Length of a cycle in ticks for ticksqare"/>
+    <parameter name="tickduty" type="int" default="1" description="Duty cycle of the ticksqare wave in ticks"/>
+    
+	<output name="OUTPUT" description="The time dependent output signal" size="1"/>
+
+	<module class="FunctionGenerator"/>
+
+    <view title="FunctionGenerator">
+        <object x="0" y="0" w="2" class="Plot" module="*" source="OUTPUT" title="Default view for FunctionGenerator" min="-1" max="1"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>FunctionGenerator.h</file>
+   		<file>FunctionGenerator.cc</file>
+   		<file>FunctionGenerator.ikc</file>
+   </files>
+
+</group>
+		  
+	<group filecount="32" filename="../Media/SmallSequence/img%d.jpg" class="InputJPEG" name="SmallImage" description="reads JPEG files">
+
+	<description type="text">
+		Module used for reading an image (or sequences of images) from a JPEG
+		file or a sequence of JPEG files. The files can be either
+		gray-scale or RGB.
+	</description>
+
+	<example description="Read a single file once">
+		<module class="InputJPEG" name="IN" filename="image.jpg"/>	
+	</example>
+
+	<example description="Read a sequence of three files ten times (e. g. image00.jpg, image01.jpg, image02.jpg)">
+		<module class="InputJPEG" name="IN" filename="image%02d.jpg" filecount="3" iterations="10"/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to read the image from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'."/>
+	<parameter name="filecount" type="int" default="1" description="Number of files to read" min="0" max="filecount-1"/>
+	<parameter name="iterations" type="int" default="inf" description="Number of times to read the image(s)" min="1" max="filecount-1"/>
+	<parameter name="read_once" type="bool" default="yes" description="Makes the module only read each JPEG image once."/>
+
+	<output name="INTENSITY" description="The intensity of the image."/>
+	<output name="RED" description="The red channel of the image (or intensity for a gray image)"/>
+	<output name="GREEN" description="The green channel of the image (or intensity for a gray image)"/>
+	<output name="BLUE" description="The blue channel of the image (or intensity for a gray image)"/>
+
+	<module class="InputJPEG"/>
+    
+	<limitation>
+		The module  calculates the intensity as the average of the R, G, and B channels incorrectly.
+	</limitation>
+
+	<acknowledgement>
+		This software is based in part on the work of the Independent JPEG Group.
+	</acknowledgement>
+	
+	<created>2001</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>InputJPEG.h</file>
+   		<file>InputJPEG.cc</file>
+   		<file>InputJPEG.ikc</file>
+   </files>
+
+</group>
+
+    <group data="0.1 0.4 0.9 0.4; 0.9 0.4 0.9 0.9; 0.9 0.9 0.1 0.9; 0.1 0.9 0.1 0.4" outputsize_y="4" outputsize_x="4" class="Constant" name="Lines" description="outputs a constant value">
+
+	<description type="text">
+		Module that outputs a constant array or matrix each time step.
+		It can be one or two dimensional depending on whether outputsize_x and
+		outputsize_y or only outputsize is used in the ikc definition.
+	</description>
+
+	<example description="A simple example">
+		<module class="Constant" name="Constant" outputsize="4" data="1 2 3 4"/>
+	</example>
+
+	<example description="Matrix example">
+		<module class="Constant" name="MatrixConstant" outputsize_x="3" outputsize_y="3" data="1 2 3 2 3 4 3 4 5"/>
+	</example>
+
+	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
+
+	<module class="Constant"/>
+
+    <view title="Constant">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Constant"/>
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Constant.h</file>
+   		<file>Constant.cc</file>
+   		<file>Constant.ikc</file>
+   </files>
+
+</group>
+
+    <view name="Bar Graph" _object_size="80" _object_spacing="5">
+        <object x="0" y="0" class="BarGraph" module="R5" source="OUTPUT" title="Bar Graph 1"/>
+
+        <object x="1" y="0" class="BarGraph" module="R5X" source="OUTPUT" min="-1" max="1" title="Bar Graph 2"/>
+			
+        <object x="0" y="1" class="BarGraph" module="R5" source="OUTPUT" title="Bar Graph 3" color="red,green,blue,yellow" fill="red,green,blue,yellow"/>
+
+        <object x="1" y="1" class="BarGraph" module="R5X" source="OUTPUT" min="-1" max="1" title="Bar Graph 2" positive_color="blue" positive_fill="darkblue" negative_color="red" negative_fill="darkred"/>
+    </view>
+
+
+	<view name="Images">
+		<object class="Image" title="Color Image" type="rgb" module="Image" source="RED+GREEN+BLUE" x="0" y="0"/>
+		<object class="Text" text="The viewobject to the left shows an RGB image. The images below are different pseudo color version of the intensity channel." x="1" y="0" w="2"/>
+
+		<object class="Image" title="Fire" type="fire" module="Image" source="INTENSITY" x="0" y="1"/>
+		<object class="Image" title="Spectrum" type="spectrum" module="Image" source="INTENSITY" x="1" y="1"/>
+		<object class="Image" title="Green" type="green" module="Image" source="INTENSITY" x="2" y="1"/>
+
+		<object class="Image" title="Image File" type="file" file="bike.jpg" x="0" y="2"/>
+
+		<object class="Image" opaque="no" type="fire" module="Image" source="INTENSITY" x="1" y="2"/>
+		<object class="Image" opaque="no" type="file" file="bike.png" x="1" y="2"/>
+
+		<object class="Image" opaque="no" type="file" file="bike2.png" x="2" y="2"/>
+	</view>
+
+    <view name="Grids">
+        <object class="Grid" title="Gray Grid" module="RGrayGrid" source="OUTPUT" x="0" y="0" color="LUT_gray"/>
+        <object class="Grid" title="Color Grid" module="RColorGrid" source="OUTPUT" x="1" y="0" color="black, yellow, red, green, blue"/>
+        <object x="0" y="1" w="2" class="Text" text="These are two Grid objects, one in gray scale and one in color."/>
+    </view>
+
+    <view name="Plot">
+        <object x="0" y="0" w="1" title="Plot" class="Plot" module="FG" source="OUTPUT" min="-1" max="1" select="[0,0]"/>
+        <object x="1" y="0" w="1" title="Plot" class="Plot" module="FG2" source="OUTPUT" min="-1" max="1" color="red"/>
+        <object x="0" y="1" w="2" h="2" title="Plot (stack)" class="Plot" type="stack" select="0, 1, 2" module="R5" source="OUTPUT" min="0" max="1" color="red, green, yellow"/>
+        <object x="2" y="1" w="2" h="2" title="Plot (not stack)" class="Plot" select="0, 1, 2" module="R5" source="OUTPUT" min="0" max="1" color="red, green, yellow"/>
+    </view>
+
+    <view name="Vectors">
+        <object x="0" y="0" class="Vector" title="Vectors" module="PM28" source="OUTPUT"/>
+			
+        <object x="1" y="0" class="Vector" title="Unnormalized Vectors" normalize="no" module="PM28" source="OUTPUT"/>
+			
+        <object x="2" y="0" class="Vector" title="Colored Lines" arrow="no" margin="0.1" color="red, green, blue, yellow, violet, magenta, cyan" stroke_width="5" circle_color="brown" module="PM28" source="OUTPUT"/>
+			
+        <object x="0" y="1" class="VectorField" title="Vector Field" circle_color="#CCCCCC" x_module="X" x_source="OUTPUT" y_module="Y" y_source="OUTPUT"/>
+    </view>
+
+    <view name="Scatter Plot">
+        <object class="ScatterPlot" title="Default Scatter Plot" module="RGrayGrid" source="OUTPUT" x="0" y="0" w="1" h="1"/>
+        <object class="ScatterPlot" title="Flipped Scatter Plot" module="RGrayGrid" source="OUTPUT" x="1" y="0" w="1" h="1" flip_y_axis="yes"/>
+
+        <object class="ScatterPlot" title="Spectrum Scatter Plot" module="RGrayGrid" source="OUTPUT" color="LUT_spectrum" x="0" y="1" w="1" h="1"/>
+        <object class="ScatterPlot" title="Custom Scatter Plot" module="RGrayGrid" source="OUTPUT" color="red,green,blue,yellow" x="1" y="1" w="1" h="1"/>
+    </view>
+
+    <view name="Table">
+        <object class="Table" title="Default Table" module="R23T" source="OUTPUT" x="0" y="0"/>
+        <object class="Table" title="Colored Table" module="R23T" source="OUTPUT" x="1" y="0" color="red, green, blue"/>
+        <object class="Table" title="Color by Sign" module="R23T" source="OUTPUT" x="2" y="0" positive_color="blue" negative_color="red" font_size="24px"/>
+    </view>
+		
+    <view name="Compositing">
+        <object class="Image" title="Color Image" type="rgb" module="Image" source="RED+GREEN+BLUE" x="0" y="0"/>
+        <object x="1" y="0" class="Trace" module="R5" source="OUTPUT" trace_width="2" title="Trace" _frame="visible"/>
+        <object x="2" y="0" class="Circle" title="Haircross" _frame="visible" stroke_width="1" size="0.1" color="red"/>
+        <object x="2" y="0" class="Cross" stroke_width="1" size="0.2" color="red"/>
+        <object class="Image" title="Color Image" type="rgb" module="Image" source="RED+GREEN+BLUE" x="1" y="1"/>
+        <object x="1" y="1" class="Trace" module="R5" source="OUTPUT" trace_width="2" _frame="none"/>
+        <object x="1" y="1" class="Circle" stroke_width="1" size="0.1" color="red"/>
+        <object x="1" y="1" class="Cross" stroke_width="1" size="0.2" color="red"/>
+        <object x="2" y="1" class="Text" text="The three objects above are placed on top of each other. The frame attribute is set to none for the trace and haircross."/>
+    </view>
+		
+    <view name="Plot 3D">
+        <object class="Plot3D" title="Fire" color="LUT_fire" module="SmallImage" source="INTENSITY" x="0" y="0"/>
+        <object class="Plot3D" title="Spectrum" color="LUT_spectrum" module="SmallImage" source="INTENSITY" x="1" y="0"/>
+        <object class="Plot3D" title="Gray" color="LUT_gray" module="SmallImage" source="INTENSITY" x="2" y="0"/>
+
+        <object class="Plot3D" title="Fire with Lines" color="LUT_fire" stroke="black" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="0" y="1"/>
+        <object class="Plot3D" title="Red and Transparent" color="none" stroke="red" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="1" y="1"/>
+        <object class="Plot3D" title="Custom LUT" color="white, white, white, blue" stroke="black" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="2" y="1"/>
+    </view>
+
+    <view name="Plot 3D Large">
+        <object class="Plot3D" title="Fire with Lines" color="LUT_fire" stroke="black" stroke_width="0.5" module="SmallImage" source="INTENSITY" x="0" y="0" w="3" h="3"/>
+    </view>
+
+    <view name="Polar Plot">
+		<object class="PolarPlot" title="Default Polar Plot" module="PP25" source="OUTPUT" x="0" y="0" h="1" w="1"/>
+        
+        <object class="PolarPlot" title="Radar" module="PP25" source="OUTPUT" grid_color="green" grid_fill="#020" grid_stroke_width="1" color="green" fill="#040" stroke_width="3" opaque="no" x="1" y="0" h="1" w="1"/>
+		
+        <object class="PolarPlot" title="Bull\'s Eye" module="PP25" source="OUTPUT" grid_color="red" grid_fill="white" grid_stroke_width="5" color="black" fill="yellow" stroke_width="9" axes="4" x="0" y="1" h="1" w="1"/>
+
+		<object class="PolarPlot" title="Web" module="PP25" source="OUTPUT" axes="0" grid_color="none" grid_fill="gray" grid_stroke_width="5" color="black" fill="none" stroke_width="1" line_color="black" x="1" y="1" h="1" w="1"/>
+	</view>
+
+	<view name="Markers">
+		<object x="0" y="0" class="Circle" title="Default Circle" frame="visible"/>
+
+		<object x="1" y="0" class="Circle" title="Fixed Circle" frame="visible" stroke_width="1" size="0.3" color="red"/>
+
+		<object x="2" y="0" class="Circle" title="Controlled Circles" frame="visible" size="0.05" stroke_width="5" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+
+		<object x="3" y="0" class="Circle" title="Scaled Circles" frame="visible" min="-1" max="2" size="0.025" stroke_width="5" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+
+		<object x="4" y="0" class="Circle" title="Flipped Circles" frame="visible" min="0" max="1" flip_y_axis="yes" size="0.05" stroke_width="5" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+
+		<object x="0" y="1" class="Cross" title="Default Cross" frame="visible"/>
+
+		<object x="1" y="1" class="Cross" title="Fixed Cross" frame="visible" stroke_width="1" size="1" color="red"/>
+
+		<object x="2" y="1" class="Cross" title="Controlled Cross" frame="visible" size="0.05" stroke_width="5" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+        
+		<object x="3" y="1" class="Cross" title="Scaled Cross" frame="visible" min="-1" max="2" size="0.025" stroke_width="5" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+
+		<object x="4" y="1" class="Cross" title="Flipped Cross" frame="visible" min="0" max="1" flip_y_axis="yes" size="0.05" stroke_width="5" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+
+        <object x="0" y="2" class="Label" title="Default Label" text="Label"/>
+
+		<object x="1" y="2" class="Label" title="Fixed Label" text="Large Red" size="24" color="red" offset_y="0.30"/>
+
+		<object x="2" y="2" class="Label" type="labels" title="Controlled Labels" text="X,Y,Z" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+        
+		<object x="3" y="2" class="Label" title="Numbered Labels" type="numbered" prefix="( " postfix=" )" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+        
+		<object x="4" y="2" class="Label" title="XY-Labels" type="xy_value" prefix="[ " postfix=" ]" size="9" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+        
+        <!-- combined markers -->
+
+		<object x="0" y="3" h="2" w="2" class="Circle" title="Combined" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+        
+		<object x="0" y="3" h="2" w="2" class="Label" text="Red,Green,Yellow" size="13" offset_y="0.017" color="red,green,yellow,blue" module="R23" source="OUTPUT"/>
+        
+        <!-- more combined markers with offset -->
+
+		<object x="2" y="3" h="2" w="2" class="Cross" title="Combined 2" color="red,green,yellow,blue" stroke_width="1" module="R23" source="OUTPUT"/>
+        
+		<object x="2" y="3" h="2" w="2" class="Label" type="xy_value" size="9" color="red,green,yellow,blue" text_anchor="start" offset_x="0.025" offset_y="-0.025" module="R23" source="OUTPUT"/>
+        
+		<object x="2" y="3" h="2" w="2" class="Label" type="labels" size="18" text="No,Yes,Maybe" color="red,green,yellow,blue" text_anchor="end" offset_x="-0.025" offset_y="0.075" module="R23" source="OUTPUT"/>
+        
+        <object x="4" y="3" class="Rectangle" title="Controlled Rectangle" frame="visible" size="0.05" stroke_width="1" color="red,green,yellow,blue" module="R33" source="OUTPUT"/>
+
+		<object x="4" y="4" class="Rectangle" title="Scaled Rectangle" frame="visible" min="-1" max="2" size="0.025" stroke_width="1" color="red,green,yellow,blue" module="R33" source="OUTPUT"/>
+
+	</view>
+
+	<view name="Compositing 2" object_size="80" object_spacing="5">
+	
+		<object class="Image" title="Color Image" type="rgb" module="Image" source="RED+GREEN+BLUE" frame="none" h="4" w="4" x="0" y="0"/>
+		
+		<object x="0" y="0" class="BarGraph" module="R5" source="OUTPUT" title="Bar Graph 1" fill="#567" color="black" frame="none"/>
+		
+		<object x="4" y="0" class="BarGraph" title="BarGraph" module="R5" source="OUTPUT"/>
+		
+		<object class="PolarPlot" module="PP25" source="OUTPUT" axes="0" grid_color="none" grid_fill="gray" grid_stroke_width="5" color="black" fill="none" stroke_width="1" line_color="black" x="3" y="3" frame="none"/>
+
+		<object class="PolarPlot" title="PolarPlot" module="PP25" source="OUTPUT" x="4" y="1"/>
+	</view>
+
+	<view name="Scaling" object_size="70" object_spacing="5">
+
+		<object x="0" y="0" class="BarGraph" title="BarGraph" module="R5" source="OUTPUT"/>
+		
+		<object class="PolarPlot" module="PP25" source="OUTPUT" x="1" y="0"/>
+
+		<object class="Plot" module="FG" source="OUTPUT" min="-1" max="1" x="2" y="0" title="Plot"/>
+	</view>
+
+	<view name="Lines">
+
+		<object x="0" y="0" class="Lines" title="Lines" module="Lines" source="OUTPUT" color="red, green, blue, yellow"/>
+		
+	</view>
+
+	<view name="Grab Bag">
+
+        <object x="0" y="0" class="BarGraph" module="R5" source="OUTPUT" title="Bar Graph 1"/>
+		
+         <object class="Grid" title="Color Grid" module="RColorGrid" source="OUTPUT" x="1" y="0" color="black, yellow, red, green, blue"/>
+         
+        <object x="2" y="0" w="1" title="Plot" class="Plot" module="FG" source="OUTPUT" min="-1" max="1" select="[0,0]" color="green" stroke_width="3"/>
+
+        <object x="0" y="1" class="VectorField" title="Vector Field" circle_color="#CCCCCC" x_module="X" x_source="OUTPUT" y_module="Y" y_source="OUTPUT"/>
+
+        <object class="Table" title="Color by Sign" module="R23T" source="OUTPUT" x="1" y="1" positive_color="blue" negative_color="red" font_size="24px"/>
+        
+         <object class="Plot3D" title="Fire" color="LUT_fire" module="SmallImage" source="INTENSITY" x="2" y="1"/>
+         
+         <object class="Switch" title="Switch" x="0" y="2"/>
+	</view>
+
+</group>

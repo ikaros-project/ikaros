@@ -4,7 +4,8 @@
 
 <script xlink:href="/Classes/Vector.js" />
 <script xlink:href="/Classes/BarGraph.js" />
-<script xlink:href="/Classes/Image.js" />
+<!-- script xlink:href="/Classes/Image.js" / -->
+<script xlink:href="/Classes/CanvasImage.js" />
 <script xlink:href="/Classes/Grid.js" />
 <script xlink:href="/Classes/Plot.js" />
 <script xlink:href="/Classes/VectorField.js" />

@@ -1,7 +1,7 @@
 //
 //	WebUI.cc		HTTP support for the IKAROS kernel
 //
-//    Copyright (C) 2005-2011  Christian Balkenius
+//    Copyright (C) 2005-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -31,93 +31,149 @@
 #include <direct.h>
 #else
 #include <unistd.h>
-#include <dirent.h> // for examples
 #endif
 
 #include <string.h>
 #include <fcntl.h>
+#include <atomic> // required C++11
+
 
 using namespace ikaros;
 
 
-
-static bool
-SendColorJPEG(ServerSocket * socket, float ** r, float ** g, float ** b, int sizex, int sizey)	// Compress image to jpg and send from memory
+static char * //TODO: Move base64_encode to ikaros utils
+base64_encode(const unsigned char * data,
+              size_t size_in,
+              size_t *size_out)
 {
-    Dictionary header;	
-    header.Set("Content-Type", "image/jpeg");
-	socket->SendHTTPHeader(&header);
+    static char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static int mod_table[] = {0, 2, 1};
+    *size_out = ((size_in - 1) / 3) * 4 + 4;
     
+    char *encoded_data = (char *)malloc(*size_out);
+    if (encoded_data == NULL) return NULL;
+    
+    for (int i = 0, j = 0; i < size_in;)
+    {
+        unsigned int octet_a = i < size_in ? data[i++] : 0;
+        unsigned int octet_b = i < size_in ? data[i++] : 0;
+        unsigned int octet_c = i < size_in ? data[i++] : 0;
+        
+        unsigned int triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+        
+        encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
+    }
+    
+    for (int i = 0; i < mod_table[size_in % 3]; i++)
+        encoded_data[*size_out - 1 - i] = '=';
+    
+    return encoded_data;
+}
+
+
+
+// TODO: Consolidate JPEG functions to a single one
+
+static bool
+SendColorJPEGbase64(ServerSocket * socket, float * r, float * g, float * b, int sizex, int sizey) // Compress image to jpg and send from memory after base64 encoding
+{
     long  size;
-    char * jpeg = create_jpeg(size, r, g, b, sizex, sizey);
-    bool ok = socket->SendData(jpeg, size);
-    destroy_jpeg(jpeg);
+    unsigned char * jpeg = (unsigned char *)create_jpeg(size, r, g, b, sizex, sizey, 90);
+
+    size_t input_length = size;
+    size_t output_length;
+    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
+    
+    socket->Send("\"data:image/jpeg;base64,");
+    bool ok = socket->SendData(jpeg_base64, output_length);
+    socket->Send("\"\n");
+    
+    destroy_jpeg((char *)jpeg);
+    free(jpeg_base64);
     return ok;
 }
 
 
 
 static bool
-SendSpectrumJPEG(ServerSocket * socket, float ** matrix, int size_x, int size_y)
+SendGrayJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey) // Compress image to jpg and send from memory after base64 encoding
 {
-    Dictionary header;	
-    header.Set("Content-Type", "image/jpeg");
-	socket->SendHTTPHeader(&header);
-	
     long  size;
-    char * jpeg = create_jpeg(size, matrix, size_x, size_y, LUT_spectrum);
-    bool ok = socket->SendData(jpeg, size);
-    destroy_jpeg(jpeg);
+    unsigned char * jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey);
+    
+    size_t input_length = size;
+    size_t output_length;
+    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
+    
+    socket->Send("\"data:image/jpeg;base64,");
+    bool ok = socket->SendData(jpeg_base64, output_length);
+    socket->Send("\"\n");
+    
+    destroy_jpeg((char *)jpeg);
+    free(jpeg_base64);
     return ok;
 }
 
 
 
 static bool
-SendFireJPEG(ServerSocket * socket, float ** matrix, int size_x, int size_y)
+SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey, int type)
 {
-    Dictionary header;	
-    header.Set("Content-Type", "image/jpeg");
-	socket->SendHTTPHeader(&header);
-	
     long  size;
-    char * jpeg = create_jpeg(size, matrix, size_x, size_y, LUT_fire);
-    bool ok = socket->SendData(jpeg, size);
-    destroy_jpeg(jpeg);
+    unsigned char * jpeg = NULL;
+
+    switch(type)
+    {
+        case data_source_green_image:
+            jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_green);
+            break;
+            
+        case data_source_fire_image:
+            jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_fire);
+            break;
+            
+        case data_source_spectrum_image:
+            jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_spectrum);
+            break;
+
+        default:
+            return false;
+    }
+    
+    size_t input_length = size;
+    size_t output_length;
+    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
+    
+    socket->Send("\"data:image/jpeg;base64,");
+    bool ok = socket->SendData(jpeg_base64, output_length);
+    socket->Send("\"\n");
+    
+    destroy_jpeg((char *)jpeg);
+    free(jpeg_base64);
     return ok;
 }
 
 
 
 static bool
-SendGreenJPEG(ServerSocket * socket, float ** matrix, int size_x, int size_y)
+SendColorBMPGbase64(ServerSocket * socket, float ** r, float ** g, float ** b, int sizex, int sizey) // Compress image to bmp and send from memory after base64 encoding
 {
-    Dictionary header;	
-    header.Set("Content-Type", "image/jpeg");
-	socket->SendHTTPHeader(&header);
-	
     long  size;
-    char * jpeg = create_jpeg(size, matrix, size_x, size_y, LUT_green);
-    bool ok = socket->SendData(jpeg, size);
-    destroy_jpeg(jpeg);
-    return ok;
-}
-
-
-
-static bool
-SendGrayJPEG(ServerSocket * socket, float ** matrix, int size_x, int size_y)
-{
-    Dictionary header;	
-    header.Set("Content-Type", "image/jpeg");
-	socket->SendHTTPHeader(&header);
-	
-    float maximum, minimum;
-    minmax(minimum, maximum, matrix, size_x, size_y);
-    long  size;
-    char * jpeg = create_jpeg(size, matrix, size_x, size_y, minimum, maximum);
-    bool ok = socket->SendData(jpeg, size);
-    destroy_jpeg(jpeg);
+    unsigned char * bmp = (unsigned char *)create_bmp(size, r, g, b, sizex, sizey);
+    
+    size_t input_length = size;
+    size_t output_length;
+    char * bmp_base64 = base64_encode(bmp, input_length, &output_length);
+    
+    socket->Send("\"data:image/bmp;base64,");
+    bool ok = socket->SendData(bmp_base64, output_length);
+    socket->Send("\"\n");
+    
+    destroy_bmp((char *)bmp);
+    free(bmp_base64);
     return ok;
 }
 
@@ -142,7 +198,7 @@ SendTextData(ServerSocket * socket, float ** matrix, int sizex, int sizey)
 
 
 
-static float
+static inline float
 checknan(float x)
 {
 	if(x == x && abs(x) > 0.00001) // Check NaN
@@ -171,17 +227,19 @@ SendJSONArrayData(ServerSocket * socket, char * module, char * source, float * a
 
 
 static bool
-SendJSONMatrixData(ServerSocket * socket, char * module, char * source, float ** matrix, int sizex, int sizey) // TODO: use E-format
+SendJSONMatrixData(ServerSocket * socket, char * module, char * source, float * matrix, int sizex, int sizey) // TODO: use E-format
 {
     if (matrix == NULL)
         return false;
 	
+    int k = 0;
+
     socket->Send("\t\"%s\":\n\t[\n", source);	// module
     for (int j=0; j<sizey; j++)
     {
-        socket->Send("\t\t[%.4E", checknan(matrix[j][0]));
+        socket->Send("\t\t[%.4E", checknan(matrix[k++]));
         for (int i=1; i<sizex; i++)
-            socket->Send(", %.4E", checknan(matrix[j][i]));
+            socket->Send(", %.4E", checknan(matrix[k++]));
         if (j<sizey-1)
             socket->Send("],\n");
         else
@@ -267,7 +325,7 @@ SendSyntheticModuleSVG(ServerSocket * socket, XMLElement * x, const char * modul
             i+= inc;
         }
     }
-    
+
     socket->Send("<g name='selection' visibility='hidden'>\n");
     socket->Send("<rect x='0' y='0' width='100' height='50' fill='#555' fill-opacity='0.25'  />\n");
     socket->Send("</g>\n");
@@ -284,6 +342,22 @@ DataSource::DataSource(const char * s, int t, void * data_ptr, int sx, int sy, D
     name = create_string(s);
     type = t;
     data = data_ptr;
+    data2 = NULL;
+    data3 = NULL;
+    size_x = sx;
+    size_y = sy;
+}
+
+
+
+DataSource::DataSource(const char * s, int t, void * data_ptr, void * data_ptr2, void * data_ptr3, int sx, int sy, DataSource * n)
+{
+    next = n;
+    name = create_string(s);
+    type = t;
+    data = data_ptr;
+    data2 = data_ptr2;
+    data3 = data_ptr3;
     size_x = sx;
     size_y = sy;
 }
@@ -333,10 +407,22 @@ void
 ModuleData::AddSource(const char * s, int type, void * value_ptr, int sx, int sy)
 {
     for (DataSource * sd=source; sd != NULL; sd=sd->next)
-        if (!strcmp(sd->name, s))
+        if (!strcmp(sd->name, s) && sd->type == type)
             return;
 	
     source = new DataSource(s, type, value_ptr, sx, sy, source);
+}
+
+
+
+void
+ModuleData::AddSource(const char * s, int type, void * value_ptr, void * value_ptr2, void * value_ptr3, int sx, int sy)
+{
+    for (DataSource * sd=source; sd != NULL; sd=sd->next)
+        if (!strcmp(sd->name, s) && sd->type == type)
+            return;
+	
+    source = new DataSource(s, type, value_ptr, value_ptr2, value_ptr3, sx, sy, source);
 }
 
 
@@ -355,7 +441,7 @@ WebUI::AddDataSource(const char * module, const char * source)
     
     if (group == NULL)
     {
-        printf("WebUI ERROR: Could not find <group> or <modules> element.\n");
+        k->Notify(msg_warning, "WebUI: Could not find <group> or <modules> element.\n");
         return;
     }
 	
@@ -364,14 +450,13 @@ WebUI::AddDataSource(const char * module, const char * source)
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, bind_matrix, io->matrix[0], io->sizex, io->sizey); // FIXME: Check that one [0] is ok!!!
+                md->AddSource(source, data_source_matrix, io->matrix[0], io->sizex, io->sizey);
                 return;
             }
         
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, io);
     }
-	
     else if(k->GetBinding(m, type, value_ptr, size_x, size_y, module, source))
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
@@ -386,99 +471,120 @@ WebUI::AddDataSource(const char * module, const char * source)
     }
     
     else
-        printf("WebUI ERROR: Could not add data source %s.%s (not found)\n", module, source);
+        k->Notify(msg_warning, "WebUI: Could not add data source %s.%s (not found)\n", module, source);
 }
 
 
 
 void
-WebUI::SendAllJSONData()
+WebUI::AddImageDataSource(const char * module, const char * source, const char * type) // FIXME: Clean up ugly code
 {
-    Dictionary header;
-	
-    header.Set("Content-Type", "text/json");
-    header.Set("Cache-Control", "no-cache");	// make sure Opera reloads every time
-    header.Set("Cache-Control", "no-store");
-    header.Set("Pragma", "no-cache");
-    //    header.Set("Expires", "0");
-	
-    socket->SendHTTPHeader(&header);
-    socket->Send("{\n");
-    socket->Send("state: %d,\n", ui_state);  // ui_state; ui_state_run
-    socket->Send("iteration: %d", k->GetTick());
-	
-    if (view_data != NULL)
-        socket->Send(",\n");
-    else
-        socket->Send("\n");
-	
-    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    if(debug_mode)
+        printf("Adding image data source: %s.%s [%s]\n", module, source, type);
+
+    Module * m;
+    
+    Module_IO * io;
+    Module_IO * io2;
+    Module_IO * io3;
+    
+    XMLElement * group = current_xml_root;
+    
+    if (group == NULL)
     {
-        socket->Send("\"%s\":\n{\n", md->name);
-        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
-        {
-            switch(sd->type)
-            {
-                    //              case bind_io:
-                    //                   SendJSONMatrixData(socket, md->name, sd->name, sd->module_io->matrix[0], sd->module_io->sizex, sd->module_io->sizey); // [0] for first matrix
-                    //                   break;
-                    
-                case bind_int:
-                case bind_list:
-                    socket->Send("\t\"%s\": [[%d]]", sd->name, *(int *)(sd->data));  // TODO: allow number of decimals to be changed - or use E-format
-                    break;
-                    
-                case bind_bool:
-                    socket->Send("\t\"%s\": [[%d]]", sd->name, (*(bool *)(sd->data) ? 1 : 0));  // TODO: allow number of decimals to be changed - or use E-format
-                    break;
-                    
-                case bind_float:
-                    socket->Send("\t\"%s\": [[%.4E]]", sd->name, *(float *)(sd->data));  // TODO: allow number of decimals to be changed - or use E-format
-                    break;
-                    
-                case bind_array:
-                    SendJSONArrayData(socket, md->name, sd->name, (float *)(sd->data), sd->size_x);
-                    break;
-                    
-                case bind_matrix:
-                    SendJSONMatrixData(socket, md->name, sd->name, (float **)(sd->data), sd->size_x, sd->size_y);
-                    break;
-            }
-            
-            if (sd->next != NULL)
-                socket->Send(",\n");
-            else
-                socket->Send("\n");
-        }
-		
-        if (md->next != NULL)
-            socket->Send("},\n");
-        else
-            socket->Send("}\n");
+        k->Notify(msg_warning, "WebUI: Could not find <group> or <modules> element.\n");
+        return;
     }
 	
-    socket->Send("}\n");
+    if(equal_strings(type, "rgb"))
+    {
+        // Get the three sources
+        
+        char s1[256], s2[256], s3[256];
+        
+        if (sscanf(source, "%[^+]+%[^+]+%[^+]", s1, s2, s3) != 3)
+        {
+            k->Notify(msg_warning, "WebUI: RGB Image source needs three source matrices\n");
+            return;
+        }
+        else if(!(k->GetSource(group, m, io, module, s1) &
+                  k->GetSource(group, m, io2, module, s2) &
+                  k->GetSource(group, m, io3, module, s3)))
+        {
+            k->Notify(msg_warning, "WebUI: All sources for RGB Image could not be found\n");
+            return;
+        }
+        else // all ok
+        {
+            for (ModuleData * md=view_data; md != NULL; md=md->next)
+                if (!strcmp(md->name, module))
+                {
+                    md->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+                     return;
+                }
+            
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+        }
+    }
+
+    else if(equal_strings(type, "gray") && k->GetSource(group, m, io, module, source))
+    {
+        for (ModuleData * md=view_data; md != NULL; md=md->next)
+            if (!strcmp(md->name, module))
+            {
+                md->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                return;
+            }
+        
+        view_data = new ModuleData(module, m, view_data);
+        view_data->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+    }
+    
+    else if(equal_strings(type, "fire") && k->GetSource(group, m, io, module, source))
+    {
+        for (ModuleData * md=view_data; md != NULL; md=md->next)
+            if (!strcmp(md->name, module))
+            {
+                md->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                return;
+            }
+        
+        view_data = new ModuleData(module, m, view_data);
+        view_data->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+    }
+    
+    else if(equal_strings(type, "spectrum") && k->GetSource(group, m, io, module, source))
+    {
+        for (ModuleData * md=view_data; md != NULL; md=md->next)
+            if (!strcmp(md->name, module))
+            {
+                md->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                return;
+            }
+        
+        view_data = new ModuleData(module, m, view_data);
+        view_data->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+    }
+    
+    else if(equal_strings(type, "green") && k->GetSource(group, m, io, module, source))
+    {
+        for (ModuleData * md=view_data; md != NULL; md=md->next)
+            if (!strcmp(md->name, module))
+            {
+                md->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                return;
+            }
+        
+        view_data = new ModuleData(module, m, view_data);
+        view_data->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+    }
+    
+    
+    else
+        k->Notify(msg_warning, "WebUI: Could not add data source %s.%s (not found)\n", module, source);
 }
 
-
-
-void
-WebUI::SendMinimalJSONData()
-{
-    Dictionary header;
-	
-    header.Set("Content-Type", "text/json");
-    header.Set("Cache-Control", "no-cache");	// make sure Opera reloads every time
-    header.Set("Cache-Control", "no-store");
-    header.Set("Pragma", "no-cache");
-    //  header.Set("Expires", "0");
-	
-    socket->SendHTTPHeader(&header);
-    socket->Send("{\n");
-    socket->Send("state: %d,\n", ui_state);
-    socket->Send("iteration: %d", k->GetTick());
-    socket->Send("}\n");
-}
 
 
 
@@ -490,6 +596,7 @@ WebUI::WebUI(Kernel * kernel)
     current_xml_root = NULL;
     current_xml_root_path = create_string("");
     ui_state = ui_state_pause;
+    ui_data = NULL;
     view_data = NULL;
     debug_mode = false;
     isRunning = false;
@@ -561,110 +668,10 @@ const float view_min_width = 700;
 const float view_min_height = 500;
 
 void
-WebUI::SendMenu(float x, float y, const char * name)
-{
-    int v = 0;
-    for (XMLElement * xml_view = xml->GetContentElement("view"); xml_view != NULL; xml_view = xml_view->GetNextElement("view"), v++)
-    {
-        char buf[32] = "";
-		
-        const char * n = xml_view->GetAttribute("name");
-		
-        if (n == NULL)
-        {
-            sprintf(buf, "view%d", v);
-            n = buf;
-        }
-		
-        socket->Send("<a xlink:href='%s.svg'>", n);
-		
-        if (equal_strings(n, name))
-            socket->Send("<rect x='%.2f' y='%.2f' width='150' height='20' rx='10' ry='10' fill='#404040' stroke='none' />\n", x, y+25*v);
-        else
-        {
-            socket->Send("<rect x='%.2f' y='%.2f' width='150' height='20' rx='10' ry='10' fill='#1C1C1C' />\n", x, y+25*v);
-            socket->Send("<circle cx='%.2f' cy='%.2f' r='7' fill='#888888' />", x+139, y+25*v+10);
-            float a = x+139;
-            float b = y+25*v+10;
-            socket->Send("<polygon points='%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f' />",
-                         a+4.5, b,
-                         a+0.0, b-4.0,
-                         a+0.0, b-1.0,
-                         a-4.0, b-1.0,
-                         a-4.0, b+1.0,
-                         a+0.0, b+1.0,
-                         a+0.0, b+4.0
-						 );
-        }
-		
-        socket->Send("<text x='%.2f' y='%.2f' style='font-size:12px;font-family:sans-serif;fill:#BABABA;'>%s</text>\n", x+15, y+25*v+15, n);
-        socket->Send("</a>");
-    }
-    
-    // Send Special Menu Item (Module List)
-    
-    socket->Send("<a xlink:href='modules'>");
-    socket->Send("<rect x='%.2f' y='%.2f' width='150' height='20' rx='10' ry='10' fill='#1C1C1C' />\n", x, y+25*v);
-    socket->Send("<circle cx='%.2f' cy='%.2f' r='7' fill='#888888' />", x+139, y+25*v+10);
-    float a = x+139;
-    float b = y+25*v+10;
-    socket->Send("<polygon points='%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f' />",
-                 a+4.5, b,
-                 a+0.0, b-4.0,
-                 a+0.0, b-1.0,
-                 a-4.0, b-1.0,
-                 a-4.0, b+1.0,
-                 a+0.0, b+1.0,
-                 a+0.0, b+4.0
-				 );
-    socket->Send("<text x='%.2f' y='%.2f' style='font-size:12px;font-family:sans-serif;fill:#BABABA;'>%s</text>\n", x+15, y+25*v+15, "Module List");
-    socket->Send("</a>");
-}
-
-
-
-void
-WebUI::Send404()
-{
-	
-    if (debug_mode)
-        printf("Sending 404.html\n");
-	
-    // Send Header
-	
-    Dictionary header;
-    header.Set("Content-Type", "image/svg+xml");
-    socket->SendHTTPHeader(&header, "404 Not Found");
-	
-    float view_width_px = view_min_width;
-    float view_height_px = view_min_height;
-	
-    // Send SVG Header
-	
-    socket->Send("<?xml version='1.0' encoding='iso-8859-1' standalone='no'?>\n");
-	//			socket->Send("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
-	//			socket->Send("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20001102//EN\"  \"http://www.w3.org/TR/2000/CR-SVG-20001102/DTD/svg-20001102.dtd\">\n");
-	//          socket->Send("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n"); // This doctype will keep Adobe SVG 3.0 plugin and Safari happy
-    socket->Send("<svg\n");
-    socket->Send("   width='%.2f'\n", 2*margin_x + view_width_px);
-    socket->Send("   height='%.2f'\n", margin_y + margin_x + view_height_px);
-    socket->Send("   version='1.0'\n");
-    socket->Send("   xmlns='http://www.w3.org/2000/svg'\n");
-    socket->Send("   xmlns:xlink='http://www.w3.org/1999/xlink'\n");
-    socket->Send("   style='background-color: #303030'\n");
-    socket->Send(">\n\n");
-    socket->Send("<title>Ikaros Viewer</title>\n\n");
-    socket->Send("<text x='40' y='40' fill='white'>This view can not be found.</text>\n");
-    socket->Send("</svg>\n");
-}
-
-
-
-void
 WebUI::SendView(const char * view)
 {
     if (debug_mode)
-        printf("Sending View: %s\n", view);
+        printf("Sending HTML View: %s\n", view);
     
     // Get last part of view path
     
@@ -683,7 +690,7 @@ WebUI::SendView(const char * view)
         i--;
     }
     group_ref[i] = 0;
-
+    
     char * pp = group_ref;
     char * group_in_path;
     XMLElement * group_xml = xml;
@@ -697,13 +704,13 @@ WebUI::SendView(const char * view)
                 break;
             }
     }
-
+    
     if(!group_xml)
         return;
-
+    
     delete view_data;
     view_data = NULL;
-
+    
     int v = 0;
     int j = 0;
     while(view_name[j] < '0' || view_name[j] > '9')
@@ -753,43 +760,19 @@ WebUI::SendView(const char * view)
             // Send Header
 			
             Dictionary header;
-            header.Set("Content-Type", "image/svg+xml");
+            header.Set("Content-Type", "text/html");
             socket->SendHTTPHeader(&header);
-			
-            // Send SVG Header
-			
-            socket->Send("<?xml version='1.0' encoding='iso-8859-1' standalone='no'?>\n");
-			//	    socket->Send("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
-			//        socket->Send("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20001102//EN\"  \"http://www.w3.org/TR/2000/CR-SVG-20001102/DTD/svg-20001102.dtd\">\n");
-			//        socket->Send("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n"); // This doctype will keep Adobe SVG 3.0 plugin and Safari happy
-            socket->Send("<?xml-stylesheet type='text/css' href='/viewer.css' ?>\n");  
-            socket->Send("<svg\n");
-            socket->Send("   width='%.2f'\n", 2*margin_x + view_width_px);
-            socket->Send("   height='%.2f'\n", margin_y + margin_x + view_height_px);
-            socket->Send("   version='1.0'\n");
-            socket->Send("   xmlns='http://www.w3.org/2000/svg'\n");
-            socket->Send("   xmlns:xlink='http://www.w3.org/1999/xlink'\n");
-            socket->Send("   style='background-color: #303030'\n");
-            socket->Send(">\n\n");
-            socket->Send("<title>Ikaros Viewer</title>\n\n");
-			
-            socket->Send("<rect x='0' y='0' width='%.2f' height='%.2f' fill='#303030' />\n\n", 2*margin_x + view_width_px, margin_y + margin_x + view_height_px);
-			
-            //            socket->Send("<rect x='%.2f' y='%.2f' width='%.2f' height='%.2f' rx='5' ry='5' stroke='#666666' fill='#303030' />\n\n", margin_x, margin_y, view_width_px, view_height_px);
-			
-            const char * a = k->xmlDoc->xml->GetAttribute("title");
-            if (a)
-                socket->Send("<text x='%.2f' y='%.2f' fill='#FFFFFF' text-anchor='end' style='font-size:30px;font-family:sans-serif;fill:#BABABA;'>%s</text>\n", view_width_px, margin_y-25, a);
-			
-            // Include the file "viewer.svg"
-			
+
+//          socket->SendFile("viewer.html"); //FIXME: This should work
+            // Include the file "viewer.html"
+
             char path[1024] = "";
             append_string(path, webui_dir, 1024);
-            FILE * f = fopen(append_string(path, "viewer.svg", 1024), "r+b");
+            FILE * f = fopen(append_string(path, "viewer.html", 1024), "r");
             if(!f)
             {
-                printf("Cannot find \"viewer.svg\"; webui_dir=\"%s\"\n", webui_dir);
-                socket->Send("</svg>\n");
+                printf("Cannot find \"viewer.html\"; webui_dir=\"%s\"\n", webui_dir);
+                socket->Send("</html>\n");
                 return;
             }
             fseek(f, 0, SEEK_END);
@@ -800,12 +783,13 @@ WebUI::SendView(const char * view)
             socket->SendData(s, len);
             delete [] s;
             fclose(f);
-			
-            socket->Send("<script type='text/ecmascript'>\n");
-            socket->Send("<![CDATA[\n");
-			socket->Send("try {\n");
-            
-            // Send the UIObjects
+
+            socket->Send("<body>\n");
+            socket->Send("<div style='position: absolute; width:%.2fpx; height:%.2fpx' id='frame' >\n", 2*margin_x + view_width_px, margin_y + margin_x + view_height_px);
+            socket->Send("</div>\n");
+            socket->Send("<script>\n");
+
+             // Send the UIObjects
 			
             float ** occ = create_matrix(50, 50); // max elements in view
             for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
@@ -825,17 +809,15 @@ WebUI::SendView(const char * view)
                             behind = false;
                         else
                             occ[y+j][x+i] = 1;
-				
+
                 socket->Send("add(new %s({", object_class);
                 for (XMLAttribute * p = xml_uiobject->attributes; p != NULL; p = (XMLAttribute *)(p->next))
                     if (!(!strcmp(p->name, "x") || !strcmp(p->name, "y") || !strcmp(p->name, "w") || !strcmp(p->name, "h") || !strcmp(p->name, "class")))
                     {
-                        // Test number - do this properly later
+                        // TODO: Test number - do this properly later
                         unsigned long l = strlen(p->value)-1;
                         if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9'))
                             socket->Send("%s:%s, ", p->name, p->value);
-                   //     else if (p->value[0] == '[')
-                   //         socket->Send("%s:'%s', ", p->name, p->value);	// arrays are NOT sent verbatim anymore - check that this is never necessary
                         else
                             socket->Send("%s:'%s', ", p->name, p->value); // quote other content
                     }
@@ -852,17 +834,14 @@ WebUI::SendView(const char * view)
             
             destroy_matrix(occ);
 			
-            // Send Footer
-            
-			socket->Send("} catch(err) { alert('Loading Object Error: '+err.message); }\n");
-            socket->Send("]]>\n");
             socket->Send("</script>\n");
-            socket->Send("</svg>\n");
+            socket->Send("</body>\n");
+            socket->Send("</html>\n");
             return;
         }
     }
 	
-    Send404();
+    socket->SendFile("404.html");
 }
 
 
@@ -871,9 +850,9 @@ void
 WebUI::Run()
 {
     if(socket == NULL)
-        return; // ERROR
+        return;
 	
-	// SYNCHRONIZATION
+	// Synchronization
 	
 	if(xml)
 	{
@@ -883,123 +862,272 @@ WebUI::Run()
 			Socket s;
 			char rr[100];
 			int masterport = string_to_int(xml->GetAttribute("masterport"), 9000);
-			printf("Waiting for master: %s:%d\n", ip, masterport);
+			k->Notify(msg_print, "Waiting for master: %s:%d\n", ip, masterport);
 			fflush(stdout);
 			if(!s.Get(ip, masterport, "*", rr, 100))
 			{
-				printf("Master not running.\n");
+				k->Notify(msg_terminate, "Master not running.\n");
 				throw -1; // No master
 			}
 		}
 	}
-	
+
     chdir(webui_dir);
     k->timer->Restart();
     tick = 0;
-    
-#ifdef USE_THREADED_WEBUI
-    {
-        httpThread = new Thread();
-        httpThread->Create(WebUI::StartHTTPThread, this);
 
-        while (!k->Terminate())
+    httpThread = new Thread();
+    httpThread->Create(WebUI::StartHTTPThread, this);
+
+    while (!k->Terminate())
+    {
+        if (!isRunning)
         {
-            if (!isRunning)
-            {
-                Timer::Sleep(10);	 // Wait 10ms to avoid wasting cycles if there are no requests
-            }
+            Timer::Sleep(10); // Wait 10ms to avoid wasting cycles if there are no requests
+        }
+        
+        if (isRunning)
+        {
+            chdir(k->ikc_dir);
+            k->Tick();
+            CopyUIData();
+            tick++; // FIXME: should not be separate from kernel; remove from WebUI class
+            chdir(webui_dir); // FIXME: this does not work in theaded WebUI; absolute paths are necessary
             
-            if (isRunning)
+            if (k->tick_length > 0)
             {
-                chdir(k->ikc_dir);
-                k->Tick();
-                tick++;
-                chdir(webui_dir);
-                
-                if (k->tick_length > 0)
-                {
-                    float lag = k->timer->WaitUntil(float(tick*k->tick_length));
-                    if (lag > 0.1) k->Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, k->tick);
-                }
+                float lag = k->timer->WaitUntil(float(tick*k->tick_length));
+                if (lag > 0.1) k->Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, k->tick);
             }
         }
-
-        httpThread->Join();
-        chdir(k->ikc_dir);
     }
-#else   // Old Unthreaded WebUI
-    {
-        while (!k->Terminate())
-        {
-            if (socket->GetRequest())
-            {
-                if (equal_strings(socket->header.Get("Method"), "GET"))
-                    HandleHTTPRequest();
-                socket->Close();
-            }
-            else if (!isRunning)
-            {
-                Timer::Sleep(10);	 // Wait 10ms to avoid wasting cycles if there are no requests
-            }
-            
-            if (isRunning)
-            {
-                chdir(k->ikc_dir);
-                k->Tick();
-                tick++;
-                chdir(webui_dir);
-            
-                if (k->tick_length > 0)
-                {
-                    float lag = k->timer->WaitUntil(float(tick*k->tick_length));
-                    if (lag > 0.1) k->Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, k->tick);
-                }
-            }
 
-        }
-        chdir(k->ikc_dir);
-    }
-#endif    
+    httpThread->Join();
+    chdir(k->ikc_dir);
 }
 
 
 
 void
-WebUI::HandleRGBImageRequest(const char * module, const char * output)
+WebUI::CopyUIData()
 {
-    char m1[256], m2[256], m3[256];
-	
-    if (sscanf(module, "%[^+]+%[^+]+%[^+]", m1, m2, m3) == 1) // use same module for all sources if only one name is given
-    {
-        copy_string(m2, m1, 255);
-        copy_string(m3, m1, 255);
-    }
-	
-    bool err = false;
-    char red[256], green[256], blue[256];
-    int cc = sscanf(output, "%[^+]+%[^+]+%[^+]", red, green, blue);
-	
-    Module * mod1, * mod2, * mod3;
-    Module_IO * source1, * source2, * source3;
-	
-    err |= !k->GetSource(current_xml_root, mod1, source1, m1, red);     // was xml *********
-    err |= !k->GetSource(current_xml_root, mod2, source2, m2, green);
-    err |= !k->GetSource(current_xml_root, mod3, source3, m3, blue);
+    // Step 1: calculate size
     
-    if (cc != 3) err = true;	// Error
-	
-    if(!err)
+    int size = 0;
+
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
     {
-        if (source1->sizex != source2->sizex) err = true;	// ERROR
-        if (source1->sizey != source2->sizey) err = true;	// ERROR
-        if (source1->sizex != source3->sizex) err = true;	// ERROR
-        if (source1->sizey != source3->sizey) err = true;	// ERROR
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                 case data_source_array:
+                    size += sd->size_x;
+                    break;
+                    
+                case data_source_matrix:
+                case data_source_gray_image:
+                case data_source_green_image:
+                case data_source_spectrum_image:
+                case data_source_fire_image:
+                    size += sd->size_x * sd->size_y;
+                    break;
+            
+                case data_source_rgb_image:
+                    size += 3 * sd->size_x * sd->size_y;
+                    break;
+                    
+                case data_source_float:
+                case data_source_int:
+                case data_source_bool:
+                case data_source_list:
+                    size++; // int, list, bool, float
+                    break;
+
+                default:
+                    k->Notify(msg_warning, "WebUI: Unkown data type");
+                    break;
+            }
+        }
+    }
+
+    // Allocate memory
+    
+    float * local_ui_data = create_array(size);
+
+    if(!local_ui_data)
+    {
+        k->Notify(msg_warning, "WebUI: Cannot allocate memory for  data");
+        return;
+    }
+
+    float * p = local_ui_data;
+    
+    // Step 2: copy the data
+
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    {
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                case data_source_int:
+                case data_source_list:
+                    *(p++) = *(int *)(sd->data);
+                    break;
+                    
+                case data_source_bool:
+                    *(p++) = (*(bool *)(sd->data) ? 1 : 0);
+                    break;
+                    
+                case data_source_float:
+                    *(p++) = *(float *)(sd->data);
+                    break;
+                    
+                case data_source_array:
+                    copy_array(p, (float *)(sd->data), sd->size_x);
+                    p += sd->size_x;
+                    break;
+                    
+                case data_source_matrix:
+                case data_source_gray_image:
+                case data_source_green_image:
+                case data_source_spectrum_image:
+                case data_source_fire_image:
+                    copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    break;
+                    
+                case data_source_rgb_image:
+                    copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    copy_array(p, *(float **)(sd->data2), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    copy_array(p, *(float **)(sd->data3), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    break;
+            }
+        }
     }
     
-    if (!err)
-        SendColorJPEG(socket, source1->matrix[0], source2->matrix[0], source3->matrix[0], source1->sizex, source1->sizey);
+    // Step 3: store in ui_data
+
+    float * old_ui_data = atomic_exchange(&ui_data, local_ui_data);
+
+    if(old_ui_data)
+        destroy_array(old_ui_data);
+}
+
+
+
+void
+WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
+{
+    // Grab ui data 
+        
+    float * p = atomic_exchange(&ui_data, (float *)(NULL));
+    float * q = p;
+
+    long int s = 0;
+
+    // Send
+    
+    Dictionary header;
+	
+    header.Set("Content-Type", "text/json");
+    header.Set("Cache-Control", "no-cache");
+    header.Set("Cache-Control", "no-store");
+    header.Set("Pragma", "no-cache");
+    header.Set("Expires", "0");
+
+    socket->SendHTTPHeader(&header);
+
+    socket->Send("{\n");
+    socket->Send("state: %d,\n", ui_state);  // ui_state; ui_state_run
+    socket->Send("iteration: %d", k->GetTick());
+	
+    if(!p)
+    {
+        socket->Send("\n}\n");
+        return;
+    }
+
+    if (view_data != NULL)
+        socket->Send(",\n");
     else
-        socket->SendFile("404.jpg", webui_dir);
+        socket->Send("\n");
+	
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    {
+        socket->Send("\"%s\":\n{\n", md->name);
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                case data_source_int:
+                case data_source_list:
+                case data_source_bool:
+                case data_source_float:
+                    socket->Send("\t\"%s\": [[%d]]", sd->name, *p++);
+                    break;
+
+                 case data_source_array:
+                    SendJSONArrayData(socket, md->name, sd->name, p, sd->size_x);
+                    p += sd->size_x;
+                    break;
+                    
+                case data_source_matrix:
+                    SendJSONMatrixData(socket, md->name, sd->name, p, sd->size_x, sd->size_y);
+                    p += sd->size_x * sd->size_y;
+                    break;
+                     
+                case data_source_rgb_image:
+                    socket->Send("\t\"%s:rgb\": ", sd->name);
+                    s = sd->size_x * sd->size_y;
+                    SendColorJPEGbase64(socket, p, &p[s], &p[2*s], sd->size_x, sd->size_y);
+                    p += 3 * s;
+                    break;
+                    
+                case data_source_gray_image:
+                     socket->Send("\t\"%s:gray\": ", sd->name);
+                    SendColorJPEGbase64(socket, p, p, p, sd->size_x, sd->size_y);
+                    p += sd->size_x * sd->size_y;
+                    break;
+                    
+                case data_source_green_image:
+                    socket->Send("\t\"%s:green\": ", sd->name);
+                    SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
+                    p += sd->size_x * sd->size_y;
+                    break;
+
+                case data_source_spectrum_image:
+                    socket->Send("\t\"%s:spectrum\": ", sd->name);
+                    SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
+                    p += sd->size_x * sd->size_y;
+                    break;
+
+                case data_source_fire_image:
+                    socket->Send("\t\"%s:fire\": ", sd->name);
+                    SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
+                    p += sd->size_x * sd->size_y;
+                    break;
+            }
+
+            if (sd->next != NULL)
+                socket->Send(",\n");
+            else
+                socket->Send("\n");
+        }
+		
+        if (md->next != NULL)
+            socket->Send("},\n");
+        else
+            socket->Send("}\n");
+    }
+
+    socket->Send("}\n");
+    
+    destroy_array(q);
 }
 
 
@@ -1018,7 +1146,8 @@ WebUI::HandleHTTPRequest()
     if (!strcmp(uri, "/stop"))
     {
         ui_state = ui_state_stop;
-        SendAllJSONData();
+        CopyUIData();
+        SendUIData();
         k->Notify(msg_terminate, "Sent by WebUI.\n");
     }
 	
@@ -1031,7 +1160,8 @@ WebUI::HandleHTTPRequest()
             k->Tick();
         
         chdir(webui_dir);
-        SendAllJSONData();
+        CopyUIData();
+        SendUIData();
         isRunning = false;
     }
 	
@@ -1044,22 +1174,24 @@ WebUI::HandleHTTPRequest()
             k->Tick();
         
         chdir(webui_dir);
-        SendAllJSONData();
+        CopyUIData();
+        SendUIData();
         isRunning = false;
     }
 
     else if (!strcmp(uri, "/update"))
     {
-        SendAllJSONData();
+        SendUIData();   // Send last stored ui data package
     }
 	
     else if (!strcmp(uri, "/pause"))
     {
         ui_state = ui_state_pause;
-        SendAllJSONData();
+        CopyUIData();
+        SendUIData();
         isRunning = false;
     }
-	
+
     else if (!strcmp(uri, "/realtime"))
     {
         ui_state = ui_state_realtime;
@@ -1068,7 +1200,7 @@ WebUI::HandleHTTPRequest()
         tick = 0;
         isRunning = true;
     }
-	
+
     else if (strstart(uri, "/setroot"))
     {
         if(current_xml_root_path) destroy_string(current_xml_root_path);
@@ -1091,6 +1223,25 @@ WebUI::HandleHTTPRequest()
         current_xml_root = group_xml;
         destroy_string(p);
     }
+
+    else if (strstart(uri, "/usesBase64"))
+    {
+        char * module = new char [256];
+        char * output = new char [256];
+        char * type = new char [256];
+        int c = sscanf(uri, "/usesBase64/%[^/]/%[^/]/%[^/]", module, output, type);
+        if (c == 3)
+            AddImageDataSource(module, output, type);
+		
+		Dictionary header;
+		header.Set("Content-Type", "text/plain");
+		socket->SendHTTPHeader(&header);
+        socket->Send("OK\n");
+        
+		delete module;
+        delete output;
+        delete type;
+    }
     
     else if (strstart(uri, "/uses"))
     {
@@ -1109,15 +1260,6 @@ WebUI::HandleHTTPRequest()
         delete output;
     }
 
-    else if (strstart(uri, "/run/"))
-    {
-        char filepath[1024];
-        printf("RUN\n");
-        sscanf(uri, "/run/%s", filepath);
-        RunIKCFile(filepath);
-        //        return;
-    }
-    
     else if (strstart(uri, "/control/"))
     {
         char module_name[255];
@@ -1189,7 +1331,7 @@ WebUI::HandleHTTPRequest()
         SendSyntheticModuleSVG(socket, k->xmlDoc->xml, uri);
     }
     
-    else if(strstart(uri, "/view") && strend(uri, ".svg")) // second test not necessary in the future
+    else if(strstart(uri, "/view") && strend(uri, ".html"))
     {
         SendView(uri);
 	}
@@ -1198,12 +1340,6 @@ WebUI::HandleHTTPRequest()
     {
         char module[256], output[256], type[256];
         int c = sscanf(uri, "/module/%[^/]/%[^/]/%[^/]", module, output, type);
-        if(!strcmp(type, "rgb.jpg"))
-        {
-            HandleRGBImageRequest(module, output);
-            destroy_string(uri); // TODO: should use single exit point
-            return;
-        }
 		
         Module * m;
         Module_IO * source;
@@ -1216,32 +1352,7 @@ WebUI::HandleHTTPRequest()
             
             return;
         }
-        
-        if (c == 3 && !strcmp(type, "gray.jpg"))
-        {
-            if (!SendGrayJPEG(socket, source->matrix[0], source->sizex, source->sizey))
-                socket->SendFile("no_image.jpg", webui_dir);
-        }
-		
-        else if (c == 3 && !strcmp(type, "green.jpg"))
-        {
-            if (!SendGreenJPEG(socket, source->matrix[0], source->sizex, source->sizey))
-                socket->SendFile("404.jpg", webui_dir);
-        }
-		
-        else if (c == 3 && !strcmp(type, "spectrum.jpg"))
-        {
-            if (!SendSpectrumJPEG(socket, source->matrix[0], source->sizex, source->sizey))
-                socket->SendFile("404.jpg", webui_dir);
-        }
-		
-        else if (c == 3 && !strcmp(type, "fire.jpg"))
-        {
-            if (!SendFireJPEG(socket, source->matrix[0], source->sizex, source->sizey))
-                socket->SendFile("404.jpg", webui_dir);
-        }
-		
-        else if (c == 3 && !strcmp(type, "data.txt"))
+        else if (c == 3) // always send as data  && !strcmp(type, "data.txt")
         {
             int sx = m->GetOutputSizeX(output);
             int sy = m->GetOutputSizeY(output);
@@ -1253,11 +1364,6 @@ WebUI::HandleHTTPRequest()
         {
             k->Notify(msg_warning, "Unkown data type: %s\n", type);
         }
-    }
-	
-    else if (!strcmp(uri, "/examples"))
-    {
-        SendExamples();
     }
 	
     else if(strend(uri, "/inspector.html"))
@@ -1291,38 +1397,12 @@ WebUI::HandleHTTPRequest()
         {
             // Send 404 if not file found
 			
-            if (strend(uri, ".jpg"))
-                socket->SendFile("404.jpg", webui_dir);
-            else if (strend(uri, ".html"))
-                socket->SendFile("404.html", webui_dir);
+            socket->SendFile("404.html", webui_dir);
         }
     }
 	
-    else if (strstart(uri,"/"))
+    else 
     {
-/*
-        int v = 0;
-        if (!xml || xml->GetContentElement("view") == NULL)
-        {
-            socket->Send("<html>\n<head>\n<title>Ikaros Web View</title>\n</head>\n<body>\n<h1>Ikaros Web View</h1>\n<p>No views were defined.</p></ul>\n</body>\n</html>");
-            destroy_string(uri); // TODO: should use single exit point
-            return;
-        }
-		
-        // Send index page
-		
-        socket->Send("<html>\n<head>\n<title>Ikaros Web View</title>\n</head>\n");
-        socket->Send("<body style='background-color: black; color: white; font-family: sans-serif; font-size: 0.9em; padding: 20px'>\n");
-        socket->Send("<h1>Ikaros Web View</h1>\n<p>The following views are available:</p>\n<ul>");
-        for (XMLElement * xml_view = xml->GetContentElement("view"); xml_view != NULL; xml_view = xml_view->GetNextElement("view"), v++)
-        {
-            const char * n = xml_view->GetAttribute("name");
-            if (n == NULL)
-                socket->Send("   <li style='padding: 2px'><a  style='color:white; text-decoration: none'  href=\"view%d.svg\">View %d</a></li>\n", v, v);
-            else
-                socket->Send("   <li style='padding: 2px'><a  style='color:white; text-decoration: none'  href=\"%s.svg\">%s</a></li>\n", n, n);
-        }
-*/		
         socket->Send("ERROR\n");
     }
     
@@ -1356,95 +1436,6 @@ WebUI::StartHTTPThread(void * webui)
 
 
 
-// This is an experimental POSIX only function which sends a HTML page with all ikc files in the Examples directory
-
-void
-WebUI::SendExamplesDirectory(const char * directory, const char * path)
-{
-#ifdef POSIX
-	struct dirent * dp;
-	DIR * dirp = opendir(path);
-	if(!dirp)
-        return;
-	
-	Dictionary header;
-	header.Set("Content-Type", "text/xhtml");
-	socket->SendHTTPHeader(&header);
-    
-    socket->Send("<ul>\n");
-	while ((dp = readdir(dirp)) != NULL)
-        if(strstr(dp->d_name,".ikc")) // should test only at end ***
-		    socket->Send("<li><a href=\"/run/%s/%s\">%s</a></li>\n", directory, dp->d_name, dp->d_name);
-        else if(!strstr(dp->d_name, ".") && !equal_strings(dp->d_name, "Media")) // assume if it is directory
-        {
-            socket->Send("<li>%s:</li>\n", dp->d_name);
-            char * p = create_formatted_string("%s/%s", path, dp->d_name);
-            char * d = create_formatted_string("%s/%s", directory, dp->d_name);
-            SendExamplesDirectory(d, p);
-            destroy_string(d);
-            destroy_string(p);
-		}
-    socket->Send("</ul>\n");
-	
-	closedir(dirp);
-#endif
-}
-
-
-
-void
-WebUI::SendExamples()
-{
-#ifdef POSIX
-    socket->Send("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n");
-    socket->Send("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n");
-    socket->Send("<head profile=\"http://www.w3.org/2005/11/profile\">\n");
-    socket->Send("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
-    socket->Send("<title>Modules</title>\n");
-    socket->Send("<style>\n");
-    socket->Send("body {background-color: black; color: white; font-family: sans-serif; font-size: 0.9em; padding: 20px}\n");
-    socket->Send("table {background-color: #333; color: white; font-family: sans-serif; font-size: 0.9em; border: 1px solid gray; border-collapse: collapse; margin-top: 20px; width: 400px}\n");  //  display: none;
-    socket->Send(".io {background-color: #555; font-size:  1em; margin: 0px; border: 1px solid gray; width: 400px }\n");
-    socket->Send("td {font-size: 0.9em; padding: 2px; vertical-align: top; padding: 5px}\n");
-    socket->Send("li {padding: 5px}\n");
-    socket->Send("a {color: white; text-decoration: none}\n");
-    socket->Send("a:hover {color: white; text-decoration: underline}\n");
-    socket->Send("\n");
-    socket->Send("</style>\n");
-    socket->Send("</head>\n");
-    socket->Send("<body>\n");
-    socket->Send("<h1>Ikaros Web View</h1>\n<p>The following examples are available in the Examples directory.<br />Start an example by clicking on its title.</p>\n");
-	
-    char * directory = create_formatted_string("%sExamples/", k->ikaros_dir);
-	struct dirent * dp;
-	DIR * dirp = opendir(directory);
-	if(!dirp)
-        return;
-	
-	while ((dp = readdir(dirp)) != NULL)
-        if(strend(dp->d_name,".ikc"))
-		    socket->Send("<p style='padding: 3px'><a href=\"/run/%s\">%s</a></p>\n", dp->d_name, dp->d_name);
-        else if(!strstr(dp->d_name, ".") && !equal_strings(dp->d_name, "Media")) // assume it is a directory
-        {
-            socket->Send("<table style='border-collapse: collapse; border: 1px solid gray'>\n");
-            socket->Send("<tr><th style='background-color: gray; border: 1px solid gray; padding: 3px; color: black'>%s</th></tr>\n", dp->d_name);
-            socket->Send("<tr><td>\n");
-            char * d = create_formatted_string("%s/%s", directory, dp->d_name);
-            SendExamplesDirectory(dp->d_name, d);
-            destroy_string(d);
-            socket->Send("</td></tr>\n");
-            socket->Send("</table>\n");
-		}
-	
-	closedir(dirp);
-    destroy_string(directory);
-    socket->Send("</body>\n</html>\n");
-    socket->Close();
-#endif
-}
-
-
-
 // Send XML sends the XML tree
 
 void
@@ -1463,7 +1454,7 @@ WebUI::SendXML()
 
 
 void
-WebUI::SendModule(Module * m)
+WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
 {
         socket->Send("<table>\n");
 		
@@ -1633,12 +1624,7 @@ WebUI::SendInspector()
     {
         socket->Send("<p>No modules</p>\n");
     }
-/*    
-    for (Module * m = k->modules; m != NULL; m = m->next)
-    {
-        SendModule(m);
-    }
-*/	
+
     SendGroups(current_xml_root);
     
     // Connections
@@ -1676,33 +1662,6 @@ WebUI::SendInspector()
     socket->Send("</body>\n</html>");
     
     socket->Close();
-}
-
-
-
-void
-WebUI::RunIKCFile(char * filepath)
-{
-#ifdef POSIX
-	
-    // Send reply
-	
-    socket->Send("HTTP/1.1 200 OK\n");
-    socket->Send("Content-Type: text/html\n");
-    socket->Send("\n");
-    socket->Send("<head><META HTTP-EQUIV='Refresh' CONTENT='1; URL=/view0.svg'></gead><body style='background-color: black; color: white; font-family: sans-serif'>Restarting Ikaros...</body>\n");
-    socket->Close();
-    
-	char * binpath = create_formatted_string("%sBin/IKAROS", k->ikaros_dir);
-	printf("%s: %s\n", binpath, filepath);
-	delete socket;
-    char * s = create_formatted_string("%sExamples/%s", k->ikaros_dir, filepath);
-	printf("%s\n", s);
-    
-    char p[256];
-    snprintf(p, 255, "-w%d", port);
-	execl(binpath, binpath, p, s, NULL);
-#endif
 }
 
 
