@@ -315,6 +315,7 @@ namespace ikaros
     void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
     
     char *      create_bmp(long int & size, float ** matrix, int sizex, int sizey);  // NOT IMPLEMENTED
+    char *      create_bmp(long int & size, float * red_array, float * green_array, float * blue_array, int sizex, int sizey);
     char *      create_bmp(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey);
     void        destroy_bmp(char * bmp);
     

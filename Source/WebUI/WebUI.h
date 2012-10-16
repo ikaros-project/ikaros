@@ -55,6 +55,7 @@ const int data_source_green_image = 7;
 const int data_source_fire_image = 8;
 const int data_source_spectrum_image = 9; // not used
 const int data_source_rgb_image = 10;
+const int data_source_bmp_image = 11;
 
 
 class DataSource
