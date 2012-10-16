@@ -159,7 +159,7 @@ SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey
 
 
 static bool
-SendColorBMPGbase64(ServerSocket * socket, float ** r, float ** g, float ** b, int sizex, int sizey) // Compress image to bmp and send from memory after base64 encoding
+SendColorBMPbase64(ServerSocket * socket, float * r, float * g, float * b, int sizex, int sizey) // Compress image to bmp and send from memory after base64 encoding
 {
     long  size;
     unsigned char * bmp = (unsigned char *)create_bmp(size, r, g, b, sizex, sizey);
@@ -528,6 +528,38 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         }
     }
 
+    if(equal_strings(type, "bmp"))
+    {
+        // Get the three sources
+        
+        char s1[256], s2[256], s3[256];
+        
+        if (sscanf(source, "%[^+]+%[^+]+%[^+]", s1, s2, s3) != 3)
+        {
+            k->Notify(msg_warning, "WebUI: Color BMP Image source needs three source matrices\n");
+            return;
+        }
+        else if(!(k->GetSource(group, m, io, module, s1) &
+                  k->GetSource(group, m, io2, module, s2) &
+                  k->GetSource(group, m, io3, module, s3)))
+        {
+            k->Notify(msg_warning, "WebUI: All sources for Color BMP Image could not be found\n");
+            return;
+        }
+        else // all ok
+        {
+            for (ModuleData * md=view_data; md != NULL; md=md->next)
+                if (!strcmp(md->name, module))
+                {
+                    md->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+                    return;
+                }
+            
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+        }
+    }
+    
     else if(equal_strings(type, "gray") && k->GetSource(group, m, io, module, source))
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
@@ -934,6 +966,7 @@ WebUI::CopyUIData()
                     break;
             
                 case data_source_rgb_image:
+                case data_source_bmp_image:
                     size += 3 * sd->size_x * sd->size_y;
                     break;
                     
@@ -999,6 +1032,7 @@ WebUI::CopyUIData()
                     break;
                     
                 case data_source_rgb_image:
+                case data_source_bmp_image:
                     copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
                     p += sd->size_x*sd->size_y;
                     copy_array(p, *(float **)(sd->data2), sd->size_x*sd->size_y);
@@ -1085,6 +1119,13 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
                     socket->Send("\t\"%s:rgb\": ", sd->name);
                     s = sd->size_x * sd->size_y;
                     SendColorJPEGbase64(socket, p, &p[s], &p[2*s], sd->size_x, sd->size_y);
+                    p += 3 * s;
+                    break;
+                    
+                case data_source_bmp_image:
+                    socket->Send("\t\"%s:bmp\": ", sd->name);
+                    s = sd->size_x * sd->size_y;
+                    SendColorBMPbase64(socket, p, &p[s], &p[2*s], sd->size_x, sd->size_y);
                     p += 3 * s;
                     break;
                     

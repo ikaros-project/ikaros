@@ -18,9 +18,23 @@
     <view name="Inputs">
         <object
             class   ="Image"
+            title   = "Color BMP"
+            type	= "bmp"
+            module  = "CAMERA"
+            source  = "RED+GREEN+BLUE"
+            x="0" y="0"
+            w="2" h="2"
+            min = "0"
+            max = "1"
+        />
+    </view>
+    
+    <view name="Inputs">
+        <object
+            class   ="Image"
             title   = "RGB"
-            type	= "rgb"
-            module  = "CAMERA+CAMERA+CAMERA"
+            type	= "bmp"
+            module  = "CAMERA"
             source  = "RED+GREEN+BLUE"
             x="0" y="0"
             w="2" h="2"

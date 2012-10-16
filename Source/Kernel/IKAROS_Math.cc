@@ -3362,7 +3362,47 @@ namespace ikaros
     
     
     char *
-    create_bmp(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey)
+    create_bmp(long int & size, float * r, float * g, float * b, int sizex, int sizey)
+    {
+        size = 54 + 4 * sizex * sizey;
+        
+        // character array is used rather than struct to
+        // avoid padding of the data structure
+        
+        unsigned char * bmp = new unsigned char [size];
+        
+        for(int i=0; i<54; i++)
+            bmp[i] =0;
+        
+        bmp[0] = 'B';
+        bmp[1] = 'M';
+        *(unsigned int *)(&bmp[2]) = 54 + 4 * sizex * sizey; // file size
+        *(unsigned int *)(&bmp[10]) = 54; // offset
+        *(unsigned int *)(&bmp[14]) = 40; // header size
+        *(unsigned int *)(&bmp[18]) = sizex; // size_x
+        *(unsigned int *)(&bmp[22]) = -sizey; // -size_y
+        *(unsigned short *)(&bmp[26]) = 1; // planes
+        *(unsigned short *)(&bmp[28]) = 4*8; // bits
+        *(unsigned short *)(&bmp[38]) = 2835; // 72 dpi
+        *(unsigned short *)(&bmp[42]) = 2835; // 72 dpi
+        
+        long int ix = 54;
+        for(int j=0; j<sizey; j++)
+            for(int i=0; i<sizex; i++)
+            {
+                bmp[ix++] = int(255.0 * (*(b++)));
+                bmp[ix++] = int(255.0 * (*(g++)));
+                bmp[ix++] = int(255.0 * (*(r++)));
+                bmp[ix++] = 255;
+            }
+        
+        return (char *)(bmp);
+    }
+    
+    
+    
+    char *
+    create_bmp(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey) // FIXME: Use function above later
     {
         size = 54 + 4 * sizex * sizey;
         
