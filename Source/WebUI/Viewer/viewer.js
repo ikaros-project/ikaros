@@ -72,22 +72,29 @@ function makeLUTArray(c, d)
     if(c.indexOf("LUT_") == 0)
         return eval(c);
     
-    return c.split(",");
+    var a = c.split(",");
+    for(i in a)
+        a[i] = a[i].replace(" ","");
+     
+    return a;
 }
 
 
 
-function WebUIObject(p, title)
+function WebUIObject(obj, p, title)
 {
 	if(!p.title)
 		p.title = title;
-
+    
 	if(!p.behind)
         p.behind = false;
     
-    this.width = p.width;
-	this.height = p.height;
-	
+    obj.module = p.module;
+	obj.source = p.source;
+	obj.type = p.type;
+	obj.width = p.width;
+	obj.height = p.height;
+    
     var view = document.getElementById("frame");
     
     var r = document.createElement("div");
@@ -100,6 +107,71 @@ function WebUIObject(p, title)
     
     this.bg = r;
     
+	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
+    {
+        r.style.background="none";
+        return;
+    }
+    
+    var h = document.createElement("div");
+    h.className = "object_titlebar"
+    h.style.width = p.width;
+    r.appendChild(h);
+    
+    var t = document.createElement("div");
+    t.className = "object_title"
+    t.style.width = p.width;
+    r.appendChild(t);
+    
+    var tt = document.createTextNode(p.title);
+    t.appendChild(tt);
+}
+
+
+
+function WebUICanvas(obj, p)
+{
+	if(!p.title)
+		p.title = p.module+'.'+p.source;
+
+	if(!p.behind)
+        p.behind = false;
+    
+    obj.module = p.module;
+	obj.source = p.source;
+	obj.type = p.type;
+	obj.width = p.width;
+	obj.height = p.height;
+    
+    var view = document.getElementById("frame");
+    
+    var r = document.createElement("div");
+    r.className = "object_background"
+    r.style.left = p.x;
+    r.style.top = p.y;
+    r.style.width = p.width;
+    r.style.height = p.height;
+    view.appendChild(r);
+    
+    this.bg = r;
+    
+    if(!obj.oversampling)
+        obj.oversampling = 1;
+    obj.canvas = document.createElement("canvas");
+    obj.canvas.style.width = p.width;
+    obj.canvas.style.height = p.height;
+    obj.canvas.width = obj.oversampling*p.width;
+    obj.canvas.height = obj.oversampling*p.height;
+    obj.canvas.style.borderRadius = "11px";
+    
+    this.bg.appendChild(obj.canvas);
+    
+    obj.context = obj.canvas.getContext("2d");
+    
+	obj.LUT = makeLUTArray(p.color, ['yellow']);
+	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
+ 
+
 	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
     {
         r.style.background="none";
@@ -118,13 +190,63 @@ function WebUIObject(p, title)
     
     var tt = document.createTextNode(p.title);
     t.appendChild(tt);
+    
+    obj.context.drawArrow = function(arrow)
+    {
+        this.beginPath();
+        this.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+        for(var i=0;i<arrow.length;i++){
+            this.lineTo(arrow[i][0],arrow[i][1]);
+        }
+        this.closePath();
+        this.fill();
+        this.stroke();
+    };
+    
+    obj.context.moveArrow = function(arrow, x, y)
+    {
+        var rv = [];
+        for(var i=0;i<arrow.length;i++){
+            rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+        }
+        return rv;
+    };
+    
+    obj.context.rotateArrow = function(arrow,angle)
+    {
+        var rv = [];
+        for(var i=0; i<arrow.length;i++){
+            rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                     (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+        }
+        return rv;
+    };
+    
+    obj.context.drawLineArrow = function(fromX, fromY, toX, toY)
+    {
+        this.beginPath();
+        this.moveTo(fromX,fromY);
+        this.lineTo(toX,toY);
+        this.stroke();
+        var angle = Math.atan2(toY-fromY, toX-fromX);
+        var arrow = [[0,0], [-10,-5], [-10, 5]];
+        this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+    };
+
+    obj.context.drawLine = function(fromX, fromY, toX, toY)
+    {
+        this.beginPath();
+        this.moveTo(fromX,fromY);
+        this.lineTo(toX,toY);
+        this.stroke();
+    };
 }
 
 
 
 function Graph(p, title)
 {
-    this.obj = 	new WebUIObject(p, p.module+'.'+p.source);
+    this.obj = 	new WebUIObject(this, p, p.module+'.'+p.source);
 
     this.svg = document.createElementNS(svgns,"svg");
     this.obj.bg.appendChild(this.svg);
@@ -168,6 +290,7 @@ Graph.prototype.AddRect = function (x, y, width, height, f, s, radius)
 }
 
 
+
 Graph.prototype.AddPolygon = function (points, f, s, w)
 {
     var r = document.createElementNS(svgns,"polygon");	
@@ -180,6 +303,7 @@ Graph.prototype.AddPolygon = function (points, f, s, w)
     
     return r;
 }
+
 
 
 Graph.prototype.AddClippingRect= function (x, y, width, height)

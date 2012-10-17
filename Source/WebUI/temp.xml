@@ -1163,6 +1163,14 @@
 		
 	</view>
 
+	<view name="CLines">
+
+		<object x="0" y="0" class="CLines" title="Lines" module="Lines" source="OUTPUT" stroke_width="1" color="red, green, blue, yellow"/>
+
+		<object x="1" y="0" class="CLines" title="Arrows" module="R" source="OUTPUT" stroke_width="7" color="red, green, blue, yellow"/>
+
+	</view>
+
 	<view name="Grab Bag">
 
         <object x="0" y="0" class="BarGraph" module="R5" source="OUTPUT" title="Bar Graph 1"/>
