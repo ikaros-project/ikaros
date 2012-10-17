@@ -528,7 +528,7 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         }
     }
 
-    if(equal_strings(type, "bmp"))
+    else if(equal_strings(type, "bmp"))
     {
         // Get the three sources
         
