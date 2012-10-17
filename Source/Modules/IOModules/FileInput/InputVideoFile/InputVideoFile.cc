@@ -25,15 +25,8 @@
 
 #include "InputVideoFile.h"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-}
-
-#include <stdio.h>
-
 using namespace ikaros;
+
 
 InputVideoFile::InputVideoFile(Parameter * p):
 Module(p)
@@ -51,7 +44,6 @@ Module(p)
     av_register_all();
     
     /// Open video file
-    //if(av_open_input_file(&pFormatCtx, argv[1], NULL, 0, NULL)!=0) // Deprecated
     if(avformat_open_input(&pFormatCtx, filename, NULL, NULL) != 0)
     {
         Notify(msg_fatal_error, "Could not open file.\n");
@@ -59,7 +51,6 @@ Module(p)
     }
     
     /// Retrieve stream information
-    //if(av_find_stream_info(pFormatCtx)<0) // Deprecated
     if(avformat_find_stream_info(pFormatCtx, NULL) < 0)
     {
         Notify(msg_fatal_error, "Couldn't find stream information\n");
@@ -71,7 +62,7 @@ Module(p)
     
     /// Find the first video stream
     videoStreamIdx=-1;
-    for(i=0; i<pFormatCtx->nb_streams; i++)
+    for(int i=0; i<pFormatCtx->nb_streams; i++)
         if(pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) { //CODEC_TYPE_VIDEO
             videoStreamIdx=i;
             break;
@@ -82,10 +73,8 @@ Module(p)
         return;
     }
     
-    
     /// Get a pointer to the codec context for the video stream
     pCodecCtx = pFormatCtx->streams[videoStreamIdx]->codec;
-    
     
     /// Find the decoder for the video stream
     pCodec = avcodec_find_decoder( pCodecCtx->codec_id);
@@ -94,7 +83,6 @@ Module(p)
         return; // Codec not found
     }
     /// Open codec
-    //if( avcodec_open(pCodecCtx, pCodec) < 0 ) -- Deprecated
     if( avcodec_open2(pCodecCtx, pCodec, NULL) < 0 )
     {
         Notify(msg_fatal_error, "Could not open codec\n");
@@ -103,7 +91,6 @@ Module(p)
     
     /// Allocate video frame
     pFrame = avcodec_alloc_frame();
-    
     
     /// Allocate an AVFrame structure
     pFrameRGB = avcodec_alloc_frame();
@@ -127,26 +114,15 @@ Module(p)
         size_x = native_size_x;
         size_y = native_size_y;
     }
-    //printf("Size %i %i (%i %i)\n",size_x, size_y,native_size_x,native_size_y);
     
     /// Determine required buffer size and allocate buffer
     numBytes = avpicture_get_size(PIX_FMT_RGB24, size_x, size_y);
     
     buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
     
-    
     /// Assign appropriate parts of buffer to image planes in pFrameRGB
-    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-    //avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24, pCodecCtx->width, pCodecCtx->height);
-    
     avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
                    size_x, size_y);
-    
-    /**
-     AVFrame like a header of image (BitmapHeader for example), it need
-     actual associated memory buffer to store the image (frame) data.
-     */
     
     
     AddOutput("INTENSITY", size_x, size_y);
@@ -175,84 +151,79 @@ InputVideoFile::Tick()
     const float c13 = 1.0/3.0;
     const float c1255 = 1.0/255.0;
     restart[0] = (restart[0] == -1 ? 1 : 0);
+    frameFinished = false;
     
-    // Read frames and save first five frames to disk
-    i=0;
-    if(av_read_frame(pFormatCtx, &packet)>=0)
-    {
-        i++;
-        
-        // Is this a packet from the video stream?
-        if(packet.stream_index==videoStreamIdx)
-        {
-            
-            /// Decode video frame
-            avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-            
-            // Did we get a video frame?
-            if(frameFinished) {
-                
-                static struct SwsContext *img_convert_ctx;
-                
-                img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
-                                                 size_x, size_y, PIX_FMT_RGB24,
-                                                 SWS_BICUBIC, NULL, NULL, NULL);
-                
-                sws_scale(img_convert_ctx, (const uint8_t * const *)pFrame->data,
-                          pFrame->linesize, 0, pCodecCtx->height,
-                          pFrameRGB->data, pFrameRGB->linesize);
-                
-                unsigned char * r = pFrameRGB->data[0];
-                
-                //printf("NATIVE: %i %i pFrame->linesize[0] %i OUT: %i %i pFrameRGB->linesize[0] %i\n", native_size_x,native_size_y,pFrame->linesize[0], size_x,size_y,pFrameRGB->linesize[0]);
-                // Write pixel data
-                for(int y=0; y<size_y; y++)
-                    for(int x=0; x<size_x; x++)
-                    {
-                        //red[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3]/255.0f);
-                        //green[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3+1]/255.0f);
-                        //blue[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3+2]/255.0f);
-                        
-                        int yLineSize = y*pFrameRGB->linesize[0];
-                        int y1 = y*size_x;
-                        int xy = x + y1;
-                        int x3  = x*3;
-                        
-                        intensity[xy] 	=   red[xy]       = c1255*r[yLineSize+x3];
-                        intensity[xy] 	+=  green[xy]     = c1255*r[yLineSize+x3+1];
-                        intensity[xy] 	+=  blue[xy]      = c1255*r[yLineSize+x3+2];
-                        intensity[xy]*=c13;
-                        
-//                        intensity[x + y*size_x] 	=   red[x + y*size_x]		= c1255*r[y*pFrameRGB->linesize[0]+x*3];
-//                        intensity[x + y*size_x] 	+=  green[x + y*size_x]     = c1255*r[y*pFrameRGB->linesize[0]+x*3+1];
-//                        intensity[x + y*size_x] 	+=  blue[x + y*size_x]      = c1255*r[y*pFrameRGB->linesize[0]+x*3+2];
-//                        intensity[x + y*size_x]*=c13;
-                    }
-            }
-            
-        }
+    //omp_set_num_threads(4);
 
-        // Free the packet that was allocated by av_read_frame
-        av_free_packet(&packet);
-    }
-    else
+    
+    while (!frameFinished)
     {
-        if (loop)
+        if(av_read_frame(pFormatCtx, &packet)>=0)
         {
-            restart[0] = 1;
-            
-            if(av_seek_frame(pFormatCtx, 0, 0, AVSEEK_FLAG_ANY) < 0)
+            // Is this a packet from the video stream?
+            if(packet.stream_index==videoStreamIdx)
             {
-                printf("error while seeking\n");
+                
+                /// Decode video frame
+                avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+                
+                // Did we get a video frame?
+                if(frameFinished) {
+                    
+                    static struct SwsContext *img_convert_ctx;
+                    
+                    img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
+                                                     size_x, size_y, PIX_FMT_RGB24,
+                                                     SWS_BICUBIC, NULL, NULL, NULL);
+                    
+                    sws_scale(img_convert_ctx, (const uint8_t * const *)pFrame->data,
+                              pFrame->linesize, 0, pCodecCtx->height,
+                              pFrameRGB->data, pFrameRGB->linesize);
+                    
+                    unsigned char * r = pFrameRGB->data[0];
+                    
+                    // Write pixel data
+                    for(int y=0; y<size_y; y++)
+
+                        for(int x=0; x<size_x; x++)
+                        {
+                            //red[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3]/255.0f);
+                            //green[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3+1]/255.0f);
+                            //blue[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3+2]/255.0f);
+                            
+                            int yLineSize = y*pFrameRGB->linesize[0];
+                            int y1 = y*size_x;
+                            int xy = x + y1;
+                            int x3  = x*3;
+                            red[xy]       = c1255*r[yLineSize+x3+0];
+                            green[xy]     = c1255*r[yLineSize+x3+1];
+                            blue[xy]      = c1255*r[yLineSize+x3+2];
+                            intensity[xy]*=c13;
+                        }
+                }
+                
             }
+            //multiply(intensity, c13, size_x*size_y);
+            // Free the packet that was allocated by av_read_frame
+            av_free_packet(&packet);
         }
+        
         else
         {
-            Notify(msg_end_of_file, "End of movie");
-            return;
+            if (loop)
+            {
+                restart[0] = 1;
+                
+                if(av_seek_frame(pFormatCtx, 0, 0, AVSEEK_FLAG_ANY) < 0)
+                    printf("error while seeking\n");
+            }
+            else
+            {
+                Notify(msg_end_of_file, "End of movie");
+                return;
+            }
         }
     }
-    
 }
 
 

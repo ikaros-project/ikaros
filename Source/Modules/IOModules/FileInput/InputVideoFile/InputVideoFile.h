@@ -1,7 +1,7 @@
 //
 //	InputVideoFile.h		This file is a part of the IKAROS project
 // 						
-//    Copyright (C) 2012 <Author Name>
+//    Copyright (C) 2012 Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ public:
     bool            loop;
     
     AVFormatContext *pFormatCtx;
-    int             i, videoStreamIdx;
+    int             videoStreamIdx;
     AVCodecContext  *pCodecCtx;
     AVCodec         *pCodec;
     AVFrame         *pFrame;
