@@ -180,7 +180,7 @@ InputVideoFile::Tick()
                               pFrame->linesize, 0, pCodecCtx->height,
                               pFrameRGB->data, pFrameRGB->linesize);
                     
-                    unsigned char * r = pFrameRGB->data[0];
+                    unsigned char * data = pFrameRGB->data[0];
                     
                     // Write pixel data
                     for(int y=0; y<size_y; y++)
@@ -195,9 +195,9 @@ InputVideoFile::Tick()
                             int y1 = y*size_x;
                             int xy = x + y1;
                             int x3  = x*3;
-                            red[xy]       = c1255*r[yLineSize+x3+0];
-                            green[xy]     = c1255*r[yLineSize+x3+1];
-                            blue[xy]      = c1255*r[yLineSize+x3+2];
+                            red[xy]       = c1255*data[yLineSize+x3+0];
+                            green[xy]     = c1255*data[yLineSize+x3+1];
+                            blue[xy]      = c1255*data[yLineSize+x3+2];
                             intensity[xy]*=c13;
                         }
                 }
