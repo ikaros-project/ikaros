@@ -137,12 +137,29 @@ function WebUICanvas(obj, p)
 	if(!p.behind)
         p.behind = false;
     
+    // Deadult Parameters
+    
     obj.module = p.module;
 	obj.source = p.source;
 	obj.type = p.type;
 	obj.width = p.width;
 	obj.height = p.height;
     
+    obj.min = (p.min ? p.min : 0);
+	obj.max = (p.max ? p.max : 1);
+	obj.scale = 1/(obj.max == obj.min ? 1 : obj.max-obj.min);
+    
+	obj.min_x = (p.min_x ? p.min_x : obj.min);
+	obj.max_x = (p.max_x ? p.max_x : obj.max);
+	obj.scale_x = 1/(obj.max_x == obj.min_x ? 1 : obj.max_x-obj.min_x);
+    
+	obj.min_y = (p.min_y ? p.min_y : obj.min);
+	obj.max_y = (p.max_y ? p.max_y : obj.max);
+	obj.scale_y = 1/(obj.max_y == obj.min_y ? 1 : obj.max_y-obj.min_y);
+    
+    obj.flip_x_axis = (p.flip_x_axis ? p.flip_x_axis == "yes" : false);
+    obj.flip_y_axis = (p.flip_y_axis ? p.flip_y_axis == "yes" : false);
+
     var view = document.getElementById("frame");
     
     var r = document.createElement("div");
@@ -157,6 +174,7 @@ function WebUICanvas(obj, p)
     
     if(!obj.oversampling)
         obj.oversampling = 1;
+
     obj.canvas = document.createElement("canvas");
     obj.canvas.style.width = p.width;
     obj.canvas.style.height = p.height;
@@ -168,9 +186,26 @@ function WebUICanvas(obj, p)
     
     obj.context = obj.canvas.getContext("2d");
     
-	obj.LUT = makeLUTArray(p.color, ['yellow']);
+    if(obj.flip_x_axis)
+    {
+        obj.context.translate(obj.canvas.width, 0);
+        obj.context.scale(-1, 1);
+    }
+    
+    if(obj.flip_y_axis)
+    {
+        obj.context.translate(0, obj.canvas.height);
+        obj.context.scale(1, -1);
+    }
+
+    obj.context.clearRect(0, 0, obj.width, obj.height);
+    obj.context.fillStyle="none";
+    obj.context.fillRect(0, 0, obj.width, obj.height);
+    obj.context.translate(0.5, 0.5);
+
+	
+    obj.LUT = makeLUTArray(p.color, ['yellow']);
 	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
- 
 
 	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
     {
