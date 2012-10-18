@@ -1,36 +1,19 @@
 function Image(p)
 {
-    this.oversampling = (p.file ? 4 : 1);
+    this.oversampling = (p.oversampling ? p.oversampling : (p.file ? 4 : 1));
     this.obj = 	new WebUICanvas(this, p);
     this.file = p.file;
 
-    /*
-    this.canvas = document.createElement("canvas");
-    this.canvas.style.width = p.width;
-    this.canvas.style.height = p.height;
-    this.canvas.width = this.oversampling*p.width;
-    this.canvas.height = this.oversampling*p.height;
-    this.canvas.style.borderRadius = "11px";
-    
-    this.obj.bg.appendChild(this.canvas);
-
-    this.context = this.canvas.getContext("2d");
-*/
-    
     this.imageObj = document.createElement("image");
-
-    if(this.module != undefined)
-        usesBase64Data(this.module, this.source, this.type);
-
-    else if(this.file)
-    {
-        this.imageObj.src = "/"+this.file;
-        this.context.drawImage(this.imageObj, 0, 0, this.width, this.height);
-    }
+ 
+    if(this.file)
+         this.imageObj.src = "/"+this.file;
     else
     {
         this.context.fillStyle="black";
         this.context.fillRect(0, 0, this.width, this.height);
+        if(this.module != undefined)
+            usesBase64Data(this.module, this.source, this.type);
     }
 }
 
@@ -38,15 +21,22 @@ function Image(p)
 
 Image.prototype.Update = function(data)
 {
-    if(!this.module || this.file)
-        return;
+    if(this.module)
+    {
+        var d = data[this.module];
+        if(!d) return;
+        d = d[this.source+':'+this.type]
+        if(!d) return;
 
-    var d = data[this.module];
-    if(!d) return;
-    d = d[this.source+':'+this.type]
-    if(!d) return;
+        var d1 = new Date();
+        this.imageObj.src = d;
+        var d2 = new Date();
+        top.profiling.image_decoding += (d2.getTime() - d1.getTime());
+    }
 
-    this.imageObj.src = d;
-    this.context.drawImage(this.imageObj, 0, 0, this.width, this.height);
+    var d3 = new Date();
+    this.context.drawImage(this.imageObj, 0, 0, this.oversampling*this.width, this.oversampling*this.height);
+    var d4 = new Date();
+    top.profiling.image_drawing += (d4.getTime() - d3.getTime());
 }
 
