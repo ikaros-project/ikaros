@@ -824,6 +824,7 @@
 			source="OUTPUT"
 			stroke_width = "1"
             color = "red, green, blue, yellow"
+            flip_y_axis = "no"
 		/>
 
 		<object
@@ -833,6 +834,7 @@
 			module="R" 
 			source="OUTPUT"
 			stroke_width = "7"
+			arrow="yes"
             color = "red, green, blue, yellow"
 		/>
 
