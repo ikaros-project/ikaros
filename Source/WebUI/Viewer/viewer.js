@@ -201,8 +201,6 @@ function WebUICanvas(obj, p)
     obj.context.clearRect(0, 0, obj.width, obj.height);
     obj.context.fillStyle="none";
     obj.context.fillRect(0, 0, obj.width, obj.height);
-    obj.context.translate(0.5, 0.5);
-
 	
     obj.LUT = makeLUTArray(p.color, ['yellow']);
 	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
@@ -531,12 +529,18 @@ function get(url, callback)
 
 
 
-function update(data)
+var load_count = 0;
+var load_count_timeout = null;
+var g_data = null;
+
+
+
+function update_all()
 {
     try {
         for(i in uiobject)
         {
-            uiobject[i].Update(data);
+            uiobject[i].Update(g_data);
         }
     }
     catch(err)
@@ -546,8 +550,56 @@ function update(data)
         //        alert("Exception");
         
     }
-    
 }
+
+
+
+function clear_wait()
+{
+    load_count = 0;
+}
+
+
+
+function wait_for_load(data)
+{
+    if(load_count > 0)
+        setTimeout("wait_for_load()", 1);    
+    else
+    {
+        clearTimeout(load_count_timeout);
+        update_all();
+    }
+}
+
+
+
+function update(data)
+{
+    load_count = 0;
+    g_data = data;
+
+    try
+    {
+        for(i in uiobject)
+        {
+            if(uiobject[i].LoadData)
+            {
+                load_count += uiobject[i].LoadData(data);
+            }
+        }
+        
+        load_count_timeout = setTimeout("clear_wait()", 200); // give up after 1/5 s and continue
+        setTimeout("wait_for_load()", 1);
+    }
+    catch(err)
+    {
+        //     view is being loaded - ignore!
+        //        if(console) console.log("Error: "+err.message);
+        //        alert("Exception");
+    }
+}
+
 
 
 function add(obj)
