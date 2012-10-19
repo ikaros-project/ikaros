@@ -19,7 +19,7 @@ function Image(p)
 
 
 
-Image.prototype.Update = function(data)
+Image.prototype.LoadData = function(data)
 {
     if(this.module)
     {
@@ -27,16 +27,29 @@ Image.prototype.Update = function(data)
         if(!d) return;
         d = d[this.source+':'+this.type]
         if(!d) return;
-
+        
         var d1 = new Date();
+        this.imageObj.onload = function ()
+        {
+            var d2 = new Date();
+            top.profiling.image_decoding += (d2.getTime() - d1.getTime());
+            load_count--;
+        };
+        
         this.imageObj.src = d;
-        var d2 = new Date();
-        top.profiling.image_decoding += (d2.getTime() - d1.getTime());
+        return 1;
     }
+    
+    return 0;
+}
 
-    var d3 = new Date();
+
+
+Image.prototype.Update = function(data)
+{
+    var d1 = new Date();
     this.context.drawImage(this.imageObj, 0, 0, this.oversampling*this.width, this.oversampling*this.height);
-    var d4 = new Date();
-    top.profiling.image_drawing += (d4.getTime() - d3.getTime());
+    var d2 = new Date();
+    top.profiling.image_drawing += (d2.getTime() - d1.getTime());
 }
 
