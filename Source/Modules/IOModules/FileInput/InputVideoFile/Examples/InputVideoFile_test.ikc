@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="MyModule Example">
+<group title="InputVideoFile Example">
 	
 		<module
 			class = "InputVideoFile"
