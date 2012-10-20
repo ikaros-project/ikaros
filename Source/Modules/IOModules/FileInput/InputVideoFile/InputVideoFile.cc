@@ -1,5 +1,5 @@
 //
-//	InputVideoFile.cc		This file is a part of the IKAROS project
+//	  InputVideoFile.cc		This file is a part of the IKAROS project
 //
 //    Copyright (C) 2012 Birger Johansson
 //
@@ -100,7 +100,6 @@ Module(p)
         return;
     }
     
-    
     // Check native size
     
     size_x = GetIntValue("size_x");
@@ -117,13 +116,11 @@ Module(p)
     
     /// Determine required buffer size and allocate buffer
     numBytes = avpicture_get_size(PIX_FMT_RGB24, size_x, size_y);
-    
     buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
     
     /// Assign appropriate parts of buffer to image planes in pFrameRGB
     avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
                    size_x, size_y);
-    
     
     AddOutput("INTENSITY", size_x, size_y);
     AddOutput("RED", size_x, size_y);
@@ -153,9 +150,6 @@ InputVideoFile::Tick()
     restart[0] = (restart[0] == -1 ? 1 : 0);
     frameFinished = false;
     
-    //omp_set_num_threads(4);
-
-    
     while (!frameFinished)
     {
         if(av_read_frame(pFormatCtx, &packet)>=0)
@@ -184,7 +178,6 @@ InputVideoFile::Tick()
                     
                     // Write pixel data
                     for(int y=0; y<size_y; y++)
-
                         for(int x=0; x<size_x; x++)
                         {
                             //red[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3]/255.0f);
@@ -195,10 +188,10 @@ InputVideoFile::Tick()
                             int y1 = y*size_x;
                             int xy = x + y1;
                             int x3  = x*3;
-                            red[xy]       = c1255*data[yLineSize+x3+0];
-                            green[xy]     = c1255*data[yLineSize+x3+1];
-                            blue[xy]      = c1255*data[yLineSize+x3+2];
-                            intensity[xy]*=c13;
+                            intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
+                            intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
+                            intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
+                            intensity[xy]   *=  c13;
                         }
                 }
                 

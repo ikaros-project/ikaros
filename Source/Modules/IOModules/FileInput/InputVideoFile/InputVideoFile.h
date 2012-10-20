@@ -1,5 +1,5 @@
 //
-//	InputVideoFile.h		This file is a part of the IKAROS project
+//	  InputVideoFile.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2012 Birger Johansson
 //
@@ -30,8 +30,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include <stdio.h>
-
 #include "IKAROS.h"
 
 class InputVideoFile: public Module
@@ -41,9 +39,9 @@ public:
 
     InputVideoFile(Parameter * p);
     virtual ~InputVideoFile();
-
-    void 		Init();
-    void 		Tick();
+    
+    void            Init();
+    void            Tick();
     
     const char *	filename;
     
@@ -60,6 +58,7 @@ public:
     float *         restart;
     bool            loop;
     
+    // FFMpeg related 
     AVFormatContext *pFormatCtx;
     int             videoStreamIdx;
     AVCodecContext  *pCodecCtx;
@@ -70,7 +69,6 @@ public:
     int             frameFinished;
     int             numBytes;
     uint8_t         *buffer;
-    
 };
 
 #endif

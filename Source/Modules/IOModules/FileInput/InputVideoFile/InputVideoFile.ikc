@@ -3,7 +3,7 @@
 <group name="InputVideoFile" description="minimal example module">
 
 	<description type="text">
-		Module that reads a movie using FFMpeg. The movie can be optionally scaled by setting the parameters size_x and size_y.
+		Module that reads a movie using the FFMpeg library. The movie can be optionally scaled by setting the parameters size_x and size_y.
 	</description>
 
 	<example description="A simple example">
@@ -15,6 +15,7 @@
 	</example>
 
 	<module class="InputVideoFile" />
+    
     <parameter name="filename" type="string" description="File to read the data from" />
 	<parameter name="size_x" type="int" default="original movie size" description="Size to scale the movie to" />
 	<parameter name="size_y" type="int" default="original movie size" description="Size to scale the movie to" />
