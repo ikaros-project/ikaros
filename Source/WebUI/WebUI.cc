@@ -1656,8 +1656,8 @@ WebUI::SendInspector()
     socket->Send("<head profile=\"http://www.w3.org/2005/11/profile\">\n");
     socket->Send("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
     socket->Send("<title>Modules</title>\n");
-    socket->Send("<link rel='stylesheet' type='text/css' href='/inspector.css' />\n");
-    socket->Send("<script src='/inspector.js'></script>");
+    socket->Send("<link rel='stylesheet' type='text/css' href='Inspector/inspector.css' />\n");
+    socket->Send("<script src='Inspector/inspector.js'></script>");
     socket->Send("</head>\n");
     socket->Send("<body>\n");
     
