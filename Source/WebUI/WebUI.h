@@ -1,7 +1,7 @@
 //
 //  WebUI.h		Web UI code for the IKAROS project
 //
-//    Copyright (C) 2005-2010  Christian Balkenius
+//    Copyright (C) 2005-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -27,25 +27,35 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <atomic>
 
 #include "IKAROS.h"
 
 #ifdef USE_SOCKET
 
 #ifndef     WEBUIPATH
-#define		WEBUIPATH	"Source/WebUI/UI/"
+#define		WEBUIPATH	"Source/WebUI/"
 #endif
 
 #define		PORT 8000
 
 class WebUI;
 
-/*
- const int data_source_IO = 0;
- const int data_source_float = 1;
- const int data_source_array = 2;
- const int data_source_matrix = 3;
- */
+// Data source type constants
+
+const int data_source_float = bind_float;
+const int data_source_int = bind_int;
+const int data_source_bool = bind_bool;
+const int data_source_list = bind_list;
+const int data_source_array = bind_array;
+const int data_source_matrix = bind_matrix;
+
+const int data_source_gray_image = 6;
+const int data_source_green_image = 7;
+const int data_source_fire_image = 8;
+const int data_source_spectrum_image = 9; // not used
+const int data_source_rgb_image = 10;
+const int data_source_bmp_image = 11;
 
 
 class DataSource
@@ -53,12 +63,16 @@ class DataSource
 public:
     DataSource *	next;
     char *			name;    
-    int             type;   // 0 = Module_IO, 1 = float, 2 = array, 3 = matrix ...        
+    int             type;      
     void *          data;
+    void *          data2; // for RGB-image data sources
+    void *          data3;
     int             size_x;
     int             size_y;
+    bool            base64;
     
     DataSource(const char * s, int type, void * data_ptr, int sx, int sy, DataSource * n);
+    DataSource(const char * s, int type, void * data_ptr, void * data_ptr2, void * data_ptr3, int sx, int sy, DataSource * n);
     
     ~DataSource();
 };
@@ -78,6 +92,7 @@ public:
     
     void			AddSource(const char * s, Module_IO * io);
     void			AddSource(const char * s, int type, void * value_ptr, int sx, int sy);
+    void			AddSource(const char * s, int type, void * value_ptr, void * value_ptr2, void * value_ptr3, int sx, int sy);
 };
 
 
@@ -106,27 +121,24 @@ public:
     int             ui_state;
     int             iterations_per_runstep;
     
+    std::atomic<float *>  ui_data;
+    
     ModuleData *	view_data;
     
     WebUI(Kernel * kernel);
     ~WebUI();
     
     void			AddDataSource(const char * module, const char * source);
+    void			AddImageDataSource(const char * module, const char * source, const char * type);
     void			AddParameterSource(const char * module, const char * source);
-    void			SendAllJSONData();
-    void            SendMinimalJSONData();
-    void			SendMenu(float x, float y, const char * name);
-    void			Send404();
     void			SendView(const char * view);
-    void            SendExamplesDirectory(const char * directory, const char * path);
-    void            SendExamples();
     void            SendModule(Module * m);
     void            SendGroups(XMLElement * xml);
     void            SendInspector();
     void            SendXML();
-    void            RunIKCFile(char * filepath);
     void			ReadXML(XMLDocument * xmlDoc);
-    void            HandleRGBImageRequest(const char * module, const char * output);
+    void            CopyUIData();
+    void            SendUIData();
     void			HandleHTTPRequest();
     void            HandleHTTPThread();
     

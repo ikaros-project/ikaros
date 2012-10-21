@@ -29,8 +29,6 @@ using namespace ikaros;
 void
 Scale::Init()
 {
-//    factor		=   GetFloatValue("factor", 1.0);
-
     Bind(factor, "factor");
     
     input		=	GetInputArray("INPUT");

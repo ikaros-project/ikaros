@@ -6,11 +6,20 @@
 -->
 
 <group title="InputVideoQT Test">
+
+    
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
     <module
         class   = "InputVideoQT"
         name	= "CAMERA"			
-        size_x  = "240"
-        size_y  =  "160"
+        size_x  = "640"
+        size_y  =  "480"
         list_devices = "yes"
         NOT_USED_device_id = "0xfd500000046d0821"
     />
@@ -18,9 +27,33 @@
     <view name="Inputs">
         <object
             class   ="Image"
+            title   = "Color RGB"
+            type	= "rgb"
+            module  = "CAMERA"
+            source  = "RED+GREEN+BLUE"
+            x="0" y="0"
+            w="4" h="3"
+            min = "0"
+            max = "1"
+        />
+        
+        <object
+            x="0" y="0"
+            w="4" h="3"
+            class="CLines"
+            title="CLines"
+            module="R"
+            source="OUTPUT"
+            color = "red, green, blue, yellow"
+		/>
+    </view>
+
+    <view name="Inputs">
+        <object
+            class   ="Image"
             title   = "RGB"
             type	= "rgb"
-            module  = "CAMERA+CAMERA+CAMERA"
+            module  = "CAMERA"
             source  = "RED+GREEN+BLUE"
             x="0" y="0"
             w="2" h="2"
