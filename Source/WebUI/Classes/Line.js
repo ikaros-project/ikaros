@@ -26,6 +26,8 @@ function Line(p)
     this.flip_y_axis = p.flip_y_axis;
 
 	usesData(this.module, this.source);
+    
+    obj.context.translate(0.5, 0.5);
 }
 
 

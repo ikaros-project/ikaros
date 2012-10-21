@@ -98,15 +98,18 @@ Switch.prototype.Update = function(data)
     if(!this.parameter)
         return;
 
-    if(this.clicked) return;
+    if(this.clicked)
+        return;
     
     var d = data[this.module];
     if(!d) return;
-    d = d[this.source]
+    d = d[this.parameter]
     if(!d) return;
     
     this.value = d[this.yindex][this.xindex];
 
+    console.log(this.value);
+    
     if(this.value > 0.5*(this.max+this.min))
     {
         this.button_on.setAttribute('opacity', 1);

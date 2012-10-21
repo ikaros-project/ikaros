@@ -26,13 +26,14 @@ function Slider(p)
     function drag(event)
     {
         event.preventDefault();
-        var pos = event.clientY-that.y-that.knobradius-1;
-        if(pos < 32.5-that.knobradius)
-            pos = 32.5-that.knobradius;
-        if(pos > that.height-12.5-that.knobradius)
-            pos = that.height-12.5-that.knobradius;
-        that.button.setAttribute("y", that.y+pos);
-        var value = that.min+(that.max-that.min)*(1-(pos-32.5+that.knobradius)/(that.height-45));
+        var h = that.height-40;
+        var val = (event.clientY-40-that.y)/h;
+        if(val < 0)
+            val = 0;
+        if(val > 1)
+            val = 1;
+        that.button.setAttribute("y", 20+val*h+4);
+        var value = that.min+(that.max-that.min)*(1-val);
         get("/control/"+that.module+"/"+that.parameter+"/"+that.xindex+"/"+that.yindex+"/"+value, none);
     }
     
@@ -43,7 +44,6 @@ function Slider(p)
     
     p.opaque = true;
     this.graph = new Graph(p, 'Slider');
-    this.y = p.y;
     this.x = p.x;
     this.y = p.y;	
     this.width = p.width;
@@ -57,24 +57,24 @@ function Slider(p)
     this.slide = this.graph.AddRect(cx-2.5, 30, 5, this.height-40, 'black', '#444444', 2); // local coordinates
     
     this.button = document.createElementNS(svgns,"image");	
-    this.button.setAttribute('x', this.x+cx-this.knobradius-0.5);
-    this.button.setAttribute('y', this.y+this.knobradius+11);   // global coordinates
+    this.button.setAttribute('x', cx-this.knobradius-0.5);
+    this.button.setAttribute('y', +this.knobradius+11);   // global coordinates
     this.button.setAttribute('width', 2*this.knobradius+1);
     this.button.setAttribute('height', 2*this.knobradius+1);
     this.button.setAttribute('preserveAspectRatio', 'none');
     this.button.setAttributeNS(xlinkns, 'href', "/Classes/knob.png");
     this.button.setAttribute('style', 'cursor: pointer');
-    document.documentElement.appendChild(this.button);
+    this.graph.group.appendChild(this.button);
 
     this.title = document.createElementNS(svgns,"text");	
-    this.title.setAttribute('x', this.x+this.width/2);
-    this.title.setAttribute('y', this.y+14);
+    this.title.setAttribute('x', this.width/2);
+    this.title.setAttribute('y', 14);
     this.title.setAttribute('class', 'object_title');        
     this.title.setAttribute('text-rendering','optimizeLegibility');
     this.title.setAttribute('text-anchor', 'middle');
     var tn = document.createTextNode(p.title);	
     this.title.appendChild(tn);
-    document.documentElement.appendChild(this.title);
+    this.graph.group.appendChild(this.title);
 
 
     this.button.onmousedown = drag_start;
@@ -94,12 +94,12 @@ Slider.prototype.Update = function(data)
 
     var d = data[this.module];
     if(!d) return;
-    d = d[this.source]
+    d = d[this.parameter]
     if(!d) return;
     
-    var b = this.button;
     this.value = d[this.yindex][this.xindex];
-    var pos = this.y-this.knobradius+32.5+(this.height-45)*(1-((this.value-this.min)/(this.max-this.min)));
+    var h = this.height-40;
+    var pos = 4+20+h*(1-((this.value-this.min)/(this.max-this.min))); // this.y-this.knobradius+55.5+(this.height-45)
     this.button.setAttribute("y", pos);
 }
 

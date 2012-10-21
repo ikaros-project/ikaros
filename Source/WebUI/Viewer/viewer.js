@@ -72,17 +72,222 @@ function makeLUTArray(c, d)
     if(c.indexOf("LUT_") == 0)
         return eval(c);
     
-    return c.split(",");
+    var a = c.split(",");
+    for(i in a)
+        a[i] = a[i].replace(" ","");
+     
+    return a;
+}
+
+
+
+function WebUIObject(obj, p, title)
+{
+	if(!p.title)
+		p.title = title;
+    
+	if(!p.behind)
+        p.behind = false;
+    
+    obj.module = p.module;
+	obj.source = p.source;
+	obj.type = p.type;
+	obj.width = p.width;
+	obj.height = p.height;
+    
+    var view = document.getElementById("frame");
+    
+    var r = document.createElement("div");
+    r.className = "object_background"
+    r.style.left = p.x;
+    r.style.top = p.y;
+    r.style.width = p.width;
+    r.style.height = p.height;
+    view.appendChild(r);
+    
+    this.bg = r;
+    
+	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
+    {
+        r.style.background="none";
+        return;
+    }
+    
+    var h = document.createElement("div");
+    h.className = "object_titlebar"
+    h.style.width = p.width;
+    r.appendChild(h);
+    
+    var t = document.createElement("div");
+    t.className = "object_title"
+    t.style.width = p.width;
+    r.appendChild(t);
+    
+    var tt = document.createTextNode(p.title);
+    t.appendChild(tt);
+}
+
+
+
+function WebUICanvas(obj, p)
+{
+	if(!p.title)
+		p.title = p.module+'.'+p.source;
+
+	if(!p.behind)
+        p.behind = false;
+    
+    // Deadult Parameters
+    
+    obj.module = p.module;
+	obj.source = p.source;
+	obj.type = p.type;
+	obj.width = p.width;
+	obj.height = p.height;
+    
+    obj.min = (p.min ? p.min : 0);
+	obj.max = (p.max ? p.max : 1);
+	obj.scale = 1/(obj.max == obj.min ? 1 : obj.max-obj.min);
+    
+	obj.min_x = (p.min_x ? p.min_x : obj.min);
+	obj.max_x = (p.max_x ? p.max_x : obj.max);
+	obj.scale_x = 1/(obj.max_x == obj.min_x ? 1 : obj.max_x-obj.min_x);
+    
+	obj.min_y = (p.min_y ? p.min_y : obj.min);
+	obj.max_y = (p.max_y ? p.max_y : obj.max);
+	obj.scale_y = 1/(obj.max_y == obj.min_y ? 1 : obj.max_y-obj.min_y);
+    
+    obj.flip_x_axis = (p.flip_x_axis ? p.flip_x_axis == "yes" : false);
+    obj.flip_y_axis = (p.flip_y_axis ? p.flip_y_axis == "yes" : false);
+
+    var view = document.getElementById("frame");
+    
+    var r = document.createElement("div");
+    r.className = "object_background"
+    r.style.left = p.x;
+    r.style.top = p.y;
+    r.style.width = p.width;
+    r.style.height = p.height;
+    view.appendChild(r);
+    
+    this.bg = r;
+    
+    if(!obj.oversampling)
+        obj.oversampling = 1;
+
+    obj.canvas = document.createElement("canvas");
+    obj.canvas.style.width = p.width;
+    obj.canvas.style.height = p.height;
+    obj.canvas.width = obj.oversampling*p.width;
+    obj.canvas.height = obj.oversampling*p.height;
+    obj.canvas.style.borderRadius = "11px";
+    
+    this.bg.appendChild(obj.canvas);
+    
+    obj.context = obj.canvas.getContext("2d");
+    
+    if(obj.flip_x_axis)
+    {
+        obj.context.translate(obj.canvas.width, 0);
+        obj.context.scale(-1, 1);
+    }
+    
+    if(obj.flip_y_axis)
+    {
+        obj.context.translate(0, obj.canvas.height);
+        obj.context.scale(1, -1);
+    }
+
+    obj.context.clearRect(0, 0, obj.width, obj.height);
+    obj.context.fillStyle="none";
+    obj.context.fillRect(0, 0, obj.width, obj.height);
+	
+    obj.LUT = makeLUTArray(p.color, ['yellow']);
+	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
+
+	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
+    {
+        r.style.background="none";
+        return;
+    }
+
+    var h = document.createElement("div");
+    h.className = "object_titlebar"
+    h.style.width = p.width;
+    r.appendChild(h);
+    
+    var t = document.createElement("div");
+    t.className = "object_title"
+    t.style.width = p.width;
+    r.appendChild(t);
+    
+    var tt = document.createTextNode(p.title);
+    t.appendChild(tt);
+    
+    obj.context.drawArrow = function(arrow)
+    {
+        this.beginPath();
+        this.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+        for(var i=0;i<arrow.length;i++){
+            this.lineTo(arrow[i][0],arrow[i][1]);
+        }
+        this.closePath();
+        this.fill();
+        this.stroke();
+    };
+    
+    obj.context.moveArrow = function(arrow, x, y)
+    {
+        var rv = [];
+        for(var i=0;i<arrow.length;i++){
+            rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+        }
+        return rv;
+    };
+    
+    obj.context.rotateArrow = function(arrow,angle)
+    {
+        var rv = [];
+        for(var i=0; i<arrow.length;i++){
+            rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                     (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+        }
+        return rv;
+    };
+    
+    obj.context.drawLineArrow = function(fromX, fromY, toX, toY)
+    {
+        this.beginPath();
+        this.moveTo(fromX,fromY);
+        this.lineTo(toX,toY);
+        this.stroke();
+        var angle = Math.atan2(toY-fromY, toX-fromX);
+        var arrow = [[0,0], [-10,-5], [-10, 5]];
+        this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+    };
+
+    obj.context.drawLine = function(fromX, fromY, toX, toY)
+    {
+        this.beginPath();
+        this.moveTo(fromX,fromY);
+        this.lineTo(toX,toY);
+        this.stroke();
+    };
 }
 
 
 
 function Graph(p, title)
 {
-	clip_id++;
+    this.obj = 	new WebUIObject(this, p, p.module+'.'+p.source);
+
+    this.svg = document.createElementNS(svgns,"svg");
+    this.obj.bg.appendChild(this.svg);
+    
+    clip_id++;
 	this.clip = document.createElementNS(svgns,"clipPath");
 	this.clip.setAttribute('id', 'clip'+clip_id);
-	document.documentElement.appendChild(this.clip);
+	this.svg.appendChild(this.clip);
     
 	this.clipRect = document.createElementNS(svgns,"rect");
 	this.clipRect.setAttribute('x', '0');
@@ -92,56 +297,11 @@ function Graph(p, title)
 	this.clipRect.setAttribute('width', p.width);
 	this.clipRect.setAttribute('height', p.height);
 	this.clip.appendChild(this.clipRect);
-    
-	if(!p.title)
-		p.title = title;
-    
-    // Create outer group
-    
-    this.main = document.createElementNS(svgns,"g");
-	this.main.setAttribute("clip-path", 'url(#clip'+clip_id+')');
-	this.main.setAttribute("transform", "translate("+p.x+","+p.y+")");
-    
-    // Add contents group
-    
+
     this.group = document.createElementNS(svgns,"g");
-    
-	if(p.opaque != undefined ? p.opaque=='yes' : p.behind)
-	{
-		this.background = this.AddRect(0, 0, p.width-1, p.height-1);
-        this.background.setAttribute("class", "object_background");
-        //        this.background.setAttribute("filter", "url(#filter)");
-	}
-    
-	this.main.appendChild(this.group);
-    
-    // Add title bar
-    
-	this.titlebar = document.createElementNS(svgns,"g");
-    
-	if(p.opaque != undefined ? p.opaque=='yes' : p.behind)
-	{
-        this.dragarea = document.createElementNS(svgns,"rect");	
-        this.dragarea.setAttribute('x', 0);
-        this.dragarea.setAttribute('y', 0);
-        this.dragarea.setAttribute('width', p.width-1);
-        this.dragarea.setAttribute('height', 20+1);
-        this.dragarea.setAttribute('class','object_titlebar');
-        this.titlebar.appendChild(this.dragarea);
-        
-        this.title = document.createElementNS(svgns,"text");	
-        this.title.setAttribute('x', 10);
-        this.title.setAttribute('y', 14);
-        this.title.setAttribute('class', 'object_title');        
-        this.title.setAttribute('text-rendering','optimizeLegibility');
-        var tn = document.createTextNode(p.title);	
-        this.title.appendChild(tn);
-        this.titlebar.appendChild(this.title);
-	}
-    
-	this.main.appendChild(this.titlebar);
-    
-    document.documentElement.appendChild(this.main);
+	this.group.setAttribute("clip-path", 'url(#clip'+clip_id+')');
+	this.group.setAttribute("transform", "translate(+0.5,+0.5)");
+    this.svg.appendChild(this.group);
 }
 
 
@@ -163,6 +323,7 @@ Graph.prototype.AddRect = function (x, y, width, height, f, s, radius)
 }
 
 
+
 Graph.prototype.AddPolygon = function (points, f, s, w)
 {
     var r = document.createElementNS(svgns,"polygon");	
@@ -175,6 +336,7 @@ Graph.prototype.AddPolygon = function (points, f, s, w)
     
     return r;
 }
+
 
 
 Graph.prototype.AddClippingRect= function (x, y, width, height)
@@ -235,6 +397,8 @@ Graph.prototype.AddLine = function (x1, y1, x2, y2, s, sw)
     return r;
 }
 
+
+
 Graph.prototype.AddImage = function (x, y, width, height, path)
 {
     var r = document.createElementNS(svgns,"image");	
@@ -274,7 +438,7 @@ Graph.prototype.AddText = function (x, y, t, width, height, anchor, fontsize, co
 
 Graph.prototype.AddHTMLText = function (x, y, t, width, height, style)
 {
-    var r = document.createElementNS(svgns,"foreignObject");	
+    var r = document.createElementNS(svgns,"foreignObject");
     r.setAttribute('x', x);
     r.setAttribute('y', y);
     r.setAttribute('width', width);
@@ -294,6 +458,30 @@ Graph.prototype.AddHTMLText = function (x, y, t, width, height, style)
     this.group.appendChild(r);
     
     return r;
+}
+
+
+
+Graph.prototype.AddHTMLCanvas = function (x, y, width, height)
+{
+    var r = document.createElementNS(svgns,"foreignObject");
+    r.setAttribute('x', x);
+    r.setAttribute('y', y);
+    r.setAttribute('width', width);
+    r.setAttribute('height', height);
+    
+    var b = document.createElementNS(xmlns,"body");
+    b.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    
+    var canvas = document.createElementNS(xmlns, "canvas");
+    canvas.setAttribute('width', width);
+    canvas.setAttribute('height', height);
+
+    b.appendChild(canvas);
+    r.appendChild(b);
+    this.group.appendChild(r);
+    
+    return canvas;
 }
 
 
@@ -341,12 +529,18 @@ function get(url, callback)
 
 
 
-function update(data)
+var load_count = 0;
+var load_count_timeout = null;
+var g_data = null;
+
+
+
+function update_all()
 {
     try {
         for(i in uiobject)
         {
-            uiobject[i].Update(data);
+            uiobject[i].Update(g_data);
         }
     }
     catch(err)
@@ -356,8 +550,56 @@ function update(data)
         //        alert("Exception");
         
     }
-    
 }
+
+
+
+function clear_wait()
+{
+    load_count = 0;
+}
+
+
+
+function wait_for_load(data)
+{
+    if(load_count > 0)
+        setTimeout("wait_for_load()", 1);    
+    else
+    {
+        clearTimeout(load_count_timeout);
+        update_all();
+    }
+}
+
+
+
+function update(data)
+{
+    load_count = 0;
+    g_data = data;
+
+    try
+    {
+        for(i in uiobject)
+        {
+            if(uiobject[i].LoadData)
+            {
+                load_count += uiobject[i].LoadData(data);
+            }
+        }
+        
+        load_count_timeout = setTimeout("clear_wait()", 200); // give up after 1/5 s and continue
+        setTimeout("wait_for_load()", 1);
+    }
+    catch(err)
+    {
+        //     view is being loaded - ignore!
+        //        if(console) console.log("Error: "+err.message);
+        //        alert("Exception");
+    }
+}
+
 
 
 function add(obj)
@@ -372,4 +614,12 @@ function usesData(module, source)
 {
 	get("/uses/"+module+'/'+source, ignore_data);
 }
+
+
+
+function usesBase64Data(module, source, type)
+{
+	get("/usesBase64/"+module+'/'+source+'/'+type, ignore_data);
+}
+
 

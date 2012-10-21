@@ -220,9 +220,9 @@
 
 	<view name="Images">
 		<object class="Image" title="Color Image"  type="rgb" module="Image" source="RED+GREEN+BLUE" x="0" y="0" />
-		<object class="Text" text="The viewobject to the left shows an RGB image. The images below are different pseudo color version of the intensity channel." x="1" y="0" w="2" />
+		<object class="Text" text="The viewobject to the left shows an RGB image. The images below are different pseudo color version of the intensity channel. The final row shows static PNG images. In the middle, a PNG image with a transparent circle is used as an overlay." x="1" y="0" w="2" />
 
-		<object class="Image" title="Fire"  type="fire" module="Image" source="INTENSITY" x="0" y="1" />
+		<object class="Image" title="Fire" type="fire" module="Image" source="INTENSITY" x="0" y="1" />
 		<object class="Image" title="Spectrum"  type="spectrum" module="Image" source="INTENSITY" x="1" y="1" />
 		<object class="Image" title="Green"  type="green" module="Image" source="INTENSITY" x="2" y="1" />
 
@@ -809,9 +809,58 @@
 			title="Lines" 
 			module="Lines" 
 			source="OUTPUT"
+			stroke_width = "1"
             color = "red, green, blue, yellow"
 		/>
-		
+
+		<object
+			x="1" y="0" 
+			class="Lines" 
+			title="Arrows" 
+			module="R" 
+			source="OUTPUT"
+			stroke_width = "7"
+			arrow="yes"
+            color = "red, green, blue, yellow"
+		/>
+
+		<object
+			x="2" y="0" 
+			class="Lines" 
+			title="Arrows Flip X" 
+			module="R" 
+			source="OUTPUT"
+			stroke_width = "7"
+			arrow="yes"
+            color = "red, green, blue, yellow"
+            flip_x_axis = "yes"
+		/>
+
+		<object
+			x="1" y="1" 
+			class="Lines" 
+			title="Arrows Flip Y" 
+			module="R" 
+			source="OUTPUT"
+			stroke_width = "7"
+			arrow="yes"
+            color = "red, green, blue, yellow"
+            flip_y_axis = "yes"
+		/>
+
+		<object
+			x="2" y="1" 
+			class="Lines" 
+			title="Arrows Flip X and Y" 
+			module="R" 
+			source="OUTPUT"
+			stroke_width = "7"
+			arrow="yes"
+            color = "red, green, blue, yellow"
+            flip_x_axis = "yes"
+            flip_y_axis = "yes"
+		/>
+
 	</view>
 
 	<view name="Grab Bag">

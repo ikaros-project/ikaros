@@ -5,6 +5,30 @@ var periodic_task = null;
 var current_view = 0;
 var view_list = [];
 
+// PROFILING DATA
+
+var start_time = 0;
+var profiling = { stop_after: 200, parsing: 0, image_decoding: 0, image_drawing: 0, view_update: 0, all: 0, total: 0 };
+
+function show_profiling_data()
+{
+    document.write("<html>");
+    document.write("<style>");
+    document.write("td { border: 1px solid gray; text-align:center; width: 100px; font-family: sans-serif; font-size: 10pt; width: 80px}");
+    document.write("</style>");
+    document.write("<body style='font-family: sans-serif; font-size: 10pt;'>");
+    document.write("<h1>WebUI Profiling Results</h1>");
+    document.write("<table style='border-collapse: collapse'>");
+
+    document.write("<tr><td>no of ticks</td><td>JSON<br />parsing<br />(ms)</td><td>image<br />decoding<br />(ms)</td><td>image<br />drawing<br />(ms)</td><td>update<br />view<br />(ms)</td><td>all <br />JavaScript<br />(ms)</td><td>total/tick<br />(ms)</td></tr>");
+    document.write("<tr><td>"+profiling.stop_after+"</td><td>"+profiling.parsing/profiling.stop_after+"</td><td>"+profiling.image_decoding/profiling.stop_after+"</td><td>"+profiling.image_drawing/profiling.stop_after+"</td><td>"+profiling.view_update/profiling.stop_after+"</td><td>"+profiling.all/profiling.stop_after+"</td><td>"+profiling.total/profiling.stop_after+"</td></tr>");
+    
+    document.write("</table>");
+    document.write("</body></html>");
+}
+
+
+
 // STATE
 
 var realtime = false;
@@ -227,12 +251,30 @@ function runstep()
     {
         try
         {
+            var d1 = new Date();
             var data = eval("("+obj.content+")");
+            var d2 = new Date();
+            profiling.parsing += (d2.getTime()-d1.getTime());
             var v = document.getElementById("view").contentWindow;
+            var d3 = new Date();
             if(data && v && v.update) v.update(data);
+            var d4 = new Date();
+            profiling.view_update += (d4.getTime()-d3.getTime());
             document.getElementById("iteration").innerText = data.iteration;
+            
+            if(data.iteration == profiling.stop_after)
+            {
+                var stop_time = new Date();
+                profiling.total = (stop_time.getTime()-start_time.getTime());
+                do_stop();
+                show_profiling_data();
+                return;
+            }
+
             if(running)
-                setTimeout("runstep();", 10);
+                setTimeout("runstep();", 1);
+            var d5 = new Date();
+            profiling.all += (d5.getTime()-d1.getTime());
         }
         catch(err)
         {
@@ -246,7 +288,7 @@ function runstep()
 
 function do_run()
 {
-
+    start_time = new Date();
 	clearTimeout(periodic_task);    
     select_button(3);
 	running = true;
@@ -559,7 +601,7 @@ function change_view(index)
     if(index==alist.length-1)
         v.setAttribute("src", "http://"+location.host+current_group_path+"/inspector.html");    //FIXME:  change order
     else
-        v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".svg");
+        v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".html"); // WAS SVG ***************************
     
     var vn = document.getElementById("viewname");
     if(vn)
@@ -634,12 +676,12 @@ function toggle_inspector()
 	if(document.getElementById('pane').style.width == "0px")
     {
         document.getElementById('pane').style.width='300px';
-        document.getElementById('split').src="single.png";
+        document.getElementById('split').src="/Icons/single.png";
 	}
     else
 	{
         document.getElementById('pane').style.width='0px';
-        document.getElementById('split').src="split.png";
+        document.getElementById('split').src="/Icons/split.png";
     }
 }
 

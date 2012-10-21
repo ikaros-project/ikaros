@@ -20,9 +20,9 @@
         class = "Constant" 
         name = "C" 
         outputsize = "5" 
-        data="0.1 0.2 0.3 0.4 0.5" 
+        data = "0.1 0.2 0.3 0.4 0.5" 
     />
-	
+
     <module
         class = "Scale"
         name = "Scale"
@@ -77,7 +77,7 @@
         <object class="BarGraph" title="factor" module="Scale" source="factor" x="6" y="0" w="2" h="2" />
         <object class="BarGraph" title="Output" module="Scale" source="OUTPUT" x="8" y="0" w="2" h="2" />
         
-        <object class="Slider" title="F1" module="Scale2" parameter="factor" x="2" y="2" h="2" />
+        <object class="Slider" title="F1" module="Scale2" parameter="factor" x="2" y="2" h="4" />
         <object class="Table" title="factor" module="Scale2" source="factor" x="4" y="2" w="2" h="2" />
         <object class="BarGraph" title="factor" module="Scale2" source="factor" x="6" y="2" w="2" h="2" />
         <object class="BarGraph" title="Output" module="Scale2" source="OUTPUT" x="8" y="2" w="2" h="2" />
