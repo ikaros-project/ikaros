@@ -72,10 +72,25 @@ function makeLUTArray(c, d)
     if(c.indexOf("LUT_") == 0)
         return eval(c);
     
+    var f = false;
+    var s = c.split("");
+    for(var i=0; i<s.length; i++)
+        if(s[i] == '(')
+            f = true;
+        else if(s[i] == ')')
+            f = false;
+        else if(f && s[i] == ',')
+            s[i] = ';'
+    
+    c = s.join("");
+    
     var a = c.split(",");
     for(i in a)
-        a[i] = a[i].replace(" ","");
-     
+    {
+        a[i] = a[i].replace(/ /g,"");
+        a[i] = a[i].replace(/;/g,",");
+    }
+    
     return a;
 }
 
@@ -160,6 +175,12 @@ function WebUICanvas(obj, p)
     obj.flip_x_axis = (p.flip_x_axis ? p.flip_x_axis == "yes" : false);
     obj.flip_y_axis = (p.flip_y_axis ? p.flip_y_axis == "yes" : false);
 
+    obj.stroke_LUT = makeLUTArray(p.color, ['yellow']);
+    obj.fill_LUT = makeLUTArray(p.fill, ['none']);
+	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
+    obj.line_cap = (p.line_cap ? p.line_cap : "butt");
+    obj.line_join = (p.line_join ? p.line_join : "miter");
+
     var view = document.getElementById("frame");
     
     var r = document.createElement("div");
@@ -201,9 +222,8 @@ function WebUICanvas(obj, p)
     obj.context.clearRect(0, 0, obj.width, obj.height);
     obj.context.fillStyle="none";
     obj.context.fillRect(0, 0, obj.width, obj.height);
-	
-    obj.LUT = makeLUTArray(p.color, ['yellow']);
-	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
+    obj.context.lineCap = obj.line_cap;
+    obj.context.lineJoin = obj.line_join;
 
 	if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
     {
@@ -253,6 +273,17 @@ function WebUICanvas(obj, p)
                      (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
         }
         return rv;
+    };
+    
+    obj.context.drawArrowHead = function(fromX, fromY, toX, toY)
+    {
+        var angle = Math.atan2(toY-fromY, toX-fromX);
+        var arrow = [[0,0], [-10,-5], [-10, 5]];
+        this.save();
+        this.lineJoin = "miter";
+        this.fillStyle = this.strokeStyle;
+        this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+        this.restore();
     };
     
     obj.context.drawLineArrow = function(fromX, fromY, toX, toY)

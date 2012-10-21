@@ -8,7 +8,7 @@ var view_list = [];
 // PROFILING DATA
 
 var start_time = 0;
-var profiling = { stop_after: 200, parsing: 0, image_decoding: 0, image_drawing: 0, view_update: 0, all: 0, total: 0 };
+var profiling = { stop_after: 0, parsing: 0, image_decoding: 0, image_drawing: 0, view_update: 0, all: 0, total: 0 };
 
 function show_profiling_data()
 {
