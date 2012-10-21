@@ -62,8 +62,10 @@
     <module
         class = "Randomizer"
         name = "R"
-        outputsize_x = "5"
-        outputsize_y = "5"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.9"
     />
 
     <module
@@ -819,9 +821,12 @@
 			title="Arrows" 
 			module="R" 
 			source="OUTPUT"
-			stroke_width = "7"
+			stroke_width = "9"
 			arrow="yes"
             color = "red, green, blue, yellow"
+            lineCap = "round"
+            lineJoin = "round"
+            select = "2"
 		/>
 
 		<object
@@ -830,8 +835,8 @@
 			title="Arrows Flip X" 
 			module="R" 
 			source="OUTPUT"
-			stroke_width = "7"
-			arrow="yes"
+			stroke_width = "5"
+			arrow="no"
             color = "red, green, blue, yellow"
             flip_x_axis = "yes"
 		/>
@@ -842,8 +847,8 @@
 			title="Arrows Flip Y" 
 			module="R" 
 			source="OUTPUT"
-			stroke_width = "7"
-			arrow="yes"
+			stroke_width = "1"
+			arrow = "yes"
             color = "red, green, blue, yellow"
             flip_y_axis = "yes"
 		/>
@@ -854,8 +859,10 @@
 			title="Arrows Flip X and Y" 
 			module="R" 
 			source="OUTPUT"
-			stroke_width = "7"
-			arrow="yes"
+			stroke_width = "1"
+			arrow = "no"
+            close = "yes"
+            fill = "rgba(255,255,255,0.5)"
             color = "red, green, blue, yellow"
             flip_x_axis = "yes"
             flip_y_axis = "yes"
