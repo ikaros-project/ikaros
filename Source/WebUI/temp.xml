@@ -1,49 +1,6 @@
-<group name="Group-0" title="InputVideoQT Test">
-
-    
-    <group outputsize_y="5" outputsize_x="5" class="Randomizer" name="R" description="generates random values">
-
-	<description type="text">
-		Module that outputs a random array each time step.
-		Can be one or two dimensional depending on whether
-		outputsize_x and outputsize_y or only outputsize is used
-		in the xml definition.
-	</description>
-
-	<example description="Example">
-		<module class="Randomizer" name="Randomizer" outputsize="10" min="0" max="1"/>
-	</example>
-
-	<parameter name="outputsize" type="int" description="Size of one dimensional output"/>
-	<parameter name="outputsize_x" type="int" description="Size of two dimensional output"/>
-	<parameter name="outputsize_y" type="int" description="Size of two dimensional output"/>
-	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0"/>
-	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1"/>
+<group name="Group-0" title="MarkerTracker Example">
 	
-	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
-
-	<module class="Randomizer"/>
-
-    <view title="Randomizer">
-        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Randomizer"/>
-    </view>
-    
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
-
-   <files>
-   		<file>Randomizer.h</file>
-   		<file>Randomizer.cc</file>
-   		<file>Randomizer.ikc</file>
-   </files>
-
-</group>
-
-    <group NOT_USED_device_id="0xfd500000046d0821" list_devices="yes" size_y="480" size_x="640" class="InputVideoQT" name="CAMERA" description="grabs images from QuickTime camera">
+		<group size_y="480" size_x="640" class="InputVideoQT" name="CAMERA" description="grabs images from QuickTime camera">
 
 	<description type="text">
 		Module used for grabbing images from a video source using QuickTime such
@@ -121,20 +78,72 @@
 
 </group>
 
-    <view name="Inputs">
-        <object class="Image" title="Color RGB" type="rgb" module="CAMERA" source="RED+GREEN+BLUE" x="0" y="0" w="4" h="3" min="0" max="1"/>
+        <_module class="InputJPEG" name="CAMERA" size_x="640" size_y="480" filename="/Users/cba/Desktop/Data/image%02d.jpg" filecount="55" period="1"/>
+    
+		<group use_history="yes" marker_size="0 999 90; 1000 9999 45" sort="yes" class="MarkerTracker" name="MarkerTracker" description="finds markers in an image">
+
+	<description type="text">
+		Module that finds markers with BCH codes in an image using ARToolKitPlus (https://launchpad.net/artoolkitplus).
         
-        <object x="0" y="0" w="4" h="3" class="CLines" title="CLines" module="R" source="OUTPUT" color="red, green, blue, yellow"/>
-    </view>
+        If parameter marker_size set the size of the markers in mm. If all markers have the same size, this should be as single value. If there are different size, this parameter should be a matrix where each line consists of three elements. The first two elements descibes the range while the third element describes the size for that range of ids.
+        
+        By default, the list of markers are sorted so that the most central marker appears first in the ouput. This can be changed by the sort parameter.
+        
+        The positions of ununsed elements in the output table are set to -1.
+	</description>
 
-    <view name="Inputs">
-        <object class="Image" title="RGB" type="rgb" module="CAMERA" source="RED+GREEN+BLUE" x="0" y="0" w="2" h="2" min="0" max="1"/>
-			
-        <object class="Image" title="Gray" type="gray" module="CAMERA" source="INTENSITY" x="2" y="0" w="2" h="2"/>
-    </view>
+	<example description="A simple example">
+		<module class="MarkerTracker" name="MarkerTracker"/>
+	</example>
 
-    <view name="Large">
-        <object class="Image" title="Camera" type="rgb" module="CAMERA+CAMERA+CAMERA" source="RED+GREEN+BLUE" x="0" y="0" w="3" h="2" min="0" max="1"/>
-    </view>
+	<example description="Example with different marker sizes">
+		<module class="MarkerTracker" name="MarkerTracker" marker_size="0 999 45; 1000 1999 90; 2000 2999 24"/>
+	</example>
+
+	<parameter name="max_markers" type="int" default="10" description="Maximum number of markers to detect"/>
+	<parameter name="marker_size" type="float" default="45" description="The size of the markers in mm; or id ranges and sizes"/>
+    
+	<parameter name="sort" type="bool" default="yes" description="Sort the markers in the output according to their distance from the center of the image"/>
+	<parameter name="use_history" type="bool" default="no" description="Use history to track the markers over time"/>
+	<parameter name="calibration" type="array" default="640 426 294.458 161.609 675.381 681.446 -0.160115  -0.067107  0.016423  -0.001641 0 0 10" description="Camera calibration. See ARTookKit documentation for an explanation of these parameters."/>
+
+	<input name="INPUT" description="The image input"/>
+    
+	<output name="MARKERS" description="Output table with detected markers: camera position (2), id (1), confidence (1), edges (8), transformation matrix (16)" size_x="28" size_param_y="max_markers"/>
+	<output name="MARKER_COUNT" description="The number of found markers" size="1"/>
+
+	<module class="MarkerTracker"/>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MarkerTracker.h</file>
+   		<file>MarkerTracker.cc</file>
+   		<file>MarkerTracker.ikc</file>
+        <file>libARToolKitPlus (from https://launchpad.net/artoolkitplus)</file>
+   </files>
+
+</group>
+
+		<connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="MarkerTracker" target="INPUT" delay="0"/>
+
+		<view name="Inputs">
+			<object class="Image" title="CAMERA" type="rgb" module="CAMERA" source="RED+GREEN+BLUE" x="0" y="0" w="6" h="5" min="0" max="1"/>
+
+			<object class="Path" module="MarkerTracker" source="MARKERS" length_source="MARKER_COUNT" x="0" y="0" w="6" h="5" min="0" max="1" select="4" count="4" close="yes" color="red" stroke_width="7" fill="rgba(255,0,0,0.25)" line_join="round"/>
+
+			<object class="Cross" module="MarkerTracker" source="MARKERS" size="0.03" stroke_width="1" x="0" y="0" w="6" h="5" min="0" max="1"/>
+
+        
+            <object class="Label" type="value" select="2" decimals="0" offset_x="0.05" offset_y="0.05" module="MarkerTracker" source="MARKERS" x="0" y="0" w="6" h="5"/>
+
+        
+            <object class="Table" module="MarkerTracker" source="MARKER_COUNT" title="No of markers" x="0" y="5" w="1" h="1" font_size="48" decimals="0"/>
+        </view>
 
 </group>
