@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<group title="SaliencePoints Example">
+	
+		<module
+			class = "Constant"
+			name = "Points"
+			outputsize_x  = "3"
+            outputsize_y  = "2"
+			data  = "0.5 0.5 1; 0.7 0.3 0.5"
+		/>
+
+		<module
+			class = "SaliencePoints"
+			name = "SaliencePoints"
+            size_x = "128"
+            size_Y = "128"
+            sigma = "10"
+            salience = "2"
+		/>
+		
+        <connection sourcemodule = "Points" source = "OUTPUT" targetmodule = "SaliencePoints" target = "INPUT" delay = "0" />
+
+		<view name="View">
+			<object class="Image" type="fire" module="SaliencePoints" source="OUTPUT" x="0" y="0" />
+		</view>
+
+</group>
+ 

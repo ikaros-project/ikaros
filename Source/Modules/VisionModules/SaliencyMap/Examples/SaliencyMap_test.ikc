@@ -38,7 +38,7 @@
 		<connection sourcemodule = "SobelH" source = "OUTPUT" targetmodule = "ATTN" target = "INPUT1" delay="0" />
 
 		<view name="Salience Map">
-			<object class= "Image" module="IN" source="INTENSITY" x="0" y="0" 
+			<object class= "Image" module="IN" type="gray" source="INTENSITY" x="0" y="0"
 				trace_module = "ATTN" trace_source="FOCUS" trace_width="1" />
 			<object class= "Trace" module = "ATTN" source="FOCUS" trace_width="1" x="0" y="0" frame="none"/>
 

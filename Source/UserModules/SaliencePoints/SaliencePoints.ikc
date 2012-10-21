@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="SaliencePoints" description="convert points to saliency map">
+
+	<description type="text">
+		A module that takes a list of image coordinates and concert it into a saliency map.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SaliencePoints"
+			name="SaliencePoints"
+		/>
+	</example>
+
+	<input name="INPUT" description="The matrix with rows containing coordinates (in the range 0-1) and (optionally) salience." />
+	<input name="COUNT" description="The number of rows containing saliency data." />
+
+    <output name="OUTPUT" description="Salience output." size_param_x="size_x" size_param_y="size_y" />
+
+    <parameter name="size_x" type="int" default="128" description="Size of output" />
+    <parameter name="size_y" type="int" default="128" description="Size of output" />
+
+    <parameter name="sigma" type="float" default="2.0" description="Width of gaussian salience region" />
+    <parameter name="scale" type="float" default="1.0" description="Saliency scaling factor" />
+    <parameter name="select" type="int" default="0" description="Column with the x coordinate; the next is assumed to contain y" />
+    <parameter name="salience" type="int" default="-1" description="Column with saliency value. -1 produces same saliency for all points" />
+
+	<module class="SaliencePoints" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MinimalModule.h</file>
+   		<file>MinimalModule.cc</file>
+   		<file>MinimalModule.ikc</file>
+   </files>
+
+</group>
+

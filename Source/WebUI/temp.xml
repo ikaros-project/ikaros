@@ -1,68 +1,29 @@
-<group name="Group-0" title="MarkerTracker Example">
+<group name="Group-0" title="SaliencePoints Example">
 	
-		<group size_y="480" size_x="640" class="InputVideoQT" name="CAMERA" description="grabs images from QuickTime camera">
+		<group data="0.5 0.5 1; 0.7 0.3 0.5" outputsize_y="2" outputsize_x="3" class="Constant" name="Points" description="outputs a constant value">
 
 	<description type="text">
-		Module used for grabbing images from a video source using QuickTime such
-		as iSight or a DV camera with FireWire. The module only works with OS X.
-        
-        If sizes are are set the module requests that the image be scaled to that size.
-
-		The module operates in asynchronous mode, which means that the image
-		retreived is the previous one. Ikaros continues to run while the next image is
-		transferred from the camera and the module gets it at the next tick. This can
-		appear confusing when Ikaros is single steped from the viewer.
-        
-        The mode parameter is used to determine whether to use preview mode or not.
-        The lag may be lower in preview but the image quiality can become lower.
-        See the QTKit documentation for details.
-        
-        By setting the device_id parameter. The module will receive input from that particular 
-        device. If the device_id is not set, the module will connect to the default device. The device id 
-        has the form " 0xa27000413a443-video" (note that it starts with a space).
-        The space may be a bug in OX X and it is recommended that the space is not included in the string 
-        since Ikaros will add it if it cannot open the device with the supplied name.
-        
-        The device_id for the found default device is printed when Ikaros is starting up. It can also
-        be found in the System Information application by looking up the GUID for the device and adding "-video"
-        to it.
+		Module that outputs a constant array or matrix each time step.
+		It can be one or two dimensional depending on whether outputsize_x and
+		outputsize_y or only outputsize is used in the ikc definition.
 	</description>
 
 	<example description="A simple example">
-		<module class="InputVideoQT" name="VideoSource" size_x="640" size_y="480"/>
+		<module class="Constant" name="Constant" outputsize="4" data="1 2 3 4"/>
 	</example>
 
-	<parameter name="size_x" type="int" description="Size of the grabbed frame" default="160"/>
-	<parameter name="size_y" type="int" description="Size of the grabbed frame" default="120"/>
-	<parameter name="flip" type="bool" description="Should the image be flipped" default="no"/>
-	<parameter name="mode" type="list" values="standard/preview" description="Capture mode. Preview may reduce lag but may also reduce image quality." default="standard"/>
-	<parameter name="device_id" type="string" description="Use a camera with a particular ID" default=""/>
-	<parameter name="list_devices" type="bool" description="List the device ids of available devices on start-up" default="no"/>
+	<example description="Matrix example">
+		<module class="Constant" name="MatrixConstant" outputsize_x="3" outputsize_y="3" data="1 2 3 2 3 4 3 4 5"/>
+	</example>
 
-	<output name="INTENSITY" description="The intensity of the image"/>
-	<output name="RED" description="The red channel of the image"/>
-	<output name="GREEN" description="The green channel of the image"/>
-	<output name="BLUE" description="The blue channel of the image"/>
+	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
 
-	<module class="InputVideoQT"/>
+	<module class="Constant"/>
 
-    <view name="Camera Image">
-        <object class="Image" title="RGB" type="rgb" source="RED+GREEN+BLUE" module="*" x="0" y="0" w="2" h="2"/>
+    <view title="Constant">
+        <object x="0" y="0" w="2" class="BarGraph" module="*" source="OUTPUT" title="Default view for Constant"/>
     </view>
-
-	<limitation>
-		It should be possible to run the module also in synchronous mode, where the
-		module would wait for each new frame before continuing.
-	</limitation>
-
-	<bug>
-		The code uses a temporary solution to work around that TIFFRepresentation is not thread safe.
-        This is actually a bug in Cocoa.
-	</bug>
-	
-	<created>2004</created>
-	<created>2011</created>
-
+    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -71,48 +32,37 @@
 	</author>
 
    <files>
-   		<file>InputVideoQT.h</file>
-   		<file>InputVideoQT.cc</file>
-   		<file>InputVideoQT.ikc</file>
+   		<file>Constant.h</file>
+   		<file>Constant.cc</file>
+   		<file>Constant.ikc</file>
    </files>
 
 </group>
 
-        <_module class="InputJPEG" name="CAMERA" size_x="640" size_y="480" filename="/Users/cba/Desktop/Data/image%02d.jpg" filecount="55" period="1"/>
-    
-		<group use_history="yes" marker_size="0 999 90; 1000 9999 45" sort="yes" class="MarkerTracker" name="MarkerTracker" description="finds markers in an image">
+		<group salience="2" sigma="10" size_Y="128" size_x="128" class="SaliencePoints" name="SaliencePoints" description="convert points to saliency map">
 
 	<description type="text">
-		Module that finds markers with BCH codes in an image using ARToolKitPlus (https://launchpad.net/artoolkitplus).
-        
-        If parameter marker_size set the size of the markers in mm. If all markers have the same size, this should be as single value. If there are different size, this parameter should be a matrix where each line consists of three elements. The first two elements descibes the range while the third element describes the size for that range of ids.
-        
-        By default, the list of markers are sorted so that the most central marker appears first in the ouput. This can be changed by the sort parameter.
-        
-        The positions of ununsed elements in the output table are set to -1.
+		A module that takes a list of image coordinates and concert it into a saliency map.
 	</description>
 
 	<example description="A simple example">
-		<module class="MarkerTracker" name="MarkerTracker"/>
+		<module class="SaliencePoints" name="SaliencePoints"/>
 	</example>
 
-	<example description="Example with different marker sizes">
-		<module class="MarkerTracker" name="MarkerTracker" marker_size="0 999 45; 1000 1999 90; 2000 2999 24"/>
-	</example>
+	<input name="INPUT" description="The matrix with rows containing coordinates (in the range 0-1) and (optionally) salience."/>
+	<input name="COUNT" description="The number of rows containing saliency data."/>
 
-	<parameter name="max_markers" type="int" default="10" description="Maximum number of markers to detect"/>
-	<parameter name="marker_size" type="float" default="45" description="The size of the markers in mm; or id ranges and sizes"/>
-    
-	<parameter name="sort" type="bool" default="yes" description="Sort the markers in the output according to their distance from the center of the image"/>
-	<parameter name="use_history" type="bool" default="no" description="Use history to track the markers over time"/>
-	<parameter name="calibration" type="array" default="640 426 294.458 161.609 675.381 681.446 -0.160115  -0.067107  0.016423  -0.001641 0 0 10" description="Camera calibration. See ARTookKit documentation for an explanation of these parameters."/>
+    <output name="OUTPUT" description="Salience output." size_param_x="size_x" size_param_y="size_y"/>
 
-	<input name="INPUT" description="The image input"/>
-    
-	<output name="MARKERS" description="Output table with detected markers: camera position (2), id (1), confidence (1), edges (8), transformation matrix (16)" size_x="28" size_param_y="max_markers"/>
-	<output name="MARKER_COUNT" description="The number of found markers" size="1"/>
+    <parameter name="size_x" type="int" default="128" description="Size of output"/>
+    <parameter name="size_y" type="int" default="128" description="Size of output"/>
 
-	<module class="MarkerTracker"/>
+    <parameter name="sigma" type="float" default="2.0" description="Width of gaussian salience region"/>
+    <parameter name="scale" type="float" default="1.0" description="Saliency scaling factor"/>
+    <parameter name="select" type="int" default="0" description="Column with the x coordinate; the next is assumed to contain y"/>
+    <parameter name="salience" type="int" default="-1" description="Column with saliency value. -1 produces same saliency for all points"/>
+
+	<module class="SaliencePoints"/>
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -122,28 +72,17 @@
 	</author>
 
    <files>
-   		<file>MarkerTracker.h</file>
-   		<file>MarkerTracker.cc</file>
-   		<file>MarkerTracker.ikc</file>
-        <file>libARToolKitPlus (from https://launchpad.net/artoolkitplus)</file>
+   		<file>MinimalModule.h</file>
+   		<file>MinimalModule.cc</file>
+   		<file>MinimalModule.ikc</file>
    </files>
 
 </group>
+		
+        <connection sourcemodule="Points" source="OUTPUT" targetmodule="SaliencePoints" target="INPUT" delay="0"/>
 
-		<connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="MarkerTracker" target="INPUT" delay="0"/>
-
-		<view name="Inputs">
-			<object class="Image" title="CAMERA" type="rgb" module="CAMERA" source="RED+GREEN+BLUE" x="0" y="0" w="6" h="5" min="0" max="1"/>
-
-			<object class="Path" module="MarkerTracker" source="MARKERS" length_source="MARKER_COUNT" x="0" y="0" w="6" h="5" min="0" max="1" select="4" count="4" close="yes" color="red" stroke_width="7" fill="rgba(255,0,0,0.25)" line_join="round"/>
-
-			<object class="Cross" module="MarkerTracker" source="MARKERS" size="0.03" stroke_width="1" x="0" y="0" w="6" h="5" min="0" max="1"/>
-
-        
-            <object class="Label" type="value" select="2" decimals="0" offset_x="0.05" offset_y="0.05" module="MarkerTracker" source="MARKERS" x="0" y="0" w="6" h="5"/>
-
-        
-            <object class="Table" module="MarkerTracker" source="MARKER_COUNT" title="No of markers" x="0" y="5" w="1" h="1" font_size="48" decimals="0"/>
-        </view>
+		<view name="View">
+			<object class="Image" type="fire" module="SaliencePoints" source="OUTPUT" x="0" y="0"/>
+		</view>
 
 </group>
