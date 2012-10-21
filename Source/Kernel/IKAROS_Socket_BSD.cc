@@ -537,7 +537,7 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
     else if(strend(filename, ".xml"))
 		h->Set("Content-Type", "text/xml");
     else if(strend(filename, ".ico"))
-		h->Set("Content-Type", "image/ico");	// TODO: Check this
+		h->Set("Content-Type", "image/vnd.microsoft.icon");	// use incorrect type image/ico before
 	
     SendHTTPHeader(h);
 	
