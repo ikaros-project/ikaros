@@ -20,6 +20,7 @@
 	<parameter name="size_x" type="int" default="original movie size" description="Size to scale the movie to" />
 	<parameter name="size_y" type="int" default="original movie size" description="Size to scale the movie to" />
 	<parameter name="loop" type="bool" default="no" description="Loop playback" />
+	<parameter name="info" type="bool" default="no" description="Printing information about the video stream" />
 
     <output name="RED" description="The red channel." />
 	<output name="GREEN" description="The green channel." />

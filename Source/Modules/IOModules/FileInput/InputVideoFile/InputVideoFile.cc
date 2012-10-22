@@ -40,6 +40,8 @@ Module(p)
     
     loop = GetBoolValue("loop", false);
     
+    printInfo = GetBoolValue("info", false);
+
     // Register all formats and codecs
     av_register_all();
     
@@ -58,7 +60,8 @@ Module(p)
     }
     
     /// Dump information about file onto standard error
-    //av_dump_format(pFormatCtx, 0, filename, 0);
+    if (printInfo)
+        av_dump_format(pFormatCtx, 0, filename, 0);
     
     /// Find the first video stream
     videoStreamIdx=-1;

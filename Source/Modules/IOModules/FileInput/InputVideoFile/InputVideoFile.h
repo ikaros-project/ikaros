@@ -57,6 +57,7 @@ public:
     float *			blue;
     float *         restart;
     bool            loop;
+    bool            printInfo;
     
     // FFMpeg related 
     AVFormatContext *pFormatCtx;
