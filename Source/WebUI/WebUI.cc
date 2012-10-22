@@ -1489,6 +1489,8 @@ WebUI::SendXML()
     fclose(f);
     
     socket->SendFile("temp.xml");
+    
+    remove("temp.xml");
 //    socket->Close();
 }
 
