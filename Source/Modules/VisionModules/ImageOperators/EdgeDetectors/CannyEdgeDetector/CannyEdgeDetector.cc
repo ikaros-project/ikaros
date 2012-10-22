@@ -220,6 +220,6 @@ CannyEdgeDetector::Tick()
             }
 }
 
-static InitClass init("CannyEdgeDetector", &CannyEdgeDetector::Create, "Source/Modules/VisionModules/ImageOperators/EdgeDetector/CannyEdgeDetector/");
+static InitClass init("CannyEdgeDetector", &CannyEdgeDetector::Create, "Source/Modules/VisionModules/ImageOperators/EdgeDetectors/CannyEdgeDetector/");
 
 
