@@ -334,7 +334,7 @@ MarkerTracker::Init()
 
     tracker->setBorderWidth(useBCH ? 0.125 : 0.25);
     tracker->activateAutoThreshold(auto_threshold);
-    tracker->setUndistortionMode(ARToolKitPlus::UNDIST_LUT);
+    tracker->setUndistortionMode(ARToolKitPlus::UNDIST_LUT); // ARToolKitPlus::UNDIST_LUT, UNDIST_NONE
     tracker->setMarkerMode(useBCH ? ARToolKitPlus::MARKER_ID_BCH : ARToolKitPlus::MARKER_ID_SIMPLE);
     
     buffer = new unsigned char [size_x*size_y];
@@ -377,8 +377,9 @@ MarkerTracker::Tick()
             copy_matrix(m, tracker->marker_matrix[j], 4, 4);
             destroy_matrix_view(m);
             
-            markers[ix][marker_pos_x] = tracker->marker_info[j].pos[0]/size_x;
-            markers[ix][marker_pos_y] = tracker->marker_info[j].pos[1]/size_y;
+            markers[ix][marker_pos_x] = tracker->marker_info[j].pos[0]/float(size_x);
+            markers[ix][marker_pos_y] = tracker->marker_info[j].pos[1]/float(size_y);
+            
             markers[ix][marker_id] = float(tracker->marker_info[j].id);
             markers[ix][marker_confidence] = tracker->marker_info[j].cf;
             
@@ -387,8 +388,9 @@ MarkerTracker::Tick()
             {
                 float x, y;
                 tracker->GetCorner(j, l, x, y);
-                markers[ix][p++] = x/size_x;
-                markers[ix][p++] = y/size_y;
+
+                markers[ix][p++] = x/float(size_x);
+                markers[ix][p++] = y/float(size_y);
             }
             
             ix++;
