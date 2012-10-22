@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<group name="MarkerTracker" description="finds markers in an image">
+
+	<description type="text">
+		Module that finds markers with BCH codes in an image using ARToolKitPlus (https://launchpad.net/artoolkitplus).
+        
+        The parameter marker_size sets the sizes of the markers in mm. If all markers have the same size, this should be as single value. If there are different sizes, this parameter should be a matrix where each line consists of three elements. The first two elements descibe a range if id:s and the third element describes the size for that range of id:s. For example, a line like "0 10 25" would indicate that markers with id:s 0-10 have the size 25 mm.
+        
+        By default, the list of markers are sorted so that the most central marker appears first in the ouput. This can be changed by the sort parameter.
+        
+        The positions of all ununsed elements in the output table are set to -1.
+        
+        When the parameter threshold is set to "auto", the same input can give different results depending on to what value the threshold has been adjusted.
+        When use_history is on, the tracker uses the positions of the markers in the previous frame to search in the current frame. The result is more stable but less accurate.
+        
+        When camera calibration is used, the edges in the MARKERS output are corrected for distorsion and no longer correpond to image coordinates.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MarkerTracker"
+			name="MarkerTracker"
+		/>
+	</example>
+
+	<example description="Example with different marker sizes">
+		<module
+			class="MarkerTracker"
+			name="MarkerTracker"
+            marker_size="0 999 45; 1000 1999 90; 2000 2999 24"
+		/>
+	</example>
+
+	<parameter name="max_markers" type="int" default="10" description="Maximum number of markers to detect" />
+	<parameter name="marker_size" type="float" default="45" description="The size of the markers in mm; or id ranges and sizes" />
+    
+	<parameter name="sort" type="bool" default="yes" description="Sort the markers in the output according to their distance from the center of the image" />
+	<parameter name="use_history" type="bool" default="no" description="Use history to track the markers over time" />
+	<parameter name="threshold" type="float" default="auto" description="The initial threshold (Number between 0.0-1.0 or auto)" />
+	<parameter name="calibration" type="array" default="640 426 294.458 161.609 675.381 681.446 -0.160115  -0.067107  0.016423  -0.001641 0 0 10" description="Camera calibration. See ARTookKit documentation for an explanation of these parameters. These values must be valid for the camera used to produce correct results." />
+
+	<input name="INPUT" description="The image input" />
+    
+	<output name="MARKERS" description="Output table where each row descibes a detected marker: camera position (2 columns), id (1 column), confidence (1 columns), edges (8 columns), transformation matrix (16 columns)" size_x="28" size_param_y="max_markers" />
+	<output name="MARKER_COUNT" description="The number of found markers" size="1" />
+
+	<module class="MarkerTracker" />
+
+    <limitation>
+        The edges should be projected back into the input image to allow the to be drawn at the correct location in the image.
+    </limitation>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MarkerTracker.h</file>
+   		<file>MarkerTracker.cc</file>
+   		<file>MarkerTracker.ikc</file>
+        <file>libARToolKitPlus (from https://launchpad.net/artoolkitplus)</file>
+   </files>
+
+</group>
+
