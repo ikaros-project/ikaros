@@ -106,7 +106,6 @@ function WebUIObject(obj, p, title)
     
     obj.module = p.module;
 	obj.source = p.source;
-	obj.type = p.type;
 	obj.width = p.width;
 	obj.height = p.height;
     
@@ -156,7 +155,6 @@ function WebUICanvas(obj, p)
     
     obj.module = p.module;
 	obj.source = p.source;
-	obj.type = p.type;
 	obj.width = p.width;
 	obj.height = p.height;
     

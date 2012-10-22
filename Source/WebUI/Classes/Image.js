@@ -3,6 +3,7 @@ function Image(p)
     this.oversampling = (p.oversampling ? p.oversampling : (p.file ? 4 : 1));
     this.obj = 	new WebUICanvas(this, p);
     this.file = p.file;
+    this.type = (p.type ? p.type : "gray");
 
     this.imageObj = document.createElement("image");
  
