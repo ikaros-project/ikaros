@@ -2,28 +2,52 @@
 
 <group title="SaliencePoints Example">
 	
-		<module
-			class = "Constant"
-			name = "Points"
-			outputsize_x  = "3"
-            outputsize_y  = "2"
-			data  = "0.5 0.5 1; 0.7 0.3 0.5"
-		/>
+    <module
+        class = "Constant"
+        name = "Points"
+        outputsize_x  = "3"
+        outputsize_y  = "2"
+        data  = "0.5 0.5 1; 0.7 0.3 0.5"
+    />
 
-		<module
-			class = "SaliencePoints"
-			name = "SaliencePoints"
-            size_x = "128"
-            size_Y = "128"
-            sigma = "10"
-            salience = "2"
-		/>
+    <module
+        class   = "InputJPEG"
+        name	= "CAMERA"
+        size_x  = "640"
+        size_y  =  "480"
+        filename = "../../../../Examples/Media/marker_image.jpg"
+    />
+    
+    <module
+        class   = "MarkerTracker"
+        name	= "MarkerTracker"
+        description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
+        calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
+        sort    = "yes"
+        marker_size = "0 999 90; 1000 9999 45"
+        use_history = "no"
+        threshold = "0.5"
+    />
+    
+    <module
+        class = "SaliencePoints"
+        name = "SaliencePoints"
+        size_x = "640"
+        size_Y = "480"
+        sigma = "17"
+        scale = "0.5"
+    />
 		
-        <connection sourcemodule = "Points" source = "OUTPUT" targetmodule = "SaliencePoints" target = "INPUT" delay = "0" />
+    <connection sourcemodule = "CAMERA" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
+    <connection sourcemodule = "MarkerTracker" source = "MARKERS" targetmodule = "SaliencePoints" target = "INPUT" delay = "0" />
+    <connection sourcemodule = "MarkerTracker" source = "MARKER_COUNT" targetmodule = "SaliencePoints" target = "COUNT" delay = "0" />
 
-		<view name="View">
-			<object class="Image" type="fire" module="SaliencePoints" source="OUTPUT" x="0" y="0" />
-		</view>
+    <view name="View" object_size="30">
+        <object class="Image" title="Input Image" type="gray" module="CAMERA" source="INTENSITY" x="0" y="0" w="8" h="6" />
+        <object class="Image" title="Salience" type="fire" module="SaliencePoints" source="OUTPUT" x="0" y="6" w="8" h="6" />
+        <object class="Slider" module="SaliencePoints" title="scale" parameter="scale" max="2" x="8" y="6" w="1" h="6" />
+        <object class="Slider" module="SaliencePoints" parameter="sigma" title="sigma" max="30" x="9" y="6" w="1" h="6" />
+    </view>
 
 </group>
  
