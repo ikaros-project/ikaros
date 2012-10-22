@@ -32,7 +32,7 @@ public:
     float sigma;
     float scale;
     int   select;
-    int   salience;
+    int   select_salience;
 
     float ** input;
     float * count;

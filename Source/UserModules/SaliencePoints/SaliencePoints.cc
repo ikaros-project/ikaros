@@ -30,8 +30,12 @@ SaliencePoints::Init()
 {
     Bind(sigma, "sigma");
     Bind(scale, "scale");
-    Bind(select, "select");
-    Bind(salience, "salience");
+    
+    select = GetFloatValue("select");
+    if(equal_strings(GetValue("select_salience"),"none"))
+        select_salience = -1;
+    else
+        select_salience = GetIntValue("select_salience");
     
     count = GetInputArray("COUNT", false);
     input = GetInputMatrix("INPUT");
@@ -58,13 +62,12 @@ SaliencePoints::Tick()
     {
         float x = input[p][select]*float(size_x);
         float y = input[p][select+1]*float(size_y);
-        float s = (salience == -1 ? scale : scale * input[p][salience]);
+        float s = (select_salience == -1 ? scale : scale * input[p][select_salience]);
         
         for (int j=0; j<size_y; j++)
 			for (int i=0; i<size_x; i++)
 				output[j][i] += s * gaussian1(hypot(x-float(i), y-float(j)), sigma);
     }
-        
 }
 
 

@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
 
-<group name="SaliencePoints" description="convert points to saliency map">
+<group name="SaliencePoints" description="converts points to a saliency map">
 
 	<description type="text">
-		A module that takes a list of image coordinates and concert it into a saliency map.
+		The module SaliencePoints takes a list of image coordinates and convert it into a saliency map that is suitable as input to the SaliencyMap module. The list must be coded as rows with (x,y)-values. The column with the coordinates can be set using the select parameter. A column with saliency values can optionally be selected using the select_salience parameter. If the COUNT input is connected it indicates the number of rows in the input to use.
 	</description>
 
 	<example description="A simple example">
 		<module
 			class="SaliencePoints"
 			name="SaliencePoints"
+            select = "0"
+            sigma = "20"
 		/>
 	</example>
 
@@ -24,7 +26,7 @@
     <parameter name="sigma" type="float" default="2.0" description="Width of gaussian salience region" />
     <parameter name="scale" type="float" default="1.0" description="Saliency scaling factor" />
     <parameter name="select" type="int" default="0" description="Column with the x coordinate; the next is assumed to contain y" />
-    <parameter name="salience" type="int" default="-1" description="Column with saliency value. -1 produces same saliency for all points" />
+    <parameter name="select_salience" type="int" default="none" description="Column with saliency value. none produces same saliency for all points" />
 
 	<module class="SaliencePoints" />
 
