@@ -7,9 +7,6 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 # Project name
 project(ikaros)
 
-set_property(GLOBAL PROPERTY BIRGER)
-
-
 # Checking OS
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
@@ -50,11 +47,16 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_definitions(-DWIN32)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
+set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+
 # Set Ikaros root path 
 set(IKAROS_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
 # Set binary path
 set(EXECUTABLE_OUTPUT_PATH ${IKAROS_SOURCE_DIR}/Bin)
+
+# Setting module path (where ffmpeg etc. should be)
+SET(CMAKE_MODULE_PATH ${IKAROS_SOURCE_DIR}/Scripts/CMake)
 
 # Include the source directory
 INCLUDE_DIRECTORIES(Source/)
