@@ -40,6 +40,10 @@
 
 	<module class="InputJPEG" />
     
+    <view name="View">
+        <object class="Image" title="Image" type="rgb" module="*" source="RED+GREEN+BLUE" x="0" y="0" w="2" h="2" />
+    </view>
+
 	<limitation>
 		The module  calculates the intensity as the average of the R, G, and B channels incorrectly.
 	</limitation>

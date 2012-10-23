@@ -3,19 +3,19 @@
 <group title="SaliencePoints Example">
 	
     <module
+        class   = "InputJPEG"
+        name	= "CAMERA"
+        size_x  = "640"
+        size_y  =  "480"
+        filename = "../../../../../Examples/Media/marker_image.jpg"
+    />
+    
+    <module
         class = "Constant"
         name = "Points"
         outputsize_x  = "3"
         outputsize_y  = "2"
         data  = "0.5 0.5 1; 0.7 0.3 0.5"
-    />
-
-    <module
-        class   = "InputJPEG"
-        name	= "CAMERA"
-        size_x  = "640"
-        size_y  =  "480"
-        filename = "../../../../Examples/Media/marker_image.jpg"
     />
     
     <module
@@ -33,7 +33,7 @@
         class = "SaliencePoints"
         name = "SaliencePoints"
         size_x = "640"
-        size_Y = "480"
+        size_y = "480"
         sigma = "17"
         scale = "0.5"
     />
@@ -46,7 +46,7 @@
         <object class="Image" title="Input Image" type="gray" module="CAMERA" source="INTENSITY" x="0" y="0" w="8" h="6" />
         <object class="Image" title="Salience" type="fire" module="SaliencePoints" source="OUTPUT" x="0" y="6" w="8" h="6" />
         <object class="Slider" module="SaliencePoints" title="scale" parameter="scale" max="2" x="8" y="6" w="1" h="6" />
-        <object class="Slider" module="SaliencePoints" parameter="sigma" title="sigma" max="30" x="9" y="6" w="1" h="6" />
+        <object class="Slider" module="SaliencePoints" parameter="sigma" title="sigma" max="100" x="9" y="6" w="1" h="6" />
     </view>
 
 </group>

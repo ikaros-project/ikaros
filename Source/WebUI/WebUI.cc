@@ -479,9 +479,6 @@ WebUI::AddDataSource(const char * module, const char * source)
 void
 WebUI::AddImageDataSource(const char * module, const char * source, const char * type) // FIXME: Clean up ugly code
 {
-    if(debug_mode)
-        printf("Adding image data source: %s.%s [%s]\n", module, source, type);
-
     Module * m;
     
     Module_IO * io;
@@ -1658,8 +1655,8 @@ WebUI::SendInspector()
     socket->Send("<head profile=\"http://www.w3.org/2005/11/profile\">\n");
     socket->Send("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
     socket->Send("<title>Modules</title>\n");
-    socket->Send("<link rel='stylesheet' type='text/css' href='Inspector/inspector.css' />\n");
-    socket->Send("<script src='Inspector/inspector.js'></script>");
+    socket->Send("<link rel='stylesheet' type='text/css' href='/Inspector/inspector.css' />\n");
+    socket->Send("<script src='/Inspector/inspector.js'></script>");
     socket->Send("</head>\n");
     socket->Send("<body>\n");
     
