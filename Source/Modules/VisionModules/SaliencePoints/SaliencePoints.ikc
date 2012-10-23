@@ -30,6 +30,12 @@
 
 	<module class="SaliencePoints" />
 
+    <view name="View" object_size="30">
+        <object class="Image" title="Salience" type="fire" module="*" source="OUTPUT" x="0" y="0" w="8" h="6" />
+        <object class="Slider" module="*" title="scale" parameter="scale" max="2" x="8" y="0" w="1" h="6" />
+        <object class="Slider" module="*" parameter="sigma" title="sigma" max="30" x="9" y="0" w="1" h="6" />
+    </view>
+    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
