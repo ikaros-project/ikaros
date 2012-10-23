@@ -72,6 +72,6 @@ SaliencePoints::Tick()
 
 
 
-static InitClass init("SaliencePoints", &SaliencePoints::Create, "Source/UserModules/SaliencePoints/");
+static InitClass init("SaliencePoints", &SaliencePoints::Create, "Source/Modules/VisionModules/SaliencePoints/");
 
 
