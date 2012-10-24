@@ -25,5 +25,5 @@ if(YARP_FOUND AND ACE_FOUND)
     ) 
 
 else()
-	MESSAGE( STATUS "IKAROS BUILD: YARP or ACE is not found. YARPPort module is not included into the build." )
+	message(STATUS "Ikaros: YARP or ACE is not found. YARPPort module is not included into the build." )
 endif(YARP_FOUND AND ACE_FOUND)
