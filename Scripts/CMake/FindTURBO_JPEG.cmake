@@ -35,8 +35,7 @@
     	)
     endif(TURBO_JPEG_FOUND)
     
-    if (TURBO_JPEG_FOUND)
-    	message(STATUS "Found TurboJPEG: ${TURBO_JPEG_LIBRARIES}")
-  	else (TURBO_JPEG_FOUND)
+    # Find_library will find both turbo jpeg and ordinary jpeg
+    if (NOT TURBO_JPEG_FOUND)
     	message(STATUS "Could not find TurboJPEG")
-  	endif (TURBO_JPEG_FOUND)
+  	endif ()
