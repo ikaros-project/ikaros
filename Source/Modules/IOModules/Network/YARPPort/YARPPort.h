@@ -30,7 +30,11 @@
 #include "IKAROS.h"
 
 // YARP
-#include "yarp/os/all.h"
+
+//#include "yarp/os/all.h"
+#include "yarp/os/BufferedPort.h"
+
+
 #include "yarp/os/PortablePair.h"
 #include "yarp/sig/Vector.h"
 
