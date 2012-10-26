@@ -7,6 +7,8 @@
         Non-standard drivers are necessary for the Xtion.
         
         In raw-mode, the DEPTH ouput is in the range 0-1, where a lower value means that a detected object is closer to the connect. A value of 1 indicates that no object is detected or maximum distance. In mm-mode, the DEPTH output is the distance in mm to any detected object.
+        
+        There is one input to tilt the Kiect sensor and onte to set the color or the LED.
     </description>
 
 	<example description="A simple example">
@@ -19,7 +21,7 @@
 	<input name="TILT" description="The tilt of the Kinect (0-1)"/>
 	<input name="LED" description="The color of the LED. Values in the range 0-1 produces: black (0-0.25), red (0.25-0.5), yellow (0.5-0.75), green (0.75-1.0)." />
 
-	<output name="DEPTH" description="The depth of the image" size_x="640" size_y="480" />
+	<output name="DEPTH" description="The depth image" size_x="640" size_y="480" />
 	<output name="INTENSITY" description="The gray image" size_x="640" size_y="480" />
 	<output name="RED" description="The red channel of the image" size_x="640" size_y="480" />
 	<output name="GREEN" description="The green channel of the image" size_x="640" size_y="480" />
@@ -30,7 +32,7 @@
 	<module class="Kinect" />
 
     <limitation>
-        Only supports a simgle Kinect.
+        Only supports a single Kinect.
     </limitation>
     
 	<created>2012</created>
