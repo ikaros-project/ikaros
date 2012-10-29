@@ -166,7 +166,7 @@ DynamixelConfigure::PrintChange(int i)
         // Print changes for a single servo.
         printf("\nDYNAMIXEL:");
         printf("\n\nCONTROL TABLE Change (ID:%i): ", servo[i]->GetID());
-
+        
         if (set_id_change)
             printf("%-28s %8.0f ----> %4i","\nID:",servo[i]->GetIDFormated(), set_id);
         
@@ -215,28 +215,28 @@ DynamixelConfigure::PrintChange(int i)
         if (set_d_gain_change)
         {
             printf("%-28s","\nD Gain:  ");
-        if (servo[i]->GetDGainFormated() == -1)
-            printf("%8s"		, "NA");
-        else
-            printf("%8.0f ----> %4i"		, servo[i]->GetDGainFormated(), set_d_gain);
+            if (servo[i]->GetDGainFormated() == -1)
+                printf("%8s"		, "NA");
+            else
+                printf("%8.0f ----> %4i"		, servo[i]->GetDGainFormated(), set_d_gain);
         }
         
         if (set_i_gain_change)
         {
             printf("%-28s","\nI Gain:  ");
-        if (servo[i]->GetIGainFormated() == -1)
-            printf("%8s"		, "NA");
-        else
-            printf("%8.0f ----> %4i"		, servo[i]->GetIGainFormated(), set_i_gain);
+            if (servo[i]->GetIGainFormated() == -1)
+                printf("%8s"		, "NA");
+            else
+                printf("%8.0f ----> %4i"		, servo[i]->GetIGainFormated(), set_i_gain);
         }
         
         if (set_p_gain_change)
         {
             printf("%-28s","\nP Gain: ");
-        if (servo[i]->GetPGainFormated() == -1)
-            printf("%8s"			, "NA");
-        else
-            printf("%8.0f ----> %4i"		, servo[i]->GetPGainFormated(), set_p_gain);
+            if (servo[i]->GetPGainFormated() == -1)
+                printf("%8s"			, "NA");
+            else
+                printf("%8.0f ----> %4i"		, servo[i]->GetPGainFormated(), set_p_gain);
         }
         
         if (set_goal_position_change)
@@ -421,7 +421,7 @@ DynamixelConfigure::Tick()
             else
                 servo[i]->SetCWAngleLimitFormated(servo[i]->GetCWAngleLimitFormated(angle_unit),angle_unit);
             
-            if (set_ccw_angle_limit_change)                
+            if (set_ccw_angle_limit_change)
                 servo[i]->SetCCWAngleLimitFormated(set_ccw_angle_limit, angle_unit);
             else
                 servo[i]->SetCCWAngleLimitFormated(servo[i]->GetCCWAngleLimitFormated(angle_unit),angle_unit);

@@ -95,10 +95,10 @@
 class DynamixelComm : public Serial
 {
 public:
-
+    
     DynamixelComm(const char * device_name, unsigned long baud_rate);
     ~DynamixelComm();
-
+    
     unsigned char   CalculateChecksum(unsigned char * b);
     
     // Misc
@@ -113,10 +113,10 @@ public:
     
     // Read memory block
     bool            ReadMemoryRange(int id, unsigned char * buffer, int fromAddress, int toAddress);
-
+    
     // Sync write memory block
     void            SyncWriteWithIdRange(int * servo_id,  unsigned  char ** DynamixelMemoeries, int from, int to, int n);
-
+    
     // create a sentStore;
     unsigned char ** sentStore;
     

@@ -805,8 +805,8 @@ bool DynamixelServo::SetMovingSpeedFormated(float value)
             printf("DynamixelServo (SetMovingSpeedFormated): %f Value is invalid...\n", value);
             return false;
         }
-            return SetMovingSpeed(int(value * float(GetModelSpeedMax())));
-        }
+        return SetMovingSpeed(int(value * float(GetModelSpeedMax())));
+    }
 };
 bool DynamixelServo::SetTorqueLimitFormated(float value)
 {
@@ -1168,7 +1168,9 @@ float DynamixelServo::GetMovingSpeedFormated()
 {
     // If joint mode
     if (atoi(controlTable.Get("Joint Mode")) == 1)
+    {
         return float(GetMovingSpeed())/float(GetModelSpeedMax());
+    }
     else
         if (GetPresentSpeed() > 1023) // CCW
             return float(-GetMovingSpeed())/float(GetModelSpeedMax());
@@ -1195,14 +1197,13 @@ float DynamixelServo::GetPresentPositionFormated(int angle_unit)
 }
 float DynamixelServo::GetPresentSpeedFormated()
 {
-    // If joint mode
-    if (atoi(controlTable.Get("Joint Mode")) == 1)
+    
+    if (GetPresentSpeed() > 1023) // CCW
+        return float(GetModelSpeedMax()-GetPresentSpeed())/float(GetModelSpeedMax());
+    else // CW
         return float(GetPresentSpeed())/float(GetModelSpeedMax());
-    else
-        if (GetPresentSpeed() > 1023) // CCW
-            return float(-GetPresentSpeed())/float(GetModelSpeedMax());
-        else // CW
-            return float(GetPresentSpeed())/float(GetModelSpeedMax());
+    
+    
 }
 float DynamixelServo::GetPresentLoadFormated()
 {
