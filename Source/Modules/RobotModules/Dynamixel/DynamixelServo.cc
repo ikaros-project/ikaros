@@ -49,7 +49,9 @@ DynamixelServo::DynamixelServo(DynamixelComm *com, int id)
 }
 
 DynamixelServo::~DynamixelServo()
-{}
+{
+    delete DynamixelMemory;
+}
 
 // MARK: SET
 

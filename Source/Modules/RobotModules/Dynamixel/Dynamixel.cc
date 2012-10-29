@@ -644,13 +644,10 @@ Dynamixel::~Dynamixel()
     }
 #endif
     
-    // Free memory
-    delete servo_id;
-    
-    // delete dynamixel memory buffert
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            delete DynamixelMemoeries[i];
+    // Delete dynamixel memory buffert
+    //for(int i=0; i<size; i++)
+    //    if(servo[i])
+    //        delete DynamixelMemoeries[i];
     delete DynamixelMemoeries;
     
     if (allocated_torqueEnable)
@@ -669,6 +666,12 @@ Dynamixel::~Dynamixel()
         destroy_array(movingSpeed);
     if (allocated_torqueLimit)
         destroy_array(torqueLimit);
+    
+    // Free memory
+    delete servo_index;
+    delete servo_id;
+    delete com; 
+    delete servo; // Also delete servo's memorybuffer
 }
 
 void
