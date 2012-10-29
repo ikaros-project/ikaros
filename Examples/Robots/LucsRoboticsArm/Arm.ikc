@@ -1,0 +1,305 @@
+<?xml version = "1.0"?>
+
+<group title = "Robot Arm Example">
+	
+    <description>
+		This is an example file for using the LUCS MAMN10 Robot arm in ikaros.
+    </description>
+    
+    <!-- Servo part -->
+    <module
+    	class		 = "Dynamixel"
+		name		 = "Dynamixel"
+        device   	 = "/dev/cu.usbserial-A8006Esq"
+		_device		 = "/dev/ttyUSB0"
+		index_mode 	 = "indirect"
+		servo_id	 = "1 2 3"
+		angle_unit 	 = "degrees"
+	/>
+    
+	<!-- Modules to generate a moving behaviour -->
+    <module
+		class		=	"FunctionGenerator"
+		name		=	"GoalPosition1"
+		type		=	"sin"
+		frequency	=	"0.0314"
+		offset      =	"180"
+		amplitude	=	"90"
+		shift		=	"0.0"
+	/>
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"GoalPosition2"
+		type		=	"sin"
+		frequency	=	"0.00314"
+		offset      =	"150"
+		amplitude	=	"20"
+		shift		=	"0.0"
+	/>
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"GoalPosition3"
+		type		=	"sin"
+		frequency	=	"0.0314"
+		offset      =	"180"
+		amplitude	=	"45"
+		shift		=	"0.0"
+	/>
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Speed1"
+		type		=	"sin"
+		frequency	=	"0.0314"
+		offset      =	"0.5"
+		amplitude	=	"0.5"
+		shift		=	"0.0"
+	/>
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Speed2"
+		type		=	"sin"
+		frequency	=	"0.00314"
+		offset      =	"0.5"
+		amplitude	=	"0.5"
+		shift		=	"0.0"
+	/>
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Speed3"
+		type		=	"sin"
+		frequency	=	"0.0314"
+		offset      =	"0.5"
+		amplitude	=	"0.5"
+		shift		=	"0.0"
+	/>
+
+	<!-- Order is important -->
+	<connection sourcemodule  = "GoalPosition3" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
+	<connection sourcemodule  = "GoalPosition2" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
+	<connection sourcemodule  = "GoalPosition1" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
+
+	<connection sourcemodule  = "Speed3" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	<connection sourcemodule  = "Speed2" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	<connection sourcemodule  = "Speed1" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	
+	
+	<!-- Kinnect part -->	
+
+	<module
+		class 	 = "Kinect"
+		name 	 = "KINECT"
+		mode     = "mm"
+     />
+    <connection sourcemodule="KINECT" source="DEPTH" targetmodule="Scale" target="INPUT" />
+
+    <module
+        class 			= "Scale"
+        name 			= "Scale"
+        factor          = "0.00048851978505"
+        comment         = "This module could be removed if Image-object allowed scaling."
+    />
+    
+	<!-- FaceDet part -->
+	 <module
+		class	 = "MPIFaceDetector"
+		name 	 = "FaceDetector"
+    />
+        
+    <connection sourcemodule  = "KINECT" source  = "INTENSITY" targetmodule  = "FaceDetector" target  = "INPUT" />
+
+	<!-- Artoolkit -->
+		<_module
+			class   = "MarkerTracker"
+			name	= "MarkerTracker"
+            _description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
+            calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
+            sort    = "yes"
+            marker_size = "0 999 90; 1000 9999 45"
+            use_history = "no"
+            threshold = "0.5"
+		/>
+
+	<_connection sourcemodule = "KINECT" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
+
+	
+        
+	<view name = "Lucs Robotic Arm" object_size = "50" >
+    	<!-- Dynamixel objects -->
+        
+        <object
+            class	 = "BarGraph"
+            title	 = "Actual Positions"
+            module	 = "Dynamixel"
+            source 	 = "FEEDBACK_PRESENT_POSITION"
+            x = "2" 	y = "0"
+            w = "2" 	h = "2" 
+            color = "black, black, black"                        
+            fill = "red, green, blue"
+            max = "360"
+            
+        />
+        <object
+            class	 = "Plot"
+            title	 = "Speed"
+            module 	 = "Dynamixel"
+            source 	 = "FEEDBACK_PRESENT_SPEED"
+            x = "4" 	y = "0"
+            w = "2" 	h = "2" 
+            color 	 = "red, green, blue"
+            select	 = "0,1,2"
+        	max = "1"
+        
+        />
+        
+
+        <object
+            class = "BarGraph"
+            title = "Temperature (C)"
+            module  = "Dynamixel"
+            source  = "FEEDBACK_PRESENT_TEMPERATURE"
+            x = "2" y = "4"
+            w = "2" h = "2" 
+            color = "black, black, black"                        
+            fill = "red, green, blue"
+            max = "100"
+        />
+        
+        <object 
+        	class = "Image" 
+        	title = " " 
+        	dragarea = "no" 
+        	type = "file" 
+        	file = "Arm.jpg" 
+        	x = "2" y = "6"
+        	w = "4" h  = "4" 
+    	/>
+        	 
+
+		<!-- Face detection -->		
+		<object
+			class    = "Image"
+            title    = "Kinect camera"
+			type	 = "rgb"
+			module   = "KINECT"
+			source   = "RED+GREEN+BLUE"
+			x = "6" y = "0"
+			w = "6" h = "5"
+		/>
+
+		<object
+            class	 = "Circle"
+            color	 = "red"
+			size	 = "0.025"
+			module	 = "FaceDetector"
+            source	 = "FACES"
+			x = "6" y = "0"
+			w = "6" h = "5"
+		/>
+            
+		<object
+        	class    = "Cross"
+            size     = "0.05"
+            module   = "FaceDetector"
+            source   = "FACE_POSITION"
+			x = "6" y = "0"
+			w = "6" h = "5"
+			/>
+			
+		<object
+        	class    = "Image"
+			title    = "Left Eye"
+			type	 = "gray"
+			module   = "FaceDetector"
+			source   = "EYE_LEFT"
+			x = "10" y = "5"
+			w = "2" h = "2"
+			min  = "0"
+			max  = "1"
+		/>
+		
+		<object
+			class    = "Image"
+			title    = "Right Eye"
+			type	 = "gray"
+			module   = "FaceDetector"
+			source   = "EYE_RIGHT"
+			x = "6" y = "5"
+			w = "2" h = "2"
+			min  = "0"
+			max  = "1"
+		/>
+		
+		<object
+			class    = "Image"
+			title    = "Output"
+			type	 = "gray"
+			module   = "FaceDetector"
+			source   = "OUTPUT"
+			x = "6" y = "7"
+			w = "3" h = "2"
+			min  = "0"
+			max  = "1"
+		/>
+		
+		<object
+			class    = "Image"
+			title    = "Face"
+			type	 = "gray"
+			module   = "FaceDetector"
+			source   = "FACE"
+			x = "9" y = "7"
+			w = "3" h = "2"
+		/>
+			
+		<!-- KINNECT objects -->
+        <object 
+        	class 	= "Image"
+        	type 	= "spectrum" 
+        	name 	= "Camera" 
+        	module  = "Scale" 
+        	source  = "OUTPUT" 
+        	x = "12" y = "0" 
+			w = "6" h = "5"
+        />
+
+        <!-- Marker tracker -->
+        <_object
+				class   = "Lines"
+				module  = "MarkerTracker"
+				source  = "EDGES"
+			x = "6" y = "0"
+			w = "6" h = "5"
+				min = "0"
+				max = "1"
+                color="red"
+                stroke_width="1"
+			/>
+
+			<_object
+				class   = "Cross"
+				module  = "MarkerTracker"
+				source  = "MARKERS"
+                size = "0.03"
+                stroke_width="1"
+			x = "6" y = "0"
+			w = "6" h = "5"
+				min = "0"
+				max = "1"
+			/>
+
+        
+            <_object
+                class   = "Label"
+                type    = "value"
+                select  = "2"
+                decimals = "0"
+                offset_x = "0.05"
+                offset_y = "0.05"
+                module  = "MarkerTracker"
+                source  = "MARKERS"
+			x = "6" y = "0"
+			w = "6" h = "5"
+ 			/>
+    </view>
+</group>
+ 
