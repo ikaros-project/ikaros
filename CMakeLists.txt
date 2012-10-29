@@ -78,8 +78,6 @@ else ()
     message(FATAL_ERROR "Your C++ compiler does not support C++11.")
 endif ()
 
-execute_process( COMMAND gcc -dumpversion GCC_VERSION )
-
 # Set Ikaros root path 
 set(IKAROS_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
@@ -163,11 +161,8 @@ set(MODULES_LIBS ${MODULES_LIBS})
 include_directories(${MODULES_INCLUDS})
 target_link_libraries (ikaros ${MODULES_LIBS})
   
-foreach(f ${INCLUDE_DIRECTORIES}) 
-message(${f}) 
-endforeach(f) 
-#message(status "ROOT (includes)" ${MODULES_INCLUDS})
-#message(status "ROOT (libs)" ${MODULES_LIBS})
-#message(status "ROOT (libs)" ${SOURCE})
+#foreach(f ${INCLUDE_DIRECTORIES}) 
+#message(${f}) 
+#endforeach(f) 
 
 
