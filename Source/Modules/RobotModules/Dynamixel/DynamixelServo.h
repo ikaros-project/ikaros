@@ -43,7 +43,7 @@ public:
     
     DynamixelServo(DynamixelComm *com, int id);
     ~DynamixelServo();
-
+    
     unsigned char * DynamixelMemory;
     Dictionary controlTable;
     
@@ -53,7 +53,7 @@ public:
     const char * ByteToBinary(int x);
     int CheckBaudRate(int value);
     float ConvertAngleToAngle(float angle, int from_angle_unit, int to_angle_unit);
-        
+    
     bool SetID(int value);
     bool SetBaudRate(int value);
     bool SetReturnDelayTime(int value);
@@ -122,7 +122,7 @@ public:
     int GetModelPGainEnable();
     int GetModelCurrentEnable();
     int GetModelGapPosition();
-
+    
     // Controll Table
     int GetModelNumber();
     int GetFirmware();
@@ -170,7 +170,7 @@ public:
     float GetModelIGainEnableFormated();
     float GetModelPGainEnableFormated();
     float GetModelCurrentEnableFormat();
-
+    
     // Control Table
     float GetModelNumberFormated();
     float GetFirmwareFormated();
@@ -211,4 +211,4 @@ public:
     float GetCurrentFormated();
 };
 #endif
-    
+

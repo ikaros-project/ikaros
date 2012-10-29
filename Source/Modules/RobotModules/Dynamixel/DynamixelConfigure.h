@@ -56,7 +56,7 @@ private:
     int         baud_rate;
     int         start_up_delay;
     bool        list_servos;
-
+    
     
     // Parameters
     int set_id;
@@ -82,7 +82,7 @@ private:
     float set_torque_limit;         // 0-1
     bool set_lock;                  // On/Off
     float set_punch;                // 0.03235-1
-
+    
     // Set in ikc file?
     bool set_id_change;
     bool set_baud_rate_change;              // mbps
@@ -148,11 +148,11 @@ private:
     float * feedbackPresentVoltage;
     float * feedbackPresentTemperature;
     float * feedbackPresentCurrent;
-
+    
     
     float * resetModeOut;
     float * changeModeOut;
-
+    
     float * set;
     float * active;
     // Array of servo data
@@ -176,9 +176,9 @@ private:
     void parseControlTable(Dictionary * dic, unsigned char* buf, int from, int to);
     int checkBaudRate(int br);
     void PrintChange(int active);
-
-int blink;
-
+    
+    int blink;
+    
 };
 
 #endif

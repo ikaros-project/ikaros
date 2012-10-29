@@ -62,7 +62,7 @@ DynamixelComm::~DynamixelComm()
 // MARK: Sync write functions (block memory)
 
 void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** DynamixelMemoeries, int from, int to, int n)
-    {
+{
     
     //printf("\nSyncWriteWithIdRange what to send (%i) %i - %i\n", n, from,to);
     
@@ -76,7 +76,7 @@ void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** Dynam
         if (sentStore[i] == NULL)
             sentStoreComplete = false;
     }
-
+    
     
     if (sentStoreComplete)
     {
@@ -127,19 +127,19 @@ void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** Dynam
         
         //PrintMemory(DynamixelMemoeries[i], 24, 35);
         //printf("\nStoring last sent (%i) %i - %i (%i)\n", i, from,to,to-from+1);
-
+        
         // Copy the chnges values
         std::memcpy(&sentStore[i][from], &DynamixelMemoeries[i][from], (to-from+1)* sizeof(unsigned char));
-
+        
         //PrintMemory(sentStore[i], 24, 35);
     }
-        
+    
 #endif
     
     int datalength = to-from+1;
     //printf("Total Length = %i\n", datalength*n);
-
-        // Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes. If there is a higher value than this we need to split it into smaller pecies.
+    
+    // Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes. If there is a higher value than this we need to split it into smaller pecies.
     if (datalength*n+SYNC_WRITE_HEADER > DYNAMIXEL_MAX_BUFFER)
     {
         //printf("The message is too long and needs to be splitted up.\n");
@@ -147,11 +147,11 @@ void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** Dynam
         // Finding out how many servoes we can send to each time.
         int nrServoToSentTo = (DYNAMIXEL_MAX_BUFFER-SYNC_WRITE_HEADER)/datalength;
         int nTo = nrServoToSentTo;
-        int nFrom = 0;        
+        int nFrom = 0;
         while (nTo != n)
         {
             //printf("Sending %i to %i\n", nFrom+1, nTo+1);
-
+            
             unsigned char outbuf[256] =
             {
                 0XFF,
@@ -263,7 +263,7 @@ DynamixelComm::ReadMemoryRange(int id, unsigned char * buffer, int from, int to)
         printf("Error: Reading Dynamixel checksum\n If you get a lot of error check for multiple servos with the same ID\n\n");
         return false;
     }
-
+    
     // Copy data to buffer
     memcpy(&buffer[0], &inbuf[5], datalength * sizeof(unsigned char));
     
@@ -410,7 +410,7 @@ DynamixelComm::Ping(int id)
 void
 DynamixelComm::ResetDynamixel(int id)
 {
-
+    
     printf("Trying to reset %i\n", id);
     unsigned char outbuf[256] =
     {

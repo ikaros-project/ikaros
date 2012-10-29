@@ -563,7 +563,7 @@ Dynamixel::Init()
     feedbackPresentVoltage		= GetOutputArray("FEEDBACK_PRESENT_VOLTAGE");
     feedbackPresentTemperature	= GetOutputArray("FEEDBACK_PRESENT_TEMPERATURE");
     feedbackPresentCurrent		= GetOutputArray("FEEDBACK_PRESENT_CURRENT");
-        
+    
     // Print to console
     if (init_print == 1)
         Print();
@@ -595,7 +595,7 @@ Dynamixel::Init()
             blink = 1;
         
         timer.Sleep(100); // Blink
-
+        
     }
     for(int i=0; i<size; i++)
     {    if(servo[i])
@@ -670,7 +670,7 @@ Dynamixel::~Dynamixel()
     // Free memory
     delete servo_index;
     delete servo_id;
-    delete com; 
+    delete com;
     delete servo; // Also delete servo's memorybuffer
 }
 
