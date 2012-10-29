@@ -357,11 +357,17 @@ DynamixelConfigure::Init()
 DynamixelConfigure::~DynamixelConfigure()
 {
     
-    // delete dynamixel memory buffert
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            delete DynamixelMemoeries[i];
+    // Delete dynamixel memory buffert
+    //for(int i=0; i<size; i++)
+    //    if(servo[i])
+    //        delete DynamixelMemoeries[i];
     delete DynamixelMemoeries;
+    
+    // Free memory
+    delete servo_index;
+    delete servo_id;
+    delete com;
+    delete servo; // Also delete servo's memorybuffer
 }
 
 void
