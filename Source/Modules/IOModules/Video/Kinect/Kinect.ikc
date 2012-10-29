@@ -6,7 +6,7 @@
 		Uses libfreenect from Kinect to grab images from a Kinect or a Xtion (http://Kinect.org/).
         Non-standard drivers are necessary for the Xtion.
         
-        In raw-mode, the DEPTH ouput is in the range 0-1, where a lower value means that a detected object is closer to the connect. A value of 1 indicates that no object is detected or maximum distance. In mm-mode, the DEPTH output is the distance in mm to any detected object.
+        In raw-mode, the DEPTH ouput is in the range 0-1, where a lower value means that a detected object is closer to the Kinect. A value of 1 indicates that no object is detected or maximum distance. In mm-mode, the DEPTH output is the distance in mm to any detected object.
         
         There is one input to tilt the Kinect sensor and onte to set the color or the LED.
     </description>
