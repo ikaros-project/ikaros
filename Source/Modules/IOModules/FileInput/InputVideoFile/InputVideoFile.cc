@@ -120,7 +120,7 @@ Module(p)
     /// Determine required buffer size and allocate buffer
     numBytes = avpicture_get_size(PIX_FMT_RGB24, size_x, size_y);
     buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
-    
+
     /// Assign appropriate parts of buffer to image planes in pFrameRGB
     avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
                    size_x, size_y);
@@ -169,10 +169,17 @@ InputVideoFile::Tick()
                     
                     static struct SwsContext *img_convert_ctx;
                     
-                    img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
-                                                     size_x, size_y, PIX_FMT_RGB24,
-                                                     SWS_BICUBIC, NULL, NULL, NULL);
+                    //img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
+                    //                                 size_x, size_y, PIX_FMT_RGB24,
+                    //                                 SWS_BICUBIC, NULL, NULL, NULL);
                     
+                    img_convert_ctx = sws_getCachedContext(img_convert_ctx,pCodecCtx->width, pCodecCtx->height,
+                                                           pCodecCtx->pix_fmt,
+                                                           size_x, size_y, PIX_FMT_RGB24,
+                                                           SWS_BICUBIC, NULL, NULL, NULL);
+
+                    
+                                    
                     sws_scale(img_convert_ctx, (const uint8_t * const *)pFrame->data,
                               pFrame->linesize, 0, pCodecCtx->height,
                               pFrameRGB->data, pFrameRGB->linesize);
@@ -183,10 +190,6 @@ InputVideoFile::Tick()
                     for(int y=0; y<size_y; y++)
                         for(int x=0; x<size_x; x++)
                         {
-                            //red[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3]/255.0f);
-                            //green[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3+1]/255.0f);
-                            //blue[x + y*size_x] = float(r[y*pFrameRGB->linesize[0]+x*3+2]/255.0f);
-                            
                             int yLineSize = y*pFrameRGB->linesize[0];
                             int y1 = y*size_x;
                             int xy = x + y1;
@@ -199,7 +202,6 @@ InputVideoFile::Tick()
                 }
                 
             }
-            //multiply(intensity, c13, size_x*size_y);
             // Free the packet that was allocated by av_read_frame
             av_free_packet(&packet);
         }
