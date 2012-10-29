@@ -1,0 +1,10 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(SOURCE
+   ${SOURCE}
+   ${CMAKE_CURRENT_SOURCE_DIR}/Dynamixel.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/DynamixelComm.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/DynamixelServo.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/DynamixelConfigure.cc
+   PARENT_SCOPE
+)
