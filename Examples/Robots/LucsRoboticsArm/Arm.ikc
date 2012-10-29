@@ -113,11 +113,11 @@
 			class   = "MarkerTracker"
 			name	= "MarkerTracker"
             _description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
-            calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
-            sort    = "yes"
-            marker_size = "0 999 90; 1000 9999 45"
-            use_history = "no"
-            threshold = "0.5"
+            _calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
+            _sort    = "yes"
+            _marker_size = "0 999 90; 1000 9999 45"
+            _use_history = "no"
+            _threshold = "0.5"
 		/>
 
 	<_connection sourcemodule = "KINECT" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
@@ -132,7 +132,7 @@
             title	 = "Actual Positions"
             module	 = "Dynamixel"
             source 	 = "FEEDBACK_PRESENT_POSITION"
-            x = "2" 	y = "0"
+            x = "0" 	y = "0"
             w = "2" 	h = "2" 
             color = "black, black, black"                        
             fill = "red, green, blue"
@@ -144,25 +144,25 @@
             title	 = "Speed"
             module 	 = "Dynamixel"
             source 	 = "FEEDBACK_PRESENT_SPEED"
-            x = "4" 	y = "0"
+            x = "2" 	y = "0"
             w = "2" 	h = "2" 
             color 	 = "red, green, blue"
             select	 = "0,1,2"
+        	min = "-1"
         	max = "1"
         
         />
         
 
         <object
-            class = "BarGraph"
+            class = "Plot"
             title = "Temperature (C)"
             module  = "Dynamixel"
             source  = "FEEDBACK_PRESENT_TEMPERATURE"
-            x = "2" y = "4"
+            x = "4" y = "0"
             w = "2" h = "2" 
-            color = "black, black, black"                        
             fill = "red, green, blue"
-            max = "100"
+            max = "80"
         />
         
         <object 
@@ -171,7 +171,7 @@
         	dragarea = "no" 
         	type = "file" 
         	file = "Arm.jpg" 
-        	x = "2" y = "6"
+        	x = "0" y = "2"
         	w = "4" h  = "4" 
     	/>
         	 
