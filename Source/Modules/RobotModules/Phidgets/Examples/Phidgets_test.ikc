@@ -6,7 +6,7 @@
 		<module
 			class = "Phidgets"
 			name = "PhidgetsInstance"
-			serial  = "176729"
+			serial  = "172795"
 			info  = "true"
             sensitivify = "0" 
             ratiometric = "true"
@@ -18,7 +18,6 @@
 			<object class="BarGraph" module="PhidgetsInstance" source="ANALOG_OUTPUTS" x="0" y="0" />
 			<object class="BarGraph" module="PhidgetsInstance" source="DIGITAL_OUTPUTS" x="1" y="0" />
             <object class="BarGraph" module="PhidgetsInstance" source="ATTACHED" x="0" y="1" />
-
 		</view>
 
 </group>
