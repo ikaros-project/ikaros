@@ -24,63 +24,47 @@
 		type		=	"sin"
 		frequency	=	"0.0314"
 		offset      =	"180"
-		amplitude	=	"90"
+		amplitude	=	"60"
 		shift		=	"0.0"
 	/>
 	<module
 		class		=	"FunctionGenerator"
 		name		=	"GoalPosition2"
 		type		=	"sin"
-		frequency	=	"0.00314"
+		frequency	=	"0.314"
 		offset      =	"150"
 		amplitude	=	"20"
-		shift		=	"0.0"
+		shift		=	"10"
+
 	/>
 	<module
 		class		=	"FunctionGenerator"
 		name		=	"GoalPosition3"
 		type		=	"sin"
-		frequency	=	"0.0314"
-		offset      =	"180"
-		amplitude	=	"45"
+		frequency	=	"0.314"
+		offset      =	"210"
+		amplitude	=	"20"
 		shift		=	"0.0"
 	/>
 	<module
 		class		=	"FunctionGenerator"
-		name		=	"Speed1"
+		name		=	"Speed"
 		type		=	"sin"
-		frequency	=	"0.0314"
+		frequency	=	"0.000314"
 		offset      =	"0.5"
-		amplitude	=	"0.5"
+		amplitude	=	"0.0"
 		shift		=	"0.0"
 	/>
-	<module
-		class		=	"FunctionGenerator"
-		name		=	"Speed2"
-		type		=	"sin"
-		frequency	=	"0.00314"
-		offset      =	"0.5"
-		amplitude	=	"0.5"
-		shift		=	"0.0"
-	/>
-	<module
-		class		=	"FunctionGenerator"
-		name		=	"Speed3"
-		type		=	"sin"
-		frequency	=	"0.0314"
-		offset      =	"0.5"
-		amplitude	=	"0.5"
-		shift		=	"0.0"
-	/>
+
 
 	<!-- Order is important -->
 	<connection sourcemodule  = "GoalPosition3" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
 	<connection sourcemodule  = "GoalPosition2" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
 	<connection sourcemodule  = "GoalPosition1" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
 
-	<connection sourcemodule  = "Speed3" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
-	<connection sourcemodule  = "Speed2" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
-	<connection sourcemodule  = "Speed1" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
 	
 	
 	<!-- Kinnect part -->	
@@ -128,14 +112,14 @@
     	<!-- Dynamixel objects -->
         
         <object
-            class	 = "BarGraph"
+            class	 = "Plot"
             title	 = "Actual Positions"
             module	 = "Dynamixel"
             source 	 = "FEEDBACK_PRESENT_POSITION"
             x = "0" 	y = "0"
             w = "2" 	h = "2" 
-            color = "black, black, black"                        
-            fill = "red, green, blue"
+            color 	 = "red, green, blue"
+            select	 = "0,1,2"
             max = "360"
             
         />
@@ -153,7 +137,6 @@
         
         />
         
-
         <object
             class = "Plot"
             title = "Temperature (C)"
@@ -161,7 +144,8 @@
             source  = "FEEDBACK_PRESENT_TEMPERATURE"
             x = "4" y = "0"
             w = "2" h = "2" 
-            fill = "red, green, blue"
+            color 	 = "red, green, blue"
+            select	 = "0,1,2"
             max = "80"
         />
         
