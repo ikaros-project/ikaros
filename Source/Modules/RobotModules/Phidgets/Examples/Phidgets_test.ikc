@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<group title="Phidgets Example">
+	
+
+		<module
+			class = "Phidgets"
+			name = "PhidgetsInstance"
+			serial  = "176729"
+			info  = "true"
+            sensitivify = "0" 
+            ratiometric = "true"
+    
+		/>
+		
+
+		<view name="View">
+			<object class="BarGraph" module="PhidgetsInstance" source="ANALOG_OUTPUTS" x="0" y="0" />
+			<object class="BarGraph" module="PhidgetsInstance" source="DIGITAL_OUTPUTS" x="1" y="0" />
+            <object class="BarGraph" module="PhidgetsInstance" source="ATTACHED" x="0" y="1" />
+
+		</view>
+
+</group>
+ 
