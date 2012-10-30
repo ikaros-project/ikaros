@@ -1,7 +1,15 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(SOURCE
-	${SOURCE}
+# Buildning a library
+
+set(MODULES_INCLUDS 
+	${MODULES_INCLUDS} 
+	#${CMAKE_CURRENT_SOURCE_DIR}/MPISearch/
+	#${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/
+	#${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/EyeWeightsFiles/
+PARENT_SCOPE)
+  
+ADD_LIBRARY(MPIFaceDetector 
 	${CMAKE_CURRENT_SOURCE_DIR}/MPIFaceDetector.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/beyesobject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/eyefinder.cc
@@ -31,13 +39,12 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/EyeWeightsFiles/righteye_largest_eye_centered.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/EyeWeightsFiles/righteye_largest_face_centered.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/EyeWeightsFiles/righteye_smallest_eye_centered.cc
-	PARENT_SCOPE
-)
+    )
 
-set(MODULES_INCLUDS 
-	${MODULES_INCLUDS} 
+include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/MPISearch/
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/
 	${CMAKE_CURRENT_SOURCE_DIR}/MPEyeFinder/EyeWeightsFiles/
-PARENT_SCOPE)
-set(MODULES_LIBS ${MODULES_LIBS} PARENT_SCOPE)
+	)
+	
+target_link_libraries(MPIFaceDetector)

@@ -160,7 +160,7 @@ set(MODULES_INCLUDS ${MODULES_INCLUDS})
 set(MODULES_LIBS ${MODULES_LIBS})
 include_directories(${MODULES_INCLUDS})
 target_link_libraries (ikaros ${MODULES_LIBS})
-  
+  add_dependencies(ikaros MPIFaceDetector)
 #foreach(f ${INCLUDE_DIRECTORIES}) 
 #message(${f}) 
 #endforeach(f) 
