@@ -1,0 +1,44 @@
+# Ikaros-project.org
+#
+# Find the Phidgets includes and library
+#
+# This module defines
+# PHIDGETS_INCLUDE_DIR
+# PHIDGETS_LIBRARIES
+# PHIDGETS_FOUND
+
+
+# Checking OS
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+FIND_LIBRARY(PHIDGETS_LIBRARY Phidget21)
+message(${PHIDGETS_LIBRARY})
+
+
+IF (PHIDGETS_INCLUDE_DIR1)
+	SET(PHIDGETS_INCLUDE_DIR
+	${PHIDGETS_INCLUDE_DIR1}
+	)
+ENDIF (PHIDGETS_INCLUDE_DIR1)
+
+IF (PHIDGETS_LIBRARY)
+	SET(PHIDGETS_LIBRARIES
+	${PHIDGETS_LIBRARY}
+	)
+    message(STATUS "Found Phidget:")
+	message(STATUS " - Includes: ${PHIDGETS_INCLUDE_DIR}")
+	message(STATUS " - Libraries: ${PHIDGETS_LIBRARIES}")
+	SET(PHIDGETS_FOUND "YES" )
+ENDIF (PHIDGETS_LIBRARY)
+
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+
+
+
+
+
+
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
