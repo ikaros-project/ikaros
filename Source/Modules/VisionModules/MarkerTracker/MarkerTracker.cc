@@ -105,7 +105,7 @@ MTCamera::setCameraCalibration(float * calibration)
     kc[5] = calibration[11];
     undist_iterations = int(calibration[12]);
 
-    undist_iterations = min(undist_iterations, CAMERA_ADV_MAX_UNDIST_ITERATIONS);
+    undist_iterations = min(undist_iterations, 20); // CAMERA_ADV_MAX_UNDIST_ITERATIONS
 
     for (int i = 0; i < 3; i++)
         for (int j = 0; j < 4; j++)

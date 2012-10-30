@@ -9,12 +9,17 @@
             size_y  =  "480"
 		/>
 
-        <module
+        <_module
             class   = "InputJPEG"
             name	= "CAMERA"
             size_x  = "640"
             size_y  =  "480"
             filename = "../../../../../Examples/Media/marker_image.jpg"
+        />
+    
+        <module
+            class   = "Kinect"
+            name	= "CAMERA"
         />
     
 		<module
