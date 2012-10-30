@@ -50,10 +50,10 @@
 		class		=	"FunctionGenerator"
 		name		=	"Speed"
 		type		=	"sin"
-		frequency	=	"0.000314"
-		offset      =	"0.5"
+		frequency	=	"0.0314"
+		offset      =	"1"
 		amplitude	=	"0.0"
-		shift		=	"0.0"
+		shift		=	"150"
 	/>
 
 
@@ -111,6 +111,45 @@
 	<view name = "Lucs Robotic Arm" object_size = "50" >
     	<!-- Dynamixel objects -->
         
+        <object
+            class	 = "Plot"
+            title	 = "Speed Sent to Servo"
+            module	 = "Speed"
+            source 	 = "OUTPUT"
+            x = "0" 	y = "6"
+            w = "2" 	h = "2"
+            color 	 = "yellow"
+        />
+        <object
+            class	 = "Plot"
+            title	 = "Position Sent 1"
+            module	 = "GoalPosition1"
+            source 	 = "OUTPUT"
+            x = "0" 	y = "8"
+            w = "2" 	h = "2" 
+            color 	 = "green"
+            max 	 = "360"
+        />
+        <object
+            class	 = "Plot"
+            title	 = "Position Sent 2"
+            module	 = "GoalPosition2"
+            source 	 = "OUTPUT"
+            x = "2" 	y = "8"
+            w = "2" 	h = "2" 
+            color 	 = "blue"
+            max = "360"
+        />
+        <object
+            class	 = "Plot"
+            title	 = "Position Sent 3"
+            module	 = "GoalPosition3"
+            source 	 = "OUTPUT"
+            x = "4" 	y = "8"
+            w = "2" 	h = "2" 
+            color 	 = "red, green, blue"
+            max = "360"
+        />
         <object
             class	 = "Plot"
             title	 = "Actual Positions"
