@@ -803,12 +803,12 @@
         />
 	</view>
 
-	<view name="Lines">
+	<view name="Paths">
 
 		<object
 			x="0" y="0" 
-			class="Lines" 
-			title="Lines" 
+			class="Path" 
+			title="Multicolored Path" 
 			module="Lines" 
 			source="OUTPUT"
 			stroke_width = "1"
@@ -817,7 +817,7 @@
 
 		<object
 			x="1" y="0" 
-			class="Lines" 
+			class="Path" 
 			title="Arrows" 
 			module="R" 
 			source="OUTPUT"
@@ -831,8 +831,8 @@
 
 		<object
 			x="2" y="0" 
-			class="Lines" 
-			title="Arrows Flip X" 
+			class="Path" 
+			title="Paths (Flip X)" 
 			module="R" 
 			source="OUTPUT"
 			stroke_width = "5"
@@ -843,8 +843,8 @@
 
 		<object
 			x="1" y="1" 
-			class="Lines" 
-			title="Arrows Flip Y" 
+			class="Path" 
+			title="Arrows (Flip Y)" 
 			module="R" 
 			source="OUTPUT"
 			stroke_width = "1"
@@ -855,8 +855,8 @@
 
 		<object
 			x="2" y="1" 
-			class="Lines" 
-			title="Arrows Flip X and Y" 
+			class="Path" 
+			title="Filled (Flip X and Y)" 
 			module="R" 
 			source="OUTPUT"
 			stroke_width = "1"

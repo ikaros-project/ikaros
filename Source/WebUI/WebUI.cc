@@ -625,7 +625,12 @@ WebUI::WebUI(Kernel * kernel)
     current_xml_root = NULL;
     current_xml_root_path = create_string("");
     ui_state = ui_state_pause;
+    
     ui_data = NULL;
+    copying_data = false;
+    dont_copy_data = false;
+    is_running = false;
+
     view_data = NULL;
     debug_mode = false;
     isRunning = false;
@@ -901,7 +906,8 @@ WebUI::Run()
 		}
 	}
 
-    chdir(webui_dir);
+    chdir(k->ikc_dir); // TODO: Check if already set
+
     k->timer->Restart();
     tick = 0;
 
@@ -917,11 +923,11 @@ WebUI::Run()
         
         if (isRunning)
         {
-            chdir(k->ikc_dir);
+            is_running = true; // Flag that state changes are not allowed
             k->Tick();
             CopyUIData();
+            is_running = false;
             tick++; // FIXME: should not be separate from kernel; remove from WebUI class
-            chdir(webui_dir); // FIXME: this does not work in theaded WebUI; absolute paths are necessary
             
             if (k->tick_length > 0)
             {
@@ -932,7 +938,7 @@ WebUI::Run()
     }
 
     httpThread->Join();
-    chdir(k->ikc_dir);
+//    chdir(k->ikc_dir);
 }
 
 
@@ -940,6 +946,14 @@ WebUI::Run()
 void
 WebUI::CopyUIData()
 {
+    if(dont_copy_data)
+    {
+//        printf("no copy\n");
+        return;
+    }
+    
+    copying_data = true;
+
     // Step 1: calculate size
     
     int size = 0;
@@ -984,10 +998,10 @@ WebUI::CopyUIData()
     // Allocate memory
     
     float * local_ui_data = create_array(size);
-
+     
     if(!local_ui_data)
     {
-        k->Notify(msg_warning, "WebUI: Cannot allocate memory for  data");
+        k->Notify(msg_warning, "WebUI: Cannot allocate memory for data");
         return;
     }
 
@@ -1047,6 +1061,8 @@ WebUI::CopyUIData()
 
     if(old_ui_data)
         destroy_array(old_ui_data);
+    
+    copying_data = false;
 }
 
 
@@ -1171,6 +1187,17 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 
 
 void
+WebUI::Pause()
+{
+    isRunning = false;
+    while(is_running)
+        ;
+    dont_copy_data = false;
+}
+
+
+
+void
 WebUI::HandleHTTPRequest()
 {
     if (debug_mode)
@@ -1183,6 +1210,7 @@ WebUI::HandleHTTPRequest()
     
     if (!strcmp(uri, "/stop"))
     {
+        Pause();
         ui_state = ui_state_stop;
         CopyUIData();
         SendUIData();
@@ -1191,30 +1219,26 @@ WebUI::HandleHTTPRequest()
 	
     else if (!strcmp(uri, "/step"))
     {
+        Pause();
         ui_state = ui_state_pause;
-        chdir(k->ikc_dir);
         
         for(int i=0; i<iterations_per_runstep; i++)
             k->Tick();
         
-        chdir(webui_dir);
         CopyUIData();
         SendUIData();
-        isRunning = false;
     }
 	
     else if (!strcmp(uri, "/runstep"))
     {
+        Pause();
         ui_state = ui_state_run;
-        chdir(k->ikc_dir);
         
         for(int i=0; i<iterations_per_runstep; i++)
             k->Tick();
         
-        chdir(webui_dir);
         CopyUIData();
         SendUIData();
-        isRunning = false;
     }
 
     else if (!strcmp(uri, "/update"))
@@ -1224,10 +1248,10 @@ WebUI::HandleHTTPRequest()
 	
     else if (!strcmp(uri, "/pause"))
     {
+        Pause();
         ui_state = ui_state_pause;
         CopyUIData();
         SendUIData();
-        isRunning = false;
     }
 
     else if (!strcmp(uri, "/realtime"))
@@ -1457,7 +1481,14 @@ WebUI::HandleHTTPThread()
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))
+            {
+                while(copying_data)  // wait for copy operation to complete
+                //    printf("waiting\n")
+                    ;
+                dont_copy_data = true;
                 HandleHTTPRequest();
+                dont_copy_data = false;
+            }
             socket->Close();
         }
     }
