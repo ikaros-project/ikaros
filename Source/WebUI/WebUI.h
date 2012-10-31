@@ -122,6 +122,9 @@ public:
     int             iterations_per_runstep;
     
     std::atomic<float *>  ui_data;
+    std::atomic<bool> copying_data;
+    std::atomic<bool> dont_copy_data;
+    std::atomic<bool> is_running;
     
     ModuleData *	view_data;
     
@@ -139,6 +142,7 @@ public:
     void			ReadXML(XMLDocument * xmlDoc);
     void            CopyUIData();
     void            SendUIData();
+    void            Pause();
     void			HandleHTTPRequest();
     void            HandleHTTPThread();
     
