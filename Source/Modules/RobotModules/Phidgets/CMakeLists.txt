@@ -1,31 +1,33 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(ArtoolkitPlus)
+
+# Phidgets
+find_package(PHIDGETS)
 
 # if all libraries found add source file, include dirs and libraries
-if(ARTOOLKITPLUS_FOUND)
+if(PHIDGETS_FOUND)
 
 	set(SOURCE
 	${SOURCE}
-	${CMAKE_CURRENT_SOURCE_DIR}/MarkerTracker.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/Phidgets.cc
 	PARENT_SCOPE
 	)
 
 	set(MODULES_INCLUDS
 	${MODULES_INCLUDS}
-	${ARTOOLKITPLUS_INCLUDE_DIRS}
+	${PHIDGETS_INCLUDE_DIRS}
 	PARENT_SCOPE
    	)
    	set(MODULES_LIBS
 	${MODULES_LIBS}
-	${ARTOOLKITPLUS_LIBRARIES}
+	${PHIDGETS_LIBRARIES}
 	PARENT_SCOPE
     ) 
 
 else()
-	message( "" )
-	message(STATUS "Ikaros:" )
-	message(STATUS "ArtoolkitPlus not found. Marker module is not included into the build." )
+	message(STATUS "" )
+	message(STATUS "Ikaros" )
+	message(STATUS "Phidgets libs not found. Phidgets module is not included into the build." )
 	message(STATUS "Visit www.ikaros-project.org for information of module dependencies." )
-	message( "" )
-endif(ARTOOLKITPLUS_FOUND)
+	message(STATUS "" )
+endif(PHIDGETS_FOUND)
