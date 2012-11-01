@@ -30,7 +30,7 @@
 //  function calls during initialization.
 
 #include "Phidgets.h"
-#import <Phidget21/phidget21.h>
+//#import <Phidget21/phidget21.h>
 
 
 using namespace ikaros;
