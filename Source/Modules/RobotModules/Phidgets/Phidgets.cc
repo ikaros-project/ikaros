@@ -32,7 +32,6 @@
 #include "Phidgets.h"
 //#import <Phidget21/phidget21.h>
 
-
 using namespace ikaros;
 
 Phidgets::Phidgets(Parameter * p):Module(p)
@@ -267,7 +266,9 @@ CPhidgetInterfaceKitHandle Phidgets::interfacekit_start()
     
 	//get the program to wait for an interface kit device to be attached
 	printf("Phigets: Waiting for interface kit to be attached....");
-	if((result = CPhidget_waitForAttachment((CPhidgetHandle)ifKit, 10000)))
+    fflush(stdout);
+	
+    if((result = CPhidget_waitForAttachment((CPhidgetHandle)ifKit, 10000)))
 	{
 		CPhidget_getErrorDescription(result, &err);
 		printf("Problem waiting for attachment: %s\n", err);

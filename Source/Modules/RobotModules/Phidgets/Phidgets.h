@@ -28,8 +28,11 @@
 #define Phidgets_
 
 #include "IKAROS.h"
+#ifdef MAC_OS_X
 #include <Phidget21/phidget21.h>
-
+#else 
+#include "phidget.21.h"
+#endif
 class Phidgets: public Module
 {
 public:
