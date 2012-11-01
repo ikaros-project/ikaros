@@ -25,7 +25,16 @@
 
 #include "InputVideoFile.h"
 
+//#define MY_PARALLEL_CODE
 using namespace ikaros;
+
+
+#ifdef MY_PARALLEL_CODE
+#include <thread>
+
+using namespace std;
+
+#endif
 
 
 InputVideoFile::InputVideoFile(Parameter * p):
@@ -41,7 +50,7 @@ Module(p)
     loop = GetBoolValue("loop", false);
     
     printInfo = GetBoolValue("info", false);
-
+    
     // Register all formats and codecs
     av_register_all();
     
@@ -120,7 +129,7 @@ Module(p)
     /// Determine required buffer size and allocate buffer
     numBytes = avpicture_get_size(PIX_FMT_RGB24, size_x, size_y);
     buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
-
+    
     /// Assign appropriate parts of buffer to image planes in pFrameRGB
     avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
                    size_x, size_y);
@@ -169,22 +178,107 @@ InputVideoFile::Tick()
                     
                     static struct SwsContext *img_convert_ctx;
                     
-                    //img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
-                    //                                 size_x, size_y, PIX_FMT_RGB24,
-                    //                                 SWS_BICUBIC, NULL, NULL, NULL);
-                    
                     img_convert_ctx = sws_getCachedContext(img_convert_ctx,pCodecCtx->width, pCodecCtx->height,
                                                            pCodecCtx->pix_fmt,
                                                            size_x, size_y, PIX_FMT_RGB24,
                                                            SWS_BICUBIC, NULL, NULL, NULL);
-
                     
-                                    
+                    
                     sws_scale(img_convert_ctx, (const uint8_t * const *)pFrame->data,
                               pFrame->linesize, 0, pCodecCtx->height,
                               pFrameRGB->data, pFrameRGB->linesize);
                     
                     unsigned char * data = pFrameRGB->data[0];
+                    
+#ifdef MY_PARALLEL_CODE
+                    //printf("Parallel Code\n");
+
+                    // Parallel  Code
+                    //
+                    // iMac 8 threads
+//                IKAROS: Reading XML file "InputVideoFile_test.ikc".
+//                IKAROS: Start
+//                IKAROS: Stop (2000 ticks, 13.90 s, 143.90 ticks/s, 0.007 s/tick)
+//                IKAROS:
+//                IKAROS: Time (ms):
+//                IKAROS: -------------------
+//                IKAROS: Modules:   13743.55
+//                IKAROS: Other:       154.69
+//                IKAROS: -------------------
+//                IKAROS: Total:     13898.24
+//                IKAROS:
+//                IKAROS: Time in Each Module:
+//                IKAROS:
+//                IKAROS: Module              Class                    Count  Avg (ms)    Time %
+//                IKAROS: ----------------------------------------------------------------------
+//                IKAROS: InputVideoFile      InputVideoFile            2000      6.87     100.0
+//                IKAROS: ----------------------------------------------------------------------
+//                IKAROS: Note: Time is real-time, not time in thread.
+//                IKAROS: 
+
+                    
+                    const int nrOfCores = 8; //thread::hardware_concurrency();
+                    // Create some threads pointers
+                    thread t[nrOfCores];
+                    //printf("Number of threads %i\n",thread::hardware_concurrency());
+                    int span = size_y/nrOfCores;
+                    
+                    for(int j=0; j<nrOfCores; j++)
+                    {
+                        t[j] = thread([&,j]()
+                                      {
+                                          //printf("I am thread %i and I will take care of %i to %i\n",j, j*span,j*span+span);
+                                          
+                                          for(int y=j*span; y<j*span+span; y++)
+                                          {
+                                              for(int x=0; x<size_x; x++)
+                                              {
+                                                  int yLineSize = y*pFrameRGB->linesize[0];
+                                                  int y1 = y*size_x;
+                                                  int xy = x + y1;
+                                                  int x3  = x*3;
+                                                  intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
+                                                  intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
+                                                  intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
+                                                  intensity[xy]     *=  c13;
+                                                  
+                                              }
+                                          }
+                                      });
+                        
+                    }
+                    
+                    for(int j=0; j<nrOfCores; j++)
+                    {
+                        t[j].join();
+                    }
+#else
+                    
+                    //printf("Serial Code\n");
+                    // Serial Code
+                    //
+                    // iMac 1 thread
+                    
+//                IKAROS: Reading XML file "InputVideoFile_test.ikc".
+//                IKAROS: Start
+//                IKAROS: Stop (2000 ticks, 26.42 s, 75.70 ticks/s, 0.013 s/tick)
+//                IKAROS:
+//                IKAROS: Time (ms):
+//                IKAROS: -------------------
+//                IKAROS: Modules:   26202.73
+//                IKAROS: Other:       215.61
+//                IKAROS: -------------------
+//                IKAROS: Total:     26418.34
+//                IKAROS:
+//                IKAROS: Time in Each Module:
+//                IKAROS:
+//                IKAROS: Module              Class                    Count  Avg (ms)    Time %
+//                IKAROS: ----------------------------------------------------------------------
+//                IKAROS: InputVideoFile      InputVideoFile            2000     13.10     100.0
+//                IKAROS: ----------------------------------------------------------------------
+//                IKAROS: Note: Time is real-time, not time in thread.
+                    
+                    
                     
                     // Write pixel data
                     for(int y=0; y<size_y; y++)
@@ -199,6 +293,8 @@ InputVideoFile::Tick()
                             intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
                             intensity[xy]   *=  c13;
                         }
+#endif
+                    
                 }
                 
             }
