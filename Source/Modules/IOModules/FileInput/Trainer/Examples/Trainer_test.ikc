@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<group title = "Trainer Demo">
+
+    <module 
+        class = "Trainer" 
+        name = "Trainer" 
+        training_file = "input.dat"
+        testing_file = "input.dat"
+        input_size = "3"
+        output_size = "1"
+        iterations = "4" 
+    />
+		
+	<module
+		class = "Perceptron"
+		name = "PERCEPTRON"
+		learning_rule = "delta"
+		margin = ""
+		normalize_target = "true"
+		activation_type = "tanh"
+		learning_type = "instant"
+		momentum_ratio = "0.42"
+		batch_size = "10"
+
+	/>
+
+    <connection sourcemodule = "Trainer"  source = "TRAIN_INPUT" targetmodule = "PERCEPTRON"  target = "T_INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_TARGET" targetmodule = "PERCEPTRON"  target = "T_TARGET" />
+    
+    <connection sourcemodule = "Trainer"  source = "TEST_INPUT" targetmodule = "PERCEPTRON"  target = "INPUT" />
+    <connection sourcemodule = "PERCEPTRON"  source = "OUTPUT" targetmodule = "Trainer"  target = "TEST_OUTPUT" />
+
+    <view>
+        <object class="Table" module="IN" source="Y" x="0" y="0" max = "10"/>
+    </view>
+</group>
+
