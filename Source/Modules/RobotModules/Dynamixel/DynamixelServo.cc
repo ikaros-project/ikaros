@@ -1172,8 +1172,8 @@ float DynamixelServo::GetMovingSpeedFormated()
         return float(GetMovingSpeed())/float(GetModelSpeedMax());
     }
     else
-        if (GetPresentSpeed() > 1023) // CCW
-            return float(-GetMovingSpeed())/float(GetModelSpeedMax());
+        if (GetMovingSpeed() > 1023) // CCW
+            return float(GetModelSpeedMax()-GetMovingSpeed())/float(GetModelSpeedMax());
         else // CW
             return float(GetMovingSpeed())/float(GetModelSpeedMax());
 }
