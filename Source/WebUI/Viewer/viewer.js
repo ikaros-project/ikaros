@@ -34,7 +34,10 @@ LUT_spectrum = [
                 '#6C00FF', '#8400FF', '#9C00FF', '#B400FF', '#CC00FF', '#E400FF', '#FC00FF', '#FF00EA',
                 '#FF00D2', '#FF00BA', '#FF00A2', '#FF008A', '#FF0072', '#FF005A', '#FF0042', '#FF002A'];
 
-
+LUT_contrast = [
+                '#FF0000', '#FF8429', '#FFFF10', '#299C39', '#00A5C6', '#083194', '#8C007B', '#CE007B', '#808080', '#FFFFFF'
+        		];
+                
 function makeSelectionArray(s)
 {
     if(s == undefined)
