@@ -1208,7 +1208,7 @@ float DynamixelServo::GetPresentSpeedFormated()
 float DynamixelServo::GetPresentLoadFormated()
 {
     if (GetPresentLoad() > 1023) // CCW
-        return float(-GetPresentLoad())/float(GetModelLoadMax());
+        return float(GetModelLoadMax()-GetPresentLoad())/float(GetModelLoadMax());
     else // CW
         return float(GetPresentLoad())/float(GetModelLoadMax());
 }
