@@ -37,7 +37,7 @@ Module(p)
     if (resetMode)
     {
         printf("In RESET MODE\n");
-        printf("No other parameters will be used. Only reset to one servo will be sent\n");
+        printf("No other parameters will be used. Only reset command to one servo will be sent\n");
     }
     
     device = GetValue("device");
@@ -53,7 +53,13 @@ Module(p)
     if (GetBoolValue("scan_mode"))
     {
         printf("DynamixelConfigure is in scan mode. It will scan all possible baud rates for servos.");
+        
         int max_servo_id = 254;
+
+        if (GetBoolValue("quick_scan"))
+            max_servo_id = 20;
+
+            
         // Testing all baudrates available
         for (int i = 0; i < 254; i++)
         {
@@ -163,6 +169,7 @@ DynamixelConfigure::PrintChange(int i)
 {
     if(servo[i])
     {
+        printf("\n%i\n",i);
         // Print changes for a single servo.
         printf("\nDYNAMIXEL:");
         printf("\n\nCONTROL TABLE Change (ID:%i): ", servo[i]->GetID());
@@ -373,10 +380,23 @@ DynamixelConfigure::~DynamixelConfigure()
 void
 DynamixelConfigure::Tick()
 {
+    printf("size %i",size);
+    if (int(active[0]) < 0)
+        active[0] = 0;
+    
+    if (int(active[0]) >= size)
+        active[0] = size-1;
+    
     if (resetMode)
-        resetModeOut[0] = 1;
+    {
+        reset_array(resetModeOut, size);
+        resetModeOut[int(active[0])] = 1;
+    }
     else
-        changeModeOut[0] = 1;
+    {
+        reset_array(changeModeOut, size);
+        changeModeOut[int(active[0])] = 1;
+    }
     
     // Checking that all inputs are the same.
     if (resetMode && set[0] == 1)
@@ -384,7 +404,7 @@ DynamixelConfigure::Tick()
         
         printf("\n\nDynamixel with ID %i will be restored to factory settings\n\n", servo_id[int(active[0])]);
         com->ResetDynamixel(servo_id[int(active[0])]);
-        
+
         
         // quit ikaros
         Notify(msg_terminate, "DynamixelConfigure: Settings written to dynamixel(s). Quiting ikaros...");
@@ -395,6 +415,7 @@ DynamixelConfigure::Tick()
     
     if(set[0] == 1)
     {
+
         // Write to a single dynamixel ID
         int i = int(active[0]);
         
