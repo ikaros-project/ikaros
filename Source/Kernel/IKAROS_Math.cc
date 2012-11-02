@@ -2455,7 +2455,26 @@ namespace ikaros
 		return s;
 	}
     
+    float angle_to_angle(float angle, int from_angle_unit, int to_angle_unit)
+    {
+        switch(from_angle_unit)
+        {
+            default:
+            case 0: angle = angle; break;
+            case 1: angle = (angle/(2.0*pi))*360; break;
+            case 2: angle = angle*360; break;
+        }
+        switch(to_angle_unit)
+        {
+            default:
+            case 0: angle = angle;break;
+            case 1: angle = angle/360*(2.0*pi);break;
+            case 2: angle = angle/360;break;
+        }
+        return angle;
+    }
     
+
     
     // image processing
     // MARK: -
