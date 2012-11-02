@@ -240,19 +240,19 @@ DynamixelComm::ReadMemoryRange(int id, unsigned char * buffer, int from, int to)
     // Check right ID
     if (id != inbuf[2])
     {
-        printf("Error: Reading Dynamixel ID\n If you get a lot of error check for multiple servos with the same ID\n\n");
+        printf("Error: Reading Dynamixel ID\n If you get a lot of errors, check for multiple servos with the same ID\n\n");
         return false;
     }
     // Check length
     if (datalength != inbuf[3]-1)
     {
-        printf("Error: Reading Dynamixel Length\n If you get a lot of error check for multiple servos with the same ID\n\n");
+        printf("Error: Reading Dynamixel Length\n If you get a lot of errors, check for multiple servos with the same ID\n\n");
         return false;
     }
     // Check error
     if (0 != inbuf[4])
     {
-        printf("Error: Reading Dynamixel Errors\n If you get a lot of error check for multiple servos with the same ID\n\n");
+        printf("Error: Reading Dynamixel\n If you get a lot of errors, check for multiple servos with the same ID\n\n");
         return false;
     }
     
@@ -260,7 +260,7 @@ DynamixelComm::ReadMemoryRange(int id, unsigned char * buffer, int from, int to)
     unsigned char CheckSumAnswer = CalculateChecksum(inbuf);
     if (inbuf[inbuf[3]+3] != CheckSumAnswer)
     {
-        printf("Error: Reading Dynamixel checksum\n If you get a lot of error check for multiple servos with the same ID\n\n");
+        printf("Error: Reading Dynamixel Checksum\n If you get a lot of errors, check for multiple servos with the same ID\n\n");
         return false;
     }
     
