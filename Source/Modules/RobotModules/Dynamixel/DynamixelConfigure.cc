@@ -169,7 +169,6 @@ DynamixelConfigure::PrintChange(int i)
 {
     if(servo[i])
     {
-        printf("\n%i\n",i);
         // Print changes for a single servo.
         printf("\nDYNAMIXEL:");
         printf("\n\nCONTROL TABLE Change (ID:%i): ", servo[i]->GetID());
@@ -380,8 +379,7 @@ DynamixelConfigure::~DynamixelConfigure()
 void
 DynamixelConfigure::Tick()
 {
-    printf("size %i",size);
-    if (int(active[0]) < 0)
+     if (int(active[0]) < 0)
         active[0] = 0;
     
     if (int(active[0]) >= size)
