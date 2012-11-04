@@ -2,19 +2,31 @@
 
 <group title = "Trainer Demo">
 
+    <module
+        class = "Constant"
+        name = "X"
+        data = "1 2; 3 4; 5 6; 7 8"
+        outputsize_x = "2"
+        outputsize_y = "4"
+    />
+    
+    <module
+        class = "Constant"
+        name = "Y"
+        data = "1; 1; 0; 0"
+        outputsize_x = "1"
+        outputsize_y = "4"
+    />
+    
     <module 
         class = "Trainer" 
         name = "Trainer" 
-        training_file = "input.dat"
-        testing_file = "input.dat"
-        input_size = "3"
-        output_size = "1"
-        iterations = "4" 
+        iterations = "1000" 
     />
 		
 	<module
 		class = "Perceptron"
-		name = "PERCEPTRON"
+		name = "Perceptron"
 		learning_rule = "delta"
 		margin = ""
 		normalize_target = "true"
@@ -22,17 +34,25 @@
 		learning_type = "instant"
 		momentum_ratio = "0.42"
 		batch_size = "10"
-
 	/>
 
-    <connection sourcemodule = "Trainer"  source = "TRAIN_INPUT" targetmodule = "PERCEPTRON"  target = "T_INPUT" />
-    <connection sourcemodule = "Trainer"  source = "TRAIN_TARGET" targetmodule = "PERCEPTRON"  target = "T_TARGET" />
+    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
+    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
+
+    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_X" />
+    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" />
     
-    <connection sourcemodule = "Trainer"  source = "TEST_INPUT" targetmodule = "PERCEPTRON"  target = "INPUT" />
-    <connection sourcemodule = "PERCEPTRON"  source = "OUTPUT" targetmodule = "Trainer"  target = "TEST_OUTPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "Perceptron"  target = "T_INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "Perceptron"  target = "T_TARGET" />
+    
+    <connection sourcemodule = "Trainer"  source = "TEST_X" targetmodule = "Perceptron"  target = "INPUT" />
+    <connection sourcemodule = "Perceptron"  source = "OUTPUT" targetmodule = "Trainer"  target = "TEST_Y" />
 
     <view>
-        <object class="Table" module="IN" source="Y" x="0" y="0" max = "10"/>
+        <object class="Table" module="Trainer" source="TRAIN_X" x="0" y="0" max = "10"/>
+        <object class="Table" module="Trainer" source="TRAIN_Y" x="1" y="0" max = "10"/>
+        <object class="Table" module="Perceptron" source="OUTPUT" x="2" y="0" max = "10"/>
     </view>
 </group>
+
 

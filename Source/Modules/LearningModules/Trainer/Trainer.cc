@@ -22,10 +22,21 @@
 
 
 
-Trainer::~Trainer()
+void
+Trainer::SetSizes()
 {
-    destroy_matrix(training_data);
-    destroy_matrix(testing_data);
+    int sx = GetInputSizeX("TRAINING_DATA_X");
+    int sy = GetInputSizeX("TRAINING_DATA_Y");
+
+    if (sx != unknown_size && sy != unknown_size)
+    {
+        SetOutputSize("TRAIN_X", sx);
+        SetOutputSize("TRAIN_Y", sy);
+        SetOutputSize("TEST_X", sx);
+        
+        SetOutputSize("error", 1);
+        SetOutputSize("accumulated_error", 1);
+    }
 }
 
 
@@ -33,106 +44,55 @@ Trainer::~Trainer()
 void
 Trainer::Init()
 {
-    Bind(input_size, "input_size");
-    Bind(output_size, "output_size");
-    
-    test_output = GetInputArray("TEST_OUTPUT", false);
-    test_output = GetOutputArray("TEST_INPUT");
-    train_input = GetOutputArray("TRAIN_INPUT");
-    train_target = GetOutputArray("TRAIN_TARGET");
-    
-    // Read training files
-    
-    const char * filename = GetValue("training_file");
-    if(!filename)
-    {
-        Notify(msg_fatal_error, "Trainer: no training file.");
-        return;
-    }
-    
-    FILE * f = fopen(filename, "r");
-    if(!f)
-    {
-        Notify(msg_fatal_error, "Trainer: training file \"%s\" could not be opened.", filename);
-        return;
-    }
-    
-    // Count lines
-    
-    training_examples = 0;
-    while(!feof(f))
-    {
-        fscanf(f, "%*[^\n]\n");
-        training_examples++;
-    }
-    
-    training_data = create_matrix(input_size+output_size, training_examples);
-    
-    // Read data
-    
-    fseek(f, 0, SEEK_SET);
-    for(int i=0; i<input_size+output_size; i++)
-        for(int j=0; j<training_examples; j++)
-            fscanf(f, "%f", &training_data[j][i]);
-    
-    fclose(f);
-/*
-    printf("training_examples = %d\n", training_examples);
-    
-    for(int i=0; i<input_size+output_size; i++)
-    {
-        for(int j=0; j<training_examples; j++)
-            printf("%f", training_data[j][i]);
-        printf("\n");
-    }
-    printf("\n");
-*/
+    training_data_x = GetInputMatrix("TRAINING_DATA_X");
+    training_data_y = GetInputMatrix("TRAINING_DATA_Y");
+    training_no_of_examples = GetInputSizeY("TRAINING_DATA_X");
+    training_current = 0;
 
-
-    // Read testing files
+    testing_data_x = GetInputMatrix("TESTING_DATA_X", false);
+    testing_data_y = GetInputMatrix("TESTING_DATA_Y", false);
+    testing_no_of_examples = GetInputSizeY("TESTING_DATA_X");
+    testing_current = 0;
     
-    filename = GetValue("testing_file");
-    if(!filename)
-    {
-        Notify(msg_fatal_error, "Trainer: no testing file.");
-        return;
-    }
+    size_x = GetInputSizeX("TRAINING_DATA_X");
+    size_y = GetInputSizeX("TRAINING_DATA_Y"); // yes, this is correct
     
-    f = fopen(filename, "r");
-    if(!f)
-    {
-        Notify(msg_fatal_error, "Trainer: testing file \"%s\" could not be opened.", filename);
-        return;
-    }
+    train_x = GetOutputArray("TRAIN_X");
+    train_y = GetOutputArray("TRAIN_Y");
     
-    // Count lines
-    
-    testing_examples = 0;
-    while(!feof(f))
-    {
-        fscanf(f, "%*[^\n]\n");
-        testing_examples++;
-    }
-    
-    testing_data = create_matrix(input_size+output_size, testing_examples);
-    
-    // Read data
-    
-    fseek(f, 0, SEEK_SET);
-    for(int i=0; i<input_size+output_size; i++)
-        for(int j=0; j<testing_examples; j++)
-            fscanf(f, "%f", &testing_data[j][i]);
-    
-    fclose(f);
-
+    test_x = GetOutputArray("TEST_X", false);
+    test_y = GetInputArray("TEST_Y", false);
 }
 
 
 
 void
-Trainer::Tick()
+Trainer::Tick() // TODO: Random order
 {
+    copy_array(train_x, training_data_x[training_current], size_x);
+    copy_array(train_y, training_data_y[training_current], size_y);
 
+    training_current++;
+    if(training_current >= training_no_of_examples)
+        training_current = 0;
+    
+    if(testing_data_x)
+    {
+        copy_array(test_x, testing_data_x[testing_current], size_x);
+        
+// copy to temporary buffer for next predicted output
+// copy_array(test_y, testing_data_y[testing_current], size_y);
+// FIXME: Handle timing and delays
+// delay line may be necessary
+
+        testing_current++;
+        if(testing_current >= testing_no_of_examples)
+            testing_current = 0;
+    }
+    
+    // TODO: Check iterations / infinite / criteria
 }
 
-static InitClass init("Trainer", &Trainer::Create, "Source/Modules/IOModules/FileInput/Trainer/");
+
+
+static InitClass init("Trainer", &Trainer::Create, "Source/Modules/LearningModules/Trainer/");
