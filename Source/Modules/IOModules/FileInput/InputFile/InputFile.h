@@ -1,8 +1,8 @@
 //
 //	InputFile.h			This file is a part of the IKAROS project
-//							A module for reading from files with data in column form
+//						A module for reading from files with data in column form
 //
-//    Copyright (C) 2001-2002  Christian Balkenius
+//    Copyright (C) 2001-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -35,18 +35,24 @@ class InputFile: public Module
 {
 public:
     const char *		filename;
+    int                 type;
     long				iterations;
     long				iteration;
-    int				extend;		// extra ticks with zero input before the module notifies the kernel of EOF
-    int				cur_extension;
+    int                 extend;		// extra ticks with zero input before the module notifies the kernel of EOF
+    int                 cur_extension;
     bool				extending;
     bool				print_iteration;
-    int				no_of_columns;
+    int                 no_of_columns;
+    int                 no_of_rows;
 
-    char **			column_name;
+    char **             column_name;
     int *				column_size;
     float **			column_data;
+    float ***           static_column_data;
 
+    void                CountData();
+    int                 CountLines(FILE * file);
+    
     InputFile(Parameter * p);		// Create and InputFile module (parameters should contain 'file_name' for reading)
     virtual ~InputFile();
 

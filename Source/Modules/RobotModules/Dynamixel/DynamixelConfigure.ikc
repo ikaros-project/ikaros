@@ -47,6 +47,7 @@
 
     <parameter name="reset_mode" type="bool" description="Enter reset mode. In this mode a dynamixel servo can be reseted to factory settings."/>
     <parameter name="scan_mode" type="bool" description="Enter scan mode. In this mode all available id and baud rates are scaned to find missing dynamixels."/>
+    <parameter name="quick_scan" type="bool" description="If in scan mode. The module will only scan for servo with ID 0 - 20"/>
     
     <input name="SET" description="if 1 the changes are written to dynaxmiel servos" />
     <input name="ACTIVE" description="ID of the servo to write changes to. If 0 all servos found will be updated with the new settings." />

@@ -44,9 +44,9 @@
 	</author>
 
    <files>
-   		<file>MinimalModule.h</file>
-   		<file>MinimalModule.cc</file>
-   		<file>MinimalModule.ikc</file>
+   		<file>SaliencePoints.h</file>
+   		<file>SaliencePoints.cc</file>
+   		<file>SaliencePoints.ikc</file>
    </files>
 
 </group>

@@ -10,12 +10,11 @@
         class = "DynamixelConfigure"
         name = "DynamixelConfigure"
         device  = "/dev/cu.usbserial-A8006Esq"	
-    	_baud_rate = "1000000"
-    	baud_rate = "57600"
-
+    	baud_rate = "1000000"
+    	_baud_rate = "3000000"
 		angle_unit = "degrees"
 		        
-        set_id = "8"
+        _set_id = "8"
         _set_baud_rate ="3000000"
         _set_return_delay_time = "250"
         _set_ccw_angle_limit ="200"
@@ -41,6 +40,7 @@
         
         _reset_mode = "true"
         _scan_mode = "true"
+    	_quick_scan = "true"
     
         />
         
@@ -64,7 +64,7 @@
 	            module = "ADD_ONE"
    		     	parameter = "data"
             	title="UP"
-            	x="1" y="0"
+            	x="0" y="0"
             />
             
             <object
@@ -72,19 +72,7 @@
             	module = "SUBTRACT_ONE"
             	parameter = "data"
             	title="DOWN"
-            	x="1" y="1"
-            />
-            
-            <object
-				class="Table" 
-				title = "Active"
-            	module = "Subtract"
-            	source = "OUTPUT"
-            	x="2" y="0"
-            	w="2" h="2"
-            	color ="red"
-            	font_size ="250"
-            	decimals ="0"
+            	x="0" y="1"
             />
 
             <object
@@ -101,8 +89,8 @@
 			<object 
 				class="Text" 
 				name = "Title of the text:" 
-				text="In reset servo mode" 
-            	x="1" y="2"
+				text="Reset mode:" 
+            	x="1" y="0"
 			/>
 
             <object
@@ -110,17 +98,17 @@
 				title ="Reset mode"
             	module = "DynamixelConfigure"
             	source = "RESET_MODE"
-            	x="2" y="2"
+            	x="2" y="0"
+            	w ="2" h ="1"
             	color ="red"
             	fill ="red"
-            	font_size ="10"
-            	decimals ="0"
+
             />
             <object 
 				class="Text" 
 				name = "Title of the text:" 
-				text="In reset servo mode" 
-            	x="1" y="3"
+				text="Change mode:" 
+            	x="1" y="1"
 			/>
             
             <object
@@ -128,12 +116,18 @@
 				title ="Change mode"
             	module = "DynamixelConfigure"
             	source = "CHANGE_MODE"
-            	x="2" y="3"
+            	x="2" y="1"
+            	w ="2" h ="1"
             	color ="yellow"
             	fill ="yellow"
-            	font_size ="10"
-            	decimals ="0"
             />
+            <object 
+				class="Text" 
+				name = "Title of the text:" 
+				text="This module can be used to set parameters in the Dynaxmiel control table. Use the bottons to find the servo you want to change/reset (active servo is blinking) and then press Write to DYNAMIXEL SERVO." 
+            	x="0" y="2"
+            	w = "5"
+			/>
             
         </view>
     </group>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Phidgets" description="minimal example module">
+
+	<description type="text">
+		A module for comunication with a Phidgets IOBoard. It uses the Phidgets own library.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Phidgets"
+			name="Phidgets"
+            serial  = "123123"
+            info  = "true"
+            sensitivify = "10"
+            ratiometric = "true"
+		/>
+	</example>
+	
+    <parameter name="serial" type="int" default="176729" description="Serial of the board. This is only needed if you running multiple boards on the same computer. Comment this line and turn on info to get the serial of the board currently connected" />
+    <parameter name="info" type="bool" default="true" description="Information about the boards will be printed to stdout." />
+    <parameter name="sensitivity" type="int" default="10" description="Sensitivity trigger. Defines how much a value must varie before registered. Can be use for some light filtering. 0 = all values." />
+    <parameter name="ratiometric" type="int" default="true" description="Ratiometric mode. See www.phidgets.com for information about ratiometric mode." />
+    
+    <input name="DIGITAL_INPUTS" description="Digital output of the board (module inputs)" />
+    
+    <output name="ATTACHED" description="1 if the board is connected." />
+    <output name="ANALOG_OUTPUTS" description="Analog inputs of the board is forwarded to analog output of this module" />
+	<output name="DIGITAL_OUTPUTS" description="Digital inputs of the board is forwarded to digital output of this module"  />
+    
+    
+	<module class="Phidgets" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>Phidgets.h</file>
+   		<file>Phidgets.cc</file>
+   		<file>Phidgets.ikc</file>
+   </files>
+
+</group>
+
