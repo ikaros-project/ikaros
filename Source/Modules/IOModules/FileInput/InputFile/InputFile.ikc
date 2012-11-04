@@ -47,6 +47,7 @@
 	</example>
 
 	<parameter name="filename" type="string" description="File to read the data from" />
+	<parameter name="type" type="list" values="dynamic/static" deafult="dynamic" description="Setting type to static uses the full file as output that does not change over time" />
 	<parameter name="iterations" type="int" deafult="1" description="Number of times to iterate the files" />
 	<parameter name="extend" type="int" default="0" description="Number of additional time steps to run before the module sends the end-of-file signal to the IKAROS kernel. This attribute is used to allow the data in the input file to propagate through the network of modules before the execution is terminated." />
 	<parameter name="print_iteration" type="bool" default="no" description="Print the iteration number to standard out" />
@@ -66,7 +67,7 @@
 		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
 	</author>
 
-	<created>2001</created>
+	<created>2001-2012</created>
 	
    <files>
    		<file>InputFile.h</file>
