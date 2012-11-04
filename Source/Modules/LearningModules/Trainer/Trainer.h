@@ -26,27 +26,31 @@
 class Trainer: public Module
 {
 public:
-    float **    training_input_table;
-    float **    training_output_table;
+    float **    training_data_x;
+    float **    training_data_y;
     int         training_no_of_examples;
     int         training_current;
 
-    float **    testing_input_table;
-    float **    testing_output_table;
+    float **    testing_data_x;
+    float **    testing_data_y;
     int         testing_no_of_examples;
     int         testing_current;
     
-    float *     train_input;
-    float *     train_target;
+    float *     train_x;
+    float *     train_y;
     
-    float *     test_input;
-    float *     test_output;
+    float *     test_x;
+    float *     test_y;
+    
+    int         size_x; // not the usual meaning
+    int         size_y;
     
     Trainer(Parameter * p): Module(p) {};
-    virtual ~Trainer();
+    virtual ~Trainer() {};
 
     static Module * Create(Parameter * p) { return new Trainer(p); };
 
+    void SetSizes();
     void Init();
     void Tick();
 };
