@@ -26,23 +26,21 @@
 class Trainer: public Module
 {
 public:
-    float ** training_data;
-    float ** testing_data;
-    
-    int     training_examples;
-    int     testing_examples;
+    float **    training_input_table;
+    float **    training_output_table;
+    int         training_no_of_examples;
+    int         training_current;
 
-    int     training_current;
-    int     testing_current;
+    float **    testing_input_table;
+    float **    testing_output_table;
+    int         testing_no_of_examples;
+    int         testing_current;
     
-    int     input_size;
-    int     output_size;
+    float *     train_input;
+    float *     train_target;
     
-    float * train_input;
-    float * train_target;
-    
-    float * test_input;
-    float * test_output;
+    float *     test_input;
+    float *     test_output;
     
     Trainer(Parameter * p): Module(p) {};
     virtual ~Trainer();
