@@ -33,7 +33,10 @@
     <connection sourcemodule = "IN" source = "Y" targetmodule = "OUT" target = "B" />
     
     <view>
-        <object class="Table" module="IN" source="Y" x="0" y="0" max = "10"/>
-    </view>
+        <object class="Table" module="IN" source="Y" x="0" y="0" max = "10" decimals="0" font_size="24" />
+        <object class="Table" module="IN" source="Y" x="1" y="0" max = "10" decimals="0" font_size="24" />
+
+        <object class="Text" x="2" y="0" h="3" text="The tables show the data of the data file as two dynamic outputs. The file is iterated four times and three ticks with zero outputs are added at the end before execution is stopped." />
+</view>
 </group>
 

@@ -89,6 +89,7 @@ set(CMAKE_MODULE_PATH ${IKAROS_SOURCE_DIR}/Scripts/CMake)
 
 # Include the source directory
 include_directories(Source/)
+include_directories(Source/Modules/)
 
 # Add sub directory
 add_subdirectory(Source)
@@ -164,5 +165,4 @@ target_link_libraries (ikaros ${MODULES_LIBS})
 #foreach(f ${INCLUDE_DIRECTORIES}) 
 #message(${f}) 
 #endforeach(f) 
-
 

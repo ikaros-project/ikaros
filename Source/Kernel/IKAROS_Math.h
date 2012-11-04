@@ -23,6 +23,10 @@
 #ifndef IKAROS_MATH
 #define IKAROS_MATH
 
+#define IKAROS_DEGREES 0
+#define IKAROS_RADIANS 1
+#define IKAROS_TAU 2
+
 // the first variable is often the result array or matrix
 // order of sizes is ALWAYS x before y in function calls
 // the sizes nearly always goes last of the arguments
@@ -270,7 +274,9 @@ namespace ikaros
 	
 	char *      int_to_string(char * s, int n, int i);	// put the string representation of the value i into s using a maximum of n characters
 	char *      float_to_string(char * s, float v, int decimals, int n);
-	
+    
+    float       angle_to_angle(float angle, int from_angle_unit, int to_angle_unit);
+
 	// misc
 	
 	int         select_boltzmann(float * a, int size, float T);

@@ -722,11 +722,20 @@ Dynamixel::Tick()
             if(use_feedback)
             {
                 // Get all data from servo.
-                com->ReadMemoryRange(atoi(servo[i]->controlTable.Get("ID")), inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
-                
-                // Parse the new data
-                servo[i]->ParseControlTable(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
+                if (com->ReadMemoryRange(atoi(servo[i]->controlTable.Get("ID")), inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE))
+                {
+                    //printf("GOT GOOD READINGS\n");
+                    // Parse the new data
+                    servo[i]->ParseControlTable(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
+                    
+                }
+                else
+                {
+                    //printf("GOT BAD READINGS\n");
+                    
+                }
             }
+            
             // Fill the ikaros outputs with formated data.
             feedbackTorqueEnable[i] = servo[i]->GetTorqueEnableFormated();
             feedbackLED[i] = servo[i]->GetLEDFormated();
@@ -742,6 +751,7 @@ Dynamixel::Tick()
             feedbackPresentVoltage[i] =  servo[i]->GetPresentVoltageFormated();
             feedbackPresentTemperature[i] = servo[i]->GetPresentTemperatureFormated();
             feedbackPresentCurrent[i] = servo[i]->GetCurrentFormated();
+            
         }
 }
 

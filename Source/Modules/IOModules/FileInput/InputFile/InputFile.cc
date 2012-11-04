@@ -1,8 +1,8 @@
 //
 //	InputFile.cc		This file is a part of the IKAROS project
-//					A module for reading from files with data in column form
+//                      A module for reading from files with data in column form
 //
-//    Copyright (C) 2001-2002  Christian Balkenius
+//    Copyright (C) 2001-2012  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 //
 //	2002-01-15	Support for # comments and blank lines added
 //	2002-01-17	Support for UNIX, Mac and DOS end of line tokens added
+//	2012-11-04	Support for static output added
 
 //#define DEBUG_INPUTFILE
 
@@ -60,17 +61,6 @@ skip_comment_lines(FILE * file)
 }
 
 
-/*
-static char
-fpeekc(FILE * f)
-{
-	char c = fgetc(f);
-	ungetc(c, f);
-	return c;
-}
-*/
-
-
 InputFile::InputFile(Parameter * p):
         Module(p)
 {
@@ -85,6 +75,7 @@ InputFile::InputFile(Parameter * p):
         return;
     }
 
+    type = GetIntValueFromList("type");
     iteration	= 1;
     iterations  = GetIntValue("iterations", 1);
     extend = GetIntValue("extend", 0);
@@ -116,36 +107,96 @@ InputFile::InputFile(Parameter * p):
         printf("  Counting column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
 #endif
     }
-
-    column_name = new char * [no_of_columns];
-    column_size = new int [no_of_columns];
-    column_data = new float * [no_of_columns];
-
-    for (int i=0; i<no_of_columns; i++)
+    
+    
+    if(type == 0) // dynamic
     {
-        column_name[i] = NULL;
-        column_data[i] = NULL;
-    }
+        column_name = new char * [no_of_columns];
+        column_size = new int [no_of_columns];
+        column_data = new float * [no_of_columns];
+        static_column_data = NULL;
 
-    // Read the names and sizes of each column
+        for (int i=0; i<no_of_columns; i++)
+        {
+            column_name[i] = NULL;
+            column_data[i] = NULL;
+        }
 
-    int col = 0;
+        // Read the names and sizes of each column
 
-    fseek(file, 0, SEEK_SET);
+        int col = 0;
 
-    skip_comment_lines(file);
-    fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+        fseek(file, 0, SEEK_SET);
 
-    while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
-    {
-#ifdef DEBUG_INPUTFILE
-        //	printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
-#endif
-        column_name[col] = create_string(col_label);		// Allocate memory for the column name
-        column_size[col] = col_size;
-        AddOutput(column_name[col], col_size);
-        col++;
+        skip_comment_lines(file);
         fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+
+        while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
+        {
+    #ifdef DEBUG_INPUTFILE
+            //	printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
+    #endif
+            column_name[col] = create_string(col_label);		// Allocate memory for the column name
+            column_size[col] = col_size;
+            AddOutput(column_name[col], col_size);
+            col++;
+            fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+        }
+    }
+    
+    
+    
+    else // static
+    {        
+        // Allocate memory
+        
+        column_name = new char * [no_of_columns];
+        column_size = new int [no_of_columns];
+        column_data = NULL;
+        static_column_data = new float ** [no_of_columns];
+        
+        for (int i=0; i<no_of_columns; i++)
+        {
+            column_name[i] = NULL;
+            static_column_data[i] = NULL;
+        }
+        
+        // Read the names and sizes of each column
+        
+        int col = 0;
+        
+        fseek(file, 0, SEEK_SET);
+        
+        skip_comment_lines(file);
+        fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+        
+        while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
+        {
+#ifdef DEBUG_INPUTFILE
+            //	printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
+#endif
+            column_name[col] = create_string(col_label);		// Allocate memory for the column name
+            column_size[col] = col_size;
+            col++;
+            fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+        }
+        
+        // Count number of lines in data file
+        
+        int line_count = CountLines(file);
+        
+#ifdef DEBUG_INPUTFILE
+        printf("line_count = %d\n", line_count);
+#endif
+        
+        // Allocate outputs
+        
+        for(int j=0; j<col; j++)
+            AddOutput(column_name[j], column_size[j], line_count);
+
+        no_of_rows = line_count;
+        
+        fclose(file);
     }
 }
 
@@ -179,6 +230,43 @@ InputFile::Create(Parameter * p)
 void
 InputFile::Init()
 {
+    if(type == 1)
+    {
+        file = fopen(filename, "rb");
+
+        // Get outputs
+        
+        for(int j=0; j < no_of_columns; j++)
+            static_column_data[j] = GetOutputMatrix(column_name[j]);
+        
+        // Read data
+        
+        skip_comment_lines(file);
+        
+        fscanf(file, "%*[^\n\r]");	// Skip format line
+        fscanf(file, "\r");
+        fscanf(file, "\n");
+
+        for(int j=0; j<no_of_rows; j++)
+        {
+            skip_comment_lines(file);
+            
+            for (int col=0; col < no_of_columns; col++)
+            {
+                for (int i=0; i<column_size[col]; i++)
+                    fscanf(file, "%f", &static_column_data[col][j][i]);
+            }
+            
+            fscanf(file, "%*[^\n\r]");	// Skip until end-of-line
+            fscanf(file, "\r");			// Read new-line token(s)
+            fscanf(file, "\n");			// Read new-line token(s)
+        }
+        
+        fclose(file);
+        
+        return;
+    }
+    
     for (int col = 0; col < no_of_columns; col++)
         column_data[col] = GetOutputArray(column_name[col]);
 }
@@ -201,8 +289,50 @@ InputFile::ReadData()
 
 
 void
+InputFile::CountData()
+{
+    for (int col=0; col < no_of_columns; col++)
+    {
+        for (int i=0; i<column_size[col]; i++)
+            fscanf(file, "%*f");
+    }
+    fscanf(file, "%*[^\n\r]");	// Skip until end-of-line
+    fscanf(file, "\r");			// Read new-line token(s)
+    fscanf(file, "\n");			// Read new-line token(s)
+}
+
+
+
+int
+InputFile::CountLines(FILE * file)
+{
+    fseek(file, 0, SEEK_SET);
+    
+    // Skip first line
+    
+    skip_comment_lines(file);
+    fscanf(file, "%*s\n");
+    
+    int line_count = -1;
+    
+    while(!feof(file))
+    {
+        skip_comment_lines(file);
+        CountData();
+        line_count++;
+    }
+    
+    return line_count;
+}
+
+
+
+void
 InputFile::Tick()
 {
+    if(type == 1)
+        return;
+
     if (extending)
     {
         if (cur_extension >= extend-1)
