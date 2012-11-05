@@ -318,6 +318,7 @@ main(int argc, char *argv[])
         return -1;	// UNDEFINED ERROR
     }
 
+    delete &k;
     return 0;
 }
 
