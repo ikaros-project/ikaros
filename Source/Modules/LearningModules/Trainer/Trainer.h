@@ -41,6 +41,7 @@ public:
     
     float *     test_x;
     float *     test_y;
+    float *     test_y_last;
     
     int         size_x; // not the usual meaning
     int         size_y;

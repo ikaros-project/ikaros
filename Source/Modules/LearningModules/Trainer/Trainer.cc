@@ -78,16 +78,17 @@ Trainer::Tick() // TODO: Random order
     
     if(testing_data_x)
     {
+        copy_array(test_y_last, test_y, size_y);
         copy_array(test_x, testing_data_x[testing_current], size_x);
-        
-// copy to temporary buffer for next predicted output
-// copy_array(test_y, testing_data_y[testing_current], size_y);
-// FIXME: Handle timing and delays
-// delay line may be necessary
+        copy_array(test_y, testing_data_y[testing_current], size_y);
 
         testing_current++;
         if(testing_current >= testing_no_of_examples)
             testing_current = 0;
+        
+        // Calculate error
+        
+        error = dist(test_y_last);
     }
     
     // TODO: Check iterations / infinite / criteria
