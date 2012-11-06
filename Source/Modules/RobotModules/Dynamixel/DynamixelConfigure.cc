@@ -31,7 +31,6 @@ DynamixelConfigure::DynamixelConfigure(Parameter * p):
 Module(p)
 {
     
-    
     // Reset mode
     resetMode = GetBoolValue("reset_mode");
     if (resetMode)
@@ -162,6 +161,11 @@ Module(p)
             servo_index[i] = j++;
             servo_id[i] = atoi(servo[i]->controlTable.Get("ID"));
         }
+    
+    // If we did not find any servos kill ikaros.
+    if (size == 0)
+        Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
+
 }
 
 void

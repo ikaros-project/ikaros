@@ -31,6 +31,7 @@ Dynamixel::Dynamixel(Parameter * p):
 Module(p)
 {
     
+
     device = GetValue("device");
     if(!device)
     {
@@ -162,6 +163,11 @@ Module(p)
             servo_index[i] = j++;
             servo_id[i] = atoi(servo[i]->controlTable.Get("ID"));
         }
+    
+    // If we did not find any servos kill ikaros.
+    if (size == 0)
+        Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
+
 }
 
 
