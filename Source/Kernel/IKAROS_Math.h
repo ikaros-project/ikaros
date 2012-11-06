@@ -23,10 +23,6 @@
 #ifndef IKAROS_MATH
 #define IKAROS_MATH
 
-#define IKAROS_DEGREES 0
-#define IKAROS_RADIANS 1
-#define IKAROS_TAU 2
-
 // the first variable is often the result array or matrix
 // order of sizes is ALWAYS x before y in function calls
 // the sizes nearly always goes last of the arguments
@@ -38,6 +34,8 @@ namespace ikaros
 	extern const float	pi;
 	extern const float	sqrt2pi;
 	extern const float	maxfloat;
+    
+    enum angle_unit {degrees, radians, tau};
 	
 	float eps(float x);
     
