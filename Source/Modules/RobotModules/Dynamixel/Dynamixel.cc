@@ -51,6 +51,7 @@ Module(p)
     use_feedback = GetBoolValue("feedback");
     
     start_up_delay = GetIntValue("start_up_delay");
+    start_up_slow = GetBoolValue("start_up_slow");
     
     
     init_print = GetIntValueFromList("printf_info");
@@ -604,12 +605,15 @@ Dynamixel::Init()
         
     }
     for(int i=0; i<size; i++)
-    {    if(servo[i])
-        servo[i]->SetLED(0);
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-    }
+        if(servo[i])
+        {
+            servo[i]->SetLED(0);
+            com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
+        }
+    
     if (init_print == 2 || init_print == 1)
         printf("Done\n");
+    
 #endif
     
 }
@@ -643,11 +647,18 @@ Dynamixel::~Dynamixel()
         
         timer.Sleep(100); // Blink
     }
+    if (init_print == 2 || init_print == 1)
+        printf("Done\n");
+    
     for(int i=0; i<size; i++)
-    {    if(servo[i])
-        servo[i]->SetLED(0);
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-    }
+        if(servo[i])
+        {
+            servo[i]->SetLED(0);
+            com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
+        }
+    
+    timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
+
 #endif
     
     // Delete dynamixel memory buffert
@@ -718,6 +729,20 @@ Dynamixel::Tick()
         // Write changes to serial
         com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
     }
+    else
+    {
+        if (start_up_slow)
+        {
+            for(int i=0; i<size; i++)
+                if(servo[i])
+                    servo[i]->SetTorqueLimitFormated(servo[i]->GetTorqueLimitFormated()*0.3); // use 30% current torque.
+
+            // Regulate the speed the first couple of ticks.
+            com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
+        }
+        
+    }
+
     
     // Get feedback
     for(int i=0; i<size; i++)
