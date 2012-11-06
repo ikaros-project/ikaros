@@ -28,7 +28,6 @@
             If the TORQUE_LIMIT input is connected, the torque for each servo can be set individually between min (0) and max (1).
         </p>
 
-        </p>
 	</description>
 
 	<example description="A simple example">
