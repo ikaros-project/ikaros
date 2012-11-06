@@ -54,6 +54,7 @@ private:
     bool        use_feedback;
     int         baud_rate;
     int         start_up_delay;
+    bool        start_up_slow;
     
     
     // Inputs and outputs
