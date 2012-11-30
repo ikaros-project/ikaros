@@ -9,43 +9,43 @@
 
 
 find_path(YARP_INCLUDE_DIR
-    names
+    NAMES
     	yarp/os/all.h 
     	yarp/dev/all.h 
     	yarp/sig/all.h
-	paths
+	PATHS
 		/usr/include
 		/usr/local/include
 	)
 
 find_library(YARP_OS_LIBRARY
-	names
+	NAMES
 		YARP_OS
-	paths
+	PATHS
 		/usr/lib
 		/usr/local/lib
 	)
   
 find_library(YARP_DEV_LIBRARY
-	names
+	NAMES
 		YARP_dev
-	paths
+	PATHS
 		/usr/lib
 		/usr/local/lib
 	)
   
 find_library(YARP_SIG_LIBRARY
-	names
+	NAMES
 		YARP_sig
-	paths
+	PATHS
 		/usr/lib
 		/usr/local/lib
 	)
 
   find_library(YARP_INIT_LIBRARY
-	names
+	NAMES
 		YARP_init
-	paths
+	PATHS
 		/usr/lib
 		/usr/local/lib
 	)
