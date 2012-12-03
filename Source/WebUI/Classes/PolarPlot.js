@@ -9,6 +9,7 @@ function PolarPlot(p)
 	this.cx = this.width/2;
 	this.cy = this.height/2;
 	this.r = this.cx-6;
+    this.max = (p.max ? p.max : 1);
 
 	this.margin = (p.margin ? p.margin : 10);
 	this.offset = (p.offset ? p.offset : Math.PI);
@@ -86,7 +87,7 @@ PolarPlot.prototype.Update = function(data)
 	for(var j=0; j<this.sizey; j++)
 	for(var i=0; i<this.sizex; i++)
 	{
-		var v = d[j][i];
+		var v = d[j][i]/this.max;
 		this.line[i].setAttribute('x2', this.cx+(this.r-this.margin)*this.x[b]*v);
 		this.line[i].setAttribute('y2', this.cy+(this.r-this.margin)*this.y[b]*v);
 		var xxx =  this.cx+(this.r-this.margin)*this.x[b]*v;
