@@ -62,9 +62,9 @@ if (YARP_OS_LIBRARY AND YARP_DEV_LIBRARY AND YARP_SIG_LIBRARY AND YARP_OS_LIBRAR
 	${YARP_INCLUDE_DIR}
 	)
 	
-    message(status "Found YARP:")
-	message(status " - Includes: ${YARP_INCLUDE_DIRS}")
-	message(status " - Libraries: ${YARP_LIBRARIES}")
+    message("Found YARP:")
+	message(" - Includes: ${YARP_INCLUDE_DIRS}")
+	message(" - Libraries: ${YARP_LIBRARIES}")
 	set(YARP_FOUND "YES" )
 endif ()
 
