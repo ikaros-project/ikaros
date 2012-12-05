@@ -12,7 +12,8 @@ function PolarPlot(p)
     this.max = (p.max ? p.max : 1);
 
 	this.margin = (p.margin ? p.margin : 10);
-	this.offset = (p.offset ? p.offset : Math.PI);
+	this.offset = (p.offset!=undefined ? p.offset : Math.PI);
+	this.direction = (p.direction ? p.direction : 1);
 	this.axes = (p.axes != undefined ? p.axes : 5);
 	
 	this.grid_color = (p.grid_color ? p.grid_color : 'yellow');
@@ -54,8 +55,8 @@ PolarPlot.prototype.Init = function(data)
 	for(var j=0; j<this.sizey; j++)
 	for(var i=0; i<this.sizex; i++)
 	{
-		var xx = Math.sin(v+this.offset);
-		var yy = Math.cos(v+this.offset);
+		var xx = Math.sin(-this.direction*v+this.offset);
+		var yy = Math.cos(-this.direction*v+this.offset);
 		this.x.push(xx);
 		this.y.push(yy);
 		var l = this.graph.AddLine(w, h, w+w*0*xx, h+w*0*yy, this.line_color, this.line_stroke_width);
@@ -68,7 +69,7 @@ PolarPlot.prototype.Init = function(data)
 	this.c = this.graph.AddCircle(this.cx,  this.cy,  0.75*this.r, 'none', this.grid_color, this.grid_stroke_width);
 
 	for(var i=0; i<this.axes; i++)
-		this.graph.AddLine(this.cx, this.cy, this.cx+this.r*Math.sin(i*2*Math.PI/this.axes+this.offset), this.cy+this.r*Math.cos(i*2*Math.PI/this.axes+this.offset), this.grid_color, this.grid_stroke_width);
+		this.graph.AddLine(this.cx, this.cy, this.cx+this.r*Math.sin(i*2*Math.PI/this.axes+Math.PI), this.cy+this.r*Math.cos(i*2*Math.PI/this.axes+Math.PI), this.grid_color, this.grid_stroke_width);
 }
 
 
