@@ -2393,11 +2393,11 @@ namespace ikaros
 #ifdef USE_VIMAGE
 		struct vImage_Buffer src =
         {
-            a, 1, size, size*sizeof(float)
+            a, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
         };
 		struct vImage_Buffer dest =
         {
-            r, 1, size, size*sizeof(float)
+            r, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
         };
 		vImage_Error err = vImageConvert_PlanarFtoPlanar8 (&src, &dest, max, min, 0);
 		if (err < 0) printf("IKAROS_Math:float_to_byte vImage_Error = %ld\n", err);
@@ -2488,11 +2488,11 @@ namespace ikaros
 		{
 			struct vImage_Buffer src =
             {
-                *source, rsizey+(ksizey-1), rsizex+(ksizex-1), sizeof(float)*(rsizex+(ksizex-1))
+                *source, static_cast<vImagePixelCount>(rsizey+(ksizey-1)), static_cast<vImagePixelCount>(rsizex+(ksizex-1)), sizeof(float)*(rsizex+(ksizex-1))
             };
 			struct vImage_Buffer dest =
             {
-                *result, rsizey, rsizex, sizeof(float)*rsizex
+                *result, static_cast<vImagePixelCount>(rsizey), static_cast<vImagePixelCount>(rsizex), sizeof(float)*rsizex
             };
 			vImage_Error err;
 			if (bias != 0)
