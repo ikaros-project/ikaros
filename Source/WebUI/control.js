@@ -312,7 +312,7 @@ function update()
             if(data.state == 3)
                 do_run();
             else if(data.state == 4)
-                setTimeout("update();", 10);
+                setTimeout("update();", 100);
         }
         catch(err)
         {
