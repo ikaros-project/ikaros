@@ -21,7 +21,7 @@
 	<input name="INPUT" description="The first input" />
 	<input name="SHIFT" description="The distance to shift the input in [X, Y] form" />
 
-	<output name="OUTPUT" description="The output" />
+	<output name="OUTPUT" description="The output" size_set="INPUT"/>
 
 	<module class="Shift" />
 

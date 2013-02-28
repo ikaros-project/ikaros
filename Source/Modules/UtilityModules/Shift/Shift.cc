@@ -36,7 +36,7 @@ Shift::Init()
     size_y	= GetInputSizeY("INPUT");
 
     input		= GetInputMatrix("INPUT");
-    output	= GetOutputMatrix("OUTPUT");
+    output      = GetOutputMatrix("OUTPUT");
     shift		= GetInputArray("SHIFT");
 
     if (shift == NULL)
