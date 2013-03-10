@@ -1,4 +1,4 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+et(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(AttentionFocus)
 add_subdirectory(ColorClassifier)
@@ -13,6 +13,7 @@ add_subdirectory(SaliencyMap)
 add_subdirectory(Scaling)
 add_subdirectory(SpatialClustering)
 add_subdirectory(WhiteBalance)
+add_subdirectory(DepthProcessing)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
