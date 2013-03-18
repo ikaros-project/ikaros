@@ -154,7 +154,7 @@ public:
 
 
 
-const int max_buffer = 64000;
+const int max_buffer = 262144;
 
 class XMLDocument
 {
