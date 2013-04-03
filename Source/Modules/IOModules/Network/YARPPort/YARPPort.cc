@@ -82,7 +82,7 @@ YARPPort::Init()
     type    =   GetIntValueFromList("type");
     SenOnlyNewValues    =   GetBoolValue("send_only_new_values");
     sendStrict    =   GetBoolValue("send_strict");
-    receiveStrict    =   GetBoolValue("recive_strict");
+    receiveStrict    =   GetBoolValue("receive_strict");
     
     size_x  = GetIntValue("outputsize_x", 0);
     size_y  = GetIntValue("outputsize_y", 0);
