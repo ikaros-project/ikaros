@@ -57,9 +57,9 @@ YARPPort::showBottle(Bottle& anUnknownBottle, int indentation = 0) {
             case BOTTLE_TAG_BLOB:
                 printf("binary blob of length %lu\n", element.asBlobLength());
                 break;
-            case BOTTLE_TAG_VOCAB:
-                printf("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
-                break;
+            //case BOTTLE_TAG_VOCAB:
+            //    printf("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
+            //    break;
             default:
                 if (element.isList()) {
                     Bottle *lst = element.asList();
