@@ -1,4 +1,4 @@
-et(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(AttentionFocus)
 add_subdirectory(ColorClassifier)
