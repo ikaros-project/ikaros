@@ -577,57 +577,11 @@ Dynamixel::Init()
     if (init_print == 2)
         PrintAll();
     
-    
-//#ifdef SLOW_TORQUE
-    // Torqueing up the servos.
-//    Timer timer;
-//    int blink = 0;
-//    
-//    if (init_print == 2 || init_print == 1)
-//        printf("Dynamixel: Power up servo(s)");
-//    
     // Set Goal position to whatever position the servo has now.
     for(int i=0; i<size; i++)
         if(servo[i])
             servo[i]->SetGoalPosition(servo[i]->GetPresentPosition());
     com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 30, 31, size);
-    
-//    // Blink and increase torque
-//    for(float j=0; j<=1; j = j + 0.1)
-//    {
-//        for(int i=0; i<size; i++)
-//            if(servo[i])
-//            {
-//                servo[i]->SetTorqueLimit(servo[i]->GetTorqueLimit()*j);
-//                servo[i]->SetLED(blink);
-//            }
-//        
-//        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-//        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 34, 35, size);
-//        
-//        if (init_print == 2 || init_print == 1)
-//            printf(".");
-//        
-//        if (blink == 1)
-//            blink = 0;
-//        else
-//            blink = 1;
-//        
-//        timer.Sleep(100);
-//    }
-//    
-//    // Make sure LED is off.
-//    for(int i=0; i<size; i++)
-//        if(servo[i])
-//            servo[i]->SetLED(0);
-//    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-//    
-//    if (init_print == 2 || init_print == 1)
-//        printf("Done\n");
-    
-//#endif
-    
-       
 }
 
 Dynamixel::~Dynamixel()
@@ -794,15 +748,11 @@ Dynamixel::Tick()
             
             
         }
-    //PrintAll();
-    // For PID Tuning.
-//    if (size > 5)
-//    {
+// For PID Tuning.
 //        for(int i=0; i<size; i++)
 //        {
 //            printf("DYNAMIXEL: (SENT = REC) %f (%i) = %f (%i) Error: %f\n", servo[i]->GetGoalPositionFormated(angle_unit),servo[i]->GetGoalPosition(),servo[i]->GetPresentPositionFormated(angle_unit),servo[i]->GetPresentPosition(), servo[i]->GetGoalPositionFormated(angle_unit)-servo[i]->GetPresentPositionFormated(angle_unit));;
 //        }
-//    }
     
 }
 
