@@ -550,7 +550,7 @@ Dynamixel::Init()
         // Filling it with value fetched from servos.
         for(int i=0; i<size; i++)
             if(servo[i])
-                torqueLimit[i] =  servo[i]->GetTorqueLimitFormated();
+                torqueLimit[i] =  servo[i]->GetMaxTorqueFormated();
         allocated_torqueLimit = true;
     }
     
@@ -577,50 +577,62 @@ Dynamixel::Init()
     if (init_print == 2)
         PrintAll();
     
-#ifdef SLOW_TORQUE
     
-    // Torqueing up the servos. Using the torque from last time used.
-    if (init_print == 2 || init_print == 1)
-        printf("\nPower up servo(s) to previous used torque)");
-    Timer timer;
-    int blink = 0;
-    for(float j=0; j<=1; j = j + 0.1)
-    {
-        for(int i=0; i<size; i++)
-            if(servo[i])
-            {
-                servo[i]->SetTorqueLimit(servo[i]->GetTorqueLimit()*j);
-                servo[i]->SetLED(blink);
-            }
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
-        if (init_print == 2 || init_print == 1)
-            printf(".");
-        
-        if (blink == 1)
-            blink = 0;
-        else
-            blink = 1;
-        
-        timer.Sleep(100); // Blink
-        
-    }
+//#ifdef SLOW_TORQUE
+    // Torqueing up the servos.
+//    Timer timer;
+//    int blink = 0;
+//    
+//    if (init_print == 2 || init_print == 1)
+//        printf("Dynamixel: Power up servo(s)");
+//    
+    // Set Goal position to whatever position the servo has now.
     for(int i=0; i<size; i++)
         if(servo[i])
-        {
-            servo[i]->SetLED(0);
-            com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-        }
+            servo[i]->SetGoalPosition(servo[i]->GetPresentPosition());
+    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 30, 31, size);
     
-    if (init_print == 2 || init_print == 1)
-        printf("Done\n");
+//    // Blink and increase torque
+//    for(float j=0; j<=1; j = j + 0.1)
+//    {
+//        for(int i=0; i<size; i++)
+//            if(servo[i])
+//            {
+//                servo[i]->SetTorqueLimit(servo[i]->GetTorqueLimit()*j);
+//                servo[i]->SetLED(blink);
+//            }
+//        
+//        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
+//        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 34, 35, size);
+//        
+//        if (init_print == 2 || init_print == 1)
+//            printf(".");
+//        
+//        if (blink == 1)
+//            blink = 0;
+//        else
+//            blink = 1;
+//        
+//        timer.Sleep(100);
+//    }
+//    
+//    // Make sure LED is off.
+//    for(int i=0; i<size; i++)
+//        if(servo[i])
+//            servo[i]->SetLED(0);
+//    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
+//    
+//    if (init_print == 2 || init_print == 1)
+//        printf("Done\n");
     
-#endif
+//#endif
     
+       
 }
 
 Dynamixel::~Dynamixel()
 {
-#ifdef SLOW_TORQUE
+    
     Timer timer;
     // Torqueing down the servos. Using the torque from last time used.
     if (init_print == 2 || init_print == 1)
@@ -637,6 +649,7 @@ Dynamixel::~Dynamixel()
                 servo[i]->SetLED(blink);
             }
         com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
+        
         if (init_print == 2 || init_print == 1)
             printf(".");
         
@@ -652,19 +665,18 @@ Dynamixel::~Dynamixel()
     
     for(int i=0; i<size; i++)
         if(servo[i])
-        {
             servo[i]->SetLED(0);
-            com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-        }
+    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
+
+    // Set goal position to position
+    for(int i=0; i<size; i++)
+        if(servo[i])
+            servo[i]->SetGoalPosition(servo[i]->GetPresentPosition());
+    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 30, 31, size);
     
     timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
-
-#endif
     
-    // Delete dynamixel memory buffert
-    //for(int i=0; i<size; i++)
-    //    if(servo[i])
-    //        delete DynamixelMemoeries[i];
+    
     delete DynamixelMemoeries;
     
     if (allocated_torqueEnable)
@@ -689,19 +701,30 @@ Dynamixel::~Dynamixel()
     delete servo_id;
     delete com;
     delete servo; // Also delete servo's memorybuffer
+    
+    
+    
 }
 
 void
 Dynamixel::Tick()
 {
+
     // check that the device exists and is open
     if(!device)
         return;
     
     if(!com)
         return;
+
+    // Make angles within legal limits
+    for (int i = 0; i < size; i++)
+        goalPosition[i] = mod(goalPosition[i], angle_to_angle(360, degrees, angle_unit));
+
     
-    for(int i=0; i<size; i++)
+    if(GetTick() >= start_up_delay)
+    {
+        for(int i=0; i<size; i++)
         if(servo[i])
         {
             // Wheel mode. If we are not in Joint mode and we have a Moving Speed input (we have not allacted our own)
@@ -723,26 +746,11 @@ Dynamixel::Tick()
                 servo[i]->SetTorqueLimitFormated(torqueLimit[i]);
             }
         }
-    
-    if(GetTick() >= start_up_delay) // Do not send commands the first few ticks
-    {
         // Write changes to serial
         com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
     }
-    else
-    {
-        if (start_up_slow)
-        {
-            for(int i=0; i<size; i++)
-                if(servo[i])
-                    servo[i]->SetTorqueLimitFormated(servo[i]->GetTorqueLimitFormated()*0.3); // use 30% current torque.
-
-            // Regulate the speed the first couple of ticks.
-            com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
-        }
-        
-    }
-
+ 
+    
     
     // Get feedback
     for(int i=0; i<size; i++)
@@ -758,6 +766,7 @@ Dynamixel::Tick()
                     //printf("GOT GOOD READINGS\n");
                     // Parse the new data
                     servo[i]->ParseControlTable(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
+                    //com->PrintMemory(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
                     
                 }
                 else
@@ -783,7 +792,18 @@ Dynamixel::Tick()
             feedbackPresentTemperature[i] = servo[i]->GetPresentTemperatureFormated();
             feedbackPresentCurrent[i] = servo[i]->GetCurrentFormated();
             
+            
         }
+    //PrintAll();
+    // For PID Tuning.
+//    if (size > 5)
+//    {
+//        for(int i=0; i<size; i++)
+//        {
+//            printf("DYNAMIXEL: (SENT = REC) %f (%i) = %f (%i) Error: %f\n", servo[i]->GetGoalPositionFormated(angle_unit),servo[i]->GetGoalPosition(),servo[i]->GetPresentPositionFormated(angle_unit),servo[i]->GetPresentPosition(), servo[i]->GetGoalPositionFormated(angle_unit)-servo[i]->GetPresentPositionFormated(angle_unit));;
+//        }
+//    }
+    
 }
 
 
