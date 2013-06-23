@@ -43,7 +43,7 @@ bool    equal_strings(const char * a, const char * b);
 bool	strstart(const char * s1, const char *s2); // does s1 start with s2
 bool	strend(const char * s1, const char * s2); // does 1s end with s2
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 char* strsep(char **stringp, const char *delim);
 #endif
 
