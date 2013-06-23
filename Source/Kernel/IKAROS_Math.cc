@@ -65,7 +65,8 @@ extern "C"
 #endif
 #endif
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
+//#include <amp_math.h>
 #define M_PI 3.14159265358979323846264338328f
 #undef min
 #undef max
@@ -76,11 +77,11 @@ namespace ikaros
 	extern const float maxfloat = MAXFLOAT;
 	extern const float pi = M_PI;
 	extern const float sqrt2pi = sqrt(2*pi);
-    
+    /*
     float eps(float x)
     {
         return nextafterf(fabsf(x), MAXFLOAT)-fabsf(x);
-    }
+    }*/
         
 	// misc scalar functions
     
@@ -89,7 +90,7 @@ namespace ikaros
     
 	float trunc(float x)
 	{
-#ifdef WINDOWS32
+#ifdef WINDOWS
 		return (float)((int)x);
 #else
 		return ::truncf((int)x);
@@ -422,7 +423,7 @@ namespace ikaros
 	float
 	hypot(float x, float y)
 	{
-#ifdef WINDOWS32
+#ifdef WINDOWS
 		return (float)_hypot(x, y);
 #else
 		return ::hypotf(x, y);
@@ -1668,8 +1669,14 @@ namespace ikaros
     {
         int i,j,k;
         float scale,sigma,sum,tau;
+
+#ifdef WINDOWS
+		float * c = create_array(size);
+		float * d = create_array(size);
+#elif
         float c[size];
         float d[size];
+#endif
         
         copy_matrix(r, a, size, size);
         
@@ -1744,7 +1751,12 @@ namespace ikaros
                     r[i][j] = -r[i][j];
                     q[j][i] = - q[j][i];
                 }
-                
+
+#ifdef WINDOWS
+		destroy_array(c);
+		destroy_array(d);
+#endif
+
         return singular;
     }
 
@@ -1781,7 +1793,7 @@ namespace ikaros
 
 
     // calculate the rank of matrix using svd
-
+	/*
     float
     rank(float ** m, int sizex, int sizey, float tol)
     {
@@ -1800,7 +1812,7 @@ namespace ikaros
         destroy_matrix(v);
         destroy_array(s);
         return r;
-    }
+    }*/
     
 
     
@@ -2377,7 +2389,7 @@ namespace ikaros
 	int
 	lround(float x)
 	{
-#ifdef WINDOWS32
+#ifdef WINDOWS
 		if ( x >= (int)x + 0.5f )
 			return (int)x + 1;
 		else
@@ -2434,7 +2446,7 @@ namespace ikaros
 		if (s == NULL)
 			return d;
 		else
-#ifdef WINDOWS32
+#ifdef WINDOWS
 			return (float)strtod(s, NULL);
 #else
         return strtof(s, NULL);

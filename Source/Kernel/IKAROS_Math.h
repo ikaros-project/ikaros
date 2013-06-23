@@ -37,7 +37,7 @@ namespace ikaros
     
     enum angle_unit {degrees, radians, tau};
 	
-	float eps(float x);
+	//float eps(float x);
     
 	// misc scalar
 	
@@ -248,7 +248,7 @@ namespace ikaros
     float **    transpose(float ** a, int size); // transpose square matrix in place
     float       det(float ** m, int size); // determinant of m
     float       trace(float ** m, int size); // trace of m
-    float       rank(float ** m, int sizex, int sizey, float tol=0); // the rank of the matrix
+    //float       rank(float ** m, int sizex, int sizey, float tol=0); // the rank of the matrix
     bool        inv(float ** a, float ** b, int size);  // invert matrix b and store in a; returns false if singular
     void        pinv(float ** a, float ** b, int sizex, int sizey); // pseudoinverse of b is stored in a; sizeof(a) = sizex x sizey; sizeof(b) = sizey x sizex
     float *     mldivide(float * r, float ** m, float * a, int size); // left divide; solves mr = a

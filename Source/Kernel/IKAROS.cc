@@ -61,7 +61,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 
-#include <ftw.h>    //****************** TEMPORARY
+//#include <ftw.h>    //****************** TEMPORARY
 
 #ifdef WINDOWS
 #include <direct.h>
@@ -69,7 +69,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 #include <windows.h>
 #undef GetClassName
 #else
@@ -1392,7 +1392,7 @@ Kernel::SetOptions(Options * opt)
     // Seed random number generator
                         
     if(options->GetOption('z'))
-#ifdef WINDOWS32
+#ifdef WINDOWS
         srand(string_to_int(options->GetArgument('z')));
 #else
         srandom(string_to_int(options->GetArgument('z')));
@@ -1460,7 +1460,7 @@ Kernel::Kernel(Options * opt)
 	// Seed random number generator
 	
 	if(options->GetOption('z'))
-#ifdef WINDOWS32
+#ifdef WINDOWS
     srand(string_to_int(options->GetArgument('z')));
 #else
     srandom(string_to_int(options->GetArgument('z')));

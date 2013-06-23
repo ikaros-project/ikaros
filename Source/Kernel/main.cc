@@ -35,7 +35,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 #include <windows.h>
 #undef GetClassName
 #else

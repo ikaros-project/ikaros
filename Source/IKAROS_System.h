@@ -34,7 +34,6 @@
 //#define MAC_OS_X
 //#define LINUX
 //#define WINDOWS
-//#define WINDOWS32
 
 
 //
@@ -133,7 +132,7 @@
 //#define USE_LIBPNG
 //#define USE_BLAS
 #define USE_WIN_SERIAL
-//#define USE_THREADED_WEBUI
+#define USE_THREADED_WEBUI
 #include <direct.h> // Include chdir
 #define chdir _chdir
 #define getcwd _getcwd
@@ -142,7 +141,7 @@
 #undef min
 #undef max
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 //#define vsnprintf _vsnprintf
 #define snprintf _snprintf
 #define PATH_MAX 255
