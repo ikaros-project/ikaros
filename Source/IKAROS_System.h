@@ -90,7 +90,6 @@
 #define USE_BLAS
 #define USE_LIBPNG
 //#define USE_MPI
-//#define USE_THREADED_WEBUI
 #endif
 
 
@@ -114,7 +113,6 @@
 #define USE_LAPACK
 #define USE_THREADS
 #define USE_MPI
-//#define USE_THREADED_WEBUI    // 1.3
 #endif
 
 
