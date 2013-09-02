@@ -43,3 +43,11 @@ ehthumbs.db
 Thumbs.db
 /Debug/
 /Release/
+
+# Windows #
+######################
+
+*.sln
+*.suo
+*.vcxproj
+*.vcxproj.filters
