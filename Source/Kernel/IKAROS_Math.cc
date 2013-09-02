@@ -77,11 +77,15 @@ namespace ikaros
 	extern const float maxfloat = MAXFLOAT;
 	extern const float pi = M_PI;
 	extern const float sqrt2pi = sqrt(2*pi);
-    /*
+    
     float eps(float x)
     {
+#ifdef WINDOWS
+		return x+1E-20;
+#else
         return nextafterf(fabsf(x), MAXFLOAT)-fabsf(x);
-    }*/
+#endif
+    }
         
 	// misc scalar functions
     
@@ -1673,7 +1677,7 @@ namespace ikaros
 #ifdef WINDOWS
 		float * c = create_array(size);
 		float * d = create_array(size);
-#elif
+#else
         float c[size];
         float d[size];
 #endif
@@ -1793,7 +1797,7 @@ namespace ikaros
 
 
     // calculate the rank of matrix using svd
-	/*
+	
     float
     rank(float ** m, int sizex, int sizey, float tol)
     {
@@ -1812,7 +1816,7 @@ namespace ikaros
         destroy_matrix(v);
         destroy_array(s);
         return r;
-    }*/
+    }
     
 
     

@@ -61,7 +61,6 @@
 #include <fcntl.h>
 #include <ctype.h>
 
-//#include <ftw.h>    //****************** TEMPORARY
 
 #ifdef WINDOWS
 #include <direct.h>
