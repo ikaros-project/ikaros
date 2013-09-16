@@ -2,7 +2,7 @@
 
 <group title="MarkerTracker Example">
 	
-		<_module
+		<module
 			class   = "InputVideoQT"
 			name	= "CAMERA"			
             size_x  = "640"
@@ -17,7 +17,7 @@
             filename = "../../../../../Examples/Media/marker_image.jpg"
         />
     
-        <module
+        <_module
             class   = "Kinect"
             name	= "CAMERA"
         />
@@ -30,7 +30,7 @@
             sort    = "yes"
             marker_size = "0 999 90; 1000 9999 45"
             use_history = "no"
-            threshold = "0.5"
+            threshold = "auto"
 		/>
 
 		<connection sourcemodule = "CAMERA" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />

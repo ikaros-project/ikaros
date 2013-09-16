@@ -22,6 +22,8 @@ function Rectangle(p)
 	this.max_y = (p.max_y ? p.max_y : this.max);
 	this.scale_y = 1/(this.max_y == this.min_y ? 1 : this.max_y-this.min_y);
     
+    this.xscale = (p.zscale ? p.zscale : false);
+    
     this.flip_y_axis = p.flip_y_axis;
 
 	if(!this.module)
@@ -66,17 +68,17 @@ Rectangle.prototype.Init = function(data)
             
             if(this.sizex > 2)
             {
-                kc = Math.cos(-d[i][2]);
-                ks = Math.sin(-d[i][2]);
+                kc = Math.cos(-d[i][3]);
+                ks = Math.sin(-d[i][3]);
             }
 
             var sx = this.size;
             var sy = this.size;
             
-            if(d[i][4])
+            if(this.zscale)
             {
-                sx = sx * d[i][4];
-                sy = sy * d[i][4];
+                sx = sx * max(0.1, 1.0-0.25*(d[i][2]/35.0));
+                sy = sy * max(0.1, 1.0-0.25*(d[i][2]/35.0));
             }
             
             var mx0 = mx + kc*sx - ks*sy;
@@ -110,17 +112,17 @@ Rectangle.prototype.Init = function(data)
             
             if(this.sizex > 2)
             {
-                kc = Math.cos(d[i][2]);
-                ks = Math.sin(d[i][2]);
+                kc = Math.cos(d[i][3]);
+                ks = Math.sin(d[i][3]);
             }
             
             var sx = this.size;
             var sy = this.size;
             
-            if(d[i][4])
+            if(this.zscale)
             {
-                sx = sx * d[i][4];
-                sy = sy * d[i][4];
+                sx = sx * max(0.1, 1.0-0.25*(d[i][2]/35.0));
+                sy = sy * max(0.1, 1.0-0.25*(d[i][2]/35.0));
             }
             
             var mx0 = mx + kc*sx - ks*sy;
@@ -157,6 +159,11 @@ Rectangle.prototype.Update = function(data)
 
     if(this.flip_y_axis)
     {
+        if(this.source=="ROBOT_LOCATION")
+        {
+            var x = 0;
+        }
+    
         for(var i=0; i<this.sizey; i++)
         {
             var mx = (d[i][0]-this.min_x)*this.scale_x * this.width;
@@ -167,17 +174,17 @@ Rectangle.prototype.Update = function(data)
             
             if(this.sizex > 2)
             {
-                kc = Math.cos(-d[i][2]);
-                ks = Math.sin(-d[i][2]);
+                kc = Math.cos(-d[i][3]);
+                ks = Math.sin(-d[i][3]);
             }
 
             var sx = this.size;
             var sy = this.size;
             
-            if(d[i][4])
+            if(this.zscale)
             {
-                sx = sx * d[i][4];
-                sy = sy * d[i][4];
+                sx = sx * max(0.1, 1.0-0.25*(d[i][2]/35.0));
+                sy = sy * max(0.1, 1.0-0.25*(d[i][2]/35.0));
             }
             
             var mx0 = mx + kc*sx - ks*sy;
@@ -225,20 +232,20 @@ Rectangle.prototype.Update = function(data)
             
             if(this.sizex > 2)
             {
-                kc = Math.cos(d[i][2]);
-                ks = Math.sin(d[i][2]);
+                kc = Math.cos(d[i][3]);
+                ks = Math.sin(d[i][3]);
             }
 
             var sx = this.size;
             var sy = this.size;
             
-             if(d[i][4])
+            if(this.zscale)
             {
-                sx = sx * d[i][4];
-                sy = sy * d[i][4];
+                sx = sx * max(0.1, 1.0-0.25*(d[i][2]/35.0));
+                sy = sy * max(0.1, 1.0-0.25*(d[i][2]/35.0));
             }
             
-           var mx0 = mx + kc*sx - ks*sy;
+            var mx0 = mx + kc*sx - ks*sy;
             var my0 = my + ks*sx + kc*sy;
 
             var mx1 = mx - kc*sx - ks*sy;
