@@ -159,11 +159,6 @@ Rectangle.prototype.Update = function(data)
 
     if(this.flip_y_axis)
     {
-        if(this.source=="ROBOT_LOCATION")
-        {
-            var x = 0;
-        }
-    
         for(var i=0; i<this.sizey; i++)
         {
             var mx = (d[i][0]-this.min_x)*this.scale_x * this.width;
