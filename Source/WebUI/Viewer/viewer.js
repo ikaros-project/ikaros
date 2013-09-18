@@ -146,7 +146,177 @@ function WebUIObject(obj, p, title)
 
 
 
-function WebUICanvas(obj, p)
+function WebUICanvas(obj, p, ctype)
+{
+	if(!p.title)
+		p.title = p.module+'.'+p.source;
+
+	if(!p.behind)
+        p.behind = false;
+ 
+    if(!ctype)
+        ctype = "2d";
+    
+    // Deadult Parameters
+    
+    obj.module = p.module;
+	obj.source = p.source;
+	obj.width = p.width;
+	obj.height = p.height;
+    
+    obj.min = (p.min ? p.min : 0);
+	obj.max = (p.max ? p.max : 1);
+	obj.scale = 1/(obj.max == obj.min ? 1 : obj.max-obj.min);
+    
+	obj.min_x = (p.min_x ? p.min_x : obj.min);
+	obj.max_x = (p.max_x ? p.max_x : obj.max);
+	obj.scale_x = 1/(obj.max_x == obj.min_x ? 1 : obj.max_x-obj.min_x);
+    
+	obj.min_y = (p.min_y ? p.min_y : obj.min);
+	obj.max_y = (p.max_y ? p.max_y : obj.max);
+	obj.scale_y = 1/(obj.max_y == obj.min_y ? 1 : obj.max_y-obj.min_y);
+    
+    obj.flip_x_axis = (p.flip_x_axis ? p.flip_x_axis == "yes" : false);
+    obj.flip_y_axis = (p.flip_y_axis ? p.flip_y_axis == "yes" : false);
+
+    obj.stroke_LUT = makeLUTArray(p.color, ['yellow']);
+    obj.fill_LUT = makeLUTArray(p.fill, ['none']);
+	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
+    obj.line_cap = (p.line_cap ? p.line_cap : "butt");
+    obj.line_join = (p.line_join ? p.line_join : "miter");
+
+    var view = document.getElementById("frame");
+    
+    var r = document.createElement("div");
+    r.className = "object_background"
+    r.style.left = p.x;
+    r.style.top = p.y;
+    r.style.width = p.width;
+    r.style.height = p.height;
+    view.appendChild(r);
+    
+    this.bg = r;
+    
+    if(!obj.oversampling)
+        obj.oversampling = 1;
+
+    obj.canvas = document.createElement("canvas");
+    obj.canvas.style.width = p.width;
+    obj.canvas.style.height = p.height;
+    obj.canvas.width = obj.oversampling*p.width;
+    obj.canvas.height = obj.oversampling*p.height;
+    obj.canvas.style.borderRadius = "11px";
+    
+    this.bg.appendChild(obj.canvas);
+    
+    obj.context = obj.canvas.getContext(ctype);
+    
+    if(ctype == "2d")
+    {
+    
+        if(obj.flip_x_axis)
+        {
+            obj.context.translate(obj.canvas.width, 0);
+            obj.context.scale(-1, 1);
+        }
+        
+        if(obj.flip_y_axis)
+        {
+            obj.context.translate(0, obj.canvas.height);
+            obj.context.scale(1, -1);
+        }
+
+        obj.context.clearRect(0, 0, obj.width, obj.height);
+        obj.context.fillStyle="none";
+        obj.context.fillRect(0, 0, obj.width, obj.height);
+        obj.context.lineCap = obj.line_cap;
+        obj.context.lineJoin = obj.line_join;
+
+        if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
+        {
+            r.style.background="none";
+            return;
+        }
+
+        var h = document.createElement("div");
+        h.className = "object_titlebar"
+        h.style.width = p.width;
+        r.appendChild(h);
+        
+        var t = document.createElement("div");
+        t.className = "object_title"
+        t.style.width = p.width;
+        r.appendChild(t);
+        
+        var tt = document.createTextNode(p.title);
+        t.appendChild(tt);
+        
+        obj.context.drawArrow = function(arrow)
+        {
+            this.beginPath();
+            this.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+            for(var i=0;i<arrow.length;i++){
+                this.lineTo(arrow[i][0],arrow[i][1]);
+            }
+            this.closePath();
+            this.fill();
+            this.stroke();
+        };
+        
+        obj.context.moveArrow = function(arrow, x, y)
+        {
+            var rv = [];
+            for(var i=0;i<arrow.length;i++){
+                rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+            }
+            return rv;
+        };
+        
+        obj.context.rotateArrow = function(arrow,angle)
+        {
+            var rv = [];
+            for(var i=0; i<arrow.length;i++){
+                rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                         (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+            }
+            return rv;
+        };
+        
+        obj.context.drawArrowHead = function(fromX, fromY, toX, toY)
+        {
+            var angle = Math.atan2(toY-fromY, toX-fromX);
+            var arrow = [[0,0], [-10,-5], [-10, 5]];
+            this.save();
+            this.lineJoin = "miter";
+            this.fillStyle = this.strokeStyle;
+            this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+            this.restore();
+        };
+        
+        obj.context.drawLineArrow = function(fromX, fromY, toX, toY)
+        {
+            this.beginPath();
+            this.moveTo(fromX,fromY);
+            this.lineTo(toX,toY);
+            this.stroke();
+            var angle = Math.atan2(toY-fromY, toX-fromX);
+            var arrow = [[0,0], [-10,-5], [-10, 5]];
+            this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+        };
+
+        obj.context.drawLine = function(fromX, fromY, toX, toY)
+        {
+            this.beginPath();
+            this.moveTo(fromX,fromY);
+            this.lineTo(toX,toY);
+            this.stroke();
+        };
+    }
+}
+
+
+
+function OLDWebUICanvas(obj, p)
 {
 	if(!p.title)
 		p.title = p.module+'.'+p.source;

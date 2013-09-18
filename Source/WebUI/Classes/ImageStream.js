@@ -1,11 +1,11 @@
-function Image(p)
+function ImageStream(p)
 {
     this.oversampling = (p.oversampling ? p.oversampling : (p.file ? 4 : 1));
     this.obj = 	new WebUICanvas(this, p);
     this.file = p.file;
     this.type = (p.type ? p.type : "gray");
 
-    this.imageObj = document.createElement("image");
+    this.imageObj = document.createElement("image"); // document.createElementNS(svgns,"image");
  
     if(this.file)
          this.imageObj.src = "/"+this.file;
@@ -20,7 +20,7 @@ function Image(p)
 
 
 
-Image.prototype.LoadData = function(data)
+ImageStream.prototype.LoadData = function(data)
 {
     if(this.module)
     {
@@ -46,7 +46,7 @@ Image.prototype.LoadData = function(data)
 
 
 
-Image.prototype.Update = function(data)
+ImageStream.prototype.Update = function(data)
 {
     var d1 = new Date();
     this.context.drawImage(this.imageObj, 0, 0, this.oversampling*this.width, this.oversampling*this.height);
