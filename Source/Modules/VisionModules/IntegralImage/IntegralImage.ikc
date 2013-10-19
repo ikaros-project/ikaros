@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group name="IntegralImage" description="calculate integral image">
+
+	<description type="text">
+		Module used ti calculate the integral image.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="IntegralImage"
+			name="Integral"
+		/>
+	</example>
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="IntegralImage" />
+
+	<created>2013</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>IntegralImageh</file>
+	<file>IntegralImagecc</file>
+	<file>IntegralImageikc</file>
+   </files>
+
+</group>

@@ -2552,6 +2552,28 @@ namespace ikaros
 		return result;
 	}
 	
+
+
+    float **
+    integral_image(float ** r, float ** a, int sizex, int sizey)
+    {
+        r[0][0] = a[0][0];
+
+        for(int i=1; i<sizex; i++)
+            r[0][i] = a[0][i] + r[0][i-1];
+        
+        for(int j=1; j<sizey; j++)
+            r[j][0] = a[j][0] + r[j-1][0];
+
+        for(int i=1; i<sizex; i++)
+            for(int j=1; j<sizey; j++)
+                r[j][i] = a[j][i] + r[j-1][i] + r[j][i-1] + r[j-1][i-1];
+                
+        return r;
+    }
+
+
+
 	/*
 	 Reasonably fast implementation of the box filter that sums all the
 	 matrix elements within each box of size [boxsize] x [boxsize].
@@ -2560,6 +2582,7 @@ namespace ikaros
 	 t - temporary storage; size [sizex] x [sizey + boxsize - 1]; allocated and deallocated if t == NULL
 	 */
     // TODO: Use intergal image instead
+
 	float **
 	box_filter(float ** r, float ** a, int sizex, int sizey, int boxsize, bool scale, float ** t)
 	{
@@ -2601,7 +2624,9 @@ namespace ikaros
 			multiply(r, 1.0/sqr(boxsize), sizex, sizey);
 		return r;
 	}
-	
+    
+
+    
 	// mics functions
 	
 	int

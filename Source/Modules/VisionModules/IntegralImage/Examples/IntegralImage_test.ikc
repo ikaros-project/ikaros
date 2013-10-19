@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "rgb.jpeg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group>
+		<module
+            class = "Constant"
+            name = "C"
+            data =  "0.1   0.2	 0.0;
+                     0.1   0.2   0.0;
+                     0.1   0.2   0.0"
+        />
+
+		<module
+            class = "IntegralImage" 
+            name = "II"
+        />
+
+		<connection sourcemodule = "C" source = "OUTPUT" targetmodule = "II" target = "INPUT" />
+
+		<view name = "V1">
+			<object class="Image" type="fire" module="C" source="OUTPUT" x="0" y="0" />
+			<object class="Image" type="fire" module="II" source="OUTPUT" x="1" y="0" />
+		</view>
+</group>
+
