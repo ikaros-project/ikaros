@@ -757,6 +757,26 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     Match(q);
 
     char * value = create_string(buffer);
+    
+    int c = 0;
+    int i = 0;
+    
+    while(value[i] != 0)
+    {
+        if(value[i] == '&')
+             if(c++>1)
+                throw "& not allowed in entity";
+        
+        if(value[i] == ';')
+            if(c-- < 0)
+                c = 0;
+        
+        i++;
+    }
+
+    if(c != 0)
+        throw "unterminated entity";
+
     return new XMLAttribute(name, value, q[0], ParseAttribute(element_name, empty));
 }
 
