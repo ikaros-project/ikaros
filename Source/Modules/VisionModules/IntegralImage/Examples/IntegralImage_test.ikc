@@ -1,11 +1,5 @@
 <?xml version="1.0"?>
 
-<!--
-
-	This system reads the jpeg image "rgb.jpeg" and applies a number of different edge detection algorithms to it. 
-	No output is generated.
-	
--->
 
 <group>
 		<module
