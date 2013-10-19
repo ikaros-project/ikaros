@@ -18,6 +18,7 @@ In Matlab:
 #include "../eyefinder.h"
 
 namespace righteye_eye_dist_eye_centered{
+/*
 	static float stdAdj[50] = {
 		1.0f,
 		0.914739f,
@@ -1426,7 +1427,7 @@ namespace righteye_eye_dist_eye_centered{
 		{97, 8, 0.0f, -9.222340e+00f, 0, 0, 3.295104e+00, RealFun97, Corners97},
 		{98, 9, 0.0f, -7.639176e+00f, 0, 0, 3.832383e+00, RealFun98, Corners98},
 		{99, 6, 0.0f, -5.152995e+00f, 0, 0, 6.735786e+00, RealFun99, Corners99}	};
-
+*/
 void assignData(MPEyeFinder *ef, FeatureData &d);
 }
 
