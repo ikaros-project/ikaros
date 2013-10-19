@@ -4,7 +4,7 @@
 //
 //    Version 1.0.2
 //
-//    Copyright (C) 2001-2009  Christian Balkenius
+//    Copyright (C) 2001-2013  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -366,6 +366,11 @@ XMLDocument::XMLDocument(const char * filename, bool debug)
         printf("Could not open \"%s\".\n", filename);
         return;
     }
+    
+    // allocate buffer
+    
+    buffer_size = initial_buffer_size;
+    buffer = new char [buffer_size];
 
     line = 1;
     character = 1;
@@ -514,7 +519,17 @@ XMLDocument::SkipWhitespace(const char *t)
 char *
 XMLDocument::Push(const char * t, int n)
 {
-    if (pos >= max_buffer) throw "Buffer overflow";
+    if (pos >= buffer_size)
+    {
+        // grow buffer size
+        
+        char * old_buffer = buffer;
+        buffer = new char [buffer_size + 16768];
+        memcpy(buffer, old_buffer, buffer_size);
+        buffer_size += 16768;
+        delete [] old_buffer;
+    }
+
     for (int i=0; i<n; i++)
     {
         char c= fgetc(f);
