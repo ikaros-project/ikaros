@@ -2,7 +2,7 @@
 //		Constant.cc		This file is a part of the IKAROS project
 //						Implements a modules that outputs a constant array
 //
-//    Copyright (C) 2004 Christian Balkenius
+//    Copyright (C) 2004-2013 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -27,12 +27,43 @@
 
 
 void
+Constant::SetSizes() // Infer output size from data if not is given
+{
+    if(GetValue("outputsize"))
+    {
+        Module::SetSizes();
+        return;
+    }
+    
+    if(GetValue("outputsize_x"))
+    {
+        Module::SetSizes();
+        return;
+    }
+    
+    if(GetValue("outputsize_y"))
+    {
+        Module::SetSizes();
+        return;
+    }
+    
+    int sx, sy;
+    float ** m = create_matrix(GetValue("data"), sx, sy);
+    SetOutputSize("OUTPUT", sx, sy);
+    destroy_matrix(m);
+}
+
+
+
+void
 Constant::Init()
 {
-    output		=	GetOutputArray("OUTPUT");
-    outputsize	=	GetOutputSize("OUTPUT");        // Use one-dimensional representation internally
+    output          =	GetOutputMatrix("OUTPUT");
+    outputsize_x	=	GetOutputSizeX("OUTPUT");
+    outputsize_y	=	GetOutputSizeY("OUTPUT");
     
-    Bind(data, outputsize, "data");    
+    
+    Bind(data, outputsize_x, outputsize_y, "data");
 }
 
 
@@ -40,7 +71,7 @@ Constant::Init()
 void
 Constant::Tick()
 {
-    copy_array(output, data, outputsize);   // Copy every iteration if parameter changed through the binding
+    copy_matrix(output, data, outputsize_x, outputsize_y);   // Copy every iteration if parameter changed through the binding
 }
 
 static InitClass init("Constant", &Constant::Create, "Source/Modules/UtilityModules/Constant/");
