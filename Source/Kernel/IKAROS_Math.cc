@@ -2404,7 +2404,7 @@ namespace ikaros
 	}
 	
 	void
-	float_to_byte(unsigned char * r, float * a, float min, float max, int size)
+	float_to_byte(unsigned char * r, float * a, float min, float max, long size)
 	{
 #ifdef USE_VIMAGE
 		struct vImage_Buffer src =
@@ -2418,7 +2418,7 @@ namespace ikaros
 		vImage_Error err = vImageConvert_PlanarFtoPlanar8 (&src, &dest, max, min, 0);
 		if (err < 0) printf("IKAROS_Math:float_to_byte vImage_Error = %ld\n", err);
 #else
-		for (int i=0; i<size; i++)
+		for (long i=0; i<size; i++)
 			if (a[i] < min)
 				r[i] = 0;
 			else if (a[i] > max)
@@ -2429,9 +2429,9 @@ namespace ikaros
 	}
 	
 	void
-	byte_to_float(float * r, unsigned char * a, float min, float max, int size)
+	byte_to_float(float * r, unsigned char * a, float min, float max, long size)
 	{
-		for (int i=0; i<size; i++)
+		for (long i=0; i<size; i++)
 			r[i] = ((max-min)/255.0) * float(a[i]) + min;
 	}
 	
