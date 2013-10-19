@@ -64,7 +64,7 @@ float *     create_array(int size);
 float *     create_array(const char * s, int & size);
 
 float **    create_matrix(int sizex, int sizey);
-float **    create_matrix(const char * s, int & sizex, int & sizey);
+float **    create_matrix(const char * s, int & sizex, int & sizey); // create matrix and set size x and y from data
 float ***   create_matrix(int sizex, int sizey, int sizez);
 float ****  create_matrix(int sizex, int sizey, int sizez, int sizet);
 
