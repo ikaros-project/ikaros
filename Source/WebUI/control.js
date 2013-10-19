@@ -661,8 +661,7 @@ function update_group_list_and_views()
         }
         catch(err)
         {
-            alert("Error in update_group_list_and_views: "+err.message);
-            // RETRY
+            alert("Error in update_group_list_and_views. XML could not be parsed (possibly because of an unknown entitiy): "+err.message);
         }
 	}
 

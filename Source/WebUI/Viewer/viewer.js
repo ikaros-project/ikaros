@@ -99,12 +99,25 @@ function makeLUTArray(c, d)
 
 
 
+String.prototype.unescapeEntities = function ()
+{
+    var temp = document.createElement("div");
+    temp.innerHTML = this;
+    var result = temp.childNodes[0].nodeValue;
+    temp.removeChild(temp.firstChild);
+    return result;
+}
+
+
+
 function WebUIObject(obj, p, title)
 {
-	if(!p.title)
+    if(!p.title)
 		p.title = title;
     
-	if(!p.behind)
+    p.title = p.title.unescapeEntities();
+	
+    if(!p.behind)
         p.behind = false;
     
     obj.module = p.module;
@@ -150,6 +163,8 @@ function WebUICanvas(obj, p, ctype)
 {
 	if(!p.title)
 		p.title = p.module+'.'+p.source;
+
+    p.title = p.title.unescapeEntities();
 
 	if(!p.behind)
         p.behind = false;
