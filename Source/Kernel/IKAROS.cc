@@ -756,6 +756,8 @@ Module::GetMatrix(const char * n, int sizex, int sizey)
         for(int j=0; j<sy; j++)
             m[j][i] = M[j][i];
     
+    destroy_matrix(M);
+
     return m;
 }
 
