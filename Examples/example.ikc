@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!-- Example of the different WebUI objects fillled with random values. -->
+
+<group title="Ikaros Example">
+	
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "3"
+        outputsize_y = "3"
+    />
+
+    <view name="Example View">
+    
+        <object
+            x="0" y="0" 
+            class = "BarGraph"
+            module = "R"
+            source="OUTPUT"
+            title = "A Bar Graph"
+        />
+
+        <object
+            x="1" y="0" 
+            class="Grid"
+            module="R"
+            source="OUTPUT"
+            title = "Grid"
+        />
+    </view>
+
+</group>
+ 
+
