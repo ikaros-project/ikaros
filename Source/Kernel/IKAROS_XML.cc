@@ -154,7 +154,6 @@ XMLAttribute::~XMLAttribute()
 }
 
 
-
 void
 XMLAttribute::Print(FILE * f, int d)
 {
@@ -363,7 +362,7 @@ XMLDocument::XMLDocument(const char * filename, bool debug)
 
     if (f==NULL)
     {
-        printf("Could not open \"%s\".\n", filename);
+        printf("XML: Could not open \"%s\".\n", filename);
         return;
     }
     
@@ -763,6 +762,24 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
 
 
 
+void
+XMLAttribute::RemoveDuplicates()
+{
+    for (XMLAttribute * a = this; a != NULL; a = (XMLAttribute *)(a->next))
+        for (XMLAttribute * b = (XMLAttribute *)(a->next); b != NULL; b = (XMLAttribute *)(b->next))
+            if(!strcmp(a->name, b->name) && a != b)
+            {
+                printf("WARNING: Redefined attribute. Will use %s = \"%s\".\n", a->name, a->value);
+                
+                if(b->prev != NULL)
+                    b->prev->next = (XMLAttribute *)(b->next);
+                if(b->next != NULL)
+                    b->next->prev = (XMLAttribute *)(b->prev);
+             }
+}
+
+
+
 XMLNode *
 XMLDocument::ParseElement(XMLNode * parent)
 {
@@ -776,6 +793,11 @@ XMLDocument::ParseElement(XMLNode * parent)
     bool empty = false;
     XMLAttribute * attributes = ParseAttribute(name, empty);
 
+    if(attributes)
+    {
+        attributes->SetPrev(NULL);
+        attributes->RemoveDuplicates();
+    }
     if (empty) return new XMLElement(parent, name, attributes, true, NULL, Parse(parent));
 
     XMLElement * e = new XMLElement(parent, name, attributes, false);

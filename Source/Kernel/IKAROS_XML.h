@@ -97,6 +97,8 @@ public:
     XMLAttribute(char * nm, char * v, int q, XMLNode * n);
     virtual ~XMLAttribute();
 
+    void    RemoveDuplicates();
+
     virtual void	Print(FILE * f, int d);
 };
 
