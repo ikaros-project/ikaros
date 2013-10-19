@@ -768,7 +768,7 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
                 throw "& not allowed in entity";
         
         if(value[i] == ';')
-            if(c-- < 0)
+            if(--c < 0)
                 c = 0;
         
         i++;
