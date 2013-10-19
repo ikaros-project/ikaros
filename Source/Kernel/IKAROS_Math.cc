@@ -2939,7 +2939,7 @@ namespace ikaros
         unsigned char * z = new unsigned char [sizex];
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            float_to_byte(z, matrix, 0.0, 1.0, sizex);	// TODO: allow specification of min and max later
+            float_to_byte(z, matrix, 0.0, 1.0, sizex);
             int x = 0;
             unsigned char * zz = z;
             
@@ -2971,6 +2971,8 @@ namespace ikaros
     char *
     create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality)
     {
+        return create_jpeg(size, *matrix, sizex, sizey, color_table, quality);
+/*
         if (matrix == NULL)
         {
             size = 0;
@@ -2990,7 +2992,7 @@ namespace ikaros
         
         jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
         
-        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_width = sizex; 	// image width and height, in pixels
         cinfo.image_height = sizey;
         cinfo.input_components = 3;	// # of color components per pixel
         cinfo.in_color_space = JCS_RGB;
@@ -3003,7 +3005,7 @@ namespace ikaros
         
         jpeg_start_compress(&cinfo, true);
         
-        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
+        //row_stride = sizex * 3;		// JSAMPLEs per row in image_buffer
         int j=0;
         
         unsigned char * z = new unsigned char [sizex];
@@ -3034,6 +3036,7 @@ namespace ikaros
         
         size = dst.used;
         return (char *)dst.buffer;
+*/
     }
     
     
@@ -3084,16 +3087,16 @@ namespace ikaros
             int x = 0;
             for (int i=0; i<sizex; i++)
             {
-                // TODO: use clip function instead
-                float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
-                float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
-                float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
+                // IGNORE OVERFLOW
+                // float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
+                // float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
+                // float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
+
+                 // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
                 
-                // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
-                
-                image_buffer[x++] = int(255.0*rr);
-                image_buffer[x++] = int(255.0*gg);
-                image_buffer[x++] = int(255.0*bb);
+                image_buffer[x++] = int(255.0*(*rp));
+                image_buffer[x++] = int(255.0*(*gp));
+                image_buffer[x++] = int(255.0*(*bp));
                 
                 rp++;
                 gp++;
@@ -3119,6 +3122,8 @@ namespace ikaros
     char *
     create_jpeg(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey, int quality) // TODO: Call function above instead
     {
+        return create_jpeg(size, *r, *g, *b, sizex, sizey, quality);
+/*
         size = 0;
         if (r ==NULL) return NULL;
         if (g ==NULL) return NULL;
@@ -3137,7 +3142,7 @@ namespace ikaros
         
         jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
         
-        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_width = sizex; 	// image width and height, in pixels
         cinfo.image_height = sizey;
         cinfo.input_components = 3;	// # of color components per pixel
         cinfo.in_color_space = JCS_RGB;
@@ -3150,7 +3155,7 @@ namespace ikaros
         
         jpeg_start_compress(&cinfo, true);
         
-        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
+        //row_stride = sizex * 3;		// JSAMPLEs per row in image_buffer
         int j=0;
         
         while (cinfo.next_scanline < cinfo.image_height)
@@ -3182,6 +3187,7 @@ namespace ikaros
         
         size = dst.used;
         return (char *)dst.buffer;
+*/
     }
     
     
