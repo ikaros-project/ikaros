@@ -56,17 +56,6 @@ void
 PrintInfo()
 {
     printf("\n");
-    printf("The file to use should be given at the command line:\n");
-    printf("\n");
-    printf("    ikaros file.ikc\n");
-    printf("\n");
-    printf("Use the w-option to also start the WebUI:\n");
-    printf("\n");
-    printf("    ikaros -w file.ikc\n");
-    printf("\n");
-    printf("This examaple will wait for a request from the Web browser at\n");
-    printf("the default port (8000).\n");
-    printf("\n");
     printf("Usage:\n");
     printf("\n");
     printf("\tikaros [-w#][-W#][-p][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
@@ -92,6 +81,21 @@ PrintInfo()
     printf("\t-z#   seed random number generator\n");
     printf("\t-u#   number of ticks to run for each step in the WebUI\n");
     printf("\n");
+    printf("Examples:\n");
+    printf("\n");
+    printf("\tAssuming the current path is the /Bin in the Ikaros directory,\n");
+    printf("\tan example can be run like this:\n");
+    printf("\n");
+    printf("\t\t./ikaros  ../Examples/example.ikc\n");
+    printf("\n");
+    printf("\tUse the w-option to also start the WebUI:\n");
+    printf("\n");
+    printf("\t\t./ikaros -w ../Examples/example.ikc\n");
+    printf("\n");
+    printf("\tThis example will wait for a request from the Web browser at\n");
+    printf("\tthe default port (8000).\n");
+    printf("\n");
+
 }
 
 
