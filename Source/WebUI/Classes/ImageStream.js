@@ -29,11 +29,8 @@ ImageStream.prototype.LoadData = function(data)
         d = d[this.source+':'+this.type]
         if(!d) return;
         
-        var d1 = new Date();
         this.imageObj.onload = function ()
         {
-            var d2 = new Date();
-            top.profiling.image_decoding += (d2.getTime() - d1.getTime());
             load_count--;
         };
         
@@ -48,9 +45,6 @@ ImageStream.prototype.LoadData = function(data)
 
 ImageStream.prototype.Update = function(data)
 {
-    var d1 = new Date();
     this.context.drawImage(this.imageObj, 0, 0, this.oversampling*this.width, this.oversampling*this.height);
-    var d2 = new Date();
-    top.profiling.image_drawing += (d2.getTime() - d1.getTime());
 }
 
