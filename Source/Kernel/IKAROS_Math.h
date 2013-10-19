@@ -264,8 +264,8 @@ namespace ikaros
 	
 	float		trunc(float x);
 	int         lround(float x);
-	void		float_to_byte(unsigned char * r, float * a, float min, float max, int size);	// min, max of float; byte is always 0-255
-	void		byte_to_float(float * r, unsigned char * a, float min, float max, int size);	// min, max of float; byte is always 0-255
+	void		float_to_byte(unsigned char * r, float * a, float min, float max, long size);	// min, max of float; byte is always 0-255
+	void		byte_to_float(float * r, unsigned char * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 	
 	int         string_to_int(const char * s, int d=0);  // convert to int; use d if char is NULL
 	float		string_to_float(const char * s, float d=0.0); // convert to float; use d if char is NULL
