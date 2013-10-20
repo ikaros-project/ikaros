@@ -5,6 +5,7 @@ add_subdirectory(CurvatureDetectors)
 add_subdirectory(EdgeDetectors)
 add_subdirectory(GaborFilter)
 add_subdirectory(GaussianFilter)
+add_subdirectory(DoGFilter)
 add_subdirectory(MorphologicalOperators)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

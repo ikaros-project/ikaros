@@ -1,6 +1,6 @@
 //
 //	GaussianFilter.h    This file is a part of the IKAROS project
-//						A module to caculate the integral image
+//	
 //
 //    Copyright (C) 2013  Christian Balkenius
 //

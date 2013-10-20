@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GaussianFilter" description="calculate integral image">
+<group name="GaussianFilter" description="applies a Gaussian filter">
 
 	<description type="text">
 		Module used to apply Gaussian filtering to an image.
@@ -9,7 +9,7 @@
 	<example description="A simple example">
 		<module
 			class="GaussianFilter"
-			name="Integral"
+			name="Gaussian"
 		/>
 	</example>
 
