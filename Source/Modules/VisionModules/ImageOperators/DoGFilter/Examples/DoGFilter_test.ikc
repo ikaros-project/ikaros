@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+
+<group>
+        <module class="InputJPEG" name="Image" filename="../../../../../../Examples/Media/colorrobot.jpg" size_x="256" size_y="256" />
+		
+        <module
+            class = "DoGFilter"
+            name = "DoG"
+            kernel_size = "51"
+        />
+
+		<connection sourcemodule = "Image" source = "INTENSITY" targetmodule = "DoG" target = "INPUT" />
+
+		<view name = "View">
+			<object class="Image" type="gray" module="Image" source="INTENSITY" x="0" y="0" />
+			<object class="Image" type="gray" module="DoG" source="OUTPUT" x="1" y="0" />
+			<object class="BarGraph" module="DoG" min="-0.25" max="0.25" source="PROFILE" x="2" y="0" />
+			<object class="Slider" module="DoG" parameter="sigma1" min="0.1" max="10" x="3" y="0" />
+			<object class="Slider" module="DoG" parameter="sigma2" min="0.1" max="10" x="4" y="0" />
+		</view>
+</group>
+

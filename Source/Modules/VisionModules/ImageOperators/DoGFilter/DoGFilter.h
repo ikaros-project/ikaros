@@ -1,6 +1,6 @@
 //
-//	GaussianFilter.h    This file is a part of the IKAROS project
-//	
+//	DoGFilter.h    This file is a part of the IKAROS project
+//
 //
 //    Copyright (C) 2013  Christian Balkenius
 //
@@ -19,21 +19,21 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef GaussianFilter_
-#define GaussianFilter_
+#ifndef DoGFilter_
+#define DoGFilter_
 
 #include "IKAROS.h"
 
 
 
-class GaussianFilter: public Module
+class DoGFilter: public Module
 {
 public:
 
-    GaussianFilter(Parameter * p) : Module(p) {};
-    virtual ~GaussianFilter() {}
+    DoGFilter(Parameter * p) : Module(p) {};
+    virtual ~DoGFilter() {}
 
-    static Module * Create(Parameter * p) { return new GaussianFilter(p); };
+    static Module * Create(Parameter * p) { return new DoGFilter(p); };
 
     void    SetSizes();
     void    ComputeKernel();
@@ -41,8 +41,13 @@ public:
     void    Init();
     void    Tick();
 
-    float   sigma;
-    float   sigma_last;
+    float   sigma1;
+    float   sigma1_last;
+    
+    float   sigma2;
+    float   sigma2_last;
+
+    bool    normalize;
     
     int     kernel_size;
     int		size_x;
