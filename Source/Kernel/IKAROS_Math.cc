@@ -2734,6 +2734,34 @@ namespace ikaros
 	}
     
     
+    //
+    // sorting
+    //
+    
+    float *
+    sort(float * a, int size)   // insertion sort
+    {
+        int t, i , j;
+        for(i = 0; i < size; i++)
+        {
+            t = a[i];
+            for(j = i-1; j >= 0 && t < a[j]; j--)
+                a[j+1] = a[j];
+            a[j+1] = t;
+        }
+        return a;
+    }
+
+
+    float **
+    sort(float ** a, int sizex, int sizey)
+    {
+        sort(*a, sizex*sizey);
+        return a;
+    }
+
+
+
     // image file formats
     // MARK: -
     // MARK: image file formats

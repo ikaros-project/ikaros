@@ -283,6 +283,12 @@ namespace ikaros
 	void		ascend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 	void		descend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 
+    //
+    // sorting
+    //
+    
+    float *     sort(float * a, int size);
+    float **    sort(float ** a, int sizex, int sizey);
 	//
 	// image processing
 	//
