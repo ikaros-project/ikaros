@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="GaussianFilter" description="calculate integral image">
+
+	<description type="text">
+		Module used to apply Gaussian filtering to an image.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="GaussianFilter"
+			name="Integral"
+		/>
+	</example>
+
+    <parameter name="sigma" description="width of the gaussian" type="float" default="1.0" />
+    <parameter name="kernel_size" description="width of the kernel in pixels. Faster if an odd number is used" type="int" default="5" />
+    
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" />
+	<output name="KERNEL" description="The gaussian kernel" size_param_x="kernel_size" size_param_y="kernel_size" />
+	<output name="PROFILE" description="The profile of the gaussian kernel" size_param_x="kernel_size" size_y="1" />
+
+	<module class="GaussianFilter" />
+
+	<created>2013</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>GaussianFilter.h</file>
+	<file>GaussianFilter.cc</file>
+	<file>GaussianFilter.ikc</file>
+   </files>
+
+</group>
