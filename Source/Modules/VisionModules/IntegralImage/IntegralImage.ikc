@@ -3,7 +3,7 @@
 <group name="IntegralImage" description="calculate integral image">
 
 	<description type="text">
-		Module used ti calculate the integral image.
+		Module used to calculate the integral image.
 	</description>
 
 	<example description="A simple example">
@@ -28,9 +28,9 @@
 	</author>
 
    <files>
-	<file>IntegralImageh</file>
-	<file>IntegralImagecc</file>
-	<file>IntegralImageikc</file>
+	<file>IntegralImage.h</file>
+	<file>IntegralImage.cc</file>
+	<file>IntegralImage.ikc</file>
    </files>
 
 </group>

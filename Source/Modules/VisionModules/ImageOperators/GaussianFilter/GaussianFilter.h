@@ -1,8 +1,8 @@
 //
-//	ImageConvolution.h		This file is a part of the IKAROS project
-//						A module to filter image with a kernel
+//	GaussianFilter.h    This file is a part of the IKAROS project
+//						A module to caculate the integral image
 //
-//    Copyright (C) 2002  Christian Balkenius
+//    Copyright (C) 2013  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -19,44 +19,39 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef IMAGECONVOLUTION
-#define IMAGECONVOLUTION
+#ifndef GaussianFilter_
+#define GaussianFilter_
 
 #include "IKAROS.h"
 
 
 
-class ImageConvolution: public Module
+class GaussianFilter: public Module
 {
 public:
 
-    ImageConvolution(Parameter * p);
-    virtual ~ImageConvolution();
+    GaussianFilter(Parameter * p) : Module(p) {};
+    virtual ~GaussianFilter() {}
 
-    static Module * Create(Parameter * p);
+    static Module * Create(Parameter * p) { return new GaussianFilter(p); };
 
-    void	SetSizes();
+    void    SetSizes();
+    void    ComputeKernel();
+    
     void    Init();
     void    Tick();
 
-    int		inputsize_x;
-    int		inputsize_y;
-
-    int		outputsize_x;
-    int		outputsize_y;
-
-    int		filtersize_x;
-    int		filtersize_y;
+    float   sigma;
+    float   sigma_last;
+    
+    int     kernel_size;
+    int		size_x;
+    int		size_y;
 
     float **	input;
     float **	output;
-    float **	filter;
-
-    float		scale;
-    float		bias;
-    bool		rectify;
-
-    bool		init_ok;
+    float **    kernel;
+    float *     kernel_profile;
 };
 
 
