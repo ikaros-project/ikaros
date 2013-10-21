@@ -7,6 +7,8 @@ add_subdirectory(GaborFilter)
 add_subdirectory(GaussianFilter)
 add_subdirectory(DoGFilter)
 add_subdirectory(LoGFilter)
+add_subdirectory(MedianFilter)
+add_subdirectory(ZeroCrossings)
 add_subdirectory(MorphologicalOperators)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
