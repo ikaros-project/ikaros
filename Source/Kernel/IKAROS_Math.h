@@ -289,6 +289,8 @@ namespace ikaros
     
     float *     sort(float * a, int size);
     float **    sort(float ** a, int sizex, int sizey);
+    
+    
 	//
 	// image processing
 	//

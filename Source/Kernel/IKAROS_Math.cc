@@ -2738,8 +2738,10 @@ namespace ikaros
     // sorting
     //
     
+    // insertion sort
+
     float *
-    sort(float * a, int size)   // insertion sort
+    sort(float * a, long size)
     {
         int i , j;
         float t;
@@ -2758,6 +2760,38 @@ namespace ikaros
     sort(float ** a, int sizex, int sizey)
     {
         sort(*a, sizex*sizey);
+        return a;
+    }
+
+    // algorithm from http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
+
+    float *
+    quick_sort (float * a, long size) // TODO: Test
+        {
+        if (size < 2)
+            return a;
+        float p = a[size / 2];
+        float * l = a;
+        float *r = a + size - 1;
+        while (l <= r)
+        {
+            if (*l < p)
+            {
+                l++;
+                continue;
+            }
+            if (*r > p)
+            {
+                r--;
+                continue;
+            }
+            int t = *l;
+            *l++ = *r;
+            *r-- = t;
+        }
+        quick_sort(a, r - a + 1);
+        quick_sort(l, a + size - l);
+        
         return a;
     }
 
