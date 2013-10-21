@@ -2,17 +2,19 @@
 
 <group>
 	
-		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
+		<module class = "Constant" name = "Constant" outputsize_x = "3" outputsize_y = "3" data = "1 2 3 2 3 4 3 4 5" />
+		<module class = "Constant" name = "Constant_shift" outputsize = "2" data="1 1" />
 	
 		<module
-			class = "SelectMax"
-			name = "SelectMax"
+			class = "Shift"
+			name = "Shift"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="SelectMax" target="INPUT" />
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Shift" target="INPUT" />
+		<connection sourcemodule="Constant_shift" source="OUTPUT" targetmodule="Shift" target="SHIFT" />
 
 		<view name="View">
-			<object class="BarGraph" module="SelectMax" source="OUTPUT" x="0" y="0" />
+			<object class="BarGraph" module="Shift" source="OUTPUT" x="0" y="0" />
 		</view>
 
 </group>

@@ -6,6 +6,8 @@
 		Module that outputs a constant array or matrix each time step.
 		It can be one or two dimensional depending on whether outputsize_x and
 		outputsize_y or only outputsize is used in the ikc definition.
+        If outputsize is not set, the size of the output is calculated from the
+        data where each line is terminated with a ;
 	</description>
 
 	<example description="A simple example">
@@ -24,6 +26,14 @@
 			outputsize_x = "3"
 			outputsize_y = "3"
 			data = "1 2 3 2 3 4 3 4 5"
+		/>
+	</example>
+
+	<example description="Autosize example">
+		<module
+			class="Constant"
+			name="Matrix3x4"
+			data = "1 2 3; 2 3 4; 3 4 5; 4 5 6"
 		/>
 	</example>
 

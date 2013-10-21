@@ -4,7 +4,7 @@
 //
 //    Version 1.0.2
 //
-//    Copyright (C) 2001-2009  Christian Balkenius
+//    Copyright (C) 2001-2013  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -152,7 +152,6 @@ XMLAttribute::~XMLAttribute()
     destroy_string(name);
     destroy_string(value);
 }
-
 
 
 void
@@ -363,9 +362,14 @@ XMLDocument::XMLDocument(const char * filename, bool debug)
 
     if (f==NULL)
     {
-        printf("Could not open \"%s\".\n", filename);
+        printf("XML: Could not open \"%s\".\n", filename);
         return;
     }
+    
+    // allocate buffer
+    
+    buffer_size = initial_buffer_size;
+    buffer = new char [buffer_size];
 
     line = 1;
     character = 1;
@@ -514,7 +518,17 @@ XMLDocument::SkipWhitespace(const char *t)
 char *
 XMLDocument::Push(const char * t, int n)
 {
-    if (pos >= max_buffer) throw "Buffer overflow";
+    if (pos >= buffer_size)
+    {
+        // grow buffer size
+        
+        char * old_buffer = buffer;
+        buffer = new char [buffer_size + 16768];
+        memcpy(buffer, old_buffer, buffer_size);
+        buffer_size += 16768;
+        delete [] old_buffer;
+    }
+
     for (int i=0; i<n; i++)
     {
         char c= fgetc(f);
@@ -743,7 +757,45 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     Match(q);
 
     char * value = create_string(buffer);
+    
+    int c = 0;
+    int i = 0;
+    
+    while(value[i] != 0)
+    {
+        if(value[i] == '&')
+             if(c++>1)
+                throw "& not allowed in entity";
+        
+        if(value[i] == ';')
+            if(--c < 0)
+                c = 0;
+        
+        i++;
+    }
+
+    if(c != 0)
+        throw "unterminated entity";
+
     return new XMLAttribute(name, value, q[0], ParseAttribute(element_name, empty));
+}
+
+
+
+void
+XMLAttribute::RemoveDuplicates()
+{
+    for (XMLAttribute * a = this; a != NULL; a = (XMLAttribute *)(a->next))
+        for (XMLAttribute * b = (XMLAttribute *)(a->next); b != NULL; b = (XMLAttribute *)(b->next))
+            if(!strcmp(a->name, b->name) && a != b)
+            {
+                printf("WARNING: Redefined attribute. Will use %s = \"%s\".\n", a->name, a->value);
+                
+                if(b->prev != NULL)
+                    b->prev->next = (XMLAttribute *)(b->next);
+                if(b->next != NULL)
+                    b->next->prev = (XMLAttribute *)(b->prev);
+             }
 }
 
 
@@ -761,6 +813,11 @@ XMLDocument::ParseElement(XMLNode * parent)
     bool empty = false;
     XMLAttribute * attributes = ParseAttribute(name, empty);
 
+    if(attributes)
+    {
+        attributes->SetPrev(NULL);
+        attributes->RemoveDuplicates();
+    }
     if (empty) return new XMLElement(parent, name, attributes, true, NULL, Parse(parent));
 
     XMLElement * e = new XMLElement(parent, name, attributes, false);

@@ -38,13 +38,17 @@ DynamixelServo::DynamixelServo(DynamixelComm *com, int id)
     DynamixelMemory = new unsigned char[DYNAMIXEL_MEM_BUFFER];
     
     // Fetch whole control table from servo
-    com->ReadMemoryRange(id, inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
-    
-    // Create a dictornary to store servo data (Not used)
-    ParseControlTable(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
-    
-    // Copy memory block to memory block pointer
-    memcpy(DynamixelMemory, inbuf, DYNAMIXEL_MEM_BUFFER);
+    if (com->ReadMemoryRange(id, inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE))
+    {
+        ParseControlTable(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
+        // Copy memory block to memory block pointer
+        memcpy(DynamixelMemory, inbuf, DYNAMIXEL_MEM_BUFFER);
+    }
+    else
+    {
+        printf("COULD NOT READ DYNAMIXEL %i, Quitting ikaros.... \n", id);
+        std::exit(false);
+    }
     return;
 }
 
@@ -235,7 +239,7 @@ bool DynamixelServo::SetHighestLimitVoltage(int value)
 bool DynamixelServo::SetMaxTorque(int value)
 {
     // Value check
-    if (value<=0 || value>=GetModelTorqueMax())
+    if (value<=0 || value>GetModelTorqueMax())
     {
         printf("DynamixelServo (setMaxTorque): %i Value is invalid...\n", value);
         return false;

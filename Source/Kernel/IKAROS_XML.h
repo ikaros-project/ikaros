@@ -97,6 +97,8 @@ public:
     XMLAttribute(char * nm, char * v, int q, XMLNode * n);
     virtual ~XMLAttribute();
 
+    void    RemoveDuplicates();
+
     virtual void	Print(FILE * f, int d);
 };
 
@@ -154,7 +156,7 @@ public:
 
 
 
-const int max_buffer = 64000;
+const int initial_buffer_size = 16768;
 
 class XMLDocument
 {
@@ -163,7 +165,8 @@ public:
     int		line;
     int		character;
     bool	debug_mode;
-    char	buffer[max_buffer];
+    char	* buffer;
+    long    buffer_size;
     int		pos;
 
     const char *	action;

@@ -65,7 +65,8 @@ extern "C"
 #endif
 #endif
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
+//#include <amp_math.h>
 #define M_PI 3.14159265358979323846264338328f
 #undef min
 #undef max
@@ -79,7 +80,11 @@ namespace ikaros
     
     float eps(float x)
     {
+#ifdef WINDOWS
+		return x+1E-20;
+#else
         return nextafterf(fabsf(x), MAXFLOAT)-fabsf(x);
+#endif
     }
         
 	// misc scalar functions
@@ -89,7 +94,7 @@ namespace ikaros
     
 	float trunc(float x)
 	{
-#ifdef WINDOWS32
+#ifdef WINDOWS
 		return (float)((int)x);
 #else
 		return ::truncf((int)x);
@@ -422,7 +427,7 @@ namespace ikaros
 	float
 	hypot(float x, float y)
 	{
-#ifdef WINDOWS32
+#ifdef WINDOWS
 		return (float)_hypot(x, y);
 #else
 		return ::hypotf(x, y);
@@ -1668,8 +1673,14 @@ namespace ikaros
     {
         int i,j,k;
         float scale,sigma,sum,tau;
+
+#ifdef WINDOWS
+		float * c = create_array(size);
+		float * d = create_array(size);
+#else
         float c[size];
         float d[size];
+#endif
         
         copy_matrix(r, a, size, size);
         
@@ -1744,7 +1755,12 @@ namespace ikaros
                     r[i][j] = -r[i][j];
                     q[j][i] = - q[j][i];
                 }
-                
+
+#ifdef WINDOWS
+		destroy_array(c);
+		destroy_array(d);
+#endif
+
         return singular;
     }
 
@@ -1781,7 +1797,7 @@ namespace ikaros
 
 
     // calculate the rank of matrix using svd
-
+	
     float
     rank(float ** m, int sizex, int sizey, float tol)
     {
@@ -2377,7 +2393,7 @@ namespace ikaros
 	int
 	lround(float x)
 	{
-#ifdef WINDOWS32
+#ifdef WINDOWS
 		if ( x >= (int)x + 0.5f )
 			return (int)x + 1;
 		else
@@ -2388,21 +2404,21 @@ namespace ikaros
 	}
 	
 	void
-	float_to_byte(unsigned char * r, float * a, float min, float max, int size)
+	float_to_byte(unsigned char * r, float * a, float min, float max, long size)
 	{
 #ifdef USE_VIMAGE
 		struct vImage_Buffer src =
         {
-            a, 1, size, size*sizeof(float)
+            a, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
         };
 		struct vImage_Buffer dest =
         {
-            r, 1, size, size*sizeof(float)
+            r, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
         };
 		vImage_Error err = vImageConvert_PlanarFtoPlanar8 (&src, &dest, max, min, 0);
 		if (err < 0) printf("IKAROS_Math:float_to_byte vImage_Error = %ld\n", err);
 #else
-		for (int i=0; i<size; i++)
+		for (long i=0; i<size; i++)
 			if (a[i] < min)
 				r[i] = 0;
 			else if (a[i] > max)
@@ -2413,9 +2429,9 @@ namespace ikaros
 	}
 	
 	void
-	byte_to_float(float * r, unsigned char * a, float min, float max, int size)
+	byte_to_float(float * r, unsigned char * a, float min, float max, long size)
 	{
-		for (int i=0; i<size; i++)
+		for (long i=0; i<size; i++)
 			r[i] = ((max-min)/255.0) * float(a[i]) + min;
 	}
 	
@@ -2434,7 +2450,7 @@ namespace ikaros
 		if (s == NULL)
 			return d;
 		else
-#ifdef WINDOWS32
+#ifdef WINDOWS
 			return (float)strtod(s, NULL);
 #else
         return strtof(s, NULL);
@@ -2488,11 +2504,11 @@ namespace ikaros
 		{
 			struct vImage_Buffer src =
             {
-                *source, rsizey+(ksizey-1), rsizex+(ksizex-1), sizeof(float)*(rsizex+(ksizex-1))
+                *source, static_cast<vImagePixelCount>(rsizey+(ksizey-1)), static_cast<vImagePixelCount>(rsizex+(ksizex-1)), sizeof(float)*(rsizex+(ksizex-1))
             };
 			struct vImage_Buffer dest =
             {
-                *result, rsizey, rsizex, sizeof(float)*rsizex
+                *result, static_cast<vImagePixelCount>(rsizey), static_cast<vImagePixelCount>(rsizex), sizeof(float)*rsizex
             };
 			vImage_Error err;
 			if (bias != 0)
@@ -2536,6 +2552,28 @@ namespace ikaros
 		return result;
 	}
 	
+
+
+    float **
+    integral_image(float ** r, float ** a, int sizex, int sizey)
+    {
+        r[0][0] = a[0][0];
+
+        for(int i=1; i<sizex; i++)
+            r[0][i] = a[0][i] + r[0][i-1];
+        
+        for(int j=1; j<sizey; j++)
+            r[j][0] = a[j][0] + r[j-1][0];
+
+        for(int i=1; i<sizex; i++)
+            for(int j=1; j<sizey; j++)
+                r[j][i] = a[j][i] + r[j-1][i] + r[j][i-1] + r[j-1][i-1];
+                
+        return r;
+    }
+
+
+
 	/*
 	 Reasonably fast implementation of the box filter that sums all the
 	 matrix elements within each box of size [boxsize] x [boxsize].
@@ -2544,6 +2582,7 @@ namespace ikaros
 	 t - temporary storage; size [sizex] x [sizey + boxsize - 1]; allocated and deallocated if t == NULL
 	 */
     // TODO: Use intergal image instead
+
 	float **
 	box_filter(float ** r, float ** a, int sizex, int sizey, int boxsize, bool scale, float ** t)
 	{
@@ -2585,7 +2624,9 @@ namespace ikaros
 			multiply(r, 1.0/sqr(boxsize), sizex, sizey);
 		return r;
 	}
-	
+    
+
+    
 	// mics functions
 	
 	int
@@ -2693,6 +2734,69 @@ namespace ikaros
 	}
     
     
+    //
+    // sorting
+    //
+    
+    // insertion sort
+
+    float *
+    sort(float * a, long size)
+    {
+        int i , j;
+        float t;
+        for(i = 1; i < size; i++)
+        {
+            t = a[i];
+            for(j = i; j > 0 && t < a[j-1]; j--)
+                a[j] = a[j-1];
+            a[j] = t;
+        }
+        return a;
+    }
+
+
+    float **
+    sort(float ** a, long sizex, long sizey)
+    {
+        sort(*a, sizex*sizey);
+        return a;
+    }
+
+    // algorithm from http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
+
+    float *
+    quick_sort (float * a, long size) // TODO: Test
+        {
+        if (size < 2)
+            return a;
+        float p = a[size / 2];
+        float * l = a;
+        float *r = a + size - 1;
+        while (l <= r)
+        {
+            if (*l < p)
+            {
+                l++;
+                continue;
+            }
+            if (*r > p)
+            {
+                r--;
+                continue;
+            }
+            int t = *l;
+            *l++ = *r;
+            *r-- = t;
+        }
+        quick_sort(a, r - a + 1);
+        quick_sort(l, a + size - l);
+        
+        return a;
+    }
+
+
+
     // image file formats
     // MARK: -
     // MARK: image file formats
@@ -2923,7 +3027,7 @@ namespace ikaros
         unsigned char * z = new unsigned char [sizex];
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            float_to_byte(z, matrix, 0.0, 1.0, sizex);	// TODO: allow specification of min and max later
+            float_to_byte(z, matrix, 0.0, 1.0, sizex);
             int x = 0;
             unsigned char * zz = z;
             
@@ -2955,6 +3059,8 @@ namespace ikaros
     char *
     create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality)
     {
+        return create_jpeg(size, *matrix, sizex, sizey, color_table, quality);
+/*
         if (matrix == NULL)
         {
             size = 0;
@@ -2974,7 +3080,7 @@ namespace ikaros
         
         jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
         
-        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_width = sizex; 	// image width and height, in pixels
         cinfo.image_height = sizey;
         cinfo.input_components = 3;	// # of color components per pixel
         cinfo.in_color_space = JCS_RGB;
@@ -2987,7 +3093,7 @@ namespace ikaros
         
         jpeg_start_compress(&cinfo, true);
         
-        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
+        //row_stride = sizex * 3;		// JSAMPLEs per row in image_buffer
         int j=0;
         
         unsigned char * z = new unsigned char [sizex];
@@ -3018,6 +3124,7 @@ namespace ikaros
         
         size = dst.used;
         return (char *)dst.buffer;
+*/
     }
     
     
@@ -3068,16 +3175,16 @@ namespace ikaros
             int x = 0;
             for (int i=0; i<sizex; i++)
             {
-                // TODO: use clip function instead
-                float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
-                float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
-                float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
+                // IGNORE OVERFLOW
+                // float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
+                // float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
+                // float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
+
+                 // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
                 
-                // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
-                
-                image_buffer[x++] = int(255.0*rr);
-                image_buffer[x++] = int(255.0*gg);
-                image_buffer[x++] = int(255.0*bb);
+                image_buffer[x++] = int(255.0*(*rp));
+                image_buffer[x++] = int(255.0*(*gp));
+                image_buffer[x++] = int(255.0*(*bp));
                 
                 rp++;
                 gp++;
@@ -3103,6 +3210,8 @@ namespace ikaros
     char *
     create_jpeg(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey, int quality) // TODO: Call function above instead
     {
+        return create_jpeg(size, *r, *g, *b, sizex, sizey, quality);
+/*
         size = 0;
         if (r ==NULL) return NULL;
         if (g ==NULL) return NULL;
@@ -3121,7 +3230,7 @@ namespace ikaros
         
         jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
         
-        cinfo.image_width = sizex; 	//* image width and height, in pixels
+        cinfo.image_width = sizex; 	// image width and height, in pixels
         cinfo.image_height = sizey;
         cinfo.input_components = 3;	// # of color components per pixel
         cinfo.in_color_space = JCS_RGB;
@@ -3134,7 +3243,7 @@ namespace ikaros
         
         jpeg_start_compress(&cinfo, true);
         
-        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
+        //row_stride = sizex * 3;		// JSAMPLEs per row in image_buffer
         int j=0;
         
         while (cinfo.next_scanline < cinfo.image_height)
@@ -3166,6 +3275,7 @@ namespace ikaros
         
         size = dst.used;
         return (char *)dst.buffer;
+*/
     }
     
     

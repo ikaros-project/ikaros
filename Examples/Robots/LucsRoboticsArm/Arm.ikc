@@ -7,6 +7,9 @@
     </description>
     
     <!-- Servo part -->
+    <!-- This module controls the servos of the arm. All the servos are connected on the same serial bus and each of the servo has a unique ID. ID 1: is the servo is the first servo of the arm. ID 2: is the middle servo and ID 3 is the last servo (end of the arm).
+    This module uses the computer's serial port and the parameter "device" needs to be adjusted to fit the current setup. In linux the port is usally "/dev/ttyUSB0", in OSX somthing similar to "/dev/cu.usbserial-A8006Esq" and in windows COM1. This module set the position of each servo in the angle specifyed by the parameter angle_unit. -->
+    
     <module
     	class		 = "Dynamixel"
 		name		 = "Dynamixel"
@@ -18,6 +21,7 @@
 	/>
     
 	<!-- Modules to generate a moving behaviour -->
+	<!-- These modueles are just do demonstate a moving behavioer of the arm. These modules and connections should be removed and replaced by user modules -->
     <module
 		class		=	"FunctionGenerator"
 		name		=	"GoalPosition1"
@@ -55,8 +59,7 @@
 		amplitude	=	"0.0"
 		shift		=	"150"
 	/>
-
-
+	
 	<!-- Order is important -->
 	<connection sourcemodule  = "GoalPosition3" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
 	<connection sourcemodule  = "GoalPosition2" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
@@ -67,8 +70,9 @@
 	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
 	
 	
-	<!-- Kinnect part -->	
-
+	<!-- Kinect part -->	
+	<!-- This modules uses the open kinnect library to read depth matrix from the kinect sensor. It can also fetch the kinect camera image and control the onboard motors of the sensor. -->
+	 
 	<module
 		class 	 = "Kinect"
 		name 	 = "KINECT"
@@ -83,7 +87,9 @@
         comment         = "This module could be removed if Image-object allowed scaling."
     />
     
-	<!-- FaceDet part -->
+	<!-- Face detection part -->
+	<!-- This modules tries to find a face in a image -->
+	
 	 <module
 		class	 = "MPIFaceDetector"
 		name 	 = "FaceDetector"
@@ -93,6 +99,7 @@
     <connection sourcemodule  = "KINECT" source  = "INTENSITY" targetmodule  = "FaceDetector" target  = "INPUT" />
 
 	<!-- Artoolkit -->
+	<!-- This module detects Artoolkit markers in a image -->
 		<_module
 			class   = "MarkerTracker"
 			name	= "MarkerTracker"
@@ -110,7 +117,6 @@
         
 	<view name = "Lucs Robotic Arm" object_size = "50" >
     	<!-- Dynamixel objects -->
-        
         <object
             class	 = "Plot"
             title	 = "Speed Sent to Servo"

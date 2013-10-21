@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<group title="Zero Crossing Edges">
+    <module class="InputJPEG" name="Image" filename="../../../../../../Examples/Media/colorrobot.jpg" size_x="256" size_y="256" />
+    
+        <module
+            class = "LoGFilter"
+            name = "LoG"
+            kernel_size = "15"
+            sigma = "3"
+        />
+		
+        <module
+            class = "ZeroCrossings"
+            name = "Zeros"
+        />
+
+		<connection sourcemodule = "Image" source = "INTENSITY" targetmodule = "LoG" target = "INPUT" delay="0" />
+		<connection sourcemodule = "LoG" source = "OUTPUT" targetmodule = "Zeros" target = "INPUT" delay="0" />
+
+		<view name = "View">
+			<object class="Image" type="gray" module="Image" source="INTENSITY" x="0" y="0" />
+			<object class="Image" type="gray" module="LoG" source="OUTPUT" x="1" y="0" />
+			<object class="BarGraph" module="LoG" min="-0.25" max="0.25" source="PROFILE" x="2" y="0" />
+			<object class="Slider" module="LoG" parameter="sigma" min="0.1" max="10" x="3" y="0" />
+			<object class="Image" title="Zero Crossings" type="gray" module="Zeros" source="OUTPUT" x="4" y="0" />
+		</view>
+</group>
+

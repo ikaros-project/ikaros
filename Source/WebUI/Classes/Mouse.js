@@ -10,12 +10,15 @@ function Mouse(p)
     {
         event.preventDefault();
         
-        that.value_x = that.min_x+that.range_x*((event.clientX-that.x)/that.width);
+        var mx = event.clientX-= 8.5;
+        var my = event.clientY-= 8.5;
+        
+        that.value_x = that.min_x+that.range_x*((mx-that.x)/that.width);
         
         if(that.flip_y_axis)
-            that.value_y = that.min_y+that.range_y*(1-(event.clientY-that.y)/that.height);
+            that.value_y = that.min_y+that.range_y*(1-(my-that.y)/that.height);
         else
-            that.value_y = that.min_y+that.range_y*((event.clientY-that.y)/that.height);
+            that.value_y = that.min_y+that.range_y*((my-that.y)/that.height);
         
         get("/control/"+that.module+"/"+that.parameter+"/0/0/"+that.value_x, none);
         get("/control/"+that.module+"/"+that.parameter+"/1/0/"+that.value_y, none);

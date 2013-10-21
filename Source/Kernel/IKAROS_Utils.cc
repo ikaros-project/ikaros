@@ -182,7 +182,7 @@ append_string(char * dest, const char * a, int len)
     return dest;
 }
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 /*
  * Get next token from string *stringp, where tokens are possibly-empty
  * strings separated by characters from delim.

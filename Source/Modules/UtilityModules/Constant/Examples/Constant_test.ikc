@@ -26,9 +26,30 @@
 			    0 0 0 0 0"
 		/>
 
+	<module
+		class = "Constant" 
+		name = "ConstantFromData"
+		data = "0 0 0;
+                1 2 3;
+                5 5 5;
+                7 8 9"
+		/>
+
+	<module
+		class = "Constant" 
+		name = "MostyEmptyConstant"
+		outputsize_x = "10"
+		outputsize_y = "10"
+		data = "0 1 2;
+                1 2 3;
+                2 3 4;
+                3 4 5"
+		/>
+
 	<view name="View">
 		<object class="BarGraph" module="Constant" source="OUTPUT" x="0" y="0" min="0" max="5" />
 		<object class="Image" module="ConstantMatrix" source="OUTPUT" x="1" y="0" />
+		<object class="Image" module="MostyEmptyConstant" source="OUTPUT" x="2" y="0" />
 	</view>
 	
 </group>
