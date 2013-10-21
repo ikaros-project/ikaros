@@ -79,7 +79,7 @@ MedianFilter::Tick()
                     buffer[p++] = (*src++);
             }
         
-            sort(buffer, kernel_size_2);
+//            sort(buffer, kernel_size_2);
             
             output[j][i] = buffer[median_pos];
         }

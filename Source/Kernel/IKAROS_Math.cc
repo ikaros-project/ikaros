@@ -2757,7 +2757,7 @@ namespace ikaros
 
 
     float **
-    sort(float ** a, int sizex, int sizey)
+    sort(float ** a, long sizex, long sizey)
     {
         sort(*a, sizex*sizey);
         return a;
