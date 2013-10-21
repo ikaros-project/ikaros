@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group>
+<group title="LoG Filter">
         <module class="InputJPEG" name="Image" filename="../../../../../../Examples/Media/colorrobot.jpg" size_x="256" size_y="256" />
 		
         <module
