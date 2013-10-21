@@ -286,10 +286,10 @@ namespace ikaros
     //
     // sorting
     //
-    
-    float *     sort(float * a, int size);
-    float **    sort(float ** a, int sizex, int sizey);
-    
+
+    float *     sort(float * a, long size);
+    float **    sort(float ** a, long sizex, long sizey);
+ 
     
 	//
 	// image processing
