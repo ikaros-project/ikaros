@@ -23,10 +23,6 @@
 #ifndef IKAROS_MATH
 #define IKAROS_MATH
 
-#define IKAROS_DEGREES 0
-#define IKAROS_RADIANS 1
-#define IKAROS_TAU 2
-
 // the first variable is often the result array or matrix
 // order of sizes is ALWAYS x before y in function calls
 // the sizes nearly always goes last of the arguments
@@ -38,6 +34,8 @@ namespace ikaros
 	extern const float	pi;
 	extern const float	sqrt2pi;
 	extern const float	maxfloat;
+    
+    enum angle_unit {degrees, radians, tau};
 	
 	float eps(float x);
     
@@ -266,8 +264,8 @@ namespace ikaros
 	
 	float		trunc(float x);
 	int         lround(float x);
-	void		float_to_byte(unsigned char * r, float * a, float min, float max, int size);	// min, max of float; byte is always 0-255
-	void		byte_to_float(float * r, unsigned char * a, float min, float max, int size);	// min, max of float; byte is always 0-255
+	void		float_to_byte(unsigned char * r, float * a, float min, float max, long size);	// min, max of float; byte is always 0-255
+	void		byte_to_float(float * r, unsigned char * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 	
 	int         string_to_int(const char * s, int d=0);  // convert to int; use d if char is NULL
 	float		string_to_float(const char * s, float d=0.0); // convert to float; use d if char is NULL
@@ -284,24 +282,35 @@ namespace ikaros
 	
 	void		ascend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 	void		descend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
-	
+
+    //
+    // sorting
+    //
+
+    float *     sort(float * a, long size);
+    float **    sort(float ** a, long sizex, long sizey);
+ 
+    
 	//
 	// image processing
 	//
-	
+
 	float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0);
 	
 	// ksizex and ksizey must be odd for BLAS calls to work // TODO: Check that it works otherwise as well
 	
 	float **	box_filter(float ** r, float ** a, int sizex, int sizey, int boxsize, bool scale = false, float ** t = 0);
 	
+    float **    integral_image(float ** r, float ** a, int sizex, int sizey);
+    
 	/*
 	 float **	erode(float ** result, int masksize, int sizex, int sizey);
 	 float **	dilate(float ** result, int masksize, int sizex, int sizey);
 	 float **	open(float ** result, int masksize, int sizex, int sizey);
 	 float **	close(float ** result, int masksize, int sizex, int sizey);
+     float **	skeletonize(...);
 	 */
-    
+
 	// image file formats
     
     char *      create_jpeg(long int & size, float * array, int sizex, int sizey, float minimum=0, float maximum=1, int quality=100);

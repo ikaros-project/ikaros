@@ -73,7 +73,9 @@ public:
     bool SendYARP;
     bool ReceiveYARP;
     bool SenOnlyNewValues;
-    
+    bool sendStrict;
+    bool receiveStrict;
+
     int size_x;
     int size_y;
 };

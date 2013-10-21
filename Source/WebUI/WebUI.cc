@@ -843,6 +843,11 @@ WebUI::SendView(const char * view)
                             behind = false;
                         else
                             occ[y+j][x+i] = 1;
+                
+                // Trick to avoid namespace clashes in JavaScript; yes it leaks but we don't care
+                
+                if(equal_strings(object_class, "Image"))
+                    object_class = create_string("ImageStream");
 
                 socket->Send("add(new %s({", object_class);
                 for (XMLAttribute * p = xml_uiobject->attributes; p != NULL; p = (XMLAttribute *)(p->next))

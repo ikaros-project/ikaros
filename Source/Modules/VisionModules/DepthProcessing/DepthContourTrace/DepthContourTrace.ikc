@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="DepthContourTrace" description="segments into depth planes">
+
+	<description type="text">
+        Finds a contour around an object indicated by pixels with 1 as foreground
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DepthContourTrace"
+			name="DepthContourTrace"
+		/>
+	</example>
+
+    <parameter name="segment_length" type="int" default="15" description="length of each contour segment" />
+    <parameter name="segment_count" type="int" default="250" description="the maximium number of contour segments" />
+    <parameter name="segment_smoothing" type="int" default="1" description="number of smoothing passes" />
+
+	<input name="INPUT" description="The input image" />
+	<output name="OUTPUT" description="The snake coordinates" size_x="4" size_param_y="segment_count" />
+	<output name="BOX" description="The coordinates of a box around the snake" size_x="2" size_y="4" />
+	<output name="LENGTH" description="The snake length" size="1"/>
+	<output name="DEBUG" description="The snake debug" size_x="640" size_y="480"/>
+
+	<module class="DepthContourTrace" />
+
+	<created>2012</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>DepthContourTrace.h</file>
+	<file>DepthContourTrace.cc</file>
+	<file>DepthContourTrace.ikc</file>
+   </files>
+
+</group>
+

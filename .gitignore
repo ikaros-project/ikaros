@@ -2,10 +2,10 @@
 ###################
 *.com
 *.class
-*.dll
 *.exe
 *.o
 *.so
+*.obj
 
 # Packages #
 ############
@@ -25,6 +25,11 @@
 *.log
 *.sql
 *.sqlite
+*.sdf
+*.opensdf
+*.pdb
+*.ilk
+
 
 # OS generated files #
 ######################
@@ -36,3 +41,13 @@
 Icon?
 ehthumbs.db
 Thumbs.db
+/Debug/
+/Release/
+
+# Windows #
+######################
+
+*.sln
+*.suo
+*.vcxproj
+*.vcxproj.filters

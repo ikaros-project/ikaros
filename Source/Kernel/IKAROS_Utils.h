@@ -43,7 +43,7 @@ bool    equal_strings(const char * a, const char * b);
 bool	strstart(const char * s1, const char *s2); // does s1 start with s2
 bool	strend(const char * s1, const char * s2); // does 1s end with s2
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 char* strsep(char **stringp, const char *delim);
 #endif
 
@@ -64,7 +64,7 @@ float *     create_array(int size);
 float *     create_array(const char * s, int & size);
 
 float **    create_matrix(int sizex, int sizey);
-float **    create_matrix(const char * s, int & sizex, int & sizey);
+float **    create_matrix(const char * s, int & sizex, int & sizey); // create matrix and set size x and y from data
 float ***   create_matrix(int sizex, int sizey, int sizez);
 float ****  create_matrix(int sizex, int sizey, int sizez, int sizet);
 

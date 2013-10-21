@@ -21,32 +21,13 @@
 			installed a device called something like "cu.usbserial-A7005Lxn" will show up under the /dev directory.
         </p>
         <p>
-            If the servo is set up to run in continuous mode, the module uses the input SPEED to set the speed directly
+            If the servo is set up to run in continuous mode, the module uses the input MOVING_SPEED to set the speed directly
             between min (0) and max (1). No speed control is performed by this module.
         </p>
         <p>
-            If the TORQUE input is connected, the torque for each servo can be set individually between min (0) and max (1).
+            If the TORQUE_LIMIT input is connected, the torque for each servo can be set individually between min (0) and max (1).
         </p>
-        <p>
-        	FTDI Driver optimisations.
-        </p>
-        <p>
-        	The module communicate can comunicate with many servos and the time for the module to finnish depends on how many servos connected.<br/>
-        	Exemple: <br/>
-        	1 MX-106 with baudrate 3 Mbps 300 ticks/s<br/>
-        	2 MX-106 with baudrate 3 Mbps 170 ticks/s<br/>
-        	3 MX-106 with baudrate 3 Mbps 120 ticks/s<br/>
-        	12 MX-106 with baudrate 3 Mbps XX tick/s<br/>
-        <br/>
-        	1 AX-12 with baudrate 1 Mpbs XX ticks/s<br/>
-        	2 AX-12 with baudrate 1 Mpbs XX ticks/s<br/>
-        	3 AX-12 with baudrate 1 Mpbs XX ticks/s<br/>
-        	12 AX-12 with baudrate 1 Mpbs XX ticks/s<br/>
-        	<br/>
-        	<p>
-        	With many servos connected the module may need to split the data received from the servo's multiple requests which will lead to fewer ticks/s.
-        	</p>
-        </p>
+
 	</description>
 
 	<example description="A simple example">
@@ -69,6 +50,9 @@
 	<parameter name="feedback" type="bool" default="yes" description="Should the module ask the servos for data? If set to 'no' the module works faster and never receives any data from the servo. Instead, the OUTPUT is set to a copy of the last INPUT." />
 
 	<parameter name="start_up_delay" type="int" default="1" description="Number of ticks to wait before a position command is sent to the servos." />
+	<parameter name="start_up_slow" type="bool" default="no" description="If both start_up_delay and start_up_slow is set, 30% of torque will be sent to the servoes until start_up_delay. This will give a less jert behaviour with the servo is reciving the first input value." />
+
+
 
     <input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" />
     <input name="LED" description="LED On/Off, Off if not connected" />

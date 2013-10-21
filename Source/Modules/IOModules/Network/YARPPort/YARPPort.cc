@@ -57,9 +57,9 @@ YARPPort::showBottle(Bottle& anUnknownBottle, int indentation = 0) {
             case BOTTLE_TAG_BLOB:
                 printf("binary blob of length %lu\n", element.asBlobLength());
                 break;
-            case BOTTLE_TAG_VOCAB:
-                printf("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
-                break;
+            //case BOTTLE_TAG_VOCAB:
+            //    printf("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
+            //    break;
             default:
                 if (element.isList()) {
                     Bottle *lst = element.asList();
@@ -81,6 +81,8 @@ YARPPort::Init()
     yarpName = GetValue("yarp_name");
     type    =   GetIntValueFromList("type");
     SenOnlyNewValues    =   GetBoolValue("send_only_new_values");
+    sendStrict    =   GetBoolValue("send_strict");
+    receiveStrict    =   GetBoolValue("receive_strict");
     
     size_x  = GetIntValue("outputsize_x", 0);
     size_y  = GetIntValue("outputsize_y", 0);
@@ -180,17 +182,21 @@ YARPPort::YarpWrite()
     pp.body = v;
     v.clear();
     
-    port.write();
-    //printf("Sent output to %s...\n", port.getName().c_str());
+    if (sendStrict)
+        port.writeStrict(); // Send every tick to YARP network
+    else
+        port.write(); // Send a tick only if yarp still not working with previous send.
     
-    // Clear memory. this can not be done here as the head and body has not been written yet.
-    //pp.head.clear();
-    //pp.body.clear();
+    //printf("Sent output to %s...\n", port.getName().c_str());
 }
 
 void
 YARPPort::YarpRead()
 {
+    
+    if (receiveStrict)
+        port.setStrict();     // Read every recived message.
+    
     PortablePair<Bottle,Vector> *pp = port.read(false);
     
     if (pp!=NULL)

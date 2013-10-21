@@ -31,13 +31,16 @@ class Constant: public Module
 public:
     static Module * Create(Parameter * p) { return new Constant(p); }
     
-    float *	data;
-    float *	output;
-    int		outputsize;
+    float **	data;
+    float **	output;
+    int         outputsize_x;
+    int         outputsize_y;
 
     Constant(Parameter * p) : Module(p) {}
     virtual	~Constant() {}
 
+    void            SetSizes();
+    
     void			Init();
     void			Tick();
 };

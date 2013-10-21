@@ -61,7 +61,6 @@
 #include <fcntl.h>
 #include <ctype.h>
 
-#include <ftw.h>    //****************** TEMPORARY
 
 #ifdef WINDOWS
 #include <direct.h>
@@ -69,7 +68,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef WINDOWS32
+#ifdef WINDOWS
 #include <windows.h>
 #undef GetClassName
 #else
@@ -725,16 +724,17 @@ Module::GetIntArray(const char * n, int & size)
 
 
 
-
 float **
 Module::GetMatrix(const char * n, int sizex, int sizey)
 {
-    bool too_few = false;
+//    bool too_few = false;
     float ** m = create_matrix(sizex, sizey);
-    float * d = m[0];
+//    float * d = m[0];
     const char * v = GetValue(n);
     if (v == NULL)
         return m;
+    
+/*
     for (int i=0; i<sizex*sizey;i++)
     {
         for (; isspace(*v) && *v != '\0'; v++) ;
@@ -747,7 +747,17 @@ Module::GetMatrix(const char * n, int sizex, int sizey)
     }
     if(too_few)
         Notify(msg_warning, "Too few constants in matrix \"%s\" (0 assumed).\n", n);
+*/
+
+    int sx, sy;
+    float ** M = create_matrix(v, sx, sy);
+
+    for(int i=0; i<sx; i++)
+        for(int j=0; j<sy; j++)
+            m[j][i] = M[j][i];
     
+    destroy_matrix(M);
+
     return m;
 }
 
@@ -1392,7 +1402,7 @@ Kernel::SetOptions(Options * opt)
     // Seed random number generator
                         
     if(options->GetOption('z'))
-#ifdef WINDOWS32
+#ifdef WINDOWS
         srand(string_to_int(options->GetArgument('z')));
 #else
         srandom(string_to_int(options->GetArgument('z')));
@@ -1460,7 +1470,7 @@ Kernel::Kernel(Options * opt)
 	// Seed random number generator
 	
 	if(options->GetOption('z'))
-#ifdef WINDOWS32
+#ifdef WINDOWS
     srand(string_to_int(options->GetArgument('z')));
 #else
     srandom(string_to_int(options->GetArgument('z')));

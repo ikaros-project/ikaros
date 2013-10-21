@@ -36,8 +36,8 @@ public:
     static Module * Create(Parameter * p);
 
     void	SetSizes();
-    void Init();
-    void Tick();
+    void    Init();
+    void    Tick();
 
     int		inputsize_x;
     int		inputsize_y;
