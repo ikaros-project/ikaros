@@ -10,7 +10,7 @@
             kernel_size = "7"
         />
 
-		<connection sourcemodule = "Image" source = "INTENSITY" targetmodule = "MedianFilter" target = "INPUT" />
+		<connection sourcemodule = "Image" source = "INTENSITY" targetmodule = "MedianFilter" target = "INPUT" delay="0" />
 
 		<view name = "View">
 			<object class="Image" type="gray" module="Image" source="INTENSITY" x="0" y="0" />
