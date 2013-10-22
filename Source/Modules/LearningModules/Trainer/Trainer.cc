@@ -20,7 +20,7 @@
 
 #include "Trainer.h"
 
-
+using namespace ikaros;
 
 void
 Trainer::SetSizes()
@@ -37,6 +37,8 @@ Trainer::SetSizes()
         SetOutputSize("error", 1);
         SetOutputSize("accumulated_error", 1);
     }
+    
+    Module::SetSizes();
 }
 
 
@@ -62,12 +64,15 @@ Trainer::Init()
     
     test_x = GetOutputArray("TEST_X", false);
     test_y = GetInputArray("TEST_Y", false);
+    test_y_last = create_array(size_y);
+    
+    error = GetOutputArray("ERROR"); // error for current test data point
 }
 
 
 
 void
-Trainer::Tick() // TODO: Random order
+Trainer::Tick() // TODO: Random order; different metric for error possibly...
 {
     copy_array(train_x, training_data_x[training_current], size_x);
     copy_array(train_y, training_data_y[training_current], size_y);
@@ -76,7 +81,7 @@ Trainer::Tick() // TODO: Random order
     if(training_current >= training_no_of_examples)
         training_current = 0;
     
-    if(testing_data_x)
+    if(testing_data_x && test_x && test_y)
     {
         copy_array(test_y_last, test_y, size_y);
         copy_array(test_x, testing_data_x[testing_current], size_x);
@@ -88,7 +93,7 @@ Trainer::Tick() // TODO: Random order
         
         // Calculate error
         
-        error = dist(test_y_last);
+        *error = dist(test_y_last, test_y, size_y);
     }
     
     // TODO: Check iterations / infinite / criteria

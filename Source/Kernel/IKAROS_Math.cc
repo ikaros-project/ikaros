@@ -491,6 +491,7 @@ namespace ikaros
     // MARK: distances and norms
     
 	// distances & norms
+
 	float
 	dist(float * a, float * b, int size)
 	{

@@ -35,7 +35,7 @@ public:
     float **    testing_data_y;
     int         testing_no_of_examples;
     int         testing_current;
-    
+
     float *     train_x;
     float *     train_y;
     
@@ -46,6 +46,8 @@ public:
     int         size_x; // not the usual meaning
     int         size_y;
     
+    float *     error;
+
     Trainer(Parameter * p): Module(p) {};
     virtual ~Trainer() {};
 
