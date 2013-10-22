@@ -40,7 +40,7 @@
     <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
 
     <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_X" />
-    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" />
+    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" delay = "0" />
     
     <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "Perceptron"  target = "T_INPUT" />
     <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "Perceptron"  target = "T_TARGET" />
@@ -52,6 +52,7 @@
         <object class="Table" module="Trainer" source="TRAIN_X" x="0" y="0" max = "10"/>
         <object class="Table" module="Trainer" source="TRAIN_Y" x="1" y="0" max = "10"/>
         <object class="Table" module="Perceptron" source="OUTPUT" x="2" y="0" max = "10"/>
+        <object class="Plot" module="Perceptron" source="ERROR" x="3" y="0" max = "1"/>
     </view>
 </group>
 
