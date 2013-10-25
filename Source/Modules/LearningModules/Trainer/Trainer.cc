@@ -51,13 +51,11 @@ Trainer::Init()
     Bind(order, "order");
     Bind(crossvalidation, "crossvalidation");
 
-
     training_data_x = GetInputMatrix("TRAINING_DATA_X");
     training_data_y = GetInputMatrix("TRAINING_DATA_Y");
     training_no_of_examples = GetInputSizeY("TRAINING_DATA_X");
     training_current = 0;
 
-    
     testing_data_x = GetInputMatrix("TESTING_DATA_X", false);
     testing_data_y = GetInputMatrix("TESTING_DATA_Y", false);
     testing_no_of_examples = GetInputSizeY("TESTING_DATA_X");
@@ -66,7 +64,6 @@ Trainer::Init()
     size_x = GetInputSizeX("TRAINING_DATA_X");
     size_y = GetInputSizeX("TRAINING_DATA_Y"); // yes, this is correct
     
-    
     train_x = GetOutputArray("TRAIN_X");
     train_y = GetOutputArray("TRAIN_Y");
     
@@ -74,11 +71,17 @@ Trainer::Init()
     test_y = GetInputArray("TEST_Y", false);
     test_y_last = create_array(size_y);
     
-    
     error = GetOutputArray("ERROR"); // error for current test data point
     
     if(testing_data_x && crossvalidation != 4)
         Notify(msg_warning, "Trainer: testing data ignored since crossvalidation is not set to 'input'");
+    
+    // Set start data point for training abd validation
+
+    if(crossvalidation == 2) // even
+        training_current = 1;
+    else if(crossvalidation == 3) // odd
+        testing_current = 1;
 }
 
 
@@ -119,12 +122,18 @@ Trainer::Tick()
             
             if(order == random_order)
             {
-                while(training_current = random(training_no_of_examples) % 2 == 1) ;
-                while(testing_current = random(training_no_of_examples) % 2 == 0) ;
+                while((training_current = random(training_no_of_examples)) % 2 == 1) ;
+                while((testing_current = random(training_no_of_examples)) % 2 == 0) ;
             }
             else
             {
+                training_current+=2;
+                testing_current+=2;
                 
+                if(training_current >= training_no_of_examples)
+                    training_current = 1;
+               if(testing_current >= training_no_of_examples)
+                    testing_current = 0;
             }
             break;
         
@@ -137,8 +146,18 @@ Trainer::Tick()
             
             if(order == random_order)
             {
-                while(training_current = random(training_no_of_examples) % 2 == 0) ;
-                while(testing_current = random(training_no_of_examples) % 2 == 1) ;
+                while((training_current = random(training_no_of_examples)) % 2 == 0) ;
+                while((testing_current = random(training_no_of_examples)) % 2 == 1) ;
+            }
+            else
+            {
+                training_current+=2;
+                testing_current+=2;
+                
+                if(training_current >= training_no_of_examples)
+                    training_current = 0;
+               if(testing_current >= training_no_of_examples)
+                    testing_current = 1;
             }
            break;
         
@@ -151,7 +170,7 @@ Trainer::Tick()
             
             if(order == random_order) // random
                 training_current = random(training_no_of_examples);
-            else  if(++training_current >= training_no_of_examples)
+            else if(++training_current >= training_no_of_examples)
                     training_current = 0;
             break;
     }

@@ -2,7 +2,7 @@
 
 <group title = "Trainer Demo">
 
-    <_module
+    <module
         class = "Constant"
         name = "X"
         data = "1 2; 3 4; 5 6; 6 7"
@@ -10,7 +10,7 @@
         outputsize_y = "4"
     />
 
-    <_module
+    <module
         class = "Constant"
         name = "Y"
         data = "1; 1; 0; 0"
@@ -19,16 +19,9 @@
     />
 
     <module
-        class = "InputFile" 
-        name = "Data"
-        type = "static"
-        filename = "iris.dat"
-    />
-
-    <module 
         class = "Trainer" 
         name = "Trainer" 
-        iterations = "1000" 
+        crossvalidation = "odd"
     />
 
 	<module
@@ -43,8 +36,8 @@
 		batch_size = "10"
 	/>
 
-    <connection sourcemodule = "Data"  source = "X" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
-    <connection sourcemodule = "Data"  source = "Y" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
+    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
+    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
 
     <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_X" />
     <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" />
