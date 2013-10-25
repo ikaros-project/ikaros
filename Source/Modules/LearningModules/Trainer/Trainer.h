@@ -47,6 +47,9 @@ public:
     int         size_y;
     
     float *     error;
+    
+    int         order;
+    int         crossvalidation;
 
     Trainer(Parameter * p): Module(p) {};
     virtual ~Trainer() {};
