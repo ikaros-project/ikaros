@@ -22,6 +22,9 @@
 
 using namespace ikaros;
 
+const int random_order = 0;
+const int sequential_order = 1;
+
 void
 Trainer::SetSizes()
 {
@@ -73,6 +76,9 @@ Trainer::Init()
     
     
     error = GetOutputArray("ERROR"); // error for current test data point
+    
+    if(testing_data_x && crossvalidation != 4)
+        Notify(msg_warning, "Trainer: testing data ignored since crossvalidation is not set to 'input'");
 }
 
 
@@ -83,83 +89,72 @@ Trainer::Tick()
     switch(crossvalidation)
     {
         case 0: // none
-        
+            copy_array(train_x, training_data_x[training_current], size_x);
+            copy_array(train_y, training_data_y[training_current], size_y);
+            if(order == random_order) // random
+                training_current = random(training_no_of_examples);
+            else if(++training_current >= training_no_of_examples)
+                    training_current = 0;
             break;
         
         case 1: // all
-        
+            *error = dist(test_y_last, test_y, size_y);
+            copy_array(train_x, training_data_x[training_current], size_x);
+            copy_array(train_y, training_data_y[training_current], size_y);
+            copy_array(test_x, train_x, size_x);
+            copy_array(test_y_last, train_y, size_y);
+
+            if(order == random_order)
+                training_current = random(training_no_of_examples);
+            else if(++training_current >= training_no_of_examples)
+                    training_current = 0;
             break;
         
         case 2: // even
-        
+            *error = dist(test_y_last, test_y, size_y);
+            copy_array(train_x, training_data_x[training_current], size_x);
+            copy_array(train_y, training_data_y[training_current], size_y);
+            copy_array(test_x, training_data_x[testing_current], size_x);
+            copy_array(test_y_last, training_data_y[testing_current], size_y);
+            
+            if(order == random_order)
+            {
+                while(training_current = random(training_no_of_examples) % 2 == 1) ;
+                while(testing_current = random(training_no_of_examples) % 2 == 0) ;
+            }
+            else
+            {
+                
+            }
             break;
         
         case 3: // odd
-        
-            break;
+            *error = dist(test_y_last, test_y, size_y);
+            copy_array(train_x, training_data_x[training_current], size_x);
+            copy_array(train_y, training_data_y[training_current], size_y);
+            copy_array(test_x, training_data_x[testing_current], size_x);
+            copy_array(test_y_last, training_data_y[testing_current], size_y);
+            
+            if(order == random_order)
+            {
+                while(training_current = random(training_no_of_examples) % 2 == 0) ;
+                while(testing_current = random(training_no_of_examples) % 2 == 1) ;
+            }
+           break;
         
         case 4: // input
-        
-            break;
-    }
-
-
-    // Set training output
-
-    copy_array(train_x, training_data_x[training_current], size_x);
-    copy_array(train_y, training_data_y[training_current], size_y);
-
-    // Select next training point
-    
-    switch(order)
-    {
-        case 0:
-            training_current = random(training_no_of_examples);
-            break;
-        
-        case 1:
-            training_current++;
-    
-            if(training_current >= training_no_of_examples)
-                training_current = 0;
-            break;
-    }
-    
-    if(testing_data_x && test_x && test_y)
-    {
-        // Test current learning module output (y)
-        // Assuming one tick return loop from
-        // learning module
-        
-        *error = dist(test_y_last, test_y, size_y);
-
-        // Store current test y and set test x as output
-
-        copy_array(test_x, testing_data_x[testing_current], size_x);
-        copy_array(test_y_last, testing_data_y[testing_current], size_y);
-        
-        // Select next test point
-
-        switch(order)
-        {
-            case 0:
-                testing_current = random(testing_no_of_examples);
-                break;
+            *error = dist(test_y_last, test_y, size_y);
+            copy_array(train_x, training_data_x[training_current], size_x);
+            copy_array(train_y, training_data_y[training_current], size_y);
+            copy_array(test_x, testing_data_x[testing_current], size_x);
+            copy_array(test_y_last, testing_data_y[testing_current], size_y);
             
-            case 1:
-                testing_current++;
-                if(testing_current >= testing_no_of_examples)
-                    testing_current = 0;
-                break;
-        }
-     }
-     else if(alternate != 0)
-     {
-        *error = dist(test_y_last, test_y, size_y);
-
-        copy_array(test_x, testing_data_x[testing_current], size_x);
-        copy_array(test_y_last, testing_data_y[testing_current], size_y);
-     }
+            if(order == random_order) // random
+                training_current = random(training_no_of_examples);
+            else  if(++training_current >= training_no_of_examples)
+                    training_current = 0;
+            break;
+    }
 }
 
 
