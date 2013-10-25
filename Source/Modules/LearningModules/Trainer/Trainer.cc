@@ -35,7 +35,6 @@ Trainer::SetSizes()
         SetOutputSize("TEST_X", sx);
         
         SetOutputSize("error", 1);
-        SetOutputSize("accumulated_error", 1);
     }
     
     Module::SetSizes();
@@ -46,11 +45,16 @@ Trainer::SetSizes()
 void
 Trainer::Init()
 {
+    Bind(order, "order");
+    Bind(crossvalidation, "crossvalidation");
+
+
     training_data_x = GetInputMatrix("TRAINING_DATA_X");
     training_data_y = GetInputMatrix("TRAINING_DATA_Y");
     training_no_of_examples = GetInputSizeY("TRAINING_DATA_X");
     training_current = 0;
 
+    
     testing_data_x = GetInputMatrix("TESTING_DATA_X", false);
     testing_data_y = GetInputMatrix("TESTING_DATA_Y", false);
     testing_no_of_examples = GetInputSizeY("TESTING_DATA_X");
@@ -59,6 +63,7 @@ Trainer::Init()
     size_x = GetInputSizeX("TRAINING_DATA_X");
     size_y = GetInputSizeX("TRAINING_DATA_Y"); // yes, this is correct
     
+    
     train_x = GetOutputArray("TRAIN_X");
     train_y = GetOutputArray("TRAIN_Y");
     
@@ -66,37 +71,95 @@ Trainer::Init()
     test_y = GetInputArray("TEST_Y", false);
     test_y_last = create_array(size_y);
     
+    
     error = GetOutputArray("ERROR"); // error for current test data point
 }
 
 
 
 void
-Trainer::Tick() // TODO: Random order; different metric for error possibly...
+Trainer::Tick()
 {
+    switch(crossvalidation)
+    {
+        case 0: // none
+        
+            break;
+        
+        case 1: // all
+        
+            break;
+        
+        case 2: // even
+        
+            break;
+        
+        case 3: // odd
+        
+            break;
+        
+        case 4: // input
+        
+            break;
+    }
+
+
+    // Set training output
+
     copy_array(train_x, training_data_x[training_current], size_x);
     copy_array(train_y, training_data_y[training_current], size_y);
 
-    training_current++;
-    if(training_current >= training_no_of_examples)
-        training_current = 0;
+    // Select next training point
+    
+    switch(order)
+    {
+        case 0:
+            training_current = random(training_no_of_examples);
+            break;
+        
+        case 1:
+            training_current++;
+    
+            if(training_current >= training_no_of_examples)
+                training_current = 0;
+            break;
+    }
     
     if(testing_data_x && test_x && test_y)
     {
-        copy_array(test_y_last, test_y, size_y);
-        copy_array(test_x, testing_data_x[testing_current], size_x);
-        copy_array(test_y, testing_data_y[testing_current], size_y);
-
-        testing_current++;
-        if(testing_current >= testing_no_of_examples)
-            testing_current = 0;
-        
-        // Calculate error
+        // Test current learning module output (y)
+        // Assuming one tick return loop from
+        // learning module
         
         *error = dist(test_y_last, test_y, size_y);
-    }
-    
-    // TODO: Check iterations / infinite / criteria
+
+        // Store current test y and set test x as output
+
+        copy_array(test_x, testing_data_x[testing_current], size_x);
+        copy_array(test_y_last, testing_data_y[testing_current], size_y);
+        
+        // Select next test point
+
+        switch(order)
+        {
+            case 0:
+                testing_current = random(testing_no_of_examples);
+                break;
+            
+            case 1:
+                testing_current++;
+                if(testing_current >= testing_no_of_examples)
+                    testing_current = 0;
+                break;
+        }
+     }
+     else if(alternate != 0)
+     {
+        *error = dist(test_y_last, test_y, size_y);
+
+        copy_array(test_x, testing_data_x[testing_current], size_x);
+        copy_array(test_y_last, testing_data_y[testing_current], size_y);
+     }
 }
 
 

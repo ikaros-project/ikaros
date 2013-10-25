@@ -67,7 +67,7 @@
 		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
 	</author>
 
-	<created>2001-2012</created>
+	<created>2001</created>
 	
    <files>
    		<file>InputFile.h</file>
