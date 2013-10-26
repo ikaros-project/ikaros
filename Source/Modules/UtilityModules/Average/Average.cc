@@ -27,6 +27,15 @@ using namespace ikaros;
 void
 Average::Init()
 {
+    Bind(type, "type");
+    Bind(window_size, "window_size");
+    Bind(alpha, "alpha");
+    Bind(termination_criterion, "termination_criterion");
+    Bind(select, "select");
+
+    window_size_last = 0;
+    window      = NULL;
+
     size		= GetInputSize("INPUT");
     input		= GetInputArray("INPUT");
     sum			= create_array(size);
@@ -39,6 +48,7 @@ Average::Init()
 Average::~Average()
 {
     destroy_array(sum);
+    destroy_matrix(window);
 }
 
 
@@ -46,9 +56,44 @@ Average::~Average()
 void
 Average::Tick()
 {
-    tick_count++;
-    add(sum, input, size);
-    multiply(output, sum, 1.0/float(tick_count), size);
+    // Initializatiom must be here if changed during execution
+
+    if(window_size != window_size_last)
+    {
+        window_size_last = window_size;
+        
+        if(window != NULL)
+            destroy_matrix(window);
+        
+        window = create_matrix(window_size, size);
+        tick_count = 0;
+    }
+
+
+    switch(type)
+    {
+        case 0: // CMA
+            tick_count++;
+            add(sum, input, size);
+            multiply(output, sum, 1.0/float(tick_count), size);
+            break;
+        
+        case 1: // SMA
+            copy_array(window[tick_count], input, size);
+        
+            for(int j=0; j<size; j++)               // TODO: use set_col function
+                window[j][tick_count] = input[j];
+            tick_count = (tick_count+1) % window_size;
+            mean(output, window, window_size, size);
+            break;
+        
+        case 2: // EMA
+            add(output, 1-alpha, output, alpha, input, size);
+            break;
+    }
+    
+    if(output[select] < termination_criterion)
+        Notify(msg_terminate, "Average: Terminated because criterion was met.");
 }
 
 
