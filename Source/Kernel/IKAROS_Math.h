@@ -177,7 +177,7 @@ namespace ikaros
 	
 	float		mean(float * a, int size);
 	float		mean(float ** a, int sizex, int sizey);
-	
+	float *		mean(float * r, float ** a, int sizex, int sizey); // mean over rows; r must have size sizey
 	
 	float		clip(float x, float low, float high);
 	float *		clip(float * a, float low, float high, int size);
