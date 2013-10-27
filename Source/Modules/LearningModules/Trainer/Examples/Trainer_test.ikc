@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<group name="Learning System" title = "Trainer Demo">
+
+    <module
+        class = "InputFile" 
+        name = "Data"
+        type = "static"
+        filename = "iris.dat"
+        _filename = "simple.dat"
+    />
+
+    <module 
+        class = "Trainer"
+        name = "Trainer" 
+        crossvalidation = "odd"
+    />
+
+	<module
+		class = "Perceptron"
+		name = "Perceptron"
+		learning_rule = "delta"
+		margin = ""
+		normalize_target = "true"
+		activation_type = "tanh"
+		learning_type = "instant"
+		momentum_ratio = "0.42"
+		batch_size = "10"
+	/>
+
+    <module 
+        class = "Average"
+        name = "Average"
+        type = "SMA"
+        window_size = "200"
+    />
+
+    <connection sourcemodule = "Data"  source = "X" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
+    <connection sourcemodule = "Data"  source = "Y" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
+
+    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "Perceptron"  target = "T_INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "Perceptron"  target = "T_TARGET" />
+
+    <connection sourcemodule = "Trainer"  source = "TEST_X" targetmodule = "Perceptron"  target = "INPUT" />
+    <connection sourcemodule = "Perceptron"  source = "OUTPUT" targetmodule = "Trainer"  target = "TEST_Y" delay = "0" />
+
+    <connection sourcemodule = "Trainer"     source = "ERROR" targetmodule = "Average"  target = "INPUT" />
+    <connection sourcemodule = "Perceptron"  source = "ERROR" targetmodule = "Average"  target = "INPUT" />
+
+    <view>
+        <object class="BarGraph" module="Trainer" source="TRAIN_X" x="0" y="0" max = "10"/>
+        <object class="BarGraph" module="Trainer" source="TRAIN_Y" x="1" y="0" max = "1"/>
+        <object class="BarGraph" module="Perceptron" source="OUTPUT" x="2" y="0" max = "1"/>
+        
+        <object class="Plot" title="Train Error" module="Perceptron" source="ERROR" x="0" y="1" w="3" max = "1"/>
+        <object class="Plot" title="Test Error" module="Trainer" source="ERROR" x="0" y="2" w="3"  max = "1"/>
+        <object class="Plot" title="Test &amp; Training Error (SMA200)" module="Average" source="OUTPUT" x="0" y="3" w="3"  max = "1" select="0,1" color="red, green" />
+    </view>
+</group>
+

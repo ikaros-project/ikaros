@@ -32,8 +32,15 @@ public:
     int			size;
     float *		input;
     float *		sum;
+    float **    window;
     float *		output;
     long		tick_count;
+    int         type;
+    int         window_size;
+    int         window_size_last;
+    float       alpha;
+    float       termination_criterion;
+    int         select;
 
     Average(Parameter * p) : Module(p) {}
     virtual ~Average();

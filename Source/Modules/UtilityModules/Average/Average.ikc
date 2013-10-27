@@ -3,7 +3,9 @@
 <group name="Average" description="calculates average over time">
 
 	<description type="text">
-		Module used to calculate the average of its input over time.
+		Module used to calculate the average of its input over time. There are three different types of average
+        that can be calculated: Cumulative moving average (CMA) which is the default; Simple moving average (SMA) over a window set by window_size; and
+        exponentially moving average (EMA) with a weight set by alpha.
 	</description>
 
 	<example description="A simple example">
@@ -13,6 +15,12 @@
 		/>
 	</example>
 
+    <parameter name="type" type="list" values="SMA/CMA/EMA" description="the type of average" />
+    <parameter name="window_size" type="int" default="100" description="the window size for SMA" />
+    <parameter name="alpha" type="float" default="0.1" description="the weight for the new value for EMA" />
+    <parameter name="termination_criterion" type="float" default="0" description="if the average set by select is below this value the module will terminate execution of Ikaros" />
+    <parameter name="select" type="int" default="0" description="which value to use for the termination criteria" />
+    
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
