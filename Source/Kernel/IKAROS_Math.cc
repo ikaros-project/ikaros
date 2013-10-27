@@ -491,6 +491,7 @@ namespace ikaros
     // MARK: distances and norms
     
 	// distances & norms
+
 	float
 	dist(float * a, float * b, int size)
 	{
@@ -927,6 +928,14 @@ namespace ikaros
 	{
 		return mean(*a, sizex*sizey);
 	}
+    
+    float *
+    mean(float * r, float ** a, int sizex, int sizey) // mean over rows; r must have size sizey
+    {
+        for(int j=0; j<sizey; j++)
+            r[j] = mean(a[j], sizex);
+        return r;
+    }
 	
     // MARK: -
     // MARK: clip

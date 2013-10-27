@@ -177,7 +177,7 @@ namespace ikaros
 	
 	float		mean(float * a, int size);
 	float		mean(float ** a, int sizex, int sizey);
-	
+	float *		mean(float * r, float ** a, int sizex, int sizey); // mean over rows; r must have size sizey
 	
 	float		clip(float x, float low, float high);
 	float *		clip(float * a, float low, float high, int size);
@@ -266,20 +266,20 @@ namespace ikaros
 	int         lround(float x);
 	void		float_to_byte(unsigned char * r, float * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 	void		byte_to_float(float * r, unsigned char * a, float min, float max, long size);	// min, max of float; byte is always 0-255
-	
+
 	int         string_to_int(const char * s, int d=0);  // convert to int; use d if char is NULL
 	float		string_to_float(const char * s, float d=0.0); // convert to float; use d if char is NULL
-	
+
 	char *      int_to_string(char * s, int n, int i);	// put the string representation of the value i into s using a maximum of n characters
 	char *      float_to_string(char * s, float v, int decimals, int n);
-    
+
     float       angle_to_angle(float angle, int from_angle_unit, int to_angle_unit);
 
 	// misc
-	
+
 	int         select_boltzmann(float * a, int size, float T);
 	void		select_boltzmann(int & x, int & y, float ** m, int sizex, int sizey, float T);
-	
+
 	void		ascend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 	void		descend_gradient(int & x, int & y, float ** m, int sizex, int sizey);
 
@@ -289,8 +289,7 @@ namespace ikaros
 
     float *     sort(float * a, long size);
     float **    sort(float ** a, long sizex, long sizey);
- 
-    
+
 	//
 	// image processing
 	//
@@ -319,29 +318,28 @@ namespace ikaros
     char *      create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality=100);
     char *      create_jpeg(long int & size, float * red_array, float * green_array, float * blue_array, int sizex, int sizey, int quality=100);
     char *      create_jpeg(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, int quality=100);
-    
+
     void        destroy_jpeg(char * jpeg);
-    
+
     void        decode_jpeg(float ** matrix, int sizex, int sizey, char * data, long int size);
     void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);
-    
+
     bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
     void        jpeg_decode(float ** matrix, int sizex, int sizey, char * data, long int size); // NOT IMPLEMENTED
     void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
-    
+
     char *      create_bmp(long int & size, float ** matrix, int sizex, int sizey);  // NOT IMPLEMENTED
     char *      create_bmp(long int & size, float * red_array, float * green_array, float * blue_array, int sizex, int sizey);
     char *      create_bmp(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey);
     void        destroy_bmp(char * bmp);
-    
+
     // drawing routines
-    
+
     void        draw_line(float ** image, int sizex, int sizey, int x0, int y0, int x1, int x2, float color);
     void        draw_line(float ** red, float ** green, float ** blue, int sizex, int sizey, int x0, int y0, int x1, int x2, float r, float g, float b);
-    
+
     void        draw_circle(float ** image, int sizex, int sizey, int x, int y, int radius, float color);
     void        draw_circle(float ** red, float ** green, float ** blue, int sizex, int sizey, int x, int y, int radius, float r, float g, float b);
-    
 }
 
 #endif

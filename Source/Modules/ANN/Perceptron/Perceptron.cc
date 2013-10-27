@@ -78,7 +78,7 @@ Perceptron::SetSizes()
     tmp = GetInputSize("TRAIN");
     if (tmp == unknown_size)
         return;
-    if (tmp != 1)
+    if (tmp > 1)
         Notify(msg_fatal_error, "Module Perceptron - size of input TRAIN is not 1 (it is %i)!\n", tmp);
 
     SetOutputSize("OUTPUT", target_size);
@@ -149,7 +149,7 @@ Perceptron::Init()
     input = GetInputArray("INPUT");
     t_input = GetInputArray("T_INPUT");
     t_target = GetInputArray("T_TARGET");
-    train = GetInputArray("TRAIN");
+    train = GetInputArray("TRAIN", false);
 
     output = GetOutputArray("OUTPUT");
     error = GetOutputArray("ERROR");
@@ -194,7 +194,8 @@ Perceptron::Tick()
     // so if we want to also train, first activate and learn with
     // the t_input/t_target arrays, and then reactivate with the
     // input array.
-    if (train[0] == 1){
+    if (!train || train[0] == 1)
+    {
         train_tick++;
         copy_array(input_with_bias, t_input, input_size);
         (this->*Activate)();
