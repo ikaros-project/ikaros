@@ -1086,7 +1086,7 @@ Module::SetSizes()
 		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
         {
             const char * output_name = e->GetAttribute("name");
-			if((sizearg = e->GetAttribute("size_set")))
+			if((sizearg = e->GetAttribute("size_set"))) // Set output size from one or multiple inputs
 			{
 				char * l = create_string(sizearg);
 				char * ll = l;
@@ -1105,6 +1105,60 @@ Module::SetSizes()
 				while(input)
 				{
 					int sx = GetInputSizeX(input);
+					int sy = GetInputSizeY(input);
+					if(sx != unknown_size)
+						SetOutputSize(output_name, sx, sy);
+					input = strsep(&s, ",");
+				}
+				destroy_string(ll);
+			}
+            
+			else if((sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
+			{
+				char * l = create_string(sizearg);
+				char * ll = l;
+				// strip blanks
+				int i=0, j=0;
+				while(l[i] != 0)
+				{
+					if(l[j] == ' ')
+						j++;
+					else
+						l[i++]=l[j++];
+				}
+				char * s = l;
+				char * input;
+				input = strsep(&s, ",");
+				while(input)
+				{
+					int sx = GetInputSizeX(input);
+					int sy = unknown_size;
+					if(sx != unknown_size)
+						SetOutputSize(output_name, sx, sy);
+					input = strsep(&s, ",");
+				}
+				destroy_string(ll);
+			}
+            
+			else if((sizearg = e->GetAttribute("size_set_y"))) // Set output size y from one or multiple inputs
+			{
+				char * l = create_string(sizearg);
+				char * ll = l;
+				// strip blanks
+				int i=0, j=0;
+				while(l[i] != 0)
+				{
+					if(l[j] == ' ')
+						j++;
+					else
+						l[i++]=l[j++];
+				}
+				char * s = l;
+				char * input;
+				input = strsep(&s, ",");
+				while(input)
+				{
+					int sx = unknown_size;
 					int sy = GetInputSizeY(input);
 					if(sx != unknown_size)
 						SetOutputSize(output_name, sx, sy);
