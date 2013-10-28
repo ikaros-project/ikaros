@@ -35,6 +35,35 @@ var realtime = false;
 var reconnect_counter = 0;
 
 
+// COOKIES FOR PERSISTENT STATE
+
+function setCookie(name,value,days)
+{
+    var date = new Date();
+    date.setTime(date.getTime()+(days?days:1)*86400000);
+    var expires = "; expires="+date.toGMTString();
+	document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function getCookie(name)
+{
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0;i < ca.length;i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+	}
+	return null;
+}
+
+function eraseCookie(name)
+{
+	createCookie(name,"",-1);
+}
+
+
+
 // UTILITIES
 
 function ignore_data(obj)
@@ -45,83 +74,27 @@ function ignore_data(obj)
 
 function get(url, callback, timeout, time)
 {
-	function getURL_alt(url, callback)
-	{
-        function timoutCallback()
-        {
-            if(timeout) timeout();
-        }
-
-		function callCallback()
-		{
-			if (ajaxRequest.readyState == 4)
-			{
-				if(ajaxRequest.status == 200)
-                {
-                    clearTimeout(ajaxTimeout);
-                    if (ajaxCallback) ajaxCallback({content:ajaxRequest.responseText});
-                }
-				//else
-				//	alert("Returned status code " + ajaxRequest.status);
-			}
-		}
-
-		var ajaxRequest = null;
-		var ajaxCallback = callback;
-
-		ajaxRequest = new XMLHttpRequest();
-		ajaxRequest.onreadystatechange = callCallback;
-		ajaxRequest.open("GET", url, true);
-		ajaxRequest.send(null);
-        
-        if(timeout)
-            ajaxTimeout = setTimeout(function () { timoutCallback(); }, time);
-	}			
-
-	if(window.getURL)
-		getURL(url, callback);
-	else if(window.XMLHttpRequest)
-		getURL_alt(url, callback);
-	else
-		alert("Error: This web browser does not have getURL or XMLHttpRequest");
+    var ajaxRequest = null;
+    var ajaxTimeout = null;
+    
+    ajaxRequest = new XMLHttpRequest();
+    ajaxRequest.open("GET", url, true);
+    ajaxRequest.setRequestHeader("Cache-Control", "no-cache");
+    ajaxRequest.onload = function () { clearTimeout(ajaxTimeout); callback({content:ajaxRequest.responseText}); };
+    ajaxTimeout = setTimeout(function () { ajaxRequest.abort(); if(timeout) timeout(); }, 1000);
+    ajaxRequest.send();
 }
 
 
 
 function getXML(url, callback)
 {
-	function getURL_alt(url, callback)
-	{
-		function callCallback()
-		{
-			if (ajaxRequest.readyState == 4)
-			{   
-				if(ajaxRequest.status == 200)
-					if (ajaxCallback) ajaxCallback(ajaxRequest.responseXML);
-			}
-            else
-            {
-            }
-		}
-
-		var ajaxRequest = null;
-		var ajaxCallback = callback;
-
-		ajaxRequest = new XMLHttpRequest();
-		ajaxRequest.onreadystatechange = callCallback;
-		ajaxRequest.open("GET", url, true);
-		ajaxRequest.send(null);
-	}			
-
-	if(window.getURL)
-		getURL(url, callback);
-	else if(window.XMLHttpRequest)
-		getURL_alt(url, callback);
-	else
-		alert("Error: This web browser does not have getURL or XMLHttpRequest");
+    var ajaxRequest = null;
+    ajaxRequest = new XMLHttpRequest();
+    ajaxRequest.open("GET", url, true);
+    ajaxRequest.onload = function () { if(callback) callback(ajaxRequest.responseXML); };
+    ajaxRequest.send();
 }
-
-
 
 
 
@@ -149,13 +122,12 @@ function handle_reconnection()
 function poll_reconnect()
 {
 	clearTimeout(periodic_task);
-    return; // FIXME: problems problems
 
     reconnect_counter++;
     if(reconnect_counter % 2 == 0)
-        document.getElementById("iteration").innerText = "."; //"◐";
+        document.getElementById("iteration").innerText = "◐"; //"◐";
     else
-        document.getElementById("iteration").innerText = " "; //"◑";
+        document.getElementById("iteration").innerText = "◑"; //"◑";
 
     get("update", handle_reconnection, poll_reconnect, 500);
 }
@@ -278,12 +250,14 @@ function runstep()
         }
         catch(err)
         {
-            //alert("Error: "+err.message);
+            // Connection broken!!!
+            poll_reconnect();
         }
     }
 
     get("runstep", handle_data_object, poll_reconnect, 1000);
 }
+
 
 
 function do_run()
@@ -316,7 +290,8 @@ function update()
         }
         catch(err)
         {
-            //alert("Error: "+err.message);
+            // Connection broken!!!
+            poll_reconnect();
         }
 	}
 
@@ -493,7 +468,8 @@ function build_view_list_with_editor(view)
     a.setAttribute("onclick","change_view("+(view_list.length+1)+")");
     a.setAttribute("title","Editor");
     
-    change_view(1);
+    // TODO: Check that this is ok to remove
+    //change_view(1);
 }
 
 
@@ -534,7 +510,8 @@ function build_view_list(view)
     a.setAttribute("onclick","change_view("+(view_list.length)+")");
     a.setAttribute("title","Editor");
     
-    change_view(1);
+    // TODO: CHeck this is ok
+    //change_view(1);
 }
 
 
@@ -586,6 +563,8 @@ function change_view_with_editor(index)
 function change_view(index)
 {
     current_view = index;
+    setCookie('current_view', current_view);
+    alert("Set View: "+current_view);
 
     var vc = document.getElementById("viewdots");
     var alist = getChildrenByTagName(vc, "A");
@@ -617,6 +596,15 @@ function change_view(index)
                 vn.innerHTML = "View "+index;
         }
     }
+}
+
+
+
+function restore_view()
+{
+    return;
+    var v = getCookie('current_view');
+    change_view(v?parseInt(v):0);
 }
 
 
@@ -657,7 +645,8 @@ function update_group_list_and_views()
             grouplist = document.getElementById("grouplist");
             build_group_list([xml.documentElement], grouplist, "", true);
             build_view_list(getChildrenByTagName(xml.documentElement, "view"));
-            change_view(0);
+            // change_view(0);
+            restore_view();
         }
         catch(err)
         {
@@ -673,6 +662,24 @@ function update_group_list_and_views()
 function toggle_inspector()
 {
 	if(document.getElementById('pane').style.width == "0px")
+    {
+        document.getElementById('pane').style.width='300px';
+        document.getElementById('split').src="/Icons/single.png";
+        setCookie('inspector','open');
+	}
+    else
+	{
+        document.getElementById('pane').style.width='0px';
+        document.getElementById('split').src="/Icons/split.png";
+        setCookie('inspector','closed');
+    }
+}
+
+
+
+function restore_inspector()
+{
+    if(getCookie('inspector') == 'open')
     {
         document.getElementById('pane').style.width='300px';
         document.getElementById('split').src="/Icons/single.png";
@@ -730,7 +737,7 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
         for(i in p)
             e = getGroupWithName(e, p[i]);   
         build_view_list(getChildrenByTagName(e, "view"));
-        change_view(0);
+        change_view(0); // TODO: HERE!!!
     }
 
 	if (e.stopPropagation) e.stopPropagation();
@@ -744,6 +751,12 @@ var grouplist = document.getElementById("grouplist");
 grouplist.addEventListener('click', toggle, false);
 
 update_group_list_and_views();
+
+// Restor state after reload
+
+//restore_inspector();
+//restore_view();
+
 update();
 
-
+do_run();
