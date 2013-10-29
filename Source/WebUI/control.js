@@ -392,6 +392,7 @@ function build_group_list(group, list, p, top, selected_element)
         {
             bar.setAttribute("class","group-bar-selected");
             span.setAttribute("class","group-selected");
+            tri_span.setAttribute("class","group-closed");
         }
         else if(top)
         {
@@ -416,7 +417,7 @@ function build_group_list(group, list, p, top, selected_element)
 
         if(subgroups.length>0)
         {
-            if(tri_span.class_name=="group-closed")
+            if(tri_span.getAttribute("class")=="group-closed")
             {
                 triangle = document.createTextNode("▷ ");
                 tri_span.appendChild(triangle);
@@ -426,8 +427,14 @@ function build_group_list(group, list, p, top, selected_element)
                 triangle = document.createTextNode("▽ ");
                 tri_span.appendChild(triangle);
             }
+            
             var ul = document.createElement("ul");
-            ul.setAttribute("class", "hidden");
+            
+            if(tri_span.getAttribute("class") == "group-closed")
+                ul.setAttribute("class", "hidden");
+            else
+                ul.setAttribute("class", "visible");
+            
             if(selected_element) selected_element.shift();
             build_group_list(subgroups, ul, ip, null, selected_element);
             li.appendChild(ul);
@@ -658,8 +665,9 @@ function update_group_list_and_views()
             if(title) title.innerText = name;
             
             grouplist = document.getElementById("grouplist");
-            element_list = getCookie('root');
-            build_group_list([xml.documentElement], grouplist, "", true, (element_list?element_list.split('/'):null));
+            current_group_path = getCookie('root');
+            get("/setroot"+current_group_path, ignore_data);
+            build_group_list([xml.documentElement], grouplist, "", true, (current_group_path?current_group_path.split('/'):null));
             build_view_list(getChildrenByTagName(xml.documentElement, "view"));
             // change_view(0);
             restore_view();
@@ -786,4 +794,5 @@ restore_view();
 
 update();
 
+// AUTOSTART
 do_run();
