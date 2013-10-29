@@ -147,8 +147,6 @@ function do_stop()
 	running = false;
     realtime = false;
     
-    // TODO: wait for all images to load!!!
-
 	get("stop", handle_data_object);
 }
 
@@ -290,7 +288,6 @@ function update()
         }
         catch(err)
         {
-            // Connection broken!!!
             poll_reconnect();
         }
 	}
@@ -355,14 +352,14 @@ function getGroupWithName(element, name)
 
 
 
-function build_group_list(group, list, p, top)
+function build_group_list(group, list, p, top, selected_element)
 {
     if(!group)
         return;
-    
+
     if(!list)
         return;
-        
+
     for(i in group)
     {
         var name = group[i].getAttribute("title");
@@ -370,27 +367,39 @@ function build_group_list(group, list, p, top)
             name = group[i].getAttribute("name");
         if(!name)
             name = "Untitled";
-            
+
+
         var ip= (top ? "" : p + "/" + name);
-        
+
         var subgroups = getChildrenByTagName(group[i], "group");
-        
+
         var li = document.createElement("li");
         var bar  = document.createElement("span"); 
         var tri_span = document.createElement("span");
         var span = document.createElement("span");
-        
+
         var triangle;
         tri_span.setAttribute("class","group-closed");
         tri_span.path = (top ? "" : ip);
-        
+
         bar.appendChild(tri_span);
 
         var txt = document.createTextNode(name);
         span.appendChild(txt);
         span.path = (top ? "" : ip);
         
-        if(top)
+        if(top && !selected_element)
+        {
+            bar.setAttribute("class","group-bar-selected");
+            span.setAttribute("class","group-selected");
+        }
+        else if(top)
+        {
+            bar.setAttribute("class","group-bar");
+            span.setAttribute("class","group-unselected");
+            tri_span.setAttribute("class","group-open");
+        }
+        else if(selected_element && name == selected_element[0])
         {
             bar.setAttribute("class","group-bar-selected");
             span.setAttribute("class","group-selected");
@@ -400,19 +409,27 @@ function build_group_list(group, list, p, top)
             bar.setAttribute("class","group-bar");
             span.setAttribute("class","group-unselected");
         }
-            
+
         bar.appendChild(span);
-        
+
         li.appendChild(bar);
-        
+
         if(subgroups.length>0)
         {
-            triangle = document.createTextNode("▷ ");
-            tri_span.appendChild(triangle);
-
+            if(tri_span.class_name=="group-closed")
+            {
+                triangle = document.createTextNode("▷ ");
+                tri_span.appendChild(triangle);
+            }
+            else
+            {
+                triangle = document.createTextNode("▽ ");
+                tri_span.appendChild(triangle);
+            }
             var ul = document.createElement("ul");
             ul.setAttribute("class", "hidden");
-            build_group_list(subgroups, ul, ip);
+            if(selected_element) selected_element.shift();
+            build_group_list(subgroups, ul, ip, null, selected_element);
             li.appendChild(ul);
         }
 
@@ -510,7 +527,7 @@ function build_view_list(view)
     a.setAttribute("onclick","change_view("+(view_list.length)+")");
     a.setAttribute("title","Editor");
     
-    // TODO: CHeck this is ok
+    // TODO: Check this is ok
     //change_view(1);
 }
 
@@ -564,7 +581,6 @@ function change_view(index)
 {
     current_view = index;
     setCookie('current_view', current_view);
-    alert("Set View: "+current_view);
 
     var vc = document.getElementById("viewdots");
     var alist = getChildrenByTagName(vc, "A");
@@ -602,7 +618,6 @@ function change_view(index)
 
 function restore_view()
 {
-    return;
     var v = getCookie('current_view');
     change_view(v?parseInt(v):0);
 }
@@ -643,7 +658,8 @@ function update_group_list_and_views()
             if(title) title.innerText = name;
             
             grouplist = document.getElementById("grouplist");
-            build_group_list([xml.documentElement], grouplist, "", true);
+            element_list = getCookie('root');
+            build_group_list([xml.documentElement], grouplist, "", true, (element_list?element_list.split('/'):null));
             build_view_list(getChildrenByTagName(xml.documentElement, "view"));
             // change_view(0);
             restore_view();
@@ -731,6 +747,9 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
 
         current_group_path = e.target.path;
         get("/setroot"+current_group_path, ignore_data);
+        
+        setCookie('root', current_group_path);
+        
         var p = e.target.path.split('/');
         p.shift();
         var e = ikc_doc_element;
@@ -745,6 +764,13 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
 
 
 
+function restore_root()
+{
+    alert("Root: "+getCookie('root'));
+}
+
+
+
 // Call after load
 
 var grouplist = document.getElementById("grouplist");
@@ -754,8 +780,9 @@ update_group_list_and_views();
 
 // Restor state after reload
 
-//restore_inspector();
-//restore_view();
+restore_inspector();
+restore_view();
+//restore_root();
 
 update();
 
