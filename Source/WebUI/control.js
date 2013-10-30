@@ -863,6 +863,10 @@ function restore_root()
 
 // Call after load
 
+
+//setCookie('root', "/");
+//setCookie('current_view', 0);
+
 var grouplist = document.getElementById("grouplist");
 grouplist.addEventListener('click', toggle, false);
 
