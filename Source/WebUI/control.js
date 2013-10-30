@@ -352,7 +352,7 @@ function getGroupWithName(element, name)
 
 
 
-function build_group_list(group, list, p, top, selected_element)
+function build_group_list_OLD(group, list, p, top, selected_element)
 {
     if(!group)
         return;
@@ -441,6 +441,91 @@ function build_group_list(group, list, p, top, selected_element)
         }
 
         list.appendChild(li);
+    }
+}
+
+
+
+function build_group_list(group, list, p, top, selected_element, depth)
+{
+    window.console.log(Array(depth).join("   ")+selected_element.join("#"));
+    
+    if(!list)
+        return;
+
+    if(!group)
+        return;
+
+    var current = selected_element.shift();
+    var selected = (selected_element.length == 0 ? current : "");
+    window.console.log(Array(depth).join("   current = ")+current);
+    
+    for(i in group)
+    {
+        var name = group[i].getAttribute("title");
+        if(!name)
+            name = group[i].getAttribute("name");
+        if(!name)
+            name = "Untitled";
+
+        window.console.log(Array(depth).join("   ")+"name = \""+name+"\"");
+    
+        var ip = (top ? "" : p + "/" + name);
+        var subgroups = getChildrenByTagName(group[i], "group");
+
+        // Create list elements
+        
+        var li = document.createElement("li");
+        var bar  = document.createElement("span"); 
+        var tri_span = document.createElement("span");
+        var span = document.createElement("span");
+        var txt = document.createTextNode(name);
+
+        // Connect top-down
+        
+        list.appendChild(li);
+        li.appendChild(bar);
+        bar.appendChild(tri_span);
+        bar.appendChild(span);
+        span.appendChild(txt);
+
+        // Set attributes
+
+        if(name=="R1")
+        {
+            window.console.log("*");
+        }
+        
+        var is_selected = (top && selected_element.length==0) || (name == selected);
+        bar.setAttribute("class", (is_selected ? "group-bar-selected" : "group-bar"));
+        span.setAttribute("class", (is_selected ? "group-selected" : "group-unselected"));
+        tri_span.setAttribute("class", ((top && selected_element.length>0) || (name == current && !is_selected) ? "group-open" : "group-closed"));
+        
+        tri_span.path = (top ? "" : ip);
+        span.path = (top ? "" : ip);
+        
+        // Create ul for subgroups
+
+        if(subgroups.length > 0)
+        {
+            var ul = document.createElement("ul");
+            li.appendChild(ul);
+
+            if(tri_span.getAttribute("class")=="group-closed")
+            {
+                var triangle = document.createTextNode("▷ ");
+                tri_span.appendChild(triangle);
+                ul.setAttribute("class", "hidden");
+            }
+            else
+            {
+                var triangle = document.createTextNode("▽ ");
+                tri_span.appendChild(triangle);
+                ul.setAttribute("class", "visible");
+            }
+            
+            build_group_list(subgroups, ul, ip, null, selected_element, depth+1);
+        }
     }
 }
 
@@ -614,7 +699,13 @@ function change_view(index)
         {
             var vw = view_list[current_view];
             if(vw)
-                vn.innerHTML = vw.getAttribute("name");
+            {
+                var n = vw.getAttribute("name");
+                if(n)
+                    vn.innerHTML = n;
+                else
+                    vn.innerHTML = "View "+index
+            }
             else
                 vn.innerHTML = "View "+index;
         }
@@ -667,10 +758,19 @@ function update_group_list_and_views()
             grouplist = document.getElementById("grouplist");
             current_group_path = getCookie('root');
             get("/setroot"+current_group_path, ignore_data);
-            build_group_list([xml.documentElement], grouplist, "", true, (current_group_path?current_group_path.split('/'):null));
-            build_view_list(getChildrenByTagName(xml.documentElement, "view"));
-            // change_view(0);
-            restore_view();
+            window.console.log("current_group_path = "+current_group_path);
+            build_group_list([xml.documentElement], grouplist, "", true, (current_group_path?current_group_path.split('/'):[]), 0);
+            
+// OLD      build_view_list(getChildrenByTagName(xml.documentElement, "view"));
+            
+            var p = current_group_path.split('/');
+            p.shift();
+            var e = ikc_doc_element;
+            for(i in p)
+                e = getGroupWithName(e, p[i]);
+            build_view_list(getChildrenByTagName(e, "view"));
+            
+             restore_view();
         }
         catch(err)
         {
@@ -717,9 +817,8 @@ function restore_inspector()
 
 
 
-function toggle(e) // TODO: do something smarter than selecting first view on toggle?
+function toggle(e) // TODO: do something smarter than selecting first view on toggle? Remember view index in tree.
 {
-    
 	if(e.target.getAttribute("class") == "group-open")
     {
 		e.target.setAttribute('class', 'group-closed');
@@ -742,10 +841,13 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
     
     else if(e.target.getAttribute("class") == "group-unselected")
     {
+        window.console.log("Selecting one: "+e.target.path);
+
         var s = document.getElementsByClassName("group-selected");
-        for(var i=0; i<s.length; i++)
+        while(s.length > 0)
         {
-            var si = s.item(i);
+            var si = s[0];
+            window.console.log("  Unselecting one: "+si.path);
             si.setAttribute("class", "group-unselected");
             si.parentElement.setAttribute("class", "group-bar");
         }
@@ -757,7 +859,8 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
         get("/setroot"+current_group_path, ignore_data);
         
         setCookie('root', current_group_path);
-        
+        window.console.log("Setting path: "+current_group_path);
+
         var p = e.target.path.split('/');
         p.shift();
         var e = ikc_doc_element;
