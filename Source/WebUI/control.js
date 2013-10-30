@@ -368,7 +368,6 @@ function build_group_list_OLD(group, list, p, top, selected_element)
         if(!name)
             name = "Untitled";
 
-
         var ip= (top ? "" : p + "/" + name);
 
         var subgroups = getChildrenByTagName(group[i], "group");
@@ -448,8 +447,6 @@ function build_group_list_OLD(group, list, p, top, selected_element)
 
 function build_group_list(group, list, p, top, selected_element, depth)
 {
-//    window.console.log(Array(depth).join("   ")+selected_element.join("#"));
-    
     if(!list)
         return;
 
@@ -458,7 +455,6 @@ function build_group_list(group, list, p, top, selected_element, depth)
 
     var current = selected_element.shift();
     var selected = (selected_element.length == 0 ? current : "");
-//    window.console.log(Array(depth).join("   current = ")+current);
     
     for(i in group)
     {
@@ -468,8 +464,6 @@ function build_group_list(group, list, p, top, selected_element, depth)
         if(!name)
             name = "Untitled";
 
-//        window.console.log(Array(depth).join("   ")+"name = \""+name+"\"");
-    
         var ip = (top ? "" : p + "/" + name);
         var subgroups = getChildrenByTagName(group[i], "group");
 
@@ -571,10 +565,7 @@ function build_view_list_with_editor(view)
         
     a.setAttribute("onclick","change_view("+(view_list.length+1)+")");
     a.setAttribute("title","Editor");
-    
-    // TODO: Check that this is ok to remove
-    //change_view(1);
-}
+ }
 
 
 function build_view_list(view)
@@ -753,10 +744,7 @@ function update_group_list_and_views()
             grouplist = document.getElementById("grouplist");
             current_group_path = getCookie('root');
             get("/setroot"+current_group_path, ignore_data);
-//            window.console.log("current_group_path = "+current_group_path);
             build_group_list([xml.documentElement], grouplist, "", true, (current_group_path?current_group_path.split('/'):[]), 0);
-            
-// OLD      build_view_list(getChildrenByTagName(xml.documentElement, "view"));
             
             var p = current_group_path.split('/');
             p.shift();
@@ -836,13 +824,10 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
     
     else if(e.target.getAttribute("class") == "group-unselected")
     {
-//        window.console.log("Selecting one: "+e.target.path);
-
         var s = document.getElementsByClassName("group-selected");
         while(s.length > 0)
         {
             var si = s[0];
-//            window.console.log("  Unselecting one: "+si.path);
             si.setAttribute("class", "group-unselected");
             si.parentElement.setAttribute("class", "group-bar");
         }
@@ -854,7 +839,6 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
         get("/setroot"+current_group_path, ignore_data);
         
         setCookie('root', current_group_path);
-//        window.console.log("Setting path: "+current_group_path);
 
         var p = e.target.path.split('/');
         p.shift();
