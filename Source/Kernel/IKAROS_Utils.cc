@@ -721,6 +721,7 @@ Options::Print()
 
 Dictionary::KeyValue::KeyValue(const char * k, const char * v, KeyValue * first)
 {
+    type = 0;
     key = create_string(k);
     value = create_string(v);
     next = first;
@@ -729,6 +730,36 @@ Dictionary::KeyValue::KeyValue(const char * k, const char * v, KeyValue * first)
     if(next != NULL)
         next->prev = this;
 }
+
+
+
+Dictionary::KeyValue::KeyValue(const char * k, const int v, KeyValue * first)
+{
+    type = 1;
+    key = create_string(k);
+    int_value = v;
+    next = first;
+    prev = NULL;
+	
+    if(next != NULL)
+        next->prev = this;
+}
+
+
+
+Dictionary::KeyValue::KeyValue(const char * k, const float v, KeyValue * first)
+{
+    type = 2;
+    key = create_string(k);
+    float_value = v;
+    next = first;
+    prev = NULL;
+	
+    if(next != NULL)
+        next->prev = this;
+}
+
+
 
 Dictionary::KeyValue::~KeyValue()
 {
@@ -767,7 +798,40 @@ Dictionary::Set(const char * k, const char * v)
         if(equal_strings(k, kv->key))
         {
             destroy_string(kv->value);
+            kv->type = 0;
             kv->value = create_string(v);
+            return;
+        }
+	
+    first = new KeyValue(k, v, first);
+}
+
+void
+Dictionary::Set(const char * k, const int v)
+{
+    for(KeyValue * kv = first; kv != NULL; kv = kv->next)
+        if(equal_strings(k, kv->key))
+        {
+            destroy_string(kv->value);
+            kv->type = 1;
+            kv->value = create_formatted_string("%d", v);
+            kv->int_value = v;
+            return;
+        }
+	
+    first = new KeyValue(k, v, first);
+}
+
+void
+Dictionary::Set(const char * k, const float v)
+{
+    for(KeyValue * kv = first; kv != NULL; kv = kv->next)
+        if(equal_strings(k, kv->key))
+        {
+            destroy_string(kv->value);
+            kv->type = 2;
+            kv->value = create_formatted_string("%.4f", v);
+            kv->float_value = v;
             return;
         }
 	
@@ -783,17 +847,61 @@ Dictionary::Get(const char * k)
     return NULL;
 }
 
+const int
+Dictionary::GetInt(const char * k)
+{
+    for(KeyValue * kv = first; kv != NULL; kv = kv->next)
+        if(equal_strings(k, kv->key))
+            return kv->int_value;
+    return NULL;
+}
+
+const float
+Dictionary::GetFloat(const char * k)
+{
+    for(KeyValue * kv = first; kv != NULL; kv = kv->next)
+        if(equal_strings(k, kv->key))
+            return kv->float_value;
+    return NULL;
+}
+
 void
 Dictionary::Print()
 {
     for(KeyValue * kv = first; kv != NULL; kv = kv->next)
-		printf("\"%s\" : \"%s\"\n", kv->key, kv->value);
+        switch(kv->type)
+        {
+            case 0:
+                printf("\"%s\" : \"%s\"\n", kv->key, kv->value);
+                break;
+
+            case 1:
+                printf("\"%s\" : \"%d\"\n", kv->key, kv->int_value);
+                break;
+
+            case 2:
+                printf("\"%s\" : \"%.4f\"\n", kv->key, kv->float_value);
+                break;
+
+        }
 }
 
 const char *
 Dictionary::Get(Dictionary::Iterator i)
 {
 	return i.kv->value;
+}
+
+const int
+Dictionary::GetInt(Dictionary::Iterator i)
+{
+	return i.kv->int_value;
+}
+
+const float
+Dictionary::GetFloat(Dictionary::Iterator i)
+{
+	return i.kv->float_value;
 }
 
 const char *

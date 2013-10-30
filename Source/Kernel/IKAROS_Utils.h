@@ -157,9 +157,14 @@ class Dictionary
 			KeyValue * prev;
 			KeyValue * next;
 			char *  key;
+            int     type;
 			char *  value;
+            int     int_value;
+            float   float_value;
 			
 			KeyValue(const char * k, const char * v, KeyValue * first);
+			KeyValue(const char * k, const int v, KeyValue * first);
+			KeyValue(const char * k, const float v, KeyValue * first);
 			~KeyValue();
 		};
 		
@@ -179,9 +184,16 @@ class Dictionary
 		
 		void			Clear();
 		void			Set(const char * k, const char * v);
+		void			Set(const char * k, const int v);
+		void			Set(const char * k, const float v);
+        
 		const char *		Get(const char * k);
+		const int           GetInt(const char * k);
+		const float         GetFloat(const char * k);
 		
 		const char *		Get(Iterator i);
+		const int           GetInt(Iterator i);
+		const float         GetFloat(Iterator i);
 		const char *		GetKey(Iterator i);
 		
 		void			Print();
