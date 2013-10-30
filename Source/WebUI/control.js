@@ -35,6 +35,35 @@ var realtime = false;
 var reconnect_counter = 0;
 
 
+// COOKIES FOR PERSISTENT STATE
+
+function setCookie(name,value,days)
+{
+    var date = new Date();
+    date.setTime(date.getTime()+(days?days:1)*86400000);
+    var expires = "; expires="+date.toGMTString();
+	document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function getCookie(name)
+{
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0;i < ca.length;i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+	}
+	return null;
+}
+
+function eraseCookie(name)
+{
+	createCookie(name,"",-1);
+}
+
+
+
 // UTILITIES
 
 function ignore_data(obj)
@@ -45,83 +74,27 @@ function ignore_data(obj)
 
 function get(url, callback, timeout, time)
 {
-	function getURL_alt(url, callback)
-	{
-        function timoutCallback()
-        {
-            if(timeout) timeout();
-        }
-
-		function callCallback()
-		{
-			if (ajaxRequest.readyState == 4)
-			{
-				if(ajaxRequest.status == 200)
-                {
-                    clearTimeout(ajaxTimeout);
-                    if (ajaxCallback) ajaxCallback({content:ajaxRequest.responseText});
-                }
-				//else
-				//	alert("Returned status code " + ajaxRequest.status);
-			}
-		}
-
-		var ajaxRequest = null;
-		var ajaxCallback = callback;
-
-		ajaxRequest = new XMLHttpRequest();
-		ajaxRequest.onreadystatechange = callCallback;
-		ajaxRequest.open("GET", url, true);
-		ajaxRequest.send(null);
-        
-        if(timeout)
-            ajaxTimeout = setTimeout(function () { timoutCallback(); }, time);
-	}			
-
-	if(window.getURL)
-		getURL(url, callback);
-	else if(window.XMLHttpRequest)
-		getURL_alt(url, callback);
-	else
-		alert("Error: This web browser does not have getURL or XMLHttpRequest");
+    var ajaxRequest = null;
+    var ajaxTimeout = null;
+    
+    ajaxRequest = new XMLHttpRequest();
+    ajaxRequest.open("GET", url, true);
+    ajaxRequest.setRequestHeader("Cache-Control", "no-cache");
+    ajaxRequest.onload = function () { clearTimeout(ajaxTimeout); callback({content:ajaxRequest.responseText}); };
+    ajaxTimeout = setTimeout(function () { ajaxRequest.abort(); if(timeout) timeout(); }, 1000);
+    ajaxRequest.send();
 }
 
 
 
 function getXML(url, callback)
 {
-	function getURL_alt(url, callback)
-	{
-		function callCallback()
-		{
-			if (ajaxRequest.readyState == 4)
-			{   
-				if(ajaxRequest.status == 200)
-					if (ajaxCallback) ajaxCallback(ajaxRequest.responseXML);
-			}
-            else
-            {
-            }
-		}
-
-		var ajaxRequest = null;
-		var ajaxCallback = callback;
-
-		ajaxRequest = new XMLHttpRequest();
-		ajaxRequest.onreadystatechange = callCallback;
-		ajaxRequest.open("GET", url, true);
-		ajaxRequest.send(null);
-	}			
-
-	if(window.getURL)
-		getURL(url, callback);
-	else if(window.XMLHttpRequest)
-		getURL_alt(url, callback);
-	else
-		alert("Error: This web browser does not have getURL or XMLHttpRequest");
+    var ajaxRequest = null;
+    ajaxRequest = new XMLHttpRequest();
+    ajaxRequest.open("GET", url, true);
+    ajaxRequest.onload = function () { if(callback) callback(ajaxRequest.responseXML); };
+    ajaxRequest.send();
 }
-
-
 
 
 
@@ -149,13 +122,12 @@ function handle_reconnection()
 function poll_reconnect()
 {
 	clearTimeout(periodic_task);
-    return; // FIXME: problems problems
 
     reconnect_counter++;
     if(reconnect_counter % 2 == 0)
-        document.getElementById("iteration").innerText = "."; //"◐";
+        document.getElementById("iteration").innerText = "◐"; //"◐";
     else
-        document.getElementById("iteration").innerText = " "; //"◑";
+        document.getElementById("iteration").innerText = "◑"; //"◑";
 
     get("update", handle_reconnection, poll_reconnect, 500);
 }
@@ -175,8 +147,6 @@ function do_stop()
 	running = false;
     realtime = false;
     
-    // TODO: wait for all images to load!!!
-
 	get("stop", handle_data_object);
 }
 
@@ -278,12 +248,14 @@ function runstep()
         }
         catch(err)
         {
-            //alert("Error: "+err.message);
+            // Connection broken!!!
+            poll_reconnect();
         }
     }
 
     get("runstep", handle_data_object, poll_reconnect, 1000);
 }
+
 
 
 function do_run()
@@ -316,7 +288,7 @@ function update()
         }
         catch(err)
         {
-            //alert("Error: "+err.message);
+            poll_reconnect();
         }
 	}
 
@@ -380,14 +352,14 @@ function getGroupWithName(element, name)
 
 
 
-function build_group_list(group, list, p, top)
+function build_group_list_OLD(group, list, p, top, selected_element)
 {
     if(!group)
         return;
-    
+
     if(!list)
         return;
-        
+
     for(i in group)
     {
         var name = group[i].getAttribute("title");
@@ -395,27 +367,40 @@ function build_group_list(group, list, p, top)
             name = group[i].getAttribute("name");
         if(!name)
             name = "Untitled";
-            
+
+
         var ip= (top ? "" : p + "/" + name);
-        
+
         var subgroups = getChildrenByTagName(group[i], "group");
-        
+
         var li = document.createElement("li");
         var bar  = document.createElement("span"); 
         var tri_span = document.createElement("span");
         var span = document.createElement("span");
-        
+
         var triangle;
         tri_span.setAttribute("class","group-closed");
         tri_span.path = (top ? "" : ip);
-        
+
         bar.appendChild(tri_span);
 
         var txt = document.createTextNode(name);
         span.appendChild(txt);
         span.path = (top ? "" : ip);
         
-        if(top)
+        if(top && !selected_element)
+        {
+            bar.setAttribute("class","group-bar-selected");
+            span.setAttribute("class","group-selected");
+            tri_span.setAttribute("class","group-closed");
+        }
+        else if(top)
+        {
+            bar.setAttribute("class","group-bar");
+            span.setAttribute("class","group-unselected");
+            tri_span.setAttribute("class","group-open");
+        }
+        else if(selected_element && name == selected_element[0])
         {
             bar.setAttribute("class","group-bar-selected");
             span.setAttribute("class","group-selected");
@@ -425,23 +410,117 @@ function build_group_list(group, list, p, top)
             bar.setAttribute("class","group-bar");
             span.setAttribute("class","group-unselected");
         }
-            
+
         bar.appendChild(span);
-        
+
         li.appendChild(bar);
-        
+
         if(subgroups.length>0)
         {
-            triangle = document.createTextNode("▷ ");
-            tri_span.appendChild(triangle);
-
+            if(tri_span.getAttribute("class")=="group-closed")
+            {
+                triangle = document.createTextNode("▷ ");
+                tri_span.appendChild(triangle);
+            }
+            else
+            {
+                triangle = document.createTextNode("▽ ");
+                tri_span.appendChild(triangle);
+            }
+            
             var ul = document.createElement("ul");
-            ul.setAttribute("class", "hidden");
-            build_group_list(subgroups, ul, ip);
+            
+            if(tri_span.getAttribute("class") == "group-closed")
+                ul.setAttribute("class", "hidden");
+            else
+                ul.setAttribute("class", "visible");
+            
+            if(selected_element) selected_element.shift();
+            build_group_list(subgroups, ul, ip, null, selected_element);
             li.appendChild(ul);
         }
 
         list.appendChild(li);
+    }
+}
+
+
+
+function build_group_list(group, list, p, top, selected_element, depth)
+{
+//    window.console.log(Array(depth).join("   ")+selected_element.join("#"));
+    
+    if(!list)
+        return;
+
+    if(!group)
+        return;
+
+    var current = selected_element.shift();
+    var selected = (selected_element.length == 0 ? current : "");
+//    window.console.log(Array(depth).join("   current = ")+current);
+    
+    for(i in group)
+    {
+        var name = group[i].getAttribute("title");
+        if(!name)
+            name = group[i].getAttribute("name");
+        if(!name)
+            name = "Untitled";
+
+//        window.console.log(Array(depth).join("   ")+"name = \""+name+"\"");
+    
+        var ip = (top ? "" : p + "/" + name);
+        var subgroups = getChildrenByTagName(group[i], "group");
+
+        // Create list elements
+        
+        var li = document.createElement("li");
+        var bar  = document.createElement("span"); 
+        var tri_span = document.createElement("span");
+        var span = document.createElement("span");
+        var txt = document.createTextNode(name);
+
+        // Connect top-down
+        
+        list.appendChild(li);
+        li.appendChild(bar);
+        bar.appendChild(tri_span);
+        bar.appendChild(span);
+        span.appendChild(txt);
+
+        // Set attributes
+
+        var is_selected = (top && selected_element.length==0) || (name == selected);
+        bar.setAttribute("class", (is_selected ? "group-bar-selected" : "group-bar"));
+        span.setAttribute("class", (is_selected ? "group-selected" : "group-unselected"));
+        tri_span.setAttribute("class", ((top && selected_element.length>0) || (name == current && !is_selected) ? "group-open" : "group-closed"));
+        
+        tri_span.path = (top ? "" : ip);
+        span.path = (top ? "" : ip);
+        
+        // Create ul for subgroups
+
+        if(subgroups.length > 0)
+        {
+            var ul = document.createElement("ul");
+            li.appendChild(ul);
+
+            if(tri_span.getAttribute("class")=="group-closed")
+            {
+                var triangle = document.createTextNode("▷ ");
+                tri_span.appendChild(triangle);
+                ul.setAttribute("class", "hidden");
+            }
+            else
+            {
+                var triangle = document.createTextNode("▽ ");
+                tri_span.appendChild(triangle);
+                ul.setAttribute("class", "visible");
+            }
+            
+            build_group_list(subgroups, ul, ip, null, selected_element, depth+1);
+        }
     }
 }
 
@@ -493,7 +572,8 @@ function build_view_list_with_editor(view)
     a.setAttribute("onclick","change_view("+(view_list.length+1)+")");
     a.setAttribute("title","Editor");
     
-    change_view(1);
+    // TODO: Check that this is ok to remove
+    //change_view(1);
 }
 
 
@@ -534,7 +614,8 @@ function build_view_list(view)
     a.setAttribute("onclick","change_view("+(view_list.length)+")");
     a.setAttribute("title","Editor");
     
-    change_view(1);
+    // TODO: Check this is ok
+    //change_view(1);
 }
 
 
@@ -586,6 +667,7 @@ function change_view_with_editor(index)
 function change_view(index)
 {
     current_view = index;
+    setCookie('current_view', current_view);
 
     var vc = document.getElementById("viewdots");
     var alist = getChildrenByTagName(vc, "A");
@@ -612,11 +694,25 @@ function change_view(index)
         {
             var vw = view_list[current_view];
             if(vw)
-                vn.innerHTML = vw.getAttribute("name");
+            {
+                var n = vw.getAttribute("name");
+                if(n)
+                    vn.innerHTML = n;
+                else
+                    vn.innerHTML = "View "+index
+            }
             else
                 vn.innerHTML = "View "+index;
         }
     }
+}
+
+
+
+function restore_view()
+{
+    var v = getCookie('current_view');
+    change_view(v?parseInt(v):0);
 }
 
 
@@ -655,9 +751,21 @@ function update_group_list_and_views()
             if(title) title.innerText = name;
             
             grouplist = document.getElementById("grouplist");
-            build_group_list([xml.documentElement], grouplist, "", true);
-            build_view_list(getChildrenByTagName(xml.documentElement, "view"));
-            change_view(0);
+            current_group_path = getCookie('root');
+            get("/setroot"+current_group_path, ignore_data);
+//            window.console.log("current_group_path = "+current_group_path);
+            build_group_list([xml.documentElement], grouplist, "", true, (current_group_path?current_group_path.split('/'):[]), 0);
+            
+// OLD      build_view_list(getChildrenByTagName(xml.documentElement, "view"));
+            
+            var p = current_group_path.split('/');
+            p.shift();
+            var e = ikc_doc_element;
+            for(i in p)
+                e = getGroupWithName(e, p[i]);
+            build_view_list(getChildrenByTagName(e, "view"));
+            
+             restore_view();
         }
         catch(err)
         {
@@ -676,6 +784,24 @@ function toggle_inspector()
     {
         document.getElementById('pane').style.width='300px';
         document.getElementById('split').src="/Icons/single.png";
+        setCookie('inspector','open');
+	}
+    else
+	{
+        document.getElementById('pane').style.width='0px';
+        document.getElementById('split').src="/Icons/split.png";
+        setCookie('inspector','closed');
+    }
+}
+
+
+
+function restore_inspector()
+{
+    if(getCookie('inspector') == 'open')
+    {
+        document.getElementById('pane').style.width='300px';
+        document.getElementById('split').src="/Icons/single.png";
 	}
     else
 	{
@@ -686,9 +812,8 @@ function toggle_inspector()
 
 
 
-function toggle(e) // TODO: do something smarter than selecting first view on toggle?
+function toggle(e) // TODO: do something smarter than selecting first view on toggle? Remember view index in tree.
 {
-    
 	if(e.target.getAttribute("class") == "group-open")
     {
 		e.target.setAttribute('class', 'group-closed');
@@ -711,10 +836,13 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
     
     else if(e.target.getAttribute("class") == "group-unselected")
     {
+//        window.console.log("Selecting one: "+e.target.path);
+
         var s = document.getElementsByClassName("group-selected");
-        for(var i=0; i<s.length; i++)
+        while(s.length > 0)
         {
-            var si = s.item(i);
+            var si = s[0];
+//            window.console.log("  Unselecting one: "+si.path);
             si.setAttribute("class", "group-unselected");
             si.parentElement.setAttribute("class", "group-bar");
         }
@@ -724,16 +852,27 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
 
         current_group_path = e.target.path;
         get("/setroot"+current_group_path, ignore_data);
+        
+        setCookie('root', current_group_path);
+//        window.console.log("Setting path: "+current_group_path);
+
         var p = e.target.path.split('/');
         p.shift();
         var e = ikc_doc_element;
         for(i in p)
             e = getGroupWithName(e, p[i]);   
         build_view_list(getChildrenByTagName(e, "view"));
-        change_view(0);
+        change_view(0); // TODO: HERE!!!
     }
 
 	if (e.stopPropagation) e.stopPropagation();
+}
+
+
+
+function restore_root()
+{
+    alert("Root: "+getCookie('root'));
 }
 
 
@@ -744,6 +883,14 @@ var grouplist = document.getElementById("grouplist");
 grouplist.addEventListener('click', toggle, false);
 
 update_group_list_and_views();
+
+// Restor state after reload
+
+restore_inspector();
+restore_view();
+//restore_root();
+
 update();
 
-
+// AUTOSTART
+// do_run();
