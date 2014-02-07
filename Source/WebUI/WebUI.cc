@@ -1343,7 +1343,7 @@ WebUI::HandleHTTPRequest()
                 destroy_string(uri); // TODO: should use single exit point
                 return;
             }
-            
+
             for(Binding * b = module->bindings; b != NULL; b = b->next)
                 if(equal_strings(name, b->name))
                 {

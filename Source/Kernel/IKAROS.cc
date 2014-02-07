@@ -727,35 +727,29 @@ Module::GetIntArray(const char * n, int & size)
 float **
 Module::GetMatrix(const char * n, int sizex, int sizey)
 {
-//    bool too_few = false;
     float ** m = create_matrix(sizex, sizey);
-//    float * d = m[0];
     const char * v = GetValue(n);
     if (v == NULL)
         return m;
     
-/*
-    for (int i=0; i<sizex*sizey;i++)
-    {
-        for (; isspace(*v) && *v != '\0'; v++) ;
-        if (sscanf(v, "%f", &d[i])==-1)
-        {
-            too_few = true;
-            d[i] = 0;
-        }
-        for (; !isspace(*v) && *v != '\0'; v++) ;
-    }
-    if(too_few)
-        Notify(msg_warning, "Too few constants in matrix \"%s\" (0 assumed).\n", n);
-*/
-
     int sx, sy;
     float ** M = create_matrix(v, sx, sy);
 
-    for(int i=0; i<sx; i++)
-        for(int j=0; j<sy; j++)
-            m[j][i] = M[j][i];
-    
+    if(sy == 1) // for backward compatibility, get all data from one row
+    {
+        int p = 0;
+        for(int i=0; i<sx; i++)
+            for(int j=0; j<sy; j++)
+                m[j][i] = M[0][p++];
+    }
+
+    else
+    {
+        for(int i=0; i<sx; i++)
+            for(int j=0; j<sy; j++)
+                m[j][i] = M[j][i];
+    }
+
     destroy_matrix(M);
 
     return m;

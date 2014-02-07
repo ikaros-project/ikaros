@@ -19,7 +19,7 @@
 		/>
 	</example>
 
-	<example description="Matrix example">
+	<example description="Matrix example; WARNING: this does not currently work. ';' are necessary to ,ark end of row.">
 		<module
 			class="Constant"
 			name="MatrixConstant"
