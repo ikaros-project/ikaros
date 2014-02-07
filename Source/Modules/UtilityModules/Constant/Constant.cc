@@ -2,7 +2,7 @@
 //		Constant.cc		This file is a part of the IKAROS project
 //						Implements a modules that outputs a constant array
 //
-//    Copyright (C) 2004-2013 Christian Balkenius
+//    Copyright (C) 2004-2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,8 @@
 
 #include "Constant.h"
 
-
 void
-Constant::SetSizes() // Infer output size from data if not is given
+Constant::SetSizes() // Infer output size from data if none is given
 {
     if(GetValue("outputsize"))
     {
@@ -48,7 +47,7 @@ Constant::SetSizes() // Infer output size from data if not is given
     }
     
     int sx, sy;
-    float ** m = create_matrix(GetValue("data"), sx, sy);
+    float ** m = create_matrix(GetValue("data"), sx, sy); // get the sizes but ignore the data
     SetOutputSize("OUTPUT", sx, sy);
     destroy_matrix(m);
 }

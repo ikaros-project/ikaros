@@ -2,7 +2,7 @@
 //		Constant.h		This file is a part of the IKAROS project
 //						Implements a modules that outputs a constant array
 //
-//    Copyright (C) 2004 Christian Balkenius
+//    Copyright (C) 2004-2014 Christian Balkenius
 ///
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
