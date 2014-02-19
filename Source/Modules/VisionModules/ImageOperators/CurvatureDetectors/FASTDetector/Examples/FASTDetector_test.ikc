@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Test of the FAST detector.
+	
+-->
+
+<group title="FAST Detector">
+		<module class = "InputJPEG" name = "IN" filename = "/Users/cba/Desktop/Data/image19.jpg" iterations = "10000" />
+
+		<_module
+			class   = "InputVideoQT"
+			name	= "IN"			
+			size_x  = "320"
+			size_y  = "240"
+			camera  = "iSight"
+            list_devices = "yes"
+            device_id="0x1d1100000ac83420"
+		/>
+
+		<module  class = "FASTDetector" name = "FAST" />
+
+		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "FAST" target = "INPUT" delay="0" />
+
+		<view name = "Points">
+			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="4" w="4" />
+			<object class="Image" module="FAST" source="OUTPUT" x="4" y="0" h="4" w="4"  />
+            
+            <object class="Cross"  module="FAST" source="POINTS" x="0" y="0" h="4" w="4"  size="0.005"/>
+
+		</view>
+
+</group>
