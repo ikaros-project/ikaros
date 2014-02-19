@@ -952,10 +952,7 @@ void
 WebUI::CopyUIData()
 {
     if(dont_copy_data)
-    {
-//        printf("no copy\n");
         return;
-    }
     
     copying_data = true;
 
@@ -1340,7 +1337,7 @@ WebUI::HandleHTTPRequest()
             if(!module)
             {
                 k->Notify(msg_warning, "Module \"%s\" does not exist.\n", module_name);
-                destroy_string(uri); // TODO: should use single exit point
+                destroy_string(uri);
                 return;
             }
 
@@ -1356,13 +1353,13 @@ WebUI::HandleHTTPRequest()
                     else if(b->type == bind_array)
                         ((float *)(b->value))[x] = value;     // TODO: add range check!!!
                     else if(b->type == bind_matrix)
-                        ((float **)(b->value))[y][x] = value;
-                }
+                       ((float **)(b->value))[y][x] = value;
+                 }
         }
-        
+
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
-		header.Set("Cache-Control", "no-cache");	// make sure Opera reloads every time
+		header.Set("Cache-Control", "no-cache");
 		header.Set("Cache-Control", "no-store");
 		header.Set("Pragma", "no-cache");
 		socket->SendHTTPHeader(&header);
@@ -1415,7 +1412,7 @@ WebUI::HandleHTTPRequest()
         {
             k->Notify(msg_warning, "The output \"%s.%s\" does not exist, or\n", module, output);
             k->Notify(msg_warning, "\"%s\" may be an unkown data type.\n", type);
-            destroy_string(uri); // TODO: should use single exit point
+            destroy_string(uri);
             
             return;
         }

@@ -782,7 +782,7 @@ Module::Bind(float ** & v, int sizex, int sizey, const char * n)
 {
     // TODO: check type here
     v = GetMatrix(n, sizex, sizey);
-    bindings = new Binding(this, n, bind_matrix, &v, sizex, sizey, bindings);
+    bindings = new Binding(this, n, bind_matrix, v, sizex, sizey, bindings);
 }
 
 

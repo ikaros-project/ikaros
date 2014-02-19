@@ -61,7 +61,6 @@ Constant::Init()
     outputsize_x	=	GetOutputSizeX("OUTPUT");
     outputsize_y	=	GetOutputSizeY("OUTPUT");
     
-    
     Bind(data, outputsize_x, outputsize_y, "data");
 }
 
