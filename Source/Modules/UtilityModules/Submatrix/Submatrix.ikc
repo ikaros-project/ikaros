@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<group name="Submatrix" description="Submatrixs matrix elements">
+
+	<description type="xhtml">
+    <p>
+		Module that picks a submatrix of its input. The submatrix can either be set using the parameters x0, x1, y0, y1 or using the single parameter kernel_size.
+        In the first case, the output will contain all elements x0 &lt;= x &lt; x1 && y0 &lt;= y &lt; y1.
+        In the latter case, the submatrix corresponds to the size that would be obtained if the input was processed with a filter kernel of the specified size, that is,
+    </p>
+    <pre>
+        x0 = (kernel_size-1)/2,
+        y0 = (kernel_size-1)/2,
+        x1 = input_size_x - (kernel_size-1)/2,
+        y1 = input_size_y - (kernel_size-1)/2.
+    </pre>
+    <p>
+        In this case the module can be considered as a filter that does not chnage its input.
+    </p>
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Submatrix"
+			name="Submatrix"
+            x0 = "2"
+            x1 = "4"
+            y0 = "7"
+            y1 = "10"
+		/>
+	</example>
+
+	<parameter name="x0" type="int" default="0" description="First column" />
+	<parameter name="x1" type="int" default="0" description="Last column" />
+	<parameter name="y0" type="int" default="0" description="First row" />
+	<parameter name="y1" type="int" default="0" description="Last row" />
+
+	<parameter name="kernel_size" type="int" default="0" description="Set submatrix from this single kernel parameter" />
+	
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output with the submatrix"/>
+
+	<module class="Submatrix" />
+
+    <view title="Submatrix">
+        <object
+            x="0" y="0" w="2"
+            class="Image"
+            type="gray"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Submatrix"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Submatrix.h</file>
+   		<file>Submatrix.cc</file>
+   		<file>Submatrix.ikc</file>
+   </files>
+
+</group>
+
