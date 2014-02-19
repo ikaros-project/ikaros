@@ -2,7 +2,7 @@
 //	GLRobotSimulator.cc		This file is a part of the IKAROS project
 //                          
 //
-//    Copyright (C) 2012 Christian Balkenius
+//    Copyright (C) 2012-2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -87,6 +87,7 @@ GLRobotSimulator::Init()
     Bind(arm_length, "arm_length");
     Bind(view_radius, "view_radius");
     Bind(battery_decay, "battery_decay");
+    Bind(auto_stack, "auto_stack");
 
     objects_in = GetInputMatrix("OBJECTS_IN");
     objects_out = GetOutputMatrix("OBJECTS_OUT");
@@ -156,6 +157,8 @@ GLRobotSimulator::Init()
     }
 
     io_flag = false;
+    
+    reset_array(last_goal_location, 4);
 }
 
 
@@ -205,6 +208,40 @@ GLRobotSimulator::DistanceToObject(float id)
     }
 
     return 100.0*arm_length; // id not found, return distance that cannot be reached
+}
+
+
+
+float
+GLRobotSimulator::GetClosestHighestObject(float * place, float max_distance) // Very slow way to do this
+{
+    float oi = -1;
+    float d = max_distance;
+    float last_height = -1;
+    int ix = -1;
+    
+    for(int i=0; i<object_count; i++)
+    {
+        float loc[3] = { objects_out[i][world_coord_x], objects_out[i][world_coord_y], objects_out[i][world_coord_z] };
+        if(objects_out[i][object_type] == ot_cube && dist(loc, place, 2) < d && loc[2] > last_height)
+        {
+            last_height = loc[2];
+            oi = objects_out[i][object_id];
+            ix = i;
+        }
+    }
+    
+    // adjust place
+    
+    if(ix != -1)
+    {
+        place[0] = objects_out[ix][world_coord_x];
+        place[1] = objects_out[ix][world_coord_y];
+        place[2] = objects_out[ix][world_coord_z] + 35.0; // TODO: Check height
+        return oi;
+    }
+
+    return -1.0; // no object found
 }
 
 
@@ -268,10 +305,17 @@ GLRobotSimulator::Tick()
             }
         }
     }
-     
+
     // Check if robot must move
     
-    if(*locomotion_trigger > 0)
+    float loc_trig = *locomotion_trigger;
+    
+    if(current_action != 1 && dist(goal_location, last_goal_location, 4) > 0)  // TODO: change to support rotation
+        loc_trig = 1;
+
+    copy_array(last_goal_location, goal_location, 4);
+
+    if(loc_trig > 0)
     {
         // Start locomotion
 
@@ -299,7 +343,7 @@ GLRobotSimulator::Tick()
     }
 
     // Check pick trigger
-    
+
     if(*pick_trigger > 0)
     {
         if(norm(locomotion_phase, 4) > 0 && locomotion_phase[4] != 1.0) // we are moving, cannot pick
@@ -366,7 +410,11 @@ GLRobotSimulator::Tick()
             place_phase[0] = 1.0;
             *place_error = 0;
             copy_array(place, place_object_location, 3); // rotation is ignored for now
-//            place[2] = 36; // TEST
+            
+            if(auto_stack)  // Check there alreasy is an object and adjust location to place it on top
+            {
+                GetClosestHighestObject(place, 50.0);
+            }
         }
     }
     
