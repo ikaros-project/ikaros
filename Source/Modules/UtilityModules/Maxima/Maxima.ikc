@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<group name="Maxima" description="selects maximum element">
+
+	<description type="text">
+		A module that marks the maxima in its input. It also produces a list of the maxima in a separate output called POINTS.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Maxima"
+			name="Maxima"
+		/>
+	</example>
+    
+    <parameter name="max_points" type="int" default="10" description="Max number of points" />
+    <parameter name="threshold" type="float" default="0" description="Discard points below this value" />
+    <parameter name="sort_points" type="bool" default="no" description="Sort points in list according to magnitude of the maxima" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="Output with 1:a at the local maxima" size_set="INPUT" />
+	<output name="POINTS" description="List of maxima. Each line contains x, y, m, where m is the value at the corerspodning maximum" size_x="3" size_param_y="max_points" />
+    <output name="POINT_COUNT" description="Number of maxima in the points list." size="1" />
+
+	<module class="Maxima" />
+
+    <view title="Maxima">
+        <object
+            x="0" y="0" w="2"
+            class="Image"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Maxima"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Maxima.h</file>
+   		<file>Maxima.cc</file>
+   		<file>Maxima.ikc</file>
+   </files>
+
+</group>
+

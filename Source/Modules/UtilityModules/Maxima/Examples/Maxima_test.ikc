@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<group>	
+		<module
+            class = "Constant"
+            name = "Constant"
+            data="0.1 0.1 0.1 0.1 0.1;
+                  0.1 0.1 0.7 0.2 0.1;
+                  0.1 0.2 0.3 0.4 0.3;
+                  0.1 0.3 0.4 0.5 0.1;
+                  0.1 0.1 0.1 0.1 0.1;"
+        />
+	
+		<module
+			class = "Maxima"
+			name = "Maxima"
+            max_points ="2"
+		/>
+
+		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Maxima" target="INPUT" />
+
+		<view name="View">
+			<object class="Image" module="Constant" source="OUTPUT" max="10" x="0" y="0" />
+			<object class="Image" module="Maxima" source="OUTPUT" max="1" x="1" y="0" />
+            
+            <object class="Cross"  module="Maxima" source="POINTS" x="0" y="0"  />
+		</view>
+</group>
+ 
