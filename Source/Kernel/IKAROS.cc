@@ -734,17 +734,24 @@ Module::GetMatrix(const char * n, int sizex, int sizey)
     
     int sx, sy;
     float ** M = create_matrix(v, sx, sy);
-
-    if(sy == 1) // for backward compatibility, get all data from one row
+    
+    if(sy == 1 && sizey > 1) // for backward compatibility, get all data from one row
     {
         int p = 0;
-        for(int i=0; i<sx; i++)
-            for(int j=0; j<sy; j++)
+        for(int j=0; j<sizey; j++)
+            for(int i=0; i<sizex; i++)
+            {
                 m[j][i] = M[0][p++];
+                if(p >= sx)
+                    break;
+            }
     }
 
     else
     {
+        sx = min(sx, sizex);
+        sy = min(sy, sizey);
+
         for(int i=0; i<sx; i++)
             for(int j=0; j<sy; j++)
                 m[j][i] = M[j][i];

@@ -1,8 +1,17 @@
 <?xml version="1.0"?>
 
-<!-- Pointless example xml file with a Constant module -->
-<!-- The output can be viewed in the Viewer; without the viewer -->
-<!-- IKAROS will run in an endless loop.					 -->
+<!-- 
+
+    Example xml file with a Constant module
+
+    The examples show different ways to initialize a constant module
+    either using aspecified size or inferred from data.
+    
+    The character ';' indicates the end of a row.
+    
+    A specified size takes precedence over the data.
+ 
+-->
 
 <group>
 	<module
@@ -10,6 +19,14 @@
 		name = "Constant"
 		outputsize = "5"
 		data =  "1 2 3 4 5"
+        description = "constant with specified size_x and data"
+	/>
+	
+	<module
+		class = "Constant"
+		name = "Constant2"
+		data =  "5 4 3 2 1"
+        description = "constant data with inferred size 5x1"
 	/>
 	
 	<module
@@ -24,6 +41,7 @@
                 0 0 0 4 0
 			    0 5 5 5 0
 			    0 0 0 0 0"
+        description = "constant with set size and data without end of row character ';' "
 		/>
 
 	<module
@@ -33,6 +51,7 @@
                 1 2 3;
                 5 5 5;
                 7 8 9"
+        description = "constant with inferred size"
 		/>
 
 	<module
@@ -44,8 +63,25 @@
                 1 2 3;
                 2 3 4;
                 3 4 5"
+        description = "constant with smaller data allocation than set size"
 		/>
 
+	<module
+		class = "Constant"
+		name = "ConstantOverflowTest"
+		outputsize = "4"
+		data =  "1 2 3 4 5"
+        description = "constant with specified size_x and overflowing initialization data"
+	/>
+	
+	<module
+		class = "Constant"
+		name = "ConstantUnderAndOverflowTest"
+		outputsize = "4"
+		data =  "1 2 3; 4 5"
+        description = "constant with specified size_x and under and overflowing initialization data"
+	/>
+	
 	<view name="View">
 		<object class="BarGraph" module="Constant" source="OUTPUT" x="0" y="0" min="0" max="5" />
 		<object class="Image" module="ConstantMatrix" source="OUTPUT" x="1" y="0" />

@@ -70,6 +70,7 @@ void
 Constant::Tick()
 {
     copy_matrix(output, data, outputsize_x, outputsize_y);   // Copy every iteration if parameter changed through the binding
+    print_matrix("c", output, outputsize_x, outputsize_y);
 }
 
 static InitClass init("Constant", &Constant::Create, "Source/Modules/UtilityModules/Constant/");

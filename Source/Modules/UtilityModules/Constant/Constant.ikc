@@ -7,7 +7,7 @@
 		It can be one or two dimensional depending on whether outputsize_x and
 		outputsize_y or only outputsize is used in the ikc definition.
         If outputsize is not set, the size of the output is calculated from the
-        data where each line is terminated with a ;
+        data where each row is terminated with a ';'
 	</description>
 
 	<example description="A simple example">
