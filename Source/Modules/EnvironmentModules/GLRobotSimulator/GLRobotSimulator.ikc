@@ -26,6 +26,7 @@
     <parameter name="charging_station" type="array" size="2" default="1475 225" description="Location of the charging station" />
     <parameter name="view_radius" type="float"  default="300" description="Size of the visual field (mm)" />
     <parameter name="battery_decay" type="float"  default="0.0001" description="Decay of battery charge for each tick when something is done" />
+    <parameter name="auto_stack" type="bool"  default="false" description="Automatically place a block on top of another r(ather than inside)" />
     
     <!-- IO FOR THE WORLD MODEL MATRIX -->
 

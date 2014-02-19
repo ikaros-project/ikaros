@@ -188,7 +188,8 @@
 
 		<module
 			class   = "GLRobotSimulator"
-			name	= "GLRobotSimulator"			
+			name	= "GLRobotSimulator"
+            auto_stack = "true"
 		/>
 <!--
 		<module

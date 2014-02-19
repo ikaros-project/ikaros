@@ -2,7 +2,7 @@
 //	GLRobotSimulator.h		This file is a part of the IKAROS project
 //                      
 //
-//    Copyright (C) 2012 Christian Balkenius
+//    Copyright (C) 2012-2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -38,7 +38,8 @@ public:
 
     bool        ObjectIsInView(float id);
     float       DistanceToObject(float id);
-    
+    float       GetClosestHighestObject(float * place, float max_distance=50.0);
+
     void 		Init();
     void 		Tick();
 
@@ -64,6 +65,8 @@ public:
     int         pick;
     float       goal[2];
     float       place[4];
+    
+    float       last_goal_location[4];
     
 
     // Visualization output
@@ -117,6 +120,7 @@ public:
     float *     charging_station;
     float       view_radius;
     float       battery_decay;
+    bool        auto_stack;
 };
 
 #endif
