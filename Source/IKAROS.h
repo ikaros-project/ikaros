@@ -183,7 +183,7 @@ private:
     const char  *   name;
     float       **  data;        // Array in 0.8.0 for delays
     int             size;        // should equal sizex*sizey
-    int             max_delay;  // maximum number of arrays/matrices
+    int             max_delay;   // maximum number of arrays/matrices
     
     friend class Kernel;
     friend class Connection;
