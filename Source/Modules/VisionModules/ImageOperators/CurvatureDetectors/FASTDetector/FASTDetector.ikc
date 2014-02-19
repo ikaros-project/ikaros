@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<group name="FASTDetector" description="finds curvature points">
+
+	<description type="text">
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="FASTDetector"
+			name="FASTDetector"
+		/>
+	</example>
+    
+    <parameter name="threshold" type="int" default="40" description="the threshold for the FAST detector" />
+
+	<input name="INPUT" description="The input image" />
+	<output name="OUTPUT" description="Output" size_set="INPUT" />
+	<output name="POINTS" description="Table with corners" size_x="2" size_y="5000" />
+	<output name="POINT_COUNT" description="Number of corners found" size="1" />
+
+	<module class="FASTDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+    <created>2013</created>
+    
+   <files>
+   		<file>FASTDetector.h</file>
+   		<file>FASTDetector.cc</file>
+   		<file>FASTDetector.ikc</file>
+   </files>
+
+</group>
