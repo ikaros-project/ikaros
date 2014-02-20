@@ -231,6 +231,15 @@
 			/>
             
 			<object
+                class   = "HUDDirection"
+                module  = "GLRobotSimulator"
+                source  = "ROBOT_LOCATION"
+
+                x="8" y="0"
+                w="4" h="3"
+			/>
+            
+			<object
                 class   = "Rectangle"
                 title   = "World Model Top-View"
                 module  = "GLRobotSimulator"
