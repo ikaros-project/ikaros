@@ -55,6 +55,8 @@ public:
     int         current_phase;
     int         current_step;
     
+    int         move_type; // 0 = normal; 1 = sliding/positioning
+    
     float       goal_direction;
     float       dr;
     float       ir;
