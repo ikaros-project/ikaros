@@ -53,6 +53,13 @@ const int ot_world = 2;
 const int ot_marker = 3;
 const int ot_cube = 4;
 
+// Action types
+
+const int ACTION_NONE = 0;
+const int ACTION_MOVE = 1;
+const int ACTION_PICK = 2;
+const int ACTION_PLACE = 3;
+const int ACTION_CHARGE = 4;
 
 
 static float
@@ -99,6 +106,7 @@ GLRobotSimulator::Init()
     landmarks = GetOutputMatrix("LANDMARKS");
     
     view_field = GetOutputArray("VIEW_FIELD");
+    target = GetOutputArray("TARGET");
 
     range_map = GetOutputArray("RANGE_MAP");
     range_color = GetOutputArray("RANGE_COLOR");
@@ -133,7 +141,7 @@ GLRobotSimulator::Init()
     place_trigger = GetInputArray("PLACE_OBJECT_TRIGGER");
     charge_batteries = GetInputArray("CHARGE_BATTERIES");
 
-    current_action = 0;
+    current_action = ACTION_NONE;
     current_phase = 0;
     current_step = 0;
     
@@ -159,6 +167,7 @@ GLRobotSimulator::Init()
     io_flag = false;
     
     reset_array(last_goal_location, 4);
+    set_array(target, -99999, 4);
 }
 
 
@@ -249,6 +258,8 @@ GLRobotSimulator::GetClosestHighestObject(float * place, float max_distance) // 
 void
 GLRobotSimulator::Tick()
 {
+    float m;
+    
     if(!io_flag)
     {
         copy_matrix(objects_out, objects_in, columns, object_count);
@@ -310,7 +321,7 @@ GLRobotSimulator::Tick()
     
     float loc_trig = *locomotion_trigger;
     
-    if(current_action != 1 && dist(goal_location, last_goal_location, 4) > 0)  // TODO: change to support rotation
+    if(current_action != ACTION_MOVE && dist(goal_location, last_goal_location, 4) > 0)  // TODO: change to support rotation
         loc_trig = 1;
 
     copy_array(last_goal_location, goal_location, 4);
@@ -319,9 +330,11 @@ GLRobotSimulator::Tick()
     {
         // Start locomotion
 
-        current_action = 1;
+        current_action = ACTION_MOVE;
         current_phase = 0;
         current_step = 0;
+        
+        move_type = 0;
 
         reset_array(charge_phase, 2);
         reset_array(locomotion_phase, 5);
@@ -329,6 +342,10 @@ GLRobotSimulator::Tick()
         *locomotion_error = 0.0;
 
         float d = sqrt(sqr(robot_location[0]-goal_location[0]) + sqr(robot_location[1]-goal_location[1]) + 10 * sqr(robot_location[3]-goal_location[3])); // FIXME: Goal location has no z
+        
+        if(d < 200.0) // slide within 20 cm
+            move_type = 1;
+
         if(d < 0.1) // we are at the goal
         {
             reset_array(locomotion_phase, 5);
@@ -364,7 +381,7 @@ GLRobotSimulator::Tick()
         }
         else // start pick action
         {
-            current_action = 2;
+            current_action = ACTION_PICK;
             current_phase = 0;
             current_step = 0;
             reset_array(pick_phase, 5);
@@ -373,6 +390,11 @@ GLRobotSimulator::Tick()
             pick_phase[0] = 1.0;
             pick = object_index;
             *pick_error = 0;
+            
+            target[0] = objects_out[pick][world_coord_x]; // Set target output to location of object to pick
+            target[1] = objects_out[pick][world_coord_y];
+            target[2] = objects_out[pick][world_coord_z];
+            target[3] = atan2(objects_out[pick][world_coord+4], objects_out[pick][world_coord]);
         }
     }
 
@@ -402,7 +424,7 @@ GLRobotSimulator::Tick()
         }
         else
         {
-            current_action = 3;
+            current_action = ACTION_PLACE;
             current_phase = 0;
             current_step = 0;
             reset_array(place_phase, 5);
@@ -411,13 +433,13 @@ GLRobotSimulator::Tick()
             *place_error = 0;
             copy_array(place, place_object_location, 3); // rotation is ignored for now
             
-            if(auto_stack)  // Check there alreasy is an object and adjust location to place it on top
-            {
+            if(auto_stack)  // Check if there already is an object and adjust location to place it on top
                 GetClosestHighestObject(place, 50.0);
-            }
+            
+            copy_array(target, place, 4); // Set target output to location of object to pick
         }
     }
-    
+
     // Check charge trigger
     
     if(*charge_batteries > 0)
@@ -432,7 +454,7 @@ GLRobotSimulator::Tick()
         }
         else
         {
-            current_action = 4;
+            current_action = ACTION_CHARGE;
             current_phase = 0;
             current_step = 0;
             reset_array(charge_phase, 2);
@@ -445,104 +467,187 @@ GLRobotSimulator::Tick()
 
     switch(current_action)
     {
-        case 1: // locomotion
+        case ACTION_MOVE: // locomotion
     
-            switch(current_phase)
+            if(move_type == 0)
             {
-                 case 0: // Park arm and initiate initial rotation
-                    if(current_step < 50)
-                        current_step++;
-                    else
-                    {
-                        goal_direction = atan2(goal_location[1] - robot_location[1], goal_location[0] - robot_location[0]);
-                        dr = short_angle(robot_location[3], goal_direction);
-                        ir = (dr > 0 ? rotation_speed : -rotation_speed);
-                        current_phase = 1;
-                        current_step = 0;
-                    }
-                    break;
-                    
-                case 1: // Initial rotation
-                    if(abs(short_angle(goal_direction, robot_location[3])) > rotation_speed)
-                    {
-                        robot_location[3] += *speed * ir;
-                    }
-                    else
-                    {
-                        ix = goal_location[0] - robot_location[0];
-                        iy = goal_location[1] - robot_location[1];
-                        float m = max(abs(ix), abs(iy));
-                        if(m > 0)
+                switch(current_phase)
+                {
+                     case 0: // Park arm and initiate initial rotation
+                        if(current_step < 50)
+                            current_step++;
+                        else
                         {
-                            ix /= m;
-                            iy /= m;
-                            ix *= locomotion_speed; // FIXME: reduce speed close to goal
-                            iy *= locomotion_speed;
+                            goal_direction = atan2(goal_location[1] - robot_location[1], goal_location[0] - robot_location[0]);
+                            dr = short_angle(robot_location[3], goal_direction);
+                            ir = (dr > 0 ? rotation_speed : -rotation_speed);
+                            current_phase = 1;
+                            current_step = 0;
                         }
-                        current_phase = 2;
-                    }
-                    break;
-                    
-                case 2: // Linear movement
-                    if(dist(goal, goal_location, 2) > 0.0001) // goal location changed; return to phase 1
-                    {
-                        robot_location[0] = clip(robot_location[0], 100, 1600);
-                        robot_location[1] = clip(robot_location[1], 100, 1100);
-                        copy_array(goal, goal_location, 2);
-                        goal_direction = atan2(goal_location[1] - robot_location[1], goal_location[0] - robot_location[0]);
-                        dr = short_angle(robot_location[3], goal_direction);
-                        ir = (dr > 0 ? rotation_speed : -rotation_speed);
-                        *locomotion_error = 0;
-                        current_phase = 1;
-                    }
-                    else if(robot_location[0] < 100 || robot_location[0] > 1600 || robot_location[1] < 100 || robot_location[1] > 1100) // Outside area; Should not be hard coded
-                    {
-                         *locomotion_error = 1;
                         break;
-                    }
-                    else if(sqrt(sqr(robot_location[0]-goal_location[0]) + sqr(robot_location[1]-goal_location[1])) > 10)
-                    {
-                        if(sqr(robot_location[0]-goal_location[0]))
-                            robot_location[0] += *speed * ix;
-                        if(sqr(robot_location[1]-goal_location[1]))
-                            robot_location[1] += *speed * iy;
-                            
-                        if(pick_phase[4] == 1.0 && object_index != 0) // we are holding an object, move it with the robot
+                        
+                    case 1: // Initial rotation
+                        if(abs(short_angle(goal_direction, robot_location[3])) > rotation_speed)
                         {
-                            objects_out[carried_object][world_coord_x] = robot_location[0];
-                            objects_out[carried_object][world_coord_y] = robot_location[1];
+                            robot_location[3] += *speed * ir;
                         }
-                    }
-                    else
-                    {
-                        dr = short_angle(robot_location[3], goal_location[3]); // FIXME: Goal location has no z
-                        ir = (dr > 0 ? rotation_speed : -rotation_speed);
-                        current_phase = 3;
-                    }
-                    break;
-                    
-                case 3: // Final rotation
-                    if(abs(short_angle(robot_location[3], goal_location[3])) > rotation_speed)
-                    {
-                        robot_location[3] += *speed * ir;
-                    }
-                    else
-                    {
-                        current_phase = 4; // movement complete
-                        current_action = 0;
-                    }
-                    break;
-                    
-                default:
-                    break;
+                        else
+                        {
+                            ix = goal_location[0] - robot_location[0];
+                            iy = goal_location[1] - robot_location[1];
+                            m = max(abs(ix), abs(iy));
+                            if(m > 0)
+                            {
+                                ix /= m;
+                                iy /= m;
+                                ix *= locomotion_speed; // FIXME: reduce speed close to goal
+                                iy *= locomotion_speed;
+                            }
+                            current_phase = 2;
+                        }
+                        break;
+                        
+                    case 2: // Linear movement
+                        if(dist(goal, goal_location, 2) > 0.0001) // goal location changed; return to phase 1
+                        {
+                            robot_location[0] = clip(robot_location[0], 100, 1600);
+                            robot_location[1] = clip(robot_location[1], 100, 1100);
+                            copy_array(goal, goal_location, 2);
+                            goal_direction = atan2(goal_location[1] - robot_location[1], goal_location[0] - robot_location[0]);
+                            dr = short_angle(robot_location[3], goal_direction);
+                            ir = (dr > 0 ? rotation_speed : -rotation_speed);
+                            *locomotion_error = 0;
+                            current_phase = 1;
+                        }
+                        else if(robot_location[0] < 100 || robot_location[0] > 1600 || robot_location[1] < 100 || robot_location[1] > 1100) // Outside area; Should not be hard coded
+                        {
+                             *locomotion_error = 1;
+                            break;
+                        }
+                        else if(sqrt(sqr(robot_location[0]-goal_location[0]) + sqr(robot_location[1]-goal_location[1])) > 10)
+                        {
+                            if(sqr(robot_location[0]-goal_location[0]))
+                                robot_location[0] += *speed * ix;
+                            if(sqr(robot_location[1]-goal_location[1]))
+                                robot_location[1] += *speed * iy;
+                                
+                            if(pick_phase[4] == 1.0 && object_index != 0) // we are holding an object, move it with the robot
+                            {
+                                objects_out[carried_object][world_coord_x] = robot_location[0];
+                                objects_out[carried_object][world_coord_y] = robot_location[1];
+                            }
+                        }
+                        else
+                        {
+                            dr = short_angle(robot_location[3], goal_location[3]); // FIXME: Goal location has no z
+                            ir = (dr > 0 ? rotation_speed : -rotation_speed);
+                            current_phase = 3;
+                        }
+                        break;
+                        
+                    case 3: // Final rotation
+                        if(abs(short_angle(robot_location[3], goal_location[3])) > rotation_speed)
+                        {
+                            robot_location[3] += *speed * ir;
+                        }
+                        else
+                        {
+                            current_phase = 4; // movement complete
+                            current_action = ACTION_NONE;
+                        }
+                        break;
+                        
+                    default:
+                        break;
+                }
             }
+            
+            else // move_type == 1
+            {
+                switch(current_phase)
+                {
+                    case 0: // Initiate
+                            goal_direction = atan2(goal_location[1] - robot_location[1], goal_location[0] - robot_location[0]);
+                            dr = short_angle(robot_location[3], goal_direction);
+                            ir = (dr > 0 ? rotation_speed : -rotation_speed);
+                            ix = goal_location[0] - robot_location[0];
+                            iy = goal_location[1] - robot_location[1];
+                            m = max(abs(ix), abs(iy));
+                            if(m > 0)
+                            {
+                                ix /= m;
+                                iy /= m;
+                                ix *= locomotion_speed; // FIXME: reduce speed close to goal
+                                iy *= locomotion_speed;
+                            }
+                            current_phase = 2;
+                            current_step = 0;
+                        break;
+                        
+                    case 1:
+                            current_phase = 2;
+                            current_step = 0;
+                        break;
+                        
+                    case 2: // "Linear" movement
+                        if(dist(goal, goal_location, 2) > 0.0001) // goal location changed; return to phase 1
+                        {
+                            robot_location[0] = clip(robot_location[0], 100, 1600);
+                            robot_location[1] = clip(robot_location[1], 100, 1100);
+                            copy_array(goal, goal_location, 2);
+                            goal_direction = atan2(goal_location[1] - robot_location[1], goal_location[0] - robot_location[0]);
+                            dr = short_angle(robot_location[3], goal_direction);
+                            *locomotion_error = 0;
+                            current_phase = 0;
+                        }
+                        else if(robot_location[0] < 100 || robot_location[0] > 1600 || robot_location[1] < 100 || robot_location[1] > 1100) // Outside area; Should not be hard coded
+                        {
+                             *locomotion_error = 1;
+                            break;
+                        }
+                        else if(sqrt(sqr(robot_location[0]-goal_location[0]) + sqr(robot_location[1]-goal_location[1])) > 10)
+                        {
+                            // Move
+                            if(sqr(robot_location[0]-goal_location[0]))
+                                robot_location[0] += *speed * ix;
+                            if(sqr(robot_location[1]-goal_location[1]))
+                                robot_location[1] += *speed * iy;
+                                
+                            if(pick_phase[4] == 1.0 && object_index != 0) // we are holding an object, move it with the robot
+                            {
+                                objects_out[carried_object][world_coord_x] = robot_location[0];
+                                objects_out[carried_object][world_coord_y] = robot_location[1];
+                            }
+                            
+                            // Rotate
+                            if(abs(short_angle(robot_location[3], goal_location[3])) > rotation_speed)
+                            {
+                                robot_location[3] += *speed * ir;
+                            }
+                        }
+                        else if(abs(short_angle(robot_location[3], goal_location[3])) > rotation_speed) // Only rotate
+                        {
+                            robot_location[3] += *speed * ir;
+                        }
 
+                        else // we are finished
+                        {
+                            current_phase = 4; // movement complete
+                            current_action = ACTION_NONE;
+                        }
+                        break;
+                
+                    default:
+                        break;
+                }
+            }
+            
             reset_array(locomotion_phase, 5);
             locomotion_phase[current_phase] = 1.0;
             *battery_level = max(0.0f, *battery_level-battery_decay);
             break;
             
-        case 2: // pick
+        case ACTION_PICK: // pick
             switch(current_phase)
             {
                 case 0:
@@ -595,7 +700,7 @@ GLRobotSimulator::Tick()
                         carried_object = pick;
                         pick = -1;
                     }
-                    current_action = 0;
+                    current_action = ACTION_NONE;
                     break;
             }
             reset_array(pick_phase, 5);
@@ -604,7 +709,7 @@ GLRobotSimulator::Tick()
             
             break;
 
-        case 3: // place
+        case ACTION_PLACE: // place
             switch(current_phase)
             {
                 case 0:
@@ -653,7 +758,7 @@ GLRobotSimulator::Tick()
                     objects_out[carried_object][world_coord_z] = place[2];
                     
                     reset_array(pick_phase, 5); // we are no longer holding an object
-                    current_action = 0;
+                    current_action = ACTION_NONE;
                     carried_object = -1;
                     set_array(place, -1 ,4);
                     break;
@@ -664,7 +769,7 @@ GLRobotSimulator::Tick()
         
             break;
 
-        case 4: // charge
+        case ACTION_CHARGE: // charge
             switch(current_phase)
             {
                 case 0:
@@ -681,7 +786,7 @@ GLRobotSimulator::Tick()
                     break;
                     
                 case 1:
-                    current_action = 0;;
+                    current_action = ACTION_NONE;
             }
             reset_array(charge_phase, 2);
             charge_phase[current_phase] = 1.0;
@@ -769,7 +874,7 @@ GLRobotSimulator::Tick()
     *speed_out = *speed;
     
     // Generate range image from all objects
-    // TODO: Move to separate module later
+    // TODO: Move to separate module later to make it available to the real robot
     
     // Robot view vector
 

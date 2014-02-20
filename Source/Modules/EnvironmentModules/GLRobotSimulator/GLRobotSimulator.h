@@ -55,6 +55,8 @@ public:
     int         current_phase;
     int         current_step;
     
+    int         move_type; // 0 = normal; 1 = sliding/positioning
+    
     float       goal_direction;
     float       dr;
     float       ir;
@@ -80,6 +82,7 @@ public:
     int         range_map_size;
 
     float *     view_field;
+    float *     target;
     
     // Control Inputs and Outputs
     
@@ -89,7 +92,7 @@ public:
     float *     speed_out;
     float *     battery_level;
     float **    blocks_in_view;
-
+    
     float *     locomotion_phase;
     float *     pick_phase;
     float *     place_phase;
