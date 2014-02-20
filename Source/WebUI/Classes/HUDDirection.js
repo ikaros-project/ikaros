@@ -37,7 +37,10 @@ HUDDirection.prototype.Update = function(data)
         
         if(i%90==0)
         {
-            this.context.fillText(i, center-heading+i, this.height-5);
+            if(i >= 0)
+                this.context.fillText(i, center-heading+i, this.height-5);
+            else
+                this.context.fillText(i, center-heading+i-2, this.height-5);
         }
     }
 

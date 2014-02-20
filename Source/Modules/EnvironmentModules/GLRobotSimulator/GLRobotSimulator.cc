@@ -395,7 +395,6 @@ GLRobotSimulator::Tick()
             target[1] = objects_out[pick][world_coord_y];
             target[2] = objects_out[pick][world_coord_z];
             target[3] = atan2(objects_out[pick][world_coord+4], objects_out[pick][world_coord]);
-            print_array("pick target", target, 4);
         }
     }
 
