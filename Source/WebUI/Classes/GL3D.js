@@ -28,15 +28,23 @@ function GL3D(p)
 
     this.robot_module = p.robot_module;
     this.robot_location = p.robot_location;
+    
+    this.cam_type = (p.cam_type ? p.cam_type : 0);
 
     this.obj = 	new WebUICanvas(this, p, "webgl");
     
 	usesData(this.module, this.source);
 	usesData(this.robot_module, this.robot_location);
     
+    this.hilite_module = p.hilite_module;
+    this.hilite_source = p.hilite_source;
+
+    if(this.hilite_module)
+        usesData(this.hilite_module, this.hilite_source);
+
     this.cubes = [];
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(28, this.width/this.height, 0.1, 8000);
+    this.camera = new THREE.PerspectiveCamera((this.cam_type ? 65 : 28), this.width/this.height, 0.1, 8000);
     this.scene.add(this.camera);
     
     this.renderer = new THREE.WebGLRenderer({ clearColor: 0x335588, canvas: this.canvas} );
@@ -107,6 +115,20 @@ function GL3D(p)
 		
 		this.cubes.push([cube,cube_reflection]);
 	}
+    
+    // Add hilite
+    
+    var g = new THREE.CubeGeometry(size, size, size);
+    var m = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe: true} );
+    this.hilite = new THREE.Mesh(g, m);
+    this.hilite.position.set(-99999, -99999, size/2+1);
+    this.hilite.rotation.z = 0;
+    this.hilite.castShadow = false;
+    this.hilite.receiveShadow = false;
+    this.hilite.rotate = 0;
+    this.hilite.velocity = 0;
+    this.scene.add(this.hilite);
+    
     
     // Add robot
     
@@ -199,6 +221,10 @@ GL3D.prototype.Update = function(data)
     p = p[this.robot_location]
     if(!p) return;
 
+    var h = data[this.hilite_module];
+    if(h)
+        h = h[this.hilite_source];
+
     for(var i=0; i<50; i++) // x = -99999 for no object
     {
         this.cubes[i][0].position.x = d[i][0]-850;
@@ -210,6 +236,14 @@ GL3D.prototype.Update = function(data)
         this.cubes[i][1].rotation.y = -this.cubes[i][0].rotation.z;
     }
     
+    if(h)
+    {
+        this.hilite.position.x = h[0][0]-850;
+        this.hilite.position.y = h[0][1]-600;
+        this.hilite.position.z = h[0][2]+1+18;
+        this.hilite.rotation.z = 0*h[0][3];
+    }
+    
     this.robot.position.x = p[0][0]-850;
     this.robot.position.y = p[0][1]-600;
     this.robot.rotation.z = p[0][3];
@@ -218,11 +252,24 @@ GL3D.prototype.Update = function(data)
     this.robot_reflection.position.y = this.robot.position.y;
     
     this.robot_reflection.rotation.set(0, Math.PI, Math.PI-this.robot.rotation.z);
-/*
-    this.pointLight.position.x = this.robot.position.x;
-    this.pointLight.position.y = this.robot.position.y;
-*/
 
+    if(this.cam_type == 1)
+    {
+        var dx = Math.cos(p[0][3]);
+        var dy = Math.sin(p[0][3]);
+        this.camera.up = new THREE.Vector3(0,0,1);
+        this.camera.position.set(this.robot.position.x+110*dx, this.robot.position.y+110*dy, 200);
+        this.camera.lookAt({ x: this.robot.position.x+300*dx, y: this.robot.position.y+300*dy, z:0});
+    }
+
+    else if(this.cam_type == 2)
+    {
+        var dx = Math.cos(p[0][3]);
+        var dy = Math.sin(p[0][3]);
+        this.camera.up = new THREE.Vector3(0,0,1);
+        this.camera.position.set(this.robot.position.x-110*dx, this.robot.position.y-110*dy, 650);
+        this.camera.lookAt({ x: this.robot.position.x+400*dx, y: this.robot.position.y+400*dy, z:0});
+    }
 
     this.renderer.render(this.scene, this.camera);
 }
