@@ -80,6 +80,7 @@ public:
     int         range_map_size;
 
     float *     view_field;
+    float *     target;
     
     // Control Inputs and Outputs
     
@@ -89,7 +90,7 @@ public:
     float *     speed_out;
     float *     battery_level;
     float **    blocks_in_view;
-
+    
     float *     locomotion_phase;
     float *     pick_phase;
     float *     place_phase;

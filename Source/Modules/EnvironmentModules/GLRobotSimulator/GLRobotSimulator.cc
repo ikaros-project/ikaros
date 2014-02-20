@@ -99,6 +99,7 @@ GLRobotSimulator::Init()
     landmarks = GetOutputMatrix("LANDMARKS");
     
     view_field = GetOutputArray("VIEW_FIELD");
+    target = GetOutputArray("TARGET");
 
     range_map = GetOutputArray("RANGE_MAP");
     range_color = GetOutputArray("RANGE_COLOR");
@@ -159,6 +160,7 @@ GLRobotSimulator::Init()
     io_flag = false;
     
     reset_array(last_goal_location, 4);
+    set_array(target, -99999, 4);
 }
 
 
@@ -373,6 +375,12 @@ GLRobotSimulator::Tick()
             pick_phase[0] = 1.0;
             pick = object_index;
             *pick_error = 0;
+            
+            target[0] = objects_out[pick][world_coord_x]; // Set target output to location of object to pick
+            target[1] = objects_out[pick][world_coord_y];
+            target[2] = objects_out[pick][world_coord_z];
+            target[3] = atan2(objects_out[pick][world_coord+4], objects_out[pick][world_coord]);
+            print_array("pick target", target, 4);
         }
     }
 
@@ -411,13 +419,16 @@ GLRobotSimulator::Tick()
             *place_error = 0;
             copy_array(place, place_object_location, 3); // rotation is ignored for now
             
-            if(auto_stack)  // Check there alreasy is an object and adjust location to place it on top
+            if(auto_stack)  // Check there already is an object and adjust location to place it on top
             {
                 GetClosestHighestObject(place, 50.0);
             }
+            
+            copy_array(target, place, 4); // Set target output to location of object to pick
+            print_array("place target", target, 4);
         }
     }
-    
+
     // Check charge trigger
     
     if(*charge_batteries > 0)

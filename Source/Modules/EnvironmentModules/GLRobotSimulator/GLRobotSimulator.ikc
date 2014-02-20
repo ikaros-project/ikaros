@@ -43,6 +43,7 @@
 	<output name="LANDMARKS" description="Positions of all landmark markers in the world (x, y, z, r, id, color)" size_x="6" size_y="50" />
 	<output name="CHARGING_STATION" description="Position of the charging station" size_x="2" size_y="1" />
 	<output name="VIEW_FIELD" description="Region visible to the camera (circular)" size_x="2" size_y="1" />
+    <output name="TARGET" description="The current target location for a pick or place operation. For visualization only." size_x="4" size_y="1" />
 
     <!-- SIMULATED ROBOT PERCEPTION -->
 
