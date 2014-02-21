@@ -77,7 +77,6 @@
 
     <!-- CONTROL INPUTS FOR THE ROBOT -->
 
-	<input name="STOP" description="Stop any activity if 1." />
 	<input name="GOAL_LOCATION" description="Location to move to (x, y, z, r). Array of size 4. Units: mm and degrees. z should always be 0." />
 	<input name="SPEED" description="Movement speed of the robot (0-1)" />
 	<input name="LOCOMOTION_TRIGGER" description="Start locomotion" />
