@@ -4,10 +4,10 @@ set(SOURCE
 	${SOURCE}
 	${CMAKE_CURRENT_SOURCE_DIR}/FASTDetector.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast.c
-	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast9.c
-	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast10.c
-	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast11.c
-	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast12.c
+	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast_9.c
+	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast_10.c
+	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast_11.c
+	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast_12.c
 	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/nonmax.c
 	PARENT_SCOPE
 )
