@@ -470,6 +470,7 @@ GLRobotSimulator::Tick()
         robot_location[0] = clip(robot_location[0] + direct_control[0], 100, 1600);
         robot_location[1] = clip(robot_location[1] + direct_control[1], 100, 1100);
         robot_location[3] = short_angle(0, robot_location[3] + direct_control[3]);
+        
     }
 
     else
