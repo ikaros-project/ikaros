@@ -105,6 +105,7 @@ public:
 
     // inputs
 
+    float *     stop;
     float *     goal_location;
     float *     speed;
     float *     locomotion_trigger;

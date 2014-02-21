@@ -130,7 +130,7 @@ GLRobotSimulator::Init()
     place_error = GetOutputArray("PLACE_ERROR");
     charge_error = GetOutputArray("CHARGE_ERROR");
 
-    
+    stop = GetInputArray("STOP", false);
     goal_location = GetInputArray("GOAL_LOCATION");
     speed = GetInputArray("SPEED");
     locomotion_trigger = GetInputArray("LOCOMOTION_TRIGGER");
@@ -282,7 +282,17 @@ GLRobotSimulator::Tick()
         }
     }
     
-   // Find robot location and possibly object
+    if(stop && *stop > 0)
+    {
+        // Do not move
+        // Note: Perception code not run
+        // Necessary for interactivity
+        
+        return;
+    }
+
+    
+    // Find robot location and possibly object
 
     int robot_index = 0;
     int object_index = 0;
