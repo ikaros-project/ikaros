@@ -130,7 +130,7 @@ GLRobotSimulator::Init()
     place_error = GetOutputArray("PLACE_ERROR");
     charge_error = GetOutputArray("CHARGE_ERROR");
 
-    stop = GetInputArray("STOP", false);
+    direct_control = GetInputArray("DIRECT_CONTROL", false);
     goal_location = GetInputArray("GOAL_LOCATION");
     speed = GetInputArray("SPEED");
     locomotion_trigger = GetInputArray("LOCOMOTION_TRIGGER");
@@ -465,6 +465,14 @@ GLRobotSimulator::Tick()
 
     // State machine
 
+    if(direct_control)
+    {
+        robot_location[0] = clip(robot_location[0] + direct_control[0], 100, 1600);
+        robot_location[1] = clip(robot_location[1] + direct_control[1], 100, 1100);
+        robot_location[3] = short_angle(0, robot_location[3] + direct_control[3]);
+    }
+
+    else
     switch(current_action)
     {
         case ACTION_MOVE: // locomotion

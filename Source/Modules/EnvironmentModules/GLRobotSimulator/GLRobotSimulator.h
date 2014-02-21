@@ -114,6 +114,7 @@ public:
     float *     place_object_location;
     float *     place_trigger;
     float *     charge_batteries;
+    float *     direct_control;
     
     // parameters
     
