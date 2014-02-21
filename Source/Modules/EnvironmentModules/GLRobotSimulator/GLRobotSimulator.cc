@@ -282,16 +282,6 @@ GLRobotSimulator::Tick()
         }
     }
     
-    if(stop && *stop > 0)
-    {
-        // Do not move
-        // Note: Perception code not run
-        // Necessary for interactivity
-        
-        return;
-    }
-
-    
     // Find robot location and possibly object
 
     int robot_index = 0;
