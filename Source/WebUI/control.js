@@ -43,11 +43,15 @@ function setCookie(name,value,days)
     date.setTime(date.getTime()+(days?days:1)*86400000);
     var expires = "; expires="+date.toGMTString();
 	document.cookie = name+"="+value+expires+"; path=/";
+    
+    window.console.log("setCookie: "+document.cookie);
 }
 
 function getCookie(name)
 {
-	var nameEQ = name + "=";
+    window.console.log("getCookie: "+document.cookie);
+    
+    var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
 		var c = ca[i];
@@ -62,7 +66,12 @@ function eraseCookie(name)
 	createCookie(name,"",-1);
 }
 
-
+function resetCookies()
+{
+    setCookie('current_view', "0");
+    setCookie('root', ""); // or /
+    setCookie('inspector',"closed");
+}
 
 // UTILITIES
 
@@ -604,9 +613,6 @@ function build_view_list(view)
         
     a.setAttribute("onclick","change_view("+(view_list.length)+")");
     a.setAttribute("title","Editor");
-    
-    // TODO: Check this is ok
-    //change_view(1);
 }
 
 
@@ -629,9 +635,9 @@ function change_view_with_editor(index)
     if(!v) return;
     
     if(index==alist.length-2)
-        v.setAttribute("src", "http://"+location.host+current_group_path+"/inspector.html");    //FIXME:  change order
+        v.setAttribute("src", "http://"+location.host+current_group_path+"/inspector.html");
     else if(index==alist.length-1)
-        v.setAttribute("src", "http://"+location.host+current_group_path+"/editor.svg");        //FIXME:  change order
+        v.setAttribute("src", "http://"+location.host+current_group_path+"/editor.svg");
     else
         v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".svg");
     
@@ -672,9 +678,9 @@ function change_view(index)
     if(!v) return;
     
     if(index==alist.length-1)
-        v.setAttribute("src", "http://"+location.host+current_group_path+"/inspector.html");    //FIXME:  change order
+        v.setAttribute("src", "http://"+location.host+current_group_path+"/inspector.html");
     else
-        v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".html"); // WAS SVG ***************************
+        v.setAttribute("src", "http://"+location.host+"/view"+current_group_path+"/view"+current_view+".html");
     
     var vn = document.getElementById("viewname");
     if(vn)
@@ -743,6 +749,8 @@ function update_group_list_and_views()
             
             grouplist = document.getElementById("grouplist");
             current_group_path = getCookie('root');
+            if(!current_group_path)
+                current_group_path ="";
             get("/setroot"+current_group_path, ignore_data);
             build_group_list([xml.documentElement], grouplist, "", true, (current_group_path?current_group_path.split('/'):[]), 0);
             
@@ -753,7 +761,7 @@ function update_group_list_and_views()
                 e = getGroupWithName(e, p[i]);
             build_view_list(getChildrenByTagName(e, "view"));
             
-             restore_view();
+            restore_view();
         }
         catch(err)
         {
@@ -800,7 +808,7 @@ function restore_inspector()
 
 
 
-function toggle(e) // TODO: do something smarter than selecting first view on toggle? Remember view index in tree.
+function toggle(e)
 {
 	if(e.target.getAttribute("class") == "group-open")
     {
@@ -846,7 +854,7 @@ function toggle(e) // TODO: do something smarter than selecting first view on to
         for(i in p)
             e = getGroupWithName(e, p[i]);   
         build_view_list(getChildrenByTagName(e, "view"));
-        change_view(0); // TODO: HERE!!!
+        change_view(0);
     }
 
 	if (e.stopPropagation) e.stopPropagation();
@@ -863,9 +871,8 @@ function restore_root()
 
 // Call after load
 
-
-//setCookie('root', "/");
-//setCookie('current_view', 0);
+if(!document.cookie)
+    resetCookies();
 
 var grouplist = document.getElementById("grouplist");
 grouplist.addEventListener('click', toggle, false);
@@ -875,7 +882,7 @@ update_group_list_and_views();
 // Restor state after reload
 
 restore_inspector();
-restore_view();
+//restore_view(); // not really needed is it?
 //restore_root();
 
 update();
