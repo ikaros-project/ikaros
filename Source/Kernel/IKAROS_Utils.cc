@@ -853,7 +853,7 @@ Dictionary::GetInt(const char * k)
     for(KeyValue * kv = first; kv != NULL; kv = kv->next)
         if(equal_strings(k, kv->key))
             return kv->int_value;
-    return NULL;
+    return 0;
 }
 
 const float
@@ -862,7 +862,7 @@ Dictionary::GetFloat(const char * k)
     for(KeyValue * kv = first; kv != NULL; kv = kv->next)
         if(equal_strings(k, kv->key))
             return kv->float_value;
-    return NULL;
+    return 0;
 }
 
 void
