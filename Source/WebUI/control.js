@@ -19,14 +19,10 @@ function setCookie(name,value,days)
     date.setTime(date.getTime()+(days?days:1)*86400000);
     var expires = "; expires="+date.toGMTString();
 	document.cookie = name+"="+value+expires+"; path=/";
-    
-    window.console.log("setCookie: "+document.cookie);
 }
 
 function getCookie(name)
 {
-    window.console.log("getCookie: "+document.cookie);
-    
     var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
