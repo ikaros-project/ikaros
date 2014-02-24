@@ -1,5 +1,9 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include_directories(
+	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/
+)
+
 set(SOURCE
 	${SOURCE}
 	${CMAKE_CURRENT_SOURCE_DIR}/FASTDetector.cc
@@ -9,5 +13,10 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast_11.c
 	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/fast_12.c
 	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/nonmax.c
+	PARENT_SCOPE
+)
+set(MODULES_INCLUDS
+	${MODULES_INCLUDS}
+	${CMAKE_CURRENT_SOURCE_DIR}/fast-C-src-2.1/
 	PARENT_SCOPE
 )
