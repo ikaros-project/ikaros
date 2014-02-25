@@ -2498,8 +2498,283 @@ namespace ikaros
         }
         return angle;
     }
+
+
+
+    //
+    // homogenous 4x4 matrices represented as float[16]
+    // MARK: -
+    // MARK: homogenous matrices
+    
+    float *
+    h_reset(float r[16])
+    {
+        r[ 0] = 0; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
+        r[ 4] = 0; r[ 5] = 0; r[ 6] = 0; r[ 7] = 0;
+        r[ 8] = 0; r[ 9] = 0; r[10] = 0; r[11] = 0;
+        r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 0;
+        return r;
+    }
+    
+    float *
+    h_eye(float r[16])
+    {
+        r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
+        r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = 0;
+        r[ 8] = 0; r[ 9] = 0; r[10] = 1; r[11] = 0;
+        r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+        return r;
+    }
+    
+    float *
+    h_translatation_matrix(float r[16], float tx, float ty, float tz)
+    {
+        r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = tx;
+        r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = ty;
+        r[ 8] = 0; r[ 9] = 0; r[10] = 1; r[11] = tz;
+        r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+        return r;
+    }
     
 
+    float *
+    h_rotation_matrix(float r[16], axis a, float alpha)
+    {
+        float s = sin(alpha);
+        float c = cos(alpha);
+        
+        switch(a)
+        {
+            case X:
+                r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
+                r[ 4] = 0; r[ 5] = c; r[ 6] =-s; r[ 7] = 0;
+                r[ 8] = 0; r[ 9] = s; r[10] = c; r[11] = 0;
+                r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+                break;
+            
+            case Y:
+                r[ 0] = c; r[ 1] = 0; r[ 2] = s; r[ 3] = 0;
+                r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = 0;
+                r[ 8] =-s; r[ 9] = 0; r[10] = c; r[11] = 0;
+                r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+                break;
+            
+            case Z:
+                r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
+                r[ 4] = 0; r[ 5] = c; r[ 6] =-s; r[ 7] = 0;
+                r[ 8] = 0; r[ 9] = s; r[10] = c; r[11] = 0;
+                r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+                break;
+        }
+        return r;
+    }
+    
+
+    float *
+    h_reflection_matrix(float r[16], axis a)
+    {
+        float x = (a == X ? -1 : 1);
+        float y = (a == Y ? -1 : 1);
+        float z = (a == Z ? -1 : 1);
+        r[ 0] = x; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
+        r[ 4] = 0; r[ 5] = y; r[ 6] = 0; r[ 7] = 0;
+        r[ 8] = 0; r[ 9] = 0; r[10] = z; r[11] = 0;
+        r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+        return r;
+    }
+    
+
+    float *
+    h_scaling_matrix(float r[16], float sx, float sy, float sz)
+    {
+        r[ 0] =sx; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
+        r[ 4] = 0; r[ 5] =sy; r[ 6] = 0; r[ 7] = 0;
+        r[ 8] = 0; r[ 9] = 0; r[10] =sz; r[11] = 0;
+        r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+        return r;
+    }
+
+
+    void
+    h_get_translation(const float m[16], float & x, float & y, float &z)
+    {
+        x = m[3];
+        y = m[7];
+        z = m[11];
+    }
+    
+    void
+    h_get_euler_angles(const float m[16], float & x, float & y, float &z) // ZYX
+    {
+        if (m[8] < +1)
+        {
+            if (m[8] > -1)
+            {
+                y = asin(-m[8]);
+                z = atan2(m[4],m[0]);
+                x = atan2(m[9],m[10]);
+            }
+            else // m8 = -1
+            {
+                y = +pi/2;
+                z = -atan2(-m[6],m[5]);
+                x = 0;
+            }
+        }
+        else // m8 = +1
+        {
+            y = -pi/2;
+            z = atan2(-m[6],m[5]);
+            x = 0;
+        }
+    }
+
+
+    
+    float
+    h_get_euler_angle(const float m[16], axis a)
+    {
+        switch(a)
+        {
+            case X:
+                if (-1 < m[8] && m[8] < +1)
+                    return atan2(m[9], m[10]);
+                else
+                    return  0;
+            
+            case Y:
+                if(m[8] >= +1)
+                    return  -pi/2;
+                else if (m[8] > -1)
+                    return asin(-m[8]);
+                else
+                    return +pi/2;
+
+            case Z:
+                if(m[8] >= +1)
+                    return  atan2(-m[6], m[5]);
+                else if (m[8] > -1)
+                    return atan2(m[4], m[0]);
+                else
+                    return -atan2(-m[6], m[5]);
+        }
+        
+        return 0;
+    }
+    
+    
+
+    // operations
+
+    float *
+    h_multiply(float r[16], float a[16], float b[16])
+    {
+        float t[16];
+        
+        t[0]  = a[0]*b[0]  + a[4]*b[1]  + a[8]*b[2]  + a[12]*b[3];
+        t[1]  = a[1]*b[0]  + a[5]*b[1]  + a[9]*b[2]  + a[13]*b[3];
+        t[2]  = a[2]*b[0]  + a[6]*b[1]  + a[10]*b[2]  + a[14]*b[3];
+        t[3]  = a[3]*b[0]  + a[7]*b[1]  + a[11]*b[2]  + a[15]*b[3];
+
+        t[4]  = a[0]*b[4]  + a[4]*b[5]  + a[8]*b[6]  + a[12]*b[7];
+        t[5]  = a[1]*b[4]  + a[5]*b[5]  + a[9]*b[6]  + a[13]*b[7];
+        t[6]  = a[2]*b[4]  + a[6]*b[5]  + a[10]*b[6]  + a[14]*b[7];
+        t[7]  = a[3]*b[4]  + a[7]*b[5]  + a[11]*b[6]  + a[15]*b[7];
+
+        t[8]  = a[0]*b[8]  + a[4]*b[9]  + a[8]*b[10] + a[12]*b[11];
+        t[9]  = a[1]*b[8]  + a[5]*b[9]  + a[9]*b[10] + a[13]*b[11];
+        t[10] = a[2]*b[8]  + a[6]*b[9]  + a[10]*b[10] + a[14]*b[11];
+        t[11] = a[3]*b[8]  + a[7]*b[9]  + a[11]*b[10] + a[15]*b[11];
+
+        t[12] = a[0]*b[12] + a[4]*b[13] + a[8]*b[14] + a[12]*b[15];
+        t[13] = a[1]*b[12] + a[5]*b[13] + a[9]*b[14] + a[13]*b[15];
+        t[14] = a[2]*b[12] + a[6]*b[13] + a[10]*b[14] + a[14]*b[15];
+        t[15] = a[3]*b[12] + a[7]*b[13] + a[11]*b[14] + a[15]*b[15];
+        
+        return copy_array(r, t, 16);
+    }
+    
+    
+    float *
+    h_multiply_v(float * r, float m[16], float * v)
+    {
+        float t[4];
+        t[0] = m[0]*v[0] + m[4]*v[1] + m[ 8]*v[2] + m[12]*v[3];
+        t[1] = m[1]*v[0] + m[5]*v[1] + m[ 9]*v[2] + m[13]*v[3];
+        t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3];
+        t[3] = m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3];
+    
+        if(t[3] != 0)
+        {
+            r[0] = t[0] / t[3];
+            r[1] = t[1] / t[3];
+            r[2] = t[2] / t[3];
+            r[4] = 1;
+        }
+        else // should never happen
+        {
+            r[0] = t[0];
+            r[1] = t[1];
+            r[2] = t[2];
+            r[3] = 0;
+        }
+        
+        return r;
+    }
+    
+    
+    float *
+    h_transpose(float r[16], float a[16])
+    {
+        float t[16];
+
+        t[ 0] = a[ 0]; t[ 1] = a[ 4]; t[ 2] = a[ 8]; t[ 3] = a[12];
+        t[ 4] = a[ 1]; t[ 5] = a[ 5]; t[ 6] = a[ 9]; t[ 7] = a[13];
+        t[ 8] = a[ 2]; t[ 9] = a[ 6]; t[10] = a[10]; t[11] = a[14];
+        t[12] = a[ 3]; t[13] = a[ 7]; t[14] = a[11]; t[15] = a[15];
+
+        return copy_array(r, t, 16);
+    }
+    
+    
+    float *
+    h_inv(float r[16], float a[16])
+    {
+        float * tr[4];
+        float * ta[4];
+        
+        inv(h_temp_matrix(r, tr), h_temp_matrix(a, ta), 4);
+        return r;
+    }
+    
+    // utilities
+    
+    float **
+    h_temp_matrix(float r[16], float * (&p)[4])
+    {
+        p[0] = &r[0];
+        p[1] = &r[4];
+        p[2] = &r[8];
+        p[3] = &r[12];
+        return p;
+    }
+    
+    float **
+    h_create_matrix(float m[16])
+    {
+        float ** r = create_matrix(4, 4);
+        copy_array(*r, m, 16);
+        return r;
+    }
+
+    void
+    h_print_matrix(const char * name, float m[16], int decimals)
+    {
+        float * t[4];
+        print_matrix(name, h_temp_matrix(m, t), 4, 4, decimals);
+    };
+    
+//    print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals)
     
     // image processing
     // MARK: -
