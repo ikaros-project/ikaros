@@ -259,7 +259,39 @@ namespace ikaros
     float **    chol(float ** r, float ** a, int size);
     int         svd(float ** u, float * s, float ** v, float ** m, int sizex, int sizey); // Singular value decomposition: u*diag(s)*v' = m; m has size sizex x sizey
     
+    // homogenous 4x4 matrices represented as float[16]
     
+    enum axis { X, Y, Z };
+    
+    // set matrix data
+    
+    float *     h_reset(float r[16]);
+    float *     h_eye(float r[16]);
+    float *     h_rotation_matrix(float r[16], axis a, float alpha);
+    float *     h_translatation_matrix(float r[16], float tx, float ty, float tz);
+    float *     h_reflection_matrix(float r[16], axis a);
+    float *     h_scaling_matrix(float r[16], float sx, float sy, float sz);
+    
+    // get matrix data
+    
+    void        h_get_translation(const float m[16], float & x, float & y, float &z);
+    void        h_get_euler_angles(const float m[16], float & x, float & y, float &z);
+    float       h_get_euler_angle(const float m[16], axis a);
+    
+    // operations
+    
+    float *     h_multiply(float r[16], float a[16], float b[16]);  // matrix x matrix
+    float *     h_multiply_v(float * r, float m[16], float * v);  // matrix x vector
+    float *     h_transpose(float r[16], float a[16]);
+    float *     h_inv(float r[16], float a[16]);
+    
+    // utilities
+    
+    float **    h_temp_matrix(float r[16], float * (&p)[4]); // return pointer to  matrix that last as long as temporary storage p is vailable
+    float **    h_create_matrix(float r[16]); // create an ordinary matrix; data is copied
+
+    void        h_print_matrix(const char * name, float m[16], int decimals=2);
+
 	// conversion
 	
 	float		trunc(float x);
