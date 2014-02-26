@@ -34,7 +34,8 @@
 		name = "ConstantMatrix" 
 		outputsize_x = "5" 
 		outputsize_y = "7"
-		data = "0 0 0 0 0
+		data = "
+                0 0 0 0 0
 			    0 1 1 1 0
 			    0 2 0 0 0
 			    0 3 3 3 0

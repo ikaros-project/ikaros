@@ -422,6 +422,11 @@ create_matrix(const char * s, int & sizex, int & sizey)
     if (s == NULL)
         return NULL;
     
+    // Skip leading whitespace in s
+    
+    while(*s && isspace(*s))
+        s++;
+    
     // Count rows and columns in s
     
     int row_elements = 0;
