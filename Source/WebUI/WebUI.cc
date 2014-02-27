@@ -1,7 +1,7 @@
 //
 //	WebUI.cc		HTTP support for the IKAROS kernel
 //
-//    Copyright (C) 2005-2012  Christian Balkenius
+//    Copyright (C) 2005-2014  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -187,12 +187,44 @@ SendTextData(ServerSocket * socket, float ** matrix, int sizex, int sizey)
     socket->SendHTTPHeader(&header);
     
     for (int j=0; j<sizey; j++)
+    {
         for (int i=0; i<sizex; i++)
             if (i==0 && j==0)
                 socket->Send("%.4f", matrix[0][0]);	// no space before first
             else
                 socket->Send(" %.4f", matrix[j][i]);
-	
+        socket->Send("\n");
+    }
+    
+    return true;
+}
+
+
+
+static bool
+SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int sizex, int sizey)
+{
+    Dictionary header;
+    header.Set("Content-Type", "text/html");
+    socket->SendHTTPHeader(&header);
+    
+    socket->Send("<html>\n");
+    socket->Send("<header>\n");
+    socket->Send("<title>%s</title>\n", title);
+    socket->Send("<style>td {font:10pt Arial,sans-serif;text-align:right}</style>");
+    socket->Send("</header>\n");
+    socket->Send("<body><div><table>\n");
+
+    for (int j=0; j<sizey; j++)
+    {
+        socket->Send("<tr>\n");
+        for(int i=0; i<sizex; i++)
+            socket->Send("<td>%.4f</td>", matrix[j][i]);
+        socket->Send("</tr>\n");
+    }
+
+    socket->Send("</table></div></body></html>\n");
+
     return true;
 }
 
@@ -1420,7 +1452,8 @@ WebUI::HandleHTTPRequest()
         {
             int sx = m->GetOutputSizeX(output);
             int sy = m->GetOutputSizeY(output);
-            if (!SendTextData(socket, m->GetOutputMatrix(output), sx, sy))
+            char * s = create_formatted_string("%s.%s [%dx%d]", module, output, sx, sy);
+            if (!SendHTMLData(socket, s, m->GetOutputMatrix(output), sx, sy))
                 k->Notify(msg_warning, "Could not send: data.txt\n");
         }
         
@@ -1531,7 +1564,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
 {
         socket->Send("<table>\n");
 		
-        m->GetFullName();
+//        m->GetFullName();
 		
         socket->Send("<tr><th colspan='2' align='center' style='background-color: gray; border: 1px solid gray; padding: 3px; color: black'><id=\"%s\">\n", m->GetName());
         const char * n = m->GetFullName();
@@ -1605,7 +1638,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
             }
         socket->Send("</table>\n");
         socket->Send("</td></tr>\n");
-		
+
         // Inputs
 
         if(m->input_list)
@@ -1636,7 +1669,10 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
             socket->Send("</table>\n");
             socket->Send("</td></tr>\n");
         }
-        
+
+
+
+
         // Outputs
         
         if(m->output_list)
@@ -1646,7 +1682,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
 			for (Module_IO * i = m->output_list; i != NULL; i = i->next)
 			{
 				socket->Send("<tr>\n");
-				socket->Send("<td>%-10s</td>\n", i->name);
+				socket->Send("<td><a onclick=\"var w = window.open('module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetName(), i->name, i->name);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizex);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizey);
 				if(m->OutputConnected(i->name))
