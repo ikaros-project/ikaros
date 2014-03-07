@@ -2696,7 +2696,7 @@ namespace ikaros
     
     
     float *
-    h_multiply_v(float * r, float m[16], float * v)
+    h_multiply_v(float r[4], float m[16], float v[4])
     {
         float t[4];
         t[0] = m[0]*v[0] + m[4]*v[1] + m[ 8]*v[2] + m[12]*v[3];
@@ -2747,6 +2747,58 @@ namespace ikaros
         return r;
     }
     
+    float *
+    h_copy(float r[16], float m[16])
+    {
+        for(int i=0; i<16; i++)
+            r[i] = m[i];
+        return r;
+    }
+
+
+    float *
+    h_add(float r[16], float a[16])
+    {
+        for(int i=0; i<16; i++)
+            r[i] += a[i];
+        return r;
+    }
+
+    float *
+    h_multiply(float r[16], float c)
+    {
+        for(int i=0; i<16; i++)
+            r[i] *= c;
+        return r;
+    }
+
+    float *
+    h_normalize_rotation(float m[16])
+    {
+        float s[3];
+        float * t[4];
+
+        float ** u = create_matrix(3, 3);
+        float ** v = create_matrix(3, 3);
+        float ** r = create_matrix(3, 3);
+        
+        svd(u, s, v, h_temp_matrix(m, t), 3, 3);
+
+        float ** vt = transpose(create_matrix(3, 3), v, 3, 3);
+
+        multiply(r, u, vt, 3, 3, 3);
+
+        destroy_matrix(u);
+        destroy_matrix(v);
+        destroy_matrix(vt);
+
+        for(int i=0; i<3; i++)
+            for(int j=0; j<3; j++)
+                m[j*4+i] = r[j][i];
+
+        return m;
+    }
+    
     // utilities
     
     float **
@@ -2774,7 +2826,7 @@ namespace ikaros
         print_matrix(name, h_temp_matrix(m, t), 4, 4, decimals);
     };
     
-//    print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals)
+
     
     // image processing
     // MARK: -

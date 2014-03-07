@@ -280,16 +280,19 @@ namespace ikaros
     
     // operations
     
+    float *     h_add(float r[16], float a[16]);
     float *     h_multiply(float r[16], float a[16], float b[16]);  // matrix x matrix
-    float *     h_multiply_v(float * r, float m[16], float * v);  // matrix x vector
+    float *     h_multiply_v(float r[4], float m[16], float v[4]);  // matrix x vector
+    float *     h_multiply(float r[16], float c); // matrix x scalar
     float *     h_transpose(float r[16], float a[16]);
     float *     h_inv(float r[16], float a[16]);
+    float *     h_normalize_rotation(float m[16]); // uses svd to orthogonalize the 3x3 rotation part of the matrix
     
     // utilities
     
-    float **    h_temp_matrix(float r[16], float * (&p)[4]); // return pointer to  matrix that last as long as temporary storage p is vailable
+    float *     h_copy(float r[16], float m[16]);
+    float **    h_temp_matrix(float r[16], float * (&p)[4]); // return pointer to  matrix that last as long as temporary storage p is available (float * p[4])
     float **    h_create_matrix(float r[16]); // create an ordinary matrix; data is copied
-
     void        h_print_matrix(const char * name, float m[16], int decimals=2);
 
 	// conversion
