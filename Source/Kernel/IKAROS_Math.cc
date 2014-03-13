@@ -2502,12 +2502,12 @@ namespace ikaros
 
 
     //
-    // homogenous 4x4 matrices represented as float[16]
+    // homogenous 4x4 matrices represented as h_matrix = float[16]
     // MARK: -
     // MARK: homogenous matrices
     
     float *
-    h_reset(float r[16])
+    h_reset(h_matrix r)
     {
         r[ 0] = 0; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
         r[ 4] = 0; r[ 5] = 0; r[ 6] = 0; r[ 7] = 0;
@@ -2517,7 +2517,7 @@ namespace ikaros
     }
     
     float *
-    h_eye(float r[16])
+    h_eye(h_matrix r)
     {
         r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
         r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = 0;
@@ -2527,7 +2527,7 @@ namespace ikaros
     }
     
     float *
-    h_translatation_matrix(float r[16], float tx, float ty, float tz)
+    h_translatation_matrix(h_matrix r, float tx, float ty, float tz)
     {
         r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = tx;
         r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = ty;
@@ -2538,7 +2538,7 @@ namespace ikaros
     
 
     float *
-    h_rotation_matrix(float r[16], axis a, float alpha)
+    h_rotation_matrix(h_matrix r, axis a, float alpha)
     {
         float s = sin(alpha);
         float c = cos(alpha);
@@ -2571,7 +2571,7 @@ namespace ikaros
     
 
     float *
-    h_reflection_matrix(float r[16], axis a)
+    h_reflection_matrix(h_matrix r, axis a)
     {
         float x = (a == X ? -1 : 1);
         float y = (a == Y ? -1 : 1);
@@ -2585,7 +2585,7 @@ namespace ikaros
     
 
     float *
-    h_scaling_matrix(float r[16], float sx, float sy, float sz)
+    h_scaling_matrix(h_matrix r, float sx, float sy, float sz)
     {
         r[ 0] =sx; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
         r[ 4] = 0; r[ 5] =sy; r[ 6] = 0; r[ 7] = 0;
@@ -2596,7 +2596,7 @@ namespace ikaros
 
 
     void
-    h_get_translation(const float m[16], float & x, float & y, float &z)
+    h_get_translation(const h_matrix m, float & x, float & y, float &z)
     {
         x = m[3];
         y = m[7];
@@ -2604,7 +2604,7 @@ namespace ikaros
     }
     
     void
-    h_get_euler_angles(const float m[16], float & x, float & y, float &z) // ZYX
+    h_get_euler_angles(const h_matrix m, float & x, float & y, float &z) // ZYX
     {
         if (m[8] < +1)
         {
@@ -2632,7 +2632,7 @@ namespace ikaros
 
     
     float
-    h_get_euler_angle(const float m[16], axis a)
+    h_get_euler_angle(const h_matrix m, axis a)
     {
         switch(a)
         {
@@ -2667,9 +2667,9 @@ namespace ikaros
     // operations
 
     float *
-    h_multiply(float r[16], float a[16], float b[16])
+    h_multiply(h_matrix r, h_matrix a, h_matrix b)
     {
-        float t[16];
+        h_matrix t;
         
         t[0]  = a[0]*b[0]  + a[4]*b[1]  + a[8]*b[2]  + a[12]*b[3];
         t[1]  = a[1]*b[0]  + a[5]*b[1]  + a[9]*b[2]  + a[13]*b[3];
@@ -2696,7 +2696,7 @@ namespace ikaros
     
     
     float *
-    h_multiply_v(float r[4], float m[16], float v[4])
+    h_multiply_v(h_vector r, h_matrix m, h_vector v)
     {
         float t[4];
         t[0] = m[0]*v[0] + m[4]*v[1] + m[ 8]*v[2] + m[12]*v[3];
@@ -2724,9 +2724,9 @@ namespace ikaros
     
     
     float *
-    h_transpose(float r[16], float a[16])
+    h_transpose(h_matrix r, h_matrix a)
     {
-        float t[16];
+        h_matrix t;
 
         t[ 0] = a[ 0]; t[ 1] = a[ 4]; t[ 2] = a[ 8]; t[ 3] = a[12];
         t[ 4] = a[ 1]; t[ 5] = a[ 5]; t[ 6] = a[ 9]; t[ 7] = a[13];
@@ -2738,7 +2738,7 @@ namespace ikaros
     
     
     float *
-    h_inv(float r[16], float a[16])
+    h_inv(h_matrix r, h_matrix a)
     {
         float * tr[4];
         float * ta[4];
@@ -2748,16 +2748,16 @@ namespace ikaros
     }
     
     float *
-    h_copy(float r[16], float m[16])
+    h_copy(h_matrix r, h_matrix a)
     {
         for(int i=0; i<16; i++)
-            r[i] = m[i];
+            r[i] = a[i];
         return r;
     }
 
 
     float *
-    h_add(float r[16], float a[16])
+    h_add(h_matrix r, h_matrix a)
     {
         for(int i=0; i<16; i++)
             r[i] += a[i];
@@ -2765,7 +2765,7 @@ namespace ikaros
     }
 
     float *
-    h_multiply(float r[16], float c)
+    h_multiply(h_matrix r, float c)
     {
         for(int i=0; i<16; i++)
             r[i] *= c;
@@ -2773,7 +2773,7 @@ namespace ikaros
     }
 
     float *
-    h_normalize_rotation(float m[16])
+    h_normalize_rotation(h_matrix m)
     {
         float s[3];
         float * t[4];
@@ -2802,7 +2802,7 @@ namespace ikaros
     // utilities
     
     float **
-    h_temp_matrix(float r[16], float * (&p)[4])
+    h_temp_matrix(h_matrix r, float * (&p)[4])
     {
         p[0] = &r[0];
         p[1] = &r[4];
@@ -2810,23 +2810,39 @@ namespace ikaros
         p[3] = &r[12];
         return p;
     }
-    
-    float **
-    h_create_matrix(float m[16])
-    {
-        float ** r = create_matrix(4, 4);
-        copy_array(*r, m, 16);
-        return r;
-    }
+
 
     void
-    h_print_matrix(const char * name, float m[16], int decimals)
+    h_print_matrix(const char * name, h_matrix m, int decimals)
     {
         float * t[4];
         print_matrix(name, h_temp_matrix(m, t), 4, 4, decimals);
     };
     
 
+    float **
+    h_create_matrix(h_matrix h)
+    {
+        float ** r = create_matrix(4, 4);
+        int ix = 0;
+        for(int j=0; j<4; j++)
+            for(int i=0; i<4; i++)
+                r[j][i] = h[ix++];
+        return r;
+    }
+ 
+    
+    float **
+    h_set_matrix(float ** m, h_matrix h)
+    {
+        int ix = 0;
+        for(int j=0; j<4; j++)
+            for(int i=0; i<4; i++)
+                m[j][i] = h[ix++];
+        return m;
+    }
+    
+    
     
     // image processing
     // MARK: -

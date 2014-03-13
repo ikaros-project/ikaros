@@ -261,39 +261,44 @@ namespace ikaros
     
     // homogenous 4x4 matrices represented as float[16]
     
+    typedef float h_matrix[16];
+    typedef float h_vector[4];
+    
     enum axis { X, Y, Z };
     
     // set matrix data
     
-    float *     h_reset(float r[16]);
-    float *     h_eye(float r[16]);
-    float *     h_rotation_matrix(float r[16], axis a, float alpha);
-    float *     h_translatation_matrix(float r[16], float tx, float ty, float tz);
-    float *     h_reflection_matrix(float r[16], axis a);
-    float *     h_scaling_matrix(float r[16], float sx, float sy, float sz);
+    float *     h_reset(h_matrix r);
+    float *     h_eye(h_matrix r);
+    float *     h_rotation_matrix(h_matrix r, axis a, float alpha);
+    float *     h_translatation_matrix(h_matrix r, float tx, float ty, float tz);
+    float *     h_reflection_matrix(h_matrix r, axis a);
+    float *     h_scaling_matrix(h_matrix r, float sx, float sy, float sz);
     
     // get matrix data
     
-    void        h_get_translation(const float m[16], float & x, float & y, float &z);
-    void        h_get_euler_angles(const float m[16], float & x, float & y, float &z);
-    float       h_get_euler_angle(const float m[16], axis a);
+    void        h_get_translation(const h_matrix m, float & x, float & y, float &z);
+    void        h_get_euler_angles(const h_matrix m, float & x, float & y, float &z);
+    float       h_get_euler_angle(const h_matrix m, axis a);
     
     // operations
     
-    float *     h_add(float r[16], float a[16]);
-    float *     h_multiply(float r[16], float a[16], float b[16]);  // matrix x matrix
-    float *     h_multiply_v(float r[4], float m[16], float v[4]);  // matrix x vector
-    float *     h_multiply(float r[16], float c); // matrix x scalar
-    float *     h_transpose(float r[16], float a[16]);
-    float *     h_inv(float r[16], float a[16]);
-    float *     h_normalize_rotation(float m[16]); // uses svd to orthogonalize the 3x3 rotation part of the matrix
+    float *     h_add(h_matrix r, h_matrix a); // r = r + a
+    float *     h_multiply(h_matrix r, h_matrix a, h_matrix b);  // matrix x matrix
+    float *     h_multiply_v(h_vector r, h_matrix m, h_vector v);  // matrix x vector
+    float *     h_multiply(h_matrix r, float c); // matrix x scalar
+    float *     h_transpose(h_matrix r, h_matrix a);
+    float *     h_inv(h_matrix r, h_matrix a);
+    float *     h_normalize_rotation(h_vector m); // uses svd to orthogonalize the 3x3 rotation part of the matrix
     
     // utilities
     
-    float *     h_copy(float r[16], float m[16]);
-    float **    h_temp_matrix(float r[16], float * (&p)[4]); // return pointer to  matrix that last as long as temporary storage p is available (float * p[4])
-    float **    h_create_matrix(float r[16]); // create an ordinary matrix; data is copied
-    void        h_print_matrix(const char * name, float m[16], int decimals=2);
+    float *     h_copy(h_matrix r, h_matrix m);
+    float **    h_temp_matrix(h_matrix r, float * (&p)[4]); // return pointer to  matrix that last as long as temporary storage p is available (float * p[4])
+    void        h_print_matrix(const char * name, h_matrix m, int decimals=2);
+
+    float **    h_create_matrix(h_matrix m); // create an ordinary 4x4 matrix; data is copied
+    float **    h_set_matrix(float ** m, h_matrix h); // set top left 4x4 elements of a regular matrix from a h_matrix
 
 	// conversion
 	
