@@ -2560,14 +2560,15 @@ namespace ikaros
                 break;
             
             case Z:
-                r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = 0;
-                r[ 4] = 0; r[ 5] = c; r[ 6] =-s; r[ 7] = 0;
-                r[ 8] = 0; r[ 9] = s; r[10] = c; r[11] = 0;
+                r[ 0] = c; r[ 1] = -s; r[ 2] = 0; r[ 3] = 0;
+                r[ 4] = s; r[ 5] = c; r[ 6] = 0; r[ 7] = 0;
+                r[ 8] = 0; r[ 9] = 0; r[10] = 0; r[11] = 0;
                 r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
                 break;
         }
         return r;
     }
+
     
 
     float *
@@ -2686,6 +2687,9 @@ namespace ikaros
         t[10] = b[2]*a[8]  + b[6]*a[9]  + b[10]*a[10] + b[14]*a[11];
         t[11] = b[3]*a[8]  + b[7]*a[9]  + b[11]*a[10] + b[15]*a[11];
 
+        // The following lines could be optimized away if it really is
+        // a homogenous matrix. Should always be [0, 0, 0, 1]
+
         t[12] = b[0]*a[12] + b[4]*a[13] + b[8]*a[14] + b[12]*a[15];
         t[13] = b[1]*a[12] + b[5]*a[13] + b[9]*a[14] + b[13]*a[15];
         t[14] = b[2]*a[12] + b[6]*a[13] + b[10]*a[14] + b[14]*a[15];
@@ -2704,7 +2708,7 @@ namespace ikaros
         t[2] = m[ 8]*v[0] + m[ 9]*v[1] + m[10]*v[2] + m[11]*v[3];
         t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3];
     
-        if(t[3] != 0)
+        if(t[3] != 0) // normalize vector
         {
             r[0] = t[0] / t[3];
             r[1] = t[1] / t[3];
@@ -2797,17 +2801,18 @@ namespace ikaros
 
         multiply(r, u, vt, 3, 3, 3);
 
-        destroy_matrix(u);
-        destroy_matrix(v);
-        destroy_matrix(vt);
-
         for(int i=0; i<3; i++)
             for(int j=0; j<3; j++)
                 m[j*4+i] = r[j][i];
 
+        destroy_matrix(vt);
+        destroy_matrix(r);
+        destroy_matrix(v);
+        destroy_matrix(u);
+
         return m;
     }
-    
+
     // utilities
     
     float **
