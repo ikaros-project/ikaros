@@ -301,6 +301,8 @@ namespace ikaros
     float **    h_create_matrix(h_matrix m); // create an ordinary 4x4 matrix; data is copied
     float **    h_set_matrix(float ** m, h_matrix h); // set top left 4x4 elements of a regular matrix from a h_matrix
 
+    inline bool h_matrix_is_valid(h_matrix m) { return (m[15] > 0.1); } // Matrix is valid if bottom right element is 1 (but we do not want to make an exact match)
+
 	// conversion
 	
 	float		trunc(float x);
