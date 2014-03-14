@@ -285,7 +285,7 @@ namespace ikaros
     
     float *     h_add(h_matrix r, h_matrix a); // r = r + a
     float *     h_multiply(h_matrix r, h_matrix a, h_matrix b);  // matrix x matrix
-    float *     h_multiply_v(h_vector r, h_matrix m, h_vector v);  // matrix x vector
+    float *     h_multiply_v(h_vector r, h_matrix m, h_vector v);  // matrix x vector + scaling to make v[3] == 1.
     float *     h_multiply(h_matrix r, float c); // matrix x scalar
     float *     h_transpose(h_matrix r, h_matrix a);
     float *     h_inv(h_matrix r, h_matrix a);
@@ -294,6 +294,7 @@ namespace ikaros
     // utilities
     
     float *     h_copy(h_matrix r, h_matrix m);
+    float *     h_copy_v(h_vector r, h_vector a);
     float **    h_temp_matrix(h_matrix r, float * (&p)[4]); // return pointer to  matrix that last as long as temporary storage p is available (float * p[4])
     void        h_print_matrix(const char * name, h_matrix m, int decimals=2);
 
