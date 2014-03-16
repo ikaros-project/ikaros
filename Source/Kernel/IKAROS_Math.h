@@ -281,6 +281,11 @@ namespace ikaros
     void        h_get_euler_angles(const h_matrix m, float & x, float & y, float &z);
     float       h_get_euler_angle(const h_matrix m, axis a);
     
+    inline float h_get_x(h_matrix m) { return m[3]; }
+    inline float h_get_y(h_matrix m) { return m[7]; }
+    inline float h_get_z(h_matrix m) { return m[11]; }
+
+    
     // operations
     
     float *     h_add(h_matrix r, h_matrix a); // r = r + a
