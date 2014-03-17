@@ -54,6 +54,8 @@ public:
     bool        use_history;
     bool        auto_threshold;
     int         threshold;
+    
+    int         coordinate_system;
 
     float *     calibration;
     

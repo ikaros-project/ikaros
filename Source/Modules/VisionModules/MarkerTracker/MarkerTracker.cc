@@ -338,6 +338,9 @@ MarkerTracker::Init()
     tracker->setMarkerMode(useBCH ? ARToolKitPlus::MARKER_ID_BCH : ARToolKitPlus::MARKER_ID_SIMPLE);
     
     buffer = new unsigned char [size_x*size_y];
+    
+    coordinate_system =   GetIntValueFromList("coordinate_system");
+
 }
 
 
@@ -374,7 +377,21 @@ MarkerTracker::Tick()
         if(ix < max_markers && tracker->marker_info[j].cf > 0.7)
         {
             float ** m = create_matrix_view(&markers[ix][trans_matrix_cam_coord], 4, 4);
-            copy_matrix(m, tracker->marker_matrix[j], 4, 4);
+            
+            copy_matrix(m, tracker->marker_matrix[j], 4, 4); // In ARToolkit coordinate system
+            
+            if (coordinate_system == 1) // Convert to ikaros coordinate system z = x', -x = y', -y = z'.
+            {
+                printf("Changing to Ikaros base\n");
+                h_matrix baseChange;
+                h_matrix rotY;
+                h_matrix rotZ;
+                h_rotation_matrix(rotZ, Z, pi/2);
+                h_rotation_matrix(rotY, Y, -pi/2);
+                h_multiply(baseChange, rotZ, rotY); // Create a rotation matrix
+                h_multiply(*m, *m, baseChange); // Changing coordinate system
+            }
+            
             destroy_matrix_view(m);
             
             markers[ix][marker_pos_x] = tracker->marker_info[j].pos[0]/float(size_x);
