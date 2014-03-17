@@ -32,7 +32,6 @@
 		/>
 	</example>
 
-
 	<parameter name="max_markers" type="int" default="10" description="Maximum number of markers to detect" />
 	<parameter name="marker_size" type="float" default="45" description="The size of the markers in mm; or id ranges and sizes" />
     
@@ -40,7 +39,6 @@
 	<parameter name="use_history" type="bool" default="no" description="Use history to track the markers over time" />
 	<parameter name="threshold" type="float" default="auto" description="The initial threshold (Number between 0.0-1.0 or auto)" />
 	<parameter name="calibration" type="array" default="640 426 294.458 161.609 675.381 681.446 -0.160115  -0.067107  0.016423  -0.001641 0 0 10" description="Camera calibration. See ARTookKit documentation for an explanation of these parameters. These values must be valid for the camera used to produce correct results." />
-    <parameter name="coordinate_system" type="list" values="artoolkit/ikaros" default="ikaros" description= "The coordinate system of the marker output. The relationship between artoolkit coordinates and ikaros coordinates are  z = x', -x = y', -y = z'. See Artoolkit documentation http://www.hitl.washington.edu/artoolkit/documentation/tutorialcamera.htm "/>
 
 	<input name="INPUT" description="The image input" />
     
