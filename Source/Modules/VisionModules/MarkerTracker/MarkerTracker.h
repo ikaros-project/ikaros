@@ -33,18 +33,21 @@ class MFTracker;
 class MarkerTracker: public Module
 {
 public:
-
+    
     MarkerTracker(Parameter * p) : Module(p) {}
     virtual ~MarkerTracker();
-
+    
     static Module * Create(Parameter * p) { return new MarkerTracker(p); }
-
+    
     void 		Init();
     void 		Tick();
-
+    
     float **    markers;
     float *     marker_count;
     int         max_markers;
+    
+    float **    projection;
+    float **    model_view;
     
     float       marker_size;
     float **    marker_sizes;
@@ -54,12 +57,14 @@ public:
     bool        use_history;
     bool        auto_threshold;
     int         threshold;
-
+    
+    int         coordinate_system;
+    
     float *     calibration;
     
     int         size_x;
     int         size_y;
-
+    
     float **    input;
     int         max_positions;
     

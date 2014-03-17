@@ -50,13 +50,13 @@ center_sort_rows(float ** m, int size_x, int size_y)
                 copy_array(t, m[i-1], size_x);
                 copy_array(m[i-1], m[i], size_x);
                 copy_array(m[i], t, size_x);
-
+                
                 nn = i;
             }
         }
         n = nn;
     } while(n > 0);
-
+    
     destroy_array(t);
     return m;
 }
@@ -65,12 +65,12 @@ center_sort_rows(float ** m, int size_x, int size_y)
 
 // World data structure
 
-const int marker_pos_x = 0;
-const int marker_pos_y = 1;
-const int marker_id = 2;
-const int marker_confidence = 3;
-const int marker_corners = 4;
-const int trans_matrix_cam_coord = 12;
+const int trans_matrix_cam_coord = 0;
+const int marker_id = 16;
+const int marker_confidence = 17;
+const int marker_pos_x = 18;
+const int marker_pos_y = 19;
+const int marker_corners = 20;
 
 
 
@@ -82,7 +82,7 @@ class MTCamera: public Camera
 public:
     MTCamera() : Camera() {};
     ~MTCamera() {};
-
+    
     bool setCameraCalibration(float * calibration);
 };
 
@@ -104,19 +104,19 @@ MTCamera::setCameraCalibration(float * calibration)
     kc[4] = calibration[10];
     kc[5] = calibration[11];
     undist_iterations = int(calibration[12]);
-
+    
     undist_iterations = min(undist_iterations, 20); // CAMERA_ADV_MAX_UNDIST_ITERATIONS
-
+    
     for (int i = 0; i < 3; i++)
         for (int j = 0; j < 4; j++)
             mat[i][j] = 0.;
-
+    
     mat[0][0] = fc[0]; // fc_x
     mat[1][1] = fc[1]; // fc_y
     mat[0][2] = cc[0]; // cc_x
     mat[1][2] = cc[1]; // cc_y
     mat[2][2] = 1.0;
-
+    
     return true;
 }
 
@@ -129,15 +129,15 @@ public:
     virtual bool init(float * calibration, ARFloat nNearClip, ARFloat nFarClip);
     virtual void calc(const uint8_t* nImage, float marker_size, float ** marker_sizes, int marker_size_ranges, bool use_history);
     virtual void setPatternWidth(ARFloat nWidth) { patt_width = nWidth; }
-
+    
     void GetCorner(int marker, int edge, float & x, float & y);
     void GetEdge(int marker, int edge, float &x0, float & y0, float & x1, float & y1);
-   
+    
     ARFloat confidence;
     ARFloat patt_width;
     ARFloat patt_center[2];
     ARFloat patt_trans[3][4];
-
+    
     ARMarkerInfo *marker_info;
     ARFloatArray16 * marker_gl;
     float ***   marker_matrix;
@@ -147,8 +147,8 @@ public:
 
 
 MFTracker::MFTracker(int imWidth, int imHeight, int maxImagePatterns, int pattWidth, int pattHeight,
-        int pattSamples, int maxLoadPatterns, int threshold) :
-    Tracker(imWidth, imHeight, maxImagePatterns, pattWidth, pattHeight, pattSamples, maxLoadPatterns)
+                     int pattSamples, int maxLoadPatterns, int threshold) :
+Tracker(imWidth, imHeight, maxImagePatterns, pattWidth, pattHeight, pattSamples, maxLoadPatterns)
 {
     thresh = threshold;
     patt_width = 2.0;
@@ -163,25 +163,25 @@ MFTracker::init(float * calibration, ARFloat nNearClip, ARFloat nFarClip)
 {
     if (!this->checkPixelFormat())
         return false;
-
+    
     if (this->marker_infoTWO == NULL)
         this->marker_infoTWO = new ARMarkerInfo2[MAX_IMAGE_PATTERNS];
-
+    
     this->marker_gl = new ARFloatArray16[MAX_IMAGE_PATTERNS];
     
     marker_matrix = create_matrix(4, 4, MAX_IMAGE_PATTERNS);
     
     MTCamera * cam = new MTCamera();
-
+    
     cam->setCameraCalibration(calibration);
-
+    
     if (arCamera)
         delete arCamera;
-
+    
     arCamera = NULL;
-
+    
     setCamera(cam, nNearClip, nFarClip);
-
+    
     return true;
 }
 
@@ -192,7 +192,7 @@ MFTracker::calc(const uint8_t* nImage, float marker_size, float ** marker_sizes,
 {
     if (nImage == NULL)
         return;
-
+    
     // Rest confidences
     
     for (int i = 0; i < marker_num; i++)
@@ -226,13 +226,13 @@ MFTracker::calc(const uint8_t* nImage, float marker_size, float ** marker_sizes,
                         marker_size = marker_sizes[j][2];
                         break;
                     }
-
+            
             // Estimate position
             
-            float err = executeSingleMarkerPoseEstimator(&marker_info[i], patt_center, marker_size, patt_trans); 
+            float err = executeSingleMarkerPoseEstimator(&marker_info[i], patt_center, marker_size, patt_trans);
             if(err > 3) // > 3 == err, not visible
                 marker_info[i].cf = 0;
-
+            
             convertTransformationMatrixToOpenGLStyle(patt_trans, marker_gl[i].para);
             
             float s = 0;
@@ -298,16 +298,19 @@ MarkerTracker::Init()
         threshold = 127;
     else
         threshold = int(255.0*GetFloatValue("threshold"));
-
+    
     markers = GetOutputMatrix("MARKERS");
     marker_count = GetOutputArray("MARKER_COUNT");
-
+    
     input = GetInputMatrix("INPUT");
-
+    
     max_positions = GetOutputSizeY("POS");
-     
+    
     size_x = GetInputSizeX("INPUT");
     size_y = GetInputSizeY("INPUT");
+    
+    projection = GetOutputMatrix("PROJECTION");
+    model_view = GetOutputMatrix("MODEL_VIEW");
     
     // Check size of size data and get matrix
     
@@ -324,20 +327,33 @@ MarkerTracker::Init()
     
     tracker = new MFTracker(size_x, size_y, max_markers, 6, 6, 6, 0, threshold);
     tracker->setPixelFormat(ARToolKitPlus::PIXEL_FORMAT_LUM);
-//    tracker->setPoseEstimator(POSE_ESTIMATOR_RPP);
-//    tracker->setImageProcessingMode(ARToolKitPlus::IMAGE_HALF_RES);
-
+    //    tracker->setPoseEstimator(POSE_ESTIMATOR_RPP);
+    //    tracker->setImageProcessingMode(ARToolKitPlus::IMAGE_HALF_RES);
+    
     if (!tracker->init(calibration, 1.0f, 1000.0f))
     {
         Notify(msg_fatal_error, "Could not find camera calibration data\n");
     }
-
+    
     tracker->setBorderWidth(useBCH ? 0.125 : 0.25);
     tracker->activateAutoThreshold(auto_threshold);
     tracker->setUndistortionMode(ARToolKitPlus::UNDIST_LUT); // ARToolKitPlus::UNDIST_LUT, UNDIST_NONE
     tracker->setMarkerMode(useBCH ? ARToolKitPlus::MARKER_ID_BCH : ARToolKitPlus::MARKER_ID_SIMPLE);
     
     buffer = new unsigned char [size_x*size_y];
+    
+    const ARFloat * p = tracker->getProjectionMatrix();
+    for(int x=0; x<4; x++)
+        for(int y=0; y<4; y++)
+            projection[y][x] = p[4*x+y];
+    
+    p = tracker->getModelViewMatrix();
+    for(int x=0; x<4; x++)
+        for(int y=0; y<4; y++)
+            model_view[y][x] = p[4*x+y];
+    
+    coordinate_system =   GetIntValueFromList("coordinate_system");
+    
 }
 
 
@@ -351,14 +367,14 @@ MarkerTracker::~MarkerTracker()
 
 void
 MarkerTracker::Tick()
-{		 
+{
     reset_matrix(markers, max_markers, 28);
     for(int i=0; i<max_markers; i++)
     {
-        markers[i][0] = -1;
-        markers[i][1] = -1;
+        markers[i][marker_pos_x] = -1;
+        markers[i][marker_pos_y] = -1;
     }
-
+    
     *marker_count = 0;
     
     if(norm(input, size_x, size_y) == 0) // No image, return
@@ -367,7 +383,7 @@ MarkerTracker::Tick()
     float_to_byte(buffer, *input, 0, 1, size_x*size_y);
     
     tracker->calc(buffer, marker_size, marker_sizes, marker_size_ranges, use_history);
-
+    
     int ix = 0;
     for (int j = 0; j<tracker->marker_num; j++)
     {
@@ -375,6 +391,15 @@ MarkerTracker::Tick()
         {
             float ** m = create_matrix_view(&markers[ix][trans_matrix_cam_coord], 4, 4);
             copy_matrix(m, tracker->marker_matrix[j], 4, 4);
+            
+            if (coordinate_system == 1) // Convert to ikaros coordinate system z = x', -x = y', -y = z'.
+            {
+                h_matrix baseChange, rotX, rotZ;
+                h_rotation_matrix(rotZ, Z, -pi/2);
+                h_rotation_matrix(rotX, X, -pi/2);
+                h_multiply(baseChange, rotZ, rotX); // Create a rotation matrix
+                h_multiply(*m, baseChange,*m ); // Changing coordinate system
+            }
             destroy_matrix_view(m);
             
             markers[ix][marker_pos_x] = tracker->marker_info[j].pos[0]/float(size_x);
@@ -388,7 +413,7 @@ MarkerTracker::Tick()
             {
                 float x, y;
                 tracker->GetCorner(j, l, x, y);
-
+                
                 markers[ix][p++] = x/float(size_x);
                 markers[ix][p++] = y/float(size_y);
             }
@@ -396,7 +421,7 @@ MarkerTracker::Tick()
             ix++;
         }
     }
-
+    
     if(sort_markers)
         center_sort_rows(markers, 28, ix);
     
@@ -405,4 +430,3 @@ MarkerTracker::Tick()
 
 
 static InitClass init("MarkerTracker", &MarkerTracker::Create, "Source/Modules/VisionModules/MarkerTracker/");
-
