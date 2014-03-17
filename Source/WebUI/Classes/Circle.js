@@ -54,26 +54,14 @@ Circle.prototype.Init = function(data)
     this.sizex = d[0].length;
     this.sizey = d.length;
     
-    var count = this.sizey;
-    if(this.length_source)
-    {
-        var r = data[this.length_module];
-        if(r)
-        {
-            r = r[this.length_source];
-            if(r)
-                count = r;
-        }
-    }
-
     if(this.flip_y_axis)
     {
-        for(var i=0; i<count; i++)
+        for(var i=0; i<this.sizey; i++)
             this.circle.push(this.graph.AddCircle((d[i][0]-this.min_x)*this.scale_x * this.width, this.height-(d[i][1]-this.min_y)*this.scale_y * this.height, this.size*this.width, 'none', this.LUT[i % this.LUT.length], this.stroke_width));
     }
     else
     {
-        for(var i=0; i<count; i++)
+        for(var i=0; i<this.sizey; i++)
             this.circle.push(this.graph.AddCircle((d[i][0]-this.min_x)*this.scale_x * this.width, (d[i][1]-this.min_y)*this.scale_y * this.height, this.size*this.width, 'none', this.LUT[i % this.LUT.length], this.stroke_width));
     }
 }
@@ -97,25 +85,37 @@ Circle.prototype.Update = function(data)
         {
             r = r[this.length_source];
             if(r)
-                count = r;
+                count = r[0][0];
         }
     }
 
     if(this.flip_y_axis)
     {
-        for(var i=0; i<count; i++)
-        {
-            this.circle[i].setAttribute("cx", (d[i][0]-this.min_x)*this.scale_x * this.width);
-            this.circle[i].setAttribute("cy", this.height-(d[i][1]-this.min_y)*this.scale_y * this.height);
-        }
+        for(var i=0; i<this.sizey; i++)
+            if(i < count)
+            {
+                this.circle[i].setAttribute("cx", (d[i][0]-this.min_x)*this.scale_x * this.width);
+                this.circle[i].setAttribute("cy", this.height-(d[i][1]-this.min_y)*this.scale_y * this.height);
+            }
+            else
+            {
+                this.circle[i].setAttribute("cx", -1000);
+                this.circle[i].setAttribute("cy", -1000);
+            }
     }
     else
     {
-        for(var i=0; i<count; i++)
-        {
-            this.circle[i].setAttribute("cx", (d[i][0]-this.min_x)*this.scale_x * this.width);
-            this.circle[i].setAttribute("cy", (d[i][1]-this.min_y)*this.scale_y * this.height);
-        }
+        for(var i=0; i<this.sizey; i++)
+            if(i < count)
+            {
+                this.circle[i].setAttribute("cx", (d[i][0]-this.min_x)*this.scale_x * this.width);
+                this.circle[i].setAttribute("cy", (d[i][1]-this.min_y)*this.scale_y * this.height);
+            }
+            else
+            {
+                this.circle[i].setAttribute("cx", -1000);
+                this.circle[i].setAttribute("cy", -1000);
+            }
     }
 }
 
