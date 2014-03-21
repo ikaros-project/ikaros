@@ -1219,13 +1219,9 @@ void
 Module::Notify(int msg, const char *format, ...)
 {
     char 	message[512];
-    int n = 0;
-    if (message == NULL) // FIXME: This can never happen
-    {
-        global_fatal_error = true;
-        return;
-    }
-    va_list 	args;
+    sprintf(message, "%s (%s): ", GetName(), GetClassName());
+    size_t n = strlen(message);
+    va_list args;
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
