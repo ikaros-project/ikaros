@@ -2569,7 +2569,18 @@ namespace ikaros
         return r;
     }
 
-    
+    float *
+    h_rotation_matrix(h_matrix r, float x, float y, float z)
+    {
+        h_matrix rX,rY,rZ;
+        h_rotation_matrix(rX, X, x);
+        h_rotation_matrix(rY, Y, y);
+        h_rotation_matrix(rZ, Z, z);
+        h_copy(r, rZ);
+        h_multiply(r, r, rY);
+        h_multiply(r, r, rX);
+        return r;
+    }
 
     float *
     h_reflection_matrix(h_matrix r, axis a)
