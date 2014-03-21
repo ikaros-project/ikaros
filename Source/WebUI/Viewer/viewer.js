@@ -829,14 +829,16 @@ function add(obj)
 
 function usesData(module, source)
 {
-	get("/uses/"+module+'/'+source, ignore_data);
+    if(module && source)
+        get("/uses/"+module+'/'+source, ignore_data);
 }
 
 
 
 function usesBase64Data(module, source, type)
 {
-	get("/usesBase64/"+module+'/'+source+'/'+type, ignore_data);
+    if(module && source)
+        get("/usesBase64/"+module+'/'+source+'/'+type, ignore_data);
 }
 
 
