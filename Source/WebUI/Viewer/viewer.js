@@ -754,18 +754,18 @@ var g_data = null;
 
 function update_all()
 {
-    try {
-        for(i in uiobject)
+    for(i in uiobject)
+    {
+        try
         {
             uiobject[i].Update(g_data);
         }
-    }
-    catch(err)
-    {
-        //     view is being loaded - ignore!
-        //        if(console) console.log("Error: "+err.message);
-        //        alert("Exception");
-        
+        catch(err)
+        {
+        // view is being loaded - ignore!
+        //   if(console) console.log("Error: "+err.message);
+        //   alert("Exception");
+        }
     }
 }
 
