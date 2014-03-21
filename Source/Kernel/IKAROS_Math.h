@@ -271,6 +271,7 @@ namespace ikaros
     float *     h_reset(h_matrix r);
     float *     h_eye(h_matrix r);
     float *     h_rotation_matrix(h_matrix r, axis a, float alpha);
+    float *     h_rotation_matrix(h_matrix r, float x, float y, float z);
     float *     h_translatation_matrix(h_matrix r, float tx, float ty, float tz);
     float *     h_reflection_matrix(h_matrix r, axis a);
     float *     h_scaling_matrix(h_matrix r, float sx, float sy, float sz);
