@@ -286,10 +286,11 @@ namespace ikaros
     inline float h_get_y(h_matrix m) { return m[7]; }
     inline float h_get_z(h_matrix m) { return m[11]; }
 
-    
     // operations
     
     float *     h_add(h_matrix r, h_matrix a); // r = r + a
+    float *     h_add(h_matrix r, float alpha, h_matrix a, float beta, h_matrix b);
+
     float *     h_multiply(h_matrix r, h_matrix a, h_matrix b);  // matrix x matrix
     float *     h_multiply_v(h_vector r, h_matrix m, h_vector v);  // matrix x vector + scaling to make v[3] == 1.
     float *     h_multiply(h_matrix r, float c); // matrix x scalar
@@ -297,6 +298,8 @@ namespace ikaros
     float *     h_inv(h_matrix r, h_matrix a);
     float *     h_normalize_rotation(h_vector m); // uses svd to orthogonalize the 3x3 rotation part of the matrix
     
+    float       h_dist(h_matrix a, h_matrix b);
+
     // utilities
     
     float *     h_copy(h_matrix r, h_matrix m);
