@@ -239,6 +239,9 @@ protected:
     void            AddIOFromIKC();
     void            SetOutputSize(const char * name, int size_x, int size_y=1);    // Set the output size for an output of unknown size; it is an error to change the output size
     
+    int             GetSizeXFromList(const char * sizearg);
+    int             GetSizeYFromList(const char * sizearg);
+    
     Module(Parameter * p);        // Creates the module and possibly init connections from ikc file (MUST BE CALLED FROM SUBCLASS CREATOR)
     
     virtual            ~Module();
