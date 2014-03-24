@@ -2787,6 +2787,20 @@ namespace ikaros
             r[i] += a[i];
         return r;
     }
+    
+    float *
+    h_add(h_matrix r, float alpha, h_matrix a, float beta, h_matrix b)
+    {
+        for(int i=0; i<16; i++)
+            r[i] = alpha*a[i] + beta*b[i];
+        return r;
+    }
+
+    float
+    h_dist(h_matrix a, h_matrix b)
+    {
+        return sqrt(sqr(h_get_x(a)-h_get_x(b)) + sqr(h_get_y(a)-h_get_y(b)) + sqr(h_get_z(a)-h_get_z(b)));
+    }
 
     float *
     h_multiply(h_matrix r, float c)
