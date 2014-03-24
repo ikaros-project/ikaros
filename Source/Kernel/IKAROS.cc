@@ -1076,6 +1076,89 @@ Module::AddIOFromIKC()
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
+//
+
+int
+Module::GetSizeXFromList(const char * sizearg)
+{
+    int sx = unknown_size;
+
+    char * l = create_string(sizearg);
+    char * ll = l;
+
+    // strip blanks
+
+    int i=0, j=0;
+    while(l[i] != 0)
+    {
+        if(l[j] == ' ')
+            j++;
+        else
+            l[i++]=l[j++];
+    }
+    char * s = l;
+    char * input;
+    input = strsep(&s, ",");
+    while(input)
+    {
+        int new_sx = GetInputSizeX(input);
+        if(sx == unknown_size )
+            sx = new_sx;
+        else if(new_sx != sx)
+        {
+            Notify(msg_warning, "Incompatible sizes for set_size_x, usinging max(%s)", sizearg);
+            sx = max(sx, new_sx);
+        }
+        input = strsep(&s, ",");
+    }
+    destroy_string(ll);
+    
+    return sx;
+}
+
+
+
+int
+Module::GetSizeYFromList(const char * sizearg)
+{
+    int sy = unknown_size;
+
+    char * l = create_string(sizearg);
+    char * ll = l;
+
+    // strip blanks
+
+    int i=0, j=0;
+    while(l[i] != 0)
+    {
+        if(l[j] == ' ')
+            j++;
+        else
+            l[i++]=l[j++];
+    }
+    char * s = l;
+    char * input;
+    input = strsep(&s, ",");
+    while(input)
+    {
+        int new_sy = GetInputSizeY(input);
+        if(sy == unknown_size )
+            sy = new_sy;
+        else if(new_sy != sy)
+        {
+            Notify(msg_warning, "Incompatible sizes for set_size_y, usinging max(%s)", sizearg);
+            sy = max(sy, new_sy);
+        }
+        input = strsep(&s, ",");
+    }
+    destroy_string(ll);
+    
+    return sy;
+}
+
+
+
+// Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
 
 void
 Module::SetSizes()
@@ -1083,123 +1166,60 @@ Module::SetSizes()
 	if(xml->GetParentElement())
 	{
 		const char * sizearg;
+		const char * sizeargy;
         const char * arg;
 		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
         {
             const char * output_name = e->GetAttribute("name");
-			if((sizearg = e->GetAttribute("size_set"))) // Set output size from one or multiple inputs
+            
+            // First get simple attributes
+            
+            int sx = unknown_size;
+            int sy = unknown_size;
+
+            if((sizearg = e->GetAttribute("size_param")) && (arg = GetValue(sizearg)))
+            {
+                sx = string_to_int(arg);
+                sy = 1;
+            }
+            
+            if((sizearg = e->GetAttribute("size_param_x")) && (arg = GetValue(sizearg)))
+                sx = string_to_int(arg);
+            
+            if((sizearg = e->GetAttribute("size_param_y")) && (arg = GetValue(sizearg)))
+                sy = string_to_int(arg);
+            
+            if((sizearg = e->GetAttribute("size")))
+            {
+                sx = string_to_int(sizearg);
+                sy = 1;
+            }
+            
+            if((sizearg = e->GetAttribute("size_x")))
+                sx = string_to_int(sizearg);
+            
+            if((sizearg = e->GetAttribute("size_y")))
+                sy = string_to_int(sizearg);
+            
+			if((sizearg = e->GetAttribute("size_set"))) // Set output size x & y from one or multiple inputs
+            {
+                sx = GetSizeXFromList(sizearg);
+                sy = GetSizeYFromList(sizearg);
+			}
+            
+			else if((sizearg = e->GetAttribute("size_set_x")) && (sizeargy = e->GetAttribute("size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
 			{
-				char * l = create_string(sizearg);
-				char * ll = l;
-				// strip blanks
-				int i=0, j=0;
-				while(l[i] != 0)
-				{
-					if(l[j] == ' ')
-						j++;
-					else
-						l[i++]=l[j++];
-				}
-				char * s = l;
-				char * input;
-				input = strsep(&s, ",");
-				while(input)
-				{
-					int sx = GetInputSizeX(input);
-					int sy = GetInputSizeY(input);
-					if(sx != unknown_size)
-						SetOutputSize(output_name, sx, sy);
-					input = strsep(&s, ",");
-				}
-				destroy_string(ll);
+                sx = GetSizeXFromList(sizearg);
+                sy = GetSizeYFromList(sizeargy);
 			}
             
 			else if((sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
-			{
-				char * l = create_string(sizearg);
-				char * ll = l;
-				// strip blanks
-				int i=0, j=0;
-				while(l[i] != 0)
-				{
-					if(l[j] == ' ')
-						j++;
-					else
-						l[i++]=l[j++];
-				}
-				char * s = l;
-				char * input;
-				input = strsep(&s, ",");
-				while(input)
-				{
-					int sx = GetInputSizeX(input);
-					int sy = unknown_size;
-					if(sx != unknown_size)
-						SetOutputSize(output_name, sx, sy);
-					input = strsep(&s, ",");
-				}
-				destroy_string(ll);
-			}
+                sx = GetSizeXFromList(sizearg);
             
 			else if((sizearg = e->GetAttribute("size_set_y"))) // Set output size y from one or multiple inputs
-			{
-				char * l = create_string(sizearg);
-				char * ll = l;
-				// strip blanks
-				int i=0, j=0;
-				while(l[i] != 0)
-				{
-					if(l[j] == ' ')
-						j++;
-					else
-						l[i++]=l[j++];
-				}
-				char * s = l;
-				char * input;
-				input = strsep(&s, ",");
-				while(input)
-				{
-					int sx = unknown_size;
-					int sy = GetInputSizeY(input);
-					if(sx != unknown_size)
-						SetOutputSize(output_name, sx, sy);
-					input = strsep(&s, ",");
-				}
-				destroy_string(ll);
-			}
+                sy = GetSizeYFromList(sizearg);
             
-            else
-            {
-                int s = unknown_size;
-                int sx = unknown_size;
-                int sy = unknown_size;
-                
-                if((sizearg = e->GetAttribute("size_param")) && (arg = GetValue(sizearg)))
-                    s = string_to_int(arg);
-                
-                if((sizearg = e->GetAttribute("size_param_x")) && (arg = GetValue(sizearg)))
-                    sx = string_to_int(arg);
-                
-                if((sizearg = e->GetAttribute("size_param_y")) && (arg = GetValue(sizearg)))
-                    sy = string_to_int(arg);
-                
-                if((sizearg = e->GetAttribute("size")))
-                    s = string_to_int(sizearg);
-                
-                if((sizearg = e->GetAttribute("size_x")))
-                    sx = string_to_int(sizearg);
-                
-                if((sizearg = e->GetAttribute("size_y")))
-                    sy = string_to_int(sizearg);
-                
-                if(s != unknown_size)
-                {
-                    sx = s;
-                    sy = 1;
-                }
-                
-                SetOutputSize(output_name, sx, sy);
-            }
+            SetOutputSize(output_name, sx, sy);
         }
 	}
 }
