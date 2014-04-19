@@ -327,7 +327,62 @@ namespace ikaros
 	}
 	
 	
-	
+	// MARK: -
+    // MARK: sgn
+    
+    int
+    sgn(int x)
+    {
+        if(x > 0)
+            return 1;
+        else if(x < 0)
+            return -1;
+        else
+            return 0;
+    }
+    
+    float
+    sgn(float x)
+    {
+        if(x > 0)
+            return 1;
+        else if(x < 0)
+            return -1;
+        else
+            return 0;
+    }
+    
+	float *
+    sgn(float * a, int size)
+    {
+        sgn(a, a, size);
+        return a;
+    }
+    
+	float **
+    sgn(float ** m, int sizex, int sizey)
+    {
+        sgn(m, m, sizex, sizey);
+        return m;
+    }
+
+    float *
+    sgn(float * r, float * a, int size)
+    {
+        for(int i=0; i<size; i++)
+            r[i] = sgn(a[i]);
+        return r;
+    }
+    
+    float **
+    sgn(float ** r, float ** m, int sizex, int sizey)
+    {
+        sgn(*r, *m, sizex*sizey);
+        return r;
+    }
+
+    
+    
     // MARK: -
     // MARK: sqr
     
