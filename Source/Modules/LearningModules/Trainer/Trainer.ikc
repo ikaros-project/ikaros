@@ -15,7 +15,7 @@
 	</example>
 
 	<parameter name="order" type="list" values="random/sequential" description="Order in which to present data" />
-	<parameter name="crossvalidation" type="list" values="none/all/even/odd/input" description="What data should be used for crossvalidation?" />
+	<parameter name="crossvalidation" type="list" values="none/all/even/odd/input" description="Which data should be used for crossvalidation?" />
 
     <!-- THE DATA INPUTS -->
 
