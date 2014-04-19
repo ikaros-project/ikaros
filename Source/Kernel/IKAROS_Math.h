@@ -96,6 +96,13 @@ namespace ikaros
 	bool		non_zero(float * a, int size);
 	bool		non_zero(float ** a, int sizex, int sizey);
 	
+    int         sgn(int x);
+    float       sgn(float x);
+	float *		sgn(float * a, int size);
+	float **	sgn(float ** r, int sizex, int sizey);
+    float *     sgn(float * r, float * a, int size);
+    float **    sgn(float ** r, float ** m, int sizex, int sizey);
+    
 	int			sqr(int x);
 	float		sqr(float x);
 	float *		sqr(float * a, int size);
