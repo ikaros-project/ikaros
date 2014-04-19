@@ -341,7 +341,7 @@ namespace ikaros
             return 0;
     }
     
-    float
+    inline float
     sgn(float x)
     {
         if(x > 0)
