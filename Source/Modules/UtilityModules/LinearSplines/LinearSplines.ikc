@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<group name="LinearSplines" description="computes linear spline functions">
+
+	<description type="text">
+     The module LinearSplines computes linear spline functions of its input.
+     A separate spline function can be given for each element in the input array.
+     The splines are specified in the parameter points as (x, y) pairs which must be sorted from lower to higher values on x.
+     If different functions should be applied to the different elements, several
+     (x, y) pairs can be listed after each other on each row. Unused parts of the point matrix can be padded with zeros.
+     When there are more elements in the input than twice the columns in the point data, the index wraps around and starts from the beginning again.
+     For example, if there are four columns in the point parameter, corresponding to two spline functions, and three elements in the input, the first and the last input element will use the first spine function and the second input will use the second spline function.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="LinearSplines"
+			name="LinearSplines"
+            points =
+            "0 0;
+             1 10;
+             2 30;
+             4 40"
+		/>
+	</example>
+
+    <example description="Example with two different splines, the first with four control points and the second with three.">
+        <module
+            class="LinearSplines"
+            name="LinearSplines"
+            points =
+                "0 0    0   4;
+                1 10    5   0;
+                2 30    10  -1;
+                4 40    0   0"
+        />
+    </example>
+
+	<parameter name="points" description="(x, y) pairs for the splines" />
+
+    <input name="INPUT" description="Input signal" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="LinearSplines" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>LinearSplines.h</file>
+   		<file>LinearSplines.cc</file>
+   		<file>LinearSplines.ikc</file>
+   </files>
+
+</group>
+
