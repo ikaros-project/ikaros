@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<group title="SoundOutput Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "5"
+			data  = "0 0 0 0 0"
+		/>
+
+		<module
+			class = "SoundOutput"
+			name = "SoundOutput"
+			soundfiles  = "hi.aiff, hello.aiff"
+		/>
+		
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="MyConstant" source="OUTPUT" x="0" y="0" />
+            <object title = "Hello!" class="Button" module="MyConstant" parameter="data" select="0" x="1" y="0" />
+            <object title = "Hi!" class="Button" module="MyConstant" parameter="data" select="1" x="2" y="0" />
+            <object title = "I am a robot." class="Button" module="MyConstant" parameter="data" select="2" x="3" y="0" />
+            <object title = "What\'s up?" class="Button" module="MyConstant" parameter="data" select="3" x="4" y="0" />
+            <object title = "Whooot?" class="Button" module="MyConstant" parameter="data" select="4" x="5" y="0" />
+		</view>
+
+</group>
+ 

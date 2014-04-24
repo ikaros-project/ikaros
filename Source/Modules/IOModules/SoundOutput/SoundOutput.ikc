@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group name="SoundOutput" description="plays a sound file">
+
+	<description type="text">
+        Plays one or several named sound files. OS X only.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SoundOutput"
+			name="SoundOutput"
+		/>
+	</example>
+
+    <parameter name="soundfiles" type="string" default="" description="comma separated list of sound file names (including path)." />
+    
+    <input name="INPUT" description="vector with sound to play. A one in an element starts the corresponding sound." />
+    
+	<module class="SoundOutput" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SoundOutput.h</file>
+   		<file>SoundOutput.cc</file>
+   		<file>SoundOutput.ikc</file>
+   </files>
+
+</group>
+
