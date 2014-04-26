@@ -19,9 +19,7 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//	Created: <date>
-//
-//	<Additional description of the module>
+
 
 #ifndef LinearSplines_
 #define LinearSplines_

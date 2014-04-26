@@ -9,7 +9,8 @@
      If different functions should be applied to the different elements, several
      (x, y) pairs can be listed after each other on each row. Unused parts of the point matrix can be padded with zeros.
      When there are more elements in the input than twice the columns in the point data, the index wraps around and starts from the beginning again.
-     For example, if there are four columns in the point parameter, corresponding to two spline functions, and three elements in the input, the first and the last input element will use the first spine function and the second input will use the second spline function.
+     For example, if there are four columns in the point parameter, corresponding to two spline functions, and three elements in the input,
+     the first and the last input element will use the first spine function and the second input will use the second spline function.
 	</description>
 
 	<example description="A simple example">
@@ -17,10 +18,10 @@
 			class="LinearSplines"
 			name="LinearSplines"
             points =
-            "0 0;
-             1 10;
-             2 30;
-             4 40"
+            "3 5;
+             4 20;
+             7 25;
+             9 10"
 		/>
 	</example>
 
