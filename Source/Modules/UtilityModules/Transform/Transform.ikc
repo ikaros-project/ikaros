@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<group name="Transform" description="transforms a table of matrices">
+
+	<description type="text">
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Transform"
+			name="Transform"
+		/>
+	</example>
+
+    <parameter name="invert" type="bool" defaulr="no" description="Should the transformation matrix be inverted before use?"/>
+ 
+	<input name="TRANSFORMATION" description="A 4x4 transformation matrix" />
+	<input name="INPUT" description="A table where the fist 16 elements of each row is a homogenous matrix" />
+	<output name="OUTPUT" description="A copy of the INPUT with all matrices transformed" size_set="INPUT" />
+
+	<module class="Transform" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Transform.h</file>
+   		<file>Transform.cc</file>
+   		<file>Transform.ikc</file>
+   </files>
+
+</group>
