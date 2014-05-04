@@ -5,25 +5,31 @@
 		<module
 			class = "Constant"
 			name = "MyConstant"
-			outputsize  = "5"
-			data  = "0 0 0 0 0"
+			data  = "0 0 0 0 0 0"
 		/>
 
 		<module
 			class = "SoundOutput"
 			name = "SoundOutput"
-			sound  = "some.mov,hello.aiff"
+			sounds  = " Sounds/clang.mp3,
+                        Sounds/entity.mp3,
+                        Sounds/shot.mp3,
+                        Sounds/soda.mp3,
+                        Sounds/wreee.mp3,
+                        Sounds/r2d2.mp3"
 		/>
 		
         <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="MyConstant" source="OUTPUT" x="0" y="0" />
-            <object title = "Hello!" class="Button" module="MyConstant" parameter="data" select="0" x="1" y="0" />
-            <object title = "Hi!" class="Button" module="MyConstant" parameter="data" select="1" x="2" y="0" />
-            <object title = "I am a robot." class="Button" module="MyConstant" parameter="data" select="2" x="3" y="0" />
-            <object title = "What\'s up?" class="Button" module="MyConstant" parameter="data" select="3" x="4" y="0" />
-            <object title = "Whooot?" class="Button" module="MyConstant" parameter="data" select="4" x="5" y="0" />
+            
+            <object title = "clang" class="Button" module="MyConstant" parameter="data" select="0" x="1" y="0" />
+            <object title = "entity" class="Button" module="MyConstant" parameter="data" select="1" x="2" y="0" />
+            <object title = "shot" class="Button" module="MyConstant" parameter="data" select="2" x="3" y="0" />
+            <object title = "soda" class="Button" module="MyConstant" parameter="data" select="3" x="1" y="1" />
+            <object title = "wree" class="Button" module="MyConstant" parameter="data" select="4" x="2" y="1" />
+            <object title = "R2D2" class="Button" module="MyConstant" parameter="data" select="5" x="3" y="1" />
 		</view>
 
 </group>

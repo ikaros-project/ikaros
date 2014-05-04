@@ -29,6 +29,19 @@ using namespace ikaros;
 
 
 
+static char *
+strip(char * s)
+{
+	ssize_t t = strlen(s)-1;
+	while(s[t] <= ' ')
+		s[t--] = '\0';
+	while(*s <= ' ')
+		s++;
+	return s;
+}
+
+
+
 static int
 count_commas(const char * s)
 {
@@ -52,7 +65,7 @@ split(const char * s, int & c)
     char * string = create_string(s);
 
     while ((token = strsep(&string, ",")) != NULL)
-        t[i++] = token;
+        t[i++] = strip(token);
 
     return t;
 }
@@ -60,14 +73,9 @@ split(const char * s, int & c)
 
 
 static void
-play(const char * sound)
+play(const char * command, const char * sound)
 {
-    char command[] = "afplay";
-
-    char * argv[3] = { NULL, NULL, NULL };
-
-    argv[0] = command;
-    argv[1] = (char *)sound;
+    char * argv[3] = { (char *)command, (char *)sound, NULL };
 
     if(!vfork())
         execvp(command, argv);
@@ -85,25 +93,6 @@ SoundOutput::Init()
     sound = split(GetValue("sounds"), sound_count);
 }
 
-// osascript -e 'say "Dum dum dee dum dum dum dum dee Dum dum dee dum dum dum dum dee dum dee dum dum dum de dum dum dum dee dum dee dum dum dee dummmmmmmmmmmmmmmmm" using "Pipe Organ"
-// osascript -e 'say "oh This is a silly song silly song silly song this is the silliest song ive ever ever heard So why keep you listening listening listening while you are supposed to work to work to work to work its because i hate my job hate my job hate my job its because i hate my job more than anything else No its because youve no life youve no life youve no life and you better go get one after forwarding this crap" using "cellos"'
-
-
-/*
-static void say(const char * msg)
-{
-    int child_id = fork();
-    if(!child_id)
-    {
-        char *s = create_formatted_string("say \"%s\" &", msg);
-        system(s);
-        destroy_string(s);
-        exit(0);
-    }
-}
-
-*/
-
 
 
 void
@@ -111,7 +100,7 @@ SoundOutput::Tick()
 {
     for(int i=0; i<size; i++)
         if(input[i] == 1 && last_input[i] == 0 && i < sound_count)    // Trig sound # i
-            play(sound[i]);
+            play(command, sound[i]);
 
     copy_array(last_input, input, size);
 }
