@@ -53,7 +53,36 @@ static void say(const char * msg)
 }
 
 
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <stdlib.h>
 
+
+
+void play(const char * sound)
+{
+    char command[] = "afplay";
+
+    char * argv[3] = { NULL, NULL, NULL };
+
+    argv[0] = command;
+    argv[1] = (char *)sound;
+
+    if(!vfork())
+        execvp(command, argv);
+}
+
+
+
+int
+main(void)
+{
+    play("/Users/cba/Desktop/some.mov");
+
+    return 0;
+}
 static void play(const char * file)
 {
     int child_id = fork();
