@@ -1,7 +1,7 @@
 //
 //	SoundOutput.h		This file is a part of the IKAROS project
 // 						
-//    Copyright (C) 2012 <Author Name>
+//    Copyright (C) 2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@ public:
     float * input;
     float * last_input;
     int     size;
+    const char *  command;
+    const char ** sound;
+    int     sound_count;
 
     static Module * Create(Parameter * p) { return new SoundOutput(p); }
 

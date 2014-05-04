@@ -12,7 +12,7 @@
 		<module
 			class = "SoundOutput"
 			name = "SoundOutput"
-			soundfiles  = "hi.aiff, hello.aiff"
+			sound  = "some.mov,hello.aiff"
 		/>
 		
         <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
