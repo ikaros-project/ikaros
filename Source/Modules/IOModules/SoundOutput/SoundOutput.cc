@@ -24,6 +24,14 @@
 #include "SoundOutput.h"
 
 #include <unistd.h>
+/*
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <stdlib.h>
+*/
+
 
 using namespace ikaros;
 
@@ -53,29 +61,25 @@ static void say(const char * msg)
 }
 
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <stdlib.h>
 
 
 
-void play(const char * sound)
+static void
+play(const char * sound)
 {
-    char command[] = "afplay";
+    char command[] = "afplay";
 
-    char * argv[3] = { NULL, NULL, NULL };
+    char * argv[3] = { NULL, NULL, NULL };
 
-    argv[0] = command;
-    argv[1] = (char *)sound;
+    argv[0] = command;
+    argv[1] = (char *)sound;
 
-    if(!vfork())
-        execvp(command, argv);
+    if(!vfork())
+        execvp(command, argv);
 }
 
 
-
+/*
 int
 main(void)
 {
@@ -94,6 +98,7 @@ static void play(const char * file)
         exit(0);
     }
 }
+*/
 
 
 
@@ -104,7 +109,7 @@ SoundOutput::Tick()
         if(input[i] > last_input[i])    // Trig sound # i
             switch(i)
             {
-                case 0: play("/Users/cba/Desktop/speech.aif"); break;
+                case 0: play("/Users/cba/Desktop/some.mov"); break;
                 case 1: play("/Users/cba/Desktop/Computer Data 01.aif"); break;
                 case 2: say("i am a robot"); break;
                 case 3: say("What\'s up?"); break;
