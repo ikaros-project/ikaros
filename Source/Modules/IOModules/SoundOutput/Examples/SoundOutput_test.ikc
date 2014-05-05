@@ -22,14 +22,14 @@
         <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
 
 		<view name="View">
-			<object class="BarGraph" module="MyConstant" source="OUTPUT" x="0" y="0" />
+			<object class="BarGraph" title="Sound Triggers" module="MyConstant" source="OUTPUT" x="0" y="0" w="3" />
             
-            <object title = "clang" class="Button" module="MyConstant" parameter="data" select="0" x="1" y="0" />
-            <object title = "entity" class="Button" module="MyConstant" parameter="data" select="1" x="2" y="0" />
-            <object title = "shot" class="Button" module="MyConstant" parameter="data" select="2" x="3" y="0" />
-            <object title = "soda" class="Button" module="MyConstant" parameter="data" select="3" x="1" y="1" />
-            <object title = "wree" class="Button" module="MyConstant" parameter="data" select="4" x="2" y="1" />
-            <object title = "R2D2" class="Button" module="MyConstant" parameter="data" select="5" x="3" y="1" />
+            <object title = "clang" class="Button" module="MyConstant" parameter="data" select="0" x="0" y="1" />
+            <object title = "entity" class="Button" module="MyConstant" parameter="data" select="1" x="1" y="1" />
+            <object title = "shot" class="Button" module="MyConstant" parameter="data" select="2" x="2" y="1" />
+            <object title = "soda" class="Button" module="MyConstant" parameter="data" select="3" x="0" y="2" />
+            <object title = "wree" class="Button" module="MyConstant" parameter="data" select="4" x="1" y="2" />
+            <object title = "R2D2" class="Button" module="MyConstant" parameter="data" select="5" x="2" y="2" />
 		</view>
 
 </group>
