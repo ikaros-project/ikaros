@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<group name="RotationConverter" description="Convert between rotation notations">
+
+	<description type="text">
+		Module that convert between different 3d point/angles notations.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="RotationConverter"
+			name="RotationConverter"
+			input_format = "xyz"
+			output_format = "matrix"
+		/>
+	</example>
+
+	<parameter name="input_format" type="list" values="xyz/xyzaxayaz/axayaz/matrix/quaternion" default="xyz" description="Format of the input" />
+	<parameter name="output_format" type="list" values="xyz/xyzaxayaz/axayaz/matrix/quaternion" default="xyz" description="Format of the output" />
+    <parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for angles (Only in Euler angle mode)? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
+    
+	<input name="INPUT" description="Input" />
+    <output name="OUTPUT" description="Output"/>
+
+	<module class="RotationConverter" />
+    
+    <view title="RotationConverter">
+        <object
+            x="0" y="0" w="2"
+            class="Table"
+            module="*"
+            source="OUTPUT"
+            title="Default view for RotationConverter"
+        />
+    </view>
+    
+	<author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>RotationConverter.h</file>
+   		<file>RotationConverter.cc</file>
+   		<file>RotationConverter.ikc</file>
+   </files>
+
+</group>
+
