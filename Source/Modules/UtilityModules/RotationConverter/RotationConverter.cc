@@ -79,9 +79,6 @@ RotationConverter::SetSizes()
     
     if (inputMatrixSizeY != unknown_size)
     {
-        printf("input_format %i\n",inputFormat);
-        printf("output_format %i\n",outputFormat);
-        
         // Set output size
         outputMatrixSizeY = inputMatrixSizeY;
         switch (outputFormat) {
