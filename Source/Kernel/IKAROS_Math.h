@@ -56,7 +56,7 @@ namespace ikaros
 	float	atan(float x);
 	
 	
-	float		atan2(float x, float y);
+	float		atan2(float y, float x);
 	float *		atan2(float * r, float * a, float * b, int size);
 	float **	atan2(float ** r, float ** a, float ** b, int sizex, int sizey);
     

@@ -140,9 +140,9 @@ namespace ikaros
 	{
 		return ::atanf(x);
 	}
-	float	atan2(float x, float y)
+	float	atan2(float y, float x)
 	{
-		return ::atan2f(x, y);
+		return ::atan2f(y, x);
 	}
 	float *
 	atan2(float * r, float * a, float * b, int size)
