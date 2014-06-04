@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group name="ArrayToMatrix" description="split an input array and concatenate a output matrix">
+
+	<description type="text">
+        Module that splits up a array to a matrix. This module may be removed when similar features will be provided directly in the ikaros connections.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ArrayToMatrix"
+			name="ArrayToMatrix"
+		/>
+	</example>
+
+    <parameter name="array_length" type="int" default="16" description="Length of each array"/>
+
+    <input name="INPUT" description="Input" />
+    <output name="OUTPUT" description="Output"/>
+
+	<module class="ArrayToMatrix" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>ArrayToMatrix.h</file>
+   		<file>ArrayToMatrix.cc</file>
+   		<file>ArrayToMatrix.ikc</file>
+   </files>
+</group>
+

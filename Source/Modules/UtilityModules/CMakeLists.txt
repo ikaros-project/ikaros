@@ -2,6 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(Abs)
 add_subdirectory(Add)
+add_subdirectory(ArrayToMatrix)
 add_subdirectory(Arbiter)
 add_subdirectory(ArgMax)
 add_subdirectory(Average)
