@@ -133,6 +133,7 @@ RotationConverter::Tick()
                 h_rotation_matrix(m, angle_to_angle(inputMatrix[i][0], angleUnit, radians), angle_to_angle(inputMatrix[i][1], angleUnit, radians), angle_to_angle(inputMatrix[i][2], angleUnit, radians));
                 break;
             case 3: // matrix
+                h_copy(m, inputMatrix[i]);
                 break;
             case 4: // quaternion
                 // Not implemented yet ...
