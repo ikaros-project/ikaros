@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group name="DepthBlobList" description="segments into depth planes">
+
+	<description type="text">
+		Segments a depth image to find a single object.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DepthBlobList"
+			name="DepthBlobList"
+		/>
+	</example>
+
+	<input name="INPUT" description="The input image" />
+	<input name="OBJECT" description="The depth range to segment (min, max, mean)" />
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+    <parameter name="mask_left" type="float" default="0" description="mask region to the left" />
+    <parameter name="mask_right" type="float" default="1" description="mask region to the right" />
+
+	<module class="DepthBlobList" />
+
+	<created>2012</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>DepthBlobList.h</file>
+	<file>DepthBlobList.cc</file>
+	<file>DepthBlobList.ikc</file>
+   </files>
+
+</group>
