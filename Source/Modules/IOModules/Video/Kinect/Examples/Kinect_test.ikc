@@ -12,6 +12,7 @@
         class 			= "Kinect"
         name 			= "Kinect"
         mode            = "mm"
+        xtion           = "true"
      />
 
     <module

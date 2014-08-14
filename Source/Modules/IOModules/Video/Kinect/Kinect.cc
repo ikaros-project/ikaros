@@ -53,7 +53,9 @@ Kinect::Init()
     
     mode        = GetIntValueFromList("mode");
     
-    freenect_sync_set_led(LED_OFF, 0);
+    xtion       = GetBoolValue("xtion");
+    
+    if(!xtion) freenect_sync_set_led(LED_OFF, 0);
 }
 
 
@@ -73,28 +75,32 @@ Kinect::Tick()
         return;
     }
     
-    ret = freenect_sync_get_video((void**)(&rgb_data), &timestamp, 0, FREENECT_VIDEO_RGB);
-    
-    if(ret < 0)
+    if(!xtion) // depth only
     {
-        Notify(msg_warning, "Kinect device not found.");
-        return;
-    }
-
-    const float c13 = 1.0/3.0;
-    const float c1255 = 1.0/255.0;
-
-    size_t  rb = 640;
-    for (long y=0; y<480; y++)
-    {
-        for (int x=0; x<640; x++)
+        ret = freenect_sync_get_video((void**)(&rgb_data), &timestamp, 0, FREENECT_VIDEO_RGB);
+        
+        if(ret < 0)
         {
-            intensity[y][x] 	=   red[y][x]   = c1255*rgb_data[y*3*rb+3*x];
-            intensity[y][x] 	+=  green[y][x]	= c1255*rgb_data[y*3*rb+3*x+1];
-            intensity[y][x] 	+=  blue[y][x]	= c1255*rgb_data[y*3*rb+3*x+2];
-            intensity[y][x]*=c13;
+            Notify(msg_warning, "Kinect device not found.");
+            return;
+        }
+
+        const float c13 = 1.0/3.0;
+        const float c1255 = 1.0/255.0;
+
+        size_t  rb = 640;
+        for (long y=0; y<480; y++)
+        {
+            for (int x=0; x<640; x++)
+            {
+                intensity[y][x] 	=   red[y][x]   = c1255*rgb_data[y*3*rb+3*x];
+                intensity[y][x] 	+=  green[y][x]	= c1255*rgb_data[y*3*rb+3*x+1];
+                intensity[y][x] 	+=  blue[y][x]	= c1255*rgb_data[y*3*rb+3*x+2];
+                intensity[y][x]*=c13;
+            }
         }
     }
+    
 
     if(mode == 0) // raw
     {
@@ -114,22 +120,25 @@ Kinect::Tick()
 
     // Set LED color
 
-    if(led)
+    if(!xtion)
     {
-        if(*led > 0.75)
-            freenect_sync_set_led(LED_GREEN, 0);
-        else if(*led > 0.5)
-            freenect_sync_set_led(LED_YELLOW, 0);
-        else if(*led > 0.25)
-            freenect_sync_set_led(LED_RED, 0);
-        else
-            freenect_sync_set_led(LED_OFF, 0);
-    }
-    
-    // Set tilt
+        if(led)
+        {
+            if(*led > 0.75)
+                freenect_sync_set_led(LED_GREEN, 0);
+            else if(*led > 0.5)
+                freenect_sync_set_led(LED_YELLOW, 0);
+            else if(*led > 0.25)
+                freenect_sync_set_led(LED_RED, 0);
+            else
+                freenect_sync_set_led(LED_OFF, 0);
+        }
+        
+        // Set tilt
 
-    if(tilt)
-        freenect_sync_set_tilt_degs(int(30.0*(*tilt)-15.0), 0);
+        if(tilt)
+            freenect_sync_set_tilt_degs(int(30.0*(*tilt)-15.0), 0);
+    }
 }
 
 
