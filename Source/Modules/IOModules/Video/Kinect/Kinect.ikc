@@ -28,12 +28,14 @@
 	<output name="BLUE" description="The blue channel of the image" size_x="640" size_y="480" />
 
     <parameter name="mode" type="list" values="raw/mm"  description="The type of depth image" />
-    
+    <parameter name="xtion" type="bool" default="false"  description="Is the device an Xtion?" />
+    <parameter name="index" type="int" default="0"  description="The index of the device (0, 1, 2...)" />
+
 	<module class="Kinect" />
 
-    <limitation>
+    <_limitation>
         Only supports a single Kinect.
-    </limitation>
+    </_limitation>
     
 	<created>2012</created>
 	
