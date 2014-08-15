@@ -28,15 +28,11 @@ using namespace ikaros;
 void
 DepthBlobList::Init()
 {
-    Bind(mask_left, "mask_left");
-    Bind(mask_right, "mask_right");
-    
     size_x	 = GetInputSizeX("INPUT");
     size_y	 = GetInputSizeY("INPUT");
 
-    object      = GetInputArray("OBJECT");
-    input       = GetInputMatrix("INPUT");
-    output		= GetOutputMatrix("OUTPUT");
+    input   = GetInputMatrix("INPUT");
+    output  = GetOutputMatrix("OUTPUT");
 }
 
 
@@ -44,17 +40,37 @@ DepthBlobList::Init()
 void
 DepthBlobList::Tick()
 {
-    reset_matrix(output, size_x, size_y);
+    h_reset(*output);
 
-    int a = int(mask_left*size_x);
-    int b = int(mask_right*size_x);
-    
-    for(int i=a; i<b; i++)
+    float sum_d = 0;
+    float sum_x = 0;
+    float sum_y = 0;
+    float n = 0;
+
+    for(int i=0; i<size_x; i++)
         for(int j=0; j<size_y; j++)
         {
-            if(object[0] <= input[j][i] && input[j][i] <= object[1])
-                output[j][i] = 1;
+            if(input[j][i] > 0)
+            {
+                n += 1;
+                sum_d += input[j][i];
+                sum_x += float(i);
+                sum_y += float(j);
+            }
         }
+
+    if(n == 0)
+        return;
+
+    sum_d /= n;
+    sum_x /= n;
+    sum_y /= n;
+
+    h_eye(*output);
+
+    (*output)[3] = sum_d;
+    (*output)[7] = 320-sum_x;   // origin in the middle
+    (*output)[11] = 240-sum_y;  // TODO: calculate real positions
 }
 
 
