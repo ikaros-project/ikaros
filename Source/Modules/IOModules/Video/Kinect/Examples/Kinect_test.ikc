@@ -12,7 +12,7 @@
         class 			= "Kinect"
         name 			= "Kinect"
         mode            = "mm"
-        xtion           = "true"
+        xtion           = "false"
      />
 
     <module
@@ -32,7 +32,8 @@
     <module
         class 			= "Scale"
         name 			= "Scale"
-        factor          = "0.00048851978505"
+        _factor          = "0.00048851978505"
+        factor          = "0.0002"
         comment         = "This module could be removed if Image-object allowed scaling."
     />
     

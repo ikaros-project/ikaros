@@ -52,7 +52,7 @@ Kinect::Init()
     blue		= GetOutputMatrix("BLUE");
     
     mode        = GetIntValueFromList("mode");
-    
+    index       = GetIntValue("index");
     xtion       = GetBoolValue("xtion");
     
     if(!xtion) freenect_sync_set_led(LED_OFF, 0);
@@ -67,7 +67,7 @@ Kinect::Tick()
     unsigned char *rgb_data;
     uint32_t timestamp;
 
-    int ret = freenect_sync_get_depth((void**)(&depth_buf), &timestamp, 0, (mode== 0 ? FREENECT_DEPTH_11BIT : FREENECT_DEPTH_REGISTERED));
+    int ret = freenect_sync_get_depth((void**)(&depth_buf), &timestamp, index, xtion ? FREENECT_DEPTH_11BIT : (mode== 0 ? FREENECT_DEPTH_11BIT : FREENECT_DEPTH_REGISTERED));
 
     if(ret < 0)
     {
@@ -75,9 +75,9 @@ Kinect::Tick()
         return;
     }
     
-    if(!xtion) // depth only
+    if(!xtion) // get video too
     {
-        ret = freenect_sync_get_video((void**)(&rgb_data), &timestamp, 0, FREENECT_VIDEO_RGB);
+        ret = freenect_sync_get_video((void**)(&rgb_data), &timestamp, index, FREENECT_VIDEO_RGB);
         
         if(ret < 0)
         {
@@ -101,7 +101,6 @@ Kinect::Tick()
         }
     }
     
-
     if(mode == 0) // raw
     {
         int s = 0;
@@ -110,12 +109,27 @@ Kinect::Tick()
                 depth[j][i] = float(depth_buf[s++])/2047.0;
     }
 
-    else // mm, registered
+    else if(!xtion)// mm, registered
     {
         int s = 0;
         for(int j=0; j<480; j++)
             for(int i=0; i<640; i++)
                 depth[j][i] = float(depth_buf[s++]);
+    }
+
+    else // mm, non-registered, xtion
+    {
+        int s = 0;
+        for(int j=0; j<480; j++)
+            for(int i=0; i<640; i++)
+            {
+                short r = depth_buf[s++];
+                float d = float(r);
+                if(r < 2047)
+                    depth[j][i] = 1.0/(float(d) * -0.0030711016 + 3.3309495161);
+                else
+                    depth[j][i] = 10;
+            }
     }
 
     // Set LED color
