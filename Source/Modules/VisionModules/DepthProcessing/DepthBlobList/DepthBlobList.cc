@@ -24,6 +24,25 @@
 
 using namespace ikaros;
 
+const double xRes = 640;
+const double yRes = 480;
+
+const double FOV_h = 1.35; // horizontal field of view, in radians.
+const double FOV_v = 1.35; // vertical field of view, in radians.
+
+const double fXToZ = tan(FOV_h/2)*2;
+const double fYToZ = tan(FOV_v/2)*2;
+
+
+
+static void depth_to_world_coords(float & x, float & y, float & z)
+{
+    x = (float)((x / xRes - 0.5) * z * fXToZ);
+    y = (float)((0.5 - y / yRes) * z * fYToZ);
+    // leave z as it is
+}
+
+
 
 void
 DepthBlobList::Init()
@@ -42,9 +61,9 @@ DepthBlobList::Tick()
 {
     h_reset(*output);
 
-    float sum_d = 0;
     float sum_x = 0;
     float sum_y = 0;
+    float sum_z = 0;
     float n = 0;
 
     for(int i=0; i<size_x; i++)
@@ -52,25 +71,29 @@ DepthBlobList::Tick()
         {
             if(input[j][i] > 0)
             {
+                float x = float(i);
+                float y = float(j);
+                float z = input[j][i];
+
+                depth_to_world_coords(x, y, z);
+
                 n += 1;
-                sum_d += input[j][i];
-                sum_x += float(i);
-                sum_y += float(j);
+                sum_x += x;
+                sum_y += y;
+                sum_z += z;
             }
         }
 
     if(n == 0)
         return;
 
-    sum_d /= n;
-    sum_x /= n;
-    sum_y /= n;
-
     h_eye(*output);
 
-    (*output)[3] = sum_d;
-    (*output)[7] = 320-sum_x;   // origin in the middle
-    (*output)[11] = 240-sum_y;  // TODO: calculate real positions
+    (*output)[3] = sum_z/n;
+    (*output)[7] = -sum_x/n;
+    (*output)[11] = -sum_y/n;
+
+//    printf("%4.0f, %.0f %.0f %.0f\n", n, (*output)[3], (*output)[7], (*output)[11]);
 }
 
 
