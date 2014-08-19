@@ -52,6 +52,7 @@ DepthBlobList::Init()
 
     input   = GetInputMatrix("INPUT");
     output  = GetOutputMatrix("OUTPUT");
+    grid    = GetOutputMatrix("GRID");
 }
 
 
@@ -59,6 +60,7 @@ DepthBlobList::Init()
 void
 DepthBlobList::Tick()
 {
+    reset_matrix(grid, 100, 100);
     h_reset(*output);
 
     float sum_x = 0;
@@ -81,6 +83,11 @@ DepthBlobList::Tick()
                 sum_x += x;
                 sum_y += y;
                 sum_z += z;
+
+                int grid_x = (int)clip(50+0.025*x, 0, 99);
+                int grid_y = (int)clip(0.015*z, 0, 99);
+
+                grid[grid_y][grid_x] += 1;
             }
         }
 
@@ -93,8 +100,9 @@ DepthBlobList::Tick()
     (*output)[7] = -sum_x/n;
     (*output)[11] = -sum_y/n;
 
-//    printf("%4.0f, %.0f %.0f %.0f\n", n, (*output)[3], (*output)[7], (*output)[11]);
+    multiply(grid, 0.01, 100, 100);
 }
+
 
 
 static InitClass init("DepthBlobList", &DepthBlobList::Create, "Source/Modules/VisionModules/DepthProcessing/DepthBlobList/");
