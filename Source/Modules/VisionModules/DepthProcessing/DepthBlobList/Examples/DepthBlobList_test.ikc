@@ -36,7 +36,14 @@
         name = "DepthSegmentation"
     />
 
-    
+    <module
+        class 			= "Constant"
+        name 			= "Tilt"
+        data            = "0.5"
+        outputsize      = "1"
+    />
+
+
     <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" />
     
     <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthHistogram" target = "INPUT" />
@@ -46,7 +53,9 @@
     <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" />
     <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "Multiply" target = "INPUT2" />
 
-    <connection sourcemodule = "Multiply" source = "OUTPUT" targetmodule = "DepthBlobList" target = "INPUT" />
+
+    <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthBlobList" target = "INPUT" />
 
     <view name="Depth">
         <object class="Image" type="fire" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />
@@ -56,6 +65,10 @@
         <object class="Image" type="green" name="Segment" module = "Multiply" source = "OUTPUT" x="3" y="2" w="3" h="2" />
 
         <object class="Table" name="Point" module = "DepthBlobList" source = "OUTPUT" x="0" y="4" w="6" h="1" />
+
+        <object class="Image" type="fire" name="Grid" module = "DepthBlobList" source = "GRID" x="6" y="0" w="3" h="3" />
+
+        <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="6" y="3" w="1" h="2" />
     </view>
 
 </group>
