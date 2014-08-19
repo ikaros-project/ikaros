@@ -24,19 +24,35 @@
 
 using namespace ikaros;
 
+const double xRes = 640;
+const double yRes = 480;
+
+const double FOV_h = 1.35; // horizontal field of view, in radians.
+const double FOV_v = 1.35; // vertical field of view, in radians.
+
+const double fXToZ = tan(FOV_h/2)*2;
+const double fYToZ = tan(FOV_v/2)*2;
+
+
+
+static void depth_to_world_coords(float & x, float & y, float & z)
+{
+    x = (float)((x / xRes - 0.5) * z * fXToZ);
+    y = (float)((0.5 - y / yRes) * z * fYToZ);
+    // leave z as it is
+}
+
+
 
 void
 DepthBlobList::Init()
 {
-    Bind(mask_left, "mask_left");
-    Bind(mask_right, "mask_right");
-    
     size_x	 = GetInputSizeX("INPUT");
     size_y	 = GetInputSizeY("INPUT");
 
-    object      = GetInputArray("OBJECT");
-    input       = GetInputMatrix("INPUT");
-    output		= GetOutputMatrix("OUTPUT");
+    input   = GetInputMatrix("INPUT");
+    output  = GetOutputMatrix("OUTPUT");
+    grid    = GetOutputMatrix("GRID");
 }
 
 
@@ -44,18 +60,49 @@ DepthBlobList::Init()
 void
 DepthBlobList::Tick()
 {
-    reset_matrix(output, size_x, size_y);
+    reset_matrix(grid, 100, 100);
+    h_reset(*output);
 
-    int a = int(mask_left*size_x);
-    int b = int(mask_right*size_x);
-    
-    for(int i=a; i<b; i++)
+    float sum_x = 0;
+    float sum_y = 0;
+    float sum_z = 0;
+    float n = 0;
+
+    for(int i=0; i<size_x; i++)
         for(int j=0; j<size_y; j++)
         {
-            if(object[0] <= input[j][i] && input[j][i] <= object[1])
-                output[j][i] = 1;
+            if(input[j][i] > 0)
+            {
+                float x = float(i);
+                float y = float(j);
+                float z = input[j][i];
+
+                depth_to_world_coords(x, y, z);
+
+                n += 1;
+                sum_x += x;
+                sum_y += y;
+                sum_z += z;
+
+                int grid_x = (int)clip(50+0.025*x, 0, 99);
+                int grid_y = (int)clip(0.015*z, 0, 99);
+
+                grid[grid_y][grid_x] += 1;
+            }
         }
+
+    if(n == 0)
+        return;
+
+    h_eye(*output);
+
+    (*output)[3] = sum_z/n;
+    (*output)[7] = -sum_x/n;
+    (*output)[11] = -sum_y/n;
+
+    multiply(grid, 0.01, 100, 100);
 }
+
 
 
 static InitClass init("DepthBlobList", &DepthBlobList::Create, "Source/Modules/VisionModules/DepthProcessing/DepthBlobList/");

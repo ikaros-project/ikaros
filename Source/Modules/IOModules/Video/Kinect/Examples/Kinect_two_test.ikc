@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example file for Kinect; to be used with two sensors
+ 
+-->
+
+<group title = "Kinect">
+
+    <module
+        class 			= "Kinect"
+        name 			= "Kinect1"
+        mode            = "mm"
+        xtion           = "false"
+        index           = "0"
+     />
+
+    <module
+        class 			= "Kinect"
+        name 			= "Kinect2"
+        mode            = "mm"
+        xtion           = "false"
+        index           = "1"
+     />
+
+    <module
+        class 			= "Constant"
+        name 			= "Tilt"
+        data            = "0.5"
+        outputsize      = "1"
+    />
+
+    <module
+        class 			= "Constant"
+        name 			= "Color"
+        data            = "0.0"
+        outputsize      = "1"
+    />
+    
+    <module
+        class 			= "Scale"
+        name 			= "Scale1"
+        _factor          = "0.00048851978505"
+        factor          = "0.0002"
+        comment         = "This module could be removed if Image-object allowed scaling."
+    />
+    
+    <module
+        class 			= "Scale"
+        name 			= "Scale2"
+        _factor          = "0.00048851978505"
+        factor          = "0.0002"
+        comment         = "This module could be removed if Image-object allowed scaling."
+    />
+    
+    <connection sourcemodule="Kinect1" source="DEPTH" targetmodule="Scale1" target="INPUT" />
+    <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect1" target="TILT" />
+    <connection sourcemodule="Color" source="OUTPUT" targetmodule="Kinect1" target="LED" />
+
+    <connection sourcemodule="Kinect2" source="DEPTH" targetmodule="Scale2" target="INPUT" />
+    <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect2" target="TILT" />
+    <connection sourcemodule="Color" source="OUTPUT" targetmodule="Kinect2" target="LED" />
+
+    <view name="Depth">
+        <object class="Image" type="fire" name="Camera" module = "Scale1" source = "OUTPUT" x="0" y="0" w="3" h="2" />
+        <object class="Image" type="rgb" name="Camera" module = "Kinect1" source = "RED+GREEN+BLUE" x="0" y="2" w="3" h="2" />
+
+        <object class="Image" type="fire" name="Camera" module = "Scale2" source = "OUTPUT" x="3" y="0" w="3" h="2" />
+        <object class="Image" type="rgb" name="Camera" module = "Kinect2" source = "RED+GREEN+BLUE" x="3" y="2" w="3" h="2" />
+
+        <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="6" y="0" w="1" h="2" />
+        <object class="Slider" title="LED" module = "Color" parameter = "data" x="6" y="2" w="1" h="2" />
+    </view>
+    
+</group>
+

@@ -3,7 +3,7 @@
 <group name="DepthBlobList" description="segments into depth planes">
 
 	<description type="text">
-		Segments a depth image to find a single object.
+		Generates a list of blobs in an image (right now only one blob).
 	</description>
 
 	<example description="A simple example">
@@ -14,15 +14,13 @@
 	</example>
 
 	<input name="INPUT" description="The input image" />
-	<input name="OBJECT" description="The depth range to segment (min, max, mean)" />
-	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-    <parameter name="mask_left" type="float" default="0" description="mask region to the left" />
-    <parameter name="mask_right" type="float" default="1" description="mask region to the right" />
+	<output name="GRID" description="Grid data" size_x="100" size_y="100" />
+	<output name="OUTPUT" description="The output" size_x="17" size_y="1" />
 
 	<module class="DepthBlobList" />
 
-	<created>2012</created>
+	<created>2014</created>
 
 	<author>
 		<name>Christian Balkenius</name>

@@ -36,15 +36,12 @@ public:
     void Init();
     void Tick();
 
-    float       mask_left;
-    float       mask_right;
-
     int         size_x;
     int         size_y;
 
-    float *     object;
     float **	input;
     float **	output;
+    float **	grid;
 };
 
 
