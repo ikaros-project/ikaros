@@ -1146,7 +1146,7 @@ Module::GetSizeYFromList(const char * sizearg)
             sy = new_sy;
         else if(new_sy != sy)
         {
-            Notify(msg_warning, "Incompatible sizes for set_size_y, usinging max(%s)", sizearg);
+            Notify(msg_warning, "Incompatible sizes for set_size_y, using max(%s)", sizearg);
             sy = max(sy, new_sy);
         }
         input = strsep(&s, ",");

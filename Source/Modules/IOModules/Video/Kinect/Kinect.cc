@@ -52,8 +52,10 @@ Kinect::Init()
     blue		= GetOutputMatrix("BLUE");
     
     mode        = GetIntValueFromList("mode");
+    index       = GetIntValue("index");
+    xtion       = GetBoolValue("xtion");
     
-    freenect_sync_set_led(LED_OFF, 0);
+    if(!xtion) freenect_sync_set_led(LED_OFF, 0);
 }
 
 
@@ -65,7 +67,7 @@ Kinect::Tick()
     unsigned char *rgb_data;
     uint32_t timestamp;
 
-    int ret = freenect_sync_get_depth((void**)(&depth_buf), &timestamp, 0, (mode== 0 ? FREENECT_DEPTH_11BIT : FREENECT_DEPTH_REGISTERED));
+    int ret = freenect_sync_get_depth((void**)(&depth_buf), &timestamp, index, xtion ? FREENECT_DEPTH_11BIT : (mode== 0 ? FREENECT_DEPTH_11BIT : FREENECT_DEPTH_REGISTERED));
 
     if(ret < 0)
     {
@@ -73,29 +75,32 @@ Kinect::Tick()
         return;
     }
     
-    ret = freenect_sync_get_video((void**)(&rgb_data), &timestamp, 0, FREENECT_VIDEO_RGB);
-    
-    if(ret < 0)
+    if(!xtion) // get video too
     {
-        Notify(msg_warning, "Kinect device not found.");
-        return;
-    }
-
-    const float c13 = 1.0/3.0;
-    const float c1255 = 1.0/255.0;
-
-    size_t  rb = 640;
-    for (long y=0; y<480; y++)
-    {
-        for (int x=0; x<640; x++)
+        ret = freenect_sync_get_video((void**)(&rgb_data), &timestamp, index, FREENECT_VIDEO_RGB);
+        
+        if(ret < 0)
         {
-            intensity[y][x] 	=   red[y][x]   = c1255*rgb_data[y*3*rb+3*x];
-            intensity[y][x] 	+=  green[y][x]	= c1255*rgb_data[y*3*rb+3*x+1];
-            intensity[y][x] 	+=  blue[y][x]	= c1255*rgb_data[y*3*rb+3*x+2];
-            intensity[y][x]*=c13;
+            Notify(msg_warning, "Kinect device not found.");
+            return;
+        }
+
+        const float c13 = 1.0/3.0;
+        const float c1255 = 1.0/255.0;
+
+        size_t  rb = 640;
+        for (long y=0; y<480; y++)
+        {
+            for (int x=0; x<640; x++)
+            {
+                intensity[y][x] 	=   red[y][x]   = c1255*rgb_data[y*3*rb+3*x];
+                intensity[y][x] 	+=  green[y][x]	= c1255*rgb_data[y*3*rb+3*x+1];
+                intensity[y][x] 	+=  blue[y][x]	= c1255*rgb_data[y*3*rb+3*x+2];
+                intensity[y][x]*=c13;
+            }
         }
     }
-
+    
     if(mode == 0) // raw
     {
         int s = 0;
@@ -104,7 +109,7 @@ Kinect::Tick()
                 depth[j][i] = float(depth_buf[s++])/2047.0;
     }
 
-    else // mm, registered
+    else if(!xtion)// mm, registered
     {
         int s = 0;
         for(int j=0; j<480; j++)
@@ -112,24 +117,42 @@ Kinect::Tick()
                 depth[j][i] = float(depth_buf[s++]);
     }
 
+    else // mm, non-registered, xtion
+    {
+        int s = 0;
+        for(int j=0; j<480; j++)
+            for(int i=0; i<640; i++)
+            {
+                short r = depth_buf[s++];
+                float d = float(r);
+                if(r < 2047)
+                    depth[j][i] = 1.0/(float(d) * -0.0030711016 + 3.3309495161);
+                else
+                    depth[j][i] = 10;
+            }
+    }
+
     // Set LED color
 
-    if(led)
+    if(!xtion)
     {
-        if(*led > 0.75)
-            freenect_sync_set_led(LED_GREEN, 0);
-        else if(*led > 0.5)
-            freenect_sync_set_led(LED_YELLOW, 0);
-        else if(*led > 0.25)
-            freenect_sync_set_led(LED_RED, 0);
-        else
-            freenect_sync_set_led(LED_OFF, 0);
-    }
-    
-    // Set tilt
+        if(led)
+        {
+            if(*led > 0.75)
+                freenect_sync_set_led(LED_GREEN, 0);
+            else if(*led > 0.5)
+                freenect_sync_set_led(LED_YELLOW, 0);
+            else if(*led > 0.25)
+                freenect_sync_set_led(LED_RED, 0);
+            else
+                freenect_sync_set_led(LED_OFF, 0);
+        }
+        
+        // Set tilt
 
-    if(tilt)
-        freenect_sync_set_tilt_degs(int(30.0*(*tilt)-15.0), 0);
+        if(tilt)
+            freenect_sync_set_tilt_degs(int(30.0*(*tilt)-15.0), 0);
+    }
 }
 
 

@@ -36,6 +36,8 @@ public:
     float **		blue;
     
     int             mode;
+    int             index;
+    bool            xtion;
 
     static Module * Create(Parameter * p) {return new Kinect(p);};
     

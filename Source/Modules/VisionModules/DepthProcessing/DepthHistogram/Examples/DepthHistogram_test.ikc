@@ -21,7 +21,11 @@
         comment         = "This module could be removed if Image-object allowed scaling."
     />
 
-    <module class = "DepthHistogram" name = "DepthHistogram" />
+    <module
+        class = "DepthHistogram"
+        name = "DepthHistogram"
+        filter = "yes"
+    />
 
     <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" />
     <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthHistogram" target = "INPUT" />
