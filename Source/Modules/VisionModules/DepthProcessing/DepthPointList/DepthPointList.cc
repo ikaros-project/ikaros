@@ -1,6 +1,6 @@
 //
 //	DepthPointList.cc	This file is a part of the IKAROS project
-//                      Create list of bobs in 3D
+//                      Create list of blobs in 3D
 //
 //    Copyright (C) 2014  Christian Balkenius
 //
@@ -84,10 +84,13 @@ DepthPointList::Tick()
                 sum_y += y;
                 sum_z += z;
 
-                int grid_x = (int)clip(50+0.025*x, 0, 99);
+                int grid_x = (int)clip(50+0.05*x, 0, 99); // was 0.025
                 int grid_y = (int)clip(0.015*z, 0, 99);
 
-                grid[grid_y][grid_x] += 1;
+                // grid[grid_y][grid_x] += 1;
+
+                if(grid[grid_y][grid_x] < z)
+                    grid[grid_y][grid_x] = 0.1;
             }
         }
 

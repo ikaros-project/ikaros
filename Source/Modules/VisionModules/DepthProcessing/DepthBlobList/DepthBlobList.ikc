@@ -16,6 +16,9 @@
 	<input name="INPUT" description="The input image" />
 
 	<output name="GRID" description="Grid data" size_x="100" size_y="100" />
+	<output name="BACKGROUND" description="Background to subtract" size_x="100" size_y="100" />
+	<output name="DETECTION" description="Detection after background subtraction" size_x="100" size_y="100" />
+
 	<output name="OUTPUT" description="The output" size_x="17" size_y="1" />
 
 	<module class="DepthBlobList" />

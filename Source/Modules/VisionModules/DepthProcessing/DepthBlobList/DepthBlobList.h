@@ -36,12 +36,17 @@ public:
     void Init();
     void Tick();
 
+    const float bg_threshold = 0.25;
+    const float alpha = 0.01;
+
     int         size_x;
     int         size_y;
 
     float **	input;
     float **	output;
     float **	grid;
+    float **	background;
+    float **	detection;
 };
 
 

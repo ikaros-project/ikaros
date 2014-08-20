@@ -1,6 +1,6 @@
 //
 //	DepthBlobList.cc	This file is a part of the IKAROS project
-//                      Create list of bobs in 3D
+//                      Create list of blobs in 3D
 //
 //    Copyright (C) 2014  Christian Balkenius
 //
@@ -47,12 +47,14 @@ static void depth_to_world_coords(float & x, float & y, float & z)
 void
 DepthBlobList::Init()
 {
-    size_x	 = GetInputSizeX("INPUT");
-    size_y	 = GetInputSizeY("INPUT");
+    size_x          = GetInputSizeX("INPUT");
+    size_y          = GetInputSizeY("INPUT");
 
-    input   = GetInputMatrix("INPUT");
-    output  = GetOutputMatrix("OUTPUT");
-    grid    = GetOutputMatrix("GRID");
+    input           = GetInputMatrix("INPUT");
+    output          = GetOutputMatrix("OUTPUT");
+    grid            = GetOutputMatrix("GRID");
+    background      = GetOutputMatrix("BACKGROUND");
+    detection       = GetOutputMatrix("DETECTION");
 }
 
 
@@ -61,12 +63,15 @@ void
 DepthBlobList::Tick()
 {
     reset_matrix(grid, 100, 100);
+    reset_matrix(detection, 100, 100);
     h_reset(*output);
 
     float sum_x = 0;
     float sum_y = 0;
     float sum_z = 0;
     float n = 0;
+
+    // Fill in grid with hits
 
     for(int i=0; i<size_x; i++)
         for(int j=0; j<size_y; j++)
@@ -79,17 +84,35 @@ DepthBlobList::Tick()
 
                 depth_to_world_coords(x, y, z);
 
+                int grid_x = (int)clip(50+0.025*x, 0, 99);
+                int grid_y = (int)clip(0.025*z, 0, 99);
+
+                // Calculate height map
+
                 n += 1;
                 sum_x += x;
                 sum_y += y;
                 sum_z += z;
 
-                int grid_x = (int)clip(50+0.025*x, 0, 99);
-                int grid_y = (int)clip(0.015*z, 0, 99);
+                // grid[grid_y][grid_x] += 1;
 
-                grid[grid_y][grid_x] += 1;
+                if(y/10 > grid[grid_y][grid_x])
+                    grid[grid_y][grid_x] = y/10;
             }
         }
+
+    // Update background
+
+    for(int j=0; j<100; j++)
+        for(int i=0; i<100; i++)
+            background[j][i] = (1-alpha)*background[j][i] + (grid[j][i] > 0 ? alpha : 0);
+
+    // calculate detections
+
+    for(int j=0; j<100; j++)
+        for(int i=0; i<100; i++)
+            if(background[j][i] < bg_threshold)
+                detection[j][i] = grid[j][i];
 
     if(n == 0)
         return;
