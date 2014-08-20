@@ -55,6 +55,7 @@
 
 
     <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
+    
     <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthBlobList" target = "INPUT" />
 
     <view name="Depth">
@@ -67,8 +68,11 @@
         <object class="Table" name="Point" module = "DepthBlobList" source = "OUTPUT" x="0" y="4" w="6" h="1" />
 
         <object class="Image" type="fire" name="Grid" module = "DepthBlobList" source = "GRID" x="6" y="0" w="3" h="3" />
+        <object class="Image" type="fire" name="Background" module = "DepthBlobList" source = "BACKGROUND" x="6" y="3" w="3" h="3" />
 
-        <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="6" y="3" w="1" h="2" />
+        <object class="Image" type="fire" name="Detection" module = "DepthBlobList" source = "DETECTION" x="9" y="0" w="3" h="3" />
+
+        <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="5" y="5" w="1" h="1" />
     </view>
 
 </group>
