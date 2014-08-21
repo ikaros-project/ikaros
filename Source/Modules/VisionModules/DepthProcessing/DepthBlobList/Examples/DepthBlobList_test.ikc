@@ -70,7 +70,10 @@
         <object class="Image" type="fire" name="Grid" module = "DepthBlobList" source = "GRID" x="6" y="0" w="3" h="3" />
         <object class="Image" type="fire" name="Background" module = "DepthBlobList" source = "BACKGROUND" x="6" y="3" w="3" h="3" />
 
-        <object class="Image" type="fire" name="Detection" module = "DepthBlobList" source = "DETECTION" x="9" y="0" w="3" h="3" />
+        <object class="Image" type="fire" title="Detection" module = "DepthBlobList" source = "SMOOTHED" x="9" y="0" w="3" h="3" />
+        <object class="Circle" radius="0.1" module = "DepthBlobList" source = "MAXIMA" x="9" y="0" w="3" h="3" />
+
+        <object class="Image" type="fire" title="Dilated" module = "DepthBlobList" source = "DILATED_BACKGROUND" x="9" y="3" w="3" h="3" />
 
         <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="5" y="5" w="1" h="1" />
     </view>
