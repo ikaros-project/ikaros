@@ -58,7 +58,7 @@ PrintInfo()
     printf("\n");
     printf("Usage:\n");
     printf("\n");
-    printf("\tikaros [-w#][-W#][-p][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
+    printf("\tikaros [-W#][-p][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
     printf("\t-w#   WebUI\n");
     printf("\t-W#   WebUI: debug mode, list requests\n");
     printf("\t-p    profile\n");
@@ -79,7 +79,6 @@ PrintInfo()
     printf("\t-i    list installed functionality sockets, timer etc, type of target system\n");
     printf("\t-a    list all; implies -m -l and -T (if -t is set)\n");
     printf("\t-z#   seed random number generator\n");
-    printf("\t-u#   number of ticks to run for each step in the WebUI\n");
     printf("\n");
     printf("Examples:\n");
     printf("\n");
