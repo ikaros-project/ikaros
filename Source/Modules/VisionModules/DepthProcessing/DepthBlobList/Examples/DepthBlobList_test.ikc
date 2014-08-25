@@ -24,7 +24,7 @@
         data = "
                     0.707106781186548	0	0.707106781186548	0;
                     0					1	0					0;
-                    -0.707106781186548	0	0.707106781186548	0;
+                    -0.707106781186548	0	0.707106781186548	2000;
                     0					0	0					1"
     />
 
@@ -36,7 +36,7 @@
     <module
         class = "Scale"
         name = "Scale"
-        factor = "0.00048851978505"
+        factor = "0.0001"
         comment = "This module could be removed if Image-object allowed scaling."
     />
 

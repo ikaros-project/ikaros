@@ -37,9 +37,18 @@ const double fYToZ = tan(FOV_v/2)*2;
 
 static inline void depth_to_sensor_coords(float & x, float & y, float & z)
 {
-    x = (float)((x / xRes - 0.5) * z * fXToZ);
-    y = (float)((0.5 - y / yRes) * z * fYToZ);
-    // leave z as it is
+    // compensate for perspective
+
+    float tx = (float)((x / xRes - 0.5) * z * fXToZ);
+    float ty = (float)((0.5 - y / yRes) * z * fYToZ);
+    float tz = z;
+
+    // shift to sensor coordinate system
+    // x is pointing forwards and y to the side; z is up
+
+    x = tz;
+    y = -tx;
+    z = -ty;
 }
 
 
@@ -72,16 +81,11 @@ static float xxx = 0;
 void
 DepthBlobList::Tick()
 {
-    xxx += 0.03;
+    xxx += 0.01;
 
     reset_matrix(grid, grid_size_x, grid_size_y);
     reset_matrix(detection, grid_size_x, grid_size_y);
     h_reset(*output);
-
-    float sum_x = 0;
-    float sum_y = 0;
-    float sum_z = 0;
-    float n = 0;
 
     // Get rotation and translation
 
@@ -115,20 +119,27 @@ DepthBlobList::Tick()
                 float y = float(j);
                 float z = input[j][i];
 
+                if(i==320 && j==240)
+                {
+                    printf("%.0f %.0f %.0f => ", x, y, z);
+                }
+
                 depth_to_sensor_coords(x, y, z);
 
-                if(position) // Change coordinate system
+                if(i==320 && j==240)
+                {
+                    printf("%.0f %.0f %.0f => ", x, y, z);
+                }
+
+                if(position) // Change coordinate system; rotate according to sensor position
                 {
                     h_vector p  = { x, y, z, 1 };
                     h_vector pr = { 0, 0, 0, 0 };
 
-                    h_rotation_matrix(rotation, X, pi/4);
-         //           h_print_matrix("rotation", rotation);
+                    h_rotation_matrix(rotation, Y, -pi/4-27*0.01); // pi/4
 
                     float *pp[4];
                     float ** m = h_temp_matrix(rotation, pp);
-
-         //           h_multiply_v(pr, rotation, p);
 
                     multiply(pr, m, p, 4, 4);
 
@@ -137,20 +148,25 @@ DepthBlobList::Tick()
                     z = pr[2];
                 }
 
-                int grid_x = (int)clip(50+0.025*x, 0, grid_size_x-1);
-                int grid_y = (int)clip(0.025*z, 0, grid_size_y-1);
+                if(i==320 && j==240)
+                {
+                    printf("%.0f %.0f %.0f => ", x, y, z);
+                }
+
+                int grid_x = (int)clip(50-0.5*0.025*y, 0, grid_size_x-1);
+                int grid_y = (int)clip(100-0.5*0.025*x, 0, grid_size_y-1);
+
+                if(i==320 && j==240)
+                {
+                    printf("%d %d\n", grid_x, grid_y);
+                }
 
                 // Calculate height map
 
-                n += 1;
-                sum_x += x;
-                sum_y += y;
-                sum_z += z;
+                //  grid[grid_y][grid_x] += 1;
 
-                // grid[grid_y][grid_x] += 1;
-
-                if(y > grid[grid_y][grid_x])
-                    grid[grid_y][grid_x] = y;
+                if(z > grid[grid_y][grid_x])
+                    grid[grid_y][grid_x] = z;
             }
         }
 
@@ -227,11 +243,7 @@ DepthBlobList::Tick()
 
     reset_matrix(output, 17, 10);
 
-    if(n == 0)
-        return;
-
-
-    for(int i=0; i<10; i++)
+     for(int i=0; i<10; i++)
     {
         if(maxima[i][0] != -1 && maxima[i][1] != -1)
         {
@@ -242,7 +254,7 @@ DepthBlobList::Tick()
         }
     }
 
-    multiply(grid, 0.001, grid_size_x, grid_size_y);
+    multiply(grid, 0.0001, grid_size_x, grid_size_y);
 }
 
 
