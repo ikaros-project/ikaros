@@ -22,8 +22,8 @@
 	<output name="DETECTION" description="Detection after background subtraction" size_x="100" size_y="100" />
 	<output name="SMOOTHED" description="Smoothed detection" size_x="100" size_y="100" />
 
-	<output name="OUTPUT" description="The output" size_x="17" size_y="1" />
 	<output name="MAXIMA" description="The found blobs" size_x="2" size_y="10" />
+	<output name="OUTPUT" description="The found blobs in global coordinates in matrix form" size_x="17" size_y="10" />
 
 	<module class="DepthBlobList" />
 
