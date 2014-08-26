@@ -16,21 +16,18 @@
     <module
         class 			= "Constant"
         name 			= "Position"
-        _data            = "1 0 0 0;
-                           0 1 0 0;
-                           0 0 1 0;
-                           0 0 0 1"
-
         data = "
-                    0.961055457	0	-0.276355654        0;
-                    0					  1         0					0;
-                    0.276355654	0   0.961055457	800;
-                    0					0	0					1"
+                    1	0	0   0;
+                    0   1   0   0;
+                    0	0   1	2200;
+                    0	0	0   1"
     />
 
     <module
         class   = "DepthBlobList"
         name    = "DepthBlobList"
+        pan     = "0"
+        tilt    = "-0.7853981"
     />
     
     <module
