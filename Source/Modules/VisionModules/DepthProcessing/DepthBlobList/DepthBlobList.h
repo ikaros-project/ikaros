@@ -36,6 +36,9 @@ public:
     void Init();
     void Tick();
 
+    float pan;
+    float tilt;
+
     const float bg_threshold = 0.5;
     const float alpha = 0.001;
 

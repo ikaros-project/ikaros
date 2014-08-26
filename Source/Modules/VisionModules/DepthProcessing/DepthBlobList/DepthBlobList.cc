@@ -57,6 +57,9 @@ static inline void depth_to_sensor_coords(float & x, float & y, float & z)
 void
 DepthBlobList::Init()
 {
+    Bind(pan, "pan");
+    Bind(tilt, "tilt");
+
     size_x          = GetInputSizeX("INPUT");
     size_y          = GetInputSizeY("INPUT");
 
@@ -78,18 +81,9 @@ DepthBlobList::Init()
 
 
 
-//static float xxx = 0;
-
 void
 DepthBlobList::Tick()
 {
- /*
-    if(GetTick() > 100)
-        xxx += 0.001;
-    
-        printf("%f\n", xxx);
-*/
-
     reset_matrix(grid, grid_size_x, grid_size_y);
     reset_matrix(detection, grid_size_x, grid_size_y);
     h_reset(*output);
@@ -106,7 +100,7 @@ DepthBlobList::Tick()
     {
         h_copy(rotation, *position);
 
-        rotation[3] = 0;    // reset translation
+        rotation[3] = 0; // reset translation
         rotation[7] = 0;
         rotation[11] = 0;
 
@@ -133,20 +127,20 @@ DepthBlobList::Tick()
                     h_vector p  = { x, y, z, 1 };
                     h_vector pr = { 0, 0, 0, 0 };
 
-                //    h_rotation_matrix(rotation, Y, -0.28); // -pi/4-27*0.01
+                    h_rotation_matrix(rotation, Y, tilt);
 
                     float *pp[4];
-                    float ** m = h_temp_matrix(rotation, pp);
+                    float ** m = h_temp_matrix(rotation, pp);   // TODO: Not correct - the matrix multiplication is probably wrong
 
                     multiply(pr, m, p, 4, 4);
 
                     x = pr[0];
                     y = pr[1];
-                    z = pr[2] + h_get_z(translation);
+                    z = -pr[2] + h_get_z(translation);  // TODO: Not correct - the matrix multiplication is probably wrong
                 }
 
-                int grid_x = (int)clip(50-0.05*y, 0, grid_size_x-1);
-                int grid_y = (int)clip(100-0.05*x, 0, grid_size_y-1);
+                int grid_x = (int)clip(grid_size_y/2-0.025*y, 0, grid_size_x-1);    // TODO: Scale automatically
+                int grid_y = (int)clip(grid_size_x-0.0125*x, 0, grid_size_y-1);
 
                 // Calculate height map
 
@@ -158,7 +152,7 @@ DepthBlobList::Tick()
     // Update background
 
     float a = alpha;
-    if(GetTick() <100)
+    if(GetTick() <25)   // habituate for initial 25 frames
         a *= 100;
 
     for(int j=0; j<grid_size_y; j++)
@@ -241,7 +235,9 @@ DepthBlobList::Tick()
         }
     }
 
-    multiply(grid, 1.0/max(grid, 100, 100), grid_size_x, grid_size_y);
+    multiply(grid, 1.0/max(grid, grid_size_x, grid_size_y), grid_size_x, grid_size_y);
+
+//    print_matrix("grid2", grid, 10, 10);
 }
 
 
