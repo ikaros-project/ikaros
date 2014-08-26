@@ -13,10 +13,20 @@
 		/>
 	</example>
 
+    <parameter name="pan" type="float" default="0" description="pan angle (temporary)" />
+    <parameter name="tilt" type="float" default="0" description="tilt angle (temporary)" />
+
 	<input name="INPUT" description="The input image" />
+	<input name="POSITION" description="The position of the sensor in the gloabl coordinate system" />
 
 	<output name="GRID" description="Grid data" size_x="100" size_y="100" />
-	<output name="OUTPUT" description="The output" size_x="17" size_y="1" />
+	<output name="BACKGROUND" description="Background to subtract" size_x="100" size_y="100" />
+	<output name="DILATED_BACKGROUND" description="Background to subtract" size_x="100" size_y="100" />
+	<output name="DETECTION" description="Detection after background subtraction" size_x="100" size_y="100" />
+	<output name="SMOOTHED" description="Smoothed detection" size_x="100" size_y="100" />
+
+	<output name="MAXIMA" description="The found blobs" size_x="2" size_y="10" />
+	<output name="OUTPUT" description="The found blobs in global coordinates in matrix form" size_x="17" size_y="10" />
 
 	<module class="DepthBlobList" />
 
@@ -36,3 +46,4 @@
    </files>
 
 </group>
+

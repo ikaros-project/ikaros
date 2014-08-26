@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group name="DepthPointList" description="converts an RGB-D image to a h_matrix list">
+
+	<description type="text">
+		Generates a list of blobs in an image (right now only one blob).
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DepthPointList"
+			name="DepthPointList"
+		/>
+	</example>
+
+	<input name="RED" description="The input image (red channel)" />
+	<input name="GREEN" description="The input image (green channel)" />
+	<input name="BLUE" description="The input image (blue channel)" />
+	<input name="DEPTH" description="The input image (depth channel)" />
+
+	<output name="OUTPUT" description="The output" size_x="19" size_y="307200" />
+
+	<module class="DepthPointList" />
+
+	<created>2014</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>DepthPointList.h</file>
+	<file>DepthPointList.cc</file>
+	<file>DepthPointList.ikc</file>
+   </files>
+
+</group>
