@@ -112,7 +112,7 @@
     </view>
     
     <limitation>
-        The edges should be projected back into the input image to allow the to be drawn at the correct location in the image.
+        The edges should be projected back into the input image to allow the markers to be drawn at the correct location in the image.
     </limitation>
     
 	<author>
