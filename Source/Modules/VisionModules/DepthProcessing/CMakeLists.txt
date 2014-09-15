@@ -4,6 +4,7 @@ add_subdirectory(DepthContourTrace)
 add_subdirectory(DepthHistogram)
 add_subdirectory(DepthSegmentation)
 add_subdirectory(DepthBlobList)
+add_subdirectory(DepthTransform)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
