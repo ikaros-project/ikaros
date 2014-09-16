@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<group>
+    <module
+        class 			= "Constant"
+        name 			= "Points"
+        description     = "Four points coded as 4x4 matrices that will be transformed, Values for x, y and z in columns 3, 7, and 11"
+        data = "
+                    1	0	10  0   0   1   0   20   0	0   1	100     0	0	0   1;
+                    1	0  -22  0   0   1   0   15   0	0   1  2100     0	0	0   1;
+                    1	0  137  0   0   1   0    2   0	0   1	451     0	0	0   1;
+                    1	0	10  0   0   1   0  -99   0	0   1   273     0	0	0   1"
+    />
+
+    <module
+        class           = "DepthTransform"
+        name            = "DepthTransform"
+    />
+    
+
+    <connection sourcemodule="Points" source="OUTPUT" targetmodule="DepthTransform" target="INPUT" />
+    
+</group>
+

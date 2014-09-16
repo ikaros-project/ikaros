@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="DepthTransform" description="segments into depth planes">
+
+	<description type="text">
+		Transforms a list of deoth coordinates from image coordinates (ImageX, ImageY, Depth) to world coordinates (X, Y, Z).
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DepthTransform"
+			name="DepthTransform"
+		/>
+	</example>
+
+    <parameter name="x_res" type="float" default="640" description="horizontal reslution of source image" />
+    <parameter name="y_res" type="float" default="480" description="vertical resolution of source image" />
+
+    <parameter name="fov_h" type="float" default="1.1" description="horizontal field of view (radians)" />
+    <parameter name="fov_v" type="float" default="1.1" description="vertical field of view (radians)" />
+
+	<input name="INPUT" description="The list of coordinates to transform (h_matrix list)" />
+	<output name="OUTPUT" description="The transformed coordinates (h_matrix list)" size_set="INPUT" />
+
+	<module class="DepthTransform" />
+
+    <limitation>
+        The module only works with list of h_matrices. It would be useful to also work with point list to reduce the amount of data that needs to be processed.
+    </limitation>
+    
+	<created>2014</created>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+	<file>DepthTransform.h</file>
+	<file>DepthTransform.cc</file>
+	<file>DepthTransform.ikc</file>
+   </files>
+
+</group>
+
