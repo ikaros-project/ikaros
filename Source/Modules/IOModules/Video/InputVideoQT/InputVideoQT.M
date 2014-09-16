@@ -31,6 +31,8 @@
 
 #ifdef USE_QUICKTIME
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 
 #import <QTKit/QTKit.h>
 #import <Cocoa/Cocoa.h>
@@ -222,5 +224,7 @@ InputVideoQT::Tick()
 
 
 static InitClass init("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
+
+#pragma clang diagnostic pop
 
 #endif
