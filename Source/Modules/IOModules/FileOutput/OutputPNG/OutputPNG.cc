@@ -330,7 +330,7 @@ OutputPNG::Tick()
     sprintf(fn, file_name, offset + cur_image);
 
     // If we are using a gating signal from outside, we're looking for it here
-    if ((writesig != NULL) && (!writesig[0] > 0.0)) {
+    if ((writesig != NULL) && ((!writesig[0]) > 0.0)) {
 
 	Notify(msg_verbose, " Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
 	cur_image++;
