@@ -27,12 +27,12 @@
 //
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #include "InputVideoQT.h"
 
 #ifdef USE_QUICKTIME
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 #import <QTKit/QTKit.h>
 #import <Cocoa/Cocoa.h>
@@ -225,6 +225,7 @@ InputVideoQT::Tick()
 
 static InitClass init("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
 
+#endif
+
 #pragma clang diagnostic pop
 
-#endif
