@@ -26,10 +26,6 @@
 //  allow camera to be unconnected and reconnected during operation
 //
 
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-
 #include "InputVideoQT.h"
 
 #ifdef USE_QUICKTIME
@@ -39,6 +35,10 @@
 #import <QuickTime/QuickTime.h>
 
 #import "QTGrab.h"
+
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 // Since TIFFRepresentation is not thread-safe
 // we use the following object as a lock
@@ -225,7 +225,7 @@ InputVideoQT::Tick()
 
 static InitClass init("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
 
-#endif
-
 #pragma clang diagnostic pop
+
+#endif
 
