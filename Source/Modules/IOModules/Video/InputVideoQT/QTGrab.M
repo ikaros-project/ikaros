@@ -22,6 +22,8 @@
 //    Based on code by Robert Harder on 9/10/09.
 //    http://iharder.sourceforge.net/current/macosx/imagesnap/
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 
 #import "QTGrab.h"
 #include <unistd.h>
@@ -328,4 +330,4 @@
 
 @end
 
-
+#pragma clang diagnostic pop
