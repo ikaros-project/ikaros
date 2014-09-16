@@ -21,6 +21,9 @@
 //    This module is written in Objective-C++ to allow easy interface with QTKit
 //
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #include "InputQTMovie.h"
 
 #ifdef USE_QUICKTIME
@@ -197,4 +200,8 @@ InputQTMovie::Tick()
 #endif
 
 static InitClass init("InputQTMovie", &InputQTMovie::Create, "Source/Modules/IOModules/FileInput/InputQTMovie/");
+
+
+#pragma clang diagnostic pop
+
 

@@ -37,9 +37,6 @@
 #import "QTGrab.h"
 
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-
 // Since TIFFRepresentation is not thread-safe
 // we use the following object as a lock
 // This work as long as no other modules use the
@@ -224,8 +221,6 @@ InputVideoQT::Tick()
 
 
 static InitClass init("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
-
-#pragma clang diagnostic pop
 
 #endif
 
