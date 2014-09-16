@@ -34,8 +34,8 @@ using namespace ikaros;
 
 const int object_type = 0;
 const int object_id = 1;
-const int marker_id = 2;
-const int marker_size = 3;
+//const int marker_id = 2;
+//const int marker_size = 3;
 const int cf = 4;
 const int obj_coord = 5;
 const int cam_coord = obj_coord+16;
@@ -47,10 +47,10 @@ const int columns = world_coord+16;
 
 // Object types
 
-const int ot_camera = 0;
+//const int ot_camera = 0;
 const int ot_robot = 1;
 const int ot_world = 2;
-const int ot_marker = 3;
+//const int ot_marker = 3;
 const int ot_cube = 4;
 
 // Action types
