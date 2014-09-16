@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(SOURCE
-	${SOURCE}TransformBlobList.cc
+	${SOURCE}DepthTransform.cc
 	PARENT_SCOPE
 )
