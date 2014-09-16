@@ -1,6 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(SOURCE
-	${SOURCE}DepthTransform.cc
+	${SOURCE}
+	${CMAKE_CURRENT_SOURCE_DIR}/DepthTransform.cc
 	PARENT_SCOPE
 )
