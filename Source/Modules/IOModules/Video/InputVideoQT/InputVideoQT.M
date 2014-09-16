@@ -26,6 +26,9 @@
 //  allow camera to be unconnected and reconnected during operation
 //
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #include "InputVideoQT.h"
 
 #ifdef USE_QUICKTIME
@@ -223,4 +226,6 @@ InputVideoQT::Tick()
 static InitClass init("InputVideoQT", &InputVideoQT::Create, "Source/Modules/IOModules/Video/InputVideoQT/");
 
 #endif
+
+#pragma clang diagnostic pop
 
