@@ -23,7 +23,7 @@
 //    http://iharder.sourceforge.net/current/macosx/imagesnap/
 
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 #import "QTGrab.h"
 #include <unistd.h>

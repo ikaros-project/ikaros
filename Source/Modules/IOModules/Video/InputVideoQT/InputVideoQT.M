@@ -32,7 +32,7 @@
 #ifdef USE_QUICKTIME
 
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 #import <QTKit/QTKit.h>
 #import <Cocoa/Cocoa.h>
