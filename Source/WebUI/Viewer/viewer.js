@@ -499,6 +499,10 @@ function Graph(p, title)
     this.obj = 	new WebUIObject(this, p, p.module+'.'+p.source);
 
     this.svg = document.createElementNS(svgns,"svg");
+    this.svg.setAttribute('width', p.width);
+    this.svg.setAttribute('height', p.height);
+
+    
     this.obj.bg.appendChild(this.svg);
     
     clip_id++;

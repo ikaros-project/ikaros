@@ -5,7 +5,7 @@ function ImageStream(p)
     this.file = p.file;
     this.type = (p.type ? p.type : "gray");
 
-    this.imageObj = document.createElement("image"); // document.createElementNS(svgns,"image");
+    this.imageObj = new Image();
  
     if(this.file)
          this.imageObj.src = "/"+this.file;

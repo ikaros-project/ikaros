@@ -1,0 +1,6 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(SOURCE
+	${SOURCE}TransformBlobList.cc
+	PARENT_SCOPE
+)

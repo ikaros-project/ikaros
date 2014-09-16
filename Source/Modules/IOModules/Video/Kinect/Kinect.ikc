@@ -33,9 +33,9 @@
 
 	<module class="Kinect" />
 
-    <_limitation>
-        Only supports a single Kinect.
-    </_limitation>
+    <limitation>
+        The module is not thread safe beacuase of limitations in the libfreenect-libraries. If several Kinect modules are used in thread-mode they have to run in the same thread. This an be done by connecting them to a single module using zero-delay connections.
+    </limitation>
     
 	<created>2012</created>
 	

@@ -57,7 +57,7 @@
 				w="6" h="5"
 				min = "0"
 				max = "1"
-                select = "4"
+    		    select = "20"
                 count = "4"
                 close = "yes"  
                 color="red"
@@ -69,7 +69,8 @@
              <object
                 class   = "Label"
                 type    = "value"
-                select  = "2"
+                select  = "18"
+    		    select_value = "16"
                 decimals = "0"
                 offset_x = "0"
                 offset_y = "0.01"

@@ -1318,6 +1318,7 @@ WebUI::HandleHTTPRequest()
         }
         current_xml_root = group_xml;
         destroy_string(p);
+        socket->Send("\n");
     }
 
     else if (strstart(uri, "/usesBase64"))

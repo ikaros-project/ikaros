@@ -12,6 +12,7 @@ function Label(p)
     
     this.type = (p.type ? p.type : 'labels' );
     this.select = (p.select ? p.select : 0);
+    this.select_value = (p.select_value ? p.select_value : p.select);
     this.prefix = (p.prefix ? p.prefix : '' );
     this.postfix = (p.postfix ? p.postfix : '' );
     this.decimals = (p.decimals != undefined ? p.decimals : 2);
@@ -104,7 +105,7 @@ Label.prototype.Init = function(data)
     {
         this.text = [];
         for(i=0; i<this.sizey; i++)
-            this.text.push(d[i][this.select].toFixed(this.decimals));
+            this.text.push(d[i][this.select_value].toFixed(this.decimals));
     }
     
     if(this.flip_y_axis)
@@ -168,7 +169,7 @@ Label.prototype.Update = function(data)
     {
         this.text = [];
         for(i=0; i<this.sizey; i++)
-            this.text.push(d[i][this.select].toFixed(this.decimals));
+            this.text.push(d[i][this.select_value].toFixed(this.decimals));
         change = true;
     }
     
@@ -184,16 +185,16 @@ Label.prototype.Update = function(data)
         {
             for(var i=0; i<this.sizey; i++)
             {
-                this.label[i].setAttribute("x", (d[i][0]-this.min_x)*this.scale_x * this.width+this.offset_x);
-                this.label[i].setAttribute("y", this.height-(d[i][1]-this.min_y)*this.scale_y * this.height+this.offset_y);
+                this.label[i].setAttribute("x", (d[i][this.select+0]-this.min_x)*this.scale_x * this.width+this.offset_x);
+                this.label[i].setAttribute("y", this.height-(d[i][this.select+1]-this.min_y)*this.scale_y * this.height+this.offset_y);
             }
         }
         else
         {
             for(var i=0; i<this.sizey; i++)
             {
-                this.label[i].setAttribute("x", (d[i][0]-this.min_x)*this.scale_x * this.width+this.offset_x);
-                this.label[i].setAttribute("y", (d[i][1]-this.min_y)*this.scale_y * this.height+this.offset_y);
+                this.label[i].setAttribute("x", (d[i][this.select+0]-this.min_x)*this.scale_x * this.width+this.offset_x);
+                this.label[i].setAttribute("y", (d[i][this.select+1]-this.min_y)*this.scale_y * this.height+this.offset_y);
             }
         }
     }
