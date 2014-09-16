@@ -23,7 +23,7 @@
 using namespace ikaros;
 
 const int random_order = 0;
-const int sequential_order = 1;
+//const int sequential_order = 1;
 
 void
 Trainer::SetSizes()
