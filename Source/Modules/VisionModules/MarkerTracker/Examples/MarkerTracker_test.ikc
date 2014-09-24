@@ -25,12 +25,13 @@
 		<module
 			class   = "MarkerTracker"
 			name	= "MarkerTracker"
-            description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
-            calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
-            sort    = "yes"
-            marker_size = "0 999 90; 1000 9999 45"
-            use_history = "no"
-            threshold = "auto"
+			description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
+			calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
+			max_markers	="20"
+			sort    = "no"
+			marker_size = "0 57 60; 1000 9000 25"
+			use_history = "no"
+			threshold = "auto"
 		/>
 
 		<connection sourcemodule = "CAMERA" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />

@@ -100,18 +100,19 @@
 
 	<!-- Artoolkit -->
 	<!-- This module detects Artoolkit markers in a image -->
-		<_module
-			class   = "MarkerTracker"
-			name	= "MarkerTracker"
-            _description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
-            _calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
-            _sort    = "yes"
-            _marker_size = "0 999 90; 1000 9999 45"
-            _use_history = "no"
-            _threshold = "0.5"
-		/>
+	<module
+		class   = "MarkerTracker"
+		name	= "MarkerTracker"
+        description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
+        calibration = "640 480 320 240 1500.0 1500.0 0.0 0.0 0.0 0.0 0.0 0.0 0"
+		max_markers	="20"
+		sort    = "no"
+        marker_size = "0 57 60; 1000 9000 25"
+        use_history = "no"
+        threshold = "auto"
+	/>
 
-	<_connection sourcemodule = "KINECT" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
+	<connection sourcemodule = "KINECT" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
 
 	
         
@@ -271,43 +272,43 @@
         />
 
         <!-- Marker tracker -->
-        <_object
-				class   = "Lines"
-				module  = "MarkerTracker"
-				source  = "EDGES"
+        <object
+			class   = "Lines"
+			module  = "MarkerTracker"
+			source  = "EDGES"
 			x = "6" y = "0"
 			w = "6" h = "5"
-				min = "0"
-				max = "1"
-                color="red"
-                stroke_width="1"
+			min = "0"
+			max = "1"
+            color="red"
+            stroke_width="1"
 			/>
 
-			<_object
-				class   = "Cross"
-				module  = "MarkerTracker"
-				source  = "MARKERS"
-                size = "0.03"
-                stroke_width="1"
+		<object
+			class   = "Cross"
+			module  = "MarkerTracker"
+			source  = "MARKERS"
+			size = "0.03"
+			stroke_width="1"
 			x = "6" y = "0"
 			w = "6" h = "5"
-				min = "0"
-				max = "1"
-			/>
+			min = "0"
+			max = "1"
+		/>
 
         
-            <_object
-                class   = "Label"
-                type    = "value"
-                select  = "2"
-                decimals = "0"
-                offset_x = "0.05"
-                offset_y = "0.05"
-                module  = "MarkerTracker"
-                source  = "MARKERS"
+		<object
+			class   = "Label"
+			type    = "value"
+			select  = "2"
+			decimals = "0"
+			offset_x = "0.05"
+			offset_y = "0.05"
+			module  = "MarkerTracker"
+			source  = "MARKERS"
 			x = "6" y = "0"
 			w = "6" h = "5"
- 			/>
+ 		/>
     </view>
 </group>
  
