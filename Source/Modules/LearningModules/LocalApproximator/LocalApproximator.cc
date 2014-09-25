@@ -26,14 +26,60 @@
 
 
 
+static inline bool
+linear_regression(float & a, float & b, float * x, float * y, int c) // TODO: Move to IKAROS_Math
+{
+    double sx = 0.0;
+    double sx2 = 0.0;
+    double sxy = 0.0;
+    double sy = 0.0;
+    double n = double(c);
+
+    for(int i=0; i<c; i++)
+    {
+        sx  += x[i];
+        sx2 += x[i] * x[i];
+        sxy += x[i] * y[i];
+        sy  += y[i];
+    }
+
+    double Sxx = n*sx2 - (sx*sx);
+    double Sxy = n*sxy - (sx*sy);
+    
+    if(Sxx > 0.0 && n > 0)  // calculate y = ax+b
+    {
+        a = Sxy/Sxx;
+        b = (sy-a*sx)/n;
+        return true;
+    }
+    else // too close to the y-axis
+    {
+        a = 0;
+        b = 0;
+        return false;
+    }
+}
+
+
+
+
 void
 LocalApproximator::Init()
 {
     output_table = GetInputArray("OUTPUT_TABLE");
-    input_table = GetInputArray("InPUT_TABLE");
+    input_table = GetInputArray("INPUT_TABLE");
     
     input = GetInputArray("INPUT");
     output = GetOutputArray("OUTPUT");
+    
+    input_table_size_x = GetInputSizeX("INPUT_TABLE");
+    input_table_size_y = GetInputSizeY("INPUT_TABLE");
+
+    output_table_size_x = GetInputSizeX("OUTPUT_TABLE");
+    output_table_size_y = GetInputSizeY("OUTPUT_TABLE");
+    
+    input_size      = GetInputSizeX("INPUT_TABLE");
+    output_size     = GetOutputSizeX("OUTPUT_TABLE");
 }
 
 
@@ -41,62 +87,11 @@ LocalApproximator::Init()
 void
 LocalApproximator::Tick()
 {
-/*
-    if (distance_table[GetClosestIndex()] == 0)
-        class_output[0] = output_table[GetClosestIndex()];
-    else{
-        if (categorical)
-            class_output[0] = 0;
-        else
-            class_output[0] = CalculateMean();
+    for(int j=0; j<output_size; j++)
+    {
+        float [
+    
     }
-*/
-}
-
-
-float
-LocalApproximator::CalculateMean()
-{
-/*
-    float tot = 0, instances = 0;
-    int i;
-
-    for (i = 0; i < k; i++){
-        tot += output_table[i] * GetWeightFactor(distance_table[i]);
-        instances += 1 * GetWeightFactor(distance_table[i]);
-    }
-
-    return tot / instances;
-*/
-}
-
-
-
-int
-LocalApproximator::GetClosestIndex()
-{
-/*    int i, closest_index;
-
-    closest_index = 0;
-
-    for (i = 1; i < k; i++)
-        if (distance_table[i] < distance_table[closest_index])
-            closest_index = i;
-
-    return closest_index;
-*/
-}
-
-
-
-void
-LocalApproximator::CheckParameters()
-{
-/*
-    categorical = GetBoolValue("categorical", true);
-    weighed = GetBoolValue("weighed", false);
-    weight_divisor = GetFloatValue("weight_divisor", 1.0);
-*/
 }
 
 
