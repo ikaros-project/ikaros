@@ -258,9 +258,15 @@ namespace ikaros
     float       rank(float ** m, int sizex, int sizey, float tol=0); // the rank of the matrix
     bool        inv(float ** a, float ** b, int size);  // invert matrix b and store in a; returns false if singular
     void        pinv(float ** a, float ** b, int sizex, int sizey); // pseudoinverse of b is stored in a; sizeof(a) = sizex x sizey; sizeof(b) = sizey x sizex
-    float *     mldivide(float * r, float ** m, float * a, int size); // left divide; solves mr = a
+
+    float *     mldivide(float * r, float ** m, float * a, int size); // left divide; solves mr = a; square matrix; vector r and a
+    float *     mldivide(float * r, float ** m, float * a, int sizex, int sizey); // left divide; solves mr = a; non square matrix; vector r and a
+    float **    mldivide(float ** r, float ** m, float ** a, int sizex, int sizey, int n);  // left divide; solves mr = a for three matrices; exact or using least squares
     
-    void        lu(float ** l, float ** u, float ** a, int sizex, int sizey); // LU-decomposition of a
+    void        lu(float ** m, float ** a, int sizex, int sizey);  // LU-decomposition of a; L and U are stored in compact form similar to MATLAB function lu(b)
+    void        lu(float ** l, float ** u, float ** a, int sizex, int sizey); // LU-decomposition of a; l and u are permuted like MATLAB function [L U] = lu(a)
+    void        lu(float ** l, float ** u, float ** p, float ** a, int sizex, int sizey);  // LU-decomposition of a; p is a permutation matrix like MATLAB function [L U P] = lu(a)
+
     bool        qr(float ** q, float ** r, float ** a, int size); // QR-decomposition of a (square matrix), returns false if a is ingular
     float **    chol(float ** r, float ** a, int size, bool & posdef); // Cholesky decomposition of a symmetric positive definite matrix a; posdef = false if not positive definite
     float **    chol(float ** r, float ** a, int size);

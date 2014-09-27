@@ -1560,6 +1560,24 @@ namespace ikaros
     
     
     
+    static void
+    convert_pivots(int * pivots, int size)
+    {
+        int * p = new int [size];
+        for(int i=0; i<size; i++)
+            p[i] = i;
+        for(int i=0; i<size; i++)
+        {
+            int tmp = p[pivots[i]];
+            p[pivots[i]] = p[i];
+            p[i] = tmp;
+        }
+        for(int i=0; i<size; i++)
+            pivots[i] = p[i];
+        delete p;
+    }
+
+
     // LU decomposition in place
     // based on sgetf2.f
     // detp: determinant of the permutation matrix
@@ -1625,6 +1643,81 @@ namespace ikaros
 
 
     void
+    lu(float ** l, float ** u, float ** p, float ** a, int sizex, int sizey)  // ****** YOU ARE HERE *********
+    {
+        int sizemin = min(sizex, sizey);
+        int * pivots = new int [sizey]; // FIXME: check that sizey is correct here
+        float ** ludc = copy_matrix(create_matrix(sizex, sizey), a, sizex, sizey);
+
+        lu(ludc, sizex, sizey, NULL, pivots);
+        
+        convert_pivots(pivots, sizey);
+        reset_matrix(p, sizey, sizey);
+        for(int j=0; j<sizey; j++)
+            p[j][pivots[j]] = 1;
+        
+        reset_matrix(u, sizex, sizemin);
+        for(int i=0; i<sizex; i++)
+            for(int j=0; j<=i && j<sizemin; j++)
+                u[j][i] = ludc[j][i];
+                
+        reset_matrix(l, sizemin, sizey);
+        for(int j=0; j<sizey; j++)
+        {
+            l[j][j] = 1;                            // CHECK j < sizemin somewhere!!!
+            for(int i=0; i<j; i++)
+                l[j][i] = ludc[j][i];
+        }
+
+        destroy_matrix(ludc);
+    }
+
+
+
+    void
+    lu(float ** l, float ** u, float ** a, int sizex, int sizey)
+    {
+        int sizemin = min(sizex, sizey);
+        int * pivots = new int [sizemin];
+        float ** ludc = copy_matrix(create_matrix(sizex, sizey), a, sizex, sizey);
+
+        lu(ludc, sizex, sizey, NULL, pivots);
+        
+        convert_pivots(pivots, sizemin);
+
+        reset_matrix(u, sizex, sizemin);
+        for(int i=0; i<sizex; i++)
+            for(int j=0; j<=i && j<sizemin; j++)
+                u[j][i] = ludc[j][i];
+                
+        reset_matrix(l, sizemin, sizey);
+        for(int j=0; j<sizey; j++)
+        {
+            l[j][pivots[j]] = 1;
+            for(int i=0; i<pivots[j]; i++)
+                l[j][i] = ludc[pivots[j]][i];
+        }
+
+        destroy_matrix(ludc);
+    }
+
+
+
+    void
+    lu(float ** m, float ** a, int sizex, int sizey)
+    {
+        copy_matrix(m, a, sizex, sizey);
+        lu(m, sizex, sizey);
+    }
+    
+
+/*
+*   Old implementation
+*
+*/
+
+/*
+    void
     lu(float ** l, float ** u, float ** a, int sizex, int sizey)
     {
         int sizemin = min(sizex, sizey);
@@ -1643,7 +1736,7 @@ namespace ikaros
 
         destroy_matrix(ludc);
     }
-
+*/
 
 
     static bool
@@ -2016,6 +2109,18 @@ namespace ikaros
     
     
     
+    float **
+    mldivide(float ** r, float ** m, float ** a, int sizex, int sizey, int n)
+    {
+        float ** p = create_matrix(n, sizey);
+        pinv(p, m, n, sizey);
+        multiply(r, p, a, sizex, sizey, n);
+        destroy_matrix(p);
+        return r;
+    }
+
+
+    
     // solves the equation mr = a
     // r and a arrays
     // m square matrix
@@ -2033,6 +2138,32 @@ namespace ikaros
         return r;
     }
     
+    
+    
+    float *
+    mldivide(float * r, float ** m, float * a, int sizex, int sizey)
+    {
+        if(sizex == sizey)
+            return mldivide(r, m, a, sizex);
+
+        float ** rp = (float **)malloc(sizey*sizeof(float *));
+        for (int j=0; j<sizey; j++)
+            rp[j] = &r[j];
+
+        float ** ap = (float **)malloc(sizey*sizeof(float *));
+        for (int j=0; j<sizey; j++)
+            ap[j] = &a[j];
+
+        
+        r = *mldivide(rp, m, ap, 1, sizex, sizey);
+        
+        free(rp);
+        free(ap);
+        
+        return r;
+    }
+    
+
     
     
     // singular value decomposition
