@@ -54,7 +54,7 @@ LocalApproximator::Init()
 void
 LocalApproximator::Tick()
 {
-    mldivide(input_table, output_table, 
+    mldivide(input_table, output_table, 0);
 }
 
 
