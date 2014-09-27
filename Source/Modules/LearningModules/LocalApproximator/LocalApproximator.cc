@@ -26,48 +26,13 @@
 
 
 
-static inline bool
-linear_regression(float & a, float & b, float * x, float * y, int c) // TODO: Move to IKAROS_Math
-{
-    double sx = 0.0;
-    double sx2 = 0.0;
-    double sxy = 0.0;
-    double sy = 0.0;
-    double n = double(c);
-
-    for(int i=0; i<c; i++)
-    {
-        sx  += x[i];
-        sx2 += x[i] * x[i];
-        sxy += x[i] * y[i];
-        sy  += y[i];
-    }
-
-    double Sxx = n*sx2 - (sx*sx);
-    double Sxy = n*sxy - (sx*sy);
-    
-    if(Sxx > 0.0 && n > 0)  // calculate y = ax+b
-    {
-        a = Sxy/Sxx;
-        b = (sy-a*sx)/n;
-        return true;
-    }
-    else // too close to the y-axis
-    {
-        a = 0;
-        b = 0;
-        return false;
-    }
-}
-
-
-
-
 void
 LocalApproximator::Init()
 {
-    output_table = GetInputArray("OUTPUT_TABLE");
-    input_table = GetInputArray("INPUT_TABLE");
+    Bind(type, "type");
+    
+    output_table = GetInputMatrix("OUTPUT_TABLE");
+    input_table = GetInputMatrix("INPUT_TABLE");
     
     input = GetInputArray("INPUT");
     output = GetOutputArray("OUTPUT");
@@ -80,6 +45,8 @@ LocalApproximator::Init()
     
     input_size      = GetInputSizeX("INPUT_TABLE");
     output_size     = GetOutputSizeX("OUTPUT_TABLE");
+    
+    m = create_matrix(input_table_size_x, output_table_size_y);
 }
 
 
@@ -87,11 +54,7 @@ LocalApproximator::Init()
 void
 LocalApproximator::Tick()
 {
-    for(int j=0; j<output_size; j++)
-    {
-        float [
-    
-    }
+    mldivide(input_table, output_table, 
 }
 
 

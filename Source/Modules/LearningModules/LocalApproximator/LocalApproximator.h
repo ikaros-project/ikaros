@@ -40,11 +40,11 @@ public:
     void 		Init();
     void 		Tick();
 
-    float       *input_table;
-    float       *output_table;
+    float **    input_table;
+    float **    output_table;
     
-    float       *input;
-    float       *output;
+    float *     input;
+    float *     output;
     
     int         input_table_size_x;
     int         input_table_size_y;
@@ -54,6 +54,9 @@ public:
     
     int         input_size;
     int         output_size;
+    
+    int         type;
+    float **    m;
 };
 
 #endif
