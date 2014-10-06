@@ -35,6 +35,9 @@
 
 <module class="LocalApproximator" />
 
+<limitation>
+This module is work in progress and is not yet ready to be used.
+</limitation>
 
 <author>
 	<name>Alexander Kolodziej</name>
