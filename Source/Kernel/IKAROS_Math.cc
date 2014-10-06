@@ -3144,7 +3144,7 @@ namespace ikaros
 
         for(int i=1; i<sizex; i++)
             for(int j=1; j<sizey; j++)
-                r[j][i] = a[j][i] + r[j-1][i] + r[j][i-1] + r[j-1][i-1];
+                r[j][i] = a[j][i] + r[j-1][i] + r[j][i-1] - r[j-1][i-1];
                 
         return r;
     }
