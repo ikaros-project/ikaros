@@ -80,8 +80,9 @@ MyModule::Init()
     internal_array = create_array(10);
 
     // Create a matrix with the same size as INPUT2
-    // IMPORTANT: For the matrix the sizes are given as X, Y
-    // which is the OPPOSITE of ROW, COLUMN.
+    // IMPORTANT: For the matrix the sizes are given in order X, Y
+    // in all functions including when the matrix is created
+    // See: http://www.ikaros-project.org/articles/2007/datastructures/
 
     internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
 
@@ -91,7 +92,7 @@ MyModule::Init()
     //
     // It is also possible to use the new operator to
     // create arrays, but create_array and create_matix
-    // should be used to make sure that memeory is
+    // should be used to make sure that memory is
     // allocated in a way that is suitable for the math
     // library and fast copying operations.
 }
