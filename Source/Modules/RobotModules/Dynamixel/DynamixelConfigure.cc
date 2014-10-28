@@ -47,7 +47,6 @@ Module(p)
         return;
     }
     
-    
     // Special scan mode
     if (GetBoolValue("scan_mode"))
     {
@@ -261,7 +260,7 @@ DynamixelConfigure::PrintChange(int i)
         if (set_lock_change)
             printf("%-28s %8.0f ----> %4i","\nLock: ",servo[i]->GetLockFormated(), set_lock);
         
-        if (set_ccw_angle_limit_change)
+        if (set_punch_change)
             printf("%-28s %8.4f ----> %4.2f","\nPunch: ",servo[i]->GetPunchFormated(), set_punch);
     }
     
@@ -289,6 +288,10 @@ DynamixelConfigure::Init()
         set_cw_angle_limit_change = true;
     if (GetValue("set_ccw_angle_limit"))
         set_ccw_angle_limit_change = true;
+    if (GetValue("set_drive_mode"))
+        set_drive_mode_change = true;
+    if (GetValue("set_limit_temperature"))
+        set_limit_temperature_change = true;
     if (GetValue("set_lowest_limit_voltage"))
         set_lowest_limit_voltage_change = true;
     if (GetValue("set_highest_limit_voltage"))
@@ -368,9 +371,6 @@ DynamixelConfigure::~DynamixelConfigure()
 {
     
     // Delete dynamixel memory buffert
-    //for(int i=0; i<size; i++)
-    //    if(servo[i])
-    //        delete DynamixelMemoeries[i];
     delete DynamixelMemoeries;
     
     // Free memory
@@ -409,7 +409,7 @@ DynamixelConfigure::Tick()
 
         
         // quit ikaros
-        Notify(msg_terminate, "DynamixelConfigure: Settings written to dynamixel(s). Quiting ikaros...");
+        Notify(msg_terminate, "DynamixelConfigure: Settings written to dynamixel(s). Quiting Ikaros...");
         return;
     }
     
@@ -561,7 +561,7 @@ DynamixelConfigure::Tick()
         timer.Sleep(500); // to make sure we have time to write changes before shuting down ikaros.
         
         // Shutdown ikaros.
-        Notify(msg_terminate, "DynamixelConfigure: Settings written to dynamixel(s). Quiting ikaros...");
+        Notify(msg_terminate, "DynamixelConfigure: Settings written to dynamixel(s). Quiting Ikaros...");
     }
     
     // Blink active servo
@@ -575,8 +575,7 @@ DynamixelConfigure::Tick()
         blink = 0;
     else
         blink = 1;
-    
-    timer.Sleep(100);  // Sleep to get the blinkin effect
+    timer.Sleep(100);  // Sleep to get the blinking effect
     // Blink active servo end
     
 }
