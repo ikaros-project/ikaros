@@ -780,7 +780,7 @@ bool DynamixelServo::SetMovingSpeedFormated(float value)
             printf("DynamixelServo (SetMovingSpeedFormated): %f Value is invalid...\n", value);
             return false;
         }
-        if (value > 0) // CW
+        if (value >= 0) // CW
             return SetMovingSpeed(GetModelSpeedMax() + int(value * float(GetModelSpeedMax())));
         else // CCW
             return SetMovingSpeed(int(value * float(GetModelSpeedMax())));
