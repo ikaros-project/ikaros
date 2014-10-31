@@ -33,7 +33,7 @@ function Slider(p)
         if(val > 1)
             val = 1;
         that.button.setAttribute("y", 20+val*h+4);
-        var value = that.min+(that.max-that.min)*(1-val);
+        var value = that.min+(that.max-that.min)*(that.invert ? val : 1-val);
         get("/control/"+that.module+"/"+that.parameter+"/"+that.xindex+"/"+that.yindex+"/"+value, none);
     }
     
@@ -52,6 +52,7 @@ function Slider(p)
     this.min = (p.min ? p.min : 0);
     this.max = (p.max ? p.max : 1);
     this.select = makeSelectionArray(p.select);
+    this.invert = (p.invert ? p.invert : false);
     this.xindex = (p.xindex ? p.xindex : this.select[0][0]);
     this.yindex = (p.yindex ? p.yindex : this.select[0][1]);
     this.slide = this.graph.AddRect(cx-2.5, 30, 5, this.height-40, 'black', '#444444', 2); // local coordinates
@@ -99,8 +100,17 @@ Slider.prototype.Update = function(data)
     
     this.value = d[this.yindex][this.xindex];
     var h = this.height-40;
-    var pos = 4+20+h*(1-((this.value-this.min)/(this.max-this.min))); // this.y-this.knobradius+55.5+(this.height-45)
-    this.button.setAttribute("y", pos);
+
+    if(this.invert)
+    {
+        var pos = 4+20+h*((this.value-this.min)/(this.max-this.min));
+        this.button.setAttribute("y", pos);
+    }
+    else
+    {
+        var pos = 4+20+h*(1-((this.value-this.min)/(this.max-this.min)));
+        this.button.setAttribute("y", pos);
+    }
 }
 
 
