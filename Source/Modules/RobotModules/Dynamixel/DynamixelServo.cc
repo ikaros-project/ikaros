@@ -793,9 +793,9 @@ bool DynamixelServo::SetMovingSpeedFormated(float value)
             return false;
         }
         if (value >= 0) // CW
-            return SetMovingSpeed(GetModelSpeedMax() + int(value * float(GetModelSpeedMax())));
-        else // CCW
             return SetMovingSpeed(int(value * float(GetModelSpeedMax())));
+        else // CCW
+            return SetMovingSpeed(GetModelSpeedMax() + int(-value * float(GetModelSpeedMax())));
     }
     else // Joint mode
     {
