@@ -450,12 +450,24 @@ bool DynamixelServo::SetGoalPosition(int value)
 
 bool DynamixelServo::SetMovingSpeed(int value)
 {
-    if (value<0 || value>GetModelSpeedMax())
+    // In wheel mode
+    if (!atoi(controlTable.Get("Joint Mode")))
     {
-        printf("DynamixelServo (setMovingSpeed): %i Value is invalid...\n", value);
-        return false;
+        if (value<0 || value>GetModelSpeedMax()*2)
+        {
+            printf("DynamixelServo (setMovingSpeed): %i Value is invalid...\n", value);
+            return false;
+        }
     }
-    
+    else
+    {
+        if (value<0 || value>GetModelSpeedMax())
+        {
+            printf("DynamixelServo (setMovingSpeed): %i Value is invalid...\n", value);
+            return false;
+        }
+    }
+        
     char tempBuf[64];
     sprintf(tempBuf, "%d", value);
     
