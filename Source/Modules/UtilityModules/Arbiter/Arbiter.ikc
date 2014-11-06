@@ -3,11 +3,12 @@
 <group name="Arbiter" description="selects between two inputs">
 
 	<description type="text">
-		Module that selects between its two inputs based on the values in the value inputs.
+		Module that selects between its inputs based on the values in the value inputs.
 		The output is a copy of the input with the highest corresponding value input.
-		The inputs can be one or two dimensional. Both inputs must have the same size.
-		When the values are equal, INPUT1 is selected. If the value inputs are not connected,
-		the euclidean norm of the corresponding input is used instead.
+		The inputs can be one or two dimensional. All inputs must have the same size.
+		When the values are equal, INPUT_1 is selected. If the value inputs are not connected,
+		the euclidean norm of the corresponding input is used instead. The number of intputs are selected
+        using the parameter number_of_inputs
 	</description>
 
 	<example description="An example">
@@ -17,13 +18,12 @@
 		/>
 	</example>
 
-	<input name="INPUT1" description="The first input" />
-	<input name="INPUT2" description="The second input" />
-	<input name="VALUE1" description="The first value" />
-	<input name="VALUE2" description="The second value" />
+   <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
 
-	<output name="OUTPUT" description="The output" size_set="INPUT1,INPUT2" />
-	<output name="VALUE" size="1" description="The maximum value" />
+	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
+
+	<output name="OUTPUT" description="The selected output" />
+	<output name="VALUE" size="1" description="The maximum value"/>
 
 	<module class="Arbiter" />
 
@@ -59,3 +59,4 @@
    </files>
 
 </group>
+

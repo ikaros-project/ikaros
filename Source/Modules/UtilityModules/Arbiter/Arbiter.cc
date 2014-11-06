@@ -1,7 +1,7 @@
 //
 //    Arbiter.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2006 Christian Balkenius
+//    Copyright (C) 2006-2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -23,16 +23,83 @@
 using namespace ikaros;
 
 
+Arbiter::Arbiter(Parameter * p):
+    Module(p)
+{
+    no_of_inputs = GetIntValue("no_of_inputs");
+
+    input_name  = new char * [no_of_inputs];
+    value_name  = new char * [no_of_inputs];
+
+    input      = new float * [no_of_inputs];
+    value_in   = new float * [no_of_inputs];
+
+    for (int i=0; i<no_of_inputs; i++)
+    {
+        AddInput(input_name[i] = create_formatted_string("INPUT_%d", i+1));
+        AddInput(value_name[i] = create_formatted_string("VALUE_%d", i+1));
+    }
+
+    AddOutput("OUTPUT");
+    AddOutput("VALUE");
+}
+
+
+
+Arbiter::~Arbiter()
+{
+    for (int i=0; i<no_of_inputs; i++)
+    {
+        destroy_string(input_name[i]);
+        destroy_string(value_name[i]);
+    }
+
+    delete [] input_name;
+    delete [] value_name;
+
+    delete [] input;
+    delete [] value_in;
+}
+
+
+
+void
+Arbiter::SetSizes()
+{
+    int s = 0;
+
+    for(int i=0; i<no_of_inputs; i++)
+    {
+        int si = GetInputSize(input_name[i]);
+
+        if(si == unknown_size)
+            return; // Not ready yet
+
+        if(s != 0 && si != 0 && s != si)
+            Notify(msg_fatal_error, "Inputs have different sizes");
+        
+        s = si;
+    }
+
+    SetOutputSize("OUTPUT", s);
+    SetOutputSize("VALUE", 1);
+}
+
+
+
 void
 Arbiter::Init()
 {
-    input1		=	GetInputArray("INPUT1");
-    input2		=	GetInputArray("INPUT2");
-    value1		=	GetInputArray("VALUE1", false);
-    value2		=	GetInputArray("VALUE2", false);
-    output		=	GetOutputArray("OUTPUT");
-    value		=	GetOutputArray("VALUE");
-    size		=	GetOutputSize("OUTPUT");
+   for(int i=0; i<no_of_inputs; i++)
+    {
+        input[i] = GetInputArray(input_name[i]);
+        value_in[i] = GetInputArray(value_name[i], false);
+    }
+
+    output = GetOutputArray("OUTPUT");
+    value_out = GetOutputArray("VALUE");
+
+    size = GetOutputSize("OUTPUT");
 }
 
 
@@ -40,20 +107,24 @@ Arbiter::Init()
 void
 Arbiter::Tick()
 {
-    float v1 = (value1 ? value1[0] : norm(input1, size));
-    float v2 = (value2 ? value2[0] : norm(input2, size));
-	
-    if (v1 >= v2)
+    int   ix = 0;
+    float vix = 0;
+    
+    for(int i=0; i<no_of_inputs; i++)
     {
-        copy_array(output, input1, size);
-        value[0] = v1;
+        float v = (value_in[i] ? *value_in[i] : norm(input[i], size)); // use norm if value input is not connected
+        if(v > vix)
+        {
+            ix = i;
+            vix = v;
+        }
     }
-    else
-    {
-        copy_array(output, input2, size);
-        value[0] = v2;
-    }
+    
+    copy_array(output, input[ix], size);
+
+    *value_out = *value_in[ix];
 }
+
 
 
 static InitClass init("Arbiter", &Arbiter::Create, "Source/Modules/UtilityModules/Arbiter/");

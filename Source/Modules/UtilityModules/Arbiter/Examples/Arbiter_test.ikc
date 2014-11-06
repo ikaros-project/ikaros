@@ -14,10 +14,10 @@
 		<module class = "Constant" name = "V1" outputsize = "1" data = "2" />
 		<module class = "Constant" name = "V2" outputsize = "1" data = "1" />
 
-		<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT1" delay="0" />
-		<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT2" delay="0" />
-		<connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE1" delay="0" />		
-		<connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE2" delay="0" />
+		<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_1" delay="0" />
+		<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_2" delay="0" />
+		<connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_1" delay="0" />
+		<connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_2" delay="0" />
 
 		<view>
 			<object
@@ -25,9 +25,9 @@
 				text="Demonstration of the Arbiter module (C1 will be selected over C2)." 
 			  />
 
-			<object class ="BarGraph" name="C1" module="C1" source="OUTPUT" x="0" y="1" min="0" max="10" />
-			<object class ="BarGraph" name="C2" module="C2" source="OUTPUT" x="1" y="1" min="0" max="10" />
-			<object class ="BarGraph" name="Selected" module="Arbiter" source="OUTPUT" x="2" y="1" min="0" max="10" />
+			<object class ="BarGraph" title="C1" module="C1" source="OUTPUT" x="0" y="1" min="0" max="10" />
+			<object class ="BarGraph" title="C2" module="C2" source="OUTPUT" x="1" y="1" min="0" max="10" />
+			<object class ="BarGraph" title="Selected" module="Arbiter" source="OUTPUT" x="2" y="1" min="0" max="10" />
 		</view>
 
 </group>
