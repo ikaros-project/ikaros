@@ -1,7 +1,7 @@
 //
 //	Transform.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2014 CB
+//    Copyright (C) 2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -33,18 +33,30 @@ public:
     Transform(Parameter * p) : Module(p) {}
     virtual ~Transform() {};
 
+    void        SetSizes();
+    
     void 		Init();
     void 		Tick();
 
-    float **    input;
-    float **    transformation;
-    
-    float **    output;
-    
+    float **    matrix_1;
+    float *     object_id_1;
+    float *     frame_id_1;
+
+    float **    matrix_2;
+    float *     object_id_2;
+    float *     frame_id_2;
+
+    float **    matrix;
+    float *     object_id;
+    float *     frame_id;
+
     int         size_x;
     int         size_y;
+    int         size_y_1;
+    int         size_y_2;
     
-    bool        invert;
+    bool        invert_1;
+    bool        invert_2;
 };
 
 #endif
