@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 
-<group name="Transform" description="transforms a table of matrices">
+<group name="Transform" description="transforms a set of matrices">
 
 	<description type="text">
+        The module Transform takes two steams of hogonenous matrices together with the ids for their reference frames and transforms the matrices to the reference frames given by a second stream of homogenous matrices. If the parameter invert_1 or invert_2 is set to true, the matrix of the respective stream will be inverted before the multiplication takes place.
 
+        This module can be used together with the module Merge to do object recognition, landmark recognition, localization etc.
 	</description>
 
 	<example description="A simple example">
@@ -13,11 +15,20 @@
 		/>
 	</example>
 
-    <parameter name="invert" type="bool" defaulr="no" description="Should the transformation matrix be inverted before use?"/>
+    <parameter name="invert_1" type="bool" default="no" description="Should the transformation matrix in MATRIX_1 be inverted before use?"/>
+    <parameter name="invert_2" type="bool" default="no" description="Should the transformation matrix in MATRIX_2 be inverted before use?"/>
  
-	<input name="TRANSFORMATION" description="A 4x4 transformation matrix" />
-	<input name="INPUT" description="A table where the fist 16 elements of each row is a homogenous matrix" />
-	<output name="OUTPUT" description="A copy of the INPUT with all matrices transformed" size_set="INPUT" />
+	<input name="MATRIX_1" description="A matrix where each row represents a 4x4 transformation matrix as 16 consecutive elements" />
+	<input name="OBJECT_ID_1" description="The object id for each of the rows in MATRIX_1" />
+	<input name="FRAME_ID_1" description="The id of the reference frame for each of the rows in MATRIX_1" />
+
+	<input name="MATRIX_2" description="A matrix where each row represents a 4x4 transformation matrix as 16 consecutive elements" />
+	<input name="OBJECT_ID_2" description="The object id for each of the rows in MATRIX_2" />
+	<input name="FRAME_ID_2" description="The id of the reference frame for each of the rows in MATRIX_2" />
+
+	<output name="MATRIX" description="A copy of the INPUT with all matrices transformed" />
+	<output name="OBJECT_ID" description="The id of the object for each of the rows in MATRIX" />
+	<output name="FRAME_ID" description="The id of the reference frame for each of the rows in MATRIX" />
 
 	<module class="Transform" />
 

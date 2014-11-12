@@ -2,29 +2,68 @@
 
 <group title="Transformation Test">
 
+    <!-- 1 -->
+
     <module
         class="Constant"
-        name="List"
-        data = "1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1  1  2  3;
-            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1  4  5  6;
-            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1  7  8  9;
-            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1  10 11 12"
+        name="Matrix1"
+        data = "1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1;
+            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1;
+            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1;
+            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1"
     />
     
     <module
         class="Constant"
-        name="Matrix"
-        data = "1 0 0 10;  0 1 0 20;  0 0 1 0;  0 0 0 1"
+        name="Id1"
+        data = "1 2 3 4"
+    />
+
+    <module
+        class="Constant"
+        name="Frame1"
+        data = "0 0 0 0"
+    />
+
+
+
+    <!-- 2 -->
+
+    <module
+        class="Constant"
+        name="Matrix2"
+        data = "1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1;
+            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1;
+            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1;
+            1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1"
     />
     
+    <module
+        class="Constant"
+        name="Id2"
+        data = "1 2 3 4"
+    />
+
+    <module
+        class="Constant"
+        name="Frame2"
+        data = "1 1 1 1"
+    />
+
+
+
     <module
         class="Transform"
         name="T"
-        invert="yes"
+        invert_2="yes"
     />
     
-    <connection sourcemodule="List" source="OUTPUT" targetmodule="T" target="INPUT" />
-    <connection sourcemodule="Matrix" source="OUTPUT" targetmodule="T" target="TRANSFORMATION" />
-    
-        
+    <connection sourcemodule="Matrix1" source="OUTPUT" targetmodule="T" target="MATRIX_1" />
+    <connection sourcemodule="Id1" source="OUTPUT" targetmodule="T" target="OBJECT_ID_1" />
+    <connection sourcemodule="Frame1" source="OUTPUT" targetmodule="T" target="FRAME_ID_1" />
+
+    <connection sourcemodule="Matrix2" source="OUTPUT" targetmodule="T" target="MATRIX_2" />
+    <connection sourcemodule="Id2" source="OUTPUT" targetmodule="T" target="OBJECT_ID_2" />
+    <connection sourcemodule="Frame2" source="OUTPUT" targetmodule="T" target="FRAME_ID_2" />
+
 </group>
