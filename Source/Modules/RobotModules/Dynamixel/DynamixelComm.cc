@@ -145,10 +145,10 @@ void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** Dynam
         //printf("The message is too long and needs to be splitted up.\n");
         
         // Finding out how many servoes we can send to each time.
-        int nrServoToSentTo = (DYNAMIXEL_MAX_BUFFER-SYNC_WRITE_HEADER)/datalength;
-        int nTo = nrServoToSentTo;
+        int nrServoToSendTo = ((DYNAMIXEL_MAX_BUFFER-SYNC_WRITE_HEADER)/datalength)-2;
+        int nTo = nrServoToSendTo;
         int nFrom = 0;
-        while (nTo != n)
+        while (nFrom != n)
         {
             //printf("Sending %i to %i\n", nFrom+1, nTo+1);
             
@@ -176,9 +176,9 @@ void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** Dynam
             Send(outbuf);
             
             nFrom = nTo+1; // Next send from
-            nTo = nTo + nrServoToSentTo; // Next send to
-            if(nTo > n)
-                nTo = n;
+            nTo = nTo + nrServoToSendTo; // Next send to
+            if(nTo+1 > n)
+            nTo = n-1;
         }
     }
     else
