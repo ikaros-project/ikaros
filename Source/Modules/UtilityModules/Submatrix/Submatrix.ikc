@@ -5,7 +5,7 @@
 	<description type="xhtml">
     <p>
 		Module that picks a submatrix of its input. The submatrix can either be set using the parameters x0, x1, y0, y1 or using the single parameter kernel_size.
-        In the first case, the output will contain all elements x0 &lt;= x &lt; x1 && y0 &lt;= y &lt; y1.
+        In the first case, the output will contain all elements x0 &lt;= x &lt; x1 &amp;&amp; y0 &lt;= y &lt; y1.
         In the latter case, the submatrix corresponds to the size that would be obtained if the input was processed with a filter kernel of the specified size, that is,
     </p>
     <pre>
