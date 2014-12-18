@@ -2,7 +2,7 @@
 
 <group name="YARPPort" description="ikaros to YARP network communication">
 
-	<description type="text">
+	<description type="xhtml">
         Module that can read and write to an YARP network using the YARP PortablePair.
         <br/>
         Data structure:<br/>
@@ -16,7 +16,7 @@
         <br/>
         <b>Body (Vector part)</b><br/>
         Vector v(size_x*size_y); // data in float values<br/>
-                
+    
     </description>
 
 	<example description="A simple example">
