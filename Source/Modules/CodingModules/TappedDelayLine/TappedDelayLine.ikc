@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="TappedDelayLine" description="encodes a value in a vector">
+
+	<description type="text">
+		Module that generates a tapped delay line for each input of length set by bo_of_taps.
+        The outputs are advanced on step every tick.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="TappedDelayLine"
+			name="TappedDelayLine"
+		/>
+	</example>
+
+	<parameter name="no_of_taps" type="int" default="10" description="Number of output nodes for each input" />
+
+	<input name="INPUT" description="The input" />
+
+	<output name="OUTPUT" description="The tapped delay output" size_set_x="INPUT" size_param_y="no_of_taps" />
+
+	<module class="TappedDelayLine" />
+
+	<created>2003</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>TappedDelayLine.h</file>
+   		<file>TappedDelayLine.cc</file>
+   		<file>TappedDelayLine.ikc</file>
+   </files>
+
+</group>
+

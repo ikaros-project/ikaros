@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_subdirectory(CoarseCoder)
 add_subdirectory(IntervalCoder)
 add_subdirectory(IntervalDecoder)
+add_subdirectory(TappedDelayLine)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
