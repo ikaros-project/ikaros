@@ -24,7 +24,7 @@
     
     <view name="View">
         <object class="BarGraph" module="IntervalCoder" source="OUTPUT" x="0" y="0" w="2"/>
-        <object class="Plot" module="Signal" source="OUTPUT" max="10" colors="['yellow']"  x="0" y="1" w="2"/>
+        <object class="Plot" module="Signal" source="OUTPUT" max="10" colors="yellow"  x="0" y="1" w="2"/>
     </view>
 
 </group>
