@@ -3,7 +3,7 @@
 //                          Wrapper module for ARToolKitPlus available at:
 //                          https://launchpad.net/artoolkitplus
 //
-//    Copyright (C) 2011-2012 Christian Balkenius
+//    Copyright (C) 2011-2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -41,7 +41,14 @@ public:
     
     void 		Init();
     void 		Tick();
-    
+
+    float **    matrix;
+    float *     object_id;
+    float *     frame_id;
+    float *     confidence;
+    float **    image_position;
+    float **    edges;
+
     float **    markers;
     float *     marker_count;
     int         max_markers;
@@ -52,7 +59,9 @@ public:
     float       marker_size;
     float **    marker_sizes;
     int         marker_size_ranges;
-    
+
+    int         frame_id_constant;
+
     bool        sort_markers;
     bool        use_history;
     bool        auto_threshold;

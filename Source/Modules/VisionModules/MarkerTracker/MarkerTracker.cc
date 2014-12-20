@@ -3,7 +3,7 @@
 //                      Wrapper module for ARToolKitPlus available at:
 //                      https://launchpad.net/artoolkitplus
 //
-//    Copyright (C) 2011-2012 Christian Balkenius
+//    Copyright (C) 2011-2014 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -288,6 +288,8 @@ destroy_matrix_view(float ** m)
 void
 MarkerTracker::Init()
 {
+    Bind(frame_id_constant, "frame_id");
+
     calibration = GetArray("calibration", 13);
     max_markers = GetIntValue("max_markers");
     sort_markers = GetBoolValue("sort_makers");
@@ -301,7 +303,14 @@ MarkerTracker::Init()
     
     markers = GetOutputMatrix("MARKERS");
     marker_count = GetOutputArray("MARKER_COUNT");
-    
+
+    matrix = GetOutputMatrix("MATRIX");
+    object_id = GetOutputArray("OBJECT_ID");
+    frame_id = GetOutputArray("FRAME_ID");
+    confidence = GetOutputArray("CONFIDENCE");
+    image_position = GetOutputMatrix("IMAGE_POSITION");
+    edges = GetOutputMatrix("EDGES");
+
     input = GetInputMatrix("INPUT");
     
     max_positions = GetOutputSizeY("POS");
@@ -426,6 +435,24 @@ MarkerTracker::Tick()
         center_sort_rows(markers, 28, ix);
     
     *marker_count = float(ix);
+
+    // Fill in new output
+
+    reset_matrix(matrix, 16, max_markers);
+    reset_array(object_id, max_markers);
+    set_array(frame_id, float(frame_id_constant), max_markers);
+    reset_array(confidence, max_markers);
+    reset_matrix(image_position, 2, max_markers);
+    reset_matrix(edges, 8, max_markers);
+
+    for(int i=0; i<ix; i++)
+    {
+        h_copy(matrix[i], markers[i]);
+        object_id[i] = markers[i][marker_id];
+        confidence[i] = markers[i][marker_confidence];
+        copy_array(image_position[i], &markers[i][marker_pos_x], 2);
+        copy_array(edges[i], &markers[i][marker_corners], 8);
+    }
 }
 
 

@@ -40,7 +40,9 @@
 	<parameter name="threshold" type="float" default="auto" description="The initial threshold (Number between 0.0-1.0 or auto)" />
 	<parameter name="calibration" type="array" default="640 426 294.458 161.609 675.381 681.446 -0.160115  -0.067107  0.016423  -0.001641 0 0 10" description="Camera calibration. See ARTookKit documentation for an explanation of these parameters. These values must be valid for the camera used to produce correct results." />
 	<parameter name="coordinate_system" type="list" values="artoolkit/ikaros" default="ikaros" description= "The coordinate system of the marker output. The relationship between artoolkit coordinates and ikaros coordinates are  z = x', -x = y', -y = z'. See Artoolkit documentation http://www.hitl.washington.edu/artoolkit/documentation/tutorialcamera.htm "/>
-    
+
+    <parameter name="frame_id" type="int" default="0" description="The ID of the reference franme for the tracker, typically the ID of the camera coordinate system" />
+
 	<input name="INPUT" description="The image input" />
     
 	<output name="MARKERS" description="Output table where each row descibes a detected marker: transformation matrix (16 columns), id (1 column), confidence (1 columns), camera position (2 columns), edges (8 columns)" size_x="28" size_param_y="max_markers" />
@@ -49,7 +51,16 @@
     
 	<output name="PROJECTION" description="The camera projection matrix used by ARToolKitPlus (ARToolKitPlus::Tracker::getProjectionMatrix)" size_x="4" size_y="4" />
 	<output name="MODEL_VIEW" description="The model view matrix used by ARToolKitPlus (ARToolKitPlus::Tracker::getModelViewMatrix)" size_x="4" size_y="4" />
-    
+
+    <!-- New format outputs in separate matrices/arrays -->
+
+	<output name="MATRIX" description="The transformation matrix for each detected marker (h_matrix)" size_x="16" size_param_y="max_markers" />
+	<output name="OBJECT_ID" description="The ID of each detected marker" size_x="1" size_param_y="max_markers" />
+	<output name="FRAME_ID" description="The ID of the camera coordinate system. A constant set by the frame_id parameter" size_x="1" size_param_y="max_markers" />
+	<output name="CONFIDENCE" description="Confidence of marker matching (0-1)" size_x="1" size_param_y="max_markers" />
+	<output name="IMAGE_POSITION" description="Position of marker in image (x, y)" size_x="2" size_param_y="max_markers" />
+	<output name="EDGES" description="Marker edges in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_markers" />
+
 	<module class="MarkerTracker" />
     
     <view name="MarkerTracker" object_size="30">
