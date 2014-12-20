@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 
-<group name="DelayOne" description="Delay">
+<group name="DelayOne" description="delays its input one tick">
 
 	<description type="text">	
-		This module demonstrates how the output size can depend on the input size using the SetSizes function	
+		This programming example demonstrates how the output size can depend on the input size using the SetSizes function.
+        This is only intended as an example. To delay signals it is much better to use the delay attribute in connections.
 	</description>
 
 	<example description="A simple example">
@@ -13,7 +14,7 @@
 		/>
 	</example>
 
-	<input name="INPUT1" description="The input" />
+	<input name="INPUT" description="The input" />
 
 	<output name="OUTPUT" description="The output" />
 
