@@ -6,12 +6,13 @@
 		<p>
         Module that generates a tapped delay line for each input of length set by no_of_taps.
         The outputs are advanced one step though the delay line every tick and produces what is sometimes called a
-        <i>complete serial compund</i> (Sutton &amp; Barto, 1990)
-        <p>
-        <p>
-        Sutton, R. S. and Barto, A. G. (1990). “Time-derivative models of Pavlovian reinforcement”, In Learning and Computational Neuroscience: Foundations of Adaptive Networks, eds M. Gabriel and J. Moore (Cambridge, MA: MIT Press), 497–537.
+        <i>complete serial compund</i> (Sutton &amp; Barto, 1990).
         </p>
 	</description>
+
+    <reference>
+        Sutton, R. S. and Barto, A. G. (1990). Time-derivative models of Pavlovian reinforcement, In Learning and Computational Neuroscience: Foundations of Adaptive Networks, eds M. Gabriel and J. Moore (Cambridge, MA: MIT Press), 497–537.
+    </reference>
 
 	<example description="A simple example">
 		<module
