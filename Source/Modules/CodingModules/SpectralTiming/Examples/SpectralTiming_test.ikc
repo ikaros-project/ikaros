@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<group title="SpectralTiming">
+    
+    <module
+        class = "FunctionGenerator"
+        name = "Signal"
+        type = "ticksquare"
+        tickduty = "10"
+        basetime = "300"
+    />
+        
+    <module
+        class = "SpectralTiming"
+        name = "SpectralTiming"
+        no_of_taps = "6"
+    />
+        
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="SpectralTiming" target="INPUT" delay = "1" />
+    
+    <view name="View">
+        <object class="Plot" module="Signal" source="OUTPUT" max="1" colors="yellow"  x="0" y="0" w="4" />
+        <object class="Plot" module="SpectralTiming" source="TRACE" max="1" colors="yellow"  x="0" y="1" w="4" />
+        <object class="Plot" module="SpectralTiming" source="OUTPUT" max="1" select="[0,0], [0,1], [0,2], [0,3], [0,4], [0,5]" stroke_width="2" color="blue, red, white, purple, green, orange"  x="0" y="2" w="4" h="2" />
+
+        <object class="Grid" module="SpectralTiming" source="OUTPUT" x="0" y="4" w="4" h="2" />
+    </view>
+
+</group>
+
