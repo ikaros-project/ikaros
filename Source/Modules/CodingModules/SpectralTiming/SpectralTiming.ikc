@@ -1,20 +1,22 @@
 <?xml version="1.0"?>
 
-<group name="SpectralTiming" description="encodes a signal in a set of temporallencodes a signal as a time seriesy tuned components">
+<group name="SpectralTiming" description="encodes a signal in a set of temporal components">
 
-	<description type="text">
+	<description type="xhtml">
+        <p>
 		Module that generates a sequence of stimuli from each input. The variable no_of_taps sets the number of components,
         the parameter decay sets the decay rate of the stimulus trace and sigma sets the width of the temporal receptive field for each component.
         This module implements a version of the spectral timing model of Grossberg &amp; Schmajuk (1989). See also Gershman et al. (2014).
         </p>
-        <p>
-        Grossberg, S., and Schmajuk, N. A. (1989). Neural dynamics of adaptive timing and temporal discrimination during associative learning. Neural Networks 2, 79–102.
-        <p>
-        <p>
-        Gershman, S. J., Moustafa, A. A. and Ludvig, E. A. (2014). Time representation in reinforcement learning models of the basal ganglia. Frontiers in computational neuroscience, 7, 1-8.
-        <p>
-	</description>
+ 	</description>
 
+    <reference>
+        Grossberg, S., and Schmajuk, N. A. (1989). Neural dynamics of adaptive timing and temporal discrimination during associative learning. Neural Networks 2, 79–102.
+    </reference>
+    <reference>
+        Gershman, S. J., Moustafa, A. A. and Ludvig, E. A. (2014). Time representation in reinforcement learning models of the basal ganglia. Frontiers in computational neuroscience, 7, 1-8.
+    </reference>
+    
 	<example description="A simple example">
 		<module
 			class="SpectralTiming"
