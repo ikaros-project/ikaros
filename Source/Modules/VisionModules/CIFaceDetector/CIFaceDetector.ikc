@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group name="CIFaceDetector" description="wraps Apple's CIFaceDetector">
+
+<description type="text">
+CIFaceDetector is an Ikaros wrapper for Apple's Core Image Face Detector. OS X Only.
+    
+The module can be used either to find one face and two eyes or to find maximally 10 faces in an image. Positions and sizes are given as fractions of the image size.
+</description>
+
+<example description="A simple example">
+    <module
+        class="CIFaceDetector"
+        name="CIFaceDetector"
+    />
+</example>
+
+<parameter name="max_faces" type="int" default="10" description="maximum number of faces" />
+
+<parameter name="min_size" type="float" default="0.1" description="minimum size of a face (0-1)" />
+<parameter name="use_tracking" type="bool" default="yes" description="track faces between frames" />
+
+<input name="INPUT" description="The input image" />
+
+<output name="OUTPUT" size_set="INPUT" description="The image with the faces indicated by rectangles" />
+<output name="FACE" size_x="256" size_y="256" description="The face cut out from the input image" />
+<output name="EYE_LEFT" size_x="50" size_y="50" description="The left eye cut out from the input image"/>
+<output name="EYE_RIGHT" size_x="50" size_y="50" description="The left eye cut out from the input image" />
+<output name="FACE_POSITION" size="2" description="Location of one face in the image (0.2-1.0)" />
+<output name="EYE_LEFT_POSITION" size="2" description="Location of the left eye in the image (0-1)" />
+<output name="EYE_RIGHT_POSITION" size="2" description="Location of the right eye in the image (0-1)" />
+<output name="FACES" size_x="4" size_y="10" description="Location of all faces in the image (0-1) and their sizes; each row consists of x, y, size_x and size_y for one face" />
+
+<output name="EDGES" description="Face bounding box in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
+<output name="FEATURES" description="Location of eyes and mouth" size_x="6" size_param_y="max_faces" />
+
+<output name="FACE_COUNT" description="Number of faces in the image" size="1" />
+
+<module class="CIFaceDetector" />
+
+
+<author>
+<name>Christian Balkenius</name>
+<email>christian.balkenius@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Christian.Balkenius/</homepage>
+</author>
+
+<files>
+<file>CIFaceDetector.h</file>
+<file>CIFaceDetector.cc</file>
+<file>CIFaceDetector.ikc</file>
+</files>
+
+</group>
+
+
