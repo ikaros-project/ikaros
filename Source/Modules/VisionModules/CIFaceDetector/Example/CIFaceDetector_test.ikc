@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+
+<!--
+	Example file for CoreImage FaceDetector
+-->
+
+<group title="Face Detector">
+
+		<module
+			class   = "InputVideoQT"
+			name	= "CAMERA"			
+			size_x  = "320"
+			size_y  = "240"
+			camera  = "iSight"
+		/>
+
+        <module
+            class = "CIFaceDetector"
+            name = "FaceDetector"
+        />
+        
+        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" />
+        
+		<view name="Input">
+			<object
+				class   ="Image"
+                title   = "Camera"
+				type	= "rgb"
+				module  = "CAMERA"
+				source  = "RED+GREEN+BLUE"
+				x="0" y="0"
+				w="3" h="2"
+				min = "0"
+				max = "1"
+			/>
+
+			<object
+				class   = "Path"
+				module  = "FaceDetector"
+				source  = "EDGES"
+                length_source = "NO_OF_FACES"
+				x="0" y="0"
+				w="3" h="2"
+				min = "0"
+				max = "1"
+    		    select = "0"
+                count = "4"
+                close = "yes"  
+                color="red"
+                stroke_width="4"
+                fill = "rgba(255,0,0,0.45)"
+                line_join="round"
+			/>
+
+			<object
+				class   = "Path"
+				module  = "FaceDetector"
+				source  = "FEATURES"
+                length_source = "NO_OF_FACES"
+				x="0" y="0"
+				w="3" h="2"
+				min = "0"
+				max = "1"
+    		    select = "0"
+                count = "3"
+                close = "yes"  
+                color="blue"
+                stroke_width="2"
+                fill = "rgba(0,0,255,0.45)"
+                line_join="round"
+			/>
+
+			<object
+                class   = "Circle"
+                color = "red"
+                size    = "0.025"
+                module  = "FaceDetector"
+                source  = "FACES"
+                x="0" y="0"
+                w="3" h="2"
+			/>
+            
+			<object
+                class   = "Cross"
+                size    = "0.05"
+                module  = "FaceDetector"
+                source  = "FACE_POSITION"
+                x="0" y="2"
+                w="3" h="2"
+			/>
+
+
+
+
+
+			<object
+                class   ="Image"
+                title   = "Left Eye"
+                type	= "gray"
+                module  = "FaceDetector"
+                source  = "EYE_LEFT"
+                x="4" y="1"
+                w="1" h="1"
+                min = "0"
+                max = "1"
+			/>
+            
+			<object
+                class   ="Image"
+                title   = "Right Eye"
+                type	= "gray"
+                module  = "FaceDetector"
+                source  = "EYE_RIGHT"
+                x="3" y="1"
+                w="1" h="1"
+                min = "0"
+                max = "1"
+			/>
+            
+			<object
+				class   ="Image"
+                title   = "Output"
+				type	= "gray"
+				module  = "FaceDetector"
+				source  = "OUTPUT"
+				x="0" y="2"
+				w="3" h="2"
+				min = "0"
+				max = "1"
+			/>
+
+            <object
+                class   ="Image"
+                title   = "Face"
+                type	= "gray"
+                module  = "FaceDetector"
+                source  = "FACE"
+                x="3" y="2"
+                w="2" h="2"
+			/>
+            
+        </view>
+
+</group>
+
