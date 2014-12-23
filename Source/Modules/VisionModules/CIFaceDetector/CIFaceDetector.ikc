@@ -6,6 +6,8 @@
 CIFaceDetector is an Ikaros wrapper for Apple's Core Image Face Detector. OS X Only.
     
 The module can be used either to find one face and two eyes or to find maximally 10 faces in an image. Positions and sizes are given as fractions of the image size.
+
+The module finds all faces in an image. The face most close to the center is selected for speacial treatment and the module will find the image for that facse as well as the eye and the mouth.
 </description>
 
 <example description="A simple example">
