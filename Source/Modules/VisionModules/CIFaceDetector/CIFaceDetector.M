@@ -68,6 +68,7 @@ CIFaceDetector::Init()
     output = GetOutputMatrix("OUTPUT");
 
     face_table = GetOutputMatrix("FACES");
+    
     face = GetOutputMatrix("FACE");
     eye_left = GetOutputMatrix("EYE_LEFT");
     eye_right = GetOutputMatrix("EYE_RIGHT");
