@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-	Example file for QuickTime video input with the module InputVideoQT
-	This example has been tested with iSight
+	Example file for MPIFaceDetector with QuickTime camera input
 -->
 
 <group title="Face Detector">
