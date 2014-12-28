@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.cc		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2012  Christian Balkenius
+//    Copyright (C) 2006-2014  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
