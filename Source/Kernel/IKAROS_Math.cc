@@ -4285,6 +4285,37 @@ namespace ikaros
         draw_circle(green, sizex, sizey, x, y, radius, g);
         draw_circle(blue, sizex, sizey, x, y, radius, b);
     }
+
+
+    void
+    draw_rectangle(float ** image, int size_x, int size_y, int x0, int y0, int x1, int y1, float color)
+    {
+        x0 = max(x0, 0);
+        y0 = max(y0, 0);
+        x1 = min(x1, size_x-1);
+        y1 = min(y1, size_y-1);
+        
+        for(int x=x0; x<x1; x++)
+        {
+            image[y0][x] = color;
+            image[y1][x] = color;
+        }
+
+        for(int y=y0; y<y1; y++)
+        {
+            image[y][x0] = color;
+            image[y][x1] = color;
+        }
+    }
     
+    
+    void
+    draw_rectangle(float ** red_image, float ** green_image, float ** blue_image, int size_x, int size_y, int x0, int y0, int x1, int y1, float red, float green, float blue)
+    {
+        draw_rectangle(red_image, size_x, size_y, x0, y0, x1, y1, red);
+        draw_rectangle(green_image, size_x, size_y, x0, y0, x1, y1, green);
+        draw_rectangle(blue_image, size_x, size_y, x0, y0, x1, y1, blue);
+    }
+
 }
 
