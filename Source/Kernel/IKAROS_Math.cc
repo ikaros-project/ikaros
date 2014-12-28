@@ -2178,7 +2178,7 @@ namespace ikaros
         int     lwork = -1;
         int *   iwork = (int*)malloc(sizeof(int)*max(1,8*min(m,n)));
 
-        float ** a_t = transpose(create_matrix(m, n), a, m, n);
+        float ** a_t = transpose(create_matrix(m, n), a, m, n); // TODO: set parameters to avaoid this; see https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/lapacke_sgesdd_row.c.htm
         
         // Query optimal working array(s) size
         
