@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.h		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2012  Christian Balkenius
+//    Copyright (C) 2006-2014  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -405,6 +405,9 @@ namespace ikaros
 
     void        draw_circle(float ** image, int sizex, int sizey, int x, int y, int radius, float color);
     void        draw_circle(float ** red, float ** green, float ** blue, int sizex, int sizey, int x, int y, int radius, float r, float g, float b);
+    
+    void        draw_rectangle(float ** image, int size_x, int size_y, int x0, int y0, int x1, int y1, float color);
+    void        draw_rectangle(float ** red_image, float ** green_image, float ** blue_image, int size_x, int size_y, int x0, int y0, int x1, int y1, float red, float green, float blue);
 }
 
 #endif
