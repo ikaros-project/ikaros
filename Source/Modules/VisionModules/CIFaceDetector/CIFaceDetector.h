@@ -38,7 +38,9 @@ class CIFaceDetector: public Module
         float       min_size;
         bool        use_tracking;
         bool        mouth_correction;
-        
+        bool        detect_smiles;
+        bool        detect_blinks;
+
         void *      detector; // The face detector; actally a CIDetector Objective-C object
 
         float **    input;
@@ -55,6 +57,8 @@ class CIFaceDetector: public Module
         float **    mouth_position;
         float *     rotation;
         float *     smile;
+        float *     blink_left;
+        float *     blink_right;
         float *     novelty;
         float *     object_id;
         float *     life;
