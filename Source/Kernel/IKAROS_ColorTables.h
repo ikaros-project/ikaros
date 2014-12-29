@@ -1,7 +1,7 @@
 //
 //	IKAROS_ColorTables.h		Color tables for JPEG images
 //
-//    Copyright (C) 20098  Christian Balkenius
+//    Copyright (C) 2009  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by

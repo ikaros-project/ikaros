@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+
+<group name="CIFaceDetector" description="wraps Apple's CIFaceDetector">
+
+<description type="xhtml">
+<p>
+CIFaceDetector is a face detector for Ikaros that uses Apple's Core Image Face Detector. <b>OS X Only</b>.
+</p>
+<p>
+The module finds all faces in an image as well as the eyes and the mouth. Additional inputs tells whether the face is smiling and if it is novel.
+Positions and sizes are given as fractions of the image size.
+</p>
+</description>
+
+<example description="A simple example">
+    <module
+        class="CIFaceDetector"
+        name="CIFaceDetector"
+    />
+</example>
+
+
+
+<!-- PARAMETERS -->
+
+<parameter name="max_faces" type="int" default="10" description="maximum number of faces" />
+<parameter name="min_size" type="float" default="0.1" description="minimum size of a face (0.2-1.0)" />
+<parameter name="use_tracking" type="bool" default="yes" description="track faces between frames" />
+<parameter name="detect_smiles" type="bool" default="yes" description="detect smiles" />
+<parameter name="detect_blinks" type="bool" default="yes" description="detect eye blink" />
+<parameter name="mouth_correction" type="bool" default="yes" description="map the mouth position from the detector onto a line that is perpendicular to the line between the eyes and centered between the eyes; this mostly gives a better position than the original detector. " />
+
+<!-- INPUTS -->
+
+<input name="INPUT" description="The input image" />
+
+
+<!-- OUTPUTS -->
+
+<output name="FACE_POSITION" size_x="2" size_param_y="max_faces" description="Location of each face in the image" />
+<output name="FACE_SIZE" size_x="2" size_param_y="max_faces" description="Size of each face (width, height)" />
+<output name="EYE_LEFT_POSITION" size_x="2" size_param_y="max_faces" description="Location of the left eyes in the image (0-1)" />
+<output name="EYE_RIGHT_POSITION" size_x="2" size_param_y="max_faces" description="Location of the right eyes in the image (0-1)" />
+<output name="MOUTH_POSITION" size_x="2" size_param_y="max_faces" description="Location of the right eyes in the image (0-1)" />
+<output name="ROTATION" size_param="max_faces"  description="The head tilt in degrees" />
+<output name="SMILE" size_param="max_faces"  description="This output is 1 if the corresponding face is smiling; 0 otherwise" />
+<output name="BLINK_LEFT" size_param="max_faces"  description="This output is 1 if the left eye is blinking; 0 otherwise" />
+<output name="BLINK_RIGHT" size_param="max_faces"  description="This output is 1 if the right eye is blinking; 0 otherwise" />
+<output name="NOVELTY" size_param="max_faces"  description="This output is 1 if the face just appeared in the image" />
+<output name="OBJECT_ID" size_param="max_faces"  description="A unique ID for the face. New IDs are assigend everytime a face dissapears and reappears" />
+<output name="LIFE" size="1" size_param="max_faces" description="This output increases with 1 for each tick that the face is tracked" />
+
+<output name="FACE_COUNT" size="1" description="The number of detected faces in the image" />
+
+<!-- VISULAISATION OUTPUT -->
+
+<output name="EDGES" description="Face bounding boxes in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
+
+<module class="CIFaceDetector" />
+
+
+    <view name="Input" >
+         <object
+            class   = "Path"
+            title   = "Faces"
+            module  = "*"
+            source  = "EDGES"
+            length_source = "FACE_COUNT"
+            x="0" y="0"
+            w="4" h="3"
+            min = "0"
+            max = "1"
+            select = "0"
+            count = "4"
+            close = "yes"
+            color="red"
+            stroke_width="4"
+            fill = "rgba(255,0,0,0.45)"
+            line_join="round"
+        />
+        
+        <object
+            class   = "Circle"
+            color = "red"
+            size    = "0.025"
+            module  = "*"
+            source  = "EYE_LEFT_POSITION"
+            x="0" y="0"
+            w="4" h="3"
+        />
+
+        <object
+            class   = "Circle"
+            color = "green"
+            size    = "0.025"
+            module  = "*"
+            source  = "EYE_RIGHT_POSITION"
+            x="0" y="0"
+            w="4" h="3"
+        />
+
+        <object
+            class   = "Circle"
+            color = "blue"
+            size    = "0.03"
+            module  = "*"
+            source  = "MOUTH_POSITION"
+            x="0" y="0"
+            w="4" h="3"
+        />
+
+        <object
+            class = "Plot"
+            x="0" y="3"
+            module = "*"
+            source = "ROTATION"
+            min = "-25"
+            max = "25"
+        />
+
+        <object
+            class = "Plot"
+            x="1" y="3"
+            module = "*"
+            source = "NOVELTY"
+        />
+
+         <object
+            class = "Plot"
+            x="2" y="3"
+            module = "*"
+            source = "SMILE"
+        />
+
+         <object
+            class = "Plot"
+            x="3" y="3"
+            module = "*"
+            source = "BLINK_LEFT"
+        />
+
+
+         <object
+            class = "Plot"
+            x="4" y="3"
+            module = "*"
+            source = "BLINK_RIGHT"
+        />
+
+   </view>
+
+<limitation>
+OS X only.
+</limitation>
+
+<author>
+<name>Christian Balkenius</name>
+<email>christian.balkenius@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Christian.Balkenius/</homepage>
+</author>
+
+<files>
+<file>CIFaceDetector.h</file>
+<file>CIFaceDetector.cc</file>
+<file>CIFaceDetector.ikc</file>
+</files>
+
+</group>
+
+

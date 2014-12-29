@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.cc		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2012  Christian Balkenius
+//    Copyright (C) 2006-2014  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -2178,7 +2178,7 @@ namespace ikaros
         int     lwork = -1;
         int *   iwork = (int*)malloc(sizeof(int)*max(1,8*min(m,n)));
 
-        float ** a_t = transpose(create_matrix(m, n), a, m, n);
+        float ** a_t = transpose(create_matrix(m, n), a, m, n); // TODO: set parameters to avaoid this; see https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/lapacke_sgesdd_row.c.htm
         
         // Query optimal working array(s) size
         
@@ -4285,6 +4285,37 @@ namespace ikaros
         draw_circle(green, sizex, sizey, x, y, radius, g);
         draw_circle(blue, sizex, sizey, x, y, radius, b);
     }
+
+
+    void
+    draw_rectangle(float ** image, int size_x, int size_y, int x0, int y0, int x1, int y1, float color)
+    {
+        x0 = max(x0, 0);
+        y0 = max(y0, 0);
+        x1 = min(x1, size_x-1);
+        y1 = min(y1, size_y-1);
+        
+        for(int x=x0; x<x1; x++)
+        {
+            image[y0][x] = color;
+            image[y1][x] = color;
+        }
+
+        for(int y=y0; y<y1; y++)
+        {
+            image[y][x0] = color;
+            image[y][x1] = color;
+        }
+    }
     
+    
+    void
+    draw_rectangle(float ** red_image, float ** green_image, float ** blue_image, int size_x, int size_y, int x0, int y0, int x1, int y1, float red, float green, float blue)
+    {
+        draw_rectangle(red_image, size_x, size_y, x0, y0, x1, y1, red);
+        draw_rectangle(green_image, size_x, size_y, x0, y0, x1, y1, green);
+        draw_rectangle(blue_image, size_x, size_y, x0, y0, x1, y1, blue);
+    }
+
 }
 
