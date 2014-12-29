@@ -2,12 +2,14 @@
 
 <group name="CIFaceDetector" description="wraps Apple's CIFaceDetector">
 
-<description type="text">
-CIFaceDetector is an Ikaros wrapper for Apple's Core Image Face Detector. OS X Only.
-    
-The module can be used either to find one face and two eyes or to find maximally 10 faces in an image. Positions and sizes are given as fractions of the image size.
-
-The module finds all faces in an image. The face most close to the center is selected for speacial treatment and the module will find the image for that facse as well as the eye and the mouth.
+<description type="xhtml">
+<p>
+CIFaceDetector is a face detector for Ikaros that uses Apple's Core Image Face Detector. <b>OS X Only</b>.
+</p>
+<p>
+The module finds all faces in an image as well as the eyes and the mouth. Additional inputs tells whether the face is smiling and if it is novel.
+Positions and sizes are given as fractions of the image size.
+</p>
 </description>
 
 <example description="A simple example">
@@ -17,29 +19,120 @@ The module finds all faces in an image. The face most close to the center is sel
     />
 </example>
 
-<parameter name="max_faces" type="int" default="10" description="maximum number of faces" />
 
-<parameter name="min_size" type="float" default="0.1" description="minimum size of a face (0-1)" />
+
+<!-- PARAMETERS -->
+
+<parameter name="max_faces" type="int" default="10" description="maximum number of faces" />
+<parameter name="min_size" type="float" default="0.1" description="minimum size of a face (0.2-1.0)" />
 <parameter name="use_tracking" type="bool" default="yes" description="track faces between frames" />
+<parameter name="mouth_correction" type="bool" default="yes" description="map the mouth position from the detector onto a line that is perpendicular to the line between the eyes and centered between the eyes; this mostly gives a better position than the original detector. " />
+
+<!-- INPUTS -->
 
 <input name="INPUT" description="The input image" />
 
-<output name="OUTPUT" size_set="INPUT" description="The image with the faces indicated by rectangles" />
-<output name="FACE" size_x="256" size_y="256" description="The face cut out from the input image" />
-<output name="EYE_LEFT" size_x="50" size_y="50" description="The left eye cut out from the input image"/>
-<output name="EYE_RIGHT" size_x="50" size_y="50" description="The left eye cut out from the input image" />
-<output name="FACE_POSITION" size="2" description="Location of one face in the image (0.2-1.0)" />
-<output name="EYE_LEFT_POSITION" size="2" description="Location of the left eye in the image (0-1)" />
-<output name="EYE_RIGHT_POSITION" size="2" description="Location of the right eye in the image (0-1)" />
-<output name="FACES" size_x="4" size_y="10" description="Location of all faces in the image (0-1) and their sizes; each row consists of x, y, size_x and size_y for one face" />
 
-<output name="EDGES" description="Face bounding box in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
-<output name="FEATURES" description="Location of eyes and mouth" size_x="6" size_param_y="max_faces" />
+<!-- OUTPUTS -->
 
-<output name="FACE_COUNT" description="Number of faces in the image" size="1" />
+<output name="FACE_POSITION" size_x="2" size_param_y="max_faces" description="Location of each face in the image" />
+<output name="FACE_SIZE" size_x="2" size_param_y="max_faces" description="Size of each face (width, height)" />
+<output name="EYE_LEFT_POSITION" size_x="2" size_param_y="max_faces" description="Location of the left eyes in the image (0-1)" />
+<output name="EYE_RIGHT_POSITION" size_x="2" size_param_y="max_faces" description="Location of the right eyes in the image (0-1)" />
+<output name="MOUTH_POSITION" size_x="2" size_param_y="max_faces" description="Location of the right eyes in the image (0-1)" />
+<output name="ROTATION" size_param="max_faces"  description="The head tilt in degrees" />
+<output name="SMILE" size_param="max_faces"  description="This output is 1 if the corresponding face is smiling; 0 otherwise" />
+<output name="NOVELTY" size_param="max_faces"  description="This output is 1 if the face just appeared in the image" />
+<output name="OBJECT_ID" size_param="max_faces"  description="A unique ID for the face. New IDs are assigend everytime a face dissapears and reappears" />
+<output name="LIFE" size="1" size_param="max_faces" description="This output increases with 1 for each tick that the face is tracked" />
+
+<output name="FACE_COUNT" size="1" description="The number of detected faces in the image" />
+
+<!-- VISULAISATION OUTPUT -->
+
+<output name="EDGES" description="Face bounding boxes in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
 
 <module class="CIFaceDetector" />
 
+
+    <view name="Input" >
+         <object
+            class   = "Path"
+            title   = "Faces"
+            module  = "*"
+            source  = "EDGES"
+            length_source = "FACE_COUNT"
+            x="0" y="0"
+            w="4" h="3"
+            min = "0"
+            max = "1"
+            select = "0"
+            count = "4"
+            close = "yes"
+            color="red"
+            stroke_width="4"
+            fill = "rgba(255,0,0,0.45)"
+            line_join="round"
+        />
+        
+        <object
+            class   = "Circle"
+            color = "red"
+            size    = "0.025"
+            module  = "*"
+            source  = "EYE_LEFT_POSITION"
+            x="0" y="0"
+            w="4" h="3"
+        />
+
+        <object
+            class   = "Circle"
+            color = "green"
+            size    = "0.025"
+            module  = "*"
+            source  = "EYE_RIGHT_POSITION"
+            x="0" y="0"
+            w="4" h="3"
+        />
+
+        <object
+            class   = "Circle"
+            color = "blue"
+            size    = "0.03"
+            module  = "*"
+            source  = "MOUTH_POSITION"
+            x="0" y="0"
+            w="4" h="3"
+        />
+
+        <object
+            class = "Plot"
+            x="0" y="3"
+            module = "*"
+            source = "ROTATION"
+            min = "-25"
+            max = "25"
+        />
+
+        <object
+            class = "Plot"
+            x="1" y="3"
+            module = "*"
+            source = "NOVELTY"
+        />
+
+         <object
+            class = "Plot"
+            x="2" y="3"
+            module = "*"
+            source = "SMILE"
+        />
+
+   </view>
+
+<limitation>
+OS X only.
+</limitation>
 
 <author>
 <name>Christian Balkenius</name>

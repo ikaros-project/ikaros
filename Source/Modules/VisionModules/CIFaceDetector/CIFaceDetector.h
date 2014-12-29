@@ -31,38 +31,40 @@ class CIFaceDetector: public Module
     {
     public:
         CIFaceDetector(Parameter * p) : Module(p) {}
-        virtual ~CIFaceDetector() {}
+        virtual ~CIFaceDetector();
         
         static Module * Create(Parameter * p) { return new CIFaceDetector(p); }
         
         float       min_size;
         bool        use_tracking;
+        bool        mouth_correction;
         
-        float *     image_data;
-        
+        void *      detector; // The face detector; actally a CIDetector Objective-C object
+
         float **    input;
-        float **    output;
-        
-        float **    face_table;
-        float **    face;
-        float **    eye_left;
-        float **    eye_right;
-
-        float *     face_position;
-        float *     eye_left_position;
-        float *     eye_right_position;
-
-        float **    edges;
-        float **    features;
-
-        float *     face_count;
-        float *     smile_count;
-
-        int         max_faces;
 
         int         size_x;
         int         size_y;
         
+        float *     face_count;
+
+        float **    face_position;
+        float **    face_size;
+        float **    eye_left_position;
+        float **    eye_right_position;
+        float **    mouth_position;
+        float *     rotation;
+        float *     smile;
+        float *     novelty;
+        float *     object_id;
+        float *     life;
+
+        float **    edges;
+
+        int         max_faces;
+
+        float *     image_data;
+    
         void 		Init();
         void 		Tick();
     };
