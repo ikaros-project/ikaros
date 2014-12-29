@@ -36,6 +36,8 @@ CIFaceDetector::Init()
     Bind(max_faces, "max_faces");
     Bind(use_tracking, "use_tracking");
     Bind(mouth_correction, "mouth_correction");
+    Bind(detect_smiles, "detect_smiles");
+    Bind(detect_blinks, "detect_blinks");
 
     min_size = clip(GetFloatValue("min_size"), 0.2, 1.0);
     
@@ -50,6 +52,8 @@ CIFaceDetector::Init()
     eye_right_position = GetOutputMatrix("EYE_RIGHT_POSITION");
     mouth_position = GetOutputMatrix("MOUTH_POSITION");
     rotation = GetOutputArray("ROTATION");
+    blink_left = GetOutputArray("BLINK_LEFT");
+    blink_right = GetOutputArray("BLINK_RIGHT");
     smile = GetOutputArray("SMILE");
     novelty = GetOutputArray("NOVELTY");
     life = GetOutputArray("LIFE");
@@ -96,7 +100,10 @@ CIFaceDetector::Tick()
                                 format:kCIFormatRGBAf // 128 bits per pixel
                                 colorSpace:CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB)];
 
-    NSArray * faces = [(CIDetector *)detector featuresInImage: image options: @{ CIDetectorSmile: @(YES) }];
+    NSArray * faces = [(CIDetector *)detector featuresInImage: image options: @{
+        CIDetectorSmile: (detect_smiles ? @(YES) : @(NO)),
+        CIDetectorEyeBlink: (detect_blinks ? @(YES) : @(NO))
+    }];
     
     reset_matrix(edges, 8, max_faces);
     reset_matrix(face_position, 2, max_faces);
@@ -194,6 +201,8 @@ CIFaceDetector::Tick()
         }
 
         rotation[c] = (f.hasFaceAngle ? f.faceAngle : 0);
+        blink_left[c] = (f.leftEyeClosed ? 1 : 0);
+        blink_right[c] = (f.rightEyeClosed ? 1 : 0);
         smile[c] = (f.hasSmile ? 1 : 0);
         novelty[c] = (f.hasTrackingFrameCount && f.trackingFrameCount == 1 ? 1 : 0);
         life[c] = (f.hasTrackingFrameCount ? f.trackingFrameCount : 0);

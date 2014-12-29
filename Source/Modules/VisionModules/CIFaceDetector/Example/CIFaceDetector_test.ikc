@@ -107,6 +107,19 @@
                 source = "SMILE"
             />
 
+             <object
+                class = "Plot"
+                x="3" y="3"
+                module = "FaceDetector"
+                source = "BLINK_LEFT"
+            />
+
+             <object
+                class = "Plot"
+                x="4" y="3"
+                module = "FaceDetector"
+                source = "BLINK_RIGHT"
+            />
        </view>
 
 </group>
