@@ -77,8 +77,8 @@ OutputJPEG::~OutputJPEG()
 void
 OutputJPEG::Init()
 {
-    if(InputConnected("INTENSITY"))
-        writesig = GetInputArray("INTENSITY");
+    if(InputConnected("WRITE"))
+        writesig = GetInputArray("WRITE");
 
     if(InputConnected("INTENSITY"))
     {
