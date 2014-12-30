@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<group name="AttentionWindow" description="selects an object region">
+
+	<description type="xhtml">
+    <p>
+		Module that extracts a region from an image based on a top-down position and bottom-up detection data. When the bottom-up data is available, the top-down input will select among these positions. There are a number of possibilities:
+	</p>
+    <ul>
+        <li><b>Bottom-up only</b> The bottom up location closest to the center will be selected and the size of the attention window will be set by the OBJECT_BOUNDS input if connected. If there is no bottom-up data, the top-down input will be used instead.</li>
+
+        <li><b>Top-down only</b> The top-down location in the image will be selected and the region for the attention window will be set TOP_DOWN_BOUNDS if connected.</li>
+        
+        <li><b>Top-down and Bottom-up</b> The top-down position in the image will be used to select the bottom up location closest to it and the size of that object will be used if available.</li>
+    </ul>
+    <p>
+        When no top-down or bottom-up object sizes are available it will be set by the parameter focus_radius <i>or</i> both of focus_width and focus_height.
+    </p>
+    </description>
+
+	<example description="A simple example">
+		<module
+			class="AttentionWindow"
+			name="AttentionWindow"
+			output_size = "64"
+		/>
+	</example>
+
+	<parameter name="window_radius" type="float" default="15" description="The radius of the window." />
+    
+	<parameter name="window_size_x" type="float" default="0" description="The width of the window. Calculated from radius if not set." />
+	<parameter name="window_size_y" type="float" default="0" description="The height of the window. Calculated from radius if not set." />
+
+	<parameter name="output_size_x" type="int" default="32" description="The width of the output." />
+	<parameter name="output_size_y" type="int" default="32" description="The height of the output." />
+
+	<input name="INPUT" description="The input image" />
+
+	<input name="BOTTOM_UP_POSITION" description="The coordinates of detected objects in the image" />
+	<input name="BOTTOM_UP_BOUNDS" description="The bounds of the detected object. Four corners." />
+	<input name="BOTTOM_UP_COUNT" description="The number of detected objects" />
+    
+	<input name="TOP_DOWN_POSITION" description="A 2x1 array that represents the center of the focus in the input image. Range from 0 to 1, where 0.5 is the center of the image" />
+	<input name="TOP_DOWN_BOUNDS" description="The four corners on the top-down attention window" />
+
+	<output name="OUTPUT" description="The size of the output" size_param_x="output_size_x" size_param_y="output_size_y"/>
+
+	<module class="AttentionWindow" />
+
+	<created>2014</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>AttentionWindow.h</file>
+   		<file>AttentionWindow.cc</file>
+   		<file>AttentionWindow.ikc</file>
+   </files>
+
+</group>
+
