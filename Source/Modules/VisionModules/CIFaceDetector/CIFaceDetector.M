@@ -102,7 +102,7 @@ CIFaceDetector::Tick()
 
     NSArray * faces = [(CIDetector *)detector featuresInImage: image options: @{
         CIDetectorSmile: (detect_smiles ? @(YES) : @(NO)),
-        CIDetectorEyeBlink: (detect_blinks ? @(YES) : @(NO))
+        CIDetectorEyeBlink: (detect_blinks ? @(YES) : @(NO)),
     }];
     
     reset_matrix(edges, 8, max_faces);
