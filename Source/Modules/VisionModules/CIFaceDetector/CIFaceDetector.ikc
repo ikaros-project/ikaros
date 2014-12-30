@@ -39,6 +39,7 @@ Positions and sizes are given as fractions of the image size.
 
 <output name="FACE_POSITION" size_x="2" size_param_y="max_faces" description="Location of each face in the image" />
 <output name="FACE_SIZE" size_x="2" size_param_y="max_faces" description="Size of each face (width, height)" />
+<output name="FACE_BOUNDS" description="Face bounding boxes in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
 <output name="EYE_LEFT_POSITION" size_x="2" size_param_y="max_faces" description="Location of the left eyes in the image (0-1)" />
 <output name="EYE_RIGHT_POSITION" size_x="2" size_param_y="max_faces" description="Location of the right eyes in the image (0-1)" />
 <output name="MOUTH_POSITION" size_x="2" size_param_y="max_faces" description="Location of the right eyes in the image (0-1)" />
@@ -54,7 +55,6 @@ Positions and sizes are given as fractions of the image size.
 
 <!-- VISULAISATION OUTPUT -->
 
-<output name="EDGES" description="Face bounding boxes in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
 
 <module class="CIFaceDetector" />
 
@@ -64,7 +64,7 @@ Positions and sizes are given as fractions of the image size.
             class   = "Path"
             title   = "Faces"
             module  = "*"
-            source  = "EDGES"
+            source  = "FACE_BOUNDS"
             length_source = "FACE_COUNT"
             x="0" y="0"
             w="4" h="3"

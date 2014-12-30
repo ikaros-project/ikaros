@@ -52,6 +52,7 @@ class CIFaceDetector: public Module
 
         float **    face_position;
         float **    face_size;
+        float **    face_bounds;
         float **    eye_left_position;
         float **    eye_right_position;
         float **    mouth_position;
@@ -62,8 +63,6 @@ class CIFaceDetector: public Module
         float *     novelty;
         float *     object_id;
         float *     life;
-
-        float **    edges;
 
         int         max_faces;
 
