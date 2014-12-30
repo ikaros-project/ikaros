@@ -48,6 +48,7 @@ CIFaceDetector::Init()
     
     face_position = GetOutputMatrix("FACE_POSITION");
     face_size = GetOutputMatrix("FACE_SIZE");
+    face_bounds = GetOutputMatrix("FACE_BOUNDS");
     eye_left_position = GetOutputMatrix("EYE_LEFT_POSITION");
     eye_right_position = GetOutputMatrix("EYE_RIGHT_POSITION");
     mouth_position = GetOutputMatrix("MOUTH_POSITION");
@@ -59,7 +60,6 @@ CIFaceDetector::Init()
     life = GetOutputArray("LIFE");
     object_id = GetOutputArray("OBJECT_ID");
 
-    edges = GetOutputMatrix("EDGES");
     
     face_count = GetOutputArray("FACE_COUNT");
     
@@ -105,7 +105,7 @@ CIFaceDetector::Tick()
         CIDetectorEyeBlink: (detect_blinks ? @(YES) : @(NO)),
     }];
     
-    reset_matrix(edges, 8, max_faces);
+    reset_matrix(face_bounds, 8, max_faces);
     reset_matrix(face_position, 2, max_faces);
     reset_matrix(face_size, 2, max_faces);
     reset_matrix(eye_left_position, 2, max_faces);
@@ -125,17 +125,17 @@ CIFaceDetector::Tick()
         if(c >= max_faces)
             break;
 
-        edges[c][0] = (f.bounds.origin.x) / float(size_x);
-        edges[c][1] = 1 - (f.bounds.origin.y) / float(size_y);
+        face_bounds[c][0] = (f.bounds.origin.x) / float(size_x);
+        face_bounds[c][1] = 1 - (f.bounds.origin.y) / float(size_y);
         
-        edges[c][2] = (f.bounds.origin.x + f.bounds.size.width) / float(size_x);
-        edges[c][3] = 1 - (f.bounds.origin.y) / float(size_y);
+        face_bounds[c][2] = (f.bounds.origin.x + f.bounds.size.width) / float(size_x);
+        face_bounds[c][3] = 1 - (f.bounds.origin.y) / float(size_y);
         
-        edges[c][4] = (f.bounds.origin.x + f.bounds.size.width) / float(size_x);
-        edges[c][5] = 1 - (f.bounds.origin.y + f.bounds.size.height) / float(size_y);
+        face_bounds[c][4] = (f.bounds.origin.x + f.bounds.size.width) / float(size_x);
+        face_bounds[c][5] = 1 - (f.bounds.origin.y + f.bounds.size.height) / float(size_y);
 
-        edges[c][6] = (f.bounds.origin.x) / float(size_x);
-        edges[c][7] = 1 - (f.bounds.origin.y + f.bounds.size.height) / float(size_y);
+        face_bounds[c][6] = (f.bounds.origin.x) / float(size_x);
+        face_bounds[c][7] = 1 - (f.bounds.origin.y + f.bounds.size.height) / float(size_y);
         
 
         face_position[c][0] = (f.bounds.origin.x + 0.5*f.bounds.size.width)/size_x;
@@ -184,16 +184,7 @@ CIFaceDetector::Tick()
                 
                 float mpx =  p0x + d * mdx;
                 float mpy =  p0y + d * mdy;
-           /*
-                edges[c][0] = (p0x-1*dx)/float(size_x);
-                edges[c][1] = 1-(p0y-1*dy)/float(size_y);
-                edges[c][2] = (p0x+1*dx)/float(size_x);
-                edges[c][3] = 1-(p0y+1*dy)/float(size_y);
-                edges[c][4] = (p0x)/float(size_x);
-                edges[c][5] = 1-(p0y)/float(size_y);
-                edges[c][6] = (mpx)/float(size_x);
-                edges[c][7] = 1-(mpy)/float(size_y);
-            */
+ 
                 mouth_position[c][0] = mpx/ float(size_x);
                 mouth_position[c][1] = 1 - mpy / float(size_y);
 
