@@ -12,13 +12,15 @@
 			size_x  = "640"
 			size_y  = "480"
 			camera  = "iSight"
+            list_devices = "yes"
+            device_id = "0xfd15000005ac8508"
 		/>
 
         <module
             class = "CIFaceDetector"
             name = "FaceDetector"
             min_size = "0.0"
-            use_tracking = "yes"
+            use_tracking = "no"
         />
         
         <module
