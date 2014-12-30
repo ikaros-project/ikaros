@@ -28,10 +28,8 @@
 	<input name="GREEN" description="The green channel image data to be written to the file" />
 	<input name="BLUE" description="The blue channel image data to be written to the file" />
 
-	<input name="WRITE" description="Signal to write or suppress a given
-	    image. If connected, an image will only actually be written if the
-	    value of the WRITE input is greter than 0. The file counter will
-	    still increase." />
+	<input name="WRITE" description="Signal to write or suppress a given image. If connected, an image will only actually be written if the
+	    value of the WRITE input is greter than 0. The file counter will still increase." />
 
 	<module class="OutputJPEG" />
 
