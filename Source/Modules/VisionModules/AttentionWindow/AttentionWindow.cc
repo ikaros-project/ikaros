@@ -25,7 +25,7 @@ using namespace ikaros;
 
 
 static float **
-unwrap(float ** output, int output_size_x, int output_size_y, float ** input, int input_size_x, int input_size_y, float bounds[8], float supersampling=10)
+unwrap(float ** output, int output_size_x, int output_size_y, float ** input, int input_size_x, int input_size_y, float bounds[8], float supersampling=4)
 {
     float inc = 1/supersampling;
     reset_matrix(output, output_size_x, output_size_y);
@@ -39,12 +39,14 @@ unwrap(float ** output, int output_size_x, int output_size_y, float ** input, in
 
         for(float i=0; i<output_size_x; i+=inc)
         {
-            float x = dx0 + (i/output_size_y) * (dx1 - dx0);
-            float y = dy0 + (i/output_size_y) * (dy1 - dy0);
+            float x = dx1 + (i/output_size_y) * (dx0 - dx1);
+            float y = dy1 + (i/output_size_y) * (dy0 - dy1);
             
-            output[int(j)][int(i)]+= input[int(y)][int(x)];
+            output[output_size_y-int(j)-1][output_size_x-int(i)-1]+= input[int(input_size_y*y)][int(input_size_x*x)];
         }
     }
+    
+    multiply(output, inc*inc, output_size_x, output_size_y);
     
     return output;
 }

@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+
+<!--
+	Example file for CoreImage FaceDetector
+-->
+
+<group title="Face Detector">
+
+		<module
+			class   = "InputVideoQT"
+			name	= "CAMERA"			
+			size_x  = "640"
+			size_y  = "480"
+			camera  = "iSight"
+		/>
+
+        <module
+            class = "CIFaceDetector"
+            name = "FaceDetector"
+            min_size = "0.0"
+            use_tracking = "yes"
+        />
+        
+        <module
+            class = "AttentionWindow"
+            name = "AttentionWindow"
+        />
+        
+        <module
+            class = "OutputJPEG"
+            name = "OutputJPEG"
+            filename = "/Users/cba/Desktop/Test/%08d.jpg"
+        />
+        
+        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" delay = "0" />
+        
+        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="AttentionWindow" target="INPUT" delay = "0" />
+
+        <connection sourcemodule="FaceDetector" source="FACE_POSITION" targetmodule="AttentionWindow" target="BOTTOM_UP_POSITION" delay = "0" />
+        <connection sourcemodule="FaceDetector" source="FACE_BOUNDS" targetmodule="AttentionWindow" target="BOTTOM_UP_BOUNDS" delay = "0" />
+        <connection sourcemodule="FaceDetector" source="FACE_COUNT" targetmodule="AttentionWindow" target="BOTTOM_UP_COUNT" delay = "0" />
+
+        <connection sourcemodule="AttentionWindow" source="OUTPUT" targetmodule="OutputJPEG" target="INTENSITY" delay = "1" />
+        <connection sourcemodule="FaceDetector" source="FACE_COUNT" targetmodule="OutputJPEG" target="WRITE" delay = "1" />
+
+		<view name="Input" >
+			<object
+				class   ="Image"
+                title   = "Face"
+				type	= "gray"
+				module  = "CAMERA"
+				source  = "INTENSITY"
+				x="0" y="0"
+				w="4" h="3"
+				min = "0"
+				max = "1"
+			/>
+
+
+			<object
+				class   ="Image"
+                title   = "Face"
+				type	= "gray"
+				module  = "AttentionWindow"
+				source  = "OUTPUT"
+				x="4" y="0"
+				w="2" h="2"
+			/>
+
+			<object
+				class   = "Path"
+				module  = "FaceDetector"
+				source  = "FACE_BOUNDS"
+                length_source = "FACE_COUNT"
+				x="0" y="0"
+				w="4" h="3"
+				min = "0"
+				max = "1"
+    		    select = "0"
+                count = "4"
+                close = "yes"
+                color="red"
+                stroke_width="4"
+                fill = "rgba(255,0,0,0.45)"
+                line_join="round"
+			/>
+            
+			<object
+                class   = "Circle"
+                color = "red"
+                size    = "0.025"
+                module  = "FaceDetector"
+                source  = "EYE_LEFT_POSITION"
+                x="0" y="0"
+                w="4" h="3"
+			/>
+
+			<object
+                class   = "Circle"
+                color = "green"
+                size    = "0.025"
+                module  = "FaceDetector"
+                source  = "EYE_RIGHT_POSITION"
+                x="0" y="0"
+                w="4" h="3"
+			/>
+
+			<object
+                class   = "Circle"
+                color = "blue"
+                size    = "0.03"
+                module  = "FaceDetector"
+                source  = "MOUTH_POSITION"
+                x="0" y="0"
+                w="4" h="3"
+			/>
+
+            <object
+                class = "Plot"
+                x="0" y="3"
+                module = "FaceDetector"
+                source = "ROTATION"
+                min = "-25"
+                max = "25"
+            />
+
+            <object
+                class = "Plot"
+                x="1" y="3"
+                module = "FaceDetector"
+                source = "NOVELTY"
+            />
+
+             <object
+                class = "Plot"
+                x="2" y="3"
+                module = "FaceDetector"
+                source = "SMILE"
+            />
+
+             <object
+                class = "Plot"
+                x="3" y="3"
+                module = "FaceDetector"
+                source = "BLINK_LEFT"
+            />
+
+             <object
+                class = "Plot"
+                x="4" y="3"
+                module = "FaceDetector"
+                source = "BLINK_RIGHT"
+            />
+       </view>
+
+</group>
+
