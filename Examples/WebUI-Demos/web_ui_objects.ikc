@@ -914,6 +914,15 @@
          <object class="Switch" title="Switch" x="0" y="2" />
 	</view>
 
+    <view name="Number as title test">
+        <object
+            x="0" y="0" 
+            class="BarGraph" 
+            module="R5" 
+            source="OUTPUT"
+            title = "1148"
+        />
+    </view>
 </group>
  
 
