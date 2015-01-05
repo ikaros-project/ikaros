@@ -195,8 +195,12 @@ function WebUICanvas(obj, p, ctype)
     obj.flip_y_axis = (p.flip_y_axis ? p.flip_y_axis == "yes" : false);
 
     obj.stroke_LUT = makeLUTArray(p.color, ['yellow']);
+    obj.line_dash_LUT = makeSelectionArray(p.line_dash, []);
+    
     obj.fill_LUT = makeLUTArray(p.fill, ['none']);
-	obj.stroke_width = (p.stroke_width ? p.stroke_width : 1);
+	obj.line_width_LUT = makeLUTArray(p.line_width, [1]);
+	obj.arrow_head_LUT = makeLUTArray(p.arrow, ['no']);
+    
     obj.line_cap = (p.line_cap ? p.line_cap : "butt");
     obj.line_join = (p.line_join ? p.line_join : "miter");
 

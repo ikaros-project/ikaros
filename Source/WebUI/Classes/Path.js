@@ -22,12 +22,14 @@ function Path(p)
 Path.prototype.DrawRows = function(d, rows)
 {
     this.context.clearRect(0, 0, this.width, this.height);
-    this.context.lineWidth = this.stroke_width;
+//    this.context.lineWidth = this.stroke_width;
     
     var xx = (this.count ? this.select+2*this.count : d[0].length);
     
     for(var i=0; i<rows; i++)
     {
+        this.context.lineWidth = this.line_width_LUT[i % this.line_width_LUT.length];
+        this.context.setLineDash(this.line_dash_LUT[i % this.line_dash_LUT.length]);
         this.context.strokeStyle = this.stroke_LUT[i % this.stroke_LUT.length];
         this.context.fillStyle = this.fill_LUT[i % this.fill_LUT.length];
         
@@ -54,7 +56,7 @@ Path.prototype.DrawRows = function(d, rows)
             this.context.closePath();
         this.context.stroke();
         
-        if(this.arrow)
+        if(this.arrow_head_LUT[i % this.arrow_head_LUT.length]=="yes")
             this.context.drawArrowHead(lx, ly, x, y);
     }
 }
