@@ -1,7 +1,7 @@
 //
 //	WebUI.cc		HTTP support for the IKAROS kernel
 //
-//    Copyright (C) 2005-2014  Christian Balkenius
+//    Copyright (C) 2005-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -1381,7 +1381,7 @@ WebUI::HandleHTTPRequest()
                         *((float *)(b->value)) = value;
                     else if(b->type == bind_int || b->type == bind_list)
                         *((int *)(b->value)) = (int)value;
-                    else if(b->type == bind_float)
+                    else if(b->type == bind_bool)
                         *((bool *)(b->value)) = (value > 0);
                     else if(b->type == bind_array)
                         ((float *)(b->value))[x] = value;     // TODO: add range check!!!
