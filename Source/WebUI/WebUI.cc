@@ -887,7 +887,7 @@ WebUI::SendView(const char * view)
                     {
                         // TODO: Test number - do this properly later
                         unsigned long l = strlen(p->value)-1;
-                        if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9'))
+                        if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9') && (!equal_strings(p->name, "title")))
                             socket->Send("%s:%s, ", p->name, p->value);
                         else
                             socket->Send("%s:'%s', ", p->name, p->value); // quote other content
