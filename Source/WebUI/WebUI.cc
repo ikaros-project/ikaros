@@ -1464,33 +1464,6 @@ WebUI::HandleHTTPRequest()
             destroy_string(uri);
             return;
         }
-        
-/*
-        Module * m;
-        Module_IO * source;
-        
-        if(!k->GetSource(current_xml_root, m, source, module, output))
-        {
-            socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
-            socket->Send( "\"%s\" may be an unkown data type.\n", type);
-            destroy_string(uri);
-            
-            return;
-        }
-        else if (c == 3) // always send as data  && !strcmp(type, "data.txt")
-        {
-            int sx = m->GetOutputSizeX(output);
-            int sy = m->GetOutputSizeY(output);
-            char * s = create_formatted_string("%s.%s [%dx%d]", module, output, sx, sy);
-            if (!SendHTMLData(socket, s, m->GetOutputMatrix(output), sx, sy))
-                k->Notify(msg_warning, "Could not send: data.txt\n");
-        }
-        
-        else
-        {
-            k->Notify(msg_warning, "Unkown data type: %s\n", type);
-        }
-*/
     }
 	
     else if(strend(uri, "/inspector.html"))
