@@ -1104,7 +1104,7 @@ Module::GetSizeXFromList(const char * sizearg)
         int new_sx = GetInputSizeX(input);
         if(sx == unknown_size )
             sx = new_sx;
-        else if(new_sx != sx)
+        else if(new_sx != unknown_size && new_sx != sx)
         {
             Notify(msg_warning, "Incompatible sizes for set_size_x, using max(%s)", sizearg);
             sx = max(sx, new_sx);
@@ -1144,7 +1144,7 @@ Module::GetSizeYFromList(const char * sizearg)
         int new_sy = GetInputSizeY(input);
         if(sy == unknown_size )
             sy = new_sy;
-        else if(new_sy != sy)
+        else if(new_sy != unknown_size && new_sy != sy)
         {
             Notify(msg_warning, "Incompatible sizes for set_size_y, using max(%s)", sizearg);
             sy = max(sy, new_sy);
