@@ -1,8 +1,8 @@
 //
 //  IKAROS.h        Kernel code for the IKAROS project
-//					Version 1.4
 //
-//    Copyright (C) 2001-2012  Christian Balkenius
+//
+//    Copyright (C) 2001-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -462,7 +462,8 @@ private:
     void        CheckInputs();                                // Check that memory for all connected inputs have been allocated
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
-    bool        Preceedes(Module * a, Module * b);
+    bool        Precedes(Module * a, Module * b);
+    void        DetectCycles();                                 // Find zero-delay loops in the connections
     void        SortModules();                                // Sort modules in precedence order
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     

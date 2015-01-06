@@ -1,7 +1,7 @@
 //
 //	  IKAROS.cc		Kernel code for the IKAROS project
 //
-//    Copyright (C) 2001-2012  Christian Balkenius
+//    Copyright (C) 2001-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -1310,14 +1310,14 @@ ThreadGroup::AddModule(Module * m)
     
     bool p = false;
     for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
-        p = p | kernel->Preceedes(pm, m);
+        p = p | kernel->Precedes(pm, m);
     
     // Check for the case where this module preceedes a module that will be added to the group in the future
 	
     if(!p)
         for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
             for(Module * nm = m->next; nm != NULL; nm = nm->next)
-                if(kernel->Preceedes(pm, nm) && kernel->Preceedes(m, nm))
+                if(kernel->Precedes(pm, nm) && kernel->Precedes(m, nm))
                 {
                     p = true;
                     break;
@@ -1844,6 +1844,10 @@ Kernel::Init()
         ReadXML();
     else
         Notify(msg_fatal_error, "No IKC file supplied.\n");
+    
+    DetectCycles();
+    if(fatal_error_occured)
+        return;
     SortModules();
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
@@ -2054,16 +2058,20 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
 
 
 bool
-Kernel::Preceedes(Module * a, Module * b)
+Kernel::Precedes(Module * a, Module * b)
 {
     // Base case
+    
     for (Connection * c = connections; c != NULL; c = c->next)
         if (c->delay == 0 && c->source_io->module == a && c->target_io->module == b)
             return true;
-    // Transitivity test
+    
+    // Transitivity test (also checks for direct loop)
+    
     for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0 && c->source_io->module == a && Preceedes(c->target_io->module,  b))
+        if (c->delay == 0 && c->source_io->module == a && Precedes(c->target_io->module,  b))
             return true;
+    
     return false;
 }
 
@@ -2136,6 +2144,18 @@ Kernel::CalculateInputSizeY(Module_IO * i)
     return s;
 }
 
+
+
+void
+Kernel::DetectCycles()
+{
+    for (Module * m = modules; m != NULL; m = m->next)
+        if(Precedes(m, m))
+            Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself (directly or indirectly).\n", m->GetName(), m->GetClassName());
+}
+
+
+
 void
 Kernel::SortModules()
 {
@@ -2155,10 +2175,9 @@ Kernel::SortModules()
         // Find smallest module
         Module * sm = modules;
         for (Module * m = modules; m != NULL; m = m->next)
-        {
-            if (Preceedes(sm, m))
+            if (Precedes(sm, m))
                 sm = m;
-        }
+
         // Remove from list
         if (sm == modules)  // First
         {
@@ -2178,10 +2197,12 @@ Kernel::SortModules()
         }
     }
     modules = sorted_modules;
+
     // Check for loops
     for (Module * m = modules; m != NULL; m = m->next)
-        if (Preceedes(m, m))
+        if (Precedes(m, m))
             Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself.\n", m->GetName(), m->GetClassName());
+
     // Create Thread Groups
     threadGroups = new ThreadGroup(this);
     for (Module * m = modules; m != NULL; m = m->next)
@@ -2202,14 +2223,6 @@ bool
 Kernel::InputConnected(Module * m, const char * input_name) // TODO: Test it ***
 {
     return m->GetInputArray(input_name, false) != NULL;
-    /*
-     if (connections == NULL)
-     return false;
-     for (Connection * c = connections; c != NULL; c = c->next)
-     if (c->target_io->module == m && equal_strings(input_name, c->target_io->name))
-     return true;
-     return false;
-     */
 }
 
 bool
