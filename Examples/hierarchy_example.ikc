@@ -6,7 +6,7 @@
 	
 		<!-- The parameter "maximum" of the group is mapped to the parameter "max" of R1 and R2 -->
 		
-		<parameter name="max" target="max" />
+		<parameter name="maximum" target="max" />
 		
 		<!-- The outputs of R1 and R2 are renamed X and Y -->
 		

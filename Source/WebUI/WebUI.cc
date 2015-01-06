@@ -1437,14 +1437,42 @@ WebUI::HandleHTTPRequest()
     {
         char module[256], output[256], type[256];
         int c = sscanf(uri, "/module/%[^/]/%[^/]/%[^/]", module, output, type);
-		
+
+        if(c != 3)
+        {
+            socket->Send( "Incorrect data: %s/%s/%s\n", module, output, type);
+            destroy_string(uri);
+            return;
+        }
+
+        Module * m = k->GetModuleFromFullName(module);        
+        if(m)
+        {
+            int sx = m->GetOutputSizeX(output);
+            int sy = m->GetOutputSizeY(output);
+            char * s = create_formatted_string("%s.%s [%dx%d]", module, output, sx, sy);
+            if (!SendHTMLData(socket, s, m->GetOutputMatrix(output), sx, sy))
+                k->Notify(msg_warning, "Could not send: data.txt\n");
+            destroy_string(uri);
+            return;
+        }
+        
+        else
+        {
+            socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
+            socket->Send( "\"%s\" may be an unkown data type.\n", type);
+            destroy_string(uri);
+            return;
+        }
+        
+/*
         Module * m;
         Module_IO * source;
         
         if(!k->GetSource(current_xml_root, m, source, module, output))
         {
-            k->Notify(msg_warning, "The output \"%s.%s\" does not exist, or\n", module, output);
-            k->Notify(msg_warning, "\"%s\" may be an unkown data type.\n", type);
+            socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
+            socket->Send( "\"%s\" may be an unkown data type.\n", type);
             destroy_string(uri);
             
             return;
@@ -1462,6 +1490,7 @@ WebUI::HandleHTTPRequest()
         {
             k->Notify(msg_warning, "Unkown data type: %s\n", type);
         }
+*/
     }
 	
     else if(strend(uri, "/inspector.html"))
@@ -1683,7 +1712,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
 			for (Module_IO * i = m->output_list; i != NULL; i = i->next)
 			{
 				socket->Send("<tr>\n");
-				socket->Send("<td><a onclick=\"var w = window.open('module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetName(), i->name, i->name);
+				socket->Send("<td><a onclick=\"var w = window.open('module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetFullName(), i->name, i->name);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizex);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizey);
 				if(m->OutputConnected(i->name))

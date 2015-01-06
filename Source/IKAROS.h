@@ -392,6 +392,7 @@ public:
     
     void        AddModule(Module * m);                      // Add a module to the simulation
     Module *    GetModule(const char * n);                  // Find a module based on its name
+    Module *    GetModuleFromFullName(const char * n);
     
 	const char *    GetBatchValue(const char * n);          // Get a value from a batch element with the target n and the current batch rank
     
