@@ -7,7 +7,7 @@ function Path(p)
  
     this.arrow = (p.arrow ? p.arrow == "yes" : false);
     this.close = (p.close ? p.close == "yes" : false);
-    this.row_order = (p.order ? p.order == "row" : true);
+    this.order = (p.order ? p.order == "row" : true);
     this.select = (p.select ? p.select: 0);
     this.count = (p.count ? p.count : 0);
     
@@ -22,7 +22,6 @@ function Path(p)
 Path.prototype.DrawRows = function(d, rows)
 {
     this.context.clearRect(0, 0, this.width, this.height);
-//    this.context.lineWidth = this.stroke_width;
     
     var xx = (this.count ? this.select+2*this.count : d[0].length);
     
@@ -72,8 +71,10 @@ Path.prototype.DrawCols = function(d, rows)
     
     for(var i=this.select; i<xx; i+=2)
     {
-        this.context.strokeStyle = this.stroke_LUT[i/2 % this.stroke_LUT.length];
-        this.context.fillStyle = this.fill_LUT[i/2 % this.fill_LUT.length];
+        this.context.lineWidth = this.line_width_LUT[i % this.line_width_LUT.length];
+        this.context.setLineDash(this.line_dash_LUT[i % this.line_dash_LUT.length]);
+        this.context.strokeStyle = this.stroke_LUT[i % this.stroke_LUT.length];
+        this.context.fillStyle = this.fill_LUT[i % this.fill_LUT.length];
         
         this.context.beginPath();
         
@@ -124,7 +125,7 @@ Path.prototype.Update = function(data)
         }
     }
 
-    if(this.row_order)
+    if(this.order)
         this.DrawRows(d, rows);
     else
         this.DrawCols(d, rows);
