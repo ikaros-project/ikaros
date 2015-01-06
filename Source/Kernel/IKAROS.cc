@@ -1057,7 +1057,7 @@ Module::Module(Parameter * p)
     for(int j=i-1; j>=0; j--)
     {
         append_string(n, group[j], 1024);
-        if(j>0) append_string(n, ":", 1024);
+        if(j>0) append_string(n, ".", 1024);
     }
     full_instance_name = create_string(n);
 }
@@ -1905,12 +1905,15 @@ Kernel::Tick()
     tick++;
 }
 
+
 void
 Kernel::DelayOutputs()
 {
     for (Module * m = modules; m != NULL; m = m->next)
         m->DelayOutputs();
 }
+
+
 
 void
 Kernel::AddModule(Module * m)
@@ -1928,6 +1931,17 @@ Kernel::GetModule(const char * n)
 {
     for (Module * m = modules; m != NULL; m = m->next)
         if (equal_strings(n, m->instance_name))
+            return m;
+    return NULL;
+}
+
+
+
+Module *
+Kernel::GetModuleFromFullName(const char * n)
+{
+    for (Module * m = modules; m != NULL; m = m->next)
+        if (equal_strings(n, m->full_instance_name))
             return m;
     return NULL;
 }
