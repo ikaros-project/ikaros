@@ -1106,7 +1106,7 @@ Module::GetSizeXFromList(const char * sizearg)
             sx = new_sx;
         else if(new_sx != sx)
         {
-            Notify(msg_warning, "Incompatible sizes for set_size_x, usinging max(%s)", sizearg);
+            Notify(msg_warning, "Incompatible sizes for set_size_x, using max(%s)", sizearg);
             sx = max(sx, new_sx);
         }
         input = strsep(&s, ",");
