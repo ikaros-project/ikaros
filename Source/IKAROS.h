@@ -424,6 +424,7 @@ public:
     void        ListScheduling();
     void        ListThreads();
     void        ListClasses();
+    void        ListWarningsAndErrors();
     void        ListProfiling();
     void        PrintTiming();           // Print total timing information
     

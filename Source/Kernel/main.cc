@@ -205,6 +205,7 @@ run_batch(Options * options)
             k.ListModulesAndConnections();
             k.ListScheduling();
             k.ListThreads();
+            k.ListWarningsAndErrors();
             k.Run();
             k.PrintTiming();
             k.ListProfiling();
@@ -259,6 +260,7 @@ main(int argc, char *argv[])
         k.ListModulesAndConnections();
         k.ListScheduling();
         k.ListThreads();
+        k.ListWarningsAndErrors();
 
         // Select UI
 
