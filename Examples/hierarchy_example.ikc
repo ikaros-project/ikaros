@@ -26,6 +26,7 @@
         <view name="SubView">
             <object class="BarGraph" name="X" module="R1" source="Z" x="0" y="0" max="10"/>
             <object class="BarGraph" name="Y" module="R2" source="OUTPUT" x="1" y="0" max="10" />
+            <object class="Slider" module="*" parameter="max" x="2" y="0" />
         </view>
 
 	</group>
