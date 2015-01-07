@@ -34,6 +34,8 @@ public:
 
     float 	minimum;
     float	maximum;
+    
+    int     interval;
 
     Randomizer(Parameter * p) : Module(p) {}
     virtual ~Randomizer() {}
