@@ -983,6 +983,7 @@ Module::GetOutputSize(const char * name)
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if (equal_strings(name, i->name))
             return i->size;
+    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
 
@@ -992,6 +993,7 @@ Module::GetOutputSizeX(const char * name)
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if (equal_strings(name, i->name))
             return  i->sizex;
+    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
 
@@ -1001,6 +1003,7 @@ Module::GetOutputSizeY(const char * name)
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if (equal_strings(name, i->name))
             return  i->sizey;
+    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
 
