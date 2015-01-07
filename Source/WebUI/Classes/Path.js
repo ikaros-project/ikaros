@@ -50,7 +50,8 @@ Path.prototype.DrawRows = function(d, rows)
             this.context.lineTo(x, y);
         }
         
-        this.context.fill();
+        if(this.fill_LUT[i % this.fill_LUT.length]!= 'none')
+            this.context.fill();
         if(this.close)
             this.context.closePath();
         this.context.stroke();
@@ -93,8 +94,9 @@ Path.prototype.DrawCols = function(d, rows)
             
             this.context.lineTo(x, y);
         }
-        
-        this.context.fill();
+
+        if(this.fill_LUT[i % this.fill_LUT.length]!= 'none')
+            this.context.fill();
         if(this.close)
             this.context.closePath();
         this.context.stroke();

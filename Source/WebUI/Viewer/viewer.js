@@ -232,7 +232,6 @@ function WebUICanvas(obj, p, ctype)
     
     if(ctype == "2d")
     {
-    
         if(obj.flip_x_axis)
         {
             obj.context.translate(obj.canvas.width, 0);
@@ -246,7 +245,6 @@ function WebUICanvas(obj, p, ctype)
         }
 
         obj.context.clearRect(0, 0, obj.width, obj.height);
-        obj.context.fillStyle="none";
         obj.context.fillRect(0, 0, obj.width, obj.height);
         obj.context.lineCap = obj.line_cap;
         obj.context.lineJoin = obj.line_join;
