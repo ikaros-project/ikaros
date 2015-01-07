@@ -81,9 +81,11 @@
 
 
 using namespace ikaros;
+
 bool			global_fatal_error = false;	// Must be global because it is used before the kernel is created
 bool			global_terminate = false;	// Used to flag that CTRL-C has been received
-
+int             global_error_count = 0;
+int             global_warning_count = 0;
 
 //#define USE_MALLOC_DEBUG
 
@@ -1235,7 +1237,14 @@ Module::Notify(int msg)
     if (kernel != NULL)
         kernel->Notify(msg, "\n");
     else if (msg == msg_fatal_error)
+    {
         global_fatal_error = true;
+        global_error_count++;
+    }
+    else if(msg == msg_warning)
+    {
+        global_warning_count++;
+    }
 }
 
 void
@@ -1258,7 +1267,12 @@ Module::Notify(int msg, const char *format, ...)
         if(message[strlen(message)-1] == '\n')
             message[strlen(message)-1] = '\0';
         printf("IKAROS: ERROR: %s\n", message);
+        global_error_count++;
     }
+    else if(msg == msg_warning)
+    {
+         global_warning_count++;
+   }
 }
 
 Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d)
@@ -2359,6 +2373,20 @@ Kernel::ListThreads()
 }
 
 void
+Kernel::ListWarningsAndErrors()
+{
+    if(global_warning_count > 1)
+        printf("IKAROS: %d WARNINGS.\n", global_warning_count);
+    else if(global_warning_count == 1)
+        printf("IKAROS: %d WARNING.\n", global_warning_count);
+    
+    if(global_error_count > 1)
+        printf("IKAROS: %d ERRORS.\n", global_error_count);
+    else if(global_error_count == 1)
+        printf("IKAROS: %d ERROR.\n", global_error_count);
+}
+
+void
 Kernel::ListScheduling()
 {
     if (!options->GetOption('l') && !options->GetOption('a')) return;
@@ -2449,6 +2477,7 @@ Kernel::Notify(int msg, const char * format, ...)
     {
         case msg_fatal_error:
             n = snprintf(message, 512, "ERROR: ");
+            global_error_count++;
             break;
         case msg_end_of_file:
             n = snprintf(message, 512, "END-OF-FILE: ");
@@ -2458,6 +2487,7 @@ Kernel::Notify(int msg, const char * format, ...)
             break;
         case msg_warning:
             n = snprintf(message, 512, "WARNING: ");
+            global_warning_count++;
             break;
         default:
             break;
