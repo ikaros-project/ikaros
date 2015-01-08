@@ -2686,6 +2686,13 @@ namespace ikaros
     }
 
 
+    float
+    short_angle(float a1, float a2)
+    {
+        return atan2(sin(a2-a1), cos(a2-a1));
+    }
+
+
 
     //
     // homogenous 4x4 matrices represented as h_matrix = float[16]
