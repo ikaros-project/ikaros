@@ -1481,6 +1481,14 @@ WebUI::HandleHTTPRequest()
         socket->SendFile("index.html", webui_dir);
     }
     
+    else if (!strcmp(uri, "/Buttons/realtime.png"))
+    {
+        if(k->GetTickLength() > 0)
+            socket->SendFile("Buttons/realtime.png", webui_dir);
+        else
+            socket->SendFile("Buttons/ff.png", webui_dir);
+    }
+
     else if (
 			 strend(uri, ".xml") ||
 			 strend(uri, ".jpg") ||
