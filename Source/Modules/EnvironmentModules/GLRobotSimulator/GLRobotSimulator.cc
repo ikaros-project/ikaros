@@ -61,13 +61,13 @@ const int ACTION_PICK = 2;
 const int ACTION_PLACE = 3;
 const int ACTION_CHARGE = 4;
 
-
+/*
 static float
 short_angle(float a1, float a2)
 {
     return atan2(sin(a2-a1), cos(a2-a1)); 
 }
-
+*/
 
 
 static float
