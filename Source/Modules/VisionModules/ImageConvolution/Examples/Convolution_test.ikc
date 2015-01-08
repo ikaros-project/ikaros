@@ -21,11 +21,9 @@
             offset = "0.0" 
             scale = "1"  
             rectify="yes"
-            size_x = "3"
-            size_y = "3"
 			kernel=
-               "1   0  -1
-				2   0  -2
+               "1   0  -1;
+				2   0  -2;
 				1   0  -1"
         />	
 
@@ -35,11 +33,9 @@
             offset = "0.0" 
             scale = "1"  
             rectify="yes"
-            size_x = "3" 
-            size_y = "3"
-            kernel = 
-               "1   2	1
-				0   0	0
+            kernel =
+               "1   2	1;
+				0   0	0;
 			   -1  -2  -1"
         />	
 
@@ -49,14 +45,12 @@
             offset = "0.0" 
             scale = "1"  
             rectify="yes"
-            size_x = "3" 
-            size_y = "5"
 			kernel = 
-               "-1	2	-1
-				-1	2	-1
-				-1	2	-1
-				-1	2	-1
-				-1	2	-1
+               "-1	2	-1;
+				-1	2	-1;
+				-1	2	-1;
+				-1	2	-1;
+				-1	2	-1;
 				-1	2	-1"
         />	
 
