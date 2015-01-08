@@ -486,7 +486,7 @@ Perceptron::CalculateErrorAndCorrect()
     // first the ERROR-output
     perceptron_errors = ikaros::subtract(perceptron_errors, t_target, output, target_size);
     perceptron_errors = ikaros::sqr(perceptron_errors, target_size);
-    error[0] = ikaros::add(perceptron_errors, target_size);
+    error[0] = ikaros::sum(perceptron_errors, target_size);
     error[0] = ikaros::sqrt(error[0]);
 
     // next the CORRECT-output
@@ -495,7 +495,7 @@ Perceptron::CalculateErrorAndCorrect()
     // then tmp is the size of batch. in the beginning the batch grows until it
     // reaches its desired size. we want correct statistics from the start!
     tmp = train_tick < correct_average_size ? train_tick: correct_average_size;
-    correct[0] = add(correct_all, tmp) / tmp;
+    correct[0] = sum(correct_all, tmp) / tmp;
 }
 
 
