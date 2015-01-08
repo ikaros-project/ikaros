@@ -301,7 +301,7 @@ main(int argc, char *argv[])
     
     catch (SerialException se)
     {
-        k.Notify(msg_exception, "Serial Exception: %s (%d). Program terminates.\n", se.string, se.internal_reference);        
+        k.Notify(msg_exception, "Serial Exception: %s (%s, %d). Program terminates.\n", se.device, se.string, se.internal_reference);
     }
 #ifdef USE_SOCKET
     catch (SocketException ex)

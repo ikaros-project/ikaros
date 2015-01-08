@@ -35,10 +35,11 @@
 class SerialException
 {
 public:
+    const char *    device;
 	const char *    string;
 	int             internal_reference;
 
-	SerialException(const char * s, int ref = 0) : string(s), internal_reference(ref) {};
+	SerialException(const char * d, const char * s, int ref = 0) : device(d), string(s), internal_reference(ref) {};
 };
 
 
