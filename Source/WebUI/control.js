@@ -106,9 +106,9 @@ function poll_reconnect()
 
     reconnect_counter++;
     if(reconnect_counter % 2 == 0)
-        document.getElementById("iteration").innerText = "◐"; //"◐";
+        document.getElementById("iteration").textContent = "◐"; //"◐";
     else
-        document.getElementById("iteration").innerText = "◑"; //"◑";
+        document.getElementById("iteration").textContent = "◑"; //"◑";
 
     get("update", handle_reconnection, poll_reconnect, 500);
 }
@@ -120,7 +120,7 @@ function do_stop()
 	function handle_data_object(obj)
 	{
         select_button(-1);
-        document.getElementById("iteration").innerText = ".";
+        document.getElementById("iteration").textContent = ".";
         poll_reconnect();
 	}
 
@@ -142,7 +142,7 @@ function do_pause()
             var data = eval("("+obj.content+")");
             var v = document.getElementById("view").contentWindow;
             if(data && v && v.update) v.update(data);
-            document.getElementById("iteration").innerText = data.iteration;
+            document.getElementById("iteration").textContent = data.iteration;
         }
         catch(err)
         {
@@ -169,7 +169,7 @@ function step()
             var data = eval("("+obj.content+")");
             var v = document.getElementById("view").contentWindow;
             if(data && v && v.update) v.update(data);
-            document.getElementById("iteration").innerText = data.iteration;
+            document.getElementById("iteration").textContent = data.iteration;
         }
         catch(err)
         {
@@ -206,7 +206,7 @@ function runstep()
             var v = document.getElementById("view").contentWindow;
             if(data && v && v.update)
                 v.update(data);
-            document.getElementById("iteration").innerText = data.iteration;
+            document.getElementById("iteration").textContent = data.iteration;
             if(running)
                 setTimeout("runstep();", 1);
         }
@@ -242,7 +242,7 @@ function update()
             var data = eval("("+obj.content+")");
             var v = document.getElementById("view").contentWindow;
             if(data && v && v.update) v.update(data);
-            document.getElementById("iteration").innerText = data.iteration;
+            document.getElementById("iteration").textContent = data.iteration;
         
             if(data.state == 3)
                 do_run();
@@ -699,7 +699,7 @@ function update_group_list_and_views()
             if(!name)
                 name = "Untitled";
 
-            if(title) title.innerText = name;
+            if(title) title.textContent = name;
             
             grouplist = document.getElementById("grouplist");
             current_group_path = getCookie('root');
@@ -767,7 +767,7 @@ function toggle(e)
 	if(e.target.getAttribute("class") == "group-open")
     {
 		e.target.setAttribute('class', 'group-closed');
-        e.target.innerText = "▷ ";
+        e.target.textContent = "▷ ";
 
         var ul = e.target.parentElement.parentElement.children.item(1);
         if(ul)
@@ -777,7 +777,7 @@ function toggle(e)
 	else if(e.target.getAttribute("class") == "group-closed")
     {
 		e.target.setAttribute('class', 'group-open');
-        e.target.innerText = "▽ ";
+        e.target.textContent = "▽ ";
 
         var ul = e.target.parentElement.parentElement.children.item(1);
         if(ul)
