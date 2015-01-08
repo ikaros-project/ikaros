@@ -1058,7 +1058,7 @@ namespace ikaros
     
 	// add
 	float
-	add(float * a, int size)	// sum a
+	sum(float * a, int size)	// sum a
 	{
 		float r = 0;
 #ifdef USE_VDSP
@@ -1071,9 +1071,9 @@ namespace ikaros
 	}
 	
 	float
-	add(float ** a, int sizex, int sizey)	// sum a
+	sum(float ** a, int sizex, int sizey)	// sum a
 	{
-		return add(*a, sizex*sizey);
+		return sum(*a, sizex*sizey);
 	}
 	
 	float *
