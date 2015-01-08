@@ -256,7 +256,7 @@ protected:
     bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not foun
     float *         GetArray(const char * n, int size);		// Search through XML for parameter and return its value as an array
-    float **        GetMatrix(const char * n, int sizex, int sizey);	// Search through XML for parameter and return its value as a matrix
+    float **        GetMatrix(const char * n, int & sizex, int & sizey);	// Search through XML for parameter and return its value as a matrix
     int *           GetIntArray(const char * n, int & size);
 
     // Bind values to names and get values from XML tree if possible

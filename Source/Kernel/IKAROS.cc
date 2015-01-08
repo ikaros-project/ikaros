@@ -727,6 +727,15 @@ Module::GetIntArray(const char * n, int & size)
 
 
 float **
+Module::GetMatrix(const char * n, int & sizex, int & sizey)
+{
+    return create_matrix(GetValue(n), sizex, sizey);
+}
+
+
+
+/*
+float **
 Module::GetMatrix(const char * n, int sizex, int sizey)
 {
     float ** m = create_matrix(sizex, sizey);
@@ -763,6 +772,10 @@ Module::GetMatrix(const char * n, int sizex, int sizey)
 
     return m;
 }
+*/
+
+
+
 
 
 
