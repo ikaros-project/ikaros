@@ -141,18 +141,18 @@ Serial::Serial(const char * device_name, unsigned long baud_rate)
 
     data->fd = open(device_name, O_RDWR | O_NOCTTY | O_NDELAY);
     if(data->fd == -1)
-        throw SerialException("Could not open serial device.   ", errno);
+        throw SerialException(device_name, "Could not open serial device.   ", errno);
     
     fcntl(data->fd, F_SETFL, 0); // blocking
     tcgetattr(data->fd, &options); // get the current options // TODO: restore on destruction of the object
 
 #ifndef MAC_OS_X
     if(!(baud_rate = baud_rate_constant(baud_rate)))
-		throw SerialException("Could not find baud rate constant for suppied baud rate.", errno);
+		throw SerialException(device_name, "Could not find baud rate constant for suppied baud rate.", errno);
     if(cfsetispeed(&options, baud_rate))
-		throw SerialException("Could not set baud rate for input", errno);
+		throw SerialException(device_name, "Could not set baud rate for input", errno);
     if(cfsetospeed(&options, baud_rate))
-		throw SerialException("Could not set baud rate for output", errno);
+		throw SerialException(device_name, "Could not set baud rate for output", errno);
 #endif
 
     options.c_cflag |= (CS8 | CLOCAL | CREAD);
@@ -170,7 +170,7 @@ Serial::Serial(const char * device_name, unsigned long baud_rate)
 	const speed_t TGTBAUD = baud_rate;
 	int ret = ioctl(data->fd, IOSSIOSPEED, &TGTBAUD); // sets also non-standard baud rates
 	if (ret)
-		throw SerialException("Could not set baud rate", errno);
+		throw SerialException(device_name, "Could not set baud rate", errno);
 #endif
 }
 
