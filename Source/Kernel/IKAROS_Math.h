@@ -339,7 +339,7 @@ namespace ikaros
 	char *      float_to_string(char * s, float v, int decimals, int n);
 
     float       angle_to_angle(float angle, int from_angle_unit, int to_angle_unit);
-    float       short_angle(float a1, float a1); // in radians
+    float       short_angle(float a1, float a2); // in radians
 
 	// misc
 
