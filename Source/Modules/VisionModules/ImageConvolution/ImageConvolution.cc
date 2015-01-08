@@ -1,8 +1,8 @@
 //
-//	ImageConvolution.cc	This file is a part of the IKAROS project
-//						A module to filter image with a kernel
+//	 ImageConvolution.cc	This file is a part of the IKAROS project
+//                          A module to filter image with a kernel
 //
-//    Copyright (C) 2002-2007  Christian Balkenius
+//    Copyright (C) 2002-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -53,8 +53,6 @@ ImageConvolution::ImageConvolution(Parameter * p):
     rectify         = GetBoolValue("rectify");
     scale           = GetFloatValue("scale");
     bias			= GetFloatValue("bias");
-    filtersize_x	= GetIntValue("size_x");
-    filtersize_y	= GetIntValue("size_y");
     filter			= GetMatrix("kernel", filtersize_x, filtersize_y);
 
     for (int j=0; j<filtersize_y; j++)

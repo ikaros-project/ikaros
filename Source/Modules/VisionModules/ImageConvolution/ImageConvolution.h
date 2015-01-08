@@ -1,8 +1,8 @@
 //
-//	ImageConvolution.h		This file is a part of the IKAROS project
-//						A module to filter image with a kernel
+//	  ImageConvolution.h		This file is a part of the IKAROS project
+//                              A module to filter image with a kernel
 //
-//    Copyright (C) 2002  Christian Balkenius
+//    Copyright (C) 2002-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by

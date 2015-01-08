@@ -16,29 +16,32 @@
 			camera  = "iSight"
 		/>
 		
-		<module class = "ImageConvolution" name = "C1" offset = "0.0" scale = "1"  rectify="yes" >
-			<kernel sizex = "3" sizey = "3" >
-				1   0  -1
-				2   0  -2
-				1   0  -1
-			</kernel>
-		</module>	
+		<module
+            class = "ImageConvolution"
+            name = "C1"
+            offset = "0.0"
+            scale = "1"
+            rectify="yes"
+            kernel = "1 0 -1; 2 0 -2; 1 0 -1"
+        />
 
-		<module class = "ImageConvolution" name = "C2" offset = "0.0" scale = "1"  rectify="yes" >
-			<kernel sizex = "3" sizey = "3" >
-				1   2	1
-				0   0	0
-			   -1  -2  -1
-			</kernel>
-		</module>	
+		<module
+            class = "ImageConvolution"
+            name = "C2"
+            offset = "0.0"
+            scale = "1"
+            rectify="yes"
+			kernel = "1 2 1; 0 0 0; -1 -2 -1"
+        />
 
-		<module class = "ImageConvolution" name = "C3" offset = "0.0" scale = "1"  rectify="yes" >
-			<kernel sizex = "3" sizey = "5" >
-				-1	2	-1
-				-1	2	-1
-				-1	2	-1
-			</kernel>
-		</module>	
+		<module
+            class = "ImageConvolution"
+            name = "C3"
+            offset = "0.0"
+            scale = "1"
+            rectify="yes"
+            kernel = "-1 2 -1; -1 2 -1; -1 2 -1"
+		/>
 
 		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C1" target = "INPUT" />
 		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C2" target = "INPUT" />
@@ -52,3 +55,4 @@
 		</view>
 
 </group>
+
