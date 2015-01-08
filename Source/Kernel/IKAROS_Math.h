@@ -193,8 +193,8 @@ namespace ikaros
 	float **	clip(float ** r, float ** a, float low, float high, int sizex, int sizey);
 	
 	
-	float		add(float * a, int size);	// sum a
-	float		add(float ** a, int sizex, int sizey);	// sum a
+	float		sum(float * a, int size);	// sum a
+	float		sum(float ** a, int sizex, int sizey);	// sum a
 	
 	float *		add(float * r, float alpha, int size);	// r = r + alpha
 	float **	add(float ** r, float alpha, int sizex, int sizey);	// r = r + alpha
