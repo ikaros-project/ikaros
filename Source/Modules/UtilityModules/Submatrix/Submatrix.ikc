@@ -15,7 +15,7 @@
         y1 = input_size_y - (kernel_size-1)/2.
     </pre>
     <p>
-        In this case the module can be considered as a filter that does not chnage its input.
+        In this case the module can be considered as a filter that does not change its input.
     </p>
 	</description>
 
