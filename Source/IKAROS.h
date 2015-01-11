@@ -265,7 +265,7 @@ protected:
     void            Bind(int & v, const char * n);                          // Bind int OR list value to name
     void            Bind(bool & v, const char * n);                         // Bind boolean
     void            Bind(float * & v, int size, const char * n);              // Bind array
-    void            Bind(float ** & v, int sizex, int sizey, const char * n); // Bind matrix
+    void            Bind(float ** & v, int & sizex, int & sizey, const char * n); // Bind matrix; also gets the matrix size
 
 
     void            SetParameter(const char * parameter_name, int x, int y, float value);
