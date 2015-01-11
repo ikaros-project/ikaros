@@ -14,13 +14,14 @@
 		<module
 			class = "Average"
 			name = "Average"
+            type = "SMA"
 		/>
 
 		<connection sourcemodule="Randomizer" source="OUTPUT" targetmodule="Average" target="INPUT" />
 
 		<view name="View">
 			<object class="Plot" module="Randomizer" source="OUTPUT" x="0" y="0" w = "4" min="-1" max="1" />
-			<object class="Plot" module="Average" source="OUTPUT" x="0" y="1" w = "4" min = "-2" max = "2" />
+			<object class="Plot" module="Average" source="OUTPUT" x="0" y="1" w = "4" min = "-0.2" max = "0.2" />
 		</view>
 </group>
  

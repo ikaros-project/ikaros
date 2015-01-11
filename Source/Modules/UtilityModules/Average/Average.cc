@@ -92,7 +92,7 @@ Average::Tick()
             break;
     }
     
-    if(output[select] < termination_criterion)
+    if(abs(output[select]) < termination_criterion)
         Notify(msg_terminate, "Average: Terminated because criterion was met.");
 }
 

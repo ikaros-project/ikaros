@@ -15,10 +15,10 @@
 		/>
 	</example>
 
-    <parameter name="type" type="list" values="SMA/CMA/EMA" description="the type of average" />
+    <parameter name="type" type="list" values="SMA/CMA/EMA" default="SMA" description="the type of average" />
     <parameter name="window_size" type="int" default="100" description="the window size for SMA" />
     <parameter name="alpha" type="float" default="0.1" description="the weight for the new value for EMA" />
-    <parameter name="termination_criterion" type="float" default="0" description="if the average set by select is below this value the module will terminate execution of Ikaros" />
+    <parameter name="termination_criterion" type="float" default="0" description="if the absolute average set by select is below this value the module will terminate execution of Ikaros" />
     <parameter name="select" type="int" default="0" description="which value to use for the termination criteria" />
     
 	<input name="INPUT" description="The input" />
