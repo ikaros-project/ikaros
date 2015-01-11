@@ -467,9 +467,15 @@ WebUI::AddDataSource(const char * module, const char * source)
     void * value_ptr;
     int type, size_x, size_y;
     
-//    printf("Adding data source: %s.%s\n", module, source);
-    
     XMLElement * group = current_xml_root;
+    if(equal_strings(module, "*"))
+    {
+        module = current_xml_root->GetAttribute("name");
+        group = group->GetParentElement();
+    }
+    
+    printf("Adding data source: %s.%s\n", module, source);
+    
     
     if (group == NULL)
     {
@@ -489,7 +495,7 @@ WebUI::AddDataSource(const char * module, const char * source)
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, io);
     }
-    else if(k->GetBinding(m, type, value_ptr, size_x, size_y, module, source))
+    else if(k->GetBinding(group, m, type, value_ptr, size_x, size_y, module, source))
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
@@ -518,6 +524,11 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
     Module_IO * io3;
     
     XMLElement * group = current_xml_root;
+    if(equal_strings(module, "*"))
+    {
+        module = current_xml_root->GetAttribute("name");
+        group = group->GetParentElement();
+    }
     
     if (group == NULL)
     {
@@ -889,6 +900,8 @@ WebUI::SendView(const char * view)
                         unsigned long l = strlen(p->value)-1;
                         if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9') && (!equal_strings(p->name, "title")))
                             socket->Send("%s:%s, ", p->name, p->value);
+                    //    else if(equal_strings(p->value, "*"))
+                    //        socket->Send("%s:'%s', ", p->name, current_xml_root->GetAttribute("name"));
                         else
                             socket->Send("%s:'%s', ", p->name, p->value); // quote other content
                     }
@@ -1140,7 +1153,11 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 	
     for (ModuleData * md=view_data; md != NULL; md=md->next)
     {
-        socket->Send("\"%s\":\n{\n", md->name);
+        if(equal_strings(md->name, current_xml_root->GetAttribute("name")))
+            socket->Send("\"*\":\n{\n");
+        else
+            socket->Send("\"%s\":\n{\n", md->name);
+        
         for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
         {
             switch(sd->type)
@@ -1366,7 +1383,34 @@ WebUI::HandleHTTPRequest()
         int c = sscanf(uri, "/control/%[^/]/%[^/]/%d/%d/%f", module_name, name, &x, &y, &value);
         if(c == 5)
         {
-            Module * module = k->GetModule(module_name);
+            XMLElement * group = current_xml_root;
+            if(equal_strings(module_name, "*"))
+            {
+                strcpy(module_name, current_xml_root->GetAttribute("name"));
+                group = group->GetParentElement();
+            }
+
+            k->SetParameter(group, module_name, name, x, y, value);
+            
+/*
+            if(equal_strings(module_name, "*"))
+                module = k->GetModule(current_xml_root->GetAttribute("name"));
+            else
+                module= k->GetModule(module_name);
+
+
+//            if(equal_strings(module_name, "*"))
+//                strcpy(module_name, current_xml_root->GetAttribute("name"));
+            
+            int type;
+            void * value_ptr;
+            int size_x, size_y;
+            
+            if(k->GetBinding(group, module, type, value_ptr, size_x, size_y, module_name, name))
+            {
+                printf(">>>>>>>>>>> PARAMETER FOUND\n");
+            }
+
             if(!module)
             {
                 k->Notify(msg_warning, "Module \"%s\" does not exist.\n", module_name);
@@ -1388,6 +1432,7 @@ WebUI::HandleHTTPRequest()
                     else if(b->type == bind_matrix)
                        ((float **)(b->value))[y][x] = value;
                  }
+*/
         }
 
 		Dictionary header;
