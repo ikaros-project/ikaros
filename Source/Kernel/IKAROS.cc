@@ -802,7 +802,7 @@ Module::Bind(float * & v, int size, const char * n)
 
 
 void
-Module::Bind(float ** & v, int sizex, int sizey, const char * n)
+Module::Bind(float ** & v, int & sizex, int & sizey, const char * n)
 {
     // TODO: check type here
     v = GetMatrix(n, sizex, sizey);
