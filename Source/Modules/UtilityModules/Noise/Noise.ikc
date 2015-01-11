@@ -30,6 +30,21 @@
             source="OUTPUT"
             title="Default view for Noise"
         />
+
+        <object
+            x="2" y="0" w="2"
+            class="Slider"
+            module="*"
+            parameter="sigma"
+        />
+
+        <object
+            x="3" y="0" w="2"
+            class="Slider"
+            module="*"
+            parameter="mean"
+        />
+
     </view>
     
 	<author>
@@ -46,3 +61,4 @@
    </files>
 
 </group>
+
