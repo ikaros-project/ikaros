@@ -1391,48 +1391,6 @@ WebUI::HandleHTTPRequest()
             }
 
             k->SetParameter(group, module_name, name, x, y, value);
-            
-/*
-            if(equal_strings(module_name, "*"))
-                module = k->GetModule(current_xml_root->GetAttribute("name"));
-            else
-                module= k->GetModule(module_name);
-
-
-//            if(equal_strings(module_name, "*"))
-//                strcpy(module_name, current_xml_root->GetAttribute("name"));
-            
-            int type;
-            void * value_ptr;
-            int size_x, size_y;
-            
-            if(k->GetBinding(group, module, type, value_ptr, size_x, size_y, module_name, name))
-            {
-                printf(">>>>>>>>>>> PARAMETER FOUND\n");
-            }
-
-            if(!module)
-            {
-                k->Notify(msg_warning, "Module \"%s\" does not exist.\n", module_name);
-                destroy_string(uri);
-                return;
-            }
-
-            for(Binding * b = module->bindings; b != NULL; b = b->next)
-                if(equal_strings(name, b->name))
-                {
-                    if(b->type == bind_float)
-                        *((float *)(b->value)) = value;
-                    else if(b->type == bind_int || b->type == bind_list)
-                        *((int *)(b->value)) = (int)value;
-                    else if(b->type == bind_bool)
-                        *((bool *)(b->value)) = (value > 0);
-                    else if(b->type == bind_array)
-                        ((float *)(b->value))[x] = value;     // TODO: add range check!!!
-                    else if(b->type == bind_matrix)
-                       ((float **)(b->value))[y][x] = value;
-                 }
-*/
         }
 
 		Dictionary header;
@@ -1738,7 +1696,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
 			for (Module_IO * i = m->output_list; i != NULL; i = i->next)
 			{
 				socket->Send("<tr>\n");
-				socket->Send("<td><a onclick=\"var w = window.open('module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetFullName(), i->name, i->name);
+				socket->Send("<td><a onclick=\"var w = window.open('/module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetFullName(), i->name, i->name);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizex);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizey);
 				if(m->OutputConnected(i->name))
