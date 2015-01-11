@@ -266,7 +266,10 @@ protected:
     void            Bind(bool & v, const char * n);                         // Bind boolean
     void            Bind(float * & v, int size, const char * n);              // Bind array
     void            Bind(float ** & v, int sizex, int sizey, const char * n); // Bind matrix
-    
+
+
+    void            SetParameter(const char * parameter_name, int x, int y, float value);
+
     XMLElement *    xml;
     
 private:
@@ -398,7 +401,9 @@ public:
     
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-    
+    bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
+    void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
+
     int         Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay = 0);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay = 0);
     
