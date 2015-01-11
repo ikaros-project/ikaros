@@ -2100,10 +2100,6 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
 }
 
 
-// CHANGE TO UPDATE PARAMETER - NEED TO GO THROUGH ALL PARAMETERS THAT MATCH AND UPDATE THEM...
-// THIS IS QUITE DISTURBING
-// SEPARATE FROM THE PROBLEM WITH DEFAULT CONTROLS
-
 static char wildcard[2] = "*";
 
 
