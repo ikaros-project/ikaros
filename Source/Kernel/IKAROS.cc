@@ -2100,6 +2100,139 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
 }
 
 
+// CHANGE TO UPDATE PARAMETER - NEED TO GO THROUGH ALL PARAMETERS THAT MATCH AND UPDATE THEM...
+// THIS IS QUITE DISTURBING
+// SEPARATE FROM THE PROBLEM WITH DEFAULT CONTROLS
+
+static char wildcard[2] = "*";
+
+
+// Find FIRST binding (ignore the rest)
+
+bool
+Kernel::GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * group_name, const char * parameter_name)
+{
+    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
+        if (xml->IsElement("module") && (!xml->GetAttribute("name") || equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*")))
+		{
+			m = (Module *)(xml->aux);
+            
+			if(m == NULL)
+                return false;
+            
+            for(Binding * b = m->bindings; b != NULL; b = b->next)
+                if(equal_strings(parameter_name, b->name))
+                {
+                    type = b->type;
+                    value_ptr = b->value;
+                    sx = b->size_x;
+                    sy = b->size_y;
+                    return true;
+                }
+            
+			return false;
+		}
+		else if (xml->IsElement("group") && (equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		{
+            const char * new_module = wildcard;
+            const char * new_parameter = parameter_name;
+
+			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
+			{
+				const char * n = parameter->GetAttribute("name");
+                
+				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
+				{
+ 					new_module = parameter->GetAttribute("targetmodule");
+					new_parameter = parameter->GetAttribute("target");
+                    
+					if (new_module == NULL)
+						new_module = wildcard;	// match all modules
+                    
+					if (new_parameter == NULL)
+						new_parameter = parameter_name;	// retain name
+				}
+                
+                if(equal_strings("interval", n))
+                {
+                    printf("STOP\n");
+                }
+
+			}
+            
+            
+            return GetBinding(xml, m, type, value_ptr, sx, sy, new_module, new_parameter);
+		}
+
+    return false;
+}
+
+
+void
+Module::SetParameter(const char * parameter_name, int x, int y, float value)
+{
+     for(Binding * b = bindings; b != NULL; b = b->next)
+        if(equal_strings(parameter_name, b->name))
+        {
+            if(b->type == bind_float)
+                *((float *)(b->value)) = value;
+            else if(b->type == bind_int || b->type == bind_list)
+                *((int *)(b->value)) = (int)value;
+            else if(b->type == bind_bool)
+                *((bool *)(b->value)) = (value > 0);
+            else if(b->type == bind_array)
+                ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+            else if(b->type == bind_matrix)
+               ((float **)(b->value))[y][x] = value;
+        }
+}
+
+
+
+void
+Kernel::SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value)
+{
+    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
+    {
+        // Set parameters of modules in this group
+    
+       if (xml->IsElement("module") && (!xml->GetAttribute("name") || equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*")))
+		{
+			Module * m = (Module *)(xml->aux);
+			if(m != NULL)
+                m->SetParameter(parameter_name, select_x, select_y, value);
+ 		}
+
+        // Set parameters in included groups
+        
+		else if (xml->IsElement("group") && (equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		{
+            const char * new_module = wildcard;
+            const char * new_parameter = parameter_name;
+
+			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
+			{
+				const char * n = parameter->GetAttribute("name");
+                
+				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
+				{
+ 					new_module = parameter->GetAttribute("targetmodule");
+					new_parameter = parameter->GetAttribute("target");
+                    
+					if (new_module == NULL)
+						new_module = wildcard;	// match all modules
+                    
+					if (new_parameter == NULL)
+						new_parameter = parameter_name;	// retain name
+				}
+			}
+            
+            SetParameter(xml, new_module, new_parameter, select_x, select_y, value);
+		}
+    }
+}
+
+
 
 bool
 Kernel::Precedes(Module * a, Module * b)
