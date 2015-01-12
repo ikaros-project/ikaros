@@ -27,7 +27,7 @@
 #include "MyModule.h"
 
 // use the ikaros namespace to access the math library
-// this is preferred to using math.h
+// this is preferred to using <cmath>
 
 using namespace ikaros;
 
