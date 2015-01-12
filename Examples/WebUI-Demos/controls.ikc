@@ -77,12 +77,13 @@
         <object class="BarGraph" title="factor" module="Scale" source="factor" x="6" y="0" w="2" h="2" />
         <object class="BarGraph" title="Output" module="Scale" source="OUTPUT" x="8" y="0" w="2" h="2" />
         
+        <object class="Slider" title="Steps" module="Scale2" parameter="factor" steps="5" x="0" y="2" h="4" />
+        <object class="Slider" title="Steps Inv" module="Scale2" invert="true" parameter="factor" steps="5" x="1" y="2" h="4" />
         <object class="Slider" title="Normal" module="Scale2" parameter="factor" x="2" y="2" h="4" />
         <object class="Slider" title="Inverted" module="Scale2" invert="true" parameter="factor" x="3" y="2" h="4" />
         <object class="Table" title="factor" module="Scale2" source="factor" x="4" y="2" w="2" h="2" />
         <object class="BarGraph" title="factor" module="Scale2" source="factor" x="6" y="2" w="2" h="2" />
         <object class="BarGraph" title="Output" module="Scale2" source="OUTPUT" x="8" y="2" w="2" h="2" />
-        
     </view>
     
     <view name="Switch"  object_size="70" object_spacing="5" >

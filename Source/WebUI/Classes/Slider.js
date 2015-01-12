@@ -32,10 +32,37 @@ function Slider(p)
             val = 0;
         if(val > 1)
             val = 1;
+        if(that.steps > 0)
+            val = lookupStepValue(val, that.steptable)
         that.button.setAttribute("y", 20+val*h+4);
         var value = that.min+(that.max-that.min)*(that.invert ? val : 1-val);
         get("/control/"+that.module+"/"+that.parameter+"/"+that.xindex+"/"+that.yindex+"/"+value, none);
     }
+
+    function makeStepTable(numsteps)
+    {
+        stepsize = 1.0/numsteps;
+        radix = stepsize/2.0;
+        retval = [];
+        retval.push([0, radix, 0]);
+        min = radix;
+        while(min < 1.0-radix)
+        {
+            retval.push([min, min+stepsize, min+radix]);
+            min += stepsize;
+        }
+        retval.push([1.0-radix, 1.0, 1.0]);
+        return retval;
+    }
+
+    function lookupStepValue(val, table)
+    {
+        for(var i=0; i<table.length; i++)
+            if(val >= table[i][0] && val<table[i][1])
+                return table[i][2];
+        return 1.0;
+    }
+
     
     cx = p.width/2;
     
@@ -56,6 +83,8 @@ function Slider(p)
     this.xindex = (p.xindex ? p.xindex : this.select[0][0]);
     this.yindex = (p.yindex ? p.yindex : this.select[0][1]);
     this.slide = this.graph.AddRect(cx-2.5, 30, 5, this.height-40, 'black', '#444444', 2); // local coordinates
+    this.steps = (p.steps ? (p.steps>2 ? p.steps-1 : 2) : 0);
+    this.steptable = makeStepTable(this.steps);
     
     this.button = document.createElementNS(svgns,"image");	
     this.button.setAttribute('x', cx-this.knobradius-0.5);
@@ -101,6 +130,15 @@ Slider.prototype.Update = function(data)
     this.value = d[this.yindex][this.xindex];
     var h = this.height-40;
 
+    var val = (this.value-this.min)/(this.max-this.min)
+
+    if(this.steps > 0)
+        val = this.lookupStepValue(val)
+
+    var pos = 4+20+h*(1-val); // this.y-this.knobradius+55.5+(this.height-45)
+
+    this.button.setAttribute("y", pos);
+
     if(this.invert)
     {
         var pos = 4+20+h*((this.value-this.min)/(this.max-this.min));
@@ -108,9 +146,7 @@ Slider.prototype.Update = function(data)
     }
     else
     {
-        var pos = 4+20+h*(1-((this.value-this.min)/(this.max-this.min)));
+        var pos = 4+20+h*(1-val); // this.y-this.knobradius+55.5+(this.height-45)
         this.button.setAttribute("y", pos);
     }
 }
-
-
