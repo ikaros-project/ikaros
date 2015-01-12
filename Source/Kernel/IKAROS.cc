@@ -505,7 +505,6 @@ Module::GetDefault(const char * n)
         module_name = parent->GetAttribute("name");
     }
     
-    Notify(msg_warning, "Value of parameter \"%s\" can not be found. Using 0.\n", n);
     return NULL; // No default value was found
 }
 
