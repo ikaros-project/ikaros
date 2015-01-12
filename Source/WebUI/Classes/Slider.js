@@ -132,8 +132,8 @@ Slider.prototype.Update = function(data)
 
     var val = (this.value-this.min)/(this.max-this.min)
 
-    if(this.steps > 0)
-        val = this.lookupStepValue(val)
+//    if(this.steps > 0)
+//        val = this.lookupStepValue(val)
 
     var pos = 4+20+h*(1-val); // this.y-this.knobradius+55.5+(this.height-45)
 
