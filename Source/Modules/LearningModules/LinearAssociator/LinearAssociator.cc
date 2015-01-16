@@ -25,15 +25,17 @@ using namespace ikaros;
 LinearAssociator::~LinearAssociator()
 {
 	destroy_array(delta);
-	destroy_matrix(m);
 }
+
 
 
 void
 LinearAssociator::Init()
 {
-	alpha =	GetFloatValue("alpha", 0.1);
-	beta =	GetFloatValue("beta", 0.1);
+	Bind(alpha, "alpha");
+	Bind(beta, "beta");
+
+    mode = GetIntValue("mode");
 
 	// Test that INPUT and T-INPUT have the same sizes
 	
@@ -64,7 +66,7 @@ LinearAssociator::Init()
 	delta = create_array(output_size);
 	momentum = create_array(output_size);
 	
-	m = create_matrix(input_size, output_size);
+	matrix = GetOutputMatrix("MATRIX");
 }
 
 
@@ -72,7 +74,7 @@ LinearAssociator::Init()
 void
 LinearAssociator::Train(float * x, float * y)
 {
-	multiply(output, m, x, input_size, output_size);
+	multiply(output, matrix, x, input_size, output_size);
 	subtract(delta, y, output, output_size);
 				
 	add(momentum, beta, momentum, (1.0f-beta), delta, output_size);
@@ -81,7 +83,26 @@ LinearAssociator::Train(float * x, float * y)
 				
 	for(int j=0; j<output_size; j++)
 		for(int i=0; i<input_size; i++)
-			m[j][i] += alpha * momentum[j] * x[i];
+			matrix[j][i] += alpha * momentum[j] * x[i];
+}
+
+
+
+void
+LinearAssociator::CalculateError()
+{
+	*error = 0;
+	if(memory_training>0 && memory_used>0)
+	{
+		for(int mem=0; mem<memory_used; mem++)
+		{
+			Train(memory_t_input[mem], memory_t_output[mem]);
+			*error += norm(delta, output_size);
+		}
+		*error /= float(memory_used);
+	}
+
+	*confidence = 1 - *error;
 }
 
 
@@ -105,29 +126,28 @@ LinearAssociator::Tick()
 	}
 	
 	// Train whole data set 'memory_training' times
-	
-	for(int t=0; t<memory_training-1; t++)
-		for(int mem=0; mem<memory_used; mem++)
-			Train(memory_t_input[mem], memory_t_output[mem]);
-	
-	// Calculate errors on last iteration over the memory set
 
-	*error = 0;
-	if(memory_training>0 && memory_used>0)
-	{
-		for(int mem=0; mem<memory_used; mem++)
-		{
-			Train(memory_t_input[mem], memory_t_output[mem]);
-			*error += norm(delta, output_size);
-		}
-		*error /= float(memory_used);
+    if(mode == 0) // gradient descent
+    {
+        for(int t=0; t<memory_training-1; t++)
+            for(int mem=0; mem<memory_used; mem++)
+                Train(memory_t_input[mem], memory_t_output[mem]);
 	}
-	*confidence = 1- *error;
+
+    else // LMS
+    {
+        mldivide(matrix, memory_t_input, memory_t_output, input_size, output_size, memory_used);
+    }
+
+
+    CalculateError();
 
 	// Calculate normal output
 	
-	multiply(output, m, input, input_size, output_size);
+	multiply(output, matrix, input, input_size, output_size);
 }
+
+
 
 static InitClass init("LinearAssociator", &LinearAssociator::Create, "Source/Modules/LearningModules/LinearAssociator/");
 
