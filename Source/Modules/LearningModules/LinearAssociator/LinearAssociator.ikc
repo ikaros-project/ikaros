@@ -6,7 +6,7 @@
     <p>
 		Module that learns a linear mapping from INPUT to OUTPUT based on training samples
 		in T-INPUT and T-OUTPUT. The module can operate in two different modes:
-    <p>
+    </p>
     <ul>
         <li>In <b>gradient descent</b> the, a gradient descent method is used to update the weights based on each new sample. By default, only a single sample is used on every tick. By increasing the values of memory_max, it is possible to store a number of samples and train on all of them every tick. My setting mamory_training to a value larger than 1, the data will be used several times.</li>
 
@@ -39,7 +39,7 @@
 	<input name="T-INPUT" description="The training input" />
 	<input name="T-OUTPUT" description="The training target input" />
 
-	<output name="MATRIX" description="The association matrix." size_set_x="INPUT" set_size_y="OUTPUT" />
+	<output name="MATRIX" description="The association matrix." size_set_x="T-INPUT" set_size_y="T-OUTPUT" />
 
 	<output name="ERROR" description="The error for the last training sample." size="1" />
 	<output name="CONFIDENCE" description="1-ERROR" size="1" />
