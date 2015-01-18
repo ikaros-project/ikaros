@@ -92,7 +92,7 @@ void
 LinearAssociator::CalculateError()
 {
 	*error = 0;
-	if(memory_training>0 && memory_used>0) // Hello
+	if(memory_training>0 && memory_used>0) // Hello!
 	{
 		for(int mem=0; mem<memory_used; mem++)
 		{
