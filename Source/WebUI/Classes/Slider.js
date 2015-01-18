@@ -64,7 +64,7 @@ function Slider(p)
     }
 
     
-    cx = p.width/2;
+    var cx = p.width/2;
     
     this.module = p.module;
     this.parameter = p.parameter;
@@ -86,7 +86,14 @@ function Slider(p)
     this.steps = (p.steps ? (p.steps>2 ? p.steps-1 : 2) : 0);
     this.steptable = makeStepTable(this.steps);
     
-    this.button = document.createElementNS(svgns,"image");	
+    if(this.steps > 0)
+    {
+        var s = (this.height-45)/this.steps;
+        for(var i=0; i<=this.steps; i++)
+            this.graph.AddLine(cx+4, 32.5+i*s, cx+10, 32.5+i*s, '#111', 1);
+    }
+
+    this.button = document.createElementNS(svgns,"image");
     this.button.setAttribute('x', cx-this.knobradius-0.5);
     this.button.setAttribute('y', +this.knobradius+11);   // global coordinates
     this.button.setAttribute('width', 2*this.knobradius+1);
@@ -105,7 +112,6 @@ function Slider(p)
     var tn = document.createTextNode(p.title);	
     this.title.appendChild(tn);
     this.graph.group.appendChild(this.title);
-
 
     this.button.onmousedown = drag_start;
     this.button.owner = this;
