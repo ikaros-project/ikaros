@@ -2,9 +2,19 @@
 
 <group name="LinearAssociator" description="learns a linear mapping">
 
-	<description type="text">
+	<description type="xhtml">
+    <p>
 		Module that learns a linear mapping from INPUT to OUTPUT based on training samples
-		in T-INPUT and T-OUTPUT.
+		in T-INPUT and T-OUTPUT. The module can operate in two different modes:
+    </p>
+    <ul>
+        <li>In <b>gradient descent</b> the, a gradient descent method is used to update the weights based on each new sample. By default, only a single sample is used on every tick. By increasing the values of memory_max, it is possible to store a number of samples and train on all of them every tick. My setting mamory_training to a value larger than 1, the data will be used several times.</li>
+
+        <li>In <b>least square mode</b> all stored samples are used to directly set the optimal associative weights that minimizes the missmatch between the inputs and outputs in the training data. The amount of trainsing data used is controlled by the memory_max parameter. If this parameter is larger than the current tick then all data so far seen will be used. If it is smaller, a random selection of training points will be throws away. This means that is memory_max is set to a low value, the trained asssociations will track changes in the data. For least square mode, it is important that memory_max is not set too low.</li>
+    </ul>
+    <p>
+
+    </p>
 	</description>
 
 	<example description="A simple example">
@@ -15,6 +25,7 @@
 		/>
 	</example>
 
+	<parameter name="mode" type="list" values="gradient_descent/LMS" description="The learning mode" default="gradient_descent" />
 	<parameter name="alpha" type="float" description="The learning rate" default="0.1" />
 	<parameter name="beta" type="float" description="The momentum rate" default="0.0" min="0" max="1" />
 	<parameter name="memory_max" type="int" description="Maximum number of stored training samples" default="1" />
@@ -28,10 +39,20 @@
 	<input name="T-INPUT" description="The training input" />
 	<input name="T-OUTPUT" description="The training target input" />
 
+	<output name="MATRIX" description="The association matrix" size_set_x="T-INPUT" size_set_y="T-OUTPUT" />
+
 	<output name="ERROR" description="The error for the last training sample." size="1" />
 	<output name="CONFIDENCE" description="1-ERROR" size="1" />
 
 	<module class="LinearAssociator" />
+
+    <view name="View">
+        <object x="0" y="0" class="BarGraph" title="Learned Output" module="*" source="OUTPUT" />
+        <object x="1" y="0" class="Table" title="MATRIX" module="*" source="MATRIX" />
+
+        <object x="0" y="1" w="2" class="Plot" title="ERROR" module="*" source="ERROR" min="0" max="5" colors="yellow" />
+    </view>
+
 
 	<author>
 		<name>Christian Balkenius</name>

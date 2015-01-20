@@ -474,9 +474,6 @@ WebUI::AddDataSource(const char * module, const char * source)
         group = group->GetParentElement();
     }
     
-    printf("Adding data source: %s.%s\n", module, source);
-    
-    
     if (group == NULL)
     {
         k->Notify(msg_warning, "WebUI: Could not find <group> or <modules> element.\n");

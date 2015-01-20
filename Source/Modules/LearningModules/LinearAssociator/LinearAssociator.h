@@ -43,13 +43,15 @@ public:
 	float **	memory_t_output;
 
 	float *     learning_rate;
-	
+
+    int         mode;
+
 	float *     delta;		// Prediction error
 	float *     momentum;	// Momentum vector
 	float *     error;
 	float *     confidence;
 
-	float **	m;			// The linear mapping
+	float **	matrix;			// The linear mapping
 
 	LinearAssociator(Parameter * p) : Module(p) {}
 	virtual ~LinearAssociator();
@@ -59,6 +61,8 @@ public:
 	void		Init();
 	
 	void		Train(float * input, float * output);
+    void        CalculateError();
+
 	void		Tick();
 };
 
