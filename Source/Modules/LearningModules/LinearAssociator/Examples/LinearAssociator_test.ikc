@@ -20,8 +20,10 @@
     <module
         class = "LinearAssociator"
         name = "A"
-        alpha = "0.1"
-        beta = "0.1"
+        alpha = "0.01"
+        beta = "0.01"
+        mode = "LMS"
+        memory_max = "32"
     />
 
     <connection sourcemodule = "IN" source = "X" targetmodule = "A" target = "INPUT" delay="0" />
@@ -34,6 +36,8 @@
         <object x="2" y="0" class="BarGraph" title="Learned Output" module="A" source="OUTPUT" min="-3" max="10" />
 
         <object x="0" y="1" w="3" class="Plot" title="ERROR" module="A" source="ERROR" min="0" max="5" colors="yellow" />
+
+        <object x="3" y="0" class="Table" title="MATRIX" module="A" source="MATRIX" />
 
         <object x="0" y="2" w="3" class="Text" text="This IKC file demonstrates how a linear associator can learn to associate from two/values in X to a vector Y which consists of the sum and difference between the two/elements in X." />
     </view>
