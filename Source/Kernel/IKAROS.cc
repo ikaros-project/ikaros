@@ -1190,7 +1190,7 @@ Module::SetSizes()
 		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
         {
             const char * output_name = e->GetAttribute("name");
-            
+
             // First get simple attributes
             
             int sx = unknown_size;
@@ -1228,8 +1228,8 @@ Module::SetSizes()
             
 			else if((sizearg = e->GetAttribute("size_set_x")) && (sizeargy = e->GetAttribute("size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
 			{
-                sx = GetSizeXFromList(sizearg);
-                sy = GetSizeYFromList(sizeargy);
+                sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
+                sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
 			}
             
 			else if((sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
