@@ -35,7 +35,7 @@ LinearAssociator::Init()
 	Bind(alpha, "alpha");
 	Bind(beta, "beta");
 
-    mode = GetIntValue("mode");
+    mode = GetIntValueFromList("mode");
 
 	// Test that INPUT and T-INPUT have the same sizes
 	
@@ -53,9 +53,9 @@ LinearAssociator::Init()
 	output = GetOutputArray("OUTPUT");
 	t_output = GetInputArray("T-OUTPUT");
 
-	memory_max = GetIntValue("memory_max", 1);
+	memory_max = GetIntValue("memory_max");
 	memory_used = 0;
-	memory_training = GetIntValue("memory_training", 1);
+	memory_training = GetIntValue("memory_training");
 	memory_t_input = create_matrix(input_size, memory_max);
 	memory_t_output = create_matrix(output_size, memory_max);
 
@@ -67,6 +67,11 @@ LinearAssociator::Init()
 	momentum = create_array(output_size);
 	
 	matrix = GetOutputMatrix("MATRIX");
+
+    if(mode==1 && memory_max==1)
+    {
+        Notify(msg_warning, "Mode is set to LMS but memory_max is 1.");
+    }
 }
 
 

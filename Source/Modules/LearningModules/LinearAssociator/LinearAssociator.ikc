@@ -39,7 +39,7 @@
 	<input name="T-INPUT" description="The training input" />
 	<input name="T-OUTPUT" description="The training target input" />
 
-	<output name="MATRIX" description="The association matrix." size_set_x="T-INPUT" set_size_y="T-OUTPUT" />
+	<output name="MATRIX" description="The association matrix" size_set_x="T-INPUT" size_set_y="T-OUTPUT" />
 
 	<output name="ERROR" description="The error for the last training sample." size="1" />
 	<output name="CONFIDENCE" description="1-ERROR" size="1" />
