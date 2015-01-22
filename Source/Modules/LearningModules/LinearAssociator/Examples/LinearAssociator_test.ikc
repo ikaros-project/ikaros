@@ -22,7 +22,7 @@
         name = "A"
         alpha = "0.01"
         beta = "0.01"
-        mode = "LMS"
+        _mode = "LMS"
         memory_max = "32"
     />
 
