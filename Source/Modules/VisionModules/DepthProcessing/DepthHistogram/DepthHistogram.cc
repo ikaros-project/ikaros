@@ -48,13 +48,6 @@ DepthHistogram::Init()
 void
 DepthHistogram::Tick()
 {
-/*
-    float aa;
-    float bb;
-    minmax(aa, bb, input, size_x, size_y);
-    printf("min = %f, max = %f\n", aa, bb);
-*/
-
     reset_array(output, size);
     reset_array(object, 3);
 
@@ -62,7 +55,6 @@ DepthHistogram::Tick()
         for(int j=0; j<size_y; j++)
         {
             int index = int((float(size)*(input[j][i]-min))/(max-min));
-//            printf("index = %d\n", index);
             if(0 <= index && index < size)
                 output[index] += 1;
         }
@@ -105,8 +97,6 @@ DepthHistogram::Tick()
     object[0] = a*(max-min)/float(size);
     object[1] = b*(max-min)/float(size);
     object[2] = s*(max-min)/(float(n)*float(size));
-    
-//    printf("%.0f %.0f %.0f\n", object[0], object[1], object[2]);
 }
 
 
