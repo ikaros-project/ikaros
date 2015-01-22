@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module
+            class = "Randomizer"
+            name = "R1"
+        />
+	
+		<module
+            class = "Randomizer"
+            name = "R2"
+        />
+	
+		<module
+			class = "Histogram"
+			name = "H"
+		/>
+		
+		<module
+			class = "Multiply"
+			name = "M"
+		/>
+
+		<module
+			class = "Histogram"
+			name = "H2"
+		/>
+
+		<module
+			class = "Add"
+			name = "A"
+		/>
+
+		<module
+			class = "Histogram"
+			name = "H3"
+            max = "2"
+		/>
+
+		<connection sourcemodule="R1" source="OUTPUT" targetmodule="H" target="INPUT" />
+
+		<connection sourcemodule="R1" source="OUTPUT" targetmodule="M" target="INPUT1" />
+		<connection sourcemodule="R2" source="OUTPUT" targetmodule="M" target="INPUT2" />
+		<connection sourcemodule="M" source="OUTPUT" targetmodule="H2" target="INPUT" />
+
+		<connection sourcemodule="R1" source="OUTPUT" targetmodule="A" target="INPUT1" />
+		<connection sourcemodule="R2" source="OUTPUT" targetmodule="A" target="INPUT2" />
+		<connection sourcemodule="A" source="OUTPUT" targetmodule="H3" target="INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" title="R1" module="H" source="OUTPUT"  x="0" y="0" />
+			<object class="BarGraph" title="R1*R2" module="H2" source="OUTPUT" x="1" y="0" />
+			<object class="BarGraph" title="R1+R2" module="H3" source="OUTPUT" x="2" y="0" />
+		</view>
+</group>
+ 
