@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<group name="Histogram" description="generates a histogram">
+
+	<description type="text">
+        Module that counts the number of values within each histogram bin.
+    </description>
+
+	<example description="Example">
+		<module
+			class="Gate"
+			name="Gate"
+		/>
+	</example>
+
+    <parameter name="size" type="int" default="15" description="The number of bins in the histogram" />
+    <parameter name="min" type="float" default="0" description="The minimum input value" />
+    <parameter name="max" type="float" default="1" description="The maximum input value" />
+    <parameter name="ignore_outliers" type="bool" default="yes" description="Should outliers be ignored or mapped to min or max?" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size_param="size" />
+
+	<module class="Histogram" />
+
+    <view title="Histogram">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Histogram"
+        />
+    </view>
+
+    <limitation>
+        Only works on one-dimensional inputs.
+    </limitation>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Gate.h</file>
+   		<file>Gate.cc</file>
+   		<file>Gate.ikc</file>
+   </files>
+
+</group>
