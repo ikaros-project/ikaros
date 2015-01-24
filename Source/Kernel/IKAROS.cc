@@ -571,12 +571,7 @@ Module::GetFloatValue(const char * n, float d)
 int
 Module::GetIntValue(const char * n, int d)
 {
-    const char * v = GetValue(n);
-    
-    if(v != NULL)
-        return string_to_int(GetValue(n), d);
-    else
-        return GetIntValueFromList(n);
+    return string_to_int(GetValue(n), d);
 }
 
 static bool
