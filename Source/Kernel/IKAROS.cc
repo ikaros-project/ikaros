@@ -571,7 +571,13 @@ Module::GetFloatValue(const char * n, float d)
 int
 Module::GetIntValue(const char * n, int d)
 {
-    return string_to_int(GetValue(n), d);
+    if(d != 0)
+        Notify(msg_warning, "Default value for GetIntValue() is deprectaed and should be specified in IKC file instead.");
+    
+    if(GetList(n))
+        return GetIntValueFromList(n);
+    else
+        return string_to_int(GetValue(n), d);
 }
 
 static bool
@@ -1062,8 +1068,8 @@ Module::Module(Parameter * p)
     xml = p->xml;
     instance_name = GetValue("name");
     class_name = xml->GetAttribute("class");
-    period = GetIntValue("period", 1);
-    phase = GetIntValue("phase", 0);
+    period = (GetValue("persiod") ? GetIntValue("period") : 1);
+    phase = (GetValue("phase") ? GetIntValue("phase") : 0);
 	
 	// Compute full name
 	

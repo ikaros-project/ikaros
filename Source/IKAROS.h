@@ -166,7 +166,7 @@ public:
 class Module_IO
 {
 public:
-    int                 sizex;        // no of columns    *** temporarily made public for WebUI ***
+    int                 sizex;        // no of columns    *** made public for WebUI ***
     int                 sizey;        // no of rows
     float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes in 0.8.0 for delays
 private:
@@ -181,7 +181,7 @@ private:
     Module_IO   *   next;
     Module      *   module;
     const char  *   name;
-    float       **  data;        // Array in 0.8.0 for delays
+    float       **  data;        // Array for delays
     int             size;        // should equal sizex*sizey
     int             max_delay;   // maximum number of arrays/matrices
     
