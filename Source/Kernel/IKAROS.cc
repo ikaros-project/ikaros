@@ -1784,6 +1784,10 @@ Kernel::InitInputs()
         {
             Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
         }
+        else if(c->target_io->data != NULL && c->target_io->allow_multiple == false)
+        {
+            Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->module->GetClassName());
+        }
         else if (c->delay == 0)
         {
             Notify(msg_verbose, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
