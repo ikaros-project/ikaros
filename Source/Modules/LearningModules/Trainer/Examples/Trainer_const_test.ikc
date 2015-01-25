@@ -39,8 +39,8 @@
     <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
     <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
 
-    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_X" />
-    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" />
+    <_connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_X" />
+    <_connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" />
 
     <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "Perceptron"  target = "T_INPUT" />
     <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "Perceptron"  target = "T_TARGET" />
