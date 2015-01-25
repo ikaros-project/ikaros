@@ -107,22 +107,22 @@ Perceptron::Init()
     perceptron_errors = create_array(target_size);
 
     // fetch all the parameters
-    rand_weights_min = GetFloatValue("rand_weights_min", -0.5);
-    rand_weights_max = GetFloatValue("rand_weights_max", 0.5);
-    learning_rate = GetFloatValue("learning_rate", 0.1);
+    rand_weights_min = GetFloatValue("rand_weights_min");
+    rand_weights_max = GetFloatValue("rand_weights_max");
+    learning_rate = GetFloatValue("learning_rate");
     learning_rate_mod = GetIntValueFromList("learning_rate_mod");
-    bias = GetFloatValue("bias", 1);
-    momentum_ratio = GetFloatValue("momentum_ratio", 0.42);
+    bias = GetFloatValue("bias");
+    momentum_ratio = GetFloatValue("momentum_ratio");
     activation_type = GetIntValueFromList("activation_type", "default/step/sign/sigmoid/tanh");
     learning_rule = GetIntValueFromList("learning_rule", "default/rosenblatt/rosenblatt_margin/may/alpha_lms/mu_lms/delta");
     learning_type = GetIntValueFromList("learning_type", "default/instant/batch/momentum");
-    batch_size = GetIntValue("batch_size", 42);
-    step_threshold = GetFloatValue("step_threshold", 0);
-    margin = GetFloatValue("margin", 0.2);
-    alpha = GetFloatValue("alpha", 0.1);
-    mu = GetFloatValue("mu", 0.1);
-    beta = GetFloatValue("beta", 1.0);
-    correct_average_size = GetIntValue("correct_average_size", 42);
+    batch_size = GetIntValue("batch_size");
+    step_threshold = GetFloatValue("step_threshold");
+    margin = GetFloatValue("margin");
+    alpha = GetFloatValue("alpha");
+    mu = GetFloatValue("mu");
+    beta = GetFloatValue("beta");
+    correct_average_size = GetIntValue("correct_average_size");
     correct_all = create_array(correct_average_size);
     normalize_target = GetBoolValue("normalize_target", false);
 
