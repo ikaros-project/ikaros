@@ -323,7 +323,7 @@ Module_IO::SetSize(int x, int y)
     if (size != unknown_size && s != size)
     {
         if (module != NULL)
-            module->Notify(msg_warning, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name, module->GetName(), module->GetClassName(), size, s);
+            module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name, module->GetName(), module->GetClassName(), size, s);
         return;
     }
     if (s == size)
