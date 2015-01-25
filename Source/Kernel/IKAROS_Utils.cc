@@ -523,6 +523,44 @@ set_matrix(float ** m, float v, int sizex, int sizey)
     return m;
 }
 
+float **
+set_row(float ** m, float * a, int row, int sizex)
+{
+    copy_array(m[row], a, sizex);
+    return m;
+}
+
+
+
+float **
+set_col(float ** m, float * a, int col, int sizey)
+{
+    for(int j=0; j<sizey; j++)
+        m[j][col] = a[j];
+    return m;
+}
+
+
+
+float *
+get_row(float * a, float ** m, int row, int sizex)
+{
+    return copy_array(a, m[row], sizex);
+}
+
+
+float *
+get_col(float * a, float ** m, int col, int sizey)
+{
+    for(int j=0; j<sizey; j++)
+        a[j] = m[j][col];
+    return a;
+}
+
+
+
+
+
 void
 destroy_array(float * a)
 {
@@ -557,12 +595,14 @@ destroy_matrix(float **** a)
     free(a);
 }
 
-float * copy_array(float * r, float * a, int size)
+float *
+copy_array(float * r, float * a, int size)
 {
     return (float *)memcpy(r, a, size*sizeof(float));
 }
 
-float ** copy_matrix(float ** r, float ** a, int sizex, int sizey)
+float **
+copy_matrix(float ** r, float ** a, int sizex, int sizey)
 {
     memcpy(r[0], a[0], sizex*sizey*sizeof(float));
     return r;
