@@ -43,6 +43,10 @@ public:
     int         size_x;
     int         size_y;
 
+    float		offset_x;
+    float		offset_y;
+    float		direction;
+
     int         x0;
     int         x1;
     int         y0;
@@ -50,6 +54,8 @@ public:
     int         kernel_size;
 
     float **	input;
+    float *     shift;
+    
     float **	output;
 };
 
