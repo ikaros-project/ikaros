@@ -281,8 +281,10 @@ Module_IO::Allocate()
     }
 }
 
-Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y)
+Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt, bool multiple)
 {
+    optional = opt;
+    allow_multiple = multiple;
     next = nxt;
     module = m;
     name = n;
@@ -354,26 +356,26 @@ Module::~Module()
 }
 
 void
-Module::AddInput(const char * name)
+Module::AddInput(const char * name, bool optional, bool allow_multiple_connections)
 {
     if (GetModule_IO(input_list, name) != NULL)
     {
         Notify(msg_warning, "Input \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
     }
-    input_list = new Module_IO(input_list, this, name);
+    input_list = new Module_IO(input_list, this, name, unknown_size, 1, optional, allow_multiple_connections);
     Notify(msg_verbose, "  Adding input \"%s\".\n", name);
 }
 
 void
-Module::AddOutput(const char * name, int sizeX, int sizeY)
+Module::AddOutput(const char * name, int sizeX, int sizeY, bool optional)
 {
     if (GetModule_IO(output_list, name) != NULL)
     {
         Notify(msg_warning, "Output \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
     }
-    output_list = new Module_IO(output_list, this, name, sizeX, sizeY);
+    output_list = new Module_IO(output_list, this, name, sizeX, sizeY, optional);
     Notify(msg_verbose, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
 }
 
@@ -565,6 +567,9 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
 float
 Module::GetFloatValue(const char * n, float d)
 {
+    if(d != 0)
+        Notify(msg_warning, "Default value for GetFloatValue(\"%s\") is deprectaed and should be specified in IKC file instead.", n);
+
     return string_to_float(GetValue(n), d);
 }
 
@@ -572,7 +577,7 @@ int
 Module::GetIntValue(const char * n, int d)
 {
     if(d != 0)
-        Notify(msg_warning, "Default value for GetIntValue() is deprectaed and should be specified in IKC file instead.");
+        Notify(msg_warning, "Default value for GetIntValue(\"%s\") is deprectaed and should be specified in IKC file instead.", n);
     
     if(GetList(n))
         return GetIntValueFromList(n);
@@ -877,7 +882,7 @@ Module::GetInputArray(const char * name, bool required)
         {
             if (i->data == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -896,7 +901,7 @@ Module::GetOutputArray(const char * name, bool required)
         {
             if (i->data == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Output array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -915,7 +920,7 @@ Module::GetInputMatrix(const char * name, bool required)
         {
             if (i->matrix == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Input matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -934,7 +939,7 @@ Module::GetOutputMatrix(const char * name, bool required)
         {
             if (i->matrix == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Output matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -1094,7 +1099,11 @@ Module::AddIOFromIKC()
         return;
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != NULL; e = e->GetNextElement("input"))
-        AddInput(e->GetAttribute("name"));
+    {
+        const char * amc = e->GetAttribute("allow_multiple_connections");
+        bool multiple = (amc ? tobool(amc) : true); // True is defaut value
+        AddInput(e->GetAttribute("name"), tobool(e->GetAttribute("optional")), multiple);
+    }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
         AddOutput(e->GetAttribute("name"));
