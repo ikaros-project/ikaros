@@ -83,6 +83,12 @@ float **	reset_matrix(float ** m, int sizex, int sizey);
 float *     set_array(float * a, float v, int size);
 float **    set_matrix(float ** m, float v, int sizex, int sizey);
 
+float **    set_row(float ** m, float * a, int row, int sizex);
+float **    set_col(float ** m, float * a, int col, int sizey);
+
+float *     get_row(float * a, float ** m, int row, int sizex);
+float *     get_col(float * a, float ** m, int col, int sizey);
+
 // Delay Line
 
 class DelayLine
