@@ -1357,10 +1357,10 @@ WebUI::HandleHTTPRequest()
     else if (strstart(uri, "/uses"))
     {
         char * module = new char [256];
-        char * output = new char [256];
-        int c = sscanf(uri, "/uses/%[^/]/%[^/]", module, output);
+        char * source = new char [256];
+        int c = sscanf(uri, "/uses/%[^/]/%[^/]", module, source);
         if (c == 2)
-            AddDataSource(module, output);
+            AddDataSource(module, source);
 		
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
@@ -1368,7 +1368,7 @@ WebUI::HandleHTTPRequest()
         socket->Send("OK\n");
         
 		delete module;
-        delete output;
+        delete source;
     }
 
     else if (strstart(uri, "/control/"))
