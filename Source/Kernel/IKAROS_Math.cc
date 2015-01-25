@@ -1266,6 +1266,23 @@ namespace ikaros
     // MARK: -
     // MARK: multiply and divide
     
+    
+    float
+    product(float * a, int size)
+    {
+        float p = 1;
+        for(int i=0; i<size; i++)
+            p *= a[i];
+        return p;
+    }
+    
+    float
+    product(float ** m, int sizex, int sizey)
+    {
+        return product(*m, sizex*sizey);
+    }
+
+    
 	// multiply
 	float *
 	multiply(float * a, float alpha, int size)
