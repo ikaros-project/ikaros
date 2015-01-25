@@ -56,8 +56,8 @@ Trainer::Init()
     training_no_of_examples = GetInputSizeY("TRAINING_DATA_X");
     training_current = 0;
 
-    testing_data_x = GetInputMatrix("TESTING_DATA_X", false);
-    testing_data_y = GetInputMatrix("TESTING_DATA_Y", false);
+    testing_data_x = GetInputMatrix("TESTING_DATA_X");
+    testing_data_y = GetInputMatrix("TESTING_DATA_Y");
     testing_no_of_examples = GetInputSizeY("TESTING_DATA_X");
     testing_current = 0;
     
@@ -67,8 +67,8 @@ Trainer::Init()
     train_x = GetOutputArray("TRAIN_X");
     train_y = GetOutputArray("TRAIN_Y");
     
-    test_x = GetOutputArray("TEST_X", false);
-    test_y = GetInputArray("TEST_Y", false);
+    test_x = GetOutputArray("TEST_X");
+    test_y = GetInputArray("TEST_Y");
     test_y_last = create_array(size_y);
     
     error = GetOutputArray("ERROR"); // error for current test data point
