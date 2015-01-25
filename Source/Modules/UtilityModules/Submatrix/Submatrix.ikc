@@ -17,6 +17,10 @@
     <p>
         In this case the module can be considered as a filter that does not change its input.
     </p>
+    <p>
+        If the input SHIFT is connectedm the operation is different. In this case, the module  shifts the elements of a matrix the
+		distance in the x and y direction indicated by the input SHIFT.
+    </p>
 	</description>
 
 	<example description="A simple example">
@@ -37,7 +41,13 @@
 
 	<parameter name="kernel_size" type="int" default="0" description="Set submatrix from this single kernel parameter" />
 	
+	<parameter name="offset_x" type="float" default="0.0" description="Initial shift of the matrix if SHIFT is connected" />
+	<parameter name="offset_y" type="float" default="0.0" description="Initial shift of the matrix if SHIFT is connected" />
+	<parameter name="direction" type="float" default="1.0" description="The direction and scaling of the shift" />
+
 	<input name="INPUT" description="The input" />
+	<input name="SHIFT" description="The distance to shift the input in [X, Y] form" optional="yes" />
+
 	<output name="OUTPUT" description="The output with the submatrix"/>
 
 	<module class="Submatrix" />
