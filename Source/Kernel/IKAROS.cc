@@ -2005,6 +2005,14 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
 				io = m->GetModule_IO(m->output_list, source_name);
 			if (m != NULL && io != NULL)
 				return true;
+            
+        // NEW: Get inputs as well
+			if (m != NULL)
+				io = m->GetModule_IO(m->input_list, source_name);
+			if (m != NULL && io != NULL)
+				return true;
+        // END NEW
+        
 			return false;
 		}
 		else if (xml->IsElement("group") && equal_strings(xml->GetAttribute("name"), source_module_name)) // Translate output name
@@ -2023,6 +2031,24 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
 					return GetSource(xml, m, io, new_module, new_source);
 				}
 			}
+            
+            // NEW: Get inputs as well
+            for (XMLElement * input = xml->GetContentElement("input"); input != NULL; input = input->GetNextElement("input"))
+			{
+				const char * n = input->GetAttribute("name");
+				if (n == NULL)
+					return false;
+				if (equal_strings(n, source_name) || equal_strings(n, "*"))
+				{
+					const char * new_module = input->GetAttribute("targetmodule");
+					const char * new_source = input->GetAttribute("target");
+					if (new_source == NULL)
+						new_source = source_name;	// retain name
+					return GetSource(xml, m, io, new_module, new_source);
+				}
+			}
+            // NEW END
+            
 		}
 
     return false;

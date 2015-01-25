@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!--
+
+    This example shows how a view can refer to its inputs
+ 
+-->
+
+<group title="Ikaros Input View Example">
+	
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "3"
+        outputsize_y = "3"
+    />
+    
+    <group name="Inner">
+    
+        <input name="IN" targetmodule="G" target ="INPUT" />
+
+        <module
+            class = "Gate"
+            name = "G"
+        />
+        
+        <view>
+            <object class="BarGraph" module="*" source="IN" w="2" />
+        </view>
+
+    </group>
+
+    <connection sourcemodule="R" source="OUTPUT" targetmodule="Inner" target="IN" />
+
+</group>
+ 
+
