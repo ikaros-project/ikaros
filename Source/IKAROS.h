@@ -169,9 +169,11 @@ public:
     int                 sizex;        // no of columns    *** made public for WebUI ***
     int                 sizey;        // no of rows
     float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes in 0.8.0 for delays
+    bool                optional;
+    bool                allow_multiple;
 private:
-    Module_IO(Module_IO * nxt, Module * m, const char * n, int x=unknown_size, int y=1);      // Create output from module m with name n and size x and y
-    ~Module_IO();																		// Deletes the data
+    Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt=false, bool multiple=true);      // Create output from module m with name n and size x and y (default x=unkwon_size, y=1)
+    ~Module_IO();                                                                                                   // Deletes the data
     
     void                Allocate();
     void                SetSize(int x, int y=1);
@@ -234,8 +236,8 @@ public:
     void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
     
 protected:
-    void            AddInput(const char * name);
-    void            AddOutput(const char * name, int size_x=unknown_size, int size_y=1);    // Allocate output
+    void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
+    void            AddOutput(const char * name, int size_x=unknown_size, int size_y=1, bool optional=false);    // Allocate output
     void            AddIOFromIKC();
     void            SetOutputSize(const char * name, int size_x, int size_y=1);    // Set the output size for an output of unknown size; it is an error to change the output size
     
