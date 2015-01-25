@@ -225,7 +225,9 @@ namespace ikaros
 	float *		subtract(float * r, float * a, float * b, int size);
 	float **	subtract(float ** r, float ** a, float ** b, int sizex, int sizey);
 	
-	
+    float       product(float * a, int size);
+    float       product(float ** m, int sizex, int sizey);
+    
 	float *		multiply(float * a, float alpha, int size);
 	float **	multiply(float ** a, float alpha, int sizex, int sizey);
 	float *		multiply(float * r, float * a, float alpha, int size);
