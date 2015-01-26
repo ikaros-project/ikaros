@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<group name="RotationConverter" description="Convert between rotation notations">
+<group name="RotationConverter" description="converts between rotation notations">
 
 	<description type="text">
-		Module that convert between different 3d point/angles notations.
+		Module that converts between different 3d point/angle notations.
 	</description>
 
 	<example description="A simple example">
@@ -17,7 +17,7 @@
 
 	<parameter name="input_format" type="list" values="xyz/xyzaxayaz/axayaz/matrix/quaternion" default="xyz" description="Format of the input" />
 	<parameter name="output_format" type="list" values="xyz/xyzaxayaz/axayaz/matrix/quaternion" default="xyz" description="Format of the output" />
-    <parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for angles (Only in Euler angle mode)? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
+    <parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for angles (Only in Euler angle mode)? 0-360 (degrees), 0-2π (radians), or 0-1, where 1  corresponds to 360° (tau)." />
     
 	<input name="INPUT" description="Input" />
     <output name="OUTPUT" description="Output"/>
@@ -33,6 +33,10 @@
             title="Default view for RotationConverter"
         />
     </view>
+    
+    <limitation>
+        Quaternions not implemented yet.
+    </limitation>
     
 	<author>
 		<name>Birger Johansson</name>
