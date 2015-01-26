@@ -2,15 +2,25 @@
 
 <group name="LinearSplines" description="computes linear spline functions">
 
-	<description type="text">
+	<description type="xhtml">
+    <p>
      The module LinearSplines computes linear spline functions of its input.
      A separate spline function can be given for each element in the input array.
+     </p>
+     <p>
      The splines are specified in the parameter points as (x, y) pairs which must be sorted from lower to higher values on x.
      If different functions should be applied to the different elements, several
      (x, y) pairs can be listed after each other on each row. Unused parts of the point matrix can be padded with zeros.
+     </p>
+     <p>
      When there are more elements in the input than twice the columns in the point data, the index wraps around and starts from the beginning again.
      For example, if there are four columns in the point parameter, corresponding to two spline functions, and three elements in the input,
      the first and the last input element will use the first spine function and the second input will use the second spline function.
+     </p>
+     <img src="LinearSplines_fig1.png" style="width: 400px"/>
+     <p>
+     The image above illustrates the splines for the first exmaple below.
+     </p>
 	</description>
 
 	<example description="A simple example">
@@ -18,10 +28,7 @@
 			class="LinearSplines"
 			name="LinearSplines"
             points =
-            "3 5;
-             4 20;
-             7 25;
-             9 10"
+            "3 5; 4 20; 7 25; 9 10"
 		/>
 	</example>
 
@@ -30,10 +37,7 @@
             class="LinearSplines"
             name="LinearSplines"
             points =
-                "0 0    0   4;
-                1 10    5   0;
-                2 30    10  -1;
-                4 40    0   0"
+                "0 0 0 4; 1 10 5 0; 2 30 10 -1; 4 40 0 0"
         />
     </example>
 
