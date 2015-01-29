@@ -37,6 +37,7 @@ public:
 
     bool        ignore_outliers;
 
+    float *     trig;
     float *     input;
     float *     output;
 
