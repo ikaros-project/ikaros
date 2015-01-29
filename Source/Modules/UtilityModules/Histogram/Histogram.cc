@@ -33,6 +33,7 @@ Histogram::Init()
 
     ignore_outliers = GetBoolValue("ignore_outliers");
 
+    trig    = GetInputArray("TRIG");
     input	= GetInputArray("INPUT");
     output	= GetOutputArray("OUTPUT");
 
@@ -44,6 +45,9 @@ Histogram::Init()
 void
 Histogram::Tick()
 {
+    if(trig && *trig <= 0)
+        return;
+
     int index = int(float(size) * (*input-minimum)/(maximum-minimum));
 
     if(index < 0)

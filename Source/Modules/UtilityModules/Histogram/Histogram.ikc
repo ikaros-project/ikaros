@@ -19,6 +19,7 @@
     <parameter name="ignore_outliers" type="bool" default="yes" description="Should outliers be ignored or mapped to min or max?" />
 
 	<input name="INPUT" description="The input" />
+	<input name="TRIG" description="If this input is connected, the input values are only used when the trig is larger than zero. " />
 	<output name="OUTPUT" description="The output" size_param="size" />
 
 	<module class="Histogram" />
@@ -51,3 +52,4 @@
    </files>
 
 </group>
+
