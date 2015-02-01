@@ -485,6 +485,8 @@ WebUI::AddDataSource(const char * module, const char * source)
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
+                if(!io->matrix)
+                    return;
                 md->AddSource(source, data_source_matrix, io->matrix[0], io->sizex, io->sizey);
                 return;
             }
@@ -556,12 +558,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
             for (ModuleData * md=view_data; md != NULL; md=md->next)
                 if (!strcmp(md->name, module))
                 {
-                    md->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+                    if(io->matrix  && io2->matrix && io3->matrix)
+                        md->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
                      return;
                 }
             
-            view_data = new ModuleData(module, m, view_data);
-            view_data->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            if(io->matrix && io2->matrix && io3->matrix)
+            {
+                view_data = new ModuleData(module, m, view_data);
+                view_data->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            }
         }
     }
 
@@ -588,12 +594,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
             for (ModuleData * md=view_data; md != NULL; md=md->next)
                 if (!strcmp(md->name, module))
                 {
-                    md->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+                    if(io->matrix  && io2->matrix && io3->matrix)
+                        md->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
                     return;
                 }
             
-            view_data = new ModuleData(module, m, view_data);
-            view_data->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            if(io->matrix  && io2->matrix && io3->matrix)
+            {
+                view_data = new ModuleData(module, m, view_data);
+                view_data->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            }
         }
     }
     
@@ -602,12 +612,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
     
     else if(equal_strings(type, "fire") && k->GetSource(group, m, io, module, source))
@@ -615,12 +629,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
     
     else if(equal_strings(type, "spectrum") && k->GetSource(group, m, io, module, source))
@@ -628,12 +646,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
     
     else if(equal_strings(type, "green") && k->GetSource(group, m, io, module, source))
@@ -641,14 +663,17 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
-    
     
     else
         k->Notify(msg_warning, "WebUI: Could not add data source %s.%s (not found)\n", module, source);
