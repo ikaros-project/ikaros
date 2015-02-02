@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<!--
+
+This is an example to test command line parameters
+
+For example run with
+
+> ikaros -w outputsize="5" title="Command Line Example"
+
+-->
+
+<group title="Ikaros Example">
+	
+    <module
+        class = "Randomizer"
+        name = "R"
+    />
+
+</group>
+ 
+

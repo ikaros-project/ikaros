@@ -50,6 +50,7 @@
 //		2007-05-10	Version 1.0.0 created
 //		2007-07-05	Malloc debugging added
 //		2008-12-28  All legacy support and deprecated functions removed to simplify XML cleanup
+//      Revision history now maintained at GitHUb
 
 #include "IKAROS.h"
 
@@ -410,7 +411,7 @@ Module::GetTick()
 }
 
 const char *
-Module::GetList(const char * n) // TODO: Check that this compicated procedure is really necessary; join with GetDefault and GetValue
+Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
     const char * module_name = GetName();
     
@@ -559,10 +560,18 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
     if (value != NULL)
         return value;
     
+    // Look in the values assigned at start up
+    
+    value = kernel->options->GetValue(n);
+    if(value != NULL)
+        return value;
+
     // As a last step, look for default instead
     
     return GetDefault(n);
 }
+
+
 
 float
 Module::GetFloatValue(const char * n, float d)

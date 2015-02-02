@@ -132,6 +132,8 @@ public:
     char *  GetArgument(char c);
     void    ResetOption(char c);
 
+    const char *  GetValue(const char * a);
+
     char *  GetWorkingDirectory();
     char *  GetBinaryDirectory();
     
@@ -139,10 +141,15 @@ public:
     char *  GetFileDirectory();
     char *  GetFileName();
     
+    
     void    Print();
 private:
     bool    option[256];
     char *  argument[256];
+    
+    char *  attribute[32];
+    char *  value[32];
+    
     char    working_dir[1024];
     char *  binary_dir;
     char *  file_path;
