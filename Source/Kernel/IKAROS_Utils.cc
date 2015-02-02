@@ -613,6 +613,8 @@ copy_matrix(float ** r, float ** a, int sizex, int sizey)
 // Options
 Options::Options(int argc, char *argv[])
 {
+    char * p;
+    int v = 0;
     file_path = NULL;
     file_name = NULL;
     char * file_arg = NULL;
@@ -623,6 +625,13 @@ Options::Options(int argc, char *argv[])
         option[i] = false;
         argument[i] = NULL;
     }
+    
+    for(int i=0; i<32; i++)
+    {
+        attribute[i] = NULL;
+        value[i] = NULL;
+    }
+    
     for (int i=1; i<argc; i++)
         if (argv[i][0] == '-')
         {
@@ -631,6 +640,19 @@ Options::Options(int argc, char *argv[])
                 SetOption(o, create_string(&argv[i][2]));
             else
                 SetOption(o);
+        }
+        else if ((p = strchr(argv[i], '=')) && v<32)
+        {
+            attribute[v] = create_string_head(argv[i], int(p-argv[i]));
+            if(*(p+1) == '"')
+            {
+                value[v] = create_string(p+2);
+                value[v][strlen(value[v]-1)] = 0;
+            }
+            else
+                value[v] = create_string(p+1);
+            v++;
+
         }
         else if (file_arg == NULL)
         {
@@ -711,6 +733,17 @@ Options::GetArgument(char c)
     return argument[int(c)];
 }
 
+const char *
+Options::GetValue(const char * a)
+{
+    for(int i=0; i<32 && attribute[i]; i++)
+        if(equal_strings(a, attribute[i]))
+            return value[i];
+           
+    return NULL;
+}
+
+
 char *  
 Options::GetWorkingDirectory()
 {
@@ -753,6 +786,10 @@ Options::Print()
                 printf(" %s", argument[i]);
             printf("\n");
         }
+    
+    for(int i=0; i<32 && attribute[i]; i++)
+        printf("%s = \"%s\"\n", attribute[i], value[i]);
+
     if (file_name)
     {
         printf("File Dir: %s\n", file_dir);
