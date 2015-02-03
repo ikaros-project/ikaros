@@ -10,11 +10,11 @@ For example run with
 
 -->
 
-<group title="Ikaros Example">
+<group>
 	
     <module
-        class = "Randomizer"
-        name = "R"
+        _class = "Randomizer"
+        _name = "R"
     />
 
 </group>

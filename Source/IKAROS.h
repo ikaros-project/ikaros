@@ -401,6 +401,7 @@ public:
     
 	const char *    GetBatchValue(const char * n);          // Get a value from a batch element with the target n and the current batch rank
     
+    const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batc and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
