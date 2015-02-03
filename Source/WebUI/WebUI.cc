@@ -470,7 +470,7 @@ WebUI::AddDataSource(const char * module, const char * source)
     XMLElement * group = current_xml_root;
     if(equal_strings(module, "*"))
     {
-        module = current_xml_root->GetAttribute("name");
+        module = k->GetXMLAttribute(current_xml_root, "name");
         group = group->GetParentElement();
     }
     
@@ -525,7 +525,7 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
     XMLElement * group = current_xml_root;
     if(equal_strings(module, "*"))
     {
-        module = current_xml_root->GetAttribute("name");
+        module = k->GetXMLAttribute(current_xml_root, "name");
         group = group->GetParentElement();
     }
     
@@ -797,7 +797,7 @@ WebUI::SendView(const char * view)
     {
         group_xml = group_xml->GetElement("group");
         for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-            if(equal_strings(xml_module->GetAttribute("name"), group_in_path))
+            if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
             {
                 group_xml = xml_module;
                 break;
@@ -818,15 +818,15 @@ WebUI::SendView(const char * view)
     
     for (XMLElement * xml_view = group_xml->GetContentElement("view"); xml_view != NULL; xml_view = xml_view->GetNextElement("view"), v++)
     {
-        const char * n = xml_view->GetAttribute("name");
+        const char * n = k->GetXMLAttribute(xml_view, "name");
         if (
             (n != NULL && !strncmp(&view_name[1], n, strlen(view_name)-5)) ||	// test view name
             (!strncmp(view_name, "/view", 5) && v == ix)   // FIXME: test view number 0-9 for backward compatibility
 			)
         {
 			
-            float object_spacing = string_to_float(xml_view->GetAttribute("object_spacing"), 15.0);
-            float object_size = string_to_float(xml_view->GetAttribute("object_size"), 140.0);
+            float object_spacing = string_to_float(k->GetXMLAttribute(xml_view, "object_spacing"), 15.0);
+            float object_size = string_to_float(k->GetXMLAttribute(xml_view, "object_size"), 140.0);
 			
             // Calculate View Size
 			
@@ -836,10 +836,10 @@ WebUI::SendView(const char * view)
             for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
             {
                 // char * object_class = xml_uiobject->FindAttribute("class");
-                int x = string_to_int(xml_uiobject->GetAttribute("x"), -1);
-                int y = string_to_int(xml_uiobject->GetAttribute("y"), -1);
-                int width = string_to_int(xml_uiobject->GetAttribute("w"), 1);
-                int height = string_to_int(xml_uiobject->GetAttribute("h"), 1);
+                int x = string_to_int(k->GetXMLAttribute(xml_uiobject, "x"), -1);
+                int y = string_to_int(k->GetXMLAttribute(xml_uiobject, "y"), -1);
+                int width = string_to_int(k->GetXMLAttribute(xml_uiobject, "w"), 1);
+                int height = string_to_int(k->GetXMLAttribute(xml_uiobject, "h"), 1);
 				
                 if (x+width > view_width)
                     view_width = x+width;
@@ -893,11 +893,11 @@ WebUI::SendView(const char * view)
             float ** occ = create_matrix(50, 50); // max elements in view
             for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
             {
-                const char * object_class = xml_uiobject->GetAttribute("class");
-                int x = string_to_int(xml_uiobject->GetAttribute("x"), 0);
-                int y = string_to_int(xml_uiobject->GetAttribute("y"), 0);
-                int width = string_to_int(xml_uiobject->GetAttribute("w"), 1);
-                int height = string_to_int(xml_uiobject->GetAttribute("h"), 1);
+                const char * object_class = k->GetXMLAttribute(xml_uiobject, "class");
+                int x = string_to_int(k->GetXMLAttribute(xml_uiobject, "x"), 0);
+                int y = string_to_int(k->GetXMLAttribute(xml_uiobject, "y"), 0);
+                int width = string_to_int(k->GetXMLAttribute(xml_uiobject, "w"), 1);
+                int height = string_to_int(k->GetXMLAttribute(xml_uiobject, "h"), 1);
                 
                 // Check opacity
                 
@@ -962,12 +962,12 @@ WebUI::Run()
 	
 	if(xml)
 	{
-		const char * ip = xml->GetAttribute("masterip");
+		const char * ip = k->GetXMLAttribute(xml, "masterip");
 		if(ip)
 		{
 			Socket s;
 			char rr[100];
-			int masterport = string_to_int(xml->GetAttribute("masterport"), 9000);
+			int masterport = string_to_int(k->GetXMLAttribute(xml, "masterport"), 9000);
 			k->Notify(msg_print, "Waiting for master: %s:%d\n", ip, masterport);
 			fflush(stdout);
 			if(!s.Get(ip, masterport, "*", rr, 100))
@@ -1175,7 +1175,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 	
     for (ModuleData * md=view_data; md != NULL; md=md->next)
     {
-        if(equal_strings(md->name, current_xml_root->GetAttribute("name")))
+        if(equal_strings(md->name, k->GetXMLAttribute(current_xml_root, "name")))
             socket->Send("\"*\":\n{\n");
         else
             socket->Send("\"%s\":\n{\n", md->name);
@@ -1349,7 +1349,7 @@ WebUI::HandleHTTPRequest()
         {
             group_xml = group_xml->GetElement("group");
             for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-                if(equal_strings(xml_module->GetAttribute("name"), group_in_path))
+                if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
                 {
                     group_xml = xml_module;
                     break;
@@ -1408,7 +1408,7 @@ WebUI::HandleHTTPRequest()
             XMLElement * group = current_xml_root;
             if(equal_strings(module_name, "*"))
             {
-                strcpy(module_name, current_xml_root->GetAttribute("name"));
+                strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
                 group = group->GetParentElement();
             }
 
@@ -1638,9 +1638,9 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
         if(g)
             for (XMLElement * parameter = g->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
             {
-                const char * name = parameter->GetAttribute("name");
-                const char * type = parameter->GetAttribute("type");
-                const char * description = parameter->GetAttribute("description");
+                const char * name = parameter->GetAttribute("name");    // No inheritance here
+                const char * type = parameter->GetAttribute("type");    // No inheritance here
+                const char * description = parameter->GetAttribute("description");    // No inheritance here
 				
                 // TODO: Allow editing if bound
                 // ****
