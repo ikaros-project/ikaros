@@ -10,13 +10,16 @@ For example run with
 
 -->
 
-<group>
+<group name="X">
 	
     <module
-        _class = "Randomizer"
-        _name = "R"
+        class = "Randomizer"
+        name = "R"
     />
 
+    <view>
+        <object class="BarGraph" module="R" source="OUTPUT"/>
+    </view>
 </group>
  
 
