@@ -421,28 +421,28 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
         // Look for parameter element that redefines the attribute name
         for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
         {
-            if(equal_strings(parameter->GetAttribute("name"), n))
+            if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
             {
-                const char * d = parameter->GetAttribute("values");
+                const char * d = kernel->GetXMLAttribute(parameter, "values");
                 if(d)
                     return d;
             }
             
-            const char * t = parameter->GetAttribute("target");
-            if (equal_strings(parameter->GetAttribute("target"), n))
+            const char * t = kernel->GetXMLAttribute(parameter, "target");
+            if (equal_strings(t, n))
             {                
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = parameter->GetAttribute("module");
+                const char * tm = kernel->GetXMLAttribute(parameter, "module");
                 if (tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
-                    const char * d = parameter->GetAttribute("values");
+                    const char * d = kernel->GetXMLAttribute(parameter, "values");
                     if(d)
                         return d;
                     
                     // the parameter element redefines our parameter name; get the new name
-                    const char * newname = parameter->GetAttribute("name");
+                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
                     if (newname == NULL)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
@@ -455,7 +455,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
         }
         
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = parent->GetAttribute("name");
+        module_name = kernel->GetXMLAttribute(parent, "name"); // FIXME: check if this will ever happen with the new GetXMLAttribute call
     }
     return NULL; // No list value was found
 }
@@ -471,28 +471,28 @@ Module::GetDefault(const char * n)
         // Look for parameter element that redefines the attribute name
         for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
         {
-            if(equal_strings(parameter->GetAttribute("name"), n))
+            if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
             {
-                const char * d = parameter->GetAttribute("default");
+                const char * d = kernel->GetXMLAttribute(parameter, "default");
                 if(d)
                     return d;
             }
             
-            const char * t = parameter->GetAttribute("target");
-            if (equal_strings(parameter->GetAttribute("target"), n))
+            const char * t = kernel->GetXMLAttribute(parameter, "target");
+            if (equal_strings(t, n))
             {                
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = parameter->GetAttribute("module");
+                const char * tm = kernel->GetXMLAttribute(parameter, "module");
                 if (tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
-                    const char * d = parameter->GetAttribute("default");
+                    const char * d = kernel->GetXMLAttribute(parameter, "default");
                     if(d)
                         return d;
                     
                     // the parameter element redefines our parameter name; get the new name
-                    const char * newname = parameter->GetAttribute("name");
+                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
                     if (newname == NULL)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
@@ -505,7 +505,7 @@ Module::GetDefault(const char * n)
         }
         
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = parent->GetAttribute("name");
+        module_name = kernel->GetXMLAttribute(parent, "name");
     }
     
     return NULL; // No default value was found
@@ -518,7 +518,7 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
 {
     const char * module_name = GetName();
     // Check for local value in this element
-    const char * value = xml->GetAttribute(n);
+    const char * value = kernel->GetXMLAttribute(xml, n);
     if (value != NULL)
         return value;
     // not found here, loop up the group hierarchy
@@ -527,16 +527,15 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
         // Look for parameter element that redefines the attribute name
         for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
         {
-            //            const char * t = parameter->GetAttribute("target");
-            if (equal_strings(parameter->GetAttribute("target"), n))
+            if (equal_strings(kernel->GetXMLAttribute(parameter, "target"), n))
             {
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = parameter->GetAttribute("module");
+                const char * tm = kernel->GetXMLAttribute(parameter, "module");
                 if (tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // the parameter element redefines our parameter name; get the new name
-                    const char * newname = parameter->GetAttribute("name");
+                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
                     if (newname == NULL)
                     {
                         // Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
@@ -547,15 +546,15 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
                 }
             }
         }
-        value = parent->GetAttribute(n);
+        value = kernel->GetXMLAttribute(parent, n);
         if (value != NULL)
             return value;
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = parent->GetAttribute("name");
+        module_name = kernel->GetXMLAttribute(parent, "name");
     }
     
     // No value was found, check if we are in batch mode and look for batch a value
-    
+/*
     value = kernel->GetBatchValue(n);
     if (value != NULL)
         return value;
@@ -565,7 +564,7 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
     value = kernel->options->GetValue(n);
     if(value != NULL)
         return value;
-
+*/
     // As a last step, look for default instead
     
     return GetDefault(n);
@@ -1080,9 +1079,9 @@ Module::Module(Parameter * p)
     ticks = 0;
     kernel = p->kernel;
     xml = p->xml;
-    instance_name = GetValue("name");
-    class_name = xml->GetAttribute("class");
-    period = (GetValue("persiod") ? GetIntValue("period") : 1);
+    instance_name = kernel->GetXMLAttribute(xml, "name"); // GetValue("name");
+    class_name = kernel->GetXMLAttribute(xml, "class");
+    period = (GetValue("period") ? GetIntValue("period") : 1);
     phase = (GetValue("phase") ? GetIntValue("phase") : 0);
 	
 	// Compute full name
@@ -1091,8 +1090,8 @@ Module::Module(Parameter * p)
     const char * group[128];
     int i=0;
     for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
-        if(parent->GetAttribute("name") && i<100)
-            group[i++] = parent->GetAttribute("name");
+        if(kernel->GetXMLAttribute(parent,"name") && i<100)
+            group[i++] = kernel->GetXMLAttribute(parent, "name");
     for(int j=i-1; j>=0; j--)
     {
         append_string(n, group[j], 1024);
@@ -1109,13 +1108,13 @@ Module::AddIOFromIKC()
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != NULL; e = e->GetNextElement("input"))
     {
-        const char * amc = e->GetAttribute("allow_multiple_connections");
+        const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
         bool multiple = (amc ? tobool(amc) : true); // True is defaut value
-        AddInput(e->GetAttribute("name"), tobool(e->GetAttribute("optional")), multiple);
+        AddInput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")), multiple);
     }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
-        AddOutput(e->GetAttribute("name"));
+        AddOutput(kernel->GetXMLAttribute(e, "name"));
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
@@ -1213,53 +1212,53 @@ Module::SetSizes()
         const char * arg;
 		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
         {
-            const char * output_name = e->GetAttribute("name");
+            const char * output_name = kernel->GetXMLAttribute(e, "name");
 
             // First get simple attributes
             
             int sx = unknown_size;
             int sy = unknown_size;
 
-            if((sizearg = e->GetAttribute("size_param")) && (arg = GetValue(sizearg)))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
             {
                 sx = string_to_int(arg);
                 sy = 1;
             }
             
-            if((sizearg = e->GetAttribute("size_param_x")) && (arg = GetValue(sizearg)))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_param_x")) && (arg = GetValue(sizearg)))
                 sx = string_to_int(arg);
             
-            if((sizearg = e->GetAttribute("size_param_y")) && (arg = GetValue(sizearg)))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_param_y")) && (arg = GetValue(sizearg)))
                 sy = string_to_int(arg);
             
-            if((sizearg = e->GetAttribute("size")))
+            if((sizearg = kernel->GetXMLAttribute(e, "size")))
             {
                 sx = string_to_int(sizearg);
                 sy = 1;
             }
             
-            if((sizearg = e->GetAttribute("size_x")))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_x")))
                 sx = string_to_int(sizearg);
             
-            if((sizearg = e->GetAttribute("size_y")))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_y")))
                 sy = string_to_int(sizearg);
             
-			if((sizearg = e->GetAttribute("size_set"))) // Set output size x & y from one or multiple inputs
+			if((sizearg = kernel->GetXMLAttribute(e, "size_set"))) // Set output size x & y from one or multiple inputs
             {
                 sx = GetSizeXFromList(sizearg);
                 sy = GetSizeYFromList(sizearg);
 			}
             
-			else if((sizearg = e->GetAttribute("size_set_x")) && (sizeargy = e->GetAttribute("size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
+			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_x")) && (sizeargy = kernel->GetXMLAttribute(e, "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
 			{
                 sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
                 sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
 			}
             
-			else if((sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
+			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_x"))) // Set output size x from one or multiple inputs
                 sx = GetSizeXFromList(sizearg);
             
-			else if((sizearg = e->GetAttribute("size_set_y"))) // Set output size y from one or multiple inputs
+			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_y"))) // Set output size y from one or multiple inputs
                 sy = GetSizeYFromList(sizearg);
             
             SetOutputSize(output_name, sx, sy);
@@ -1677,12 +1676,12 @@ Kernel::Run()
 	// Synchronize with master process if one is indicated in the IKC file
 	if(xmlDoc)
 	{
-        const char * ip = xmlDoc->xml->GetAttribute("masterip");
+        const char * ip = GetXMLAttribute(xmlDoc->xml, "masterip");
         if(ip)
         {
             Socket s;
             char rr[100];
-            int port = string_to_int(xmlDoc->xml->GetAttribute("masterport"), 9000);
+            int port = string_to_int(GetXMLAttribute(xmlDoc->xml, "masterport"), 9000);
             printf("Waiting for master: %s:%d\n", ip, port);
             fflush(stdout);
             if(!s.Get(ip, port, "*", rr, 100))
@@ -2011,7 +2010,7 @@ bool
 Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-        if (xml->IsElement("module") && (equal_strings(xml->GetAttribute("name"), source_module_name) || equal_strings(source_module_name, "*")))
+        if (xml->IsElement("module") && (equal_strings(GetXMLAttribute(xml, "name"), source_module_name) || equal_strings(source_module_name, "*")))
 		{
 			m = (Module *)(xml->aux);
 			if (m != NULL)
@@ -2028,17 +2027,17 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
         
 			return false;
 		}
-		else if (xml->IsElement("group") && equal_strings(xml->GetAttribute("name"), source_module_name)) // Translate output name
+		else if (xml->IsElement("group") && equal_strings(GetXMLAttribute(xml, "name"), source_module_name)) // Translate output name
 		{
 			for (XMLElement * output = xml->GetContentElement("output"); output != NULL; output = output->GetNextElement("output"))
 			{
-				const char * n = output->GetAttribute("name");
+				const char * n = GetXMLAttribute(output, "name");
 				if (n == NULL)
 					return false;
 				if (equal_strings(n, source_name) || equal_strings(n, "*"))
 				{
-					const char * new_module = output->GetAttribute("sourcemodule");
-					const char * new_source = output->GetAttribute("source");
+					const char * new_module = GetXMLAttribute(output, "sourcemodule");
+					const char * new_source = GetXMLAttribute(output, "source");
 					if (new_source == NULL)
 						new_source = source_name;	// retain name
 					return GetSource(xml, m, io, new_module, new_source);
@@ -2048,13 +2047,13 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
             // NEW: Get inputs as well
             for (XMLElement * input = xml->GetContentElement("input"); input != NULL; input = input->GetNextElement("input"))
 			{
-				const char * n = input->GetAttribute("name");
+				const char * n = GetXMLAttribute(input, "name");
 				if (n == NULL)
 					return false;
 				if (equal_strings(n, source_name) || equal_strings(n, "*"))
 				{
-					const char * new_module = input->GetAttribute("targetmodule");
-					const char * new_source = input->GetAttribute("target");
+					const char * new_module = GetXMLAttribute(input, "targetmodule");
+					const char * new_source = GetXMLAttribute(input, "target");
 					if (new_source == NULL)
 						new_source = source_name;	// retain name
 					return GetSource(xml, m, io, new_module, new_source);
@@ -2116,16 +2115,38 @@ Kernel::GetBatchValue(const char * n)
         if(equal_strings(xml_node->GetAttribute("target"), n))
         {
             if(rank == 0)
-                rank = string_to_int(xml_node->GetAttribute("rank"));
+                rank = string_to_int(GetXMLAttribute(xml_node, "rank"));
                 
             if(rank == 0)
                 return NULL;
             
-            const char * value = find_nth_element(xml_node->GetAttribute("values"), rank);
-            printf("IKAROS: %s = \"%s\"\n", xml_node->GetAttribute("target"), value);
+            const char * value = find_nth_element(GetXMLAttribute(xml_node, "values"), rank);
+            printf("IKAROS: %s = \"%s\"\n", GetXMLAttribute(xml_node, "target"), value);
             return value;
         }
     
+    return NULL;
+}
+
+
+
+const char *
+Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
+{
+    const char * value = NULL;
+    
+    while(e != NULL)
+        if((value = e->GetAttribute(attribute)))
+            return value;
+        else
+            e = (XMLElement *)(e->parent);
+
+    if((value = GetBatchValue(attribute)))
+        return value;
+    
+    if((value = options->GetValue(attribute)))
+        return value;
+
     return NULL;
 }
 
@@ -2164,7 +2185,7 @@ bool
 Kernel::GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * group_name, const char * parameter_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-        if (xml->IsElement("module") && (!xml->GetAttribute("name") || equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*")))
+        if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
 		{
 			m = (Module *)(xml->aux);
             
@@ -2183,19 +2204,19 @@ Kernel::GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr
             
 			return false;
 		}
-		else if (xml->IsElement("group") && (equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
 		{
             const char * new_module = wildcard;
             const char * new_parameter = parameter_name;
 
 			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
 			{
-				const char * n = parameter->GetAttribute("name");
+				const char * n =GetXMLAttribute(parameter, "name");
                 
 				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
 				{
- 					new_module = parameter->GetAttribute("targetmodule");
-					new_parameter = parameter->GetAttribute("target");
+ 					new_module = GetXMLAttribute(parameter, "targetmodule");
+					new_parameter = GetXMLAttribute(parameter, "target");
                     
 					if (new_module == NULL)
 						new_module = wildcard;	// match all modules
@@ -2247,7 +2268,7 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
     {
         // Set parameters of modules in this group
     
-       if (xml->IsElement("module") && (!xml->GetAttribute("name") || equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*")))
+       if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
 		{
 			Module * m = (Module *)(xml->aux);
 			if(m != NULL)
@@ -2256,19 +2277,19 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
 
         // Set parameters in included groups
         
-		else if (xml->IsElement("group") && (equal_strings(xml->GetAttribute("name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
 		{
             const char * new_module = wildcard;
             const char * new_parameter = parameter_name;
 
 			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
 			{
-				const char * n = parameter->GetAttribute("name");
+				const char * n = GetXMLAttribute(parameter, "name");
                 
 				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
 				{
- 					new_module = parameter->GetAttribute("targetmodule");
-					new_parameter = parameter->GetAttribute("target");
+ 					new_module = GetXMLAttribute(parameter, "targetmodule");
+					new_parameter = GetXMLAttribute(parameter, "target");
                     
 					if (new_module == NULL)
 						new_module = wildcard;	// match all modules
@@ -2752,7 +2773,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     // iterate over all modules
     
     for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, xml_module->GetAttribute("name"))) // also matches anonymous module as it should
+        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should
         {
             Module * tm = (Module *)(xml_module->aux);
             if (tm)
@@ -2769,16 +2790,16 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     
     bool connection_made = false;
     for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, xml_group->GetAttribute("name"))) // Found group
+        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
         {
             // iterate over all input elements
             for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                if(equal_strings(t_name, xml_input->GetAttribute("name"))) // Found input with target
+                if(equal_strings(t_name, GetXMLAttribute(xml_input, "name"))) // Found input with target
                 {
                     connection_made = true;
-                    const char * tm = xml_input->GetAttribute("targetmodule");
-                    const char * t = xml_input->GetAttribute("target");
-                    int d = string_to_int(xml_input->GetAttribute("delay")); // TODO: We should merge d with the range in d instead
+                    const char * tm = GetXMLAttribute(xml_input, "targetmodule");
+                    const char * t = GetXMLAttribute(xml_input, "target");
+                    int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
                     if(!equal_strings(t,""))
                         c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay);   // TODO: Extra delay should be replaced with a merge interval function
                     else
@@ -2788,15 +2809,15 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     
     if(!connection_made) // look of wildcard connections
         for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-            if(equal_strings(tm_name, "*") || equal_strings(tm_name, xml_group->GetAttribute("name"))) // Found group
+            if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
             {
                 // iterate over all input elements
                 for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                    if(equal_strings("*", xml_input->GetAttribute("name"))) // Found input with target
+                    if(equal_strings("*", GetXMLAttribute(xml_input, "name"))) // Found input with target
                     {
-                        const char * tm = xml_input->GetAttribute("targetmodule");
-                        const char * t = xml_input->GetAttribute("target");
-                        int d = string_to_int(xml_input->GetAttribute("delay"));
+                        const char * tm = GetXMLAttribute(xml_input, "targetmodule");
+                        const char * t = GetXMLAttribute(xml_input, "target");
+                        int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
  
                                                 if(!equal_strings(t,""))
                             c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay);   // TODO: Extra delay should be replaced with a merge interval function
@@ -2897,23 +2918,23 @@ static int group_number = 0;
 void
 Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
 {
-    const char * name = group_xml->GetAttribute("name");
+    const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
         group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
 
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
         if (xml_node->IsElement("module"))	// Add module
         {
-            char * class_name = create_string(xml_node->GetAttribute("class"));
+            char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
 				xml_node = BuildClassGroup(xml_node, class_name);
             }
             
-			else if (class_name  != NULL)	// Create the module using standard class
+			else if (class_name != NULL)	// Create the module using standard class
 			{
 				Parameter * parameter = new Parameter(this, xml_node);
-				Module * m = CreateModule(classes, class_name, xml_node->GetAttribute("name"), parameter);
+				Module * m = CreateModule(classes, class_name, GetXMLAttribute(xml_node, "name"), parameter);
 				delete parameter;
 				if (m == NULL)
 					Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
@@ -2922,6 +2943,10 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
 				xml_node->aux = (void *)m;
 				AddModule(m);
 			}
+            else  // TODO: could add check for command line values here
+            {
+                Notify(msg_warning, "Could not create module: Class name is missing.\n");
+            }
             destroy_string(class_name);
         }
         else if (xml_node->IsElement("group"))	// Add group
@@ -2931,11 +2956,11 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
     
     for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
     {
-        const char * sm_name = xml_connection->GetAttribute("sourcemodule");
-        const char * s_name = xml_connection->GetAttribute("source");
-        const char * tm_name = xml_connection->GetAttribute("targetmodule");
-        const char * t_name = xml_connection->GetAttribute("target");
-        const char * delay = xml_connection->GetAttribute("delay");
+        const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
+        const char * s_name     = GetXMLAttribute(xml_connection, "source");
+        const char * tm_name    = GetXMLAttribute(xml_connection, "targetmodule");
+        const char * t_name     = GetXMLAttribute(xml_connection, "target");
+        const char * delay      = GetXMLAttribute(xml_connection, "delay");
         
         Module * sm;
         Module_IO * sio;

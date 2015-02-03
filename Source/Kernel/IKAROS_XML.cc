@@ -240,7 +240,7 @@ XMLElement::SetPrev(XMLNode * p)
 
 
 const char *
-XMLElement::GetAttribute(const char * attribute_name)
+XMLElement::GetAttribute(const char * attribute_name) // TODO: Inheritance should be implemented here
 {
     for (XMLAttribute * a = attributes; a != NULL; a = (XMLAttribute *)(a->next))
         if (!strcmp(a->name, attribute_name))
