@@ -2010,6 +2010,9 @@ bool
 Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
+    {
+//        xml->Print(stdout, 0);
+        
         if (xml->IsElement("module") && (equal_strings(GetXMLAttribute(xml, "name"), source_module_name) || equal_strings(source_module_name, "*")))
 		{
 			m = (Module *)(xml->aux);
@@ -2038,6 +2041,8 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
 				{
 					const char * new_module = GetXMLAttribute(output, "sourcemodule");
 					const char * new_source = GetXMLAttribute(output, "source");
+					if (new_module == NULL)
+						new_module = source_module_name;	// retain name
 					if (new_source == NULL)
 						new_source = source_name;	// retain name
 					return GetSource(xml, m, io, new_module, new_source);
@@ -2062,7 +2067,8 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
             // NEW END
             
 		}
-
+    }
+    
     return false;
 }
 
@@ -2135,9 +2141,9 @@ Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
 {
     const char * value = NULL;
     
-    while(e != NULL)
+    while(e != NULL && e->IsElement())
         if((value = e->GetAttribute(attribute)))
-            return value;
+             return value;
         else
             e = (XMLElement *)(e->parent);
 
@@ -2146,7 +2152,7 @@ Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
     
     if((value = options->GetValue(attribute)))
         return value;
-
+    
     return NULL;
 }
 
@@ -3007,6 +3013,20 @@ Kernel::ReadXML()
         return;
     }
     // Build The Main Group
+    
+    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute
+    {
+        const char * name = GetXMLAttribute(xml, "name"); // Instantiate name and title from command line options if not set in the file
+        if(name)
+            xml->SetAttribute("name", name);
+    }
+    
+    if(!xml->GetAttribute("title"))
+    {
+        const char * title = GetXMLAttribute(xml, "title");
+        if(title)
+            xml->SetAttribute("title", title);
+    }
     
     BuildGroup(xml);
     if (options->GetOption('x'))
