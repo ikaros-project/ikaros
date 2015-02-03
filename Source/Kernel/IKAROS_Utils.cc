@@ -351,6 +351,9 @@ create_array(const char * s, int & size)
         for (; isspace(*v) && *v != '\0'; v++) ;
     }
     
+    if(size == 0)
+        return NULL;
+
     float * a = create_array(size);
     
     // read values into array
