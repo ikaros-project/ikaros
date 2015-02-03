@@ -421,9 +421,7 @@ function build_group_list(group, list, p, top, selected_element, depth)
     
     for(i in group)
     {
-        var name = group[i].getAttribute("title");
-        if(!name)
-            name = group[i].getAttribute("name");
+        name = group[i].getAttribute("name");
         if(!name)
             name = "Untitled";
 
