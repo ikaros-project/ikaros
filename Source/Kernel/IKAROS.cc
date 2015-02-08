@@ -2779,7 +2779,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     // iterate over all modules
     
     for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should
+        if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should; change first test to *?
         {
             Module * tm = (Module *)(xml_module->aux);
             if (tm)
