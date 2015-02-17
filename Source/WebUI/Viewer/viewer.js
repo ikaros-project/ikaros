@@ -72,6 +72,8 @@ function makeLUTArray(c, d)
             return d;
     }
     
+    c = String(c);
+
     if(c.indexOf("LUT_") == 0)
         return eval(c);
     
