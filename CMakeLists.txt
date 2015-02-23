@@ -125,7 +125,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if (TURBO_JPEG_FOUND)
   		include_directories(${TURBO_JPEG_INCLUDE_DIRS})
   		target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
-  		message(STATUS "Found a JPEG library")	
+  		message(STATUS "Found a TURBO-JPEG library")	
 
   	else()
    		 message(FATAL_ERROR "\nIkaros require the JPEG library. \nVisit www.ikaros-project.org for information about dependencies")	
