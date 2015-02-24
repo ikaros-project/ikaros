@@ -14,6 +14,9 @@ function Marker(p)
     this.angle_module = (p.angle_module ? p.angle_module : this.module);
     this.angle_source = p.angle_source;
     
+    this.size_module = (p.size_module ? p.size_module : this.module);
+    this.size_source = p.size_source;
+
     this.select = (p.select ? p.select: 0);
     this.flip_y_axis = p.flip_y_axis;
 
@@ -22,14 +25,23 @@ function Marker(p)
     if(this.angle_source)
         usesData(this.length_module, this.angle_source);
 
+    if(this.size_source)
+        usesData(this.size_module, this.size_source);
+    
     if(this.length_source)
         usesData(this.length_module, this.length_source);
 }
 
 
 
-Marker.prototype.DrawRows = function(d, a, rows)
+Marker.prototype.DrawRows = function(d, s, a, rows)
 {
+    var date = new Date();
+    var t = (date.getTime() % 1000)/1000;
+    var t2 = -(date.getTime() % 3000)/3000;
+    var t3 = (date.getTime() % 7000)/7000;
+    
+
     this.context.clearRect(0, 0, this.width, this.height);
     
     for(var i=0; i<rows; i++)
@@ -42,7 +54,14 @@ Marker.prototype.DrawRows = function(d, a, rows)
         var x = (d[i][this.select+0]-this.min_x)*this.scale_x * this.width;
         var y = (d[i][this.select+1]-this.min_y)*this.scale_y * this.height;
         var r = 80;
-
+        if(s)
+        {
+            if(s[i][1])
+                r = 0.5*Math.hypot(s[i][0], s[i][1]) * this.width;
+            else
+                r = 0.7 * s[i][0] * this.width;
+        }
+        
         // Draw circle
         
         this.context.beginPath();
@@ -55,22 +74,21 @@ Marker.prototype.DrawRows = function(d, a, rows)
         
         this.context.lineWidth = 10; //this.line_width_LUT[i % this.line_width_LUT.length];
         this.context.setLineDash([]);
-        this.context.strokeStyle = 'rgba(128,128,128,0.45)'; // this.stroke_LUT[i % this.stroke_LUT.length];
+        // this.stroke_LUT[i % this.stroke_LUT.length];
+        var cc = 0;
         for(var j=0; j<0.5*Math.PI; j+=Math.PI/32)
         {
+            this.context.strokeStyle = (cc < 13*t3 ? 'rgba(128,128,128,0.45)' : 'rgba(255,0,0,0.6)');
             this.context.beginPath();
             this.context.arc(x, y, r, j, j+Math.PI/48);
             this.context.stroke();
+            cc++;
         }
         
         // Draw trig
         
         // Draw animation
         
-        var date = new Date();
-        var t = (date.getTime() % 1000)/1000;
-        var t2 = -(date.getTime() % 3000)/3000;
-
         this.context.lineWidth = 3;
         this.context.setLineDash([]);
         this.context.strokeStyle = 'rgba(128,128,128,0.45)';
@@ -130,6 +148,12 @@ Marker.prototype.Update = function(data)
         a = a[this.angle_source];
     }
     
-    this.DrawRows(d, a, rows);
+    var s = data[this.size_module];
+    if(s)
+    {
+        s = s[this.size_source];
+    }
+    
+    this.DrawRows(d, s, a, rows);
 }
 
