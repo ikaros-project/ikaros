@@ -3669,9 +3669,9 @@ namespace ikaros
     create_jpeg(long int & size, float * r, float * g, float * b, int sizex, int sizey, int quality)
     {
         size = 0;
-        if (r ==NULL) return NULL;
-        if (g ==NULL) return NULL;
-        if (b ==NULL) return NULL;
+        if (r==NULL) return NULL;
+        if (g==NULL) return NULL;
+        if (b==NULL) return NULL;
         
         JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
         JSAMPROW    row_pointer[1];
