@@ -15,7 +15,7 @@
             size_y  = "480"
 			camera  = "iSight"
             list_devices = "no"
-            _device_id = "0xfd15000005ac8508"
+            device_id = "0xfd15000005ac8508"
 		/>
 
         <module
