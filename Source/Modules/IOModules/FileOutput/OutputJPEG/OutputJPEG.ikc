@@ -22,6 +22,7 @@
 	<parameter name="scale" type="float" default="1.0" description="Factor to multiply each element of the input matrix with" />
 	<parameter name="suppress" type="int" default="0" description="Number of initial files to supress. Used to stop the write of the first images in a sequence before any output is available." />
 	<parameter name="offset" type="int" default="none" description="Value to add to the file index" />
+	<parameter name="quality" type="int" default="100" description="Quality of the compression" />
 
 	<input name="INTENSITY" description="The gray level image data to be written to the file" />
 	<input name="RED" description="The red channel image data to be written to the file" />
