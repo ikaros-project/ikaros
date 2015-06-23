@@ -2718,7 +2718,7 @@ Kernel::Notify(int msg, const char * format, ...)
     }
     va_list 	args;
     va_start(args, format);
-    vsnprintf(&message[n], 512, format, args);
+    vsnprintf(&message[n], 512-n, format, args); // Fix #22 (public)
     va_end(args);
     printf("IKAROS: %s", message);
     if(message[strlen(message)-1] != '\n')
