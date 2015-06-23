@@ -47,12 +47,12 @@ InputPNG::InputPNG(Parameter * p):
 	}
 
 	iteration   = 1;
-	iterations  = GetIntValue("iterations", 0);
+	iterations  = GetIntValue("iterations");
 	cur_image   = 0;
-	max_images  = GetIntValue("filecount", 1);
+	max_images  = GetIntValue("filecount");
 
-	size_x  = GetIntValue("size_x", 0);
-	size_y  = GetIntValue("size_y", 0);
+	size_x  = GetIntValue("size_x");
+	size_y  = GetIntValue("size_y");
 
 	if(size_x <0 || size_y < 0)
 	{

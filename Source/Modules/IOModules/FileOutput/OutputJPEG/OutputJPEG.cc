@@ -1,6 +1,6 @@
 //
 //	OutputJPEG.cc		This file is a part of the IKAROS project
-//					A module for writing JPEG images to files
+//                      A module for writing JPEG images to files
 //
 //    Copyright (C) 2005  Christian Balkenius
 //
@@ -43,12 +43,11 @@ OutputJPEG::Create(Parameter * p)
 OutputJPEG::OutputJPEG(Parameter * p):
         Module(p)
 {
-    scale	 	= GetFloatValue("scale", 1.0);
-    file_name		= GetValue("filename");
-    supress		= GetIntValue("supress", 1);
-    offset	 	= GetIntValue("offset", 0);
-
-    quality		= GetIntValue("quality", 100);
+    scale	 	= GetFloatValue("scale");
+    file_name   = GetValue("filename");
+    supress		= GetIntValue("supress");
+    offset	 	= GetIntValue("offset");
+    quality		= GetIntValue("quality");
 
     if (file_name == NULL)
     {

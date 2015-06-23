@@ -26,8 +26,8 @@
 		/>
 	</example>
 
-	<parameter name="size_x" type="int" description="Size of the input images." optional="yes" />
-	<parameter name="size_y" type="int" description="Size of the input images." optional="yes" />
+	<parameter name="size_x" type="int" default="0" description="Size of the input images." optional="yes" />
+	<parameter name="size_y" type="int" default="0" description="Size of the input images." optional="yes" />
 
 	<parameter name="filename" type="int" description="File to read the image from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'."  />
 	<parameter name="filecount" type="int" default="1" description="Number of files to read" min="0" max="filecount-1" />

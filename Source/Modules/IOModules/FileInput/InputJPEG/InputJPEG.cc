@@ -67,11 +67,11 @@ InputJPEG::InputJPEG(Parameter * p):
     }
 
     iteration	= 1;
-    iterations  = GetIntValue("iterations", 0);
+    iterations  = GetIntValue("iterations");
     cur_image = 0;
-    max_images = GetIntValue("filecount", 1);
+    max_images = GetIntValue("filecount");
 
-    read_once = GetBoolValue("read_once", true);
+    read_once = GetBoolValue("read_once");
     if (strstr(file_name, "%") != NULL)
         read_once = false;
     first = true;
