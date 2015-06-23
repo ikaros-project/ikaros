@@ -31,10 +31,10 @@ Submatrix::SetSizes()
     int sx	= GetInputSizeX("INPUT");
     int sy	= GetInputSizeY("INPUT");
 
-    if(GetValue("kernel_size"))
-    {
-        kernel_size = GetIntValue("kernel_size");
+    kernel_size = GetIntValue("kernel_size");
 
+    if(kernel_size > 0)
+    {
         x0 = (kernel_size-1)/2;
         y0 = (kernel_size-1)/2;
         x1 = sx - (kernel_size-1)/2;
@@ -48,10 +48,10 @@ Submatrix::SetSizes()
         y1		=   GetIntValue("y1");
     }
     
-    if(x1<x0)
+    if(x1<=x0)
         Notify(msg_fatal_error, "Submatrix: Illegal range for x.");
 
-    if(y1<y0)
+    if(y1<=y0)
         Notify(msg_fatal_error, "Submatrix: Illegal range for y.");
     
     SetOutputSize("OUTPUT", x1-x0, y1-y0);
