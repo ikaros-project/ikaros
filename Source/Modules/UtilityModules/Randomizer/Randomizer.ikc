@@ -24,8 +24,8 @@
 	<parameter name="outputsize" type="int" description="Size of one dimensional output" default="1" />
 	<parameter name="outputsize_x" type="int" description="Size of two dimensional output" />
 	<parameter name="outputsize_y" type="int" description="Size of two dimensional output" />
-	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0" />
-	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1" />
+	<parameter name="min" type="float" description="Minimum value of the output (inclusive)" default="0" />
+	<parameter name="max" type="float" description="Maximum value of the output (inclusive)" default="1" />
     <parameter name="interval" type="int" description="How often to change the output" default="1" />
 	
 	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
