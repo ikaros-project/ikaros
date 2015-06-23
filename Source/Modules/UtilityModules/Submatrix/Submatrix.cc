@@ -62,9 +62,9 @@ Submatrix::SetSizes()
 void
 Submatrix::Init()
 {
-    offset_x		=   GetFloatValue("offset_x", 0);
-    offset_y		=   GetFloatValue("offset_y", 0);
-    direction		=   GetFloatValue("direction", 1);
+    Bind(offset_x, "offset_x");
+    Bind(offset_y, "offset_y");
+    Bind(direction, "direction");
 
     input		= GetInputMatrix("INPUT");
     shift		= GetInputArray("SHIFT");
@@ -95,8 +95,8 @@ Submatrix::Tick()
     else
     {
         for(int i=0; i<size_x; i++)
-            for(int j=0; j<size_y; j++) // TODO: This loop can be optimized  using copy array for larger matrices
-                output[j][i] = input[j+x0][i+y0];
+            for(int j=0; j<size_y; j++) // TODO: This loop can be optimized using copy array for larger matrices
+                output[j][i] = input[j+y0][i+x0];
     }
 }
 
