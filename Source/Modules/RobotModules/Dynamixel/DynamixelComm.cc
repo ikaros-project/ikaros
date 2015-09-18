@@ -159,7 +159,7 @@ void DynamixelComm::SyncWriteWithIdRange(int * servo_id,  unsigned char ** Dynam
                 0XFE,
                 static_cast<unsigned char>((datalength+1)*(nTo-nFrom+1)+4),     // (datalength+1)*N+4
                 0X83,                                               // sync_write
-                0X18,                                               // address
+                static_cast<unsigned char>(from),                   // address
                 static_cast<unsigned char>(datalength)              // length
             };
             
