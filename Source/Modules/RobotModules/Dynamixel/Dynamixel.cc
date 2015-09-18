@@ -701,7 +701,8 @@ Dynamixel::Tick()
             }
         }
         // Write changes to serial
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
+        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 35, size); // Sending torque enable only. Otherwise torque enable will be 1 as position is set. See Dynamixel manual.
+        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 24, size);
     }
  
     
