@@ -102,10 +102,10 @@ Module(p)
     }
     
     /// Allocate video frame
-    pFrame = avcodec_alloc_frame();
+    pFrame = av_frame_alloc();
     
     /// Allocate an AVFrame structure
-    pFrameRGB = avcodec_alloc_frame();
+    pFrameRGB = av_frame_alloc();
     if(pFrameRGB==NULL)
     {
         Notify(msg_fatal_error, "Could not allocate AVFrame\n");
@@ -127,11 +127,11 @@ Module(p)
     }
     
     /// Determine required buffer size and allocate buffer
-    numBytes = avpicture_get_size(PIX_FMT_RGB24, size_x, size_y);
+    numBytes = avpicture_get_size(AV_PIX_FMT_RGB24, size_x, size_y);
     buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
     
     /// Assign appropriate parts of buffer to image planes in pFrameRGB
-    avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
+    avpicture_fill((AVPicture *)pFrameRGB, buffer, AV_PIX_FMT_RGB24,
                    size_x, size_y);
     
     AddOutput("INTENSITY", size_x, size_y);
@@ -180,7 +180,7 @@ InputVideoFile::Tick()
                     
                     img_convert_ctx = sws_getCachedContext(img_convert_ctx,pCodecCtx->width, pCodecCtx->height,
                                                            pCodecCtx->pix_fmt,
-                                                           size_x, size_y, PIX_FMT_RGB24,
+                                                           size_x, size_y, AV_PIX_FMT_RGB24,
                                                            SWS_BICUBIC, NULL, NULL, NULL);
                     
                     
