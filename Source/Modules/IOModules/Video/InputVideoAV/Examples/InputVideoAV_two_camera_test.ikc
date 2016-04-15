@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!--
+	Example file for AVKit video input with the module InputVideoAV for two cameras
+	This example has been tested with iSight and aGent USB cameras
+-->
+
+<group title="Two Cameras">
+    
+    <module
+        class   = "InputVideoAV"
+        name	= "CAMERA1"			
+        size_x  = "800"
+        size_y  = "600"
+        flip    = "yes"
+        device_id = "0x1a1210000ac83470"
+    />
+
+    <module
+        class   = "InputVideoAV"
+        name	= "CAMERA2"			
+        size_x  = "800"
+        size_y  = "600"
+        device_id  = "0x1a1220000ac83470"
+        list_devices="yes"
+    />
+
+    <view name="Inputs">
+        <object
+            title = "Camera Right"
+            class   ="Image"
+            type	= "rgb"
+            module  = "CAMERA1"
+            source  = "RED+GREEN+BLUE"
+            x="0" y="0"
+            w="2" h="2"
+            min = "0"
+            max = "1"
+        />
+			
+        <object
+            title = "Camera Left"
+            class   ="Image"
+            type	= "rgb"
+            module  = "CAMERA2"
+            source  = "RED+GREEN+BLUE"
+            x="2" y="0"
+            w="2" h="2"
+            min = "0"
+            max = "1"
+        />
+    </view>
+
+</group>
+
