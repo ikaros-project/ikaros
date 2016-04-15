@@ -26,9 +26,34 @@
 #include "DynamixelComm.h"
 #include "DynamixelServo.h"
 
+#define IK_IN_TORQUE_ENABLE        0
+#define IK_IN_LED                  1
+#define IK_IN_D_GAIN               2
+#define IK_IN_I_GAIN               3
+#define IK_IN_P_GAIN               4
+#define IK_IN_GOAL_POSITION        5
+#define IK_IN_MOVING_SPEED         6
+#define IK_IN_TORQUE_LIMIT         7
+#define IK_IN_GOAL_TORQUE          8
+#define IK_IN_GOAL_ACCELERATION    9
 
+#define IK_OUT_TORQUE_ENABLE         0
+#define IK_OUT_LED                   1
+#define IK_OUT_D_GAIN                2
+#define IK_OUT_I_GAIN                3
+#define IK_OUT_P_GAIN                4
+#define IK_OUT_GOAL_POSITION         5
+#define IK_OUT_MOVING_SPEED          6
+#define IK_OUT_TORQUE_LIMIT          7
+#define IK_OUT_PRESENT_POSITION      8
+#define IK_OUT_PRESENT_SPEED         9
+#define IK_OUT_PRESENT_LOAD          10
+#define IK_OUT_PRESENT_VOLTAGE       11
+#define IK_OUT_PRESENT_TEMPERATURE   12
+#define IK_OUT_PRESENT_CURRENT       13
+#define IK_OUT_GOAL_TORQUE           14
+#define IK_OUT_GOAL_ACCELERATION     15
 
-//class Servo;
 
 class Dynamixel: public Module
 {
@@ -52,29 +77,35 @@ private:
     int         angle_unit;
     
     bool        use_feedback;
-    int         baud_rate;
     int         start_up_delay;
-    bool        start_up_slow;
     
+    int         ikarosInBind[10];    // Where to look for ikaros data in the dynamixel memory block
+    int         ikarosOutBind[16];   // Where to look for ikaros data in the dynamixel memory block
+
     
     // Inputs and outputs
     // Inputs
     float *     torqueEnable;
-    bool        allocated_torqueEnable;
+    bool        torqueEnable_connected;
     float *     LED;
-    bool        allocated_LED;
+    bool        LED_connected;
     float *     dGain;
-    bool        allocated_dGain;
+    bool        dGain_connected;
     float *     iGain;
-    bool        allocated_iGain;
+    bool        iGain_connected;
     float *     pGain;
-    bool        allocated_pGain;
+    bool        pGain_connected;
     float *     goalPosition;
-    bool        allocated_goalPosition;
+    bool        goalPosition_connected;
     float *     movingSpeed;
-    bool        allocated_movingSpeed;
+    bool        movingSpeed_connected;
     float *     torqueLimit;
-    bool        allocated_torqueLimit;
+    bool        torqueLimit_connected;
+    float *     goalTorque;
+    bool        goalTorque_connected;
+    float *     goalAcceleration;
+    bool        goalAcceleration_connected;
+    
     
     // Outputs
     float * feedbackTorqueEnable;
@@ -91,6 +122,8 @@ private:
     float * feedbackPresentVoltage;
     float * feedbackPresentTemperature;
     float * feedbackPresentCurrent;
+    float * feedbackGoalTorque;
+    float * feedbackGoalAcceleration;
     
     // Array of servo data
     DynamixelServo **    servo;
@@ -107,9 +140,6 @@ private:
     // Print
     void		Print();
     void        PrintAll();
-    
-    void parseControlTable(Dictionary * dic, unsigned char* buf, int from, int to);
-    int checkBaudRate(int br);
 };
 
 #endif
