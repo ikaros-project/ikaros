@@ -1,7 +1,7 @@
 //
 //	Dynamixel.cc	This file is a part of the IKAROS project
 //
-//    Copyright (C) 2010-2011  Christian Balkenius
+//    Copyright (C) 2016 Birger Johansson
 //
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -22,16 +22,11 @@
 #include "Dynamixel.h"
 #include "DynamixelComm.h"
 
-#include <sstream>
-#define SLOW_TORQUE
-
 using namespace ikaros;
 
 Dynamixel::Dynamixel(Parameter * p):
 Module(p)
 {
-    
-
     device = GetValue("device");
     if(!device)
     {
@@ -39,23 +34,18 @@ Module(p)
         size = 0;
         return;
     }
-    
-    baud_rate = checkBaudRate(GetIntValue("baud_rate"));
-    
-    com = new DynamixelComm(device, baud_rate);
+    com = new DynamixelComm(device, GetIntValue("baud_rate"));
     if(!com)
     {
-        Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened.", device);
+        Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened (Check baud rate.", device);
         return;
     }
+    
+    std::string csvPath;
+    
     use_feedback = GetBoolValue("feedback");
-    
     start_up_delay = GetIntValue("start_up_delay");
-    start_up_slow = GetBoolValue("start_up_slow");
-    
-    
     init_print = GetIntValueFromList("printf_info");
-    
     index_mode = GetIntValueFromList("index_mode");
     angle_unit = GetIntValueFromList("angle_unit");
     int max_servo_id = GetIntValue("max_servo_id");
@@ -72,7 +62,7 @@ Module(p)
     {
         for(int i=0; i<servo_id_list_size; i++)
         {
-            if(com->Ping(servo_id_list[i]))
+            if(com->Ping(servo_id_list[i]) > 0)
             {
                 servo[servo_id_list[i]] = new DynamixelServo(com, servo_id_list[i]);
             }
@@ -90,7 +80,7 @@ Module(p)
     {
         for(int i=0; i<servo_id_list_size; i++)
         {
-            if(com->Ping(servo_id_list[i]))
+            if(com->Ping(servo_id_list[i]) > 0)
             {
                 servo[i] = new DynamixelServo(com, servo_id_list[i]);
             }
@@ -110,7 +100,7 @@ Module(p)
         size = 0;
         for(int i=1; i<max_servo_id; i++)
         {
-            if(com->Ping(i))
+            if(com->Ping(i) > 0)
             {
                 servo[i] = new DynamixelServo(com, i);
                 size = i+1;
@@ -124,7 +114,7 @@ Module(p)
         size = 0;
         for(int i=1; i<max_servo_id; i++)
         {
-            if(com->Ping(i))
+            if(com->Ping(i) > 0)
             {
                 servo[size] = new DynamixelServo(com, i);
                 size += 1;
@@ -162,280 +152,33 @@ Module(p)
         if(servo[i])
         {
             servo_index[i] = j++;
-            servo_id[i] = atoi(servo[i]->controlTable.Get("ID"));
+            servo_id[i] = servo[i]->controlTable.GetInt("ID");
         }
+    
     
     // If we did not find any servos kill ikaros.
     if (size == 0)
         Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
-
-}
-
-
-
-void
-Dynamixel::Print()
-{
-    printf("Size: %d\n", size);
-    printf("Servos: %d\n\n", servos);
-    printf("ix  ID  Model     Mode        MaxPos    MaxSpeed   MaxAngle \n");
-    printf("------------------------------------------------------------\n");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-        {
-            printf("%-2d  ", i);
-            printf("%3d ", atoi(servo[i]->controlTable.Get("ID")));
-            printf("%-10s", servo[i]->controlTable.Get("Servo Model String"));
-            printf("%-6s", atoi(servo[i]->controlTable.Get("Model Position Max")) ? "Joint Mode" : "Wheel Mode" );
-            printf("  %4d    ", atoi(servo[i]->controlTable.Get("Model Position Max")));
-            printf("  %4d   ", atoi(servo[i]->controlTable.Get("Model Speed Max")));
-            printf(" %6.1d   ", atoi(servo[i]->controlTable.Get("Model Angle Max")));
-            printf("\n");
-        }
-    printf("\n");
-}
-
-void
-Dynamixel::PrintAll()
-{
-    printf("\nDYNAMIXEL:\n\n");
-    
-    printf("Size of ikaros input array: %d\n", size);
-    printf("Number of servos: %d\n", servos);
-    
-    printf("\nMODEL SPECIFIC:");
-    
-    printf("%-28s","\nModel Number:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%14s"		, servo[i]->controlTable.Get("Servo Model String"));
-    
-    printf("%-28s","\nModel Position Max:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%14s"		, servo[i]->controlTable.Get("Model Position Max"));
-    
-    printf("%-28s","\nModel Speed Max:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%14s"		, servo[i]->controlTable.Get("Model Speed Max"));
-    
-    printf("%-28s","\nModel Torque Max:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%14s"		, servo[i]->controlTable.Get("Model Torque Max"));
-    
-    printf("%-28s","\nModel Load Max:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%14s"		, servo[i]->controlTable.Get("Model Load Max"));
-    
-    printf("%-28s","\nModel Angle Max (deg):");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%14s"		, servo[i]->controlTable.Get("Model Angle Max"));
-    
-    printf("\n\nCONTROL TABLE (formated | raw ): ");
-    
-    printf("%-28s","\nModel Number:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetModelNumberFormated(), servo[i]->GetModelNumber());
-    
-    printf("%-28s","\nID:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetIDFormated(), servo[i]->GetID());
-    
-    printf("%-28s","\nBaud Rate:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetBaudRateFormated(), servo[i]->GetBaudRate());
     
     
-    printf("%-28s","\nReturn Delay Time (us): ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetReturnDelayTimeFormated(), servo[i]->GetReturnDelayTime());
-    
-    printf("%-28s","\nCW Angle Limit: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetCWAngleLimitFormated(angle_unit), servo[i]->GetCWAngleLimit());
-    
-    printf("%-28s","\nCCW Angle Limit: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetCCWAngleLimitFormated(angle_unit), servo[i]->GetCCWAngleLimit());
-    
-    printf("%-28s","\nDriver Mode: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetDriveModeFormated(), servo[i]->GetDriveMode());
-    
-    printf("%-28s","\nLimit Temperature (C): ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetHighestLimitTemperatureFormated(), servo[i]->GetHighestLimitTemperature());
-    
-    printf("%-28s","\nHighest Limit Voltage (V):");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetHighestLimitVoltageFormated(), servo[i]->GetHighestLimitVoltage());
-    
-    printf("%-28s","\nLowest Limit Voltage (V):");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetLowestLimitVoltageFormated(), servo[i]->GetLowestLimitVoltage());
-    
-    printf("%-28s","\nMax Torque (%): ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetMaxTorqueFormated(), servo[i]->GetMaxTorque());
-    
-    printf("%-28s","\nStatus Return Level: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetStatusReturnLevelFormated(), servo[i]->GetStatusReturnLevel());
-    
-    printf("%-28s","\nAlarm LED: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetAlarmLEDFormated(), servo[i]->GetAlarmLED());
-    
-    printf("%-28s","\nAlarm Shutdown: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetAlarmShutdownFormated(), servo[i]->GetAlarmShutdown());
-    
-    printf("%-28s","\nTorque Enable: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetTorqueEnableFormated(), servo[i]->GetTorqueEnable());
-    
-    printf("%-28s","\nLED: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetLEDFormated(), servo[i]->GetLED());
-    
-    printf("%-28s","\nD Gain:  ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-        {
-            if (!servo[i]->GetModelDGainEnable())
-            {
-                printf("%8s |%4i"		, "NA", servo[i]->GetDGain());
-            }
-            else
-            {
-                printf("%8.0f |%4i"		, servo[i]->GetDGainFormated(), servo[i]->GetDGain());
-            }
-        }
-    printf("%-28s","\nI Gain:  ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-        {
-            if (!servo[i]->GetModelIGainEnable())
-            {
-                printf("%8s |%4i"		, "NA", servo[i]->GetIGain());
-            }
-            else
-            {
-                printf("%8.0f |%4i"		, servo[i]->GetIGainFormated(), servo[i]->GetIGain());
-            }
-        }
-    printf("%-28s","\nP Gain: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-        {
-            if (!servo[i]->GetModelPGainEnable())
-            {
-                printf("%8s |%4i"			, "NA", servo[i]->GetPGain());
-            }
-            else
-            {
-                printf("%8.0f |%4i"		, servo[i]->GetPGainFormated(), servo[i]->GetPGain());
-            }
-        }
-    
-    printf("%-28s","\nGoal Position:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetGoalPositionFormated(angle_unit), servo[i]->GetGoalPosition());
-    
-    printf("%-28s","\nMoving Speed:");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetMovingSpeedFormated(), servo[i]->GetMovingSpeed());
-    
-    
-    printf("%-28s","\nTorque Limit: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetTorqueLimitFormated(), servo[i]->GetTorqueLimit());
-    
-    printf("%-28s","\nPresent Position: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetPresentPositionFormated(angle_unit), servo[i]->GetPresentPosition());
-    
-    printf("%-28s","\nPresent Speed: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetPresentSpeedFormated(), servo[i]->GetPresentSpeed());
-    
-    printf("%-28s","\nPresent Load: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetPresentLoadFormated(), servo[i]->GetPresentLoad());
-    
-    printf("%-28s","\nPresent Voltage: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetPresentVoltageFormated(), servo[i]->GetPresentVoltage());
-    
-    printf("%-28s","\nPresent Temperature: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetPresentTemperatureFormated(), servo[i]->GetPresentTemperature());
-    
-    printf("%-28s","\nRegistered Instruction: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetRegisteredFormated(), servo[i]->GetRegistered());
-    
-    printf("%-28s","\nMoving: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetMovingFormated(), servo[i]->GetMoving());
-    
-    printf("%-28s","\nLock: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetLockFormated(), servo[i]->GetLock());
-    
-    printf("%-28s","\nPunch: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            printf("%8.0f |%4i"		, servo[i]->GetPunchFormated(), servo[i]->GetPunch());
-    
-    
-    printf("%-28s","\nCurrent: ");
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            if(servo[i])
-            {
-                if (!servo[i]->GetModelCurrentEnable())
-                {
-                    printf("%8s |%4s"		, "NA", "NA");;
-                }
-                else
-                {
-                    printf("%8.0f |%4i"		, servo[i]->GetCurrentFormated(), servo[i]->GetCurrent());
-                }
-            }
-    
-    printf("\n\n");
+    // Find out where to look to ikaros output data from Dynamixel memory
+    for (int i = 0; i < 16; i++)
+        ikarosOutBind[i] = -1;
+    for (int i = 0; i < size; i++)
+        for (int j = 0; j < 128; j++)
+            if (servo[i]->ctable[j].IkarosOutputs >= 0)
+                ikarosOutBind[servo[i]->ctable[j].IkarosOutputs] = servo[i]->ctable[j].Adress;
+    for (int i = 0; i < size; i++)
+        for (int j = 0; j < 128; j++)
+            if (servo[i]->ctable[j].IkarosInputs >= 0)
+                ikarosInBind[servo[i]->ctable[j].IkarosInputs] = servo[i]->ctable[j].Adress;
+    //    printf("Bindings OUTPUT\n");
+    //    for (int i = 0; i <= 15; i++)
+    //        printf("%i : %i\n",i ,ikarosOutBind[i]) ;
+    //
+    //    printf("Bindings INPUT\n");
+    //    for (int i = 0; i <= 9; i++)
+    //        printf("%i : %i\n",i ,ikarosInBind[i]) ;
 }
 
 void
@@ -455,107 +198,59 @@ Dynamixel::SetSizes()
     SetOutputSize("FEEDBACK_PRESENT_VOLTAGE", size);
     SetOutputSize("FEEDBACK_PRESENT_TEMPERATURE", size);
     SetOutputSize("FEEDBACK_PRESENT_CURRENT", size);
+    SetOutputSize("FEEDBACK_GOAL_TORQUE", size);
+    SetOutputSize("FEEDBACK_GOAL_ACCELERATION", size);
 }
 
 void
 Dynamixel::Init()
 {
     // Inputs
+    torqueEnable_connected      = false;
+    LED_connected               = false;
+    dGain_connected             = false;
+    iGain_connected             = false;
+    pGain_connected             = false;
+    goalPosition_connected      = false;
+    movingSpeed_connected       = false;
+    torqueLimit_connected       = false;
+    goalTorque_connected        = false;
+    goalAcceleration_connected  = false;
     
-    torqueEnable	= GetInputArray("TORQUE_ENABLE", false);
-    if (!torqueEnable)
-    {
-        //printf("Allocating torque enable (%i)\n",size);
-        torqueEnable = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                torqueEnable[i] =  servo[i]->GetTorqueEnableFormated();
-        allocated_torqueEnable = true;
-    }
+    torqueEnable        = GetInputArray("TORQUE_ENABLE", false);
+    LED                 = GetInputArray("LED", false);
+    dGain               = GetInputArray("D_GAIN", false);
+    iGain               = GetInputArray("I_GAIN", false);
+    pGain               = GetInputArray("P_GAIN", false);
+    goalPosition        = GetInputArray("GOAL_POSITION", false);
+    movingSpeed         = GetInputArray("MOVING_SPEED", false);
+    torqueLimit         = GetInputArray("TORQUE_LIMIT", false);
+    goalTorque          = GetInputArray("GOAL_TORQUE", false);
+    goalAcceleration	= GetInputArray("GOAL_ACCELERATION", false);
     
-    LED	= GetInputArray("LED", false);
-    if (!LED)
-    {
-        //printf("Allocating LED (%i)\n",size);
-        LED = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                LED[i] =  servo[i]->GetLEDFormated();
-        allocated_LED = true;
-    }
-    
-    dGain	= GetInputArray("D_GAIN", false);
-    if (!dGain)
-    {
-        //printf("Allocating dGain (%i)\n",size);
-        dGain = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                dGain[i] =  servo[i]->GetDGainFormated();
-        allocated_dGain = true;
-    }
-    iGain	= GetInputArray("I_GAIN", false);
-    if (!iGain)
-    {
-        //printf("Allocating iGain (%i)\n",size);
-        iGain = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                iGain[i] =  servo[i]->GetIGainFormated();
-        allocated_iGain = true;
-    }
-    pGain	= GetInputArray("P_GAIN", false);
-    if (!pGain)
-    {
-        //printf("Allocating pGain (%i)\n",size);
-        pGain = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                pGain[i] =  servo[i]->GetPGainFormated();
-        allocated_pGain = true;
-    }
-    goalPosition	= GetInputArray("GOAL_POSITION", false);
-    if (!goalPosition)
-    {
-        //printf("Allocating goalPosition (%i)\n",size);
-        goalPosition = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                goalPosition[i] =  servo[i]->GetGoalPositionFormated(angle_unit);
-        allocated_goalPosition = true;
-    }
-    movingSpeed	= GetInputArray("MOVING_SPEED", false);
-    if (!movingSpeed)
-    {
-        //printf("Allocating movingSpeed (%i)\n",size);
-        movingSpeed = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                movingSpeed[i] =  servo[i]->GetMovingSpeedFormated();
-        allocated_movingSpeed = true;
-    }
-    
-    torqueLimit	= GetInputArray("TORQUE_LIMIT", false);
-    if (!torqueLimit)
-    {
-        //printf("Allocating torqueLimit (%i)\n",size);
-        torqueLimit = create_array(size);
-        // Filling it with value fetched from servos.
-        for(int i=0; i<size; i++)
-            if(servo[i])
-                torqueLimit[i] =  servo[i]->GetMaxTorqueFormated();
-        allocated_torqueLimit = true;
-    }
+    // Mark all connected inputs
+    if (torqueEnable)
+        torqueEnable_connected = true;
+    if (LED)
+        LED_connected = true;
+    if (dGain)
+        dGain_connected = true;
+    if (iGain)
+        iGain_connected = true;
+    if (pGain)
+        pGain_connected = true;
+    if (goalPosition)
+        goalPosition_connected = true;
+    if (movingSpeed)
+        movingSpeed_connected = true;
+    if (torqueLimit)
+        torqueLimit_connected = true;
+    if (goalTorque)
+        goalTorque_connected = true;
+    if (goalAcceleration)
+        goalAcceleration_connected = true;
     
     // Outputs
-    
     feedbackTorqueEnable    	= GetOutputArray("FEEDBACK_TORQUE_ENABLE");
     feedbackLED    				= GetOutputArray("FEEDBACK_LED");
     feedbackDGain				= GetOutputArray("FEEDBACK_D_GAIN");
@@ -570,6 +265,9 @@ Dynamixel::Init()
     feedbackPresentVoltage		= GetOutputArray("FEEDBACK_PRESENT_VOLTAGE");
     feedbackPresentTemperature	= GetOutputArray("FEEDBACK_PRESENT_TEMPERATURE");
     feedbackPresentCurrent		= GetOutputArray("FEEDBACK_PRESENT_CURRENT");
+    feedbackGoalTorque          = GetOutputArray("FEEDBACK_GOAL_TORQUE");
+    feedbackGoalAcceleration	= GetOutputArray("FEEDBACK_GOAL_ACCELERATION");
+    
     
     // Print to console
     if (init_print == 1)
@@ -580,15 +278,16 @@ Dynamixel::Init()
     // Set Goal position to whatever position the servo has now.
     for(int i=0; i<size; i++)
         if(servo[i])
-            servo[i]->SetGoalPosition(servo[i]->GetPresentPosition());
-    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 30, 31, size);
+            servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION], servo[i]->GetValueAtAdress(IK_OUT_PRESENT_SPEED));
+    
+    com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosOutBind[IK_OUT_GOAL_POSITION], ikarosOutBind[IK_OUT_GOAL_POSITION]+1, size);
 }
 
 Dynamixel::~Dynamixel()
 {
     
-    Timer timer;
     // Torqueing down the servos. Using the torque from last time used.
+    Timer timer;
     if (init_print == 2 || init_print == 1)
         printf("\nPower off servo(s)");
     
@@ -599,10 +298,12 @@ Dynamixel::~Dynamixel()
         for(int i=0; i<size; i++)
             if(servo[i])
             {
-                servo[i]->SetTorqueLimit(servo[i]->GetTorqueLimit()*j);
-                servo[i]->SetLED(blink);
+                servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_TORQUE_LIMIT], servo[i]->GetValueAtAdress(ikarosOutBind[IK_OUT_TORQUE_LIMIT]*j));
+                servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_LED], blink);
             }
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 35, size);
+        
+        com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol ,DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], ikarosInBind[IK_IN_TORQUE_LIMIT]+1, size);
+        com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], ikarosOutBind[IK_IN_LED], size);
         
         if (init_print == 2 || init_print == 1)
             printf(".");
@@ -617,94 +318,94 @@ Dynamixel::~Dynamixel()
     if (init_print == 2 || init_print == 1)
         printf("Done\n");
     
+    // Turn off LED
     for(int i=0; i<size; i++)
         if(servo[i])
-            servo[i]->SetLED(0);
-    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 25, size);
-
-    // Set goal position to position
+            servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_LED], 0);
+    
+    com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], ikarosOutBind[IK_IN_LED], size);
+    
+    
+    // Set goal position to current position.
     for(int i=0; i<size; i++)
         if(servo[i])
-            servo[i]->SetGoalPosition(servo[i]->GetPresentPosition());
-    com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 30, 31, size);
+            servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION], servo[i]->GetValueAtAdress(ikarosOutBind[IK_OUT_GOAL_POSITION]));
+    
+    com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosOutBind[IK_OUT_GOAL_POSITION], ikarosOutBind[IK_OUT_GOAL_POSITION], size);
+    
     
     timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
     
-    
-    delete DynamixelMemoeries;
-    
-    if (allocated_torqueEnable)
-        destroy_array(torqueEnable);
-    if (allocated_LED)
-        destroy_array(LED);
-    if (allocated_dGain)
-        destroy_array(dGain);
-    if (allocated_iGain)
-        destroy_array(iGain);
-    if (allocated_pGain)
-        destroy_array(pGain);
-    if (allocated_goalPosition)
-        destroy_array(goalPosition);
-    if (allocated_movingSpeed)
-        destroy_array(movingSpeed);
-    if (allocated_torqueLimit)
-        destroy_array(torqueLimit);
-    
     // Free memory
+    delete DynamixelMemoeries;
     delete servo_index;
     delete servo_id;
     delete com;
     delete servo; // Also delete servo's memorybuffer
-    
-    
-    
 }
 
 void
 Dynamixel::Tick()
 {
-
     // check that the device exists and is open
-    if(!device)
+    if(!device || !com)
         return;
     
-    if(!com)
-        return;
-
-    // Make angles within legal limits
-    for (int i = 0; i < size; i++)
-        goalPosition[i] = mod(goalPosition[i], angle_to_angle(360, degrees, angle_unit));
-
-    
-    if(GetTick() >= start_up_delay)
+    if(GetTick() >= start_up_delay) // Do not send any instructions during start_up_delay
     {
         for(int i=0; i<size; i++)
-        if(servo[i])
         {
-            // Wheel mode. If we are not in Joint mode and we have a Moving Speed input (we have not allacted our own)
-            if(!atoi(servo[i]->controlTable.Get("Joint Mode")) && !allocated_movingSpeed)
+            if(servo[i])
             {
-                // Set servo in Wheel mode.
-                servo[i]->SetMovingSpeedFormated(movingSpeed[i]);
-            }
-            else // Joint mode
-            {
-                // Set
-                servo[i]->SetTorqueEnableFormated(torqueEnable[i]);
-                servo[i]->SetLEDFormated(LED[i]);
-                servo[i]->SetDGainFormated(dGain[i]);
-                servo[i]->SetIGainFormated(iGain[i]);
-                servo[i]->SetPGainFormated(pGain[i]);
-                servo[i]->SetGoalPositionFormated(goalPosition[i], angle_unit);
-                servo[i]->SetMovingSpeedFormated(movingSpeed[i]);
-                servo[i]->SetTorqueLimitFormated(torqueLimit[i]);
+                
+                if (torqueEnable_connected)
+                    servo[i]->SetTorqueEnableFormated(ikarosInBind[IK_IN_TORQUE_ENABLE],torqueEnable[i]);
+                if (LED_connected)
+                    servo[i]->SetLEDFormated(ikarosInBind[IK_IN_LED],LED[i]);
+                if (dGain_connected)
+                    servo[i]->SetDGainFormated(ikarosInBind[IK_IN_D_GAIN],dGain[i]);
+                if (iGain_connected)
+                    servo[i]->SetIGainFormated(ikarosInBind[IK_IN_I_GAIN],iGain[i]);
+                if (pGain_connected)
+                    servo[i]->SetPGainFormated(ikarosInBind[IK_IN_P_GAIN],pGain[i]);
+                if (goalPosition_connected)
+                    servo[i]->SetGoalPositionFormated(ikarosInBind[IK_IN_GOAL_POSITION],goalPosition[i], angle_unit);
+                if (movingSpeed_connected)
+                    servo[i]->SetMovingSpeedFormated(ikarosInBind[IK_IN_MOVING_SPEED],movingSpeed[i]);
+                if (torqueLimit_connected)
+                    servo[i]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT],torqueLimit[i]);
+                if (goalTorque_connected)
+                    servo[i]->SetGoalTorqueFormated(ikarosInBind[IK_IN_GOAL_TORQUE],goalTorque[i]);
+                if (goalAcceleration_connected)
+                    servo[i]->SetGoalAccelerationFormated(ikarosInBind[IK_IN_GOAL_ACCELERATION],goalAcceleration[i]);
             }
         }
-        // Write changes to serial
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 25, 35, size); // Sending torque enable only. Otherwise torque enable will be 1 as position is set. See Dynamixel manual.
-        com->SyncWriteWithIdRange(servo_id, DynamixelMemoeries, 24, 24, size);
+        
+        // Syncwrite to all servos.
+        // Splitting all the package. Test performence of this.
+        if (LED_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], ikarosInBind[IK_IN_LED], size);
+        if (dGain_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_D_GAIN], ikarosInBind[IK_IN_D_GAIN], size);
+        if (iGain_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_I_GAIN], ikarosInBind[IK_IN_I_GAIN], size);
+        if (pGain_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_P_GAIN], ikarosInBind[IK_IN_P_GAIN]+1, size);
+        if (goalPosition_connected && torqueEnable[0] > 0 ) // This Needs to be taken care of.
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_GOAL_POSITION], ikarosInBind[IK_IN_GOAL_POSITION]+1, size);
+        if (movingSpeed_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_MOVING_SPEED], ikarosInBind[IK_IN_MOVING_SPEED]+1, size);
+        if (torqueLimit_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], ikarosInBind[IK_IN_TORQUE_LIMIT]+1, size);
+        if (goalTorque_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_TORQUE], ikarosInBind[IK_IN_GOAL_TORQUE]+1, size);
+        if (goalAcceleration_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_ACCELERATION], ikarosInBind[IK_IN_GOAL_ACCELERATION], size);
+        
+        // Torque can not be sent in a packet with goal position. See manual.
+        if (torqueEnable_connected)
+            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_ENABLE], ikarosInBind[IK_IN_TORQUE_ENABLE], size);
     }
- 
     
     
     // Get feedback
@@ -714,103 +415,78 @@ Dynamixel::Tick()
             unsigned char inbuf[256];
             
             if(use_feedback)
-            {
-                // Get all data from servo.
-                if (com->ReadMemoryRange(atoi(servo[i]->controlTable.Get("ID")), inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE))
-                {
-                    //printf("GOT GOOD READINGS\n");
-                    // Parse the new data
-                    servo[i]->ParseControlTable(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
-                    //com->PrintMemory(inbuf, 0, DYNAMIXEL_EPROM_SIZE + DYNAMIXEL_RAM_SIZE);
-                    
-                }
-                else
-                {
-                    //printf("GOT BAD READINGS\n");
-                    
-                }
-            }
+                com->ReadMemoryRange(servo[i]->controlTable.GetInt("ID"), servo[i]->Protocol, inbuf, 0, servo[i]->controlTable.GetInt("Model Memory"));
             
-            // Fill the ikaros outputs with formated data.
-            feedbackTorqueEnable[i] = servo[i]->GetTorqueEnableFormated();
-            feedbackLED[i] = servo[i]->GetLEDFormated();
-            feedbackDGain[i] = servo[i]->GetDGainFormated();
-            feedbackIGain[i] = servo[i]->GetIGainFormated();
-            feedbackPGain[i] = servo[i]->GetPGainFormated();
-            feedbackGoalPosition[i] = servo[i]->GetGoalPositionFormated(angle_unit);
-            feedbackMoving[i] = servo[i]->GetMovingSpeedFormated();
-            feedbackTorqueLimit[i] = servo[i]->GetTorqueLimitFormated();
-            feedbackPresentPosition[i] = servo[i]->GetPresentPositionFormated(angle_unit);
-            feedbackPresentSpeed[i] = servo[i]->GetPresentSpeedFormated();
-            feedbackPresentLoad[i] = servo[i]->GetPresentLoadFormated();
-            feedbackPresentVoltage[i] =  servo[i]->GetPresentVoltageFormated();
-            feedbackPresentTemperature[i] = servo[i]->GetPresentTemperatureFormated();
-            feedbackPresentCurrent[i] = servo[i]->GetCurrentFormated();
-            
-            
+            if (ikarosOutBind[IK_OUT_TORQUE_ENABLE] != -1)
+                feedbackTorqueEnable[i]  = servo[i]->GetTorqueEnableFormated(ikarosOutBind[IK_OUT_TORQUE_ENABLE]);
+            if (ikarosOutBind[IK_OUT_LED] != -1)
+                feedbackLED[i] = servo[i]->GetLEDFormated(ikarosOutBind[IK_OUT_LED]);
+            if (ikarosOutBind[IK_OUT_D_GAIN] != -1)
+                feedbackDGain[i] = servo[i]->GetDGainFormated(ikarosOutBind[IK_OUT_D_GAIN]);
+            if (ikarosOutBind[IK_OUT_I_GAIN] != -1)
+                feedbackIGain[i] = servo[i]->GetIGainFormated(ikarosOutBind[IK_OUT_I_GAIN]);
+            if (ikarosOutBind[IK_OUT_P_GAIN] != -1)
+                feedbackPGain[i] = servo[i]->GetPGainFormated(ikarosOutBind[IK_OUT_P_GAIN]);
+            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
+                feedbackGoalPosition[i] = servo[i]->GetGoalPositionFormated(ikarosOutBind[IK_OUT_GOAL_POSITION],angle_unit);
+            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
+                feedbackMoving[i] = servo[i]->GetMovingSpeedFormated(ikarosOutBind[IK_OUT_MOVING_SPEED]);
+            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
+                feedbackTorqueLimit[i] = servo[i]->GetTorqueLimitFormated(ikarosOutBind[IK_OUT_TORQUE_LIMIT]);
+            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
+                feedbackPresentPosition[i] = servo[i]->GetPresentPositionFormated(ikarosOutBind[IK_OUT_PRESENT_POSITION],angle_unit);
+            if (ikarosOutBind[IK_OUT_PRESENT_SPEED] != -1)
+                feedbackPresentSpeed[i] = servo[i]->GetPresentSpeedFormated(ikarosOutBind[IK_OUT_PRESENT_SPEED]);
+            if (ikarosOutBind[IK_OUT_PRESENT_LOAD] != -1)
+                feedbackPresentLoad[i] = servo[i]->GetPresentLoadFormated(ikarosOutBind[IK_OUT_PRESENT_LOAD]);
+            if (ikarosOutBind[IK_OUT_PRESENT_VOLTAGE] != -1)
+                feedbackPresentVoltage[i] =  servo[i]->GetPresentVoltageFormated(ikarosOutBind[IK_OUT_PRESENT_VOLTAGE]);
+            if (ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE] != -1)
+                feedbackPresentTemperature[i] = servo[i]->GetPresentTemperatureFormated(ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE]);
+            if (ikarosOutBind[IK_OUT_PRESENT_CURRENT] != -1)
+                feedbackPresentCurrent[i] = servo[i]->GetCurrentFormated(ikarosOutBind[IK_OUT_PRESENT_CURRENT]);
+            if (ikarosOutBind[IK_OUT_GOAL_TORQUE] != -1)
+                feedbackGoalTorque[i] = servo[i]->GetGoalTorqueFormated(ikarosOutBind[IK_OUT_GOAL_TORQUE]);
+            if (ikarosOutBind[IK_OUT_GOAL_ACCELERATION] != -1)
+                feedbackGoalAcceleration[i] = servo[i]->GetGoalAccelerationFormated(ikarosOutBind[IK_OUT_GOAL_ACCELERATION]);
         }
-// For PID Tuning.
-//        for(int i=0; i<size; i++)
-//        {
-//            printf("DYNAMIXEL: (SENT = REC) %f (%i) = %f (%i) Error: %f\n", servo[i]->GetGoalPositionFormated(angle_unit),servo[i]->GetGoalPosition(),servo[i]->GetPresentPositionFormated(angle_unit),servo[i]->GetPresentPosition(), servo[i]->GetGoalPositionFormated(angle_unit)-servo[i]->GetPresentPositionFormated(angle_unit));;
-//        }
-    
 }
 
-
-int
-Dynamixel::checkBaudRate(int br)
+void
+Dynamixel::Print()
 {
-    switch (br) {
-        case 9600:
-            break;
-        case 19200:
-            break;
-        case 57600:
-            break;
-        case 115200:
-            break;
-        case 200000:
-            break;
-        case 250000:
-            break;
-        case 400000:
-            break;
-        case 500000:
-            break;
-        case 1000000:
-            break;
-        case 2250000:
-            break;
-        case 2500000:
-            break;
-        case 3000000:
-            break;
-            
-            //....
-        default:
-            printf("Dynamixel: Not a standard baud rate.\n");
-            printf("Available baud rates:\n");
-            
-            printf("%15s","9600bps\n");
-            printf("%15s","192000bps\n");
-            printf("%15s","576000bps\n");
-            printf("%15s","1152000bps\n");
-            printf("%15s","2000000bps\n");
-            printf("%15s","2500000bps\n");
-            printf("%15s","4000000bps\n");
-            printf("%15s","5000000bps\n");
-            printf("%15s","5000000bps\n");
-            printf("%15s","5000000bps\n");
-            printf("%15s","10000000bps\n");
-            printf("%15s","22500000bps\n");
-            printf("%15s","25000000bps\n");
-            printf("%15s","30000000bps\n");
-            printf("%15s","Setting baud rate to 1 Mbps\n");
-            br = 1000000;
-            break;
+    printf("\nDYNAMIXEL\n");
+    printf("Number of servos: %d\n\n", servos);
+    printf("%6s %5s\n", "ID", "Name");
+    for(int i=0; i<size; i++)
+    {
+        printf("%-4i",i);
+        printf("%-4i",servo[i]->controlTable.GetInt("ID"));
+        printf("%6s",servo[i]->controlTable.Get("Servo Model String"));
+        printf("\n");
     }
-    return br;
+}
+
+void
+Dynamixel::PrintAll()
+{
+    printf("\nDYNAMIXEL\n");
+    printf("Number of servos: %d\n\n", servos);
+    printf("Control table:\n");
+    printf("%-8s %-28s|", "Adress", "Name");
+    for(int i=0; i<size; i++)
+        printf(" %6s|",servo[i]->controlTable.Get("Servo Model String"));
+    printf("\n");
+    for (int j = 0; j < 100; j++)
+    {
+        if (servo[0]->ctable[j].Visable)
+        {
+            printf("%-8i %-28s|", j, servo[0]->ctable[j].Name.c_str());
+            for(int i=0; i<size; i++)
+                printf(" %6i|",servo[i]->GetValueAtAdress(j));
+            printf("\n");
+        }
+    }
 }
 
 static InitClass init("Dynamixel", &Dynamixel::Create, "Source/Modules/RobotModules/Dynamixel/");
