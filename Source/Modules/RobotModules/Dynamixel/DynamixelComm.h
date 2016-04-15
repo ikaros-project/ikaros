@@ -1,7 +1,7 @@
 //
-//    DynamixelComm.h		Class to communicate with USB2Dynamixel
+//    DynamixelComm.h
 //
-//    Copyright (C) 2010-2011  Christian Balkenius
+//    Copyright (C) 2016  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 //
-//    Created: April 4, 2010
+//    Created: March, 2016
 //
 
 
@@ -29,68 +29,42 @@
 
 #include "IKAROS.h"
 
+// Protocol version 1 instruction package
+#define ID_BYTE_1                   2
+#define LEN_BYTE_1                  3
+#define INST_BYTE_1                 4
 
-//--- Control Table Address ---
+// Protocol version 2 instruction package
+#define ID_BYTE_2                   4
+#define LEN_L_BYTE_2                5
+#define LEN_H_BYTE_2                6
+#define INST_BYTE_2                 7
+#define ERROR_BYTE_2                8
 
-#define P_MODEL_NUMBER_L      0
-#define P_MODOEL_NUMBER_H     1
-#define P_VERSION             2
-#define P_ID                  3
-#define P_BAUD_RATE           4
-#define P_RETURN_DELAY_TIME   5
-#define P_CW_ANGLE_LIMIT_L    6
-#define P_CW_ANGLE_LIMIT_H    7
-#define P_CCW_ANGLE_LIMIT_L   8
-#define P_CCW_ANGLE_LIMIT_H   9
-#define P_SYSTEM_DATA2        10
-#define P_LIMIT_TEMPERATURE   11
-#define P_DOWN_LIMIT_VOLTAGE  12
-#define P_UP_LIMIT_VOLTAGE    13
-#define P_MAX_TORQUE_L        14
-#define P_MAX_TORQUE_H        15
-#define P_RETURN_LEVEL        16
-#define P_ALARM_LED           17
-#define P_ALARM_SHUTDOWN      18
-#define P_OPERATING_MODE      19
-#define P_KP                  20    // These names seem to suggest some form of PID controller
-#define P_KD                  21    // but the AX-12 manual calls address 20-23 up/down calibration
-#define P_KI                  22    // to compensate for potentiometer inaccuracies
-#define P_IDAMP               23
-
-#define P_TORQUE_ENABLE         24
-#define P_LED                   25
-#define P_CW_COMPLIANCE_MARGIN  26
-#define P_CCW_COMPLIANCE_MARGIN 27
-#define P_CW_COMPLIANCE_SLOPE   28
-#define P_CCW_COMPLIANCE_SLOPE  29
-#define P_GOAL_POSITION_L       30
-#define P_GOAL_POSITION_H       31
-#define P_GOAL_SPEED_L          32
-#define P_GOAL_SPEED_H          33
-#define P_TORQUE_LIMIT_L        34
-#define P_TORQUE_LIMIT_H        35
-#define P_PRESENT_POSITION_L    36
-#define P_PRESENT_POSITION_H    37
-#define P_PRESENT_SPEED_L       38
-#define P_PRESENT_SPEED_H       39
-#define P_PRESENT_LOAD_L        40
-#define P_PRESENT_LOAD_H        41
-#define P_PRESENT_VOLTAGE       42
-#define P_PRESENT_TEMPERATURE   43
-#define P_REGISTERED_INSTRUCTION 44
-#define P_PAUSE_TIME            45
-#define P_MOVING                46
-#define P_LOCK                  47
-#define P_PUNCH_L               48
-#define P_PUNCH_H               49
-
+// Common (Protocol version 2 instructions)
 #define INST_PING               1
 #define INST_READ               2
 #define INST_WRITE              3
 #define INST_REG_WRITE          4
 #define INST_ACTION             5
 #define INST_RESET              6
+#define INST_REBOOT             8
+#define INST_STATUS_RETURN      85
+#define INST_SYNC_READ          130
 #define INST_SYNC_WRITE         131
+#define INST_BULK_READ          146
+#define INST_BULK_WRITE         147
+
+#define SYNC_WRITE_HEADER_1 7
+#define RECIVE_HEADER_1 5
+
+#define SYNC_WRITE_HEADER_2 8
+#define SYNC_WRITE_COMMON_2 4
+#define RECIVE_HEADER_2 8
+
+#define MAX_SERVOS 256
+#define DYNAMIXEL_MAX_BUFFER 143
+
 
 class DynamixelComm : public Serial
 {
@@ -98,28 +72,41 @@ public:
     
     DynamixelComm(const char * device_name, unsigned long baud_rate);
     ~DynamixelComm();
+    int             Ping(int id);
+    void            Reset(int id, int protocol);
+    void            SyncWriteWithIdRange(int * servo_id, int protocol, unsigned  char ** DynamixelMemoeries, int from, int to, int n);
+    bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
     
+    // Protocol version 1
+    void            Send1(unsigned char * b);
+    int             Receive1(unsigned char * b);
+    void            Reset1(int id);
+    bool            Ping1(int id);
+    void            PrintFullInstructionPackage1(unsigned char * package);
+    void            PrintPartInstructionPackage1(unsigned char * package, int from, int to);
+    void            PrintFullStatusPackage1(unsigned char * package);
+    void            PrintPartStatusPackage1(unsigned char * package, int from, int to);
+    void            PrintMemory1(unsigned char * outbuf, int from, int to);
+    //void            ResetDynamixel1(int id);
+    bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
+    void            SyncWriteWithIdRange1(int * servo_id,  unsigned  char ** DynamixelMemoeries, int from, int to, int n);
     unsigned char   CalculateChecksum(unsigned char * b);
     
-    // Misc
-    void            Send(unsigned char * b);
-    int             Receive(unsigned char * b);
-    void            Reset(int id);
-    bool            Ping(int id);
-    void            PrintSyncWrite(unsigned char * outbuf, int from, int to, int n);
-    void            PrintMemory(unsigned char * outbuf, int from, int to);
-    void            PrintRecive(unsigned char * outbuf, int from, int to);
-    void            ResetDynamixel(int id);
-    
-    // Read memory block
-    bool            ReadMemoryRange(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    
-    // Sync write memory block
-    void            SyncWriteWithIdRange(int * servo_id,  unsigned  char ** DynamixelMemoeries, int from, int to, int n);
-    
-    // create a sentStore;
-    unsigned char ** sentStore;
-    
+    // Protocol version 2
+    void            Send2(unsigned char * b);
+    int             Receive2(unsigned char * b);
+    void            Reset2(int id);
+    bool            Ping2(int id);
+    void            PrintFullInstructionPackage2(unsigned char * package);
+    void            PrintPartInstructionPackage2(unsigned char * package, int from, int to);
+    void            PrintFullStatusPackage2(unsigned char * package);
+    void            PrintPartStatusPackage2(unsigned char * package, int from, int to);
+    void            PrintMemory2(unsigned char * outbuf, int from, int to);
+    //void            ResetDynamixel2(int id);
+    bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
+    void            SyncWriteWithIdRange2(int * servo_id,  unsigned  char ** DynamixelMemoeries, int from, int to, int n);
+    unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
+    bool            checkCrc(unsigned char * package);
 };
 
 #endif

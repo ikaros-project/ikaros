@@ -47,12 +47,9 @@
     <parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
 	<parameter name="max_servo_id" type="int" default="32" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
 	<parameter name="size" type="int" default="0" description="This parameter forces a specific size of the output. In the normal case when it is not set, the size will be derived from the list of servo_ids" />
-	<parameter name="feedback" type="bool" default="yes" description="Should the module ask the servos for data? If set to 'no' the module works faster and never receives any data from the servo. Instead, the OUTPUT is set to a copy of the last INPUT." />
+	<parameter name="feedback" type="bool" default="yes" description="If set to 'no' the module works faster and do not ask servos for position feedback etc. Set to 'no' the feedback outputs will be filled with the inputs' values (FEEDBACK_GOAL_POSITION will just be a copy of the GOAL_POSITION). If the feedback does not have a matching input it will be set to -1 (FEEDBACK_PRESENT_VOLTAGE will be set to -1)"/>
 
 	<parameter name="start_up_delay" type="int" default="1" description="Number of ticks to wait before a position command is sent to the servos." />
-	<parameter name="start_up_slow" type="bool" default="no" description="If both start_up_delay and start_up_slow is set, 30% of torque will be sent to the servoes until start_up_delay. This will give a less jert behaviour with the servo is reciving the first input value." />
-
-
 
     <input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" />
     <input name="LED" description="LED On/Off, Off if not connected" />
@@ -62,7 +59,8 @@
     <input name="GOAL_POSITION" description="The desired servo positions (in units set by angle_unit). Current set value if not connected" />
     <input name="MOVING_SPEED" description="The moving servo positions (0..1). Current set value if not connected" />
     <input name="TORQUE_LIMIT" description="The torque limit (0..1). Current set value if not connected" />
-
+    <input name="GOAL_TORQUE" description="The goal torque value (Not yet tested)" />
+    <input name="GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" />
     
     <output name="FEEDBACK_TORQUE_ENABLE" description="Torque Enable" />
     <output name="FEEDBACK_LED" description="LED" />
@@ -78,7 +76,9 @@
 	<output name="FEEDBACK_PRESENT_LOAD" description="The current load of the servo (in percent)" />
 	<output name="FEEDBACK_PRESENT_VOLTAGE" description="The current voltage (in Volts)" />
 	<output name="FEEDBACK_PRESENT_TEMPERATURE" description="The current temperature (in degrees Celsius, °C)" />
-	<output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" />
+    <output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" />
+    <output name="FEEDBACK_GOAL_TORQUE" description="The goal torque value (Not yet tested)" />
+    <output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" />
 
 	<module class="Dynamixel" />
 
@@ -87,9 +87,9 @@
     
 	<author>
 		<name>Christian Balkenius and Birger Johansson</name>
-		<email>christian.balkenius@lucs.lu.se</email>
+		<email>Birger.johansson@lucs.lu.se</email>
 		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+		<homepage>http://www.birgerjohansson.com</homepage>
 	</author>
 
    <files>
@@ -97,7 +97,9 @@
    		<file>Dynamixel.cc</file>
    		<file>Dynamixel.ikc</file>
    		<file>DynamixelComm.h</file>
-   		<file>DynamixelComm.cc</file>
+        <file>DynamixelComm.cc</file>
+        <file>DynamixelServo.cc</file>
+        <file>DynamixelServo.h</file>
    </files>
 
 </group>
