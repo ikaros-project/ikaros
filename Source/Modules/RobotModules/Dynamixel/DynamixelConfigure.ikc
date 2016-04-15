@@ -2,78 +2,57 @@
 
 <group name="DynamixelConfigure" description="configures Dynamixel servos">
     
-	<description type="xhtml">
+    <description type="xhtml">
         <p>
-        This module let you configure Dynamixel servos. The module is written for MX-106 but should work to other servos in the Dynamixel series as well.
+            This module let you configure Dynamixel servos. Please refer to dynamixel manual's control table.
         </p>
-	</description>
+    </description>
     
-	<example description="A simple example">
+    <example description="A simple example">
         <module
         class = "DynamixelConfigure"
         name = "DynamixelConfigure"
         device  = "/dev/cu.usbserial-A8006Esq"
-		/>
-	</example>
+        />
+    </example>
     
     <parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
     <parameter name="baud_rate" type="int" default="1000000" description="Serial baud rate" />
-    <parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)" />
     <parameter name="max_servo_id" type="int" default="32" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
-
-    <parameter name="set_id" type="int" description="ID of Dynamixel"/>
-    <parameter name="set_baud_rate" type="int" description="Baud Rate of Dynamixel (mbps)"/>
-    <parameter name="set_return_delay_time" type="int" description="Return Delay Time (ms)"/>
-	<parameter name="set_ccw_angle_limit" type="float" description="Clockwise Angle Limit (angle units)"/>
-	<parameter name="set_cw_angle_limit" type="float" description="Conterclockwise Angle Limit (angle units)"/>
-	<parameter name="set_drive_mode" type="int" description="Dual Mode Settings (0,1)"/>
-	<parameter name="set_limit_temperature" type="float" description="Internal Limit Teperature (celsius)"/>
-	<parameter name="set_limit_voltage" type="float" description="Lowest Limit Voltage (volt)"/>
-	<parameter name="set_highest_voltage" type="float" description="Highest Limit Voltage (volt)"/>
-	<parameter name="set_max_torque" type="float" description="Max Torque (0-1)"/>
-	<parameter name="set_status_return_level" type="int" description="Status Return Level (0,1,2)"/>
-	<parameter name="set_alarm_led" type="int" description="Alarm LED (0-255)"/>
-	<parameter name="set_alarm_shutdown" type="int" description="Alarm Shutdown (0-255)"/>
-	<parameter name="set_torque_enable" type="bool" description="Torque Enable (on/off)"/>
-	<parameter name="set_led" type="bool" description="LED (on/off)"/>
-	<parameter name="set_d_gain" type="int" description="D Gain (0-254)"/>
-	<parameter name="set_i_gain" type="int" description="I Gain (0-254)"/>
-	<parameter name="set_p_gain" type="int" description="P Gain (0-254)"/>
-	<parameter name="set_goal_position" type="float" description="Goal Position (angle units)"/>
-	<parameter name="set_moving_speed" type="float" description="Moving Speed (0-1)"/>
-	<parameter name="set_torque_limit" type="float" description="Torque Limit (0-1)"/>
-    <parameter name="set_lock" type="bool" description="Lock (on/off)"/>
-	<parameter name="set_punch" type="float" description="Punch (0.03125-1)"/>
-
+    
+    <parameter name="adress" type="int" default="0" description="Adress" />
+    <parameter name="value" type="int" default="1" description="Value" />
+    
+    
     <parameter name="reset_mode" type="bool" description="Enter reset mode. In this mode a dynamixel servo can be reseted to factory settings."/>
     <parameter name="scan_mode" type="bool" description="Enter scan mode. In this mode all available id and baud rates are scaned to find missing dynamixels."/>
     <parameter name="quick_scan" type="bool" description="If in scan mode. The module will only scan for servo with ID 0 - 20"/>
     
     <input name="SET" description="if 1 the changes are written to dynaxmiel servos" />
     <input name="ACTIVE" description="ID of the servo to write changes to. If 0 all servos found will be updated with the new settings." />
-
+    
     <output name="RESET_MODE" description="One if the module is in RESET mode" size_x = "1" />
     <output name="CHANGE_MODE" description="One if the module is in CHANGE mode" size_x = "1" />
-
     
-	<module class="DynamixelConfigure" />
+    
+    <module class="DynamixelConfigure" />
     
     <limitation>
     </limitation>
     
-	<author>
-		<name>Birger Johansson</name>
-		<email>m@birgerjohansson.com</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.birgerjohansson.com</homepage>
-	</author>
+    <author>
+        <name>Birger Johansson</name>
+        <email>m@birgerjohansson.com</email>
+        <affiliation>Lund University Cognitive Science</affiliation>
+        <homepage>http://www.birgerjohansson.com</homepage>
+    </author>
     
     <files>
-   		<file>DynamixelConfigure.h</file>
-   		<file>DynamixelConfigure.cc</file>
-   		<file>DynamixelConfigure.ikc</file>
-   		<file>DynamixelComm.h</file>
-   		<file>DynamixelComm.cc</file>
+        <file>DynamixelConfigure.h</file>
+        <file>DynamixelConfigure.cc</file>
+        <file>DynamixelConfigure.ikc</file>
+        <file>DynamixelComm.h</file>
+        <file>DynamixelComm.cc</file>
         <file>DynamixelServo.h</file>
         <file>DynamixelServo.cc</file>
     </files>
