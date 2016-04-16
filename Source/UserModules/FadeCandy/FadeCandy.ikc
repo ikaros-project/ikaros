@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="FadeCandy" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "FadeCandy" to the name of your new module in
+		FadeCandy.cc, FadeCandy.h and FadeCandy.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="FadeCandy"
+			name="FadeCandy"
+		>
+            <channel name="channel1" />
+        </module>
+	</example>
+
+
+	<parameter name="channel" type="element" description="Definition of a channel on  FadeCandy" />
+
+	<input name="*" description="The channels can have arbitrary names" />
+
+	<module class="FadeCandy" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>FadeCandy.h</file>
+   		<file>FadeCandy.cc</file>
+   		<file>FadeCandy.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,36 @@
+<group>
+        <module
+            class="Constant"
+            name = "R"
+            data = "0 1 0 1 0 1 0 1"
+
+        />
+
+        <module
+            class="Constant"
+            name = "G"
+            data = "1 1 1 1 0 0 0 0"
+        />
+
+        <module
+            class="Constant"
+            name = "B"
+            data = "0 0 1 1 1 1 0 0"
+        />
+
+		<module
+			class = "FadeCandy"
+			name = "FadeCandy"
+		>
+            <channel name="LEFT_EYE"  />
+            <channel name="RIGHT_EYE" />
+        </module>
+
+        <connection sourcemodule = "R" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
+        <connection sourcemodule = "G" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
+        <connection sourcemodule = "B" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
+
+
+
+</group>
+ 
