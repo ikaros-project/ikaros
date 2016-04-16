@@ -89,7 +89,7 @@ Socket::~Socket()
 
 
 bool
-Socket::SendRequest(const char * hostname, int port, const char * request)
+Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
     data->sd = -1;
     struct sockaddr_in localAddr, servAddr;
@@ -114,10 +114,18 @@ Socket::SendRequest(const char * hostname, int port, const char * request)
 	
     if (connect(data->sd, (struct sockaddr *) &servAddr, sizeof(servAddr)) <0)
         return false; // cannot connect
-	
-    if (write(data->sd, request, strlen(request)) <0)
-        return false; // cannot send data
-	
+
+    if(size == -1) // default to use size of string
+    {
+        if (write(data->sd, request, strlen(request)) <0)
+            return false; // cannot send data
+	}
+    else
+    {
+        if (write(data->sd, request, size) <0)
+            return false; // cannot send data
+    }
+
     return data->sd != -1;
 }
 
