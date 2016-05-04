@@ -1,7 +1,7 @@
 //
 //	  IKAROS.cc		Kernel code for the IKAROS project
 //
-//    Copyright (C) 2001-2015  Christian Balkenius
+//    Copyright (C) 2001-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -401,7 +401,11 @@ Module::GetClassName()
 const char *
 Module::GetClassPath()
 {
-    return kernel->GetClassPath(this->GetClassName());
+    char * s = create_string(kernel->GetClassPath(this->GetClassName()));
+    unsigned long p = strlen(s)-1;
+    while(s[p] != '/')
+        s[p--] = '\0';
+    return s;
 }
 
 long
