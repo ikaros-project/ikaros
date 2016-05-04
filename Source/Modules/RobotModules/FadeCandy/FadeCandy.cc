@@ -26,9 +26,8 @@
 
 #include "FadeCandy.h"
 #include <unistd.h>
+#include <signal.h>
 
-// use the ikaros namespace to access the math library
-// this is preferred to using <cmath>
 
 using namespace ikaros;
 
@@ -38,12 +37,22 @@ FadeCandy::FadeCandy(Parameter * p):
     Module(p)
 {
     // Starting fade candy server
-/*
-    char * argv[3] = { (char *)command, (char *)sound, NULL };
 
-    if(!vfork())
-        execvp(command, argv);
-*/
+    fcserver_pid = -1;
+    const char * c = GetValue("command");
+    if(strlen(c) != 0)
+    {
+        char * cmd = create_formatted_string("%s%s", GetClassPath(), GetValue("command"));
+
+        printf("Staring: %s\n", cmd);
+
+        char * argv[3] = { cmd, NULL, NULL };
+
+        if((fcserver_pid = fork()) != 0)
+            printf("PID: %d\n", fcserver_pid);
+        else
+            execvp(cmd, argv);
+    }
 
     no_of_channels = 0;
 
@@ -77,8 +86,6 @@ FadeCandy::FadeCandy(Parameter * p):
     int col = 0;
     for (XMLElement * c = ((XMLElement *)(par))->GetContentElement("channel"); c != NULL; c = c->GetNextElement("channel"))
     {
-//	printf("Column: %s\n", c->GetAttribute("name"));
-
         const char * name = c->GetAttribute("name");
         if (name == NULL)
         {
@@ -133,6 +140,7 @@ FadeCandy::Init()
 
 FadeCandy::~FadeCandy()
 {
+    kill(fcserver_pid, -9);
     // delete ***
 }
 
@@ -165,6 +173,6 @@ FadeCandy::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("FadeCandy", &FadeCandy::Create, "Source/UserModules/FadeCandy/");
+static InitClass init("FadeCandy", &FadeCandy::Create, "Source/Modules/RobotModules/FadeCandy/");
 
 

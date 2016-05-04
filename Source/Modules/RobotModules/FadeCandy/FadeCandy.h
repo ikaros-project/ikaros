@@ -53,6 +53,9 @@ public:
     float **	channel_blue;
 
     Socket *    socket;
+
+    pid_t       fcserver_pid;
 };
 
 #endif
+

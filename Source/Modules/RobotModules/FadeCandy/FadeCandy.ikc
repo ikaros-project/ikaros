@@ -3,7 +3,7 @@
 <group name="FadeCandy" description="minimal example module">
 
 	<description type="text">
-        Ikaros modele for FadeCandy that allows Ikaros to control NeoPixels through a FadeCandy (https://github.com/scanlime fadecandy). The module starts the fadecandy server using the name set by command. The binary is assumed to be placed next to the module.
+        Ikaros modele for FadeCandy that allows Ikaros to control NeoPixels through a FadeCandy (https://github.com/scanlime fadecandy). The module starts the fadecandy server using the name set by command. The binary is assumed to be placed next to the module. If command is set to "" (empty string), the server will not be started.
 
         The different channels of NeoPixels are defined by a channel-elemnt that sets the name, channel numer and size. Three inputs for the red, green and blue colours values are created for each channel. If the channel is named X, the input will be named X_RED, X_GREEN and X_BLUE.
 
