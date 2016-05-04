@@ -401,7 +401,7 @@ Module::GetClassName()
 const char *
 Module::GetClassPath()
 {
-    char * s = create_string(kernel->GetClassPath(this->GetClassName()));
+    char * s = create_string(kernel->GetClassPath(GetClassName()));
     unsigned long p = strlen(s)-1;
     while(s[p] != '/')
         s[p--] = '\0';
