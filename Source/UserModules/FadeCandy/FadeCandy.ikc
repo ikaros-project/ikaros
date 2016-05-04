@@ -3,11 +3,11 @@
 <group name="FadeCandy" description="minimal example module">
 
 	<description type="text">
-		Module that can be used as a start for a new module.
-		Simply change all occurrences of "FadeCandy" to the name of your new module in
-		FadeCandy.cc, FadeCandy.h and FadeCandy.ikc (this file), rename the files, and fill
-		in the new code and documentation. This module is located in the
-		UserModules directory.
+        Ikaros modele for FadeCandy that allows Ikaros to control NeoPixels through a FadeCandy (https://github.com/scanlime fadecandy). The module starts the fadecandy server using the name set by command. The binary is assumed to be placed next to the module.
+
+        The different channels of NeoPixels are defined by a channel-elemnt that sets the name, channel numer and size. Three inputs for the red, green and blue colours values are created for each channel. If the channel is named X, the input will be named X_RED, X_GREEN and X_BLUE.
+
+        The data sent uses the default format for FadeCandy where the data for each channel sent to the server is assumed to start at position 4+64*channel*3 within a single package.
 	</description>
 
 	<example description="A simple example">
@@ -15,12 +15,13 @@
 			class="FadeCandy"
 			name="FadeCandy"
 		>
-            <channel name="channel1" />
+            <channel name="LED_RING_1" channel="0" size="12" />
+            <channel name="PIXEL_STRIP" channel="1" size="8" />
         </module>
 	</example>
 
 
-	<parameter name="channel" type="element" description="Definition of a channel on  FadeCandy" />
+	<parameter name="command" type="string" description="Name of the fadecandy server" default="fcserver-osx" />
 
 	<input name="*" description="The channels can have arbitrary names" />
 
@@ -38,6 +39,10 @@
    		<file>FadeCandy.cc</file>
    		<file>FadeCandy.ikc</file>
    </files>
+
+    <limitation>
+        Only works with NeoPixel-arrays with a maximum of 64 pixels each.
+    </limitation>
 
 </group>
 

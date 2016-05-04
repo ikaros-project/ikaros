@@ -45,6 +45,8 @@ public:
     char **     channel_name_blue;
 
     int *       channel_size;
+    int *       channel_LED_size;
+    int *       channel_index;
 
     float **	channel_red;
     float **	channel_green;

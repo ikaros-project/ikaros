@@ -25,6 +25,7 @@
 //
 
 #include "FadeCandy.h"
+#include <unistd.h>
 
 // use the ikaros namespace to access the math library
 // this is preferred to using <cmath>
@@ -36,6 +37,14 @@ using namespace ikaros;
 FadeCandy::FadeCandy(Parameter * p):
     Module(p)
 {
+    // Starting fade candy server
+/*
+    char * argv[3] = { (char *)command, (char *)sound, NULL };
+
+    if(!vfork())
+        execvp(command, argv);
+*/
+
     no_of_channels = 0;
 
     // Count channels *** parnent_group->appended_ekements
@@ -51,6 +60,8 @@ FadeCandy::FadeCandy(Parameter * p):
     channel_name_blue = new char * [no_of_channels];
 
     channel_size = new int [no_of_channels];
+    channel_LED_size = new int [no_of_channels];
+    channel_index = new int [no_of_channels];
 
     for (int i=0; i<no_of_channels; i++)
     {
@@ -58,6 +69,7 @@ FadeCandy::FadeCandy(Parameter * p):
         channel_name_green[i] = NULL;
         channel_name_blue[i] = NULL;
         channel_size[i] = 0;
+        channel_index[i] = i;
     }
 
     // Add input for each column in the parameter list
@@ -78,11 +90,15 @@ FadeCandy::FadeCandy(Parameter * p):
         channel_name_green[col] = create_formatted_string("%s_GREEN", name);
         channel_name_blue[col] = create_formatted_string("%s_BLUE", name);
 
+        const char * s = c->GetAttribute("size");
+        if(s) channel_LED_size[col] = string_to_int(s);
+
+        const char * ix = c->GetAttribute("index");
+        if(ix) channel_index[col] = string_to_int(ix);
+
         AddInput(channel_name_red[col]);
         AddInput(channel_name_green[col]);
         AddInput(channel_name_blue[col]);
-
-// EXTRA DATA; E.G: CHANNEL SIZE?; column_decimals[col] = string_to_int(c->GetAttribute("decimals"), no_of_decimals);
 
         col++;
     }
@@ -94,22 +110,55 @@ void
 FadeCandy::Init()
 {
     socket = new Socket();
+
+    // Check sizes of connected inputs here
+
+    // Get inputs
+
+    channel_red = new float * [no_of_channels];
+    channel_green = new float * [no_of_channels];
+    channel_blue = new float * [no_of_channels];
+
+    for (int i=0; i<no_of_channels; i++)
+    {
+        channel_red[i] = GetInputArray(channel_name_red[i]);
+        channel_green[i] = GetInputArray(channel_name_green[i]);
+        channel_blue[i] = GetInputArray(channel_name_blue[i]);
+
+        channel_size[i] = GetInputSize(channel_name_red[i]); // Should check all have the same size
+    }
 }
 
 
 
 FadeCandy::~FadeCandy()
 {
+    // delete ***
 }
-
-
 
 void
 FadeCandy::Tick()
 {
-    unsigned char request[1024] = { 0, 0, 0, 3, 255, 128, 0};
-    
-    socket-> SendRequest("127.0.0.1", 7890, (char *)request, 7);
+    int len = 4+no_of_channels*64*3;
+    unsigned char request[len];
+    request[0] = 0;
+    request[1] = 0;
+    request[2] = (no_of_channels*64*3) / 256;
+    request[3] = (no_of_channels*64*3) % 256;
+
+    for (int i=0; i<no_of_channels; i++)
+    {
+        int k = 4 + i*64*3;
+        for(int j=0; j<channel_size[i]; j++)
+        {
+            request[k++] = int(255*channel_red[i][j]);
+            request[k++] = int(255*channel_green[i][j]);
+            request[k++] = int(255*channel_blue[i][j]);
+        }
+    }
+
+    socket->SendRequest("127.0.0.1", 7890, (char *)request, len);
+    socket->Close();
 }
 
 
