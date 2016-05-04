@@ -205,6 +205,7 @@ public:
     const char *    GetName();                                // Get the name of the module assigned during creation
     const char *    GetFullName();                            // Get the name of the module with all enclosing groups
     const char *    GetClassName();
+    const char *	GetClassPath();
 
     long            GetTickLength();                           // Get length of tick in ms for real time mode
     long            GetTick();
@@ -426,6 +427,12 @@ public:
     {
         return tick_length;
     }
+    
+    const char *	GetClassPath(const char * class_name)
+    {
+        return classes->GetClassPath(class_name);
+    }
+
     
     void        ListInfo();
     void        ListModulesAndConnections();

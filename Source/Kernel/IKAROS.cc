@@ -398,11 +398,18 @@ Module::GetClassName()
     return class_name;
 }
 
+const char *
+Module::GetClassPath()
+{
+    return kernel->GetClassPath(this->GetClassName());
+}
+
 long
 Module::GetTickLength()
 {
     return kernel->GetTickLength();
 }
+
 
 long
 Module::GetTick()
