@@ -59,7 +59,7 @@ class Socket
 		Socket();
 		~Socket();
 		
-		bool			SendRequest(const char * hostname, int port, const char * request);
+		bool			SendRequest(const char * hostname, int port, const char * request, const long size=-1);
 		bool			Poll(); // return true if data is waiting
 		int				ReadData(char * result, int maxlen, bool fill=false);
 		int				Get(const char * hostname, int port, const char * request, char * result, int maxlen);
