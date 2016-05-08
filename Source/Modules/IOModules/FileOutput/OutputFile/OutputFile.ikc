@@ -72,19 +72,18 @@
 		</module>
 	</example>
 
-	<parameter name="filename" type="string" description="File to write the data to" />
+	<parameter name="filename" type="string" default="output.txt" description="File to write the data to. The name may intclude a %d to automatcially enumerate sequences of files." />
 	<parameter name="decimals" type="int" default="0" description="Number of decimals for all columns" />
+	<parameter name="timestamp" type="bool" default="yes" description="Include time stamp column (T) in file" />
 
 	<parameter name="column" type="element" description="Definition of a column in the output file; name attribute sets the name of the column; decimals sets the number decimals of this column" />
 
+    <input name="newfile" optional="yes" description="If connected, a 1 on the input will close the current file, increase the file number (if %d is in the name) and open a new file." />
+    <input name="write" optional="yes" description="If connected, data will only be written to the file when this input is 1" />
 	<input name="*" description="The module can have any number of inputs; each will generate a column in the output" />
 
 	<module class="OutputFile" />
 
-	<limitation>
-		It should be possible to supress the timing column "T".
-	</limitation>
-	
 	<created>2002</created>
 	
 	<author>

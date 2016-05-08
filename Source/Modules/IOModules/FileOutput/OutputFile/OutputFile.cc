@@ -2,7 +2,7 @@
 //	OutputFile.cc		This file is a part of the IKAROS project
 //						A module for writing to files in column form
 //
-//    Copyright (C) 2001-2007  Christian Balkenius
+//    Copyright (C) 2001-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -28,21 +28,8 @@ using namespace ikaros;
 OutputFile::OutputFile(Parameter * p):
         Module(p)
 {
-    const char * file_name = GetValue("filename");
-    if (file_name == NULL)
-    {
-        Notify(msg_fatal_error, "No output file parameter supplied\n");
-        return;
-    }
-
-    file = fopen(file_name, "wb");
-    if (file == NULL)
-    {
-        Notify(msg_fatal_error, "Could not open output file \"%s\" \n", file_name);
-        return;
-    }
-
-    time = 0;
+    file = NULL;
+    time = 0; 
     no_of_columns = 0;
 
     no_of_decimals = GetIntValue("decimals", 4);
@@ -100,6 +87,10 @@ OutputFile::Init()
         column_data[i] = GetInputArray(column_name[i]);
         column_size[i] = GetInputSize(column_name[i]);
     }
+    
+    newfile = GetInputArray("NEW_FILE");
+    write = GetInputArray("WRITE");
+    index = 0;
 }
 
 
@@ -132,16 +123,39 @@ OutputFile::Create(Parameter * p)
 void
 OutputFile::Tick()
 {
-    if (time == 0)
+    if(newfile && *newfile > 0)
     {
-        fprintf(file, "T/1\t");
-        WriteHeader();
-        fprintf(file, "\n");
+        time = 0;
     }
+    
+    if(time == 0)
+    {
+        if(file != NULL)
+            fclose(file);
+           
+        const char * file_name = GetValue("filename");
+        if (file_name == NULL)
+        {
+            Notify(msg_fatal_error, "No output file parameter supplied\n");
+            return;
+        }
 
-    fprintf(file, "%ld\t", time++);
-    WriteData();
-    fprintf(file, "\n");
+        char * fname = create_formatted_string(file_name, index++);
+
+        file = fopen(fname, "wb");
+        if (file == NULL)
+        {
+            Notify(msg_fatal_error, "Could not open output file \"%s\" \n", file_name);
+            return;
+        }
+
+        WriteHeader();
+    }
+    
+    if(!write || *write > 0)
+        WriteData();
+    
+    time++;
 }
 
 
@@ -149,6 +163,8 @@ OutputFile::Tick()
 void
 OutputFile::WriteHeader()
 {
+    if(timestamp)
+        fprintf(file, "T/1\t");
     for (int i=0; i<no_of_columns; i++)
         if (column_size[i] != 0)
         {
@@ -156,6 +172,7 @@ OutputFile::WriteHeader()
             for (int j=0; j<column_size[i]; j++)
                 fprintf(file, "\t");
         }
+    fprintf(file, "\n");
 }
 
 
@@ -163,9 +180,12 @@ OutputFile::WriteHeader()
 void
 OutputFile::WriteData()
 {
+    if(timestamp)
+        fprintf(file, "%ld\t", time);
     for (int col=0; col<no_of_columns; col++)
         for (int i=0; i<column_size[col]; i++)
             fprintf(file, "%.*f\t", column_decimals[col], column_data[col][i]);
+    fprintf(file, "\n");
 }
 
 
