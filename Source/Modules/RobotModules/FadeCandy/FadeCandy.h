@@ -24,7 +24,6 @@
 #define FadeCandy_
 
 #include "IKAROS.h"
-#include "IKAROS_Socket.h"
 
 
 class FadeCandy: public Module
