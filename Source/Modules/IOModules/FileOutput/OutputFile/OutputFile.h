@@ -1,8 +1,8 @@
 //
 //	OutputFile.h		This file is a part of the IKAROS project
-//							A module for writing to files in column form
+//                      A module for writing to files in column form
 //
-//    Copyright (C) 2001-2002  Christian Balkenius
+//    Copyright (C) 2001-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -36,18 +36,22 @@ public:
     static Module * Create(Parameter * p);
 
     void	Init();
-    void Tick();							// Write the data at the inputs to the file
+    void    Tick();							// Write the data at the inputs to the file
 private:
     FILE	*	file;
     long		time;						// Used to generate the time column in the output file
-
-    int		no_of_columns;
-    int		no_of_decimals;				// No of decimals in output file
-
-    char **	column_name;
-    int	*	column_decimals;
-    int 	*	column_size;
+    int         index;
+    
+    int         no_of_columns;
+    int         no_of_decimals;				// No of decimals in output file
+    bool        timestamp;
+    
+    char **     column_name;
+    int	*       column_decimals;
+    int *       column_size;
     float **	column_data;
+    float *     newfile;
+    float *     write;
 
     void	WriteHeader();						// Iterates over the input_list and writes the single line header to the file
     void	WriteData();						// Iterates over the input_list and writes data to the file
