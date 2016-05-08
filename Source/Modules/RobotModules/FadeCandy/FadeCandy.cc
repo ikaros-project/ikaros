@@ -51,7 +51,10 @@ FadeCandy::FadeCandy(Parameter * p):
         if((fcserver_pid = fork()) != 0)
             printf("PID: %d\n", fcserver_pid);
         else
+        {
             execvp(cmd, argv);
+            _exit (0);
+        }
     }
 
     no_of_channels = 0;
