@@ -38,7 +38,8 @@ public:
     void	Init();
     void    Tick();							// Write the data at the inputs to the file
 private:
-    char *      dirname;
+    char *      dirname;                    // Used internally
+    char *      directory;
     FILE	*	file;
     long		time;						// Used to generate the time column in the output file
     int         index;

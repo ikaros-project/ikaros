@@ -22,6 +22,9 @@
 #include "OutputFile.h"
 
 #include <string.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace ikaros;
 
@@ -94,8 +97,29 @@ OutputFile::Init()
     newfile = GetInputArray("NEWFILE");
     write = GetInputArray("WRITE");
     index = 0;
+    dirname = NULL;
+    timestamp = GetBoolValue("timestamp");
 
-//    dirname =
+    const char * n = GetValue("directory");
+
+    if(n[0])
+    {
+        int ix = 0;
+        dirname = create_formatted_string("%s.%03d", n, ix);
+        DIR * dir = opendir(dirname);
+        while(dir)
+        {
+            closedir(dir);
+            ix++;
+            dirname = create_formatted_string("%s.%03d", n, ix);
+            dir =opendir(dirname);
+        }
+        mkdir(dirname, S_IRUSR | S_IWUSR | S_IXUSR);
+    }
+    else
+    {
+        dirname = create_string("");
+    }
 }
 
 
@@ -145,7 +169,11 @@ OutputFile::Tick()
             return;
         }
 
-        char * fname = create_formatted_string(file_name, index++);
+        char * fname = NULL;
+        if(dirname)
+            fname = create_formatted_string("%s/%s", dirname, create_formatted_string(file_name, index++));
+        else
+            fname = create_formatted_string(file_name, index++);
 
         file = fopen(fname, "wb");
         if (file == NULL)
