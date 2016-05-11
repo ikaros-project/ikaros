@@ -75,7 +75,7 @@
 	<parameter name="filename" type="string" default="output.txt" description="File to write the data to. The name may intclude a %d to automatcially enumerate sequences of files." />
 	<parameter name="decimals" type="int" default="4" description="Number of decimals for all columns" />
 	<parameter name="timestamp" type="bool" default="yes" description="Include time stamp column (T) in file" />
-    <parameter name="directory" type="string" default="" description="Create a new directory for the files each time Ikaros is started using this directory name. Number is added." />
+    <parameter name="directory" type="string" default="" description="Create a new directory for the files each time Ikaros is started using this directory name with a number is added." />
 
 	<parameter name="column" type="element" description="Definition of a column in the output file; name attribute sets the name of the column; decimals sets the number decimals of this column" />
 

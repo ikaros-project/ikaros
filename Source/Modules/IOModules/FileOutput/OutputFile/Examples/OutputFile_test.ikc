@@ -36,6 +36,7 @@
 			class = "OutputFile"
 			name = "OUT"
 			filename = "datafile%0d.txt"
+            directory = "ABC"
 		>
             <column name = "VALUE" />
         </module>
