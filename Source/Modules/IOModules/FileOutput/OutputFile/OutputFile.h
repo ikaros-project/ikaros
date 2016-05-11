@@ -38,6 +38,7 @@ public:
     void	Init();
     void    Tick();							// Write the data at the inputs to the file
 private:
+    char *      dirname;
     FILE	*	file;
     long		time;						// Used to generate the time column in the output file
     int         index;
@@ -50,6 +51,7 @@ private:
     int	*       column_decimals;
     int *       column_size;
     float **	column_data;
+
     float *     newfile;
     float *     write;
 

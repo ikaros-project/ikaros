@@ -32,7 +32,7 @@ OutputFile::OutputFile(Parameter * p):
     time = 0; 
     no_of_columns = 0;
 
-    no_of_decimals = GetIntValue("decimals", 4);
+    no_of_decimals = GetIntValue("decimals");
 
     // Count columns *** parnent_group->appended_ekements
 
@@ -75,6 +75,9 @@ OutputFile::OutputFile(Parameter * p):
 
         col++;
     }
+
+    AddInput("WRITE");
+    AddInput("NEWFILE");
 }
 
 
@@ -88,9 +91,11 @@ OutputFile::Init()
         column_size[i] = GetInputSize(column_name[i]);
     }
     
-    newfile = GetInputArray("NEW_FILE");
+    newfile = GetInputArray("NEWFILE");
     write = GetInputArray("WRITE");
     index = 0;
+
+//    dirname =
 }
 
 

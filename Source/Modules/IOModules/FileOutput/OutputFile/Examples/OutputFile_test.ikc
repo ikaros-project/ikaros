@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This example saves outputs from a signal generator at intermittent times
+    
+    Use -s100 to avoid creating too many files
+	
+-->
+
+<group>
+        <module
+            class = "FunctionGenerator"
+            name = "F"
+            type = "sin"
+            frequency="0.001"
+        />
+
+        <module
+            class = "FunctionGenerator"
+            name = "WriteTrig"
+            type = "ticksquare"
+            basetime = "10"
+            tickduty = "1"
+        />
+
+        <module
+            class = "FunctionGenerator"
+            name = "NewFileTrig"
+            type = "ticksquare"
+            basetime = "100"
+            tickduty = "1"
+        />
+
+		<module
+			class = "OutputFile"
+			name = "OUT"
+			filename = "datafile%0d.txt"
+		>
+            <column name = "VALUE" />
+        </module>
+
+		<connection sourcemodule = "F" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
+		<connection sourcemodule = "WriteTrig" source = "OUTPUT" targetmodule = "OUT" target = "WRITE" delay="4" />
+		<connection sourcemodule = "NewFileTrig" source = "OUTPUT" targetmodule = "OUT" target = "NEWFILE" delay="10" />
+
+</group>
+
