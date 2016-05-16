@@ -27,6 +27,9 @@ function Button(p)
         that.clicked = false;
 	}
     
+    function touch_start(event){down(event);}
+    function touch_end(event){up();}
+    
     this.title = (p.title ? p.title : p.module+'.'+p.parameter);
 
     p.opaque = true;
@@ -82,8 +85,10 @@ function Button(p)
     this.button.onmouseup = up;
     this.value = 0;
     this.clicked = false;
-}
 
+    this.button.addEventListener('touchstart', function(event){event.preventDefault(); touch_start(event)}, false);
+    this.button.addEventListener('touchend', function(event) {event.preventDefault(); touch_end(event);}, false);
+}
 
 
 Button.prototype.Update = function(data)
