@@ -389,6 +389,7 @@ bool DynamixelServo::SetMovingSpeedFormated(int adress, float value)
         default:
             break;
     }
+    return false; // Added by CB
 };
 
 bool DynamixelServo::SetGoalTorqueFormated(int adress, float value)
