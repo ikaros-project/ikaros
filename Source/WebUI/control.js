@@ -247,7 +247,11 @@ function update()
             if(data.state == 3)
                 do_run();
             else if(data.state == 4)
+            {
+                //do_realtime();
+                select_button(4);
                 setTimeout("update();", 100);
+            }
         }
         catch(err)
         {
