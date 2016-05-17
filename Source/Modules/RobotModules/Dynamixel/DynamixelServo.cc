@@ -409,7 +409,7 @@ bool DynamixelServo::SetTorqueLimitFormated(int adress, float value)
 
 void DynamixelServo::getAdditionalInfo()
 {
-    char tempBuf[64];
+//    char tempBuf[64];
     
     // First two bytes is the model number. Hopefully forever.
     
@@ -668,7 +668,7 @@ void readCSV( FILE *fp, std::vector<std::string>& vls )
     if (s.at(s.length()-1) != '\n') // Numbers do not add a newline char at last line of the csv file.
         s += '\n'; // add a \n if there is none at the end of the line.
     
-    int p,q;
+    long int p,q;
     q = -1;
     // loop over columns
     while( 1 ) {
