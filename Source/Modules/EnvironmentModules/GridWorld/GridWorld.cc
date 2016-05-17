@@ -53,10 +53,10 @@ GridWorld::GridWorld(Parameter * p):
 	
     AddOutput("IMAGE");
 
-    x_start	= GetIntValue("x_start", 1);
-    y_start	= GetIntValue("y_start", 1);
+    x_start	= GetIntValue("x_start");
+    y_start	= GetIntValue("y_start");
    
-    mode	= GetIntValueFromList("mode");
+    mode	= GetIntValueFromList("move");
     normalize_coordinate = GetBoolValue("normalize_coordinate");
 }
 
