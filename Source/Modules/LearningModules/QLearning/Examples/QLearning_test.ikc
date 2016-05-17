@@ -54,7 +54,7 @@
         name = "GW"
         x_start = "7"
         y_start = "12"
-        move = "relative_sum"		
+        move = "max"		
     />
 
     <module
