@@ -213,8 +213,8 @@ OutputPNG::WriteGrayPNG(FILE * fileprt, float ** image)
     png_write_end(png_ptr, info_ptr);
     png_destroy_write_struct(&png_ptr, &info_ptr);
 
-    delete image_buffer;
-    delete row_pointer;
+    delete[] image_buffer;
+    delete[] row_pointer;
 }
 
 
@@ -314,8 +314,8 @@ OutputPNG::WriteRGBPNG(FILE * fileprt, float ** r, float ** g, float ** b)
     png_write_end(png_ptr, info_ptr);
     png_destroy_write_struct(&png_ptr, &info_ptr);
 
-    delete image_buffer;
-    delete row_pointer;
+    delete[] image_buffer;
+    delete[] row_pointer;
 
     if(clipping)
 	Notify(msg_warning, "OutputPNG - some color values were not in the required range 0..1. These values werre clipped.");
