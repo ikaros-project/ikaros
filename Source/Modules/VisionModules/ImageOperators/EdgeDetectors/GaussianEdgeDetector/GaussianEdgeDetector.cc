@@ -36,9 +36,9 @@ GaussianEdgeDetector::Create(Parameter * p)
 
 
 GaussianEdgeDetector::GaussianEdgeDetector(Parameter * p):
-        Module(p)
+    Module(p)
 {
-    scale           = GetFloatValue("scale", 1.0);
+    scale           = GetFloatValue("scale");
     filterradius	= int(2*scale+0.5);
     filtersize		= 1+2*filterradius;
 
@@ -52,15 +52,6 @@ GaussianEdgeDetector::GaussianEdgeDetector(Parameter * p):
     AddOutput("dy");
     AddOutput("dGx", filtersize, filtersize);	// The filters used
     AddOutput("dGy", filtersize, filtersize);
-
-    input			= NULL;
-    output			= NULL;
-    maxima			= NULL;
-    orientation		= NULL;
-    dx				= NULL;
-    dy				= NULL;
-    dGx				= NULL;
-    dGy				= NULL;
 }
 
 

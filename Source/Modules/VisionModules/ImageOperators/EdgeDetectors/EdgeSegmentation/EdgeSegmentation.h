@@ -1,6 +1,6 @@
 //
 //	EdgeSegmentation.h         This file is a part of the IKAROS project
-//                             A module to select edges in an image
+//
 
 #ifndef EdgeSegmentation_
 #define EdgeSegmentation_
@@ -11,10 +11,10 @@ class EdgeSegmentation: public Module
 {
 public:
 
-    EdgeSegmentation(Parameter * p);
-    virtual ~EdgeSegmentation();
+    EdgeSegmentation(Parameter * p): Module(p) {}
+    virtual ~EdgeSegmentation() {}
 
-    static Module * Create(Parameter * p);
+    static Module * Create(Parameter * p) { return new EdgeSegmentation(p); }
 
     void        Init();
     void        Tick();
