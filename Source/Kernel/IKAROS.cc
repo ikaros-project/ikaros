@@ -2876,7 +2876,7 @@ Kernel::BuildClassGroup(XMLElement * xml_node, const char * class_name)
 	filename = (filename ? filename : file_exists(classes->GetClassPath(class_name)));
 	if(!filename)
 	{
-		Notify(msg_warning, "Class \"%s\" could not be found.\n", class_name);
+		Notify(msg_warning, "Class ikc for \"%s\" could not be found.\n", class_name);
 		return xml_node;
 	}
 
