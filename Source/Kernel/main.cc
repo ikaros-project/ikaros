@@ -61,6 +61,7 @@ PrintInfo()
     printf("\tikaros [-W#][-p][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
     printf("\t-w#   WebUI\n");
     printf("\t-W#   WebUI: debug mode, list requests\n");
+    printf("\t-R#   WebUI: run automatically\n");
     printf("\t-p    profile\n");
     printf("\t-t    threaded\n");
     printf("\t-T    list thread allocation\n");
@@ -94,8 +95,8 @@ PrintInfo()
     printf("\tThis example will wait for a request from the Web browser at\n");
     printf("\tthe default port (8000).\n");
     printf("\n");
-
 }
+
 
 
 static int
@@ -264,7 +265,7 @@ main(int argc, char *argv[])
 
         // Select UI
 
-        if (!k.Terminate() && (options->GetOption('w') || options->GetOption('W')))
+        if (!k.Terminate() && (options->GetOption('w') || options->GetOption('W') || options->GetOption('R')))
         {
 #ifdef USE_SOCKET
             WebUI webUI(&k);

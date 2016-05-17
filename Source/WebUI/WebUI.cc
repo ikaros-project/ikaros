@@ -709,6 +709,23 @@ WebUI::WebUI(Kernel * kernel)
         k->Notify(msg_verbose, "Setting up WebUI port at %d\n", port);
     }
 	
+    if (k->options->GetOption('R'))
+    {
+        port = string_to_int(k->options->GetArgument('R'), PORT);
+        k->Notify(msg_verbose, "Setting up WebUI port at %d\n", port);
+        if(k->options->GetOption('r'))
+        {
+            ui_state = ui_state_realtime;
+            k->Notify(msg_verbose, "Setting real-time mode.\n");
+        }
+        else
+        {
+            ui_state = ui_state_run;
+            k->Notify(msg_verbose, "Setting run mode.\n");
+        }
+        isRunning = true;
+    }
+	
     if (k->options->GetOption('W'))
     {
         port = string_to_int(k->options->GetArgument('W'), PORT);
