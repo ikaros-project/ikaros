@@ -104,7 +104,7 @@ unsigned long baud_constants[][2] =
 };
 
 
-
+#ifndef MAC_OS_X
 static unsigned long
 baud_rate_constant(unsigned long baud_rate)
 {
@@ -113,7 +113,7 @@ baud_rate_constant(unsigned long baud_rate)
             return baud_constants[i][1];
     return 0;
 }
-
+#endif
 
 
 //
