@@ -1,5 +1,5 @@
 //
-//	CircleDetector3 .h			This file is a part of the IKAROS project
+//	CircleDetector .h			This file is a part of the IKAROS project
 //							
 //
 //    Copyright (C) 2002  Christian Balkenius
@@ -19,21 +19,20 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef CIRCLEDETECTOR3
-#define CIRCLEDETECTOR3
+#ifndef CircleDetector_
+#define CircleDetector_
 
 #include "IKAROS.h"
 
 
-
-class CircleDetector3 : public Module
+class CircleDetector : public Module
 {
 public:
 
-	CircleDetector3 (char * name, Parameter * p);
-	virtual ~CircleDetector3 ();
+	CircleDetector (Parameter * p);
+	virtual ~CircleDetector ();
 	
-	static Module * Create(char * name, Parameter * p);
+	static Module * Create(Parameter * p) { return new CircleDetector(p); }
 
 	void		SetSizes();
 	void 		Init();
@@ -69,3 +68,4 @@ public:
 
 
 #endif
+

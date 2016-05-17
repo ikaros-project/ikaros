@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<group>
+
+    <module
+        class = "InputRawImage"
+        name = "IN"
+        size_x = "63"
+        size_y = "63"
+        filename = "b%d.raw"
+        filecount = "10"
+        repeats = "2"
+        iterations = "100" 
+    /> 
+
+    <module
+        class = "GaussianEdgeDetector"
+        name = "Gaussian"
+        scale = "1"
+    />
+
+
+    <module
+        class = "CircleDetector"
+        name = "CD"
+        threshold = "10000"
+    /> 
+
+    <connection sourcemodule="IN" source = "OUTPUT" targetmodule ="CD" target = "INPUT" />
+    <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "Gaussian" target = "INPUT" delay="0" />
+
+    <view name="Edges">
+        <object class = "Image"  module="IN" source="OUTPUT" x="0" y="0" h="2" w="2" />
+        <object class="Image" module="Gaussian" source="dGx" x="3" y="0"  />
+        <object class="Image" module="Gaussian" source="dGy" x="3" y="1"  />
+
+        <object class="Image" module="Gaussian" source="ORIENTATION" x="4" y="0"  h="2" w="2" />
+
+        <object class="Image" module="Gaussian" source="OUTPUT" x="0" y="2"  h="2" w="2" />
+    </view>
+
+
+    <view name = "Primary">
+        <object class = "Image"  module="IN" source="OUTPUT" x="2" y="2" h="2" w="2" />
+        <object class = "Image"  module="CD" source="DX" x="0" y="0" h="2" w="2" />
+        <object class = "Image"  module="CD" source="DY" x="2" y="0" h="2" w="2" />
+        <object class = "Image"  module="CD" source="G" x="4" y="0" h="2" w="2" />
+        <object class = "Image"  module="CD" source="EDGE" x="4" y="2" h="2" w="2" />
+        <object class = "Image"  module="CD" source="ACCUMULATOR" x="0" y="2" h="2" w="2" />
+
+        <object class = "Image"  module="CD" source="IMAGE" x="2" y="4" h="2" w="2" />
+
+        <object class = "BarGraph"  module="CD" source="HISTX" x="0" y="4" h="1" w="2" draw_mark ="7" direction="vertical"/>
+        <object class = "BarGraph"  module="CD" source="HISTX" x="0" y="5" h="1" w="2" draw_mark ="7" direction="horizontal"/>
+    </view>
+
+</group>
+

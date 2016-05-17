@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="EdgeSegmentation" description="finds edges">
+
+	<description type="text">
+		Module that selects edges from an edge image (optionally with orientation).
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="EdgeSegmentation"
+			name="EdgeSegmentation"
+		/>
+	</example>
+    
+    <parameter name="threshold" type="float" default="0.5" description="Edge threshold. Edges under this intesity are removed." />
+    <parameter name="max_edges" type="int" default="1000" description="Maximum number of edges" />
+
+	<input name="INPUT" description="The input" />
+	<input name="ORIENTATION" description="The orientation input (e.g. from GaussianEdgeDetector)" />
+
+	<output name="OUTPUT" description="The output with selected edges" />
+	<output name="EDGE_LIST" description="List with edge segments and their orientation" />
+	<output name="EDGE_LIST_SIZE" description="Size of the edge list" size="1" />
+
+
+	<module class="EdgeSegmentation" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EdgeSegmentation.h</file>
+   		<file>EdgeSegmentation.cc</file>
+   		<file>EdgeSegmentation.ikc</file>
+   </files>
+
+</group>

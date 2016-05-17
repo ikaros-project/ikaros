@@ -1,5 +1,5 @@
 //
-//	CircleDetector3 .cc		This file is a part of the IKAROS project
+//	CircleDetector .cc		This file is a part of the IKAROS project
 //								A module to filter image with a kernel
 //
 //    Copyright (C) 2002  Christian Balkenius
@@ -21,26 +21,17 @@
 
 //#define DEBUG
 
-#include "CircleDetector3.h"
+#include "CircleDetector.h"
 #include "ctype.h"
 #include "IKAROS_Utils.h"
 
 
 #include "EyeTracker.h"
 
+using namespace ikaros;
 
-
-
-Module *
-CircleDetector3 ::Create(char * name, Parameter * p)
-{ 
-	return new CircleDetector3 (name, p);
-}
-
-
-
-CircleDetector3 ::CircleDetector3 (char * name, Parameter * p):
-	Module(name)
+CircleDetector ::CircleDetector (Parameter * p):
+	Module(p)
 {
 	AddInput("INPUT");
 	AddOutput("OUTPUT");
@@ -66,13 +57,13 @@ CircleDetector3 ::CircleDetector3 (char * name, Parameter * p):
 	dGx			= NULL;
 	dGy			= NULL;
 	
-	threshold		=	GetFloatValue(p, "threshold", 2000.0);
+	threshold		=	GetFloatValue("threshold", 2000.0);
 }
 
 
 
 void
-CircleDetector3 ::SetSizes()
+CircleDetector ::SetSizes()
 {
 	int sx = GetInputSizeX("INPUT");				
 	int sy = GetInputSizeY("INPUT");				
@@ -93,7 +84,7 @@ CircleDetector3 ::SetSizes()
 
 
 void
-CircleDetector3 ::Init()
+CircleDetector ::Init()
 {
 	inputsize_x	 	= GetInputSizeX("INPUT");
 	inputsize_y	 	= GetInputSizeY("INPUT");
@@ -110,11 +101,11 @@ CircleDetector3 ::Init()
 	edge				= GetOutputMatrix("EDGE");
 	accumulator		= GetOutputMatrix("ACCUMULATOR");
 	
-	hist_x			= GetOutputData("HISTX");
-	hist_dx			= GetOutputData("HISTDX");
+	hist_x			= GetOutputArray("HISTX");
+	hist_dx			= GetOutputArray("HISTDX");
 	
-	dGx				= CreateMatrix(7, 7);
-	dGy				= CreateMatrix(7, 7);
+	dGx				= create_matrix(7, 7);
+	dGy				= create_matrix(7, 7);
 	
 	// Initialize Gaussian Filters
 	
@@ -129,19 +120,19 @@ CircleDetector3 ::Init()
 			dGy[j][i] = -2*y*exp(-(x*x + y*y));
 		}
 		
-	EyeTracker_Init(inputsize_x, inputsize_y, 3, 0.5, 5, 40, 5, 15, 2); // ********************
+	EyeTracker_Init(inputsize_x, inputsize_y, 2, 0.5, 5, 40, 5, 15, 2); // ********************
 }
 
 
 
-CircleDetector3 ::~CircleDetector3 ()
+CircleDetector ::~CircleDetector ()
 {
 }
 
 
 
 void
-CircleDetector3 ::Tick()
+CircleDetector ::Tick()
 {
 	for(int j =0; j<inputsize_y; j++)
 		for(int i=0; i<inputsize_x; i++)
@@ -176,4 +167,5 @@ CircleDetector3 ::Tick()
 }
 
 
+static InitClass init("CircleDetector", &CircleDetector::Create, "Source/Modules/VisionModules/CircleDetector/");
 

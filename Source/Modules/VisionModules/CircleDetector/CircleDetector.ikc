@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="CircleDetector" description="find circles in an image">
+
+	<description type="text">
+        Module that finds circles.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="CircleDetector"
+			name="CircleDetector"
+			threshold = "2000"
+		/>
+	</example>
+
+	<parameter name="threshold" type="float" default="2000" description="The radius of the focus" />
+
+	<input name="INPUT" description="The input input" />
+
+	<output name="OUTPUT" description="The output image" />
+	<output name="IMAGE" description="The output image" />
+	<output name="DX" description="The output image" />
+	<output name="DY" description="The output image" />
+	<output name="G" description="The output image" />
+	<output name="EDGE" description="The output image" />
+	<output name="ACCUMULATOR" description="The output image" />
+
+	<output name="HISTDX" description="The output image" size="15" />
+	<output name="HISTDX" description="The output image" size="15" />
+
+	<module class="CircleDetector" />
+
+	<created>2003</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>AttentionFocus.h</file>
+   		<file>AttentionFocus.cc</file>
+   		<file>AttentionFocus.ikc</file>
+   </files>
+
+</group>
