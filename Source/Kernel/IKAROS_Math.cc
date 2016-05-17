@@ -1591,7 +1591,7 @@ namespace ikaros
         }
         for(int i=0; i<size; i++)
             pivots[i] = p[i];
-        delete p;
+        delete[] p;
     }
 
 
@@ -1791,7 +1791,7 @@ namespace ikaros
                 a[k][j] *= ajj;
         }
         
-        delete t;
+        delete[] t;
         return true;
     }
     
@@ -1837,7 +1837,7 @@ namespace ikaros
                 swap_columns(a, j, jp, n);
         }
         
-        delete t;
+        delete[] t;
         return true;
     }
     
@@ -2003,7 +2003,7 @@ namespace ikaros
         copy_matrix(a, b, size, size);
         lu(a, size, size, NULL, pivots);
         bool r = inv_lu(a, pivots, size);
-        delete pivots;
+        delete[] pivots;
         return r;
     }
 
@@ -2236,7 +2236,7 @@ namespace ikaros
         float eps = 1e-16;          // error threshold (e.g. 1.e-6)
         const float tol = 1e-16;    // tolerance threshold)
      
-        int i,j,k,l,l1,iter;
+        int i,j,k,l=0,l1,iter;
         double c,f,h,s,y,z;
         
         int retval = 0;
