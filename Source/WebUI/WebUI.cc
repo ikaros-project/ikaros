@@ -97,7 +97,7 @@ SendColorJPEGbase64(ServerSocket * socket, float * r, float * g, float * b, int 
 }
 
 
-
+/*
 static bool
 SendGrayJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey) // Compress image to jpg and send from memory after base64 encoding
 {
@@ -116,7 +116,7 @@ SendGrayJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey) // Co
     free(jpeg_base64);
     return ok;
 }
-
+*/
 
 
 static bool
@@ -178,7 +178,7 @@ SendColorBMPbase64(ServerSocket * socket, float * r, float * g, float * b, int s
 }
 
 
-
+/*
 static bool
 SendTextData(ServerSocket * socket, float ** matrix, int sizex, int sizey)
 {
@@ -198,7 +198,7 @@ SendTextData(ServerSocket * socket, float ** matrix, int sizex, int sizey)
     
     return true;
 }
-
+*/
 
 
 static bool
@@ -1374,9 +1374,9 @@ WebUI::HandleHTTPRequest()
 		socket->SendHTTPHeader(&header);
         socket->Send("OK\n");
         
-		delete module;
-        delete output;
-        delete type;
+		delete[] module;
+        delete[] output;
+        delete[] type;
     }
 
     else if (strstart(uri, "/uses"))
@@ -1392,8 +1392,8 @@ WebUI::HandleHTTPRequest()
 		socket->SendHTTPHeader(&header);
         socket->Send("OK\n");
         
-		delete module;
-        delete source;
+		delete [] module;
+        delete [] source;
     }
 
     else if (strstart(uri, "/control/"))
