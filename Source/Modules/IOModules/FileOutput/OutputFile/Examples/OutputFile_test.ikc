@@ -3,6 +3,7 @@
 <!--
 
 	This example saves outputs from a signal generator at intermittent times
+    It creates a new directory named "ABC" each time Ikaros starts to oavoid overwriting files
     
     Use -s100 to avoid creating too many files
 	
@@ -46,4 +47,5 @@
 		<connection sourcemodule = "NewFileTrig" source = "OUTPUT" targetmodule = "OUT" target = "NEWFILE" delay="10" />
 
 </group>
+
 
