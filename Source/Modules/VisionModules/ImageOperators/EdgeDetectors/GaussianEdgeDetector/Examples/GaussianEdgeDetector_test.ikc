@@ -29,7 +29,6 @@
 			scale = "1"
 		/>
 
-
 		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian10" target = "INPUT" delay="0" />
 		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian5" target = "INPUT" delay="0" />
 		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian2" target = "INPUT" delay="0" />
