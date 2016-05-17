@@ -124,8 +124,8 @@ void FaceObject::findMax()
 
 void FaceObject::posterior(combine_mode mode)
 {
+    double maxAct;
 	switch(mode){
-		double maxAct;
 		case mean_shift:
 		case mpi_search:
 		case maximum:
