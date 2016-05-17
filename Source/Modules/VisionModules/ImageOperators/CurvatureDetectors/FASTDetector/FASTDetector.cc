@@ -66,7 +66,7 @@ FASTDetector::Tick()
     *corner_count = float(numcorners);
     
     free(points);
-    delete data;
+    delete [] data;
 }
 
 
