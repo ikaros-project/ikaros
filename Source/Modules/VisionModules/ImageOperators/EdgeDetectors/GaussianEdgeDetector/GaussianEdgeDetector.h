@@ -26,7 +26,7 @@ public:
     int		outputsize_x;
     int		outputsize_y;
 
-    float		scale;
+    float   scale;
     int		filtersize;
     int		filterradius;
 
@@ -44,3 +44,4 @@ public:
 
 
 #endif
+

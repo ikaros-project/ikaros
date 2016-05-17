@@ -13,7 +13,7 @@
 		/>
 	</example>
 
-	<parameter name="scale" type="float" description="Scale of the filter" />
+	<parameter name="scale" type="float" default="1.0" description="Scale of the filter" />
 
 	<input name="INPUT" description="The input" />
 
