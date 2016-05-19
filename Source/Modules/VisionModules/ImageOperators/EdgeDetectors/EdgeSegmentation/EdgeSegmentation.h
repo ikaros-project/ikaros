@@ -19,16 +19,21 @@ public:
     void        Init();
     void        Tick();
 
-    int			inputsize_x;
-    int			inputsize_y;
+    int         max_edges;
+    int         grid;
+    float       threshold;
+    bool        normalize;
 
-    int			outputsize_x;
-    int			outputsize_y;
+    int			size_x;
+    int			size_y;
 
     float **	input;
+    float **	dx;
+    float **	dy;
     float **	output;
 
     float **	edge_list;
+    float **	edge_elements;
     float *     edge_list_size;
 };
 

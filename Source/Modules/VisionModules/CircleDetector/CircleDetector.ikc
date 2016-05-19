@@ -10,24 +10,22 @@
 		<module
 			class="CircleDetector"
 			name="CircleDetector"
-			threshold = "2000"
+			min_radius  = "20"
+			max_radius  = "100"
 		/>
 	</example>
 
-	<parameter name="threshold" type="float" default="2000" description="The radius of the focus" />
+	<parameter name="min_radius" type="float" default="20" description="The minimum radius of the cirlce (pixels)" />
+	<parameter name="max_radius" type="float" default="100" description="The maximum radius of the cirlce (pixels)" />
 
-	<input name="INPUT" description="The input input" />
+	<input name="EDGE_LIST" description="A list of edges" />
+	<input name="EDGE_LIST_SIZE" description="Number of edges in the list" />
 
-	<output name="OUTPUT" description="The output image" />
-	<output name="IMAGE" description="The output image" />
-	<output name="DX" description="The output image" />
-	<output name="DY" description="The output image" />
-	<output name="G" description="The output image" />
-	<output name="EDGE" description="The output image" />
-	<output name="ACCUMULATOR" description="The output image" />
-
+	<output name="HISTX" description="The output image" size="15" />
 	<output name="HISTDX" description="The output image" size="15" />
-	<output name="HISTDX" description="The output image" size="15" />
+
+	<output name="POSITION" description="The position of the found circle" size="2" />
+	<output name="DIAMETER" description="The diameter of the circle" size="1" />
 
 	<module class="CircleDetector" />
 
@@ -47,3 +45,5 @@
    </files>
 
 </group>
+
+ 

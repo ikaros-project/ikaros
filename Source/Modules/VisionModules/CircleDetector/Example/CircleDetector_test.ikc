@@ -15,43 +15,41 @@
     <module
         class = "GaussianEdgeDetector"
         name = "Gaussian"
-        scale = "1"
+        scale = "3"
     />
 
+    <module 
+        class = "EdgeSegmentation"
+        name = "Edges"
+        threshold = "0.1"
+    />
 
-    <module
+     <module 
         class = "CircleDetector"
-        name = "CD"
-        threshold = "10000"
-    /> 
+        name = "Circle"
+        min_radius = "3"
+        max_radius = "25"
+    />
 
-    <connection sourcemodule="IN" source = "OUTPUT" targetmodule ="CD" target = "INPUT" />
     <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "Gaussian" target = "INPUT" delay="0" />
+    
+    <connection sourcemodule = "Gaussian" source = "OUTPUT" targetmodule = "Edges" target = "INPUT" delay="0" />
+    <connection sourcemodule = "Gaussian" source = "dx" targetmodule = "Edges" target = "DX" delay="0" />
+    <connection sourcemodule = "Gaussian" source = "dy" targetmodule = "Edges" target = "DY" delay="0" />
 
-    <view name="Edges">
-        <object class = "Image"  module="IN" source="OUTPUT" x="0" y="0" h="2" w="2" />
-        <object class="Image" module="Gaussian" source="dGx" x="3" y="0"  />
-        <object class="Image" module="Gaussian" source="dGy" x="3" y="1"  />
+    <connection sourcemodule = "Edges" source = "EDGE_LIST" targetmodule = "Circle" target = "EDGE_LIST" delay="0" />
+    <connection sourcemodule = "Edges" source = "EDGE_LIST_SIZE" targetmodule = "Circle" target = "EDGE_LIST_SIZE" delay="0" />
 
-        <object class="Image" module="Gaussian" source="ORIENTATION" x="4" y="0"  h="2" w="2" />
+    <view name = "V1">
+        <object class="Image" module="IN" source="OUTPUT" x="0" y="0" h="2" w="2" />
+        <object class="Path" module="Edges" source="EDGE_ELEMENTS" x="0" y="0" h="2" w="2" />
+        <object class="Cross" module="Circle" source="POSITION" x="0" y="0" h="2" w="2" />
 
-        <object class="Image" module="Gaussian" source="OUTPUT" x="0" y="2"  h="2" w="2" />
+        <object class="Image" module="Gaussian" source="OUTPUT" x="2" y="0"  h="2" w="2" />
+        <object class="Image" module="Edges" source="OUTPUT" x="4" y="0"  h="2" w="2" />
+
+        <object class="Slider" module="Edges" parameter="threshold" min="0" max="1" x="4" y="2"  h="1" w="1" />
+        <object class="Slider" module="Edges" parameter="grid" max="10" x="5" y="2"  h="1" w="1" />
     </view>
-
-
-    <view name = "Primary">
-        <object class = "Image"  module="IN" source="OUTPUT" x="2" y="2" h="2" w="2" />
-        <object class = "Image"  module="CD" source="DX" x="0" y="0" h="2" w="2" />
-        <object class = "Image"  module="CD" source="DY" x="2" y="0" h="2" w="2" />
-        <object class = "Image"  module="CD" source="G" x="4" y="0" h="2" w="2" />
-        <object class = "Image"  module="CD" source="EDGE" x="4" y="2" h="2" w="2" />
-        <object class = "Image"  module="CD" source="ACCUMULATOR" x="0" y="2" h="2" w="2" />
-
-        <object class = "Image"  module="CD" source="IMAGE" x="2" y="4" h="2" w="2" />
-
-        <object class = "BarGraph"  module="CD" source="HISTX" x="0" y="4" h="1" w="2" draw_mark ="7" direction="vertical"/>
-        <object class = "BarGraph"  module="CD" source="HISTX" x="0" y="5" h="1" w="2" draw_mark ="7" direction="horizontal"/>
-    </view>
-
 </group>
 

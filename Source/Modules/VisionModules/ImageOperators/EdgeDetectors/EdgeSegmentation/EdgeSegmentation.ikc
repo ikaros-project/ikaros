@@ -13,14 +13,18 @@
 		/>
 	</example>
     
-    <parameter name="threshold" type="float" default="0.5" description="Edge threshold. Edges under this intesity are removed." />
-    <parameter name="max_edges" type="int" default="1000" description="Maximum number of edges" />
+    <parameter name="threshold" type="float" default="0.1" description="Edge threshold. Edges under this intesity are removed." />
+    <parameter name="max_edges" type="int" default="1000" description="Maximum number of edges." />
+    <parameter name="grid" type="int" default="1" description="Distance between edge points." />
+    <parameter name="normalize" type="bool" default="yes" description="Normalize edge vector length." />
 
 	<input name="INPUT" description="The input" />
-	<input name="ORIENTATION" description="The orientation input (e.g. from GaussianEdgeDetector)" optional="yes" />
+	<input name="DX" description="The orientation input (e.g. from GaussianEdgeDetector)" optional="no" />
+	<input name="DY" description="The orientation input (e.g. from GaussianEdgeDetector)" optional="no" />
 
 	<output name="OUTPUT" description="The output with selected edges" size_set="INPUT" />
 	<output name="EDGE_LIST" description="List with edge segments and their orientation" size_x="4" size_param_y="max_edges" />
+	<output name="EDGE_ELEMENTS" description="List with edge elements for drawing" size_x="4" size_param_y="max_edges" />
 	<output name="EDGE_LIST_SIZE" description="Size of the edge list" size="1" />
 
 

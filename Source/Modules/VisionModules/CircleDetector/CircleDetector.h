@@ -29,41 +29,25 @@ class CircleDetector : public Module
 {
 public:
 
-	CircleDetector (Parameter * p);
-	virtual ~CircleDetector ();
+	CircleDetector (Parameter * p) : Module(p) {}
+	virtual ~CircleDetector () {}
 	
 	static Module * Create(Parameter * p) { return new CircleDetector(p); }
 
-	void		SetSizes();
-	void 		Init();
-	
+	void 		Init();	
 	void 		Tick();
 
-	float		threshold;
+    float       min_radius;
+    float       max_radius;
 
-	int		inputsize_x;
-	int		inputsize_y;
-	
-	int		outputsize_x;
-	int		outputsize_y;
-	
-	float **	input;
-	float	**	output;
-	float	**	image;
-	float **	dx;
-	float **	dy;
-	float **	g;
-	float **	edge;
-	float **	accumulator;
-	
-	float	**	dGx;	// Derivate gaussian filters
-	float	**	dGy;
-	
+	float **	edge_list;
+	float *     edge_list_size;
+
+    float *     position;
+    float *     diameter;
+    
 	float	*	hist_dx;
 	float	*	hist_x;
-	
-	float		estimated_x;
-	float		estimated_y;
 };
 
 
