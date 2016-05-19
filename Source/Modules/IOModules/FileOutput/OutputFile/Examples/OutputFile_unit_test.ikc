@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Test with huge input
+	
+-->
+
+<group>
+        <module
+            class = "Constant"
+            name = "Data"
+            outputsize = "2000"
+            data = "0"
+        />
+
+		<module
+			class = "OutputFile"
+			name = "OUT"
+			filename = "hugefile.txt"
+		>
+            <column name = "VALUE" />
+        </module>
+
+		<connection sourcemodule = "Data" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
+</group>
+
+
