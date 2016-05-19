@@ -79,8 +79,8 @@ OutputFile::OutputFile(Parameter * p):
         col++;
     }
 
-    AddInput("WRITE");
-    AddInput("NEWFILE");
+    AddInput("WRITE", true);
+    AddInput("NEWFILE", true);
 }
 
 
@@ -170,7 +170,7 @@ OutputFile::Tick()
         }
 
         char * fname = NULL;
-        if(dirname)
+        if(dirname && dirname[0] != '\0')
             fname = create_formatted_string("%s/%s", dirname, create_formatted_string(file_name, index++));
         else
             fname = create_formatted_string(file_name, index++);
