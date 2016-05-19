@@ -26,7 +26,7 @@ using namespace ikaros;
 
 
 static float **
-sort_rows(float ** a, int col, int size_x, int size_y)
+sort_rows(float ** a, int col, int size_x, int size_y) // Should ne moved to math
 {
     int i , j;
     float * t = create_array(size_x);

@@ -1,8 +1,7 @@
 //
 //	CircleDetector .cc		This file is a part of the IKAROS project
-//								A module to filter image with a kernel
 //
-//    Copyright (C) 2002  Christian Balkenius
+//    Copyright (C) 2002-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -19,152 +18,277 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-//#define DEBUG
-
 #include "CircleDetector.h"
-#include "ctype.h"
-#include "IKAROS_Utils.h"
-
-
-#include "EyeTracker.h"
 
 using namespace ikaros;
-
-CircleDetector ::CircleDetector (Parameter * p):
-	Module(p)
-{
-	AddInput("INPUT");
-	AddOutput("OUTPUT");
-	AddOutput("IMAGE");
-	AddOutput("DX");
-	AddOutput("DY");
-	AddOutput("G");
-	AddOutput("EDGE");
-	AddOutput("ACCUMULATOR");
-
-	AddOutput("HISTDX", 15);
-	AddOutput("HISTX", 15);
-
-	input			= NULL;
-	output		= NULL;
-	image		= NULL;
-	dx			= NULL;
-	dy			= NULL;
-	g			= NULL;
-	edge			= NULL;
-	accumulator	= NULL;
-	
-	dGx			= NULL;
-	dGy			= NULL;
-	
-	threshold		=	GetFloatValue("threshold", 2000.0);
-}
-
-
-
-void
-CircleDetector ::SetSizes()
-{
-	int sx = GetInputSizeX("INPUT");				
-	int sy = GetInputSizeY("INPUT");				
-	if(sx != unknown_size && sy != unknown_size)
-	{
-		SetOutputSize("IMAGE", sx, sy);
-		SetOutputSize("OUTPUT", sx-4, sy-4);
-		SetOutputSize("DX", sx-4, sy-4);
-		SetOutputSize("DY", sx-4, sy-4);
-		SetOutputSize("G", sx-4, sy-4);
-		SetOutputSize("EDGE", sx-4, sy-4);
-		SetOutputSize("ACCUMULATOR", sx-4, sy-4);
-		
-		printf(">>> %d <###\n", sy-2);fflush(NULL);
-	}
-}
-
 
 
 void
 CircleDetector ::Init()
 {
-	inputsize_x	 	= GetInputSizeX("INPUT");
-	inputsize_y	 	= GetInputSizeY("INPUT");
-	
-	outputsize_x	 	= GetOutputSizeX("OUTPUT");
-	outputsize_y	 	= GetOutputSizeY("OUTPUT");
+    Bind(min_radius, "min_radius");
+    Bind(max_radius, "max_radius");
+    
+    
+    edge_list       = GetInputMatrix("EDGE_LIST");
+    edge_list_size  = GetInputArray("EDGE_LIST_SIZE");
 
-	input				= GetInputMatrix("INPUT");
-	output			= GetOutputMatrix("OUTPUT");
-	image			= GetOutputMatrix("IMAGE");
-	dx				= GetOutputMatrix("DX");
-	dy				= GetOutputMatrix("DY");
-	g				= GetOutputMatrix("G");
-	edge				= GetOutputMatrix("EDGE");
-	accumulator		= GetOutputMatrix("ACCUMULATOR");
-	
+	position		= GetOutputArray("POSITION");
+	diameter		= GetOutputArray("DIAMETER");
+
 	hist_x			= GetOutputArray("HISTX");
 	hist_dx			= GetOutputArray("HISTDX");
-	
-	dGx				= create_matrix(7, 7);
-	dGy				= create_matrix(7, 7);
-	
-	// Initialize Gaussian Filters
-	
-	float Gsize = 0.5;
-	
-	for(int j=0; j<7; j++)
-		for(int i=0; i<7; i++)
-		{
-			float x = Gsize * float(i-3);
-			float y = Gsize * float(j-3);
-			dGx[j][i] = -2*x*exp(-(x*x + y*y));
-			dGy[j][i] = -2*y*exp(-(x*x + y*y));
-		}
-		
-	EyeTracker_Init(inputsize_x, inputsize_y, 2, 0.5, 5, 40, 5, 15, 2); // ********************
-}
-
-
-
-CircleDetector ::~CircleDetector ()
-{
 }
 
 
 
 void
-CircleDetector ::Tick()
+CircleDetector::Tick()
 {
-	for(int j =0; j<inputsize_y; j++)
-		for(int i=0; i<inputsize_x; i++)
-			image[j][i] = input[j][i];
+    int size_x = 500;
+    int size_y = 500;
+    float ** g = create_matrix(500, 500); // scale appropriately later; allocate once
+    
+	float estimated_x, estimated_y;
+	int i,j;
+    int edgeCount = int(*edge_list_size);
 
-	float ex, ey;
-	
-	int intimage[128*128];
-	
-//	for(int i=0; i<128; i++)
-//		intimage[i] = &a[i*128];
+    estimated_x = 0;
+    estimated_y = 0;
 
-	int p=0;
-	for(int j =0; j<inputsize_y; j++)
-		for(int i=0; i<inputsize_x; i++)
-			intimage[p++] =int(input[j][i]);
-	
-	EyeTracker_FindIris(intimage, &ex, &ey);
-	
-	printf("%4.1f %4.1f\n", ex, ey);
-
-	// Draw results
-
-	if(ex > 0 && ex < outputsize_x && ey > 0 && ey < outputsize_y)
+	if(edgeCount < 2)
 	{
-		for(int j =0; j<inputsize_y; j++)
-			image[j][3+int(ex+0.5)] = 255-image[j][-3+int(ex+0.5)];
-
-		for(int i=0; i<inputsize_x; i++)
-			image[3+int(ey+0.5)][i] = 255-image[-3+int(ey+0.5)][i];
+		return;
 	}
+	
+	// Test distance between points
+	
+	long intCnt = 0;
+	for(i=0; i<edgeCount; i++)
+		for(j=0; j<edgeCount; j++)
+		{
+			float dist = sqrt(sqr(edge_list[i][0] - edge_list[j][0]) + sqr(edge_list[i][1] - edge_list[j][1]));
+			if(i != j && dist < 2*max_radius && dist > 2*min_radius)
+			{
+				// Calculate intersection point
+				
+				float x0 = edge_list[i][0];
+				float y0 = edge_list[i][1];
+				float a0 = edge_list[i][2];
+				float b0 = edge_list[i][3];
+
+				float x1 = edge_list[j][0];
+				float y1 = edge_list[j][1];
+				float a1 = edge_list[j][2];
+				float b1 = edge_list[j][3];
+				
+				if(-a0*b1 + b0*a1 != 0)
+				{
+					float ix = x0 + (a0*(-y0*a1+y1*a1+b1*x0-b1*x1))/(-a0*b1 + b0*a1);
+					float iy = y0 + (b0*(-y0*a1+y1*a1+b1*x0-b1*x1))/(-a0*b1 + b0*a1);
+				
+					// Reject intersection on the wrong side of edges
+					
+					bool reject = false;
+					
+					if(a0 < 0 && ix > x0)
+						reject = true;
+
+					if(a0 > 0 && ix < x0)
+						reject = true;
+					
+					if(a1 < 0 && ix > x1)
+						reject = true;
+
+					if(a1 > 0 && ix < x1)
+						reject = true;
+					
+					if(b0 < 0 && iy > y0)
+						reject = true;
+
+					if(b0 > 0 && iy < y0)
+						reject = true;
+					
+					if(b1 < 0 && iy > y1)
+						reject = true;
+
+					if(b1 > 0 && iy < y1)
+						reject = true;
+					
+					float tilesize = 10;
+					if(!reject && 0 < ix && ix < size_x && 0 < iy && iy < size_y)
+					{
+						int dx, dy;
+						float increment = (a0*a0+b0*b0)*(a1*a1+b1*b1);
+						for(dx=0; dx<tilesize; dx++)
+							for(dy=0; dy<tilesize; dy++)
+								g[(int)clip(iy+dy, 0, float(size_y-1))][(int)clip(ix+dx, 0, float(size_x-1))] += increment;
+
+						intCnt++;
+					}
+				}
+			}
+		}
+		
+	// Find maximum
+	
+	float e = 0;
+	for(j=0; j<size_y; j++)
+		for(i=0; i<size_x; i++)
+			if(g[j][i] > e)
+			{
+				e = g[j][i];
+				estimated_x = i;
+				estimated_y = j;
+			}
+
+	estimated_x -= 3;   // edge correction - should be removed
+	estimated_y -= 3;
+	
+	// Recalculate estimation
+	
+	float ex = 0;
+	float ey = 0;
+	float ww = 0;
+	
+	for(i=0; i<edgeCount; i++)
+		for(j=0; j<edgeCount; j++)
+		{
+			float dist = sqrt(sqr(edge_list[i][0] - edge_list[j][0]) + sqr(edge_list[i][1] - edge_list[j][1]));
+			if(i != j && dist < 2*max_radius && dist > 2*min_radius)
+			{
+				// Calculate intersection point
+				
+				float x0 = edge_list[i][0];
+				float y0 = edge_list[i][1];
+				float a0 = edge_list[i][2];
+				float b0 = edge_list[i][3];
+
+				float x1 = edge_list[j][0];
+				float y1 = edge_list[j][1];
+				float a1 = edge_list[j][2];
+				float b1 = edge_list[j][3];
+				
+				if(-a0*b1 + b0*a1 != 0)
+				{
+					float ix = x0 + (a0*(-y0*a1+y1*a1+b1*x0-b1*x1))/(-a0*b1 + b0*a1);
+					float iy = y0 + (b0*(-y0*a1+y1*a1+b1*x0-b1*x1))/(-a0*b1 + b0*a1);
+				
+					bool reject = false;
+					
+					if(a0 < 0 && ix > x0)
+						reject = true;
+
+					if(a0 > 0 && ix < x0)
+						reject = true;
+					
+					if(a1 < 0 && ix > x1)
+						reject = true;
+
+					if(a1 > 0 && ix < x1)
+						reject = true;
+					
+					if(b0 < 0 && iy > y0)
+						reject = true;
+
+					if(b0 > 0 && iy < y0)
+						reject = true;
+					
+					if(b1 < 0 && iy > y1)
+						reject = true;
+
+					if(b1 > 0 && iy < y1)
+						reject = true;
+					
+					if(!reject  && sqrt(sqr(estimated_x-ix)+sqr(estimated_y-iy)) < 10)
+					{
+						ex += ix;
+						ey += iy;
+						ww += 1.0;
+					}
+				}
+			}
+		}
+		
+	estimated_x = ex/ww;
+	estimated_y = ey/ww;
+
+
+	// Recalculate estimation
+	{
+	float ex = 0;
+	float ey = 0;
+	float ww = 0;
+	
+	for(i=0; i<edgeCount; i++)
+		for(j=0; j<edgeCount; j++)
+		{
+			float dist = sqrt(sqr(edge_list[i][0] - edge_list[j][0]) + sqr(edge_list[i][1] - edge_list[j][1]));
+			if(i != j && dist < 2*max_radius && dist > 2*min_radius)
+			{
+				// Calculate intersection point
+				
+				float x0 = edge_list[i][0];
+				float y0 = edge_list[i][1];
+				float a0 = edge_list[i][2];
+				float b0 = edge_list[i][3];
+
+				float x1 = edge_list[j][0];
+				float y1 = edge_list[j][1];
+				float a1 = edge_list[j][2];
+				float b1 = edge_list[j][3];
+				
+				if(-a0*b1 + b0*a1 != 0)
+				{
+					float ix = x0 + (a0*(-y0*a1+y1*a1+b1*x0-b1*x1))/(-a0*b1 + b0*a1);
+					float iy = y0 + (b0*(-y0*a1+y1*a1+b1*x0-b1*x1))/(-a0*b1 + b0*a1);
+				
+					int reject = false;
+					
+					if(a0 < 0 && ix > x0)
+						reject = true;
+
+					if(a0 > 0 && ix < x0)
+						reject = true;
+					
+					if(a1 < 0 && ix > x1)
+						reject = true;
+
+					if(a1 > 0 && ix < x1)
+						reject = true;
+					
+					if(b0 < 0 && iy > y0)
+						reject = true;
+
+					if(b0 > 0 && iy < y0)
+						reject = true;
+					
+					if(b1 < 0 && iy > y1)
+						reject = true;
+
+					if(b1 > 0 && iy < y1)
+						reject = true;
+					
+					if(!reject && sqrt(sqr(estimated_x-ix)+sqr(estimated_y-iy)) < 5)
+					{
+						ex += ix;
+						ey += iy;
+						ww += 1.0;
+					}
+				}
+			}
+		}
+	
+	estimated_x = ex/ww;
+	estimated_y = ey/ww;
+	}
+	
+    position[0] = estimated_x/63.0;
+	position[1] = estimated_y/63.0;
+    
+    printf("%f %f\n", position[0], position[1]);
 }
+
 
 
 static InitClass init("CircleDetector", &CircleDetector::Create, "Source/Modules/VisionModules/CircleDetector/");
