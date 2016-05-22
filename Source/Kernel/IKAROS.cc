@@ -1912,7 +1912,7 @@ Kernel::Init()
     if (options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_fatal_error, "No IKC file supplied.\n");
+        Notify(msg_fatal_error, "No IKC file supplied.\n"); // Maybe this should only be a warning
     
     DetectCycles();
     if(fatal_error_occured)
@@ -2505,7 +2505,7 @@ Kernel::OutputConnected(Module * m, const char * output_name)
 void
 Kernel::ListInfo()
 {
-    if (!options->GetOption('i')) return;
+    if (!options->GetOption('i') && !options->GetOption('a')) return;
     Notify(msg_print, "\n");
     Notify(msg_print, "Ikaros version %s\n", VERSION);
     Notify(msg_print, "\n");
@@ -2553,6 +2553,15 @@ void
 Kernel::ListModulesAndConnections()
 {
     if (!options->GetOption('m') && !options->GetOption('a')) return;
+    
+    if(!modules)
+    {
+        Notify(msg_print, "\n");
+        Notify(msg_print, "No Modules.\n");
+        Notify(msg_print, "\n");
+        return;
+    }
+    
     Notify(msg_print, "\n");
     Notify(msg_print, "Modules:\n");
     Notify(msg_print, "\n");
@@ -2625,6 +2634,10 @@ void
 Kernel::ListScheduling()
 {
     if (!options->GetOption('l') && !options->GetOption('a')) return;
+
+    if(!modules)
+        return;
+    
     Notify(msg_print, "Scheduling:\n");
     Notify(msg_print, "\n");
     for (int t=0; t<period_count; t++)
@@ -2642,7 +2655,7 @@ Kernel::ListScheduling()
 void
 Kernel::ListClasses()
 {
-    if (!options->GetOption('c')) return;
+    if (!options->GetOption('c') && !options->GetOption('a')) return;
     int i = 0;
     Notify(msg_print, "\n");
     Notify(msg_print, "Classes:\n");
@@ -2651,7 +2664,7 @@ Kernel::ListClasses()
         Notify(msg_print, "\t%s\n", c->name);
         i++;
     }
-    Notify(msg_print, "No of modules: %d.\n", i);
+    Notify(msg_print, "No of classes: %d.\n", i);
 }
 
 void
