@@ -146,6 +146,8 @@ MazeGenerator::GeneratePerfectMaze()
             current_cell = stack[--sp];
         }
     }
+    
+    delete [] stack;
 }
 
 
