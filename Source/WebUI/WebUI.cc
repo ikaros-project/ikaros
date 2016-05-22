@@ -1360,8 +1360,8 @@ WebUI::HandleHTTPRequest()
         char * p = create_string(uri);  // TODO: write as separate function (XPath style?)
         char * group_in_path;
         XMLElement * group_xml = xml;
-        group_in_path = strsep(&p, "/");
-        group_in_path = strsep(&p, "/");
+        strsep(&p, "/");    // group_in_path =
+        strsep(&p, "/");
         while((group_in_path = strsep(&p, "/")))
         {
             group_xml = group_xml->GetElement("group");
