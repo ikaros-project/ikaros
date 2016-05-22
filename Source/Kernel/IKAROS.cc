@@ -2955,7 +2955,7 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
 				delete parameter;
 				if (m == NULL)
 					Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
-				if (useThreads && m->phase != 0)
+				else if (useThreads && m->phase != 0)
 					Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
 				xml_node->aux = (void *)m;
 				AddModule(m);
