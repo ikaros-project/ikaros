@@ -351,12 +351,11 @@ ServerSocket::GetRequest(bool block)
 	
 	// Loop until CRLF CRLF is found which marks the end of the HTTP request
 	
-	char * d = data->request;
     data->request[0] = '\0';
 	int read_count = 0;
-	while(!strstr(d, "\r\n\r\n")) // check border condition ***
+	while(!strstr(data->request, "\r\n\r\n")) // check border condition ***
 	{
-		long rr = Read(&d[read_count], data->request_allocated_size-read_count);
+		long rr = Read(&(data->request[read_count]), data->request_allocated_size-read_count);
         if(rr == 0)         // the connections has been closed since the beginning of the request
             return false;   // this can occur when a view is changed; return and ignore the request
         read_count += rr;
