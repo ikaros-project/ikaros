@@ -1769,7 +1769,10 @@ namespace ikaros
         for(int j=1; j<size; j++)
         {
             if(a[j][j]==0)
+            {
+                delete[] t;
                 return false;
+            }
             
             a[j][j] = 1/a[j][j];
             float ajj = -a[j][j];
@@ -1892,7 +1895,7 @@ namespace ikaros
             }
         }
         d[size-1]=r[size-1][size-1];
-        if (d[size] == 0.0) singular=true;
+        if (d[size-1] == 0.0) singular=true;    // -1 added
         
         for (i=0;i<size;i++) {
             for (j=0;j<size;j++) 
@@ -2205,7 +2208,10 @@ namespace ikaros
             info -= 1;
        
         if(info != 0)
+        {
+            free(iwork);
             return -1;
+        }
         
         lwork = (int)work_query;
         float * work = (float*)malloc(sizeof(float)*lwork);
@@ -3649,6 +3655,7 @@ namespace ikaros
         jpeg_finish_compress(&cinfo);
         jpeg_destroy_compress(&cinfo);
         
+        delete [] z;
         delete [] image_buffer;
         
         size = dst.used;
