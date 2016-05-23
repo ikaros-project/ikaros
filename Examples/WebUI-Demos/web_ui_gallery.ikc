@@ -70,6 +70,15 @@
 
     <module
         class = "Randomizer"
+        name = "S"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.3"
+    />
+
+    <module
+        class = "Randomizer"
         name = "G"
         outputsize_x = "5"
         outputsize_y = "5"
@@ -819,6 +828,28 @@
 		/>
 
 		<object
+			x="0" y="1"
+			class="Path" 
+			title="Lines and Circles"
+			module="Lines" 
+			source="OUTPUT"
+			stroke_width = "1"
+            color = "red, green, blue, yellow"
+		/>
+
+		<object
+			x="0" y="1"
+			class="CCircle"
+ 			module="Lines"
+			source="OUTPUT"
+			stroke_width = "9"
+            color = "red, green, blue, yellow"
+            size = "0.02"
+            fill =  "red, green, blue, yellow"
+            select = "2"
+		/>
+
+		<object
 			x="1" y="0" 
 			class="Path" 
 			title="Arrows" 
@@ -870,6 +901,21 @@
             flip_x_axis = "yes"
             flip_y_axis = "yes"
 		/>
+
+		<object
+			x="3" y="0"
+			class="CCircle"
+			title="Circles"
+ 			module="R"
+			source="OUTPUT"
+			line_width = "9"
+            color = "red, green, blue, yellow"
+            size = "0.1"
+            select = "2"
+            select_size = "1"
+            scale_size = "0.1"
+		/>
+
 
 	</view>
 
