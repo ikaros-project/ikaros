@@ -1347,7 +1347,12 @@ WebUI::HandleHTTPRequest()
     else if (!strcmp(uri, "/realtime"))
     {
         ui_state = ui_state_realtime;
+
+		Dictionary rtheader;
+		rtheader.Set("Content-Type", "text/plain");
+		socket->SendHTTPHeader(&rtheader);
         socket->Send("REALTIME\n");
+
         k->timer->Restart();
         tick = 0;
         isRunning = true;
