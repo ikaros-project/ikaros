@@ -2,14 +2,12 @@
 <group>
 
     <module
-        class = "InputRawImage"
+        class = "InputJPEG"
         name = "IN"
-        size_x = "63"
-        size_y = "63"
-        filename = "b%d.raw"
-        filecount = "10"
+        filename = "image%d.jpg"
+        filecount = "5"
         repeats = "2"
-        iterations = "100" 
+        _iterations = "100"
     /> 
 
     <module
@@ -31,7 +29,7 @@
         max_radius = "25"
     />
 
-    <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "Gaussian" target = "INPUT" delay="0" />
+    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian" target = "INPUT" delay="0" />
     
     <connection sourcemodule = "Gaussian" source = "OUTPUT" targetmodule = "Edges" target = "INPUT" delay="0" />
     <connection sourcemodule = "Gaussian" source = "dx" targetmodule = "Edges" target = "DX" delay="0" />
@@ -41,9 +39,10 @@
     <connection sourcemodule = "Edges" source = "EDGE_LIST_SIZE" targetmodule = "Circle" target = "EDGE_LIST_SIZE" delay="0" />
 
     <view name = "V1">
-        <object class="Image" module="IN" source="OUTPUT" x="0" y="0" h="2" w="2" />
-        <object class="Path" module="Edges" source="EDGE_ELEMENTS" x="0" y="0" h="2" w="2" />
-        <object class="Cross" module="Circle" source="POSITION" x="0" y="0" h="2" w="2" />
+        <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+        <object class="Path" module="Edges" source="EDGE_ELEMENTS" color="blue" x="0" y="0" h="2" w="2" />
+        <object class="Cross" module="Circle" source="POSITION" color="red" line_width="3" x="0" y="0" h="2" w="2" />
+        <object class="CCircle" module="Circle" source="POSITION" select_size="2" color="red" line_width="3" x="0" y="0" h="2" w="2" />
 
         <object class="Image" module="Gaussian" source="OUTPUT" x="2" y="0"  h="2" w="2" />
         <object class="Image" module="Edges" source="OUTPUT" x="4" y="0"  h="2" w="2" />
