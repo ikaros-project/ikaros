@@ -63,6 +63,7 @@ CircleDetector::Tick()
 	
 	// Test distance between points
 	
+    float radius = 0;
 	long intCnt = 0;
 	for(i=0; i<edgeCount; i++)
 		for(j=0; j<edgeCount; j++)
@@ -124,12 +125,18 @@ CircleDetector::Tick()
 							for(dy=0; dy<tilesize; dy++)
 								g[(int)clip(iy+dy, 0, float(size_y-1))][(int)clip(ix+dx, 0, float(size_x-1))] += increment;
 
+                        radius += hypot(ix-x0, iy-y0);
 						intCnt++;
 					}
 				}
 			}
 		}
 		
+    radius /= float(intCnt);
+    
+    printf("Radius: %f\n", radius);
+    radius /= 128.0;
+    
 	// Find maximum
 	
 	float e = 0;
@@ -142,8 +149,8 @@ CircleDetector::Tick()
 				estimated_y = j;
 			}
 
-	estimated_x -= 3;   // edge correction - should be removed
-	estimated_y -= 3;
+//	estimated_x -= 3;   // edge correction - should be removed
+//	estimated_y -= 3;
 	
 	// Recalculate estimation
 	
@@ -279,13 +286,14 @@ CircleDetector::Tick()
 			}
 		}
 	
-	estimated_x = ex/ww;
-	estimated_y = ey/ww;
+        estimated_x = ex/ww;
+        estimated_y = ey/ww;
 	}
 	
-    position[0] = estimated_x/63.0;
-	position[1] = estimated_y/63.0;
-    
+    position[0] = 4.0/128.0+estimated_x/(128.0-2*2.0);
+	position[1] = 4.0/128.0+estimated_y/(128.0-2*2.0);
+	position[2] = radius;
+
     printf("%f %f\n", position[0], position[1]);
 }
 

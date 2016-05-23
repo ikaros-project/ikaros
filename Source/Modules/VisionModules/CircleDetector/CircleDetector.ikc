@@ -24,7 +24,7 @@
 	<output name="HISTX" description="The output image" size="15" />
 	<output name="HISTDX" description="The output image" size="15" />
 
-	<output name="POSITION" description="The position of the found circle" size="2" />
+	<output name="POSITION" description="The position of the found circle" size="3" />
 	<output name="DIAMETER" description="The diameter of the circle" size="1" />
 
 	<module class="CircleDetector" />
