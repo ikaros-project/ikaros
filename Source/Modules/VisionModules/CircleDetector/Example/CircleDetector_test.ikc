@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <group>
 
-    <module
+    <_module
         class = "InputJPEG"
         name = "IN"
         filename = "image%d.jpg"
@@ -9,6 +9,16 @@
         repeats = "2"
         _iterations = "100"
     /> 
+
+    <module
+        class = "InputPNG"
+        name = "IN"
+        _filename = "/Users/cba/Desktop/img%d.png"
+        filename = "/Users/cba/Desktop/eye.png"
+        filecount = "1"
+        _repeats = "2"
+        _iterations = "100"
+    />
 
     <module
         class = "GaussianEdgeDetector"
@@ -25,8 +35,8 @@
      <module 
         class = "CircleDetector"
         name = "Circle"
-        min_radius = "3"
-        max_radius = "25"
+        min_radius = "20"
+        max_radius = "40"
     />
 
     <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian" target = "INPUT" delay="0" />
@@ -40,7 +50,7 @@
 
     <view name = "V1">
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
-        <object class="Path" module="Edges" source="EDGE_ELEMENTS" color="blue" x="0" y="0" h="2" w="2" />
+        <object class="Path" module="Edges" source="EDGE_ELEMENTS" color="yellow" x="0" y="0" h="2" w="2" />
         <object class="Cross" module="Circle" source="POSITION" color="red" line_width="3" x="0" y="0" h="2" w="2" />
         <object class="CCircle" module="Circle" source="POSITION" select_size="2" color="red" line_width="3" x="0" y="0" h="2" w="2" />
 
