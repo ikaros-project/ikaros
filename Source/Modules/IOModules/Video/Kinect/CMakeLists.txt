@@ -1,11 +1,10 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Libfreenect
-find_package(libfreenect COMPONENTS sync)
-#find_package(libusb-1.0)
+find_package(Freenect)
 
 # if all libraries found add source file, include dirs and libraries
-if(LIBFREENECT_FOUND)
+if(FREENECT_FOUND)
 
 	set(SOURCE
 	${SOURCE}
@@ -15,18 +14,18 @@ if(LIBFREENECT_FOUND)
 
 	set(MODULES_INCLUDS
 	${MODULES_INCLUDS}
-	${LIBFREENECT_INCLUDE_DIRS}
+	${FREENECT_INCLUDE_DIR}
 	PARENT_SCOPE
    	)
    	set(MODULES_LIBS
 	${MODULES_LIBS}
-	${LIBFREENECT_LIBRARIES}
+	${FREENECT_LIBRARIES}
 	PARENT_SCOPE
     ) 
 
 else()
-	message(STATUS "Ikaros: Libfreenect not found. Kinect module is not included into the build." )
-endif(LIBFREENECT_FOUND)
+	message(STATUS "Ikaros: Freenect not found. Kinect module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
+endif()
 
 
 
