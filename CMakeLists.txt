@@ -1,6 +1,5 @@
 # CMake script for the ikaros project. www.ikaros-project.org
 
-
 # Set cmake version
 cmake_minimum_required(VERSION 2.6)
 
@@ -97,6 +96,7 @@ add_subdirectory(Source)
 # Crete a binary with source files
 add_executable(ikaros ${SOURCE})
 
+
 # Check and adding Kernel libraries
 # BLAS
 find_package (BLAS)
@@ -121,11 +121,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 	# Turbo JPEG
 	# Using brew will not find turbojpeg. In linux it will detected by findJPEG
-	find_package (TURBO_JPEG)
+	find_package (Turbo_JPEG)
 	if (TURBO_JPEG_FOUND)
   		include_directories(${TURBO_JPEG_INCLUDE_DIRS})
   		target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
-  		message(STATUS "Found a TURBO-JPEG library")	
+  		message(STATUS "Found a Turbo-JPEG library")	
 
   	else()
    		 message(FATAL_ERROR "\nIkaros require the JPEG library. \nVisit www.ikaros-project.org for information about dependencies")	
@@ -153,6 +153,7 @@ if (PNG_FOUND)
     message(FATAL_ERROR "\nIkaros require the PNG library. \nVisit www.ikaros-project.org for information about dependencies")
 endif (PNG_FOUND)
 
+
 # Add extra libraries when linking
 target_link_libraries(ikaros ${EXTRA_LIBS} )
 
@@ -162,7 +163,5 @@ set(MODULES_LIBS ${MODULES_LIBS})
 include_directories(${MODULES_INCLUDS})
 target_link_libraries (ikaros ${MODULES_LIBS})
   add_dependencies(ikaros MPIFaceDetector)
-#foreach(f ${INCLUDE_DIRECTORIES}) 
-#message(${f}) 
-#endforeach(f) 
+
 
