@@ -123,7 +123,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	# Using brew will not find turbojpeg. In linux it will detected by findJPEG
 	find_package (Turbo_JPEG)
 	if (TURBO_JPEG_FOUND)
-  		include_directories(${TURBO_JPEG_INCLUDE_DIRS})
+  		include_directories(${TURBO_JPEG_INCLUDE_DIR})
   		target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
   		message(STATUS "Found a Turbo-JPEG library")	
 
