@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<group name="EyeModel" description="minimal example module">
+
+	<description type="text">
+        Model of two eyes with pupil control. Does almost nothing but could include a dynamical model of eye motion in the future"
+    </description>
+
+	<example description="A simple example">
+		<module
+			class="EyeModel"
+			name="EyeModel"
+		/>
+	</example>
+    
+    <parameter name="speed" type="float" default="1" description="How fast does th pupil change size; 1 means immediately"/>
+
+    <input name="GAZE" description="The horizontal and vertical eye direction (-1..1)" />
+    <input name="PUPIL" description="The size of the pupil (0..1)" />
+    
+    <output name="LEFT_EYE" size="3" description="Output for visualization of the left eye: (x, y, pupil_size)" />
+    <output name="RIGHT_EYE" size="3" description="Output for visualization of the right eye: (x, y, pupil_size)" />
+    
+	<module class="EyeModel" />
+    
+    <view title="Eye Model">
+        <object class="CCircle" title="Right" module="*" source="RIGHT_EYE" x="0" y="0" min="-1" max="1" h="1" w="1" fill="white" size="20"/>
+        <object class="CCircle" module="*" source="RIGHT_EYE" x="0" y="0" min="-1" max="1" h="1" w="1" color="lightblue" fill="lightblue" size="0.35"/>
+        <object class="CCircle" module="*" source="RIGHT_EYE" x="0" y="0" min="-1" max="1" h="1" w="1" color="black" fill="black" select_size="2" scale_size="0.15"/>
+        
+        <object class="CCircle" title="Left" module="*" source="LEFT_EYE" x="1" y="0" min="-1" max="1" h="1" w="1" fill="white" size="20"/>
+        <object class="CCircle" module="*" source="LEFT_EYE" x="1" y="0" min="-1" max="1" h="1" w="1" color="lightblue" fill="lightblue" size="0.35"/>
+        <object class="CCircle" module="*" source="LEFT_EYE" x="1" y="0" min="-1" max="1" h="1" w="1" color="black" fill="black" size="0.15" select_size="2" scale_size="0.15"/>
+
+        <object class="Plot" title="Gaze" module="*" source="LEFT_EYE" x="0" y="1" w="2" select="0,1" min="-1" />
+        <object class="Plot" title="Pupil Dilation" module="*" source="LEFT_EYE" x="0" y="2" w="2" select="2" />
+    </view>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EyeModel.h</file>
+   		<file>EyeModel.cc</file>
+   		<file>EyeModel.ikc</file>
+   </files>
+
+</group>
+
