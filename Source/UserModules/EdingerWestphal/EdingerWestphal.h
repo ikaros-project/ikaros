@@ -1,6 +1,6 @@
 //
-//	EyeModel.cc		This file is a part of the IKAROS project
-//
+//	EdingerWestphal.h		This file is a part of the IKAROS project
+// 						
 //    Copyright (C) 2016 Christian Balkenius & Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -21,47 +21,43 @@
 //
 
 
-#include "EyeModel.h"
+#ifndef EdingerWestphal_
+#define EdingerWestphal_
 
-using namespace ikaros;
+#include "IKAROS.h"
 
-
-
-void
-EyeModel::Init()
+class EdingerWestphal: public Module
 {
-    Bind(pupil_min, "pupil_min");
-    Bind(pupil_max, "pupil_max");
+public:
+    static Module * Create(Parameter * p) { return new EdingerWestphal(p); }
 
-    Bind(epsilon, "epsilon");
+    EdingerWestphal(Parameter * p) : Module(p) {}
+    virtual ~EdingerWestphal() {}
 
-    gaze = GetInputArray("GAZE");
-
-    pupil_sphincter = GetInputArray("PUPIL_SPHINCTER");
-    pupil_dilator = GetInputArray("PUPIL_DILATOR");
+    void 		Init();
+    void 		Tick();
     
-    pupil_diameter = GetOutputArray("PUPIL_DIAMETER");
+    float       alpha;
+    float       beta;
+    float       gamma;
+    float       delta;
+    float       epsilon1;
+    float       epsilon2;
     
-    output = GetOutputArray("OUTPUT");
-}
-
-
-
-void
-EyeModel::Tick()
-{
-    output[0] = gaze[0];
-    output[1] = gaze[1];
+    float *     input_ipsi;
+    float *     input_contra;
+    float *     input_cb;
+    float *     inhibition;
+    float *     shunting_inhibition;
     
-    float p = pupil_min + (pupil_max-pupil_min) * clip(pupil_dilator[0]-pupil_sphincter[0], 0, 1);
+    int         size_ipsi;
+    int         size_contra;
+    int         size_cb;
+    int         size_inhibition;
+    int         size_shunting_inhibition;
 
-    pupil_diameter[0]  += epsilon * (p - pupil_diameter[0]);
-    
-    output[2] = 0.1 * pupil_diameter[0];    // scaling for visualization
-}
+    float *     output;
+};
 
-
-
-static InitClass init("EyeModel", &EyeModel::Create, "Source/UserModules/EyeModel/");
-
+#endif
 

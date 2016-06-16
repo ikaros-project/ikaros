@@ -1,8 +1,9 @@
 //
-//	EyeModel.h		This file is a part of the IKAROS project
-// 						
-//    Copyright (C) 2012 <Author Name>
+//		Nucleus.h		This file is a part of the IKAROS project
 //
+//
+//    Copyright (C) 2015 Christian Balkenius
+///
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
 //    the Free Software Foundation; either version 2 of the License, or
@@ -17,39 +18,38 @@
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-//    See http://www.ikaros-project.org/ for more information.
-//
 
-
-#ifndef EyeModel_
-#define EyeModel_
+#ifndef Nucleus_
+#define Nucleus_
 
 #include "IKAROS.h"
 
-class EyeModel: public Module
+class Nucleus: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new EyeModel(p); }
-
-    EyeModel(Parameter * p) : Module(p) {}
-    virtual ~EyeModel() {}
-
-    void 		Init();
-    void 		Tick();
-    
-    float       pupil_min;
-    float       pupil_max;
-
+	static Module * Create(Parameter * p) { return new Nucleus(p); }
+	
+    float       alpha;
+    float       beta;
+    float       gamma;
+    float       delta;
     float       epsilon;
+    
+    float *		excitation;
+    float *		inhibition;
+    float *     shunting_inhibition;
+    
+    int			excitation_size;
+    int			inhibition_size;
+    int			shunting_inhibition_size;
 
-    float *     gaze;
-
-    float *     pupil_sphincter;
-    float *     pupil_dilator;
-
-    float *     pupil_diameter;
     float *     output;
+
+				Nucleus(Parameter * p) : Module(p) {};
+    virtual		~Nucleus() {};
+
+    void		Init();
+    void		Tick();
 };
 
 #endif
-
