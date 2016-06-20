@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<group name="Recorder" description="Recorders inputs">
+
+	<description type="text">
+		Module that records data. Currently only a single channel is recorded.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Recorder"
+			name="Recorder"
+		/>
+	</example>
+    
+    <parameter name="filename" type="string" description="file to write data to" />
+    <parameter name="start" type="int" default="0" description="ticks before recording starts" />
+    <parameter name="length" type="int" default="1000" description="length of one recording" />
+    <parameter name="count" type="int" default="10" description="number of recodings" />
+
+    <parameter name="min" type="float" default="0" description="minimum value for scaloing of view" />
+    <parameter name="max" type="float" default="1" description="maximum value for scaloing of view" />
+
+	<input name="INPUT" description="The signal to be recorded" />
+	<output name="OUTPUT" description="The output from the Recorder" />
+	<output name="RECORDING" description="The data recorded" />
+
+	<module class="Recorder" />
+
+    <view title="Recorder">
+        <object
+            x="0" y="0" w="2"
+            class="Path"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Recorder"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Recorder.h</file>
+   		<file>Recorder.cc</file>
+   		<file>Recorder.ikc</file>
+   </files>
+
+</group>
+
