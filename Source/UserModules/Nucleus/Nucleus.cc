@@ -32,6 +32,8 @@ Nucleus::Init()
     Bind(gamma, "gamma");
     Bind(delta, "delta");
     Bind(epsilon, "epsilon");
+
+    x = 0;
     
     excitation	=	GetInputArray("EXCITATION");
     inhibition	=	GetInputArray("INHIBITION");
@@ -50,14 +52,23 @@ void
 Nucleus::Tick()
 {
     float a = alpha;
+    float s = 1;
+    
+    if(shunting_inhibition)
+    {
+        s = 1/(1+sum(shunting_inhibition, shunting_inhibition_size));
+//       printf("%f %f\n", s, sum(shunting_inhibition, shunting_inhibition_size));
+    }
     
     if(excitation)
-        a += beta * sum(excitation, excitation_size);
+        a += beta * s * sum(excitation, excitation_size);
     
      if(inhibition)
         a -= gamma * sum(inhibition, inhibition_size);
 
-    *output += epsilon * (delta*a - *output); // use internal state later to model more interesting dynamics
+     x += epsilon * (a - x);
+    
+     *output = atan(x)/atan(1);
 }
 
 static InitClass init("Nucleus", &Nucleus::Create, "Source/UserModules/Nucleus/");

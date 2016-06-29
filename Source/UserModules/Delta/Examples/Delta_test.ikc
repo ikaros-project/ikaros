@@ -7,27 +7,27 @@
         name="L"
         type = "ticksquare"
         basetime = "200"
-        tickduty = "50"
+        tickduty = "150"
         amplitude = "1.0"
     />
 
 
 	<module
-		class = "Nucleus"
+		class = "Delta"
 		name = "N1"
         epsilon = "0.05"
         delta = "1"
 	/>
 	
 	<module
-		class = "Nucleus"
+		class = "Delta"
 		name = "N2"
         epsilon = "0.05"
         delta = "1"
 	/>
 	
 	<module
-		class = "Nucleus"
+		class = "Delta"
 		name = "N3"
         epsilon = "0.05"
         delta = "1"

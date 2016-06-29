@@ -35,6 +35,8 @@ public:
     float       delta;
     float       epsilon;
     
+    float       x;
+    
     float *		excitation;
     float *		inhibition;
     float *     shunting_inhibition;

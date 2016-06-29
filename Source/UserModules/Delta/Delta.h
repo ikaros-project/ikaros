@@ -1,5 +1,5 @@
 //
-//		Recorder.h		This file is a part of the IKAROS project
+//		Delta.h		This file is a part of the IKAROS project
 //
 //
 //    Copyright (C) 2015 Christian Balkenius
@@ -19,49 +19,40 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef Recorder_
-#define Recorder_
+#ifndef Delta_
+#define Delta_
 
 #include "IKAROS.h"
 
-class Recorder: public Module
+class Delta: public Module
 {
 public:
-	static Module * Create(Parameter * p) { return new Recorder(p); }
+	static Module * Create(Parameter * p) { return new Delta(p); }
 	
-    int         start;
-    int         length;
-    int         count;
+    float       alpha;
+    float       beta;
+    float       gamma;
+    float       delta;
+    float       epsilon;
     
-    int         measure_start;
-    int         measure_end;
-    int         operation;
+    bool        inverse;
     
-    float       minimum;
-    float       maximum;
+    float *		cs;
+    float *		us;
+    float *     cr;
     
-    int         row;
-    int         col;
-    int         rcol;
+    float *     w;
+    
+    int			cs_size;
+    int			us_size;
 
-    float       scale;      // for ourput
-    float       offset;
-    float       margin;
-    float       increment;
+    float *     output;
 
-    float *		input;
-    float **    output;
-    float **    recording;
-    float *     measurements;
-
-    void        SetSizes();
-
-				Recorder(Parameter * p) : Module(p) {};
-    virtual		~Recorder();
+				Delta(Parameter * p) : Module(p) {};
+    virtual		~Delta() {};
 
     void		Init();
     void		Tick();
 };
 
 #endif
-

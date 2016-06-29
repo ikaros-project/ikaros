@@ -34,6 +34,7 @@ Recorder::SetSizes()
     {
         SetOutputSize("OUTPUT", 2*count, length);
         SetOutputSize("RECORDING", count, length);
+        SetOutputSize("MEASUREMENTS", count);
     }
 }
 
@@ -44,14 +45,18 @@ Recorder::Init()
 {
     start = GetIntValue("start");
 
+    measure_start   = GetIntValue("measure_start");
+    measure_end     = GetIntValue("measure_end");
+    operation       = GetIntValueFromList("operation"); // FromList should not be necessary ***
+
     Bind(minimum, "min");
     Bind(maximum, "max");
     
-
     input       =	GetInputArray("INPUT");
     output      =	GetOutputMatrix("OUTPUT");
     recording   =	GetOutputMatrix("RECORDING");
-    
+    measurements=   GetOutputArray("MEASUREMENTS");
+
     row = 0;
     col = 0;
     rcol = 0;
@@ -100,6 +105,13 @@ Recorder::~Recorder()
     }
     
     fclose(f);
+    
+    char * fn2 = create_formatted_string("measurements_%s" ,filename);
+    FILE * f2 = fopen(fn2, "w");
+    fprintf(f2, "measurement\tvalue\n");
+    for(int i=0; i<count; i++)
+        fprintf(f2, "%d\t%.4f\n", i, measurements[i]);
+    fclose(f2);
 }
 
 
@@ -113,8 +125,6 @@ Recorder::Tick()
     if(col >= count)
         return;
 
-//    output[row][col+1] = float(col+2)*offset + scale*(*input);
-
     output[row][2*col+1] = (float(col+1) * offset - margin)  -  scale*(*input-minimum);
     recording[row][rcol] = *input;
     
@@ -125,6 +135,20 @@ Recorder::Tick()
         row = 0;
         col += 1;
         rcol++;
+    }
+    
+    // Just for fun we make the measurements every tick to give a nice animation
+    
+    for(int i=0; i<count; i++)
+    {
+        float s = 0;
+        for(int j=measure_start; j<measure_end; j++)    // ******** checl range here, included in measurements?
+            s += recording[j][i];
+        
+        if(operation == 1 && measure_end!=measure_start) // average
+            s /= float(measure_end-measure_start);
+        
+        measurements[i] = s;
     }
 }
 
