@@ -3,7 +3,9 @@
 <group name="Nucleus" description="Nucleuss inputs">
 
 	<description type="text">
-		Module that implements a generic brain nucleus. output = aplha + beta*SUM(Excitation) - gamma*SUM/Inhibition).
+		Module that implements a generic brain nucleus. output = aplha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
+        
+        If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
 	</description>
 
 	<example description="A simple example">
@@ -14,8 +16,8 @@
 	</example>
     
     <parameter name="alpha" type="float" default="0" description="bias term / resting level" />
-    <parameter name="beta" type="float" default="1" description="weight for exictation" />
-    <parameter name="gamma" type="float" default="1" description="weight for inhibition" />
+    <parameter name="beta" type="float" default="" description="weight for exictation (defaults to 1/N)" />
+    <parameter name="gamma" type="float" default="" description="weight for inhibition (defaults to 1/N)" />
     <parameter name="delta" type="float" default="1" description="output scaling" />
     <parameter name="epsilon" type="float" default="0.1" description="time constant" />
 

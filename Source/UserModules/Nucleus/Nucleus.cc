@@ -28,6 +28,7 @@ void
 Nucleus::Init()
 {
     Bind(alpha, "alpha");
+    
     Bind(beta, "beta");
     Bind(gamma, "gamma");
     Bind(delta, "delta");
@@ -44,6 +45,17 @@ Nucleus::Init()
     shunting_inhibition_size =	GetInputSize("SHUNTING_INHIBITION");
 
     output		=	GetOutputArray("OUTPUT");
+    
+    // Set default values if parameters not set
+    
+    if(excitation_size > 0 && (GetValue("beta") == NULL || GetValue("beta")[0] =='\0'))
+        beta = 1/excitation_size;
+
+    if(inhibition_size > 0 && (GetValue("gamma") == NULL || GetValue("gamma")[0] =='\0'))
+        gamma = 1/excitation_size;
+
+    if(shunting_inhibition_size > 0 && (GetValue("delta") == NULL || GetValue("beta")[0] =='\0'))
+        delta = 1/shunting_inhibition_size;
 }
 
 
@@ -56,7 +68,7 @@ Nucleus::Tick()
     
     if(shunting_inhibition)
     {
-        s = 1/(1+sum(shunting_inhibition, shunting_inhibition_size));
+        s = 1/(1+delta*sum(shunting_inhibition, shunting_inhibition_size));
 //       printf("%f %f\n", s, sum(shunting_inhibition, shunting_inhibition_size));
     }
     
@@ -68,7 +80,30 @@ Nucleus::Tick()
 
      x += epsilon * (a - x);
     
-     *output = atan(x)/atan(1);
+    // Activation function with
+    // f(x) = 0 if x <= 0
+    // f(x) = 1 if x = 1
+    // f(x) -> 2 as x -> inf
+    // S-shaped from 0+
+    // derivative: 4x / (x^2+1)^2
+    
+    switch(1)
+    {
+        case 0:
+            if(x < 0)
+                *output = 0;
+            else
+                *output = 2*x*x/(1+x*x);
+            break;
+            
+        case 1:
+            if(x < 0)
+                *output = 0;
+            else
+                *output = atan(x)/atan(1);
+            break;
+    }
+
 }
 
 static InitClass init("Nucleus", &Nucleus::Create, "Source/UserModules/Nucleus/");

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<group name="Delta" description="Deltas inputs">
+<group name="Delta" description="Learning using the delta rule">
 
 	<description type="text">
-		Simple conditioning model. Acquisition only.
+		Simple conditioning model. Acquisition only. Learning using the delta rule with linear output function. Zero weights initially and no bias term.
 	</description>
 
 	<example description="A simple example">
