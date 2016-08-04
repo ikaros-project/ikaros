@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputVideoFile" description="minimal example module">
+<group name="InputVideoFile" description="reads a video file using FFmpeg">
 
 	<description type="text">
 		Module that reads a movie using the FFMpeg library. The movie can be optionally scaled by setting the parameters size_x and size_y.
@@ -22,6 +22,9 @@
 	<parameter name="loop" type="bool" default="no" description="Loop playback" />
 	<parameter name="info" type="bool" default="no" description="Printing information about the video stream" />
 
+
+
+        
     <output name="RED" description="The red channel." />
 	<output name="GREEN" description="The green channel." />
 	<output name="BLUE" description="The blue channel." />
