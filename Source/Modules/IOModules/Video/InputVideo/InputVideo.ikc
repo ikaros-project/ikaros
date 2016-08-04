@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="InputVideo" description="grabs video using FFmpeg">
+
+	<description type="text">
+        Grabs the video from a camera using FFmpeg.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="InputVideo"
+			name="InputVideo"
+		/>
+	</example>
+
+	<module class="InputVideo" />
+    
+	<parameter name="size_x" type="int" default="640" description="Size of the image" />
+	<parameter name="size_y" type="int" default="480" description="Size of the image" />
+	
+    <parameter name="info" type="bool" default="no" description="Printing information about the video stream" />
+
+    <parameter name="frame_rate" type="int" default="30" description="Framerate" />
+    <parameter name="id" type="int" default="0" description="id" />
+
+    <output name="RED" description="The red channel." />
+	<output name="GREEN" description="The green channel." />
+	<output name="BLUE" description="The blue channel." />
+	<output name="INTENSITY" description="The intensity channel." />
+
+    <author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>InputVideo.h</file>
+   		<file>InputVideo.cc</file>
+   		<file>InputVideo.ikc</file>
+   </files>
+
+</group>
+
