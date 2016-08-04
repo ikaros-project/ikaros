@@ -73,19 +73,6 @@ Module(p)
         return;
     }
     
-    /// Find the first audio stream
-    audioStreamId = -1;
-    for(int i=0; i<input_format_context->nb_streams; i++)
-        if(input_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            audioStreamId=i;
-            break;
-        }
-    if(audioStreamId==-1)
-    {
-        Notify(msg_fatal_error, "Didn't find a Audio stream\n");
-        return;
-    }
-    
     // Decoding video
     
     /// Find the decoder for the video stream

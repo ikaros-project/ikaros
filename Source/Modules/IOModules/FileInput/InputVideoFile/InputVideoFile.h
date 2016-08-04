@@ -63,7 +63,6 @@ public:
     // FFmpeg related
     AVFormatContext *input_format_context;
     int             videoStreamId;
-    int             audioStreamId;
     AVCodec         *input_codec;
     AVCodecContext  *avctx;
     AVFrame         *inputFrame;
