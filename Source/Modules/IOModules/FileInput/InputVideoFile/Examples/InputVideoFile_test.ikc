@@ -5,11 +5,7 @@
 		<module
 			class = "InputVideoFile"
 			name = "InputVideoFile"
-            _filename = "../../../../../../Examples/Media/ikaros.mov"
-            filename = "/Users/birger/Desktop/EpiEyesPrototype.mov"
-            _size_x = "100"
-            _size_y = "100"
-            loop = "true"
+            filename = "../../../../../../Examples/Media/ikaros.mov"
 		/>
 		
 	<view name="Movie View" object_size="500">
