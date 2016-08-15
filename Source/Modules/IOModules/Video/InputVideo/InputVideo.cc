@@ -19,7 +19,14 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
+// Code inspired from:
+// https://www.ffmpeg.org/doxygen/2.8/examples.html
+// http://dranger.com/ffmpeg/
+// https://sourceforge.net/u/leixiaohua1020/profile/
+// https://blogs.gentoo.org/lu_zero/2016/03/29/new-avcodec-api/
 
+
+// Todo: Add rotation filter
 
 #include "InputVideo.h"
 #include <stdio.h>
@@ -73,22 +80,24 @@ InputVideo::InputVideo(Parameter * p):
 Module(p)
 {
     
-    frameRate = GetIntValue("frame_rate");
-    id = GetIntValue("id");
+    frameRate   = GetIntValue("frame_rate");
+    id          = GetIntValue("id");
     
-    // Is the output size set in ikc file? If not use native size
-    size_x = GetIntValue("size_x");
-    size_y = GetIntValue("size_y");
+    size_x      = GetIntValue("size_x");
+    size_y      = GetIntValue("size_y");
     
-    // Register all formats and codecs
-    av_register_all();
+    listDevices = GetBoolValue("list_devices");
     
+    av_register_all();              // Register all formats and codecs
     input_format_context = avformat_alloc_context();
-    avdevice_register_all();                        // libavdevice
+    avdevice_register_all();        // libavdevice
+    
+    av_log_set_level(AV_LOG_FATAL);
     
 #ifdef _WIN32
-    if (printInfo)
+    if (listDevices)
     {
+        listDevices
         //Show Dshow Device
         show_dshow_device();
         //Show Device Options
@@ -117,13 +126,10 @@ Module(p)
         return;
     }
 #else
-    if (printInfo)
-    {
+    if (listDevices)
         show_avfoundation_device();
-    }
+    
     AVInputFormat *ifmt=av_find_input_format("avfoundation");
-    //Avfoundation
-    //[video]:[audio]
     AVDictionary* options = NULL;
     
     // Setting options
@@ -140,14 +146,13 @@ Module(p)
     }
 #endif
     
-    
     /// Retrieve stream information
     if(avformat_find_stream_info(input_format_context, NULL) < 0)
     {
         Notify(msg_fatal_error, "Couldn't find stream information\n");
         return;
     }
-
+    
     /// Find the first video stream
     videoStreamId = -1;
     for(int i=0; i<input_format_context->nb_streams; i++)
@@ -160,7 +165,6 @@ Module(p)
         Notify(msg_fatal_error, "Didn't find a video stream\n");
         return;
     }
-    
     
     // Decoding video
     
@@ -195,51 +199,37 @@ Module(p)
     }
     
     inputFrame = av_frame_alloc();    // Input
-    outputFrame = av_frame_alloc();   // Output (after resize and convertions)
-    
-    if(inputFrame == NULL || outputFrame==NULL)
+    if(inputFrame == NULL)
     {
         Notify(msg_fatal_error, "Could not allocate AVFrame\n");
         return;
     }
     
+    outputFrame = av_frame_alloc();   // Output (after resize and convertions)
+    outputFrame->format = AV_PIX_FMT_RGB24;
+    outputFrame->width  = size_x;
+    outputFrame->height = size_y;
+    av_image_alloc(outputFrame->data, outputFrame->linesize, size_x, size_y, AV_PIX_FMT_RGB24, 32);
     
-    
-    native_size_x = int(avctx->width);
-    native_size_y = int(avctx->height);
-    
-    if(size_x == 0 || size_y == 0)
+    if(outputFrame==NULL)
     {
-        size_x = native_size_x;
-        size_y = native_size_y;
+        Notify(msg_fatal_error, "Could not allocate AVFrame\n");
+        return;
     }
-    
-    /// Determine required buffer size and allocate buffer
-    numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, size_x, size_y,1);
-    buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
-    
-    /// Assign appropriate parts of buffer to image planes in outputFrame
-    av_image_fill_arrays(outputFrame->data,outputFrame->linesize, buffer, AV_PIX_FMT_RGB24,size_x, size_y,1);
-    
-    
     AddOutput("INTENSITY", size_x, size_y);
     AddOutput("RED", size_x, size_y);
     AddOutput("GREEN", size_x, size_y);
     AddOutput("BLUE", size_x, size_y);
-    
 }
 void
 InputVideo::Init()
 {
-    
     intensity	= GetOutputArray("INTENSITY");
     red			= GetOutputArray("RED");
     green		= GetOutputArray("GREEN");
     blue		= GetOutputArray("BLUE");
-    
 }
 
-// The flush packet is a non-NULL packet with size 0 and data NULL
 int
 InputVideo::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
 {
@@ -247,18 +237,14 @@ InputVideo::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPack
     *got_frame = 0;
     if (pkt) {
         ret = avcodec_send_packet(avctx, pkt);
-        // In particular, we don't expect AVERROR(EAGAIN), because we read all
-        // decoded frames with avcodec_receive_frame() until done.
         if (ret < 0)
             return ret == AVERROR_EOF ? 0 : ret;
     }
-    
     ret = avcodec_receive_frame(avctx, frame);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
         return ret;
     if (ret >= 0)
         *got_frame = 1;
-    
     return 0;
 }
 
@@ -271,58 +257,63 @@ InputVideo::Tick()
     int gotFrame = 0;
     while (!gotFrame)                                           // Keep reading from source until we get a video packet
     {
-        if(av_read_frame(input_format_context, &packet)>=0)     // Read packet from source
+        int ret = 0;
+        while (ret<0)
         {
+            ret = av_read_frame(input_format_context, &packet);
+            av_packet_unref(&packet);
+        }
+        
+        if(av_read_frame(input_format_context, &packet)>=0)     // Read packet from source. Waiting until data is there!
+        {
+            
             if(packet.stream_index==videoStreamId)              // Is this a packet from the video stream?
-            {
                 decode(avctx, inputFrame, &gotFrame, &packet);
-                if (gotFrame)                                   // Decode gave us a frame
-                {
-                    // Convert teh frame to AV_PIX_FMT_RGB24 format
-                    static struct SwsContext *img_convert_ctx;
-                    img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
-                                                           avctx->pix_fmt,
-                                                           size_x, size_y, AV_PIX_FMT_RGB24,
-                                                           SWS_BICUBIC, NULL, NULL, NULL);
-                    
-                    // Scale the image
-                    sws_scale(img_convert_ctx, (const uint8_t * const *)inputFrame->data,
-                              inputFrame->linesize, 0, avctx->height,
-                              outputFrame->data, outputFrame->linesize);
-                    
-                    // Put data in ikaros output
-                    unsigned char * data = outputFrame->data[0];
-                    for(int y=0; y<size_y; y++)
-                        for(int x=0; x<size_x; x++)
-                        {
-                            int yLineSize = y*outputFrame->linesize[0];
-                            int y1 = y*size_x;
-                            int xy = x + y1;
-                            int x3  = x*3;
-                            intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
-                            intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
-                            intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
-                            intensity[xy]   *=  c13;
-                        }
-                }
-            }
         }
         else
         {
-            avcodec_flush_buffers(avctx);
+            decode(avctx, inputFrame, &gotFrame, NULL);         // No more input but decoder may have more frames
+        }
+        
+        if (gotFrame)                                           // Decode gave us a frame
+        {
+            // Convert the frame to AV_PIX_FMT_RGB24 format
+            static struct SwsContext *img_convert_ctx;
+            img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
+                                                   avctx->pix_fmt,
+                                                   size_x, size_y, AV_PIX_FMT_RGB24,
+                                                   SWS_BICUBIC, NULL, NULL, NULL);
+            // Scale the image
+            sws_scale(img_convert_ctx, (const uint8_t * const *)inputFrame->data,
+                      inputFrame->linesize, 0, avctx->height,
+                      outputFrame->data, outputFrame->linesize);
+            
+            // Put data in ikaros output
+            unsigned char * data = outputFrame->data[0];
+            for(int y=0; y<size_y; y++)
+                for(int x=0; x<size_x; x++)
+                {
+                    int yLineSize = y*outputFrame->linesize[0];
+                    int y1 = y*size_x;
+                    int xy = x + y1;
+                    int x3  = x*3;
+                    intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
+                    intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
+                    intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
+                    intensity[xy]   *=  c13;
+                }
+            av_packet_unref(&packet);
         }
     }
 }
 
-
 InputVideo::~InputVideo()
 {
-    av_free(buffer);
-    av_free(outputFrame);
+    av_freep(&inputFrame->data[0]);
     av_free(inputFrame);
+    av_freep(&outputFrame->data[0]);
+    av_free(outputFrame);
     avcodec_close(avctx);
     avformat_close_input(&input_format_context);
 }
 static InitClass init("InputVideo", &InputVideo::Create, "Source/Modules/IOModules/Video/InputVideo/");
-
-
