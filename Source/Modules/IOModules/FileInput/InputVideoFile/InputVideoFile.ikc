@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputVideoFile" description="minimal example module">
+<group name="InputVideoFile" description="reads a video file using FFmpeg">
 
 	<description type="text">
 		Module that reads a movie using the FFMpeg library. The movie can be optionally scaled by setting the parameters size_x and size_y.
@@ -12,6 +12,7 @@
 			name="InputVideoFile"
             filename = "../../../../../../Examples/Media/ikaros.mov"
 		/>
+
 	</example>
 
 	<module class="InputVideoFile" />
@@ -26,8 +27,12 @@
 	<output name="GREEN" description="The green channel." />
 	<output name="BLUE" description="The blue channel." />
 	<output name="INTENSITY" description="The intensity channel." />
-	<output name="RESTART" description="This output is 1 on the first frame of the movie." />
+	<output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
 
+    <view name="Movie View" object_size="500">
+        <object class="Image" type="rgb" module = "*" source = "RED+GREEN+BLUE" x="0"  y="0" />
+    </view>
+    
     <author>
 		<name>Birger Johansson</name>
 		<email>m@birgerjohansson.com</email>

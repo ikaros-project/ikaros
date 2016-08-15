@@ -1,5 +1,5 @@
 //
-//	  InputVideoFile.h		This file is a part of the IKAROS project
+//	  OutputVideoFile.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2016 Birger Johansson
 //
@@ -21,25 +21,28 @@
 //
 
 
-#ifndef InputVideoFile_
-#define InputVideoFile_
+#ifndef OutputVideoFile_
+#define OutputVideoFile_
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/opt.h>
+#include <libavutil/time.h>
+
 }
 
 #include "IKAROS.h"
 
-class InputVideoFile: public Module
+class OutputVideoFile: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new InputVideoFile(p); }
+    static Module * Create(Parameter * p) { return new OutputVideoFile(p); }
 
-    InputVideoFile(Parameter * p);
-    virtual ~InputVideoFile();
+    OutputVideoFile(Parameter * p);
+    virtual ~OutputVideoFile();
     
     void            Init();
     void            Tick();
@@ -49,30 +52,27 @@ public:
     int				size_x;
     int				size_y;
     
-    int				native_size_x;
-    int				native_size_y;
-    
     float *			intensity;
     float *			red;
     float *			green;
     float *			blue;
-    float *         restart;
-    bool            loop;
     bool            printInfo;
+    int             quality;
+    bool            color;
+    int             frameRate;
     
     // FFmpeg related
-    AVFormatContext *input_format_context;
-    int             videoStreamId;
-    AVCodec         *input_codec;
-    AVCodecContext  *avctx;
+    AVCodec         *output_codec;
+    AVCodecContext  *c;
+    AVStream        *audio_st, *video_st;
     AVFrame         *inputFrame;
     AVFrame         *outputFrame;
-    AVPacket        packet;
-    int             numBytes;
-    uint8_t         *buffer;
+    AVPacket        pkt;
+    int             i, ret, got_output;
+    AVFormatContext *output_format_context;
+    AVOutputFormat  *fmt;
     
-    int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
+    int encode(AVCodecContext *avctx, AVPacket *pkt, int *got_packet, AVFrame *frame);
 };
 
 #endif
-

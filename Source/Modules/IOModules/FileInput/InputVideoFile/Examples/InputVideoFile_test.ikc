@@ -6,7 +6,6 @@
 			class = "InputVideoFile"
 			name = "InputVideoFile"
             filename = "../../../../../../Examples/Media/ikaros.mov"
-    		loop = "true"
 		/>
 		
 	<view name="Movie View" object_size="500">

@@ -1,5 +1,5 @@
 //
-//	  InputVideoFile.h		This file is a part of the IKAROS project
+//	  InputVideo.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2016 Birger Johansson
 //
@@ -21,44 +21,64 @@
 //
 
 
-#ifndef InputVideoFile_
-#define InputVideoFile_
+#ifndef InputVideo_
+#define InputVideo_
 
-extern "C" {
+
+#define __STDC_CONSTANT_MACROS
+
+#ifdef _WIN32
+//Windows
+extern "C"
+{
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
+#include "libavdevice/avdevice.h"
+#include <libavutil/imgutils.h>
+};
+#else
+//Linux...
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libavdevice/avdevice.h>
 #include <libavutil/imgutils.h>
-}
+#ifdef __cplusplus
+};
+#endif
+#endif
+
+#define USE_DSHOW 0
 
 #include "IKAROS.h"
 
-class InputVideoFile: public Module
+class InputVideo: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new InputVideoFile(p); }
+    static Module * Create(Parameter * p) { return new InputVideo(p); }
 
-    InputVideoFile(Parameter * p);
-    virtual ~InputVideoFile();
+    InputVideo(Parameter * p);
+    virtual ~InputVideo();
     
     void            Init();
     void            Tick();
     
-    const char *	filename;
-    
     int				size_x;
     int				size_y;
     
-    int				native_size_x;
-    int				native_size_y;
+    int             frameRate;
+    int             id;
     
     float *			intensity;
     float *			red;
     float *			green;
     float *			blue;
-    float *         restart;
-    bool            loop;
-    bool            printInfo;
+    bool            listDevices;
     
     // FFmpeg related
     AVFormatContext *input_format_context;
@@ -68,11 +88,7 @@ public:
     AVFrame         *inputFrame;
     AVFrame         *outputFrame;
     AVPacket        packet;
-    int             numBytes;
-    uint8_t         *buffer;
     
     int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
 };
-
 #endif
-
