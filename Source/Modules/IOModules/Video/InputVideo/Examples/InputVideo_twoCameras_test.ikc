@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<group title="InputVideo Example">
+	
+		<module
+			class = "InputVideo"
+			name = "InputVideo1"
+			frame_rate = "15"
+			id = "1"
+		/>
+		
+		<module
+			class = "InputVideo"
+			name = "InputVideo2"
+			frame_rate = "30"
+		/>
+	<view name="Movie View" object_size="500">
+		<object class="Image" type="rgb" module = "InputVideo1" source = "RED+GREEN+BLUE" x="0" y="0" />
+		<object class="Image" type="rgb" module = "InputVideo2" source = "RED+GREEN+BLUE" x="1" y="0" />
+	</view>
+</group>
+ 
