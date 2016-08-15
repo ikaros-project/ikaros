@@ -29,7 +29,7 @@ find_path(FFMPEG_INCLUDE_DIR1
   		/usr/include/libavformat
   		/usr/include/ffmpeg/libavformat
   		/usr/local/include/libavformat
-  		/usr/local/include/x86_64-linux-gnu/libavformat
+  		/usr/include/x86_64-linux-gnu/libavformat
 
   	)
 
@@ -42,7 +42,7 @@ find_path(FFMPEG_INCLUDE_DIR2
   		/usr/include/libavutil
   		/usr/include/ffmpeg/libavutil
   		/usr/local/include/libavutil
-  		/usr/local/include/x86_64-linux-gnu/libavutil
+  		/usr/include/x86_64-linux-gnu/libavutil
 
   	)
   	
@@ -55,7 +55,7 @@ find_path(FFMPEG_INCLUDE_DIR3
   		/usr/include/libavcodec
   		/usr/include/ffmpeg/libavcodec
   		/usr/local/include/libavcodec
-  		/usr/local/include/x86_64-linux-gnu/libavcodec
+  		/usr/include/x86_64-linux-gnu/libavcodec
 
   	)
 
@@ -68,7 +68,7 @@ find_path(FFMPEG_INCLUDE_DIR4
   		/usr/include/libswscale
   		/usr/include/ffmpeg/libswscale
   		/usr/local/include/libswscale
-  		/usr/local/include/x86_64-linux-gnu/libswscale
+  		/usr/include/x86_64-linux-gnu/libswscale
 
   	)
 
@@ -81,7 +81,7 @@ find_path(FFMPEG_INCLUDE_DIR5
   		/usr/include/libavdevice
   		/usr/include/ffmpeg/libavdevice
   		/usr/local/include/libavdevice
-  		/usr/local/include/x86_64-linux-gnu/libavdevice
+  		/usr/include/x86_64-linux-gnu/libavdevice
 
   	)
   	
