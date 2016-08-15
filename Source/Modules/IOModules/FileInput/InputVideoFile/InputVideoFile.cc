@@ -20,6 +20,11 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 //
+// Code inspired from:
+// https://www.ffmpeg.org/doxygen/2.8/examples.html
+// http://dranger.com/ffmpeg/
+// https://sourceforge.net/u/leixiaohua1020/profile/
+// https://blogs.gentoo.org/lu_zero/2016/03/29/new-avcodec-api/
 
 #include "InputVideoFile.h"
 
@@ -28,7 +33,6 @@ using namespace ikaros;
 InputVideoFile::InputVideoFile(Parameter * p):
 Module(p)
 {
-    
     filename = GetValue("filename");
     if (filename == NULL)
     {
@@ -42,6 +46,8 @@ Module(p)
     // Register all formats and codecs
     av_register_all();
     
+    av_log_set_level(AV_LOG_FATAL);
+
     /// Open video file
     if(avformat_open_input(&input_format_context, filename, NULL, NULL) != 0) // Allocating input_format_context
     {
@@ -106,9 +112,8 @@ Module(p)
     }
     
     inputFrame = av_frame_alloc();    // Input
-    outputFrame = av_frame_alloc();   // Output (after resize and convertions)
     
-    if(inputFrame == NULL || outputFrame==NULL)
+    if(inputFrame == NULL)
     {
         Notify(msg_fatal_error, "Could not allocate AVFrame\n");
         return;
@@ -127,19 +132,24 @@ Module(p)
         size_y = native_size_y;
     }
     
-    /// Determine required buffer size and allocate buffer
-    numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, size_x, size_y,1);
-    buffer = (uint8_t *) av_malloc(numBytes*sizeof(uint8_t));
+    outputFrame = av_frame_alloc();   // Output (after resize and convertions)
+    outputFrame->format = AV_PIX_FMT_RGB24;
+    outputFrame->width  = size_x;
+    outputFrame->height = size_y;
+    av_image_alloc(outputFrame->data, outputFrame->linesize, size_x, size_y, AV_PIX_FMT_RGB24, 32);
     
-    /// Assign appropriate parts of buffer to image planes in outputFrame
-    av_image_fill_arrays(outputFrame->data,outputFrame->linesize, buffer, AV_PIX_FMT_RGB24,size_x, size_y,1);
+    if(outputFrame==NULL)
+    {
+        Notify(msg_fatal_error, "Could not allocate AVFrame\n");
+        return;
+    }
+
     
     AddOutput("INTENSITY", size_x, size_y);
     AddOutput("RED", size_x, size_y);
     AddOutput("GREEN", size_x, size_y);
     AddOutput("BLUE", size_x, size_y);
-    
-    AddOutput("RESTART", 1);
+    AddOutput("RESTART",1);
 }
 void
 InputVideoFile::Init()
@@ -154,8 +164,6 @@ InputVideoFile::Init()
     restart[0]  = -1; // indicates first tick
 }
 
-
-// The flush packet is a non-NULL packet with size 0 and data NULL
 int
 InputVideoFile::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
 {
@@ -163,18 +171,14 @@ InputVideoFile::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AV
     *got_frame = 0;
     if (pkt) {
         ret = avcodec_send_packet(avctx, pkt);
-        // In particular, we don't expect AVERROR(EAGAIN), because we read all
-        // decoded frames with avcodec_receive_frame() until done.
         if (ret < 0)
             return ret == AVERROR_EOF ? 0 : ret;
     }
-    
     ret = avcodec_receive_frame(avctx, frame);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
         return ret;
     if (ret >= 0)
         *got_frame = 1;
-    
     return 0;
 }
 
@@ -206,7 +210,7 @@ InputVideoFile::Tick()
                     sws_scale(img_convert_ctx, (const uint8_t * const *)inputFrame->data,
                               inputFrame->linesize, 0, avctx->height,
                               outputFrame->data, outputFrame->linesize);
-
+                    
                     // Put data in ikaros output
                     unsigned char * data = outputFrame->data[0];
                     for(int y=0; y<size_y; y++)
@@ -224,30 +228,49 @@ InputVideoFile::Tick()
                 }
             }
         }
-        else
+        else // End of file
         {
-            if (loop)
+            decode(avctx, inputFrame, &gotFrame, NULL); // Decoding the last frames. Do not send any data to decoder
+            
+            if(!gotFrame)                           // Decoder do not give us any more frames
             {
-                restart[0] = 1;
-                avcodec_flush_buffers(avctx);                                       // Need to be done before rewinding
-                if(av_seek_frame(input_format_context, 0, 0, AVSEEK_FLAG_ANY) < 0)  // Rewind movie
-                    printf("error while seeking\n");
-            }
-            else
-            {
-                Notify(msg_end_of_file, "End of movie");
-                return;
+                if (loop)
+                {
+                    restart[0] = 1;
+                    avcodec_flush_buffers(avctx);       // Need to be done before rewinding
+                    if(av_seek_frame(input_format_context, 0, 0, AVSEEK_FLAG_ANY) < 0)  // Rewind movie
+                        printf("error while seeking\n");
+                
+                    // When looping the decoder outputs
+                    // [h264 @ 0x106005a00] co located POCs unavailable
+                    //
+//                        From: h264_direct.c
+//                        if (h->picture_structure == PICT_FRAME) {
+//                        int cur_poc  = h->cur_pic_ptr->poc;
+//                        int *col_poc = sl->ref_list[1][0].parent->field_poc;
+//                        if (col_poc[0] == INT_MAX && col_poc[1] == INT_MAX) {
+//                            av_log(h->avctx, AV_LOG_ERROR, "co located POCs unavailable\n");
+//                            sl->col_parity = 1;
+//                        }
+                }
+                else
+                {
+                    Notify(msg_end_of_file, "End of movie");
+                    return;
+                }
             }
         }
+        av_packet_unref(&packet);
     }
 }
 
-
 InputVideoFile::~InputVideoFile()
 {
-    av_free(buffer);
-    av_free(outputFrame);
+    av_freep(&inputFrame->data[0]);
     av_free(inputFrame);
+    av_freep(&outputFrame->data[0]);
+    av_free(outputFrame);
+    av_free(buffer);
     avcodec_close(avctx);
     avformat_close_input(&input_format_context);
 }

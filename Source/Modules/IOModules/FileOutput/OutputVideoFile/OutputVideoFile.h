@@ -1,5 +1,5 @@
 //
-//	  InputVideo.h		This file is a part of the IKAROS project
+//	  OutputVideoFile.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2016 Birger Johansson
 //
@@ -21,74 +21,58 @@
 //
 
 
-#ifndef InputVideo_
-#define InputVideo_
+#ifndef OutputVideoFile_
+#define OutputVideoFile_
 
-
-#define __STDC_CONSTANT_MACROS
-
-#ifdef _WIN32
-//Windows
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
-#include "libavdevice/avdevice.h"
-#include <libavutil/imgutils.h>
-};
-#else
-//Linux...
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#include <libavdevice/avdevice.h>
 #include <libavutil/imgutils.h>
-#ifdef __cplusplus
-};
-#endif
-#endif
+#include <libavutil/opt.h>
+#include <libavutil/time.h>
 
-#define USE_DSHOW 0
+}
 
 #include "IKAROS.h"
 
-class InputVideo: public Module
+class OutputVideoFile: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new InputVideo(p); }
+    static Module * Create(Parameter * p) { return new OutputVideoFile(p); }
 
-    InputVideo(Parameter * p);
-    virtual ~InputVideo();
+    OutputVideoFile(Parameter * p);
+    virtual ~OutputVideoFile();
     
     void            Init();
     void            Tick();
     
+    const char *	filename;
+    
     int				size_x;
     int				size_y;
-    
-    int             frameRate;
-    int             id;
     
     float *			intensity;
     float *			red;
     float *			green;
     float *			blue;
-    bool            listDevices;
+    bool            printInfo;
+    int             quality;
+    bool            color;
+    int             frameRate;
     
     // FFmpeg related
-    AVFormatContext *input_format_context;
-    int             videoStreamId;
-    AVCodec         *input_codec;
-    AVCodecContext  *avctx;
+    AVCodec         *output_codec;
+    AVCodecContext  *c;
+    AVStream        *audio_st, *video_st;
     AVFrame         *inputFrame;
     AVFrame         *outputFrame;
-    AVPacket        packet;
+    AVPacket        pkt;
+    int             i, ret, got_output;
+    AVFormatContext *output_format_context;
+    AVOutputFormat  *fmt;
     
-    int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
+    int encode(AVCodecContext *avctx, AVPacket *pkt, int *got_packet, AVFrame *frame);
 };
+
 #endif

@@ -5,9 +5,8 @@ find_package(FFMPEG)
 
 # if all libraries found add source file, include dirs and libraries
 if(FFMPEG_FOUND)
-
     set(SOURCE ${SOURCE}
-	${CMAKE_CURRENT_SOURCE_DIR}/InputVideo.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/OutputVideoFile.cc
 	PARENT_SCOPE
 	)
 	set(MODULES_INCLUDS
@@ -20,7 +19,6 @@ if(FFMPEG_FOUND)
 	${FFMPEG_LIBRARIES}
 	PARENT_SCOPE
     ) 
-
 else()
-	message(STATUS "Ikaros: FFMEG is not found. InputVideo module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
+	message(STATUS "Ikaros: FFMEG is not found. OutputVideoFile module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
 endif(FFMPEG_FOUND)

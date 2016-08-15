@@ -1,5 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
+add_subdirectory(InputVideo)
 add_subdirectory(InputVideoQT)
 add_subdirectory(Kinect)
 add_subdirectory(NetworkCamera)
