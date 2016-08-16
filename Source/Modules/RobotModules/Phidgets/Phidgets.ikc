@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Phidgets" description="minimal example module">
+<group name="Phidgets" description="controlling a Phidgets IOBoard">
 
 	<description type="text">
 		A module for comunication with a Phidgets IOBoard. It uses the Phidgets own library.
