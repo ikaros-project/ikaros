@@ -24,7 +24,7 @@
 	<output name="BLUE" description="The blue channel." />
 	<output name="INTENSITY" description="The intensity channel." />
 
-	<output name="RESTART" description="This output is 1 on the first frame of the movie." />
+	<output name="RESTART" description="This output is 1 on the first frame of the movie." size="1" />
 
 	<module class="InputQTMovie" />
 	
