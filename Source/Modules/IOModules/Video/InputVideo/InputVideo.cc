@@ -309,7 +309,7 @@ InputVideo::Tick()
 
 InputVideo::~InputVideo()
 {
-    av_freep(&inputFrame->data[0]);
+    //av_freep(&inputFrame->data[0]); // Freed in decoder function
     av_free(inputFrame);
     av_freep(&outputFrame->data[0]);
     av_free(outputFrame);
