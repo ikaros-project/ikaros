@@ -23,7 +23,7 @@
 		<_connection sourcemodule = "IN" source = "RED" targetmodule = "OutputVideoFile" target = "INTENSITY" />
 
 	<view name="Movie View" object_size="500">
-		<object class="Image" type="rgb" module = "InputVideoFile" source = "RED+GREEN+BLUE" x="0" y="0" />
+		<object class="Image" type="rgb" module = "IN" source = "RED+GREEN+BLUE" x="0" y="0" />
 	</view>
 </group>
  
