@@ -1379,7 +1379,10 @@ WebUI::HandleHTTPRequest()
         }
         current_xml_root = group_xml;
         destroy_string(p);
-        socket->Send("\n");
+		Dictionary rtheader;
+		rtheader.Set("Content-Type", "text/plain");
+		socket->SendHTTPHeader(&rtheader);
+        socket->Send("OK\n");
     }
 
     else if (strstart(uri, "/usesBase64"))
@@ -1558,6 +1561,9 @@ WebUI::HandleHTTPRequest()
 	
     else 
     {
+		Dictionary header;
+		header.Set("Content-Type", "text/plain");
+		socket->SendHTTPHeader(&header);
         socket->Send("ERROR\n");
     }
     
