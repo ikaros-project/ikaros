@@ -37,4 +37,3 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 70;1;Torque Control Mode Enable;Torque control mode on/off;RW;0;0;1;;;
 71;2;Goal Torque;Lowest byte of goal torque value;RW;0;0;2047;4.5;8;14
 73;1;Goal Acceleration;Goal Acceleration;RW;0;0;254;8.583;9;15
-;;;;;;;;;;
