@@ -1230,21 +1230,15 @@ Module::SetSizes()
             int sx = unknown_size;
             int sy = unknown_size;
 
-            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
-            {
-                sx = string_to_int(arg);
-                sy = 1;
-            }
-            
             if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param_x")) && (arg = GetValue(sizearg)))
                 sx = string_to_int(arg);
             
             if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param_y")) && (arg = GetValue(sizearg)))
                 sy = string_to_int(arg);
             
-            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size")))
+            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
             {
-                sx = string_to_int(sizearg);
+                sx = string_to_int(arg);
                 sy = 1;
             }
             
@@ -1253,6 +1247,12 @@ Module::SetSizes()
             
             if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_y")))
                 sy = string_to_int(sizearg);
+            
+            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size")))
+            {
+                sx = string_to_int(sizearg);
+                sy = 1;
+            }
             
 			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set"))) // Set output size x & y from one or multiple inputs
             {
