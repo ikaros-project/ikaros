@@ -179,6 +179,12 @@ Module(p)
     //    printf("Bindings INPUT\n");
     //    for (int i = 0; i <= 9; i++)
     //        printf("%i : %i\n",i ,ikarosInBind[i]) ;
+    
+    // Do not allow mixed protocols
+    if (size > 1)
+        for (int i = 1; i < size; i++)
+            if (servo[0]->Protocol != servo[i]->Protocol)
+                Notify(msg_fatal_error, "Dynamixel uses different protocols.\n\n");
 }
 
 void
