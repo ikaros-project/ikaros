@@ -25,7 +25,7 @@
 void
 Gate::Init()
 {
-    is_open	= GetBoolValue("open", 1);
+    Bind(is_open, "open");
 
     size_x	= GetInputSizeX("INPUT");
     size_y	= GetInputSizeY("INPUT");
