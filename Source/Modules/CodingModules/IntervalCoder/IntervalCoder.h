@@ -38,8 +38,8 @@ public:
 
     int		output_size;
     int		radius;
-    float	min;
-    float	max;
+    float	minimum;
+    float	maximum;
 
     float *	input;
     float *	output;
