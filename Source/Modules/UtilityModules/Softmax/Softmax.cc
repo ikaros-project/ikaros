@@ -28,8 +28,8 @@ using namespace ikaros;
 void
 Softmax::Init()
 {
-    type        =   GetIntValueFromList("type");
-    exponent	=   GetFloatValue("exponent", 2.0);
+    Bind(type, "type");
+    Bind(exponent, "exponent");
 
     size_x	= GetInputSizeX("INPUT");
     size_y	= GetInputSizeY("INPUT");
