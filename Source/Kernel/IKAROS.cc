@@ -1663,6 +1663,27 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 bool
 Kernel::Terminate()
 {
+    if (max_ticks != -1)
+    {
+        const int segments = 50;
+        int lp = int(100*float(tick-1)/float(max_ticks));
+        int percent = int(100*float(tick)/float(max_ticks));
+         if(tick > 0 && percent != lp)
+        {
+            int p = (segments*percent)/100;
+            printf("  Progess: [");
+            for(int i=0; i<segments; i++)
+                if(i < p)
+                    printf("=");
+                else
+                    printf(" ");
+            printf("] %3d%%\r", percent);
+            fflush(stdout);
+            if(tick == max_ticks)
+                printf("\n");
+        }
+    }
+    
     if (max_ticks != -1 && tick >= max_ticks)
     {
         Notify(msg_verbose, "Max ticks reached.\n");
