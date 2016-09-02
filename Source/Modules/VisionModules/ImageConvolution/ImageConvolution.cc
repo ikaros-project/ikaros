@@ -50,9 +50,10 @@ ImageConvolution::ImageConvolution(Parameter * p):
 
     // Init filter kernel from xml file
 
-    rectify         = GetBoolValue("rectify");
-    scale           = GetFloatValue("scale");
-    bias			= GetFloatValue("bias");
+    Bind(rectify, "rectify");
+    Bind(scale, "scale");
+    Bind(bias, "bias");
+    
     filter			= GetMatrix("kernel", filtersize_x, filtersize_y);
 
     for (int j=0; j<filtersize_y; j++)
