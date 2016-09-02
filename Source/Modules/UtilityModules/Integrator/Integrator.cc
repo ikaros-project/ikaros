@@ -25,8 +25,8 @@
 void
 Integrator::Init()
 {
-    alpha		= GetFloatValue("alpha");
-    beta		= GetFloatValue("beta");
+    Bind(alpha, "alpha");
+    Bind(beta, "beta");
     
     minimum		= GetFloatValue("min");
     maximum		= GetFloatValue("max");
