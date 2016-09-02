@@ -41,11 +41,10 @@ HysteresisThresholding::HysteresisThresholding(Parameter * p):
     input			= NULL;
     output			= NULL;
 
-    T1				= GetFloatValue("T1", 0.3);
-    T2				= GetFloatValue("T2", 0.6);
-
-    iterations		= GetIntValue("iterations", 1);
-    range			= GetIntValue("range", 1);
+    Bind(T1, "T1");
+    Bind(T2, "T2");
+    Bind(iterations, "iterations");
+    Bind(range, "range");
 }
 
 
