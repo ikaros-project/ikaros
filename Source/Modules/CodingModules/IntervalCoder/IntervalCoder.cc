@@ -31,9 +31,9 @@ IntervalCoder::Init()
 
     output_size	=   GetOutputSize("OUTPUT");
 
-    radius		=   GetIntValue("radius", 1);
-    min			=   GetFloatValue("min", 0.0);
-    max			=   GetFloatValue("max", 1.0);
+    Bind(radius, "radius");
+    Bind(minimum, "min");
+    Bind(maximum, "max");
 	
 }
 
@@ -45,12 +45,12 @@ IntervalCoder::Tick()
     reset_array(output, output_size);
 
     float N = float(output_size) - 2 * float(radius);
-    float I = (max-min) / float(N-1);
+    float I = (maximum-minimum) / float(N-1);
 //	float c0 = min - float(radius) * I;
 
     for (int i=0; i<output_size; i++)
     {
-        float x = float(i) - (input[0] -  min)/I - radius;
+        float x = float(i) - (input[0] -  minimum)/I - radius;
 
         if (x < 0)
             x = -x;
