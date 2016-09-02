@@ -28,7 +28,7 @@ using namespace ikaros;
 void
 SpatialClustering::Init()
 {
-    sorting = GetBoolValue("sorting", false);
+    Bind(sorting , "sorting");
 	no_of_clusters = GetIntValue("no_of_clusters", 1);
 
 	input = GetInputMatrix("INPUT");
