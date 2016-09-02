@@ -42,11 +42,11 @@ GaborFilter::GaborFilter(Parameter * p):
     filterradius	= int(2*scale+0.5);
     filtersize		= 1+2*filterradius;
 
-    gamma			= GetFloatValue("gamma", 0.5);	// aspect ratio
-    lambda			= GetFloatValue("lambda", 4);	// wavelength
-    theta			= GetFloatValue("theta", 0);		// orientation
-    phi				= GetFloatValue("phi", 1.57);	// phase offset
-    sigma			= GetFloatValue("sigma", 1);		// width
+    Bind(gamma, "gamma");	// aspect ratio
+    Bind(lambda, "lambda");	// wavelength
+    Bind(theta, "theta");		// orientation
+    Bind(phi, "phi");	// phase offset
+    Bind(sigma, "sigma");		// width
 
 
     AddInput("INPUT");
