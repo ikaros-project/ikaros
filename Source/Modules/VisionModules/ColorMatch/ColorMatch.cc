@@ -26,9 +26,9 @@ using namespace ikaros;
 void
 ColorMatch::Init()
 {
-    alpha		=	GetFloatValue("alpha", 0.01);
-    sigma		=	GetFloatValue("sigma", 25.0);
-    gain			=	GetFloatValue("gain", 1.0);
+    Bind(alpha, "alpha");
+    Bind(sigma, "sigma");
+    Bind(gain, "gain");
     
     target0		=	GetFloatValue("target0", 0.0);
     target1		=	GetFloatValue("target1", 0.0);
