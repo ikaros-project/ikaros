@@ -27,8 +27,8 @@ using namespace ikaros;
 void
 Noise::Init()
 {
-    mean	= GetFloatValue("mean", 0.0);
-    sigma	= GetFloatValue("sigma", 1.0);
+    Bind(mean, "mean");
+    Bind(sigma, "sigma");
 
     size_x	= GetInputSizeX("INPUT");
     size_y	= GetInputSizeY("INPUT");
