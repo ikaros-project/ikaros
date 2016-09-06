@@ -486,7 +486,7 @@ Module::GetDefault(const char * n)
             {
                 const char * d = kernel->GetXMLAttribute(parameter, "default");
                 if(d)
-                    return d;
+                    return (*d != '\0' ? d : NULL); // return NULL if default is an empty string
             }
             
             const char * t = kernel->GetXMLAttribute(parameter, "target");
@@ -500,7 +500,7 @@ Module::GetDefault(const char * n)
                     // use default if it exists
                     const char * d = kernel->GetXMLAttribute(parameter, "default");
                     if(d)
-                        return d;
+                        return (*d != '\0' ? d : NULL); // return NULL if default is an empty string;
                     
                     // the parameter element redefines our parameter name; get the new name
                     const char * newname = kernel->GetXMLAttribute(parameter, "name");
