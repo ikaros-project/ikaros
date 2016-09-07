@@ -25,8 +25,8 @@
 void
 Histogram::Init()
 {
-    minimum = GetFloatValue("min");
-    maximum = GetFloatValue("max");
+    Bind(minimum, "min");
+    Bind(maximum, "max");
 
     if(minimum == maximum)
         Notify(msg_fatal_error, "Max must be larger than min");

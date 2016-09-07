@@ -27,9 +27,9 @@
 void
 Sweep::Init()
 {
-    minimum =   GetFloatValue("min", 0);
-    maximum =   GetFloatValue("max", 1);
-    step	=   GetFloatValue("step", 0.1);
+    Bind(minimum, "min");
+    Bind(maximum, "max");
+    Bind(step, "step");
 
     output	=   GetOutputArray("OUTPUT");
     size	=	GetOutputSize("OUTPUT");

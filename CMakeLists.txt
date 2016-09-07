@@ -164,4 +164,7 @@ include_directories(${MODULES_INCLUDS})
 target_link_libraries (ikaros ${MODULES_LIBS})
   add_dependencies(ikaros MPIFaceDetector)
 
+# Set binary name to ikaros_d in debug mode 
+set_target_properties(ikaros PROPERTIES DEBUG_POSTFIX "_d")
+
 

@@ -29,7 +29,7 @@ using namespace ikaros;
 void
 Normalize::Init()
 {
-    type    =   GetIntValueFromList("type");
+    Bind(type, "type");
 
     input	=	GetInputArray("INPUT");
     output  =	GetOutputArray("OUTPUT");

@@ -1035,6 +1035,9 @@ WebUI::Run()
 void
 WebUI::CopyUIData()
 {
+    if(!view_data)
+        return;
+    
     if(dont_copy_data)
         return;
     
@@ -1156,11 +1159,11 @@ WebUI::CopyUIData()
 void
 WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
 {
-    // Grab ui data 
+    // Grab ui data
         
     float * p = atomic_exchange(&ui_data, (float *)(NULL));
     float * q = p;
-
+    
     long int s = 0;
 
     // Send
@@ -1647,7 +1650,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
                 if(c)
                 {
                     char * description = c->data;
-                    socket->Send("<br /><div class='hidden' style='width: 400px; padding-top: 10px; color: #BBB'>%s <a href=\"http://www.ikaros-project.org/module/%s\" target='_window'><img style='vertical-align: middle' src='link.png'/></a></div>\n", description, m->class_name);
+                    socket->Send("<br /><div class='hidden' style='width: 400px; padding-top: 10px; color: #BBB'>%s <a href=\"http://www.ikaros-project.org/module/%s\" target='_window'><img style='vertical-align: middle' src='Icons/link.png'/></a></div>\n", description, m->class_name);
                 }
             }
         }
