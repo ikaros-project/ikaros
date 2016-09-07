@@ -62,6 +62,8 @@
 #define SYNC_WRITE_COMMON_2 4
 #define RECIVE_HEADER_2 8
 
+#define BULK_WRITE_HEADER_2 8
+
 #define MAX_SERVOS 256
 #define DYNAMIXEL_MAX_BUFFER 143
 
@@ -74,9 +76,9 @@ public:
     ~DynamixelComm();
     int             Ping(int id);
     void            Reset(int id, int protocol);
-    void            SyncWriteWithIdRange(int * servo_id, int protocol, unsigned  char ** DynamixelMemoeries, int from, int to, int n);
+    void            WriteToServo(int * servo_id,int protocol, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
-    
+  
     // Protocol version 1
     void            Send1(unsigned char * b);
     int             Receive1(unsigned char * b);
@@ -89,7 +91,8 @@ public:
     void            PrintMemory1(unsigned char * outbuf, int from, int to);
     //void            ResetDynamixel1(int id);
     bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    void            SyncWriteWithIdRange1(int * servo_id,  unsigned  char ** DynamixelMemoeries, int from, int to, int n);
+    void            SyncWriteWithIdRange1(int * servo_id, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+
     unsigned char   CalculateChecksum(unsigned char * b);
     
     // Protocol version 2
@@ -104,7 +107,8 @@ public:
     void            PrintMemory2(unsigned char * outbuf, int from, int to);
     //void            ResetDynamixel2(int id);
     bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    void            SyncWriteWithIdRange2(int * servo_id,  unsigned  char ** DynamixelMemoeries, int from, int to, int n);
+    //void            SyncWriteWithIdRange2(int * servo_id, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int from, int *to, int n);
+    void            BulkWrite2(int * servo_id, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
     bool            checkCrc(unsigned char * package);
 };
