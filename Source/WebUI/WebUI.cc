@@ -486,13 +486,18 @@ WebUI::AddDataSource(const char * module, const char * source)
             if (!strcmp(md->name, module))
             {
                 if(!io->matrix)
+                {
+//                    TEST_SIZE();
                     return;
+                }
                 md->AddSource(source, data_source_matrix, io->matrix[0], io->sizex, io->sizey);
+//                TEST_SIZE();
                 return;
             }
         
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, io);
+//        TEST_SIZE();
     }
     else if(k->GetBinding(group, m, type, value_ptr, size_x, size_y, module, source))
     {
@@ -500,11 +505,13 @@ WebUI::AddDataSource(const char * module, const char * source)
             if (!strcmp(md->name, module))
             {
                 md->AddSource(source, type, value_ptr, size_x, size_y);
+//                TEST_SIZE();
                 return;
             }
         
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, type, value_ptr, size_x, size_y);
+//        TEST_SIZE();
     }
     
     else
@@ -786,6 +793,8 @@ const float view_min_height = 500;
 void
 WebUI::SendView(const char * view)
 {
+//    while(copying_data) ;
+
     if (debug_mode)
         printf("Sending HTML View: %s\n", view);
     
@@ -1031,6 +1040,54 @@ WebUI::Run()
 }
 
 
+/*
+void
+WebUI::TEST_SIZE()
+{
+    int size = 0;
+
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    {
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                 case data_source_array:
+                    size += sd->size_x;
+                    break;
+                    
+                case data_source_matrix:
+                case data_source_gray_image:
+                case data_source_green_image:
+                case data_source_spectrum_image:
+                case data_source_fire_image:
+                    size += sd->size_x * sd->size_y;
+                    break;
+            
+                case data_source_rgb_image:
+                case data_source_bmp_image:
+                    size += 3 * sd->size_x * sd->size_y;
+                    break;
+                    
+                case data_source_float:
+                case data_source_int:
+                case data_source_bool:
+                case data_source_list:
+                    size++; // int, list, bool, float
+                    break;
+
+                default:
+                    k->Notify(msg_warning, "WebUI: Unkown data type");
+                    break;
+            }
+        }
+    }
+
+//    printf("\tDATA SIZE: %d\n", size);
+
+}
+*/
+
 
 void
 WebUI::CopyUIData()
@@ -1040,7 +1097,7 @@ WebUI::CopyUIData()
     
     if(dont_copy_data)
         return;
-    
+
     copying_data = true;
 
     // Step 1: calculate size
@@ -1083,6 +1140,8 @@ WebUI::CopyUIData()
             }
         }
     }
+
+//    printf("CopyUIData: %ld: DATA SIZE: %d\n", tick, size);
 
     // Allocate memory
     
@@ -1163,7 +1222,9 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
         
     float * p = atomic_exchange(&ui_data, (float *)(NULL));
     float * q = p;
-    
+
+//    printf("MEM: %lx\n", (unsigned long)p);
+
     long int s = 0;
 
     // Send
@@ -1395,7 +1456,12 @@ WebUI::HandleHTTPRequest()
         char * type = new char [256];
         int c = sscanf(uri, "/usesBase64/%[^/]/%[^/]/%[^/]", module, output, type);
         if (c == 3)
+        {
             AddImageDataSource(module, output, type);
+            float * old_ui_data = atomic_exchange(&ui_data, (float *)(NULL));  //Invalidate old buffer
+            if(old_ui_data)
+                destroy_array(old_ui_data);
+        }
 		
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
@@ -1413,8 +1479,13 @@ WebUI::HandleHTTPRequest()
         char * source = new char [256];
         int c = sscanf(uri, "/uses/%[^/]/%[^/]", module, source);
         if (c == 2)
+        {
             AddDataSource(module, source);
-		
+            float * old_ui_data = atomic_exchange(&ui_data, (float *)(NULL));  //Invalidate old buffer
+            if(old_ui_data)
+                destroy_array(old_ui_data);
+        }
+
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
 		socket->SendHTTPHeader(&header);
