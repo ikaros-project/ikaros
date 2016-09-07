@@ -104,7 +104,7 @@
 		class   = "MarkerTracker"
 		name	= "MarkerTracker"
         description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
-		_calibrationForKinect
+		_calibration = "640 480 317.584948 260.888465 522.573778 522.756999 0.161722 -0.285527 0.004218 0.001601  0.00000 0 10"					
 		calibration = "640 480 317.584948 260.888465 522.573778 522.756999 0.161722 -0.285527 0.004218 0.001601  0.00000 0 10"					
 		max_markers	="20"
 		sort    = "no"
