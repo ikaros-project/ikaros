@@ -13,12 +13,12 @@
 		/>
 	</example>
 
-	<parameter name="scale" type="float" description="The scale of the filter" />
-	<parameter name="gamma" type="float" description="Aspect ration" />
-	<parameter name="lambda" type="float" description="Wavelength" />
-	<parameter name="theta" type="float" description="Orientation" />
-	<parameter name="phi" type="float" description="Phase offset" />
-	<parameter name="sigma" type="float" description="Width" />
+	<parameter name="scale" type="float" default="1.0" description="The scale of the filter" />
+	<parameter name="gamma" type="float" default="0.5" description="Aspect ration" />
+	<parameter name="lambda" type="float" default="4" description="Wavelength" />
+	<parameter name="theta" type="float" default="0" description="Orientation" />
+	<parameter name="phi" type="float" default="1.57" description="Phase offset" />
+	<parameter name="sigma" type="float" default="1.0" description="Width" />
 
 	<input name="INPUT" description="The first input" />
 	<output name="OUTPUT" description="The output" />

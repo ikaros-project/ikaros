@@ -27,8 +27,8 @@
 
 	<parameter name="range" type="int" default="1" description="How far away can an edge element be" />
 	<parameter name="iterations" type="int" default="1" description="How many times should the algorithm be iterated" />
-	<parameter name="range" type="int" default="0.3" description="Lower threshold" />
-	<parameter name="range" type="int" default="0.6" description="Higher threshold" />
+	<parameter name="T1" type="int" default="0.3" description="Lower threshold" />
+	<parameter name="T2" type="int" default="0.6" description="Higher threshold" />
 
 	<input name="INPUT" description="The  input" />
 	<output name="OUTPUT" description="The output" />

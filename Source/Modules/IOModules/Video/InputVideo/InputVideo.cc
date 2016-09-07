@@ -76,6 +76,7 @@ void show_avfoundation_device(){
     printf("=============================\n");
 }
 
+
 InputVideo::InputVideo(Parameter * p):
 Module(p)
 {
@@ -92,7 +93,6 @@ Module(p)
     input_format_context = avformat_alloc_context();
     avdevice_register_all();        // libavdevice
     
-    av_log_set_level(AV_LOG_FATAL);
     
 #ifdef _WIN32
     if (listDevices)
@@ -126,6 +126,7 @@ Module(p)
         return;
     }
 #else
+    
     if (listDevices)
         show_avfoundation_device();
     
@@ -146,6 +147,8 @@ Module(p)
     }
 #endif
     
+    av_log_set_level(AV_LOG_FATAL);
+
     /// Retrieve stream information
     if(avformat_find_stream_info(input_format_context, NULL) < 0)
     {

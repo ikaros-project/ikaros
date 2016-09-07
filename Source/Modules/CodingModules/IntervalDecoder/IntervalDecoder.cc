@@ -26,9 +26,9 @@
 void
 IntervalDecoder::Init()
 {
-    radius      = GetIntValue("radius", 1);
-    min         = GetFloatValue("min", 0.0);
-    max         = GetFloatValue("max", 1.0);
+    Bind(radius, "radius");
+    Bind(min, "min");
+    Bind(max, "max");
 
     input       = GetInputArray("INPUT");
     input_size  = GetInputSize("INPUT");
