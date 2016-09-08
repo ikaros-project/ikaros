@@ -48,7 +48,7 @@ Module(p)
     std::string csvPath     = GetClassPath();
     use_feedback            = GetBoolValue("feedback");
     start_up_delay          = GetIntValue("start_up_delay");
-    init_print              = GetIntValueFromList("printf_info");
+    init_print              = GetIntValueFromList("print_info");
     index_mode              = GetIntValueFromList("index_mode");
     angle_unit              = GetIntValueFromList("angle_unit");
     int maxServos           = GetIntValue("max_servo_id");
