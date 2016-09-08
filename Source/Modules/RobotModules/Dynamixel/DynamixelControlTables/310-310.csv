@@ -1,12 +1,11 @@
 Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;Ikaros Output
-0;2;Model Number;Lowest byte of model number;R;356;;;;;
+0;2;Model Number;Lowest byte of model number;R;310;;;;;
 2;1;Version of Firmware;Information on the version of firmware;R;;;;;;
 3;1;ID;ID of Dynamixel;RW;1;0;252;;;
 4;1;Baud Rate;Baud Rate of Dynamixel;RW;1;0;254;;;
 5;1;Return Delay Time;Return Delay Time;RW;250;0;254;0.2;;
 6;2;CW Angle Limit;clockwise Angle Limit;RW;0;0;1023;;;
 8;2;CCW Angle Limit; counterclockwise Angle Limit;RW;1023;0;1023;;;
-10;1;Drive Mode;Dual Mode Setting;RW;0;0;1;;;
 11;1;Limit Temperature;Internal Limit Temperature;RW;65;0;150;;;
 12;1;Lower Limit Voltage;Lowest Limit Voltage;RW;60;50;250;0.1;;
 13;1;Upper Limit Voltage;Upper Limit Voltage;RW;90;50;250;0.1;;
@@ -37,4 +36,3 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 70;1;Torque Control Mode Enable;Torque control mode on/off;RW;0;0;1;;;
 71;2;Goal Torque;Lowest byte of goal torque value;RW;0;0;2047;4.5;8;14
 73;1;Goal Acceleration;Goal Acceleration;RW;0;0;254;8.583;9;15
-;;;;;;;;;;
