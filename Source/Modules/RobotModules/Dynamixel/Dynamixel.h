@@ -60,17 +60,17 @@ class Dynamixel: public Module
 public:
     static Module * Create(Parameter * p) { return new Dynamixel(p); }
     
-	Dynamixel(Parameter * p);
-	virtual ~Dynamixel();
+    Dynamixel(Parameter * p);
+    virtual ~Dynamixel();
     
     void        SetSizes();
     
-	void		Init();
-	void		Tick();
+    void		Init();
+    void		Tick();
     
 private:
-    int         size;
-    int         servos;
+    int         size;           // Size of the servo[]. Size != number of servoes as in direct mode it can be gap between servos.
+    int         servos;         // Number of servoes found
     
     int         init_print;
     int         index_mode;
@@ -79,65 +79,63 @@ private:
     bool        use_feedback;
     int         start_up_delay;
     
-    int         ikarosInBind[10];    // Where to look for ikaros data in the dynamixel memory block
-    int         ikarosOutBind[16];   // Where to look for ikaros data in the dynamixel memory block
-
+    // index of where to find ikaros data in the dynamixel memory block
+    int **      ikarosInBind;           // Array of where to store input data in the dynamixel memory block
+    int **      ikarosOutBind;          // Array of where to grab output data in the dynamixel memory block
+    int **      parameterInSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
+    int         protocol;               // The protocol used. No mixed protocol allowed.
     
-    // Inputs and outputs
     // Inputs
     float *     torqueEnable;
-    bool        torqueEnable_connected;
+    bool        torqueEnableConnected;
     float *     LED;
-    bool        LED_connected;
+    bool        LEDConnected;
     float *     dGain;
-    bool        dGain_connected;
+    bool        dGainConnected;
     float *     iGain;
-    bool        iGain_connected;
+    bool        iGainConnected;
     float *     pGain;
-    bool        pGain_connected;
+    bool        pGainConnected;
     float *     goalPosition;
-    bool        goalPosition_connected;
+    bool        goalPositionConnected;
     float *     movingSpeed;
-    bool        movingSpeed_connected;
+    bool        movingSpeedConnected;
     float *     torqueLimit;
-    bool        torqueLimit_connected;
+    bool        torqueLimitConnected;
     float *     goalTorque;
-    bool        goalTorque_connected;
+    bool        goalTorqueConnected;
     float *     goalAcceleration;
-    bool        goalAcceleration_connected;
-    
+    bool        goalAccelerationConnected;
     
     // Outputs
-    float * feedbackTorqueEnable;
-    float * feedbackLED;
-    float * feedbackDGain;
-    float * feedbackIGain;
-    float * feedbackPGain;
-    float * feedbackGoalPosition;
-    float * feedbackMoving;
-    float * feedbackTorqueLimit;
-    float * feedbackPresentPosition;
-    float * feedbackPresentSpeed;
-    float * feedbackPresentLoad;
-    float * feedbackPresentVoltage;
-    float * feedbackPresentTemperature;
-    float * feedbackPresentCurrent;
-    float * feedbackGoalTorque;
-    float * feedbackGoalAcceleration;
+    float *     feedbackTorqueEnable;
+    float *     feedbackLED;
+    float *     feedbackDGain;
+    float *     feedbackIGain;
+    float *     feedbackPGain;
+    float *     feedbackGoalPosition;
+    float *     feedbackMoving;
+    float *     feedbackTorqueLimit;
+    float *     feedbackPresentPosition;
+    float *     feedbackPresentSpeed;
+    float *     feedbackPresentLoad;
+    float *     feedbackPresentVoltage;
+    float *     feedbackPresentTemperature;
+    float *     feedbackPresentCurrent;
+    float *     feedbackGoalTorque;
+    float *     feedbackGoalAcceleration;
     
-    // Array of servo data
-    DynamixelServo **    servo;
+    DynamixelServo **   servo; // Array of servo data
     
     // Arrays used to send commands to servos
-    int *       servo_index;
-    int *       servo_id;
+    int             *   servoIndex;        // Array of indexes of where to find servoes in the servo[] array.
+    int             *   servoId;           // Array of ids example [1,2,3] or [1,5,19]
     
-    unsigned char ** DynamixelMemoeries;
+    unsigned char   **  DynamixelMemoeries;
     
-    const char *    device;
-    DynamixelComm * com;
+    const char      *   device;
+    DynamixelComm   *   com;
     
-    // Print
     void		Print();
     void        PrintAll();
 };
