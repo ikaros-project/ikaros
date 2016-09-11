@@ -4,7 +4,7 @@
 
 	<description type="xhtml">
 		<p>
-			Module that implements a depth-first method that generates a perfect maze. A partfect maze is
+			Module that implements a depth-first method that generates a perfect maze. A pertfect maze is
             one with exactly one path between any two locations in the maze. The maze is randomly generated.
             use -z# at the command line with different numbers for # to get different mazes each time.
 		</p>
