@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+    <module
+        class="FunctionGenerator"
+        name="L"
+        type = "ticksquare"
+        basetime = "200"
+        tickduty = "50"
+        amplitude = "1.0"
+    />
+
+
+	<module
+		class = "Nucleus"
+		name = "N1"
+        epsilon = "0.05"
+        delta = "1"
+	/>
+	
+	<module
+		class = "Nucleus"
+		name = "N2"
+        epsilon = "0.05"
+        delta = "1"
+	/>
+	
+	<module
+		class = "Nucleus"
+		name = "N3"
+        epsilon = "0.05"
+        delta = "1"
+	/>
+	
+	<connection sourcemodule="L" source="OUTPUT" targetmodule="N1" target="EXCITATION" delay="10"/>
+	<connection sourcemodule="N1" source="OUTPUT" targetmodule="N2" target="EXCITATION" />
+	<connection sourcemodule="N2" source="OUTPUT" targetmodule="N3" target="EXCITATION" />
+
+	<view name="View">
+        <object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />
+        <object class="Plot" title="N1" module="N1" source="OUTPUT" x="0" y="1" w="6" min="0.0" max="1" />
+        <object class="Plot" title="N2" module="N2" source="OUTPUT" x="0" y="2" w="6" min="0.0" max="1" />
+        <object class="Plot" title="N3" module="N3" source="OUTPUT" x="0" y="3" w="6" min="0.0" max="1" />
+	</view>
+</group>
+ 
