@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<group title="MotionRecorder">
+
+         <module
+            class = "Dynamixel"
+            name = "Joints"
+            device  = "/dev/cu.usbserial-A7005Lxn"
+            index_mode = "indirect"
+            printf_info ="minimal"
+            use_feedback ="true"
+            baud_rate = "1000000"
+            angle_unit = "tau"
+        />
+
+ 		<module
+			class = "MotionRecorder"
+			name = "MotionRecorder"
+            mask = "1 1 1 1 1   1 1 1 1 1   1 1 1 1 "
+            _torque = "0.2 0.2 0.2 0.2 0.2  0.2 0.2 0.2 0.2 0.2   0.2 0.2 0.2 0.2"
+            torque = "0.8 0.8 0.8 0.8 0.8    0.8 0.8 0.8 0.8 0.8   0.8 0.8 0.8 0.8"
+            filename = "/Users/cba/Desktop/motion.%d.mot"
+		/>
+
+        <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "GOAL_POSITION" />
+        <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Joints" target = "TORQUE_LIMIT" />
+        <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Joints" target = "TORQUE_ENABLE" />
+
+        <connection sourcemodule = "Joints" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+
+		<view name="View" object_size="50">
+			<object class="Plot" module="Joints" source="FEEDBACK_PRESENT_POSITION" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
+			<object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
+			<object class="Plot" module="MotionRecorder" source="KEYTRIG" color="blue" x="0" y="0" w="8" h="4" />
+
+			<_object class="BarGraph" title="s0T" module="MotionRecorder" source="s0T" x="0" y="0" w="8" h="2" max="1" />
+			<_object class="BarGraph" title="s0E" module="MotionRecorder" source="s0E" x="0" y="2" w="8" h="2" min="-0.25" max="0.25" />
+			<_object class="BarGraph" title="s0dEdT" module="MotionRecorder" source="s0dEdT" x="0" y="4" w="8" h="2" min="-0.1" max="0.1" />
+
+			<object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
+			<object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
+
+            <object class="Button" title = "Off" module="MotionRecorder" parameter="off" x="10" y="0" h="1" w="2" />
+            <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="10" y="1" h="1" w="2" />
+            <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="10" y="2" h="1" w="2" />
+            <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="10" y="3" h="1" w="2" />
+            <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
+            <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="10" y="5" h="1" w="2" />
+            <object class="Button" title = "Load" module="MotionRecorder" parameter="save" x="10" y="6" h="1" w="2" />
+            <object class="Button" title = "SQ Play" module="MotionRecorder" parameter="sqplay" x="10" y="7" h="1" w="2" />
+
+            <object class="Plot" module="MotionRecorder" source="OUTPUT" select="0" min="0" nax="1" x="0" y="8" w="8" h="4" />
+            <object class="Plot" module="Joints" source="FEEDBACK_PRESENT_POSITION" color="blue" select="0" min="0" nax="1" x="0" y="8" w="8" h="4" />
+
+<!--
+			<object class="Plot" module="MotionRecorder" source="ERROR" select="1" min="-1" nax="1" x="0" y="5" w="8" h="4" />
+
+			<object class="Plot" module="MotionRecorder" source="MEAN_ERROR" x="0" y="9" w="8" h="2" />
+			<object class="Plot" module="MotionRecorder" source="TORQUE" select="1" x="0" y="11" w="8" h="2" />
+
+            <object class="Slider" title = "mutation" module="MotionRecorder" parameter="mutation" min="0" max="0.05" select="0" x="9" y="8" h="4" w="1" />
+-->
+		</view>
+
+</group>
+
