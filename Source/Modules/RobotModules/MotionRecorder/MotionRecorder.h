@@ -40,6 +40,8 @@ public:
     void 		Load();
 
     float *     trig;
+    float *     trig_last;
+
     float *     completed;
 
     float *     output;
