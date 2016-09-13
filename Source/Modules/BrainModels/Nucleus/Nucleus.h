@@ -34,7 +34,8 @@ public:
     float       gamma;
     float       delta;
     float       epsilon;
-    
+    float       zeta;
+
     float       x;
     
     float *		excitation;
