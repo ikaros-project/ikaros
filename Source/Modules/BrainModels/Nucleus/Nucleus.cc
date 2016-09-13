@@ -103,6 +103,6 @@ Nucleus::Tick()
 
 }
 
-static InitClass init("Nucleus", &Nucleus::Create, "Source/BrainModels/Nucleus/");
+static InitClass init("Nucleus", &Nucleus::Create, "Source/Modules/BrainModels/Nucleus/");
 
 
