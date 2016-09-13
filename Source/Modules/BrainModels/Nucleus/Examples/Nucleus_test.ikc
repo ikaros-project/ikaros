@@ -16,21 +16,18 @@
 		class = "Nucleus"
 		name = "N1"
         epsilon = "0.05"
-        delta = "1"
 	/>
 	
 	<module
 		class = "Nucleus"
 		name = "N2"
         epsilon = "0.05"
-        delta = "1"
 	/>
 	
 	<module
 		class = "Nucleus"
 		name = "N3"
         epsilon = "0.05"
-        delta = "1"
 	/>
 	
 	<connection sourcemodule="L" source="OUTPUT" targetmodule="N1" target="EXCITATION" delay="10"/>
