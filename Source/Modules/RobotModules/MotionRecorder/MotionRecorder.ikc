@@ -15,7 +15,7 @@
 	</example>
 
 	<parameter name="max_behaviors" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
-	<parameter name="current_behaviors" type="int" default="0" description="The behavior that will be recorded" />
+	<parameter name="current_behavior" type="int" default="0" description="The behavior that will be recorded" />
 
 	<parameter name="position_data_max" type="int" default="5000" description="The maximum number of datapoints that can be stored" />
 	<parameter name="mask" type="array" default="1" description="Array that contains 1:s for the input channels that should be recorded." />
@@ -28,8 +28,6 @@
 	<parameter name="save" type="bool" default="false" description="Saves the recorded movement when true. Should be connected to a button control." />
 	<parameter name="load" type="bool" default="false" description="Loads next recorded movement when true. Should be connected to a button control." />
 	<parameter name="sqplay" type="bool" default="false" description="Plays all behaviors in sequence. Should be connected to a button control." />
-
-    <!-- In the future, add keypoint extraction and replay -->
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_behaviors" optional="yes" />
 	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_behaviors" />

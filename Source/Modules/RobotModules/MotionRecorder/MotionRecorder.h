@@ -1,7 +1,7 @@
 //
 //	MotionRecorder.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015 Christian Balkenius
+//    Copyright (C) 2015-2016 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -36,9 +36,11 @@ public:
     void 		Init();
     void 		Tick();
 
-    void        FindKeypoints();
     void 		Save();
     void 		Load();
+
+    float *     trig;
+    float *     completed;
 
     float *     output;
     float *     state;
@@ -51,13 +53,15 @@ public:
     int         size;
 
     long        timebase;
-    float       smooth_radius;
 
-    float **    position_data;
-    float **    torque_data;
+    float ***   position_data;
+    float ***   torque_data;
+
+    int         max_behaviors;
+    int         current_behavior;
 
     int         position_data_max;
-    int         position_data_count;
+    int   *     position_data_count;
 
     float *     time; // in ms
 
@@ -65,7 +69,7 @@ public:
     float *     enable;
 
     const char * file_name;
-    int          file_count;
+//    int          file_count;
 
     bool        stop;
     bool        off;

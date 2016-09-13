@@ -40,12 +40,17 @@ MotionRecorder::Init()
     Bind(load, "load");
     Bind(sqplay, "sqplay");
 
+    Bind(current_behavior, "current_behavior");
+
     stop_debounce = false;
     off_debounce = false;
     record_debounce = false;
     play_debounce = false;
     train_debounce = false;
     save_debounce = false;
+
+    trig = GetInputArray("INPUT");
+    completed = GetOutputArray("COMPLETED");
 
     output = GetOutputArray("OUTPUT");
     torque = GetOutputArray("TORQUE");
@@ -64,12 +69,14 @@ MotionRecorder::Init()
     state = GetOutputArray("STATE");
     *state = state_stop;
 
+    max_behaviors = GetIntValue("max_behaviors");
+    current_behavior = 0;
 
     position_data_max = GetIntValue("position_data_max");
-    position_data_count = 0;
-    position_data  = create_matrix(size, position_data_max);
+    position_data_count = new int[max_behaviors];
+    position_data  = create_matrix(max_behaviors, size, position_data_max);
 
-    torque_data  = set_matrix(create_matrix(size, position_data_max), 0.5, size, position_data_max);
+    torque_data  = set_matrix(create_matrix(size, position_data_max, max_behaviors), 0.5, size, position_data_max, max_behaviors);
 
     time = GetOutputArray("TIME");
     timebase = GetTickLength();
@@ -79,7 +86,7 @@ MotionRecorder::Init()
     play_torque = GetArray("torque", size);
     mask        = GetArray("mask", size);
 
-    file_count = 0;
+//    file_count = 0;
     file_name = GetValue("filename");
 }
 
@@ -97,7 +104,7 @@ MotionRecorder::Save()
 {
     char fname[1024];
 
-    snprintf(fname, 1023, file_name, file_count);
+    snprintf(fname, 1023, file_name, current_behavior);
     fname[1023] = 0;
 
     FILE * f = fopen(fname, "w");
@@ -110,12 +117,12 @@ MotionRecorder::Save()
 
     fprintf(f, "POSITION/%d TORQUE/%d MASK/%d\n", size, size, size);
 
-    for(int j=0; j<position_data_count; j++)
+    for(int j=0; j<position_data_count[current_behavior]; j++)
     {
         for(int i=0; i<size; i++)
         {
             if(i!=0) fprintf(f, "\t");
-            fprintf(f, "%.4f", position_data[j][i]);
+            fprintf(f, "%.4f", position_data[current_behavior][j][i]);
         }
 
         for(int i=0; i<size; i++)
@@ -133,7 +140,6 @@ MotionRecorder::Save()
     }
 
     fclose(f);
-    file_count++;
 }
 
 
@@ -143,15 +149,15 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 {
     char fname[1024];
 
-    snprintf(fname, 1023, file_name, file_count);
+    snprintf(fname, 1023, file_name, current_behavior);
     fname[1023] = 0;
 
     FILE * f = fopen(fname, "r");
 
     if(f == NULL)
     {
-        file_count = 0;
-        snprintf(fname, 1023, file_name, file_count);
+//        file_count = 0;
+        snprintf(fname, 1023, file_name, current_behavior);
         fname[1023] = 0;
         f = fopen(fname, "r");
     }
@@ -162,12 +168,12 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         return;
     }
 
-    printf("LOADING: %d\n", file_count);
+    printf("LOADING: %d\n", current_behavior);
 
 
 //    fprintf(f, "POSITION/%d TORQUE/%d MASK/%d\n", size, size, size);
 
-    position_data_count = 0;
+    position_data_count[current_behavior] = 0;
 
     char buff [1024];
     fscanf(f, "%s", buff);
@@ -179,7 +185,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         for(int i=0; i<size; i++)
         {
             if(i!=0) fprintf(f, "\t");
-            fscanf(f, "%f", &position_data[position_data_count][i]);
+            fscanf(f, "%f", &position_data[current_behavior][position_data_count[current_behavior]][i]);
         }
 
         for(int i=0; i<size; i++)
@@ -191,11 +197,10 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
             fscanf(f, "%f", &mask[i]);
         }
 
-        position_data_count++;
+        position_data_count[current_behavior]++;
     }
 
     fclose(f);
-    file_count++;
 }
 
 
@@ -239,7 +244,7 @@ MotionRecorder::Tick()
                 }
         }
 
-        position_data_count = 0;
+        position_data_count[current_behavior] = 0;
         *time = 0;
         printf("record\n");
     }
@@ -281,14 +286,14 @@ MotionRecorder::Tick()
         Save();
 
         *time = 0;
-        printf("save %d\n", file_count);
+        printf("save %d\n", current_behavior);
     }
     else if(!load && load_debounce)
     {
         load_debounce = false;
         *state = state_stop;
 
-        printf("load %d\n", file_count);
+        printf("load %d\n", current_behavior);
         Load();
 
         *time = 0;
@@ -362,7 +367,7 @@ MotionRecorder::Tick()
     else if(*state == state_record)
     {
         copy_array(output, input, size);
-        if(position_data_count < position_data_max && norm1(input, size) > 0)
+        if(position_data_count[current_behavior] < position_data_max && norm1(input, size) > 0)
         {
             
             // copy_array(position_data[position_data_count], input, size);
@@ -371,11 +376,11 @@ MotionRecorder::Tick()
                 switch(int(mode[i]))
                 {
                     case 0: // record
-                        position_data[position_data_count][i] = input[i];
+                        position_data[current_behavior][position_data_count[current_behavior]][i] = input[i];
                         break;
                         
                     case 1: // play
-                        output[i] = position_data[f][i];
+                        output[i] = position_data[current_behavior][f][i];
                         
                     case 2: // hold
                         break;
@@ -387,23 +392,23 @@ MotionRecorder::Tick()
                         break;
                 }
                 
-            copy_array(torque_data[position_data_count], play_torque, size);
+            copy_array(torque_data[current_behavior][position_data_count[current_behavior]], play_torque, size);
             position_data_count++;
         }
-        *time = float(position_data_count*timebase);
+        *time = float(position_data_count[current_behavior]*timebase);
     }
 
     else if(*state == state_play)
     {
-        copy_array(output, position_data[f], size);
-         if(f < position_data_count-1)
+        copy_array(output, position_data[current_behavior][f], size);
+         if(f < position_data_count[current_behavior]-1)
             *time += timebase;
     }
 
     else if(*state == state_sq_play)
     {
-        copy_array(output, position_data[f], size);
-         if(f < position_data_count-1)
+        copy_array(output, position_data[current_behavior][f], size);
+         if(f < position_data_count[current_behavior]-1)
             *time += timebase;
         else
         {
@@ -419,5 +424,5 @@ MotionRecorder::Tick()
 
 
 
-static InitClass init("MotionRecorder", &MotionRecorder::Create, "Source/UserModules/MotionRecorder/");
+static InitClass init("MotionRecorder", &MotionRecorder::Create, "Source/Modules/RobotModules/MotionRecorder/");
 
