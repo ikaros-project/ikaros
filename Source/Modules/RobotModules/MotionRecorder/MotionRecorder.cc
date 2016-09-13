@@ -1,7 +1,7 @@
 //
 //	MotionRecorder.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015 Christian Balkenius
+//    Copyright (C) 2015-2016 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -49,7 +49,16 @@ MotionRecorder::Init()
     train_debounce = false;
     save_debounce = false;
 
-    trig = GetInputArray("INPUT");
+    max_behaviors = GetIntValue("max_behaviors");
+    current_behavior = 0;
+
+    position_data_max = GetIntValue("position_data_max");
+    position_data_count = new int[max_behaviors];
+    position_data  = create_matrix(max_behaviors, size, position_data_max);
+
+    trig = GetInputArray("TRIG");
+    trig_last = create_array(max_behaviors);
+
     completed = GetOutputArray("COMPLETED");
 
     output = GetOutputArray("OUTPUT");
@@ -69,12 +78,6 @@ MotionRecorder::Init()
     state = GetOutputArray("STATE");
     *state = state_stop;
 
-    max_behaviors = GetIntValue("max_behaviors");
-    current_behavior = 0;
-
-    position_data_max = GetIntValue("position_data_max");
-    position_data_count = new int[max_behaviors];
-    position_data  = create_matrix(max_behaviors, size, position_data_max);
 
     torque_data  = set_matrix(create_matrix(size, position_data_max, max_behaviors), 0.5, size, position_data_max, max_behaviors);
 
@@ -86,7 +89,6 @@ MotionRecorder::Init()
     play_torque = GetArray("torque", size);
     mask        = GetArray("mask", size);
 
-//    file_count = 0;
     file_name = GetValue("filename");
 }
 
@@ -95,6 +97,8 @@ MotionRecorder::Init()
 MotionRecorder::~MotionRecorder()
 {
     destroy_matrix(position_data);
+    destroy_array(trig_last);
+    delete [] position_data_count;
 }
 
 
@@ -156,7 +160,6 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 
     if(f == NULL)
     {
-//        file_count = 0;
         snprintf(fname, 1023, file_name, current_behavior);
         fname[1023] = 0;
         f = fopen(fname, "r");
@@ -208,6 +211,8 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 void
 MotionRecorder::Tick()
 {
+    reset_array(completed, max_behaviors);
+
     // Change state
 
     if(!stop && stop_debounce)
@@ -344,6 +349,24 @@ MotionRecorder::Tick()
         sqplay_debounce = true;
     }
 
+    // Handle trig input
+
+    for(int i=0; i<max_behaviors; i++)
+    {
+        if(trig[i] > trig_last[i])
+        {
+            current_behavior = i;
+            play_debounce = false;
+            *state = state_play;
+
+            copy_array(torque, play_torque, size);
+            set_array(enable, 1, size);
+            *time = 0;
+            printf("play\n");
+            break;
+        }
+    }
+
     // Handle the different states
 
     int f = int(*time/float(timebase));
@@ -369,7 +392,6 @@ MotionRecorder::Tick()
         copy_array(output, input, size);
         if(position_data_count[current_behavior] < position_data_max && norm1(input, size) > 0)
         {
-            
             // copy_array(position_data[position_data_count], input, size);
             
             for(int i=0; i<size; i++)
@@ -401,8 +423,10 @@ MotionRecorder::Tick()
     else if(*state == state_play)
     {
         copy_array(output, position_data[current_behavior][f], size);
-         if(f < position_data_count[current_behavior]-1)
+        if(f < position_data_count[current_behavior]-1)
             *time += timebase;
+        else
+            completed[current_behavior] = 1;
     }
 
     else if(*state == state_sq_play)
@@ -420,6 +444,8 @@ MotionRecorder::Tick()
     else if(*state == state_train)
     {
     }
+
+    copy_array(trig_last, trig, max_behaviors);
 }
 
 
