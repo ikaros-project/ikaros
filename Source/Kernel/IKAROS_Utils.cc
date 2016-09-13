@@ -511,6 +511,13 @@ reset_matrix(float ** m, int sizex, int sizey)
     return m;
 }
 
+float ***
+reset_matrix(float *** m, int sizex, int sizey, int sizez)
+{
+    reset_array(m[0][0], sizex*sizey*sizez);
+    return m;
+}
+
 float *
 set_array(float * a, float v, int size)
 {
@@ -523,6 +530,13 @@ float **
 set_matrix(float ** m, float v, int sizex, int sizey)
 {
     set_array(m[0], v, sizex*sizey);
+    return m;
+}
+
+float ***
+set_matrix(float *** m, float v, int sizex, int sizey, int sizez)
+{
+    set_array(m[0][0], v, sizex*sizey*sizez);
     return m;
 }
 
