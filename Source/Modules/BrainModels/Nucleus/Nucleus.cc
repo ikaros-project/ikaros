@@ -49,13 +49,13 @@ Nucleus::Init()
     // Set default values if parameters not set
     
     if(excitation_size > 0 && (GetValue("beta") == NULL || GetValue("beta")[0] =='\0'))
-        beta = 1/excitation_size;
+        beta = 1.0/float(excitation_size);
 
     if(inhibition_size > 0 && (GetValue("gamma") == NULL || GetValue("gamma")[0] =='\0'))
-        gamma = 1/excitation_size;
+        gamma = 1.0/float(excitation_size);
 
     if(shunting_inhibition_size > 0 && (GetValue("delta") == NULL || GetValue("beta")[0] =='\0'))
-        delta = 1/shunting_inhibition_size;
+        delta = 1.0/float(shunting_inhibition_size);
 }
 
 
