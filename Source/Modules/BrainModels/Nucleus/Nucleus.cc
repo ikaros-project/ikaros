@@ -28,11 +28,11 @@ void
 Nucleus::Init()
 {
     Bind(alpha, "alpha");
-    
     Bind(beta, "beta");
     Bind(gamma, "gamma");
     Bind(delta, "delta");
     Bind(epsilon, "epsilon");
+    Bind(zeta, "zeta");
 
     x = 0;
     
@@ -67,11 +67,8 @@ Nucleus::Tick()
     float s = 1;
     
     if(shunting_inhibition)
-    {
         s = 1/(1+delta*sum(shunting_inhibition, shunting_inhibition_size));
-//       printf("%f %f\n", s, sum(shunting_inhibition, shunting_inhibition_size));
-    }
-    
+
     if(excitation)
         a += beta * s * sum(excitation, excitation_size);
     
@@ -100,7 +97,7 @@ Nucleus::Tick()
             if(x < 0)
                 *output = 0;
             else
-                *output = atan(x)/atan(1);
+                *output = zeta * atan(x)/atan(1);
             break;
     }
 

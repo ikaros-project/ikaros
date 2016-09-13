@@ -20,6 +20,7 @@
     <parameter name="gamma" type="float" default="" description="weight for inhibition (defaults to 1/N)" />
     <parameter name="delta" type="float" default="1" description="output scaling" />
     <parameter name="epsilon" type="float" default="0.1" description="time constant" />
+    <parameter name="zeta" type="float" default="1.0" description="scaling of the output" />
 
 	<input name="EXCITATION" description="The excitatory input" optional="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
