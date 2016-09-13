@@ -10,7 +10,6 @@
     <module
         class="Nucleus"
         name="InputSummation"
-        beta = "0.5"
         epsilon = "0.05"
     />
 
