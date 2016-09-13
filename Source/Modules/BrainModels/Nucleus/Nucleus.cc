@@ -63,7 +63,7 @@ Nucleus::Init()
 void
 Nucleus::Tick()
 {
-    float a = alpha;
+    float a = 0;
     float s = 1;
     
     if(shunting_inhibition)
@@ -97,7 +97,7 @@ Nucleus::Tick()
             if(x < 0)
                 *output = 0;
             else
-                *output = zeta * atan(x)/atan(1);
+                *output = alpha + zeta * atan(x)/atan(1);
             break;
     }
 
