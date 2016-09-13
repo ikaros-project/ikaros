@@ -177,13 +177,18 @@ void DynamixelComm::BulkWrite2(int * servo_id, unsigned char ** DynamixelMemoeri
             INST_BULK_WRITE
         };
         
+        int k= 0;
         for(int i=0; i<n; i++)
         {
+            
             if (ikarosInBind[i] != -1){
-                outbuf[BULK_WRITE_HEADER_2 +i*(size[i]+1)] = servo_id[i];
-                outbuf[BULK_WRITE_HEADER_2 +i*(size[i]+1)+1] = ikarosInBind[i];
-                outbuf[BULK_WRITE_HEADER_2 +i*(size[i]+1)+3] = size[i];
-                memcpy(&outbuf[BULK_WRITE_HEADER_2 + i*(size[i]+1)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+3] = size[i]&0xff;
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+4] = (size[i]>>8)&0xff;
+                memcpy(&outbuf[BULK_WRITE_HEADER_2 + k*(size[i]+5)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
+                k++;
             }
         }
 
