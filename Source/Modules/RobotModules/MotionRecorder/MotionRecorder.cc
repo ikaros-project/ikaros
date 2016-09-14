@@ -52,6 +52,9 @@ MotionRecorder::Init()
     max_behaviors = GetIntValue("max_behaviors");
     current_behavior = 0;
 
+    input = GetInputArray("INPUT");
+    size = GetInputSize("INPUT");
+
     position_data_max = GetIntValue("position_data_max");
     position_data_count = new int[max_behaviors];
     position_data  = create_matrix(max_behaviors, size, position_data_max);
@@ -64,9 +67,6 @@ MotionRecorder::Init()
     output = GetOutputArray("OUTPUT");
     torque = GetOutputArray("TORQUE");
     enable = GetOutputArray("ENABLE");
-
-    input = GetInputArray("INPUT");
-    size = GetInputSize("INPUT");
 
     mode = GetInputArray("MODE");
     if(!mode)
@@ -203,7 +203,11 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         position_data_count[current_behavior]++;
     }
 
+    position_data_count[current_behavior]--;
     fclose(f);
+
+    printf("Loaded: %f %f %f %f\n", position_data[current_behavior][0][0], position_data[current_behavior][0][1],
+        position_data[current_behavior][0][2], position_data[current_behavior][0][3]);
 }
 
 
@@ -351,19 +355,22 @@ MotionRecorder::Tick()
 
     // Handle trig input
 
-    for(int i=0; i<max_behaviors; i++)
+    if(trig)
     {
-        if(trig[i] > trig_last[i])
+        for(int i=0; i<max_behaviors; i++)
         {
-            current_behavior = i;
-            play_debounce = false;
-            *state = state_play;
+            if(trig[i] > trig_last[i])
+            {
+                current_behavior = i;
+                play_debounce = false;
+                *state = state_play;
 
-            copy_array(torque, play_torque, size);
-            set_array(enable, 1, size);
-            *time = 0;
-            printf("play\n");
-            break;
+                copy_array(torque, play_torque, size);
+                set_array(enable, 1, size);
+                *time = 0;
+                printf("play\n");
+                break;
+            }
         }
     }
 
@@ -415,7 +422,9 @@ MotionRecorder::Tick()
                 }
                 
             copy_array(torque_data[current_behavior][position_data_count[current_behavior]], play_torque, size);
-            position_data_count++;
+            printf("Recordning (ch: %d: pos: %d, v: %f)\n", current_behavior, position_data_count[current_behavior], position_data[current_behavior][position_data_count[current_behavior]][0]);
+
+            position_data_count[current_behavior]++;
         }
         *time = float(position_data_count[current_behavior]*timebase);
     }
@@ -423,10 +432,18 @@ MotionRecorder::Tick()
     else if(*state == state_play)
     {
         copy_array(output, position_data[current_behavior][f], size);
+        printf("Playing (ch: %d: pos: %d of %d, v: %f)\n", current_behavior, f, position_data_count[current_behavior], position_data[current_behavior][f][0]);
         if(f < position_data_count[current_behavior]-1)
             *time += timebase;
         else
+        {
+            printf("Stpping at end of recordning (ch: %d: pos: %d)\n", current_behavior, position_data_count[current_behavior]);
             completed[current_behavior] = 1;
+            *state = state_stop;
+            copy_array(output, input, size); // Just in case this is not run later
+            set_array(torque, 1, size);
+            set_array(enable, 1, size);
+        }
     }
 
     else if(*state == state_sq_play)
@@ -441,11 +458,9 @@ MotionRecorder::Tick()
         }
     }
 
-    else if(*state == state_train)
-    {
-    }
 
-    copy_array(trig_last, trig, max_behaviors);
+    if(trig)
+        copy_array(trig_last, trig, max_behaviors);
 }
 
 
