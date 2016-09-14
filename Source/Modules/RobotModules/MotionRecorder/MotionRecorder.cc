@@ -374,6 +374,9 @@ MotionRecorder::Tick()
                 printf("play\n");
                 break;
             }
+
+            if(trig[i] > 0)
+                break;
         }
     }
 
