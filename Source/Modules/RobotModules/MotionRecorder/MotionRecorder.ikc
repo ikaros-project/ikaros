@@ -23,6 +23,9 @@
 	<parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
 	<parameter name="mask" type="array" default="1" description="The torque used during play. Single value or array of values for each servo." />
 
+	<parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
+	<parameter name="auto_save" type="bool" default="no" description="Save all behaviors before termination" />
+
 	<parameter name="start" type="bool" default="false" description="Starts recording when set to true. Should be connected to a button control." />
 	<parameter name="stop" type="bool" default="false" description="Stops recording when set to true. Should be connected to a button control." />
 	<parameter name="save" type="bool" default="false" description="Saves the recorded movement when true. Should be connected to a button control." />
