@@ -57,7 +57,7 @@ MotionRecorder::Init()
 
     position_data_max = GetIntValue("position_data_max");
     position_data_count = new int[max_behaviors];
-    position_data  = create_matrix(max_behaviors, size, position_data_max);
+    position_data  = create_matrix(size, position_data_max, max_behaviors);
 
     trig = GetInputArray("TRIG");
     trig_last = create_array(max_behaviors);
@@ -189,6 +189,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         {
             if(i!=0) fprintf(f, "\t");
             fscanf(f, "%f", &position_data[current_behavior][position_data_count[current_behavior]][i]);
+            printf("%f\n", position_data[current_behavior][position_data_count[current_behavior]][i]);
         }
 
         for(int i=0; i<size; i++)
@@ -206,8 +207,8 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
     position_data_count[current_behavior]--;
     fclose(f);
 
-    printf("Loaded: %f %f %f %f\n", position_data[current_behavior][0][0], position_data[current_behavior][0][1],
-        position_data[current_behavior][0][2], position_data[current_behavior][0][3]);
+//    printf("Loaded: %f %f %f %f\n", position_data[current_behavior][0][0], position_data[current_behavior][0][1],
+//        position_data[current_behavior][0][2], position_data[current_behavior][0][3]);
 }
 
 
