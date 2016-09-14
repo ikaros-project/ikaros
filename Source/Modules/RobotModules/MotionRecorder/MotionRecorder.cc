@@ -90,12 +90,25 @@ MotionRecorder::Init()
     mask        = GetArray("mask", size);
 
     file_name = GetValue("filename");
+
+    if(GetBoolValue("auto_load"))
+    {
+        for(current_behavior=0; current_behavior<max_behaviors; current_behavior++)
+            Load();
+        current_behavior=0;
+    }
 }
 
 
 
 MotionRecorder::~MotionRecorder()
 {
+    if(GetBoolValue("auto_save"))
+    {
+        for(current_behavior=0; current_behavior<max_behaviors; current_behavior++)
+            Save();
+    }
+
     destroy_matrix(position_data);
     destroy_array(trig_last);
     delete [] position_data_count;
@@ -144,6 +157,8 @@ MotionRecorder::Save()
     }
 
     fclose(f);
+
+    printf("Saved: %d\n", current_behavior);
 }
 
 
@@ -167,11 +182,9 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 
     if(!f)
     {
-        printf("ERROR could not open motion file \"%s\"\n", fname);
+        printf("WARNING: could not open motion file \"%s\" (ignored)\n", fname);
         return;
     }
-
-    printf("LOADING: %d\n", current_behavior);
 
 
 //    fprintf(f, "POSITION/%d TORQUE/%d MASK/%d\n", size, size, size);
@@ -189,7 +202,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         {
             if(i!=0) fprintf(f, "\t");
             fscanf(f, "%f", &position_data[current_behavior][position_data_count[current_behavior]][i]);
-            printf("%f\n", position_data[current_behavior][position_data_count[current_behavior]][i]);
+//            printf("%f\n", position_data[current_behavior][position_data_count[current_behavior]][i]);
         }
 
         for(int i=0; i<size; i++)
@@ -207,8 +220,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
     position_data_count[current_behavior]--;
     fclose(f);
 
-//    printf("Loaded: %f %f %f %f\n", position_data[current_behavior][0][0], position_data[current_behavior][0][1],
-//        position_data[current_behavior][0][2], position_data[current_behavior][0][3]);
+    printf("Loaded: %d\n", current_behavior);
 }
 
 
@@ -277,16 +289,6 @@ MotionRecorder::Tick()
         set_array(enable, 1, size);
         *time = 0;
         printf("sqplay\n");
-    }
-    else if(!train && train_debounce)
-    {
-        train_debounce = false;
-        *state = state_train;
-
-        copy_array(torque, play_torque, size);
-        set_array(enable, 1, size);
-        *time = 0;
-        printf("train\n");
     }
     else if(!save && save_debounce)
     {
@@ -423,7 +425,7 @@ MotionRecorder::Tick()
                 }
                 
             copy_array(torque_data[current_behavior][position_data_count[current_behavior]], play_torque, size);
-            printf("Recordning (ch: %d: pos: %d, v: %f)\n", current_behavior, position_data_count[current_behavior], position_data[current_behavior][position_data_count[current_behavior]][0]);
+//            printf("Recordning (ch: %d: pos: %d, v: %f)\n", current_behavior, position_data_count[current_behavior], position_data[current_behavior][position_data_count[current_behavior]][0]);
 
             position_data_count[current_behavior]++;
         }
@@ -433,12 +435,12 @@ MotionRecorder::Tick()
     else if(*state == state_play)
     {
         copy_array(output, position_data[current_behavior][f], size);
-        printf("Playing (ch: %d: pos: %d of %d, v: %f)\n", current_behavior, f, position_data_count[current_behavior], position_data[current_behavior][f][0]);
+//        printf("Playing (ch: %d: pos: %d of %d, v: %f)\n", current_behavior, f, position_data_count[current_behavior], position_data[current_behavior][f][0]);
         if(f < position_data_count[current_behavior]-1)
             *time += timebase;
         else
         {
-            printf("Stpping at end of recordning (ch: %d: pos: %d)\n", current_behavior, position_data_count[current_behavior]);
+//            printf("Stopping at end of recordning (ch: %d: pos: %d)\n", current_behavior, position_data_count[current_behavior]);
             completed[current_behavior] = 1;
             *state = state_stop;
             copy_array(output, input, size); // Just in case this is not run later

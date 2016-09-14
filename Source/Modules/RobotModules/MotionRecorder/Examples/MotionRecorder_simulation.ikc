@@ -24,6 +24,8 @@
             mask = "1 0 0 "
             torque = "0.5 0 0"
             filename = "/Users/cba/Desktop/test%d.mot"
+
+            auto_save = "yes"
 		/>
 
         <connection sourcemodule = "Input" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
