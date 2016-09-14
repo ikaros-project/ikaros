@@ -82,6 +82,8 @@ public:
     bool        load;
     bool        sqplay;
 
+    bool        record_on_trig;
+
     bool        stop_debounce;
     bool        off_debounce;
     bool        record_debounce;

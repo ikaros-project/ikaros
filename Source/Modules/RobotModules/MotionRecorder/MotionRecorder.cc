@@ -39,6 +39,7 @@ MotionRecorder::Init()
     Bind(save, "save");
     Bind(load, "load");
     Bind(sqplay, "sqplay");
+    Bind(record_on_trig, "record_on_trig");
 
     Bind(current_behavior, "current_behavior");
 
@@ -360,23 +361,59 @@ MotionRecorder::Tick()
 
     if(trig)
     {
-        for(int i=0; i<max_behaviors; i++)
+        if(record_on_trig)
         {
-            if(trig[i] > trig_last[i])
+            for(int i=0; i<max_behaviors; i++)
             {
-                current_behavior = i;
-                play_debounce = false;
-                *state = state_play;
+                if(trig[i] > trig_last[i])
+                {
+                    record_debounce = false;
+                    *state = state_record;
 
-                copy_array(torque, play_torque, size);
-                set_array(enable, 1, size);
-                *time = 0;
-                printf("play\n");
-                break;
+                    set_array(torque, 0, size);
+                    set_array(enable, 0, size); // disable all
+                    if(mode)
+                    {
+                        for(int i=0; i<size; i++)
+                            if(mode && (mode[i] == 1 || mode[i] == 2)) // enabled channels with play
+                            {
+                                enable[i] = 1;
+                                torque[i] = play_torque[i];
+                            }
+                            else
+                            {
+                                torque[i] = 0;
+                                enable[i] = 0;
+                            }
+                    }
+
+                    position_data_count[current_behavior] = 0;
+                    *time = 0;
+                    printf("record (trig)\n");
+                    break;
+                }
             }
+        }
+        else // play on trig
+        {
+            for(int i=0; i<max_behaviors; i++)
+            {
+                if(trig[i] > trig_last[i])
+                {
+                    current_behavior = i;
+                    play_debounce = false;
+                    *state = state_play;
 
-            if(trig[i] > 0)
-                break;
+                    copy_array(torque, play_torque, size);
+                    set_array(enable, 1, size);
+                    *time = 0;
+                    printf("play\n");
+                    break;
+                }
+
+                if(trig[i] > 0)
+                    break;
+            }
         }
     }
 
