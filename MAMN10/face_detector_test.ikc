@@ -6,7 +6,7 @@
 			class = "InputVideo"
 			name = "InputVideo"
 	/>
-		
+
 	<module
 		class = "MPIFaceDetector"
 		name = "MPIFaceDetector"
@@ -34,7 +34,7 @@
 	<connection sourcemodule="InputVideo" source="INTENSITY" targetmodule="Scale" target="INPUT" />
 
 	<connection sourcemodule="InputVideo" source="INTENSITY" targetmodule="MarkerTracker" target="INPUT" />
-	
+
 
 	<view name="Movie View" object_size="250">
 		<object class="Image" type="rgb" module = "InputVideo" source = "RED+GREEN+BLUE" x="0" y="0"/>
