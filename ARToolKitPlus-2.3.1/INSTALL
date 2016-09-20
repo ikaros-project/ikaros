@@ -1,0 +1,27 @@
+Install instructions for Linux:
+===============================
+
+Remarks:
+--------
+
+The make environment for Linux is based on the cmake system.
+Please install scons before compiling ARToolKitPlus!
+
+Compile Steps:
+--------------
+
+- Start compilation with
+  make
+
+- You should end up with
+
+  ./lib ... ARToolKitPlus shared libraries
+  ./bin ... 
+	    simple   ... Sample program
+	    multi    ... Sample program
+	    idpatgen ... For generating ID markers
+
+- For executing, do not forget to update your LD_LIBRARY_PATH
+
+- You can install the library system-wide using
+  make install DESTDIR=/

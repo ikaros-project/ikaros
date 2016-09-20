@@ -1,0 +1,27 @@
+artoolkitplus (2.2.0-1~ppa1) lucid; urgency=low
+
+  * new stable release
+  * change order of tracker arguments
+
+ -- Pavel Rojtberg <pavel@rojtberg.net>  Fri, 05 Mar 2010 15:33:07 +0100
+
+artoolkitplus (2.2.0~pre0-1) lucid; urgency=low
+
+  * major library refactoring
+  * no templated code any more
+  * support for tracking multiple individual markers
+  * many bugfixes
+
+ -- Pavel Rojtberg <pavel@rojtberg.net>  Thu, 18 Feb 2010 20:41:18 +0100
+
+artoolkitplus (2.1.4-1ppa2) lucid; urgency=low
+
+  * merge Hull based tracking from the S60 version
+
+ -- Pavel Rojtberg <pavel@rojtberg.net>  Fri, 22 Jan 2010 13:46:49 +0100
+
+artoolkitplus (2.1.3-1ppa1) karmic; urgency=low
+
+  * Initial release (Closes: #nnnn)
+
+ -- Pavel Rojtberg <pavel@rojtberg.net>  Fri, 23 Oct 2009 01:37:54 +0200
