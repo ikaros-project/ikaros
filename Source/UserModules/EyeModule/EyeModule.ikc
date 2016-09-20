@@ -14,19 +14,31 @@
 		<module
 			class="EyeModule"
 			name="EyeModule"
-			parameter1 = "3.14"
-			parameter2 = "42"
+            outputsize = "4"
+            data = "1 2 3 4"
 		/>
 	</example>
+    <example description="Matrix example; WARNING: this does not currently work. ';' are necessary to ,ark end of row.">
+        <module
+        class="EyeModule"
+        name="MatrixEyeModule"
+        outputsize_x = "3"
+        outputsize_y = "3"
+        data = "1 2 3 2 3 4 3 4 5"
+        />
+    </example>
+    
+    <example description="Autosize example">
+        <module
+        class="EyeModule"
+        name="Matrix3x4"
+        data = "1 2 3; 2 3 4; 3 4 5; 4 5 6"
+        />
+    </example>
 
-	<parameter name="parameter1" type="float" default="7.0" description="The first parameter" />
-	<parameter name="parameter2" type="int" default="2" description="The second parameter" />
 
-	<input name="INPUT1" description="The first input" />
-	<input name="INPUT2" description="The second input" />
-
-	<output name="OUTPUT1" description="The first output" size="10" />
-	<output name="OUTPUT2" description="The second output" size_set="INPUT2" />
+	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
+    
 
 	<module class="EyeModule" />
 

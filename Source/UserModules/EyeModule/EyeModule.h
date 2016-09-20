@@ -29,39 +29,22 @@ class EyeModule: public Module
 {
 public:
     static Module * Create(Parameter * p) { return new EyeModule(p); }
-
+    
+    float **	data;
+    float **	output;
+    float **	prev_output;
+    int         outputsize_x;
+    int         outputsize_y;
+    int         i;
+    int         j;
+    
     EyeModule(Parameter * p) : Module(p) {}
-    virtual ~EyeModule();
-
-    void 		Init();
-    void 		Tick();
-
-    // pointers to inputs and outputs
-    // and integers to represent their sizes
-
-    float *     input_array;
-    int         input_array_size;
-
-    float **    input_matrix;
-    int         input_matrix_size_x;
-    int         input_matrix_size_y;
-
-    float *     output_array;
-    int         output_array_size;
-
-    float **    output_matrix;
-    int         output_matrix_size_x;
-    int         output_matrix_size_y;
-
-    // internal data storage
-
-    float *     internal_array;
-    float **    internal_matrix;
-
-    // parameter values
-
-    float       float_parameter;
-    int         int_parameter;
+    virtual	~EyeModule() {}
+    
+    void            SetSizes();
+    
+    void			Init();
+    void			Tick();
 };
 
 #endif
