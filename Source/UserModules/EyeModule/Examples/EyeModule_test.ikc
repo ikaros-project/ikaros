@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<group title="EyeModule Example">
+
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "1 2"
+		/>
+
+		<module
+			class = "EyeModule"
+			name = "EyeModuleInstance"
+			parameter1  = "1.23"
+			parameter2  = "12"
+		/>
+
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "EyeModuleInstance" target = "INPUT1" />
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "EyeModuleInstance" target = "INPUT2" />
+
+		<view name="View">
+			<object class="BarGraph" module="EyeModuleInstance" source="OUTPUT1" x="0" y="0" />
+			<object class="BarGraph" module="EyeModuleInstance" source="OUTPUT2" x="1" y="0" />
+		</view>
+
+</group>
