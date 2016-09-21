@@ -15,7 +15,7 @@
 </example>
 
 <input name="INPUT" description="The input matrix of points" />
-<input name="ORIGIN" description="Origin input point" />
+<input name="ORIGIN" description="Origin input point, an array of two intergers" />
 <output name="OUTPUT" description="The output array of points interlaced with origin point"/>
 
 <module class="ToLineCombination" />
