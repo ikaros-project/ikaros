@@ -54,7 +54,7 @@ BlobChooser::Tick()
             if (internal_matrix[j][i] >= 0) {
               output_matrix[j][i] = internal_matrix[j][i];
             } else {
-              output_matrix[j][i] = -10.5;
+              output_matrix[j][i] = -1;
             }
 }
 
