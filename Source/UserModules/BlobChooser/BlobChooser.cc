@@ -32,21 +32,20 @@ BlobChooser::Init()
   input_matrix_size_x = GetInputSizeX("INPUT");
   input_matrix_size_y = GetInputSizeY("INPUT");
 
-  output_matrix = GetInputMatrix("OUTPUT");
-  output_matrix_size_x = GetInputSizeX("OUTPUT");
-  output_matrix_size_y = GetInputSizeY("OUTPUT");
+  output_matrix = GetOutputMatrix("OUTPUT");
+  output_matrix_size_x = GetOutputSizeX("OUTPUT");
+  output_matrix_size_y = GetOutputSizeY("OUTPUT");
 
   internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
 }
 
 BlobChooser::~BlobChooser()
 {
-    destroy_array(internal_array);
     destroy_matrix(internal_matrix);
 }
 
 void
-MyModule::Tick()
+BlobChooser::Tick()
 {
     copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
 
@@ -55,7 +54,7 @@ MyModule::Tick()
             if (internal_matrix[j][i] >= 0) {
               output_matrix[j][i] = internal_matrix[j][i];
             } else {
-              output_matrix[j][i] = -10.5;
+              output_matrix[j][i] = -1;
             }
 }
 

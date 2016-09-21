@@ -32,7 +32,7 @@ public:
     static Module * Create(Parameter * p) { return new BlobChooser(p); }
 
     BlobChooser(Parameter * p) : Module(p) {}
-    virtual ~BlobChooser() {}
+    virtual ~BlobChooser();
 
     void 		Init();
     void 		Tick();
