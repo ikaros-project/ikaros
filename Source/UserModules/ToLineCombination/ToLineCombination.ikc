@@ -6,7 +6,7 @@
 	adds an input array with origin point and interlaces the points 		for line-module row format
 </description>
 
-<xample description="A simple example">
+<example description="A simple example">
 <module
 	class="ToLineCombination"
 	name="ToLineCombination"

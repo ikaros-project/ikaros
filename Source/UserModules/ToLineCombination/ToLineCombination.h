@@ -1,5 +1,5 @@
-#ifndef ToLineCombination
-#define ToLineCombination
+#ifndef ToLineCombination_
+#define ToLineCombination_
 
 #include "IKAROS.h"
 
@@ -15,14 +15,16 @@ public:
 
 	void Init();
 	void Tick();
+	void SetSizes();
 	int x0;
 	int y0;
 	float ** output_matrix;
-	float ** input_matrix_size_x;
-	float ** input_matrix_size_y;
+	int input_matrix_size_x;
+	int input_matrix_size_y;
 	float ** internal_matrix;
 	float ** input_matrix;
 	float * origin;
+	int output_rows;
 
 	};
 

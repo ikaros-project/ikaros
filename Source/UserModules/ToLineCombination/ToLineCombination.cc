@@ -1,6 +1,6 @@
 #include "ToLineCombination.h"
 
-void ToLineCombination:Init()
+void ToLineCombination::Init()
 {
   origin = GetInputArray("ORIGIN");
   x0 = origin[0];
@@ -12,24 +12,30 @@ void ToLineCombination:Init()
   internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
 }
 
-void ToLineCombination::Tick() {
-  copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
-  int output_lenght = 0;
+ToLineCombination::~ToLineCombination()
+{
+    destroy_matrix(internal_matrix);
+}
+
+void ToLineCombination::SetSizes() {
+  output_rows = 0;
   for(int i=0; i<input_matrix_size_x;i++){
     if(internal_matrix[i][0] != -1){
-      output_lenght++;
+      output_rows++;
     }else{
       break;
     }
   }
+  SetOutputSize("OUTPUT", output_rows, 4);
+}
 
+void ToLineCombination::Tick() {
+  SetSizes();
+  copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
 
-  output_matrix_length = GetInputSizeX("INPUT");
-  output_matrix = create_matrix(output_lenght,4);
-s
-  for (int i=0; i<output_lenght; i++){
+  for (int i=0; i<output_rows; i++){
           output_matrix[i][0] = x0;
-          output_matrix[i][1] = y1;
+          output_matrix[i][1] = y0;
           output_matrix[i][2] = internal_matrix[i][0];
           output_matrix[i][3] = internal_matrix[i][1];
         }
