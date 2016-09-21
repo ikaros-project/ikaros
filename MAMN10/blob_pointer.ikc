@@ -54,8 +54,8 @@
     />
 
     <module
-        class = "MyModule"
-        name = "MyModule"
+        class = "BlobChooser"
+        name = "BlobChooser"
     />
 
     <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" />
@@ -70,13 +70,13 @@
     <connection sourcemodule = "Position" source = "OUTPUT" targetmodule = "DepthBlobList" target = "POSITION" />
 
     <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthBlobList" target = "INPUT" />
-    <!--<connection sourcemodule = "DepthBlobList" source = "MAXIMA" targetmodule = "BlobChooser" target = "INPUT" />-->
+    <connection sourcemodule = "DepthBlobList" source = "MAXIMA" targetmodule = "BlobChooser" target = "INPUT" />
 
     <view name="Depth">
         <object class="Image" type="fire" title="Detection" module = "DepthBlobList" source = "SMOOTHED" x="0" y="0" w="3" h="3" />
         <object class="Circle" radius="0.1" module = "DepthBlobList" source = "MAXIMA" x="0" y="0" w="3" h="3" />
         <object class="Path" module="Line" source="OUTPUT" x="0" y="0" w="3" h="3" />
-        <!--<object class="Table" module="BlobChooser" source="OUTPUT" w="3" h="3"/>-->
+        <object class="Table" module="BlobChooser" source="OUTPUT" w="3" h="3"/>
         <!--<object class="Image" type="fire" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />
         <object class="Image" type="rgb" name="Camera" module = "Kinect" source = "RED+GREEN+BLUE" x="0" y="2" w="3" h="2" />
 
