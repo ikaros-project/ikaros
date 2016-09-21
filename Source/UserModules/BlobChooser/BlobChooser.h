@@ -1,6 +1,6 @@
 //
 //	MinimalModule.h		This file is a part of the IKAROS project
-// 						
+//
 //    Copyright (C) 2012 <Author Name>
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -21,22 +21,31 @@
 //
 
 
-#ifndef MinimalModule_
-#define MinimalModule_
+#ifndef BlobChooser_
+#define BlobChooser_
 
 #include "IKAROS.h"
 
-class MinimalModule: public Module
+class BlobChooser: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new MinimalModule(p); }
+    static Module * Create(Parameter * p) { return new BlobChooser(p); }
 
-    MinimalModule(Parameter * p) : Module(p) {}
-    virtual ~MinimalModule() {}
+    BlobChooser(Parameter * p) : Module(p) {}
+    virtual ~BlobChooser() {}
 
     void 		Init();
     void 		Tick();
+
+    float **    input_matrix;
+    int         input_matrix_size_x;
+    int         input_matrix_size_y;
+
+    float **    output_matrix;
+    int         output_matrix_size_x;
+    int         output_matrix_size_y;
+
+    float **    internal_matrix;
 };
 
 #endif
-

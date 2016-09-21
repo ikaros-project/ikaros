@@ -21,24 +21,42 @@
 //
 
 
-#include "MinimalModule.h"
+#include "BlobChooser.h"
 
 using namespace ikaros;
 
 void
-MinimalModule::Init()
+BlobChooser::Init()
 {
+  input_matrix = GetInputMatrix("INPUT");
+  input_matrix_size_x = GetInputSizeX("INPUT");
+  input_matrix_size_y = GetInputSizeY("INPUT");
+
+  output_matrix = GetInputMatrix("OUTPUT");
+  output_matrix_size_x = GetInputSizeX("OUTPUT");
+  output_matrix_size_y = GetInputSizeY("OUTPUT");
+
+  internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
 }
 
-
+BlobChooser::~BlobChooser()
+{
+    destroy_array(internal_array);
+    destroy_matrix(internal_matrix);
+}
 
 void
-MinimalModule::Tick()
+MyModule::Tick()
 {
+    copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
+
+    for (int j=0; j<output_matrix_size_y; j++)
+        for (int i=0; i<output_matrix_size_x; i++)
+            if (internal_matrix[j][i] >= 0) {
+              output_matrix[j][i] = internal_matrix[j][i];
+            } else {
+              output_matrix[j][i] = -10.5;
+            }
 }
 
-
-
-static InitClass init("MinimalModule", &MinimalModule::Create, "Source/UserModules/MinimalModule/");
-
-
+static InitClass init("BlobChooser", &BlobChooser::Create, "Source/UserModules/BlobChooser/");
