@@ -15,8 +15,14 @@ public:
 
 	void Init();
 	void Tick();
-
-	int[][] OUTPUT;
+	int x0;
+	int y0;
+	float ** output_matrix;
+	float ** input_matrix_size_x;
+	float ** input_matrix_size_y;
+	float ** internal_matrix;
+	float ** input_matrix;
+	float * origin;
 
 	};
 
