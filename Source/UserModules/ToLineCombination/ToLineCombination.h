@@ -15,7 +15,6 @@ public:
 
 	void Init();
 	void Tick();
-	void SetSizes();
 	int x0;
 	int y0;
 	float ** output_matrix;
@@ -24,7 +23,7 @@ public:
 	float ** internal_matrix;
 	float ** input_matrix;
 	float * origin;
-	int output_rows;
+	int output_matrix_size_y;
 
 	};
 
