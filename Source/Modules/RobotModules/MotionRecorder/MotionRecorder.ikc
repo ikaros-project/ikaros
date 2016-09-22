@@ -22,6 +22,7 @@
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
 	<parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
 	<parameter name="mask" type="array" default="1" description="The torque used during play. Single value or array of values for each servo." />
+    <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque." />
 
 	<parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
 	<parameter name="auto_save" type="bool" default="no" description="Save all behaviors before termination" />
@@ -32,7 +33,7 @@
 	<parameter name="load" type="bool" default="false" description="Loads next recorded movement when true. Should be connected to a button control." />
 	<parameter name="sqplay" type="bool" default="false" description="Plays all behaviors in sequence. Should be connected to a button control." />
 
-	<parameter name="record_on_trig" type="bool" default="false" description="STart record on trig input." />
+	<parameter name="record_on_trig" type="bool" default="false" description="Start record on trig input." />
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_behaviors" optional="yes" />
 	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_behaviors" />
@@ -47,6 +48,7 @@
 
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />
+    <output name="PLAYING" description="State is 1 when the module plays" size="1" />
 
 	<module class="MotionRecorder" />
 
