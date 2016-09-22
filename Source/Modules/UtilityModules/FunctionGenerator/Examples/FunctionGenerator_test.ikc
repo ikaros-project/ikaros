@@ -58,15 +58,15 @@
 		/>
 
 		<view name="Functions" object_size="70" >
-			<object class="Plot"module="F_SIN" source="OUTPUT" title="sin(t)" min="-1" x="0" y="0" w="4" />
-			<object class="Plot"module="F_SIN2" source="OUTPUT" title="sin(t/2)" x="0" y="1" w="4" />
-			<object class="Plot"module="F_RAMP" source="OUTPUT" title="Ramp" x="0" y="2" w="4" />
-			<object class="Plot"module="F_TRIANG" source="OUTPUT" title="Triangle" x="0" y="3" w="4" />
+			<object class="Plot" module="F_SIN" source="OUTPUT" title="sin(t)" min="-1" x="0" y="0" w="4" />
+			<object class="Plot" module="F_SIN2" source="OUTPUT" title="sin(t/2)" x="0" y="1" w="4" />
+			<object class="Plot" module="F_RAMP" source="OUTPUT" title="Ramp" x="0" y="2" w="4" />
+			<object class="Plot" module="F_TRIANG" source="OUTPUT" title="Triangle" x="0" y="3" w="4" />
 			
-            <object class="Plot"module="F_SQUARE" source="OUTPUT" title="Square Wave 50%" x="4" y="0" w="4" />
-			<object class="Plot"module="F_SQUARE25" source="OUTPUT" title="Square Wave 25%" x="4" y="1" w="4" />
-			<object class="Plot"module="F_SQUARE10" source="OUTPUT" title="Square Wave 10%" x="4" y="2" w="4" />
-			<object class="Plot"module="T_SQUARE" source="OUTPUT" title="Square Wave 10/40 ticks" x="4" y="3" w="4" />
+            <object class="Plot" module="F_SQUARE" source="OUTPUT" title="Square Wave 50%" x="4" y="0" w="4" />
+			<object class="Plot" module="F_SQUARE25" source="OUTPUT" title="Square Wave 25%" x="4" y="1" w="4" />
+			<object class="Plot" module="F_SQUARE10" source="OUTPUT" title="Square Wave 10%" x="4" y="2" w="4" />
+			<object class="Plot" module="T_SQUARE" source="OUTPUT" title="Square Wave 10/40 ticks" x="4" y="3" w="4" />
 		</view>
 </group>
  
