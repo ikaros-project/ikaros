@@ -1671,7 +1671,7 @@ Kernel::Terminate()
          if(tick > 0 && percent != lp)
         {
             int p = (segments*percent)/100;
-            printf("  Progess: [");
+            printf("  Progress: [");
             for(int i=0; i<segments; i++)
                 if(i < p)
                     printf("=");
