@@ -128,5 +128,6 @@ WhiteBalance::Tick()
     Notify(msg_verbose, "WhiteBalance: RGB before and after\t%.2f\t%.2f\t%.2f\t=>\t\t%.2f\t%.2f\t%.2f\n", rr0, gg0, bb0, rr, gg, bb);
 }
 
+static InitClass init("WhiteBalance", &WhiteBalance::Create, "Source/Modules/VisionModules/WhiteBalance/");
 
 
