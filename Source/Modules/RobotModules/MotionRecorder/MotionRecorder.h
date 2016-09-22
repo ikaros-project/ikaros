@@ -39,8 +39,10 @@ public:
     void 		Save();
     void 		Load();
 
+    
     float *     trig;
     float *     trig_last;
+    int         trig_size;
 
     float *     completed;
 
@@ -49,7 +51,13 @@ public:
     float *     torque;
     float *     mask;
     float *     input;
+    float *     playing;
     
+    int         smoothing_time; // for torque and position
+    float *     stop_position;
+    float *     start_position;
+    float *     start_torque;
+
     float *     mode; // record, play, hold, free = (0, 1, 2, 3)
 
     int         size;
@@ -77,18 +85,19 @@ public:
     bool        off;
     bool        record;
     bool        play;
-    bool        train;
+    bool        clear;
     bool        save;
     bool        load;
     bool        sqplay;
 
     bool        record_on_trig;
+    bool        auto_save;
 
     bool        stop_debounce;
     bool        off_debounce;
     bool        record_debounce;
     bool        play_debounce;
-    bool        train_debounce;
+    bool        clear_debounce;
     bool        save_debounce;
     bool        load_debounce;
     bool        sqplay_debounce;
