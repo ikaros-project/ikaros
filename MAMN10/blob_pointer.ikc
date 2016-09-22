@@ -83,6 +83,7 @@
     <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthBlobList" target = "INPUT" />
     <connection sourcemodule = "DepthBlobList" source = "MAXIMA" targetmodule = "BlobChooser" target = "INPUT" />
     <connection sourcemodule = "BlobChooser" source = "OUTPUT" targetmodule = "ToLine" target = "INPUT" />
+    <connection sourcemodule = "Origin" source = "OUTPUT" targetmodule = "ToLine" target = "ORIGIN" />
 
     <view name="Depth">
         <object class="Image" type="fire" title="Detection" module = "DepthBlobList" source = "SMOOTHED" x="0" y="0" w="3" h="3" />
