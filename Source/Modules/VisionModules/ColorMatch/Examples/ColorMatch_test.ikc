@@ -25,7 +25,7 @@
 		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "CM" target = "INPUT2" />
 
 		<view name = "View 1">
-			<object class="Image" type="RGB" module="IN" type = "rgb" source="RED+GREEN+BLUE" x="1" y="0" />
+			<object class="Image" module="IN" type = "rgb" source="RED+GREEN+BLUE" x="1" y="0" />
 
 			<object class="Image" module="IN" source="RED" x="0" y="1" />
 			<object class="Image" module="IN" source="GREEN" x="1" y="1" />

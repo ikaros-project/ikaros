@@ -191,9 +191,6 @@
             x="0" y="0" 
             class="BarGraph" 
             module="R5" 
-            _module="Rfirst"
-            _module="Rmiddle"
-            _module="Rlast"
             source="OUTPUT"
             title = "Bar Graph 1"
         />

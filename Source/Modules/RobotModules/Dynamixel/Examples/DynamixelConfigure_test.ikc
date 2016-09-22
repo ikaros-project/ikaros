@@ -10,10 +10,10 @@
     class = "DynamixelConfigure"
     name = "DynamixelConfigure"
     device  = "/dev/cu.usbserial-A8005hj3"
-    _baud_rate = "57600"
-    _baud_rate = "115200"
+    _comment57k_baud_rate = "57600"
+    _comment115k_baud_rate = "115200"
     baud_rate = "1000000"
-    _baud_rate = "3000000"
+    _comment3M_baud_rate = "3000000"
     angle_unit = "degrees"
     
     _ID_adress = "3"
