@@ -1,2 +1,9 @@
-# Not yet written
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(SOURCE
+	${SOURCE}
+	${CMAKE_CURRENT_SOURCE_DIR}/CIFaceDetector.M
+	PARENT_SCOPE
+	)
+endif()

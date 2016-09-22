@@ -1,11 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
-add_subdirectory(InputVideo)
-add_subdirectory(InputVideoQT)
-#add_subdirectory(InputVideoAV)
-add_subdirectory(Kinect)
-add_subdirectory(NetworkCamera)
+add_subdirectory(CalibrateCameraPosition)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

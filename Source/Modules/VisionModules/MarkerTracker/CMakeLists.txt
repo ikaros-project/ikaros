@@ -1,5 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_subdirectory(Utilities)
+
 find_package(ArtoolkitPlus)
 
 # if all libraries found add source file, include dirs and libraries
