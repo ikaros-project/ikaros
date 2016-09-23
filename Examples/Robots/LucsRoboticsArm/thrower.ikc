@@ -1,0 +1,180 @@
+<?xml version = "1.0"?>
+
+<group title = "Robot Arm Example">
+
+    <description>
+		This is an example file for using the LUCS MAMN10 Robot arm in ikaros.
+    </description>
+
+    <!-- Servo part -->
+    <!-- This module controls the servos of the arm. All the servos are connected on the same serial bus and each of the servo has a unique ID. ID 1: is the servo is the first servo of the arm. ID 2: is the middle servo and ID 3 is the last servo (end of the arm).
+    This module uses the computer's serial port and the parameter "device" needs to be adjusted to fit the current setup. In linux the port is usally "/dev/ttyUSB0", in OSX somthing similar to "/dev/cu.usbserial-A8006Esq" and in windows COM1. This module set the position of each servo in the angle specifyed by the parameter angle_unit. -->
+
+    <module
+    	class		 = "Dynamixel"
+		name		 = "Dynamixel"
+        device   	 = "/dev/ttyUSB0"
+		_device		 = "/dev/ttyUSB0"
+		index_mode 	 = "indirect"
+		servo_id	 = "1 2 3"
+		angle_unit 	 = "degrees"
+    feedback = "yes"
+	/>
+
+	<!-- Modules to generate a moving behaviour -->
+	<!-- These modueles are just do demonstate a moving behavioer of the arm. These modules and connections should be removed and replaced by user modules -->
+
+  <module class = "Constant" name = "C1" outputsize = "3" data = "180 180 180" />
+  <module class = "Constant" name = "C2" outputsize = "3" data = "180 180 180" />
+
+  <module class = "Constant" name = "V1" outputsize = "1" data = "1" />
+  <module class = "Constant" name = "V2" outputsize = "1" data = "0" />
+
+	<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_1" delay="0" />
+	<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_2" delay="0" />
+	<connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_1" delay="0" />
+	<connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_2" delay="0" />
+
+  <module
+    class = "Arbiter"
+    name = "Arbiter"
+  />
+
+  <connection sourcemodule  = "Arbiter" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
+
+  <module class = "Constant" name = "MovingSpeed" outputsize = "3" data = "1 1 1" />
+  <connection sourcemodule  = "MovingSpeed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+
+
+	<view name = "Lucs Robotic Arm" object_size = "50" >
+    	<!-- Dynamixel objects -->
+
+        <object
+            class="Table"
+            module = "Dynamixel"
+            source = "FEEDBACK_PRESENT_POSITION"
+            x="0" y="0"
+            w="8" h="2"
+            font_size = "40"
+        />
+
+
+        <object
+          class="Switch"
+          title="throw"
+          module="V2"
+          parameter="data"
+			    x="8"
+          y="0"
+          w="2"
+          h="2"
+          min = "0"
+          max = "2"
+        />
+
+        <object
+          class="Slider"
+          title="Before 1"
+          module="C1"
+          parameter="data"
+          select="0"
+          x="0"
+          y="2"
+          w="2"
+          h="8"
+          min = "30"
+          max = "330"
+        />
+
+        <object
+          class="Slider"
+          title="Before 2"
+          module="C1"
+          parameter="data"
+          select="1"
+          x="2"
+          y="2"
+          w="2"
+          h="8"
+          min = "100"
+          max = "270"
+        />
+
+        <object
+          class="Slider"
+          title="Before 3"
+          module="C1"
+          parameter="data"
+          select="2"
+          x="4"
+          y="2"
+          w="2"
+          h="8"
+          min = "80"
+          max = "300"
+        />
+
+
+        <object
+          class="Slider"
+          title="After 1"
+          module="C2"
+          parameter="data"
+          select="0"
+          x="6"
+          y="2"
+          w="2"
+          h="8"
+          min = "30"
+          max = "330"
+        />
+
+        <object
+          class="Slider"
+          title="After 2"
+          module="C2"
+          parameter="data"
+          select="1"
+          x="8"
+          y="2"
+          w="2"
+          h="8"
+          min = "100"
+          max = "270"
+        />
+
+        <object
+          class="Slider"
+          title="After 3"
+          module="C2"
+          parameter="data"
+          select="2"
+          x="10"
+          y="2"
+          w="2"
+          h="8"
+          min = "80"
+          max = "300"
+        />
+
+        <object
+            class="Table"
+            module = "C1"
+            source = "data"
+            x="0" y="10"
+            w="6" h="2"
+            font_size = "30"
+        />
+
+        <object
+            class="Table"
+            module = "C2"
+            source = "data"
+            x="6" y="10"
+            w="6" h="2"
+            font_size = "30"
+        />
+
+
+		</view>
+</group>
