@@ -37,6 +37,10 @@ BlobChooser::Init()
   output_matrix_size_y = GetOutputSizeY("OUTPUT");
 
   internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
+
+  Bind(origin, 2, 1, "origin");
+
+  dist = 100.0;
 }
 
 BlobChooser::~BlobChooser()
@@ -51,11 +55,24 @@ BlobChooser::Tick()
 
     for (int j=0; j<output_matrix_size_y; j++)
         for (int i=0; i<output_matrix_size_x; i++)
-            if (internal_matrix[j][i] >= 0) {
-              output_matrix[j][i] = internal_matrix[j][i];
-            } else {
               output_matrix[j][i] = -1;
-            }
+
+    for (int j=0; j<output_matrix_size_y; j++){
+        for (int i=0; i<output_matrix_size_x; i++){
+
+            p1[i] = internal_matrix[j][i];
+
+        if(sqrt(
+            p0[0]*p0[0] +
+            p0[1]*p0[1] +
+            p1[0]*p1[0] +
+            p1[1]*p1[1]
+          ) < dist){
+            output_matrix[0][0] = p1[0];
+            output_matrix[0][1] = p1[1];
+          }
+        }
+    }
 }
 
 static InitClass init("BlobChooser", &BlobChooser::Create, "Source/UserModules/BlobChooser/");
