@@ -37,6 +37,7 @@ BlobChooser::Init()
   output_matrix_size_y = GetOutputSizeY("OUTPUT");
 
   internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
+  p1 = create_array(2);
 
   origin = GetInputArray("ORIGIN");
 
@@ -52,17 +53,16 @@ void
 BlobChooser::Tick()
 {
     copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
-
+    dist = 100;
     for (int j=0; j<output_matrix_size_y; j++)
         for (int i=0; i<output_matrix_size_x; i++)
               output_matrix[j][i] = -1;
 
     for (int j=0; j<output_matrix_size_y; j++){
-        for (int i=0; i<output_matrix_size_x; i++){
+        p1[0] = internal_matrix[j][0];
+        p1[1] = internal_matrix[j][1];
 
-            p1[i] = internal_matrix[j][i];
-
-        if(sqrt(
+        if(p1[0] != -1){if(sqrt(
             origin[0]*origin[0] +
             origin[1]*origin[1] +
             p1[0]*p1[0] +

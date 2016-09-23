@@ -3,8 +3,6 @@
 void ToLineCombination::Init()
 {
   origin = GetInputArray("ORIGIN");
-  x0 = origin[0];
-  y0 = origin[1];
   output_matrix = GetOutputMatrix("OUTPUT");
   input_matrix = GetInputMatrix("INPUT");
   input_matrix_size_x = GetInputSizeX("INPUT");
@@ -20,8 +18,8 @@ ToLineCombination::~ToLineCombination()
 void ToLineCombination::Tick() {
   copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
 
-    output_matrix[0][0] = x0;
-    output_matrix[0][1] = y0;
+    output_matrix[0][0] = origin[0];
+    output_matrix[0][1] = origin[1];
     output_matrix[0][2] = internal_matrix[0][0];
     output_matrix[0][3] = internal_matrix[0][1];
 }
