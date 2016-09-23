@@ -23,7 +23,6 @@ public:
 	float ** internal_matrix;
 	float ** input_matrix;
 	float * origin;
-	int output_matrix_size_y;
 
 	};
 
