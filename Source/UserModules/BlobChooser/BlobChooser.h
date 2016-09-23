@@ -37,6 +37,8 @@ public:
     void 		Init();
     void 		Tick();
 
+    float *     origin;
+
     float **    input_matrix;
     int         input_matrix_size_x;
     int         input_matrix_size_y;
@@ -46,6 +48,10 @@ public:
     int         output_matrix_size_y;
 
     float **    internal_matrix;
+
+    float *     p1;
+
+    float       dist;
 };
 
 #endif
