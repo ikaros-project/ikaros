@@ -18,6 +18,7 @@
 		/>
 	</example>
 
+	<input name="ORIGIN" description="Input origin coordinates" />
   <input name="INPUT" description="Input matrix of (x,y) coordinates" />
   <output name="OUTPUT" description="Output matrix of chosen coordinates" size_set="INPUT" />
 
