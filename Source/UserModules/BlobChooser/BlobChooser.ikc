@@ -14,7 +14,6 @@
 		<module
 			class="BlobChooser"
 			name="BlobChooser"
-			origin="0.5 1"
 		/>
 	</example>
 
