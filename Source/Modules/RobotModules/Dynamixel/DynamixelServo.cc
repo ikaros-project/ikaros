@@ -31,75 +31,84 @@
 
 using namespace ikaros;
 
-
-DynamixelServo::DynamixelServo(DynamixelComm *com, int id)
+DynamixelServo::DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel)
 {
-    Protocol = com->Ping(id);
-    controlTable.Set("ID", id);
+    protocol = com->Ping(id);
+    extraInfo.Set("ID", id);
     
-    DynamixelMemory = new unsigned char[DYNAMIXEL_MEM_BUFFER];
+    dynamixelMemory = new unsigned char[DYNAMIXEL_MEM_BUFFER];
     
     // Get a few important features of the servo
-    if (!com->ReadMemoryRange(id, Protocol, DynamixelMemory, 0, P_CCW_ANGLE_LIMIT+1))
+    if (!com->ReadMemoryRange(id, protocol, dynamixelMemory, 0, P_CCW_ANGLE_LIMIT+1))
     {
         printf("Dynamixel: Can not read from id %i, Quitting ikaros.... \n", id);
         std::exit(false);
     }
-    int model = DynamixelMemory[P_MODEL_NUMBER]+256*DynamixelMemory[P_MODEL_NUMBER+1];
-    controlTable.Set("Model", model);
     
+    if (forceModel != 0) // Should be used if the memoryblock on the servo is corrupt and servo return a not existing model number.
+        model = forceModel;
+    else
+        model = dynamixelMemory[P_MODEL_NUMBER]+256*dynamixelMemory[P_MODEL_NUMBER+1];
     
+    extraInfo.Set("Model", model);
+
     // Get Additional information about servo
-    getAdditionalInfo();
-    int ctableSize;
-    if (!ReadCSVFileToCtable(ctable,model,&ctableSize))
+    GetAdditionalInfo(model);
+    
+    int controlTableSize;
+    if (!ReadCSVFileToCtable(controlTable,model,&controlTableSize,csvPath)) // read cvs file with control table and ikaros related IO.
     {
-        printf("Dynamixel: Can not read from id %i, Quitting ikaros.... \n", id);
+        printf("Dynamixel: Can not read configuration file for dynamixel id %i model %i\n", id, model);
         std::exit(false);
     }
-    
+
     // Get all memory
-    if (!com->ReadMemoryRange(id, Protocol, DynamixelMemory, 0, controlTable.GetInt("Model Memory")))
+    if (!com->ReadMemoryRange(id, protocol, dynamixelMemory, 0, extraInfo.GetInt("Model Memory")))
     {
         printf("Dynamixel: Can not read from id %i, Quitting ikaros.... \n", id);
         std::exit(false);
     }
     
     // Operation mode
-    int cw  = DynamixelMemory[P_CW_ANGLE_LIMIT]+256*DynamixelMemory[P_CW_ANGLE_LIMIT+1];
-    int ccw = DynamixelMemory[P_CCW_ANGLE_LIMIT]+256*DynamixelMemory[P_CCW_ANGLE_LIMIT+1];
+    int cw  = dynamixelMemory[P_CW_ANGLE_LIMIT]+256*dynamixelMemory[P_CW_ANGLE_LIMIT+1];
+    int ccw = dynamixelMemory[P_CCW_ANGLE_LIMIT]+256*dynamixelMemory[P_CCW_ANGLE_LIMIT+1];
     if (cw == 0 && ccw == 0)
-        controlTable.Set("Operation Type", 0);  // Wheel mode
-    else if (cw == controlTable.GetInt("Model Position Max") && ccw == controlTable.GetInt("Model Position Max"))
-        controlTable.Set("Operation Type", 2);  // Multi turn mode
+        extraInfo.Set("Operation Type", OP_WHEEL);  // Wheel mode
+    else if (cw == extraInfo.GetInt("Model Position Max") && ccw == extraInfo.GetInt("Model Position Max"))
+        extraInfo.Set("Operation Type", OP_MULTI_TURN);  // Multi turn mode
     else
-        controlTable.Set("Operation Type", 1);  // Joint mode
+        extraInfo.Set("Operation Type", OP_JOINT);  // Joint mode
     return;
 }
 
 DynamixelServo::~DynamixelServo()
 {
-    delete DynamixelMemory;
+    delete dynamixelMemory;
 }
 
 // MARK: Set to memory
 bool DynamixelServo::SetValueAtAdress(int adress, int value)
 {
     // Check borders.
-    if (value < ctable[adress].Min && value > ctable[adress].Max)
+    if (value < controlTable[adress].Min && value > controlTable[adress].Max)
     {
         printf("DynamixelServo SetValueAtAdress: Value is not OK!\n");
         return false;
     }
-    switch (ctable[adress].Size) {
+    switch (controlTable[adress].Size) {
         case 1:
-            DynamixelMemory[adress] = value;
+            dynamixelMemory[adress] = value;
             break;
         case 2:
-            DynamixelMemory[adress]   = value % 256;
-            DynamixelMemory[adress+1] = value / 256;
+            dynamixelMemory[adress]   = value % 256;
+            dynamixelMemory[adress+1] = value / 256;
             break;
-            
+        case 3:
+            // Not yet implemented
+            break;
+        case 4:
+            // Not yet implemented
+            break;
         default:
             break;
     }
@@ -109,12 +118,18 @@ bool DynamixelServo::SetValueAtAdress(int adress, int value)
 int DynamixelServo::GetValueAtAdress(int adress)
 {
     int value = -1;
-    switch (ctable[adress].Size) {
+    switch (controlTable[adress].Size) {
         case 1:
-            value = DynamixelMemory[adress];
+            value = dynamixelMemory[adress];
             break;
         case 2:
-            value = (DynamixelMemory[adress+1]<<8) + DynamixelMemory[adress];
+            value = (dynamixelMemory[adress+1]<<8) + dynamixelMemory[adress];
+            break;
+        case 3:
+            // Not yet implemented
+            break;
+        case 4:
+            // Not yet implemented
             break;
         default:
             break;
@@ -126,34 +141,33 @@ float DynamixelServo::GetValueAtAdressFormated(int adress)
     return(float)GetValueAtAdress(adress);
 }
 
-// MARK: GET Model specific
+// MARK: Get Model specific
 int DynamixelServo::GetModelPositionMax()
 {
-    return (controlTable.GetInt("Model Position Max"));
+    return (extraInfo.GetInt("Model Position Max"));
 }
 int DynamixelServo::GetModelSpeedMax()
 {
-    return (controlTable.GetInt("Model Speed Max"));
+    return (extraInfo.GetInt("Model Speed Max"));
 }
 int DynamixelServo::GetModelTorqueMax()
 {
-    return (controlTable.GetInt("Model Torque Max"));
+    return (extraInfo.GetInt("Model Torque Max"));
 }
 int DynamixelServo::GetModelLoadMax()
 {
-    return (controlTable.GetInt("Model Load Max"));
+    return (extraInfo.GetInt("Model Load Max"));
 }
 int DynamixelServo::GetModelAngleMax()
 {
-    return (controlTable.GetInt("Model Angle Max"));
+    return (extraInfo.GetInt("Model Angle Max"));
 }
 int DynamixelServo::GetModelBaudRateMax()
 {
-    return (controlTable.GetInt("Model Baud Rate Max"));
+    return (extraInfo.GetInt("Model Baud Rate Max"));
 }
 
-
-// MARK: GET FORMATED
+// MARK: Get formated
 
 float DynamixelServo::GetModelGapAngleFormated(int angle_unit)
 {
@@ -207,7 +221,7 @@ float DynamixelServo::GetGoalPositionFormated(int adress, int angle_unit)
 }
 float DynamixelServo::GetMovingSpeedFormated(int adress)
 {
-    if (controlTable.GetInt("Control Mode") == 1) // Change this?
+    if (extraInfo.GetInt("Control Mode") == 1) // Change this?
     {
         return float(GetValueAtAdress(adress))/float(GetModelSpeedMax());
     }
@@ -231,19 +245,29 @@ float DynamixelServo::GetPresentPositionFormated(int adress, int angle_unit)
     
     // Convert angle to wanted angle
     float angle = angle_to_angle(a, 0, angle_unit);
-    
+
     //printf("\n\nGetPresentPositionFormated: posD %i a %f angle %f\n\n", posD, a, angle);
     return angle;
 }
 float DynamixelServo::GetPresentSpeedFormated(int adress)
 {
+    // WHEELMODE!
+    switch (extraInfo.GetInt("Operation Type")) {
+        case OP_WHEEL:
+            if (GetValueAtAdress(adress) > 1023) // CCW is this always true? 0-1023 CW 1024-2047 CCW
+                return float(GetModelSpeedMax()-GetValueAtAdress(adress))/float(GetModelSpeedMax());
+            else // CW
+                return float(GetValueAtAdress(adress))/float(GetModelSpeedMax());
+        case OP_JOINT:
+        case OP_MULTI_TURN:
+                return float(GetValueAtAdress(adress))/float(GetModelSpeedMax()); // 0-1023
+            break;
+        default:
+            break;
+    }
+    return float(GetValueAtAdress(adress))/float(GetModelSpeedMax()); // 0-1023 //
     
-    if (GetValueAtAdress(adress)> 1023) // CCW is this always true?
-        return float(GetModelSpeedMax()-GetValueAtAdress(adress))/float(GetModelSpeedMax());
-    else // CW
-        return float(GetValueAtAdress(adress))/float(GetModelSpeedMax());
-    
-}
+    }
 float DynamixelServo::GetPresentLoadFormated(int adress)
 {
     if (GetValueAtAdress(adress) > 1023) // CCW
@@ -253,7 +277,7 @@ float DynamixelServo::GetPresentLoadFormated(int adress)
 }
 float DynamixelServo::GetPresentVoltageFormated(int adress)
 {
-    return GetValueAtAdress(adress)*ctable[adress].Convert;
+    return GetValueAtAdress(adress)*controlTable[adress].Convert;
 }
 float DynamixelServo::GetPresentTemperatureFormated(int adress)
 {
@@ -261,44 +285,17 @@ float DynamixelServo::GetPresentTemperatureFormated(int adress)
 }
 float DynamixelServo::GetCurrentFormated(int adress)
 {
-    return GetValueAtAdress(adress)*ctable[adress].Convert;
+    return GetValueAtAdress(adress)*controlTable[adress].Convert;
 }
 float DynamixelServo::GetGoalTorqueFormated(int adress)
 {
-    return GetValueAtAdress(adress)*ctable[adress].Convert;
+    return GetValueAtAdress(adress)*controlTable[adress].Convert;
 }
 float DynamixelServo::GetGoalAccelerationFormated(int adress)
 {
-    return GetValueAtAdress(adress)*ctable[adress].Convert;
+    return GetValueAtAdress(adress)*controlTable[adress].Convert;
 }
 
-// MARK: MISC
-//
-//float DynamixelServo::ConvertAngleToAngle(float angle, int from_angle_unit, int to_angle_unit)
-//{
-//    //printf("\n\nConvertAngleToAngle (%i,%i) angle %f ->", from_angle_unit,to_angle_unit, angle);
-//    // Convert from to degrees
-//    switch(from_angle_unit)
-//    {
-//        default:
-//        case 0: angle = angle; break;
-//        case 1: angle = (angle/(2.0*pi))*360; break;
-//        case 2: angle = angle*360; break;
-//    }
-//    //printf("%f ->", angle);
-//
-//    // Convert from to X
-//    switch(to_angle_unit)
-//    {
-//        default:
-//        case 0: angle = angle;break;
-//        case 1: angle = angle/360*(2.0*pi);break;
-//        case 2: angle = angle/360;break;
-//    }
-//    //printf("%f\n\n", angle);
-//    return angle;
-//}
-//
 float
 DynamixelServo::ConvertToAngle(int position, int angle_unit)
 {
@@ -310,7 +307,6 @@ DynamixelServo::ConvertToAngle(int position, int angle_unit)
     //printf("\n\nConvertToPosition angle: %.2f angleD %.2f posD %.0i\n", angle, angleD, position);
     return angle;
 }
-
 
 // Convert a real angle in angle_units into position in dynamixel angle
 int
@@ -329,7 +325,7 @@ DynamixelServo::ConvertToPosition(float angle, int angle_unit)
     return int(posD*float(GetModelPositionMax()));
 }
 
-// MARK: SET
+// MARK: Set
 bool DynamixelServo::SetTorqueEnableFormated(int adress, float value)
 {
     // Do formating stuff...
@@ -365,14 +361,13 @@ bool DynamixelServo::SetGoalPositionFormated(int adress, float value, int angle_
     
     // Convert real angle to dynamixel position
     int DynPos = ConvertToPosition(valueD, angle_unit);
-    
     return SetValueAtAdress(adress, int(DynPos));
 };
 
 // In wheelmode value is -1 to 1. In Control Mode 0 to 1.
 bool DynamixelServo::SetMovingSpeedFormated(int adress, float value)
 {
-    switch (controlTable.GetInt("Operation Type")) {
+    switch (extraInfo.GetInt("Operation Type")) {
         case OP_WHEEL:
             if (value >= 0) // CW
                 return SetValueAtAdress(adress, int(value * float(GetModelSpeedMax())));
@@ -389,7 +384,7 @@ bool DynamixelServo::SetMovingSpeedFormated(int adress, float value)
         default:
             break;
     }
-    return false; // Added by CB
+    return false;
 };
 
 bool DynamixelServo::SetGoalTorqueFormated(int adress, float value)
@@ -406,255 +401,252 @@ bool DynamixelServo::SetTorqueLimitFormated(int adress, float value)
     return SetValueAtAdress(adress, int(value * float(GetModelTorqueMax())));
 };
 
-
-void DynamixelServo::getAdditionalInfo()
-{
-//    char tempBuf[64];
-    
-    // First two bytes is the model number. Hopefully forever.
-    
-    switch (DynamixelMemory[0]+256*DynamixelMemory[1])
+void DynamixelServo::GetAdditionalInfo(int model)
+{        
+    switch (model)
     {
         case 360:
-            controlTable.Set("Servo Model String",    "MX-12W");
-            controlTable.Set("Model Position Max",        4095); // Conntected to Angle Max
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",            360); // degrees
-            controlTable.Set("Model Baud Rate Max",       4.5f); // Mbps
-            controlTable.Set("Model Recomended Votage",  12.0f);
-            controlTable.Set("Model Standby current",       60); // mA
-            controlTable.Set("Model Protocol",               1);
-            controlTable.Set("Model Memory",                73);
+            extraInfo.Set("Servo Model String",    "MX-12W");
+            extraInfo.Set("Model Position Max",        4095); // Conntected to Angle Max
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",            360); // degrees
+            extraInfo.Set("Model Baud Rate Max",       4.5f); // Mbps
+            extraInfo.Set("Model Recomended Votage",  12.0f);
+            extraInfo.Set("Model Standby current",       60); // mA
+            extraInfo.Set("Model Protocol",               1);
+            extraInfo.Set("Model Memory",                73);
             break;
         case 29:
-            controlTable.Set("Servo Model String",       "MX-28");
-            controlTable.Set("Model Position Max",        4095);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",            360); // degrees
-            controlTable.Set("Model Baud Rate Max",       4.5f); // Mbps
-            controlTable.Set("Model Recomended Votage",  12.0f);
-            controlTable.Set("Model Standby current",      100); // mA
-            controlTable.Set("Model Protocol",               1);
-            controlTable.Set("Model Memory",                73);
+            extraInfo.Set("Servo Model String",       "MX-28");
+            extraInfo.Set("Model Position Max",        4095);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",            360); // degrees
+            extraInfo.Set("Model Baud Rate Max",       4.5f); // Mbps
+            extraInfo.Set("Model Recomended Votage",  12.0f);
+            extraInfo.Set("Model Standby current",      100); // mA
+            extraInfo.Set("Model Protocol",               1);
+            extraInfo.Set("Model Memory",                73);
             break;
         case 310:
-            controlTable.Set("Servo Model String",     "MX-64");
-            controlTable.Set("Model Position Max",        4095);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",            360); // degrees
-            controlTable.Set("Model Baud Rate Max",       4.5f); // Mbps
-            controlTable.Set("Model Recomended Votage",  12.0f);
-            controlTable.Set("Model Standby current",      100); // mA
-            controlTable.Set("Model Protocol",               1);
-            controlTable.Set("Model Memory",                73);
+            extraInfo.Set("Servo Model String",     "MX-64");
+            extraInfo.Set("Model Position Max",        4095);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",            360); // degrees
+            extraInfo.Set("Model Baud Rate Max",       4.5f); // Mbps
+            extraInfo.Set("Model Recomended Votage",  12.0f);
+            extraInfo.Set("Model Standby current",      100); // mA
+            extraInfo.Set("Model Protocol",               1);
+            extraInfo.Set("Model Memory",                73);
             break;
         case 320:
-            controlTable.Set("Servo Model String",      "MX-106");
-            controlTable.Set("Model Position Max",        4095); // Conntected to Angle Max
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",            360); // degrees
-            controlTable.Set("Model Baud Rate Max",       4.5f); // Mbps
-            controlTable.Set("Model Recomended Votage",  12.0f);
-            controlTable.Set("Model Standby current",      100); // mA
-            controlTable.Set("Model Protocol",               1);
-            controlTable.Set("Model Memory",                73);
+            extraInfo.Set("Servo Model String",      "MX-106");
+            extraInfo.Set("Model Position Max",        4095); // Conntected to Angle Max
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",            360); // degrees
+            extraInfo.Set("Model Baud Rate Max",       4.5f); // Mbps
+            extraInfo.Set("Model Recomended Votage",  12.0f);
+            extraInfo.Set("Model Standby current",      100); // mA
+            extraInfo.Set("Model Protocol",               1);
+            extraInfo.Set("Model Memory",                73);
             break;
             
         case 107:
-            controlTable.Set("Servo Model String",     "EX-106+");
-            controlTable.Set("Model Position Max",          4095);
-            controlTable.Set("Model Speed Max",             1023);
-            controlTable.Set("Model Torque Max",            1023);
-            controlTable.Set("Model Load Max",              1023);
-            controlTable.Set("Model Angle Max",              251); // degrees
-            controlTable.Set("Model Baud Rate Max",         1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",    14.8f);
-            controlTable.Set("Model Standby current",         55); // mA
-            controlTable.Set("Model Protocol",                 1);
-            controlTable.Set("Model Memory",                  57);
+            extraInfo.Set("Servo Model String",     "EX-106+");
+            extraInfo.Set("Model Position Max",          4095);
+            extraInfo.Set("Model Speed Max",             1023);
+            extraInfo.Set("Model Torque Max",            1023);
+            extraInfo.Set("Model Load Max",              1023);
+            extraInfo.Set("Model Angle Max",              251); // degrees
+            extraInfo.Set("Model Baud Rate Max",         1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",    14.8f);
+            extraInfo.Set("Model Standby current",         55); // mA
+            extraInfo.Set("Model Protocol",                 1);
+            extraInfo.Set("Model Memory",                  57);
             break;
             
         case 10:
-            controlTable.Set("Servo Model String",  "RX-10");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   11.1f);
-            controlTable.Set("Model Standby current",     50); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "RX-10");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   11.1f);
+            extraInfo.Set("Model Standby current",     50); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
             
         case 24:
-            controlTable.Set("Servo Model String",  "RX-24F");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   11.1f);
-            controlTable.Set("Model Standby current",     50); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "RX-24F");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   11.1f);
+            extraInfo.Set("Model Standby current",     50); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
             
         case 28:
-            controlTable.Set("Servo Model String",  "RX-28");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   14.8f);
-            controlTable.Set("Model Standby current",     50); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "RX-28");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   14.8f);
+            extraInfo.Set("Model Standby current",     50); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
             
         case 64:
-            controlTable.Set("Servo Model String",  "RX-64");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   14.8f);
-            controlTable.Set("Model Standby current",     50); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "RX-64");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   14.8f);
+            extraInfo.Set("Model Standby current",     50); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
             
         case 300:
-            controlTable.Set("Servo Model String",  "AX-12W");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   11.1f);
-            controlTable.Set("Model Standby current",     0); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "AX-12W");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   11.1f);
+            extraInfo.Set("Model Standby current",     0); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
         case 12:
-            controlTable.Set("Servo Model String",  "AX-12");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   11.1f);
-            controlTable.Set("Model Standby current",     0); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
-            
+            extraInfo.Set("Servo Model String",  "AX-12");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   11.1f);
+            extraInfo.Set("Model Standby current",     0); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
+            break;
+
         case 18:
-            controlTable.Set("Servo Model String",  "AX-18");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   11.1f);
-            controlTable.Set("Model Standby current",     0); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
-            
+            extraInfo.Set("Servo Model String",  "AX-18");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   11.1f);
+            extraInfo.Set("Model Standby current",     0); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
+            break;
+
         case 113:
-            controlTable.Set("Servo Model String",  "DX-113");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   11.1f);
-            controlTable.Set("Model Standby current",     0); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "DX-113");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   11.1f);
+            extraInfo.Set("Model Standby current",     0); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
         case 116:
-            controlTable.Set("Servo Model String",  "DX-116");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   14.8f);
-            controlTable.Set("Model Standby current",     0); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "DX-116");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   14.8f);
+            extraInfo.Set("Model Standby current",     0); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
         case 117:
-            controlTable.Set("Servo Model String",  "DX-117");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",   14.8f);
-            controlTable.Set("Model Standby current",     0); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             49);
+            extraInfo.Set("Servo Model String",  "DX-117");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   14.8f);
+            extraInfo.Set("Model Standby current",     0); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             49);
             break;
         case 350:
-            controlTable.Set("Servo Model String",        "XL-320");
-            controlTable.Set("Model Position Max",        1023); // Conntected to Angle Max
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",           300); // degrees
-            controlTable.Set("Model Baud Rate Max",       4.5f); // Mbps
-            controlTable.Set("Model Recomended Votage",   7.6f);
-            controlTable.Set("Model Standby current",     60); // mA
-            controlTable.Set("Model Protocol",           1);
-            controlTable.Set("Model Memory",             52);
+            extraInfo.Set("Servo Model String",        "XL-320");
+            extraInfo.Set("Model Position Max",        1023); // Conntected to Angle Max
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",           300); // degrees
+            extraInfo.Set("Model Baud Rate Max",       4.5f); // Mbps
+            extraInfo.Set("Model Recomended Votage",   7.6f);
+            extraInfo.Set("Model Standby current",     60); // mA
+            extraInfo.Set("Model Protocol",           1);
+            extraInfo.Set("Model Memory",             52);
             break;
             
         default:
-            controlTable.Set("Servo Model String",  "UNKNOWN");
-            controlTable.Set("Model Position Max",        1023);
-            controlTable.Set("Model Speed Max",           1023);
-            controlTable.Set("Model Torque Max",          1023);
-            controlTable.Set("Model Load Max",            1023);
-            controlTable.Set("Model Angle Max",            360); // degrees
-            controlTable.Set("Model Baud Rate Max",       1.0f); // Mbps
-            controlTable.Set("Model Recomended Votage",  12.0f);
-            controlTable.Set("Model Standby current",        0); // mA
-            controlTable.Set("Model Protocol",               1);
-            controlTable.Set("Model Memory",               100);
-            
+            extraInfo.Set("Servo Model String",  "UNKNOWN");
+            extraInfo.Set("Model Position Max",        1023);
+            extraInfo.Set("Model Speed Max",           1023);
+            extraInfo.Set("Model Torque Max",          1023);
+            extraInfo.Set("Model Load Max",            1023);
+            extraInfo.Set("Model Angle Max",            360); // degrees
+            extraInfo.Set("Model Baud Rate Max",       1.0f); // Mbps
+            extraInfo.Set("Model Recomended Votage",  12.0f);
+            extraInfo.Set("Model Standby current",        0); // mA
+            extraInfo.Set("Model Protocol",               1);
+            extraInfo.Set("Model Memory",               100);
             break;
     }
     
     // Position gap variables for servoes without 360 degrees
-    int ModelAngleMax = controlTable.GetInt("Model Angle Max");
-    int ModelPositionMax = controlTable.GetInt("Model Position Max");
+    int ModelAngleMax = extraInfo.GetInt("Model Angle Max");
+    int ModelPositionMax = extraInfo.GetInt("Model Position Max");
     int GapAngle = 360 - ModelAngleMax;
     int GapEstimatedRange = 360/ModelAngleMax*ModelPositionMax;
-    controlTable.Set("Model Angle Gap", GapAngle);
-    controlTable.Set("Gap Estimated Position Range", GapEstimatedRange);
+    extraInfo.Set("Model Angle Gap", GapAngle);
+    extraInfo.Set("Gap Estimated Position Range", GapEstimatedRange);
 }
 
+// MARK: Read CSV
 void readCSV( FILE *fp, std::vector<std::string>& vls )
 {
     vls.clear();
@@ -680,80 +672,84 @@ void readCSV( FILE *fp, std::vector<std::string>& vls )
     }
 }
 
-bool DynamixelServo::ReadCSVFileToCtable(CT * ctable,int model, int * size)
+bool DynamixelServo::ReadCSVFileToCtable(CT * controlTable,int model, int * size, const char * csvPath)
 {
-    for (int i =0; i<128; i++) {
-        ctable[i].Adress = i;
-        ctable[i].Visable = false;
-        ctable[i].IkarosInputs = -1;
-        ctable[i].IkarosOutputs = -1;
-        ctable[i].Convert = -1;
+    for (int i =0; i<C_TABLE_SIZE; i++) {
+        controlTable[i].Adress = i;
+        controlTable[i].Visable = false;
+        controlTable[i].IkarosInputs = -1;
+        controlTable[i].IkarosOutputs = -1;
+        controlTable[i].Convert = -1;
     }
-    std::string filename = std::string("DynamixelControlTables/")+std::to_string(model)+std::string("-")+std::to_string(model)+ std::string(".csv");
-    printf("Open file %s\n",filename.c_str());
+    std::string path = csvPath;;
+    std::string filename = path + std::string("DynamixelcontrolTables/")+std::to_string(model)+std::string("-")+std::to_string(model)+ std::string(".csv");
+    //printf("Open file %s\n",filename.c_str());
     std::vector<std::string> vls;
     FILE * fp = fopen(filename.c_str(), "r" );
-    if(fp )
+    if(!fp)
     {
-        readCSV(fp, vls); // Read Header
-        int i = 0;
-        while (1)
+        printf("Can not open file %s",filename.c_str());
+        return false;
+    }
+    
+    readCSV(fp, vls); // Read Header
+    int i = 0;
+    while (1)
+    {
+        readCSV(fp, vls);
+        if (vls.empty())
         {
-            readCSV(fp, vls);
-            if (vls.empty())
-            {
-                *size = i;
-                break;
-            }
-            ctable[std::stoi(vls[0])].Adress = std::stoi(vls[0]);
-            ctable[std::stoi(vls[0])].Size = std::stoi(vls[1]);
-            ctable[std::stoi(vls[0])].Name = vls[2].c_str();
-            ctable[std::stoi(vls[0])].Description = vls[3].c_str();
-            ctable[std::stoi(vls[0])].Access = vls[4].c_str();
-            
-            if (!vls[5].empty())
-                if (isdigit(vls[5].at(0)) || vls[5].at(0) == '-')
-                    ctable[std::stoi(vls[0])].Inital    = std::stoi(vls[5]);
-            if (!vls[6].empty())
-                if (isdigit(vls[6].at(0)) || vls[6].at(0) == '-')
-                    ctable[std::stoi(vls[0])].Min    = std::stoi(vls[6]);
-            if (!vls[7].empty())
-                if (isdigit(vls[7].at(0)) || vls[7].at(0) == '-')
-                    ctable[std::stoi(vls[0])].Max    = std::stoi(vls[7]);
-            if (!vls[8].empty())
-                if (isdigit(vls[8].at(0)) || vls[8].at(0) == '-')
-                    ctable[std::stoi(vls[0])].Convert    = std::stof(vls[8]);
-            if (!vls[9].empty())
-                if (isdigit(vls[9].at(0)) || vls[9].at(0) == '-')
-                    ctable[std::stoi(vls[0])].IkarosInputs    = std::stoi(vls[9]);
-            if (!vls[10].empty())
-                if (isdigit(vls[10].at(0)) || vls[10].at(0) == '-')
-                    ctable[std::stoi(vls[0])].IkarosOutputs    = std::stoi(vls[10]);
-            ctable[std::stoi(vls[0])].Visable = true;   // Used for printing
-            i++;
+            *size = i;
+            break;
         }
+        controlTable[std::stoi(vls[0])].Adress = std::stoi(vls[0]);
+        controlTable[std::stoi(vls[0])].Size = std::stoi(vls[1]);
+        controlTable[std::stoi(vls[0])].Name = vls[2].c_str();
+        controlTable[std::stoi(vls[0])].Description = vls[3].c_str();
+        controlTable[std::stoi(vls[0])].Access = vls[4].c_str();
+        
+        if (!vls[5].empty())
+            if (isdigit(vls[5].at(0)) || vls[5].at(0) == '-')
+                controlTable[std::stoi(vls[0])].Inital    = std::stoi(vls[5]);
+        if (!vls[6].empty())
+            if (isdigit(vls[6].at(0)) || vls[6].at(0) == '-')
+                controlTable[std::stoi(vls[0])].Min    = std::stoi(vls[6]);
+        if (!vls[7].empty())
+            if (isdigit(vls[7].at(0)) || vls[7].at(0) == '-')
+                controlTable[std::stoi(vls[0])].Max    = std::stoi(vls[7]);
+        if (!vls[8].empty())
+            if (isdigit(vls[8].at(0)) || vls[8].at(0) == '-')
+                controlTable[std::stoi(vls[0])].Convert    = std::stof(vls[8]);
+        if (!vls[9].empty())
+            if (isdigit(vls[9].at(0)) || vls[9].at(0) == '-')
+                controlTable[std::stoi(vls[0])].IkarosInputs    = std::stoi(vls[9]);
+        if (!vls[10].empty())
+            if (isdigit(vls[10].at(0)) || vls[10].at(0) == '-')
+                controlTable[std::stoi(vls[0])].IkarosOutputs    = std::stoi(vls[10]);
+        controlTable[std::stoi(vls[0])].Visable = true;   // Used for printing
+        i++;
     }
     return true;
 }
 
-
-void DynamixelServo::printControlTable()
+// MARK: Print
+void DynamixelServo::PrintControlTable()
 {
     printf("Address\tSize\tName\t\t\t\t\t\t\tAccess\tInital\tMin\t\tMax\t\tConvert\tIN\tOUT\tDescription\n");
     for (int i = 0; i< 128; i++) {
-        if (ctable[i].Visable)
+        if (controlTable[i].Visable)
         {
-            printf("%-8i",ctable[i].Adress );
-            printf("%-8i",ctable[i].Size );
-            printf("%-32s",ctable[i].Name.c_str() );
-            printf("%-8s",ctable[i].Access.c_str() );
-            printf("%-8i",ctable[i].Inital );
-            printf("%-8i",ctable[i].Min );
-            printf("%-8i",ctable[i].Max );
-            printf("%-8f",ctable[i].Convert );
-            printf("%-4i",ctable[i].IkarosInputs);
-            printf("%-4i",ctable[i].IkarosOutputs);
-            printf("%s",ctable[i].Description.c_str() );
+            printf("%-8i",controlTable[i].Adress );
+            printf("%-8i",controlTable[i].Size );
+            printf("%-32s",controlTable[i].Name.c_str() );
+            printf("%-8s",controlTable[i].Access.c_str() );
+            printf("%-8i",controlTable[i].Inital );
+            printf("%-8i",controlTable[i].Min );
+            printf("%-8i",controlTable[i].Max );
+            printf("%-8.2f",controlTable[i].Convert );
+            printf("%-4i",controlTable[i].IkarosInputs);
+            printf("%-4i",controlTable[i].IkarosOutputs);
+            printf("%s",controlTable[i].Description.c_str() );
             printf("\n");
         }
     }

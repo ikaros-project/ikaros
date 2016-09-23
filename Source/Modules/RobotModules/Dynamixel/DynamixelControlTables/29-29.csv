@@ -1,5 +1,5 @@
 Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;Ikaros Output
-0;2;Model Number;Model number;R;360;;;;;
+0;2;Model Number;Model number;R;29;;;;;
 2;1;Version of Firmware;Information on the version of firmware;R;;;;;;
 3;1;ID;ID of Dynamixel;RW;1;0;252;;;
 4;1;Baud Rate;Baud Rate of Dynamixel;RW;1;0;254;;;

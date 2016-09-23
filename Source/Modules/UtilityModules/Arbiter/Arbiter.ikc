@@ -7,7 +7,7 @@
 		The output is a copy of the input with the highest corresponding value input.
 		The inputs can be one or two dimensional. All inputs must have the same size.
 		When the values are equal, INPUT_1 is selected. If the value inputs are not connected,
-		the euclidean norm of the corresponding input is used instead. The number of intputs are selected
+		the euclidean norm of the corresponding input is used instead. The number of inputs are selected
         using the parameter number_of_inputs
 	</description>
 
@@ -19,6 +19,7 @@
 	</example>
 
    <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
+   <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
 
 	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
 

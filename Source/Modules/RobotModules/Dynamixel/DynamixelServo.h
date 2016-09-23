@@ -36,7 +36,7 @@
 #define DYNAMIXEL2_RAM_SIZE 52-18
 
 // Common
-#define DYNAMIXEL_MEM_BUFFER 128 // Using 128 instead of 70 as in control table
+#define DYNAMIXEL_MEM_BUFFER 1024 // Using 128 instead of 70 as in control table. Incresed this to 1024 as Pro seem to have more memory.
 
 #define OP_WHEEL                    0
 #define OP_JOINT                    1
@@ -50,6 +50,7 @@
 #define P_CW_ANGLE_LIMIT            6
 #define P_CCW_ANGLE_LIMIT           8
 
+#define C_TABLE_SIZE                DYNAMIXEL_MEM_BUFFER
 
 
 #include "IKAROS.h"
@@ -67,12 +68,12 @@ struct CT {
     std::string  Name;
     std::string  Description;
     std::string  Access;
-    int  Inital;
-    int  Min;
-    int  Max;
-    float  Convert;
-    int  IkarosInputs;
-    int  IkarosOutputs;
+    int   Inital;
+    int   Min;
+    int   Max;
+    float Convert;
+    int   IkarosInputs;
+    int   IkarosOutputs;
     bool  Visable;
 } ;
 
@@ -81,20 +82,21 @@ class DynamixelServo
 {
 public:
     
-    DynamixelServo(DynamixelComm *com, int id);
+    DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel);
+
     ~DynamixelServo();
     
-    
     // Variables
-    unsigned char * DynamixelMemory;    // Copy of dynamixel memory
-    Dictionary controlTable;            // Some extra information about the model
-    CT ctable[128];                     // The Control table read from file. Here is the mapping to ikaros IO
-    int Protocol;
+    unsigned char * dynamixelMemory;    // Copy of dynamixel memory
+    Dictionary extraInfo;               // Some extra information about the model
+    CT controlTable[C_TABLE_SIZE];            // The Control table read from file. Here is the mapping to ikaros IO
+    int protocol;
+    int model;
     
     // Functions
-    bool ReadCSVFileToCtable(CT * ctable, int model, int * size);
-    void printControlTable();
-    void getAdditionalInfo();
+    bool ReadCSVFileToCtable(CT * ctable, int model, int * size, const char * csvPath);
+    void PrintControlTable();
+    void GetAdditionalInfo(int model);
     
     // Get/set memory
     bool    SetValueAtAdress(int adress, int value);
@@ -119,22 +121,22 @@ public:
     float GetModelBaudRateMaxFormated();
     
     // Get formated
-    float GetTorqueEnableFormated(int adress);
-    float GetLEDFormated(int adress);
-    float GetDGainFormated(int adress);
-    float GetIGainFormated(int adress);
-    float GetPGainFormated(int adress);
-    float GetGoalPositionFormated(int adress,int angle_unit);
-    float GetMovingSpeedFormated(int adress);
-    float GetTorqueLimitFormated(int adress);
-    float GetPresentPositionFormated(int adress,int angle_unit);
-    float GetPresentSpeedFormated(int adress);
-    float GetPresentLoadFormated(int adress);
-    float GetPresentVoltageFormated(int adress);
-    float GetPresentTemperatureFormated(int adress);
-    float GetCurrentFormated(int adress);
-    float GetGoalTorqueFormated(int adress);
-    float GetGoalAccelerationFormated(int adress);
+    float GetTorqueEnableFormated(int adress);                  // return (0,1)
+    float GetLEDFormated(int adress);                           // return (0,1)
+    float GetDGainFormated(int adress);                         // return (0,1)
+    float GetIGainFormated(int adress);                         // return (0,1)
+    float GetPGainFormated(int adress);                         // return (0,1)
+    float GetGoalPositionFormated(int adress,int angle_unit);   // return (0,1)
+    float GetMovingSpeedFormated(int adress);                   // return (0,1)
+    float GetTorqueLimitFormated(int adress);                   // return (0,1)
+    float GetPresentPositionFormated(int adress,int angle_unit);// return (0,1)
+    float GetPresentSpeedFormated(int adress);                  // return (0,1)
+    float GetPresentLoadFormated(int adress);                   // return (0,1)
+    float GetPresentVoltageFormated(int adress);                // return (0,1)
+    float GetPresentTemperatureFormated(int adress);            // return (0,1)
+    float GetCurrentFormated(int adress);                       // return (0,1)
+    float GetGoalTorqueFormated(int adress);                    // return (0,1)
+    float GetGoalAccelerationFormated(int adress);              // return (0,1)
     
     // Set formated
     bool SetTorqueEnableFormated(int adress, float value);

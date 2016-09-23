@@ -32,6 +32,7 @@ Scale::Init()
     Bind(factor, "factor");
     
     input		=	GetInputArray("INPUT");
+    scale		=	GetInputArray("SCALE");
     output		=	GetOutputArray("OUTPUT");
     size		=	GetOutputSize("OUTPUT");
 }
@@ -41,7 +42,11 @@ Scale::Init()
 void
 Scale::Tick()
 {
-    multiply(output, input, factor, size);
+    float s = factor;
+    if(scale)
+        s = s * scale[0];
+
+    multiply(output, input, s, size);
 }
 
 

@@ -22,55 +22,147 @@
 //
 //    Created: March 2016
 //
+// This code has only been tested with the XL-320 servo.
 
 #include "DynamixelComm.h"
 
 
-// MARK: Sync write
-void DynamixelComm::SyncWriteWithIdRange2(int * servo_id,  unsigned char ** DynamixelMemoeries, int from, int to, int n)
+//// MARK: Sync write
+//void DynamixelComm::SyncWriteWithIdRange2(int * servo_id, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int from, int * size, int n)
+//{
+//    
+//    int nrServoToSendTo = 0;
+//    for (int i = 0; i < n; i++)
+//        if (ikarosInBind[i] != -1)
+//            nrServoToSendTo++;
+//    
+//    int bytesToWrite = size[0]; // Bytes to write for each servo. 31-30+1 = 2 bytes
+//    unsigned int parameter_length = 4 + nrServoToSendTo*(bytesToWrite+1); // 4 bytes in common + parameters for each servo.
+//    unsigned int length=1+parameter_length+2; // Length if the packet length AFTER packet length feild. Inst + Parameters + CRC
+//    unsigned int lengthPackage = length + SYNC_WRITE_HEADER_2-1; // Total length of the package with all feilds. SYNC_WRITE_HEADER-1 as inst feild is included in SYNC_WRITE_HEADER
+//    
+//    
+//    // Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes. // CHECK THIS!!
+//    if (bytesToWrite*n+SYNC_WRITE_HEADER_2 > DYNAMIXEL_MAX_BUFFER)
+//    {
+//        //printf("The message is too long. Send one servo at the time.
+//        parameter_length = 4 + 1*(bytesToWrite+1); // 4 bytes in common + parameters for each servo.
+//        length=1+parameter_length+2; // Length if the packet length AFTER packet length feild. Inst + Parameters + CRC
+//        lengthPackage = length + SYNC_WRITE_HEADER_2-1; // Total length of the package with all feilds. SYNC_WRITE_HEADER-1 as inst feild is included in
+//        
+//        for(int i=0; i<n; i++)
+//        {
+//            unsigned char outbuf[256] = {
+//                0XFF,
+//                0XFF,
+//                0XFD,
+//                0X00,
+//                0XFE,
+//                static_cast<unsigned char>(length&0xff),
+//                static_cast<unsigned char>((length>>8)&0xff),
+//                INST_SYNC_WRITE,
+//                static_cast<unsigned char>(from&0xff),
+//                static_cast<unsigned char>((from>>8)&0xff),
+//                static_cast<unsigned char>(bytesToWrite&0xff),
+//                static_cast<unsigned char>((bytesToWrite>>8)&0xff)
+//            };
+//            for(int i=0; i<n; i++)
+//            {
+//                outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 +i*(bytesToWrite+1)] = servo_id[i];
+//                memcpy(&outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 + i*(bytesToWrite+1)+1], &DynamixelMemoeries[i][from], bytesToWrite * sizeof(unsigned char) );
+//            }
+//            unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
+//            outbuf[lengthPackage-2]=crc&0xff;
+//            outbuf[lengthPackage-1]=(crc>>8)&0xff;
+//            //PrintFullInstructionPackage(outbuf);
+//            Send2(outbuf);
+//        }
+//    }
+//    else
+//    {
+//        unsigned char outbuf[256] = {
+//            0XFF,
+//            0XFF,
+//            0XFD,
+//            0X00,
+//            0XFE,
+//            static_cast<unsigned char>(length&0xff),
+//            static_cast<unsigned char>((length>>8)&0xff),
+//            INST_SYNC_WRITE,
+//            static_cast<unsigned char>(from&0xff),
+//            static_cast<unsigned char>((from>>8)&0xff),
+//            static_cast<unsigned char>(bytesToWrite&0xff),
+//            static_cast<unsigned char>((bytesToWrite>>8)&0xff)
+//        };
+//        
+//        for(int i=0; i<n; i++)
+//        {
+//            if (ikarosInBind[i] != -1){
+//                outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 +i*(bytesToWrite+1)] = servo_id[i];
+//                memcpy(&outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 + i*(bytesToWrite+1)+1], &DynamixelMemoeries[i][from], bytesToWrite * sizeof(unsigned char) );
+//            }
+//        }
+//        unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
+//        outbuf[lengthPackage-2]=crc&0xff;
+//        outbuf[lengthPackage-1]=(crc>>8)&0xff;
+//        //PrintFullInstructionPackage2(outbuf);
+//        Send2(outbuf);
+//    }
+//}
+
+// MARK: Bulk write
+void DynamixelComm::BulkWrite2(int * servo_id, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
 {
-    //printf("\nSyncWriteWithIdRange what to send (%i) %i - %i\n", n, from,to);
-    int bytesToWrite = to-from+1; // Bytes to write for each servo. 31-30+1 = 2 bytes
-    unsigned int parameter_length = 4 + n*(bytesToWrite+1); // 4 bytes in common + parameters for each servo.
-    unsigned int length=1+parameter_length+2; // Length if the packet length AFTER packet length feild. Inst + Parameters + CRC
-    unsigned int lengthPackage = length + SYNC_WRITE_HEADER_2-1; // Total length of the package with all feilds. SYNC_WRITE_HEADER-1 as inst feild is included in SYNC_WRITE_HEADER
+    int nrServoToSendTo = 0;
+    //int bytesToWrite = 0;
+    for (int i = 0; i < n; i++)
+        if (ikarosInBind[i] != -1)
+            nrServoToSendTo++;
     
+    unsigned int parameter_length = 0;
+    for (int i = 0; i < n; i++)
+        if (ikarosInBind[i] != -1)
+            parameter_length += (size[i] + 1 + 2 + 2); // adding up data sizes + id size (two bytes) + adress + size size
     
-    // Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes. // CHECK THIS!!
-    if (bytesToWrite*n+SYNC_WRITE_HEADER_2 > DYNAMIXEL_MAX_BUFFER)
+    unsigned int length=1+parameter_length+2; // Length is the packet length AFTER packet length feild. Inst + Parameters + CRC
+    unsigned int lengthPackage = length + BULK_WRITE_HEADER_2-1; // Total length of the package with all feilds. BULK_WRITE_HEADER_2-1 as inst feild is included in BULK_WRITE_HEADER_2
+    
+    if (lengthPackage > DYNAMIXEL_MAX_BUFFER)
     {
-        //printf("The message is too long. Send one servo at the time.
-        parameter_length = 4 + 1*(bytesToWrite+1); // 4 bytes in common + parameters for each servo.
-        length=1+parameter_length+2; // Length if the packet length AFTER packet length feild. Inst + Parameters + CRC
-        lengthPackage = length + SYNC_WRITE_HEADER_2-1; // Total length of the package with all feilds. SYNC_WRITE_HEADER-1 as inst feild is included in
-        
-        for(int i=0; i<n; i++)
-        {
-            unsigned char outbuf[256] = {
-                0XFF,
-                0XFF,
-                0XFD,
-                0X00,
-                0XFE,
-                static_cast<unsigned char>(length&0xff),
-                static_cast<unsigned char>((length>>8)&0xff),
-                INST_SYNC_WRITE,
-                static_cast<unsigned char>(from&0xff),
-                static_cast<unsigned char>((from>>8)&0xff),
-                static_cast<unsigned char>(bytesToWrite&0xff),
-                static_cast<unsigned char>((bytesToWrite>>8)&0xff)
-            };
-            for(int i=0; i<n; i++)
-            {
-                outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 +i*(bytesToWrite+1)] = servo_id[i];
-                memcpy(&outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 + i*(bytesToWrite+1)+1], &DynamixelMemoeries[i][from], bytesToWrite * sizeof(unsigned char) );
-            }
-            unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
-            outbuf[lengthPackage-2]=crc&0xff;
-            outbuf[lengthPackage-1]=(crc>>8)&0xff;
-            //PrintFullInstructionPackage(outbuf);
-            Send2(outbuf);
-        }
+        printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos or data sent to the servos\n");
+
+//        //printf("The message is too long. Send one servo at the time.
+//        parameter_length = 4 + 1*(bytesToWrite+1); // 4 bytes in common + parameters for each servo.
+//        length=1+parameter_length+2; // Length if the packet length AFTER packet length feild. Inst + Parameters + CRC
+//        lengthPackage = length + SYNC_WRITE_HEADER_2-1; // Total length of the package with all feilds. SYNC_WRITE_HEADER-1 as inst feild is included in
+//        
+//        for(int i=0; i<n; i++)
+//        {
+//            unsigned char outbuf[256] = {
+//                0XFF,
+//                0XFF,
+//                0XFD,
+//                0X00,
+//                0XFE,
+//                static_cast<unsigned char>(length&0xff),
+//                static_cast<unsigned char>((length>>8)&0xff),
+//                INST_SYNC_WRITE,
+//                static_cast<unsigned char>(from&0xff),
+//                static_cast<unsigned char>((from>>8)&0xff),
+//                static_cast<unsigned char>(bytesToWrite&0xff),
+//                static_cast<unsigned char>((bytesToWrite>>8)&0xff)
+//            };
+//            for(int i=0; i<n; i++)
+//            {
+//                outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 +i*(bytesToWrite+1)] = servo_id[i];
+//                memcpy(&outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 + i*(bytesToWrite+1)+1], &DynamixelMemoeries[i][from], bytesToWrite * sizeof(unsigned char) );
+//            }
+//            unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
+//            outbuf[lengthPackage-2]=crc&0xff;
+//            outbuf[lengthPackage-1]=(crc>>8)&0xff;
+//            //PrintFullInstructionPackage(outbuf);
+//            Send2(outbuf);
+//        }
     }
     else
     {
@@ -82,18 +174,24 @@ void DynamixelComm::SyncWriteWithIdRange2(int * servo_id,  unsigned char ** Dyna
             0XFE,
             static_cast<unsigned char>(length&0xff),
             static_cast<unsigned char>((length>>8)&0xff),
-            INST_SYNC_WRITE,
-            static_cast<unsigned char>(from&0xff),
-            static_cast<unsigned char>((from>>8)&0xff),
-            static_cast<unsigned char>(bytesToWrite&0xff),
-            static_cast<unsigned char>((bytesToWrite>>8)&0xff)
+            INST_BULK_WRITE
         };
         
+        int k= 0;
         for(int i=0; i<n; i++)
         {
-            outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 +i*(bytesToWrite+1)] = servo_id[i];
-            memcpy(&outbuf[SYNC_WRITE_HEADER_2+SYNC_WRITE_COMMON_2 + i*(bytesToWrite+1)+1], &DynamixelMemoeries[i][from], bytesToWrite * sizeof(unsigned char) );
+            
+            if (ikarosInBind[i] != -1){
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+3] = size[i]&0xff;
+                outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+4] = (size[i]>>8)&0xff;
+                memcpy(&outbuf[BULK_WRITE_HEADER_2 + k*(size[i]+5)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
+                k++;
+            }
         }
+
         unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
         outbuf[lengthPackage-2]=crc&0xff;
         outbuf[lengthPackage-1]=(crc>>8)&0xff;
@@ -133,7 +231,7 @@ DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, int to
     //PrintFullInstructionPackage(outbuf);
     Send2(outbuf);
     
-    unsigned char inbuf[256];
+    unsigned char inbuf[1024];
     int n = Receive2(inbuf);
     //PrintFullStatusPackage(inbuf);
     if(n==0)
@@ -145,8 +243,6 @@ DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, int to
 
     // Copy the new data to the dynamixel memories
     memcpy(&buffer[0], &inbuf[RECIVE_HEADER_2+from+1], bytesToRead * sizeof(unsigned char)-1); // -1 error bit in protocol2
-    //PrintMemory2(buffer,0,31);
-    
     return true;
 }
 // MARK: Send/Recive
@@ -191,8 +287,6 @@ DynamixelComm::Ping2(int id)
     
     unsigned char inbuf[256];
     int n = Receive2(inbuf);
-    //    if (n!= 0)
-    //        PrintFullStatusPackage(inbuf);
     return (n != 0);
 }
 void
@@ -234,7 +328,7 @@ void DynamixelComm::PrintPartInstructionPackage2(unsigned char * outbuf, int fro
     {
         if (j == 0)
             printf("============= Data bytes ========\n");
-        printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", RECIVE_HEADER_2+j, from+j, outbuf[RECIVE_HEADER_2+j],outbuf[RECIVE_HEADER_2+j]);
+        printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", RECIVE_HEADER_2+j, from+j-1, outbuf[RECIVE_HEADER_2+j],outbuf[RECIVE_HEADER_2+j]);
     }
     printf("*********************************\n");
     

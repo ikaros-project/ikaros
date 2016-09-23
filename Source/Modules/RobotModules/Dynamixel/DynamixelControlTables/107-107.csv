@@ -1,5 +1,5 @@
 Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;Ikaros Output
-0;2;Model Number;Model number;R;360;;;;;
+0;2;Model Number;Lowest byte of model number;R;107;;;;;
 2;1;Version of Firmware;Information on the version of firmware;R;;;;;;
 3;1;ID;ID of Dynamixel;RW;1;1;252;;;
 4;1;Baud Rate;Baud Rate of Dynamixel;RW;34;1;254;;;
@@ -20,15 +20,16 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 27;1;CCW Compliance Margin;CCW Compliance Margin;RW;1;0;254;;;
 28;1;CW Compliance Slope;CW Compliance Slope;RW;32;0;128;;;
 28;1;CCW Compliance Slope;CCW Compliance Slope;RW;32;0;128;;;
-30;2;Goal Position;Lowest byte of Goal Position;RW;;0;4095;0.29;5;5
+30;2;Goal Position;Lowest byte of Goal Position;RW;;0;4095;0.06;5;5
 32;2;Moving Speed;Lowest byte of Moving Speed (Moving Velocity);RW;;0;2047;;6;6
 34;2;Torque Limit;Lowest byte of Torque Limit (Goal Torque);RW;ADD14;0;1023;;7;7
-36;2;Present Position;Lowest byte of Current Position (Present Velocity);R;;0;4095;0.29;;8
+36;2;Present Position;Lowest byte of Current Position (Present Velocity);R;;0;4095;0.06;;8
 38;2;Present Speed;Lowest byte of Current Speed;R;;0;2047;;;9
 40;2;Present Load;Lowest byte of Current Load;R;;0;2047;;;10
-42;1;Present Voltage;Current Voltage;R;;0;254;0.1;;11
+42;1;Present Voltage;Current Voltage;R;;0;254;;;11
 43;1;Present Temperature;Current Temperature;R;;0;254;;;12
 44;1;Registered;Means if Instruction is registered;R;0;0;1;;;
 46;1;Moving;Means if there is any movement;R;0;0;1;;;
 47;1;Lock;Locking EEPROM;RW;0;0;1;;;
 48;2;Punch;Lowest byte of Punch;RW;32;32;1023;;;
+56;2;Current;Lowest byte of Consuming Current;R;0;0;1023;;;13

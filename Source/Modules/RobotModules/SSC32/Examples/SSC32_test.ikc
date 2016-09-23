@@ -11,7 +11,7 @@
 
     <module
         class="ColorTracker"
-        class="FishTracker"
+        _comment_class="FishTracker"
 
         color			= "145 degrees"
         width           = "30 degrees"
@@ -35,9 +35,9 @@
         name = "SSC32"
         device  = "/dev/cu.USA19H1d1P1.1"
         min  = "1350 1330 1465 1000 1500"
-        _min  = "1220 1330 1465 1000 1500" _comment="This is the  home position without a camera"
+        _comment_min  = "1220 1330 1465 1000 1500" _comment1="This is the  home position without a camera"
         max  = "1500 1650 1670 1740 2500"
-        home  = "1350 1330 1465 1740 2500" _comment="This is the  home position without a camera"
+        home  = "1350 1330 1465 1740 2500" _comment2="This is the  home position without a camera"
         timebase = "2500"
     />
 
