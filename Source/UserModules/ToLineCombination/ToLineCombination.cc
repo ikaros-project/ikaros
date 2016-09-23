@@ -6,7 +6,6 @@ void ToLineCombination::Init()
   x0 = origin[0];
   y0 = origin[1];
   output_matrix = GetOutputMatrix("OUTPUT");
-  output_matrix_size_y = GetOutputSizeY("OUTPUT");
   input_matrix = GetInputMatrix("INPUT");
   input_matrix_size_x = GetInputSizeX("INPUT");
   input_matrix_size_y = GetInputSizeY("INPUT");
@@ -21,13 +20,10 @@ ToLineCombination::~ToLineCombination()
 void ToLineCombination::Tick() {
   copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
 
-  for (int i=0; i<output_matrix_size_y; i++){
-          output_matrix[i][0] = x0;
-          output_matrix[i][1] = y0;
-          output_matrix[i][2] = internal_matrix[i][0];
-          output_matrix[i][3] = internal_matrix[i][1];
-        }
-
+    output_matrix[0][0] = x0;
+    output_matrix[0][1] = y0;
+    output_matrix[0][2] = internal_matrix[i][0];
+    output_matrix[0][3] = internal_matrix[i][1];
 }
 
 static InitClass init("ToLineCombination", &ToLineCombination::Create, "Source/UserModules/ToLineCombination/");
