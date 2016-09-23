@@ -22,8 +22,8 @@ void ToLineCombination::Tick() {
 
     output_matrix[0][0] = x0;
     output_matrix[0][1] = y0;
-    output_matrix[0][2] = internal_matrix[i][0];
-    output_matrix[0][3] = internal_matrix[i][1];
+    output_matrix[0][2] = internal_matrix[0][0];
+    output_matrix[0][3] = internal_matrix[0][1];
 }
 
 static InitClass init("ToLineCombination", &ToLineCombination::Create, "Source/UserModules/ToLineCombination/");

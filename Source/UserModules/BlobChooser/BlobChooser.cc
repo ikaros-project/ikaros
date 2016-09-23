@@ -38,7 +38,7 @@ BlobChooser::Init()
 
   internal_matrix = create_matrix(input_matrix_size_x, input_matrix_size_y);
 
-  Bind(origin, 2, 1, "origin");
+  origin = GetInputArray("ORIGIN");
 
   dist = 100.0;
 }
@@ -63,8 +63,8 @@ BlobChooser::Tick()
             p1[i] = internal_matrix[j][i];
 
         if(sqrt(
-            p0[0]*p0[0] +
-            p0[1]*p0[1] +
+            origin[0]*origin[0] +
+            origin[1]*origin[1] +
             p1[0]*p1[0] +
             p1[1]*p1[1]
           ) < dist){
