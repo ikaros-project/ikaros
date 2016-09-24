@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<group title="face_detector_test">
+
+	<module
+			class = "InputVideo"
+			name = "InputVideo"
+	/>
+
+	<module
+		class = "MPIFaceDetector"
+		name = "MPIFaceDetector"
+	/>
+
+	<module
+		class = "Scale"
+		name = "Scale"
+	/>
+
+	<module
+		class = "MarkerTracker"
+		name = "MarkerTracker"
+		max_markers = "1"
+	/>
+
+	<module
+		class = "Cross"
+		name = "Cross"
+	/>
+
+
+	<connection sourcemodule="InputVideo" source="INTENSITY" targetmodule="MPIFaceDetector" target="INPUT" />
+
+	<connection sourcemodule="InputVideo" source="INTENSITY" targetmodule="Scale" target="INPUT" />
+
+	<connection sourcemodule="InputVideo" source="INTENSITY" targetmodule="MarkerTracker" target="INPUT" />
+
+
+	<view name="Movie View" object_size="250">
+		<object class="Image" type="rgb" module = "InputVideo" source = "RED+GREEN+BLUE" x="0" y="0"/>
+
+		<object class="Image" type="gray" module = "Scale" source = "OUTPUT" x="1" y="0" />
+
+		<object class="Image" type="gray" module = "MPIFaceDetector" source = "OUTPUT" x="0" y="1" w="2" h="2"/>
+
+		<object class="Cross" module = "MarkerTracker" source = "IMAGE_POSITION" x="0" y="1" w="2" h="2"/>
+
+		<object class="Slider" module = "Scale" parameter = "factor" x="2" y="0" w="2" h="2"/>
+
+	</view>
+</group>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<group name="BlobChooser" description="minimal example module">
+
+	<description type="text">
+		Minimal module that can be used as a start for a new module.
+		Simply change all occurrences of "MinimalModule" to the name of your new module in
+		MinimalModule.cc, MinimalModule.h and MinimalModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="BlobChooser"
+			name="BlobChooser"
+		/>
+	</example>
+
+	<input name="ORIGIN" description="Input origin coordinates" />
+  <input name="INPUT" description="Input matrix of (x,y) coordinates" />
+  <output name="OUTPUT" description="Output matrix of chosen coordinates" size_set="INPUT" />
+
+	<module class="BlobChooser" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>BlobChooser.h</file>
+   		<file>BlobChooser.cc</file>
+   		<file>BlobChooser.ikc</file>
+   </files>
+
+</group>

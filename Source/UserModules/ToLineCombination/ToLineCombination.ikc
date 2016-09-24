@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group name="ToLineCombination" description="adds an input array with origin point and 		interlaces the points for line-module row format">
+
+<description type="text">
+	adds an input array with origin point and interlaces the points for line-module row format
+</description>
+
+<example description="A simple example">
+<module
+	class="ToLineCombination"
+	name="ToLineCombination"
+/>
+</example>
+
+<input name="INPUT" description="The input matrix of points" />
+<input name="ORIGIN" description="Origin input point, an array of two intergers" />
+<output name="OUTPUT" description="The output array of points interlaced with origin point" size_x="4" size_y="1"/>
+
+<module class="ToLineCombination" />
+
+<author>
+	<name>grupp 12</name>
+	<email>placeholder</email>
+	<affiliation>Lund University</affiliation>
+	<homepage>github repo</homepage>
+</author>
+
+<files>
+	<file>ToLineCombination.h</file>
+	<file>ToLineCombination.cc</file>
+	<file>ToLineCombination.ikc</file>
+</files>
+
+</group>

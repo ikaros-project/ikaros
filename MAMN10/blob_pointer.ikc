@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+
+<group>
+    <module
+        class   = "Kinect"
+        name	= "Kinect"
+        mode    = "mm"
+    />
+
+    <module
+        class = "DepthHistogram"
+        name = "DepthHistogram"
+        filter = "yes"
+    />
+
+    <module
+        class 			= "Constant"
+        name 			= "Position"
+        data = "
+                    1	0	0   0;
+                    0   1   0   0;
+                    0	0   1	2200;
+                    0	0	0   1"
+    />
+
+    <module
+      class = "Constant"
+      name = "Tilt"
+      data = "0.5"
+    />
+    <module
+        class = "Constant"
+        name = "Line"
+        data = "0.5 1 0 0"
+    />
+
+    <module
+        class   = "DepthBlobList"
+        name    = "DepthBlobList"
+        pan     = "0"
+        tilt    = "-0.7853981"
+    />
+
+    <module
+        class = "Scale"
+        name = "Scale"
+        factor = "0.0001"
+        comment = "This module could be removed if Image-object allowed scaling."
+    />
+
+    <module
+        class = "Multiply"
+        name = "Multiply"
+    />
+
+    <module
+        class = "DepthSegmentation"
+        name = "DepthSegmentation"
+    />
+
+    <module
+        class = "BlobChooser"
+        name = "BlobChooser"
+    />
+
+    <module
+        class = "ToLineCombination"
+        name = "ToLine"
+    />
+
+    <module
+      class = "Constant"
+      name = "Origin"
+      data = "0.4 1"
+    />
+
+    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" />
+
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthHistogram" target = "INPUT" />
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthSegmentation" target = "INPUT" />
+
+    <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "DepthSegmentation" target = "OBJECT" />
+    <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" />
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "Multiply" target = "INPUT2" />
+
+    <connection sourcemodule = "Position" source = "OUTPUT" targetmodule = "DepthBlobList" target = "POSITION" />
+
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthBlobList" target = "INPUT" />
+
+    <connection sourcemodule = "DepthBlobList" source = "MAXIMA" targetmodule = "BlobChooser" target = "INPUT" />
+    <connection sourcemodule = "BlobChooser" source = "OUTPUT" targetmodule = "ToLine" target = "INPUT" />
+    <connection sourcemodule = "Origin" source = "OUTPUT" targetmodule = "ToLine" target = "ORIGIN" />
+    <connection sourcemodule = "Origin" source = "OUTPUT" targetmodule = "BlobChooser" target = "ORIGIN" />
+
+    <connection sourcemodule = "Tilt" source = "OUTPUT" targetmodule = "Kinect" target = "TILT" />
+
+    <view name="Depth">
+        <object class="Image" type="fire" title="Detection" module = "DepthBlobList" source = "SMOOTHED" x="0" y="0" w="3" h="3" />
+        <object class="Circle" radius="0.1" module = "DepthBlobList" source = "MAXIMA" x="0" y="0" w="3" h="3" />
+        <object class="Table" module="ToLine" source="OUTPUT" w="3" h="3"/>
+        <object class="Path" module="ToLine" source="OUTPUT" x="0" y="0" w="3" h="3" />
+    </view>
+
+    <view name="Grid">
+        <object class="Grid" type="fire" name="Grid" module = "DepthBlobList" source = "GRID" x="0" y="0" w="6" h="6" />
+    </view>
+</group>

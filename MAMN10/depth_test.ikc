@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<group>
+    <module
+        class   = "Kinect"
+        name	= "Kinect"
+        mode    = "mm"
+    />
+    
+    <module
+        class = "DepthHistogram"
+        name = "DepthHistogram"
+        filter = "yes"
+	treshold = "600"
+    />
+    
+
+    <module
+        class   = "GaussianEdgeDetector"
+        scale   = "0.25"
+        name	= "Edges"
+    />
+    
+    <module
+        class = "Scale"
+        name = "Scale"
+        factor = "0.00048851978505"
+        comment = "This module could be removed if Image-object allowed scaling."
+    />
+
+    <module
+        class = "Multiply"
+        name = "Multiply"
+    />
+
+    <module
+        class = "DepthSegmentation"
+        name = "DepthSegmentation"
+    />
+
+    
+    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Edges" target="INPUT" />
+    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" />
+    
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthHistogram" target = "INPUT" />
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthSegmentation" target = "INPUT" />
+
+    <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "DepthSegmentation" target = "OBJECT" />
+    <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" />
+    <connection sourcemodule = "Kinect" source = "INTENSITY" targetmodule = "Multiply" target = "INPUT2" />
+
+    <view name="Depth">
+        <object class="Image" type="fire" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />
+<!--        <object class="Image" type="rgb" name="Camera" module = "Kinect" source = "RED+GREEN+BLUE" x="0" y="2" w="3" h="2" />
+-->    
+        <object class="Image" type="green" name="Blob" module = "DepthSegmentation" source = "OUTPUT" x="3" y="0" w="3" h="2" />
+<!--        <object class="Image" type="green" name="Segment" module = "Multiply" source = "OUTPUT" x="3" y="2" w="3" h="2" />
+-->
+    </view>
+
+</group>
+
