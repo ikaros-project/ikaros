@@ -121,15 +121,18 @@ MotionGuard::Tick()
     }
 	
 	// Check position software limit
-	for(int i=0; i<size; i++)
-	{
-		if (output[i] < inputLimitMin[i] || output[i] > inputLimitMax[i])
-			position_limit = true;
-		if (output[i] < inputLimitMin[i])
-			output[i] = inputLimitMin[i];
-		if (output[i] > inputLimitMax[i])
-			output[i] = inputLimitMax[i];
-	}
+    if (inputLimitMin && inputLimitMax)
+    {
+        for(int i=0; i<size; i++)
+        {
+            if (output[i] < inputLimitMin[i] || output[i] > inputLimitMax[i])
+                position_limit = true;
+            if (output[i] < inputLimitMin[i])
+                output[i] = inputLimitMin[i];
+            if (output[i] > inputLimitMax[i])
+                output[i] = inputLimitMax[i];
+        }
+    }
 	
     // Check zeros again
     for(int i=0; i<size; i++)
