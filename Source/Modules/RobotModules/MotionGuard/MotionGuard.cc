@@ -40,8 +40,9 @@ MotionGuard::Init()
     input_cleaned = create_array(size);
     output = GetOutputArray("OUTPUT");
 
-
-    printf("MOTION GUARD ACTIVE\n");
+	inputLimitMin = GetArray("input_limit_min", size);
+	inputLimitMax = GetArray("input_limit_max", size);
+	Notify(msg_print,"MOTION GUARD ACTIVE\n");
 }
 
 
@@ -58,7 +59,8 @@ MotionGuard::Tick()
 {
     bool err = false;
     bool speed_limit = false;
-    
+	bool position_limit = false;
+	
     long t = GetTick();
 
     // Set default output = current position (until neutral position parameter is added)
@@ -117,13 +119,27 @@ MotionGuard::Tick()
             output[i] = reference[i] + scale * speed;
         }
     }
-
+	
+	// Check position software limit
+	for(int i=0; i<size; i++)
+	{
+		if (output[i] < inputLimitMin[i] || output[i] > inputLimitMax[i])
+			position_limit = true;
+		if (output[i] < inputLimitMin[i])
+			output[i] = inputLimitMin[i];
+		if (output[i] > inputLimitMax[i])
+			output[i] = inputLimitMax[i];
+	}
+	
     // Check zeros again
-
     for(int i=0; i<size; i++)
         if(output[i] == 0)
             err = true;
-    
+	
+
+	if(position_limit)
+		Notify(msg_warning, "Position is out of range and has been limited.");
+	
     if(speed_limit)
         Notify(msg_warning, "Speed is out of range and has been limited.");
     

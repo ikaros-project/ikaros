@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MotionGuard" description="minimal example module">
+<group name="MotionGuard" description="module to prevent suddden and dangerous movements">
 
 	<description type="text">
 		Module that tries to avoid suddden and dangerous movements. (1) only allows slow changes at startup, (2) guards agains too fast movements, (3) stops any zeros from getteing throug and replaces them with the current position of the servos. The parameters are currently relative to a tick and need to be scaled if the frequency changes.
@@ -16,7 +16,9 @@
 
 	<parameter name="start_up_time" type="int" default="2000" description="Number of ticks to ramp up commands (i. e. smooth with current position)" />
 	<parameter name="max_speed" type="float" default="0.1" description="If any channel is higher than this value, the new positions will be scaled to make the largest value equal to max." />
-    <parameter name="log" type="bool" default="yes" description="Log dangerous inputs" />
+	<parameter name="log" type="bool" default="yes" description="Log dangerous inputs" />
+	<parameter name="input_limit_min" type="array" description="Limit the input between min" />
+	<parameter name="input_limit_max" type="array" description="Limit the input between max" />
 
     <input name="INPUT" description="Desired position of the servos" />
 	<input name="REFERENCE" description="Current position of the servos." />

@@ -47,6 +47,10 @@ public:
     float *     reference;
     float *     start_up_position;
     float *     output;
+	
+	float *		inputLimitMin;
+	float *		inputLimitMax;
+	
 
 };
 
