@@ -72,9 +72,9 @@ Module(p)
             {
                 servo[servoId_list[i]] = NULL;
                 if (strictServoId)
-                    Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
-                else
                     Notify(msg_fatal_error, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+                else
+                    Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
      
             }
             if(servoId_list[i] > size)
@@ -93,9 +93,10 @@ Module(p)
             {
                 servo[i] = NULL;
                 if (strictServoId)
-                    Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+                    Notify(msg_fatal_error, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
                 else
-                    Notify(msg_fatal_error, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);            }
+                    Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+            }
         }
         size = servoId_list_size;
     }
