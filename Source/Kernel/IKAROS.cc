@@ -703,7 +703,10 @@ Module::GetArray(const char * n, int size)
     float * a = create_array(size);
     const char * v = GetValue(n);
     if (v == NULL)
-        return a;
+	{
+		destroy_array(a);
+        return NULL;
+	}
     for (int i=0; i<size;i++)
     {
         for (; isspace(*v) && *v != '\0'; v++) ;
