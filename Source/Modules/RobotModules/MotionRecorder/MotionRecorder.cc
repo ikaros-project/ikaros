@@ -462,11 +462,13 @@ MotionRecorder::Tick()
                                 torque[i] = 0;
                                 enable[i] = 0;
                             }
+						
                     }
 
                     position_data_count[current_behavior] = 0;
                     *time = 0;
                     printf("record (trig)\n");
+					*playing = 1;
                     break;
                 }
             }
