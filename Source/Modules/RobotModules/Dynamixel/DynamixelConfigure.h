@@ -38,32 +38,34 @@ public:
     void		Init();
     void		Tick();
     
+    void        PrintAll();
+    
 private:
     int         size;
     int         servos;
     int         max_servo_id;
-    int         init_print;
     int         index_mode;
-    int         angle_unit;
     int         blink;
     int         baud_rate;
     bool        list_servos;
-    int         ikarosInBind[10];    // Where to look for ikaros data in the dynamixel memory block
-    
+
+    int **      ikarosInBind;
+    int **      ikarosOutBind;
+    int         protocol;
+    int **      parameterInSize;
+
     
     float * resetModeOut;
     float * changeModeOut;
     
     float * set;
     float * active;
-    // Array of servo data
     
     bool resetMode;
     bool scan_mode;
     DynamixelServo **    servo;
     
     // Arrays used to send commands to servos // FIXME: USE separat list for continous servos
-    
     int *       servo_index;
     int *       servo_id;
     
@@ -75,6 +77,7 @@ private:
     void PrintChange(int active);
     int changeAdress;
     int newValue;
+    int forceModel;
 };
 
 #endif

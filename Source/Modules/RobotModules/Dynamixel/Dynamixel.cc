@@ -19,8 +19,13 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 //
+// TODO: Code never been used with the new Dynaxmiel Pro servoes and only handles 1-2 byte size of paramteres. Alsre when reading the memory from the servo there is a limimt of 256bytes.
+
 #include "Dynamixel.h"
 #include "DynamixelComm.h"
+
+#define IK_INPUTS 10
+#define IK_OUTPUTS 16
 
 using namespace ikaros;
 
@@ -40,69 +45,64 @@ Module(p)
         Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened (Check baud rate.", device);
         return;
     }
-    
-    std::string csvPath;
-    
-    use_feedback = GetBoolValue("feedback");
-    start_up_delay = GetIntValue("start_up_delay");
-    init_print = GetIntValueFromList("printf_info");
-    index_mode = GetIntValueFromList("index_mode");
-    angle_unit = GetIntValueFromList("angle_unit");
-    int max_servo_id = GetIntValue("max_servo_id");
-    int servo_id_list_size = 0;
-    int * servo_id_list = GetIntArray("servo_id", servo_id_list_size);
+    std::string csvPath     = GetClassPath();
+    use_feedback            = GetBoolValue("feedback");
+    start_up_delay          = GetIntValue("start_up_delay");
+    init_print              = GetIntValueFromList("print_info");
+    index_mode              = GetIntValueFromList("index_mode");
+    angle_unit              = GetIntValueFromList("angle_unit");
+    int maxServos           = GetIntValue("max_servo_id");
+    int servoId_list_size  = 0;
+    int * servoId_list     = GetIntArray("servo_id", servoId_list_size);
     
     servo = new DynamixelServo * [256]; // maximum number of servos
     for(int i=0; i<256; i++)
         servo[i] = NULL;
     
-    // Alt 1: create a list of servos with the IDs read from servo_id
-    
-    if(servo_id_list_size > 0 && index_mode == 0)
+    // Alt 1: create a list of servos with the IDs read from servoId
+    if(servoId_list_size > 0 && index_mode == 0)
     {
-        for(int i=0; i<servo_id_list_size; i++)
+        for(int i=0; i<servoId_list_size; i++)
         {
-            if(com->Ping(servo_id_list[i]) > 0)
+            if(com->Ping(servoId_list[i]) > 0)
             {
-                servo[servo_id_list[i]] = new DynamixelServo(com, servo_id_list[i]);
+                servo[servoId_list[i]] = new DynamixelServo(com, servoId_list[i], csvPath.c_str(),0);
             }
             else
             {
-                servo[servo_id_list[i]] = NULL;
-                Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servo_id_list[i]);
+                servo[servoId_list[i]] = NULL;
+                Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
             }
-            if(servo_id_list[i] > size)
-                size = servo_id_list[i]+1;
+            if(servoId_list[i] > size)
+                size = servoId_list[i]+1;
         }
     }
-    
-    else if(servo_id_list_size > 0 && index_mode == 1)
+    else if(servoId_list_size > 0 && index_mode == 1)
     {
-        for(int i=0; i<servo_id_list_size; i++)
+        for(int i=0; i<servoId_list_size; i++)
         {
-            if(com->Ping(servo_id_list[i]) > 0)
+            if(com->Ping(servoId_list[i]) > 0)
             {
-                servo[i] = new DynamixelServo(com, servo_id_list[i]);
+                servo[i] = new DynamixelServo(com, servoId_list[i], csvPath.c_str(),0);
             }
             else
             {
                 servo[i] = NULL;
-                Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servo_id_list[i]);
+                Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
             }
         }
-        size = servo_id_list_size;
+        size = servoId_list_size;
     }
     
     // Alt 2: scan for servos
-    
     else if(index_mode == 0)
     {
         size = 0;
-        for(int i=1; i<max_servo_id; i++)
+        for(int i=1; i<maxServos; i++)
         {
             if(com->Ping(i) > 0)
             {
-                servo[i] = new DynamixelServo(com, i);
+                servo[i] = new DynamixelServo(com, i, csvPath.c_str(),0);
                 size = i+1;
             }
             else
@@ -112,11 +112,11 @@ Module(p)
     else
     {
         size = 0;
-        for(int i=1; i<max_servo_id; i++)
+        for(int i=1; i<maxServos; i++)
         {
             if(com->Ping(i) > 0)
             {
-                servo[size] = new DynamixelServo(com, i);
+                servo[size] = new DynamixelServo(com, i, csvPath.c_str(),0);
                 size += 1;
             }
         }
@@ -129,56 +129,111 @@ Module(p)
     if(psize != 0)
         size = psize;
     
-    // Count servos
+    // Count servos.
     servos = 0;
     for(int i=0; i<size; i++)
         if(servo[i])
             servos++;
     
+    // If we did not find any servos kill ikaros.
+    if (servos == 0){
+        Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
+        return;
+    }
+    
     // Allocate servo maps and parameter structures
-    servo_index  = new int [servos];
-    servo_id     = new int [servos];
+    servoIndex  = new int [servos];
+    servoId     = new int [servos];
     
-    DynamixelMemoeries = new unsigned char * [servos];
-    
-    // Connecting memory to servo memory
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            DynamixelMemoeries[i] = servo[i]->DynamixelMemory;
-    
-    // filling servo_index and servo_id. Example: servo_index [1 2 3 4 5] and servo_id[3 2 10 1 3]
     int j=0;
     for(int i=0; i<size; i++)
         if(servo[i])
         {
-            servo_index[i] = j++;
-            servo_id[i] = servo[i]->controlTable.GetInt("ID");
+            servoId[j] = servo[i]->extraInfo.GetInt("ID");
+            servoIndex[j++] = i;
         }
     
+    // Creating pointers to the servos memory block
+    // The Module has direct referens to each servoes memory. This is because we send package with multiple ids and grab info from many servoes at ones
+    DynamixelMemoeries = new unsigned char * [servos];
+    for(int i=0; i<servos; i++)
+        DynamixelMemoeries[i] = servo[servoIndex[i]]->dynamixelMemory;
     
-    // If we did not find any servos kill ikaros.
-    if (size == 0)
-        Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
+    // OBS ORDER OF MATRIXES IS [Paramter][ServoID]
+    // Create memory for binding map. These are specified in the csv file and correspond to where ikaros should look for IO in the dynamixel memory block
+    ikarosInBind = new int * [IK_INPUTS];
+    for(int i=0; i<IK_INPUTS; i++)
+        ikarosInBind[i] = new int [servos];
     
+    ikarosOutBind = new int * [IK_OUTPUTS];
+    for(int i=0; i<IK_OUTPUTS; i++)
+        ikarosOutBind[i] = new int [servos];
     
-    // Find out where to look to ikaros output data from Dynamixel memory
-    for (int i = 0; i < 16; i++)
-        ikarosOutBind[i] = -1;
-    for (int i = 0; i < size; i++)
-        for (int j = 0; j < 128; j++)
-            if (servo[i]->ctable[j].IkarosOutputs >= 0)
-                ikarosOutBind[servo[i]->ctable[j].IkarosOutputs] = servo[i]->ctable[j].Adress;
-    for (int i = 0; i < size; i++)
-        for (int j = 0; j < 128; j++)
-            if (servo[i]->ctable[j].IkarosInputs >= 0)
-                ikarosInBind[servo[i]->ctable[j].IkarosInputs] = servo[i]->ctable[j].Adress;
-    //    printf("Bindings OUTPUT\n");
-    //    for (int i = 0; i <= 15; i++)
-    //        printf("%i : %i\n",i ,ikarosOutBind[i]) ;
-    //
-    //    printf("Bindings INPUT\n");
-    //    for (int i = 0; i <= 9; i++)
-    //        printf("%i : %i\n",i ,ikarosInBind[i]) ;
+    // Reset array
+    for (int i = 0; i < IK_INPUTS; i++)
+        for (int j = 0; j < servos; j++)
+            ikarosInBind[i][j] = -1;
+    for (int i = 0; i < IK_OUTPUTS; i++)
+        for (int j = 0; j < servos; j++)
+            ikarosOutBind[i][j] = -1;
+    
+    // Fill in where to look for data
+    for (int i = 0; i < servos; i++)
+        for (int j = 0; j < C_TABLE_SIZE; j++)
+        {
+            if (servo[servoIndex[i]]->controlTable[j].IkarosInputs >= 0)
+                ikarosInBind[servo[servoIndex[i]]->controlTable[j].IkarosInputs][i] = servo[servoIndex[i]]->controlTable[j].Adress;
+            if (servo[servoIndex[i]]->controlTable[j].IkarosOutputs >= 0)
+                ikarosOutBind[servo[servoIndex[i]]->controlTable[j].IkarosOutputs][i] = servo[servoIndex[i]]->controlTable[j].Adress;
+        }
+//        printf("Bindings IN\n");
+//        for (int j = 0; j < IK_INPUTS; j++)
+//        {
+//            for (int k = 0; k < servos; k++)
+//                printf("%i:%i : %i\t",k ,j, ikarosInBind[j][k]) ;
+//            printf("\n");
+//        }
+//        printf("Bindings OUT\n");
+//        for (int j = 0; j < IK_OUTPUTS; j++)
+//        {
+//            for (int k = 0; k < servos; k++)
+//                printf("%i:%i : %i\t",k ,j, ikarosOutBind[j][k]) ;
+//            printf("\n");
+//        }
+    
+    // OBS ORDER OF MATRIXES IS [inputs][Servo]
+    // Create memory size map
+    parameterInSize = new int * [IK_INPUTS];
+    for(int i=0; i<IK_INPUTS; i++)
+        parameterInSize[i] = new int [servos];
+    
+    for(int i=0; i<IK_INPUTS; i++)
+        for(int j=0; j<servos; j++)
+            if(ikarosInBind[i][j]!= -1)
+                parameterInSize[i][j] =  servo[servoIndex[j]]->controlTable[ikarosInBind[i][j]].Size;
+            else
+                parameterInSize[i][j] =  -1;
+    
+    //    printf("Parameter size\n");
+    //    for(int j=0; j<IK_INPUTS; j++)
+    //    {
+    //        for(int i=0; i<servos; i++)
+    //            printf("%i:%i=%i\t",i ,j, parameterInSize[j][i]) ;
+    //        printf("\n");
+    //    }
+    
+    // Do not allow mixed protocols
+    protocol = -1;
+    if (servos > 0)
+        for (int i = 0; i < servos; i++)
+        {
+            if (protocol == -1 && servo[servoIndex[i]]->protocol != 0)
+                protocol = servo[servoIndex[i]]->protocol; // Set protocol.
+            
+            if (protocol != servo[servoIndex[i]]->protocol)
+                Notify(msg_fatal_error, "Dynamixel uses different protocols. This is not allowed.\n\n");
+        }
+    // If protocol == 1 use sync_write function if protocol == 2 use bulk_write
 }
 
 void
@@ -200,22 +255,23 @@ Dynamixel::SetSizes()
     SetOutputSize("FEEDBACK_PRESENT_CURRENT", size);
     SetOutputSize("FEEDBACK_GOAL_TORQUE", size);
     SetOutputSize("FEEDBACK_GOAL_ACCELERATION", size);
+
 }
 
 void
 Dynamixel::Init()
 {
     // Inputs
-    torqueEnable_connected      = false;
-    LED_connected               = false;
-    dGain_connected             = false;
-    iGain_connected             = false;
-    pGain_connected             = false;
-    goalPosition_connected      = false;
-    movingSpeed_connected       = false;
-    torqueLimit_connected       = false;
-    goalTorque_connected        = false;
-    goalAcceleration_connected  = false;
+    torqueEnableConnected      = false;
+    LEDConnected               = false;
+    dGainConnected             = false;
+    iGainConnected             = false;
+    pGainConnected             = false;
+    goalPositionConnected      = false;
+    movingSpeedConnected       = false;
+    torqueLimitConnected       = false;
+    goalTorqueConnected        = false;
+    goalAccelerationConnected  = false;
     
     torqueEnable        = GetInputArray("TORQUE_ENABLE", false);
     LED                 = GetInputArray("LED", false);
@@ -227,29 +283,71 @@ Dynamixel::Init()
     torqueLimit         = GetInputArray("TORQUE_LIMIT", false);
     goalTorque          = GetInputArray("GOAL_TORQUE", false);
     goalAcceleration	= GetInputArray("GOAL_ACCELERATION", false);
-    
-    // Mark all connected inputs
+
+    // Mark all connected inputs and check if size is identical to output
     if (torqueEnable)
-        torqueEnable_connected = true;
+    {
+        torqueEnableConnected = true;
+        if (GetInputSize("TORQUE_ENABLE") < size)
+            Notify(msg_fatal_error, "Size of input TORQUE_ENABLE is %i must be %i\n",GetInputSize("TORQUE_ENABLE"), size);
+    }
     if (LED)
-        LED_connected = true;
+    {
+        LEDConnected = true;
+        if (GetInputSize("LED") < size)
+            Notify(msg_fatal_error, "Size of input LED is %i must be %i\n",GetInputSize("LED"), size);
+    }
     if (dGain)
-        dGain_connected = true;
+    {
+        dGainConnected = true;
+        if (GetInputSize("D_GAIN") < size)
+            Notify(msg_fatal_error, "Size of input G_GAIN is %i must be %i\n",GetInputSize("G_GAIN"), size);
+    }
     if (iGain)
-        iGain_connected = true;
+    {
+        iGainConnected = true;
+        if (GetInputSize("I_GAIN") < size)
+            Notify(msg_fatal_error, "Size of input I_GAIN is %i must be %i\n",GetInputSize("I_GAIN"), size);
+    }
     if (pGain)
-        pGain_connected = true;
+    {
+        pGainConnected = true;
+        if (GetInputSize("P_GAIN") < size)
+            Notify(msg_fatal_error, "Size of input P_GAIN is %i must be %i\n",GetInputSize("P_GAIN"), size);
+    }
     if (goalPosition)
-        goalPosition_connected = true;
+    {
+        goalPositionConnected = true;
+        if (GetInputSize("GOAL_POSITION") < size)
+            Notify(msg_fatal_error, "Size of input GOAL_POSITION is %i must be %i\n",GetInputSize("GOAL_POSITION"), size);
+    }
     if (movingSpeed)
-        movingSpeed_connected = true;
+    {
+        movingSpeedConnected = true;
+        if (GetInputSize("MOVING_SPEED") < size)
+            Notify(msg_fatal_error, "Size of input MOVING_SPEED is %i must be %i\n",GetInputSize("MOVING_SPEED"), size);
+    }
     if (torqueLimit)
-        torqueLimit_connected = true;
+    {
+        torqueLimitConnected = true;
+        if (GetInputSize("TORQUE_LIMIT") < size)
+            Notify(msg_fatal_error, "Size of input TORQUE_LIMIT is %i must be %i\n",GetInputSize("TORQUE_LIMIT"), size);
+    }
     if (goalTorque)
-        goalTorque_connected = true;
+    {
+        goalTorqueConnected = true;
+        if (GetInputSize("GOAL_TORQUE") < size)
+            Notify(msg_fatal_error, "Size of input GOAL_TORQUE is %i must be %i\n",GetInputSize("GOAL_TORQUE"), size);
+    }
     if (goalAcceleration)
-        goalAcceleration_connected = true;
+    {
+        goalAccelerationConnected = true;
+        if (GetInputSize("GOAL_ACCELERATION") < size)
+            Notify(msg_fatal_error, "Size of input GOAL_ACCELERATION is %i must be %i\n",GetInputSize("GOAL_ACCELERATION"), size);
+    }
     
+    
+
     // Outputs
     feedbackTorqueEnable    	= GetOutputArray("FEEDBACK_TORQUE_ENABLE");
     feedbackLED    				= GetOutputArray("FEEDBACK_LED");
@@ -268,7 +366,6 @@ Dynamixel::Init()
     feedbackGoalTorque          = GetOutputArray("FEEDBACK_GOAL_TORQUE");
     feedbackGoalAcceleration	= GetOutputArray("FEEDBACK_GOAL_ACCELERATION");
     
-    
     // Print to console
     if (init_print == 1)
         Print();
@@ -276,72 +373,83 @@ Dynamixel::Init()
         PrintAll();
     
     // Set Goal position to whatever position the servo has now.
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION], servo[i]->GetValueAtAdress(IK_OUT_PRESENT_SPEED));
+    for(int i=0; i<servos; i++)
+        servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_OUT_GOAL_POSITION][i], servo[servoIndex[i]]->GetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION][i]));
+    com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosOutBind[IK_OUT_GOAL_POSITION],  parameterInSize[IK_OUT_GOAL_POSITION], servos);
     
-    com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosOutBind[IK_OUT_GOAL_POSITION], ikarosOutBind[IK_OUT_GOAL_POSITION]+1, size);
+    
+    // Warning if there will be no torque
+    if (!torqueLimitConnected)
+    {
+        for(int i=0; i<servos; i++)
+            if(servo[servoIndex[i]]->GetValueAtAdress(ikarosInBind[IK_IN_TORQUE_LIMIT][i]) == 0)
+                Notify(msg_warning, "Servo %i has no internal torque set and no torque limit input. The servo will not move", servoId[i]);
+    }
+        
 }
 
 Dynamixel::~Dynamixel()
 {
-    
-    // Torqueing down the servos. Using the torque from last time used.
-    Timer timer;
-    if (init_print == 2 || init_print == 1)
-        printf("\nPower off servo(s)");
-    
-    int blink = 0;
-    // Turn off torque for all servos. Stepwise to zero
-    for(float j=1.0f; j>=0; j = j - 0.1)
+    if(torqueLimitConnected)
     {
-        for(int i=0; i<size; i++)
-            if(servo[i])
-            {
-                servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_TORQUE_LIMIT], servo[i]->GetValueAtAdress(ikarosOutBind[IK_OUT_TORQUE_LIMIT]*j));
-                servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_LED], blink);
-            }
-        
-        com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol ,DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], ikarosInBind[IK_IN_TORQUE_LIMIT]+1, size);
-        com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], ikarosOutBind[IK_IN_LED], size);
-        
+        Timer timer;
         if (init_print == 2 || init_print == 1)
-            printf(".");
+            printf("\nPower off servo(s)");
         
-        if (blink == 1)
-            blink = 0;
-        else
-            blink = 1;
+        int blink = 0;
+        // Turn off torque for all servos. Stepwise to zero
+        for(float j=1.0f; j>=0; j = j - 0.1)
+        {
+            for(int i=0; i<servos; i++)
+            {
+                servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosOutBind[IK_IN_TORQUE_LIMIT][i], servo[servoIndex[i]]->GetTorqueLimitFormated(ikarosOutBind[IK_OUT_TORQUE_LIMIT][i])*j);
+                servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_IN_LED][i], blink);
+            }
+            com->WriteToServo(servoId, protocol ,DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_LIMIT], parameterInSize[IK_IN_TORQUE_LIMIT], servos);
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosOutBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
+            
+            if (init_print == 2 || init_print == 1)
+                printf(".");
+            
+            if (blink == 1)
+                blink = 0;
+            else
+                blink = 1;
+            
+            timer.Sleep(100); // Blink
+        }
+        if (init_print == 2 || init_print == 1)
+            printf("Done\n");
         
-        timer.Sleep(100); // Blink
+        // Turn off LED
+        for(int i=0; i<servos; i++)
+            servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_IN_LED][i], 0);
+        com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
+        
+        // Set goal position to current position.
+        for(int i=0; i<servos; i++)
+            servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION][i], servo[servoIndex[i]]->GetValueAtAdress(ikarosOutBind[IK_OUT_GOAL_POSITION][i]));
+        com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosOutBind[IK_OUT_GOAL_POSITION], parameterInSize[IK_OUT_GOAL_POSITION], servos);
+        
+        timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
     }
-    if (init_print == 2 || init_print == 1)
-        printf("Done\n");
     
-    // Turn off LED
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_LED], 0);
-    
-    com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], ikarosOutBind[IK_IN_LED], size);
-    
-    
-    // Set goal position to current position.
-    for(int i=0; i<size; i++)
-        if(servo[i])
-            servo[i]->SetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION], servo[i]->GetValueAtAdress(ikarosOutBind[IK_OUT_GOAL_POSITION]));
-    
-    com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosOutBind[IK_OUT_GOAL_POSITION], ikarosOutBind[IK_OUT_GOAL_POSITION], size);
-    
-    
-    timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
-    
+    PrintAll();
     // Free memory
+    for(int i=0; i<10; i++)
+        delete(ikarosInBind[i]);
+    delete(ikarosInBind);
+    for(int i=0; i<10; i++)
+        delete(parameterInSize[i]);
+    delete(parameterInSize);
+    for(int i=0; i<16; i++)
+        delete(ikarosOutBind[i]);
+    delete(ikarosOutBind);
     delete DynamixelMemoeries;
-    delete servo_index;
-    delete servo_id;
+    delete servoIndex;
+    delete servoId;
     delete com;
-    delete servo; // Also delete servo's memorybuffer
+    delete servo; // Also deletes servo's memorybuffer
 }
 
 void
@@ -353,103 +461,93 @@ Dynamixel::Tick()
     
     if(GetTick() >= start_up_delay) // Do not send any instructions during start_up_delay
     {
-        for(int i=0; i<size; i++)
+        for(int i=0; i<servos; i++)
         {
-            if(servo[i])
-            {
-                
-                if (torqueEnable_connected)
-                    servo[i]->SetTorqueEnableFormated(ikarosInBind[IK_IN_TORQUE_ENABLE],torqueEnable[i]);
-                if (LED_connected)
-                    servo[i]->SetLEDFormated(ikarosInBind[IK_IN_LED],LED[i]);
-                if (dGain_connected)
-                    servo[i]->SetDGainFormated(ikarosInBind[IK_IN_D_GAIN],dGain[i]);
-                if (iGain_connected)
-                    servo[i]->SetIGainFormated(ikarosInBind[IK_IN_I_GAIN],iGain[i]);
-                if (pGain_connected)
-                    servo[i]->SetPGainFormated(ikarosInBind[IK_IN_P_GAIN],pGain[i]);
-                if (goalPosition_connected)
-                    servo[i]->SetGoalPositionFormated(ikarosInBind[IK_IN_GOAL_POSITION],goalPosition[i], angle_unit);
-                if (movingSpeed_connected)
-                    servo[i]->SetMovingSpeedFormated(ikarosInBind[IK_IN_MOVING_SPEED],movingSpeed[i]);
-                if (torqueLimit_connected)
-                    servo[i]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT],torqueLimit[i]);
-                if (goalTorque_connected)
-                    servo[i]->SetGoalTorqueFormated(ikarosInBind[IK_IN_GOAL_TORQUE],goalTorque[i]);
-                if (goalAcceleration_connected)
-                    servo[i]->SetGoalAccelerationFormated(ikarosInBind[IK_IN_GOAL_ACCELERATION],goalAcceleration[i]);
-            }
+            if (torqueEnableConnected && ikarosInBind[IK_IN_TORQUE_ENABLE][i] != -1)    // If the input is connected and the servo has this data
+                servo[servoIndex[i]]->SetTorqueEnableFormated(ikarosInBind[IK_IN_TORQUE_ENABLE][i],torqueEnable[servoIndex[i]]);
+            if (LEDConnected && ikarosInBind[IK_IN_LED][i] != -1)
+                servo[servoIndex[i]]->SetLEDFormated(ikarosInBind[IK_IN_LED][i],LED[servoIndex[i]]);
+            if (dGainConnected && ikarosInBind[IK_IN_D_GAIN][i] != -1)
+                servo[servoIndex[i]]->SetDGainFormated(ikarosInBind[IK_IN_D_GAIN][i],dGain[servoIndex[i]]);
+            if (iGainConnected && ikarosInBind[IK_IN_I_GAIN][i] != -1)
+                servo[servoIndex[i]]->SetIGainFormated(ikarosInBind[IK_IN_I_GAIN][i],iGain[servoIndex[i]]);
+            if (pGainConnected && ikarosInBind[IK_IN_P_GAIN][i] != -1)
+                servo[servoIndex[i]]->SetPGainFormated(ikarosInBind[IK_IN_P_GAIN][i],pGain[servoIndex[i]]);
+            if (goalPositionConnected && ikarosInBind[IK_IN_GOAL_POSITION][i] != -1)
+                servo[servoIndex[i]]->SetGoalPositionFormated(ikarosInBind[IK_IN_GOAL_POSITION][i],goalPosition[servoIndex[i]], angle_unit);
+            if (movingSpeedConnected && ikarosInBind[IK_IN_MOVING_SPEED][i] != -1)
+                servo[servoIndex[i]]->SetMovingSpeedFormated(ikarosInBind[IK_IN_MOVING_SPEED][i],movingSpeed[servoIndex[i]]);
+            if (torqueLimitConnected && ikarosInBind[IK_IN_TORQUE_LIMIT][i] != -1)
+                servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i],torqueLimit[servoIndex[i]]);
+            if (goalTorqueConnected && ikarosInBind[IK_IN_GOAL_TORQUE][i] != -1)
+                servo[servoIndex[i]]->SetGoalTorqueFormated(ikarosInBind[IK_IN_GOAL_TORQUE][i],goalTorque[servoIndex[i]]);
+            if (goalAccelerationConnected && ikarosInBind[IK_IN_GOAL_ACCELERATION][i] != -1)
+                servo[servoIndex[i]]->SetGoalAccelerationFormated(ikarosInBind[IK_IN_GOAL_ACCELERATION][i],goalAcceleration[servoIndex[i]]);
         }
         
-        // Syncwrite to all servos.
-        // Splitting all the package. Test performence of this.
-        if (LED_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], ikarosInBind[IK_IN_LED], size);
-        if (dGain_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_D_GAIN], ikarosInBind[IK_IN_D_GAIN], size);
-        if (iGain_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_I_GAIN], ikarosInBind[IK_IN_I_GAIN], size);
-        if (pGain_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_P_GAIN], ikarosInBind[IK_IN_P_GAIN]+1, size);
-        if (goalPosition_connected && torqueEnable[0] > 0 ) // This Needs to be taken care of.
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_GOAL_POSITION], ikarosInBind[IK_IN_GOAL_POSITION]+1, size);
-        if (movingSpeed_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_MOVING_SPEED], ikarosInBind[IK_IN_MOVING_SPEED]+1, size);
-        if (torqueLimit_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], ikarosInBind[IK_IN_TORQUE_LIMIT]+1, size);
-        if (goalTorque_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_TORQUE], ikarosInBind[IK_IN_GOAL_TORQUE]+1, size);
-        if (goalAcceleration_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_ACCELERATION], ikarosInBind[IK_IN_GOAL_ACCELERATION], size);
-        
-        // Torque can not be sent in a packet with goal position. See manual.
-        if (torqueEnable_connected)
-            com->SyncWriteWithIdRange(servo_id, servo[0]->Protocol, DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_ENABLE], ikarosInBind[IK_IN_TORQUE_ENABLE], size);
+        // Writing to servo.
+        if (LEDConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
+        if (dGainConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_D_GAIN],parameterInSize[IK_IN_D_GAIN], servos);
+        if (iGainConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_I_GAIN],parameterInSize[IK_IN_I_GAIN], servos);
+        if (pGainConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_P_GAIN],parameterInSize[IK_IN_P_GAIN], servos);
+        if (goalPositionConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_GOAL_POSITION], parameterInSize[IK_IN_GOAL_POSITION], servos);
+        if (movingSpeedConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_MOVING_SPEED], parameterInSize[IK_IN_MOVING_SPEED], servos);
+        if (torqueLimitConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], parameterInSize[IK_IN_TORQUE_LIMIT], servos);
+        if (goalTorqueConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_TORQUE], parameterInSize[IK_IN_GOAL_TORQUE], servos);
+        if (goalAccelerationConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_ACCELERATION], parameterInSize[IK_IN_GOAL_ACCELERATION], servos);
+        // Torque enable can not be sent in a packet with goal position. See manual.
+        if (torqueEnableConnected)
+            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_ENABLE], parameterInSize[IK_IN_TORQUE_ENABLE], servos);
     }
     
-    
     // Get feedback
-    for(int i=0; i<size; i++)
-        if(servo[i])
-        {
-            unsigned char inbuf[256];
-            
-            if(use_feedback)
-                com->ReadMemoryRange(servo[i]->controlTable.GetInt("ID"), servo[i]->Protocol, inbuf, 0, servo[i]->controlTable.GetInt("Model Memory"));
-            
-            if (ikarosOutBind[IK_OUT_TORQUE_ENABLE] != -1)
-                feedbackTorqueEnable[i]  = servo[i]->GetTorqueEnableFormated(ikarosOutBind[IK_OUT_TORQUE_ENABLE]);
-            if (ikarosOutBind[IK_OUT_LED] != -1)
-                feedbackLED[i] = servo[i]->GetLEDFormated(ikarosOutBind[IK_OUT_LED]);
-            if (ikarosOutBind[IK_OUT_D_GAIN] != -1)
-                feedbackDGain[i] = servo[i]->GetDGainFormated(ikarosOutBind[IK_OUT_D_GAIN]);
-            if (ikarosOutBind[IK_OUT_I_GAIN] != -1)
-                feedbackIGain[i] = servo[i]->GetIGainFormated(ikarosOutBind[IK_OUT_I_GAIN]);
-            if (ikarosOutBind[IK_OUT_P_GAIN] != -1)
-                feedbackPGain[i] = servo[i]->GetPGainFormated(ikarosOutBind[IK_OUT_P_GAIN]);
-            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
-                feedbackGoalPosition[i] = servo[i]->GetGoalPositionFormated(ikarosOutBind[IK_OUT_GOAL_POSITION],angle_unit);
-            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
-                feedbackMoving[i] = servo[i]->GetMovingSpeedFormated(ikarosOutBind[IK_OUT_MOVING_SPEED]);
-            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
-                feedbackTorqueLimit[i] = servo[i]->GetTorqueLimitFormated(ikarosOutBind[IK_OUT_TORQUE_LIMIT]);
-            if (ikarosOutBind[IK_OUT_GOAL_POSITION] != -1)
-                feedbackPresentPosition[i] = servo[i]->GetPresentPositionFormated(ikarosOutBind[IK_OUT_PRESENT_POSITION],angle_unit);
-            if (ikarosOutBind[IK_OUT_PRESENT_SPEED] != -1)
-                feedbackPresentSpeed[i] = servo[i]->GetPresentSpeedFormated(ikarosOutBind[IK_OUT_PRESENT_SPEED]);
-            if (ikarosOutBind[IK_OUT_PRESENT_LOAD] != -1)
-                feedbackPresentLoad[i] = servo[i]->GetPresentLoadFormated(ikarosOutBind[IK_OUT_PRESENT_LOAD]);
-            if (ikarosOutBind[IK_OUT_PRESENT_VOLTAGE] != -1)
-                feedbackPresentVoltage[i] =  servo[i]->GetPresentVoltageFormated(ikarosOutBind[IK_OUT_PRESENT_VOLTAGE]);
-            if (ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE] != -1)
-                feedbackPresentTemperature[i] = servo[i]->GetPresentTemperatureFormated(ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE]);
-            if (ikarosOutBind[IK_OUT_PRESENT_CURRENT] != -1)
-                feedbackPresentCurrent[i] = servo[i]->GetCurrentFormated(ikarosOutBind[IK_OUT_PRESENT_CURRENT]);
-            if (ikarosOutBind[IK_OUT_GOAL_TORQUE] != -1)
-                feedbackGoalTorque[i] = servo[i]->GetGoalTorqueFormated(ikarosOutBind[IK_OUT_GOAL_TORQUE]);
-            if (ikarosOutBind[IK_OUT_GOAL_ACCELERATION] != -1)
-                feedbackGoalAcceleration[i] = servo[i]->GetGoalAccelerationFormated(ikarosOutBind[IK_OUT_GOAL_ACCELERATION]);
-        }
+    for(int i=0; i<servos; i++)
+    {
+        if(use_feedback)
+            com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
+        
+        if (ikarosOutBind[IK_OUT_TORQUE_ENABLE][i] != -1)
+            feedbackTorqueEnable[servoIndex[i]]  = servo[servoIndex[i]]->GetTorqueEnableFormated(ikarosOutBind[IK_OUT_TORQUE_ENABLE][i]);
+        if (ikarosOutBind[IK_OUT_LED][i] != -1)
+            feedbackLED[servoIndex[i]] = servo[servoIndex[i]]->GetLEDFormated(ikarosOutBind[IK_OUT_LED][i]);
+        if (ikarosOutBind[IK_OUT_D_GAIN][i] != -1)
+            feedbackDGain[servoIndex[i]] = servo[servoIndex[i]]->GetDGainFormated(ikarosOutBind[IK_OUT_D_GAIN][i]);
+        if (ikarosOutBind[IK_OUT_I_GAIN][i] != -1)
+            feedbackIGain[servoIndex[i]] = servo[servoIndex[i]]->GetIGainFormated(ikarosOutBind[IK_OUT_I_GAIN][i]);
+        if (ikarosOutBind[IK_OUT_P_GAIN][i] != -1)
+            feedbackPGain[servoIndex[i]] = servo[servoIndex[i]]->GetPGainFormated(ikarosOutBind[IK_OUT_P_GAIN][i]);
+        if (ikarosOutBind[IK_OUT_GOAL_POSITION][i] != -1)
+            feedbackGoalPosition[servoIndex[i]] = servo[servoIndex[i]]->GetGoalPositionFormated(ikarosOutBind[IK_OUT_GOAL_POSITION][i],angle_unit);
+        if (ikarosOutBind[IK_OUT_MOVING_SPEED][i] != -1)
+            feedbackMoving[servoIndex[i]] = servo[servoIndex[i]]->GetMovingSpeedFormated(ikarosOutBind[IK_OUT_MOVING_SPEED][i]);
+        if (ikarosOutBind[IK_OUT_TORQUE_LIMIT][i] != -1)
+            feedbackTorqueLimit[servoIndex[i]] = servo[servoIndex[i]]->GetTorqueLimitFormated(ikarosOutBind[IK_OUT_TORQUE_LIMIT][i]);
+        if (ikarosOutBind[IK_OUT_PRESENT_POSITION][i] != -1)
+            feedbackPresentPosition[servoIndex[i]] = servo[servoIndex[i]]->GetPresentPositionFormated(ikarosOutBind[IK_OUT_PRESENT_POSITION][i],angle_unit);
+        if (ikarosOutBind[IK_OUT_PRESENT_SPEED][i] != -1)
+            feedbackPresentSpeed[servoIndex[i]] = servo[servoIndex[i]]->GetPresentSpeedFormated(ikarosOutBind[IK_OUT_PRESENT_SPEED][i]);
+        if (ikarosOutBind[IK_OUT_PRESENT_LOAD][i] != -1)
+            feedbackPresentLoad[servoIndex[i]] = servo[servoIndex[i]]->GetPresentLoadFormated(ikarosOutBind[IK_OUT_PRESENT_LOAD][i]);
+        if (ikarosOutBind[IK_OUT_PRESENT_VOLTAGE][i] != -1)
+            feedbackPresentVoltage[servoIndex[i]] =  servo[servoIndex[i]]->GetPresentVoltageFormated(ikarosOutBind[IK_OUT_PRESENT_VOLTAGE][i]);
+        if (ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE][i] != -1)
+            feedbackPresentTemperature[servoIndex[i]] = servo[servoIndex[i]]->GetPresentTemperatureFormated(ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE][i]);
+        if (ikarosOutBind[IK_OUT_PRESENT_CURRENT][i] != -1)
+            feedbackPresentCurrent[servoIndex[i]] = servo[servoIndex[i]]->GetCurrentFormated(ikarosOutBind[IK_OUT_PRESENT_CURRENT][i]);
+        if (ikarosOutBind[IK_OUT_GOAL_TORQUE][i] != -1)
+            feedbackGoalTorque[servoIndex[i]] = servo[servoIndex[i]]->GetGoalTorqueFormated(ikarosOutBind[IK_OUT_GOAL_TORQUE][i]);
+        if (ikarosOutBind[IK_OUT_GOAL_ACCELERATION][i] != -1)
+            feedbackGoalAcceleration[servoIndex[i]] = servo[servoIndex[i]]->GetGoalAccelerationFormated(ikarosOutBind[IK_OUT_GOAL_ACCELERATION][i]);
+    }
 }
 
 void
@@ -458,11 +556,11 @@ Dynamixel::Print()
     printf("\nDYNAMIXEL\n");
     printf("Number of servos: %d\n\n", servos);
     printf("%6s %5s\n", "ID", "Name");
-    for(int i=0; i<size; i++)
+    for(int i=0; i<servos; i++)
     {
         printf("%-4i",i);
-        printf("%-4i",servo[i]->controlTable.GetInt("ID"));
-        printf("%6s",servo[i]->controlTable.Get("Servo Model String"));
+        printf("%-4i",servo[servoIndex[i]]->extraInfo.GetInt("ID"));
+        printf("%-6s",servo[servoIndex[i]]->extraInfo.Get("Servo Model String"));
         printf("\n");
     }
 }
@@ -473,17 +571,17 @@ Dynamixel::PrintAll()
     printf("\nDYNAMIXEL\n");
     printf("Number of servos: %d\n\n", servos);
     printf("Control table:\n");
-    printf("%-8s %-28s|", "Adress", "Name");
-    for(int i=0; i<size; i++)
-        printf(" %6s|",servo[i]->controlTable.Get("Servo Model String"));
+    printf("%-8s %-32s|", "Adress", "Name");
+    for(int i=0; i<servos; i++)
+        printf(" %6s|",servo[servoIndex[i]]->extraInfo.Get("Servo Model String"));
     printf("\n");
     for (int j = 0; j < 100; j++)
     {
-        if (servo[0]->ctable[j].Visable)
+        if (servo[servoIndex[0]]->controlTable[j].Visable) // Use the description from the first servo
         {
-            printf("%-8i %-28s|", j, servo[0]->ctable[j].Name.c_str());
-            for(int i=0; i<size; i++)
-                printf(" %6i|",servo[i]->GetValueAtAdress(j));
+            printf("%-8i %-32s|", j, servo[servoIndex[0]]->controlTable[j].Name.c_str());
+            for(int i=0; i<servos; i++)
+                printf(" %6i|",servo[servoIndex[i]]->GetValueAtAdress(j));
             printf("\n");
         }
     }

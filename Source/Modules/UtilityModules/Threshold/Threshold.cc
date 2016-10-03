@@ -25,8 +25,8 @@
 void
 Threshold::Init()
 {
-    type		= GetIntValueFromList("type");
-    threshold	= GetFloatValue("threshold");
+    Bind(type, "type");
+    Bind(threshold, "threshold");
 
     size_x	= GetInputSizeX("INPUT");
     size_y	= GetInputSizeY("INPUT");

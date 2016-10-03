@@ -12,7 +12,7 @@
 
 		<module
 			class = "Randomizer"
-			name = "R"
+			name = "R2"
 			outputsize_x = "3"
 			outputsize_y = "5"
 			minimum = "0"

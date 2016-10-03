@@ -1,7 +1,7 @@
 //
 //	  InputVideoFile.h		This file is a part of the IKAROS project
 // 						
-//    Copyright (C) 2012 Birger Johansson
+//    Copyright (C) 2016 Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
 }
 
 #include "IKAROS.h"
@@ -59,17 +60,18 @@ public:
     bool            loop;
     bool            printInfo;
     
-    // FFMpeg related 
-    AVFormatContext *pFormatCtx;
-    int             videoStreamIdx;
-    AVCodecContext  *pCodecCtx;
-    AVCodec         *pCodec;
-    AVFrame         *pFrame;
-    AVFrame         *pFrameRGB;
+    // FFmpeg related
+    AVFormatContext *input_format_context;
+    int             videoStreamId;
+    AVCodec         *input_codec;
+    AVCodecContext  *avctx;
+    AVFrame         *inputFrame;
+    AVFrame         *outputFrame;
     AVPacket        packet;
-    int             frameFinished;
     int             numBytes;
     uint8_t         *buffer;
+    
+    int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
 };
 
 #endif

@@ -11,21 +11,26 @@
         </p>
         <p>
             When the index_mode is set to direct, the input and output arrays ranges from 0 to the ID of the servos with highest ID. In this mode, some of the elements in the input and output arrays may not be used and will always be set to 0.
-        </p>    
+        </p>
         <p>
             If the parameter size is set, it will override the other calculations of the size of the arrays and either truncate or extend the array to the requested size.
         </p>
         <p>
+            The module comunicates with the servos using serial communication (TTL or RS-485).
+            
+            Use USB2Dynamixel:
+            OSX:
             It is usually necessary to install the drivers for the FTDI USB serial driver before using the
 			USB2Dynamixel with Ikaros. This driver is available from the FTDI site. When the driver is
 			installed a device called something like "cu.usbserial-A7005Lxn" will show up under the /dev directory.
+            Linux:
+            No drivers needed. The device will show up as "/dev/ttyUSB0" or similary.
+            Windows:
+            Not tested but devices should be COMX.
         </p>
         <p>
             If the servo is set up to run in continuous mode, the module uses the input MOVING_SPEED to set the speed directly
             between min (0) and max (1). No speed control is performed by this module.
-        </p>
-        <p>
-            If the TORQUE_LIMIT input is connected, the torque for each servo can be set individually between min (0) and max (1).
         </p>
 
 	</description>
@@ -40,7 +45,7 @@
 
     <parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
     <parameter name="baud_rate" type="int" default="1000000" description="Serial baud rate" />
-	<parameter name="printf_info" type="list" values="none/minimal/full" default="minimal" description="Print information about the servos to console. Minimal prints a few important features of the servo. Full prints the whole control table." />
+	<parameter name="print_info" type="list" values="none/minimal/full" default="minimal" description="Print information about the servos to console. Minimal prints a few important features of the servo. Full prints the whole control table." />
 
 	<parameter name="servo_id" type="string" default="" description="The IDs of the Dynamixel servos. If this parameter is not set, the module will scan for servos" />
 	<parameter name="index_mode" type="list" values="direct/indirect" default="direct" description="The relation between the indices of the input and output arrays and the IDs of the servos. In direct mode, the index of the arrays correponds to the IDs of the servos while in indirect mode the inputs and outputs has the same size as the number of servos." />
@@ -83,6 +88,7 @@
 	<module class="Dynamixel" />
 
     <limitation>
+        Only tested with AX-12, MX-28, MX-106.
     </limitation>
     
 	<author>
@@ -101,6 +107,5 @@
         <file>DynamixelServo.cc</file>
         <file>DynamixelServo.h</file>
    </files>
-
 </group>
 

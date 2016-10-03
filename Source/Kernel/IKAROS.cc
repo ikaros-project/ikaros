@@ -486,7 +486,7 @@ Module::GetDefault(const char * n)
             {
                 const char * d = kernel->GetXMLAttribute(parameter, "default");
                 if(d)
-                    return d;
+                    return (*d != '\0' ? d : NULL); // return NULL if default is an empty string
             }
             
             const char * t = kernel->GetXMLAttribute(parameter, "target");
@@ -500,7 +500,7 @@ Module::GetDefault(const char * n)
                     // use default if it exists
                     const char * d = kernel->GetXMLAttribute(parameter, "default");
                     if(d)
-                        return d;
+                        return (*d != '\0' ? d : NULL); // return NULL if default is an empty string;
                     
                     // the parameter element redefines our parameter name; get the new name
                     const char * newname = kernel->GetXMLAttribute(parameter, "name");
@@ -1230,46 +1230,46 @@ Module::SetSizes()
             int sx = unknown_size;
             int sy = unknown_size;
 
-            if((sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
-            {
-                sx = string_to_int(arg);
-                sy = 1;
-            }
-            
-            if((sizearg = kernel->GetXMLAttribute(e, "size_param_x")) && (arg = GetValue(sizearg)))
+            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param_x")) && (arg = GetValue(sizearg)))
                 sx = string_to_int(arg);
             
-            if((sizearg = kernel->GetXMLAttribute(e, "size_param_y")) && (arg = GetValue(sizearg)))
+            if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param_y")) && (arg = GetValue(sizearg)))
                 sy = string_to_int(arg);
             
-            if((sizearg = kernel->GetXMLAttribute(e, "size")))
+            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
+            {
+                sx = string_to_int(arg);
+                sy = 1;
+            }
+            
+            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_x")))
+                sx = string_to_int(sizearg);
+            
+            if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_y")))
+                sy = string_to_int(sizearg);
+            
+            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size")))
             {
                 sx = string_to_int(sizearg);
                 sy = 1;
             }
             
-            if((sizearg = kernel->GetXMLAttribute(e, "size_x")))
-                sx = string_to_int(sizearg);
-            
-            if((sizearg = kernel->GetXMLAttribute(e, "size_y")))
-                sy = string_to_int(sizearg);
-            
-			if((sizearg = kernel->GetXMLAttribute(e, "size_set"))) // Set output size x & y from one or multiple inputs
+			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set"))) // Set output size x & y from one or multiple inputs
             {
                 sx = GetSizeXFromList(sizearg);
                 sy = GetSizeYFromList(sizearg);
 			}
             
-			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_x")) && (sizeargy = kernel->GetXMLAttribute(e, "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
+			else if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set_x")) && (sizeargy = kernel->GetXMLAttribute(e, "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
 			{
                 sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
                 sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
 			}
             
-			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_x"))) // Set output size x from one or multiple inputs
+			else if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set_x"))) // Set output size x from one or multiple inputs
                 sx = GetSizeXFromList(sizearg);
             
-			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_y"))) // Set output size y from one or multiple inputs
+			else if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set_y"))) // Set output size y from one or multiple inputs
                 sy = GetSizeYFromList(sizearg);
             
             SetOutputSize(output_name, sx, sy);
@@ -1663,6 +1663,27 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 bool
 Kernel::Terminate()
 {
+    if (max_ticks != -1)
+    {
+        const int segments = 50;
+        int lp = int(100*float(tick-1)/float(max_ticks));
+        int percent = int(100*float(tick)/float(max_ticks));
+         if(tick > 0 && percent != lp)
+        {
+            int p = (segments*percent)/100;
+            printf("  Progress: [");
+            for(int i=0; i<segments; i++)
+                if(i < p)
+                    printf("=");
+                else
+                    printf(" ");
+            printf("] %3d%%\r", percent);
+            fflush(stdout);
+            if(tick == max_ticks)
+                printf("\n");
+        }
+    }
+    
     if (max_ticks != -1 && tick >= max_ticks)
     {
         Notify(msg_verbose, "Max ticks reached.\n");

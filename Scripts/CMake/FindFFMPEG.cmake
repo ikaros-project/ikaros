@@ -29,6 +29,8 @@ find_path(FFMPEG_INCLUDE_DIR1
   		/usr/include/libavformat
   		/usr/include/ffmpeg/libavformat
   		/usr/local/include/libavformat
+  		/usr/include/x86_64-linux-gnu/libavformat
+
   	)
 
 find_path(FFMPEG_INCLUDE_DIR2
@@ -40,6 +42,8 @@ find_path(FFMPEG_INCLUDE_DIR2
   		/usr/include/libavutil
   		/usr/include/ffmpeg/libavutil
   		/usr/local/include/libavutil
+  		/usr/include/x86_64-linux-gnu/libavutil
+
   	)
   	
 find_path(FFMPEG_INCLUDE_DIR3
@@ -51,6 +55,8 @@ find_path(FFMPEG_INCLUDE_DIR3
   		/usr/include/libavcodec
   		/usr/include/ffmpeg/libavcodec
   		/usr/local/include/libavcodec
+  		/usr/include/x86_64-linux-gnu/libavcodec
+
   	)
 
 find_path(FFMPEG_INCLUDE_DIR4
@@ -62,6 +68,8 @@ find_path(FFMPEG_INCLUDE_DIR4
   		/usr/include/libswscale
   		/usr/include/ffmpeg/libswscale
   		/usr/local/include/libswscale
+  		/usr/include/x86_64-linux-gnu/libswscale
+
   	)
 
 find_path(FFMPEG_INCLUDE_DIR5
@@ -73,6 +81,8 @@ find_path(FFMPEG_INCLUDE_DIR5
   		/usr/include/libavdevice
   		/usr/include/ffmpeg/libavdevice
   		/usr/local/include/libavdevice
+  		/usr/include/x86_64-linux-gnu/libavdevice
+
   	)
   	
   	if (FFMPEG_INCLUDE_DIR1 AND FFMPEG_INCLUDE_DIR2 AND FFMPEG_INCLUDE_DIR3 AND FFMPEG_INCLUDE_DIR4 AND FFMPEG_INCLUDE_DIR5)
@@ -92,6 +102,7 @@ find_library(FFMPEG_LIBRARY1
     PATHS
     	/usr/local/lib
     	/usr/lib
+    	/usr/lib/x86_64-linux-gnu
 	)
 	
 find_library(FFMPEG_LIBRARY2
@@ -100,6 +111,7 @@ find_library(FFMPEG_LIBRARY2
     PATHS
     	/usr/local/lib
     	/usr/lib
+    	/usr/lib/x86_64-linux-gnu
 	)
 	
 find_library(FFMPEG_LIBRARY3
@@ -108,6 +120,7 @@ find_library(FFMPEG_LIBRARY3
     PATHS
     	/usr/local/lib
     	/usr/lib
+    	/usr/lib/x86_64-linux-gnu
 	)
 
 find_library(FFMPEG_LIBRARY4
@@ -116,6 +129,7 @@ find_library(FFMPEG_LIBRARY4
     PATHS
     	/usr/local/lib
     	/usr/lib
+    	/usr/lib/x86_64-linux-gnu
 	)
 
 
@@ -125,6 +139,7 @@ find_library(FFMPEG_LIBRARY5
     PATHS
     	/usr/local/lib
     	/usr/lib
+    	/usr/lib/x86_64-linux-gnu
 	)
 	
 find_library(FFMPEG_LIBRARY6
@@ -133,6 +148,7 @@ find_library(FFMPEG_LIBRARY6
     PATHS
     	/usr/local/lib
     	/usr/lib
+    	/usr/lib/x86_64-linux-gnu
 	)
 	
 	find_library(FFMPEG_LIBRARY7

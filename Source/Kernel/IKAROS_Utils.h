@@ -79,9 +79,11 @@ float **    copy_matrix(float ** r, float ** a, int sizex, int sizey);
 
 float *     reset_array(float * a, int size);
 float **	reset_matrix(float ** m, int sizex, int sizey);
+float ***	reset_matrix(float *** m, int sizex, int sizey, int sizez);
 
 float *     set_array(float * a, float v, int size);
 float **    set_matrix(float ** m, float v, int sizex, int sizey);
+float ***   set_matrix(float *** m, float v, int sizex, int sizey, int sizez);
 
 float **    set_row(float ** m, float * a, int row, int sizex);
 float **    set_col(float ** m, float * a, int col, int sizey);
