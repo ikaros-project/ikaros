@@ -28,7 +28,7 @@
 
 
 // MARK: Sync write functions (block memory)
-void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, unsigned char ** DynamixelMemoeries, int * bindedAdress, int * size, int n)
+void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * bindedAdress, int * size, int n)
 {
     int datalength = -1;
     int nrServoToSendTo = 0;
@@ -44,7 +44,6 @@ void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, unsigned char ** Dynam
     if (datalength == -1)
         return;
     
-    
     // Find parameter adress.
     int adress = -1;
     for (int i = 0; i < n; i++)
@@ -57,7 +56,8 @@ void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, unsigned char ** Dynam
     }
     for (int i = 0; i < n; i++)
         if (bindedAdress[i] != -1)
-            nrServoToSendTo++;
+            if (mask[i] == 1)
+                nrServoToSendTo++;
     
     if (adress == -1)
         return;
@@ -116,7 +116,7 @@ void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, unsigned char ** Dynam
         };
         
         for(int i=0; i<n; i++)
-            if (bindedAdress[i] != -1) // Skipp servo if it can not handle parameter (PID parameters etc)
+            if (bindedAdress[i] != -1 && mask[i] == 1) // Skipp servo if it can not handle parameter (PID parameters etc) and not masked.
             {
                 outbuf[SYNC_WRITE_HEADER_1+i*(datalength+1)] = servo_id[i];
                 memcpy(&outbuf[SYNC_WRITE_HEADER_1 + i*(datalength+1)+1], &DynamixelMemoeries[i][adress], datalength * sizeof(unsigned char) );

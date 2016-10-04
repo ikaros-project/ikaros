@@ -111,17 +111,17 @@
 //}
 
 // MARK: Bulk write
-void DynamixelComm::BulkWrite2(int * servo_id, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
+void DynamixelComm::BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
 {
     int nrServoToSendTo = 0;
     //int bytesToWrite = 0;
     for (int i = 0; i < n; i++)
-        if (ikarosInBind[i] != -1)
+        if (ikarosInBind[i] != -1 && mask[i] == 1)
             nrServoToSendTo++;
     
     unsigned int parameter_length = 0;
     for (int i = 0; i < n; i++)
-        if (ikarosInBind[i] != -1)
+        if (ikarosInBind[i] != -1 && mask[i] == 1)
             parameter_length += (size[i] + 1 + 2 + 2); // adding up data sizes + id size (two bytes) + adress + size size
     
     unsigned int length=1+parameter_length+2; // Length is the packet length AFTER packet length feild. Inst + Parameters + CRC
@@ -181,7 +181,7 @@ void DynamixelComm::BulkWrite2(int * servo_id, unsigned char ** DynamixelMemoeri
         for(int i=0; i<n; i++)
         {
             
-            if (ikarosInBind[i] != -1){
+            if (ikarosInBind[i] != -1 && mask[i] == 1){
                 outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
                 outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
                 outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;

@@ -76,7 +76,7 @@ public:
     ~DynamixelComm();
     int             Ping(int id);
     void            Reset(int id, int protocol);
-    void            WriteToServo(int * servo_id,int protocol, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+    void            WriteToServo(int * servo_id, int * mask, int protocol, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
   
     // Protocol version 1
@@ -91,7 +91,7 @@ public:
     void            PrintMemory1(unsigned char * outbuf, int from, int to);
     //void            ResetDynamixel1(int id);
     bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    void            SyncWriteWithIdRange1(int * servo_id, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+    void            SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
 
     unsigned char   CalculateChecksum(unsigned char * b);
     
@@ -108,7 +108,7 @@ public:
     //void            ResetDynamixel2(int id);
     bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
     //void            SyncWriteWithIdRange2(int * servo_id, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int from, int *to, int n);
-    void            BulkWrite2(int * servo_id, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+    void            BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
     bool            checkCrc(unsigned char * package);
 };

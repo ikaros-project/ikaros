@@ -144,7 +144,6 @@ Module(p)
     // Allocate servo maps and parameter structures
     servoIndex  = new int [servos];
     servoId     = new int [servos];
-    
     int j=0;
     for(int i=0; i<size; i++)
         if(servo[i])
@@ -234,6 +233,9 @@ Module(p)
                 Notify(msg_fatal_error, "Dynamixel uses different protocols. This is not allowed.\n\n");
         }
     // If protocol == 1 use sync_write function if protocol == 2 use bulk_write
+    
+    mask        = new int [servos];
+
 }
 
 void
@@ -375,7 +377,7 @@ Dynamixel::Init()
     // Set Goal position to whatever position the servo has now.
     for(int i=0; i<servos; i++)
         servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_OUT_GOAL_POSITION][i], servo[servoIndex[i]]->GetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION][i]));
-    com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosOutBind[IK_OUT_GOAL_POSITION],  parameterInSize[IK_OUT_GOAL_POSITION], servos);
+    com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosOutBind[IK_OUT_GOAL_POSITION],  parameterInSize[IK_OUT_GOAL_POSITION], servos);
     
     
     // Warning if there will be no torque
@@ -405,8 +407,8 @@ Dynamixel::~Dynamixel()
                 servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosOutBind[IK_IN_TORQUE_LIMIT][i], servo[servoIndex[i]]->GetTorqueLimitFormated(ikarosOutBind[IK_OUT_TORQUE_LIMIT][i])*j);
                 servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_IN_LED][i], blink);
             }
-            com->WriteToServo(servoId, protocol ,DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_LIMIT], parameterInSize[IK_IN_TORQUE_LIMIT], servos);
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosOutBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
+            com->WriteToServo(servoId, mask, protocol ,DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_LIMIT], parameterInSize[IK_IN_TORQUE_LIMIT], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosOutBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
             
             if (init_print == 2 || init_print == 1)
                 printf(".");
@@ -424,18 +426,19 @@ Dynamixel::~Dynamixel()
         // Turn off LED
         for(int i=0; i<servos; i++)
             servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_IN_LED][i], 0);
-        com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
+        com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosOutBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
         
         // Set goal position to current position.
         for(int i=0; i<servos; i++)
             servo[servoIndex[i]]->SetValueAtAdress(ikarosOutBind[IK_IN_GOAL_POSITION][i], servo[servoIndex[i]]->GetValueAtAdress(ikarosOutBind[IK_OUT_GOAL_POSITION][i]));
-        com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosOutBind[IK_OUT_GOAL_POSITION], parameterInSize[IK_OUT_GOAL_POSITION], servos);
+        com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosOutBind[IK_OUT_GOAL_POSITION], parameterInSize[IK_OUT_GOAL_POSITION], servos);
         
         timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
     }
     
     PrintAll();
     // Free memory
+    delete mask;
     for(int i=0; i<10; i++)
         delete(ikarosInBind[i]);
     delete(ikarosInBind);
@@ -484,29 +487,39 @@ Dynamixel::Tick()
             if (goalAccelerationConnected && ikarosInBind[IK_IN_GOAL_ACCELERATION][i] != -1)
                 servo[servoIndex[i]]->SetGoalAccelerationFormated(ikarosInBind[IK_IN_GOAL_ACCELERATION][i],goalAcceleration[servoIndex[i]]);
         }
+
         
         // Writing to servo.
         if (LEDConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], servos);
         if (dGainConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_D_GAIN],parameterInSize[IK_IN_D_GAIN], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_D_GAIN],parameterInSize[IK_IN_D_GAIN], servos);
         if (iGainConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_I_GAIN],parameterInSize[IK_IN_I_GAIN], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_I_GAIN],parameterInSize[IK_IN_I_GAIN], servos);
         if (pGainConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_P_GAIN],parameterInSize[IK_IN_P_GAIN], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_P_GAIN],parameterInSize[IK_IN_P_GAIN], servos);
+        // Sending GoalPosition will set torqueEnable to 1. First sending GoalPosition and then TorqueEnable = 0 will give a jerky movment with some torque.
+        // The solution will be to only send goalPosition if Torque is set.
         if (goalPositionConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_GOAL_POSITION], parameterInSize[IK_IN_GOAL_POSITION], servos);
+        {
+            // Create a mask to not send GoalPosition if torque enable i 0
+            for (int i = 0; i<servos; i++)
+                if (goalPosition[servoIndex[i]] == 0)
+                    mask[i] = 0;
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_GOAL_POSITION], parameterInSize[IK_IN_GOAL_POSITION], servos);
+            for (int i = 0; i<servos; i++)
+                mask[i] = 1;
+        }
         if (movingSpeedConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_MOVING_SPEED], parameterInSize[IK_IN_MOVING_SPEED], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_MOVING_SPEED], parameterInSize[IK_IN_MOVING_SPEED], servos);
         if (torqueLimitConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], parameterInSize[IK_IN_TORQUE_LIMIT], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_TORQUE_LIMIT], parameterInSize[IK_IN_TORQUE_LIMIT], servos);
         if (goalTorqueConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_TORQUE], parameterInSize[IK_IN_GOAL_TORQUE], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_TORQUE], parameterInSize[IK_IN_GOAL_TORQUE], servos);
         if (goalAccelerationConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_ACCELERATION], parameterInSize[IK_IN_GOAL_ACCELERATION], servos);
-        // Torque enable can not be sent in a packet with goal position. See manual.
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_GOAL_ACCELERATION], parameterInSize[IK_IN_GOAL_ACCELERATION], servos);
         if (torqueEnableConnected)
-            com->WriteToServo(servoId, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_ENABLE], parameterInSize[IK_IN_TORQUE_ENABLE], servos);
+            com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_TORQUE_ENABLE], parameterInSize[IK_IN_TORQUE_ENABLE], servos);
     }
     
     // Get feedback
