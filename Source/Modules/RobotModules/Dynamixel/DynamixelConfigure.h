@@ -53,7 +53,7 @@ private:
     int **      ikarosOutBind;
     int         protocol;
     int **      parameterInSize;
-
+    int *       mask;
     
     float * resetModeOut;
     float * changeModeOut;

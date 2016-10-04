@@ -160,7 +160,7 @@ Module(p)
     changeAdress = GetIntValue("adress");
     newValue = GetIntValue("value");
     
-
+    mask        = new int [servos];
 }
 
 void
@@ -258,11 +258,12 @@ DynamixelConfigure::~DynamixelConfigure()
     for(int i=0; i<size; i++)
         if(servo[i])
             servo[i]->SetValueAtAdress(ikarosInBind[IK_IN_LED][i], 0);
-    com->WriteToServo(servo_id, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], size);
+    com->WriteToServo(servo_id, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], size);
     timer.Sleep(200);
     
     
     // Free memory
+    delete mask;
     for(int i=0; i<10; i++)
         delete(ikarosInBind[i]);
     delete(ikarosInBind);
@@ -330,7 +331,7 @@ DynamixelConfigure::Tick()
                 adress[j] = changeAdress;
             }
             
-            com->WriteToServo(servo_id, protocol, DynamixelMemoeries, adress, parameterSize, size);
+            com->WriteToServo(servo_id, mask, protocol, DynamixelMemoeries, adress, parameterSize, size);
             
             timer.Sleep(500); // to make sure we have time to write changes before shuting down ikaros.
             // Shutdown ikaros.
@@ -346,7 +347,7 @@ DynamixelConfigure::Tick()
         servo[i]->SetValueAtAdress(ikarosInBind[IK_IN_LED][i], 0); // Lights off on all servos
     servo[selectedServo]->SetValueAtAdress(ikarosInBind[IK_IN_LED][selectedServo], blink); // Lights on on selected servo
     
-    com->WriteToServo(servo_id, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], size); // write to all servos
+    com->WriteToServo(servo_id, mask, protocol, DynamixelMemoeries, ikarosInBind[IK_IN_LED], parameterInSize[IK_IN_LED], size); // write to all servos
     
     if (blink == 1)
         blink = 0;

@@ -84,7 +84,8 @@ private:
     int **      ikarosOutBind;          // Array of where to grab output data in the dynamixel memory block
     int **      parameterInSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
     int         protocol;               // The protocol used. No mixed protocol allowed.
-    
+    int *       mask;
+
     // Inputs
     float *     torqueEnable;
     bool        torqueEnableConnected;
