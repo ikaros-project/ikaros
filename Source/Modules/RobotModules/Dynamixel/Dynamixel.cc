@@ -511,8 +511,9 @@ Dynamixel::Tick()
         {
             // Create a mask to not send GoalPosition if torque enable i 0
             for (int i = 0; i<servos; i++)
-                if (torqueEnable[servoIndex[i]] == 0)
-                    mask[i] = 0;
+				if (torqueEnable)
+					if (torqueEnable[servoIndex[i]] == 0)
+						mask[i] = 0;
             com->WriteToServo(servoId, mask, protocol, DynamixelMemoeries,ikarosInBind[IK_IN_GOAL_POSITION], parameterInSize[IK_IN_GOAL_POSITION], servos);
             for (int i = 0; i<servos; i++)
                 mask[i] = 1;
