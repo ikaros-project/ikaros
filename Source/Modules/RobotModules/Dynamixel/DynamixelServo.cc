@@ -682,7 +682,7 @@ bool DynamixelServo::ReadCSVFileToCtable(CT * controlTable,int model, int * size
         controlTable[i].Convert = -1;
     }
     std::string path = csvPath;;
-    std::string filename = path + std::string("DynamixelcontrolTables/")+std::to_string(model)+std::string("-")+std::to_string(model)+ std::string(".csv");
+    std::string filename = path + std::string("DynamixelControlTables/")+std::to_string(model)+std::string("-")+std::to_string(model)+ std::string(".csv");
     //printf("Open file %s\n",filename.c_str());
     std::vector<std::string> vls;
     FILE * fp = fopen(filename.c_str(), "r" );

@@ -26,6 +26,8 @@ using namespace ikaros;
 Arbiter::Arbiter(Parameter * p):
     Module(p)
 {
+    Bind(switch_time, "switch_time");
+    
     no_of_inputs = GetIntValue("no_of_inputs");
 
     input_name  = new char * [no_of_inputs];
@@ -100,9 +102,15 @@ Arbiter::Init()
     value_out = GetOutputArray("VALUE");
 
     size = GetOutputSize("OUTPUT");
+    
+    current_channel = -1;
 }
 
 
+// Slow switching should use normalized weight vector to produce convex combinations of inputs
+// This is necessary when a switch occurs before the switch time has ended
+// Special case of convex combination of processes - WITH selection in addition to weighting
+// Could weigh by value without competition as a special case
 
 void
 Arbiter::Tick()
@@ -120,7 +128,31 @@ Arbiter::Tick()
         }
     }
     
-    copy_array(output, input[ix], size);
+    if(switch_time == 0)
+        copy_array(output, input[ix], size);
+    
+    else // run slow switch
+    {
+        if(ix != current_channel)  // start switch
+        {
+			if (current_channel == -1)
+				current_channel = ix;
+				
+            from_channel = current_channel;
+            current_channel = ix;
+            switch_counter = switch_time;
+        }
+        
+        if(switch_counter == 0)
+            copy_array(output, input[ix], size);
+        else
+        {
+            switch_counter--;
+            float a = float(switch_time-switch_counter)/float(switch_time);
+            for(int i=0; i<no_of_inputs; i++)
+                output[i] = a * input[current_channel][i] + (1-a) * input[from_channel][i];
+        }
+    }
 
     *value_out = *value_in[ix];
 }

@@ -6,7 +6,6 @@
         class   = "Kinect"
         name	= "Kinect"
         mode    = "raw"
-        _mode    = "mm"
     />
     
     <module
@@ -17,7 +16,7 @@
     <module
         class = "Scale"
         name = "Scale"
-        _factor = "0.00048851978505"
+        _comment_factor = "0.00048851978505"
         factor = "1"
         comment = "This module could be removed if Image-object allowed scaling."
     />
@@ -47,7 +46,7 @@
     <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" delay="0" />
     <connection sourcemodule = "Kinect" source = "INTENSITY" targetmodule = "Multiply" target = "INPUT2" delay="0" />
     
-    <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "DepthContourTrace" target = "INPUT"delay="0"  />
+    <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "DepthContourTrace" target = "INPUT" delay="0"  />
 
     <view name="Overview">
         <object class="Image" type="gray" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />
@@ -104,9 +103,8 @@
             class="Path"
             module = "DepthContourTrace"
             source = "OUTPUT"
-           length_source = "LENGTH"
+            length_source = "LENGTH"
             stroke_width = "2"
-            _color = "rgba(255,0,0,0.5)"
             color="red"
             fill = "rgba(255,0,0,0.25)"
             order = "column"
@@ -130,7 +128,6 @@
             source = "OUTPUT"
             length_source = "LENGTH"
             stroke_width = "2"
-            _color = "rgba(255,0,0,0.5)"
             color="red"
             fill = "rgba(255,0,0,0.25)"
             order = "column"

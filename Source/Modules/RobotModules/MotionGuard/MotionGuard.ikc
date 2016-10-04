@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="MotionGuard" description="module to prevent suddden and dangerous movements">
+
+	<description type="text">
+		Module that tries to avoid suddden and dangerous movements. (1) only allows slow changes at startup, (2) guards agains too fast movements, (3) stops any zeros from getteing throug and replaces them with the current position of the servos. The parameters are currently relative to a tick and need to be scaled if the frequency changes.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MotionGuard"
+			name="MotionGuard"
+            filename="point"
+		/>
+	</example>
+
+	<parameter name="start_up_time" type="int" default="2000" description="Number of ticks to ramp up commands (i. e. smooth with current position)" />
+	<parameter name="max_speed" type="float" default="0.1" description="If any channel is higher than this value, the new positions will be scaled to make the largest value equal to max." />
+	<parameter name="log" type="bool" default="yes" description="Log dangerous inputs" />
+	<parameter name="input_limit_min" type="array" description="Limit the input between min" />
+	<parameter name="input_limit_max" type="array" description="Limit the input between max" />
+
+    <input name="INPUT" description="Desired position of the servos" />
+	<input name="REFERENCE" description="Current position of the servos." />
+	<output name="OUTPUT" description="The less dangerous output." size_set="INPUT, REFERENCE" />
+
+	<module class="MotionGuard" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MotionGuard.h</file>
+   		<file>MMotionGuard</file>
+   		<file>MotionGuard.ikc</file>
+   </files>
+
+</group>
+

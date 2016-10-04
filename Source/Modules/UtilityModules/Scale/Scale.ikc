@@ -4,7 +4,7 @@
 
 	<description type="text">
 		Module that multiplies its input by a constant
-		factor.
+		factor and optionalyy the SCALE input.
 	</description>
 
 	<example description="A simple example">
@@ -14,9 +14,10 @@
 		/>
 	</example>
 
-	<parameter name="factor" type="float" description="Scale factor" />
+	<parameter name="factor" type="float" default="1.0" description="Scale factor" />
 
 	<input name="INPUT" description="The input" />
+    <input name="SCALE" description="The scaling value. Used in addition to factor if connected." optional="yes" />
 	<output name="OUTPUT" description="The scaled output" size_set="INPUT" />
 
 	<module class="Scale" />

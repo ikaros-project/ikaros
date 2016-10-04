@@ -1,8 +1,7 @@
 //
-//		Scale.cc		This file is a part of the IKAROS project
-//					Module that multiplies its inputs (and keeps its topology if possible)
+//	MotionGuard.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2004 Christian Balkenius
+//    Copyright (C) 2015-2016 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -18,36 +17,42 @@
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-//	Created: 2004-03-22
+//    See http://www.ikaros-project.org/ for more information.
 //
 
+#ifndef MotionGuard_
+#define MotionGuard_
 
-#include "Scale.h"
+#include "IKAROS.h"
 
-using namespace ikaros;
-
-void
-Scale::Init()
+class MotionGuard: public Module
 {
-    Bind(factor, "factor");
+public:
+    static Module * Create(Parameter * p) { return new MotionGuard(p); }
+
+    MotionGuard(Parameter * p) : Module(p) {}
+    virtual ~MotionGuard();
+
+    void 		Init();
+    void 		Tick();
+
+    int         start_up_time;
+    float       max_speed;
+    bool        log;
     
-    input		=	GetInputArray("INPUT");
-    scale		=	GetInputArray("SCALE");
-    output		=	GetOutputArray("OUTPUT");
-    size		=	GetOutputSize("OUTPUT");
-}
+    int         size;
 
+    float *     input;
+    float *     input_cleaned;
+    float *     reference;
+    float *     start_up_position;
+    float *     output;
+	
+	float *		inputLimitMin;
+	float *		inputLimitMax;
+	
 
+};
 
-void
-Scale::Tick()
-{
-    float s = factor;
-    if(scale)
-        s = s * scale[0];
+#endif
 
-    multiply(output, input, s, size);
-}
-
-
-static InitClass init("Scale", &Scale::Create, "Source/Modules/UtilityModules/Scale/");

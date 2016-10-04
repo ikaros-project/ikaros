@@ -54,7 +54,7 @@ Module(p)
     int maxServos           = GetIntValue("max_servo_id");
     int servoId_list_size  = 0;
     int * servoId_list     = GetIntArray("servo_id", servoId_list_size);
-    
+    bool    strictServoId = GetBoolValue("strict_servo_id");
     servo = new DynamixelServo * [256]; // maximum number of servos
     for(int i=0; i<256; i++)
         servo[i] = NULL;
@@ -71,7 +71,11 @@ Module(p)
             else
             {
                 servo[servoId_list[i]] = NULL;
-                Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+                if (strictServoId)
+                    Notify(msg_fatal_error, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+                else
+                    Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+     
             }
             if(servoId_list[i] > size)
                 size = servoId_list[i]+1;
@@ -88,7 +92,10 @@ Module(p)
             else
             {
                 servo[i] = NULL;
-                Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+                if (strictServoId)
+                    Notify(msg_fatal_error, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
+                else
+                    Notify(msg_warning, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
             }
         }
         size = servoId_list_size;

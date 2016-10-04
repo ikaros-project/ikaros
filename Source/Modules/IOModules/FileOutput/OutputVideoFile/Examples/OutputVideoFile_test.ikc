@@ -26,5 +26,3 @@
 		<object class="Image" type="rgb" module = "IN" source = "RED+GREEN+BLUE" x="0" y="0" />
 	</view>
 </group>
- 
-n

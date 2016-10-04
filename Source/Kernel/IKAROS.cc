@@ -703,7 +703,10 @@ Module::GetArray(const char * n, int size)
     float * a = create_array(size);
     const char * v = GetValue(n);
     if (v == NULL)
-        return a;
+	{
+		destroy_array(a);
+        return NULL;
+	}
     for (int i=0; i<size;i++)
     {
         for (; isspace(*v) && *v != '\0'; v++) ;
@@ -1671,7 +1674,7 @@ Kernel::Terminate()
          if(tick > 0 && percent != lp)
         {
             int p = (segments*percent)/100;
-            printf("  Progess: [");
+            printf("  Progress: [");
             for(int i=0; i<segments; i++)
                 if(i < p)
                     printf("=");
