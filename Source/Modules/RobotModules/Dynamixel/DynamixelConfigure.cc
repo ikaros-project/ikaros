@@ -161,6 +161,8 @@ Module(p)
     newValue = GetIntValue("value");
     
     mask        = new int [servos];
+	for (int i = 0; i<servos; i++)
+		mask[i] = 1;
 }
 
 void
