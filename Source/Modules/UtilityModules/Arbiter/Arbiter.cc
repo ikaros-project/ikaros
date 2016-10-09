@@ -135,6 +135,9 @@ Arbiter::Tick()
     {
         if(ix != current_channel)  // start switch
         {
+			if (current_channel == -1)
+				current_channel = ix;
+				
             from_channel = current_channel;
             current_channel = ix;
             switch_counter = switch_time;
