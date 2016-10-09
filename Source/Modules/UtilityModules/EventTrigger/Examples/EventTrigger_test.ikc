@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module
+			class = "EventTrigger"
+			name = "Trigger"
+            size = "10"
+            timeout = "500"
+		/>
+		
+		<module
+			class = "FunctionGenerator"
+			name = "Next"
+            type = "ticksquare"
+            basetime = "20"
+            tickduty = "1"
+		/>
+
+        <connection sourcemodule="Next" source="OUTPUT" targetmodule="Trigger" target="NEXT" />
+        
+		<view name="View">
+			<object class="BarGraph" module="Trigger" source="OUTPUT" min="-2" max="2" x="0" y="0" />
+		</view>
+</group>
+ 

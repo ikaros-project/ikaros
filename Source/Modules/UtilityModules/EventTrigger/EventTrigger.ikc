@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<group name="EventTrigger" description="triggers events">
+
+	<description type="text">
+        Module that sets one of its output to 1 at random times and keeps it on for the dimte given by duration. After wich it is followed by an zero output for the number of ticks set by the pramataer timout.
+        If the next input contains an array element over zero a new state will be selected immediately. The same output will not be triggered twice in succession if there is more than one.
+        
+        If the module is used to triger a behavior, the next input can be used to signal to the module that the behavior is completete and it is time to selecte a new one.
+	</description>
+
+	<example description="Example">
+		<module
+			class="EventTrigger"
+			name="EventTrigger"
+		/>
+	</example>
+
+    <parameter name="size" type="int" default="1" description="number of triggers" />
+    
+    <parameter name="initial_delay" type="int" default="0" description="ticks before first event"/>
+    <parameter name="duration" type="array" default="100" description="the nominal duration of each trigged event" />
+    <parameter name="timeout" type="array" default="0" description="time to wait for next signal before selecting next event" />
+    
+	<input name="NEXT" description="Steps to the next random state when any of its inputs is 1" optional="yes" />
+
+	<output name="OUTPUT" description="The output" size_param="size" />
+
+	<module class="EventTrigger" />
+
+    <view title="EventTrigger">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for EventTrigger"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EventTrigger.h</file>
+   		<file>EventTrigger.cc</file>
+   		<file>EventTrigger.ikc</file>
+   </files>
+
+</group>
