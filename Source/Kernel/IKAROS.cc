@@ -727,10 +727,27 @@ Module::GetArray(const char * n, int size)
 int *
 Module::GetIntArray(const char * n, int & size)
 {
-    size = 0;
+    int requested_size = size;
+    int data_size = 0;
+
     const char * v = GetValue(n);
     if (v == NULL)
-        return NULL;
+    {
+        if(requested_size > 0)
+        {
+            size = requested_size;
+            int * a = new int [size];
+            for(int i=0; i<size; i++)
+                a[i] = 0;
+            return a;
+        }
+        else
+        {
+            size = 0;
+            return NULL;
+        }
+    }
+
     const char * vv = v;
     
     // Count values
@@ -740,18 +757,26 @@ Module::GetIntArray(const char * n, int & size)
         int x;
         for (; isspace(*v) && *v != '\0'; v++) ;
         if (sscanf(v, "%d", &x)!=-1)
-            size++;
+            data_size++;
         for (; !isspace(*v) && *v != '\0'; v++) ;
     }
     
-    int * a = new int[size];
+    if(size == 0)
+    {
+        requested_size = data_size;
+        size = data_size;
+    }
+    
+    int d = 0;
+    int * a = new int[requested_size];
     v = vv;
     
-    for (int i=0; i<size;i++)
+    for (int i=0; i<requested_size;i++)
     {
         for (; isspace(*v) && *v != '\0'; v++) ;
-        if (sscanf(v, "%d", &a[i])==-1)
-            a[i] = 0; // this should never happen
+        if (i >= requested_size || (sscanf(v, "%d", &a[i])==-1))
+            a[i] = d;
+        d = a[i]; // save last as default value
         for (; !isspace(*v) && *v != '\0'; v++) ;
     }
     

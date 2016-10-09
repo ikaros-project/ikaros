@@ -260,7 +260,7 @@ protected:
     int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not foun
     float *         GetArray(const char * n, int size);		// Search through XML for parameter and return its value as an array
     float **        GetMatrix(const char * n, int & sizex, int & sizey);	// Search through XML for parameter and return its value as a matrix
-    int *           GetIntArray(const char * n, int & size);
+    int *           GetIntArray(const char * n, int & size);  // If size == 0, get number of items from parameter otehrwise make sure that the requtested size is returned and filled with any available values; if there are too few values the last one will be used for the remaining elements
 
     // Bind values to names and get values from XML tree if possible
     
