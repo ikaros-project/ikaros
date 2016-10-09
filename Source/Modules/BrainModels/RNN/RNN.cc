@@ -54,6 +54,7 @@ RNN::Init()
         Notify(msg_fatal_error, "T-AUX has incorrect size");
     
     // Allocate memory for weights
+    // Derived classes to not need to do this
     
     w = create_matrix(size, size);
     
@@ -74,6 +75,7 @@ RNN::~RNN()
 void
 RNN::Tick()
 {
+    copy_array(output, input, size);
 }
 
 

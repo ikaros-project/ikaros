@@ -3,7 +3,7 @@
 <group name="RNN" description="Recurrent Neural Network - Template Module">
 
 	<description type="text">
-        This is a template for a recurrent neural network.
+        This is a template for a recurrent neural network. On its own, this module only copies the input to the output.
 	</description>
 
 	<example description="A simple example">
