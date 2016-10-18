@@ -142,7 +142,7 @@ GazeController::Tick()
 
     float targetPan     = omega_prime;
   
-    printf("%f %f %f  =>  %f %f\n", x, y, z, targetPan,  targetTilt);
+    // printf("%f %f %f  =>  %f %f\n", x, y, z, targetPan,  targetTilt);
 	if (targetPan > pi)
 		targetPan  = targetPan - pi;
 	
@@ -210,8 +210,6 @@ GazeController::Tick()
 	output[camL]        = phi_L;
 	output[camR]        = phi_R;
 	
-	print_array("output", output, 4);
-
 	// Setting the angle back to angle_unit
 	output[neckPan] = angle_to_angle(output[neckPan],radians,angle_unit);
 	output[neckTilt] = angle_to_angle(output[neckTilt],radians,angle_unit);
@@ -220,7 +218,6 @@ GazeController::Tick()
 	
 	
     add(output, offset, 4);
-	print_array("output Deg", output, 4);
 }
 
 
