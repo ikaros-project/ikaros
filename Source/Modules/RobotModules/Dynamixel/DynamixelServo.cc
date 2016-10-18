@@ -90,7 +90,7 @@ DynamixelServo::~DynamixelServo()
 bool DynamixelServo::SetValueAtAdress(int adress, int value)
 {
     // Check borders.
-    if (value < controlTable[adress].Min && value > controlTable[adress].Max)
+    if (value < controlTable[adress].Min || value > controlTable[adress].Max)
     {
         printf("DynamixelServo SetValueAtAdress: Value is not OK!\n");
         return false;
