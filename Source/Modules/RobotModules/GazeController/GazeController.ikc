@@ -13,7 +13,7 @@
 		/>
 	</example>
 
-	<parameter name="A" type="float" default="0.0770" description="Distance from origin to tilt joint" />
+	<parameter name="A" type="float" default="0.077" description="Distance from origin to tilt joint" />
 	<parameter name="B" type="float" default="0.120" description="Distance from tilt joint to eye plane" />
 	<parameter name="C" type="float" default="0.060" description="Distance from pan joint to eye center" />
 	<parameter name="D" type="float" default="0.060" description="Distance between the eyes" />
@@ -30,7 +30,7 @@
 	<parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
 
 
-	<input name="INPUT" description="Target position (x, y, z) in egocentric coordinates" />
+	<input name="INPUT" description="Target position matrix in egocentric coordinates" />
     <output name="OUTPUT" size="4" description="Motor positions (ht, hp, lp, rp)" />
     
     <output name="VIEW_SIDE" size_x="4" size_y="9" description="Side view of calculations" />
