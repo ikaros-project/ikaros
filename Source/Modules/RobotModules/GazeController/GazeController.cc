@@ -88,8 +88,6 @@ line(float ** o, int & c, float x0, float y0, float x1, float y1)
 void
 GazeController::Tick()
 {
-
-	
 	
     if(center_override)
     {
@@ -113,6 +111,7 @@ GazeController::Tick()
         z = target[2];
     }
 	
+	// FIX THIS!
 	if (x == 0 && y == 0 && z == 0)
 	{
 		return;
