@@ -314,7 +314,8 @@ InputVideo::~InputVideo()
 {
     //av_freep(&inputFrame->data[0]); // Freed in decoder function
     av_free(inputFrame);
-    av_freep(&outputFrame->data[0]);
+	if (outputFrame)
+		av_freep(&outputFrame->data[0]);
     av_free(outputFrame);
     avcodec_close(avctx);
     avformat_close_input(&input_format_context);
