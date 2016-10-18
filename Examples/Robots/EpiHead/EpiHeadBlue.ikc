@@ -1,49 +1,29 @@
-<?xml version="1.0"?>
+<?xml version = "1.0"?>
 
-<group title="Epi Head">
+<group>
+	
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
 
-    <!-- Ranom Motion Trigger -->
-	<module class="Randomizer" name="MotionTrigger" outputsize = "5" interval = "500"/>
-	<module class="Constant" name="MotionTrigger" data = "0 1 0 0 0" />
-		<connection sourcemodule = "MotionTrigger" source = "OUTPUT" targetmodule = "SelectMotion" target = "INPUT" delay = "0" />
-	<module class="SelectMax" name="SelectMotion"/>
-		<connection sourcemodule = "SelectMotion" source = "OUTPUT" targetmodule = "MRMotion" target = "TRIG" delay = "0" />
-
-	<!-- Vision -->
-	<module
-		class   = "InputVideo"
-		name	= "CAMERA"			
-		_size_x  = "640"
-		_size_y  = "480"
-		list_devices = "yes"
-		id ="1"
-		frame_rate = "15"
-        period ="20"
-	/>
-    
-    <!-- Detectors -->
-    <module class = "MPIFaceDetector" name = "FaceDetector" period ="1000"/>
-    	<connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" delay="1"/>
-
-	<module
-		class       = "MarkerTracker"
-		name        = "MarkerTracker"
-		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
-		max_markers	="2"
-		sort    = "no"
-       	marker_size = "0 57 60; 1000 2000 25"
-       	use_history = "no"
-        threshold = "auto"
-        frame_id = "3"
-        period ="5"
-	/>
-		<connection sourcemodule = "CAMERA" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="1" />
+    <input  name="TARGET"               targetmodule="GazeController"           target="INPUT" />
+    <output name="FEEDBACK_POSITION"    sourcemodule="SC_FB_PresentPosition"    source="OUTPUT" />
 
 
-	<!-- HEAD -->
-
-	<!-- Pupils -->
+    <!-- Attention Gaze -->
     <module
+        class = "GazeController"
+        name = "GazeController"
+        offset = "0 0 0 0"
+    	angle_unit = "degrees"
+    />
+		<connection sourcemodule = "GazeController" source = "OUTPUT" targetmodule = "GuardNeckEyes" target = "INPUT" delay="1" />
+
+
+
+    <!-- Pupils -->
+   <!--
+     <module
         class = "Dynamixel"
         name = "Pupil"
     	device  = "/dev/cu.usbserial-A501EKIZ"
@@ -73,229 +53,76 @@
         max_speed = "2"
         input_limit_min = "190 190"
         input_limit_max = "250 250"
+        start_up_time = "10"
+
     />
 	    <connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
     	<connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
         <connection sourcemodule = "Pupil"  source = "FEEDBACK_GOAL_POSITION" targetmodule = "GuardPupil"  target = "REFERENCE" />
 
-	<!-- NeckEyes -->
+    <view name="Parasympathetic Circuit">
+        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT" x="0" y="1" w="4" _min = "180" max="300" />
+        <object class="Plot" title="Response SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT" x="0" y="2" w="4" _min = "180" max="300" />
+    </view>
+-->
+
+    <!-- Modules in dynamixel format -->
+    <!-- NeckEyes -->
     <module
         class = "Dynamixel"
         name = "NeckEyes"
     	device  = "/dev/cu.usbserial-FTU7LUDO"
         index_mode = "indirect"
-        print_info ="full"
+        print_info ="minimal"
         feedback ="true"
     	baud_rate = "1000000"
     	angle_unit = "degrees"
     	start_up_delay = "20" 	
     	max_servo_id = "5"
     />  
-    <connection sourcemodule = "GuardNeckEyes" source = "OUTPUT" targetmodule = "NeckEyes" target = "GOAL_POSITION" />
+    <connection sourcemodule = "SC_GoalPosition" source = "OUTPUT" targetmodule = "NeckEyes" target = "GOAL_POSITION" />
 
-    <module class = "Constant" name = "N_MovingSpeed" data = "1 1 1 1" />
-		<connection sourcemodule = "N_MovingSpeed"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "MOVING_SPEED" />
+    <module
+			class="ServoConnector"
+			name="SC_GoalPosition"
+			connector   =   "1 2 3 4"
+            inverted    =   "0 0 0 0" 
+            offset      =   "180 180 180 180" 
+            output_size =   "4"
+	/>
+        <connection sourcemodule = "GuardNeckEyes"  source = "OUTPUT" targetmodule = "SC_GoalPosition"  target = "INPUT" />
+
+
+    <module class = "Constant" name = "N_MovingSpeed" data = "0.02 0.02 0.02 0.02" />
+		<connection sourcemodule = "N_MovingSpeed"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "MOVING_SPEED" delay = "0" />
+
+    <module class = "Constant" name = "N_TorqueLimit" data = "0.7 0.7 0.7 0.7" />
+		<connection sourcemodule = "N_TorqueLimit"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "TORQUE_LIMIT" />
+
+    <module class = "Constant" name = "N_TorqueEnable" data = "1 1 1 1" />
+		<connection sourcemodule = "N_TorqueEnable"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "TORQUE_ENABLE" />
 
     <module
         class = "MotionGuard"
         name = "GuardNeckEyes"
-        max_speed = "2"
-        input_limit_min = "130 120 160 160"
-        input_limit_max = "230 240 200 200"
-
+        max_speed = "100"
+        dynamixel_comment_input_limit_min = "130 120 160 160"
+        dynamixel_comment_input_limit_max = "230 240 200 200"
+        input_limit_min = "-50 -60 -20 -20"
+        input_limit_max = "50 60 20 20"
+        start_up_time = "10"
     />
-        <connection sourcemodule = "PArb"  source = "OUTPUT" targetmodule = "GuardNeckEyes"  target = "INPUT" />
-        <connection sourcemodule = "NeckEyes"  source = "FEEDBACK_GOAL_POSITION" targetmodule = "GuardNeckEyes"  target = "REFERENCE" />
+        <connection sourcemodule = "SC_FB_PresentPosition"  source = "OUTPUT" targetmodule = "GuardNeckEyes"  target = "REFERENCE" />
 
-
-    
-    <!-- LED -->	
-	<module
-			class = "FadeCandy"
-			name = "FadeCandy"
-            start_server = "yes"
-	>
-        <channel name="MOUTH_TOP"  channel="0" size="8" />
-        <channel name="MOUTH_BOTTOM" channel="1" size="8" />
-        <channel name="LEFT_EYE"  channel="2" size="8" />
-        <channel name="RIGHT_EYE" channel="3" size="8" />
-    </module>
-
-	<module class = "FunctionGenerator" name = "RED_TRIG" type="sin" frequency="0.1" amplitude="0.5" offset="0.5" basetime="100" tickduty="80" />
-	<module class = "Product" name = "LightsOn" />
-	
-     	<connection sourcemodule = "RED_TRIG" source = "OUTPUT" targetmodule = "LightsOn" target = "INPUT" />
-     	<connection sourcemodule = "MRMotion" source = "PLAYING" targetmodule = "LightsOn" target = "INPUT" />
-
-	<module class = "FunctionGenerator" name = "GREEN_TRIG" type="ticksquare" basetime="1180" tickduty="700" />
-	<module class = "FunctionGenerator" name = "BLUE_TRIG" type="ticksquare" basetime="2020" tickduty="1000" />
-
-	<module class = "Constant" name = "LEFT_EYE_RED" 	outputsize = "8" data = "0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5" />
-	<module class = "Constant" name = "LEFT_EYE_GREEN"	outputsize = "8" _data = "0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.25" data="0 0 0 0 0 0 0 0" />
-	<module class = "Constant" name = "LEFT_EYE_BLUE"	outputsize = "8" _data = "0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.25" data="0 0 0 0 0 0 0 0" />
-
-	<module class = "Scale" name = "RED_SCALE" />
-	<module class = "Scale" name = "GREEN_SCALE" />
-	<module class = "Scale" name = "BLUE_SCALE" />
-
-     	<connection sourcemodule = "LightsOn" source = "OUTPUT" targetmodule = "RED_SCALE" target = "SCALE" />
-     	<connection sourcemodule = "LEFT_EYE_RED" source = "OUTPUT" targetmodule = "RED_SCALE" target = "INPUT" />
-
-     	<connection sourcemodule = "GREEN_TRIG" source = "OUTPUT" targetmodule = "GREEN_SCALE" target = "SCALE" />
-     	<connection sourcemodule = "LEFT_EYE_GREEN" source = "OUTPUT" targetmodule = "GREEN_SCALE" target = "INPUT" />
-
-     	<connection sourcemodule = "BLUE_TRIG" source = "OUTPUT" targetmodule = "BLUE_SCALE" target = "SCALE" />
-     	<connection sourcemodule = "LEFT_EYE_BLUE" source = "OUTPUT" targetmodule = "BLUE_SCALE" target = "INPUT" />
-
-	   	<connection sourcemodule = "RED_SCALE" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
-    	<connection sourcemodule = "GREEN_SCALE" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
-    	<connection sourcemodule = "BLUE_SCALE" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
-	   	<connection sourcemodule = "RED_SCALE" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_RED" />
-    	<connection sourcemodule = "GREEN_SCALE" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_GREEN" />
-    	<connection sourcemodule = "BLUE_SCALE" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_BLUE" />
-    
-    	<connection sourcemodule = "LEFT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_RED" />
-    	<connection sourcemodule = "LEFT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_GREEN" />
-    	<connection sourcemodule = "LEFT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_BLUE" />
-            
-    	<connection sourcemodule = "LEFT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_RED" />
-    	<connection sourcemodule = "LEFT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_GREEN" />
-   		<connection sourcemodule = "LEFT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_BLUE" />
-
-
-
-	<!-- Behaviors -->
-	<!-- Light reflex etc -->
-	<module
-        class="PupilControl"
-        name="PupilControl"
-    />
-    <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="PupilControl" target="PTA" />
-
-    <view name="Parasympathetic Circuit">
-        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT" x="0" y="1" w="4" _min = "180" max="300" />
-        <object class="Plot" title="Response SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT" x="0" y="2" w="4" _min = "180" max="300" />
-    </view>
-    
-	
-	<!-- OSCILLATION  BLOCK -->
-
-	<module
-		class = "FunctionGenerator"
-		name = "Pan"
-		type = "sin"
-		frequency="0.004"
-		offset = "180"
-		amplitude = "40"
+    <module
+			class="ServoConnector"
+			name="SC_FB_PresentPosition"
+			connector   =   "1 2 3 4"
+            inverted    =   "0 0 0 0" 
+            offset      =   "-180 -180 -180 -180" 
+            output_size =   "4"
 	/>
-	<module
-		class = "FunctionGenerator"
-		name = "Tilt"
-		type = "sin"
-		frequency="0.002"
-		offset = "180"
-		amplitude = "10"
-	/>
-	<module
-		class = "FunctionGenerator"
-		name = "LeftE"
-		type = "sin"
-		frequency="0.01"
-		offset = "180"
-		amplitude = "15"
-	/>
-	<module
-		class = "FunctionGenerator"
-		name = "RightE"
-		type = "sin"
-		frequency="0.01"
-		offset = "180"
-		amplitude = "15"
-	/>
-	<module
-		class = "Constant"
-		name = "Osc"
-		data = "0.1"
-	/>
-	<module
-		class = "Constant"
-		name = "OscT"
-		data = "0.5 0.5 0.5 0.5"
-	/>
-	<module
-		class = "Constant"
-		name = "OscE"
-		data = "1 1 1 1"
-	/>
-    <connection sourcemodule = "LeftE" source = "OUTPUT" targetmodule = "PArb" target = "INPUT_2" />
-    <connection sourcemodule = "RightE" source = "OUTPUT" targetmodule = "PArb" target = "INPUT_2" />
-    <connection sourcemodule = "Pan" source = "OUTPUT" targetmodule = "PArb" target = "INPUT_2" />
-    <connection sourcemodule = "Tilt" source = "OUTPUT" targetmodule = "PArb" target = "INPUT_2" />
-    <connection sourcemodule = "OscT" source = "OUTPUT" targetmodule = "TArb" target = "INPUT_2" />
-    <connection sourcemodule = "OscE" source = "OUTPUT" targetmodule = "EArb" target = "INPUT_2" />
-    <connection sourcemodule = "Osc" source = "OUTPUT" targetmodule = "PArb" target = "VALUE_2" />
-    <connection sourcemodule = "Osc" source = "OUTPUT" targetmodule = "EArb" target = "VALUE_2" />
-    <connection sourcemodule = "Osc" source = "OUTPUT" targetmodule = "TArb" target = "VALUE_2" />
+        <connection sourcemodule = "NeckEyes"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FB_PresentPosition"  target = "INPUT" />
 
-
-	<!-- MOTION RECORDER BLOCK -->
-	
-	<module
-			class = "MotionRecorder"
-			name = "MRMotion"
-            mask = "1 1 1 1"
-            torque = "1 1 1 1"
-            filename = "EpiHeadBlue.%d.mot"
-            record_on_trig = "false"
-	/>
-	
-	<module
-		class="Arbiter"
-		name="PArb"
-		switch_time = "100"
-	/>
-	<module
-		class="Arbiter"
-		name="TArb"
-	/>
-	<module
-		class="Arbiter"
-		name="EArb"
-	/>
-    <connection sourcemodule = "MRMotion" source = "OUTPUT" targetmodule = "PArb" target = "INPUT_1" />
-    <connection sourcemodule = "MRMotion" source = "TORQUE" targetmodule = "TArb" target = "INPUT_1" />
-    <connection sourcemodule = "MRMotion" source = "ENABLE" targetmodule = "EArb" target = "INPUT_1" />
-    <connection sourcemodule = "MRMotion" source = "PLAYING" targetmodule = "PArb" target = "VALUE_1" />
-    <connection sourcemodule = "MRMotion" source = "PLAYING" targetmodule = "TArb" target = "VALUE_1" />
-    <connection sourcemodule = "MRMotion" source = "PLAYING" targetmodule = "EArb" target = "VALUE_1" />
-	
-    <_connection sourcemodule = "PArb" source = "OUTPUT" targetmodule = "NeckEyes" target = "GOAL_POSITION" />
-    <connection sourcemodule = "TArb" source = "OUTPUT" targetmodule = "NeckEyes" target = "TORQUE_LIMIT" />
-    <connection sourcemodule = "EArb" source = "OUTPUT" targetmodule = "NeckEyes" target = "TORQUE_ENABLE" />
-
-    <connection sourcemodule = "NeckEyes" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MRMotion" target = "INPUT" />
-
-
-	<view name="MRMotion" object_size="50">
-			<object class="Plot" module="NeckEyes" source="FEEDBACK_PRESENT_POSITION" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
-			<object class="Plot" module="MRMotion" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
-			<object class="Plot" module="MRMotion" source="KEYTRIG" color="blue" x="0" y="0" w="8" h="4" />
-
-			<object class="BarGraph" title="record" module="MRMotion" source="STATE" x="8" y="0" w="2" h="2" max="2" />
-			<object class="Table" title="time" module="MRMotion" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
-
-            <object class="Button" title = "Off" module="MRMotion" parameter="off" x="10" y="0" h="1" w="2" />
-            <object class="Button" title = "Stop" module="MRMotion" parameter="stop" x="10" y="1" h="1" w="2" />
-            <object class="Button" title = "Record" module="MRMotion" parameter="record" x="10" y="2" h="1" w="2" />
-            <object class="Button" title = "Play"  module="MRMotion" parameter="play" x="10" y="3" h="1" w="2" />
-            <object class="Button" title = "Save" module="MRMotion" parameter="save" x="10" y="5" h="1" w="2" />
-            <object class="Button" title = "Load" module="MRMotion" parameter="load" x="10" y="6" h="1" w="2" />
-            <object class="Switch" title = "record_on_trig" module="MRMotion" parameter="record_on_trig" x="10" y="7" h="1" w="2" />
-            <object class="Slider" title = "Load" module="MRMotion" parameter="current_behavior" steps="10" max ="10" x="12" y="0" h="7" w="1" />
-
-            <object class="Plot" module="MRMotion" source="OUTPUT" select="0" min="0" nax="1" x="0" y="8" w="8" h="4" />
-            <object class="Plot" module="NeckEyes" source="FEEDBACK_PRESENT_POSITION" color="blue" select="0" min="0" nax="1" x="0" y="8" w="8" h="4" />
-
-	</view>
 </group>
  
