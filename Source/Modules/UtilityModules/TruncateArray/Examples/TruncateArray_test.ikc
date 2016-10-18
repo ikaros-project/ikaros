@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<group>
+	
+    <module class = "Constant" name = "Array" data="1 2 3 4 5 6 7 8 9 10"/>
+		
+    <module
+        class = "TruncateArray"
+        name = "TA1"
+        array_length = "10"
+    	selection = "4 6"
+
+    />
+    
+    <module
+        class = "TruncateArray"
+        name = "TA2"
+        array_length = "10"
+    	selection = "4 6"
+    	loop = "false"
+
+    />
+	
+    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA1" target="INPUT" />
+    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA2" target="INPUT" />
+    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA2" target="INPUT" />
+    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA2" target="INPUT" />
+
+
+
+    <view name="View">
+        <object class="Table" module="Array" source="OUTPUT" x="0" y="0" w="3"/>
+
+        <object class="Table" module="TA1" source="OUTPUT" x="0" y="1" w="3"/>
+        <object class="Table" module="TA2" source="OUTPUT" x="3" y="1" w="3"/>
+
+    </view>
+</group>
+ 
