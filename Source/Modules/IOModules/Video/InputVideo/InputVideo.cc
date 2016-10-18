@@ -109,20 +109,20 @@ Module(p)
     AVInputFormat *ifmt=av_find_input_format("dshow");
     //Set own video device's name
     if(avformat_open_input(&input_format_context,"video=Integrated Camera",ifmt,NULL)!=0){
-        printf("Couldn't open input stream.\n");
+		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
     }
 #else
     AVInputFormat *ifmt=av_find_input_format("vfwcap");
     if(avformat_open_input(&input_format_context,"0",ifmt,NULL)!=0){
-        printf("Couldn't open input stream.\n");
+		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
     }
 #endif
 #elif defined LINUX
     AVInputFormat *ifmt=av_find_input_format("video4linux2");
     if(avformat_open_input(&input_format_context,"/dev/video0",ifmt,NULL)!=0){
-        printf("Couldn't open input stream.\n");
+		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
     }
 #else
@@ -142,7 +142,7 @@ Module(p)
     av_dict_set(&options, "framerate", frameRateString.c_str(), 0);
     
     if(avformat_open_input(&input_format_context,idString.c_str(),ifmt,&options)!=0){
-        printf("Couldn't open input stream.\n");
+		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
     }
 #endif
@@ -174,14 +174,14 @@ Module(p)
     /// Find the decoder for the video stream
     input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
     if(input_codec==NULL) {
-        fprintf(stderr, "Unsupported codec!\n");
+		Notify(msg_fatal_error,"Unsupported codec!\n");
         return; // Codec not found
     }
     
     // Creating decoding context
     avctx = avcodec_alloc_context3(input_codec);
     if (!avctx) {
-        fprintf(stderr, "Could not allocate a decoding context\n");
+		Notify(msg_fatal_error,"Could not allocate a decoding context\n");
         avformat_close_input(&input_format_context);
         return;
     }
