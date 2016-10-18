@@ -443,7 +443,6 @@ Dynamixel::~Dynamixel()
         timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
     }
     
-    PrintAll();
     // Free memory
     delete mask;
     for(int i=0; i<10; i++)
