@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+
+<group name="GazeController" description="controls a 4 DOF stereo head">
+
+	<description type="text">
+		Module that controls the four servos of a stereo head with head pan and tilt movements and only pan movements for the eyes.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="GazeController"
+			name="GazeController"
+		/>
+	</example>
+
+	<parameter name="A" type="float" default="0.0770" description="Distance from origin to tilt joint" />
+	<parameter name="B" type="float" default="0.120" description="Distance from tilt joint to eye plane" />
+	<parameter name="C" type="float" default="0.060" description="Distance from pan joint to eye center" />
+	<parameter name="D" type="float" default="0.060" description="Distance between the eyes" />
+	<parameter name="E" type="float" default="0.040" description="Distance from eye joint to focal point" />
+    
+	<parameter name="target" type="array" default="0.5 0 0.89" description="Manual target" />
+	<parameter name="target_override" type="bool" default="no" description="Manual targeting override" />
+
+	<parameter name="offset" type="array" default="0 0 0 0" description="Angle offset for head joints" />
+	<parameter name="center_override" type="bool" default="no" description="Set to yes to force all angles to center position (with offset) to test offset calibration" />
+
+	<parameter name="gamma" type="float" default="0.5" description="Head/eye turn mix." />
+
+	<parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
+
+
+	<input name="INPUT" description="Target position (x, y, z) in egocentric coordinates" />
+    <output name="OUTPUT" size="4" description="Motor positions (ht, hp, lp, rp)" />
+    
+    <output name="VIEW_SIDE" size_x="4" size_y="9" description="Side view of calculations" />
+    <output name="VIEW_TOP" size_x="4" size_y="14" description="Top view of calculations" />
+
+	<module class="GazeController" />
+
+    <view title="Overview" object_size="25" >
+    
+        <object class="Switch" module="*" parameter="target_override" x="0" y="12" h="2" w="3" min="0" max="2" />
+        <object class="Slider" title="X" module="*" parameter="target" select="0" x="0" y="8" h="4" min="0.2" max="2"  />
+        <object class="Slider" title="Y" module="*" parameter="target" select="1" x="1" y="8" h="4" min="-2" max="2" />
+        <object class="Slider" title="Z" module="*" parameter="target" select="2" x="2" y="8" h="4" min="0" max="2" />
+        
+        
+        <_object class="Slider" title="g" module="*" parameter="gamma" x="0" y="4" h="4" min="-2" max="3" />
+        
+        <object class="Switch" title="pos" module="*" parameter="center_override" x="8" y="12" h="2" w="4" min="0" max="2" />
+        <object class="Slider" title="T" module="*" parameter="offset" select="0" x="8" y="8" h="4" min="-0.1" max="0.1" />
+        <object class="Slider" title="P" module="*" parameter="offset" select="1" x="9" y="8" h="4" min="-0.1" max="0.1" />
+        <object class="Slider" title="L" module="*" parameter="offset" select="2" x="10" y="8" h="4" min="-0.1" max="0.1" />
+        <object class="Slider" title="R" module="*" parameter="offset" select="3" x="11" y="8" h="4" min="-0.1" max="0.1" />
+        
+
+        <object class="Path" title="Side" module="*" source="VIEW_SIDE" flip_y_axis="yes" x="0" y="0" w="8" h="8"
+                    color="gray, gray, gray, gray, gray, yellow, yellow, yellow, red"
+                    line_width = "1, 1, 1, 1, 1, 3, 3, 3, 1"
+                    arrow = "no, no, no, no, no, no, no, no, yes"
+                    line_dash = "[1], [1], [1], [1], [1], [], [], [], [4]"
+                    line_cap = "round"
+                    />
+
+        <object class="Path" title="Top" module="*" source="VIEW_TOP" flip_y_axis="yes" x="8" y="0" w="8" h="8"
+                    color ="gray, gray, gray, gray, gray, yellow, yellow, yellow, yellow, red, red"
+                    line_width = "1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1"
+                    arrow = "no, no, no, no, no, no, no, no, no, no, no"
+                    line_dash = "[1], [1], [1], [1], [1], [], [], [], [], [4], [4]"
+                    line_cap = "round"
+         />
+
+    </view>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>GazeController.h</file>
+   		<file>GazeController.cc</file>
+   		<file>GazeController.ikc</file>
+   </files>
+
+</group>
+

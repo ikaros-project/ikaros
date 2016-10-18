@@ -5,6 +5,7 @@ add_subdirectory(Epuck)
 add_subdirectory(SSC32)
 add_subdirectory(Phidgets)
 add_subdirectory(FadeCandy)
+add_subdirectory(GazeController)
 add_subdirectory(MotionGuard)
 add_subdirectory(MotionRecorder)
 
