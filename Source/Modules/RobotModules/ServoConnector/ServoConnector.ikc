@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<group name="ServoConnector" description="organize servoes">
+
+	<description type="text">
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ServoConnector"
+			name="ServoConnector"
+			connector   =   "1 2 2 3 3 4 5 8 8 10"
+            inverted    =   "0 1 0 0 1 0 0 1 0 0 " 
+            midpoint    =   "0 0 0 0 0 0 0 0 0 0 "
+		/>
+	</example>
+
+	<parameter name="connector" type="array" default="" description="input to output connector" />
+	<parameter name="inverted"  type="array" default="" description="should the output be inverted?" />
+	<parameter name="offset"	type="array" default="" description="what is the origo" />
+	<parameter name="output_size" type="int" default="10" description="Number of output node" />
+
+
+	<input name="INPUT" description="Input" />
+	<output name="OUTPUT" description="Output" size_param="output_size" />
+
+	<view title="ServoConnector">
+		<object
+		x="0" y="0" w="2"
+		class="Table"
+		module="*"
+		source="OUTPUT"
+		title="Default view for ServoConnector"
+		/>
+	</view>
+
+
+	<module class="ServoConnector" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>ServoConnector.h</file>
+   		<file>ServoConnector.cc</file>
+   		<file>ServoConnector.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<group title="ServoConnector Example">
+	
+		<module
+			class = "Constant"
+			name = "DATA"
+			data  = "180 170 160 180;"
+		/>
+
+		<module
+			class = "ServoConnector"
+			name = "ServoConnector"
+			connector   =   "1 2 3 4"
+            inverted    =   "0 0 0 0" 
+            offset      =   "180 180 180 180" 
+            output_size =   "4"
+
+		/>
+		
+        <connection sourcemodule = "DATA" source = "OUTPUT" targetmodule = "ServoConnector" target = "INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" module="ServoConnector" source="OUTPUT" x="0" y="0" />
+		</view>
+
+</group>
+ 
