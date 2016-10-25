@@ -20,7 +20,7 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 29;1;P Gain;P Gain;RW;32;0;1023;;4;4
 30;2;Goal Position;Goal Position;RW;;0;2047;;5;5
 32;2;Goal Velocity;Goal Speed;RW;;0;1023;;6;6
-35;2;Goal Torque;Goal Torque;RW;;0;;;7;7
+35;2;Goal Torque;Goal Torque;RW;;0;1023;;7;7
 37;2;Present Position; Current Position;R;;;;;;8
 39;2;Present Speed;Current Speed;R;;;;;;9
 41;2;Present Load; Current Load;R;;;;;;10
