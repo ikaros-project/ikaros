@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+
+<group title="MotionRecorder">
+
+    <!--
+        MODES:
+            0 - record
+            1 - play
+            3 - hold
+            4 - free
+     -->
+
+    <module
+        class = "Constant"
+        name = "Modes"
+        data = "0 0 0 0 0 0   0 0 0 0   0 0 0 0 0 0;
+                1 1 1 1 1 1   1 1 1 1   0 0 0 0 0 0;
+                0 0 0 0 0 0   1 1 1 1   1 1 1 1 1 1;
+                1 1 1 1 1 1   0 0 0 0   1 1 1 1 1 1"
+    />
+
+    <module
+        class = "SelectRow"
+        name = "ModeSelector"
+    />
+
+    <connection sourcemodule = "Modes" source = "OUTPUT" targetmodule = "ModeSelector" target = "INPUT" />
+    <connection sourcemodule = "ModeSelector" source = "OUTPUT" targetmodule = "MotionRecorder" target = "MODE" />
+
+    <module
+        class = "MotionRecorder"
+        name = "MotionRecorder"
+        mask = "1 1 1 1 1 1   1 1 1 1 1 1   1 1 1 1 "
+        torque = "0.5 0.5 0.5 0.5 0.5 0.5  0.5 0.5 0.5 0.5 0.5 0.5   0.5 0.5 0.5 0.5"
+        _comment_02_torque = "0.2 0.2 0.2 0.2 0.2  0.2 0.2 0.2 0.2 0.2   0.2 0.2 0.2 0.2"
+        _comment_08_torque = "0.8 0.8 0.8 0.8 0.8 0.0    0.8 0.8 0.8 0.8 0.8 0.0   0.0 0.0 0.8 0.0"
+        filename = "/Users/cba/Desktop/TestMotions/motion.%d.mot"
+    />
+
+    <module
+        class = "Dynamixel"
+        name = "Joints1"
+        device  = "/dev/cu.usbserial-A40129PA"
+        index_mode = "indirect"
+        printf_info ="minimal"
+        use_feedback ="false"
+    	baud_rate = "1000000"
+    	angle_unit = "tau"
+
+    />
+    <module
+  		class = "Dynamixel"
+   		name = "Joints2"
+    	device  = "/dev/cu.usbserial-A900fDcI"
+    	index_mode = "indirect"
+   	 	printf_info ="minimal"
+    	use_feedback ="false"
+    	baud_rate = "1000000"
+    	angle_unit = "tau"
+    
+    />
+    <module
+    	class = "Dynamixel"
+    	name = "Joints3"
+    	device  = "/dev/cu.usbserial-A900fDfU"
+    	index_mode = "indirect"
+    	printf_info ="minimal"
+    	use_feedback ="false"
+    	baud_rate = "1000000"
+    	angle_unit = "tau"
+    />
+
+
+    <_connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "INPUT" />
+    <_connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Joints" target = "INPUT" />
+    <_connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Joints" target = "INPUT" />
+
+    <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Split1_O" target = "INPUT" />
+    <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Split1_T" target = "INPUT" />
+    <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Split1_E" target = "INPUT" />
+
+    <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Split2_O" target = "INPUT" />
+    <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Split2_T" target = "INPUT" />
+    <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Split2_E" target = "INPUT" />
+    
+    <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Split3_O" target = "INPUT" />
+    <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Split3_T" target = "INPUT" />
+    <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Split3_E" target = "INPUT" />
+    
+    <module class = "TruncateArray" name = "Split1_O" array_length = "5" selection = "1 2 3 4 5 6" loop = "false"/>
+    <module class = "TruncateArray" name = "Split1_T" array_length = "5" selection = "1 2 3 4 5 6" loop = "false"/>
+    <module class = "TruncateArray" name = "Split1_E" array_length = "5" selection = "1 2 3 4 5 6" loop = "false"/>
+
+    <module class = "TruncateArray" name = "Split2_O" array_length = "4" selection = "7 8 9 10" loop = "false"/>
+    <module class = "TruncateArray" name = "Split2_T" array_length = "4" selection = "7 8 9 10" loop = "false"/>
+    <module class = "TruncateArray" name = "Split2_E" array_length = "4" selection = "7 8 9 10" loop = "false"/>
+
+    <module class = "TruncateArray" name = "Split3_O" array_length = "5" selection = "11 12 13 14 15 16" loop = "false"/>
+    <module class = "TruncateArray" name = "Split3_T" array_length = "5" selection = "11 12 13 14 15 16" loop = "false"/>
+    <module class = "TruncateArray" name = "Split3_E" array_length = "5" selection = "11 12 13 14 15 16" loop = "false"/>
+
+
+    
+    <connection sourcemodule = "Split1_O" source = "OUTPUT" targetmodule = "Joints1" target = "GOAL_POSITION" />
+    <connection sourcemodule = "Split1_T" source = "OUTPUT" targetmodule = "Joints1" target = "TORQUE_LIMIT" />
+    <connection sourcemodule = "Split1_E" source = "OUTPUT" targetmodule = "Joints1" target = "TORQUE_ENABLE" />
+
+    <connection sourcemodule = "Split2_O" source = "OUTPUT" targetmodule = "Joints2" target = "GOAL_POSITION" />
+    <connection sourcemodule = "Split2_T" source = "OUTPUT" targetmodule = "Joints2" target = "TORQUE_LIMIT" />
+    <connection sourcemodule = "Split2_E" source = "OUTPUT" targetmodule = "Joints2" target = "TORQUE_ENABLE" />
+    
+    <connection sourcemodule = "Split3_O" source = "OUTPUT" targetmodule = "Joints3" target = "GOAL_POSITION" />
+    <connection sourcemodule = "Split3_T" source = "OUTPUT" targetmodule = "Joints3" target = "TORQUE_LIMIT" />
+    <connection sourcemodule = "Split3_E" source = "OUTPUT" targetmodule = "Joints3" target = "TORQUE_ENABLE" />
+    
+    <_module class = "Constant" name = "TorqueLimit5" outputsize = "5" data = "0 0 0 0 0" />
+    <_module class = "Constant" name = "TorqueLimit4" outputsize = "4" data = "0 0 0 0" />
+    <_connection sourcemodule = "TorqueLimit5"  source = "OUTPUT" targetmodule = "Joints1"  target = "TORQUE_LIMIT" />
+    <_connection sourcemodule = "TorqueLimit4"  source = "OUTPUT" targetmodule = "Joints2"  target = "TORQUE_LIMIT" />
+    <_connection sourcemodule = "TorqueLimit5"  source = "OUTPUT" targetmodule = "Joints3"  target = "TORQUE_LIMIT" />
+
+
+    
+    <_connection sourcemodule = "Joints" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+
+    <connection sourcemodule = "Joints3" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <connection sourcemodule = "Joints2" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <connection sourcemodule = "Joints1" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+
+
+
+    <view name="View" object_size="50">
+        <_object class="Plot" module="Joints" source="FEEDBACK_PRESENT_POSITION" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
+        <object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
+
+        <object class="Slider" module="ModeSelector" parameter="row" min="0" max="3" x="0" y="4" w="1" h="2" />
+        <object class="Table" module="ModeSelector" source="row" min="0" max="3" x="1" y="4" w="2" h="2" />
+
+        <_object class="BarGraph" title="s0T" module="MotionRecorder" source="s0T" x="0" y="0" w="8" h="2" max="1" />
+        <_object class="BarGraph" title="s0E" module="MotionRecorder" source="s0E" x="0" y="2" w="8" h="2" min="-0.25" max="0.25" />
+        <_object class="BarGraph" title="s0dEdT" module="MotionRecorder" source="s0dEdT" x="0" y="4" w="8" h="2" min="-0.1" max="0.1" />
+
+        <object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
+        <object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
+
+        <object class="Button" title = "Off" module="MotionRecorder" parameter="off" x="10" y="0" h="1" w="2" />
+        <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="10" y="1" h="1" w="2" />
+        <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="10" y="2" h="1" w="2" />
+        <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="10" y="3" h="1" w="2" />
+        <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
+        <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="10" y="5" h="1" w="2" />
+        <object class="Button" title = "Load" module="MotionRecorder" parameter="load" x="10" y="6" h="1" w="2" />
+        <object class="Button" title = "SQ Play" module="MotionRecorder" parameter="sqplay" x="10" y="7" h="1" w="2" />
+
+        <_object class="Plot" module="MotionRecorder" source="OUTPUT" select="0" min="0" nax="1" x="0" y="8" w="8" h="4" />
+        <_object class="Plot" module="Joints" source="FEEDBACK_PRESENT_POSITION" color="blue" select="0" min="0" nax="1" x="0" y="8" w="8" h="4" />
+
+<!--
+        <object class="Plot" module="MotionRecorder" source="ERROR" select="1" min="-1" nax="1" x="0" y="5" w="8" h="4" />
+
+        <object class="Plot" module="MotionRecorder" source="MEAN_ERROR" x="0" y="9" w="8" h="2" />
+        <object class="Plot" module="MotionRecorder" source="TORQUE" select="1" x="0" y="11" w="8" h="2" />
+
+        <object class="Slider" title = "mutation" module="MotionRecorder" parameter="mutation" min="0" max="0.05" select="0" x="9" y="8" h="4" w="1" />
+-->
+    </view>
+
+</group>
+

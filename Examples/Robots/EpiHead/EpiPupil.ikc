@@ -1,0 +1,54 @@
+<group name="EpiPupil">
+
+
+    <input name="PTA" targetmodule="PTA" target="INPUT" />
+    <input name="EW_EXCITATION" targetmodule="EWpg" target="EXCITATION" />
+    <input name="EW_SHUNTING" targetmodule="EWpg" target="SHUNTING_INHIBITION" />
+    <input name="IML_EXCITATION" targetmodule="IML" target="EXCITATION" />
+
+    <output name="PTA_OUTPUT" sourcemodule="PTA" source="OUTPUT" />
+    <output name="CG_OUTPUT" sourcemodule="CG" source="OUTPUT" />
+    <output name="SCG_OUTPUT" sourcemodule="SCG" source="OUTPUT" />
+
+
+   <!-- Pupils -->
+    <module
+        class = "Dynamixel"
+        name = "Pupil"
+    	device  = "/dev/cu.usbserial-A501EKIZ"
+        index_mode = "indirect"
+        print_info ="full"
+        feedback ="false"
+    	baud_rate = "1000000"
+    	angle_unit = "degrees"
+    	start_up_delay 	= "20"
+    	max_servo_id = "3"
+    />
+    <connection sourcemodule = "GuardPupil"  source = "OUTPUT" targetmodule = "Pupil"  target = "GOAL_POSITION" />
+
+
+
+	<module class = "Constant" name = "P_TorqueEnable" outputsize = "2" data = "1 1" />
+		<connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
+    
+    <module class = "Constant" name = "P_MovingSpeed" outputsize = "2" data = "1 1" />
+		<connection sourcemodule = "P_MovingSpeed"  source = "OUTPUT" targetmodule = "Pupil"  target = "MOVING_SPEED" />
+
+	<module class = "Constant" name = "P_TorqueLimit" outputsize = "2" data = "1 1"  />
+		<connection sourcemodule = "P_TorqueLimit"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_LIMIT" />
+
+
+    <module
+        class = "MotionGuard"
+        name = "GuardPupil"
+        max_speed = "2"
+        input_limit_min = "190 190"
+        input_limit_max = "250 250"
+    />
+	    <connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
+    	<connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
+        <connection sourcemodule = "Pupil"  source = "FEEDBACK_GOAL_POSITION" targetmodule = "GuardPupil"  target = "REFERENCE" />
+
+
+</group>
+

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group title="MotionRecorder">
+
+ 		<module
+			class = "ActuatedPendulum"
+			name = "ActuatedPendulum"
+            length = "0.4"
+            friction = "1.0"
+            mass = "1.0"
+		/>
+
+        <module
+            class = "Constant"
+            name = "Joints"
+            data = "0.5"
+        />
+
+ 		<module
+			class = "MotionRecorder"
+			name = "MotionRecorder"
+            mask = "1 0 0 "
+            torque = "0.5 0 0"
+            filename = "/Users/cba/Desktop/motion.%d.mot"
+		/>
+
+        <_connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
+        <connection sourcemodule = "ActuatedPendulum" source = "STATE" targetmodule = "MotionRecorder" target = "INPUT" />
+        <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "ActuatedPendulum" target = "INPUT" />
+
+		<view name="View" object_size="50">
+			<object class="Plot" module="ActuatedPendulum" source="STATE" color="green" select="0" x="0" y="0" w="8" h="4" min="-2" max="2"/>
+			<object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0" x="0" y="0" w="8" h="4"  min="-2" max="2"/>
+			<object class="Plot" module="MotionRecorder" source="KEYTRIG" color="blue" x="0" y="0" w="8" h="4" />
+
+			<object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
+			<object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
+
+            <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="0" y="4" h="1" w="2" />
+            <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="2" y="4" h="1" w="2" />
+            <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="4" y="4" h="1" w="2" />
+            <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="6" y="4" h="1" w="2" />
+            <object class="Button" title = "Key Play"  module="MotionRecorder" parameter="keyplay" x="8" y="4" h="1" w="2" />
+            <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
+
+			<object class="Plot" module="MotionRecorder" source="ERROR" select="0" min="-0.5" max="0.5" x="0" y="5" w="8" h="4" />
+			<object class="Plot" module="MotionRecorder" source="MEAN_ERROR" x="0" y="9" w="8" h="2" max="2" />
+			<object class="Plot" module="MotionRecorder" source="TORQUE" x="0" y="11" w="8" h="2" min="-5" max="5" />
+
+            <object class="Slider" title = "D0" module="Joints" parameter="data" select="0" x="8" y="11" h="2" w="1" />
+            <_object class="Slider" title = "D1" module="Joints" parameter="data" select="1" x="9" y="11" h="2" w="1" />
+
+            <object class="Path" module="ActuatedPendulum" source="OUTPUT" color="green" line_width="3" x="8" y="5" w="4" h="4" />
+			<object class="Circle" module="ActuatedPendulum" source="WEIGHT" size="0.05" stroke_width="3" color="green" x="8" y="5" w="4" h="4" />
+
+		</view>
+
+</group>
+

@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+
+<group name="Ikaros Viewer">
+
+    <module
+        class   = "InputVideo"
+        name	= "LeftCam"
+        size_x = "640"
+        size_y = "480"
+        list_devices = "yes"
+        frame_rate = "15"
+    />
+
+
+    <_module
+        class = "SpotDetector"
+        name = "SpotDetector"
+    />
+    
+<module
+		class       = "MarkerTracker"
+		name        = "MarkerTracker"
+		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
+		max_markers	="2"
+		sort    = "no"
+       	marker_size = "0 57 60; 1000 2000 25"
+       	use_history = "no"
+        threshold = "auto"
+        frame_id = "3"
+        period ="5"
+	/>
+
+	<connection sourcemodule = "LeftCam" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" />
+
+    <module
+        class = "GazeController"
+        name = "GazeController"
+        offset = "0.01 -0.03 0.01 -0.01"
+    />
+
+    <module
+        class = "Dynamixel"
+        name = "Dynamixel"
+    	device  = "/dev/cu.usbserial-FTU7LUDO"
+        index_mode = "indirect"
+        print_info ="full"
+        feedback ="true"
+    	baud_rate = "1000000"
+    	angle_unit = "degrees"
+    	start_up_delay = "20" 	
+    	max_servo_id = "5"
+    /> 
+
+	<_connection sourcemodule = "LeftCam"   source = "INTENSITY" targetmodule = "SpotDetector"  target = "LEFT" />
+	<_connection sourcemodule = "RightCam"  source = "INTENSITY" targetmodule = "SpotDetector"  target = "RIGHT" />
+
+	<_connection sourcemodule = "GazeController"  source = "OUTPUT" targetmodule = "SpotDetector"  target = "POSITION" />
+
+	<connection sourcemodule = "MarkerTracker"  source = "MATRIX" targetmodule = "mat_to_xyz"  target = "INPUT" />
+
+    <module
+			class = "RotationConverter"
+			name = "mat_to_xyz"
+            angle_unit = "degrees"
+			input_format  = "matrix"
+			output_format  = "xyz"
+		/>
+			<connection sourcemodule = "mat_to_xyz"  source = "OUTPUT" targetmodule = "GazeController"  target = "INPUT" />
+
+
+	<_module class = "Constant" name = "TorqueEnable" outputsize = "12" data = "1 1 1 1" />
+	<_connection sourcemodule = "TorqueEnable"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_ENABLE" />
+
+    <module class = "Constant" name = "MovingSpeed" outputsize = "12" data = "0.5 0.5 0.5 0.5" />
+	<connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
+
+	<module class = "Constant" name = "TorqueLimit" outputsize = "12" data = "0.1 0.1 0.1 0.1" _data = "0 0 0 0" />
+
+	<connection sourcemodule = "TorqueLimit"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_LIMIT" />
+    <connection sourcemodule = "GazeController" source = "OUTPUT" targetmodule = "Dynamixel" target = "GOAL_POSITION" delay="0"  />
+
+    <view name="Target" object_size="25" >
+<!--
+        <object class="Switch" module="GazeController" parameter="target_override" x="0" y="12" h="2" w="3" min="0" max="2" />
+        <object class="Slider" title="X" module="GazeController" parameter="target" select="0" x="0" y="8" h="4" min="0.2" max="2"  />
+        <object class="Slider" title="Y" module="GazeController" parameter="target" select="1" x="1" y="8" h="4" min="-2" max="2" />
+        <object class="Slider" title="Z" module="GazeController" parameter="target" select="2" x="2" y="8" h="4" min="0" max="2" />
+-->
+
+        <_object class="Slider" title="g" module="GazeController" parameter="gamma" x="0" y="4" h="4" min="-2" max="3" />
+<!--
+        <object class="Switch" title="pos" module="GazeController" parameter="center_override" x="8" y="12" h="2" w="4" min="0" max="2" />
+        <object class="Slider" title="T" module="GazeController" parameter="offset" select="0" x="8" y="8" h="4" min="-0.1" max="0.1" />
+        <object class="Slider" title="P" module="GazeController" parameter="offset" select="1" x="9" y="8" h="4" min="-0.1" max="0.1" />
+        <object class="Slider" title="L" module="GazeController" parameter="offset" select="2" x="10" y="8" h="4" min="-0.1" max="0.1" />
+        <object class="Slider" title="R" module="GazeController" parameter="offset" select="3" x="11" y="8" h="4" min="-0.1" max="0.1" />
+-->
+
+        <object class="Path" title="Side" module="GazeController" source="VIEW_SIDE" flip_y_axis="yes" x="0" y="0" w="8" h="8"
+                    color="gray, gray, gray, gray, gray, yellow, yellow, yellow, red"
+                    line_width = "1, 1, 1, 1, 1, 3, 3, 3, 1"
+                    arrow = "no, no, no, no, no, no, no, no, yes"
+                    line_dash = "[1], [1], [1], [1], [1], [], [], [], [4]"
+                    line_cap = "round"
+                    />
+
+        <object class="Path" title="Top" module="GazeController" source="VIEW_TOP" flip_y_axis="yes" x="8" y="0" w="8" h="8"
+                    color ="gray, gray, gray, gray, gray, yellow, yellow, yellow, yellow, red, red"
+                    line_width = "1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1"
+                    arrow = "no, no, no, no, no, no, no, no, no, no, no"
+                    line_dash = "[1], [1], [1], [1], [1], [], [], [], [], [4], [4]"
+                    line_cap = "round"
+         />
+
+        <object class="Image" title="Left Eye" type="gray" module="LeftCam" source="INTENSITY" x="16" y="0" h="8" w="8" />
+        <object class="Cross" module="SpotDetector" source="LEFT_POS" x="16" y="0" h="8" w="8" />
+
+        <object class="Image" title="Right Eye" type="gray" module="RightCam" source="INTENSITY" x="24" y="0" h="8" w="8" />
+        <object class="Cross" module="SpotDetector" source="RIGHT_POS" x="24" y="0" h="8" w="8" />
+
+        <object class="Plot" module="SpotDetector" source="DETECTION" x="16" y="8" h="8" w="16" />
+
+    </view>
+
+</group>
+

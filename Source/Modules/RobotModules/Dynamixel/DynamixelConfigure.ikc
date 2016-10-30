@@ -22,8 +22,9 @@
     
     <parameter name="adress" type="int" default="0" description="Adress" />
     <parameter name="value" type="int" default="1" description="Value" />
-    
-    
+   
+    <parameter name="force_model" type="int" default="0" description="Force the system to detect the servoes as certain model (should only by used if servo need resetting and the model number is corrupt). See dynamixel manuals for model number (MX-28T/MX-28R : 29, AX-12/AX-12+/AX-12A	= 12, MX-106T/MX-106R = 320)" />
+
     <parameter name="reset_mode" type="bool" description="Enter reset mode. In this mode a dynamixel servo can be reseted to factory settings."/>
     <parameter name="scan_mode" type="bool" description="Enter scan mode. In this mode all available id and baud rates are scaned to find missing dynamixels."/>
     <parameter name="quick_scan" type="bool" description="If in scan mode. The module will only scan for servo with ID 0 - 20"/>
@@ -38,6 +39,7 @@
     <module class="DynamixelConfigure" />
     
     <limitation>
+    Only tested with AX-12, MX-28, MX-106.
     </limitation>
     
     <author>
