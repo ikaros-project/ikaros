@@ -5,7 +5,7 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 4;1;Baud Rate;Baud Rate of Dynamixel;RW;1;0;254;;;
 5;1;Return Delay Time;Return Delay Time;RW;250;0;254;0.2;;
 6;2;CW Angle Limit;clockwise Angle Limit;RW;0;0;1023;;;
-8;2;CCW Angle Limit; counterclockwise Angle Limit;RW;1023;0;1023;;;
+8;2;CCW Angle Limit; counterclockwise Angle Limit;RW;4095;0;4095;;;
 10;1;Drive Mode;Dual Mode Setting;RW;0;0;1;;;
 11;1;Limit Temperature;Internal Limit Temperature;RW;65;0;150;;;
 12;1;Lower Limit Voltage;Lowest Limit Voltage;RW;60;50;250;0.1;;
