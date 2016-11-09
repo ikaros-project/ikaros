@@ -51,6 +51,11 @@ Delta::Init()
 void
 Delta::Tick()
 {
+    // If inputs are not connected we do nothing
+
+    if(!cs) return;
+    if(!us) return;
+
     float US = sum(us, us_size);
     float x = dot(cs, w, cs_size);  // No clip!!!
     float R = alpha*(US-x);

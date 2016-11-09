@@ -21,8 +21,8 @@
 
     <parameter name="inverse" type="boolean" default="no" description="Set the output to delta-CR to immitate cereballar inhbition" />
 
-	<input name="CS" description="The CS input"  />
-	<input name="US" description="The US input"  />
+	<input name="CS" description="The CS input" optional="yes" />
+	<input name="US" description="The US input"  optional="yes" />
 	<output name="CR" description="The output from the module" size="1" />
 
 	<module class="Delta" />

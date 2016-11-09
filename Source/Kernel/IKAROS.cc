@@ -3047,7 +3047,7 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
         if (GetSource(group_xml, sm, sio, sm_name, s_name))
             c = Connect(group_xml, sm, sio, tm_name, t_name, delay);
         else
-            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name, s_name);
+            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name, s_name);   // TODO: Should check for indirect connections here
         
         if(c == 0)
             Notify(msg_fatal_error, "Connection target %s.%s not found.\n", tm_name, t_name);

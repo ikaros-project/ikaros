@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EyeModel" description="minimal example module">
+<group name="EyeModel" description="models an eye">
 
 	<description type="text">
         Model of two eyes with pupil control. Does almost nothing but could include a dynamical model of eye motion in the future"
@@ -18,7 +18,7 @@
 
     <parameter name="epsilon" type="float" default="0.5" description="Time constant. How fast does the pupil change size; 1 means immediately"/>
 
-    <input name="GAZE" description="The horizontal and vertical eye direction (-1..1)" />
+    <input name="GAZE" description="The horizontal and vertical eye direction (-1..1)" optional="yes" />
     <input name="PUPIL_SPHINCTER" description="The constriction input to the pupil" />
     <input name="PUPIL_DILATOR" description="The dilation input to the puptil" />
 
