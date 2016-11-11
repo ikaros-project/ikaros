@@ -291,7 +291,8 @@ private:
     
     int                period;           // How often should the module tick
     int                phase;            // Phase when the module ticks
-    
+    bool               active;           // If false, will not call Tick()
+
     Timer *            timer;            // Statistics variables
     float            time;
     float            ticks;
@@ -326,8 +327,9 @@ private:
     int                    target_offset;
     int                    size;                // The size of the data to be copied
     int                    delay;
+    bool                   active;              // When false, datat should not be propagated
     
-    Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d = 1);
+    Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a); // int d = 1, bool a = true
     ~Connection();
     
     void Propagate(long tick);
@@ -408,8 +410,8 @@ public:
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
 
-    int         Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay = 0);
-    int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay = 0);
+    int         Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay = 0, bool is_active = true);
+    int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay = 0, bool is_active = true);
     
     XMLElement *	BuildClassGroup(XMLElement * xml, const char * current_class = NULL);
     void			BuildGroup(XMLElement * xml, const char * current_class = NULL);
