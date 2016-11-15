@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="EpiGreen Body">
+<group name="EpiGreen Body">
 
 	<!-- Both motor control and forward model for the robot -->	
 	
@@ -24,6 +24,9 @@
 
 
     <!-- Body -->
+
+    <module class = "Delay" name = "B_Guard" />
+    
     <!-- No servoes in body -->
     <module class = "Constant" name = "BODY_POS" data = "
         1 0 0 0;
@@ -102,7 +105,7 @@
 
     <!-- LEFT_ARM -->
 
-    <module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
+    <_module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
 
 
      <module
@@ -113,7 +116,7 @@
         start_up_time   = "10"
     />
         <connection sourcemodule = "LA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
-		<connection sourcemodule = "LA_POS"  source = "OUTPUT" targetmodule = "LA_Guard"  target = "INPUT" delay = "0"/>
+		<_connection sourcemodule = "LA_POS"  source = "OUTPUT" targetmodule = "LA_Guard"  target = "INPUT" delay = "0"/>
 
     <module
 		class           = "ServoConnector"
@@ -161,7 +164,7 @@
 
    <!-- RIGHT_ARM -->
 
-    <module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
+    <_module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
 
      <module
         class           = "MotionGuard"
@@ -171,7 +174,7 @@
         start_up_time   = "10"
     />
         <connection sourcemodule = "RA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "REFERENCE" delay = "1"/>
-		<connection sourcemodule = "RA_POS"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "INPUT" delay = "0"/>
+		<_connection sourcemodule = "RA_POS"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "INPUT" delay = "0"/>
 
     <module
 		class           = "ServoConnector"
@@ -216,13 +219,6 @@
         output_size 	= "6"
 	/>
         <connection sourcemodule = "RightArm"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "RA_SC_FeedBackPosition"  target = "INPUT" delay = "0" />
-
-	<!--        FORWARD MODEL            -->
-	<!-- ******************************  -->
-	<!-- ******************************  -->
-	<!-- ******************************  -->
-	
-	<module class = "EpiForwardModel" name = "ForwardModel"/>
 
 </group>
 

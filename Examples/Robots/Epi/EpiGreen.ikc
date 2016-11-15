@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="EpiGreen">
+<group name="EpiGreen">
 
 <!-- This ikc file includes all the subsystems needed -->
 
@@ -24,7 +24,18 @@
 	<connection sourcemodule = "Vision"   source = "RIGHT_INTENSITY"  targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
 
 <!-- Actuators/Proprioception -->
-<_module class = "EpiGreenServos" 	name = "Servos" 		/>
+<module class = "EpiGreenServos" 	name = "Servos" 		/>
+	<connection sourcemodule = "B_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_GOAL_POSITION" />
+	<connection sourcemodule = "H_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_GOAL_POSITION" />
+	<connection sourcemodule = "LA_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_GOAL_POSITION" />
+	<connection sourcemodule = "RA_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_GOAL_POSITION" />
+
+<!-- Temp modules -->
+<module class = "Constant" name = "B_POS" data = "0 0" />
+<module class = "Constant" name = "H_POS" data = "0 0 0 0" />
+<module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
+<module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
+
 <_module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
 
 	
