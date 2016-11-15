@@ -20,7 +20,7 @@
 	
     <parameter name="list_devices" type="bool" description="List the device ids of available devices on start-up" default="no" />
     
-    <parameter name="frame_rate" type="int" default="30" description="Framerate" />
+    <parameter name="frame_rate" type="float" default="30" description="Frame rate" />
     <parameter name="id" type="int" default="0" description="id" />
 
     <output name="RED" description="The red channel." />
