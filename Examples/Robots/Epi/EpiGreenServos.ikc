@@ -15,6 +15,11 @@
     <input name="LEFT_ARM_GOAL_POSITION"      	targetmodule="LA_Guard"                	target="INPUT" />
     <input name="RIGHT_ARM_GOAL_POSITION"     	targetmodule="RA_Guard"                	target="INPUT" />
 
+    <input name="BODY_MOVING_SPEED"       		targetmodule="B_Guard"                 	target="INPUT" />
+    <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
+    <input name="LEFT_ARM_MOVING_SPEED"      	targetmodule="LeftArm"                	target="MOVING_SPEED" />
+    <input name="RIGHT_ARM_MOVING_SPEED"     	targetmodule="RightArm"                	target="MOVING_SPEED" />
+    
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
     <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_POS"                 source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
@@ -82,8 +87,8 @@
     />
     <connection sourcemodule = "H_SC_GoalPosition" source = "OUTPUT" targetmodule = "Head" target = "GOAL_POSITION" delay = "0"/>
 
-    <module class = "Constant" name = "N_MovingSpeed" data = "0.02 0.02 0.02 0.02" />
-		<connection sourcemodule = "N_MovingSpeed"  source = "OUTPUT" targetmodule = "Head"  target = "MOVING_SPEED" />
+    <_module class = "Constant" name = "N_MovingSpeed" data = "0.02 0.02 0.02 0.02" />
+		<_connection sourcemodule = "N_MovingSpeed"  source = "OUTPUT" targetmodule = "Head"  target = "MOVING_SPEED" />
 
     <module class = "Constant" name = "N_TorqueLimit" data = "0.2 0.2 0.2 0.2" />
 		<connection sourcemodule = "N_TorqueLimit"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_LIMIT" />
@@ -144,8 +149,8 @@
     />
         <connection sourcemodule = "LA_SC_GoalPosition" source = "OUTPUT" targetmodule = "LeftArm" target = "GOAL_POSITION" delay = "0"/>
 
-    <module class = "Constant" name = "LA_MovingSpeed" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-		<connection sourcemodule = "LA_MovingSpeed"  source = "OUTPUT" targetmodule = "LeftArm"  target = "MOVING_SPEED" />
+    <_module class = "Constant" name = "LA_MovingSpeed" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+		<_connection sourcemodule = "LA_MovingSpeed"  source = "OUTPUT" targetmodule = "LeftArm"  target = "MOVING_SPEED" />
     <module class = "Constant" name = "LA_TorqueLimit" data = "0.2 0.2 0.2 0.2 0.2 0.2" />
 		<connection sourcemodule = "LA_TorqueLimit"  source = "OUTPUT" targetmodule = "LeftArm"  target = "TORQUE_LIMIT" />
     <module class = "Constant" name = "LA_TorqueEnable" data = "0 0 0 0 0 0" />
@@ -202,8 +207,8 @@
     />
         <connection sourcemodule = "RA_SC_GoalPosition" source = "OUTPUT" targetmodule = "RightArm" target = "GOAL_POSITION" delay = "0"/>
 
-    <module class = "Constant" name = "RA_MovingSpeed" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-		<connection sourcemodule = "RA_MovingSpeed"  source = "OUTPUT" targetmodule = "RightArm"  target = "MOVING_SPEED" />
+    <_module class = "Constant" name = "RA_MovingSpeed" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+		<_connection sourcemodule = "RA_MovingSpeed"  source = "OUTPUT" targetmodule = "RightArm"  target = "MOVING_SPEED" />
     <module class = "Constant" name = "RA_TorqueLimit" data = "0.2 0.2 0.2 0.2 0.2 0.2" />
 		<connection sourcemodule = "RA_TorqueLimit"  source = "OUTPUT" targetmodule = "RightArm"  target = "TORQUE_LIMIT" />
     <module class = "Constant" name = "RA_TorqueEnable" data = "0 0 0 0 0 0" />

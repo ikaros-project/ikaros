@@ -27,16 +27,28 @@
 <module class = "EpiGreenServos" 	name = "Servos" 		/>
 	<connection sourcemodule = "B_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_GOAL_POSITION" />
 	<connection sourcemodule = "H_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_GOAL_POSITION" />
-	<connection sourcemodule = "LA_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_GOAL_POSITION" />
-	<connection sourcemodule = "RA_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_GOAL_POSITION" />
+	<connection sourcemodule = "LA_POS"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_GOAL_POSITION" />
+	<connection sourcemodule = "RA_POS"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_GOAL_POSITION" />
 
-<!-- Temp modules -->
+	<connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
+	<connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
+	<connection sourcemodule = "LA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_MOVING_SPEED" />
+	<connection sourcemodule = "RA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_MOVING_SPEED" />
+	
+<!-- Temp pos modules -->
 <module class = "Constant" name = "B_POS" data = "0 0" />
 <module class = "Constant" name = "H_POS" data = "0 0 0 0" />
 <module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
 
-<_module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
+<!-- Temp speed modules -->
+<module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
+<module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+		
+
+<module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
 
 	
 </group>
