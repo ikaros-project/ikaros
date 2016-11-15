@@ -19,7 +19,7 @@
 		_size_y  = "240"
 		list_devices = "yes"
 		id ="0"
-		frame_rate = "15"
+		frame_rate = "29.970030"
 		_frame_rate = "30"  
 	/>
     
