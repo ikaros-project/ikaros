@@ -67,59 +67,65 @@ MotionGuard::Tick()
 
     copy_array(output, reference, size);
     
-    if(t == 1)
+    if(t == 1) // Detta går inte! Det är inte säkert att positionen har nått motionGuard vid tick 1!!!
         start_up_position = copy_array(create_array(size), reference, size);
     
     // Clean-up input
 
     for(int i=0; i<size; i++)
-        if(input[i] != 0)
-            input_cleaned[i] = input[i];
-        else if(reference[i] != 0)
-            input_cleaned[i] = reference[i];
-        else if(start_up_position)
-            input_cleaned[i] = start_up_position[i];
-        else
-        {
-            input_cleaned[i] = 0;
-            err = true;
-        }
+    {
+        input_cleaned[i] = input[i];
+        copy_array(output, input_cleaned, size);
+
+    }
+    
+//        if(input[i] != 0)
+//            input_cleaned[i] = input[i];
+//        else if(reference[i] != 0)
+//            input_cleaned[i] = reference[i];
+//        else if(start_up_position)
+//            input_cleaned[i] = start_up_position[i];
+//        else
+//        {
+//            input_cleaned[i] = 0;
+//            err = true;
+//        }
     
     // Handle start up smoothing
     
-    if(t < start_up_time)
-    {
-        float a = float(t)/float(start_up_time);
-        for(int i=0; i<size; i++)
-            if(input_cleaned[i] != 0 && reference[i] != 0)
-                output[i] = a * input_cleaned[i] + (1-a) * reference[i];
-    }
-    else
-    {
-        copy_array(output, input_cleaned, size);
-    }
-    
+//    if(t < start_up_time)
+//    {
+//        float a = float(t)/float(start_up_time);
+//        for(int i=0; i<size; i++)
+//            if(input_cleaned[i] != 0 && reference[i] != 0)
+//                output[i] = a * input_cleaned[i] + (1-a) * reference[i];
+//    }
+//    else
+//    {
+//        copy_array(output, input_cleaned, size);
+//    }
+//    
     // Check maximum speed
     
-    float m = 0;
-    for(int i=0; i<size; i++)
-    {
-        float speed = (output[i] - reference[i]);
-        if(speed > m)
-            m = speed;
-    }
-    
-    if(m > max_speed)
-    {
-        speed_limit = true;
-        float scale = max_speed/m;
-        for(int i=0; i<size; i++)
-        {
-            float speed = (output[i] - reference[i]);
-            output[i] = reference[i] + scale * speed;
-        }
-    }
-	
+//    float m = 0;
+//    for(int i=0; i<size; i++)
+//    {
+//        float speed = (output[i] - reference[i]);
+//        if(speed > m)
+//            m = speed;
+//    }
+//    
+//    if(m > max_speed)
+//    {
+//        speed_limit = true;
+//        float scale = max_speed/m;
+//        for(int i=0; i<size; i++)
+//        {
+//            float speed = (output[i] - reference[i]);
+//            output[i] = reference[i] + scale * speed;
+//        }
+//    }
+//	
 	// Check position software limit
     if (inputLimitMin && inputLimitMax)
     {
@@ -134,18 +140,18 @@ MotionGuard::Tick()
         }
     }
 	
-    // Check zeros again
-    for(int i=0; i<size; i++)
-        if(output[i] == 0)
-            err = true;
+//    // Check zeros again
+//    for(int i=0; i<size; i++)
+//        if(output[i] == 0)
+//            err = true;
 	
 
-	if(position_limit)
-		Notify(msg_warning, "Position is out of range and has been limited.");
-	
-    if(speed_limit)
-        Notify(msg_warning, "Speed is out of range and has been limited.");
-    
+//	if(position_limit)
+//		Notify(msg_warning, "Position is out of range and has been limited.");
+//	
+//    if(speed_limit)
+//        Notify(msg_warning, "Speed is out of range and has been limited.");
+//    
     if(err)
         Notify(msg_warning, "Position array contains zeros and should not be used.");
 }
