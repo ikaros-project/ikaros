@@ -31,27 +31,20 @@ public:
     static Module * Create(Parameter * p) { return new MotionGuard(p); }
 
     MotionGuard(Parameter * p) : Module(p) {}
-    virtual ~MotionGuard();
+    virtual ~MotionGuard(){};
 
     void 		Init();
     void 		Tick();
 
-    int         start_up_time;
-    float       max_speed;
-    bool        log;
-    
+    float       max_speed;    
     int         size;
 
     float *     input;
-    float *     input_cleaned;
     float *     reference;
-    float *     start_up_position;
     float *     output;
 	
 	float *		inputLimitMin;
 	float *		inputLimitMax;
-	
-
 };
 
 #endif

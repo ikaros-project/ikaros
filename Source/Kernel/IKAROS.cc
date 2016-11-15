@@ -1377,8 +1377,8 @@ Connection::~Connection()
 void
 Connection::Propagate(long tick)
 {
-    if(!active)
-        return;
+//    if(!active)
+//        return;
     if (delay == 0)
         return;
     // Return if both modules will not start in this tick - necessary when using threads
