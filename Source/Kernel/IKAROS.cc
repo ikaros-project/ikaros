@@ -607,7 +607,7 @@ Module::GetIntValue(const char * n, int d)
 static bool
 tobool(const char * v, bool d = false)
 {
-    if (!v) return false;
+    if (!v) return d;
     if (!strcmp(v, "true")) return true;
     if (!strcmp(v, "True")) return true;
     if (!strcmp(v, "TRUE")) return true;
@@ -1377,8 +1377,8 @@ Connection::~Connection()
 void
 Connection::Propagate(long tick)
 {
-//    if(!active)
-//        return;
+    if(!active)
+        return;
     if (delay == 0)
         return;
     // Return if both modules will not start in this tick - necessary when using threads
@@ -2629,7 +2629,7 @@ Kernel::ListModulesAndConnections()
     for (Module * m = modules; m != NULL; m = m->next)
     {
         //		Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
-        Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->GetFullName(), m->class_name, m->period, m->phase);
+        Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
             if(i->data)
                 Notify(msg_print, "    %-10s\t(Input) \t%6d%6d%12p\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
@@ -2643,20 +2643,23 @@ Kernel::ListModulesAndConnections()
     Notify(msg_print, "\n");
     for (Connection * c = connections; c != NULL; c = c->next)
         if (c->delay == 0)
-            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d)\n",
+            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name, 0, c->source_io->size-1,
                    c->target_io->module->instance_name, c->target_io->name, 0, c->source_io->size-1,
-                   c->delay);
+                   c->delay,
+                   c->active ? "" : "[inactive]");
         else if (c->size > 1)
-            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d)\n",
+            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name, c->source_offset, c->source_offset+c->size-1,
                    c->target_io->module->instance_name, c->target_io->name, c->target_offset, c->target_offset+c->size-1,
-                   c->delay);
+                   c->delay,
+                   c->active ? "" : "[inactive]");
         else
-            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d)\n",
+            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name, c->source_offset,
                    c->target_io->module->instance_name, c->target_io->name, c->target_offset,
-                   c->delay);
+                   c->delay,
+                   c->active ? "" : "[inactive]");
     Notify(msg_print, "\n");
 }
 
