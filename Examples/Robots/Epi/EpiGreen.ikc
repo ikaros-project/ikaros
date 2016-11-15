@@ -48,7 +48,7 @@
 <module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 		
 
-<module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
+<_module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
 
 	
 </group>
