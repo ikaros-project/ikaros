@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group title="RotationConverter Example">
+	
+        <module
+            class = "Constant"
+            name = "Array16"
+            data  = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16;"
+		/>
+	
+        <module
+            class = "Constant"
+            name = "Array32"
+            data  = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32;"
+		/>
+
+        <module
+            class = "Constant"
+            name = "Matrix4x4"
+            data  = "1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 15 16;"
+		/>
+
+		<module
+			class = "DataConverter"
+			name = "Array16_to_4x4"
+            output_size_x = "4"
+            output_size_y = "4"
+		/>
+            <connection sourcemodule = "Array16" source = "OUTPUT" targetmodule = "Array16_to_4x4" target = "INPUT" />
+
+		<module
+			class = "DataConverter"
+			name = "Array32_to_16x2"
+            output_size_x = "16"
+            output_size_y = "2"
+		/>
+            <connection sourcemodule = "Array32" source = "OUTPUT" targetmodule = "Array32_to_16x2" target = "INPUT" />
+
+		<module
+			class = "DataConverter"
+			name = "Matrix4x4_to_16"
+            output_size_x = "16"
+            output_size_y = "1"
+		/>
+            <connection sourcemodule = "Matrix4x4" source = "OUTPUT" targetmodule = "Matrix4x4_to_16" target = "INPUT" />
+
+
+		<view name="View">
+			<object class="Table" module="Array16"          source="OUTPUT" x="0" y="0" w = "4" decimals ="0" />
+			<object class="Table" module="Array32"          source="OUTPUT" x="0" y="1" w = "4" decimals ="0"/>
+			<object class="Table" module="Matrix4x4"        source="OUTPUT" x="0" y="2" w = "4" decimals ="0"/>
+
+			<object class="Table" module="Array16_to_4x4"   source="OUTPUT" x="4" y="0" w = "4" decimals ="0"/>
+			<object class="Table" module="Array32_to_16x2"  source="OUTPUT" x="4" y="1" w = "4" decimals ="0"/>
+			<object class="Table" module="Matrix4x4_to_16"  source="OUTPUT" x="4" y="2" w = "4" decimals ="0"/>
+		</view>
+
+</group>
+ 
