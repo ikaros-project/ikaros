@@ -20,9 +20,8 @@
 <module class = "EpiGreenVision" 	name = "Vision" 		/>
 
 <module class = "EpiGreenDetectors" name = "Detectors" 		/>
-	<connection sourcemodule = "Vision"   source = "LEFT_EYE_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
-	<connection sourcemodule = "Vision"   source = "RIGHT_EYE_INTENSITY"   targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
-
+	<connection sourcemodule = "Vision"   source = "LEFT_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
+	<connection sourcemodule = "Vision"   source = "RIGHT_INTENSITY"  targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
 
 <!-- Actuators/Proprioception -->
 <_module class = "EpiGreenServos" 	name = "Servos" 		/>

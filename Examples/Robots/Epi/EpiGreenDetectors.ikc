@@ -7,22 +7,32 @@
         Only one camera!
 	 </description>
 
-    <_input name = "LEFT_RED"      		targetmodule = "LEFT_EYE"                source = "RED" />
-    <_input name = "LEFT_GREEN"    		targetmodule = "LEFT_EYE"                source = "GREEN" />
-    <_input name = "LEFT_BLUE"     		targetmodule = "LEFT_EYE"                source = "BLUE" />
-    <input name = "LEFT_INTENSITY"    	targetmodule = "L_FaceDetector"            source = "INPUT" />
-    <input name = "LEFT_INTENSITY"    	targetmodule = "L_MarkerTracker"           source = "INPUT" />
+    <_input name = "LEFT_RED"      		targetmodule = "LEFT_EYE"                target = "RED" />
+    <_input name = "LEFT_GREEN"    		targetmodule = "LEFT_EYE"                target = "GREEN" />
+    <_input name = "LEFT_BLUE"     		targetmodule = "LEFT_EYE"                target = "BLUE" />
+    <input name = "LEFT_INTENSITY"    	targetmodule = "L_FaceDetector"          target = "INPUT" />
+    <input name = "LEFT_INTENSITY"    	targetmodule = "L_MarkerTracker"         target = "INPUT" />
 
-    <_input name = "RIGHT_RED"      	targetmodule = "RIGHT_EYE"               source = "RED" />
-    <_input name = "RIGHT_GREEN"    	targetmodule = "RIGHT_EYE"               source = "GREEN" />
-    <_input name = "RIGHT_BLUE"     	targetmodule = "RIGHT_EYE"               source = "BLUE" />
-    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"            source = "INPUT" />
-    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"           source = "INPUT" />
+    <_input name = "RIGHT_RED"      	targetmodule = "RIGHT_EYE"               target = "RED" />
+    <_input name = "RIGHT_GREEN"    	targetmodule = "RIGHT_EYE"               target = "GREEN" />
+    <_input name = "RIGHT_BLUE"     	targetmodule = "RIGHT_EYE"               target = "BLUE" />
+    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"          target = "INPUT" />
+    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"         target = "INPUT" />
 
     <!-- Detectors -->
-    <module class = "MPIFaceDetector" name = "L_FaceDetector" period ="1000"/>
-    <module class = "MPIFaceDetector" name = "R_FaceDetector" period ="1000"/>
-
+    <module
+        class = "CIFaceDetector"
+        name = "L_FaceDetector"
+        min_size = "0.0"
+        use_tracking = "yes"
+    />
+    <module
+    	class = "CIFaceDetector"
+        name = "R_FaceDetector"
+        min_size = "0.0"
+        use_tracking = "yes"
+    />
+	
 	<module
 		class       = "MarkerTracker"
 		name        = "L_MarkerTracker"
