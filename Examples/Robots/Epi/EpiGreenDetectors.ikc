@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<group title="Vision">
+
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+        Only one camera!
+	 </description>
+
+    <_input name = "LEFT_RED"      		targetmodule = "LEFT_EYE"                source = "RED" />
+    <_input name = "LEFT_GREEN"    		targetmodule = "LEFT_EYE"                source = "GREEN" />
+    <_input name = "LEFT_BLUE"     		targetmodule = "LEFT_EYE"                source = "BLUE" />
+    <input name = "LEFT_INTENSITY"    	targetmodule = "L_FaceDetector"            source = "INPUT" />
+    <input name = "LEFT_INTENSITY"    	targetmodule = "L_MarkerTracker"           source = "INPUT" />
+
+    <_input name = "RIGHT_RED"      	targetmodule = "RIGHT_EYE"               source = "RED" />
+    <_input name = "RIGHT_GREEN"    	targetmodule = "RIGHT_EYE"               source = "GREEN" />
+    <_input name = "RIGHT_BLUE"     	targetmodule = "RIGHT_EYE"               source = "BLUE" />
+    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"            source = "INPUT" />
+    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"           source = "INPUT" />
+
+    <!-- Detectors -->
+    <module class = "MPIFaceDetector" name = "L_FaceDetector" period ="1000"/>
+    <module class = "MPIFaceDetector" name = "R_FaceDetector" period ="1000"/>
+
+	<module
+		class       = "MarkerTracker"
+		name        = "L_MarkerTracker"
+		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
+		max_markers	= "1"
+		sort    	= "no"
+       	marker_size = "75"
+       	use_history = "yes"
+        threshold 	= "auto"
+        frame_id 	= "3"
+        output_unit = "m"
+	/>
+
+	<module
+		class       = "MarkerTracker"
+		name        = "R_MarkerTracker"
+		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
+		max_markers	= "1"
+		sort    	= "no"
+       	marker_size = "75"
+       	use_history = "yes"
+        threshold 	= "auto"
+        frame_id 	= "3"
+        output_unit = "m"
+	/>
+
+</group>
+ 

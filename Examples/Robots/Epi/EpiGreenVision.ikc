@@ -4,23 +4,34 @@
 
     <description>
         WARNING. These modules is under development and can be change anytime!
+        Only one camera!
 	 </description>
 
+    <output name="L_E_RED"      	sourcemodule="LEFT_EYE"                source="RED" />
+    <output name="L_E_GREEN"    	sourcemodule="LEFT_EYE"                source="GREEN" />
+    <output name="L_E_BLUE"     	sourcemodule="LEFT_EYE"                source="BLUE" />
+    <output name="L_E_INTENSITY"    sourcemodule="LEFT_EYE"                source="INTENSITY" />
+
+    <output name="R_E_RED"      	sourcemodule="LEFT_EYE"                source="RED" /> <!-- Should be RIGHT -->
+    <output name="R_E_GREEN"    	sourcemodule="LEFT_EYE"                source="GREEN" />
+    <output name="R_E_BLUE"     	sourcemodule="LEFT_EYE"                source="BLUE" />
+    <output name="R_E_INTENSITY"    sourcemodule="LEFT_EYE"                source="INTENSITY" />
+ 
+
+    
+    
     <!-- FOCUS is realtion to camera. FIX This! --> 
     <output name="FOCUS" sourcemodule="MarkerTracker" source="MATRIX" />
 
     <!-- Vision -->
 	<module
-		class   = "InputVideo"
-		name	= "CAMERA"			
-		size_x  = "640"
-		size_y  = "480"
-		_size_x  = "320"
-		_size_y  = "240"
-		list_devices = "yes"
-		id ="0"
-		frame_rate = "29.970030"
-		_frame_rate = "30"  
+		class   		= "InputVideo"
+		name			= "LEFT_EYE"			
+		size_x  		= "640"
+		size_y  		= "480"
+		list_devices 	= "no"
+		id 				= "0"
+		frame_rate 		= "29.970030"
 	/>
     
     <!-- Detectors -->
