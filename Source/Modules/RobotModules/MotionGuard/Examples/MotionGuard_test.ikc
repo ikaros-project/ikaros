@@ -1,57 +1,35 @@
 <?xml version="1.0"?>
 
-<group title="MotionRecorder">
-
-         <_module
-            class = "Dynamixel"
-            name = "Joints"
-            device  = "/dev/cu.usbserial-A7005Lxn"
-            index_mode = "indirect"
-            printf_info ="minimal"
-            use_feedback ="true"
-            baud_rate = "1000000"
-            angle_unit = "tau"
-        />
-
+<group name="MotionRecorder">
+    
         <module
             class = "Constant"
-            name = "Joints"
+            name = "JointsReference"
             data = "0.5 0.5"
         />
-
+        
+        <module
+            class = "Randomizer"
+            name = "Joints"
+            outputsize_x = "2"
+            outputsize_y = "1"
+            minimum     = "0"
+            maximum = "1"
+        />
+        
  		<module
-			class = "MotionRecorder"
-			name = "MotionRecorder"
-            mask = "1 1 1 1 1  1"
-            torque = "0.25 0.25 0.25 0.25 0.25"
-            filename = "/Users/cba/Desktop/motion.%d.mot"
+			class = "MotionGuard"
+			name = "MotionGuard"
+            input_limit_min = "0.1 0.1"
+            input_limit_max = "0.9 0.9"
+            
 		/>
 
-        <_connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "GOAL_POSITION" />
-        <_connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Joints" target = "TORQUE_LIMIT" />
-        <_connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Joints" target = "TORQUE_ENABLE" />
-
-        <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
+        <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionGuard" target = "INPUT" />
+        <connection sourcemodule = "JointsReference" source = "OUTPUT" targetmodule = "MotionGuard" target = "REFERENCE" />
 
 		<view name="View" object_size="50">
-			<object class="Plot" module="Joints" source="OUTPUT" color="green" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
-			<object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
-			<object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
-			<object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
-
-            <object class="Button" title = "Off" module="MotionRecorder" parameter="off" x="10" y="0" h="1" w="2" />
-            <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="10" y="1" h="1" w="2" />
-            <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="10" y="2" h="1" w="2" />
-            <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="10" y="3" h="1" w="2" />
-            <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
-            <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="10" y="5" h="1" w="2" />
-
-			<object class="Plot" module="MotionRecorder" source="ERROR" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" min="-1" nax="1" x="0" y="5" w="8" h="4" />
-			<object class="Plot" module="MotionRecorder" source="MEAN_ERROR" x="0" y="9" w="8" h="2" />
-			<object class="Plot" module="MotionRecorder" source="TORQUE" x="0" y="11" w="8" h="2" />
-
-            <object class="Slider" title = "D0" module="Joints" parameter="data" select="0" x="8" y="11" h="2" w="1" />
-            <object class="Slider" title = "D1" module="Joints" parameter="data" select="1" x="9" y="11" h="2" w="1" />
+			<object class="Table" module="MotionGuard" source="OUTPUT" x="0" y="0" w="8" h="4" />
 		</view>
 
 </group>

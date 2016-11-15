@@ -29,78 +29,29 @@ void
 MotionGuard::Init()
 {
     Bind(max_speed, "max_speed");
-    Bind(log, "log");
     
-    start_up_time = GetIntValue("start_up_time");
+    input           = GetInputArray("INPUT");
+    reference       = GetInputArray("REFERENCE");
+    size            = GetInputSize("INPUT");
     
-    input = GetInputArray("INPUT");
-    reference = GetInputArray("REFERENCE");
-    size = GetInputSize("INPUT");
-    start_up_position = NULL;
-    input_cleaned = create_array(size);
-    output = GetOutputArray("OUTPUT");
+    output          = GetOutputArray("OUTPUT");
 
-	inputLimitMin = GetArray("input_limit_min", size);
-	inputLimitMax = GetArray("input_limit_max", size);
-	Notify(msg_print,"MOTION GUARD ACTIVE\n");
+	inputLimitMin   = GetArray("input_limit_min", size);
+	inputLimitMax   = GetArray("input_limit_max", size);
+	
+    Notify(msg_print,"MOTION GUARD ACTIVE\n");
 }
-
-
-
-MotionGuard::~MotionGuard()
-{
-    destroy_array(start_up_position);
-}
-
 
 
 void
 MotionGuard::Tick()
 {
-    bool err = false;
     bool speed_limit = false;
 	bool position_limit = false;
 	
-    long t = GetTick();
-
-    // Set default output = current position (until neutral position parameter is added)
-
-    copy_array(output, reference, size);
-    
-    if(t == 1)
-        start_up_position = copy_array(create_array(size), reference, size);
-    
-    // Clean-up input
-
-    for(int i=0; i<size; i++)
-        if(input[i] != 0)
-            input_cleaned[i] = input[i];
-        else if(reference[i] != 0)
-            input_cleaned[i] = reference[i];
-        else if(start_up_position)
-            input_cleaned[i] = start_up_position[i];
-        else
-        {
-            input_cleaned[i] = 0;
-            err = true;
-        }
-    
-    // Handle start up smoothing
-    
-    if(t < start_up_time)
-    {
-        float a = float(t)/float(start_up_time);
-        for(int i=0; i<size; i++)
-            if(input_cleaned[i] != 0 && reference[i] != 0)
-                output[i] = a * input_cleaned[i] + (1-a) * reference[i];
-    }
-    else
-    {
-        copy_array(output, input_cleaned, size);
-    }
+    copy_array(output, input, size);
     
     // Check maximum speed
-    
     float m = 0;
     for(int i=0; i<size; i++)
     {
@@ -108,7 +59,6 @@ MotionGuard::Tick()
         if(speed > m)
             m = speed;
     }
-    
     if(m > max_speed)
     {
         speed_limit = true;
@@ -133,24 +83,12 @@ MotionGuard::Tick()
                 output[i] = inputLimitMax[i];
         }
     }
-	
-    // Check zeros again
-    for(int i=0; i<size; i++)
-        if(output[i] == 0)
-            err = true;
-	
 
 	if(position_limit)
 		Notify(msg_warning, "Position is out of range and has been limited.");
 	
     if(speed_limit)
         Notify(msg_warning, "Speed is out of range and has been limited.");
-    
-    if(err)
-        Notify(msg_warning, "Position array contains zeros and should not be used.");
 }
 
-
-
 static InitClass init("MotionGuard", &MotionGuard::Create, "Source/Modules/RobotModules/MotionGuard/");
-
