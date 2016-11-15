@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<group title="EpiGreen">
+
+<!-- This ikc file includes all the subsystems needed -->
+
+<!-- 			HIGH LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+
+
+<!-- 			LOW LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!-- Sensors -->
+<module class = "EpiGreenVision" 	name = "Vision" 		/>
+<_module class = "EpiGreenDetectors" name = "Detectors" 		/>
+
+
+<!-- Actuators/Proprioception -->
+<_module class = "EpiGreenServos" 	name = "Servos" 		/>
+<_module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
+
+	
+</group>
+
