@@ -19,6 +19,8 @@
     <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"          target = "INPUT" />
     <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"         target = "INPUT" />
 
+
+
     <!-- Detectors -->
     <module
         class = "CIFaceDetector"

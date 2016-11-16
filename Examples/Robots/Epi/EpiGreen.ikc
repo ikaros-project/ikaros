@@ -9,12 +9,6 @@
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
-<input  name="TARGET"               targetmodule="GazeController"           target="INPUT" />
-
-<!-- Attention Gaze -->
-<module class = "GazeController" name = "GazeController" offset = "0 0 0 0" angle_unit = "degrees" />
-	<connection sourcemodule = "GazeController" source = "OUTPUT" targetmodule = "GuardNeckEyes" target = "INPUT" delay="1" />
-
 
 <module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
 	<_connection sourcemodule = "Servos"   		source = "PUPIL_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
@@ -22,6 +16,51 @@
 	<connection sourcemodule = "Servos"   		source = "HEAD_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   		source = "LEFT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   		source = "RIGHT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "RIGHT_ARM_FEEDBACK_POSITION" />
+
+
+<!-- TEMP -->
+
+<module class = "Constant" name = "FaceDetector" 		data = "1 1"/>
+<module class = "Constant" name = "MarkerTracker" 		data = "2 2"/>
+
+
+<!-- Focus -->
+<!-- Where should Epi Look at -->
+<module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
+	<!-- MarkerTracker -->
+	<connection sourcemodule = "MarkerTracker"   	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
+	<!-- FaceDetector -->
+	<connection sourcemodule = "FaceDetector"   	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
+	<connection sourcemodule = "FaceDetectorValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+
+<!-- Values -->
+<module class = "Constant" name = "MarkerTrackerValue" 	data = "0.7"/>
+<module class = "Constant" name = "FaceDetectorValue" 	data = "0.5"/>
+
+
+<!-- Motor Control -->
+
+<!-- Head/Eyes -->
+<!-- Only Neck and Eyes -->
+<module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" />
+	<connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
+<!-- Output need to be have all outputs? -->
+
+
+<!-- Do nothing -->
+<!-- Dance -->
+
+<!-- What should Epi move -->
+<module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "1"/>
+	<connection sourcemodule = "HighLevelGazeController" source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
+	<connection sourcemodule = "HighLevelGazeControllerValue" source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_1"/>
+
+<!-- Values -->
+<module class = "Constant" name = "HighLevelGazeControllerValue" 	data = "0.5"/>
+
+<!-- Value High Level -->
+<module class = "Constant" name = "HighLevelMotorArbiterValue" data = "0.5"/>
 
 
 <!-- 			LOW LEVEL 				-->
@@ -61,9 +100,11 @@
 <module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 <module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 		
+		
+		
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1"/>
+	<connection sourcemodule = "HighLevelMotorArbiter"   		source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "HighLevelMotorArbiterValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
 
-
-
-	
 </group>
 
