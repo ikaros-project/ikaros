@@ -14,7 +14,10 @@
     <_input name="FEEDBACK_POSITION" targetmodule="L4B_R1Rot"   target="INPUT" />
 
     <output name="MODEL_ID"     sourcemodule="MODEL_ID"     source="OUTPUT" />
-    <output name="OUTPUT"       sourcemodule="JOIN_ARRAYS"  source="OUTPUT" />
+    <output name="OUTPUT"       sourcemodule="JOIN_ARRAYS"  source="OUTPUT" /> <!-- Model -->
+    
+    <output name="SENSORS"      sourcemodule="JOIN_ARRAYS"  source="OUTPUT" /> <!-- Sensors-->
+    
 
     <!-- output not working in the same way as connects -->
 	<module class = "DataConverter" name = "JOIN_ARRAYS" output_size_x = "16" output_size_y = "6"/>
