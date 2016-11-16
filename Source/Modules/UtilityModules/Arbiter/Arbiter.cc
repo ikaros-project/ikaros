@@ -1,7 +1,7 @@
 //
 //    Arbiter.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2006-2014 Christian Balkenius
+//    Copyright (C) 2006-2016 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -68,22 +68,31 @@ Arbiter::~Arbiter()
 void
 Arbiter::SetSizes()
 {
-    int s = 0;
+    int sx = 0;
+    int sy = 0;
 
     for(int i=0; i<no_of_inputs; i++)
     {
-        int si = GetInputSize(input_name[i]);
+        int sxi = GetInputSizeX(input_name[i]);
+        int syi = GetInputSizeY(input_name[i]);
 
-        if(si == unknown_size)
+        if(sxi == unknown_size)
             return; // Not ready yet
 
-        if(s != 0 && si != 0 && s != si)
+        if(syi == unknown_size)
+            return; // Not ready yet
+
+        if(sx != 0 && sxi != 0 && sx != sxi)
+            Notify(msg_fatal_error, "Inputs have different sizes");
+
+        if(sy != 0 && syi != 0 && sy != syi)
             Notify(msg_fatal_error, "Inputs have different sizes");
         
-        s = si;
+        sx = sxi;
+        sy = syi;
     }
 
-    SetOutputSize("OUTPUT", s);
+    SetOutputSize("OUTPUT", sx, sy);
     SetOutputSize("VALUE", 1);
 }
 
