@@ -2632,11 +2632,11 @@ Kernel::ListModulesAndConnections()
         Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
             if(i->data)
-                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d%12p\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
+                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
             else
                 Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name);
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d%12p\t(%d)\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
+            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
         Notify(msg_print, "\n");
     }
     Notify(msg_print, "Connections:\n");
