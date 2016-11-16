@@ -25,12 +25,14 @@
         name = "L_FaceDetector"
         min_size = "0.0"
         use_tracking = "yes"
+        period = "5"
     />
     <module
     	class = "CIFaceDetector"
         name = "R_FaceDetector"
         min_size = "0.0"
         use_tracking = "yes"
+        period = "5"
     />
 	
 	<module

@@ -9,6 +9,19 @@
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
+<input  name="TARGET"               targetmodule="GazeController"           target="INPUT" />
+
+<!-- Attention Gaze -->
+<module class = "GazeController" name = "GazeController" offset = "0 0 0 0" angle_unit = "degrees" />
+	<connection sourcemodule = "GazeController" source = "OUTPUT" targetmodule = "GuardNeckEyes" target = "INPUT" delay="1" />
+
+
+<module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
+	<_connection sourcemodule = "Servos"   		source = "PUPIL_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
+	<_connection sourcemodule = "Servos"   		source = "BODY_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   		source = "HEAD_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   		source = "LEFT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   		source = "RIGHT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "RIGHT_ARM_FEEDBACK_POSITION" />
 
 
 <!-- 			LOW LEVEL 				-->
@@ -34,6 +47,7 @@
 	<connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
 	<connection sourcemodule = "LA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_MOVING_SPEED" />
 	<connection sourcemodule = "RA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_MOVING_SPEED" />
+
 	
 <!-- Temp pos modules -->
 <module class = "Constant" name = "B_POS" data = "0 0" />
@@ -48,7 +62,7 @@
 <module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 		
 
-<_module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
+
 
 	
 </group>
