@@ -9,6 +9,17 @@
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
+<!-- Sensor -> Ego --> 
+<module class="Transform"   name="SensorToEgo" />
+    <connection sourcemodule = "Detectors"       source = "MATRIX"       targetmodule = "SensorToEgo" target = "MATRIX_1"    delay = "0"/>
+    <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorToEgo" target = "OBJECT_ID_1" delay = "0"/>
+    <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorToEgo" target = "FRAME_ID_1"  delay = "0"/>
+    <connection sourcemodule = "RightArm"       source = "POINTS"       targetmodule = "SensorToEgo" target = "MATRIX_2"    delay = "0"/>
+    <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "SensorToEgo" target = "OBJECT_ID_2" delay = "0"/>
+    <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "SensorToEgo" target = "FRAME_ID_2"  delay = "0"/>
+
+
+
 
 <!-- TEMP -->
 <module class = "Constant" name = "FaceDetector" 		data = "1 1"/>
@@ -63,8 +74,14 @@
 <module class = "EpiGreenVision" 	name = "Vision" 		/>
 
 <module class = "EpiGreenDetectors" name = "Detectors" 		/>
-	<connection sourcemodule = "Vision"   source = "LEFT_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
-	<connection sourcemodule = "Vision"   source = "RIGHT_INTENSITY"  targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
+	<connection sourcemodule = "Vision"   source = "LEFT_RED"           targetmodule = "Detectors"  target = "LEFT_RED" />
+	<connection sourcemodule = "Vision"   source = "LEFT_GREEN"         targetmodule = "Detectors"  target = "LEFT_GREEN" />
+	<connection sourcemodule = "Vision"   source = "LEFT_BLUE"          targetmodule = "Detectors"  target = "LEFT_BLUE" />
+	<connection sourcemodule = "Vision"   source = "LEFT_INTENSITY"     targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
+	<connection sourcemodule = "Vision"   source = "RIGHT_RED"          targetmodule = "Detectors"  target = "RIGHT_RED" />
+	<connection sourcemodule = "Vision"   source = "RIGHT_GREEN"        targetmodule = "Detectors"  target = "RIGHT_GREEN" />
+	<connection sourcemodule = "Vision"   source = "RIGHT_BLUE"         targetmodule = "Detectors"  target = "RIGHT_BLUE" />
+	<connection sourcemodule = "Vision"   source = "RIGHT_INTENSITY"    targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
 
 <!-- Actuators/Proprioception -->
 <module class = "EpiGreenServos" 	name = "Servos" 		/>
