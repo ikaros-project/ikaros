@@ -2,27 +2,27 @@
 
 <group name="EpiGreen Servos">
 	
-    <input name="BODY_GOAL_POSITION"       		targetmodule="B_Guard"                 	target="INPUT" /> <!--trash it -->
+    <input name="BODY_GOAL_POSITION"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_GOAL_POSITION"       		targetmodule="H_Guard"                 	target="INPUT" />
     <input name="LEFT_ARM_GOAL_POSITION"      	targetmodule="LA_Guard"                	target="INPUT" />
     <input name="RIGHT_ARM_GOAL_POSITION"     	targetmodule="RA_Guard"                	target="INPUT" />
-    <input name="PUPIL_GOAL_POSITION"       	targetmodule="P_Guard"                 	target="INPUT" /> <!--trash it -->
+    <input name="PUPIL_GOAL_POSITION"       	targetmodule="NotAvailable"             target="INPUT" /> 
 
-    <input name="BODY_MOVING_SPEED"       		targetmodule="B_Guard"                 	target="INPUT" /> <!--trash it -->
+    <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
     <input name="LEFT_ARM_MOVING_SPEED"      	targetmodule="LeftArm"                	target="MOVING_SPEED" />
     <input name="RIGHT_ARM_MOVING_SPEED"     	targetmodule="RightArm"                	target="MOVING_SPEED" />
-    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="P_Guard"                 	target="INPUT" /> <!--trash it -->
+    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="NotAvailable"             target="INPUT" /> 
 
-    <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_POS"                 source="OUTPUT" />
+    <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
     <output name="LEFT_ARM_FEEDBACK_POSITION"   sourcemodule="LA_SC_FeedBackPosition"   source="OUTPUT" />
     <output name="RIGHT_ARM_FEEDBACK_POSITION"  sourcemodule="RA_SC_FeedBackPosition"   source="OUTPUT" />
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
+    <module class = "Delay" name = "NotAvailable" />
 
     <!-- Body -->
-    <module class = "Delay" name = "B_Guard" />
     <!-- No servoes in body -->
     <module class = "Constant" name = "BODY_FEEBACK" data = "0 0"/> 
 
@@ -208,7 +208,6 @@
 
 
 	<!-- Pupil -->
-    <module class = "Delay" name = "P_Guard" />
     <!-- No Pupil -->
     <module class = "Constant" name = "P_OPEN" data = "8 8" /> <!-- mm -->
 </group>

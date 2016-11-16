@@ -6,32 +6,12 @@
         WARNING. These modules is under development and can be change anytime!
 	 </description>
     
-    <input name="BODY_FEEDBACK_POSITION" targetmodule="Body" target="FEEDBACK_POSITION" />
-    <input name="BODY_FEEDBACK_POSITION" targetmodule="Body" target="FEEDBACK_POSITION" />
+    <input name="BODY_FEEDBACK_POSITION" 		targetmodule="Body" 	target="FEEDBACK_POSITION" />
+    <input name="HEAD_FEEDBACK_POSITION" 		targetmodule="Head" 	target="FEEDBACK_POSITION" />
+    <input name="LEFT_ARM_FEEDBACK_POSITION" 	targetmodule="LeftArm" 	target="FEEDBACK_POSITION" />
+    <input name="RIGHT_ARM_FEEDBACK_POSITION" 	targetmodule="RightArm" target="FEEDBACK_POSITION" />
+    <input name="PUPIL_FEEDBACK_POSITION"   	targetmodule="Head" 	target="PUPIL_FEEDBACK_POSITION" />
 
-    <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
-    <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
-    <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
-    <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
-    <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
-    <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
-
-    <input name="LEFT_ARM_FEEDBACK_POSITION" targetmodule="LeftArm" target="FEEDBACK_POSITION" />
-    <input name="LEFT_ARM_FEEDBACK_POSITION" targetmodule="LeftArm" target="FEEDBACK_POSITION" />
-    <input name="LEFT_ARM_FEEDBACK_POSITION" targetmodule="LeftArm" target="FEEDBACK_POSITION" />
-    <input name="LEFT_ARM_FEEDBACK_POSITION" targetmodule="LeftArm" target="FEEDBACK_POSITION" />
-    <input name="LEFT_ARM_FEEDBACK_POSITION" targetmodule="LeftArm" target="FEEDBACK_POSITION" />
-    <input name="LEFT_ARM_FEEDBACK_POSITION" targetmodule="LeftArm" target="FEEDBACK_POSITION" />
-
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
-
-    <input name="PUPIL_FEEDBACK_POSITION"   targetmodule="Pupil" target="FEEDBACK_POSITION" />
-    <input name="PUPIL_FEEDBACK_POSITION"   targetmodule="Pupil" target="FEEDBACK_POSITION" />
 
 	<!-- Model Only used in webUI -->
     <output name="MODEL_ID"     	sourcemodule="JOIN_MODEL_ID" 	source="OUTPUT" />
@@ -146,30 +126,30 @@
 	<!-- SENSORS -->
     <!-- Body -> Head --> 
     <module class="Transform"   name="SensorBodyHead" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyHead" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyHead" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyHead" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "BodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "BodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "BodyHead" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "SensorBodyHead" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorBodyHead" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorBodyHead" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "SensorBodyHead" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
 
 	<!-- POINTS -->
 	<!-- Body -> Left Arm --> 
     <module class="Transform"   name="PointsBodyLeftArm" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyLeftArm" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyLeftArm" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyLeftArm" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "LeftArm"        source = "POINTS"       targetmodule = "BodyLeftArm" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "LeftArmID"      source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "LeftArmFrame"   source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "PointsBodyLeftArm" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "PointsBodyLeftArm" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "PointsBodyLeftArm" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "LeftArm"        source = "POINTS"       targetmodule = "PointsBodyLeftArm" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "LeftArmID"      source = "OUTPUT"       targetmodule = "PointsBodyLeftArm" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "LeftArmFrame"   source = "OUTPUT"       targetmodule = "PointsBodyLeftArm" target = "FRAME_ID_2"  delay = "0"/>
     <!-- Body -> Right Arm --> 
     <module class="Transform"   name="PointsBodyRightArm" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyRightArm" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyRightArm" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyRightArm" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "RightArm"       source = "POINTS"       targetmodule = "BodyRightArm" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "BodyRightArm" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "BodyRightArm" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "PointsBodyRightArm" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "PointsBodyRightArm" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "PointsBodyRightArm" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "RightArm"       source = "POINTS"       targetmodule = "PointsBodyRightArm" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "PointsBodyRightArm" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "PointsBodyRightArm" target = "FRAME_ID_2"  delay = "0"/>
 
 </group>
  

@@ -5,6 +5,7 @@
     <description>
         WARNING. These modules is under development and can be change anytime!
 	 </description>
+    <input name = "FEEDBACK_POSITION" targetmodule = "NotAvailable"    target = "INPUT" />
 
     <output name="OUTPUT"       sourcemodule="JOIN"                 source="OUTPUT" />
     <output name="MODEL_ID"     sourcemodule="MODEL_ID"             source="OUTPUT" />
@@ -18,6 +19,9 @@
 	<module class = "DataConverter" name = "JOIN" output_size_x = "16" output_size_y = "2"/>
         <connection sourcemodule = "M_L1_R1"   source = "OUTPUT" targetmodule = "JOIN"  target = "INPUT" />
         <connection sourcemodule = "L1_R1"     source = "OUTPUT" targetmodule = "JOIN"  target = "INPUT" />
+    
+    
+    <module class = "Delay" name = "NotAvailable" />
 
 
     <!-- Body -->

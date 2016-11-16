@@ -13,6 +13,10 @@
     <_input name = "FEEDBACK_POSITION" targetmodule = "L4A_R1Rot"   target = "INPUT" />
     <_input name = "FEEDBACK_POSITION" targetmodule = "L4B_R1Rot"   target = "INPUT" />
 
+    <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
+    <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
+
+
     <output name = "MODEL_ID"     sourcemodule = "MODEL_ID"     source = "OUTPUT" /> <!-- Model ID  -->
     <output name = "OUTPUT"       sourcemodule = "M_JOIN"       source = "OUTPUT" /> <!-- Model     -->
     <output name = "SENSORS"      sourcemodule = "S_JOIN"       source = "OUTPUT" /> <!-- Sensors   -->
@@ -31,6 +35,10 @@
         <connection sourcemodule = "M_L2_R1"    source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
         <connection sourcemodule = "M_L1_R1"    source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
      
+     
+	<module class = "Delay" name = "NotAvailable" />
+
+
     <!-- Model IDs -->
     <module class = "Constant" name = "MODEL_ID" data = "2 3 5 5 11 11" />
 
