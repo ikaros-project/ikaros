@@ -16,6 +16,15 @@
     <output name="MODEL_ID"     sourcemodule="MODEL_ID"     source="OUTPUT" />
     <output name="OUTPUT"       sourcemodule="JOIN_ARRAYS"  source="OUTPUT" />
 
+    <!-- Points -->
+    <!-- Fingers -->
+    <output name="POINTS"       sourcemodule="P_JOIN"  source="OUTPUT" />
+
+	<module class = "DataConverter" name = "P_JOIN" output_size_x = "16" output_size_y = "3"/>
+        <connection sourcemodule = "M_P3_T1"    source = "OUTPUT"   targetmodule = "P_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_P2_T1"    source = "OUTPUT"   targetmodule = "P_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_P1_T1"    source = "OUTPUT"   targetmodule = "P_JOIN"  target = "INPUT" />
+
 
 	<module class = "DataConverter" name = "JOIN_ARRAYS" output_size_x = "16" output_size_y = "6"/>
         <connection sourcemodule = "M_L6_T1"    source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"  target = "INPUT" />
@@ -235,4 +244,49 @@
     <module class="MatrixMultiply"   name="M_L6_T1" />
         <connection sourcemodule="M_L6_R1"      source="OUTPUT"     targetmodule = "M_L6_T1" target="INPUT1" delay = "0"/>
         <connection sourcemodule="L6_T1"        source="OUTPUT"     targetmodule = "M_L6_T1" target="INPUT2" delay = "0"/>
+
+
+
+    <!-- POINTS --> 
+    <module class = "Constant" name = "P1_T1" 
+	data = "
+	1 0 0 0.1;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+    <!-- Multiply -->
+    <module class="MatrixMultiply"   name="M_P1_T1" />
+        <connection sourcemodule="P1_T1"      source="OUTPUT"     targetmodule = "M_P1_T1" target="INPUT1" delay = "0"/>
+        <connection sourcemodule="M_L6_T1"        source="OUTPUT"     targetmodule = "M_P1_T1" target="INPUT2" delay = "0"/>
+
+    <module class = "Constant" name = "P2_T1" 
+	data = "
+	1 0 0 0.1;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+    <!-- Multiply -->
+    <module class="MatrixMultiply"   name="M_P2_T1" />
+        <connection sourcemodule="P2_T1"      source="OUTPUT"     targetmodule = "M_P2_T1" target="INPUT1" delay = "0"/>
+        <connection sourcemodule="M_L6_T1"        source="OUTPUT"     targetmodule = "M_P2_T1" target="INPUT2" delay = "0"/>
+
+    <module class = "Constant" name = "P3_T1" 
+	data = "
+	1 0 0 0.1;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+    <!-- Multiply -->
+    <module class="MatrixMultiply"   name="M_P3_T1" />
+        <connection sourcemodule="P3_T1"      source="OUTPUT"     targetmodule = "M_P3_T1" target="INPUT1" delay = "0"/>
+        <connection sourcemodule="M_L6_T1"        source="OUTPUT"     targetmodule = "M_P3_T1" target="INPUT2" delay = "0"/>
+
+
+
 </group>

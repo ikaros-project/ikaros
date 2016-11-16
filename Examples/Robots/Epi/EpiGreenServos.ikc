@@ -1,61 +1,42 @@
 <?xml version="1.0"?>
 
-<group name="EpiGreen Body">
-
-	<!-- Both motor control and forward model for the robot -->	
+<group name="EpiGreen Servos">
 	
-	<!--        MOTOR CONTROL            -->
-	<!-- ******************************  -->
-	<!-- ******************************  -->
-	<!-- ******************************  -->
-	
-	
-    <input name="BODY_GOAL_POSITION"       		targetmodule="B_Guard"                 	target="INPUT" />
+    <input name="BODY_GOAL_POSITION"       		targetmodule="B_Guard"                 	target="INPUT" /> <!--trash it -->
     <input name="HEAD_GOAL_POSITION"       		targetmodule="H_Guard"                 	target="INPUT" />
     <input name="LEFT_ARM_GOAL_POSITION"      	targetmodule="LA_Guard"                	target="INPUT" />
     <input name="RIGHT_ARM_GOAL_POSITION"     	targetmodule="RA_Guard"                	target="INPUT" />
+    <input name="PUPIL_GOAL_POSITION"       	targetmodule="P_Guard"                 	target="INPUT" /> <!--trash it -->
 
-    <input name="BODY_MOVING_SPEED"       		targetmodule="B_Guard"                 	target="INPUT" />
+    <input name="BODY_MOVING_SPEED"       		targetmodule="B_Guard"                 	target="INPUT" /> <!--trash it -->
     <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
     <input name="LEFT_ARM_MOVING_SPEED"      	targetmodule="LeftArm"                	target="MOVING_SPEED" />
     <input name="RIGHT_ARM_MOVING_SPEED"     	targetmodule="RightArm"                	target="MOVING_SPEED" />
-    
-    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
+    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="P_Guard"                 	target="INPUT" /> <!--trash it -->
+
     <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_POS"                 source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
     <output name="LEFT_ARM_FEEDBACK_POSITION"   sourcemodule="LA_SC_FeedBackPosition"   source="OUTPUT" />
     <output name="RIGHT_ARM_FEEDBACK_POSITION"  sourcemodule="RA_SC_FeedBackPosition"   source="OUTPUT" />
-
+    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
 
     <!-- Body -->
-
     <module class = "Delay" name = "B_Guard" />
-    
     <!-- No servoes in body -->
-    <module class = "Constant" name = "BODY_POS" data = "
-        1 0 0 0;
-        0 1 0 0;
-        0 0 1 0;
-        0 0 0 1;"
-    />
-
-	<!-- Pupil -->
-    <!-- No Pupil -->
-
-    <module class = "Constant" name = "P_OPEN" data = "8 8" /> <!-- mm -->
+    <module class = "Constant" name = "BODY_FEEBACK" data = "0 0"/> 
 
     <!-- Head -->
     <!-- Modules in dynamixel format -->
     <_module class = "Constant" name = "H_POS" data = "0 0 0 0" />
     
 	<module
-        class = "MotionGuard"
-        name = "H_Guard"
-        max_speed = "100"
+        class           = "MotionGuard"
+        name            = "H_Guard"
+        max_speed       = "100"
         input_limit_min = "-60 -115 -12 -29"
         input_limit_max = "65 110 30 11"
-        start_up_time = "10"
+        start_up_time   = "10"
     />
         <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
 		<_connection sourcemodule = "H_POS"  source = "OUTPUT" targetmodule = "H_Guard"  target = "INPUT" delay = "0"/>
@@ -63,11 +44,11 @@
   <module
 		class="ServoConnector"
 		name="H_SC_GoalPosition"
-		connector   =   "1 2 3 4"
-        pre_inverted     =   "0 1 0 0" 
-        post_inverted    =   "0 0 0 0" 
-        offset      =   "180 180 180 180" 
-        output_size =   "4"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 1 0 0" 
+        post_inverted   = "0 0 0 0" 
+        offset          = "180 180 180 180" 
+        output_size     = "4"
 	/>
         <connection sourcemodule = "H_Guard"  source = "OUTPUT" targetmodule = "H_SC_GoalPosition"  target = "INPUT" delay = "0"/>
 
@@ -100,11 +81,11 @@
     <module
 		class="ServoConnector"
 		name="H_SC_FeedBackPosition"
-		connector   =   "1 2 3 4"
-        pre_inverted     =   "0 0 0 0" 
-        post_inverted    =   "0 1 0 0" 
-        offset      =   "-180 -180 -180 -180" 
-        output_size =   "4"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 0 0 0" 
+        post_inverted   = "0 1 0 0" 
+        offset          = "-180 -180 -180 -180" 
+        output_size     = "4"
 	/>
         <connection sourcemodule = "Head"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "H_SC_FeedBackPosition"  target = "INPUT" delay = "0"/>
 
@@ -127,8 +108,8 @@
 		class           = "ServoConnector"
 		name            = "LA_SC_GoalPosition"
 		connector       = "1 2 3 4 5 6"
-        pre_inverted     =   "0 0 0 0 0 0" 
-        post_inverted    =   "0 0 0 0 0 0" 
+        pre_inverted    = "0 0 0 0 0 0" 
+        post_inverted   = "0 0 0 0 0 0" 
         offset          = "180 180 180 180 180 180" 
         output_size     = "6"
 	/>
@@ -159,11 +140,11 @@
     <module
 		class="ServoConnector"
 		name="LA_SC_FeedBackPosition"
-		connector   = "1 2 3 4 5 6"
-        pre_inverted     =   "0 0 0 0 0 0" 
-    	post_inverted    =   "0 0 0 0 0 0" 
-        offset      = "-180 -180 -180 -180 -180 -180" 
-        output_size = "6"
+		connector       = "1 2 3 4 5 6"
+        pre_inverted    = "0 0 0 0 0 0" 
+    	post_inverted   = "0 0 0 0 0 0" 
+        offset          = "-180 -180 -180 -180 -180 -180" 
+        output_size     = "6"
 	/>
         <connection sourcemodule = "LeftArm"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "LA_SC_FeedBackPosition"  target = "INPUT" delay = "0"/>
 
@@ -225,5 +206,10 @@
 	/>
         <connection sourcemodule = "RightArm"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "RA_SC_FeedBackPosition"  target = "INPUT" delay = "0" />
 
+
+	<!-- Pupil -->
+    <module class = "Delay" name = "P_Guard" />
+    <!-- No Pupil -->
+    <module class = "Constant" name = "P_OPEN" data = "8 8" /> <!-- mm -->
 </group>
 

@@ -5,9 +5,10 @@
     <description>
         WARNING. These modules is under development and can be change anytime!
 	 </description>
-
-    <!-- Add Body feedback here  -->
     
+    <input name="BODY_FEEDBACK_POSITION" targetmodule="Body" target="FEEDBACK_POSITION" />
+    <input name="BODY_FEEDBACK_POSITION" targetmodule="Body" target="FEEDBACK_POSITION" />
+
     <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
     <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
     <input name="HEAD_FEEDBACK_POSITION" targetmodule="Head" target="FEEDBACK_POSITION" />
@@ -29,22 +30,21 @@
     <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
     <input name="RIGHT_ARM_FEEDBACK_POSITION" targetmodule="RightArm" target="FEEDBACK_POSITION" />
 
-    <!-- Add Pupil feedback here  -->
+    <input name="PUPIL_FEEDBACK_POSITION"   targetmodule="Pupil" target="FEEDBACK_POSITION" />
+    <input name="PUPIL_FEEDBACK_POSITION"   targetmodule="Pupil" target="FEEDBACK_POSITION" />
 
-
-
-	<!-- Only used in webUI -->
+	<!-- Model Only used in webUI -->
     <output name="MODEL_ID"     	sourcemodule="JOIN_MODEL_ID" 	source="OUTPUT" />
     <output name="MODEL_MATRIX" 	sourcemodule="JOIN_ARRAYS" 		source="OUTPUT" />
 
 	<!-- Points -->
 	<!-- Points good to know. Right now 3 points in each hand. -->
-    <output name="POINTS_MATRIX" 	sourcemodule="JOIN_ARRAYS" source="OUTPUT" />
+    <output name="POINTS_MATRIX" 	sourcemodule="P_JOIN" source="OUTPUT" />
 
 	<!-- Sensors -->
 	<!-- Left Eye 	-->
 	<!-- Right Eye 	-->
-    <output name="SENSOR_MATRIX" 	sourcemodule="JOIN_ARRAYS" source="OUTPUT" />
+    <output name="SENSOR_MATRIX" 	sourcemodule="SensorBodyHead" source="MATRIX" />
 
 	
 	<!-- MODEL -->
@@ -63,7 +63,12 @@
         <connection sourcemodule = "BodyHead"       source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x6 -->
         <connection sourcemodule = "PosBody"        source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x2 --> <!-- 1: Same as Epi-pos but x up -->
         <connection sourcemodule = "Epi_pos"        source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x1 -->
-
+    
+    <!-- Points -->
+    <!-- output not working in the same way as connects -->
+    <module class = "DataConverter" name = "P_JOIN" output_size_x = "16" output_size_y = "6"/>
+        <connection sourcemodule = "PointsBodyRightArm"        source = "MATRIX"   targetmodule = "P_JOIN" target = "INPUT" />
+        <connection sourcemodule = "PointsBodyLeftArm"         source = "MATRIX"   targetmodule = "P_JOIN" target = "INPUT" />
 
     <!-- Forward models -->
     <!-- Unit is m -->
@@ -113,7 +118,7 @@
         <connection sourcemodule = "Body"           source = "OUTPUT"       targetmodule = "PosBody" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "BodyID"         source = "OUTPUT"       targetmodule = "PosBody" target = "OBJECT_ID_2" delay = "0"/>
         <connection sourcemodule = "BodyFrame"      source = "OUTPUT"       targetmodule = "PosBody" target = "FRAME_ID_2"  delay = "0"/>
-     <!-- Body -> Head --> 
+    <!-- Body -> Head --> 
     <module class="Transform"   name="BodyHead" />
         <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyHead" target = "MATRIX_1"    delay = "0"/>
         <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyHead" target = "OBJECT_ID_1" delay = "0"/>
@@ -129,7 +134,7 @@
         <connection sourcemodule = "LeftArm"        source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "LeftArmID"      source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "OBJECT_ID_2" delay = "0"/>
         <connection sourcemodule = "LeftArmFrame"   source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "FRAME_ID_2"  delay = "0"/>
-    <!-- Body -> Left Arm --> 
+    <!-- Body -> Right Arm --> 
     <module class="Transform"   name="BodyRightArm" />
         <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyRightArm" target = "MATRIX_1"    delay = "0"/>
         <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyRightArm" target = "OBJECT_ID_1" delay = "0"/>
@@ -137,13 +142,34 @@
         <connection sourcemodule = "RightArm"       source = "OUTPUT"       targetmodule = "BodyRightArm" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "BodyRightArm" target = "OBJECT_ID_2" delay = "0"/>
         <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "BodyRightArm" target = "FRAME_ID_2"  delay = "0"/>
-
-
+  
 	<!-- SENSORS -->
-	<!-- Left Eye -->
-	<!-- Right Eye -->
+    <!-- Body -> Head --> 
+    <module class="Transform"   name="SensorBodyHead" />
+        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyHead" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyHead" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyHead" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "BodyHead" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "BodyHead" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "BodyHead" target = "FRAME_ID_2"  delay = "0"/>
 
 	<!-- POINTS -->
-	
+	<!-- Body -> Left Arm --> 
+    <module class="Transform"   name="PointsBodyLeftArm" />
+        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyLeftArm" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyLeftArm" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyLeftArm" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "LeftArm"        source = "POINTS"       targetmodule = "BodyLeftArm" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "LeftArmID"      source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "LeftArmFrame"   source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "FRAME_ID_2"  delay = "0"/>
+    <!-- Body -> Right Arm --> 
+    <module class="Transform"   name="PointsBodyRightArm" />
+        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyRightArm" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyRightArm" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyRightArm" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "RightArm"       source = "POINTS"       targetmodule = "BodyRightArm" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "BodyRightArm" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "BodyRightArm" target = "FRAME_ID_2"  delay = "0"/>
+
 </group>
  

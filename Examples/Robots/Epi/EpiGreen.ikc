@@ -93,11 +93,11 @@
 		
 	
 <module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
-	<_connection sourcemodule = "Servos"   		source = "PUPIL_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
-	<_connection sourcemodule = "Servos"   		source = "BODY_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
-	<connection sourcemodule = "Servos"   		source = "HEAD_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
-	<connection sourcemodule = "Servos"   		source = "LEFT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" />
-	<connection sourcemodule = "Servos"   		source = "RIGHT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "RIGHT_ARM_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   	source = "LEFT_ARM_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   	source = "RIGHT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "RIGHT_ARM_FEEDBACK_POSITION" />
+	<connection sourcemodule = "Servos"   	source = "PUPIL_FEEDBACK_POSITION"      targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
 
 		
 <module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1"/>
