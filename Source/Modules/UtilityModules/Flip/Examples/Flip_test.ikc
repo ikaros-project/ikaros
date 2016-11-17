@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group name="Flip Demo">
+	
+		<module class = "Constant" name = "C" data="1 2; 4 5" />
+	
+		<module
+			class = "Flip"
+			name = "Flip1"
+			type = "up-down"
+		/>
+
+		<module
+			class = "Flip"
+			name = "Flip2"
+			type = "left-right"
+		/>
+
+		<module
+			class = "Flip"
+			name = "Flip3"
+			type = "none"
+		/>
+
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip1" target="INPUT" />
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip2" target="INPUT" />
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip3" target="INPUT" />
+
+		<view name="View">
+			<object class="Grid" title="Input" module="C" source="OUTPUT" max="5" x="0" y="0" />
+			<object class="Grid" title="Flip: up-down" module="Flip1" source="OUTPUT" max="5" x="1" y="0" />
+			<object class="Grid" title="Flip: left-right" module="Flip2" source="OUTPUT" max="5" x="2" y="0" />
+            <object class="Grid" title="Flip: none" module="Flip3" source="OUTPUT" max="5" x="3" y="0" />
+		</view>
+</group>
+ 
