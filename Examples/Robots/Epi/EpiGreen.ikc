@@ -33,30 +33,6 @@
 0 0 1 0.5 
 0 0 0 1"/>
 
-<!-- World coordinates -->
-<!-- Detector output in different world coordinates -->
-<!-- This will be improved later -->
-<module class="EpiGreenDetectorsGlobal"     name="DetectorsGlobal" />
-	<_connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
-	<_connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
-	<connection sourcemodule = "Detectors"   	source = "L_MARKER" targetmodule = "DetectorsGlobal"  target = "L_MARKER" />
-	<connection sourcemodule = "Detectors"   	source = "R_MARKER" targetmodule = "DetectorsGlobal"  target = "R_MARKER" />
-	<connection sourcemodule = "ForwardModel"   source = "SENSOR_MATRIX"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
-
-<!-- Egocentric coordinates -->
-<module class="EpiGreenDetectorsEgo"        name="DetectorsEgo" />
-	<_connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
-	<_connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
-	<connection sourcemodule = "Detectors"   	source = "L_MARKER" targetmodule = "DetectorsGlobal"  target = "L_MARKER" />
-	<connection sourcemodule = "Detectors"   	source = "R_MARKER" targetmodule = "DetectorsGlobal"  target = "R_MARKER" />
-	<connection sourcemodule = "ForwardModel"   source = "SENSOR_MATRIX"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
-
-<!-- Sensor coordinates -->
-<!-- Left eye -->
-
-<!-- Right eye -->
-
-
 
 
 <!-- Focus -->
@@ -70,7 +46,7 @@
 	<connection sourcemodule = "Manual"   	    source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
 	<connection sourcemodule = "ManualValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
 	<!-- MarkerTracker (Left) -->
-	<connection sourcemodule = "DetectorsGlobal"   	source = "L_MARKER_GLOB"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
+	<connection sourcemodule = "Detectors"   	source = "L_MARKER_EGO"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
 	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
 	
 <!-- Values -->
