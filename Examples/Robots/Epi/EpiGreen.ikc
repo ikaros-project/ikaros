@@ -95,6 +95,17 @@
 	<connection sourcemodule = "Vision"   source = "RIGHT_BLUE"         targetmodule = "Detectors"  target = "RIGHT_BLUE" />
 	<connection sourcemodule = "Vision"   source = "RIGHT_INTENSITY"    targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
 
+	<connection sourcemodule = "EgoID"          source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_ID" />
+	<connection sourcemodule = "EgoFrameID"     source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_FRAME_ID" />
+	<connection sourcemodule = "WorldID"        source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_ID" />
+	<connection sourcemodule = "WorldFrameID"   source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_FRAME_ID" />
+
+	<connection sourcemodule = "ForwardModel"   source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "SENSORS_POS_EGO" />
+	<connection sourcemodule = "EpiPosition"    source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
+
+
+
+
 <!-- Actuators/Proprioception -->
 <module class = "EpiGreenServos" 	name = "Servos" 		/>
 	<connection sourcemodule = "B_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_GOAL_POSITION" />

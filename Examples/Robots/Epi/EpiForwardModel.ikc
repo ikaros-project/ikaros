@@ -24,7 +24,7 @@
 	<!-- Sensors -->
 	<!-- Left Eye 	-->
 	<!-- Right Eye 	-->
-    <output name="SENSOR_MATRIX" 	sourcemodule="SensorBodyHead" source="MATRIX" />
+    <output name="SENSOR_POS_EGO" 	sourcemodule="SensorBodyHead" source="MATRIX" />
 
 	
 	<!-- MODEL -->
