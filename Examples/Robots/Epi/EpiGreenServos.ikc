@@ -74,7 +74,7 @@
     <module class = "Constant" name = "N_TorqueLimit" data = "0.2 0.2 0.2 0.2" />
 		<connection sourcemodule = "N_TorqueLimit"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_LIMIT" />
 
-    <module class = "Constant" name = "N_TorqueEnable" data = "1 1 1 1" />
+    <module class = "Constant" name = "N_TorqueEnable" data = "0 0 0 0" />
 		<connection sourcemodule = "N_TorqueEnable"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_ENABLE" />
 
 

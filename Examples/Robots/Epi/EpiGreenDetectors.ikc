@@ -17,9 +17,9 @@
     <input name = "EGO_ID"      	    targetmodule = "R_MarkerEgo"           target = "OBJECT_ID_1"/>
     <input name = "EGO_FRAME_ID"      	targetmodule = "R_MarkerEgo"           target = "FRAME_ID_1" />
     <input name = "EGO_ID"      	    targetmodule = "R_MarkerEgo"           target = "FRAME_ID_2"/>
-    <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "OBJECT_ID_1"/>
-    <input name = "WORLD_FRAME_ID"      targetmodule = "L_MarkerWorld"         target = "FRAME_ID_1" />
-    <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "FRAME_ID_2"/>
+    <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "OBJECT_ID_1"/>
+    <input name = "WORLD_FRAME_ID"      targetmodule = "R_MarkerWorld"         target = "FRAME_ID_1" />
+    <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "FRAME_ID_2"/>
 
     <input name = "SENSORS_POS_EGO"     targetmodule = "L_Camera_Sensor"        target = "INPUT" />
     <input name = "SENSORS_POS_EGO"     targetmodule = "R_Camera_Sensor"        target = "INPUT" />
@@ -152,14 +152,32 @@
         <connection sourcemodule = "R_MarkerEgo"        source = "MATRIX"       targetmodule = "R_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
 
-    <view name = "Check outputs"> 
-        <object class = "Table" x="0" y="0" h="3" w="3" module = "L_MarkerTracker"  source = "MATRIX" font_size = "30"/>
-        <object class = "Table" x="0" y="3" h="3" w="3" module = "L_MarkerEgo"      source = "MATRIX" font_size = "30"/>
-        <object class = "Table" x="0" y="6" h="3" w="3" module = "L_MarkerWorld"    source = "MATRIX" font_size = "30"/>
 
-        <object class = "Table" x="3" y="0" h="3" w="3" module = "R_MarkerTracker"  source = "MATRIX" font_size = "30"/>
-        <object class = "Table" x="3" y="3" h="3" w="3" module = "R_MarkerEgo"      source = "MATRIX" font_size = "30"/>
-        <object class = "Table" x="3" y="6" h="3" w="3" module = "R_MarkerWorld"    source = "MATRIX" font_size = "30"/>
+	<module class = "DataConverter" name = "L_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"    targetmodule = "L_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "L_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "L_MarkerEgo"    source = "MATRIX"    targetmodule = "L_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "L_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "L_MarkerWorld"    source = "MATRIX"    targetmodule = "L_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+	
+	
+	<module class = "DataConverter" name = "R_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"    targetmodule = "R_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "R_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "R_MarkerEgo"    source = "MATRIX"    targetmodule = "R_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "R_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "R_MarkerWorld"    source = "MATRIX"    targetmodule = "R_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+	
+
+
+    <view name = "Check outputs"> 
+        <object class = "Table" x="0" y="0" h="2" w="3" module = "L_MarkerTracker_MAT"  source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="0" y="2" h="2" w="3" module = "L_MarkerEgo_MAT"      source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="0" y="4" h="2" w="3" module = "L_MarkerWorld_MAT"    source = "OUTPUT" font_size = "20"/>
+
+        <object class = "Table" x="3" y="0" h="2" w="3" module = "R_MarkerTracker_MAT"  source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="3" y="2" h="2" w="3" module = "R_MarkerEgo_MAT"      source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="3" y="4" h="2" w="3" module = "R_MarkerWorld_MAT"    source = "OUTPUT" font_size = "20"/>
     </view>
 
 </group>

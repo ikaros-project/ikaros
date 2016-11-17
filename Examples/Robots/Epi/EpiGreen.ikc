@@ -7,10 +7,10 @@
 <!-- SENSOR:    300 -->
 
 
-<module class = "Constant" name = "World_ID"        data = "100"/>
-<module class = "Constant" name = "World_Frame_ID"  data = "100"/>
-<module class = "Constant" name = "Ego_ID"          data = "200"/>
-<module class = "Constant" name = "Ego_Frame_ID"    data = "200"/>
+<module class = "Constant" name = "WorldID"        data = "100"/>
+<module class = "Constant" name = "WorldFrameID"  data = "100"/>
+<module class = "Constant" name = "EgoID"          data = "200"/>
+<module class = "Constant" name = "EgoFrameID"    data = "200"/>
 
 
 <!-- This ikc file includes all the subsystems needed -->
@@ -61,7 +61,7 @@
 
 <!-- Head/Eyes -->
 <!-- Only Neck and Eyes -->
-<module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" />
+<module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
 	<connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
 
 
@@ -101,7 +101,7 @@
 	<connection sourcemodule = "WorldFrameID"   source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_FRAME_ID" />
 
 	<connection sourcemodule = "ForwardModel"   source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "SENSORS_POS_EGO" />
-	<connection sourcemodule = "EpiPosition"    source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
+	<connection sourcemodule = "EpiPosition"    source = "OUTPUT"   		targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
 
 
 

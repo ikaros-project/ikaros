@@ -38,8 +38,8 @@
     <!-- LINK 1: TRANS 1: Translation to origo (Center of arm joints) --> 
     <module class = "Constant" name = "L1_T1" 
 	data = "
-	1 0 0 0.7;
-	0 1 0 0;
+	1 0 0 1.53;
+	0 1 0 -0.10;
 	0 0 1 0;
 	0 0 0 1;
 	" />

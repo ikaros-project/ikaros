@@ -80,7 +80,7 @@
     <!-- LINK 2: Joint 1 to Joint 2 -->
     <module class = "Constant" name = "L2_T1" 
 	data = "
-	1 0 0 0.148;
+	1 0 0 0.088;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -167,11 +167,11 @@
         <connection sourcemodule = "L3B_R1"       source = "OUTPUT"     targetmodule = "M_L3B_R1" target = "INPUT2" delay = "0"/>
 
     <!-- To pupils -->
-    <!-- LINK 4: Trans 1: Translation to pupil  --> 
+    <!-- LINK 4: Trans 1: Translation from Joint 2 to pupil  --> 
     <module class = "Constant" name = "L4_T1" 
 	data = "
-	1 0 0 0.0;
-	0 1 0 0.03;
+	1 0 0 0.03;
+	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" />
@@ -187,7 +187,7 @@
         <connection sourcemodule = "L4_T1"          source = "OUTPUT"     targetmodule = "M_L4B_T1" target = "INPUT2" delay = "0"/>
 
 
-    <module class = "Constant"    name = "L4_R1Rot"  data = "-90" />
+    <module class = "Constant"    name = "L4_R1Rot"  data = "90" />
     <module class = "RotationConverter" name = "L4_R1_C" input_format = "axayaz" output_format = "matrix" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L4_R1_C"  target = "INPUT" />
         <connection sourcemodule = "L4_R1Rot"   source = "OUTPUT" targetmodule = "L4_R1_C"  target = "INPUT" />
