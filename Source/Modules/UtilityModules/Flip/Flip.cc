@@ -39,21 +39,41 @@ Flip::Init()
 void
 Flip::Tick()
 {
-    if(type == 0)
+    switch(type)
     {
-        for(int j=0; j<size_y; j++)
-            copy_array(output[size_y-j-1], input[j], size_x);
-    }
+        default:
+        case 0: // none
+            copy_matrix(output, input, size_x, size_y);
+            break;
+            
+        case 1: // up-down
+            for(int j=0; j<size_y; j++)
+                copy_array(output[size_y-j-1], input[j], size_x);
+            break;
+ 
+        case 2: // left-right
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
+                    output[j][size_x-i-1] = input[j][i];
+            break;
 
-    else if(type == 1)
-    {
-        for(int j=0; j<size_y; j++)
-            for(int i=0; i<size_x; i++)
-                output[j][size_x-i-1] = input[j][i];
-    }
-    else // none
-    {
-        copy_matrix(output, input, size_x, size_y);
+        case 3: // rotate-left
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
+                    output[size_x-i-1][j] = input[j][i];
+            break;
+
+        case 4: // rotate-right
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
+                    output[i][size_y-j-1] = input[j][i];
+            break;
+
+        case 5: // rotate-180
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
+                    output[size_y-j-1][size_x-i-1] = input[j][i];
+            break;
     }
 }
 
