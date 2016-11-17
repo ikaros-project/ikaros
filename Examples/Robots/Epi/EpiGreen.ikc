@@ -2,63 +2,97 @@
 
 <group name="EpiGreen">
 
+<!-- WORLD:     100 -->
+<!-- EPI/EGO:   200 -->
+<!-- SENSOR:    300 -->
+
+
+<module class = "Constant" name = "World_ID"        data = "100"/>
+<module class = "Constant" name = "World_Frame_ID"  data = "100"/>
+<module class = "Constant" name = "Ego_ID"          data = "200"/>
+<module class = "Constant" name = "Ego_Frame_ID"    data = "200"/>
+
+
 <!-- This ikc file includes all the subsystems needed -->
+<module class = "Constant" name = "EpiPosition" data = "
+1 0 0 0
+0 1 0 0 
+0 0 1 0 
+0 0 0 1"/>
+
 
 <!-- 			HIGH LEVEL 				-->
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
-<!-- Sensors in Global Coordinates -->
+<!-- Set a manual focus point -->
+<module class = "Constant" name = "Manual" data = "
+1 0 0 1
+0 1 0 0 
+0 0 1 0.5 
+0 0 0 1"/>
+
+<!-- World coordinates -->
+<!-- Detector output in different world coordinates -->
 <!-- This will be improved later -->
-<module class="EpiGreenDetectorsGlobal"   name="DetectorsGlobal" />
+<module class="EpiGreenDetectorsGlobal"     name="DetectorsGlobal" />
 	<_connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
 	<_connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
 	<connection sourcemodule = "Detectors"   	source = "L_MARKER" targetmodule = "DetectorsGlobal"  target = "L_MARKER" />
 	<connection sourcemodule = "Detectors"   	source = "R_MARKER" targetmodule = "DetectorsGlobal"  target = "R_MARKER" />
 	<connection sourcemodule = "ForwardModel"   source = "SENSOR_MATRIX"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
 
+<!-- Egocentric coordinates -->
+<module class="EpiGreenDetectorsEgo"        name="DetectorsEgo" />
+	<_connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
+	<_connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
+	<connection sourcemodule = "Detectors"   	source = "L_MARKER" targetmodule = "DetectorsGlobal"  target = "L_MARKER" />
+	<connection sourcemodule = "Detectors"   	source = "R_MARKER" targetmodule = "DetectorsGlobal"  target = "R_MARKER" />
+	<connection sourcemodule = "ForwardModel"   source = "SENSOR_MATRIX"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
 
-<!-- TEMP -->
-<module class = "Constant" name = "Manual" 		data = 
-"1 0 0 1 0 1 0 0 0 0 1 0 0 0 0 1"/>
+<!-- Sensor coordinates -->
+<!-- Left eye -->
+
+<!-- Right eye -->
+
+
 
 
 <!-- Focus -->
 <!-- Where should Epi Look at -->
-<module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
-	<!-- MarkerTracker -->
-	<connection sourcemodule = "DetectorsGlobal"   	source = "L_MARKER_GLOB"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
-	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
-	<!-- FaceDetector -->
-	<connection sourcemodule = "Manual"   	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
-	<connection sourcemodule = "ManualValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+<!-- ************************ -->
+<!-- ************************ -->
+<!-- ************************ -->
 
+<module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
+    <!-- Manual -->
+	<connection sourcemodule = "Manual"   	    source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "ManualValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
+	<!-- MarkerTracker (Left) -->
+	<connection sourcemodule = "DetectorsGlobal"   	source = "L_MARKER_GLOB"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
+	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+	
 <!-- Values -->
 <module class = "Constant" name = "MarkerTrackerValue" 	data = "0.7"/>
 <module class = "Constant" name = "ManualValue" 		data = "0.5"/>
     
 
-<_module class="RotationConverter" name="MatToXYZ" input_format = "matrix" output_format = "xyz" />
-	<_connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "MatToXYZ" target = "INPUT"/>
-
-
 <!-- Motor Control -->
+<!-- ************************ -->
+<!-- ************************ -->
+<!-- ************************ -->
 
 <!-- Head/Eyes -->
 <!-- Only Neck and Eyes -->
 <module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" />
 	<connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
-<!-- Output need to be have all outputs? -->
 
-
-<!-- Do nothing -->
-<!-- Dance -->
 
 <!-- What should Epi move -->
 <module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "1"/>
-	<connection sourcemodule = "HighLevelGazeController" source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
-	<connection sourcemodule = "HighLevelGazeControllerValue" source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_1"/>
+	<connection sourcemodule = "HighLevelGazeController"        source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
+	<connection sourcemodule = "HighLevelGazeControllerValue"   source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_1"/>
 
 <!-- Values -->
 <module class = "Constant" name = "HighLevelGazeControllerValue" 	data = "0.5"/>
