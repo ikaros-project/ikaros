@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 
-<group name="Vision">
+<group name="Detectors">
 
     <description>
         WARNING. These modules is under development and can be change anytime!
-        Only one camera!
 	 </description>
 
     <!-- Position and orientation of all the sensors -->

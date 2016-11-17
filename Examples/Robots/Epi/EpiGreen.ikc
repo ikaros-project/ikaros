@@ -9,14 +9,14 @@
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
-<!-- Sensor -> Ego --> 
-<module class="Transform"   name="SensorToEgo" />
-    <connection sourcemodule = "Detectors"       source = "MATRIX"       targetmodule = "SensorToEgo" target = "MATRIX_1"    delay = "0"/>
-    <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorToEgo" target = "OBJECT_ID_1" delay = "0"/>
-    <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorToEgo" target = "FRAME_ID_1"  delay = "0"/>
-    <connection sourcemodule = "RightArm"       source = "POINTS"       targetmodule = "SensorToEgo" target = "MATRIX_2"    delay = "0"/>
-    <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "SensorToEgo" target = "OBJECT_ID_2" delay = "0"/>
-    <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "SensorToEgo" target = "FRAME_ID_2"  delay = "0"/>
+<!-- Sensors in Global Coordinates -->
+<!-- This will be improved later -->
+<module class="EpiGreenDetectorsGlobal"   name="DetectorsGlobal" />
+	<connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
+	<connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
+	<connection sourcemodule = "Detectors"   	source = "L_MARKER" targetmodule = "DetectorsGlobal"  target = "L_MARKER" />
+	<connection sourcemodule = "Detectors"   	source = "R_MARKER" targetmodule = "DetectorsGlobal"  target = "R_MARKER" />
+	<connection sourcemodule = "ForwardModel"   source = "SENSORS"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
 
 
 
