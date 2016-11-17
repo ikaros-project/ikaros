@@ -12,33 +12,35 @@
 <!-- Sensors in Global Coordinates -->
 <!-- This will be improved later -->
 <module class="EpiGreenDetectorsGlobal"   name="DetectorsGlobal" />
-	<connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
-	<connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
+	<_connection sourcemodule = "Detectors"   	source = "L_FACE"   targetmodule = "DetectorsGlobal"  target = "L_FACE" />
+	<_connection sourcemodule = "Detectors"   	source = "R_FACE"   targetmodule = "DetectorsGlobal"  target = "R_FACE" />
 	<connection sourcemodule = "Detectors"   	source = "L_MARKER" targetmodule = "DetectorsGlobal"  target = "L_MARKER" />
 	<connection sourcemodule = "Detectors"   	source = "R_MARKER" targetmodule = "DetectorsGlobal"  target = "R_MARKER" />
-	<connection sourcemodule = "ForwardModel"   source = "SENSORS"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
-
-
+	<connection sourcemodule = "ForwardModel"   source = "SENSOR_MATRIX"  targetmodule = "DetectorsGlobal"  target = "SENSORS" />
 
 
 <!-- TEMP -->
-<module class = "Constant" name = "FaceDetector" 		data = "1 1"/>
-<module class = "Constant" name = "MarkerTracker" 		data = "2 2"/>
+<module class = "Constant" name = "Manual" 		data = 
+"1 0 0 1 0 1 0 0 0 0 1 0 0 0 0 1"/>
 
 
 <!-- Focus -->
 <!-- Where should Epi Look at -->
 <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
 	<!-- MarkerTracker -->
-	<connection sourcemodule = "MarkerTracker"   	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "DetectorsGlobal"   	source = "L_MARKER_GLOB"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
 	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
 	<!-- FaceDetector -->
-	<connection sourcemodule = "FaceDetector"   	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
-	<connection sourcemodule = "FaceDetectorValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+	<connection sourcemodule = "Manual"   	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
+	<connection sourcemodule = "ManualValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
 
 <!-- Values -->
 <module class = "Constant" name = "MarkerTrackerValue" 	data = "0.7"/>
-<module class = "Constant" name = "FaceDetectorValue" 	data = "0.5"/>
+<module class = "Constant" name = "ManualValue" 		data = "0.5"/>
+    
+
+<_module class="RotationConverter" name="MatToXYZ" input_format = "matrix" output_format = "xyz" />
+	<_connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "MatToXYZ" target = "INPUT"/>
 
 
 <!-- Motor Control -->

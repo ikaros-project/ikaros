@@ -6,8 +6,8 @@
         WARNING. These modules is under development and can be change anytime!
 	 </description>
 
-    <!-- Position and orientation of all the sensors -->
-    <input name = "SENSORS"      		targetmodule = "NotAvailable"           target = "INPUT" />
+	<!-- Add id and frame -->
+
 
     <input name = "LEFT_RED"      		targetmodule = "NotAvailable"           target = "INPUT" />
     <input name = "LEFT_GREEN"    		targetmodule = "NotAvailable"           target = "INPUT" />
@@ -20,15 +20,16 @@
     <input name = "RIGHT_BLUE"     	    targetmodule = "NotAvailable"           target = "INPUT" />
     <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"         target = "INPUT" />
     <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"        target = "INPUT" />
-
-    <!-- Detector output in Epi coordinates -->
-    <!-- It must handle many outputs from modules  -->
-
+	
+	<!-- Marker needs to be in 3d -->
     <output name = "L_FACE"             sourcemodule = "L_FaceDetector"         source = "OUTPUT" />
     <output name = "R_FACE"             sourcemodule = "R_FaceDetector"         source = "OUTPUT" />
-    <output name = "L_MARKER"           sourcemodule = "L_MarkerTracker"        source = "OUTPUT" />
-    <output name = "R_MARKER"           sourcemodule = "R_MarkerTracker"        source = "OUTPUT" />
-
+    
+    
+    <output name = "L_MARKER"           sourcemodule = "L_MarkerTracker"        source = "MATRIX" />
+    <output name = "R_MARKER"           sourcemodule = "R_MarkerTracker"        source = "MATRIX" />
+	
+	
     <!-- Trash module -->
     <module class = "Delay" name = "NotAvailable" />
 
@@ -57,8 +58,8 @@
        	marker_size = "75"
        	use_history = "yes"
         threshold 	= "auto"
-        frame_id 	= "3"
-        output_unit = "m"
+        frame_id 	= "1000"
+        distance_unit = "m"
 	/>
 
 	<module
@@ -70,8 +71,8 @@
        	marker_size = "75"
        	use_history = "yes"
         threshold 	= "auto"
-        frame_id 	= "3"
-        output_unit = "m"
+        frame_id 	= "1001"
+        distance_unit = "m"
 	/>
 
 </group>
