@@ -2,7 +2,7 @@
 //	Average.cc		This file is a part of the IKAROS project
 //
 //
-//    Copyright (C) 2004  Christian Balkenius
+//    Copyright (C) 2004-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -27,8 +27,10 @@ using namespace ikaros;
 void
 Average::Init()
 {
-    Bind(type, "type");
+    type = GetIntValue("type");
+
     Bind(operation, "operation");
+    Bind(sqrt_flag, "sqrt");
     Bind(window_size, "window_size");
     Bind(alpha, "alpha");
     Bind(termination_criterion, "termination_criterion");
@@ -98,7 +100,7 @@ Average::Tick()
             break;
         
         case 1: // SMA
-            copy_array(window[tick_count], input, size);
+            copy_array(window[tick_count], op, size);
         
             for(int j=0; j<size; j++)               // TODO: use set_col function
                 window[j][tick_count] = op[j];
@@ -107,10 +109,14 @@ Average::Tick()
             break;
         
         case 2: // EMA
-            add(output, 1-alpha, output, alpha, op, size);
+            add(sum, 1-alpha, sum, alpha, op, size);
+            copy_array(output, sum, size);
             break;
     }
     
+    if(sqrt_flag)
+        sqrt(output, size);
+
     if(abs(output[select]) < termination_criterion)
         Notify(msg_terminate, "Average: Terminated because criterion was met.");
 }

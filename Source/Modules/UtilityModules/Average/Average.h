@@ -1,7 +1,7 @@
 //
 //	Average.h			This file is a part of the IKAROS project
 //
-//    Copyright (C) 2004  Christian Balkenius
+//    Copyright (C) 2004-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ public:
     long		tick_count;
     int         type;
     int         operation;
+    bool        sqrt_flag;
     int         window_size;
     int         window_size_last;
     float       alpha;
