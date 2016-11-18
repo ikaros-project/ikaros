@@ -49,6 +49,7 @@ MotionGuard::Tick()
     bool speed_limit = false;
 	bool position_limit = false;
 	
+
     copy_array(output, input, size);
     
     // Check maximum speed
@@ -69,7 +70,7 @@ MotionGuard::Tick()
             output[i] = reference[i] + scale * speed;
         }
     }
-	
+
 	// Check position software limit
     if (inputLimitMin && inputLimitMax)
     {
