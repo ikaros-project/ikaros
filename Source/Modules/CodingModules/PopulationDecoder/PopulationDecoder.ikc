@@ -1,31 +1,30 @@
 <?xml version="1.0"?>
 
-<group name="PopulationCoder" description="encodes a two-dimensional value in a vector">
+<group name="PopulationDecoder" description="encodes a two-dimensional value in a vector">
 
 	<description type="text">
-		Module that generates a gaussian population code from an array of values. Each value is on a separate row of the output matrix to allow simple decoding.
+		Module that generates an array of values from a gaussian population code.
 	</description>
 
 	<example description="A simple example">
 		<module
-			class="PopulationCoder"
-			name="PopulationCoder"
+			class="PopulationDecoder"
+			name="PopulationDecoder"
 		/>
 	</example>
 
-	<parameter name="size" type="int" default="10" description="Population size for each value" />
 	<parameter name="sigma" type="float" default="1" description="The width of the gaussian" />
 	<parameter name="min" type="float" default="0.0" description="Minimum value to be coded" />
 	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
 
-	<input name="INPUT" description="The input array" />
+	<input name="INPUT" description="The input matrix" />
 
-	<output name="OUTPUT" description="The population coded output"/>
+	<output name="OUTPUT" description="The array output"/>
 
-	<module class="PopulationCoder" />
+	<module class="PopulationDecoder" />
 
     <view>
-        <object class="Grid" module="*" source="OUTPUT" x="0" y="0" w="4" />
+        <object class="BarGraph" module="*" source="OUTPUT" x="0" y="0" w="4" />
     </view>
     
 	<created>2016</created>
@@ -38,9 +37,9 @@
 	</author>
 
    <files>
-   		<file>PopulationCoder.h</file>
-   		<file>PopulationCoder.cc</file>
-   		<file>PopulationCoder.ikc</file>
+   		<file>PopulationDecoder.h</file>
+   		<file>PopulationDecoder.cc</file>
+   		<file>PopulationDecoder.ikc</file>
    </files>
 
 </group>

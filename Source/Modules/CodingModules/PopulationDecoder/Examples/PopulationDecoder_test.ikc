@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+
+<group name="DecoderDemo" title="Population Decoder Demo" min="-5" max="5" >
+	
+    <module
+        class = "FunctionGenerator"
+        name = "Signal"
+        type = "sin"
+        frequency = "0.05"
+        offset = "0.0"
+        amplitude = "1.0"
+    />
+		
+    <module
+        class = "PopulationCoder"
+        name = "PopulationCoder"
+        _min  = "-1"
+        _max  = "1"
+        size = "20"
+    />
+		
+    <module
+        class = "PopulationDecoder"
+        name = "PopulationDecoder"
+        _min  = "-1"
+        _max  = "1"
+    />
+
+    <module
+        class = "Subtract"
+        name = "Diff"
+    />
+
+    <module
+        class = "Average"
+        name = "Average"
+        type = "CMA"
+        operation = "sqr"
+        sqrt = "yes"
+    />
+
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "0" />
+
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="Diff" target="INPUT1"  delay = "0" />
+    <connection sourcemodule="PopulationDecoder" source="OUTPUT" targetmodule="Diff" target="INPUT2"  delay = "0" />
+    <connection sourcemodule="Diff" source="OUTPUT" targetmodule="Average" target="INPUT"  delay = "0" />
+
+    <connection sourcemodule="PopulationCoder" source="OUTPUT" targetmodule="PopulationDecoder" target="INPUT"  delay = "0" />
+
+    <view name="View">
+        <object class="Grid" module="PopulationCoder" source="OUTPUT" x="0" y="0"/>
+        <object class="BarGraph" module="PopulationCoder" source="OUTPUT" x="0" y="1"/>
+
+        <object class="Plot" module="Signal" source="OUTPUT" title="Signal (yellow) + Decoded Signal (red)"color="yellow" x="1" y="0" w="6" h="3" max="1" min="-1" />
+        <object class="Plot" module="PopulationDecoder" source="OUTPUT" color="red" x="1" y="0" w="6" h="3" max="1" min="-1" />
+
+        <object class="Plot" module="Diff" source="OUTPUT" title="Error" color="yellow" x="1" y="3" w="6" h="1" max="0.1" min="-0.1" />
+        <object class="Plot" module="Average" source="OUTPUT" title="Average Error" color="yellow" x="1" y="4" w="6" h="1" max="0.1" min="0" />
+        <object class="Table" module="Average" source="OUTPUT" title="RMS Error" color="yellow" x="0" y="4" w="1" h="1" font_size="36" decimals="4"/ >
+    </view>
+
+</group>
+ 

@@ -1,7 +1,8 @@
 //
-//	Average.h			This file is a part of the IKAROS project
+//	PopulationDecoder.h	This file is a part of the IKAROS project
 //
-//    Copyright (C) 2004-2016  Christian Balkenius
+//
+//    Copyright (C) 2007  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -18,39 +19,33 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef AVERAGE
-#define AVERAGE
+#ifndef PopulationDecoder_
+#define PopulationDecoder_
 
 #include "IKAROS.h"
 
 
-class Average: public Module
+class PopulationDecoder: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new Average(p); }
-    
-    int			size;
-    float *		input;
-    float *		op;
-    float *		sum;
-    float **    window;
-    float *		output;
-    long		tick_count;
-    int         type;
-    int         operation;
-    bool        sqrt_flag;
-    int         window_size;
-    int         window_size_last;
-    float       alpha;
-    float       termination_criterion;
-    int         select;
 
-    Average(Parameter * p) : Module(p) {}
-    virtual ~Average();
+    PopulationDecoder(Parameter * p) : Module(p) {}
+    virtual ~PopulationDecoder() {}
 
+    static Module * Create(Parameter * p) { return new PopulationDecoder(p); }
+
+    void        SetSizes();
     void		Init();
     void		Tick();
 
+    int         size_x;
+    int         size_y;
+
+    float		min;
+    float		max;
+
+    float **    input;
+    float *     output;
 };
 
 
