@@ -112,7 +112,7 @@
        	marker_size = "75"
        	use_history = "yes"
         threshold 	= "auto"
-        frame_id 	= "3000"
+        frame_id 	= "300"
         distance_unit = "m"
 	/>
     

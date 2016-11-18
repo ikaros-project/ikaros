@@ -7,15 +7,15 @@
         Only one camera!
 	 </description>
 
-    <output name="LEFT_RED"      	sourcemodule="LEFT_EYE_FLIP"                source="RED" />
-    <output name="LEFT_GREEN"    	sourcemodule="LEFT_EYE_FLIP"                source="GREEN" />
-    <output name="LEFT_BLUE"     	sourcemodule="LEFT_EYE_FLIP"                source="BLUE" />
-    <output name="LEFT_INTENSITY"   sourcemodule="LEFT_EYE_FLIP"                source="INTENSITY" />
+    <output name="LEFT_RED"      	sourcemodule="LEFT_EYE_FLIP_RED"        source="OUTPUT" />
+    <output name="LEFT_GREEN"    	sourcemodule="LEFT_EYE_FLIP_GREEN"      source="OUTPUT" />
+    <output name="LEFT_BLUE"     	sourcemodule="LEFT_EYE_FLIP_BLUE"       source="OUTPUT" />
+    <output name="LEFT_INTENSITY"   sourcemodule="LEFT_EYE_FLIP_INTENSITY"	source="OUTPUT" />
 
-    <output name="RIGHT_RED"      	sourcemodule="LEFT_EYE_FLIP"                source="RED" /> <!-- Should be RIGHT -->
-    <output name="RIGHT_GREEN"    	sourcemodule="LEFT_EYE_FLIP"                source="GREEN" />
-    <output name="RIGHT_BLUE"     	sourcemodule="LEFT_EYE_FLIP"                source="BLUE" />
-    <output name="RIGHT_INTENSITY"  sourcemodule="LEFT_EYE_FLIP"                source="INTENSITY" />
+    <output name="RIGHT_RED"      	sourcemodule="LEFT_EYE_FLIP_RED"        source="OUTPUT" /> <!-- Should be RIGHT -->
+    <output name="RIGHT_GREEN"    	sourcemodule="LEFT_EYE_FLIP_GREEN"      source="OUTPUT" />
+    <output name="RIGHT_BLUE"     	sourcemodule="LEFT_EYE_FLIP_BLUE"		source="OUTPUT" />
+    <output name="RIGHT_INTENSITY"  sourcemodule="LEFT_EYE_FLIP_INTENSITY1"	source="OUTPUT" />
  
 
     
@@ -36,7 +36,16 @@
 	/>
     
     	
-	<module	class = "Flip" name = "LEFT_EYE_FLIP" type = "up-down"/>
-		
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_RED" 		type = "up-down"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "LEFT_EYE_FLIP_RED"  target = "INPUT" />
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_GREEN"	 	type = "up-down"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "GREEN" targetmodule = "LEFT_EYE_FLIP_GREEN"  target = "INPUT" />
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_BLUE" 		type = "up-down"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "BLUE" targetmodule = "LEFT_EYE_FLIP_BLUE"  target = "INPUT" />
+	
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_INTENSITY" type = "up-down" />
+		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "LEFT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_INTENSITY1" type = "none" />
+		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "LEFT_EYE_FLIP_INTENSITY1"  target = "INPUT" />	
 </group>
  
