@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<group name="Sink" description="throws away a signal">
+
+	<description type="text">
+		Module with a single input to which anything can be connected
+	</description>
+
+	<example description="Example">
+		<module
+			class="Sink"
+			name="Sink"
+		/>
+	</example>
+
+
+	<input name="INPUT" description="The input that will be ignored." />
+
+	<module class="Sink" />
+
+	<author>
+		<author>Christian Balkenius</author>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/People/Jan.Moren/</homepage>
+	</author>
+
+   <files>
+   		<file>Sink.h</file>
+   		<file>Sink.cc</file>
+   		<file>Sink.ikc</file>
+   </files>
+
+</group>

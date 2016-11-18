@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<group>	
+		<module class = "Constant" name = "C" data="0 1 2 3 4 5" />
+
+		<module
+			class = "Sink"
+			name = "Sink"
+		/>
+
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Sink" target="INPUT" />
+</group>
+ 
