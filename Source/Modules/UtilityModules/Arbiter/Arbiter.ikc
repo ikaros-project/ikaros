@@ -18,8 +18,8 @@
 		/>
 	</example>
 
-   <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
-   <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
+    <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
+    <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
 
 	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
 

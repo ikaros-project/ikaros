@@ -2,7 +2,7 @@
 //	Average.cc		This file is a part of the IKAROS project
 //
 //
-//    Copyright (C) 2004  Christian Balkenius
+//    Copyright (C) 2004-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,10 @@ using namespace ikaros;
 void
 Average::Init()
 {
-    Bind(type, "type");
+    type = GetIntValue("type");
+
+    Bind(operation, "operation");
+    Bind(sqrt_flag, "sqrt");
     Bind(window_size, "window_size");
     Bind(alpha, "alpha");
     Bind(termination_criterion, "termination_criterion");
@@ -38,6 +41,7 @@ Average::Init()
 
     size		= GetInputSize("INPUT");
     input		= GetInputArray("INPUT");
+    op          = create_array(size);
     sum			= create_array(size);
     output		= GetOutputArray("OUTPUT");
     tick_count	= 0;
@@ -49,6 +53,7 @@ Average::~Average()
 {
     destroy_array(sum);
     destroy_matrix(window);
+    destroy_array(op);
 }
 
 
@@ -70,28 +75,48 @@ Average::Tick()
     }
 
 
+    switch(operation)
+    {
+        case 0: // none
+            copy_array(op, input, size);
+            break;
+
+        case 1: // abs
+            abs(op, input, size);
+            break;
+
+        case 2: // sqr
+            sqr(op, input, size);
+            break;
+
+    }
+
     switch(type)
     {
         case 0: // CMA
             tick_count++;
-            add(sum, input, size);
+            add(sum, op, size);
             multiply(output, sum, 1.0/float(tick_count), size);
             break;
         
         case 1: // SMA
-            copy_array(window[tick_count], input, size);
+            copy_array(window[tick_count], op, size);
         
             for(int j=0; j<size; j++)               // TODO: use set_col function
-                window[j][tick_count] = input[j];
+                window[j][tick_count] = op[j];
             tick_count = (tick_count+1) % window_size;
             mean(output, window, window_size, size);
             break;
         
         case 2: // EMA
-            add(output, 1-alpha, output, alpha, input, size);
+            add(sum, 1-alpha, sum, alpha, op, size);
+            copy_array(output, sum, size);
             break;
     }
     
+    if(sqrt_flag)
+        sqrt(output, size);
+
     if(abs(output[select]) < termination_criterion)
         Notify(msg_terminate, "Average: Terminated because criterion was met.");
 }
