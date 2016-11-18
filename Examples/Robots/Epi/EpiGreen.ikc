@@ -7,11 +7,10 @@
 <!-- SENSOR:    300 -->
 
 
-<module class = "Constant" name = "WorldID"        data = "100"/>
+<module class = "Constant" name = "WorldID"       data = "100"/>
 <module class = "Constant" name = "WorldFrameID"  data = "100"/>
-<module class = "Constant" name = "EgoID"          data = "200"/>
+<module class = "Constant" name = "EgoID"         data = "200"/>
 <module class = "Constant" name = "EgoFrameID"    data = "200"/>
-
 
 <!-- This ikc file includes all the subsystems needed -->
 <module class = "Constant" name = "EpiPosition" data = "
@@ -26,12 +25,31 @@
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
+<!-- This part overrides the motions of Epi -->
+
 <!-- Set a manual focus point -->
 <module class = "Constant" name = "Manual" data = "
 1 0 0 1
 0 1 0 0 
 0 0 1 0.5 
 0 0 0 1"/>
+	
+<!-- Set a manual positions -->
+<module class = "Constant" name = "B_POS" data = "0 0" />
+<module class = "Constant" name = "H_POS" data = "0 0 0 0" />
+<module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
+<module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
+
+<!-- Set a manual speed -->
+<!-- Mental note: Speed is set for all motions -->
+<module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
+<module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+	
+
+<!-- Chaning this value to 1 will always trigger manual mode --> 	
+<module class = "Constant" name = "ManualValue" 		data = "0.5"/>
 
 
 
@@ -43,16 +61,16 @@
 
 <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
     <!-- Manual -->
-	<connection sourcemodule = "Manual"   	    source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
-	<connection sourcemodule = "ManualValue" 	source = "OUTPUT"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
+	<connection sourcemodule = "Manual"   	    	source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "ManualValue" 		source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
 	<!-- MarkerTracker (Left) -->
-	<connection sourcemodule = "Detectors"   	source = "L_MARKER_EGO"  targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
-	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+	<connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO"  	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
+	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
 	
 <!-- Values -->
 <module class = "Constant" name = "MarkerTrackerValue" 	data = "0.7"/>
-<module class = "Constant" name = "ManualValue" 		data = "0.5"/>
     
+
 
 <!-- Motor Control -->
 <!-- ************************ -->
@@ -74,7 +92,7 @@
 <module class = "Constant" name = "HighLevelGazeControllerValue" 	data = "0.5"/>
 
 <!-- Value High Level -->
-<module class = "Constant" name = "HighLevelMotorArbiterValue" data = "0.5"/>
+<module class = "Constant" name = "HighLevelMotorArbiterValue" 		data = "1"/>
 
 
 <!-- 			LOW LEVEL 				-->
@@ -86,23 +104,22 @@
 <module class = "EpiGreenVision" 	name = "Vision" 		/>
 
 <module class = "EpiGreenDetectors" name = "Detectors" 		/>
-	<connection sourcemodule = "Vision"   source = "LEFT_RED"           targetmodule = "Detectors"  target = "LEFT_RED" />
-	<connection sourcemodule = "Vision"   source = "LEFT_GREEN"         targetmodule = "Detectors"  target = "LEFT_GREEN" />
-	<connection sourcemodule = "Vision"   source = "LEFT_BLUE"          targetmodule = "Detectors"  target = "LEFT_BLUE" />
-	<connection sourcemodule = "Vision"   source = "LEFT_INTENSITY"     targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
-	<connection sourcemodule = "Vision"   source = "RIGHT_RED"          targetmodule = "Detectors"  target = "RIGHT_RED" />
-	<connection sourcemodule = "Vision"   source = "RIGHT_GREEN"        targetmodule = "Detectors"  target = "RIGHT_GREEN" />
-	<connection sourcemodule = "Vision"   source = "RIGHT_BLUE"         targetmodule = "Detectors"  target = "RIGHT_BLUE" />
-	<connection sourcemodule = "Vision"   source = "RIGHT_INTENSITY"    targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
+	<connection sourcemodule = "Vision"   		source = "LEFT_RED"         targetmodule = "Detectors"  target = "LEFT_RED" />
+	<connection sourcemodule = "Vision"   		source = "LEFT_GREEN"       targetmodule = "Detectors"  target = "LEFT_GREEN" />
+	<connection sourcemodule = "Vision"   		source = "LEFT_BLUE"        targetmodule = "Detectors"  target = "LEFT_BLUE" />
+	<connection sourcemodule = "Vision"   		source = "LEFT_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
+	<connection sourcemodule = "Vision"   		source = "RIGHT_RED"        targetmodule = "Detectors"  target = "RIGHT_RED" />
+	<connection sourcemodule = "Vision"   		source = "RIGHT_GREEN"      targetmodule = "Detectors"  target = "RIGHT_GREEN" />
+	<connection sourcemodule = "Vision"   		source = "RIGHT_BLUE"       targetmodule = "Detectors"  target = "RIGHT_BLUE" />
+	<connection sourcemodule = "Vision"   		source = "RIGHT_INTENSITY"  targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
 
-	<connection sourcemodule = "EgoID"          source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_ID" />
+	<connection sourcemodule = "EgoID"          source = "OUTPUT"         	targetmodule = "Detectors"  target = "EGO_ID" />
 	<connection sourcemodule = "EgoFrameID"     source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_FRAME_ID" />
 	<connection sourcemodule = "WorldID"        source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_ID" />
 	<connection sourcemodule = "WorldFrameID"   source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_FRAME_ID" />
 
 	<connection sourcemodule = "ForwardModel"   source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "SENSORS_POS_EGO" />
 	<connection sourcemodule = "EpiPosition"    source = "OUTPUT"   		targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
-
 
 
 
@@ -117,22 +134,8 @@
 	<connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
 	<connection sourcemodule = "LA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_MOVING_SPEED" />
 	<connection sourcemodule = "RA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_MOVING_SPEED" />
-
 	
-<!-- Temp pos modules -->
-<module class = "Constant" name = "B_POS" data = "0 0" />
-<module class = "Constant" name = "H_POS" data = "0 0 0 0" />
-<module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
-<module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
-
-<!-- Temp speed modules -->
-<module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
-<module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
-<module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-<module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-		
-	
-<module class = "EpiForwardModel" 	name = "ForwardModel" 	/>
+<module class = "EpiGreenForwardModel" 	name = "ForwardModel" 	/>
 	<connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "LEFT_ARM_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" />

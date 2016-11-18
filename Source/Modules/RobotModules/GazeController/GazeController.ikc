@@ -61,6 +61,7 @@
                     arrow = "no, no, no, no, no, no, no, no, yes"
                     line_dash = "[1], [1], [1], [1], [1], [], [], [], [4]"
                     line_cap = "round"
+                    max ="2"
                     />
 
         <object class="Path" title="Top" module="*" source="VIEW_TOP" flip_y_axis="yes" x="8" y="0" w="8" h="8"
