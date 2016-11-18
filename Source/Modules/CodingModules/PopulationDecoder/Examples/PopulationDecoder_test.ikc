@@ -1,41 +1,59 @@
 <?xml version="1.0"?>
 
-<group name="Popluation Decoder Demo">
+<group name="Population Decoder Demo" min="-1" max="1" >
 	
     <module
-        class = "Sweep"
+        class = "FunctionGenerator"
         name = "Signal"
-        outputsize = "1"
-        min = "-2"
-        max = "2"
-        step = "-0.01"
+        type = "sin"
+        frequency = "0.02"
+        offset = "0.5"
+        amplitude = "0.5"
     />
 		
     <module
         class = "PopulationCoder"
         name = "PopulationCoder"
-        min  = "-2"
+        min  = "0"
         max  = "2"
         sigma = "3"
-        size = "20"
+        size = "50"
     />
 		
     <module
         class = "PopulationDecoder"
         name = "PopulationDecoder"
-        min  = "-2"
+        min  = "0"
         max  = "2"
     />
-		
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "1" />
 
-    <connection sourcemodule="PopulationCoder" source="OUTPUT" targetmodule="PopulationDecoder" target="INPUT"  delay = "1" />
+    <module
+        class = "Subtract"
+        name = "Diff"
+    />
+
+    <module
+        class = "Average"
+        name = "Average"
+    />
+
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "0" />
+
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="Diff" target="INPUT1"  delay = "0" />
+    <connection sourcemodule="PopulationDecoder" source="OUTPUT" targetmodule="Diff" target="INPUT2"  delay = "0" />
+    <connection sourcemodule="Diff" source="OUTPUT" targetmodule="Average" target="INPUT"  delay = "0" />
+
+    <connection sourcemodule="PopulationCoder" source="OUTPUT" targetmodule="PopulationDecoder" target="INPUT"  delay = "0" />
 
     <view name="View">
-        <object class="Plot" module="Signal" source="OUTPUT" x="0" y="0"/>
-        <object class="Grid" module="PopulationCoder" source="OUTPUT" x="1" y="0"/>
-        <object class="Plot" module="PopulationCoder" source="OUTPUT" x="0" y="1"/>
+        <object class="Grid" module="PopulationCoder" source="OUTPUT" x="0" y="0"/>
+        <object class="BarGraph" module="PopulationCoder" source="OUTPUT" x="0" y="1"/>
+
+        <object class="Plot" module="Signal" source="OUTPUT" title="Signal (yellow) + Decoded Signal (red)"color="yellow" x="1" y="0" w="6" h="3" max="2" min="-2" />
+        <object class="Plot" module="PopulationDecoder" source="OUTPUT" color="red" x="1" y="0" w="6" h="3" max="2" min="-2" />
+
+        <object class="Plot" module="Diff" source="OUTPUT" title="Error" color="yellow" x="1" y="3" w="6" h="1" max="1" min="-1" />
+        <object class="Plot" module="Average" source="OUTPUT" title="Average Error" color="yellow" x="1" y="4" w="6" h="1" max="1" min="-1" />
     </view>
 
 </group>
