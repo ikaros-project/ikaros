@@ -51,13 +51,13 @@ PopulationDecoder::Init()
 
 
 static float
-decode_population_code(float * x, int size, float min=0, float max=1)
+decode_population_code(float * x, int size, float min, float max)
 {
     float s = 0;
     float w = 0;
     for(int i=0; i<size; i++)
     {
-        s += min + x[i] * (max-min)*(float(i)/size);
+        s += x[i] * (min + (max-min)*(float(i)/(size-1)));
         w += x[i];
     }
     
