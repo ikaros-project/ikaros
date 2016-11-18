@@ -1,8 +1,7 @@
 //
-//	ServoConnector.h		This file is a part of the IKAROS project
-//                  <Short description of the module>
+//	DataConverter.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2011 <Author Name>
+//    Copyright (C) 2014 Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,43 +19,36 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//	Created: <date>
-//
-//	<Additional description of the module>
 
-#ifndef ServoConnector_
-#define ServoConnector_
+#ifndef DataConverter_
+#define DataConverter_
 
 #include "IKAROS.h"
 
-class ServoConnector: public Module
+using namespace ikaros;
+
+class DataConverter: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new ServoConnector(p); }
+    static Module * Create(Parameter * p) { return new DataConverter(p); }
 
-    ServoConnector(Parameter * p) : Module(p) {}
-    virtual ~ServoConnector();
+    DataConverter(Parameter * p) : Module(p) {}
+	virtual ~DataConverter(){};
 
     void 		Init();
     void 		Tick();
 
-    float *     input;
-    int         inputSize;
+    int         inputFormat;
+    int         outputFormat;
+    
+    float **    inputMatrix;
+    int         inputMatrixSizeX;
+    int         inputMatrixSizeY;
 
-    float *     output;
-    int         outputSize;
-	
-    
-    int * connector;
-    int connectorSize;
-	int * offset;
-	int offsetSize;
-    int * PreInverted;
-    int PreInvertedSize;
-    int * PostInverted;
-    int PostInvertedSize;
-    
-    
-};
+    float **    outputMatrix;
+    int         outputMatrixSizeX;
+    int         outputMatrixSizeY;
+
+ };
 
 #endif

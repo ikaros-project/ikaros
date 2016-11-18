@@ -17,7 +17,8 @@
 	</example>
 
 	<parameter name="connector" type="array" default="" description="input to output connector" />
-	<parameter name="inverted"  type="array" default="" description="should the output be inverted?" />
+    <parameter name="pre_inverted"  type="array" default="" description="should the output be inverted?" />
+    <parameter name="post_inverted"  type="array" default="" description="should the output be inverted?" />
 	<parameter name="offset"	type="array" default="" description="what is the origo" />
 	<parameter name="output_size" type="int" default="10" description="Number of output node" />
 

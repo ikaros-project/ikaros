@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+
+<group name="EpiGreen Servos">
+	
+    <input name="BODY_GOAL_POSITION"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_GOAL_POSITION"       		targetmodule="H_Guard"                 	target="INPUT" />
+    <input name="LEFT_ARM_GOAL_POSITION"      	targetmodule="LA_Guard"                	target="INPUT" />
+    <input name="RIGHT_ARM_GOAL_POSITION"     	targetmodule="RA_Guard"                	target="INPUT" />
+    <input name="PUPIL_GOAL_POSITION"       	targetmodule="NotAvailable"             target="INPUT" /> 
+
+    <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
+    <input name="LEFT_ARM_MOVING_SPEED"      	targetmodule="LeftArm"                	target="MOVING_SPEED" />
+    <input name="RIGHT_ARM_MOVING_SPEED"     	targetmodule="RightArm"                	target="MOVING_SPEED" />
+    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="NotAvailable"             target="INPUT" /> 
+
+    <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
+    <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
+    <output name="LEFT_ARM_FEEDBACK_POSITION"   sourcemodule="LA_SC_FeedBackPosition"   source="OUTPUT" />
+    <output name="RIGHT_ARM_FEEDBACK_POSITION"  sourcemodule="RA_SC_FeedBackPosition"   source="OUTPUT" />
+    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
+
+    <module class = "Delay" name = "NotAvailable" />
+
+    <!-- Body -->
+    <!-- No servoes in body -->
+    <module class = "Constant" name = "BODY_FEEBACK" data = "0 0"/> 
+
+    <!-- Head -->
+    <!-- Modules in dynamixel format -->
+    <_module class = "Constant" name = "H_POS" data = "0 0 0 0" />
+    
+	<module
+        class           = "MotionGuard"
+        name            = "H_Guard"
+        max_speed       = "100"
+        input_limit_min = "-60 -115 -12 -29"
+        input_limit_max = "65 110 30 11"
+        start_up_time   = "10"
+    />
+        <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
+		<_connection sourcemodule = "H_POS"  source = "OUTPUT" targetmodule = "H_Guard"  target = "INPUT" delay = "0"/>
+
+  <module
+		class="ServoConnector"
+		name="H_SC_GoalPosition"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 1 0 0" 
+        post_inverted   = "0 0 0 0" 
+        offset          = "180 180 180 180" 
+        output_size     = "4"
+	/>
+        <connection sourcemodule = "H_Guard"  source = "OUTPUT" targetmodule = "H_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+
+
+    <module
+  		class 			= "Dynamixel"
+   		name 			= "Head"
+    	device  		= "/dev/cu.usbserial-FTU7LXIQ"
+    	index_mode 		= "indirect"
+   	 	print_info 		= "minimal"
+    	baud_rate 		= "1000000"
+    	angle_unit 		= "degrees"
+    	max_servo_id 	= "7"
+    	start_up_delay 	= "20"
+    	servo_id 		= "2, 3, 4, 5"
+    	strict_servo_id = "yes"
+    />
+    <connection sourcemodule = "H_SC_GoalPosition" source = "OUTPUT" targetmodule = "Head" target = "GOAL_POSITION" delay = "0"/>
+
+    <_module class = "Constant" name = "N_MovingSpeed" data = "0.02 0.02 0.02 0.02" />
+		<_connection sourcemodule = "N_MovingSpeed"  source = "OUTPUT" targetmodule = "Head"  target = "MOVING_SPEED" />
+
+    <module class = "Constant" name = "N_TorqueLimit" data = "0.2 0.2 0.2 0.2" />
+		<connection sourcemodule = "N_TorqueLimit"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_LIMIT" />
+
+    <module class = "Constant" name = "N_TorqueEnable" data = "1 1 1 1" />
+		<connection sourcemodule = "N_TorqueEnable"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_ENABLE" />
+
+
+    <module
+		class="ServoConnector"
+		name="H_SC_FeedBackPosition"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 0 0 0" 
+        post_inverted   = "0 1 0 0" 
+        offset          = "-180 -180 -180 -180" 
+        output_size     = "4"
+	/>
+        <connection sourcemodule = "Head"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "H_SC_FeedBackPosition"  target = "INPUT" delay = "0"/>
+
+    <!-- LEFT_ARM -->
+
+    <_module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
+
+
+     <module
+        class           = "MotionGuard"
+        name            = "LA_Guard"
+        input_limit_min = "-125 -110 -125 -125 -125 -180"
+        input_limit_max = "126 110 126 50 126 180"
+        start_up_time   = "10"
+    />
+        <connection sourcemodule = "LA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
+		<_connection sourcemodule = "LA_POS"  source = "OUTPUT" targetmodule = "LA_Guard"  target = "INPUT" delay = "0"/>
+
+    <module
+		class           = "ServoConnector"
+		name            = "LA_SC_GoalPosition"
+		connector       = "1 2 3 4 5 6"
+        pre_inverted    = "0 0 0 0 0 0" 
+        post_inverted   = "0 0 0 0 0 0" 
+        offset          = "180 180 180 180 180 180" 
+        output_size     = "6"
+	/>
+        <connection sourcemodule = "LA_Guard"  source = "OUTPUT" targetmodule = "LA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+
+ <module
+    	class           = "Dynamixel"
+    	name            = "LeftArm"
+    	device          = "/dev/cu.usbserial-FTU7KTIU"
+    	index_mode      = "indirect"
+   	 	print_info 		= "minimal"
+    	baud_rate       = "1000000"
+    	angle_unit      = "degrees"
+		max_servo_id    = "9"
+		start_up_delay 	= "20"
+		servo_id        = "2, 3, 4, 5, 6, 7"
+		strict_servo_id = "yes"
+    />
+        <connection sourcemodule = "LA_SC_GoalPosition" source = "OUTPUT" targetmodule = "LeftArm" target = "GOAL_POSITION" delay = "0"/>
+
+    <_module class = "Constant" name = "LA_MovingSpeed" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+		<_connection sourcemodule = "LA_MovingSpeed"  source = "OUTPUT" targetmodule = "LeftArm"  target = "MOVING_SPEED" />
+    <module class = "Constant" name = "LA_TorqueLimit" data = "0.2 0.2 0.2 0.2 0.2 0.2" />
+		<connection sourcemodule = "LA_TorqueLimit"  source = "OUTPUT" targetmodule = "LeftArm"  target = "TORQUE_LIMIT" />
+    <module class = "Constant" name = "LA_TorqueEnable" data = "0 0 0 0 0 0" />
+		<connection sourcemodule = "LA_TorqueEnable"  source = "OUTPUT" targetmodule = "LeftArm"  target = "TORQUE_ENABLE" />
+
+    <module
+		class="ServoConnector"
+		name="LA_SC_FeedBackPosition"
+		connector       = "1 2 3 4 5 6"
+        pre_inverted    = "0 0 0 0 0 0" 
+    	post_inverted   = "0 0 0 0 0 0" 
+        offset          = "-180 -180 -180 -180 -180 -180" 
+        output_size     = "6"
+	/>
+        <connection sourcemodule = "LeftArm"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "LA_SC_FeedBackPosition"  target = "INPUT" delay = "0"/>
+
+   <!-- RIGHT_ARM -->
+
+    <_module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
+
+     <module
+        class           = "MotionGuard"
+        name            = "RA_Guard"
+        input_limit_min = "-125 -110 -125 -50 -125 -180"
+        input_limit_max = "126 110 126 126 126 180"
+        start_up_time   = "10"
+    />
+        <connection sourcemodule = "RA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "REFERENCE" delay = "1"/>
+		<_connection sourcemodule = "RA_POS"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "INPUT" delay = "0"/>
+
+    <module
+		class           = "ServoConnector"
+		name            = "RA_SC_GoalPosition"
+		connector       = "1 2 3 4 5 6"
+        pre_inverted    = "0 1 0 0 0 0" 
+        post_inverted   = "0 0 0 0 0 0" 
+        offset          = "180 180 180 180 180 180" 
+        output_size     = "6"
+	/>
+        <connection sourcemodule = "RA_Guard"  source = "OUTPUT" targetmodule = "RA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+
+ 	<module
+    	class           = "Dynamixel"
+    	name            = "RightArm"
+    	device          = "/dev/cu.usbserial-FTX14QKA"
+    	index_mode      = "indirect"
+   	 	print_info 		= "minimal"
+    	baud_rate       = "1000000"
+    	angle_unit      = "degrees"
+		max_servo_id    = "9"
+		start_up_delay 	= "20"
+		servo_id        = "2, 3, 4, 5, 6, 7"
+		strict_servo_id = "yes"
+    />
+        <connection sourcemodule = "RA_SC_GoalPosition" source = "OUTPUT" targetmodule = "RightArm" target = "GOAL_POSITION" delay = "0"/>
+
+    <_module class = "Constant" name = "RA_MovingSpeed" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+		<_connection sourcemodule = "RA_MovingSpeed"  source = "OUTPUT" targetmodule = "RightArm"  target = "MOVING_SPEED" />
+    <module class = "Constant" name = "RA_TorqueLimit" data = "0.2 0.2 0.2 0.2 0.2 0.2" />
+		<connection sourcemodule = "RA_TorqueLimit"  source = "OUTPUT" targetmodule = "RightArm"  target = "TORQUE_LIMIT" />
+    <module class = "Constant" name = "RA_TorqueEnable" data = "0 0 0 0 0 0" />
+		<connection sourcemodule = "RA_TorqueEnable"  source = "OUTPUT" targetmodule = "RightArm"  target = "TORQUE_ENABLE" />
+
+    <module
+		class="ServoConnector"
+		name="RA_SC_FeedBackPosition"
+		connector   	= "1 2 3 4 5 6"
+    	pre_inverted    = "0 0 0 0 0 0" 
+        post_inverted   = "0 1 0 0 0 0" 
+        offset      	= "-180 -180 -180 -180 -180 -180" 
+        output_size 	= "6"
+	/>
+        <connection sourcemodule = "RightArm"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "RA_SC_FeedBackPosition"  target = "INPUT" delay = "0" />
+
+
+	<!-- Pupil -->
+    <!-- No Pupil -->
+    <module class = "Constant" name = "P_OPEN" data = "8 8" /> <!-- mm -->
+</group>
+

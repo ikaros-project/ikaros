@@ -1,0 +1,238 @@
+<?xml version = "1.0"?>
+
+<group title = "Forward Model">
+
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+
+    <input name = "FEEDBACK_POSITION" targetmodule = "L1_R1Rot"    target = "INPUT" />
+    <input name = "FEEDBACK_POSITION" targetmodule = "L2_R1Rot"    target = "INPUT" />
+    <input name = "FEEDBACK_POSITION" targetmodule = "L3A_R1Rot"   target = "INPUT" />
+    <input name = "FEEDBACK_POSITION" targetmodule = "L3B_R1Rot"   target = "INPUT" />
+    <_input name = "FEEDBACK_POSITION" targetmodule = "L4A_R1Rot"   target = "INPUT" />
+    <_input name = "FEEDBACK_POSITION" targetmodule = "L4B_R1Rot"   target = "INPUT" />
+
+    <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
+    <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
+
+
+    <output name = "MODEL_ID"     sourcemodule = "MODEL_ID"     source = "OUTPUT" /> <!-- Model ID  -->
+    <output name = "OUTPUT"       sourcemodule = "M_JOIN"       source = "OUTPUT" /> <!-- Model     -->
+    <output name = "SENSORS"      sourcemodule = "S_JOIN"       source = "OUTPUT" /> <!-- Sensors   -->
+    
+    <!-- BUG: output not working in the same way as connects -->
+	<module class = "DataConverter" name = "S_JOIN" output_size_x = "16" output_size_y = "2"/>
+        <connection sourcemodule = "M_S2"   source = "OUTPUT"   targetmodule = "S_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_S1"   source = "OUTPUT"   targetmodule = "S_JOIN"  target = "INPUT" />
+       
+    <!-- BUG: output not working in the same way as connects -->
+	<module class = "DataConverter" name = "M_JOIN" output_size_x = "16" output_size_y = "6"/>
+        <connection sourcemodule = "M_L4B_R1"   source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_L4A_R1"   source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_L3B_R1"   source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_L3A_R1"   source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_L2_R1"    source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
+        <connection sourcemodule = "M_L1_R1"    source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
+     
+     
+	<module class = "Delay" name = "NotAvailable" />
+
+
+    <!-- Model IDs -->
+    <module class = "Constant" name = "MODEL_ID" data = "2 3 5 5 11 11" />
+
+    <!-- Used to filll xyz intputs of rotationConverter -->
+    <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
+
+
+    <!-- Forward model -->
+    <!-- Unit is m -->
+
+  
+    <!-- LINK 1: Origo to Joint1  (body make rotation to x in as z)-->
+    <!-- LINK 1: TRANS 1: Translation Origo to Joint 1 --> 
+
+    <module class = "Constant" name = "L1_T1" 
+	data = "
+	1 0 0 0.09;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+    
+    <!-- LINK 1: JOINT 2: Rotation Y  --> 
+    <!-- This is a temporary module. Select will do this in the future -->
+    <module class = "TruncateArray" name = "L1_R1Rot" array_length = "4" selection = "1" loop = "false"/>
+    <module class = "RotationConverter" name = "L1_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L1_R1_C"  target = "INPUT" />
+        <connection sourcemodule = "L1_R1Rot"   source = "OUTPUT"   targetmodule = "L1_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L1_R1_C"  target = "INPUT"/>
+    <module class = "DataConverter" name = "L1_R1"/>
+        <connection sourcemodule = "L1_R1_C"    source = "OUTPUT"   targetmodule = "L1_R1"    target = "INPUT" />
+
+   <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L1_R1" />
+        <connection sourcemodule = "L1_T1"        source = "OUTPUT"     targetmodule = "M_L1_R1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L1_R1"        source = "OUTPUT"     targetmodule = "M_L1_R1" target = "INPUT2" delay = "0"/>
+
+
+    <!-- LINK 2: Joint 1 to Joint 2 -->
+    <module class = "Constant" name = "L2_T1" 
+	data = "
+	1 0 0 0.088;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+    
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L2_T1" />
+        <connection sourcemodule = "M_L1_R1"      source = "OUTPUT"     targetmodule = "M_L2_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L2_T1"        source = "OUTPUT"     targetmodule = "M_L2_T1" target = "INPUT2" delay = "0"/>
+
+
+    <!-- LINK 2: JOINT 1: Rotation X  --> 
+    <module class = "TruncateArray" name = "L2_R1Rot" array_length = "4" selection = "2" loop = "false"/>
+    <module class = "RotationConverter" name = "L2_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L2_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L2_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "L2_R1Rot"   source = "OUTPUT"   targetmodule = "L2_R1_C"  target = "INPUT"/>
+	<module class = "DataConverter" name = "L2_R1"/>
+        <connection sourcemodule = "L2_R1_C"    source = "OUTPUT" targetmodule = "L2_R1"  target = "INPUT" />
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L2_R1" />
+        <connection sourcemodule = "M_L2_T1"      source = "OUTPUT"     targetmodule = "M_L2_R1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L2_R1"        source = "OUTPUT"     targetmodule = "M_L2_R1" target = "INPUT2" delay = "0"/>
+
+
+    <!-- LINK 3A: TRANS 1: Joint 2 to Joint 3 -->
+    <module class = "Constant" name = "L3A_T1" 
+	data = "
+	1 0 0 0.0;
+	0 1 0 -0.03;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L3A_T1" />
+        <connection sourcemodule = "M_L2_R1"      source = "OUTPUT"     targetmodule = "M_L3A_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L3A_T1"       source = "OUTPUT"     targetmodule = "M_L3A_T1" target = "INPUT2" delay = "0"/>
+
+    <!-- LINK 3A: JOINT 1: Rotation X  --> 
+    <module class = "TruncateArray" name = "L3A_R1Rot" array_length = "4" selection = "3" loop = "false"/>
+    <module class = "RotationConverter" name = "L3A_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L3A_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L3A_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "L3A_R1Rot"  source = "OUTPUT"   targetmodule = "L3A_R1_C"  target = "INPUT"/>
+	<module class = "DataConverter" name = "L3A_R1"/>
+        <connection sourcemodule = "L3A_R1_C"    source = "OUTPUT" targetmodule = "L3A_R1"  target = "INPUT" />
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L3A_R1" />
+        <connection sourcemodule = "M_L3A_T1"      source = "OUTPUT"     targetmodule = "M_L3A_R1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L3A_R1"      source = "OUTPUT"     targetmodule = "M_L3A_R1" target = "INPUT2" delay = "0"/>
+
+
+
+   <!-- LINK 3B: Joint 2 To Left Eye -->
+
+    <module class = "Constant" name = "L3B_T1" 
+	data = "
+	1 0 0 0.0;
+	0 1 0 0.03;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L3B_T1" />
+        <connection sourcemodule = "M_L2_R1"      source = "OUTPUT"     targetmodule = "M_L3B_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L3B_T1"       source = "OUTPUT"     targetmodule = "M_L3B_T1" target = "INPUT2" delay = "0"/>
+
+    <!-- LINK 3B: JOINT 2: Rotation X  --> 
+    <module class = "TruncateArray" name = "L3B_R1Rot" array_length = "4" selection = "4" loop = "false"/>
+    <module class = "RotationConverter" name = "L3B_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L3B_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L3B_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "L3B_R1Rot"  source = "OUTPUT"   targetmodule = "L3B_R1_C"  target = "INPUT"/>
+	<module class = "DataConverter" name = "L3B_R1"/>
+        <connection sourcemodule = "L3B_R1_C"    source = "OUTPUT" targetmodule = "L3B_R1"  target = "INPUT" />
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L3B_R1" />
+        <connection sourcemodule = "M_L3B_T1"     source = "OUTPUT"     targetmodule = "M_L3B_R1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L3B_R1"       source = "OUTPUT"     targetmodule = "M_L3B_R1" target = "INPUT2" delay = "0"/>
+
+    <!-- To pupils -->
+    <!-- LINK 4: Trans 1: Translation from Joint 2 to pupil  --> 
+    <module class = "Constant" name = "L4_T1" 
+	data = "
+	1 0 0 0.03;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+   <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L4A_T1" />
+        <connection sourcemodule = "M_L3A_T1"       source = "OUTPUT"     targetmodule = "M_L4A_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L4_T1"          source = "OUTPUT"     targetmodule = "M_L4A_T1" target = "INPUT2" delay = "0"/>
+
+   <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L4B_T1" />
+        <connection sourcemodule = "M_L3B_T1"       source = "OUTPUT"     targetmodule = "M_L4B_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L4_T1"          source = "OUTPUT"     targetmodule = "M_L4B_T1" target = "INPUT2" delay = "0"/>
+
+
+    <module class = "Constant"    name = "L4_R1Rot"  data = "90" />
+    <module class = "RotationConverter" name = "L4_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L4_R1_C"  target = "INPUT" />
+        <connection sourcemodule = "L4_R1Rot"   source = "OUTPUT" targetmodule = "L4_R1_C"  target = "INPUT" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L4_R1_C"  target = "INPUT" />
+	<module class = "DataConverter" name = "L4_R1"/>
+        <connection sourcemodule = "L4_R1_C"    source = "OUTPUT" targetmodule = "L4_R1"  target = "INPUT" />
+
+   <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L4A_R1" />
+        <connection sourcemodule = "M_L3A_T1"       source = "OUTPUT"     targetmodule = "M_L4A_R1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L4_R1"          source = "OUTPUT"     targetmodule = "M_L4A_R1" target = "INPUT2" delay = "0"/>
+
+   <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L4B_R1" />
+        <connection sourcemodule = "M_L3B_T1"       source = "OUTPUT"     targetmodule = "M_L4B_R1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L4_R1"          source = "OUTPUT"     targetmodule = "M_L4B_R1" target = "INPUT2" delay = "0"/>
+
+
+    <!-- Sensors -->
+    <!-- Left Eye --> 
+    <!-- From Pupil to Focus -->
+    <!-- Tanslation in x     -->
+    <module class = "Constant" name = "S1_T1" 
+	data = "
+	1 0 0 0.1;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+    <module class = "MatrixMultiply"   name = "M_S1" />
+        <connection sourcemodule = "M_L4A_R1"     source = "OUTPUT"     targetmodule = "M_S1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "S1_T1"        source = "OUTPUT"     targetmodule = "M_S1" target = "INPUT2" delay = "0"/>
+
+    <!-- Right Eye --> 
+    <!-- From Pupil to Focus -->
+    <!-- Tanslation in x     -->
+    <module class = "Constant" name = "S2_T1" 
+	data = "
+	1 0 0 0.1;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+    <module class = "MatrixMultiply"   name = "M_S2" />
+        <connection sourcemodule = "M_L4B_R1"     source = "OUTPUT"     targetmodule = "M_S2" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "S2_T1"        source = "OUTPUT"     targetmodule = "M_S2" target = "INPUT2" delay = "0"/>
+</group>
+ 

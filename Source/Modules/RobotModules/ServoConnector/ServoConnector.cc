@@ -35,8 +35,10 @@ ServoConnector::Init()
     connectorSize = 0;
     connector = GetIntArray("connector", connectorSize);
     
-    invertedSize = 0;
-    inverted = GetIntArray("inverted", invertedSize);
+    PreInvertedSize = 0;
+    PreInverted = GetIntArray("pre_inverted", PreInvertedSize);
+    PostInvertedSize = 0;
+    PostInverted = GetIntArray("post_inverted", PostInvertedSize);
 
 	offsetSize = 0;
 	offset = GetIntArray("offset", offsetSize);
@@ -52,7 +54,7 @@ ServoConnector::Init()
 	if (!connector)
 		Notify(msg_fatal_error, "Check connector parameters in ikc file.");
 
-	if (!inverted)
+	if (!PreInverted)
 		Notify(msg_fatal_error, "Check inverted parameters in ikc file.");
 
 	if (!offset)
@@ -64,9 +66,11 @@ ServoConnector::Init()
 	if (outputSize != offsetSize)
 		Notify(msg_fatal_error, "Output_size does not match offset size");
 
-	if (outputSize != invertedSize)
-		Notify(msg_fatal_error, "Output_size does not match inverted size");
-
+	if (outputSize != PreInvertedSize)
+		Notify(msg_fatal_error, "Output_size does not match pre_inverted size");
+    
+    if (outputSize != PostInvertedSize)
+        Notify(msg_fatal_error, "Output_size does not match post_inverted size");
 }
 
 ServoConnector::~ServoConnector()
@@ -84,17 +88,24 @@ ServoConnector::Tick()
     for (int i = 0; i < inputSize; i++)
         output[i] = input[connector[i]-1];
 	
+    // Pre Inverted
+    for (int i = 0; i < inputSize; i++)
+        if (PreInverted[i] == 1)
+            output[i] = -output[i];
+    
 	//print_array("ServoConnector: output1", output, outputSize);
 
 	// Offset
 	for (int i = 0; i < inputSize; i++)
 		output[i] = output[i] + offset[i];
 
+
+    
 	//print_array("ServoConnector: output2", output, outputSize);
 
-    // Inverted
+    // Post Inverted
     for (int i = 0; i < inputSize; i++)
-        if (inverted[i] == 1)
+        if (PostInverted[i] == 1)
             output[i] = -output[i];
 	
 	//print_array("ServoConnector: output", output, outputSize);
