@@ -4,6 +4,8 @@ add_subdirectory(CoarseCoder)
 add_subdirectory(PopulationCoder)
 add_subdirectory(IntervalCoder)
 add_subdirectory(IntervalDecoder)
+add_subdirectory(PopulationCoder)
+add_subdirectory(PopulationDecoder)
 add_subdirectory(TappedDelayLine)
 add_subdirectory(SpectralTiming)
 
