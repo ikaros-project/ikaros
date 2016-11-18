@@ -74,7 +74,7 @@
     <module class = "Constant" name = "N_TorqueLimit" data = "0.2 0.2 0.2 0.2" />
 		<connection sourcemodule = "N_TorqueLimit"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_LIMIT" />
 
-    <module class = "Constant" name = "N_TorqueEnable" data = "1 1 1 1" />
+    <module class = "Constant" name = "N_TorqueEnable" data = "0 0 0 0" />
 		<connection sourcemodule = "N_TorqueEnable"  source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_ENABLE" />
 
 
@@ -145,6 +145,8 @@
     	post_inverted   = "0 0 0 0 0 0" 
         offset          = "-180 -180 -180 -180 -180 -180" 
         output_size     = "6"
+    	max_speed       = "100"
+
 	/>
         <connection sourcemodule = "LeftArm"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "LA_SC_FeedBackPosition"  target = "INPUT" delay = "0"/>
 
@@ -158,6 +160,7 @@
         input_limit_min = "-125 -110 -125 -50 -125 -180"
         input_limit_max = "126 110 126 126 126 180"
         start_up_time   = "10"
+        max_speed       = "100"
     />
         <connection sourcemodule = "RA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "REFERENCE" delay = "1"/>
 		<_connection sourcemodule = "RA_POS"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "INPUT" delay = "0"/>
