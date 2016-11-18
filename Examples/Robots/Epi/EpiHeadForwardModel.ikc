@@ -36,7 +36,7 @@
         <connection sourcemodule = "M_L1_R1"    source = "OUTPUT"   targetmodule = "M_JOIN"  target = "INPUT" />
      
      
-	<module class = "Delay" name = "NotAvailable" />
+	<module class = "Sink" name = "NotAvailable" />
 
 
     <!-- Model IDs -->

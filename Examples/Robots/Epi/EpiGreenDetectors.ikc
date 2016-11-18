@@ -85,7 +85,7 @@
 	
 	
     <!-- Trash module -->
-    <module class = "Delay" name = "NotAvailable" />
+    <module class = "Sink" name = "NotAvailable" />
 
     <!-- Detectors -->
     <module
