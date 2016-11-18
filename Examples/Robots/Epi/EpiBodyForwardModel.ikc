@@ -1,0 +1,54 @@
+<?xml version = "1.0"?>
+
+<group>
+	
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+    <input name = "FEEDBACK_POSITION" targetmodule = "NotAvailable"    target = "INPUT" />
+
+    <output name="OUTPUT"       sourcemodule="JOIN"                 source="OUTPUT" />
+    <output name="MODEL_ID"     sourcemodule="MODEL_ID"             source="OUTPUT" />
+
+    <!-- Model IDs -->
+    <module class = "Constant" name = "MODEL_ID" data = "1000 0" />
+
+    <!-- Used to filll xyz intputs of rotationConverter -->
+    <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
+
+	<module class = "DataConverter" name = "JOIN" output_size_x = "16" output_size_y = "2"/>
+        <connection sourcemodule = "M_L1_R1"   source = "OUTPUT" targetmodule = "JOIN"  target = "INPUT" />
+        <connection sourcemodule = "L1_R1"     source = "OUTPUT" targetmodule = "JOIN"  target = "INPUT" />
+    
+    
+    <module class = "Delay" name = "NotAvailable" />
+
+
+    <!-- Body -->
+    <!-- LINK 1: JOINT 1: (Non existing servo) Rotation -90 dgrees in Y to have X in the path of the chain  --> 
+    <module class="Constant"    name="L1_R1Rot"  data = "-90" />
+    <module class="RotationConverter" name="L1_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L1_R1_C"  target = "INPUT" />
+        <connection sourcemodule = "L1_R1Rot"   source = "OUTPUT" targetmodule = "L1_R1_C"  target = "INPUT" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L1_R1_C"  target = "INPUT" />
+	<module class = "DataConverter" name = "L1_R1"/>
+        <connection sourcemodule = "L1_R1_C"    source = "OUTPUT" targetmodule = "L1_R1"  target = "INPUT" />
+
+
+    <!-- LINK 1: TRANS 1: Translation to origo (Center of arm joints) --> 
+    <module class = "Constant" name = "L1_T1" 
+	data = "
+	1 0 0 1.53;
+	0 1 0 -0.10;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+    <!-- Multiply -->
+    <module class="MatrixMultiply"   name="M_L1_R1" />
+        <connection sourcemodule="L1_R1"        source="OUTPUT"     targetmodule = "M_L1_R1" target="INPUT1" delay = "0"/>
+        <connection sourcemodule="L1_T1"        source="OUTPUT"     targetmodule = "M_L1_R1" target="INPUT2" delay = "0"/>
+
+
+</group>
+ 
