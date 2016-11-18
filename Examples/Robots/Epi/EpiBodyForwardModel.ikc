@@ -21,7 +21,7 @@
         <connection sourcemodule = "L1_R1"     source = "OUTPUT" targetmodule = "JOIN"  target = "INPUT" />
     
     
-    <module class = "Delay" name = "NotAvailable" />
+    <module class = "Sink" name = "NotAvailable" />
 
 
     <!-- Body -->

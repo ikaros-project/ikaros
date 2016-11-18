@@ -20,7 +20,7 @@
     <output name="RIGHT_ARM_FEEDBACK_POSITION"  sourcemodule="RA_SC_FeedBackPosition"   source="OUTPUT" />
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
-    <module class = "Delay" name = "NotAvailable" />
+    <module class = "Sink" name = "NotAvailable" />
 
     <!-- Body -->
     <!-- No servoes in body -->
