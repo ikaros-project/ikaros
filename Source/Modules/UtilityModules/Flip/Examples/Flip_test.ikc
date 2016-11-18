@@ -2,7 +2,7 @@
 
 <group name="Flip Demo">
 	
-		<module class = "Constant" name = "C" data="1 2; 4 5" />
+		<module class = "Constant" name = "C" data="0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 1; 0 0 0 0 2; 0 0 5 4 3" />
 	
 		<module
 			class = "Flip"
@@ -22,15 +22,42 @@
 			type = "none"
 		/>
 
+		<module
+			class = "Flip"
+			name = "Flip4"
+			type = "rotate-left"
+		/>
+
+		<module
+			class = "Flip"
+			name = "Flip5"
+			type = "rotate-right"
+		/>
+
+		<module
+			class = "Flip"
+			name = "Flip6"
+			type = "rotate-180"
+		/>
+
 		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip1" target="INPUT" />
 		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip2" target="INPUT" />
 		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip3" target="INPUT" />
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip4" target="INPUT" />
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip5" target="INPUT" />
+		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip6" target="INPUT" />
 
 		<view name="View">
 			<object class="Grid" title="Input" module="C" source="OUTPUT" max="5" x="0" y="0" />
-			<object class="Grid" title="Flip: up-down" module="Flip1" source="OUTPUT" max="5" x="1" y="0" />
-			<object class="Grid" title="Flip: left-right" module="Flip2" source="OUTPUT" max="5" x="2" y="0" />
-            <object class="Grid" title="Flip: none" module="Flip3" source="OUTPUT" max="5" x="3" y="0" />
+            <object class="Grid" title="Flip: none" module="Flip3" source="OUTPUT" max="5" x="1" y="0" />
+
+			<object class="Grid" title="Flip: up-down" module="Flip1" source="OUTPUT" max="5" x="0" y="1" />
+			<object class="Grid" title="Flip: left-right" module="Flip2" source="OUTPUT" max="5" x="1" y="1" />
+
+			<object class="Grid" title="Flip: rotate-left" module="Flip4" source="OUTPUT" max="5" x="0" y="2" />
+			<object class="Grid" title="Flip: rotate-right" module="Flip5" source="OUTPUT" max="5" x="1" y="2" />
+
+			<object class="Grid" title="Flip: rotate-180" module="Flip6" source="OUTPUT" max="5" x="0" y="3" />
 		</view>
 </group>
  

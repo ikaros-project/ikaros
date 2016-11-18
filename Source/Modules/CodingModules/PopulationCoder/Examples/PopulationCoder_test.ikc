@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group name="Popluation Coder Demo">
+	
+    <module
+        class = "Sweep"
+        name = "Signal"
+        outputsize = "1"
+        min = "0"
+        max = "10"
+        step = "-0.1"
+    />
+		
+    <module
+        class = "PopulationCoder"
+        name = "PopulationCoder"
+        min  = "0"
+        max  = "10"
+        sigma = "3"
+        size = "20"
+    />
+		
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "1" />
+    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "1" />
+
+    <view name="View">
+        <object class="Grid" module="PopulationCoder" source="OUTPUT" x="0" y="0"/>
+    </view>
+
+</group>
+ 

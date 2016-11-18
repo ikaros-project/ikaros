@@ -13,7 +13,7 @@
 		/>
 	</example>
 
-	<parameter name="type" type="list" values="up-down/left-right/none" default="x" description="Flip direction" />
+	<parameter name="type" type="list" values="none/up-down/left-right/rotate-left/rotate-right/rotate-180" default="up-down" description="Flip direction" />
 
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The flipped output" size_set="INPUT" />
