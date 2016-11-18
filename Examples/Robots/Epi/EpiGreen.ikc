@@ -39,6 +39,7 @@
 <module class = "Constant" name = "H_POS" data = "0 0 0 0" />
 <module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
+<module class = "Constant" name = "P_POS" data = "0 0" />
 
 <!-- Set a manual speed -->
 <!-- Mental note: Speed is set for all motions -->
@@ -46,10 +47,21 @@
 <module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
 <module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 <module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "P_SPEED" data = "0.02 0.02" />
 	
 
 <!-- Chaning this value to 1 will always trigger manual mode --> 	
 <module class = "Constant" name = "ManualValue" 		data = "0.5"/>
+
+
+<!-- Population coding -->
+<module class = "PopulationCoder" name = "ManPosPop" min  = "400" max  = "400" size = "20"/>
+    <connection sourcemodule="P_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="RA_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="LA_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="H_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="B_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+
 
 
 
@@ -82,10 +94,24 @@
 <module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
 	<connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
 
+<module class = "Constant" name = "B_ZERO" 	data = "0 0"/>
+<module class = "Constant" name = "H_ZERO" 	data = "0 0 0 0"/>
+<module class = "Constant" name = "LA_ZERO" data = "0 0 0 0 0 0"/>
+<module class = "Constant" name = "RA_ZERO" data = "0 0 0 0 0 0"/>
+<module class = "Constant" name = "P_ZERO" 	data = "0 0"/>
+
+<!-- Population coding -->
+<module class = "PopulationCoder" name = "GazePosPop" min  = "400" max  = "400" size = "20"/>
+    <connection sourcemodule="P_ZERO" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="RA_ZERO" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="LA_ZERO" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="HighLevelGazeController" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+    <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+
 
 <!-- What should Epi move -->
 <module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "1"/>
-	<connection sourcemodule = "HighLevelGazeController"        source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
+	<connection sourcemodule = "GazePosPop"        				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
 	<connection sourcemodule = "HighLevelGazeControllerValue"   source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_1"/>
 
 <!-- Values -->
@@ -146,6 +172,11 @@
 <module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1"/>
 	<connection sourcemodule = "HighLevelMotorArbiter"   		source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
 	<connection sourcemodule = "HighLevelMotorArbiterValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
+
+<!-- Popalation decoder -->
+<module class = "PopulationDecoder" name = "Pos" min  = "400" max  = "400" size = "20"/>
+	<connection sourcemodule = "LowLevelArbiter"   	source = "OUTPUT"  targetmodule = "PopulationDecoder"  target = "INPUT" />
+
 
 </group>
 
