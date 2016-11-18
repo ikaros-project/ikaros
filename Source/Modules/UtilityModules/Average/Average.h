@@ -31,11 +31,13 @@ public:
     
     int			size;
     float *		input;
+    float *		op;
     float *		sum;
     float **    window;
     float *		output;
     long		tick_count;
     int         type;
+    int         operation;
     int         window_size;
     int         window_size_last;
     float       alpha;
