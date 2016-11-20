@@ -46,6 +46,7 @@ public:
 
     float **    input;
     float *     output;
+    float *     amplitude;
 };
 
 
