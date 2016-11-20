@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<!-- Example for the Arbiter module -->
+
+<group name="Arbiter Demo">
+	
+		<module
+			class = "Arbiter"
+			name = "Arbiter"
+            switch_time = "10"
+		/>
+
+		<module class = "Constant" name = "C1" data = "1 2 3; 1 2 13" />
+		<module class = "Constant" name = "C2" data = "5 6 7; 9 8 6" />
+		<_module class = "Constant" name = "V1" data = "2" />
+		<_module class = "Constant" name = "V2" data = "1" />
+
+		<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_1" delay="0" />
+		<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_2" delay="0" />
+		<_connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_1" delay="0" />
+		<_connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_2" delay="0" />
+
+		<view>
+			<object
+				class ="Text" x="0" y="0" w="4"
+				text="Demonstration of the Arbiter module (C1 will be selected over C2)." 
+			  />
+
+			<object class ="BarGraph" title="C1" module="C1" source="OUTPUT" x="0" y="1" min="0" max="30" />
+			<object class ="BarGraph" title="C2" module="C2" source="OUTPUT" x="1" y="1" min="0" max="30" />
+			<object class ="BarGraph" title="Selected" module="Arbiter" source="OUTPUT" x="2" y="1" min="0" max="30" />
+
+
+			<object class ="BarGraph" title="Amplitudes" module="Arbiter" source="AMPLITUDES" x="0" y="2" w="2" />
+			<object class ="BarGraph" title="Arbitration" module="Arbiter" source="ARBITRATION" x="0" y="3" w="2" />
+			<object class ="BarGraph" title="Smoothed" module="Arbiter" source="SMOOTHED" x="0" y="4" w="2" />
+			<object class ="BarGraph" title="Normlized" module="Arbiter" source="NORMALIZED" x="0" y="5" w="2" />
+
+
+			<object class ="Slider" title="Channel 0" module="C1" parameter="data" select="0" x="2" y="2" h="4" max="50" />
+		</view>
+
+</group>
+
+

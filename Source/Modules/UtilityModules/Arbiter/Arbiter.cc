@@ -26,8 +26,6 @@ using namespace ikaros;
 Arbiter::Arbiter(Parameter * p):
     Module(p)
 {
-    Bind(switch_time, "switch_time");
-    
     no_of_inputs = GetIntValue("no_of_inputs");
 
     input_name  = new char * [no_of_inputs];
@@ -44,6 +42,11 @@ Arbiter::Arbiter(Parameter * p):
 
     AddOutput("OUTPUT");
     AddOutput("VALUE");
+
+    AddOutput("AMPLITUDES");
+    AddOutput("ARBITRATION");
+    AddOutput("SMOOTHED");
+    AddOutput("NORMALIZED");
 }
 
 
@@ -94,6 +97,11 @@ Arbiter::SetSizes()
 
     SetOutputSize("OUTPUT", sx, sy);
     SetOutputSize("VALUE", 1);
+
+    SetOutputSize("AMPLITUDES", no_of_inputs);
+    SetOutputSize("ARBITRATION", no_of_inputs);
+    SetOutputSize("SMOOTHED", no_of_inputs);
+    SetOutputSize("NORMALIZED", no_of_inputs);
 }
 
 
@@ -101,11 +109,28 @@ Arbiter::SetSizes()
 void
 Arbiter::Init()
 {
-   for(int i=0; i<no_of_inputs; i++)
+    Bind(metric, "metric");
+    Bind(arbitration_method, "arbitration");
+    Bind(softmax_exponent, "softmax_exponent");
+    Bind(hysteresis_threshold, "hysteresis_threshold");
+    Bind(switch_time, "switch_time");
+
+    int vcnt = 0;
+    for(int i=0; i<no_of_inputs; i++)
     {
         input[i] = GetInputArray(input_name[i]);
         value_in[i] = GetInputArray(value_name[i], false);
+        if(value_in[i])
+            vcnt++;
     }
+
+    if(vcnt!=0 && vcnt != no_of_inputs)
+        Notify(msg_fatal_error, "All VALUE inputs must have connections - or none");
+
+    amplitudes = GetOutputArray("AMPLITUDES");
+    arbitration_state = GetOutputArray("ARBITRATION");
+    smoothed = GetOutputArray("SMOOTHED");
+    normalized = GetOutputArray("NORMALIZED");
 
     output = GetOutputArray("OUTPUT");
     value_out = GetOutputArray("VALUE");
@@ -113,14 +138,88 @@ Arbiter::Init()
     size = GetOutputSize("OUTPUT");
     
     current_channel = -1;
+    smoothed[0] = 50;
 }
 
+
+
+void
+Arbiter::CalculateAmplitues()
+{
+    if(value_in[0])
+    {
+        for(int i=0; i<no_of_inputs; i++)
+            amplitudes[i] = *value_in[i];
+    }
+    else if(metric == 0)
+    {
+        for(int i=0; i<no_of_inputs; i++)
+            amplitudes[i] = norm1(input[i], size);
+    }
+    else if(metric == 1)
+    {
+        for(int i=0; i<no_of_inputs; i++)
+            amplitudes[i] = norm(input[i], size);
+    }
+}
+
+
+
+void
+Arbiter::Arbitrate()
+{
+    // Do the actual arbitration (now just WTA)
+
+    int a = arg_max(amplitudes, no_of_inputs);
+
+    reset_array(arbitration_state, no_of_inputs);
+    arbitration_state[a] = amplitudes[a];
+}
+
+
+
+void
+Arbiter::Smooth()
+{
+    if(switch_time > 0)
+        add(smoothed, 1-1.0/switch_time, smoothed, 1.0/switch_time, arbitration_state, no_of_inputs);
+    else
+        copy_array(smoothed, arbitration_state, no_of_inputs);
+}
+
+
+
+void
+Arbiter::Tick()
+{
+    CalculateAmplitues();
+    Arbitrate();
+    Smooth();
+
+    // Normalize
+
+    copy_array(normalized, smoothed, no_of_inputs);
+    normalize1(normalized, no_of_inputs);
+
+    // Weigh inputs together
+
+    reset_array(output, size);
+    for(int i=0; i<no_of_inputs; i++)
+        add(output, normalized[i], input[i], size);
+
+}
+
+
+
+
+// OLD
 
 // Slow switching should use normalized weight vector to produce convex combinations of inputs
 // This is necessary when a switch occurs before the switch time has ended
 // Special case of convex combination of processes - WITH selection in addition to weighting
 // Could weigh by value without competition as a special case
 
+/*
 void
 Arbiter::Tick()
 {
@@ -165,7 +264,7 @@ Arbiter::Tick()
 
     *value_out = *value_in[ix];
 }
-
+*/
 
 
 static InitClass init("Arbiter", &Arbiter::Create, "Source/Modules/UtilityModules/Arbiter/");
