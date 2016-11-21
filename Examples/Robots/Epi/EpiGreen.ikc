@@ -6,7 +6,7 @@
 <!-- EPI/EGO:   200 -->
 <!-- SENSOR:    300 -->
 
-
+<!-- Id and frames used by transfromers modules -->
 <module class = "Constant" name = "WorldID"       data = "100"/>
 <module class = "Constant" name = "WorldFrameID"  data = "100"/>
 <module class = "Constant" name = "EgoID"         data = "200"/>
@@ -27,6 +27,30 @@
 
 <!-- This part overrides the motions of Epi -->
 
+<!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
+<!-- Set a manual speed -->
+<!-- Mental note: Speed is set for all motions -->
+<module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
+<module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "P_SPEED" data = "0.02 0.02" />
+	
+<!-- Torque limit -->
+<module class = "Constant" name = "B_TORQUE_LIMIT" data = "0.02 0.02" />
+<module class = "Constant" name = "H_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "LA_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "RA_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+<module class = "Constant" name = "P_TORQUE_LIMIT" data = "0.02 0.02" />
+
+<!-- Torque enable -->
+<module class = "Constant" name = "B_TORQUE_ENABLE" data = "0 0" />
+<module class = "Constant" name = "H_TORQUE_ENABLE" data = "0 0 0 0" />
+<module class = "Constant" name = "LA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
+<module class = "Constant" name = "RA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
+<module class = "Constant" name = "P_TORQUE_ENABLE" data = "0 0" />
+
+
 <!-- Set a manual focus point -->
 <module class = "Constant" name = "Manual" data = "
 1 0 0 1
@@ -40,15 +64,6 @@
 <module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "P_POS" data = "0 0" />
-
-<!-- Set a manual speed -->
-<!-- Mental note: Speed is set for all motions -->
-<module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
-<module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
-<module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-<module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-<module class = "Constant" name = "P_SPEED" data = "0.02 0.02" />
-	
 
 <!-- Chaning this value to 1 will always trigger manual mode --> 	
 <module class = "Constant" name = "ManualValue" 		data = "0.5"/>
@@ -164,7 +179,17 @@
 	<connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
 	<connection sourcemodule = "LA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_MOVING_SPEED" />
 	<connection sourcemodule = "RA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_MOVING_SPEED" />
+
+	<connection sourcemodule = "B_TORQUE_LMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
+	<connection sourcemodule = "H_TORQUE_LMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
+	<connection sourcemodule = "LA_TORQUE_LMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_LIMIT" />
+	<connection sourcemodule = "RA_TORQUE_LMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_LIMIT" />
 	
+	<connection sourcemodule = "B_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
+	<connection sourcemodule = "H_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
+	<connection sourcemodule = "LA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_ENABLE" />
+	<connection sourcemodule = "RA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_ENABLE" />
+		
 <module class = "EpiGreenForwardModel" 	name = "ForwardModel" 	/>
 	<connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
