@@ -31,7 +31,7 @@
 
 			<object class ="Slider" title="V1" module="V1" parameter="data" select="0" x="0" y="2" h="1" max="10" />
 			<object class ="Slider" title="V2" module="V2" parameter="data" select="0" x="1" y="2" h="1" max="10" />
-			<object class ="Slider" title="Wwitch time" module="Arbiter" parameter="switch_time" select="0" x="2" y="2" h="1" min="0" max="50" />
+			<object class ="Slider" title="Switch time" module="Arbiter" parameter="switch_time" select="0" x="2" y="2" h="1" min="0" max="50" />
 		</view>
 
 </group>
