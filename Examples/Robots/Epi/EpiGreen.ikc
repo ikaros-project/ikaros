@@ -180,10 +180,10 @@
 	<connection sourcemodule = "LA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_MOVING_SPEED" />
 	<connection sourcemodule = "RA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_MOVING_SPEED" />
 
-	<connection sourcemodule = "B_TORQUE_LMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
-	<connection sourcemodule = "H_TORQUE_LMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
-	<connection sourcemodule = "LA_TORQUE_LMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_LIMIT" />
-	<connection sourcemodule = "RA_TORQUE_LMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_LIMIT" />
+	<connection sourcemodule = "B_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
+	<connection sourcemodule = "H_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
+	<connection sourcemodule = "LA_TORQUE_LIMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_LIMIT" />
+	<connection sourcemodule = "RA_TORQUE_LIMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_LIMIT" />
 	
 	<connection sourcemodule = "B_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
 	<connection sourcemodule = "H_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
