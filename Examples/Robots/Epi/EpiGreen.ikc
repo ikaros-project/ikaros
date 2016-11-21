@@ -170,10 +170,7 @@
 
 <!-- Actuators/Proprioception -->
 <module class = "EpiGreenServos" 	name = "Servos" 		/>
-	<connection sourcemodule = "B_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_GOAL_POSITION" />
-	<connection sourcemodule = "H_POS"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_GOAL_POSITION" />
-	<connection sourcemodule = "LA_POS"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_GOAL_POSITION" />
-	<connection sourcemodule = "RA_POS"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_GOAL_POSITION" />
+	<connection sourcemodule = "Pos"   source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
 
 	<connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
 	<connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
