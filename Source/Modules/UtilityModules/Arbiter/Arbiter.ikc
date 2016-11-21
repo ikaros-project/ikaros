@@ -53,6 +53,8 @@
 			<object class ="BarGraph" title="Arbitration" module="*" source="ARBITRATION" x="0" y="1" w="2" />
 			<object class ="BarGraph" title="Smoothed" module="*" source="SMOOTHED" x="0" y="2" w="2" />
 			<object class ="BarGraph" title="Normlized" module="*" source="NORMALIZED" x="0" y="3" w="2" />
+			<object class ="BarGraph" title="Amplitudes" module="*" source="OUTPUT" x="0" y="4" w="2" />
+			<object class ="BarGraph" title="Amplitudes" module="*" source="VALUE" x="0" y="5" w="2" />
 		</view>
 
 	<author>

@@ -76,7 +76,6 @@
     <output name="FEEDBACK_GOAL_POSITION" description="The desired servo positions set" />
     <output name="FEEDBACK_MOVING_SPEED" description="The moving servo positions set" />
     <output name="FEEDBACK_TORQUE_LIMIT" description="The torque limit set" />
-    
 	<output name="FEEDBACK_PRESENT_POSITION" description="The current servo positions (in units set by angle_units)" />
 	<output name="FEEDBACK_PRESENT_SPEED" description="The current servo speed (in units set by angle_units)" />
 	<output name="FEEDBACK_PRESENT_LOAD" description="The current load of the servo (in percent)" />
@@ -87,6 +86,16 @@
     <output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" />
 
 	<module class="Dynamixel" />
+
+		<view>
+			<object class ="BarGraph" title="Torque Enable" module="*" source="FEEDBACK_TORQUE_ENABLE" x="0" y="0" w="2" />
+			<object class ="BarGraph" title="Torque Limit" module="*" source="FEEDBACK_TORQUE_LIMIT" x="0" y="1" w="2" />
+			<object class ="BarGraph" title="Position" module="*" source="FEEDBACK_PRESENT_POSITION" x="0" y="2" w="2" />
+			<object class ="BarGraph" title="Speed" module="*" source="FEEDBACK_PRESENT_SPEED" x="0" y="3" w="2" />
+			<object class ="BarGraph" title="Load" module="*" source="FEEDBACK_PRESENT_LOAD" x="0" y="4" w="2" />
+			<object class ="BarGraph" title="Temperature" module="*" source="FEEDBACK_PRESENT_TEMPERATURE" x="0" y="5" w="2" />
+		</view>
+
 
     <limitation>
         Only tested with AX-12, MX-28, MX-106.
