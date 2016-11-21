@@ -20,6 +20,7 @@
 	<input name="INPUT" description="The input matrix" />
 
 	<output name="OUTPUT" description="The array output"/>
+	<output name="AMPLITUDE" description="The amplitude output"/>
 
 	<module class="PopulationDecoder" />
 

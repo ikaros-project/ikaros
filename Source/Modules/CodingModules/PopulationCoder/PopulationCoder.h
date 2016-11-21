@@ -2,7 +2,7 @@
 //	PopulationCoder.h	This file is a part of the IKAROS project
 //
 //
-//    Copyright (C) 2007  Christian Balkenius
+//    Copyright (C) 2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ public:
     float		max;
 
     float *		input;
+    float *		amplitude;
     float **	output;
 };
 

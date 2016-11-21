@@ -32,7 +32,10 @@ PopulationDecoder::SetSizes()
     size_y  =   GetInputSizeY("INPUT");
 
     if (size_y != unknown_size)
+    {
         SetOutputSize("OUTPUT", size_y);
+        SetOutputSize("AMPLITUDE", size_y);
+    }
 }
 
 
@@ -46,6 +49,7 @@ PopulationDecoder::Init()
     
     input = GetInputMatrix("INPUT");
     output = GetOutputArray("OUTPUT");
+    amplitude = GetOutputArray("AMPLITUDE");
 }
 
 
@@ -77,7 +81,10 @@ void
 PopulationDecoder::Tick()
 {
     for(int j=0; j<size_y; j++)
+    {
         output[j] = decode_population_code(input[j], size_x, min, max);
+        amplitude[j] = norm1(input[j], size_x);
+    }
 }
 
 static InitClass init("PopulationDecoder", &PopulationDecoder::Create, "Source/Modules/CodingModules/PopulationDecoder/");

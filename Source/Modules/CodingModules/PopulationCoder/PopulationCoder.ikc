@@ -3,7 +3,7 @@
 <group name="PopulationCoder" description="encodes a two-dimensional value in a vector">
 
 	<description type="text">
-		Module that generates a gaussian population code from an array of values. Each value is on a separate row of the output matrix to allow simple decoding.
+		Module that generates a gaussian population code from an array of values. Each value is on a separate row of the output matrix to allow simple decoding. The optional amplitude input can be used to set the amplitude to an other value than 1.
 	</description>
 
 	<example description="A simple example">
@@ -19,6 +19,7 @@
 	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
 
 	<input name="INPUT" description="The input array" />
+	<input name="AMPLITUDE" description="Optional array of amplitudes for each input value" optional="yes" />
 
 	<output name="OUTPUT" description="The population coded output"/>
 
