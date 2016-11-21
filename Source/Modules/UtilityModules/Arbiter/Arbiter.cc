@@ -168,12 +168,40 @@ Arbiter::CalculateAmplitues()
 void
 Arbiter::Arbitrate()
 {
-    // Do the actual arbitration (now just WTA)
+    // Do the actual arbitration
 
-    int a = arg_max(amplitudes, no_of_inputs);
+    int a;
+    switch(arbitration_method)
+    {
+        case 0: // WTA
+            a = arg_max(amplitudes, no_of_inputs);
+            reset_array(arbitration_state, no_of_inputs);
+            arbitration_state[a] = amplitudes[a];
+            break;
 
-    reset_array(arbitration_state, no_of_inputs);
-    arbitration_state[a] = amplitudes[a];
+        case 1: // hysteresis
+
+            break;
+
+        case 2: // softmax
+            copy_array(arbitration_state, amplitudes, no_of_inputs);
+//            pow(arbitration_state, 2, no_of_inputs);
+            break;
+
+        case 3: // hierarchy
+            for(int i=no_of_inputs-1; i>=0; i++)
+                if(amplitudes[i] > 0 || i==0)
+                {
+                    reset_array(arbitration_state, no_of_inputs);
+                    arbitration_state[i] = amplitudes[i];
+                }
+            break;
+
+        default: // no arbitration - should never happen
+            copy_array(arbitration_state, amplitudes, no_of_inputs);
+            break;
+    }
+
 }
 
 
@@ -206,65 +234,8 @@ Arbiter::Tick()
     reset_array(output, size);
     for(int i=0; i<no_of_inputs; i++)
         add(output, normalized[i], input[i], size);
-
 }
 
-
-
-
-// OLD
-
-// Slow switching should use normalized weight vector to produce convex combinations of inputs
-// This is necessary when a switch occurs before the switch time has ended
-// Special case of convex combination of processes - WITH selection in addition to weighting
-// Could weigh by value without competition as a special case
-
-/*
-void
-Arbiter::Tick()
-{
-    int   ix = 0;
-    float vix = 0;
-    
-    for(int i=0; i<no_of_inputs; i++)
-    {
-        float v = (value_in[i] ? *value_in[i] : norm(input[i], size)); // use norm if value input is not connected
-        if(v > vix)
-        {
-            ix = i;
-            vix = v;
-        }
-    }
-    
-    if(switch_time == 0)
-        copy_array(output, input[ix], size);
-    
-    else // run slow switch
-    {
-        if(ix != current_channel)  // start switch
-        {
-			if (current_channel == -1)
-				current_channel = ix;
-				
-            from_channel = current_channel;
-            current_channel = ix;
-            switch_counter = switch_time;
-        }
-        
-        if(switch_counter == 0)
-            copy_array(output, input[ix], size);
-        else
-        {
-            switch_counter--;
-            float a = float(switch_time-switch_counter)/float(switch_time);
-            for(int i=0; i<no_of_inputs; i++)
-                output[i] = a * input[current_channel][i] + (1-a) * input[from_channel][i];
-        }
-    }
-
-    *value_out = *value_in[ix];
-}
-*/
 
 
 static InitClass init("Arbiter", &Arbiter::Create, "Source/Modules/UtilityModules/Arbiter/");
