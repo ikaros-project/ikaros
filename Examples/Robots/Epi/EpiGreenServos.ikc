@@ -2,11 +2,11 @@
 
 <group name="EpiGreen Servos">
 	
-    <input name="BODY_GOAL_POSITION"       		targetmodule="NotAvailable"             target="INPUT" /> 
-    <input name="HEAD_GOAL_POSITION"       		targetmodule="H_Guard"                 	target="INPUT" />
-    <input name="LEFT_ARM_GOAL_POSITION"      	targetmodule="LA_Guard"                	target="INPUT" />
-    <input name="RIGHT_ARM_GOAL_POSITION"     	targetmodule="RA_Guard"                	target="INPUT" />
-    <input name="PUPIL_GOAL_POSITION"       	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitBody"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitHead"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitLeftArm"             target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitRightArm"            target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitPupil"             	target="INPUT" /> 
 
     <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
@@ -33,7 +33,18 @@
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
     <module class = "Sink" name = "NotAvailable" />
+        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "0"/>
+        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "0"/>
 
+
+	<!-- Splitting pos -->
+	<module class = "SplitBody" 	name = "INPUT" array_length = "2" selection = "1 2" 				loop = "false"/>
+    <module class = "SplitHead" 	name = "INPUT" array_length = "4" selection = "3 4 5 6" 			loop = "false"/>
+    <module class = "SplitLeftArm" 	name = "INPUT" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
+    <module class = "SplitRightArm" name = "INPUT" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
+    <module class = "SplitPupil" 	name = "INPUT" array_length = "2" selection = "19 20" 				loop = "false"/>
+
+    
     <!-- Body -->
     <!-- No servoes in body -->
     <module class = "Constant" name = "BODY_FEEBACK" data = "0 0"/> 
@@ -49,6 +60,7 @@
         start_up_time   = "10"
     />
         <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
+        <connection sourcemodule = "SplitHead"  			source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "INPUT"  delay = "1"/>
 
   <module
 		class="ServoConnector"
@@ -99,7 +111,8 @@
         input_limit_max = "126 110 126 50 126 180"
         start_up_time   = "10"
     />
-        <connection sourcemodule = "LA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
+        <connection sourcemodule = "LA_SC_FeedBackPosition"  	source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
+        <connection sourcemodule = "SplitLeftArm"  				source = "OUTPUT" 	targetmodule = "LA_Guard"  	target = "INPUT"  delay = "1"/>
 
     <module
 		class           = "ServoConnector"
@@ -162,6 +175,7 @@
         output_size     = "6"
 	/>
         <connection sourcemodule = "RA_Guard"  source = "OUTPUT" targetmodule = "RA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+        <connection sourcemodule = "SplitRightArm"  source = "OUTPUT" 	targetmodule = "RA_Guard"  	target = "INPUT"  delay = "1"/>
 
  	<module
     	class           = "Dynamixel"
