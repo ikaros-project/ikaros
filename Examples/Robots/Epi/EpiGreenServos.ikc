@@ -33,16 +33,16 @@
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
     <module class = "Sink" name = "NotAvailable" />
-        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "0"/>
-        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "0"/>
+        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
+        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
 
 
 	<!-- Splitting pos -->
-	<module class = "SplitBody" 	name = "INPUT" array_length = "2" selection = "1 2" 				loop = "false"/>
-    <module class = "SplitHead" 	name = "INPUT" array_length = "4" selection = "3 4 5 6" 			loop = "false"/>
-    <module class = "SplitLeftArm" 	name = "INPUT" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
-    <module class = "SplitRightArm" name = "INPUT" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
-    <module class = "SplitPupil" 	name = "INPUT" array_length = "2" selection = "19 20" 				loop = "false"/>
+	<module class = "TruncateArray" 	name = "SplitBody" array_length = "2" selection = "1 2" 				loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitHead" array_length = "4" selection = "3 4 5 6" 			loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitLeftArm" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitRightArm" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "19 20" 				loop = "false"/>
 
     
     <!-- Body -->
