@@ -189,7 +189,7 @@ Arbiter::Arbitrate()
             break;
 
         case 3: // hierarchy
-            for(int i=no_of_inputs-1; i>=0; i++)
+            for(int i=no_of_inputs-1; i>=0; i--)
                 if(amplitudes[i] > 0 || i==0)
                 {
                     reset_array(arbitration_state, no_of_inputs);
