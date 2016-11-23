@@ -299,6 +299,8 @@ Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, 
 
 Module_IO::~Module_IO()
 {
+/*
+    // Cannot print in destructor
     if (name != NULL)
     {
         if (module != NULL) module->Notify(msg_verbose, "      Deleting Module_IO \"%s\".\n", name);
@@ -307,6 +309,7 @@ Module_IO::~Module_IO()
     {
         if (module != NULL) module->Notify(msg_verbose, "      Deleting Module_IO\n");
     }
+*/
     if (matrix)
         for (int d=0; d<max_delay; d++)
             destroy_matrix(matrix[d]);
