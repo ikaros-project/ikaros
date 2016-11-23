@@ -114,6 +114,7 @@ Arbiter::Init()
     Bind(softmax_exponent, "softmax_exponent");
     Bind(hysteresis_threshold, "hysteresis_threshold");
     Bind(switch_time, "switch_time");
+    Bind(alpha, "alpha");
 
     int vcnt = 0;
     for(int i=0; i<no_of_inputs; i++)
@@ -136,9 +137,6 @@ Arbiter::Init()
     value_out = GetOutputArray("VALUE");
 
     size = GetOutputSize("OUTPUT");
-    
-    current_channel = -1;
-    smoothed[0] = 50;
 }
 
 
@@ -180,12 +178,16 @@ Arbiter::Arbitrate()
             break;
 
         case 1: // hysteresis
-
+            a = arg_max(amplitudes, no_of_inputs);
+            if(amplitudes[a] > amplitudes[winner] + hysteresis_threshold || amplitudes[winner] == 0)
+                winner = a;
+            reset_array(arbitration_state, no_of_inputs);
+            arbitration_state[winner] = amplitudes[winner];
             break;
 
         case 2: // softmax
-            copy_array(arbitration_state, amplitudes, no_of_inputs);
-//            pow(arbitration_state, 2, no_of_inputs);
+            for(int i=0; i<no_of_inputs; i++)
+                arbitration_state[i] = pow(amplitudes[i], softmax_exponent);
             break;
 
         case 3: // hierarchy
@@ -194,6 +196,7 @@ Arbiter::Arbitrate()
                 {
                     reset_array(arbitration_state, no_of_inputs);
                     arbitration_state[i] = amplitudes[i];
+                    break;
                 }
             break;
 
@@ -201,7 +204,11 @@ Arbiter::Arbitrate()
             copy_array(arbitration_state, amplitudes, no_of_inputs);
             break;
     }
+    
+    // Save last max for hysteresis or reset otherwise
 
+    if(arbitration_method != 1)
+        winner = 0;
 }
 
 
@@ -209,8 +216,12 @@ Arbiter::Arbitrate()
 void
 Arbiter::Smooth()
 {
-    if(switch_time > 0)
-        add(smoothed, 1-1.0/switch_time, smoothed, 1.0/switch_time, arbitration_state, no_of_inputs);
+    float a = alpha;
+    if(switch_time != 0)
+        a = 1.0/switch_time;
+
+    if(switch_time > 0 || alpha != 1)
+        add(smoothed, 1-a, smoothed, a, arbitration_state, no_of_inputs);
     else
         copy_array(smoothed, arbitration_state, no_of_inputs);
 }

@@ -50,14 +50,14 @@ public:
     int         size;
     
     int         switch_time;
-    int         switch_counter;
-    int         from_channel;
-    int         current_channel;
+    float       alpha;
 
     int         metric;
     int         arbitration_method;
     float       softmax_exponent;
     float       hysteresis_threshold;
+    
+    int         winner;
 
     Arbiter(Parameter * p);
     virtual	~Arbiter();
