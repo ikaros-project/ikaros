@@ -2,7 +2,7 @@
 
 <!-- Example for the Arbiter module -->
 
-<group>
+<group name="Arbiter Test">
 	
 		<module
 			class = "Arbiter"
