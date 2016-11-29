@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<group title="TheEyeTribe Example">
+	
+		<module
+			class = "TheEyeTribe"
+			name = "EyeTracking"
+		/>
+
+	
+	<view title="Eye Tracker">
+        <object
+            x="0" y="0" w="2"
+            class="Table"
+            module="EyeTracking"
+            source="TIME_STAMP"
+            title="Time stamp"
+        />
+        <object
+            x="2" y="0" w="2"
+            class="BarGraph"
+            module="EyeTracking"
+            source="FIX"
+            title="Fixation"
+        />
+        <object
+            x="0" y="1" w="4" h ="2"
+            class="Cross"
+            module="EyeTracking"
+            source="RAW"
+            title="Raw"
+            min = "0"
+            max = "1000"
+        />
+        <object
+            x="0" y="1" w="4" h ="2"
+            class="Cross"
+            module="EyeTracking"
+            source="AVG"
+            title="Avg"
+            min = "0"
+            max = "1000"
+            color = "Green"
+        />
+        <object
+            x="2" y="3" w="2"
+            class="Plot"
+            module="EyeTracking"
+            source="LEFT_PUPIL_SIZE"
+            title="Right pupil size"
+            min = "5"
+            max = "30"
+        />
+        
+        <object
+            x="0" y="3" w="2"
+            class="Plot"
+            module="EyeTracking"
+            source="LEFT_PUPIL_SIZE"
+            title="Left pupil size"
+            min = "5"
+            max = "30"
+        />
+	</view>
+
+</group>
+ 
