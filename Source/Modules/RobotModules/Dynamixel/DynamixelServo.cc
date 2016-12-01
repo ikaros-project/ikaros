@@ -285,7 +285,7 @@ float DynamixelServo::GetPresentTemperatureFormated(int adress)
 }
 float DynamixelServo::GetCurrentFormated(int adress)
 {
-    return GetValueAtAdress(adress)*controlTable[adress].Convert;
+    return (GetValueAtAdress(adress) - (controlTable[adress].Max/2))*controlTable[adress].Convert;
 }
 float DynamixelServo::GetGoalTorqueFormated(int adress)
 {
