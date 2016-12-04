@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group name="Logger" description="sends a log message at start-up to the ikaros site">
+
+	<description type="text">
+		This module notifies the ikaros site when ikaros is started to log the number of executions.
+	</description>
+
+	<example description="Example">
+		<module
+			class="Logger"
+			name="Logger"
+		/>
+	</example>
+
+	<module class="Logger" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Logger.h</file>
+   		<file>Logger.cc</file>
+   		<file>Logger.ikc</file>
+   </files>
+
+</group>
