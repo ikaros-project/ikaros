@@ -133,7 +133,8 @@
         <_object class="Plot" module="Joints" source="FEEDBACK_PRESENT_POSITION" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
         <object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
 
-        <object class="Slider" module="ModeSelector" parameter="row" min="0" max="3" x="0" y="4" w="1" h="2" />
+        <object class ="DropDownMenu" title="record mode" list="all/left/right/head" module="ModeSelector" parameter="row" x="0" y="4" w="1" h="2" />
+        <_object class="Slider" module="ModeSelector" parameter="row" min="0" max="3" x="0" y="4" w="1" h="2" />
         <object class="Table" module="ModeSelector" source="row" min="0" max="3" x="1" y="4" w="2" h="2" />
 
         <_object class="BarGraph" title="s0T" module="MotionRecorder" source="s0T" x="0" y="0" w="8" h="2" max="1" />

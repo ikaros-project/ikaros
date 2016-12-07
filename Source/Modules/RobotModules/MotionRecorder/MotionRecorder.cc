@@ -146,6 +146,9 @@ MotionRecorder::~MotionRecorder()
 
 
 
+
+/*
+
 void
 MotionRecorder::Save()
 {
@@ -191,7 +194,50 @@ MotionRecorder::Save()
     printf("Saved: %d\n", current_behavior);
 }
 
+*/
 
+
+
+void
+MotionRecorder::Save()
+{
+    char fname[1024];
+
+    snprintf(fname, 1023, file_name, current_behavior);
+    fname[1023] = 0;
+
+    FILE * f = fopen(fname, "w");
+
+    if(!f)
+    {
+        printf("ERROR could not open motion file \"%s\"\n", fname);
+        return;
+    }
+
+    fprintf(f, "TIME/1  POSITION/%d\n", size);
+
+    for(int j=0; j<position_data_count[current_behavior]; j++)
+    {
+        long t = j*GetTickLength();
+        fprintf(f, "%ld\n", t);
+        
+        for(int i=0; i<size; i++)
+        {
+            if(i!=0) fprintf(f, "\t");
+            fprintf(f, "%.4f", position_data[current_behavior][j][i]);
+        }
+
+        fprintf(f, "\n");
+    }
+
+    fclose(f);
+
+    printf("Saved: %d\n", current_behavior);
+}
+
+
+
+/*
 
 void
 MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT
@@ -242,6 +288,69 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         for(int i=0; i<size; i++)
         {
             fscanf(f, "%f", &mask[i]);
+        }
+
+        position_data_count[current_behavior]++;
+    }
+
+    position_data_count[current_behavior]--;
+    
+    // Fill the rest of the buffer with the last read positions - necessary with multirecording with mixed play/record
+    
+    for(int p=position_data_count[current_behavior]; p<position_data_max; p++)
+        for(int i=0; i<size; i++)
+            position_data[current_behavior][p][i] = position_data[current_behavior][position_data_count[current_behavior]][i];
+    
+    fclose(f);
+
+    printf("Loaded: %d\n", current_behavior);
+}
+*/
+
+
+
+void
+MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT
+{
+    char fname[1024];
+
+    snprintf(fname, 1023, file_name, current_behavior);
+    fname[1023] = 0;
+
+    FILE * f = fopen(fname, "r");
+
+    if(f == NULL)
+    {
+        snprintf(fname, 1023, file_name, current_behavior);
+        fname[1023] = 0;
+        f = fopen(fname, "r");
+    }
+
+    if(!f)
+    {
+        printf("WARNING: could not open motion file \"%s\" (ignored)\n", fname);
+        return;
+    }
+
+
+//    fprintf(f, "POSITION/%d TORQUE/%d MASK/%d\n", size, size, size);
+
+    position_data_count[current_behavior] = 0;
+
+    char buff [1024];
+    fscanf(f, "%s", buff);
+    fscanf(f, "%s", buff);
+    fscanf(f, "%s", buff);
+
+    while(!feof(f))
+    {
+        long t;
+        fscanf(f, "%ld", &t); // ignore for now
+
+        for(int i=0; i<size; i++)
+        {
+            if(i!=0) fprintf(f, "\t");
+            fscanf(f, "%f", &position_data[current_behavior][position_data_count[current_behavior]][i]);
         }
 
         position_data_count[current_behavior]++;
