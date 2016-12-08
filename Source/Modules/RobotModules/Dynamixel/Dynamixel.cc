@@ -51,6 +51,8 @@ Module(p)
     init_print              = GetIntValueFromList("print_info");
     index_mode              = GetIntValueFromList("index_mode");
     angle_unit              = GetIntValueFromList("angle_unit");
+    max_temperature                = GetIntValue("max_temperature");
+
     int maxServos           = GetIntValue("max_servo_id");
     int servoId_list_size  = 0;
     int * servoId_list     = GetIntArray("servo_id", servoId_list_size);
@@ -568,7 +570,18 @@ Dynamixel::Tick()
         if (ikarosOutBind[IK_OUT_GOAL_ACCELERATION][i] != -1)
             feedbackGoalAcceleration[servoIndex[i]] = servo[servoIndex[i]]->GetGoalAccelerationFormated(ikarosOutBind[IK_OUT_GOAL_ACCELERATION][i]);
     }
-}
+    // Check temp
+    for(int i=0; i<servos; i++)
+    {
+        if (servo[servoIndex[i]]->GetPresentTemperatureFormated(ikarosOutBind[IK_OUT_PRESENT_TEMPERATURE][i]) > max_temperature)
+        {
+            PrintAll();
+            Notify(msg_fatal_error, "Servo temperature is over limit. Shuting down ikaros\n");
+        }
+    }
+
+    
+   }
 
 void
 Dynamixel::Print()

@@ -55,7 +55,9 @@
 	<parameter name="size" type="int" default="0" description="This parameter forces a specific size of the output. In the normal case when it is not set, the size will be derived from the list of servo_ids" />
 	<parameter name="feedback" type="bool" default="yes" description="If set to 'no' the module works faster and do not ask servos for position feedback etc. Set to 'no' the feedback outputs will be filled with the inputs' values (FEEDBACK_GOAL_POSITION will just be a copy of the GOAL_POSITION). If the feedback does not have a matching input it will be set to -1 (FEEDBACK_PRESENT_VOLTAGE will be set to -1)"/>
 
-	<parameter name="start_up_delay" type="int" default="1" description="Number of ticks to wait before a position command is sent to the servos." />
+    <parameter name="start_up_delay" type="int" default="1" description="Number of ticks to wait before a position command is sent to the servos." />
+    <parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shuting down ikaros." />
+
 
     <input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" />
     <input name="LED" description="LED On/Off, Off if not connected" />
