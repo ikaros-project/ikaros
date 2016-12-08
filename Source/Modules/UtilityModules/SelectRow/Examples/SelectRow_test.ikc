@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<group>	
+		<module class = "Constant" name = "M" data="0 1 2; 3 4 5; 7 8 9" />
+
+		<module
+			class = "SelectRow"
+			name = "SelectRow"
+            selected_row = "1"
+		/>
+
+		<connection sourcemodule="M" source="OUTPUT" targetmodule="SelectRow" target="INPUT" />
+
+		<view name="View">
+			<object class="Table" module="M" source="OUTPUT" x="0" y="0" />
+			<object class="Table" module="SelectRow" source="OUTPUT" x="0" y="1" />
+
+            <object class ="DropDownMenu" title="row" list="row 0/row 1/row 2" module="SelectRow" parameter="selected_row" x="1" y="0" />
+		</view>
+</group>
+ 

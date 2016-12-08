@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<group name="SelectRow" description="SelectRows maximum element">
+
+	<description type="text">
+		A module that selects one row from its input as output
+	</description>
+
+	<example description="select row from array example">
+		<module
+			class="SelectRow"
+			name="SelectRow"
+            selected_row="2"
+		/>
+	</example>
+
+    <parameter name="selected_row" type="int" />
+    
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="Output with the selected row of the input" size_set_x="INPUT" size_y="1" />
+
+	<module class="SelectRow" />
+
+    <view title="SelectRow">
+        <object
+            x="0" y="0" w="2"
+            class="Table"
+            module="*"
+            source="INPUT"
+            title="Input"
+        />
+
+        <object
+            x="0" y="1" w="2"
+            class="Table"
+            module="*"
+            source="OUTPUT"
+            title="Output"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SelectRow.h</file>
+   		<file>SelectRow.cc</file>
+   		<file>SelectRow.ikc</file>
+   </files>
+
+</group>
+
