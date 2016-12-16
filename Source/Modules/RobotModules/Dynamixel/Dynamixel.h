@@ -78,6 +78,7 @@ private:
     
     bool        use_feedback;
     int         start_up_delay;
+	int			torque_up_delay;
     int         max_temperature;
     // index of where to find ikaros data in the dynamixel memory block
     int **      ikarosInBind;           // Array of where to store input data in the dynamixel memory block

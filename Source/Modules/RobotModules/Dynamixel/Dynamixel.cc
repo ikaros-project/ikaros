@@ -48,6 +48,7 @@ Module(p)
 	std::string csvPath     = GetClassPath();
 	use_feedback            = GetBoolValue("feedback");
 	start_up_delay          = GetIntValue("start_up_delay");
+	torque_up_delay         = GetIntValue("torque_up_delay");
 	init_print              = GetIntValueFromList("print_info");
 	index_mode              = GetIntValueFromList("index_mode");
 	angle_unit              = GetIntValueFromList("angle_unit");
@@ -391,11 +392,7 @@ Dynamixel::Init()
 	
 	// Warning if there will be no torque
 	if (!torqueLimitConnected)
-	{
-		for(int i=0; i<servos; i++)
-			if(servo[servoIndex[i]]->GetValueAtAdress(ikarosInBind[IK_IN_TORQUE_LIMIT][i]) == 0)
-				Notify(msg_warning, "Servo %i has no internal torque set and no torque limit input. The servo will not move", servoId[i]);
-	}
+		Notify(msg_fatal_error, "Module has no torque limit input. Please connect TORQUE_LIMIT. ");
 	
 }
 
@@ -470,6 +467,8 @@ Dynamixel::Tick()
 	if(!device || !com)
 		return;
 	
+	float torqueMultiplier = 0;
+	
 	if(GetTick() >= start_up_delay) // Do not send any instructions during start_up_delay
 	{
 		for(int i=0; i<servos; i++)
@@ -488,8 +487,15 @@ Dynamixel::Tick()
 				servo[servoIndex[i]]->SetGoalPositionFormated(ikarosInBind[IK_IN_GOAL_POSITION][i],goalPosition[servoIndex[i]], angle_unit);
 			if (movingSpeedConnected && ikarosInBind[IK_IN_MOVING_SPEED][i] != -1)
 				servo[servoIndex[i]]->SetMovingSpeedFormated(ikarosInBind[IK_IN_MOVING_SPEED][i],movingSpeed[servoIndex[i]]);
+			
+			if (GetTick() <= start_up_delay + torque_up_delay)
+				torqueMultiplier = ((GetTick() - start_up_delay) / float(torque_up_delay)); // Ramping up torque
+			else
+				torqueMultiplier = 1;
+
 			if (torqueLimitConnected && ikarosInBind[IK_IN_TORQUE_LIMIT][i] != -1)
-				servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i],torqueLimit[servoIndex[i]]);
+				servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i],torqueLimit[servoIndex[i]]*torqueMultiplier);
+			
 			if (goalTorqueConnected && ikarosInBind[IK_IN_GOAL_TORQUE][i] != -1)
 				servo[servoIndex[i]]->SetGoalTorqueFormated(ikarosInBind[IK_IN_GOAL_TORQUE][i],goalTorque[servoIndex[i]]);
 			if (goalAccelerationConnected && ikarosInBind[IK_IN_GOAL_ACCELERATION][i] != -1)

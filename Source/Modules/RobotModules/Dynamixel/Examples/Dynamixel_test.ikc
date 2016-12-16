@@ -9,47 +9,41 @@
     </description>
     
     <module
-    class = "Dynamixel"
-    name = "Dynamixel"
-    device  = "/dev/cu.usbserial-A8005hj3"
-    index_mode = "indirect"
-    print_info ="full"
-    use_feedback ="true"
-    baud_rate = "1000000"
-    angle_unit = "degrees"
-    
+		class = "Dynamixel"
+		name = "Dynamixel"
+		device  = "/dev/cu.usbserial-A900fDfU"
+		index_mode = "indirect"
+		print_info ="full"
+		use_feedback ="true"
+		baud_rate = "1000000"
+		angle_unit = "degrees"
     />
-    
-    <module class = "Constant" name = "TorqueEnable" outputsize = "1" data = "1" />
-    <connection sourcemodule = "TorqueEnable"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_ENABLE" />
-    <connection sourcemodule = "TorqueEnable"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_ENABLE" />
-    
+	
+	<module class = "Constant" name = "TorqueEnable" outputsize = "1" data = "1" />
+		<connection sourcemodule = "TorqueEnable"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_ENABLE" />
+	
     <module class = "Constant" name = "LED" outputsize = "1" data = "1" />
-    <connection sourcemodule = "LED"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "LED" />
-    <connection sourcemodule = "LED"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "LED" />
-    
+		<connection sourcemodule = "LED"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "LED" />
+	
     <!-- Tau -->
     <module
-    class		=	"FunctionGenerator"
-    name		=	"GoalPosition"
-    type		=	"sin"
-    frequency	=	"0.25"
-    offset      =	"240"
-    amplitude	=	"50"
-    shift		=	"0.0"
+		class		=	"FunctionGenerator"
+		name		=	"GoalPosition"
+		type		=	"sin"
+		frequency	=	"0.25"
+		offset      =	"240"
+		amplitude	=	"50"
+		shift		=	"0.0"
     />
     
-    <connection sourcemodule = "GoalPosition"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "GOAL_POSITION" />
-    <connection sourcemodule = "GoalPosition"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "GOAL_POSITION" />
+		<connection sourcemodule = "GoalPosition"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "GOAL_POSITION" />
     
     <module class = "Constant" name = "MovingSpeed" outputsize = "1" data = "1" />
-    <connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
-    <connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
-    
+		<connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
+		
     <module class = "Constant" name = "TorqueLimit" outputsize = "1" data = "1" />
-    <connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
-    <connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
-    
+		<connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_LIMIT" />
+		
     <view name="Dynamixel Control" object_size="100" >
         <object
         class="BarGraph"
