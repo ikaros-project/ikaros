@@ -13,7 +13,7 @@
     name = "Dynamixel"
     device  = "/dev/cu.usbserial-A8005hj3"
     index_mode = "indirect"
-    printf_info ="full"
+    print_info ="full"
     use_feedback ="true"
     baud_rate = "1000000"
     angle_unit = "degrees"
