@@ -110,6 +110,7 @@
         input_limit_min = "-125 -110 -125 -125 -125 -180"
         input_limit_max = "126 110 126 50 126 180"
         start_up_time   = "10"
+        max_speed       = "100"
     />
         <connection sourcemodule = "LA_SC_FeedBackPosition"  	source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
         <connection sourcemodule = "SplitLeftArm"  				source = "OUTPUT" 	targetmodule = "LA_Guard"  	target = "INPUT"  delay = "1"/>
@@ -122,7 +123,6 @@
         post_inverted   = "0 0 0 0 0 0" 
         offset          = "180 180 180 180 180 180" 
         output_size     = "6"
-        max_speed       = "100"
 
 	/>
         <connection sourcemodule = "LA_Guard"  source = "OUTPUT" targetmodule = "LA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
