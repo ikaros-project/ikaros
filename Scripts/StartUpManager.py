@@ -6,6 +6,9 @@ import base64
 import os
 import subprocess
 
+# Files that will not work with the script
+excludeFiles = ["NetworkCamera_test.ikc"]
+searchPattern = "_test.ikc"
 
 key = ""
 
@@ -69,10 +72,15 @@ def test(HandlerClass = AuthHandler,
 
 def findIKCFiles():
     print('Finding ikc files')
+    print('Exluded files (edit script to change this):')
+    for e in excludeFiles:
+        print(e);
     for root, dirs, files in os.walk("../"):
         for file in files:
-            if file.endswith(".ikc"):
-                ikcFiles.append(os.path.join(root, file))
+            if file.endswith(searchPattern):
+                for e in excludeFiles:
+                    if not file.endswith(e):
+                        ikcFiles.append(os.path.join(root, file))
     return;
 
    
@@ -164,13 +172,17 @@ def ParseIKC():
                 descIkcFiles.append(desc.text)
         else:
             descIkcFiles.append("")
-
-
     
 if __name__ == '__main__':
+    if os.geteuid() != 0:
+        exit("You need to have root privileges to run this script.\n")
     if len(sys.argv)<3:
-        print "usage SimpleAuthServer.py [port] [username:password]"
+        print "usage SimpleAuthServer.py [port] [username:password] [optional search pattern]"
         sys.exit()
+    if len(sys.argv)==4:
+        searchPattern = sys.argv[3]
+        print "Seaching must end with"
+        print searchPattern
     key = base64.b64encode(sys.argv[2])
     findIKCFiles()
     log = [None]*len(ikcFiles)
