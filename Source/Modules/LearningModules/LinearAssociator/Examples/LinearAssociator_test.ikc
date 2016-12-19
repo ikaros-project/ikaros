@@ -42,5 +42,6 @@
         <object x="0" y="2" w="3" class="Text" text="This IKC file demonstrates how a linear associator can learn to associate from two/values in X to a vector Y which consists of the sum and difference between the two/elements in X." />
     </view>
 		
+    <module class = "Logger" name = "Logger" />
 </group>
 

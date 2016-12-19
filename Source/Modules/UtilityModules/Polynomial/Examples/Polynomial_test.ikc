@@ -16,5 +16,6 @@
 			<object class="BarGraph" module="Polynomial" source="OUTPUT" min="-2" max="2" x="0" y="1" w="2" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

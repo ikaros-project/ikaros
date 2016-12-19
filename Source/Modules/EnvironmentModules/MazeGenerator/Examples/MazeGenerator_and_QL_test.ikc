@@ -86,5 +86,6 @@
         <object class="Plot3D" module="Q" source="VALUE" max="1" x="0" y="0" h="3" w="3" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

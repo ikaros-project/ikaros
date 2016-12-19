@@ -17,5 +17,6 @@
 
             <object class ="DropDownMenu" title="row" list="row 0/row 1/row 2" module="SelectRow" parameter="selected_row" x="1" y="0" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

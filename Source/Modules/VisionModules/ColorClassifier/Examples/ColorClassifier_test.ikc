@@ -71,5 +71,6 @@
 			/>
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

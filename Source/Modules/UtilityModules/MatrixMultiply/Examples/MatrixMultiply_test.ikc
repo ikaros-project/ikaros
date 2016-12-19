@@ -39,5 +39,6 @@
 			<object class="Image" module="Product1" source="OUTPUT" x="1" y="0" />
 			<object class="Image" module="Product2" source="OUTPUT" x="1" y="1" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

@@ -55,5 +55,6 @@
 			<object class="Table" module="Matrix4x4_to_16"  source="OUTPUT" x="4" y="2" w = "4" decimals ="0"/>
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

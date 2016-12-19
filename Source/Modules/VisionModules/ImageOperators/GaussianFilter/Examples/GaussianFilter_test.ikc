@@ -18,5 +18,6 @@
 			<object class="BarGraph" module="Gaussian" max="0.25" source="PROFILE" x="2" y="0" />
 			<object class="Slider" module="Gaussian" parameter="sigma" min="0.1" max="10" x="3" y="0" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

@@ -64,5 +64,6 @@
 			<object class="Image" type="fire" module="C2" source="OUTPUT" x="1" y="1" />
 			<object class="Image" type="fire" module="C3" source="OUTPUT" x="1" y="0" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

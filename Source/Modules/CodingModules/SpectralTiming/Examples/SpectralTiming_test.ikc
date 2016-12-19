@@ -26,5 +26,6 @@
         <object class="Grid" module="SpectralTiming" source="OUTPUT" x="0" y="4" w="4" h="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

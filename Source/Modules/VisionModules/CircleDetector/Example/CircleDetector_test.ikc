@@ -60,5 +60,6 @@
         <object class="Slider" module="Edges" parameter="threshold" min="0" max="1" x="4" y="2"  h="1" w="1" />
         <object class="Slider" module="Edges" parameter="grid" max="10" x="5" y="2"  h="1" w="1" />
     </view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

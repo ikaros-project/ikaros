@@ -2,7 +2,7 @@
 
 <group>
 	
-		<module class = "Logger" name = "Logger" />
-		
+    <module class = "Logger" name = "Logger" />
+    <module class = "Logger" name = "Logger" />
 </group>
  

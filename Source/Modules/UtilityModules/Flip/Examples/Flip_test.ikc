@@ -59,5 +59,6 @@
 
 			<object class="Grid" title="Flip: rotate-180" module="Flip6" source="OUTPUT" max="5" x="0" y="3" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

@@ -35,5 +35,6 @@
         <object class="Table" module="TA2" source="OUTPUT" x="3" y="1" w="3"/>
 
     </view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

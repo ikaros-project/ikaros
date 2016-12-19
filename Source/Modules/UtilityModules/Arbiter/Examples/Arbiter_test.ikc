@@ -31,6 +31,7 @@
 			<object class ="Slider" title="Switch time" module="Arbiter" parameter="switch_time" select="0" x="2" y="2" h="1" min="0" max="50" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 
 

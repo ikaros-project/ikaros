@@ -32,6 +32,7 @@
 			<object class="Table" module="MotionGuard" source="OUTPUT" x="0" y="0" w="8" h="4" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

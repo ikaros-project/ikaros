@@ -27,5 +27,6 @@
         <object class="Grid" module="PopulationCoder" source="OUTPUT" x="0" y="0"/>
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

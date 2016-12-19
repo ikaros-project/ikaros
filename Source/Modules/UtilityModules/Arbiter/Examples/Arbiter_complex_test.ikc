@@ -40,6 +40,7 @@
 			<object class ="Slider" title="Channel 0" module="C1" parameter="data" select="0" x="2" y="2" h="4" max="50" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 
 

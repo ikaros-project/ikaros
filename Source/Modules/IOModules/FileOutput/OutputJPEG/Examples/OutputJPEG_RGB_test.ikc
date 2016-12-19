@@ -31,5 +31,6 @@
 			<object class="Image" module="IN" source="BLUE" x="2" y="0" min="0" max="255" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

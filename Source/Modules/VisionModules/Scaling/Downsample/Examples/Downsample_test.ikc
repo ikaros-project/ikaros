@@ -36,5 +36,6 @@
 			<object class= "Image" name="Image" type="gray" module="D4" source="OUTPUT" x="3" y="2"  />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

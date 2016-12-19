@@ -74,5 +74,6 @@
     <connection sourcemodule="Object_ID_2" source="OUTPUT" targetmodule="M" target="OBJECT_ID_1" />
     <connection sourcemodule="Frame_ID_2"  source="OUTPUT" targetmodule="M" target="FRAME_ID_1" />
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

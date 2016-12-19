@@ -49,5 +49,6 @@
         <object class="Slider" module="SaliencePoints" parameter="sigma" title="sigma" max="100" x="9" y="6" w="1" h="6" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

@@ -85,5 +85,6 @@
     <view name="Grid">
         <object class="Grid" type="fire" name="Grid" module = "DepthBlobList" source = "GRID" x="0" y="0" w="6" h="6" />
     </view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

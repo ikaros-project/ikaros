@@ -39,5 +39,6 @@
 			<object class="Image" module="VK" source="OUTPUT2" x="2" y="1" min="0" max="255" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

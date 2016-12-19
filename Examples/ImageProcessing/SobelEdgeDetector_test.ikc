@@ -24,5 +24,6 @@
         <object class="Image" module="Sobel" source="OUTPUT" x="2" y="0"  h="2" w="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

@@ -49,5 +49,6 @@
         <object class="Slider" title="LED" module = "Color" parameter = "data" x="3" y="2" w="1" h="2" />
     </view>
     
+    <module class = "Logger" name = "Logger" />
 </group>
 

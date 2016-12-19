@@ -19,5 +19,6 @@
 			<object class="Image" type="gray" module="Submatrix" source="OUTPUT" x="0" y="0" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

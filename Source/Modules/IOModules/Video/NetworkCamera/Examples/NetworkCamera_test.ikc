@@ -30,5 +30,6 @@
         <object class="Image" name="Camera" module = "CAMERA" source = "INTENSITY" x="0" y="0" w="2" h="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 
