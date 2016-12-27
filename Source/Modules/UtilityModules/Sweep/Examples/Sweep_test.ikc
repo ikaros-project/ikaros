@@ -14,5 +14,6 @@
 		<view name="View">
 			<object class="Plot" module="Sweep" source="OUTPUT" x="0" y="0" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

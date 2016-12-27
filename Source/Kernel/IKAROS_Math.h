@@ -362,6 +362,7 @@ namespace ikaros
 	// image processing
 	//
 
+    float **    im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x=1, int stride_y=1);
 	float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0);
 	
 	// ksizex and ksizey must be odd for BLAS calls to work // TODO: Check that it works otherwise as well

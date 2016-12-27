@@ -15,6 +15,7 @@
 		<object class="Grid" module="Maze" source="OUTPUT" x="0" y="0" h="4" w="4" color="black,white,red,green" max="3" />
 	</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

@@ -37,5 +37,6 @@
         <object class="BarGraph" title="Depth Histogram" module = "DepthHistogram" source = "OUTPUT" x="3" y="0" w="3" h="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

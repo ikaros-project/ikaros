@@ -39,5 +39,6 @@
 			<object class="Image" module="Canny1" source="MAXIMA" x="1" y="1" />
 			<object class="Image" module="Canny1" source="OUTPUT" x="2" y="1"  />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

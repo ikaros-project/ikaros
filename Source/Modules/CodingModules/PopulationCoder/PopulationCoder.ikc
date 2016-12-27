@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="PopulationCoder" description="encodes a two-dimensional value in a vector">
+
+	<description type="text">
+		Module that generates a gaussian population code from an array of values. Each value is on a separate row of the output matrix to allow simple decoding. The optional amplitude input can be used to set the amplitude to an other value than 1.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="PopulationCoder"
+			name="PopulationCoder"
+		/>
+	</example>
+
+	<parameter name="size" type="int" default="10" description="Population size for each value" />
+	<parameter name="sigma" type="float" default="1" description="The width of the gaussian" />
+	<parameter name="min" type="float" default="0.0" description="Minimum value to be coded" />
+	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
+
+	<input name="INPUT" description="The input array" />
+	<input name="AMPLITUDE" description="Optional array of amplitudes for each input value" optional="yes" />
+
+	<output name="OUTPUT" description="The population coded output"/>
+
+	<module class="PopulationCoder" />
+
+    <view>
+        <object class="Grid" module="*" source="OUTPUT" x="0" y="0" w="4" />
+    </view>
+    
+	<created>2016</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>PopulationCoder.h</file>
+   		<file>PopulationCoder.cc</file>
+   		<file>PopulationCoder.ikc</file>
+   </files>
+
+</group>
+

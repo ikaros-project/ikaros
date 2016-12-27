@@ -121,22 +121,22 @@ public:
     float GetModelBaudRateMaxFormated();
     
     // Get formated
-    float GetTorqueEnableFormated(int adress);                  // return (0,1)
-    float GetLEDFormated(int adress);                           // return (0,1)
-    float GetDGainFormated(int adress);                         // return (0,1)
-    float GetIGainFormated(int adress);                         // return (0,1)
-    float GetPGainFormated(int adress);                         // return (0,1)
-    float GetGoalPositionFormated(int adress,int angle_unit);   // return (0,1)
-    float GetMovingSpeedFormated(int adress);                   // return (0,1)
-    float GetTorqueLimitFormated(int adress);                   // return (0,1)
-    float GetPresentPositionFormated(int adress,int angle_unit);// return (0,1)
-    float GetPresentSpeedFormated(int adress);                  // return (0,1)
-    float GetPresentLoadFormated(int adress);                   // return (0,1)
-    float GetPresentVoltageFormated(int adress);                // return (0,1)
-    float GetPresentTemperatureFormated(int adress);            // return (0,1)
-    float GetCurrentFormated(int adress);                       // return (0,1)
-    float GetGoalTorqueFormated(int adress);                    // return (0,1)
-    float GetGoalAccelerationFormated(int adress);              // return (0,1)
+    float GetTorqueEnableFormated(int adress);
+    float GetLEDFormated(int adress);                           
+    float GetDGainFormated(int adress);                         
+    float GetIGainFormated(int adress);                         
+    float GetPGainFormated(int adress);                         
+    float GetGoalPositionFormated(int adress,int angle_unit);   
+    float GetMovingSpeedFormated(int adress);                   
+    float GetTorqueLimitFormated(int adress);                   
+    float GetPresentPositionFormated(int adress,int angle_unit);
+    float GetPresentSpeedFormated(int adress);                  
+    float GetPresentLoadFormated(int adress);                   
+    float GetPresentVoltageFormated(int adress);                
+    float GetPresentTemperatureFormated(int adress);            
+    float GetCurrentFormated(int adress);                       
+    float GetGoalTorqueFormated(int adress);                    
+    float GetGoalAccelerationFormated(int adress);              
     
     // Set formated
     bool SetTorqueEnableFormated(int adress, float value);

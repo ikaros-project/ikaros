@@ -24,7 +24,7 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 37;2;Present Position; Current Position;R;;;;;;8
 39;2;Present Speed;Current Speed;R;;;;;;9
 41;2;Present Load; Current Load;R;;;;;;10
-45;1;Present Voltage;Current Voltage;R;;;;;;11
+45;1;Present Voltage;Current Voltage;R;0;0;254;0.1;;11
 46;1;Present Temperature;Present temperature;R;;;;;;12
 47;1;Registered Instruction;Registered Instruction ;R;0;;;;;
 49;1;Moving;Moving;R;0;;;;;

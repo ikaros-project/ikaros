@@ -56,6 +56,7 @@
 #define INST_BULK_WRITE         147
 
 #define SYNC_WRITE_HEADER_1 7
+#define INSTRUCTION_HEADER_1 5
 #define RECIVE_HEADER_1 5
 
 #define SYNC_WRITE_HEADER_2 8

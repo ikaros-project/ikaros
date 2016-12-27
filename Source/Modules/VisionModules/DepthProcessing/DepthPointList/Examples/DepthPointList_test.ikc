@@ -33,5 +33,6 @@
         <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="6" y="3" w="1" h="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

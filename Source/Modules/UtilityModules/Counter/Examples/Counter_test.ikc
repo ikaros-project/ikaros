@@ -26,5 +26,6 @@
 			<object class="BarGraph" module="Counter" source="PERCENT" x="1" y="1" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

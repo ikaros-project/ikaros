@@ -23,5 +23,6 @@
 			<object class="Image" name="Changes" module="Change" source="OUTPUT" x="1" y="0" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

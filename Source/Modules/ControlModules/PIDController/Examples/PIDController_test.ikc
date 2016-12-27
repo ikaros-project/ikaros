@@ -32,4 +32,5 @@
 		</view>
 	</views>
 	
+    <module class = "Logger" name = "Logger" />
 </group>

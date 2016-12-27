@@ -1,5 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_subdirectory(EyeTracker)
 add_subdirectory(FileInput)
 add_subdirectory(FileOutput)
 add_subdirectory(Network)

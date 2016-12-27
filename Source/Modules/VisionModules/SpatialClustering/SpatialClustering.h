@@ -77,7 +77,7 @@ public:
 	Cluster		cluster[cluster_max_n];
 	int			cluster_n;
 
-    float *     active;
+    float *     cluster_active;
     float **    last_output;
     int         no_of_found_clusters;
     int         no_of_found_clusters_last;

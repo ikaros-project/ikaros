@@ -24,5 +24,6 @@
 			<object class="BarGraph" module="ServoConnector" source="OUTPUT" x="0" y="0" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

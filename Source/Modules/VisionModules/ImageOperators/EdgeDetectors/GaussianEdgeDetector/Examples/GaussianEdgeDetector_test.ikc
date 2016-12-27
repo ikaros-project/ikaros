@@ -49,5 +49,6 @@
 			<object class="Image" module="Gaussian2" source="OUTPUT" x="4" y="2"  h="2" w="2" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

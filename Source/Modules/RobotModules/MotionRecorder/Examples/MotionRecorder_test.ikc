@@ -54,6 +54,7 @@
             <object class="Slider" title = "D1" module="Joints" parameter="data" select="1" x="9" y="11" h="2" w="1" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

@@ -3103,6 +3103,24 @@ namespace ikaros
     // MARK: -
     // MARK: image processing
     
+    float **
+    im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x, int stride_y)  // mode = 'sliding'
+    {
+        float * r = *result;
+        for(int j=0; j<result_size_y; j++)
+            for(int i=0; i<result_size_x; i++)
+            {
+                int s[kernel_size_y];
+                for(int k=0; k<kernel_size_y; k++)
+                    s[k] = (j*stride_y+k)*source_size_x + i*stride_x;
+                for(int k=0; k<kernel_size_y; k++)
+                    for(int v=0; v<kernel_size_x; v++)
+                        *r++ = (*source)[s[k]++];
+            }
+
+        return result;
+    }
+
 	float **
 	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias)
 	{

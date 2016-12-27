@@ -66,4 +66,5 @@
     <connection sourcemodule="Id2" source="OUTPUT" targetmodule="T" target="OBJECT_ID_2" />
     <connection sourcemodule="Frame2" source="OUTPUT" targetmodule="T" target="FRAME_ID_2" />
 
+    <module class = "Logger" name = "Logger" />
 </group>
