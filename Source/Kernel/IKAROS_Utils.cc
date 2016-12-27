@@ -493,6 +493,30 @@ create_matrix(const char * s, int & sizex, int & sizey)
 
 
 float *
+resize_array(float * a, int size, bool clear=false)
+{
+    
+}
+
+
+
+float **
+resize_matrix(int sizex, int sizey, bool clear=false);
+{
+
+}
+
+
+
+float ***
+resize_matrix(int sizex, int sizey, int sizez, bool clear=false);
+{
+
+}
+
+
+
+float *
 reset_array(float * a, int size)
 {
 #ifdef USE_VDSP
@@ -625,6 +649,12 @@ copy_matrix(float ** r, float ** a, int sizex, int sizey)
     return r;
 }
 
+float ***
+copy_matrix(float *** r, float *** a, int sizex, int sizey, int sizez)
+{
+    memcpy(r[0][0], a[0][0], sizex*sizey*sizez*sizeof(float));
+    return r;
+}
 
 
 // Options
