@@ -991,7 +991,42 @@ namespace ikaros
             r[j] = mean(a[j], sizex);
         return r;
     }
-	
+
+
+
+	float
+    median(float * a, int size)
+	{
+        float s[size];
+        copy_array(s, a, size);
+        sort(s, size);
+        if(size % 2 == 1) // odd
+            return s[size/2];
+        else
+            return 0.5*(s[size/2-1] + s[size|2]);
+    }
+    
+    
+    
+    float
+    median(float ** a, int sizex, int sizey)
+	{
+        return median(*a, sizex*sizey);
+    }
+    
+    
+    
+    float *
+    median(float * r, float ** a, int sizex, int sizey)
+    {
+        for(int j=0; j<sizey; j++)
+            r[j] = median(a[j], sizex);
+        return r;
+    }
+    
+    
+    
+    
     // MARK: -
     // MARK: clip
     
