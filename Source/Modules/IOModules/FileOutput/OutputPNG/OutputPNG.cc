@@ -45,7 +45,7 @@ OutputPNG::OutputPNG(Parameter * p):
     Module(p)
 {
     file_name		= GetValue("filename");
-    supress		= GetIntValue("supress", 1);
+    supress		= GetIntValue("supress");
     offset	 	= GetIntValue("offset", 0);
 
 
