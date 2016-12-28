@@ -29,6 +29,7 @@
 #include "IKAROS_Threads.h"
 
 #include <pthread.h>
+#include <signal.h>
 
 class ThreadData
 {
@@ -52,6 +53,15 @@ Thread::Join()
 {
     data->thread_id = -1;
     return pthread_join(data->thread, NULL);
+}
+
+
+
+int
+Thread::Kill()
+{
+    data->thread_id = -1;
+    return pthread_kill(data->thread, SIGKILL);
 }
 
 
