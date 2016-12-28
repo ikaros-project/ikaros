@@ -9,12 +9,13 @@
 		/>
 
 		<module
-			class = "ServoConnector"
-			name = "ServoConnector"
-			connector   =   "1 2 3 4"
-            inverted    =   "0 0 0 0" 
-            offset      =   "180 180 180 180" 
-            output_size =   "4"
+			class			= "ServoConnector"
+			name			= "ServoConnector"
+			connector		=   "1 2 3 4"
+			pre_inverted    =   "0 1 0 0"
+			post_inverted   =   "0 0 1 0"
+            offset			=   "180 180 180 180"
+            output_size		=   "4"
 
 		/>
 		

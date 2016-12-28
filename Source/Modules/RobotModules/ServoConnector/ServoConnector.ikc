@@ -11,8 +11,8 @@
 			class="ServoConnector"
 			name="ServoConnector"
 			connector   =   "1 2 2 3 3 4 5 8 8 10"
-            inverted    =   "0 1 0 0 1 0 0 1 0 0 " 
-            midpoint    =   "0 0 0 0 0 0 0 0 0 0 "
+			pre_inverted    =   "0 1 0 0 1 0 0 1 0 0 "
+			post_inverted    =   "0 1 0 0 1 0 0 1 0 0 "
 		/>
 	</example>
 
