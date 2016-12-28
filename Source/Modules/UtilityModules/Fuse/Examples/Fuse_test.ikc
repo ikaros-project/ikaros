@@ -70,9 +70,9 @@
     <connection sourcemodule="Frame_ID_1"  source="OUTPUT" targetmodule="M" target="FRAME_ID_1" />
 
     
-    <connection sourcemodule="Matrix_2"    source="OUTPUT" targetmodule="M" target="MATRIX_1" />
-    <connection sourcemodule="Object_ID_2" source="OUTPUT" targetmodule="M" target="OBJECT_ID_1" />
-    <connection sourcemodule="Frame_ID_2"  source="OUTPUT" targetmodule="M" target="FRAME_ID_1" />
+    <connection sourcemodule="Matrix_2"    source="OUTPUT" targetmodule="M" target="MATRIX_2" />
+    <connection sourcemodule="Object_ID_2" source="OUTPUT" targetmodule="M" target="OBJECT_ID_2" />
+    <connection sourcemodule="Frame_ID_2"  source="OUTPUT" targetmodule="M" target="FRAME_ID_2" />
 
     <module class = "Logger" name = "Logger" />
 </group>
