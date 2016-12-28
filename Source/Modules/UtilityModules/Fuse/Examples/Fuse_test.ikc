@@ -66,8 +66,8 @@
 
     
     <connection sourcemodule="Matrix_1"    source="OUTPUT" targetmodule="M" target="MATRIX_1" />
-    <connection sourcemodule="Object_Id_1" source="OUTPUT" targetmodule="M" target="OBJECT_ID_1" />
-    <connection sourcemodule="Frame_Id_1"  source="OUTPUT" targetmodule="M" target="FRAME_ID_1" />
+    <connection sourcemodule="Object_ID_1" source="OUTPUT" targetmodule="M" target="OBJECT_ID_1" />
+    <connection sourcemodule="Frame_ID_1"  source="OUTPUT" targetmodule="M" target="FRAME_ID_1" />
 
     
     <connection sourcemodule="Matrix_2"    source="OUTPUT" targetmodule="M" target="MATRIX_1" />
