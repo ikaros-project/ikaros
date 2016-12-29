@@ -1036,7 +1036,7 @@ WebUI::Run()
     }
 
     if(k->max_ticks != -1)
-        httpThread->Kill(); // This is a really ugly solution; but the this code will soon be replaced anyway
+        httpThread->Kill(); // This is a really ugly solution; but this code will soon be replaced anyway
     httpThread->Join();
 //    chdir(k->ikc_dir);
 }
