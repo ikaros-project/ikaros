@@ -2,7 +2,7 @@
 //		Constant.cc		This file is a part of the IKAROS project
 //						Implements a modules that outputs a constant array
 //
-//    Copyright (C) 2004-2014 Christian Balkenius
+//    Copyright (C) 2004-2016 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -18,9 +18,6 @@
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-//	Created: 2004-03-22
-//
-
 
 
 #include "Constant.h"
@@ -61,7 +58,11 @@ Constant::Init()
     outputsize_x	=	GetOutputSizeX("OUTPUT");
     outputsize_y	=	GetOutputSizeY("OUTPUT");
     
-    Bind(data, outputsize_x, outputsize_y, "data");
+    Bind(data, outputsize_x, outputsize_y, "data", true);
+
+    copy_matrix(output, data, outputsize_x, outputsize_y);   // Copy to allow output to be inspected before first tick
+    
+    print_matrix(GetName(), output, outputsize_x, outputsize_y);
 }
 
 
