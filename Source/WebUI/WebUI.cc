@@ -1653,7 +1653,6 @@ WebUI::HandleHTTPThread()
 {
     while(!k->Terminate())
     {
-        printf("HandleHTTPThread() not terminating\n");
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))
