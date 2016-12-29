@@ -700,7 +700,7 @@ Module::GetIntValueFromList(const char * n, const char * list)
 
 
 float *
-Module::GetArray(const char * n, int size)
+Module::GetArray(const char * n, int & size, bool fixed_size)
 {
     bool too_few = false;
     float * a = create_array(size);
@@ -728,7 +728,7 @@ Module::GetArray(const char * n, int size)
 
 
 int *
-Module::GetIntArray(const char * n, int & size)
+Module::GetIntArray(const char * n, int & size, bool fixed_size)
 {
     int requested_size = size;
     int data_size = 0;
@@ -789,9 +789,9 @@ Module::GetIntArray(const char * n, int & size)
 
 
 float **
-Module::GetMatrix(const char * n, int & sizex, int & sizey)
+Module::GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size)
 {
-    return create_matrix(GetValue(n), sizex, sizey);
+    return create_matrix(GetValue(n), sizex, sizey, fixed_size);
 }
 
 
@@ -839,8 +839,6 @@ Module::GetMatrix(const char * n, int sizex, int sizey)
 
 
 
-
-
 void
 Module::Bind(float & v, const char * n)
 {
@@ -852,20 +850,20 @@ Module::Bind(float & v, const char * n)
 
 
 void
-Module::Bind(float * & v, int size, const char * n)
+Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 {
     // TODO: check type here
-    v = GetArray(n, size);
+    v = GetArray(n, size, fixed_size);
     bindings = new Binding(this, n, bind_array, v, size, 1, bindings);
 }
 
 
 
 void
-Module::Bind(float ** & v, int & sizex, int & sizey, const char * n)
+Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
 {
     // TODO: check type here
-    v = GetMatrix(n, sizex, sizey);
+    v = GetMatrix(n, sizex, sizey, fixed_size);
     bindings = new Binding(this, n, bind_matrix, v, sizex, sizey, bindings);
 }
 

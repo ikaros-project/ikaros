@@ -258,17 +258,17 @@ protected:
     int             GetIntValue(const char * n, int d=0);                // Search through XML for parameter and return its value as a float or default value d if not found
     bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not foun
-    float *         GetArray(const char * n, int size);		// Search through XML for parameter and return its value as an array
-    float **        GetMatrix(const char * n, int & sizex, int & sizey);	// Search through XML for parameter and return its value as a matrix
-    int *           GetIntArray(const char * n, int & size);  // If size == 0, get number of items from parameter otehrwise make sure that the requtested size is returned and filled with any available values; if there are too few values the last one will be used for the remaining elements
+    float *         GetArray(const char * n, int & size, bool fixed_size=false);		// Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
+    float **        GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size=false);	// Search through XML for parameter and return its value as a matrix; fixed_size=true uses supplied size rathrer than data size
+    int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
 
     // Bind values to names and get values from XML tree if possible
     
     void            Bind(float & v, const char * n);                        // Bind a floating point value to a name
     void            Bind(int & v, const char * n);                          // Bind int OR list value to name
     void            Bind(bool & v, const char * n);                         // Bind boolean
-    void            Bind(float * & v, int size, const char * n);              // Bind array
-    void            Bind(float ** & v, int & sizex, int & sizey, const char * n); // Bind matrix; also gets the matrix size
+    void            Bind(float * & v, int size, const char * n, bool fixed_size = false);              //  // Creates and binds array; also gets the array size; uses the supplied size instead if fixed_size = true.
+    void            Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size = false); // Creates and binds matrix; also gets the matrix size; uses the supplied size instead if fixed_size = true.
 
 
     void            SetParameter(const char * parameter_name, int x, int y, float value);

@@ -332,9 +332,9 @@ create_array(int size)
 
 
 float *
-create_array(const char * s, int & size)
+create_array(const char * s, int & size, bool fixed_size)
 {
-    size = 0;
+    int sz = 0;
 
     if (s == NULL)
         return NULL;
@@ -345,24 +345,30 @@ create_array(const char * s, int & size)
     for (; isspace(*v) && *v != '\0'; v++) ;
     while(sscanf(v, "%*f")!=-1)
     {
-        size++;
+        sz++;
         for (; !isspace(*v) && *v != ',' && *v != '\0'; v++) ;
         if(*v==',') v++;
         for (; isspace(*v) && *v != '\0'; v++) ;
     }
     
-    if(size == 0)
+    if(sz == 0)
         return NULL;
 
+    if(!fixed_size)
+        size = sz;
+    
     float * a = create_array(size);
     
     // read values into array
 
     v = s;
     int i=0;
+    float scanned_value;
     for (; isspace(*v) && *v != '\0'; v++) ;
-    while(sscanf(v, "%f", &a[i])!=-1)
+    while(sscanf(v, "%f", &scanned_value)!=-1)
     {
+        if(i<size)
+            a[i] = scanned_value;
         i++;
         for (; !isspace(*v) && *v != ',' && *v != '\0'; v++) ;
         if(*v==',') v++;
@@ -414,11 +420,8 @@ create_matrix(int sizex, int sizey, int sizez, int sizet)
 
 
 float **
-create_matrix(const char * s, int & sizex, int & sizey)
+create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
 {
-    sizex = 0;
-    sizey = 0;
-
     int sx = 0; // to allow &sizex == &sizey
     int sy = 1;
 
@@ -462,13 +465,22 @@ create_matrix(const char * s, int & sizex, int & sizey)
     if(row_elements > sx)
         sx = row_elements;
 
-    float ** m = create_matrix(sx, sy);
-
+    if(!fixed_size)
+    {
+        sizex = sx;
+        sizey = sy;
+    }
+    float ** m = create_matrix(sizex, sizey);
+    
     v = ss;
     int j=0;
     int i=0;
-    while(sscanf(v, "%f", &m[j][i])!=-1)
+    float scanned_value;
+    while(sscanf(v, "%f", &scanned_value)!=-1)
     {
+        if(j*sizex+i<sizex*sizey) // this condition makes sure that the matrix can also be filled (but not overfilled) from array 
+            m[j][i] = scanned_value;
+        
         i++;
         for (; !isspace(*v) && *v != ',' && *v != ';' && *v != '\0'; v++) ;
         if(*v==',') v++;
@@ -483,9 +495,6 @@ create_matrix(const char * s, int & sizex, int & sizey)
     }
 
     destroy_string(ss);
-
-    sizex = sx;
-    sizey = sy;
 
     return m;
 }

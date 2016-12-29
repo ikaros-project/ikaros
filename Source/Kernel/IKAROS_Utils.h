@@ -61,10 +61,10 @@ void        print_array(const char * name, float * a, int size, int decimals=2);
 void        print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals=2);
 
 float *     create_array(int size);
-float *     create_array(const char * s, int & size);
+float *     create_array(const char * s, int & size, bool fixed_size=false); // if fixed_size == true the initial values of size will be used; otherwise the size is set from the data
 
 float **    create_matrix(int sizex, int sizey);
-float **    create_matrix(const char * s, int & sizex, int & sizey); // create matrix and set size x and y from data
+float **    create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size=false); // if fixed_size == true the initial values of sizex and sizey will be used; otherwise the size is set from the data
 float ***   create_matrix(int sizex, int sizey, int sizez);
 float ****  create_matrix(int sizex, int sizey, int sizez, int sizet);
 
