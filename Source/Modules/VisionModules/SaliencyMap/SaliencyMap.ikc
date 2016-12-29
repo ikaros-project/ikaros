@@ -18,6 +18,7 @@
 	<parameter name="type" type="list" values="max/boltzmann/exponential" default="max" description="Selection type" />
 	<parameter name="alpha" type="float" default="0.01" description="Learning rate" />
 	<parameter name="temperature" type="float" default="0.1" description="Temperature for Bolzmann selection" />
+	<parameter name="no_of_inputs" type="int" default="1" description="Number of inputs" />
 
 	<input name="*" description="The inputs" />
 	<input name="REINFORCEMENT" description="The reinforcement input" />

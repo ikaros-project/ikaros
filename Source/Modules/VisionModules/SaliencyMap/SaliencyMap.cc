@@ -51,7 +51,7 @@ SaliencyMap::SaliencyMap(Parameter * p):
 
     // Add the requested number of inputs ** function for Module::AddMultipleInputs(name, n) return n
 
-    no_of_inputs		= GetIntValue("no_of_inputs", 1);
+    no_of_inputs		= GetIntValue("no_of_inputs");
 
     for (int i=0; i<no_of_inputs; i++)
     {

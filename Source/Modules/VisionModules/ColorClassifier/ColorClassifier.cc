@@ -33,11 +33,11 @@ ColorClassifier::Init()
 	compensation = GetBoolValue("compensation", false);
     diagnostics = GetBoolValue("diagnostics", false);
     
-	color = 2*pi*GetFloatValue("color", 225.0)/360.0;
-	width = cos(2*pi*GetFloatValue("width", 20)/360.0);
+	color = 2*pi*GetFloatValue("color")/360.0;
+	width = cos(2*pi*GetFloatValue("width")/360.0);
     
-	saturation_min = GetFloatValue("saturation_min", 0.05);
-	saturation_max = GetFloatValue("saturation_max", 0.50);
+	saturation_min = GetFloatValue("saturation_min");
+	saturation_max = GetFloatValue("saturation_max");
     
 	cr = sin(color);
 	cg = cos(color);

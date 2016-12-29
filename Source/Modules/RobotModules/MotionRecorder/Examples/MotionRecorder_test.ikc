@@ -24,7 +24,7 @@
 			name = "MotionRecorder"
             mask = "1 1 1 1 1  1"
             torque = "0.25 0.25 0.25 0.25 0.25"
-            filename = "/Users/cba/Desktop/motion.%d.mot"
+            filename = "motion.%d.mot"
 		/>
 
         <_connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "GOAL_POSITION" />

@@ -29,7 +29,7 @@ void
 SpatialClustering::Init()
 {
     Bind(sorting , "sorting");
-	no_of_clusters = GetIntValue("no_of_clusters", 1);
+	no_of_clusters = GetIntValue("no_of_clusters");
 
 	input = GetInputMatrix("INPUT");
 
@@ -45,11 +45,11 @@ SpatialClustering::Init()
     
     // Get and scale relative values to image size (i. e. pixel)
     
-    threshold = GetFloatValue("threshold", 0.1);
-    cluster_radius = float(size_x)*GetFloatValue("cluster_radius", 0.1);
+    threshold = GetFloatValue("threshold");
+    cluster_radius = float(size_x)*GetFloatValue("cluster_radius");
     max_cluster_area = 2*pi*cluster_radius*cluster_radius;
-	min_cluster_area = float(size_x)*float(size_y)*GetFloatValue("min_cluster_area", 0.0001);
-    tracking_distance = float(size_x)*GetFloatValue("tracking_distance", 0.25);
+	min_cluster_area = float(size_x)*float(size_y)*GetFloatValue("min_cluster_area");
+    tracking_distance = float(size_x)*GetFloatValue("tracking_distance");
 
 }
 

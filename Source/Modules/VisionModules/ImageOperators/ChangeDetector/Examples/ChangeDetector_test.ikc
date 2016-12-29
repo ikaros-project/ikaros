@@ -4,7 +4,7 @@
 <group>
 
 		<module
-			class = "InputQTMovie"
+			class = "InputVideoFile"
 			name = "IN"
 			filename = "../../../../../../Examples/Media/ikaros.mov"
 			loop = "yes"

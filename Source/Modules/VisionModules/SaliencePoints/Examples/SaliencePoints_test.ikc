@@ -6,7 +6,7 @@
         class   = "InputJPEG"
         name	= "CAMERA"
         size_x  = "640"
-        size_y  =  "480"
+        size_y  =  "420"
         filename = "../../../../../Examples/Media/marker_image.jpg"
     />
     

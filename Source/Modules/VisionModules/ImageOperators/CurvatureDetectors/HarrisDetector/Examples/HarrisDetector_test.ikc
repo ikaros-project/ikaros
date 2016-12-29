@@ -8,15 +8,8 @@
 -->
 
 <group>
-		<_module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "20" />
+		<module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "20" />
 
-		<module
-			class   = "InputVideoQT"
-			name	= "IN"			
-			size_x  = "320"
-			size_y  = "240"
-			camera  = "iSight"
-		/>
 
 		<module 
 			class = "GaussianEdgeDetector"

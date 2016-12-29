@@ -1035,6 +1035,8 @@ WebUI::Run()
         }
     }
 
+    if(k->max_ticks != -1)
+        httpThread->Kill(); // This is a really ugly solution; but the this code will soon be replaced anyway
     httpThread->Join();
 //    chdir(k->ikc_dir);
 }
@@ -1651,6 +1653,7 @@ WebUI::HandleHTTPThread()
 {
     while(!k->Terminate())
     {
+        printf("HandleHTTPThread() not terminating\n");
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))
