@@ -61,8 +61,6 @@ Constant::Init()
     Bind(data, outputsize_x, outputsize_y, "data", true);
 
     copy_matrix(output, data, outputsize_x, outputsize_y);   // Copy to allow output to be inspected before first tick
-    
-    print_matrix(GetName(), output, outputsize_x, outputsize_y);
 }
 
 
