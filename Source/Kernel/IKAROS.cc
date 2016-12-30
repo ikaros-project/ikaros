@@ -21,36 +21,6 @@
 //
 //	Created July 13, 2001
 //
-//	Revision History:
-//
-//		2002-01-27	Added support for sizing of output arrays depending on input sizes
-//		2002-02-06	Added x, y of each array instead of width
-//		2002-02-10	Added new XML support that does not depend on expat for better portability
-//		2002-02-16	Additional support for matrices: GetInputMatrix() and GetOutputMatrix()
-//					to make image processing easier
-//		2002-03-15	Added socket for UI communication
-//		2002-05-20 	Added new communication protocol
-//		2002-10-06	Minor changes in parameter class
-//		2003-01-23	Bug in InitInputs() fixed
-//		2003-08-09	Now catches ctrl-C to shut down gracefully
-//
-//		2004-03-02	Version 0.8.0 created
-//		2004-11-15	New print and error functions; now use Notify(msg, ...) for both errors and printing
-//		2004-11-27	Added defines around CTRL-C handler
-//		2005-01-17	Changed Data to Array
-//		2005-01-18	Completed timing functions
-//		2005-08-31	All communication code moved to WebUI
-//		2006-01-20	Major cleanup of the code; most system specific code moved out of the kernel
-//		2006-02-10	Extended error handling
-//		2006-05-05	Even more extended error handling; more informative error messages
-//		2006-08-31	Most Windows-specific code included
-//		2006-12-12	Fixed potential memory leaks caused by old XML parser
-//		2007-01-10	Added new XML handling and new module creation for ikc files
-
-//		2007-05-10	Version 1.0.0 created
-//		2007-07-05	Malloc debugging added
-//		2008-12-28  All legacy support and deprecated functions removed to simplify XML cleanup
-//      Revision history now maintained at GitHUb
 
 #include "IKAROS.h"
 
@@ -702,27 +672,7 @@ Module::GetIntValueFromList(const char * n, const char * list)
 float *
 Module::GetArray(const char * n, int & size, bool fixed_size)
 {
-    bool too_few = false;
-    float * a = create_array(size);
-    const char * v = GetValue(n);
-    if (v == NULL)
-	{
-		destroy_array(a);
-        return NULL;
-	}
-    for (int i=0; i<size;i++)
-    {
-        for (; isspace(*v) && *v != '\0'; v++) ;
-        if (sscanf(v, "%f", &a[i])==-1)
-        {
-            too_few = true;
-            a[i] = 0;
-        }
-        for (; !isspace(*v) && *v != '\0'; v++) ;
-    }
-    if(too_few)
-        Notify(msg_warning, "Too few constants in array \"%s\" (0 assumed).\n", n);
-    return a;
+    return create_array(GetValue(n), size, fixed_size);
 }
 
 
@@ -793,49 +743,6 @@ Module::GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size)
 {
     return create_matrix(GetValue(n), sizex, sizey, fixed_size);
 }
-
-
-
-/*
-float **
-Module::GetMatrix(const char * n, int sizex, int sizey)
-{
-    float ** m = create_matrix(sizex, sizey);
-    const char * v = GetValue(n);
-    if (v == NULL)
-        return m;
-    
-    int sx, sy;
-    float ** M = create_matrix(v, sx, sy);
-    
-    if(sy == 1 && sizey > 1) // for backward compatibility, get all data from one row
-    {
-        int p = 0;
-        for(int j=0; j<sizey; j++)
-            for(int i=0; i<sizex; i++)
-            {
-                m[j][i] = M[0][p++];
-                if(p >= sx)
-                    break;
-            }
-    }
-
-    else
-    {
-        sx = min(sx, sizex);
-        sy = min(sy, sizey);
-
-        for(int i=0; i<sx; i++)
-            for(int j=0; j<sy; j++)
-                m[j][i] = M[j][i];
-    }
-
-    destroy_matrix(M);
-
-    return m;
-}
-*/
-
 
 
 
