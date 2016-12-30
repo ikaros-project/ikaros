@@ -337,7 +337,12 @@ create_array(const char * s, int & size, bool fixed_size)
     int sz = 0;
 
     if (s == NULL)
-        return NULL;
+    {
+        if(fixed_size)
+            return create_array(size);
+        else
+            return NULL;
+    }
     
     // Count values in s
     
@@ -426,7 +431,12 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
     int sy = 1;
 
     if (s == NULL)
-        return NULL;
+    {
+        if(fixed_size)
+            return create_matrix(sizex, sizey);
+        else
+            return NULL;
+    }
     
     // Skip leading whitespace in s
     
