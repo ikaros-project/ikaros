@@ -2968,6 +2968,15 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
         const char * delay      = GetXMLAttribute(xml_connection, "delay");
         const bool a            = tobool(GetXMLAttribute(xml_connection, "active"), true);
 
+        if(!sm_name)
+            Notify(msg_fatal_error, "Incomplete connection: sourcemodule not set.");
+        if(!s_name)
+            Notify(msg_fatal_error, "Incomplete connection: source not set.");
+        if(!tm_name)
+            Notify(msg_fatal_error, "Incomplete connection: targetmodule not set.");
+        if(!t_name)
+            Notify(msg_fatal_error, "Incomplete connection: target not set.");
+        
         Module * sm;
         Module_IO * sio;
         int c = 0;
