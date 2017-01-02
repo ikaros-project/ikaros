@@ -22,5 +22,6 @@
 		<view name="V1">
 			<object class="BarGraph" module="R" source="OUTPUT" x="0" y="0" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

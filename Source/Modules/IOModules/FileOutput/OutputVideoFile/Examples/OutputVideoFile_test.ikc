@@ -25,4 +25,5 @@
 	<view name="Movie View" object_size="500">
 		<object class="Image" type="rgb" module = "IN" source = "RED+GREEN+BLUE" x="0" y="0" />
 	</view>
+    <module class = "Logger" name = "Logger" />
 </group>

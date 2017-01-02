@@ -20,5 +20,6 @@
 			<object class="BarGraph" module="Subtract" source="OUTPUT" x="0" y="2" min="-5" max="5" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

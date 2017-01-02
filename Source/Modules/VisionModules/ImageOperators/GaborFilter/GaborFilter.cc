@@ -38,7 +38,7 @@ GaborFilter::Create(Parameter * p)
 GaborFilter::GaborFilter(Parameter * p):
         Module(p)
 {
-    scale			= GetFloatValue("scale", 1.0);
+    scale			= GetFloatValue("scale");
     filterradius	= int(2*scale+0.5);
     filtersize		= 1+2*filterradius;
 

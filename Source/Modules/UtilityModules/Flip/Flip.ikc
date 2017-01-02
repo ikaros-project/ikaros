@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<group name="Flip" description="Flips a signal">
+
+	<description type="text">
+		Module that flips a matrix upside down or left to right
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Flip"
+			name="Flip"
+		/>
+	</example>
+
+	<parameter name="type" type="list" values="none/up-down/left-right/rotate-left/rotate-right/rotate-180" default="up-down" description="Flip direction" />
+
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The flipped output" size_set="INPUT" />
+
+	<module class="Flip" />
+
+    <view title="Flip">
+        <object
+            x="0" y="0" w="2"
+            class="Image"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Flip"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Flip.h</file>
+   		<file>Flip.cc</file>
+   		<file>Flip.ikc</file>
+   </files>
+
+</group>

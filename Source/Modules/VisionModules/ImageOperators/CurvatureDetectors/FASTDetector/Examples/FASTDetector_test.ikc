@@ -7,17 +7,7 @@
 -->
 
 <group title="FAST Detector">
-		<module class = "InputJPEG" name = "IN" filename = "/Users/cba/Desktop/Data/image19.jpg" iterations = "10000" />
-
-		<_module
-			class   = "InputVideoQT"
-			name	= "IN"			
-			size_x  = "320"
-			size_y  = "240"
-			camera  = "iSight"
-            list_devices = "yes"
-            device_id="0x1d1100000ac83420"
-		/>
+		<module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "20" />
 
 		<module  class = "FASTDetector" name = "FAST" />
 
@@ -31,4 +21,5 @@
 
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>

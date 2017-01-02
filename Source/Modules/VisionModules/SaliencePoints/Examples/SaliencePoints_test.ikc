@@ -6,7 +6,7 @@
         class   = "InputJPEG"
         name	= "CAMERA"
         size_x  = "640"
-        size_y  =  "480"
+        size_y  =  "420"
         filename = "../../../../../Examples/Media/marker_image.jpg"
     />
     
@@ -49,5 +49,6 @@
         <object class="Slider" module="SaliencePoints" parameter="sigma" title="sigma" max="100" x="9" y="6" w="1" h="6" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

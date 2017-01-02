@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group name="TruncateArray" description="split an input array and concatenate a output matrix">
+
+	<description type="text">
+        Module that splits up a array to a matrix. This module will be removed when similar features will be provided directly in the ikaros connections.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="TruncateArray"
+			name="TruncateArray"
+		/>
+	</example>
+
+    <parameter name="array_length" type="int" default="16" description="Length of each array"/>
+    <parameter name="loop" type="bool" default="true" description="Shoud we loop the selection for the whole inpout"/>
+	<parameter name="selection" type="string" default="" description="The selected values" />
+    
+    <input name="INPUT" description="Input" />
+    <output name="OUTPUT" description="Output"/>
+
+	<module class="TruncateArray" />
+		<view>
+			<object class ="BarGraph" title="Output" module="*" source="OUTPUT" x="0" y="0" w="2" />
+		</view>
+	<author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>TruncateArray.h</file>
+   		<file>TruncateArray.cc</file>
+   		<file>TruncateArray.ikc</file>
+   </files>
+</group>
+

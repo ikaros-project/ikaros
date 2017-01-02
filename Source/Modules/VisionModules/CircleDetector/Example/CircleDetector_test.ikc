@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<group>
+<group name="Circle Detector Test">
 
     <_module
         class = "InputJPEG"
@@ -7,17 +7,13 @@
         filename = "image%d.jpg"
         filecount = "5"
         repeats = "2"
-        _iterations = "100"
     /> 
 
     <module
         class = "InputPNG"
         name = "IN"
-        _filename = "/Users/cba/Desktop/img%d.png"
-        filename = "/Users/cba/Desktop/eye.png"
+        filename = "eye.png"
         filecount = "1"
-        _repeats = "2"
-        _iterations = "100"
     />
 
     <module
@@ -48,7 +44,7 @@
     <connection sourcemodule = "Edges" source = "EDGE_LIST" targetmodule = "Circle" target = "EDGE_LIST" delay="0" />
     <connection sourcemodule = "Edges" source = "EDGE_LIST_SIZE" targetmodule = "Circle" target = "EDGE_LIST_SIZE" delay="0" />
 
-    <view name = "V1">
+    <view name = "View">
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
         <object class="Path" module="Edges" source="EDGE_ELEMENTS" color="yellow" x="0" y="0" h="2" w="2" />
         <object class="Cross" module="Circle" source="POSITION" color="red" line_width="3" x="0" y="0" h="2" w="2" />
@@ -57,8 +53,9 @@
         <object class="Image" module="Gaussian" source="OUTPUT" x="2" y="0"  h="2" w="2" />
         <object class="Image" module="Edges" source="OUTPUT" x="4" y="0"  h="2" w="2" />
 
-        <object class="Slider" module="Edges" parameter="threshold" min="0" max="1" x="4" y="2"  h="1" w="1" />
+        <object class="Slider" module="Edges" parameter="threshold" min="0" max="0.2" x="4" y="2"  h="1" w="1" />
         <object class="Slider" module="Edges" parameter="grid" max="10" x="5" y="2"  h="1" w="1" />
     </view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

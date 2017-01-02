@@ -16,4 +16,5 @@
 	
 	<connection sourcemodule = "Summation"    source = "OUTPUT"
 		    targetmodule = "OUT"    target = "OUT"/>
+    <module class = "Logger" name = "Logger" />
 </group>

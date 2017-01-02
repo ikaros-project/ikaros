@@ -18,5 +18,6 @@
 			<object class="BarGraph" module="Multiply"  source="OUTPUT" max="10" x="0" y="2" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

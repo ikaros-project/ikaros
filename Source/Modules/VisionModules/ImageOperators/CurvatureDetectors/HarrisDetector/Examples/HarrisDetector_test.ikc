@@ -8,15 +8,8 @@
 -->
 
 <group>
-		<_module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "20" />
+		<module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "20" />
 
-		<module
-			class   = "InputVideoQT"
-			name	= "IN"			
-			size_x  = "320"
-			size_y  = "240"
-			camera  = "iSight"
-		/>
 
 		<module 
 			class = "GaussianEdgeDetector"
@@ -35,4 +28,5 @@
 			<object class="Image" module="HarrisDetector" source="OUTPUT" x="2" y="0" h="2" w="2"  />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>

@@ -90,7 +90,7 @@ DynamixelServo::~DynamixelServo()
 bool DynamixelServo::SetValueAtAdress(int adress, int value)
 {
     // Check borders.
-    if (value < controlTable[adress].Min && value > controlTable[adress].Max)
+    if (value < controlTable[adress].Min || value > controlTable[adress].Max)
     {
         printf("DynamixelServo SetValueAtAdress: Value is not OK!\n");
         return false;
@@ -285,7 +285,7 @@ float DynamixelServo::GetPresentTemperatureFormated(int adress)
 }
 float DynamixelServo::GetCurrentFormated(int adress)
 {
-    return GetValueAtAdress(adress)*controlTable[adress].Convert;
+    return (GetValueAtAdress(adress) - (controlTable[adress].Max/2))*controlTable[adress].Convert;
 }
 float DynamixelServo::GetGoalTorqueFormated(int adress)
 {

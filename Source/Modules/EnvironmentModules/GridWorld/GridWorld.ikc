@@ -36,7 +36,7 @@
 			/>
 	</example>
 
-	<parameter name="move" type="list" values=" max/sum/relative_max/relative_sum" default="max" description="How to use the MOVE input" />
+	<parameter name="move" type="list" values="max/sum/relative_max/relative_sum" default="max" description="How to use the MOVE input" />
 	<parameter name="start_x" type="int" default="1" description="Starting x coordinate for the agent" />
 	<parameter name="start_y" type="int" default="1" description="Starting y coordinate for the agent" />
 	<parameter name="normalize_coordinate" type="bool" default="no" description="Map coordinate output to the interval 0..1" />

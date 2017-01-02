@@ -26,10 +26,10 @@ Address;Size;Name;Description;Access;Inital Value;Min;Max;Convert;Ikaros Input;I
 36;2;Present Position;Lowest byte of Current Position (Present Velocity);R;;0;4095;0.06;;8
 38;2;Present Speed;Lowest byte of Current Speed;R;;0;2047;;;9
 40;2;Present Load;Lowest byte of Current Load;R;;0;2047;;;10
-42;1;Present Voltage;Current Voltage;R;;0;254;;;11
+42;1;Present Voltage;Current Voltage;R;;0;254;0.1;;11
 43;1;Present Temperature;Current Temperature;R;;0;254;;;12
 44;1;Registered;Means if Instruction is registered;R;0;0;1;;;
 46;1;Moving;Means if there is any movement;R;0;0;1;;;
 47;1;Lock;Locking EEPROM;RW;0;0;1;;;
 48;2;Punch;Lowest byte of Punch;RW;32;32;1023;;;
-56;2;Current;Lowest byte of Consuming Current;R;0;0;1023;;;13
+56;2;Current;Lowest byte of Consuming Current;R;0;0;1023;0.01;;13

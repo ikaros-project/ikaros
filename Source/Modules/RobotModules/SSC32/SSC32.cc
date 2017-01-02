@@ -43,11 +43,12 @@ SSC32::SSC32(Parameter * p):
     AddInput("INPUT");
     AddOutput("OUTPUT", no_of_servos);
     
+    int max_channels =32;
     max_speed = GetIntValue("maxspeed", 100);
     timebase = GetIntValue("timebase", 1000);
-    min_position = GetArray("min", 32);
-    max_position = GetArray("max", 32);
-    home = GetArray("home", 32);
+    min_position = GetArray("min", max_channels, true);
+    max_position = GetArray("max", max_channels, true);
+    home = GetArray("home", max_channels, true);
     device = GetValue("device");
     
     if(!device)

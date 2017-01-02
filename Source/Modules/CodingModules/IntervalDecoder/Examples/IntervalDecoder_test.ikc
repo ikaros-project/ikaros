@@ -17,7 +17,7 @@
         min  = "0"
         max  = "10"
         radius = "10"
-        output_size = "100"
+        outputsize = "100"
     />
 		
     <module
@@ -87,5 +87,6 @@
         <object class="Plot" module="Difference2" source="OUTPUT" x="1" y="3" w = "4" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

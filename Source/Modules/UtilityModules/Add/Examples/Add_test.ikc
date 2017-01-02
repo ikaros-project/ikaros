@@ -18,5 +18,6 @@
 		<object class="BarGraph" name="Constant 2" module="Constant2" source="OUTPUT" x="0" y="1" max="10" />
 		<object class="BarGraph" name="Sum" module="Add" source="OUTPUT" x="1" y="0" max="10" />
 	</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

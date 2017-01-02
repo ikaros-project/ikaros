@@ -38,5 +38,6 @@
 
         <object class="Text" x="2" y="0" h="3" text="The tables show the data of the data file as two dynamic outputs. The file is iterated four times and three ticks with zero outputs are added at the end before execution is stopped." />
 </view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

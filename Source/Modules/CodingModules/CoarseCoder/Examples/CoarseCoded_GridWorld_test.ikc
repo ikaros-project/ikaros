@@ -115,6 +115,7 @@
         <object class="Circle" module="GW" source="COORDINATE" size="0.05" x="0" y="0" />
 	</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

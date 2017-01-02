@@ -49,4 +49,5 @@
         <object class="Image" module="LAB" source="OUTPUT2" x="2" y="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>

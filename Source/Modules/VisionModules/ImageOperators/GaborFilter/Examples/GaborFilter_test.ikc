@@ -76,5 +76,6 @@
         <object class="Image" module="Gabor3" source="OUTPUT" x="5" y="3"  />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

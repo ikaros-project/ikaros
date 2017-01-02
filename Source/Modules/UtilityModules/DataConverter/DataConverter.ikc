@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<group name="DataConverter" description="converts between rotation notations">
+
+	<description type="text">
+		Module that converts between different 3d point/angle notations.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DataConverter"
+			name="DataConverter"
+		/>
+	</example>
+
+	<parameter name="output_size_x" type="int" default="4" description="Output size"/>
+	<parameter name="output_size_y" type="int" default="4" description="Output size"/>
+
+	<input name="INPUT" description="Input" />
+    <output name="OUTPUT" description="Output" size_param_x = "output_size_x" size_param_y = "output_size_y"/>
+
+	<module class="DataConverter" />
+    
+    <view title="DataConverter">
+        <object
+            x="0" y="0" w="2"
+            class="Table"
+            module="*"
+            source="OUTPUT"
+            title="Default view for DataConverter"
+        />
+    </view>
+    
+    <limitation>
+        Quaternions not implemented yet.
+    </limitation>
+    
+	<author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>DataConverter.h</file>
+   		<file>DataConverter.cc</file>
+   		<file>DataConverter.ikc</file>
+   </files>
+
+</group>
+

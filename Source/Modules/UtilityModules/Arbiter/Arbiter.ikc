@@ -1,14 +1,29 @@
 <?xml version="1.0"?>
 
-<group name="Arbiter" description="selects between two inputs">
+<group name="Arbiter" description="selects between multiple inputs">
 
 	<description type="text">
-		Module that selects between its inputs based on the values in the value inputs.
-		The output is a copy of the input with the highest corresponding value input.
+		Module that selects between its inputs based on the values in the value inputs or the amplitude of its inputs.
+		The output is a weighted average of the inputs depending on the corresponding value inputs.
+
 		The inputs can be one or two dimensional. All inputs must have the same size.
+
 		When the values are equal, INPUT_1 is selected. If the value inputs are not connected,
-		the euclidean norm of the corresponding input is used instead. The number of inputs are selected
-        using the parameter number_of_inputs
+		the norm of the inputs are used instead. This is useful for puplation coded values.
+        
+        The number of inputs are selected using the parameter number_of_inputs.
+
+        There are four arbitration methods:
+        WTA: winner take all. Input with maximum value is selected;
+        hysteresis: like WTA, but to switch, the new value must be higher than the last value plus the hysteresis threshold;
+        softmax: inputs are mixed according to the values to the power of the softmax exponent;
+        hierarchy: input with highest index and value > 0 is always selected, this can implement a subsumption architecture;
+        Note that changing to hysteresis arbitration during operation may initially select the wrong state.
+        
+        After arbitration, the state can be smoothed to avoid abrupt changes of the outputs. The switching time is set by the switching_time
+        parameter or directly by the integration constant alpha.
+
+        Finally, the convex combinations of inputs are calculated by first normalizaing the smoothed state and the calculating the weighted average of the inputs.
 	</description>
 
 	<example description="An example">
@@ -18,34 +33,36 @@
 		/>
 	</example>
 
-   <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
-   <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
+    <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
+    <parameter name="metric" type="list" values="1/2" default="1" description="The nmetric use: city block or euclidean"/>
+    <parameter name="arbitration" type="list" values="WTA/hysteresis/softmax/hierarchy" default="WTA" description="The arbitration function"/>
+    <parameter name="softmax_exponent" type="float" default="2" description="The softmax exponent"/>
+    <parameter name="hysteresis_threshold" type="float" default="5" description="The value difference that needs to be passed for a switch"/>
+    <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
+    <parameter name="alpha" type="float" default="1" description="Smoothing constant (set to 1/switch_time if not set)"/>
 
 	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
 
+	<output name="AMPLITUDES" description="The amplitides of the inputs / or values" />
+	<output name="ARBITRATION" description="The state after arbitration" />
+	<output name="SMOOTHED" description="The temporally smoothed arbitration state" />
+	<output name="NORMALIZED" description="The arbitration state after normalization; the weightds used to weigh together the inputs" />
+
 	<output name="OUTPUT" description="The selected output" />
-	<output name="VALUE" size="1" description="The maximum value"/>
+	<output name="VALUE" size="1" description="The value of the current output; norm of the smoothed arbitration state"/>
 
 	<module class="Arbiter" />
 
-    <view title="Arbiter">
-        <object
-            title = "OUTPUT"
-            x="0" y="0" w="2"
-            class="BarGraph"
-            module="*"
-            source="OUTPUT"
-        />
+		<view>
+			<object class ="DropDownMenu" title="arbitration" list="WTA/hysteresis/softmax/hierarchy" module="Arbiter" parameter="arbitration" x="0" y="0" w="2"/>
+			<object class ="BarGraph" title="Amplitudes" module="*" source="AMPLITUDES"     x="0" y="1" w="2" />
+			<object class ="BarGraph" title="Arbitration" module="*" source="ARBITRATION"   x="0" y="2" w="2" />
+			<object class ="BarGraph" title="Smoothed" module="*" source="SMOOTHED"         x="0" y="3" w="2" />
+			<object class ="BarGraph" title="Normalized" module="*" source="NORMALIZED"     x="0" y="4" w="2" />
+			<object class ="BarGraph" title="Output" module="*" source="OUTPUT"             x="2" y="1" w="2" />
+			<object class ="BarGraph" title="Value Output" module="*" source="VALUE"        x="2" y="2" w="2" />
+		</view>
 
-        <object
-            title = "VALUE"
-            x="3" y="0" w="1"
-            class="BarGraph"
-            module="*"
-            source="VALUE"
-        />
-    </view>
-    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>

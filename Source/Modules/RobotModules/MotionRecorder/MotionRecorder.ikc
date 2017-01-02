@@ -43,7 +43,6 @@
 
     <output name="OUTPUT" description="Position data to the servos" size_set="INPUT" />
 	<output name="TORQUE" description="Current torque for the motors" size_set="INPUT" />
-
 	<output name="ENABLE" description="Enable the motors" size_set="INPUT" />
 
 	<output name="STATE" description="State is 1 when the module records" size="1" />

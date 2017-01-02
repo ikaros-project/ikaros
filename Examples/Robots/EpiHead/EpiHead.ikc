@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<group title="Epi Head">
+    
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+
+    <!-- Vision -->
+    <!-- Vision module gives a focos output that is steering epi -->
+	<module class = "EpiVision" name = "Vision"/>
+
+    <!-- EpiHead Servoes -->
+    <_module class = "EpiHeadFake" name = "Motor"/> <!-- Fake Epi -->
+	<module class = "EpiHeadBlue" name = "Motor"/>  <!-- EpiBlue -->
+        <connection sourcemodule = "Vision"             source = "FOCUS"                targetmodule = "Motor"                  target = "TARGET" />   
+
+    <!-- Forward model Used both for 3d webUI and --> 
+    <module class = "EpiHeadForwardModel" name = "EpiHeadForwardModel"/>
+        <connection sourcemodule = "Motor"              source = "FEEDBACK_POSITION"    targetmodule = "EpiHeadForwardModel"    target = "FEEDBACK_POSITIONS" />
+        <connection sourcemodule = "EpiHeadToFocus"     source = "FOCUS_IN_EPI"         targetmodule = "Motor"                  target = "TARGET" />
+
+    <!-- Forward model to eyes and focus point. THIS WILL CHANGE IN THE FUTURE -->
+    <module class = "EpiHeadToFocus" name = "EpiHeadToFocus"/>
+        <connection sourcemodule = "Motor"              source = "FEEDBACK_POSITION"    targetmodule = "EpiHeadToFocus"         target = "FEEDBACK_POSITIONS" />
+        <connection sourcemodule = "Vision"             source = "FOCUS"                targetmodule = "EpiHeadToFocus"         target = "FOCUS_IN_EYE" />
+
+    <view name="3D View">
+        <object
+        class   = "Simulator3D"
+        title   = "3D-View"
+        module  = "EpiHeadForwardModel"
+        source  = "MODEL_MATRIX"
+        id_module  = "EpiHeadForwardModel"
+        id_location  = "MODEL_ID"
+        x="0" y="0"
+        w="4" h="4"
+    /> 
+
+    <object
+        class   = "Simulator3D"
+        title   = "3D-View"
+        module  = "EpiHeadToFocus"
+        source  = "MODEL_MATRIX"
+        id_module  = "EpiHeadToFocus"
+        id_location  = "MODEL_ID"
+        x="4" y="0"
+        w="4" h="4"
+        /> 
+    </view>
+</group>
+ 

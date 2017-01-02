@@ -56,5 +56,6 @@
         <object class="Plot" title="Test Error" module="Trainer" source="ERROR" x="0" y="2" w="3"  max = "1"/>
         <object class="Plot" title="Test &amp; Training Error (SMA200)" module="Average" source="OUTPUT" x="0" y="3" w="3"  max = "1" select="0,1" color="red, green" />
     </view>
+    <module class = "Logger" name = "Logger" />
 </group>
 

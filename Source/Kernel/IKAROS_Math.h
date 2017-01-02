@@ -186,6 +186,10 @@ namespace ikaros
 	float		mean(float ** a, int sizex, int sizey);
 	float *		mean(float * r, float ** a, int sizex, int sizey); // mean over rows; r must have size sizey
 	
+	float		median(float * a, int size);
+	float		median(float ** a, int sizex, int sizey);
+	float *		median(float * r, float ** a, int sizex, int sizey); // median over rows; r must have size sizey
+
 	float		clip(float x, float low, float high);
 	float *		clip(float * a, float low, float high, int size);
 	float **	clip(float ** a, float low, float high, int sizex, int sizey);
@@ -363,7 +367,11 @@ namespace ikaros
 	//
 
     float **    im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x=1, int stride_y=1);
+<<<<<<< HEAD
     float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0);
+=======
+	float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0);
+>>>>>>> master
 	
 	// ksizex and ksizey must be odd for BLAS calls to work // TODO: Check that it works otherwise as well
 	

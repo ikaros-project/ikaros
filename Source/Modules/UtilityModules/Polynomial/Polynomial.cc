@@ -32,7 +32,7 @@ Polynomial::Init()
 {
     // Initialize as one or two dimensional
     
-    order = GetIntValue("order", 1);
+    order = GetIntValue("order");
     c = GetArray("coefficients", order);
 
     input		=	GetInputArray("INPUT");

@@ -7,7 +7,7 @@
 <group title="Face Detector">
 
 		<module
-			class   = "InputVideoQT"
+			class   = "InputVideo"
 			name	= "CAMERA"			
 			size_x  = "640"
 			size_y  = "480"
@@ -155,5 +155,6 @@
             />
        </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

@@ -43,5 +43,6 @@
         <object class="Image" module="HTRoberts" source="OUTPUT" x="2" y="2"   />
     </view>
     
+    <module class = "Logger" name = "Logger" />
 </group>
 

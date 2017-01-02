@@ -23,5 +23,6 @@
 			<object class="Table" module="Array3" source="OUTPUT" x="0" y="2" w="3"/>
 			<object class="Table" module="ArrayToMatrix" source="OUTPUT" x="3" y="0" w="3" h="3" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  
