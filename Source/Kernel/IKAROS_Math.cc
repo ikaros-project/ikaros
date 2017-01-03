@@ -977,18 +977,33 @@ namespace ikaros
 			return s/float(size);
 #endif
 	}
-	
+
 	float
 	mean(float ** a, int sizex, int sizey)
 	{
 		return mean(*a, sizex*sizey);
 	}
-    
+
     float *
-    mean(float * r, float ** a, int sizex, int sizey) // mean over rows; r must have size sizey
+    mean(float * r, float ** m, int sizex, int sizey, int dim)
     {
-        for(int j=0; j<sizey; j++)
-            r[j] = mean(a[j], sizex);
+        if(dim==0)
+        {
+            for(int i=0; i< sizex; i++)
+                r[i] = 0;
+            
+            for(int j=0; j<sizey; j++)
+                for(int i=0; i< sizex; i++)
+                    r[i] += m[j][i];
+            
+            for(int i=0; i< sizex; i++)
+                r[i] /= float(sizey);
+        }
+        else
+        {
+            for(int j=0; j<sizey; j++)
+                r[j] = mean(m[j], sizex);
+        }
         return r;
     }
 
@@ -1017,8 +1032,14 @@ namespace ikaros
     
     
     float *
-    median(float * r, float ** a, int sizex, int sizey)
+    median(float * r, float ** a, int sizex, int sizey, int dim)
     {
+        if(dim==0)
+        {
+            printf("ERROR: median of coumns not implemented\n");
+            return r;
+        }
+    
         for(int j=0; j<sizey; j++)
             r[j] = median(a[j], sizex);
         return r;
@@ -1298,6 +1319,15 @@ namespace ikaros
 		return r;
 	}
     
+    float **
+    subtract(float ** r, float ** m, float * a, int sizex, int sizey)
+    {
+        for(int j=0; j<sizey; j++)
+            subtract(r[j], m[j], a, sizex);
+    
+        return r;
+    }
+
     // MARK: -
     // MARK: multiply and divide
     
@@ -2638,6 +2668,31 @@ namespace ikaros
         }
     }
     
+
+
+    float **
+    pca(float ** c, float * v, float ** m, int size_x, int size_y)
+    {
+        float ** x = copy_matrix(create_matrix(size_x, size_y), m, size_x, size_y);
+        float * mx = create_array(size_x);
+        mean(mx, x, size_x, size_y);
+        subtract(x, x, mx, size_x, size_y);
+        float ** xT = transpose(create_matrix(size_y, size_x), x, size_y, size_x);
+        float ** cov = multiply(multiply(create_matrix(size_x, size_x), xT, x, size_x, size_x, size_y), 1/float(size_y-1), size_x, size_x);
+        float ** V = create_matrix(size_x, size_x);
+
+        svd(c, v, V, cov, size_x, size_x);
+
+        destroy_matrix(V);
+        destroy_matrix(cov);
+        destroy_matrix(xT);
+        destroy_matrix(x);
+
+        return c;
+    }
+
+
+
     
     // conversion
     // MARK: -
@@ -3156,15 +3211,7 @@ namespace ikaros
         return result;
     }
 
-<<<<<<< HEAD
-    
-    
-    
-    
-    
-    
-=======
->>>>>>> master
+
 	float **
 	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias)
 	{
