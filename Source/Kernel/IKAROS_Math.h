@@ -184,11 +184,11 @@ namespace ikaros
 	
 	float		mean(float * a, int size);
 	float		mean(float ** a, int sizex, int sizey);
-	float *		mean(float * r, float ** a, int sizex, int sizey); // mean over rows; r must have size sizey
-	
+    float *     mean(float * r, float ** m, int sizex, int sizey, int dim=0); // mean over columns (if dim==0) or rows (if dim==1); r must have size sizex or sizey depending om dim
+
 	float		median(float * a, int size);
 	float		median(float ** a, int sizex, int sizey);
-	float *		median(float * r, float ** a, int sizex, int sizey); // median over rows; r must have size sizey
+	float *		median(float * r, float ** a, int sizex, int sizey, int dim=0); // median over columns (if dim==0) or rows (if dim==1); r must have size sizex or sizey depending om dim
 
 	float		clip(float x, float low, float high);
 	float *		clip(float * a, float low, float high, int size);
@@ -229,6 +229,8 @@ namespace ikaros
 	float *		subtract(float * r, float * a, float * b, int size);
 	float **	subtract(float ** r, float ** a, float ** b, int sizex, int sizey);
 	
+    float **    subtract(float ** r, float ** m, float * a, int sizex, int sizey); // subtract array a from each row in m
+    
     float       product(float * a, int size);
     float       product(float ** m, int sizex, int sizey);
     
@@ -277,7 +279,8 @@ namespace ikaros
     float **    chol(float ** r, float ** a, int size, bool & posdef); // Cholesky decomposition of a symmetric positive definite matrix a; posdef = false if not positive definite
     float **    chol(float ** r, float ** a, int size);
     int         svd(float ** u, float * s, float ** v, float ** m, int sizex, int sizey); // Singular value decomposition: u*diag(s)*v' = m; m has size sizex x sizey
-    
+    float **    pca(float ** c, float * v, float ** m, int sizex, int sizey); // Principal component analysis; data in rows, c: coefficients/principal axes; v = variances; (map to new space using c*m)
+
     // homogenous 4x4 matrices represented as float[16]
     
     typedef float h_matrix[16];
@@ -367,7 +370,9 @@ namespace ikaros
 	//
 
     float **    im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x=1, int stride_y=1);
-	float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0);
+
+    float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0);
+
 	
 	// ksizex and ksizey must be odd for BLAS calls to work // TODO: Check that it works otherwise as well
 	
