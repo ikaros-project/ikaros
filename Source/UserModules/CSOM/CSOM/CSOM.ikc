@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<group name="CSOM" description="self-organizing convolution map">
+
+	<description type="text">
+		Self-organizing convolution map.
+        When rf_size is the same size as the input, the module runs the ordinary SOM-algorithm.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="CSOM"
+			name="CSOM"
+		/>
+	</example>
+
+	<parameter name="rf_size_x" type="int" default="3" description="Receptive field size" />
+	<parameter name="rf_size_y" type="int" default="3" description="Receptive field size" />
+
+	<parameter name="rf_inc_x" type="int" default="1" description="Receptive field increment" />
+	<parameter name="rf_inc_y" type="int" default="1" description="Receptive field increment" />
+
+	<parameter name="som_size_x" type="int" default="3" description="SOM size" />
+	<parameter name="som_size_y" type="int" default="3" description="SOM size" />
+
+	<parameter name="output_type" type="list" values="combined/separate" default="combined" description="How to combine the output maps" />
+	<parameter name="topology" type="list" values="plane/torus" default="plane" description="Topology of the map" />
+
+	<parameter name="alpha" type="float" default="0.00001" description="RF Learning rate" />
+	<parameter name="alpha_min" type="float" default="0.0000001" description="RF Learning rate minimum" />
+	<parameter name="alpha_max" type="float" default="0.1" description="RF Learning rate maximum" />
+	<parameter name="alpha_decay" type="float" default="0.9999" description="RF Learning rate decay" />
+
+	<parameter name="use_arbor" type="bool" default="yes" description="Should (quadratic) arbor function be used for receptive fields?" />
+
+    <input name="INPUT" description="The input" />
+    <input name="TOP_DOWN" description="The top-down input" />
+
+    <output name="OUTPUT" description="The merged output" />
+    <output name="WEIGHTS" description="The merged weights" />
+
+    <output name="RECONSTRUCTION" description="The reconstructed input based on the top-down input" />
+
+    <output name="OUTPUT_RED" description="The color coded output" />
+    <output name="OUTPUT_GREEN" description="The color coded output" />
+    <output name="OUTPUT_BLUE" description="The color coded output" />
+
+    <output name="ERROR" description="The error for the best natching node" />
+    <output name="PROGRESS" description="Change in errror" />
+
+    <!-- STATISTICS -->
+
+    <output name="STAT_DISTRIBUTION" description="The number of activations of each category" />
+    
+	<module class="CSOM" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>CSOM.h</file>
+   		<file>CSOM.cc</file>
+   		<file>CSOM.ikc</file>
+   </files>
+
+</group>
+
