@@ -1204,6 +1204,7 @@ WebUI::CopyUIData()
                         }
                         copy_array(p, temp, sd->size_x*sd->size_y);
                         p += sd->size_x*sd->size_y;
+                        destroy_array(temp);
                     }
                     break;
 
