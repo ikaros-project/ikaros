@@ -68,6 +68,7 @@ public:
     float **    arbor;              // arbor function
     float **    backward_gain;      // multiplier for each "pixel" of reconstructed input
 
+    float **    buffer;             // convolution buffer
     
     int         rf_size_x;
     int         rf_size_y;
@@ -81,6 +82,9 @@ public:
     int         map_size_x;
     int         map_size_y;
     
+    int         buffer_size_x;
+    int         buffer_size_y;
+
     int         output_size_x;      // size of the merged output map
     int         output_size_y;
 

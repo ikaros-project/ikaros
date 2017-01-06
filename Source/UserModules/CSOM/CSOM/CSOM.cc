@@ -109,6 +109,10 @@ CSOM::Init()
 
     map_size_x = (input_size_x-rf_size_x) / rf_inc_x + 1;
     map_size_y = (input_size_y-rf_size_y) / rf_inc_y + 1;
+
+    buffer_size_x = rf_size_x * rf_size_y;
+    buffer_size_y = map_size_x * map_size_y;
+    buffer = create_matrix(buffer_size_x, buffer_size_y); // These should be allocated only once in Init()
     
     input           = GetInputMatrix("INPUT");
     top_down        = GetInputMatrix("TOP_DOWN", false);    // FIXME: Should be parameter in ikc file required="NO"
@@ -287,10 +291,11 @@ CSOM::GenerateWeightOutput()
 // ONLY WORKS FOR *COMBINED* OUTPUT
 //
 
+/*
 void
 CSOM::CalculateForwardActivation() // 3.3%
 {
-    if(rf_inc_x == 1 && rf_inc_y == 1) // inc == 1: do fast convolution (GCD?)
+    if(rf_inc_x == 1 && rf_inc_y == 1) // inc == 1: do fast convolution
     {
         for(int sj=0; sj<som_size_y; sj++)
             for(int si=0; si<som_size_x; si++)                
@@ -313,41 +318,23 @@ CSOM::CalculateForwardActivation() // 3.3%
                     }
     }
 }
-
-
-
-/*
-void
-CSOM::CalculateBackwardActivation() // 22.2% -> 15.8% -> 4.3% -> 1.4%
-{
-    if(!top_down) return;
-    
-    reset_matrix(reconstruction, input_size_x, input_size_y);
-
-    for (int mj=0; mj<map_size_y; mj++)
-        for (int mi=0; mi<map_size_x; mi++)
-        {
-            int mjsy = mj*som_size_y;
-            int misx = mi*som_size_x;
-            int rfimi = rf_inc_x*mi;
-            int rfjmj = rf_inc_y*mj;
-            
-            for(int sj=0; sj<som_size_y; sj++)
-                for(int si=0; si<som_size_x; si++)
-                {
-                    float ** ww = w[sj][si];
-                    float td = top_down[mjsy+sj][misx+si];
-
-                    for(int rj=0; rj<rf_size_y; rj++)
-                         multiply(&reconstruction[rfjmj+rj][rfimi], ww[rj], td, rf_size_x);
-                }
-        }
-
-    for(int i=0; i<input_size_x; i++)
-        for(int j=0; j<input_size_y; j++)
-            reconstruction[j][i] *= backward_gain[j][i];        // 7.6%
-}
 */
+
+
+// New version using im2row + multiply for convolution
+// Works for both increment 1 and larger strides
+
+void
+CSOM::CalculateForwardActivation()
+{
+    for(int sj=0; sj<som_size_y; sj++)
+        for(int si=0; si<som_size_x; si++)
+        {
+            im2row(buffer, input, map_size_x, map_size_y, input_size_x, input_size_y, rf_size_x, rf_size_y, rf_inc_x, rf_inc_y);
+            multiply(*activity[sj][si], buffer, *w[sj][si], buffer_size_x, buffer_size_y);
+        }
+}
+
 
 
 void
