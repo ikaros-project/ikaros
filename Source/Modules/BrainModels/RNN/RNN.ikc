@@ -22,7 +22,7 @@
 	<input name="TOP-DOWN"      optional="yes"      description="The top-down input" />
 
 	<input name="AUX"           optional="yes"      description="Input from external sources; like other RNNs" />
-	<input name="T-AUX"         optional="yes"      description="Taining input from external sources like (inputs) to other RNNs" />
+	<input name="T-AUX"         optional="yes"      description="Training input from external sources like (inputs) to other RNNs" />
 
 	<module class="RNN" />
 
