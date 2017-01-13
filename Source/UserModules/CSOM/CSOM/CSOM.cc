@@ -372,24 +372,15 @@ CSOM::CalculateBackwardActivation() // 22.2% -> 15.8% -> 4.3% -> 1.4%
 void
 CSOM::Tick()
 {
+    // Alpha decay
+    
+    alpha = max(alpha_min, alpha_decay * alpha);
+    printf("%f\n", alpha);
+    
     // Categorization Layer
 
     CalculateForwardActivation();
     UpdateWeights();
-/*
-    if(alpha_decay < 0.124 && GetTick() > 10000) // SECOND LAYER :-)
-    {
-    for (int mj=0; mj<map_size_y; mj++)
-        for (int mi=0; mi<map_size_x; mi++)
-        {
-            for(int sj=0; sj<som_size_y; sj++)
-                for(int si=0; si<som_size_x; si++)
-                {
-                    activity[sj][si][mj][mi] *= ((GetTick() % som_size_x*som_size_y) == sj*som_size_x+si  ? 0 : 1);
-                }
-        }
-    }
-*/    
     CalculateBackwardActivation();
     
     // Outputs

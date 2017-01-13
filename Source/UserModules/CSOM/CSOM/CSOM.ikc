@@ -26,7 +26,7 @@
 	<parameter name="output_type" type="list" values="combined/separate" default="combined" description="How to combine the output maps" />
 	<parameter name="topology" type="list" values="plane/torus" default="plane" description="Topology of the map" />
 
-	<parameter name="alpha" type="float" default="0.00001" description="RF Learning rate" />
+	<parameter name="alpha" type="float" default="0.1" description="RF Learning rate" />
 	<parameter name="alpha_min" type="float" default="0.0000001" description="RF Learning rate minimum" />
 	<parameter name="alpha_max" type="float" default="0.1" description="RF Learning rate maximum" />
 	<parameter name="alpha_decay" type="float" default="0.9999" description="RF Learning rate decay" />
