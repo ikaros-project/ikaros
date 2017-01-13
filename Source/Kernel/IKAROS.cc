@@ -21,36 +21,6 @@
 //
 //	Created July 13, 2001
 //
-//	Revision History:
-//
-//		2002-01-27	Added support for sizing of output arrays depending on input sizes
-//		2002-02-06	Added x, y of each array instead of width
-//		2002-02-10	Added new XML support that does not depend on expat for better portability
-//		2002-02-16	Additional support for matrices: GetInputMatrix() and GetOutputMatrix()
-//					to make image processing easier
-//		2002-03-15	Added socket for UI communication
-//		2002-05-20 	Added new communication protocol
-//		2002-10-06	Minor changes in parameter class
-//		2003-01-23	Bug in InitInputs() fixed
-//		2003-08-09	Now catches ctrl-C to shut down gracefully
-//
-//		2004-03-02	Version 0.8.0 created
-//		2004-11-15	New print and error functions; now use Notify(msg, ...) for both errors and printing
-//		2004-11-27	Added defines around CTRL-C handler
-//		2005-01-17	Changed Data to Array
-//		2005-01-18	Completed timing functions
-//		2005-08-31	All communication code moved to WebUI
-//		2006-01-20	Major cleanup of the code; most system specific code moved out of the kernel
-//		2006-02-10	Extended error handling
-//		2006-05-05	Even more extended error handling; more informative error messages
-//		2006-08-31	Most Windows-specific code included
-//		2006-12-12	Fixed potential memory leaks caused by old XML parser
-//		2007-01-10	Added new XML handling and new module creation for ikc files
-
-//		2007-05-10	Version 1.0.0 created
-//		2007-07-05	Malloc debugging added
-//		2008-12-28  All legacy support and deprecated functions removed to simplify XML cleanup
-//      Revision history now maintained at GitHUb
 
 #include "IKAROS.h"
 
@@ -299,6 +269,8 @@ Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, 
 
 Module_IO::~Module_IO()
 {
+/*
+    // Cannot print in destructor
     if (name != NULL)
     {
         if (module != NULL) module->Notify(msg_verbose, "      Deleting Module_IO \"%s\".\n", name);
@@ -307,6 +279,7 @@ Module_IO::~Module_IO()
     {
         if (module != NULL) module->Notify(msg_verbose, "      Deleting Module_IO\n");
     }
+*/
     if (matrix)
         for (int d=0; d<max_delay; d++)
             destroy_matrix(matrix[d]);
@@ -605,9 +578,9 @@ Module::GetIntValue(const char * n, int d)
 }
 
 static bool
-tobool(const char * v)
+tobool(const char * v, bool d = false)
 {
-    if (!v) return false;
+    if (!v) return d;
     if (!strcmp(v, "true")) return true;
     if (!strcmp(v, "True")) return true;
     if (!strcmp(v, "TRUE")) return true;
@@ -622,11 +595,11 @@ tobool(const char * v)
     if (!strcmp(v, "No")) return false;
     if (!strcmp(v, "NO")) return false;
     if (!strcmp(v, "0")) return false;
-    return false;
+    return d;
 }
 
 bool
-Module::GetBoolValue(const char * n, bool d)
+Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
 {
     const char * v = GetValue(n);
     if (v == NULL)
@@ -697,35 +670,15 @@ Module::GetIntValueFromList(const char * n, const char * list)
 
 
 float *
-Module::GetArray(const char * n, int size)
+Module::GetArray(const char * n, int & size, bool fixed_size)
 {
-    bool too_few = false;
-    float * a = create_array(size);
-    const char * v = GetValue(n);
-    if (v == NULL)
-	{
-		destroy_array(a);
-        return NULL;
-	}
-    for (int i=0; i<size;i++)
-    {
-        for (; isspace(*v) && *v != '\0'; v++) ;
-        if (sscanf(v, "%f", &a[i])==-1)
-        {
-            too_few = true;
-            a[i] = 0;
-        }
-        for (; !isspace(*v) && *v != '\0'; v++) ;
-    }
-    if(too_few)
-        Notify(msg_warning, "Too few constants in array \"%s\" (0 assumed).\n", n);
-    return a;
+    return create_array(GetValue(n), size, fixed_size);
 }
 
 
 
 int *
-Module::GetIntArray(const char * n, int & size)
+Module::GetIntArray(const char * n, int & size, bool fixed_size)
 {
     int requested_size = size;
     int data_size = 0;
@@ -786,55 +739,10 @@ Module::GetIntArray(const char * n, int & size)
 
 
 float **
-Module::GetMatrix(const char * n, int & sizex, int & sizey)
+Module::GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size)
 {
-    return create_matrix(GetValue(n), sizex, sizey);
+    return create_matrix(GetValue(n), sizex, sizey, fixed_size);
 }
-
-
-
-/*
-float **
-Module::GetMatrix(const char * n, int sizex, int sizey)
-{
-    float ** m = create_matrix(sizex, sizey);
-    const char * v = GetValue(n);
-    if (v == NULL)
-        return m;
-    
-    int sx, sy;
-    float ** M = create_matrix(v, sx, sy);
-    
-    if(sy == 1 && sizey > 1) // for backward compatibility, get all data from one row
-    {
-        int p = 0;
-        for(int j=0; j<sizey; j++)
-            for(int i=0; i<sizex; i++)
-            {
-                m[j][i] = M[0][p++];
-                if(p >= sx)
-                    break;
-            }
-    }
-
-    else
-    {
-        sx = min(sx, sizex);
-        sy = min(sy, sizey);
-
-        for(int i=0; i<sx; i++)
-            for(int j=0; j<sy; j++)
-                m[j][i] = M[j][i];
-    }
-
-    destroy_matrix(M);
-
-    return m;
-}
-*/
-
-
-
 
 
 
@@ -849,20 +757,20 @@ Module::Bind(float & v, const char * n)
 
 
 void
-Module::Bind(float * & v, int size, const char * n)
+Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 {
     // TODO: check type here
-    v = GetArray(n, size);
+    v = GetArray(n, size, fixed_size);
     bindings = new Binding(this, n, bind_array, v, size, 1, bindings);
 }
 
 
 
 void
-Module::Bind(float ** & v, int & sizex, int & sizey, const char * n)
+Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
 {
     // TODO: check type here
-    v = GetMatrix(n, sizex, sizey);
+    v = GetMatrix(n, sizex, sizey, fixed_size);
     bindings = new Binding(this, n, bind_matrix, v, sizex, sizey, bindings);
 }
 
@@ -1122,7 +1030,8 @@ Module::Module(Parameter * p)
     class_name = kernel->GetXMLAttribute(xml, "class");
     period = (GetValue("period") ? GetIntValue("period") : 1);
     phase = (GetValue("phase") ? GetIntValue("phase") : 0);
-	
+	active = GetBoolValue("active", true);
+
 	// Compute full name
 	
 	char n[1024] = "";
@@ -1351,14 +1260,18 @@ Module::Notify(int msg, const char *format, ...)
    }
 }
 
-Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d)
+Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a)
 {
+    if(d == 0 && !a)
+        kernel().Notify(msg_warning, "Zero-delay connection from \"%s\" of module \"%s\" to \"%s\" of module \"%s\" cannot be inactivated. Will be active.", sio->name, sio->module->GetName(), tio->name, tio->module->GetName());
+
     source_io = sio;
     source_offset = so;
     target_io = tio;
     target_offset = to;
     size = s;
     delay = d;
+    active = a;
     next = n;
 }
 
@@ -1372,6 +1285,8 @@ Connection::~Connection()
 void
 Connection::Propagate(long tick)
 {
+    if(!active)
+        return;
     if (delay == 0)
         return;
     // Return if both modules will not start in this tick - necessary when using threads
@@ -1492,7 +1407,8 @@ ThreadGroup::Tick()
     for (Module * m = modules; m != NULL; m = m->next_in_threadGroup)
     {
         m->timer->Restart();
-        m->Tick();
+        if(m->active)
+            m->Tick();
         m->time += m->timer->GetTime();
         m->ticks += 1;
     }
@@ -1997,7 +1913,8 @@ Kernel::Tick()
             if (tick % m->period == m->phase)
             {
                 m->timer->Restart();
-                m->Tick();
+                if(m->active)
+                    m->Tick();
                 m->time += m->timer->GetTime();
                 m->ticks += 1;
             }
@@ -2008,9 +1925,12 @@ Kernel::Tick()
             if (tick % m->period == m->phase)
             {
                 m->timer->Restart();
-                Notify(msg_verbose, "%s::Tick (%s) Start\n", m->GetName(), m->GetClassName());
-                m->Tick();
-                Notify(msg_verbose, "%s::Tick (%s) End\n", m->GetName(), m->GetClassName());
+                if(m->active)
+                {
+                    Notify(msg_verbose, "%s::Tick (%s) Start\n", m->GetName(), m->GetClassName());
+                    m->Tick();
+                    Notify(msg_verbose, "%s::Tick (%s) End\n", m->GetName(), m->GetClassName());
+                }
                 m->time += m->timer->GetTime();
                 m->ticks += 1;
             }
@@ -2617,34 +2537,37 @@ Kernel::ListModulesAndConnections()
     for (Module * m = modules; m != NULL; m = m->next)
     {
         //		Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
-        Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->GetFullName(), m->class_name, m->period, m->phase);
+        Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
             if(i->data)
-                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d%12p\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
+                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
             else
                 Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name);
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d%12p\t(%d)\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
+            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
         Notify(msg_print, "\n");
     }
     Notify(msg_print, "Connections:\n");
     Notify(msg_print, "\n");
     for (Connection * c = connections; c != NULL; c = c->next)
         if (c->delay == 0)
-            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d)\n",
+            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name, 0, c->source_io->size-1,
                    c->target_io->module->instance_name, c->target_io->name, 0, c->source_io->size-1,
-                   c->delay);
+                   c->delay,
+                   c->active ? "" : "[inactive]");
         else if (c->size > 1)
-            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d)\n",
+            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name, c->source_offset, c->source_offset+c->size-1,
                    c->target_io->module->instance_name, c->target_io->name, c->target_offset, c->target_offset+c->size-1,
-                   c->delay);
+                   c->delay,
+                   c->active ? "" : "[inactive]");
         else
-            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d)\n",
+            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name, c->source_offset,
                    c->target_io->module->instance_name, c->target_io->name, c->target_offset,
-                   c->delay);
+                   c->delay,
+                   c->active ? "" : "[inactive]");
     Notify(msg_print, "\n");
 }
 
@@ -2805,7 +2728,7 @@ Kernel::Notify(int msg, const char * format, ...)
 // Create one or several connections with different delays between two ModuleIOs
 
 int
-Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay)
+Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay, bool is_active)
 {
     int c = 0;
     char * dstring = create_string(delay);
@@ -2813,7 +2736,7 @@ Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_
     if(!dstring || (!strchr(dstring, ':') && !strchr(dstring, ',')))
     {
         int d = string_to_int(dstring, 1);
-        connections = new Connection(connections, sio, 0, tio, unknown_size, unknown_size, d+extra_delay);
+        connections = new Connection(connections, sio, 0, tio, unknown_size, unknown_size, d+extra_delay, is_active);
         c++;
     }
     
@@ -2830,7 +2753,7 @@ Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_
             
             for(int i=a; i<=b; i++)
             {
-                connections = new Connection(connections, sio, 0, tio, unknown_size, unknown_size, i+extra_delay);
+                connections = new Connection(connections, sio, 0, tio, unknown_size, unknown_size, i+extra_delay, is_active);
                 c++;
             }
             p = strtok(NULL, ",");
@@ -2845,7 +2768,7 @@ Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_
 
 
 int
-Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay)
+Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay, bool is_active)
 {
     int c = 0; // no of generated connections
     
@@ -2863,7 +2786,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
                 else if(tio == NULL)
                     Notify(msg_fatal_error, "Could not make connection. Target \"%s\" of module \"%s\" missing.\n", t_name, tm_name);
                 else
-                    c += Connect(sio, tio, delay, extra_delay);
+                    c += Connect(sio, tio, delay, extra_delay, is_active);
             }
         }
     
@@ -2879,8 +2802,10 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
                     const char * tm = GetXMLAttribute(xml_input, "targetmodule");
                     const char * t = GetXMLAttribute(xml_input, "target");
                     int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
+                    bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+
                     if(!equal_strings(t,""))
-                        c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay);   // TODO: Extra delay should be replaced with a merge interval function
+                        c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
                     else
                         c++; // ignore connections if both are nil
                 }
@@ -2897,9 +2822,10 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
                         const char * tm = GetXMLAttribute(xml_input, "targetmodule");
                         const char * t = GetXMLAttribute(xml_input, "target");
                         int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
- 
-                                                if(!equal_strings(t,""))
-                            c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay);   // TODO: Extra delay should be replaced with a merge interval function
+                        bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+
+                        if(!equal_strings(t,""))
+                            c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
                         else
                             c++; // ignore connections if both are nil
                     }
@@ -3040,12 +2966,22 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
         const char * tm_name    = GetXMLAttribute(xml_connection, "targetmodule");
         const char * t_name     = GetXMLAttribute(xml_connection, "target");
         const char * delay      = GetXMLAttribute(xml_connection, "delay");
+        const bool a            = tobool(GetXMLAttribute(xml_connection, "active"), true);
+
+        if(!sm_name)
+            Notify(msg_fatal_error, "Incomplete connection: sourcemodule not set.");
+        if(!s_name)
+            Notify(msg_fatal_error, "Incomplete connection: source not set.");
+        if(!tm_name)
+            Notify(msg_fatal_error, "Incomplete connection: targetmodule not set.");
+        if(!t_name)
+            Notify(msg_fatal_error, "Incomplete connection: target not set.");
         
         Module * sm;
         Module_IO * sio;
         int c = 0;
         if (GetSource(group_xml, sm, sio, sm_name, s_name))
-            c = Connect(group_xml, sm, sio, tm_name, t_name, delay);
+            c = Connect(group_xml, sm, sio, tm_name, t_name, delay, 0, a);
         else
             Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name, s_name);   // TODO: Should check for indirect connections here
         

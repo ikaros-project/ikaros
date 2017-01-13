@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="PopulationDecoder" description="encodes a two-dimensional value in a vector">
+
+	<description type="text">
+		Module that generates an array of values from a gaussian population code.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="PopulationDecoder"
+			name="PopulationDecoder"
+		/>
+	</example>
+
+	<parameter name="sigma" type="float" default="1" description="The width of the gaussian" />
+	<parameter name="min" type="float" default="0.0" description="Minimum value to be coded" />
+	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
+
+	<input name="INPUT" description="The input matrix" />
+
+	<output name="OUTPUT" description="The array output"/>
+	<output name="AMPLITUDE" description="The amplitude output"/>
+
+	<module class="PopulationDecoder" />
+
+    <view>
+        <object class="BarGraph" module="*" source="OUTPUT" x="0" y="0" w="4" />
+    </view>
+    
+	<created>2016</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>PopulationDecoder.h</file>
+   		<file>PopulationDecoder.cc</file>
+   		<file>PopulationDecoder.ikc</file>
+   </files>
+
+</group>
+

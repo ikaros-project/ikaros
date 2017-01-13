@@ -24,7 +24,7 @@
 			name = "MotionRecorder"
             mask = "1 1 1 1 1  1"
             torque = "0.25 0.25 0.25 0.25 0.25"
-            filename = "/Users/cba/Desktop/motion.%d.mot"
+            filename = "motion.%d.mot"
 		/>
 
         <_connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "GOAL_POSITION" />
@@ -54,6 +54,7 @@
             <object class="Slider" title = "D1" module="Joints" parameter="data" select="1" x="9" y="11" h="2" w="1" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

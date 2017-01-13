@@ -29,7 +29,7 @@ void
 SpatialClustering::Init()
 {
     Bind(sorting , "sorting");
-	no_of_clusters = GetIntValue("no_of_clusters", 1);
+	no_of_clusters = GetIntValue("no_of_clusters");
 
 	input = GetInputMatrix("INPUT");
 
@@ -39,17 +39,17 @@ SpatialClustering::Init()
     confidence = GetOutputArray("CONFIDENCE");
     last_output = create_matrix(2, no_of_clusters);
     
-    active = create_array(no_of_clusters);
+    cluster_active = create_array(no_of_clusters);
 
     memory_exhausted = false;
     
     // Get and scale relative values to image size (i. e. pixel)
     
-    threshold = GetFloatValue("threshold", 0.1);
-    cluster_radius = float(size_x)*GetFloatValue("cluster_radius", 0.1);
+    threshold = GetFloatValue("threshold");
+    cluster_radius = float(size_x)*GetFloatValue("cluster_radius");
     max_cluster_area = 2*pi*cluster_radius*cluster_radius;
-	min_cluster_area = float(size_x)*float(size_y)*GetFloatValue("min_cluster_area", 0.0001);
-    tracking_distance = float(size_x)*GetFloatValue("tracking_distance", 0.25);
+	min_cluster_area = float(size_x)*float(size_y)*GetFloatValue("min_cluster_area");
+    tracking_distance = float(size_x)*GetFloatValue("tracking_distance");
 
 }
 
@@ -213,25 +213,25 @@ SpatialClustering::AddCluster(float x, float y, float pixelcount)
         output[c][0] = x;
         output[c][1] = y;
         confidence[c] = cert;
-        active[c] += 1;
+        cluster_active[c] += 1;
     }
     else if(no_of_found_clusters < no_of_clusters)
     {
         output[no_of_found_clusters][0] = x;
         output[no_of_found_clusters][1] = y;
         confidence[no_of_found_clusters] = cert;
-        active[no_of_found_clusters] = 2;
+        cluster_active[no_of_found_clusters] = 2;
         no_of_found_clusters++;
     }
-    else // Check if it is possible to reassign an inactive cluster [possibly reassign smaller/smallest clusters?]
+    else // Check if it is possible to reassign an incluster_active cluster [possibly reassign smaller/smallest clusters?]
     {
         for(int i=0; i<no_of_clusters; i++)
-            if(active[i] < 1)
+            if(cluster_active[i] < 1)
             {
                 output[i][0] = x;
                 output[i][1] = y;
                 confidence[i] = cert;
-                active[i] = 2;
+                cluster_active[i] = 2;
                 return;
             }
     }
@@ -293,11 +293,11 @@ SpatialClustering::Tick()
     }
     
     for(int i=0; i<no_of_found_clusters; i++)
-        active[i] -= 1;
+        cluster_active[i] -= 1;
 /*        
     printf("\n\n");
     for(int i=0; i<no_of_clusters; i++)
-        printf("%f %f\t\t%.0f\t\t%15.9f\n", output[i][0], output[i][1], active[i], confidence[i]);
+        printf("%f %f\t\t%.0f\t\t%15.9f\n", output[i][0], output[i][1], cluster_active[i], confidence[i]);
 */
 }
 

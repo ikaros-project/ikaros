@@ -52,6 +52,7 @@
         <object class="Slider" title="OSC3" module="J3" parameter="amplitude" x="6" y="2" h="2" min="-1" />
 	</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

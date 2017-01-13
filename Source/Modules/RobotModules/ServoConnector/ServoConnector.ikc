@@ -11,13 +11,14 @@
 			class="ServoConnector"
 			name="ServoConnector"
 			connector   =   "1 2 2 3 3 4 5 8 8 10"
-            inverted    =   "0 1 0 0 1 0 0 1 0 0 " 
-            midpoint    =   "0 0 0 0 0 0 0 0 0 0 "
+			pre_inverted    =   "0 1 0 0 1 0 0 1 0 0 "
+			post_inverted    =   "0 1 0 0 1 0 0 1 0 0 "
 		/>
 	</example>
 
 	<parameter name="connector" type="array" default="" description="input to output connector" />
-	<parameter name="inverted"  type="array" default="" description="should the output be inverted?" />
+    <parameter name="pre_inverted"  type="array" default="" description="should the output be inverted?" />
+    <parameter name="post_inverted"  type="array" default="" description="should the output be inverted?" />
 	<parameter name="offset"	type="array" default="" description="what is the origo" />
 	<parameter name="output_size" type="int" default="10" description="Number of output node" />
 

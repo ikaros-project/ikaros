@@ -1,7 +1,7 @@
 //
 //    Arbiter.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2006-2014 Christian Balkenius
+//    Copyright (C) 2006-2016 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -26,8 +26,6 @@ using namespace ikaros;
 Arbiter::Arbiter(Parameter * p):
     Module(p)
 {
-    Bind(switch_time, "switch_time");
-    
     no_of_inputs = GetIntValue("no_of_inputs");
 
     input_name  = new char * [no_of_inputs];
@@ -44,6 +42,11 @@ Arbiter::Arbiter(Parameter * p):
 
     AddOutput("OUTPUT");
     AddOutput("VALUE");
+
+    AddOutput("AMPLITUDES");
+    AddOutput("ARBITRATION");
+    AddOutput("SMOOTHED");
+    AddOutput("NORMALIZED");
 }
 
 
@@ -68,23 +71,37 @@ Arbiter::~Arbiter()
 void
 Arbiter::SetSizes()
 {
-    int s = 0;
+    int sx = 0;
+    int sy = 0;
 
     for(int i=0; i<no_of_inputs; i++)
     {
-        int si = GetInputSize(input_name[i]);
+        int sxi = GetInputSizeX(input_name[i]);
+        int syi = GetInputSizeY(input_name[i]);
 
-        if(si == unknown_size)
+        if(sxi == unknown_size)
             return; // Not ready yet
 
-        if(s != 0 && si != 0 && s != si)
+        if(syi == unknown_size)
+            return; // Not ready yet
+
+        if(sx != 0 && sxi != 0 && sx != sxi)
+            Notify(msg_fatal_error, "Inputs have different sizes");
+
+        if(sy != 0 && syi != 0 && sy != syi)
             Notify(msg_fatal_error, "Inputs have different sizes");
         
-        s = si;
+        sx = sxi;
+        sy = syi;
     }
 
-    SetOutputSize("OUTPUT", s);
+    SetOutputSize("OUTPUT", sx, sy);
     SetOutputSize("VALUE", 1);
+
+    SetOutputSize("AMPLITUDES", no_of_inputs);
+    SetOutputSize("ARBITRATION", no_of_inputs);
+    SetOutputSize("SMOOTHED", no_of_inputs);
+    SetOutputSize("NORMALIZED", no_of_inputs);
 }
 
 
@@ -92,69 +109,142 @@ Arbiter::SetSizes()
 void
 Arbiter::Init()
 {
-   for(int i=0; i<no_of_inputs; i++)
+    Bind(metric, "metric");
+    Bind(arbitration_method, "arbitration");
+    Bind(softmax_exponent, "softmax_exponent");
+    Bind(hysteresis_threshold, "hysteresis_threshold");
+    Bind(switch_time, "switch_time");
+    Bind(alpha, "alpha");
+
+    int vcnt = 0;
+    for(int i=0; i<no_of_inputs; i++)
     {
         input[i] = GetInputArray(input_name[i]);
         value_in[i] = GetInputArray(value_name[i], false);
+        if(value_in[i])
+            vcnt++;
     }
+
+    if(vcnt!=0 && vcnt != no_of_inputs)
+        Notify(msg_fatal_error, "All VALUE inputs must have connections - or none");
+
+    amplitudes = GetOutputArray("AMPLITUDES");
+    arbitration_state = GetOutputArray("ARBITRATION");
+    smoothed = GetOutputArray("SMOOTHED");
+    normalized = GetOutputArray("NORMALIZED");
 
     output = GetOutputArray("OUTPUT");
     value_out = GetOutputArray("VALUE");
 
     size = GetOutputSize("OUTPUT");
-    
-    current_channel = -1;
 }
 
 
-// Slow switching should use normalized weight vector to produce convex combinations of inputs
-// This is necessary when a switch occurs before the switch time has ended
-// Special case of convex combination of processes - WITH selection in addition to weighting
-// Could weigh by value without competition as a special case
+
+void
+Arbiter::CalculateAmplitues()
+{
+    if(value_in[0])
+    {
+        for(int i=0; i<no_of_inputs; i++)
+            amplitudes[i] = *value_in[i];
+    }
+    else if(metric == 0)
+    {
+        for(int i=0; i<no_of_inputs; i++)
+            amplitudes[i] = norm1(input[i], size);
+    }
+    else if(metric == 1)
+    {
+        for(int i=0; i<no_of_inputs; i++)
+            amplitudes[i] = norm(input[i], size);
+    }
+}
+
+
+
+void
+Arbiter::Arbitrate()
+{
+    // Do the actual arbitration
+
+    int a;
+    switch(arbitration_method)
+    {
+        case 0: // WTA
+            a = arg_max(amplitudes, no_of_inputs);
+            reset_array(arbitration_state, no_of_inputs);
+            arbitration_state[a] = amplitudes[a];
+            break;
+
+        case 1: // hysteresis
+            a = arg_max(amplitudes, no_of_inputs);
+            if(amplitudes[a] > amplitudes[winner] + hysteresis_threshold || amplitudes[winner] == 0)
+                winner = a;
+            reset_array(arbitration_state, no_of_inputs);
+            arbitration_state[winner] = amplitudes[winner];
+            break;
+
+        case 2: // softmax
+            for(int i=0; i<no_of_inputs; i++)
+                arbitration_state[i] = pow(amplitudes[i], softmax_exponent);
+            break;
+
+        case 3: // hierarchy
+            for(int i=no_of_inputs-1; i>=0; i--)
+                if(amplitudes[i] > 0 || i==0)
+                {
+                    reset_array(arbitration_state, no_of_inputs);
+                    arbitration_state[i] = amplitudes[i];
+                    break;
+                }
+            break;
+
+        default: // no arbitration - should never happen
+            copy_array(arbitration_state, amplitudes, no_of_inputs);
+            break;
+    }
+    
+    // Save last max for hysteresis or reset otherwise
+
+    if(arbitration_method != 1)
+        winner = 0;
+}
+
+
+
+void
+Arbiter::Smooth()
+{
+    float a = alpha;
+    if(switch_time != 0)
+        a = 1.0/switch_time;
+
+    if(switch_time > 0 || alpha != 1)
+        add(smoothed, 1-a, smoothed, a, arbitration_state, no_of_inputs);
+    else
+        copy_array(smoothed, arbitration_state, no_of_inputs);
+}
+
+
 
 void
 Arbiter::Tick()
 {
-    int   ix = 0;
-    float vix = 0;
-    
-    for(int i=0; i<no_of_inputs; i++)
-    {
-        float v = (value_in[i] ? *value_in[i] : norm(input[i], size)); // use norm if value input is not connected
-        if(v > vix)
-        {
-            ix = i;
-            vix = v;
-        }
-    }
-    
-    if(switch_time == 0)
-        copy_array(output, input[ix], size);
-    
-    else // run slow switch
-    {
-        if(ix != current_channel)  // start switch
-        {
-			if (current_channel == -1)
-				current_channel = ix;
-				
-            from_channel = current_channel;
-            current_channel = ix;
-            switch_counter = switch_time;
-        }
-        
-        if(switch_counter == 0)
-            copy_array(output, input[ix], size);
-        else
-        {
-            switch_counter--;
-            float a = float(switch_time-switch_counter)/float(switch_time);
-            for(int i=0; i<no_of_inputs; i++)
-                output[i] = a * input[current_channel][i] + (1-a) * input[from_channel][i];
-        }
-    }
+    CalculateAmplitues();
+    Arbitrate();
+    Smooth();
 
-    *value_out = *value_in[ix];
+    // Normalize
+
+    copy_array(normalized, smoothed, no_of_inputs);
+    normalize1(normalized, no_of_inputs);
+
+    // Weigh inputs together
+
+    reset_array(output, size);
+    for(int i=0; i<no_of_inputs; i++)
+        add(output, normalized[i], input[i], size);
 }
 
 

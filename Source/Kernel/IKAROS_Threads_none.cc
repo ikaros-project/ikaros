@@ -49,6 +49,16 @@ Thread::Join()
 
 
 
+int
+Thread::Kill()
+{
+    // There is nothing to join
+
+    return 0;
+}
+
+
+
 Thread::Thread()
 {}
 

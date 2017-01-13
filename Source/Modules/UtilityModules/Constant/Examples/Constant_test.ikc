@@ -57,7 +57,7 @@
 
 	<module
 		class = "Constant" 
-		name = "MostyEmptyConstant"
+		name = "MostlyEmptyConstant"
 		outputsize_x = "10"
 		outputsize_y = "10"
 		data = "0 1 2;
@@ -89,5 +89,6 @@
 		<object class="Image" module="MostyEmptyConstant" source="OUTPUT" x="2" y="0" />
 	</view>
 	
+    <module class = "Logger" name = "Logger" />
 </group>
 

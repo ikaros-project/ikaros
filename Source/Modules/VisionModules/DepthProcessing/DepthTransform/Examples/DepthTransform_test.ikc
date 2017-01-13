@@ -20,5 +20,6 @@
 
     <connection sourcemodule="Points" source="OUTPUT" targetmodule="DepthTransform" target="INPUT" />
     
+    <module class = "Logger" name = "Logger" />
 </group>
 

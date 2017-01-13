@@ -28,19 +28,19 @@ using namespace ikaros;
 void
 WhiteBalance::Init()
 {
-    red_target      =	GetFloatValue("red_target", 255.0);
-    green_target	=	GetFloatValue("green_target", 255.0);
-    blue_target     =	GetFloatValue("blue_target", 255.0);
+    red_target      =	GetFloatValue("red_target");
+    green_target	=	GetFloatValue("green_target");
+    blue_target     =	GetFloatValue("blue_target");
     
-    reference_x0	=	GetIntValue("x0", 10);
-    reference_y0	=	GetIntValue("y0", 10);
-    reference_x1	=	GetIntValue("x1", 20);
-    reference_y1	=	GetIntValue("y1", 20);
+    reference_x0	=	GetIntValue("x0");
+    reference_y0	=	GetIntValue("y0");
+    reference_x1	=	GetIntValue("x1");
+    reference_y1	=	GetIntValue("y1");
     
-    log_x0		=	GetIntValue("log_x0", 0);
-    log_y0		=	GetIntValue("log_y0", 0);
-    log_x1		=	GetIntValue("log_x1", 0);
-    log_y1		=	GetIntValue("log_y1", 0);
+    log_x0		=	GetIntValue("log_x0");
+    log_y0		=	GetIntValue("log_y0");
+    log_x1		=	GetIntValue("log_x1");
+    log_y1		=	GetIntValue("log_y1");
 
     size_x	 	= GetInputSizeX("INPUT0");
     size_y	 	= GetInputSizeY("INPUT0");

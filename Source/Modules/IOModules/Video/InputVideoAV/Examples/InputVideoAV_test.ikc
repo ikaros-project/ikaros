@@ -16,7 +16,7 @@
     />
 
     <module
-        class   = "InputVideoQT"
+        class   = "InputVideoAV"
         name	= "CAMERA"			
         size_x  = "800"
         size_y  =  "600"
@@ -86,5 +86,6 @@
         />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

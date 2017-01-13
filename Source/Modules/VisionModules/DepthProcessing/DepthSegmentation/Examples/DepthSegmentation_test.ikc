@@ -56,5 +56,6 @@
         <object class="Image" type="green" name="Segment" module = "Multiply" source = "OUTPUT" x="3" y="2" w="3" h="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

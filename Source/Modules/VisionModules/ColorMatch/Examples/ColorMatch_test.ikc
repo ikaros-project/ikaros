@@ -34,5 +34,6 @@
 			<object class="Image" type="fire" module="CM" source="OUTPUT" x="1" y="2" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

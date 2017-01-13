@@ -687,6 +687,50 @@ Graph.prototype.AddHTMLText = function (x, y, t, width, height, style)
 
 
 
+Graph.prototype.AddHTMLPopUp = function (x, y, title, list, width, height, style)
+{
+    var r = document.createElementNS(svgns,"foreignObject");
+    r.setAttribute('x', x);
+    r.setAttribute('y', y);
+    r.setAttribute('width', width);
+    r.setAttribute('height', height);
+    
+    var b = document.createElementNS(xmlns,"body");
+    b.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+
+    var d = document.createElementNS(xmlns,"div");	
+    d.setAttribute('style', (style ? style: 'font-family: sans-serif; font-size: 11px; color: white'));
+    b.appendChild(d);
+
+    if(title != "")
+    {
+        var tn = document.createTextNode(title+": ");
+        d.appendChild(tn);
+    }
+
+    var s = document.createElementNS(xmlns,"select");
+
+    // Add options
+
+    l = list.split("/");
+    for(i in l)
+    {
+        var o = document.createElement("option");
+        o.setAttribute("value", i.toString());
+        var t = document.createTextNode(l[i]);
+        o.appendChild(t);
+        s.appendChild(o);
+    }
+
+    d.appendChild(s);
+    r.appendChild(b);
+    this.group.appendChild(r);
+    
+    return s; // return relevant HTML object
+}
+
+
+
 Graph.prototype.AddHTMLCanvas = function (x, y, width, height)
 {
     var r = document.createElementNS(svgns,"foreignObject");

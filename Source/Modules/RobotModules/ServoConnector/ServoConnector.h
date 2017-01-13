@@ -51,8 +51,11 @@ public:
     int connectorSize;
 	int * offset;
 	int offsetSize;
-    int * inverted;
-    int invertedSize;
+    int * PreInverted;
+    int PreInvertedSize;
+    int * PostInverted;
+    int PostInvertedSize;
+    
     
 };
 

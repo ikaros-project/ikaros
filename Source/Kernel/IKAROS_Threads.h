@@ -34,6 +34,7 @@ private:
 public:
     int		Create(void *(*func)(void *), void *arg);
     int		Join();
+    int     Kill();
 
     Thread();
     ~Thread();

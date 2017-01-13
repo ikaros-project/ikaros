@@ -18,6 +18,7 @@
 		<view name="View">
 			<object class="BarGraph" module="Integrator" source="OUTPUT" x="0" y="0" max = "5" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
 
 

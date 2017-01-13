@@ -18,6 +18,7 @@
 	</example>
 
 	<parameter name="no_of_clusters" type="int" default="1.0" min="1.0" max="100" description="The maximum number of clusters to find in the scene. No of rows in the output matrix" />
+	<parameter name="threshold" type="float" default="0.1"  min="0" max="1.0"  description="Threshold" />
 	<parameter name="cluster_radius" type="float" default="0.1" min="0" max="1.0" description="The radius of a cluster (in relation to the width input image)." />
 	<parameter name="min_cluster_area" type="float" default="0.2" min="0" max="1.0" description="The minimium filled region of a cluster (in relation to the area of the input image)." />
 	<parameter name="tracking_distance" type="float" default="0.25" min="0" max="1.0" description="The maximum movement of a cluster between frames in relaion to image width." />

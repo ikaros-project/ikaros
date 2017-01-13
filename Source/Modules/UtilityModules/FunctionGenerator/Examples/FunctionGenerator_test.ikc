@@ -68,5 +68,6 @@
 			<object class="Plot" module="F_SQUARE10" source="OUTPUT" title="Square Wave 10%" x="4" y="2" w="4" />
 			<object class="Plot" module="T_SQUARE" source="OUTPUT" title="Square Wave 10/40 ticks" x="4" y="3" w="4" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

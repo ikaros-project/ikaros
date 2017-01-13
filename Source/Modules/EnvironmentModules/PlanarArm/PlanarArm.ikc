@@ -15,7 +15,7 @@
 			/>
 	</example>
 
-	<parameter name="target_behavior" type="list" values=" random/linear/circular/lisajous" default="max" description="How to use the MOVE input" />
+	<parameter name="target_behavior" type="list" values="random/linear/circular/lisajous" default="random" description="How to use the MOVE input" />
 	<parameter name="target_speed" type="float" default="0.05" description="Speed of target" />
 	<parameter name="target_size" type="float" default="0.05" description="Size of target" />
 	<parameter name="target_range" type="float" default="0.3" description="Range of target" />

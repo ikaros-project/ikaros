@@ -14,5 +14,6 @@
 			<object class="BarGraph" module="Constant" source="OUTPUT" max="5" x="0" y="0" />
 			<object class="BarGraph" module="SelectMax" source="OUTPUT" max="5" x="0" y="1" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

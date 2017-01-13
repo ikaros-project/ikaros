@@ -18,10 +18,10 @@
 		/>
 	</example>
 
-	<parameter name="scale" type="float" description="Scale parameter" />
-	<parameter name="T0" type="float" description="First threshold" />
-	<parameter name="T1" type="float" description="Second threshold" />
-	<parameter name="T2" type="float" description="Third threshold" />
+	<parameter name="scale" type="float" default="1.0" description="Scale parameter" />
+	<parameter name="T0" type="float" default="100" description="First threshold" />
+	<parameter name="T1" type="float" default="200" description="Second threshold" />
+	<parameter name="T2" type="float" default="800" description="Third threshold" />
 
 	<input name="INPUT" description="The iage input" />
     

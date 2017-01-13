@@ -118,7 +118,8 @@ GLRobotSimulator::Init()
     battery_level = GetOutputArray("BATTERY_LEVEL");
     charging_station = GetOutputArray("CHARGING_STATION");
     
-    copy_array(charging_station, GetArray("charging_station", 2), 2);
+    int two = 2;
+    copy_array(charging_station, GetArray("charging_station", two, true), 2);
 
     locomotion_phase = GetOutputArray("LOCOMOTION_PHASE");
     pick_phase = GetOutputArray("PICK_PHASE");

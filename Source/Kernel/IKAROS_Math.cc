@@ -1242,6 +1242,7 @@ namespace ikaros
         return r;
     }
     
+<<<<<<< HEAD
     
     float *
     subtract(float * r, float * a, float * b, int size)
@@ -1254,6 +1255,99 @@ namespace ikaros
         //#endif
         return r;
     }
+=======
+	// mean
+	float
+	mean(float * a, int size)
+	{
+#ifdef USE_VDSP
+		float r;
+		vDSP_meanv(a, 1, &r, size);
+		return r;
+#else
+		float s = 0;
+		for (int i=0; i<size; i++)
+			s += a[i];
+		if (s == 0)
+			return 0;
+		else
+			return s/float(size);
+#endif
+	}
+
+	float
+	mean(float ** a, int sizex, int sizey)
+	{
+		return mean(*a, sizex*sizey);
+	}
+
+    float *
+    mean(float * r, float ** m, int sizex, int sizey, int dim)
+    {
+        if(dim==0)
+        {
+            for(int i=0; i< sizex; i++)
+                r[i] = 0;
+            
+            for(int j=0; j<sizey; j++)
+                for(int i=0; i< sizex; i++)
+                    r[i] += m[j][i];
+            
+            for(int i=0; i< sizex; i++)
+                r[i] /= float(sizey);
+        }
+        else
+        {
+            for(int j=0; j<sizey; j++)
+                r[j] = mean(m[j], sizex);
+        }
+        return r;
+    }
+
+
+
+	float
+    median(float * a, int size)
+	{
+        float s[size];
+        copy_array(s, a, size);
+        sort(s, size);
+        if(size % 2 == 1) // odd
+            return s[size/2];
+        else
+            return 0.5*(s[size/2-1] + s[size|2]);
+    }
+    
+    
+    
+    float
+    median(float ** a, int sizex, int sizey)
+	{
+        return median(*a, sizex*sizey);
+    }
+    
+    
+    
+    float *
+    median(float * r, float ** a, int sizex, int sizey, int dim)
+    {
+        if(dim==0)
+        {
+            printf("ERROR: median of coumns not implemented\n");
+            return r;
+        }
+    
+        for(int j=0; j<sizey; j++)
+            r[j] = median(a[j], sizex);
+        return r;
+    }
+    
+    
+    
+    
+    // MARK: -
+    // MARK: clip
+>>>>>>> master
     
     
     float **
@@ -1263,6 +1357,15 @@ namespace ikaros
         return r;
     }
     
+    float **
+    subtract(float ** r, float ** m, float * a, int sizex, int sizey)
+    {
+        for(int j=0; j<sizey; j++)
+            subtract(r[j], m[j], a, sizex);
+    
+        return r;
+    }
+
     // MARK: -
     // MARK: multiply and divide
     
@@ -2603,6 +2706,31 @@ namespace ikaros
         }
     }
     
+
+
+    float **
+    pca(float ** c, float * v, float ** m, int size_x, int size_y)
+    {
+        float ** x = copy_matrix(create_matrix(size_x, size_y), m, size_x, size_y);
+        float * mx = create_array(size_x);
+        mean(mx, x, size_x, size_y);
+        subtract(x, x, mx, size_x, size_y);
+        float ** xT = transpose(create_matrix(size_y, size_x), x, size_y, size_x);
+        float ** cov = multiply(multiply(create_matrix(size_x, size_x), xT, x, size_x, size_x, size_y), 1/float(size_y-1), size_x, size_x);
+        float ** V = create_matrix(size_x, size_x);
+
+        svd(c, v, V, cov, size_x, size_x);
+
+        destroy_matrix(V);
+        destroy_matrix(cov);
+        destroy_matrix(xT);
+        destroy_matrix(x);
+
+        return c;
+    }
+
+
+
     
     // conversion
     // MARK: -
@@ -3104,8 +3232,32 @@ namespace ikaros
     // MARK: image processing
     
     float **
+<<<<<<< HEAD
     convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias)
     {
+=======
+    im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x, int stride_y)  // mode = 'sliding'
+    {
+        float * r = *result;
+        for(int j=0; j<result_size_y; j++)
+            for(int i=0; i<result_size_x; i++)
+            {
+                int s[kernel_size_y];
+                for(int k=0; k<kernel_size_y; k++)
+                    s[k] = (j*stride_y+k)*source_size_x + i*stride_x;
+                for(int k=0; k<kernel_size_y; k++)
+                    for(int v=0; v<kernel_size_x; v++)
+                        *r++ = (*source)[s[k]++];
+            }
+
+        return result;
+    }
+
+
+	float **
+	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias)
+	{
+>>>>>>> master
 #ifdef USE_VIMAGE
         if (ksizex % 2 == 1 && ksizey % 2 == 1)
         {

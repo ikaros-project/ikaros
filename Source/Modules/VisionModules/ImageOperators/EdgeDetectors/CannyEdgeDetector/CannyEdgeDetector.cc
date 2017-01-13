@@ -36,7 +36,7 @@ CannyEdgeDetector::Create(Parameter * p)
 CannyEdgeDetector::CannyEdgeDetector(Parameter * p):
         Module(p)
 {
-    scale			= GetFloatValue("scale", 1.0);
+    scale			= GetFloatValue("scale");
     filterradius	= int(2*scale+0.5);
     filtersize      = 1+2*filterradius;
 
@@ -59,9 +59,9 @@ CannyEdgeDetector::CannyEdgeDetector(Parameter * p):
     dGx				= NULL;
     dGy				= NULL;
 
-    T0	= GetFloatValue("T0", 100);
-    T1	= GetFloatValue("T1", 200);
-    T2	= GetFloatValue("T2", 800);
+    T0	= GetFloatValue("T0");
+    T1	= GetFloatValue("T1");
+    T2	= GetFloatValue("T2");
 }
 
 

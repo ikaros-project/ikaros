@@ -4,7 +4,7 @@
 <group>
 
 		<module
-			class = "InputQTMovie"
+			class = "InputVideoFile"
 			name = "IN"
 			filename = "../../../../../../Examples/Media/ikaros.mov"
 			loop = "yes"
@@ -23,5 +23,6 @@
 			<object class="Image" name="Changes" module="Change" source="OUTPUT" x="1" y="0" />
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

@@ -16,15 +16,15 @@
     
     <module
         class   = "DepthPointList"
-        name    = "DepthBointList"
+        name    = "DepthPointList"
     />
 
     <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
 
-    <connection sourcemodule="Kinect" source="RED" targetmodule="DepthBlobList" target="RED" />
-    <connection sourcemodule="Kinect" source="GREEN" targetmodule="DepthBlobList" target="GREEN" />
-    <connection sourcemodule="Kinect" source="BLUE" targetmodule="DepthBlobList" target="BLUE" />
-    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="DepthBlobList" target="DEPTH" />
+    <connection sourcemodule="Kinect" source="RED" targetmodule="DepthPointList" target="RED" />
+    <connection sourcemodule="Kinect" source="GREEN" targetmodule="DepthPointList" target="GREEN" />
+    <connection sourcemodule="Kinect" source="BLUE" targetmodule="DepthPointList" target="BLUE" />
+    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="DepthPointList" target="DEPTH" />
     
     <view name="Depth">
         <object class="Image" type="spectrum" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />
@@ -33,5 +33,6 @@
         <object class="Slider" title="Tilt" module = "Tilt" parameter = "data" x="6" y="3" w="1" h="2" />
     </view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
 

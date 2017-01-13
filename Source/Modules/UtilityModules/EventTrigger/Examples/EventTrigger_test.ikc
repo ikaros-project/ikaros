@@ -22,5 +22,6 @@
 		<view name="View">
 			<object class="BarGraph" module="Trigger" source="OUTPUT" min="-2" max="2" x="0" y="0" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

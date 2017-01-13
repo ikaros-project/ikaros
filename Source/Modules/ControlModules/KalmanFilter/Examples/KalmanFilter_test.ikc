@@ -81,5 +81,6 @@
             <object title="a" class="Plot" module = "K" source="STATE" min="-0.025" max="0.025" select="4, 5" color="red, green" x="2" y="2" w="2"/>
 		</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  

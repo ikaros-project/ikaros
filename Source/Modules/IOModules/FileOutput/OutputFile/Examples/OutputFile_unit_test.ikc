@@ -23,6 +23,7 @@
         </module>
 
 		<connection sourcemodule = "Data" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
+    <module class = "Logger" name = "Logger" />
 </group>
 
 

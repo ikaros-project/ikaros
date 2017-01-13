@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+<group name="TheEyeTribe" description="module that uses The Eye Tribe API">
+
+	<description type="text">
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="TheEyeTribe"
+			name="TheEyeTribe"
+		/>
+	</example>
+
+
+	<output name="TIME_STAMP" description="Time stamp in ms" size="1" />
+	<output name="FIX" description="is fixated?" size="1" />
+	<output name="RAW" description="Raw gaze coordinates in pixels" size="2" />
+	<output name="AVG" description="Smoothed gaze coordinates in pixels" size="2" />
+	
+	<output name="LEFT_EYE_RAW" description="Raw gaze coordinates in pixels" size="2" />
+	<output name="LEFT_AVG_RAW" description="Smoothed gaze coordinates in pixels" size="2" />
+	<output name="LEFT_PUPIL_SIZE" description="Pupil size" size="1" />
+	<output name="LEFT_PUPIL_CENTER" description="Pupil coordinates normalized" size="2" />
+
+	<output name="RIGHT_EYE_RAW" description="Raw gaze coordinates in pixels" size="2" />
+	<output name="RIGHT_AVG_RAW" description="Smoothed gaze coordinates in pixels" size="2" />
+	<output name="RIGHT_PUPIL_SIZE" description="Pupil size" size="1" />
+	<output name="RIGHT_PUPIL_CENTER" description="Pupil coordinates normalized" size="2" />
+	
+	<module class="TheEyeTribe" />
+
+	<view title="Eye Tracker">
+        <object
+            x="0" y="0" w="2"
+            class="Table"
+            module="*"
+            source="TIME_STAMP"
+            title="Time stamp"
+        />
+        <object
+            x="2" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="FIX"
+            title="Fixation"
+        />
+        <object
+            x="0" y="1" w="4" h ="2"
+            class="Cross"
+            module="*"
+            source="RAW"
+            title="Raw"
+            min = "0"
+            max = "1000"
+        />
+        <object
+            x="0" y="1" w="4" h ="2"
+            class="Cross"
+            module="*"
+            source="AVG"
+            title="Avg"
+            min = "0"
+            max = "1000"
+            color = "Green"
+        />
+        <object
+            x="2" y="3" w="2"
+            class="Plot"
+            module="*"
+            source="LEFT_PUPIL_SIZE"
+            title="Right pupil size"
+            min = "5"
+            max = "30"
+        />
+        
+        <object
+            x="0" y="3" w="2"
+            class="Plot"
+            module="*"
+            source="LEFT_PUPIL_SIZE"
+            title="Left pupil size"
+            min = "5"
+            max = "30"
+        />
+	</view>
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>TheEyeTribe.h</file>
+   		<file>TheEyeTribe.cc</file>
+   		<file>TheEyeTribe.ikc</file>
+   </files>
+
+</group>
+

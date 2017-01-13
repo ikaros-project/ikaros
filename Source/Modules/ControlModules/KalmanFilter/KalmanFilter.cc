@@ -82,7 +82,7 @@ KalmanFilter::~KalmanFilter()
     destroy_matrix(Q);
     destroy_matrix(R);
 
-    destroy_matrix(K);
+    // destroy_matrix(K); Not OK to destroy an output
     destroy_matrix(I);
 }
 

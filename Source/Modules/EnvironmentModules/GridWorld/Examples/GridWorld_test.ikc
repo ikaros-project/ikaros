@@ -76,6 +76,7 @@
 		<object class="Grid" module="GW" source="IMAGE" x="0" y="0" color="black,white,red,green" max="3" />
 	</view>
 
+    <module class = "Logger" name = "Logger" />
 </group>
  
 

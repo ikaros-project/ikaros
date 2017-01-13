@@ -19,5 +19,6 @@
 			<object class="BarGraph" module="Constant2" source="OUTPUT" max="5" x="0" y="1" />
 			<object class="BarGraph" module="Min" source="OUTPUT" max="5" x="0" y="2" />
 		</view>
+    <module class = "Logger" name = "Logger" />
 </group>
  

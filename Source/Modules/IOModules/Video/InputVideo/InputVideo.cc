@@ -81,7 +81,7 @@ InputVideo::InputVideo(Parameter * p):
 Module(p)
 {
     
-    frameRate   = GetIntValue("frame_rate");
+    frameRate   = GetFloatValue("frame_rate");
     id          = GetIntValue("id");
     
     size_x      = GetIntValue("size_x");
