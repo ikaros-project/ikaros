@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EpiGreen Servos">
+<group name="EpiBlue Servos">
 	
     <input name="GOAL_POSITION"       			targetmodule="SplitBody"             	target="INPUT" /> 
     <input name="GOAL_POSITION"       			targetmodule="SplitHead"             	target="INPUT" /> 
