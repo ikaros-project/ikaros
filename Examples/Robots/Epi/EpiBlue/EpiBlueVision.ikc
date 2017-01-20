@@ -31,7 +31,7 @@
 		size_y  		= "480"
 		list_devices 	= "no"
 		id 				= "0"
-		frame_rate 		= "30"
+		frame_rate 		= "29.97"
 		period			= "2"
 	/>
     

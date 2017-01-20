@@ -27,7 +27,7 @@
 
 
 	<module class = "DataConverter" name = "JOIN_ARRAYS" output_size_x = "16" output_size_y = "6"/>
-        <connection sourcemodule = "M_L6_T1"    source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"  target = "INPUT" />
+        <connection sourcemodule = "M_L6_R1"    source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"  target = "INPUT" />
         <connection sourcemodule = "M_L5_R1"    source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"  target = "INPUT" />
         <connection sourcemodule = "M_L4_R1"    source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"  target = "INPUT" />
         <connection sourcemodule = "M_L3_R1"    source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"  target = "INPUT" />
@@ -217,34 +217,36 @@
         <connection sourcemodule="M_L5_T1"      source="OUTPUT"     targetmodule = "M_L5_R1" target="INPUT1" delay = "0"/>
         <connection sourcemodule="L5_R1"        source="OUTPUT"     targetmodule = "M_L5_R1" target="INPUT2" delay = "0"/>
 
-    <!-- LINK 6: JOINT 1: Rotation Y  --> 
-    <module class = "TruncateArray" name = "L6_R1Rot" array_length = "6" selection = "6" loop = "false"/>
-    <module class="RotationConverter" name="L6_R1_C" input_format = "axayaz" output_format = "matrix" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L6_R1_C"  target = "INPUT"/>
-        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L6_R1_C"  target = "INPUT"/>
-        <connection sourcemodule = "L6_R1Rot"   source = "OUTPUT"   targetmodule = "L6_R1_C"  target = "INPUT"/>
- 	<module class = "DataConverter" name = "L6_R1"/>
-        <connection sourcemodule = "L6_R1_C"   source = "OUTPUT" targetmodule = "L6_R1"  target = "INPUT" />
-
-    <!-- Multiply -->
-    <module class="MatrixMultiply"   name="M_L6_R1" />
-        <connection sourcemodule="M_L5_R1"      source="OUTPUT"     targetmodule = "M_L6_R1" target="INPUT1" delay = "0"/>
-        <connection sourcemodule="L6_R1"        source="OUTPUT"     targetmodule = "M_L6_R1" target="INPUT2" delay = "0"/>
-
-    <!-- LINK 6: TRANS 1:  --> 
+  <!-- LINK 6: TRANS 1:  --> 
     <module class = "Constant" name = "L6_T1" 
 	data = "
 	1 0 0 0.2;
-	0 1 0 0;
-	0 0 1 0.015;
+	0 1 0 0.015;
+	0 0 1 0;
 	0 0 0 1;
 	" />
 
     <!-- Multiply -->
     <module class="MatrixMultiply"   name="M_L6_T1" />
-        <connection sourcemodule="M_L6_R1"      source="OUTPUT"     targetmodule = "M_L6_T1" target="INPUT1" delay = "0"/>
+        <connection sourcemodule="M_L5_R1"      source="OUTPUT"     targetmodule = "M_L6_T1" target="INPUT1" delay = "0"/>
         <connection sourcemodule="L6_T1"        source="OUTPUT"     targetmodule = "M_L6_T1" target="INPUT2" delay = "0"/>
 
+    <!-- LINK 6: JOINT 1: Rotation Y  --> 
+    <module class = "TruncateArray" name = "L6_R1Rot" array_length = "6" selection = "6" loop = "false"/>
+    <module class="RotationConverter" name="L6_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection sourcemodule = "L6_R1Rot"   source = "OUTPUT"   targetmodule = "L6_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L6_R1_C"  target = "INPUT"/>
+        <connection sourcemodule = "ZERO"       source = "OUTPUT"   targetmodule = "L6_R1_C"  target = "INPUT"/>
+
+ 	<module class = "DataConverter" name = "L6_R1"/>
+        <connection sourcemodule = "L6_R1_C"   source = "OUTPUT" targetmodule = "L6_R1"  target = "INPUT" />
+
+    <!-- Multiply -->
+    <module class="MatrixMultiply"   name="M_L6_R1" />
+        <connection sourcemodule="M_L6_T1"      source="OUTPUT"     targetmodule = "M_L6_R1" target="INPUT1" delay = "0"/>
+        <connection sourcemodule="L6_R1"        source="OUTPUT"     targetmodule = "M_L6_R1" target="INPUT2" delay = "0"/>
+
+  
 
 
     <!-- POINTS --> 
