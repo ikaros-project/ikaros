@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EpiGreen Servos">
+<group name="EpiBlue Servos">
 	
     <input name="GOAL_POSITION"       			targetmodule="SplitBody"             	target="INPUT" /> 
     <input name="GOAL_POSITION"       			targetmodule="SplitHead"             	target="INPUT" /> 
@@ -66,7 +66,7 @@
 		class="ServoConnector"
 		name="H_SC_GoalPosition"
 		connector       = "1 2 3 4"
-        pre_inverted    = "0 1 0 0" 
+        pre_inverted    = "0 0 0 0" 
         post_inverted   = "0 0 0 0" 
         offset          = "180 180 180 180" 
         output_size     = "4"
@@ -96,7 +96,7 @@
 		name="H_SC_FeedBackPosition"
 		connector       = "1 2 3 4"
         pre_inverted    = "0 0 0 0" 
-        post_inverted   = "0 1 0 0" 
+        post_inverted   = "0 0 0 0" 
         offset          = "-180 -180 -180 -180" 
         output_size     = "4"
 	/>
@@ -181,7 +181,7 @@
  	<module
     	class           = "Dynamixel"
     	name            = "RightArm"
-    	device          = "/dev/cu.usbserial-FTX14QKA"
+    	device          = "/dev/cu.usbserial-FTU7ELCY"
     	index_mode      = "indirect"
    	 	print_info 		= "minimal"
     	baud_rate       = "1000000"

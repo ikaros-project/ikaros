@@ -1640,6 +1640,7 @@ WebUI::HandleHTTPRequest()
 			 strend(uri, ".svg") ||
 			 strend(uri, ".js") ||
 			 strend(uri, ".gif") ||
+			 strend(uri, ".stl") ||
 			 strend(uri, ".ico"))
     {
         if(!socket->SendFile(&uri[1], k->ikc_dir))  // Check IKC-directory first to allow files to be overriden

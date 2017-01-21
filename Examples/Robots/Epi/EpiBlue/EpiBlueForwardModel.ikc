@@ -13,7 +13,7 @@
     <input name="PUPIL_FEEDBACK_POSITION"   	targetmodule="Head" 	target="PUPIL_FEEDBACK_POSITION" />
 
 
-	<!-- Model Only used in webUI -->
+	<!-- MODEL_ID is a list of id that matches the id.stl in WebUI/Models -->
     <output name="MODEL_ID"     	sourcemodule="JOIN_MODEL_ID" 	source="OUTPUT" />
     <output name="MODEL_MATRIX" 	sourcemodule="JOIN_ARRAYS" 		source="OUTPUT" />
 
@@ -26,7 +26,7 @@
 	<!-- Right Eye 	-->
     <output name="SENSOR_POS_EGO" 	sourcemodule="SensorBodyHead" source="MATRIX" />
 
-	
+
 	<!-- MODEL -->
     <!-- Model IDs -->
 	<module class = "DataConverter" name = "JOIN_MODEL_ID" output_size_x = "21" output_size_y = "1"/>
@@ -50,27 +50,30 @@
         <connection sourcemodule = "PointsBodyRightArm"        source = "MATRIX"   targetmodule = "P_JOIN" target = "INPUT" />
         <connection sourcemodule = "PointsBodyLeftArm"         source = "MATRIX"   targetmodule = "P_JOIN" target = "INPUT" />
 
+
+
     <!-- Forward models -->
     <!-- Unit is m -->
-    <!-- Robot Position Perhaps not a part of forward model -->
+    <!-- Robot Position Perhaps not a part of forward model Z 90 -->
     <module class = "Constant" name = "Epi_pos" data = "
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
+        0 -1 0 0.85
+        1 0 0 0.15
+        0 0 1 0.847
         0 0 0 1;" />
+
     <module class = "Constant" name = "Epi_pos_ID" data = "10" />
 
     <!-- Body -->
-    <module class = "EpiBodyForwardModel"       name = "Body" />
+    <module class = "EpiBlueBodyForwardModel"       name = "Body" />
 
     <!-- Head --> <!-- Pupil -->
-    <module class = "EpiHeadForwardModel"       name = "Head" />
+    <module class = "EpiBlueHeadForwardModel"       name = "Head" />
 
     <!-- LeftArm -->
-    <module class = "EpiLeftArmForwardModel"    name = "LeftArm" />
+    <module class = "EpiBlueLeftArmForwardModel"    name = "LeftArm" />
 
     <!-- RightArm -->
-    <module class = "EpiRightArmForwardModel"   name = "RightArm" />
+    <module class = "EpiBlueRightArmForwardModel"   name = "RightArm" />
 
 
     <!-- Put the matrices togather -->

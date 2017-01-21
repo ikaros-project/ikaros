@@ -11,7 +11,7 @@
     <output name="MODEL_ID"     sourcemodule="MODEL_ID"             source="OUTPUT" />
 
     <!-- Model IDs -->
-    <module class = "Constant" name = "MODEL_ID" data = "1000 0" />
+    <module class = "Constant" name = "MODEL_ID" data = "101 50" />
 
     <!-- Used to filll xyz intputs of rotationConverter -->
     <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
@@ -38,8 +38,8 @@
     <!-- LINK 1: TRANS 1: Translation to origo (Center of arm joints) --> 
     <module class = "Constant" name = "L1_T1" 
 	data = "
-	1 0 0 1.53;
-	0 1 0 -0.10;
+	1 0 0 0.685;
+	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" />
