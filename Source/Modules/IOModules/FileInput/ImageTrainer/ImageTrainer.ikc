@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
-<!--- InputImage Class File -->
+<!--- ImageTrainer Class File -->
 
-<group name="InputImage" description="reads JPEG or PNG files">
+<group name="ImageTrainer" description="reads JPEG or PNG files">
 
 	<description type="text">
 		Module used for reading an image (or sequences of images) from a JPEG
@@ -12,7 +12,7 @@
 
 	<example description="Read a single file once">
 		<module
-			class = "InputImage"
+			class = "ImageTrainer"
 			name = "IN"
 			filename = "image.jpg"
 		/>	
@@ -20,7 +20,7 @@
 
 	<example description="Read a sequence of three files ten times (e. g. image00.jpg, image01.jpg, image02.jpg)">
 		<module
-			class = "InputImage"
+			class = "ImageTrainer"
 			name = "IN"
 			filename = "image%02d.jpg"
 			filecount = "3"
@@ -49,7 +49,7 @@
 	<output name="CATEGORY_1" description="Category vector 1 derived from file name" optional="yes" />
 	<output name="CATEGORY_2" description="Category vector 2 derived from file name" optional="yes" />
 
-	<module class="InputImage" />
+	<module class="ImageTrainer" />
     
     <view name="View">
         <object class="Image" title="Image" type="rgb" module="*" source="RED+GREEN+BLUE" x="0" y="0" w="2" h="2" />
@@ -73,9 +73,9 @@
 	</author>
 
    <files>
-   		<file>InputImage.h</file>
-   		<file>InputImage.cc</file>
-   		<file>InputImage.ikc</file>
+   		<file>ImageTrainer.h</file>
+   		<file>ImageTrainer.cc</file>
+   		<file>ImageTrainer.ikc</file>
    </files>
 
 </group>

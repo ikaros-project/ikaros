@@ -1,5 +1,5 @@
 //
-//	  InputImage.cc     This file is a part of the IKAROS project
+//	  ImageTrainer.cc     This file is a part of the IKAROS project
 //                      A module for reading from JPEG files
 //
 //    Copyright (C) 2001-2017  Christian Balkenius
@@ -19,7 +19,7 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#include "InputImage.h"
+#include "ImageTrainer.h"
 
 #ifdef USE_LIBJPEG
 
@@ -53,7 +53,7 @@ my_error_exit (j_common_ptr cinfo)
 
 
 
-InputImage::InputImage(Parameter * p):
+ImageTrainer::ImageTrainer(Parameter * p):
         Module(p)
 {
     // Count no of images/filenames
@@ -115,21 +115,21 @@ InputImage::InputImage(Parameter * p):
 
 
 
-InputImage::~InputImage()
+ImageTrainer::~ImageTrainer()
 {}
 
 
 
 Module *
-InputImage::Create(Parameter * p)
+ImageTrainer::Create(Parameter * p)
 {
-    return new InputImage(p);
+    return new ImageTrainer(p);
 }
 
 
 
 bool
-InputImage::GetImageSize(int & x, int & y)
+ImageTrainer::GetImageSize(int & x, int & y)
 {
     struct jpeg_decompress_struct cinfo;
     struct my_error_mgr jerr;
@@ -171,7 +171,7 @@ InputImage::GetImageSize(int & x, int & y)
 
 
 void
-InputImage::Init()
+ImageTrainer::Init()
 {
     intensity	= GetOutputArray("INTENSITY");
     red         = GetOutputArray("RED");
@@ -185,7 +185,7 @@ InputImage::Init()
 
 
 void
-InputImage::SetCategory1(char * filename)
+ImageTrainer::SetCategory1(char * filename)
 {
    if(category_1_n == 0)
     return;
@@ -199,7 +199,7 @@ InputImage::SetCategory1(char * filename)
 
 
 void
-InputImage::Tick()
+ImageTrainer::Tick()
 {
     if (first || !read_once)
     {
@@ -234,7 +234,7 @@ InputImage::Tick()
         (void) jpeg_read_header(&cinfo, TRUE);
         (void) jpeg_start_decompress(&cinfo);
         row_stride = cinfo.output_width * cinfo.output_components;
-        Notify(msg_verbose, "InputImage: width = %d height = %d components = %d\n", cinfo.output_width, cinfo.output_height, cinfo.output_components);
+        Notify(msg_verbose, "ImageTrainer: width = %d height = %d components = %d\n", cinfo.output_width, cinfo.output_height, cinfo.output_components);
 
         if (cinfo.output_width != (unsigned int)(size_x) ||  cinfo.output_height != (unsigned int)(size_y))
         {
@@ -306,13 +306,13 @@ InputImage::Tick()
     {
         cur_image = 0 ;
         iteration++;
-//		printf("InputImage: Repeating (%ld/%ld)\n", iteration, iterations);
+//		printf("ImageTrainer: Repeating (%ld/%ld)\n", iteration, iterations);
     }
 
     if (iterations != 0 && iteration > iterations)
         Notify(msg_terminate);
 }
 
-static InitClass init("InputImage", &InputImage::Create, "Source/Modules/IOModules/FileInput/InputImage/");
+static InitClass init("ImageTrainer", &ImageTrainer::Create, "Source/Modules/IOModules/FileInput/ImageTrainer/");
 
 #endif

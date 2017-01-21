@@ -1,5 +1,5 @@
 //
-//      InputImage.h    This file is a part of the IKAROS project
+//      ImageTrainer.h    This file is a part of the IKAROS project
 //                      A module for reading from JPEG files
 //
 //    Copyright (C)  2017  Christian Balkenius
@@ -21,14 +21,14 @@
 
 
 
-#ifndef InputImage_
-#define InputImage_
+#ifndef ImageTrainer_
+#define ImageTrainer_
 
 #include "IKAROS.h"
 
 #ifdef USE_LIBJPEG
 
-class InputImage: public Module
+class ImageTrainer: public Module
 {
 public:
     long	iterations;
@@ -62,8 +62,8 @@ public:
     int category_2_n;
     char ** category_2_tag;
 
-    InputImage(Parameter * p);
-    virtual ~InputImage();
+    ImageTrainer(Parameter * p);
+    virtual ~ImageTrainer();
 
     static Module * Create(Parameter * p);
 
@@ -81,7 +81,7 @@ private:
 
 #include <stdio.h>
 
-class InputImage
+class ImageTrainer
 {
 public:
     static Module * Create(char * name, Parameter * p)
