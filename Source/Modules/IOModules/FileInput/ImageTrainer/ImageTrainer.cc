@@ -184,15 +184,46 @@ ImageTrainer::Init()
 
 
 
+static bool
+match_str(char * t, char * s, int start, int count)
+{
+    for(int i = 0; i< count; i++)
+        if(t[0] != s[start+i])
+            return false;
+    return true;
+}
+
+
+
 void
 ImageTrainer::SetCategory1(char * filename)
 {
-   if(category_1_n == 0)
-    return;
+    if(category_1_n == 0)
+        return;
     
+    reset_array(category_1, category_1_n);
+
     for(int i=0; i<category_1_n; i++)
     {
-//        if(equal_strings(filename, category_1_tag)
+        if(match_str(category_1_tag, filename, category_1_first_char, category_1_char_count)
+            category_1[i] = 1;
+    }
+ }
+
+
+
+void
+ImageTrainer::SetCategory2(char * filename)
+{
+    if(category_2_n == 0)
+        return;
+    
+    reset_array(category_2, category_2_n);
+
+    for(int i=0; i<category_2_n; i++)
+    {
+        if(match_str(category_2_tag, filename, category_2_first_char, category_2_char_count)
+            category_2[i] = 1;
     }
  }
 
@@ -296,7 +327,8 @@ ImageTrainer::Tick()
 
     // Set category outputs
     
- //   SetCategory1(filename);
+    SetCategory1(filename);
+    SetCategory2(filename);
 
  
     // Iterate to next image
