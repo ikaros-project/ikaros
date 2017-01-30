@@ -1256,7 +1256,7 @@ void
 Module::Notify(int msg, const char *format, ...)
 {
     char 	message[512];
-    sprintf(message, "%s (%s): ", GetName(), GetClassName());
+    sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
     va_list args;
     va_start(args, format);
