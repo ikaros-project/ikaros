@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.h		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2014  Christian Balkenius
+//    Copyright (C) 2006-2017  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -363,7 +363,7 @@ namespace ikaros
     //
 
     float *     sort(float * a, long size);
-    float **    sort(float ** a, long sizex, long sizey);
+    float **    sort(float ** a, long sizex, long sizey);   // as if array
 
 	//
 	// image processing

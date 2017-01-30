@@ -91,6 +91,16 @@ float **    set_col(float ** m, float * a, int col, int sizey);
 float *     get_row(float * a, float ** m, int row, int sizex);
 float *     get_col(float * a, float ** m, int col, int sizey);
 
+
+// Load and Store arrays and matrices
+
+bool        store_array(const char * path, const char * name, float * a, int size);                     // return false on error
+bool        store_matrix(const char * path, const char * name, float ** m, int size_x, int size_y);     // return false on error
+
+bool        load_array(const char * path, const char * name, float * a, int size);                      // will return false if size of data is not correct
+bool        load_matrix(const char * path, const char * name, float ** m, int size_x, int size_y);      // will return false if size of data is not correct
+
+
 // Delay Line
 
 class DelayLine

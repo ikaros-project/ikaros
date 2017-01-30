@@ -394,6 +394,26 @@ Module::GetTick()
     return kernel->GetTick();
 }
 
+
+
+void
+Module::Store(const char * path)
+{
+    // will implement default store behavior later
+//    printf("Store: %s\n", path);
+}
+
+
+
+void
+Module::Load(const char * path)
+{
+    // will implement default load behavior later
+//    printf("Load: %s\n", path);
+}
+
+
+
 const char *
 Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
@@ -1477,7 +1497,7 @@ Kernel::SetOptions(Options * opt)
     // Compute ikc path and name
                         
    ikc_dir = options->GetFileDirectory();
-            ikc_file_name =  options->GetFileName();
+   ikc_file_name =  options->GetFileName();
                         
     // Seed random number generator
                         
@@ -1942,6 +1962,56 @@ Kernel::Tick()
     
     tick++;
 }
+
+
+
+void
+Kernel::Store()
+{
+    if(!options->GetOption('S'))
+        return;
+    
+    char * p = options->GetArgument('S');
+    char * s = p;
+    
+    if(p == NULL)
+        s = ikc_dir;
+    else if(p[0] != '/') // not absolute path
+        s = create_formatted_string("%s%s", ikc_dir, p);
+
+    for(Module * m = modules; m != NULL; m = m->next)
+    {
+        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
+        m->Store(sp);
+        destroy_string(sp);
+    }
+}
+
+
+
+void
+Kernel::Load()
+{
+    if(!options->GetOption('L'))
+        return;
+    
+    char * p = options->GetArgument('L');
+    char * s = p;
+    
+    if(p == NULL)
+        s = ikc_dir;
+    else if(p[0] != '/') // not absolute path
+        s = create_formatted_string("%s%s", ikc_dir, p);
+    
+    for(Module * m = modules; m != NULL; m = m->next)
+    {
+        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
+        m->Load(sp);
+        destroy_string(sp);
+    }
+}
+
+
 
 
 void
