@@ -1047,6 +1047,7 @@ Module::GetOutputSizeY(const char * name)
 bool
 Module::InputConnected(const char * name)
 {
+    Notify(msg_warning, "InputConnected is deprecated and will be removed in future versions.\n");
     return kernel->InputConnected(this, name);
 }
 
@@ -2560,7 +2561,7 @@ Kernel::CalculateDelays()
 }
 
 bool
-Kernel::InputConnected(Module * m, const char * input_name) // TODO: Test it ***
+Kernel::InputConnected(Module * m, const char * input_name)
 {
     return m->GetInputArray(input_name, false) != NULL;
 }
