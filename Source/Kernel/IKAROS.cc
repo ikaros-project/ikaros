@@ -397,6 +397,39 @@ Module::GetTick()
 
 
 void
+StoreArray(const char * path, const char * name, float * a, int size)
+{
+    store_array(path, name, a, size);
+}
+
+
+
+void
+StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    store_matrix(path, name, m, size_x, size_y);
+}
+
+
+
+bool
+LoadArray(const char * path, const char * name, float * a, int size)
+{
+    return load_array(path, name, a, size);
+
+}
+
+
+
+bool
+LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    return load_matrix(path, name, m, size_x, size_y);
+}
+
+
+
+void
 Module::Store(const char * path)
 {
     // will implement default store behavior later
@@ -463,6 +496,8 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     }
     return NULL; // No list value was found
 }
+
+
 
 const char *
 Module::GetDefault(const char * n)

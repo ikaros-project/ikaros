@@ -227,6 +227,12 @@ public:
     bool        InputConnected(const char * name);                // True if input receives at least one connection
     bool        OutputConnected(const char * name);               // True if output is connected to at least one module
     
+    void            StoreArray(const char * path, const char * name, float * a, int size);
+    void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
+
+    bool            LoadArray(const char * path, const char * name, float * a, int size);
+    bool            LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
+
     virtual void    Store(const char * path);                            // Request data to be stored in directory path
     virtual void    Load(const char * path);                            // Request data to be loaded from directory path
     
