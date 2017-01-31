@@ -22,7 +22,7 @@
 
 	<input name="*" description="The inputs" />
 	<input name="REINFORCEMENT" description="The reinforcement input" />
-	<input name="SPATIAL_BIAS" description="Preferred location" />
+	<input name="SPATIAL_BIAS" description="Preferred location" optional="yes" />
 
 	<output name="GAIN" description="The gain vector for the different channels." />
 	<output name="SALIENCE" description="The saliency map." />
