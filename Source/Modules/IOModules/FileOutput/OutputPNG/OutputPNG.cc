@@ -77,12 +77,11 @@ OutputPNG::~OutputPNG()
 void
 OutputPNG::Init()
 {
-    if(InputConnected("WRITE"))
-        writesig = GetInputArray("WRITE");
+    writesig = GetInputArray("WRITE");
 
-    if(InputConnected("INTENSITY"))
+    input_intensity = GetInputMatrix("INTENSITY");
+    if(input_intensity)
     {
-        input_intensity = GetInputMatrix("INTENSITY");
         size_x = GetInputSizeX("INTENSITY");
         size_y = GetInputSizeY("INTENSITY");
     }
