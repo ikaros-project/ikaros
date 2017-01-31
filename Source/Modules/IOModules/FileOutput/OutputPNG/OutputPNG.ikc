@@ -27,10 +27,10 @@
 	<parameter name="suppress" type="int" default="0" description="Number of initial files to supress. Used to stop the write of the first images in a sequence before any output is available." />
 	<parameter name="offset" type="int" default="none" description="Value to add to the file index" />
 
-	<input name="INTENSITY" description="The gray level image data to be written to the file" />
-	<input name="RED" description="The red channel image data to be written to the file" />
-	<input name="GREEN" description="The green channel image data to be written to the file" />
-	<input name="BLUE" description="The blue channel image data to be written to the file" />
+	<input name="INTENSITY" description="The gray level image data to be written to the file" optional="yes" />
+	<input name="RED" description="The red channel image data to be written to the file" optional="yes" />
+	<input name="GREEN" description="The green channel image data to be written to the file" optional="yes" />
+	<input name="BLUE" description="The blue channel image data to be written to the file" optional="yes" />
 
 	<input name="WRITE" description="Signal to write or suppress a given
 	    image. If connected, an image will only actually be written if the

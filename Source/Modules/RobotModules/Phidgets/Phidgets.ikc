@@ -22,12 +22,11 @@
     <parameter name="sensitivity" type="int" default="10" description="Sensitivity trigger. Defines how much a value must varie before registered. Can be use for some light filtering. 0 = all values." />
     <parameter name="ratiometric" type="int" default="true" description="Ratiometric mode. See www.phidgets.com for information about ratiometric mode." />
     
-    <input name="DIGITAL_INPUTS" description="Digital output of the board (module inputs)" />
+    <input name="DIGITAL_INPUTS" description="Digital output of the board (module inputs)" optional="yes" />
     
     <output name="ATTACHED" description="1 if the board is connected." />
-    <output name="ANALOG_OUTPUTS" description="Analog inputs of the board is forwarded to analog output of this module" />
-	<output name="DIGITAL_OUTPUTS" description="Digital inputs of the board is forwarded to digital output of this module"  />
-    
+    <output name="ANALOG_OUTPUTS" description="Analog inputs of the board is forwarded to analog output of this module" optional="yes" />
+	<output name="DIGITAL_OUTPUTS" description="Digital inputs of the board is forwarded to digital output of this module" optional="yes" />
     
 	<module class="Phidgets" />
 

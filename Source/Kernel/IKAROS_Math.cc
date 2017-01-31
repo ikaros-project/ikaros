@@ -3521,7 +3521,13 @@ namespace ikaros
         sort(*a, sizex*sizey);
         return a;
     }
+<<<<<<< HEAD
     
+=======
+
+
+
+>>>>>>> master
     // algorithm from http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
     
     float *

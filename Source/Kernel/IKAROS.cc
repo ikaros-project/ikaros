@@ -394,6 +394,59 @@ Module::GetTick()
     return kernel->GetTick();
 }
 
+
+
+void
+StoreArray(const char * path, const char * name, float * a, int size)
+{
+    store_array(path, name, a, size);
+}
+
+
+
+void
+StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    store_matrix(path, name, m, size_x, size_y);
+}
+
+
+
+bool
+LoadArray(const char * path, const char * name, float * a, int size)
+{
+    return load_array(path, name, a, size);
+
+}
+
+
+
+bool
+LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    return load_matrix(path, name, m, size_x, size_y);
+}
+
+
+
+void
+Module::Store(const char * path)
+{
+    // will implement default store behavior later
+//    printf("Store: %s\n", path);
+}
+
+
+
+void
+Module::Load(const char * path)
+{
+    // will implement default load behavior later
+//    printf("Load: %s\n", path);
+}
+
+
+
 const char *
 Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
@@ -443,6 +496,8 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     }
     return NULL; // No list value was found
 }
+
+
 
 const char *
 Module::GetDefault(const char * n)
@@ -992,6 +1047,7 @@ Module::GetOutputSizeY(const char * name)
 bool
 Module::InputConnected(const char * name)
 {
+    Notify(msg_warning, "InputConnected is deprecated and will be removed in future versions.\n");
     return kernel->InputConnected(this, name);
 }
 
@@ -1236,7 +1292,7 @@ void
 Module::Notify(int msg, const char *format, ...)
 {
     char 	message[512];
-    sprintf(message, "%s (%s): ", GetName(), GetClassName());
+    sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
     va_list args;
     va_start(args, format);
@@ -1477,7 +1533,7 @@ Kernel::SetOptions(Options * opt)
     // Compute ikc path and name
                         
    ikc_dir = options->GetFileDirectory();
-            ikc_file_name =  options->GetFileName();
+   ikc_file_name =  options->GetFileName();
                         
     // Seed random number generator
                         
@@ -1942,6 +1998,56 @@ Kernel::Tick()
     
     tick++;
 }
+
+
+
+void
+Kernel::Store()
+{
+    if(!options->GetOption('S'))
+        return;
+    
+    char * p = options->GetArgument('S');
+    char * s = p;
+    
+    if(p == NULL)
+        s = ikc_dir;
+    else if(p[0] != '/') // not absolute path
+        s = create_formatted_string("%s%s", ikc_dir, p);
+
+    for(Module * m = modules; m != NULL; m = m->next)
+    {
+        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
+        m->Store(sp);
+        destroy_string(sp);
+    }
+}
+
+
+
+void
+Kernel::Load()
+{
+    if(!options->GetOption('L'))
+        return;
+    
+    char * p = options->GetArgument('L');
+    char * s = p;
+    
+    if(p == NULL)
+        s = ikc_dir;
+    else if(p[0] != '/') // not absolute path
+        s = create_formatted_string("%s%s", ikc_dir, p);
+    
+    for(Module * m = modules; m != NULL; m = m->next)
+    {
+        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
+        m->Load(sp);
+        destroy_string(sp);
+    }
+}
+
+
 
 
 void
@@ -2455,7 +2561,7 @@ Kernel::CalculateDelays()
 }
 
 bool
-Kernel::InputConnected(Module * m, const char * input_name) // TODO: Test it ***
+Kernel::InputConnected(Module * m, const char * input_name)
 {
     return m->GetInputArray(input_name, false) != NULL;
 }

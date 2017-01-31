@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EpiGreen">
+<group name="EpiBlue">
 
 <!-- WORLD:     100 -->
 <!-- EPI/EGO:   200 -->
@@ -146,9 +146,9 @@
 <!-- ********************************* 	-->
 
 <!-- Sensors -->
-<module class = "EpiGreenVision" 	name = "Vision" 		/>
+<module class = "EpiBlueVision" 	name = "Vision" 		/>
 
-<module class = "EpiGreenDetectors" name = "Detectors" 		/>
+<module class = "EpiBlueDetectors" name = "Detectors" 		/>
 	<connection sourcemodule = "Vision"   		source = "LEFT_RED"         targetmodule = "Detectors"  target = "LEFT_RED" />
 	<connection sourcemodule = "Vision"   		source = "LEFT_GREEN"       targetmodule = "Detectors"  target = "LEFT_GREEN" />
 	<connection sourcemodule = "Vision"   		source = "LEFT_BLUE"        targetmodule = "Detectors"  target = "LEFT_BLUE" />
@@ -169,7 +169,7 @@
 
 
 <!-- Actuators/Proprioception -->
-<module class = "EpiGreenServos" 	name = "Servos" 		/>
+<module class = "EpiBlueServos" 	name = "Servos" 		/>
 	<connection sourcemodule = "Pos"   source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
 
 	<connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
@@ -187,7 +187,7 @@
 	<connection sourcemodule = "LA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_ENABLE" />
 	<connection sourcemodule = "RA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_ENABLE" />
 		
-<module class = "EpiGreenForwardModel" 	name = "ForwardModel" 	/>
+<module class = "EpiBlueForwardModel" 	name = "ForwardModel" 	/>
 	<connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "LEFT_ARM_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" />
@@ -203,6 +203,40 @@
 <module class = "PopulationDecoder" name = "Pos" min  = "-400" max  = "400" size = "20"/>
 	<connection sourcemodule = "LowLevelArbiter"   	source = "OUTPUT"  targetmodule = "Pos"  target = "INPUT" />
 
+<!-- LAB -->
+
+<!-- Table -->
+<module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;" 
+data = "
+1 0 0 0.85; 
+0 1 0 0.6; 
+0 0 1 0; 
+0 0 0 1;"/>
+<module class = "Constant" name = "TableID"        data = "10000"/>
+
+<!-- Join all models -->
+<module class = "DataConverter" name = "MODEL_MATRIX" output_size_x = "16" output_size_y = "22"/>
+    <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "MODEL_MATRIX"  target = "INPUT" />
+    <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX" targetmodule = "MODEL_MATRIX"  target = "INPUT" /> 
+    
+<module class = "DataConverter" name = "MODEL_ID" output_size_x = "22" output_size_y = "1"/>
+    <connection sourcemodule = "TableID"       source = "OUTPUT"       targetmodule = "MODEL_ID"  target = "INPUT" />
+    <connection sourcemodule = "ForwardModel"   source = "MODEL_ID" targetmodule = "MODEL_ID"  target = "INPUT" /> 
+
+<view name="3D View">
+	<object
+    	class   	= "Ikaros3D"
+        title   	= "EpiBlue"
+        module  	= "MODEL_MATRIX"
+        source  	= "OUTPUT"
+        id_module  	= "MODEL_ID"
+        id_location = "OUTPUT"
+        x="0" y="0"
+        w="4" h="4"
+    />
+</view>
+    
+    
 
 </group>
 
