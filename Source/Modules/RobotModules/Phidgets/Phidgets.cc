@@ -1,8 +1,7 @@
 //
 //	Phidgets.cc		This file is a part of the IKAROS project
-//                      <Short description of the module>
 //
-//    Copyright (C) 2009 <Author Name>
+//    Copyright (C) 2009 Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,17 +19,9 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//	Created: <date>
-//
-//  This example is intended as a starting point for writing new Ikaros modules
-//  The example includes most of the calls that you may want to use in a module.
-//  If you prefer to start with a clean example, use he module MinimalModule instead.
-//
-//  Phidgets is a new version of MyModule that uses the IKC file rather than 
-//  function calls during initialization.
+
 
 #include "Phidgets.h"
-//#import <Phidget21/phidget21.h>
 
 using namespace ikaros;
 
@@ -48,12 +39,10 @@ Phidgets::Phidgets(Parameter * p):Module(p)
 void
 Phidgets::Init()
 {
-
-    
     // Ikaros IO
-    digitalInputArray = GetInputArray("DIGITAL_INPUTS", false);
-    digitalOutputArray = GetOutputArray("DIGITAL_OUTPUTS", false);
-    analogOutputArray = GetOutputArray("ANALOG_OUTPUTS",false);
+    digitalInputArray = GetInputArray("DIGITAL_INPUTS");
+    digitalOutputArray = GetOutputArray("DIGITAL_OUTPUTS");
+    analogOutputArray = GetOutputArray("ANALOG_OUTPUTS");
     
     deviceAttached = GetOutputArray("ATTACHED", false);
 }
@@ -63,7 +52,7 @@ void
 Phidgets::SetSizes()
 {
     // Check input
-    if (InputConnected("DIGITAL_INPUT"))
+    if (GetInputArray("DIGITAL_INPUTS"))
     {   
         sizeOfDigitalInput = GetInputSize("DIGITAL_INPUT");
         if (sizeOfDigitalInput < nrDigitalInputs) // if we have not connected all the possible inputs from the board. Warning.
