@@ -34,7 +34,7 @@
         <object class="CCircle" module="*" source="OUTPUT" x="0" y="0" min="-1" max="1" h="1" w="1" color="black" fill="black" select_size="2" scale_size="0.15"/>
 
         <object class="Plot" title="Gaze" module="*" source="OUTPUT" x="0" y="1" w="2" select="0,1" min="-1" />
-        <object class="Plot" title="Pupil Diameter" module="*" source="PUPIL_DIAMETER" x="0" y="2" w="2" select="2" />
+        <object class="Plot" title="Pupil Diameter" module="*" source="PUPIL_DIAMETER" x="0" y="2" w="2" min="0" max="10" />
     </view>
 
 	<author>
