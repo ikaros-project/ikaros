@@ -79,6 +79,7 @@ LinearAssociator::Init()
 void
 LinearAssociator::Train(float * x, float * y)
 {
+    printf("%f \t %f -> \t %f\n", input[0], t_input[0], output[0]);
 	multiply(output, matrix, x, input_size, output_size);
 	subtract(delta, y, output, output_size);
 				
@@ -134,7 +135,7 @@ LinearAssociator::Tick()
 
     if(mode == 0) // gradient descent
     {
-        for(int t=0; t<memory_training-1; t++)
+        for(int t=0; t<memory_training; t++)    // -1
             for(int mem=0; mem<memory_used; mem++)
                 Train(memory_t_input[mem], memory_t_output[mem]);
 	}
