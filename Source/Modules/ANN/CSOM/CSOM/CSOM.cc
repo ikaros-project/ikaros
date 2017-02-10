@@ -392,4 +392,4 @@ CSOM::Tick()
 
 
 
-static InitClass init("CSOM", &CSOM::Create, "Source/UserModules/CSOM/CSOM/");
+static InitClass init("CSOM", &CSOM::Create, "Source/Modules/ANN/CSOM/CSOM/");

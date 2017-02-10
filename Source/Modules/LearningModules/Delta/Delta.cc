@@ -114,6 +114,6 @@ Delta::Tick()
 
 
 
-static InitClass init("Delta", &Delta::Create, "Source/UserModules/Delta/");
+static InitClass init("Delta", &Delta::Create, "Source/Modules/LearningModules/Delta/");
 
 
