@@ -65,6 +65,6 @@ EyeModel::Tick()
 
 
 
-static InitClass init("EyeModel", &EyeModel::Create, "Source/UserModules/EyeModel/");
+static InitClass init("EyeModel", &EyeModel::Create, "Source/Modules/BrainModels/EyeModel/");
 
 
