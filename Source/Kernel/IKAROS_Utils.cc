@@ -585,6 +585,7 @@ get_row(float * a, float ** m, int row, int sizex)
 }
 
 
+
 float *
 get_col(float * a, float ** m, int col, int sizey)
 {
@@ -594,6 +595,110 @@ get_col(float * a, float ** m, int col, int sizey)
 }
 
 
+
+bool
+store_array(const char * path, const char * name, float * a, int size)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "w");
+    if(!f)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    fprintf(f, "T %d 0\n", size);   // text-format, size_x, size_y
+    for(int i=0; i<size; i++)
+        fprintf(f, "%.10f\t", a[i]);
+    fclose(f);
+    destroy_string(s);
+    return true;
+}
+
+
+
+bool
+store_matrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "w");
+    if(!f)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    fprintf(f, "T %d %d\n", size_x, size_y);   // text-format, size_x, size_y
+    for(int j=0; j<size_y; j++)
+    {
+        for(int i=0; i<size_x; i++)
+            fprintf(f, "%.10f\t", m[j][i]);
+        fprintf(f, "\n");
+    }
+    fclose(f);
+    destroy_string(s);
+    return true;
+}
+
+
+
+bool
+load_array(const char * path, const char * name, float * a, int size)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "r");
+    if(!f)
+     {
+        destroy_string(s);
+        return false;
+    }
+ 
+    int sx, sy;
+    fscanf(f, "T %d %d\n", &sx, &sy);
+ 
+    if(sx != size)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    for(int i=0; i<size; i++)
+        fscanf(f, "%f ", &a[i]);
+
+    return true;
+}
+
+
+
+bool
+load_matrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "r");
+    if(!f)
+     {
+        destroy_string(s);
+        return false;
+    }
+ 
+    int sx, sy;
+    fscanf(f, "T %d %d\n", &sx, &sy);
+ 
+    if(sx != size_x || sy != size_y)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    for(int j=0; j<size_y; j++)
+    {
+        for(int i=0; i<size_x; i++)
+            fscanf(f, "%f ", &m[j][i]);
+        fprintf(f, "\n");
+    }
+
+    return true;
+}
 
 
 

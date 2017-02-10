@@ -30,11 +30,11 @@ ColorMatch::Init()
     Bind(sigma, "sigma");
     Bind(gain, "gain");
     
-    target0		=	GetFloatValue("target0", 0.0);
-    target1		=	GetFloatValue("target1", 0.0);
-    target2		=	GetFloatValue("target2", 0.0);
+    target0		=	GetFloatValue("target0");
+    target1		=	GetFloatValue("target1");
+    target2		=	GetFloatValue("target2");
     
-    threshold	=	GetFloatValue("threshold", 0.0);
+    threshold	=	GetFloatValue("threshold");
 
     size_x	 	= GetInputSizeX("INPUT0");
     size_y	 	= GetInputSizeY("INPUT0");
@@ -43,19 +43,13 @@ ColorMatch::Init()
     input1		= GetInputMatrix("INPUT1");
     input2		= GetInputMatrix("INPUT2");
 
-    if(InputConnected("TARGETINPUT0"))
-    {
-        target_input0	= GetInputMatrix("TARGETINPUT0");
-        target_input1	= GetInputMatrix("TARGETINPUT1");
-        target_input2	= GetInputMatrix("TARGETINPUT2");
-    }
-    
-    if(InputConnected("REINFORCEMENT"))
-        reinforcement = GetInputArray("REINFORCEMENT");
+    target_input0	= GetInputMatrix("TARGETINPUT0");
+    target_input1	= GetInputMatrix("TARGETINPUT1");
+    target_input2	= GetInputMatrix("TARGETINPUT2");
 
-    if(InputConnected("FOCUS"))
-        focus = GetInputArray("FOCUS");
+    reinforcement = GetInputArray("REINFORCEMENT");
 
+    focus       = GetInputArray("FOCUS");
     output		= GetOutputMatrix("OUTPUT");
 }
 

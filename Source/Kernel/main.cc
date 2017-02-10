@@ -80,6 +80,8 @@ PrintInfo()
     printf("\t-i    list installed functionality sockets, timer etc, type of target system\n");
     printf("\t-a    list all; implies -m -l and -T (if -t is set)\n");
     printf("\t-z#   seed random number generator\n");
+    printf("\t-S#   store + optional path to storage directory\n");
+    printf("\t-L#   load + optional path to storage directory\n");
     printf("\n");
     printf("Examples:\n");
     printf("\n");
@@ -207,7 +209,9 @@ run_batch(Options * options)
             k.ListScheduling();
             k.ListThreads();
             k.ListWarningsAndErrors();
+            k.Load();
             k.Run();
+            k.Store();
             k.PrintTiming();
             k.ListProfiling();
         }
@@ -262,6 +266,7 @@ main(int argc, char *argv[])
         k.ListScheduling();
         k.ListThreads();
         k.ListWarningsAndErrors();
+        k.Load();
 
         // Select UI
 
@@ -279,6 +284,7 @@ main(int argc, char *argv[])
             k.Run();
         }
 
+        k.Store();
         k.PrintTiming();
         k.ListProfiling();
 
