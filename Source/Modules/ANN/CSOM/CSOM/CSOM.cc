@@ -1,8 +1,8 @@
 //
-//	CSOM.cc   This file is a part of the IKAROS project
+//    CSOM.cc   This file is a part of the IKAROS project
 //				Self-Organizing Convolution Network
 //
-//    Copyright (C) 2008-2011 Christian Balkenius
+//    Copyright (C) 2008-2017 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -291,7 +291,7 @@ CSOM::GenerateWeightOutput()
 // ONLY WORKS FOR *COMBINED* OUTPUT
 //
 
-/*
+/*/
 void
 CSOM::CalculateForwardActivation() // 3.3%
 {
@@ -375,7 +375,7 @@ CSOM::Tick()
     // Alpha decay
     
     alpha = max(alpha_min, alpha_decay * alpha);
-    printf("%f\n", alpha);
+//    printf("%f\n", alpha);
     
     // Categorization Layer
 
