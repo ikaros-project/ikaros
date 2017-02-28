@@ -68,7 +68,8 @@
 		class="ServoConnector"
 		name="SC_P_GoalPosition"
 		connector   =   "1 2"
-        inverted    =   "0 0" 
+        pre_inverted    =   "0 0" 
+        post_inverted    =   "0 0" 
         offset      =   "210 210" 
         output_size =   "2"
 	/>
