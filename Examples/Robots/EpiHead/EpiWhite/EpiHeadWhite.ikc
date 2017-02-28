@@ -100,7 +100,8 @@
 			class="ServoConnector"
 			name="SC_FB_P_PresentPosition"
 			connector   =   "1 2"
-            inverted    =   "0 0" 
+            pre_inverted    =   "0 0" 
+            post_inverted    =   "0 0" 
             offset      =   "-210 -210" 
             output_size =   "2"
 	/>
@@ -152,7 +153,8 @@
 			class="ServoConnector"
 			name="SC_GoalPosition"
 			connector   =   "1 2 3 4"
-            inverted    =   "0 0 0 0" 
+            pre_inverted    =   "0 0 0 0" 
+            post_inverted    =   "0 0 0 0" 
             offset      =   "180 180 180 180" 
             output_size =   "4"
 	/>
@@ -184,7 +186,8 @@
 			class="ServoConnector"
 			name="SC_FB_PresentPosition"
 			connector   =   "1 2 3 4"
-            inverted    =   "0 0 0 0" 
+            pre_inverted    =   "0 0 0 0" 
+            post_inverted    =   "0 0 0 0" 
             offset      =   "-180 -180 -180 -180" 
             output_size =   "4"
 	/>
