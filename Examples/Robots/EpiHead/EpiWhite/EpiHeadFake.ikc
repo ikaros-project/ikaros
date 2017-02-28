@@ -1,0 +1,21 @@
+<?xml version = "1.0"?>
+
+<group>
+
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+	
+    <input  name="TARGET"               targetmodule="GazeController"        target="INPUT" />
+    <output name="FEEDBACK_POSITION"    sourcemodule="GazeController"        source="OUTPUT" />
+
+    <!-- Attention Gaze -->
+     <module
+        class = "GazeController"
+        name = "GazeController"
+        offset = "0 0 0 0"
+    	angle_unit = "degrees"
+     />
+
+</group>
+ 
