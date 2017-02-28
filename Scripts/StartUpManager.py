@@ -183,6 +183,14 @@ if __name__ == '__main__':
         searchPattern = sys.argv[3]
         print "Seaching must end with"
         print searchPattern
+    # Check for compiled ikaros
+    import os.path
+    if (os.path.isfile("../Bin/ikaros") == True):
+        print "Found ikaros binary"
+    else:
+        print "No binary found. Run cmake script."
+        exit(-1)
+
     key = base64.b64encode(sys.argv[2])
     findIKCFiles()
     log = [None]*len(ikcFiles)
