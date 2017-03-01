@@ -40,8 +40,6 @@
     <!-- Set a manual positions -->
     <module class = "Constant" name = "B_POS" data = "0 0" />
     <module class = "Constant" name = "H_POS" data = "0 0 0 0" />
-    <module class = "Constant" name = "LA_POS" data = "0 0 0 0 0 0" />
-    <module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
     <module class = "Constant" name = "P_POS" data = "0 0" />
 
 
@@ -50,22 +48,16 @@
     <!-- Mental note: Speed is set for all motions -->
     <module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
     <module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
-    <module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-    <module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
     <module class = "Constant" name = "P_SPEED" data = "0.02 0.02" />
     
     <!-- Torque limit -->
-    <module class = "Constant" name = "B_TORQUE_LIMIT" data = "0.02 0.02" />
-    <module class = "Constant" name = "H_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02" />
-    <module class = "Constant" name = "LA_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
-    <module class = "Constant" name = "RA_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
+    <module class = "Constant" name = "B_TORQUE_LIMIT" data = "0.0 0.0" />
+    <module class = "Constant" name = "H_TORQUE_LIMIT" data = "0.0 0.00 0.0 0.0" />
     <module class = "Constant" name = "P_TORQUE_LIMIT" data = "0.02 0.02" />
 
     <!-- Torque enable -->
     <module class = "Constant" name = "B_TORQUE_ENABLE" data = "0 0" />
     <module class = "Constant" name = "H_TORQUE_ENABLE" data = "0 0 0 0" />
-    <module class = "Constant" name = "LA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
-    <module class = "Constant" name = "RA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
     <module class = "Constant" name = "P_TORQUE_ENABLE" data = "0 0" />
 
 
@@ -76,8 +68,6 @@
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "ManPosPop" min  = "-400" max  = "400" size = "20"/>
         <connection sourcemodule="P_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
-        <connection sourcemodule="RA_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
-        <connection sourcemodule="LA_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
         <connection sourcemodule="H_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
         <connection sourcemodule="B_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
 
@@ -112,15 +102,11 @@
 
     <module class = "Constant" name = "B_ZERO" 	data = "0 0"/>
     <module class = "Constant" name = "H_ZERO" 	data = "0 0 0 0"/>
-    <module class = "Constant" name = "LA_ZERO" data = "0 0 0 0 0 0"/>
-    <module class = "Constant" name = "RA_ZERO" data = "0 0 0 0 0 0"/>
     <module class = "Constant" name = "P_ZERO" 	data = "0 0"/>
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
         <connection sourcemodule="P_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="RA_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="LA_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="HighLevelGazeController" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
 
@@ -171,25 +157,18 @@
 	<connection sourcemodule = "EpiPosition"    source = "OUTPUT"   		targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
 
 
-
 <!-- Actuators/Proprioception -->
-<module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
+<module class = "EpiWhiteServos" 	name = "Servos" 		/>
 	<connection sourcemodule = "Pos"   source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
 
 	<connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
 	<connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
-	<connection sourcemodule = "LA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_MOVING_SPEED" />
-	<connection sourcemodule = "RA_SPEED"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_MOVING_SPEED" />
 
 	<connection sourcemodule = "B_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
 	<connection sourcemodule = "H_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
-	<connection sourcemodule = "LA_TORQUE_LIMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_LIMIT" />
-	<connection sourcemodule = "RA_TORQUE_LIMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_LIMIT" />
 	
 	<connection sourcemodule = "B_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
 	<connection sourcemodule = "H_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
-	<connection sourcemodule = "LA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_ENABLE" />
-	<connection sourcemodule = "RA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_ENABLE" />
 		
 <module class = "EpiWhiteForwardModel" 	name = "ForwardModel" 	/>
 	<connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
@@ -229,7 +208,7 @@ data = "
 <view name="3D View">
 	<object
     	class   	= "Ikaros3D"
-        title   	= "EpiBlue"
+        title   	= "EpiWhite"
         module  	= "MODEL_MATRIX"
         source  	= "OUTPUT"
         id_module  	= "MODEL_ID"
