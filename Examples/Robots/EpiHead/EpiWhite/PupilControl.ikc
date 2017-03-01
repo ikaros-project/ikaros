@@ -34,8 +34,8 @@
     <module
         class="Nucleus"
         name="CG"
-     	alpha = "190"
-        beta = "60"
+     	alpha = "10"
+        beta = "4"
     />
 
     <!-- ********************************* SYMPATHETIC COMPONENT ********************************* -->
