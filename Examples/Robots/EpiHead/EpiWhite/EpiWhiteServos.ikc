@@ -31,7 +31,7 @@
 	<!-- Splitting pos -->
 	<module class = "TruncateArray" 	name = "SplitBody" array_length = "2" selection = "1 2" 				loop = "false"/>
     <module class = "TruncateArray" 	name = "SplitHead" array_length = "4" selection = "3 4 5 6" 			loop = "false"/>
-    <module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "19 20" 				loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "7 8" 				loop = "false"/>
 
     
     <!-- Body -->
@@ -199,13 +199,6 @@
         <connection sourcemodule = "SC_FB_P_PresentPosition"  source = "OUTPUT" targetmodule = "DegreesTomm"  target = "INPUT" />
 
 
-	    <_connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
-    	<_connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
-     
-    <view name="Parasympathetic Circuit">
-        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT" x="0" y="1" w="4" _min = "180" max="300" />
-        <object class="Plot" title="Response SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT" x="0" y="2" w="4" _min = "180" max="300" />
-    </view>
 
 
 </group>
