@@ -20,7 +20,8 @@
     
     <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
-    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
+    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="DegreesTomm"              source="OUTPUT" />
+
 
     <module class = "Sink" name = "NotAvailable" />
         <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
@@ -67,7 +68,7 @@
    		name 			= "Head"
     	device  		= "/dev/ttyUSB0"
     	index_mode 		= "indirect"
-   	 	print_info 		= "minimal"
+   	 	print_info 		= "full"
     	baud_rate 		= "1000000"
     	angle_unit 		= "degrees"
     	max_servo_id 	= "7"
@@ -163,7 +164,7 @@
     	max_servo_id = "3"
     />
         <connection sourcemodule = "SC_P_GoalPosition"  source = "OUTPUT" targetmodule = "Pupil"  target = "GOAL_POSITION" />
-        <connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
+        <connection sourcem odule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
 	    <connection sourcemodule = "P_MovingSpeed"  source = "OUTPUT" targetmodule = "Pupil"  target = "MOVING_SPEED" />
 	    <connection sourcemodule = "P_TorqueLimit"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_LIMIT" />
 
