@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+
+<group name="Detectors">
+
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+
+    <!-- ID and Frames for represenration in different oordinate systems -->
+    <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "OBJECT_ID_1"/>
+    <input name = "EGO_FRAME_ID"      	targetmodule = "L_MarkerEgo"           target = "FRAME_ID_1" />
+    <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "FRAME_ID_2"/>
+    <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "OBJECT_ID_1"/>
+    <input name = "WORLD_FRAME_ID"      targetmodule = "L_MarkerWorld"         target = "FRAME_ID_1" />
+    <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "FRAME_ID_2"/>
+
+    <input name = "EGO_ID"      	    targetmodule = "R_MarkerEgo"           target = "OBJECT_ID_1"/>
+    <input name = "EGO_FRAME_ID"      	targetmodule = "R_MarkerEgo"           target = "FRAME_ID_1" />
+    <input name = "EGO_ID"      	    targetmodule = "R_MarkerEgo"           target = "FRAME_ID_2"/>
+    <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "OBJECT_ID_1"/>
+    <input name = "WORLD_FRAME_ID"      targetmodule = "R_MarkerWorld"         target = "FRAME_ID_1" />
+    <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "FRAME_ID_2"/>
+
+    <input name = "SENSORS_POS_EGO"     targetmodule = "L_Camera_Sensor"        target = "INPUT" />
+    <input name = "SENSORS_POS_EGO"     targetmodule = "R_Camera_Sensor"        target = "INPUT" />
+
+    <input name = "EPI_POS_WORLD"       targetmodule = "L_MarkerWorld"         target = "MATRIX_1" />
+    <input name = "EPI_POS_WORLD"       targetmodule = "R_MarkerWorld"         target = "MATRIX_1" />
+    
+    <!-- Split sensors-->
+    <module class = "TruncateArray" name = "L_Camera_Sensor" array_length = "16" selection = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16" loop = "false"/>
+    <module class = "TruncateArray" name = "R_Camera_Sensor" array_length = "16" selection = "17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32" loop = "false"/>
+
+    
+    <!-- Frames -->
+    <!-- WORLD:     100 -->
+    <!-- EPI:       200 -->
+    <!-- SENSOR:    300 -->
+
+    <!-- Sensor 1: Left  Camera Frame 300 -->
+    <!-- Sensor 2: Right Camera Frame 301 -->
+
+	<!-- Add id and frame -->
+
+    <input name = "LEFT_RED"      		targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "LEFT_GREEN"    		targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "LEFT_BLUE"     		targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "LEFT_INTENSITY"    	targetmodule = "L_FaceDetector"         target = "INPUT" />
+    <input name = "LEFT_INTENSITY"    	targetmodule = "L_MarkerTracker"        target = "INPUT" />
+
+    <input name = "RIGHT_RED"      	    targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "RIGHT_GREEN"    	    targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "RIGHT_BLUE"     	    targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"         target = "INPUT" />
+    <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"        target = "INPUT" />
+	
+	<!-- Marker needs to be in 3d -->
+    <output name = "L_FACE"             sourcemodule = "L_FaceDetector"         source = "OUTPUT" />
+    <output name = "R_FACE"             sourcemodule = "R_FaceDetector"         source = "OUTPUT" />
+    
+    <!-- Marker tracker for each eye and for all coordinate systems -->
+    <output name = "L_MARKER_SENSOR"        sourcemodule = "L_MarkerTracker"    source = "MATRIX" />
+    <output name = "L_MARKER_SENSOR_ID"     sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID" />
+    <output name = "L_MARKER_SENSOR_FRAME"  sourcemodule = "L_MarkerTracker"    source = "FRAME_ID" />
+    
+    <output name = "R_MARKER_SENSOR"        sourcemodule = "R_MarkerTracker"    source = "MATRIX" />
+    <output name = "R_MARKER_SENSOR_ID"     sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID" />
+    <output name = "R_MARKER_SENSOR_FRAME"  sourcemodule = "R_MarkerTracker"    source = "FRAME_ID" />
+
+    <output name = "L_MARKER_EGO"           sourcemodule = "L_MarkerEgo"        source = "MATRIX" />
+    <output name = "L_MARKER_EGO_ID"        sourcemodule = "L_MarkerEgo"        source = "OBJECT_ID" />
+    <output name = "L_MARKER_EGO_FRAME"     sourcemodule = "L_MarkerEgo"        source = "FRAME_ID" />
+
+    <output name = "R_MARKER_EGO"           sourcemodule = "R_MarkerEgo"        source = "MATRIX" />
+    <output name = "R_MARKER_EGO_ID"        sourcemodule = "R_MarkerEgo"        source = "OBJECT_ID" />
+    <output name = "R_MARKER_EGO_FRAME"     sourcemodule = "R_MarkerEgo"        source = "FRAME_ID" />
+
+    <output name = "L_MARKER_WORLD"         sourcemodule = "L_MarkerWorld"      source = "MATRIX" />
+    <output name = "L_MARKER_WORLD_ID"      sourcemodule = "L_MarkerWorld"      source = "OBJECT_ID" />
+    <output name = "L_MARKER_WORLD_FRAME"   sourcemodule = "L_MarkerWorld"      source = "FRAME_ID" />
+
+    <output name = "R_MARKER_WORLD"         sourcemodule = "R_MarkerWorld"      source = "MATRIX" />
+    <output name = "R_MARKER_WORLD_ID"      sourcemodule = "R_MarkerWorld"      source = "OBJECT_ID" />
+    <output name = "R_MARKER_WORLD_FRAME"   sourcemodule = "R_MarkerWorld"      source = "FRAME_ID" />
+	
+	
+    <!-- Trash module -->
+    <module class = "Sink" name = "NotAvailable" />
+
+    <!-- Detectors -->
+    <module
+        class = "CIFaceDetector"
+        name = "L_FaceDetector"
+        min_size = "0.0"
+        use_tracking = "yes"
+        period = "5"
+    />
+    <module
+    	class = "CIFaceDetector"
+        name = "R_FaceDetector"
+        min_size = "0.0"
+        use_tracking = "yes"
+        period = "5"
+    />
+	
+	<module
+		class       = "MarkerTracker"
+		name        = "L_MarkerTracker"
+		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
+		max_markers	= "1"
+		sort    	= "no"
+       	marker_size = "75"
+       	use_history = "yes"
+        threshold 	= "auto"
+        frame_id 	= "300"
+        distance_unit = "m"
+	/>
+    
+
+    <!-- EGO-->
+    <module class="Transform"   name="L_MarkerEgo" />
+        <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_MarkerEgo" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"       targetmodule = "L_MarkerEgo" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "L_MarkerEgo" target = "OBJECT_ID_2" delay = "0"/>   
+    <!-- WORLD -->
+    <!-- Robot Pos + Ego -->
+    <module class="Transform"   name="L_MarkerWorld" />
+        <connection sourcemodule = "L_MarkerEgo"        source = "MATRIX"       targetmodule = "L_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "L_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
+
+
+	<module
+		class       = "MarkerTracker"
+		name        = "R_MarkerTracker"
+		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
+		max_markers	= "1"
+		sort    	= "no"
+       	marker_size = "75"
+       	use_history = "yes"
+        threshold 	= "auto"
+        frame_id 	= "301"
+        distance_unit = "m"
+	/>
+    <!-- EGO-->
+    <module class="Transform"   name="R_MarkerEgo" />
+        <connection sourcemodule = "R_Camera_Sensor"    source = "OUTPUT"       targetmodule = "R_MarkerEgo" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"       targetmodule = "R_MarkerEgo" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerEgo" target = "OBJECT_ID_2" delay = "0"/>   
+    <!-- WORLD -->
+    <!-- Robot Pos + Ego -->
+    <module class="Transform"   name="R_MarkerWorld" />
+        <connection sourcemodule = "R_MarkerEgo"        source = "MATRIX"       targetmodule = "R_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
+
+
+	<module class = "DataConverter" name = "L_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"    targetmodule = "L_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "L_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "L_MarkerEgo"    source = "MATRIX"    targetmodule = "L_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "L_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "L_MarkerWorld"    source = "MATRIX"    targetmodule = "L_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+	
+	
+	<module class = "DataConverter" name = "R_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"    targetmodule = "R_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "R_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "R_MarkerEgo"    source = "MATRIX"    targetmodule = "R_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+	<module class = "DataConverter" name = "R_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
+        <connection sourcemodule = "R_MarkerWorld"    source = "MATRIX"    targetmodule = "R_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+	
+
+
+    <view name = "Check outputs"> 
+        <object class = "Table" x="0" y="0" h="2" w="3" module = "L_MarkerTracker_MAT"  source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="0" y="2" h="2" w="3" module = "L_MarkerEgo_MAT"      source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="0" y="4" h="2" w="3" module = "L_MarkerWorld_MAT"    source = "OUTPUT" font_size = "20"/>
+
+        <object class = "Table" x="3" y="0" h="2" w="3" module = "R_MarkerTracker_MAT"  source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="3" y="2" h="2" w="3" module = "R_MarkerEgo_MAT"      source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="3" y="4" h="2" w="3" module = "R_MarkerWorld_MAT"    source = "OUTPUT" font_size = "20"/>
+    </view>
+
+</group>
+ 

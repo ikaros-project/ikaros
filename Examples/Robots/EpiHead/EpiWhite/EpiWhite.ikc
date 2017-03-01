@@ -1,7 +1,31 @@
 <?xml version="1.0"?>
 
 <group title="Epi Head">
-    
+   
+    <!-- WORLD:     100 -->
+    <!-- EPI/EGO:   200 -->
+    <!-- SENSOR:    300 -->
+
+    <!-- Id and frames used by transfromers modules -->
+    <module class = "Constant" name = "WorldID"       data = "100"/>
+    <module class = "Constant" name = "WorldFrameID"  data = "100"/>
+    <module class = "Constant" name = "EgoID"         data = "200"/>
+    <module class = "Constant" name = "EgoFrameID"    data = "200"/>
+
+    <!-- This ikc file includes all the subsystems needed -->
+    <module class = "Constant" name = "EpiPosition" data = "
+1 0 0 0
+0 1 0 0 
+0 0 1 0 
+0 0 0 1"/>
+
+
+<!-- 			HIGH LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+ 
     <description>
         WARNING. These modules is under development and can be change anytime!
 	 </description>
