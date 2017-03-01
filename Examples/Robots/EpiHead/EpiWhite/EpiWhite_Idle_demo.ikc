@@ -16,11 +16,12 @@
     <module class = "Constant" name = "EgoID"         data = "200"/>
     <module class = "Constant" name = "EgoFrameID"    data = "200"/>
 
-<module class = "Constant" name = "EpiPosition" data = "
-1 0 0 0
-0 1 0 0 
-0 0 1 0 
-0 0 0 1"/>
+    <module class = "Constant" name = "EpiPosition" data = "
+    1 0 0 0
+    0 1 0 0 
+    0 0 1 0 
+    0 0 0 1"/>
+
 
 
 
@@ -29,6 +30,8 @@
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
+
+
 
     <!-- Set a manual focus point -->
     <module class = "Constant" name = "Manual" data = "
@@ -96,7 +99,6 @@
     <!-- ************************ -->
 
     <!-- Head/Eyes -->
-    <!-- Only Neck and Eyes -->
     <module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
         <connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
 
@@ -107,7 +109,7 @@
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
         <connection sourcemodule="P_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="HighLevelGazeController" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="HighLevelGazeController" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
 
 
@@ -125,6 +127,7 @@
 
     <!-- Value High Level -->
     <module class = "Constant" name = "HighLevelMotorArbiterValue" 		data = "1"/>
+
 
 
 
@@ -175,10 +178,41 @@
 	<connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "PUPIL_FEEDBACK_POSITION"      targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
 
-		
-<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1"/>
-	<connection sourcemodule = "HighLevelMotorArbiter"   		source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
-	<connection sourcemodule = "HighLevelMotorArbiterValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
+	
+
+
+	<!-- Behaviors -->
+	<!-- Light reflex etc -->
+	<module
+        class="PupilControl"
+        name="PupilControl"
+    />
+    <connection sourcemodule="Vision" source="LEFT_INTENSITY" targetmodule="PupilControl" target="PTA" />
+
+    <view name="Parasympathetic Circuit">
+        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT" x="0" y="1" w="4" _min = "180" max="300" />
+        <object class="Plot" title="Response SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT" x="0" y="2" w="4" _min = "180" max="300" />
+    </view>
+	<!--<connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
+    <connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
+    <connection sourcemodule = "Pupil"  source = "FEEDBACK_GOAL_POSITION" targetmodule = "GuardPupil"  target = "REFERENCE" />-->
+	
+    <!-- Population coding -->
+    <module class = "PopulationCoder" name = "PupilControlPop" min  = "-400" max  = "400" size = "20"/>
+        <connection sourcemodule="PupilControl" 	source="CG_OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
+        <connection sourcemodule="PupilControl" 	source="CG_OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
+        <connection sourcemodule="H_ZERO" 	source="OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
+        <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
+    
+    <module class = "Constant" name = "PupilControlPopValue" 		data = "1"/>
+
+
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2"/>
+	<connection sourcemodule = "PupilControlPop"   		    source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "PupilControlPopValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
+
+	<connection sourcemodule = "HighLevelMotorArbiter"   		source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_2" />
+	<connection sourcemodule = "HighLevelMotorArbiterValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_2" />
 
 <!-- Popalation decoder -->
 <module class = "PopulationDecoder" name = "Pos" min  = "-400" max  = "400" size = "20"/>
@@ -188,7 +222,7 @@
 <!-- LAB -->
 
 <!-- Table -->
-<module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;" 
+<module class = "Constant" name = "TablePos"
 data = "
 1 0 0 0.85; 
 0 1 0 0.6; 
