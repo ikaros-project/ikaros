@@ -161,7 +161,8 @@
     	baud_rate = "1000000"
     	angle_unit = "degrees"
     	start_up_delay 	= "20"
-    	max_servo_id = "3"
+    	max_servo_id = "4"
+    	servo_id  = "2, 3"
     />
         <connection sourcemodule = "SC_P_GoalPosition"  source = "OUTPUT" targetmodule = "Pupil"  target = "GOAL_POSITION" />
         <connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
