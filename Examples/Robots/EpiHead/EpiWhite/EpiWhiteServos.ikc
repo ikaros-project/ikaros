@@ -164,7 +164,7 @@
     	max_servo_id = "3"
     />
         <connection sourcemodule = "SC_P_GoalPosition"  source = "OUTPUT" targetmodule = "Pupil"  target = "GOAL_POSITION" />
-        <connection sourcem odule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
+        <connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
 	    <connection sourcemodule = "P_MovingSpeed"  source = "OUTPUT" targetmodule = "Pupil"  target = "MOVING_SPEED" />
 	    <connection sourcemodule = "P_TorqueLimit"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_LIMIT" />
 
