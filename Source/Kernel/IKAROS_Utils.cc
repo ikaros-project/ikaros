@@ -416,7 +416,7 @@ float ****
 create_matrix(int sizex, int sizey, int sizez, int sizet)
 {
     float *** a = create_matrix(sizex, sizey, sizez*sizet);
-    float **** b = (float ****)malloc(sizez*sizeof(float ***));
+    float **** b = (float ****)malloc(sizet*sizeof(float ***));
     for (int j=0; j<sizet; j++)
         b[j] = &a[j*sizez];
     return b;
