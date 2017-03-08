@@ -10,8 +10,6 @@
     <input name = "FEEDBACK_POSITION" targetmodule = "L2_R1Rot"    target = "INPUT" />
     <input name = "FEEDBACK_POSITION" targetmodule = "L3A_R1Rot"   target = "INPUT" />
     <input name = "FEEDBACK_POSITION" targetmodule = "L3B_R1Rot"   target = "INPUT" />
-    <_input name = "FEEDBACK_POSITION" targetmodule = "L4A_R1Rot"   target = "INPUT" />
-    <_input name = "FEEDBACK_POSITION" targetmodule = "L4B_R1Rot"   target = "INPUT" />
 
     <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
     <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />

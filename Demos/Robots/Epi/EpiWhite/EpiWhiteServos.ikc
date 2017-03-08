@@ -93,19 +93,6 @@
 
   
 	<!-- Pupil -->
-   <!-- Pupils -->
-
-    <_module class = "Constant" name = "P_GoalPosMM" outputsize = "2" data = "9 6"  />
-
-		<module
-			class		=	"FunctionGenerator"
-			name		=	"P_GoalPosMM"
-			type		=	"sin"
-			frequency	=	"0.05"
-			offset      =	"12"
-			amplitude	=	"4"
-			shift		=	"0.0"
-		/>
 
     <module
         class = "LinearSplines"
@@ -121,8 +108,7 @@
             14.59	10	14.96	10;
             16.33	0	16.22	0"
     />
-        <connection sourcemodule = "P_GoalPosMM"  source = "OUTPUT" targetmodule = "mmToDegrees"  target = "INPUT" />
-        <connection sourcemodule = "P_GoalPosMM"  source = "OUTPUT" targetmodule = "mmToDegrees"  target = "INPUT" />
+        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "mmToDegrees"  target = "INPUT" />
 
 
     <module

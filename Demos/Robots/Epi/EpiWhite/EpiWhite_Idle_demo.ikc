@@ -313,6 +313,8 @@
 
     <object class="Slider" title = "Pupil (Left Eye)"   module="ManPPos" parameter="data" x="4" y="2" select = "0" min = "6" max = "12"/>
     <object class="Slider" title = "Pupil (Right Eye)"  module="ManPPos" parameter="data" x="5" y="2" select = "1" min = "6" max = "12"/>
+    <object class="Table" title = "Feedback Pupil"      module="Servos" source = "PUPIL_FEEDBACK_POSITION" w = "2" x="6" y="2" />    
+
 
     <object class="Table" module="ManPPos" source  	= "OUTPUT" w = "4" x="4" y="3" />    
 
