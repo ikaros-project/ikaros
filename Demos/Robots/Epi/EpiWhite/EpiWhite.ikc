@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<group title="Epi Head">
+
+    <module class = "Constant" name = "B_ZERO" 	data = "0 0"/>
+    <module class = "Constant" name = "H_ZERO" 	data = "0 0 0 0"/>
+    <module class = "Constant" name = "P_ZERO" 	data = "0 0"/>
+
+    <module class = "Constant" name = "ManualFocusPoint" 
+	data = "
+	1 0 0 0.05;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+
+  <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "1"/>
+        <!-- ManualFocusPoint -->
+        <connection sourcemodule = "ManualFocusPoint"   	source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
+        <connection sourcemodule = "ManualFocusPointValue" 	source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
+        <!-- MarkerTracker (Left) -->
+        <_connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO"  	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
+        <_connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+
+    <!-- Changing this value to 1 will always trigger manual mode --> 	
+    <module class = "Constant" name = "ManualFocusPointValue" 	data = "0.9"/>
+    <module class = "Constant" name = "MarkerTrackerValue"      data = "0.7"/>
+    <!-- ************************ -->
+
+  <module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
+        <connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
+
+    <!-- Population coding -->
+    <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
+        <connection sourcemodule="P_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="HighLevelGazeController" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+    <!-- ************************ -->
+
+    <module class = "Constant" name = "ManPosPop" 
+	data = "
+	1 0 0 0.05;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+
+  <module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "2"/>
+        <connection sourcemodule = "ManPosPop"        				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
+        <connection sourcemodule = "ManPosPopValue"   				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_1"/>
+        <connection sourcemodule = "GazePosPop"        				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_2"/>
+        <connection sourcemodule = "HighLevelGazeControllerValue"   source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_2"/>
+
+    <!-- Values -->
+    <!-- These should be handle by the new coder module -->
+    <module class = "Constant" name = "ManPosPopValue" 	                data = "0.9"/>
+    <module class = "Constant" name = "HighLevelGazeControllerValue" 	data = "0.5"/>
+
+
+    <module class = "Constant" name = "PupilControlPop" 
+	data = "
+	1 0 0 0.05;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+
+
+  <module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2"/>
+        <connection sourcemodule = "PupilControlPop"   		        source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
+        <connection sourcemodule = "PupilControlPopValue"   	    source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
+        <connection sourcemodule = "HighLevelMotorArbiter"   	    source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_2" />
+        <connection sourcemodule = "HighLevelMotorArbiterValue"     source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_2" />
+
+
+    <!-- Value Low Level -->
+    <!-- These should be handle by the new coder module -->
+    <module class = "Constant" name = "PupilControlPopValue" 		data = "1"/>
+    <module class = "Constant" name = "HighLevelMotorArbiterValue" 	data = "0.5"/>
+
+       <module class = "PopulationDecoder" name = "Pos" min  = "-400" max  = "400" size = "20"/>
+        <connection sourcemodule = "LowLevelArbiter"     source = "OUTPUT"  targetmodule = "Pos"  target = "INPUT" />
+
+
+</group>
+ 
