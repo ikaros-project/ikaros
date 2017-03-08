@@ -14,7 +14,7 @@
 
     <!-- Where is Epi in global coordinate system? Set manual as Epi can not move  -->
     <module class = "Constant" name = "EpiPosition" data = "
-        1  0 0.85
+        1 0 0 0.85
         0 1 0 0.15
         0 0 1 0.847
         0 0 0 1;" />
@@ -229,7 +229,7 @@
 
     <module class = "DataConverter" name = "ModelMatrixTab" output_size_x = "16" output_size_y = "10"/>
         <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "ModelMatrixTab"  target = "INPUT" />
-        <connection sourcemodule = "EGOToEXO"       source = "MATRIX" targetmodule = "ModelMatrixTab"  target = "INPUT" />     
+        <connection sourcemodule = "EGOToEXO"       source = "MATRIX"       targetmodule = "ModelMatrixTab"  target = "INPUT" />     
     <module class = "DataConverter" name = "ModelIDTab" output_size_x = "10" output_size_y = "1"/>
         <connection sourcemodule = "TableID"        source = "OUTPUT"       targetmodule = "ModelIDTab"  target = "INPUT" />
         <connection sourcemodule = "ForwardModel"   source = "MODEL_ID"     targetmodule = "ModelIDTab"  target = "INPUT" /> 
@@ -240,11 +240,11 @@
     <!-- Coordinate must be converted to exocentric coordinate system before adding to list -->
     <module class="Transform"   name="EGOToEXO"/>
         <connection sourcemodule = "EpiPosition"    source = "OUTPUT"           targetmodule = "EGOToEXO" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "ExoFrameID"     source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "EgoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_1"  delay = "0"/>
         <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX"     targetmodule = "EGOToEXO" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "FocusPointID"   source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "ForwardModel"   source = "OBJECT_ID"        targetmodule = "EGOToEXO" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "ForwardModel"   source = "FRAME_ID"         targetmodule = "EGOToEXO" target = "FRAME_ID_2"  delay = "0"/>
 
 
 
