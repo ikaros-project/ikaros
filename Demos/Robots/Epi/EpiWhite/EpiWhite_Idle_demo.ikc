@@ -7,52 +7,56 @@
 	 </description>
 
 
-
     <!-- 			HIGH LEVEL 				-->
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
 
     <!-- Where is Epi in global coordinate system? Set manual as Epi can not move  -->
-    <module class = "Constant" name = "EpiPosition" data = "1 0 0 0   0 1 0 0   0 0 1 0   0 0 0 1"/>
+    <module class = "Constant" name = "EpiPosition" data = "
+        1  0 0.85
+        0 1 0 0.15
+        0 0 1 0.847
+        0 0 0 1;" />
 
     <!--      Manual controll of Epi        -->
     <!-- ********************************* 	-->
 
-    <!-- Set the coordinate where Epi should look at -->
-    <module class = "Constant" name = "ManualFocusPoint" data = "
-    1 0 0 1
+    <!-- Set the coordinate where Epi should look at in egocentric coordinates -->
+    <module class = "Constant" name = "ManFocusPoint" data = "
+    1 0 0 0
     0 1 0 0 
-    0 0 1 0.5 
+    0 0 1 0 
     0 0 0 1"/>
     
+    
     <!-- Set positions of servos -->
-    <module class = "Constant" name = "B_POS" data = "0 0" />
-    <module class = "Constant" name = "H_POS" data = "0 0 0 0" />
-    <module class = "Constant" name = "P_POS" data = "0 0" />
+    <module class = "Constant" name = "ManBPos" data = "0 0" />
+    <module class = "Constant" name = "ManHPos" data = "0 0 0 0" />
+    <module class = "Constant" name = "ManPPos" data = "0 0" />
+
 
     <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
-    <!-- Set a manual speed -->
-    <!-- Mental note: Speed is set for all motions -->
-    <module class = "Constant" name = "B_SPEED" data = "0.02 0.02" />
-    <module class = "Constant" name = "H_SPEED" data = "0.02 0.02 0.02 0.02" />
-    <module class = "Constant" name = "P_SPEED" data = "0.02 0.02" />
+    <!-- Speed -->
+    <module class = "Constant" name = "DirectBSpeed" data = "0.02 0.02" />
+    <module class = "Constant" name = "DirectHSpeed" data = "0.02 0.02 0.02 0.02" />
+    <module class = "Constant" name = "DirectPSpeed" data = "0.02 0.02" />
     
     <!-- Torque limit -->
-    <module class = "Constant" name = "B_TORQUE_LIMIT" data = "0.0 0.0" />
-    <module class = "Constant" name = "H_TORQUE_LIMIT" data = "0.0 0.00 0.0 0.0" />
-    <module class = "Constant" name = "P_TORQUE_LIMIT" data = "0.02 0.02" />
+    <module class = "Constant" name = "DirectBTorqueLimit" data = "0.0 0.0" />
+    <module class = "Constant" name = "DirectHTorqueLimit" data = "0.0 0.00 0.0 0.0" />
+    <module class = "Constant" name = "DirectPTorqueLimit" data = "0.02 0.02" />
 
     <!-- Torque enable -->
-    <module class = "Constant" name = "B_TORQUE_ENABLE" data = "0 0" />
-    <module class = "Constant" name = "H_TORQUE_ENABLE" data = "0 0 0 0" />
-    <module class = "Constant" name = "P_TORQUE_ENABLE" data = "0 0" />
+    <module class = "Constant" name = "DirectBTorqueEnable" data = "0 0" />
+    <module class = "Constant" name = "DirectHTorqueEnable" data = "0 0 0 0" />
+    <module class = "Constant" name = "DirectPTorqueEnable" data = "0 0" />
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "ManPosPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="P_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
-        <connection sourcemodule="H_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
-        <connection sourcemodule="B_POS" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+        <connection sourcemodule="ManPPos" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+        <connection sourcemodule="ManHPos" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+        <connection sourcemodule="ManBPos" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
 
     <!-- ********************************* 	-->
 
@@ -65,17 +69,17 @@
     <!-- ************************ -->
     <!-- ************************ -->
 
-    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
+    <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "2"/>
         <!-- ManualFocusPoint -->
-        <connection sourcemodule = "ManualFocusPoint"   	source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
-        <connection sourcemodule = "ManualFocusPointValue" 	source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
+        <connection sourcemodule = "ManFocusPoint"   	source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "INPUT_1" />
+        <connection sourcemodule = "ManFocusPointValue" source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "VALUE_1" />
         <!-- MarkerTracker (Left) -->
-        <connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO"  	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
-        <connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
+        <connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO" targetmodule = "HLFocusArb"  target = "INPUT_2" />
+        <connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_2" />
 
-    <!-- Changing this value to 1 will always trigger manual mode --> 	
-    <module class = "Constant" name = "ManualFocusPointValue" 	data = "0.9"/>
-    <module class = "Constant" name = "MarkerTrackerValue"      data = "0.7"/>
+    <!-- This should be moved to population code and use amplitude instead --> 	
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.9"/>
+    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.7"/>
     <!-- ************************ -->
 
 
@@ -91,8 +95,8 @@
     <!-- ************************ -->
     <!-- ************************ -->
 
-    <module class = "GazeController" name = "HighLevelGazeController" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
-        <connection sourcemodule = "HighLevelFocusArbiter" source = "OUTPUT" targetmodule = "HighLevelGazeController" target = "INPUT"/>
+    <module class = "GazeController" name = "HLGazeCont" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
+        <connection sourcemodule = "HLFocusArb" source = "OUTPUT" targetmodule = "HLGazeCont" target = "INPUT"/>
 
         
 
@@ -100,12 +104,9 @@
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="P_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="HighLevelGazeController" 	    source="OUTPUT" 	    targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-
-
-        <_connection sourcemodule="TEST" 	source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="PZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
     <!-- ************************ -->
 
 
@@ -113,16 +114,16 @@
     <!-- ************************ -->
     <!-- ************************ -->
 
-    <module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "2"/>
-        <connection sourcemodule = "ManPosPop"        				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
-        <connection sourcemodule = "ManPosPopValue"   				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_1"/>
-        <connection sourcemodule = "GazePosPop"        				source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_2"/>
-        <connection sourcemodule = "HighLevelGazeControllerValue"   source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "VALUE_2"/>
+    <module class = "Arbiter" name = "HLMotorArb" no_of_inputs = "2"/>
+        <connection sourcemodule = "ManPosPop"          source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_1"/>
+        <connection sourcemodule = "ManPosPopValue"     source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_1"/>
+        <connection sourcemodule = "GazePosPop"         source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_2"/>
+        <connection sourcemodule = "GazePosPopValue"    source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_2"/>
 
     <!-- Values -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "ManPosPopValue" 	                data = "0.9"/>
-    <module class = "Constant" name = "HighLevelGazeControllerValue" 	data = "0.5"/>
+    <module class = "Constant" name = "ManPosPopValue" 	    data = "0.5"/>
+    <module class = "Constant" name = "GazePosPopValue"     data = "0.9"/>
 
 
 
@@ -148,8 +149,8 @@
 
         <connection sourcemodule = "EgoID"          source = "OUTPUT"         	targetmodule = "Detectors"  target = "EGO_ID" />
         <connection sourcemodule = "EgoFrameID"     source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_FRAME_ID" />
-        <connection sourcemodule = "WorldID"        source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_ID" />
-        <connection sourcemodule = "WorldFrameID"   source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_FRAME_ID" />
+        <connection sourcemodule = "ExoID"        source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_ID" />
+        <connection sourcemodule = "ExoFrameID"   source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_FRAME_ID" />
 
         <connection sourcemodule = "ForwardModel"   source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "SENSORS_POS_EGO" />
         <connection sourcemodule = "EpiPosition"    source = "OUTPUT"   		targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
@@ -157,86 +158,60 @@
 
     <!-- Actuators/Proprioception -->
     <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
-        <connection sourcemodule = "Pos"   source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
-        <connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
-        <connection sourcemodule = "H_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
-        <connection sourcemodule = "B_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
-        <connection sourcemodule = "H_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
-        <connection sourcemodule = "B_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
-        <connection sourcemodule = "H_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
+        <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
+        <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
+        <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
+        <connection sourcemodule = "DirectBTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
+        <connection sourcemodule = "DirectHTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
+        <connection sourcemodule = "DirectBTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
+        <connection sourcemodule = "DirectHTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
         
     <module class = "EpiWhiteForwardModel" 	name = "ForwardModel" 	/>
-        <connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
-        <connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
-        <connection sourcemodule = "Servos"   	source = "PUPIL_FEEDBACK_POSITION"      targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
+        <connection sourcemodule = "Servos"   	    source = "BODY_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
+        <connection sourcemodule = "Servos"   	    source = "HEAD_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
+        <connection sourcemodule = "Servos"   	    source = "PUPIL_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
 
     
-        <!-- Behaviors -->
-        <!-- Light reflex etc -->
-        <module
-            class="PupilControl"
-            name="PupilControl"
-        />
+    <!-- Behaviors -->
+    <!-- Light reflex etc -->
+    <module class="PupilControl" name="PupilControl"/>
         <connection sourcemodule="Vision" source="LEFT_INTENSITY" targetmodule="PupilControl" target="PTA" />
 
-        <view name="Parasympathetic Circuit">
-            <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT" x="0" y="1" w="4" _min = "180" max="300" />
-            <object class="Plot" title="Response SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT" x="0" y="2" w="4" _min = "180" max="300" />
-        </view>
-        <!--<connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
-        <connection sourcemodule = "PupilControl"  source = "CG_OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
-        <connection sourcemodule = "Pupil"  source = "FEEDBACK_GOAL_POSITION" targetmodule = "GuardPupil"  target = "REFERENCE" />-->
-    
-         <!-- Population coding -->
-        <module class = "PopulationCoder" name = "PupilControlPop" min  = "-400" max  = "400" size = "20"/>
-            <connection sourcemodule="PupilControl" 	source="CG_OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
-            <connection sourcemodule="PupilControl" 	source="CG_OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
-            <connection sourcemodule="H_ZERO" 	source="OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
-            <connection sourcemodule="B_ZERO" 	source="OUTPUT" 	targetmodule="PupilControlPop" target="INPUT" />
-    
+    <view name="Parasympathetic Circuit">
+        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="0" w="4" _min = "0" max="20" />
+        <object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="1" w="4" _min = "0" max="20" />
+    </view>
 
- <module class = "Constant" name = "PupilControlPop1" 
-	data = "
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	" />
+     <!-- Population coding -->
+    <module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "20"/>
+        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
+        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
+        <connection sourcemodule="HZeros"       source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
+        <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
 
- <module class = "Constant" name = "HighLevelMotorArbiter1" 
-	data = "
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0;
-	" />
+
+
 
     <!--  Low Level Motion mixer  -->
     <!-- ************************ -->
     <!-- ************************ -->
 
-    <module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2"/>
-        <connection sourcemodule = "PupilControlPop"   		        source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
-        <connection sourcemodule = "PupilControlPopValue"   	    source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
-        <connection sourcemodule = "HighLevelMotorArbiter"   	    source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_2" />
-        <connection sourcemodule = "HighLevelMotorArbiterValue"     source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_2" />
-
-    <module class = "PopulationDecoder" name = "Pos" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule = "LowLevelArbiter"     source = "OUTPUT"  targetmodule = "Pos"  target = "INPUT" />
-
+    <module class = "Arbiter" name = "LLArb" no_of_inputs = "2"/>
+        <connection sourcemodule = "PupilContPop"   	source = "OUTPUT"  targetmodule = "LLArb"  target = "INPUT_1" />
+        <connection sourcemodule = "PupilContPopValue"  source = "OUTPUT"  targetmodule = "LLArb"  target = "VALUE_1" />
+        <connection sourcemodule = "HLMotorArb"   	    source = "OUTPUT"  targetmodule = "LLArb"  target = "INPUT_2" />
+        <connection sourcemodule = "HLMotorArbValue"    source = "OUTPUT"  targetmodule = "LLArb"  target = "VALUE_2" />
 
     <!-- Value Low Level -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "PupilControlPopValue" 		data = "1"/>
-    <module class = "Constant" name = "HighLevelMotorArbiterValue" 	data = "0.5"/>
+    <module class = "Constant" name = "PupilContPopValue" 		data = "0.1"/>
+    <module class = "Constant" name = "HLMotorArbValue" 	    data = "1"/>
+
+    <module class = "PopulationDecoder" name = "ServoPos" min  = "-400" max  = "400" size = "20"/>
+        <connection sourcemodule = "LLArb"     source = "OUTPUT"  targetmodule = "ServoPos"  target = "INPUT" />
+
+
+
 
 
     <!--         LAB              -->
@@ -252,18 +227,42 @@
     0 0 0 1;"/>
     <module class = "Constant" name = "TableID"        data = "10000"/>
 
+    <module class = "DataConverter" name = "ModelMatrixTab" output_size_x = "16" output_size_y = "10"/>
+        <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "ModelMatrixTab"  target = "INPUT" />
+        <connection sourcemodule = "EGOToEXO"       source = "MATRIX" targetmodule = "ModelMatrixTab"  target = "INPUT" />     
+    <module class = "DataConverter" name = "ModelIDTab" output_size_x = "10" output_size_y = "1"/>
+        <connection sourcemodule = "TableID"        source = "OUTPUT"       targetmodule = "ModelIDTab"  target = "INPUT" />
+        <connection sourcemodule = "ForwardModel"   source = "MODEL_ID"     targetmodule = "ModelIDTab"  target = "INPUT" /> 
+
+
+    <module class = "Constant" name = "FocusPointID"        data = "50"/>
+
+    <!-- Coordinate must be converted to exocentric coordinate system before adding to list -->
+    <module class="Transform"   name="EGOToEXO"/>
+        <connection sourcemodule = "EpiPosition"    source = "OUTPUT"           targetmodule = "EGOToEXO" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_1" delay = "0"/>
+        <connection sourcemodule = "ExoFrameID"     source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_1"  delay = "0"/>
+        <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX"     targetmodule = "EGOToEXO" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "FocusPointID"   source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_2"  delay = "0"/>
+
+
+
+    <!-- Adding FocusPoint to 3D view -->
+   <module class = "DataConverter" name = "ModelMatrix" output_size_x = "16" output_size_y = "11"/>
+        <connection sourcemodule = "HLFocusArb"         source = "OUTPUT"       targetmodule = "ModelMatrix"  target = "INPUT" />
+        <connection sourcemodule = "ModelMatrixTab"     source = "OUTPUT"       targetmodule = "ModelMatrix"  target = "INPUT" />     
+    <module class = "DataConverter" name = "ModelID" output_size_x = "11" output_size_y = "1"/>
+        <connection sourcemodule = "FocusPointID"       source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" />
+        <connection sourcemodule = "ModelIDTab"         source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" /> 
+
+
 
     <!--        Join Models and IDs         -->
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
 
-    <module class = "DataConverter" name = "MODEL_MATRIX" output_size_x = "16" output_size_y = "10"/>
-        <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "MODEL_MATRIX"  target = "INPUT" />
-        <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX" targetmodule = "MODEL_MATRIX"  target = "INPUT" />     
-    <module class = "DataConverter" name = "MODEL_ID" output_size_x = "10" output_size_y = "1"/>
-        <connection sourcemodule = "TableID"       source = "OUTPUT"        targetmodule = "MODEL_ID"  target = "INPUT" />
-        <connection sourcemodule = "ForwardModel"   source = "MODEL_ID"     targetmodule = "MODEL_ID"  target = "INPUT" /> 
 
 
 
@@ -273,36 +272,40 @@
     <!-- ********************************* 	-->
 
 
-    <!-- WORLD:     100 -->
+    <!-- EXO:       100 -->
     <!-- EPI/EGO:   200 -->
     <!-- SENSOR:    300 -->
 
     <!-- Id and frames used by transfromers modules -->
-    <module class = "Constant" name = "WorldID"       data = "100"/>
-    <module class = "Constant" name = "WorldFrameID"  data = "100"/>
-    <module class = "Constant" name = "EgoID"         data = "200"/>
-    <module class = "Constant" name = "EgoFrameID"    data = "200"/>
+    <module class = "Constant" name = "ExoID"       data = "100"/>
+    <module class = "Constant" name = "ExoFrameID"  data = "100"/>
+    <module class = "Constant" name = "EgoID"       data = "200"/>
+    <module class = "Constant" name = "EgoFrameID"  data = "200"/>
 
 
-  
-    <module class = "Constant" name = "B_ZERO" 	data = "0 0"/>
-    <module class = "Constant" name = "H_ZERO" 	data = "0 0 0 0"/>
-    <module class = "Constant" name = "P_ZERO" 	data = "0 0"/>
+    <!-- Used when adding different parts. See GazeController -->
+    <module class = "Constant" name = "BZeros" 	data = "0 0"/>
+    <module class = "Constant" name = "HZeros" 	data = "0 0 0 0"/>
+    <module class = "Constant" name = "PZeros" 	data = "0 0"/>
 
-    
-    <module class = "Constant" name = "TEST" 	data = "0 0 0 0 0 0 0 0"/>
 
 
     <view name="3D View">
         <object
             class   	= "Ikaros3D"
             title   	= "EpiWhite"
-            module  	= "MODEL_MATRIX"
+            module  	= "ModelMatrix"
             source  	= "OUTPUT"
-            id_module  	= "MODEL_ID"
+            id_module  	= "ModelID"
             id_location = "OUTPUT"
             x="0" y="0"
             w="4" h="4"
         />
+
+    <object class="Slider" title = "ManualFocusPointX" module="ManFocusPoint" parameter="data" x="4" y="0" select = "3" min = "-4" max = "4"/>
+    <object class="Slider" title = "ManualFocusPointY" module="ManFocusPoint" parameter="data" x="5" y="0" select = "7" min = "0" max = "4"/>
+    <object class="Slider" title = "ManualFocusPointZ" module="ManFocusPoint" parameter="data" x="6" y="0" select = "11" min = "0" max = "4"/>    
+    <object class="Table" module="ServoPos" source  	= "OUTPUT" w = "4" x="4" y="1" />    
+
     </view>
 </group>

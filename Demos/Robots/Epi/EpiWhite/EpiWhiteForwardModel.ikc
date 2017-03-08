@@ -42,11 +42,11 @@
 
     <!-- Forward models -->
     <!-- Unit is m -->
-    <!-- Robot Position Perhaps not a part of forward model Z 90 -->
+    <!-- Z 90 -->
     <module class = "Constant" name = "Epi_pos" data = "
-        0 -1 0 0.85
-        1 0 0 0.15
-        0 0 1 0.847
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
         0 0 0 1;" />
 
     <module class = "Constant" name = "Epi_pos_ID" data = "10" />

@@ -6,10 +6,11 @@
         WARNING. These modules is under development and can be change anytime!
 	 </description>
 
-    <!-- ID and Frames for represenration in different oordinate systems -->
+    <!-- ID and Frames for represenration in different coordinate systems -->
     <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "OBJECT_ID_1"/>
     <input name = "EGO_FRAME_ID"      	targetmodule = "L_MarkerEgo"           target = "FRAME_ID_1" />
     <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "FRAME_ID_2"/>
+
     <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "OBJECT_ID_1"/>
     <input name = "WORLD_FRAME_ID"      targetmodule = "L_MarkerWorld"         target = "FRAME_ID_1" />
     <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "FRAME_ID_2"/>
@@ -93,14 +94,14 @@
         name = "L_FaceDetector"
         min_size = "0.0"
         use_tracking = "yes"
-        period = "5"
+        period = "20"
     />
     <module
     	class = "MPIFaceDetector"
         name = "R_FaceDetector"
         min_size = "0.0"
         use_tracking = "yes"
-        period = "5"
+        period = "20"
     />
 	
 	<module
