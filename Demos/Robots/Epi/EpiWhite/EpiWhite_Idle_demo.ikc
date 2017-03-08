@@ -122,8 +122,8 @@
 
     <!-- Values -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "ManPosPopValue" 	    data = "0.9"/>
-    <module class = "Constant" name = "GazePosPopValue"     data = "0.2"/>
+    <module class = "Constant" name = "ManPosPopValue" 	    data = "0.2"/>
+    <module class = "Constant" name = "GazePosPopValue"     data = "0.9"/>
 
 
 
@@ -157,7 +157,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
