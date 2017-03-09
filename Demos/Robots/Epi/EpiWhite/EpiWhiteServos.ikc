@@ -8,20 +8,19 @@
 
     <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
-    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="PUPIL_MOVING_SPEED"        	targetmodule="Pupil"                    target="MOVING_SPEED" /> 
 
     <input name="BODY_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_TORQUE_LIMIT"       		targetmodule="Head"                 	target="TORQUE_LIMIT" />
-    <input name="PUPIL_ARM_TORQUE_LIMIT"       	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="PUPIL_TORQUE_LIMIT"       	    targetmodule="Pupil"                    target="TORQUE_LIMIT" /> 
     
     <input name="BODY_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_TORQUE_ENABLE"       		targetmodule="Head"                 	target="TORQUE_ENABLE" />
-    <input name="PUPIL_ARM_TORQUE_ENABLE"       targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="PUPIL_TORQUE_ENABLE"           targetmodule="Pupil"                    target="TORQUE_ENABLE" /> 
     
     <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="DegreesTomm"              source="OUTPUT" />
-
 
     <module class = "Sink" name = "NotAvailable" />
         <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
