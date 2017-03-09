@@ -153,13 +153,13 @@
 
 
     <module
-			class="ServoConnector"
-			name="SC_FB_P_PresentPosition"
-			connector   =   "1 2"
-            pre_inverted    =   "0 0" 
-            post_inverted    =   "0 0" 
-            offset      =   "-210 -210" 
-            output_size =   "2"
+		class="ServoConnector"
+		name="SC_FB_P_PresentPosition"
+		connector   =   "1 2"
+        pre_inverted    =   "0 0" 
+        post_inverted    =   "0 0" 
+        offset      =   "-210 -210" 
+        output_size =   "2"
 	/>
         <connection sourcemodule = "Pupil"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FB_P_PresentPosition"  target = "INPUT" />
 
