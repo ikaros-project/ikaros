@@ -157,7 +157,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
