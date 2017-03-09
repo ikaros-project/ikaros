@@ -134,9 +134,6 @@
 	/>
         <connection sourcemodule = "GuardPupil"  source = "OUTPUT" targetmodule = "SC_P_GoalPosition"  target = "INPUT" />
 
-	<module class = "Constant" name = "P_TorqueEnable"  outputsize = "2" data = "1 1" />
-    <module class = "Constant" name = "P_MovingSpeed"   outputsize = "2" data = "1 1" />
-	<module class = "Constant" name = "P_TorqueLimit"   outputsize = "2" data = "1 1" />
 
      <module
         class = "Dynamixel"
@@ -152,9 +149,6 @@
     	servo_id  = "2, 3"
     />
         <connection sourcemodule = "SC_P_GoalPosition"  source = "OUTPUT" targetmodule = "Pupil"  target = "GOAL_POSITION" />
-        <connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
-	    <connection sourcemodule = "P_MovingSpeed"  source = "OUTPUT" targetmodule = "Pupil"  target = "MOVING_SPEED" />
-	    <connection sourcemodule = "P_TorqueLimit"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_LIMIT" />
 
 
     <module

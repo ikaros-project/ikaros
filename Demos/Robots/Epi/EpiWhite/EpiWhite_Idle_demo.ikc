@@ -306,10 +306,10 @@
     <object class="Slider" title = "ManualFocusPointY" module="ManFocusPoint" parameter="data" x="5" y="0" select = "7" min = "0" max = "4"/>
     <object class="Slider" title = "ManualFocusPointZ" module="ManFocusPoint" parameter="data" x="6" y="0" select = "11" min = "0" max = "4"/>    
 
-    <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="4" y="1" select = "0" min = "-180" max = "180"/>
-    <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="5" y="1" select = "1" min = "-180" max = "180"/>
-    <object class="Slider" title = "Head (Left Eye)"    module="ManHPos" parameter="data" x="6" y="1" select = "2" min = "-180" max = "180"/>
-    <object class="Slider" title = "Head (Right Eye)"   module="ManHPos" parameter="data" x="7" y="1" select = "3" min = "-180" max = "180"/>
+    <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="4" y="1" select = "0" min = "-60" max = "65"/>
+    <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="5" y="1" select = "1" min = "-115" max = "110"/>
+    <object class="Slider" title = "Head (Left Eye)"    module="ManHPos" parameter="data" x="6" y="1" select = "2" min = "-12" max = "30"/>
+    <object class="Slider" title = "Head (Right Eye)"   module="ManHPos" parameter="data" x="7" y="1" select = "3" min = "-29" max = "11"/>
 
     <object class="Slider" title = "Pupil (Left Eye)"   module="ManPPos" parameter="data" x="4" y="2" select = "0" min = "6" max = "12"/>
     <object class="Slider" title = "Pupil (Right Eye)"  module="ManPPos" parameter="data" x="5" y="2" select = "1" min = "6" max = "12"/>
