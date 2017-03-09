@@ -320,9 +320,9 @@
             w="4" h="4"
         />
 
-        <object class="Slider" title = "ManualFocusPointX" module="ManFocusPoint" parameter="data" x="4" y="0" select = "3" min = "-4" max = "4"/>
-        <object class="Slider" title = "ManualFocusPointY" module="ManFocusPoint" parameter="data" x="5" y="0" select = "7" min = "0" max = "4"/>
-        <object class="Slider" title = "ManualFocusPointZ" module="ManFocusPoint" parameter="data" x="6" y="0" select = "11" min = "0" max = "4"/>    
+        <object class="Slider" title = "ManualFocusPoint (Ego) X" module="ManFocusPoint" parameter="data" x="4" y="0" select = "3" min = "-4" max = "4"/>
+        <object class="Slider" title = "ManualFocusPoint (Ego) Y" module="ManFocusPoint" parameter="data" x="5" y="0" select = "7" min = "0" max = "4"/>
+        <object class="Slider" title = "ManualFocusPoint (Ego) Z" module="ManFocusPoint" parameter="data" x="6" y="0" select = "11" min = "0" max = "4"/>    
 
         <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="4" y="1" select = "0" min = "-60" max = "65"/>
         <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="5" y="1" select = "1" min = "-115" max = "110"/>
