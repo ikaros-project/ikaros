@@ -147,6 +147,7 @@
     	start_up_delay 	= "20"
     	max_servo_id = "4"
     	servo_id  = "2, 3"
+    	strict_servo_id = "yes"
     />
         <connection sourcemodule = "SC_P_GoalPosition"  source = "OUTPUT" targetmodule = "Pupil"  target = "GOAL_POSITION" />
 
