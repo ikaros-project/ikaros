@@ -8,15 +8,15 @@
 
     <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" />
-    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="PUPIL_MOVING_SPEED"       	    targetmodule="NotAvailable"             target="INPUT" /> 
 
     <input name="BODY_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" />
-    <input name="PUPIL_ARM_TORQUE_LIMIT"       	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="PUPIL_TORQUE_LIMIT"       	    targetmodule="NotAvailable"             target="INPUT" /> 
     
     <input name="BODY_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" /> 
     <input name="HEAD_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" />
-    <input name="PUPIL_ARM_TORQUE_ENABLE"       targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="PUPIL_TORQUE_ENABLE"           targetmodule="NotAvailable"             target="INPUT" /> 
     
     <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
