@@ -32,6 +32,7 @@ using namespace ikaros;
 Dynamixel::Dynamixel(Parameter * p):
 Module(p)
 {
+	Timer timer;
 	device = GetValue("device");
 	if(!device)
 	{
@@ -52,7 +53,7 @@ Module(p)
 	init_print              = GetIntValueFromList("print_info");
 	index_mode              = GetIntValueFromList("index_mode");
 	angle_unit              = GetIntValueFromList("angle_unit");
-	max_temperature                = GetIntValue("max_temperature");
+	max_temperature         = GetIntValue("max_temperature");
 	
 	int maxServos           = GetIntValue("max_servo_id");
 	int servoId_list_size  = 0;
@@ -67,12 +68,17 @@ Module(p)
 	{
 		for(int i=0; i<servoId_list_size; i++)
 		{
+			timer.Sleep(100);
 			if(com->Ping(servoId_list[i]) > 0)
 			{
 				servo[servoId_list[i]] = new DynamixelServo(com, servoId_list[i], csvPath.c_str(),0);
 			}
 			else
 			{
+				timer.Sleep(100);
+				com->Flush();
+				timer.Sleep(100);
+
 				servo[servoId_list[i]] = NULL;
 				if (strictServoId)
 					Notify(msg_fatal_error, "Dynamixel servo with ID = %d could not be found\n", servoId_list[i]);
