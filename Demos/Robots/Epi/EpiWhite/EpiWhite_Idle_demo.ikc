@@ -161,10 +161,13 @@
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
+        <connection sourcemodule = "DirectPSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "PUPIL_MOVING_SPEED" />
         <connection sourcemodule = "DirectBTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
         <connection sourcemodule = "DirectHTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
+        <connection sourcemodule = "DirectPTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "PUPIL_TORQUE_LIMIT" />
         <connection sourcemodule = "DirectBTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
         <connection sourcemodule = "DirectHTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
+        <connection sourcemodule = "DirectPTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "PUPIL_TORQUE_ENABLE" />
         
     <module class = "EpiWhiteForwardModel" 	name = "ForwardModel" 	/>
         <connection sourcemodule = "Servos"   	    source = "BODY_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
