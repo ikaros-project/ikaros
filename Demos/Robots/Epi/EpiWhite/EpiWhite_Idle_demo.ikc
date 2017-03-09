@@ -267,6 +267,21 @@
     <!-- ********************************* 	-->
 
 
+    <!-- Sound -->
+	<module
+	    class = "SoundOutput"
+		name = "SoundOutput"
+		sounds  = "Sounds/ok2.mp3"
+        command = "mpg123"
+	/>
+        <!-- Connected to a button -->
+		<connection sourcemodule = "SoundTrigger" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
+
+    <module class = "Constant" name = "SoundTrigger" data = "0" />
+
+    <view name="Sound">
+        <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    
+    </view>
 
 
     <!-- 			Misc     				-->
