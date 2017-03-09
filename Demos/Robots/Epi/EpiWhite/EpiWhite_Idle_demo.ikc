@@ -38,19 +38,19 @@
 
     <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
     <!-- Speed -->
-    <module class = "Constant" name = "DirectBSpeed" data = "0.02 0.02" />
-    <module class = "Constant" name = "DirectHSpeed" data = "0.02 0.02 0.02 0.02" />
-    <module class = "Constant" name = "DirectPSpeed" data = "0.02 0.02" />
+    <module class = "Constant" name = "DirectBSpeed" data = "0.2 0.2" />
+    <module class = "Constant" name = "DirectHSpeed" data = "0.2 0.2 0.2 0.2" />
+    <module class = "Constant" name = "DirectPSpeed" data = "0.2 0.2" />
     
     <!-- Torque limit -->
-    <module class = "Constant" name = "DirectBTorqueLimit" data = "0.0 0.0" />
-    <module class = "Constant" name = "DirectHTorqueLimit" data = "0.0 0.00 0.0 0.0" />
-    <module class = "Constant" name = "DirectPTorqueLimit" data = "0.02 0.02" />
+    <module class = "Constant" name = "DirectBTorqueLimit" data = "0.2 0.2" />
+    <module class = "Constant" name = "DirectHTorqueLimit" data = "0.2 0.2 0.2 0.2" />
+    <module class = "Constant" name = "DirectPTorqueLimit" data = "0.2 0.2" />
 
     <!-- Torque enable -->
-    <module class = "Constant" name = "DirectBTorqueEnable" data = "0 0" />
-    <module class = "Constant" name = "DirectHTorqueEnable" data = "0 0 0 0" />
-    <module class = "Constant" name = "DirectPTorqueEnable" data = "0 0" />
+    <module class = "Constant" name = "DirectBTorqueEnable" data = "1 1" />
+    <module class = "Constant" name = "DirectHTorqueEnable" data = "1 1 1 1" />
+    <module class = "Constant" name = "DirectPTorqueEnable" data = "1 1" />
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "ManPosPop" min  = "-400" max  = "400" size = "20"/>
