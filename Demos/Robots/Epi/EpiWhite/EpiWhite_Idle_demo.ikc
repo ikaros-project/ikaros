@@ -336,7 +336,48 @@
         <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    
     </view>
 
+ <!-- LED -->
+	<module class = "FadeCandy" name = "FadeCandy" start_server = "False">
+        <channel name="MOUTH_TOP"  channel="0" size="8" />
+        <channel name="MOUTH_BOTTOM" channel="1" size="8" />
+        <channel name="LEFT_EYE"  channel="2" size="12" />
+        <channel name="RIGHT_EYE" channel="3" size="12" />
+    </module>
 
+
+    <module class = "Constant" name = "LEFT_EYE_RED" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LEFT_EYE_GREEN" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LEFT_EYE_BLUE" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
+
+    <module class = "Constant" name = "RIGHT_EYE_RED" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "RIGHT_EYE_GREEN" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "RIGHT_EYE_BLUE" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+
+    <module class = "Constant" name = "MOUTH_TOP_RED" data = "1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "MOUTH_TOP_GREEN" data = "0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "MOUTH_TOP_BLUE" data = "0 0 0 0 0 0 0 0" />
+
+    <module class = "Constant" name = "MOUTH_BOTTOM_RED" data = "1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "MOUTH_BOTTOM_GREEN" data = "0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "MOUTH_BOTTOM_BLUE" data = "0 0 0 0 0 0 0 0" />
+
+        <connection sourcemodule = "LEFT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
+        <connection sourcemodule = "LEFT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
+        <connection sourcemodule = "LEFT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
+
+        <connection sourcemodule = "RIGHT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_RED" />
+        <connection sourcemodule = "RIGHT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_GREEN" />
+        <connection sourcemodule = "RIGHT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_BLUE" />
+
+        <connection sourcemodule = "MOUTH_TOP_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_RED" />
+        <connection sourcemodule = "MOUTH_TOP_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_GREEN" />
+        <connection sourcemodule = "MOUTH_TOP_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_BLUE" />
+
+        <connection sourcemodule = "MOUTH_BOTTOM_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_RED" />
+        <connection sourcemodule = "MOUTH_BOTTOM_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_GREEN" />
+        <connection sourcemodule = "MOUTH_BOTTOM_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_BLUE" />
+        
+    <!-- LED END -->
     <!-- 			Misc     				-->
     <!-- ********************************* 	-->
     <!-- ********************************* 	-->
