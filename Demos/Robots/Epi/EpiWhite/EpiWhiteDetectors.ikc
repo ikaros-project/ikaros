@@ -22,8 +22,8 @@
     <input name = "WORLD_FRAME_ID"      targetmodule = "R_MarkerWorld"         target = "FRAME_ID_1" />
     <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "FRAME_ID_2"/>
 
-    <input name = "SENSORS_POS_EGO"     targetmodule = "L_Camera_Sensor"        target = "INPUT" />
-    <input name = "SENSORS_POS_EGO"     targetmodule = "R_Camera_Sensor"        target = "INPUT" />
+    <input name = "SENSORS_POS_EGO"     targetmodule = "L_Camera_Sensor"       target = "INPUT" />
+    <input name = "SENSORS_POS_EGO"     targetmodule = "R_Camera_Sensor"       target = "INPUT" />
 
     <input name = "EPI_POS_WORLD"       targetmodule = "L_MarkerWorld"         target = "MATRIX_1" />
     <input name = "EPI_POS_WORLD"       targetmodule = "R_MarkerWorld"         target = "MATRIX_1" />
@@ -182,4 +182,3 @@
     </view>
 
 </group>
- 

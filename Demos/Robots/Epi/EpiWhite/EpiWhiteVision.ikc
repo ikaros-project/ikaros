@@ -18,11 +18,6 @@
     <output name="RIGHT_INTENSITY"  sourcemodule="LEFT_EYE_FLIP_INTENSITY"	source="OUTPUT" />
  
 
-    
-    
-    <!-- FOCUS is realtion to camera. FIX This! --> 
-    <output name="FOCUS" sourcemodule="MarkerTracker" source="MATRIX" />
-
     <!-- Vision -->
 	<module
 		class   		= "InputVideo"
@@ -47,4 +42,3 @@
 		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "LEFT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
 
 </group>
- 

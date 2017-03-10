@@ -1,4 +1,4 @@
-<?xml version = "1.0"?>
+<?xml version="1.0"?>
 
 <group>
 	
@@ -58,10 +58,10 @@
     <module class = "Constant" name = "Epi_pos_ID" data = "10" />
 
     <!-- Body -->
-    <module class = "EpiWhiteBodyForwardModel"       name = "Body" />
+    <module class = "EpiGreenBodyForwardModel"       name = "Body" />
 
     <!-- Head --> <!-- Pupil -->
-    <module class = "EpiWhiteHeadForwardModel"       name = "Head" />
+    <module class = "EpiGreenHeadForwardModel"       name = "Head" />
 
     <!-- LeftArm -->
     <!-- RightArm -->
@@ -107,4 +107,3 @@
         <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
 
 </group>
- 
