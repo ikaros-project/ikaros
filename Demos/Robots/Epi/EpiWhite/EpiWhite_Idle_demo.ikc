@@ -90,6 +90,56 @@
     <!-- ************************ -->
     <!-- ************************ -->
 
+    <!--  Motion recorder -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+    <module
+        class = "Constant"
+        name = "Modes"
+        data = "0 0   0 0 0 0   0 0;
+                1 1   1 1 1 1   0 0;
+                0 0   1 1 1 1   1 1;
+                1 1   0 0 0 0   1 1"
+    />
+
+    <module class = "SelectRow" name = "ModeSelector"/>
+
+    <connection sourcemodule = "Modes" source = "OUTPUT" targetmodule = "ModeSelector" target = "INPUT" />
+    <connection sourcemodule = "ModeSelector" source = "OUTPUT" targetmodule = "MotionRecorder" target = "MODE" />
+    <module
+        class = "MotionRecorder"
+        name = "MotionRecorder"
+        mask = "1 1   1 1 1 1   1 1 "
+        torque = "0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
+        filename = "motion.%d.mot"
+    />
+    <connection sourcemodule = "Servos" source = "BODY_FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <connection sourcemodule = "Servos" source = "HEAD_FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <connection sourcemodule = "Servos" source = "PUPIL_FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+
+    <module class = "PopulationCoder" name = "MotionRecPop" min  = "-400" max  = "400" size = "20"/>
+        <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "MotionRecPop" target = "INPUT" />
+  
+     <view name="View" object_size="50">
+        <object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8" x="0" y="0" w="8" h="4" />
+        <object class ="DropDownMenu" title="record mode" list="all/left/right/head" module="ModeSelector" parameter="row" x="0" y="4" w="1" h="2" />
+        <object class="Table" module="ModeSelector" source="row" min="0" max="3" x="1" y="4" w="2" h="2" />
+
+        <object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
+        <object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
+
+        <object class="Button" title = "Off" module="MotionRecorder" parameter="off" x="10" y="0" h="1" w="2" />
+        <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="10" y="1" h="1" w="2" />
+        <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="10" y="2" h="1" w="2" />
+        <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="10" y="3" h="1" w="2" />
+        <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
+        <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="10" y="5" h="1" w="2" />
+        <object class="Button" title = "Load" module="MotionRecorder" parameter="load" x="10" y="6" h="1" w="2" />
+        <object class="Button" title = "SQ Play" module="MotionRecorder" parameter="sqplay" x="10" y="7" h="1" w="2" />
+    </view>
+
+
+
 
     <!--  Head/Eyes to FocusPoint -->
     <!-- ************************ -->
@@ -114,16 +164,19 @@
     <!-- ************************ -->
     <!-- ************************ -->
 
-    <module class = "Arbiter" name = "HLMotorArb" no_of_inputs = "2"/>
+    <module class = "Arbiter" name = "HLMotorArb" no_of_inputs = "3"/>
         <connection sourcemodule = "ManPosPop"          source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_1"/>
         <connection sourcemodule = "ManPosPopValue"     source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_1"/>
         <connection sourcemodule = "GazePosPop"         source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_2"/>
         <connection sourcemodule = "GazePosPopValue"    source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_2"/>
+        <connection sourcemodule = "MotionRecPop"       source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_3"/>
+        <connection sourcemodule = "MotionRecPopValue"  source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_3"/>
 
     <!-- Values -->
     <!-- These should be handle by the new coder module -->
     <module class = "Constant" name = "ManPosPopValue" 	    data = "0.2"/>
     <module class = "Constant" name = "GazePosPopValue"     data = "0.9"/>
+    <module class = "Constant" name = "MotionRecPopValue"   data = "0.1"/>
 
 
 
