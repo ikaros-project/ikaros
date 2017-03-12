@@ -58,10 +58,10 @@
     <module class = "Constant" name = "Epi_pos_ID" data = "10" />
 
     <!-- Body -->
-    <module class = "EpiGreenBodyForwardModel"       name = "Body" />
+    <module class = "EpiWhiteBodyForwardModel"       name = "Body" />
 
     <!-- Head --> <!-- Pupil -->
-    <module class = "EpiGreenHeadForwardModel"       name = "Head" />
+    <module class = "EpiWhiteHeadForwardModel"       name = "Head" />
 
     <!-- LeftArm -->
     <!-- RightArm -->
