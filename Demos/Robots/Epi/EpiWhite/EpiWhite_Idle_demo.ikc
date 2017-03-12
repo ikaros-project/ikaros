@@ -210,7 +210,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
@@ -260,8 +260,8 @@
 
     <!-- Value Low Level -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "PupilContPopValue" 		data = "0.1"/>
-    <module class = "Constant" name = "HLMotorArbValue" 	    data = "1"/>
+    <module class = "Constant" name = "PupilContPopValue" 		data = "1"/>
+    <module class = "Constant" name = "HLMotorArbValue" 	    data = "0.1"/>
 
     <module class = "PopulationDecoder" name = "ServoPos" min  = "-400" max  = "400" size = "20"/>
         <connection sourcemodule = "LLArb"     source = "OUTPUT"  targetmodule = "ServoPos"  target = "INPUT" />
