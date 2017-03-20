@@ -144,7 +144,7 @@ SaliencyMap::Init()
     input				= new float ** [no_of_inputs];
     input_store			= new DelayLine * [no_of_inputs];
 
-    spatial_bias = GetInputArray("SPATIAL_BIAS");
+    spatial_bias = GetInputArray("SPATIAL_BIAS",false);
 
     gain				= GetOutputArray("GAIN");
 
