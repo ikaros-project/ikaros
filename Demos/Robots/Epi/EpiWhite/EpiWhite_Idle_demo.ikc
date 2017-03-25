@@ -344,15 +344,39 @@
         <channel name="RIGHT_EYE" channel="3" size="12" />
     </module>
 
+    <module class = "Constant" name = "LedBBlueV"  data = "1" /> <!-- Trigger -->
+    <module class = "Constant" name = "LedBGreenV" data = "0.5" />
 
-    <module class = "Constant" name = "LEFT_EYE_RED" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "LEFT_EYE_GREEN" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "LEFT_EYE_BLUE" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
+    <!-- Eyes -->
+    <!-- Blue -->
+    <module class = "Constant" name = "LedRBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedGBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedBBlue" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
 
-    <module class = "Constant" name = "RIGHT_EYE_RED" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "RIGHT_EYE_GREEN" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
-    <module class = "Constant" name = "RIGHT_EYE_BLUE" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <!-- Green -->
+    <module class = "Constant" name = "LedRGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedGGreen" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "LedBGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
 
+    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2"/>
+        <connection sourcemodule = "LedRBlue"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_1" />
+        <connection sourcemodule = "LedBBlueV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_1" />
+        <connection sourcemodule = "LedRGreen"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_2" />
+        <connection sourcemodule = "LedBGreenV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_2" />
+
+    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2"/>
+        <connection sourcemodule = "LedGBlue"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_1" />
+        <connection sourcemodule = "LedBBlueV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_1" />
+        <connection sourcemodule = "LedGGreen"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_2" />
+        <connection sourcemodule = "LedBGreenV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_2" />
+
+    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2"/>
+        <connection sourcemodule = "LedBBlue"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_1" />
+        <connection sourcemodule = "LedBBlueV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_1" />
+        <connection sourcemodule = "LedBGreen"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_2" />
+        <connection sourcemodule = "LedBGreenV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_2" />
+
+    <!-- Mouth -->
     <module class = "Constant" name = "MOUTH_TOP_RED" data = "1 1 1 1 1 1 1 1" />
     <module class = "Constant" name = "MOUTH_TOP_GREEN" data = "0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "MOUTH_TOP_BLUE" data = "0 0 0 0 0 0 0 0" />
@@ -361,22 +385,31 @@
     <module class = "Constant" name = "MOUTH_BOTTOM_GREEN" data = "0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "MOUTH_BOTTOM_BLUE" data = "0 0 0 0 0 0 0 0" />
 
-        <connection sourcemodule = "LEFT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
-        <connection sourcemodule = "LEFT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
-        <connection sourcemodule = "LEFT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
 
-        <connection sourcemodule = "RIGHT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_RED" />
-        <connection sourcemodule = "RIGHT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_GREEN" />
-        <connection sourcemodule = "RIGHT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_BLUE" />
+    <view name="FadeCandy">
+        <object class="Table" title = "EventTrigger"    module="Trigger"   source = "OUTPUT" w = "2" x="0" y="0" />    
+        <object class="Table" title = "EyeColorR"       module="EyeColorR" source = "OUTPUT" w = "2" x="0" y="1" />    
+        <object class="Table" title = "EyeColorG"       module="EyeColorG" source = "OUTPUT" w = "2" x="0" y="2" />    
+        <object class="Table" title = "EyeColorB"       module="EyeColorB" source = "OUTPUT" w = "2" x="0" y="3" />    
+        <object class="Button" module="LedBBlueV"       parameter="data" x="1" y="0" />
+    </view>
 
-        <connection sourcemodule = "MOUTH_TOP_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_RED" />
-        <connection sourcemodule = "MOUTH_TOP_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_GREEN" />
-        <connection sourcemodule = "MOUTH_TOP_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_BLUE" />
+    <connection sourcemodule = "EyeColorR" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
+    <connection sourcemodule = "EyeColorG" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
+    <connection sourcemodule = "EyeColorB" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
 
-        <connection sourcemodule = "MOUTH_BOTTOM_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_RED" />
-        <connection sourcemodule = "MOUTH_BOTTOM_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_GREEN" />
-        <connection sourcemodule = "MOUTH_BOTTOM_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_BLUE" />
-        
+    <connection sourcemodule = "EyeColorR" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_RED" />
+    <connection sourcemodule = "EyeColorG" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_GREEN" />
+    <connection sourcemodule = "EyeColorB" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_BLUE" />
+
+    <connection sourcemodule = "MOUTH_TOP_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_RED" />
+    <connection sourcemodule = "MOUTH_TOP_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_GREEN" />
+    <connection sourcemodule = "MOUTH_TOP_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_BLUE" />
+
+    <connection sourcemodule = "MOUTH_BOTTOM_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_RED" />
+    <connection sourcemodule = "MOUTH_BOTTOM_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_GREEN" />
+    <connection sourcemodule = "MOUTH_BOTTOM_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_BLUE" />
+    
     <!-- LED END -->
     <!-- 			Misc     				-->
     <!-- ********************************* 	-->
