@@ -3,10 +3,10 @@
 <group name="Detectors">
 
     <description>
-        WARNING. These modules is under development and can be change anytime!
+        WARNING. These modules are under development and can be change at any time!
 	 </description>
 
-    <!-- ID and Frames for represenration in different oordinate systems -->
+    <!-- ID and Frames for representation in different oordinate systems -->
     <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "OBJECT_ID_1"/>
     <input name = "EGO_FRAME_ID"      	targetmodule = "L_MarkerEgo"           target = "FRAME_ID_1" />
     <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "FRAME_ID_2"/>
