@@ -352,11 +352,11 @@
     <!-- Blue -->
     <module class = "Constant" name = "LedRBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "LedGBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "LedBBlue" data = "0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6" />
+    <module class = "Constant" name = "LedBBlue" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
 
     <!-- Green -->
     <module class = "Constant" name = "LedRGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "LedGGreen" data = "0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6" />
+    <module class = "Constant" name = "LedGGreen" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
     <module class = "Constant" name = "LedBGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
 
 
