@@ -344,7 +344,7 @@
         <channel name="RIGHT_EYE" channel="3" size="12" />
     </module>
 
-    <module class = "Constant" name = "LedBlueV"  data = "0.25" /> <!-- Trigger -->
+    <module class = "Constant" name = "LedBlueV"  data = "0.25" /> 
     <module class = "Constant" name = "LedGreenV" data = "0.5" />
 
 
@@ -352,11 +352,11 @@
     <!-- Blue -->
     <module class = "Constant" name = "LedRBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "LedGBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "LedBBlue" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "LedBBlue" data = "0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6" />
 
     <!-- Green -->
     <module class = "Constant" name = "LedRGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "LedGGreen" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "LedGGreen" data = "0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6" />
     <module class = "Constant" name = "LedBGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
 
 
@@ -389,7 +389,7 @@
     <module class = "Constant" name = "LedBOff" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
 
     <!-- Random -->
-    <module class = "EventTrigger" name = "LedOffV" size = "1" timeout = "100" duration = "2"/>
+    <module class = "EventTrigger" name = "LedOffV" size = "1" timeout = "20" duration = "1"/>
 
 
     <module class = "Arbiter" name = "EyeColorRBlink" no_of_inputs = "2" />
@@ -425,7 +425,7 @@
         <object class="Table" title = "EyeColorROut"    module="EyeColorRBlink" source = "OUTPUT" w = "2" x="0" y="1" />    
         <object class="Table" title = "EyeColorGOut"    module="EyeColorGBlink" source = "OUTPUT" w = "2" x="0" y="2" />    
         <object class="Table" title = "EyeColorBOut"    module="EyeColorBBlink" source = "OUTPUT" w = "2" x="0" y="3" />    
-        <object class="Button" module="LedBlueV"       parameter="data" x="2" y="0" />
+        <object class="Button" module="LedBlueV"       parameter="data" x="2" y="0" min = "0" max = "1" />
 
     </view>
 
