@@ -358,19 +358,19 @@
     <module class = "Constant" name = "LedGGreen" data = "1 1 1 1 1 1 1 1 1 1 1 1" />
     <module class = "Constant" name = "LedBGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
 
-    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2"/>
+    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2" alpha = "0.3"/>
         <connection sourcemodule = "LedRBlue"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_1" />
         <connection sourcemodule = "LedBBlueV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_1" />
         <connection sourcemodule = "LedRGreen"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_2" />
         <connection sourcemodule = "LedBGreenV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_2" />
 
-    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2"/>
+    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2" alpha = "0.3"/>
         <connection sourcemodule = "LedGBlue"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_1" />
         <connection sourcemodule = "LedBBlueV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_1" />
         <connection sourcemodule = "LedGGreen"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_2" />
         <connection sourcemodule = "LedBGreenV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_2" />
 
-    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2"/>
+    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2" alpha = "0.3"/>
         <connection sourcemodule = "LedBBlue"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_1" />
         <connection sourcemodule = "LedBBlueV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_1" />
         <connection sourcemodule = "LedBGreen"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_2" />
@@ -391,7 +391,7 @@
         <object class="Table" title = "EyeColorR"       module="EyeColorR" source = "OUTPUT" w = "2" x="0" y="1" />    
         <object class="Table" title = "EyeColorG"       module="EyeColorG" source = "OUTPUT" w = "2" x="0" y="2" />    
         <object class="Table" title = "EyeColorB"       module="EyeColorB" source = "OUTPUT" w = "2" x="0" y="3" />    
-        <object class="Button" module="LedBBlueV"       parameter="data" x="1" y="0" />
+        <object class="Button" module="LedBBlueV"       parameter="data" x="2" y="0" />
     </view>
 
     <connection sourcemodule = "EyeColorR" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
