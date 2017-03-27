@@ -136,7 +136,13 @@
         <!-- Random Focus points -->
         <connection sourcemodule = "RandomFocus"   		source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "INPUT_4" />
         <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT"   targetmodule = "HLFocusArb"  target = "VALUE_4" />
-
+   
+     <view name="Focus Point">
+        <object class="BarGraph" name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" x="0" y="0"/>    
+        <object class="BarGraph" name = "Marker" module="MarkerTrackerValue" source = "OUTPUT" x="1" y="0"/>    
+        <object class="BarGraph" name = "Change" module="ChangeSubtractV" source = "OUTPUT" x="2" y="0"/>    
+        <object class="BarGraph" name = "Random" module="RandomFocusPointValue" source = "OUTPUT" x="3" y="0"/>    
+    </view>
 
 
     <!-- This should be moved to population code and use amplitude instead --> 	
@@ -300,7 +306,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
@@ -593,7 +599,5 @@
         <object class="Table" module="GazeControllFocusPoint" source  	= "MATRIX" w = "4" x="4" y="4" />    
         <_object class="Button" module="GazeControllFocusPoint" parameter="invert_1" x="5" y="3"/>    
         <_object class="Button" module="GazeControllFocusPoint" parameter="invert_2" x="6" y="3"/>    
-
-
     </view>
 </group>
