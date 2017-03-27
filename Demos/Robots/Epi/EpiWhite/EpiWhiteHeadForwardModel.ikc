@@ -4,6 +4,9 @@
 
     <description>
         WARNING. These modules is under development and can be change anytime!
+
+        Origo is between arms (better for the big boys). 
+        But there is a first point where the 3d model should be.
 	 </description>
 
     <input name = "FEEDBACK_POSITION" targetmodule = "L1_R1Rot"    target = "INPUT" />
@@ -53,7 +56,7 @@
 
     <module class = "Constant" name = "L1_T1" 
 	data = "
-	1 0 0 0.09;
+	1 0 0 0.05;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -209,7 +212,7 @@
     <!-- Tanslation in x     -->
     <module class = "Constant" name = "S1_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 0.01;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -223,7 +226,7 @@
     <!-- Tanslation in x     -->
     <module class = "Constant" name = "S2_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 0.01;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;

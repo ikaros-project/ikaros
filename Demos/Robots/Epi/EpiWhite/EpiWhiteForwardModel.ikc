@@ -10,11 +10,10 @@
     <input name="HEAD_FEEDBACK_POSITION" 		targetmodule="Head" 	target="FEEDBACK_POSITION" />
     <input name="PUPIL_FEEDBACK_POSITION"   	targetmodule="Head" 	target="PUPIL_FEEDBACK_POSITION" />
 
-
 	<!-- MODEL_ID is a list of id that matches the id.stl in WebUI/Models -->
     <output name="MODEL_ID"     	sourcemodule="JOIN_MODEL_ID" 	source="OUTPUT" />
     <output name="MODEL_MATRIX" 	sourcemodule="JOIN_ARRAYS" 		source="OUTPUT" />
-
+  
 	<!-- Points -->
 	<!-- Points good to know. Right now 3 points in each hand. -->
     <output name="POINTS_MATRIX" 	sourcemodule="P_JOIN" source="OUTPUT" />
@@ -27,6 +26,8 @@
     <!-- FrameID and ObjectID -->
     <output name="OBJECT_ID" 	sourcemodule="ForwardModelObjectID" source="OUTPUT" />
     <output name="FRAME_ID" 	sourcemodule="ForwardModelFrameID" source="OUTPUT" />
+
+
     <module class = "Constant" name = "ForwardModelObjectID"    data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
     <module class = "Constant" name = "ForwardModelFrameID"     data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
 
@@ -49,9 +50,14 @@
     <!-- Forward models -->
     <!-- Unit is m -->
     <!-- Z 90 -->
-    <module class = "Constant" name = "Epi_pos" data = "
+    <_module class = "Constant" name = "Epi_pos" data = "
         0 -1 0 0
         1 0 0 0
+        0 0 1 0
+        0 0 0 1;" />
+    <module class = "Constant" name = "Epi_pos" data = "
+        1 0 0 0
+        0 1 0 0
         0 0 1 0
         0 0 0 1;" />
 
@@ -78,6 +84,9 @@
     <module class = "Constant" name = "HeadID"          data = "10; 11; 12; 13; 14; 15;" /> <!-- ID IS NOT USED -->
     <module class = "Constant" name = "HeadFrame"       data = "2; 2; 2; 2; 2; 2;" />
 
+    <module class = "Constant" name = "SensorID"          data = "10; 11;" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "SensorFrame"       data = "2; 2;" />
+
 
    <!-- Position -> Body  --> 
     <module class="Transform"   name="PosBody" />
@@ -103,7 +112,7 @@
         <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorBodyHead" target = "OBJECT_ID_1" delay = "0"/>
         <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorBodyHead" target = "FRAME_ID_1"  delay = "0"/>
         <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "SensorBodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "SensorID"         source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "SensorFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
 
 </group>

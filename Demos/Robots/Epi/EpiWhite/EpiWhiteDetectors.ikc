@@ -10,7 +10,6 @@
     <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "OBJECT_ID_1"/>
     <input name = "EGO_FRAME_ID"      	targetmodule = "L_MarkerEgo"           target = "FRAME_ID_1" />
     <input name = "EGO_ID"      	    targetmodule = "L_MarkerEgo"           target = "FRAME_ID_2"/>
-
     <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "OBJECT_ID_1"/>
     <input name = "WORLD_FRAME_ID"      targetmodule = "L_MarkerWorld"         target = "FRAME_ID_1" />
     <input name = "WORLD_ID"      	    targetmodule = "L_MarkerWorld"         target = "FRAME_ID_2"/>
@@ -22,13 +21,25 @@
     <input name = "WORLD_FRAME_ID"      targetmodule = "R_MarkerWorld"         target = "FRAME_ID_1" />
     <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "FRAME_ID_2"/>
 
+    <input name = "WORLD_ID"      	    targetmodule = "L_ChangeEgo"           target = "OBJECT_ID_1"/>
+    <input name = "WORLD_FRAME_ID"      targetmodule = "L_ChangeEgo"           target = "FRAME_ID_1" />
+    <input name = "WORLD_ID"      	    targetmodule = "L_ChangeEgo"           target = "FRAME_ID_2"/>
+    <input name = "WORLD_ID"      	    targetmodule = "L_ChangeWorld"         target = "OBJECT_ID_1"/>
+    <input name = "WORLD_FRAME_ID"      targetmodule = "L_ChangeWorld"         target = "FRAME_ID_1" />
+    <input name = "WORLD_ID"      	    targetmodule = "L_ChangeWorld"         target = "FRAME_ID_2"/>
+    
+    <!-- Right Change -->
+
     <input name = "SENSORS_POS_EGO"     targetmodule = "L_Camera_Sensor"       target = "INPUT" />
     <input name = "SENSORS_POS_EGO"     targetmodule = "R_Camera_Sensor"       target = "INPUT" />
 
     <input name = "EPI_POS_WORLD"       targetmodule = "L_MarkerWorld"         target = "MATRIX_1" />
     <input name = "EPI_POS_WORLD"       targetmodule = "R_MarkerWorld"         target = "MATRIX_1" />
     
-    <!-- Split sensors-->
+    <input name = "EPI_POS_WORLD"       targetmodule = "L_ChangeWorld"         target = "MATRIX_1" />
+    <_input name = "EPI_POS_WORLD"       targetmodule = "R_ChangeWorld"         target = "MATRIX_1" />
+    
+<!-- Split sensors-->
     <module class = "TruncateArray" name = "L_Camera_Sensor" array_length = "16" selection = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16" loop = "false"/>
     <module class = "TruncateArray" name = "R_Camera_Sensor" array_length = "16" selection = "17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32" loop = "false"/>
 
@@ -85,6 +96,31 @@
     <output name = "R_MARKER_WORLD_FRAME"   sourcemodule = "R_MarkerWorld"      source = "FRAME_ID" />
 	
 	
+    <output name = "L_CHANGE_SENSOR"        sourcemodule = "L_MarkerTracker"    source = "MATRIX" />
+    <output name = "L_CHANGE_SENSOR_ID"     sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID" />
+    <output name = "L_CHANGE_SENSOR_FRAME"  sourcemodule = "L_MarkerTracker"    source = "FRAME_ID" />
+    
+    <output name = "R_CHANGE_SENSOR"        sourcemodule = "R_MarkerTracker"    source = "MATRIX" />
+    <output name = "R_CHANGE_SENSOR_ID"     sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID" />
+    <output name = "R_CHANGE_SENSOR_FRAME"  sourcemodule = "R_MarkerTracker"    source = "FRAME_ID" />
+
+    <output name = "L_CHANGE_EGO"           sourcemodule = "L_ChangeEgo"        source = "MATRIX" />
+    <output name = "L_CHANGE_EGO_ID"        sourcemodule = "L_ChnageEgo"        source = "OBJECT_ID" />
+    <output name = "L_CHANGE_EGO_FRAME"     sourcemodule = "L_ChangeEgo"        source = "FRAME_ID" />
+
+    <output name = "R_CHANGE_EGO"           sourcemodule = "R_ChangeEgo"        source = "MATRIX" />
+    <output name = "R_CHANGE_EGO_ID"        sourcemodule = "R_ChangeEgo"        source = "OBJECT_ID" />
+    <output name = "R_CHANGE_EGO_FRAME"     sourcemodule = "R_ChangeEgo"        source = "FRAME_ID" />
+
+    <output name = "L_CHANGE_WORLD"         sourcemodule = "L_ChangeWorld"      source = "MATRIX" />
+    <output name = "L_CHANGE_WORLD_ID"      sourcemodule = "L_ChangeWorld"      source = "OBJECT_ID" />
+    <output name = "L_CHANGE_WORLD_FRAME"   sourcemodule = "L_ChangeWorld"      source = "FRAME_ID" />
+
+    <output name = "R_CHANGE_WORLD"         sourcemodule = "R_ChangeWorld"      source = "MATRIX" />
+    <output name = "R_CHANGE_WORLD_ID"      sourcemodule = "R_ChangeWorld"      source = "OBJECT_ID" />
+    <output name = "R_CHANGE_WORLD_FRAME"   sourcemodule = "R_ChangeWorld"      source = "FRAME_ID" />
+	
+
     <!-- Trash module -->
     <module class = "Sink" name = "NotAvailable" />
 
@@ -170,7 +206,6 @@
         <connection sourcemodule = "R_MarkerWorld"    source = "MATRIX"    targetmodule = "R_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
 	
 
-
     <view name = "Check outputs"> 
         <object class = "Table" x="0" y="0" h="2" w="3" module = "L_MarkerTracker_MAT"  source = "OUTPUT" font_size = "20"/>
         <object class = "Table" x="0" y="2" h="2" w="3" module = "L_MarkerEgo_MAT"      source = "OUTPUT" font_size = "20"/>
@@ -181,4 +216,39 @@
         <object class = "Table" x="3" y="4" h="2" w="3" module = "R_MarkerWorld_MAT"    source = "OUTPUT" font_size = "20"/>
     </view>
 
+
+    <module class="Constant" name="X" data = "0" />
+    <module class="Constant" name="Y" data = "0" />
+    <module class="Constant" name="Z" data = "0" />
+    <module class="Constant" name="ZERO" data = "0" />
+    
+    <!-- Drifts away -->
+
+    <module class="Constant" name="ChangeID" data = "500" /> <!-- All change has the same ID -->
+
+    <!-- Change -->
+    <module class="RotationConverter" name="L_ChangeRotation" input_format = "xyz" output_format = "matrix" />
+        <connection sourcemodule = "Z"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+        <connection sourcemodule = "Y"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+        <connection sourcemodule = "X"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+
+
+    <!-- EGO-->
+    <module class="Transform"   name="L_ChangeEgo" />
+        <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "L_ChangeRotation"   source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "ChangeID"           source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "OBJECT_ID_2" delay = "0"/>   
+    <!-- WORLD -->
+    <!-- Robot Pos + Ego -->
+    <module class="Transform"   name="L_ChangeWorld" />
+        <connection sourcemodule = "L_ChangeEgo"        source = "MATRIX"       targetmodule = "L_ChangeWorld" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "ChangeID"    source = "OUTPUT"    targetmodule = "L_ChangeWorld" target = "OBJECT_ID_2" delay = "0"/>
+
+    <view name = "Check outputs"> 
+        <object class = "Table" x="0" y="0" h="1" w="6" module = "L_Camera_Sensor"  source = "OUTPUT" font_size = "20"/>
+        <object class = "Table" x="0" y="1" h="1" w="6" module = "L_ChangeRotation" source = "OUTPUT" font_size = "20"/>
+
+        <object class = "Table" x="0" y="2" h="1" w="6" module = "L_ChangeEgo"  source = "MATRIX" font_size = "20"/>
+        <object class = "Table" x="0" y="3" h="1" w="6" module = "L_ChangeWorld"      source = "MATRIX" font_size = "20"/>
+    </view>
 </group>

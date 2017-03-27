@@ -39,11 +39,12 @@
     <!-- LINK 1: TRANS 1: Translation to origo (Center of arm joints) --> 
     <module class = "Constant" name = "L1_T1" 
 	data = "
-	1 0 0 0.05;
+	1 0 0 0.04;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" />
+
 
     <!-- Multiply -->
     <module class="MatrixMultiply"   name="M_L1_R1" />
