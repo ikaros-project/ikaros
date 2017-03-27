@@ -335,8 +335,8 @@
     <view name="Pupil">
         <object class="Image" title="Input"                     module="Vision" source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
         <object class="Plot" title="Response Light"             module="PupilControl" source="PTA_OUTPUT"   x="0" y="0" w="4" />
-        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="1" w="4" min = "10" max="20" />
-        <object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="2" w="4" min = "10" max="20" />
+        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="1" w="4" min = "5" max="17" />
+        <object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="2" w="4" min = "5" max="17" />
     </view>
 
      <!-- Population coding -->
