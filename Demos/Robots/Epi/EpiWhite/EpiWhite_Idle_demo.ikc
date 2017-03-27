@@ -247,7 +247,11 @@
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="ManPPos" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <!-- This will be handle in LLArbiter with mixing is enable -->
+        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+
+        <_connection sourcemodule="ManPPos" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
     <!-- ************************ -->
@@ -303,7 +307,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
@@ -328,9 +332,11 @@
     <module class="PupilControl" name="PupilControl"/>
         <connection sourcemodule="Vision" source="LEFT_INTENSITY" targetmodule="PupilControl" target="PTA" />
 
-    <view name="Parasympathetic Circuit">
-        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="0" w="4" _min = "0" max="20" />
-        <object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="1" w="4" _min = "0" max="20" />
+    <view name="Pupil">
+        <object class="Image" title="Input"                     module="Vision" source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
+        <object class="Plot" title="Response Light"             module="PupilControl" source="PTA_OUTPUT"   x="0" y="0" w="4" />
+        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="1" w="4" min = "10" max="20" />
+        <object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="2" w="4" min = "10" max="20" />
     </view>
 
      <!-- Population coding -->
@@ -355,8 +361,8 @@
 
     <!-- Value Low Level -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "PupilContPopValue" 		data = "0"/>
-    <module class = "Constant" name = "HLMotorArbValue" 	    data = "1.1"/>
+    <module class = "Constant" name = "PupilContPopValue" 		data = "0"/> <!-- Waiting on arbiter mixing -->
+    <module class = "Constant" name = "HLMotorArbValue" 	    data = "0.1"/>
 
     <module class = "PopulationDecoder" name = "ServoPos" min  = "-400" max  = "400" size = "20"/>
         <connection sourcemodule = "LLArb"     source = "OUTPUT"  targetmodule = "ServoPos"  target = "INPUT" />
