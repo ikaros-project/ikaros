@@ -132,10 +132,10 @@
         <connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_2" />
         <!-- ChangeDetector (Left) -->
         <connection sourcemodule = "Detectors"   		source = "L_CHANGE_WORLD" targetmodule = "HLFocusArb"  target = "INPUT_3" />
-        <connection sourcemodule = "ChangeDetectorValue" source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_3" />
+        <connection sourcemodule = "ChangeSubtractV"    source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_3" />
         <!-- Random Focus points -->
         <connection sourcemodule = "RandomFocus"   		source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "INPUT_4" />
-        <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT" targetmodule = "HLFocusArb"  target = "VALUE_4" />
+        <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT"   targetmodule = "HLFocusArb"  target = "VALUE_4" />
 
 
 
@@ -144,9 +144,25 @@
     <module class = "Constant" name = "MarkerTrackerValue"  data = "0.2"/>
     <module class = "Constant" name = "ChangeDetectorValue"  data = "1.9"/>
     <module class = "Constant" name = "RandomFocusPointValue"  data = "0.9"/>
+
+    <!-- If robot is moving do not trust ChangeDetectorValue -->
+    
+    <module class="Mean" name="MotorSpeed"/>
+        <connection sourcemodule = "Servos" source = "BODY_FEEDBACK_POSITION" targetmodule = "MotorSpeed" target = "INPUT" />
+        <connection sourcemodule = "Servos" source = "HEAD_FEEDBACK_POSITION" targetmodule = "MotorSpeed" target = "INPUT" />
+        <connection sourcemodule = "Servos" source = "PUPIL_FEEDBACK_POSITION" targetmodule = "MotorSpeed" target = "INPUT" />
+
+	<module class = "Threshold" name = "MotorSpeedT" type  = "binary" threshold = "0.1" />
+        <connection sourcemodule = "MotorSpeed" source = "OUTPUT" targetmodule = "MotorSpeedT" target = "INPUT" />
+
+    <module class = "Subtract" name = "ChangeSubtractV"/>
+        <connection sourcemodule = "ChangeDetectorValue" source = "OUTPUT" targetmodule = "ChangeSubtractV" target = "INPUT1" />
+        <connection sourcemodule = "MotorSpeedT" source = "OUTPUT" targetmodule = "ChangeSubtractV" target = "INPUT2" />
+
     <!-- ************************ -->
 
-
+     <view name="View" object_size="50">
+    </view>
 
 
     <!--       Motor Control      -->
@@ -290,7 +306,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
