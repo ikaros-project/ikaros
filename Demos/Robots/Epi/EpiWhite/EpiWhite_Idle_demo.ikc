@@ -446,10 +446,10 @@
         <channel name="RIGHT_EYE" channel="3" size="12" />
     </module>
 
-    <module class = "Constant" name = "LedBlueV"  data = "0.25" /> 
+    <module class = "Constant" name = "LedBlueV"  data = "0.1" /> 
     <_module class = "Constant" name = "LedGreenV" data = "0.5" />
 
-    <module class = "Threshold" name = "LedGreenV" type  = "binary" threshold = "0.25"/>    
+    <module class = "Threshold" name = "LedGreenV" type  = "binary" threshold = "0.1"/>    
         <connection sourcemodule = "ChangeSubtractV"  source = "OUTPUT"  targetmodule = "LedGreenV"  target = "INPUT" />
 
 
