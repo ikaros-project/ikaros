@@ -21,12 +21,15 @@
     <input name = "WORLD_FRAME_ID"      targetmodule = "R_MarkerWorld"         target = "FRAME_ID_1" />
     <input name = "WORLD_ID"      	    targetmodule = "R_MarkerWorld"         target = "FRAME_ID_2"/>
 
-    <input name = "WORLD_ID"      	    targetmodule = "L_ChangeEgo"           target = "OBJECT_ID_1"/>
-    <input name = "WORLD_FRAME_ID"      targetmodule = "L_ChangeEgo"           target = "FRAME_ID_1" />
-    <input name = "WORLD_ID"      	    targetmodule = "L_ChangeEgo"           target = "FRAME_ID_2"/>
+    <input name = "EGO_ID"      	    targetmodule = "L_ChangeEgo"           target = "OBJECT_ID_1"/>
+    <input name = "EGO_FRAME_ID"        targetmodule = "L_ChangeEgo"           target = "FRAME_ID_1" />
+    <input name = "EGO_ID"      	    targetmodule = "L_ChangeEgo"           target = "FRAME_ID_2"/>
     <input name = "WORLD_ID"      	    targetmodule = "L_ChangeWorld"         target = "OBJECT_ID_1"/>
     <input name = "WORLD_FRAME_ID"      targetmodule = "L_ChangeWorld"         target = "FRAME_ID_1" />
     <input name = "WORLD_ID"      	    targetmodule = "L_ChangeWorld"         target = "FRAME_ID_2"/>
+    <input name = "EGO_ID"      	    targetmodule = "L_ChangeRotation"      target = "OBJECT_ID_1"/>
+    <input name = "EGO_FRAME_ID"        targetmodule = "L_ChangeRotation"      target = "FRAME_ID_1" />
+    <input name = "EGO_ID"      	    targetmodule = "L_ChangeRotation"      target = "FRAME_ID_2"/>
     
     <!-- Right Change -->
 
@@ -122,6 +125,9 @@
     <output name = "R_CHANGE_WORLD_ID"      sourcemodule = "R_ChangeWorld"      source = "OBJECT_ID" />
     <output name = "R_CHANGE_WORLD_FRAME"   sourcemodule = "R_ChangeWorld"      source = "FRAME_ID" />
 	
+    <!-- Confidance -->
+    <!-- Marker -->
+    <output name = "L_CHANGE_CONF"        sourcemodule = "SpatialClustering"    source = "CONFIDENCE" />
 
     <!-- Trash module -->
     <module class = "Sink" name = "NotAvailable" />
@@ -247,40 +253,24 @@
 	/>
 	    <connection sourcemodule = "SpatialClustering" source = "OUTPUT" targetmodule = "PixelToAngleYZ" target = "INPUT" delay="1" />   
 
-        <!-- Translation X in the axis of the sensor -->
-        
-
-
-    <!-- Estimate  -->
-    
-<module
-	    class="AttentionFocus"
-		name="AttentionFocus"
-		output_radius = "100"
-	/>
+    <!-- AttentionFocus is not used -->
+    <module class="AttentionFocus" name="AttentionFocus" output_radius = "100" />
  	    <connection sourcemodule = "SpatialClustering" source = "OUTPUT" targetmodule = "AttentionFocus" target = "FOCUS" delay="1" />
 
-        <view name = "Change Detecton">
-			<_object class="Image" name="Video" module="Vision" source="INTENSITY" x="0" y="0" w ="4" h="2"/>
-            <object class= "Trace" module = "SpatialClustering" source="OUTPUT" trace_width="1" x="0" y="0" w ="4" h="2" frame="none"/>
-            <object
-				class="Circle" title="Detection"
-				module = "SpatialClustering"
-                color = "red,green,blue,yellow,white,black"
-                size = "0.05"
-				source = "OUTPUT" x="0" y="0" w ="4" h="2"
-			/>
-			<object class="Image" name="Changes" module="Change" source="OUTPUT" x="0" y="2" />
-			<object class="Table" name="PixelToAngle" module="PixelToAngle" source="OUTPUT" x="1" y="2" />
-			<object class="Table" name="SpatialClustering" module="SpatialClustering" source="CONFIDENCE" x="2" y="2" />
-			<object class= "Image" module="AttentionFocus" source="OUTPUT" x="0" y="3" w ="4" h="2" min="0" max="255" />
-			<object class= "Table" module="PixelToAngleYZ" source="OUTPUT" x="4" y="0" w ="4" h="2" min="0" max="255" />
-
-
-        </view>
+    <view name = "Change Detecton">
+	    <_object class="Image" name="Video" module="Vision" source="INTENSITY" x="0" y="0" w ="4" h="2"/>
+        <object class= "Trace" module = "SpatialClustering" source="OUTPUT" trace_width="1" x="0" y="0" w ="4" h="2" frame="none"/>
+        <object class="Circle" title="Detection" module = "SpatialClustering" color = "red,green,blue,yellow,white,black" size = "0.05" source = "OUTPUT" x="0" y="0" w ="4" h="2"/>
+	    <object class="Image" name="Changes" module="Change" source="OUTPUT" x="0" y="2" />
+		<object class="Table" name="PixelToAngle" module="PixelToAngle" source="OUTPUT" x="1" y="2" />
+		<object class="Table" name="SpatialClustering" module="SpatialClustering" source="CONFIDENCE" x="2" y="2" />
+		<object class= "Image" module="AttentionFocus" source="OUTPUT" x="0" y="3" w ="4" h="2" min="0" max="255" />
+		<object class= "Table" module="PixelToAngleYZ" source="OUTPUT" x="4" y="0" w ="4" h="2" min="0" max="255" />
+    </view>
 
 
     <module class="Constant" name="ChangeID" data = "500" /> <!-- All change has the same ID -->
+    <!-- Translation X in the axis of the sensor -->
 
     <!-- Fake Z -->
     <module class="Constant" name="ChangeX" data ="2" /> 
@@ -293,30 +283,21 @@
     <module class="RotationConverter" name="L_ChangeRotationRot" input_format = "axayaz" output_format = "matrix" />
         <connection sourcemodule = "PixelToAngleYZ"  source = "OUTPUT" targetmodule = "L_ChangeRotationRot"  target = "INPUT" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotationRot"  target = "INPUT" />
-    
-	<module class = "DataConverter" name = "L_ChangeRotationRotMat" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_ChangeRotationRot"       source = "OUTPUT" targetmodule = "L_ChangeRotationRotMat"  target = "INPUT" />
-
+ 
     <module class="RotationConverter" name="L_ChangeRotationTrans" input_format = "xyz" output_format = "matrix" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotationTrans"  target = "INPUT" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotationTrans"  target = "INPUT" />
         <connection sourcemodule = "ChangeX"    source = "OUTPUT" targetmodule = "L_ChangeRotationTrans"  target = "INPUT" />
 
-	<module class = "DataConverter" name = "L_ChangeRotationTransMat" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_ChangeRotationTrans"       source = "OUTPUT" targetmodule = "L_ChangeRotationTransMat"  target = "INPUT" />
-
-    <module class = "MatrixMultiply"   name = "L_ChangeRotationM" />
-        <connection sourcemodule = "L_ChangeRotationRotMat"     source = "OUTPUT"     targetmodule = "L_ChangeRotationM" target = "INPUT1" delay = "0"/>
-        <connection sourcemodule = "L_ChangeRotationTransMat"   source = "OUTPUT"     targetmodule = "L_ChangeRotationM" target = "INPUT2" delay = "0"/>
-
-	<module class = "DataConverter" name = "L_ChangeRotation" output_size_x = "16" output_size_y = "1"/>
-        <connection sourcemodule = "L_ChangeRotationM"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
-
+     <module class="Transform"   name="L_ChangeRotation" />
+        <connection sourcemodule = "L_ChangeRotationRot"  source = "OUTPUT"       targetmodule = "L_ChangeRotation" target = "MATRIX_1"    delay = "0"/>
+        <connection sourcemodule = "L_ChangeRotationTrans" source = "OUTPUT"      targetmodule = "L_ChangeRotation" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "ChangeID"           source = "OUTPUT"           targetmodule = "L_ChangeRotation" target = "OBJECT_ID_2" delay = "0"/>   
 
     <!-- EGO-->
     <module class="Transform"   name="L_ChangeEgo" />
         <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_ChangeRotation"   source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "MATRIX_2"    delay = "0"/>
+        <connection sourcemodule = "L_ChangeRotation"   source = "MATRIX"       targetmodule = "L_ChangeEgo" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "ChangeID"           source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->

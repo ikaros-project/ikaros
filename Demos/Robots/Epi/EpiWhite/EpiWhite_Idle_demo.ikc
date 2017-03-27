@@ -69,9 +69,6 @@
         <connection sourcemodule = "ManualY"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
         <connection sourcemodule = "ManualX"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
 
-
-
-
     
     <!-- Set positions of servos -->
     <module class = "Constant" name = "ManBPos" data = "0 0" />
@@ -138,18 +135,18 @@
         <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT"   targetmodule = "HLFocusArb"  target = "VALUE_4" />
    
      <view name="Focus Point">
-        <object class="BarGraph" name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" x="0" y="0"/>    
-        <object class="BarGraph" name = "Marker" module="MarkerTrackerValue" source = "OUTPUT" x="1" y="0"/>    
-        <object class="BarGraph" name = "Change" module="ChangeSubtractV" source = "OUTPUT" x="2" y="0"/>    
-        <object class="BarGraph" name = "Random" module="RandomFocusPointValue" source = "OUTPUT" x="3" y="0"/>    
+        <object class="BarGraph" name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" min = "-1" max = "1"  x="0" y="0"/>    
+        <object class="BarGraph" name = "Marker" module="MarkerTrackerValue" source = "OUTPUT" min = "-1" max = "1" x="1" y="0"/>    
+        <object class="BarGraph" name = "Change" module="ChangeSubtractV" source = "OUTPUT" min = "-1" max = "1" x="2" y="0"/>    
+        <object class="BarGraph" name = "Random" module="RandomFocusPointValue" source = "OUTPUT" min = "-1" max = "1" x="3" y="0"/>    
     </view>
 
 
     <!-- This should be moved to population code and use amplitude instead --> 	
-    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.1"/>
-    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.2"/>
-    <module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
-    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.8"/>
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.01"/>
+    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.02"/>
+    <_module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.1"/>
 
     <!-- If the robot is moving. Disable Change detector -->
     <module class="Mean" name="MotorSpeed"/>
@@ -159,7 +156,7 @@
 	<module class = "Threshold" name = "MotorSpeedT" type  = "binary" threshold = "0.1" /> 
         <connection sourcemodule = "MotorSpeed" source = "OUTPUT" targetmodule = "MotorSpeedT" target = "INPUT" />
     <module class = "Subtract" name = "ChangeSubtractV"/>
-        <connection sourcemodule = "ChangeDetectorValue" source = "OUTPUT" targetmodule = "ChangeSubtractV" target = "INPUT1" />
+        <connection sourcemodule = "Detectors" source = "L_CHANGE_CONF" targetmodule = "ChangeSubtractV" target = "INPUT1" />
         <connection sourcemodule = "MotorSpeedT" source = "OUTPUT" targetmodule = "ChangeSubtractV" target = "INPUT2" />
 
     <!-- ************************ -->
@@ -250,7 +247,7 @@
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="PZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="ManPPos" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
     <!-- ************************ -->
@@ -306,7 +303,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
