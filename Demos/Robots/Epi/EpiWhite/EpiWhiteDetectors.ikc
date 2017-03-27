@@ -238,23 +238,22 @@
     
     <module
 	    class="LinearSplines"
-		name="PixelToAngle"
+		name="PixelToAngleYZ"
         points =
         "
         0 -26 0 -26; 
         0.5 0 0.5 0; 
         1 26 1 26"
 	/>
-	    <connection sourcemodule = "SpatialClustering" source = "OUTPUT" targetmodule = "PixelToAngle" target = "INPUT" delay="1" />
-    
-    <!-- Translation X in the axis of the sensor -->
+	    <connection sourcemodule = "SpatialClustering" source = "OUTPUT" targetmodule = "PixelToAngleYZ" target = "INPUT" delay="1" />   
 
+        <!-- Translation X in the axis of the sensor -->
+        
 
 
     <!-- Estimate  -->
     
- 
-    <module
+<module
 	    class="AttentionFocus"
 		name="AttentionFocus"
 		output_radius = "100"
@@ -275,18 +274,25 @@
 			<object class="Table" name="PixelToAngle" module="PixelToAngle" source="OUTPUT" x="1" y="2" />
 			<object class="Table" name="SpatialClustering" module="SpatialClustering" source="CONFIDENCE" x="2" y="2" />
 			<object class= "Image" module="AttentionFocus" source="OUTPUT" x="0" y="3" w ="4" h="2" min="0" max="255" />
+			<object class= "Table" module="PixelToAngleYZ" source="OUTPUT" x="4" y="0" w ="4" h="2" min="0" max="255" />
+
+
         </view>
 
 
     <module class="Constant" name="ChangeID" data = "500" /> <!-- All change has the same ID -->
 
     <!-- Fake Z -->
-    <module class="Constant" name="ChangeZ" data ="2" /> 
+    <module class="Constant" name="ChangeX" data ="2" /> 
+    <module class="Constant" name="ZERO" data ="0" /> 
 
     <!-- Change -->
-    <module class="RotationConverter" name="L_ChangeRotation" input_format = "xyz" output_format = "matrix" />
-        <connection sourcemodule = "ChangeZ"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
-        <connection sourcemodule = "PixelToAngle"  source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+    <module class="RotationConverter" name="L_ChangeRotation" input_format = "xyzaxayaz" output_format = "matrix" />
+        <connection sourcemodule = "PixelToAngleYZ"  source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+        <connection sourcemodule = "ChangeX"    source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
 
 
     <!-- EGO-->
