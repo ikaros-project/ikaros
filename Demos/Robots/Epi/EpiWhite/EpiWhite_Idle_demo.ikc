@@ -73,7 +73,7 @@
     <!-- Set positions of servos -->
     <module class = "Constant" name = "ManBPos" data = "0 0" />
     <module class = "Constant" name = "ManHPos" data = "0 0 0 0" />
-    <module class = "Constant" name = "ManPPos" data = "11 11" />
+    <module class = "Constant" name = "ManPPos" data = "12 12" />
 
 
     <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
@@ -267,7 +267,7 @@
 
     <!-- Values -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "ManPosPopValue" 	    data = "0.2"/>
+    <module class = "Constant" name = "ManPosPopValue" 	    data = "1.2"/>
     <module class = "Constant" name = "GazePosPopValue"     data = "0.9"/>
     <module class = "Constant" name = "MotionRecPopValue"   data = "0.1"/>
 
@@ -508,11 +508,11 @@
         <connection sourcemodule = "LedsOffV"  source = "OUTPUT"  targetmodule = "EyeColorBBlink"  target = "VALUE_2" />
 
     <!-- Mouth -->
-    <module class = "Constant" name = "MOUTH_TOP_RED" data = "1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "MOUTH_TOP_RED" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
     <module class = "Constant" name = "MOUTH_TOP_GREEN" data = "0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "MOUTH_TOP_BLUE" data = "0 0 0 0 0 0 0 0" />
 
-    <module class = "Constant" name = "MOUTH_BOTTOM_RED" data = "1 1 1 1 1 1 1 1" />
+    <module class = "Constant" name = "MOUTH_BOTTOM_RED" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
     <module class = "Constant" name = "MOUTH_BOTTOM_GREEN" data = "0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "MOUTH_BOTTOM_BLUE" data = "0 0 0 0 0 0 0 0" />
 
