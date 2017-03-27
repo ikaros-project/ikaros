@@ -142,8 +142,8 @@
     <!-- This should be moved to population code and use amplitude instead --> 	
     <module class = "Constant" name = "ManFocusPointValue" 	data = "0.1"/>
     <module class = "Constant" name = "MarkerTrackerValue"  data = "0.2"/>
-    <module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
-    <module class = "Constant" name = "RandomFocusPointValue"  data = "1.9"/>
+    <module class = "Constant" name = "ChangeDetectorValue"  data = "1.9"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.9"/>
     <!-- ************************ -->
 
 
