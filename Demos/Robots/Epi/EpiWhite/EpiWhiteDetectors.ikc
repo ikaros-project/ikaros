@@ -305,9 +305,13 @@
 	<module class = "DataConverter" name = "L_ChangeRotationTransMat" output_size_x = "4" output_size_y = "4"/>
         <connection sourcemodule = "L_ChangeRotationTrans"       source = "OUTPUT" targetmodule = "L_ChangeRotationTransMat"  target = "INPUT" />
 
-    <module class = "MatrixMultiply"   name = "L_ChangeRotation" />
-        <connection sourcemodule = "L_ChangeRotationRotMat"     source = "OUTPUT"     targetmodule = "L_ChangeRotation" target = "INPUT1" delay = "0"/>
-        <connection sourcemodule = "L_ChangeRotationTransMat"   source = "OUTPUT"     targetmodule = "L_ChangeRotation" target = "INPUT2" delay = "0"/>
+    <module class = "MatrixMultiply"   name = "L_ChangeRotationM" />
+        <connection sourcemodule = "L_ChangeRotationRotMat"     source = "OUTPUT"     targetmodule = "L_ChangeRotationM" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L_ChangeRotationTransMat"   source = "OUTPUT"     targetmodule = "L_ChangeRotationM" target = "INPUT2" delay = "0"/>
+
+	<module class = "DataConverter" name = "L_ChangeRotation" output_size_x = "16" output_size_y = "1"/>
+        <connection sourcemodule = "L_ChangeRotationM"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+
 
     <!-- EGO-->
     <module class="Transform"   name="L_ChangeEgo" />
