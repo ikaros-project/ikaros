@@ -307,7 +307,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
@@ -447,7 +447,10 @@
     </module>
 
     <module class = "Constant" name = "LedBlueV"  data = "0.25" /> 
-    <module class = "Constant" name = "LedGreenV" data = "0.5" />
+    <_module class = "Constant" name = "LedGreenV" data = "0.5" />
+
+    <module class = "Threshold" name = "LedGreenV" type  = "binary" threshold = "0.25"/>    
+        <connection sourcemodule = "ChangeSubtractV"  source = "OUTPUT"  targetmodule = "LedGreenV"  target = "INPUT" />
 
 
     <!-- Eyes -->
@@ -463,19 +466,19 @@
 
 
 
-    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2" alpha = "0.5"/>
+    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2" switch_time = "5"/>
         <connection sourcemodule = "LedRBlue"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_1" />
         <connection sourcemodule = "LedRGreen"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_2" />
         <connection sourcemodule = "LedGreenV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_2" />
 
-    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2" alpha = "0.5"/>
+    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2" switch_time = "5"/>
         <connection sourcemodule = "LedGBlue"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_1" />
         <connection sourcemodule = "LedGGreen"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_2" />
         <connection sourcemodule = "LedGreenV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_2" />
 
-    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2" alpha = "0.5"/>
+    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2" switch_time = "5"/>
         <connection sourcemodule = "LedBBlue"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_1" />
         <connection sourcemodule = "LedBGreen"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_2" />
