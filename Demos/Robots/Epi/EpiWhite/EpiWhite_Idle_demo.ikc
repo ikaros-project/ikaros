@@ -271,7 +271,7 @@
 
     <!-- Values -->
     <!-- These should be handle by the new coder module -->
-    <module class = "Constant" name = "ManPosPopValue" 	    data = "1.2"/>
+    <module class = "Constant" name = "ManPosPopValue" 	    data = "0.2"/>
     <module class = "Constant" name = "GazePosPopValue"     data = "0.9"/>
     <module class = "Constant" name = "MotionRecPopValue"   data = "0.1"/>
 
