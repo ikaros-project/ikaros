@@ -286,14 +286,22 @@
     <module class="Constant" name="ChangeX" data ="2" /> 
     <module class="Constant" name="ZERO" data ="0" /> 
 
+    <!-- Rotation first -->
+    <!-- Translation second -->
+
     <!-- Change -->
-    <module class="RotationConverter" name="L_ChangeRotation" input_format = "xyzaxayaz" output_format = "matrix" />
+    <module class="RotationConverter" name="L_ChangeRotationRot" input_format = "axayaz" output_format = "matrix" />
         <connection sourcemodule = "PixelToAngleYZ"  source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
+    
+    <module class="RotationConverter" name="L_ChangeRotationTrans" input_format = "xyz" output_format = "matrix" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
         <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
         <connection sourcemodule = "ChangeX"    source = "OUTPUT" targetmodule = "L_ChangeRotation"  target = "INPUT" />
 
+    <module class = "MatrixMultiply"   name = "L_ChangeRotation" />
+        <connection sourcemodule = "L_ChangeRotationRot"     source = "OUTPUT"     targetmodule = "L_ChangeRotation" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "L_ChangeRotationTrans"        source = "OUTPUT"     targetmodule = "L_ChangeRotation" target = "INPUT2" delay = "0"/>
 
     <!-- EGO-->
     <module class="Transform"   name="L_ChangeEgo" />
