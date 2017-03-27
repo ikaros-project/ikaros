@@ -163,6 +163,8 @@
 	/>
         <connection sourcemodule = "Pupil"  source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FB_P_PresentPosition"  target = "INPUT" />
 
+    <!-- This is Green value -->
+    <!-- Needs recalibration -->
     <module
         class = "LinearSplines"
         name = "DegreesTomm"

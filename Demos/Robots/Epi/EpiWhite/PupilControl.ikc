@@ -35,7 +35,8 @@
     <module
         class="Nucleus"
         name="CG"
-     	alpha = "16"
+     	_alpha = "16"
+     	alpha = "20"
         beta = "-10"
     />
 
