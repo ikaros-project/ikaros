@@ -146,7 +146,7 @@
     <module class = "Constant" name = "ManFocusPointValue" 	data = "0.01"/>
     <module class = "Constant" name = "MarkerTrackerValue"  data = "0.02"/>
     <_module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
-    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.1"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "1.1"/>
 
     <!-- If the robot is moving. Disable Change detector -->
     <module class="Mean" name="MotorSpeed"/>
@@ -250,8 +250,8 @@
         <!-- This will be handle in LLArbiter with mixing is enable -->
         <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-
         <_connection sourcemodule="ManPPos" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+
         <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
     <!-- ************************ -->
