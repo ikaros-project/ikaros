@@ -28,7 +28,7 @@
 		id 				= "0"
 		_frame_rate 		= "29.97"
 		frame_rate 		= "30"
-		period			= "1"
+		period			= "2"
 	/>
     
 </group>
