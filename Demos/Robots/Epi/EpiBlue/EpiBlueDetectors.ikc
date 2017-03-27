@@ -42,15 +42,25 @@
 
 	<!-- Add id and frame -->
 
-    <input name = "LEFT_RED"      		targetmodule = "NotAvailable"           target = "INPUT" />
-    <input name = "LEFT_GREEN"    		targetmodule = "NotAvailable"           target = "INPUT" />
-    <input name = "LEFT_BLUE"     		targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "LEFT_RED"      		targetmodule = "L_RedBlobDetector"           target = "INPUT_RED" />
+    <input name = "LEFT_GREEN"    		targetmodule = "L_RedBlobDetector"           target = "INPUT_GREEN" />
+    <input name = "LEFT_BLUE"     		targetmodule = "L_RedBlobDetector"           target = "INPUT_BLUE" />
+    
+    <input name = "LEFT_RED"      		targetmodule = "L_YellowBlobDetector"        target = "INPUT_RED" />
+    <input name = "LEFT_GREEN"    		targetmodule = "L_YellowBlobDetector"        target = "INPUT_GREEN" />
+    <input name = "LEFT_BLUE"     		targetmodule = "L_YellowBlobDetector"        target = "INPUT_BLUE" />
+    
     <input name = "LEFT_INTENSITY"    	targetmodule = "L_FaceDetector"         target = "INPUT" />
     <input name = "LEFT_INTENSITY"    	targetmodule = "L_MarkerTracker"        target = "INPUT" />
 
-    <input name = "RIGHT_RED"      	    targetmodule = "NotAvailable"           target = "INPUT" />
-    <input name = "RIGHT_GREEN"    	    targetmodule = "NotAvailable"           target = "INPUT" />
-    <input name = "RIGHT_BLUE"     	    targetmodule = "NotAvailable"           target = "INPUT" />
+    <input name = "RIGHT_RED"      	    targetmodule = "R_RedBlobDetector"          target = "INPUT_RED" />
+    <input name = "RIGHT_GREEN"    	    targetmodule = "R_RedBlobDetector"          target = "INPUT_GREEN" />
+    <input name = "RIGHT_BLUE"     	    targetmodule = "R_RedBlobDetector"          target = "INPUT_BLUE" />
+    
+    <input name = "RIGHT_RED"      		targetmodule = "R_YellowBlobDetector"       target = "INPUT_RED" />
+    <input name = "RIGHT_GREEN"    		targetmodule = "R_YellowBlobDetector"       target = "INPUT_GREEN" />
+    <input name = "RIGHT_BLUE"     		targetmodule = "R_YellowBlobDetector"       target = "INPUT_BLUE" />
+
     <input name = "RIGHT_INTENSITY"    	targetmodule = "R_FaceDetector"         target = "INPUT" />
     <input name = "RIGHT_INTENSITY"    	targetmodule = "R_MarkerTracker"        target = "INPUT" />
 	
@@ -103,6 +113,35 @@
         period = "5"
     />
 	
+    <module
+        class = "ColorBlobDetector"
+        name = "L_RedBlobDetector"
+        color = "120 degrees"
+        width = "12 degrees"
+
+    />
+    <module
+    	class = "ColorBlobDetector"
+        name = "R_RedBlobDetector"
+        color = "120 degrees"
+        width = "12 degrees"
+
+    />
+
+    <module
+        class = "ColorBlobDetector"
+        name = "L_YellowBlobDetector"
+        color = "30 degrees"
+        width = "20 degrees"
+
+    />
+    <module
+    	class = "ColorBlobDetector"
+        name = "R_YellowBlobDetector"
+        color = "30 degrees"
+        width = "20 degrees"
+    />
+
 	<module
 		class       = "MarkerTracker"
 		name        = "L_MarkerTracker"

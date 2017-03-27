@@ -5,12 +5,11 @@
     <description>
         WARNING. These modules are under development and can be change anytime!
         Two cameras test - at lower frame rate 7.492507 fps
-	 </description>
+    </description>
 
 
     <parameter name="left_eye_id" module="LEFT_EYE" target="id" />
     <parameter name="right_eye_id" module="RIGHT_EYE" target="id" />
-    
 
     <output name="LEFT_RED"      	sourcemodule="LEFT_EYE_FLIP_RED"        source="OUTPUT" />
     <output name="LEFT_GREEN"    	sourcemodule="LEFT_EYE_FLIP_GREEN"      source="OUTPUT" />
@@ -21,11 +20,10 @@
     <output name="RIGHT_GREEN"    	sourcemodule="RIGHT_EYE_FLIP_GREEN"      source="OUTPUT" />
     <output name="RIGHT_BLUE"     	sourcemodule="RIGHT_EYE_FLIP_BLUE"		 source="OUTPUT" />
     <output name="RIGHT_INTENSITY"  sourcemodule="RIGHT_EYE_FLIP_INTENSITY"	 source="OUTPUT" />
- 
 
     
-    
-    <!-- FOCUS is realtion to camera. FIX This! --> 
+    <!-- FOCUS is realtion to camera. FIX This! -->
+
     <output name="FOCUS" sourcemodule="MarkerTracker" source="MATRIX" />
 
     <!-- Vision -->

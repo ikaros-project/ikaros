@@ -45,7 +45,7 @@
 
 <!-- Torque enable -->
 <module class = "Constant" name = "B_TORQUE_ENABLE" data = "0 0" />
-<module class = "Constant" name = "H_TORQUE_ENABLE" data = "0 0 0 0" />
+<module class = "Constant" name = "H_TORQUE_ENABLE" data = "1 1 1 1" />
 <module class = "Constant" name = "LA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "RA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "P_TORQUE_ENABLE" data = "0 0" />
@@ -53,11 +53,13 @@
 
 <!-- Set a manual focus point -->
 <module class = "Constant" name = "Manual" data = "
-1 0 0 1
-0 1 0 0 
-0 0 1 0.5 
+1 0 0 0.85
+0 1 0 0.6
+0 0 1 0
 0 0 0 1"/>
-	
+
+
+
 <!-- Set a manual positions -->
 <module class = "Constant" name = "B_POS" data = "0 0" />
 <module class = "Constant" name = "H_POS" data = "0 0 0 0" />
@@ -169,7 +171,7 @@
 
 
 <!-- Actuators/Proprioception -->
-<module class = "EpiBlueServosFake" 	name = "Servos" 		/>
+<module class = "EpiBlueServos" 	name = "Servos" 		/>
 	<connection sourcemodule = "Pos"   source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
 
 	<connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />

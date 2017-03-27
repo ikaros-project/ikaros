@@ -3,7 +3,7 @@
 <group>
 	
     <description>
-        WARNING. These modules is under development and can change anytime!
+        WARNING. These modules are under development and can change at any time!
 	 </description>
 
     <input name = "FEEDBACK_POSITION" targetmodule = "NotAvailable"    target = "INPUT" />
