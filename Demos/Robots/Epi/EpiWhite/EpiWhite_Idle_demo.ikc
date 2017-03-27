@@ -73,7 +73,7 @@
     <!-- Set positions of servos -->
     <module class = "Constant" name = "ManBPos" data = "0 0" />
     <module class = "Constant" name = "ManHPos" data = "0 0 0 0" />
-    <module class = "Constant" name = "ManPPos" data = "8 8" />
+    <module class = "Constant" name = "ManPPos" data = "11 11" />
 
 
     <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
