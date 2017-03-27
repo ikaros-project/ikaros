@@ -146,7 +146,7 @@
     <module class = "Constant" name = "ManFocusPointValue" 	data = "0.01"/>
     <module class = "Constant" name = "MarkerTrackerValue"  data = "0.02"/>
     <_module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
-    <module class = "Constant" name = "RandomFocusPointValue"  data = "1.1"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.1"/>
 
     <!-- If the robot is moving. Disable Change detector -->
     <module class="Mean" name="MotorSpeed"/>
