@@ -47,7 +47,7 @@
     
 	<module
 		class		=	"FunctionGenerator"
-		name		=	"X"
+		name		=	"ManualX"
 		type		=	"sin"
 		frequency	=	"0.1"
 		offset      =	"0.5"
@@ -55,9 +55,9 @@
 	    shift		=	"0.1"
     />
 
-    <_module class="Constant" name="X" data = "2" />
-    <module class="Constant" name="Y" data = "2" />
-    <module class="Constant" name="Z" data = "1" />
+    <_module class="Constant" name="ManualX" data = "2" />
+    <module class="Constant" name="ManualY" data = "2" />
+    <module class="Constant" name="ManualZ" data = "1" />
     
     <!-- Drifts away -->
 
@@ -65,9 +65,9 @@
 
     <!-- Change -->
     <module class="RotationConverter" name="ManFocusPoint" input_format = "xyz" output_format = "matrix" />
-        <connection sourcemodule = "Z"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
-        <connection sourcemodule = "Y"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
-        <connection sourcemodule = "X"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
+        <connection sourcemodule = "ManualZ"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
+        <connection sourcemodule = "ManualY"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
+        <connection sourcemodule = "ManualX"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
 
 
 
@@ -103,6 +103,16 @@
 
     <!-- ********************************* 	-->
 
+    <!-- Random movements -->
+    <module class = "Randomizer" name = "RandomFocusX" outputsize = "1" min = "-2" max = "2" interval = "40"/>
+    <module class = "Randomizer" name = "RandomFocusY" outputsize = "1" min = "1.5" max = "6" interval = "40"/>
+    <module class = "Randomizer" name = "RandomFocusZ" outputsize = "1" min = "1.5" max = "2" interval = "40"/>
+
+    <!-- Change -->
+    <module class="RotationConverter" name="RandomFocus" input_format = "xyz" output_format = "matrix" />
+        <connection sourcemodule = "RandomFocusZ"       source = "OUTPUT" targetmodule = "RandomFocus"  target = "INPUT" />
+        <connection sourcemodule = "RandomFocusY"       source = "OUTPUT" targetmodule = "RandomFocus"  target = "INPUT" />
+        <connection sourcemodule = "RandomFocusX"       source = "OUTPUT" targetmodule = "RandomFocus"  target = "INPUT" />
 
 
 
@@ -113,7 +123,7 @@
     <!-- ************************ -->
     
     <!-- EXO -->
-    <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "3"/>
+    <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "4"/>
         <!-- ManualFocusPoint -->
         <connection sourcemodule = "ManFocusPoint"   	source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "INPUT_1" />
         <connection sourcemodule = "ManFocusPointValue" source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "VALUE_1" />
@@ -121,15 +131,19 @@
         <connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO" targetmodule = "HLFocusArb"  target = "INPUT_2" /> <!-- Should be EXO -->
         <connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_2" />
         <!-- ChangeDetector (Left) -->
-        <connection sourcemodule = "Detectors"   		source = "L_CHANGE_WORLD" targetmodule = "HLFocusArb"  target = "INPUT_3" /> <!-- Should be EXO -->
+        <connection sourcemodule = "Detectors"   		source = "L_CHANGE_WORLD" targetmodule = "HLFocusArb"  target = "INPUT_3" />
         <connection sourcemodule = "ChangeDetectorValue" source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_3" />
+        <!-- Random Focus points -->
+        <connection sourcemodule = "RandomFocus"   		source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "INPUT_4" />
+        <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT" targetmodule = "HLFocusArb"  target = "VALUE_4" />
 
 
 
     <!-- This should be moved to population code and use amplitude instead --> 	
-    <module class = "Constant" name = "ManFocusPointValue" 	data = "1.1"/>
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.1"/>
     <module class = "Constant" name = "MarkerTrackerValue"  data = "0.2"/>
     <module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "1.9"/>
     <!-- ************************ -->
 
 
@@ -276,7 +290,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
