@@ -79,9 +79,9 @@
     <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
     <!-- Speed -->
     <module class = "Constant" name = "DirectBSpeed" data = "0.2 0.2" />
-    <module class = "Constant" name = "DirectHSpeed" data = "0.2 0.2 0.2 0.2" />
-    <module class = "Constant" name = "DirectPSpeed" data = "0.2 0.2" />
-    
+    <module class = "Constant" name = "DirectHSpeed" data = "0.01 0.01 0.05 0.05" />
+    <module class = "Constant" name = "DirectPSpeed" data = "0.9 0.9" />
+
     <!-- Torque limit -->
     <module class = "Constant" name = "DirectBTorqueLimit" data = "0.2 0.2" />
     <module class = "Constant" name = "DirectHTorqueLimit" data = "0.2 0.2 0.2 0.2" />
@@ -307,7 +307,7 @@
 
 
     <!-- Actuators/Proprioception -->
-    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
+    <module class = "EpiWhiteServosFake" 	name = "Servos" 		/>
         <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
         <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
         <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
