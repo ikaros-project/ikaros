@@ -36,8 +36,8 @@ EventTrigger::Init()
     current_state = -1;
     last_state = -1;
     
-    duration    = GetIntArray("duration", size);
-    timeout     = GetIntArray("timeout", size);
+    duration    = GetIntArray("duration", size, true);
+    timeout     = GetIntArray("timeout", size, true);
     
 }
 

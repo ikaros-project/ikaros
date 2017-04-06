@@ -21,36 +21,6 @@
 //
 //	Created July 13, 2001
 //
-//	Revision History:
-//
-//		2002-01-27	Added support for sizing of output arrays depending on input sizes
-//		2002-02-06	Added x, y of each array instead of width
-//		2002-02-10	Added new XML support that does not depend on expat for better portability
-//		2002-02-16	Additional support for matrices: GetInputMatrix() and GetOutputMatrix()
-//					to make image processing easier
-//		2002-03-15	Added socket for UI communication
-//		2002-05-20 	Added new communication protocol
-//		2002-10-06	Minor changes in parameter class
-//		2003-01-23	Bug in InitInputs() fixed
-//		2003-08-09	Now catches ctrl-C to shut down gracefully
-//
-//		2004-03-02	Version 0.8.0 created
-//		2004-11-15	New print and error functions; now use Notify(msg, ...) for both errors and printing
-//		2004-11-27	Added defines around CTRL-C handler
-//		2005-01-17	Changed Data to Array
-//		2005-01-18	Completed timing functions
-//		2005-08-31	All communication code moved to WebUI
-//		2006-01-20	Major cleanup of the code; most system specific code moved out of the kernel
-//		2006-02-10	Extended error handling
-//		2006-05-05	Even more extended error handling; more informative error messages
-//		2006-08-31	Most Windows-specific code included
-//		2006-12-12	Fixed potential memory leaks caused by old XML parser
-//		2007-01-10	Added new XML handling and new module creation for ikc files
-
-//		2007-05-10	Version 1.0.0 created
-//		2007-07-05	Malloc debugging added
-//		2008-12-28  All legacy support and deprecated functions removed to simplify XML cleanup
-//      Revision history now maintained at GitHUb
 
 #include "IKAROS.h"
 
@@ -424,6 +394,59 @@ Module::GetTick()
     return kernel->GetTick();
 }
 
+
+
+void
+StoreArray(const char * path, const char * name, float * a, int size)
+{
+    store_array(path, name, a, size);
+}
+
+
+
+void
+StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    store_matrix(path, name, m, size_x, size_y);
+}
+
+
+
+bool
+LoadArray(const char * path, const char * name, float * a, int size)
+{
+    return load_array(path, name, a, size);
+
+}
+
+
+
+bool
+LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    return load_matrix(path, name, m, size_x, size_y);
+}
+
+
+
+void
+Module::Store(const char * path)
+{
+    // will implement default store behavior later
+//    printf("Store: %s\n", path);
+}
+
+
+
+void
+Module::Load(const char * path)
+{
+    // will implement default load behavior later
+//    printf("Load: %s\n", path);
+}
+
+
+
 const char *
 Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
@@ -473,6 +496,8 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     }
     return NULL; // No list value was found
 }
+
+
 
 const char *
 Module::GetDefault(const char * n)
@@ -700,35 +725,15 @@ Module::GetIntValueFromList(const char * n, const char * list)
 
 
 float *
-Module::GetArray(const char * n, int size)
+Module::GetArray(const char * n, int & size, bool fixed_size)
 {
-    bool too_few = false;
-    float * a = create_array(size);
-    const char * v = GetValue(n);
-    if (v == NULL)
-	{
-		destroy_array(a);
-        return NULL;
-	}
-    for (int i=0; i<size;i++)
-    {
-        for (; isspace(*v) && *v != '\0'; v++) ;
-        if (sscanf(v, "%f", &a[i])==-1)
-        {
-            too_few = true;
-            a[i] = 0;
-        }
-        for (; !isspace(*v) && *v != '\0'; v++) ;
-    }
-    if(too_few)
-        Notify(msg_warning, "Too few constants in array \"%s\" (0 assumed).\n", n);
-    return a;
+    return create_array(GetValue(n), size, fixed_size);
 }
 
 
 
 int *
-Module::GetIntArray(const char * n, int & size)
+Module::GetIntArray(const char * n, int & size, bool fixed_size)
 {
     int requested_size = size;
     int data_size = 0;
@@ -789,55 +794,10 @@ Module::GetIntArray(const char * n, int & size)
 
 
 float **
-Module::GetMatrix(const char * n, int & sizex, int & sizey)
+Module::GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size)
 {
-    return create_matrix(GetValue(n), sizex, sizey);
+    return create_matrix(GetValue(n), sizex, sizey, fixed_size);
 }
-
-
-
-/*
-float **
-Module::GetMatrix(const char * n, int sizex, int sizey)
-{
-    float ** m = create_matrix(sizex, sizey);
-    const char * v = GetValue(n);
-    if (v == NULL)
-        return m;
-    
-    int sx, sy;
-    float ** M = create_matrix(v, sx, sy);
-    
-    if(sy == 1 && sizey > 1) // for backward compatibility, get all data from one row
-    {
-        int p = 0;
-        for(int j=0; j<sizey; j++)
-            for(int i=0; i<sizex; i++)
-            {
-                m[j][i] = M[0][p++];
-                if(p >= sx)
-                    break;
-            }
-    }
-
-    else
-    {
-        sx = min(sx, sizex);
-        sy = min(sy, sizey);
-
-        for(int i=0; i<sx; i++)
-            for(int j=0; j<sy; j++)
-                m[j][i] = M[j][i];
-    }
-
-    destroy_matrix(M);
-
-    return m;
-}
-*/
-
-
-
 
 
 
@@ -852,20 +812,20 @@ Module::Bind(float & v, const char * n)
 
 
 void
-Module::Bind(float * & v, int size, const char * n)
+Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 {
     // TODO: check type here
-    v = GetArray(n, size);
+    v = GetArray(n, size, fixed_size);
     bindings = new Binding(this, n, bind_array, v, size, 1, bindings);
 }
 
 
 
 void
-Module::Bind(float ** & v, int & sizex, int & sizey, const char * n)
+Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
 {
     // TODO: check type here
-    v = GetMatrix(n, sizex, sizey);
+    v = GetMatrix(n, sizex, sizey, fixed_size);
     bindings = new Binding(this, n, bind_matrix, v, sizex, sizey, bindings);
 }
 
@@ -1087,6 +1047,7 @@ Module::GetOutputSizeY(const char * name)
 bool
 Module::InputConnected(const char * name)
 {
+    Notify(msg_warning, "InputConnected is deprecated and will be removed in future versions.\n");
     return kernel->InputConnected(this, name);
 }
 
@@ -1331,7 +1292,7 @@ void
 Module::Notify(int msg, const char *format, ...)
 {
     char 	message[512];
-    sprintf(message, "%s (%s): ", GetName(), GetClassName());
+    sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
     va_list args;
     va_start(args, format);
@@ -1572,7 +1533,7 @@ Kernel::SetOptions(Options * opt)
     // Compute ikc path and name
                         
    ikc_dir = options->GetFileDirectory();
-            ikc_file_name =  options->GetFileName();
+   ikc_file_name =  options->GetFileName();
                         
     // Seed random number generator
                         
@@ -2037,6 +1998,56 @@ Kernel::Tick()
     
     tick++;
 }
+
+
+
+void
+Kernel::Store()
+{
+    if(!options->GetOption('S'))
+        return;
+    
+    char * p = options->GetArgument('S');
+    char * s = p;
+    
+    if(p == NULL)
+        s = ikc_dir;
+    else if(p[0] != '/') // not absolute path
+        s = create_formatted_string("%s%s", ikc_dir, p);
+
+    for(Module * m = modules; m != NULL; m = m->next)
+    {
+        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
+        m->Store(sp);
+        destroy_string(sp);
+    }
+}
+
+
+
+void
+Kernel::Load()
+{
+    if(!options->GetOption('L'))
+        return;
+    
+    char * p = options->GetArgument('L');
+    char * s = p;
+    
+    if(p == NULL)
+        s = ikc_dir;
+    else if(p[0] != '/') // not absolute path
+        s = create_formatted_string("%s%s", ikc_dir, p);
+    
+    for(Module * m = modules; m != NULL; m = m->next)
+    {
+        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
+        m->Load(sp);
+        destroy_string(sp);
+    }
+}
+
+
 
 
 void
@@ -2550,7 +2561,7 @@ Kernel::CalculateDelays()
 }
 
 bool
-Kernel::InputConnected(Module * m, const char * input_name) // TODO: Test it ***
+Kernel::InputConnected(Module * m, const char * input_name)
 {
     return m->GetInputArray(input_name, false) != NULL;
 }
@@ -3063,6 +3074,15 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
         const char * delay      = GetXMLAttribute(xml_connection, "delay");
         const bool a            = tobool(GetXMLAttribute(xml_connection, "active"), true);
 
+        if(!sm_name)
+            Notify(msg_fatal_error, "Incomplete connection: sourcemodule not set.");
+        if(!s_name)
+            Notify(msg_fatal_error, "Incomplete connection: source not set.");
+        if(!tm_name)
+            Notify(msg_fatal_error, "Incomplete connection: targetmodule not set.");
+        if(!t_name)
+            Notify(msg_fatal_error, "Incomplete connection: target not set.");
+        
         Module * sm;
         Module_IO * sio;
         int c = 0;

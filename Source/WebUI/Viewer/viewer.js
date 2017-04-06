@@ -331,6 +331,93 @@ function WebUICanvas(obj, p, ctype)
             this.stroke();
         };
     }
+    
+    if(ctype == "webgl")
+    {
+      	
+        if(!(p.opaque != undefined ? p.opaque=='yes' : p.behind))
+        {
+            r.style.background="none";
+            return;
+        }
+
+        var h = document.createElement("div");
+        h.className = "object_titlebar"
+        h.style.width = p.width;
+        r.appendChild(h);
+        
+        var t = document.createElement("div");
+        t.className = "object_title"
+        t.style.width = p.width;
+        r.appendChild(t);
+        
+        var tt = document.createTextNode(p.title);
+        t.appendChild(tt);
+        
+        obj.context.drawArrow = function(arrow)
+        {
+            this.beginPath();
+            this.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+            for(var i=0;i<arrow.length;i++){
+                this.lineTo(arrow[i][0],arrow[i][1]);
+            }
+            this.closePath();
+            this.fill();
+            this.stroke();
+        };
+        
+        obj.context.moveArrow = function(arrow, x, y)
+        {
+            var rv = [];
+            for(var i=0;i<arrow.length;i++){
+                rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+            }
+            return rv;
+        };
+        
+        obj.context.rotateArrow = function(arrow,angle)
+        {
+            var rv = [];
+            for(var i=0; i<arrow.length;i++){
+                rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                         (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+            }
+            return rv;
+        };
+        
+        obj.context.drawArrowHead = function(fromX, fromY, toX, toY)
+        {
+            var angle = Math.atan2(toY-fromY, toX-fromX);
+            var arrow = [[0,0], [-10,-5], [-10, 5]];
+            this.save();
+            this.lineJoin = "miter";
+            this.fillStyle = this.strokeStyle;
+            this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+            this.restore();
+        };
+        
+        obj.context.drawLineArrow = function(fromX, fromY, toX, toY)
+        {
+            this.beginPath();
+            this.moveTo(fromX,fromY);
+            this.lineTo(toX,toY);
+            this.stroke();
+            var angle = Math.atan2(toY-fromY, toX-fromX);
+            var arrow = [[0,0], [-10,-5], [-10, 5]];
+            this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+        };
+
+        obj.context.drawLine = function(fromX, fromY, toX, toY)
+        {
+            this.beginPath();
+            this.moveTo(fromX,fromY);
+            this.lineTo(toX,toY);
+            this.stroke();
+        };
+        
+        
+        // 3D
+    }
 }
 
 

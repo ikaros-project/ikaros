@@ -21,7 +21,6 @@
 
 
 #include "Gate.h"
-
 void
 Gate::Init()
 {

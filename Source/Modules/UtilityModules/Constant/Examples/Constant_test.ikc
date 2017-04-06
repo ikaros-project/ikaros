@@ -57,7 +57,7 @@
 
 	<module
 		class = "Constant" 
-		name = "MostyEmptyConstant"
+		name = "MostlyEmptyConstant"
 		outputsize_x = "10"
 		outputsize_y = "10"
 		data = "0 1 2;

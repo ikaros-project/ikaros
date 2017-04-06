@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+    <module
+        class="FunctionGenerator"
+        name="L"
+        type = "ticksquare"
+        basetime = "200"
+        tickduty = "50"
+        amplitude = "1.0"
+    />
+
+
+	<module
+		class = "HopfieldNetwork"
+		name = "H1"
+        epsilon = "0.05"
+	/>
+	
+	
+	<connection sourcemodule="L" source="OUTPUT" targetmodule="H1" target="INPUT" />
+
+	<view name="View">
+        <object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />
+        <object class="Plot" title="H1" module="H1" source="OUTPUT" x="0" y="1" w="6" min="0.0" max="1" />
+ 	</view>
+</group>
+ 

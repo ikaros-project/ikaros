@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<group name="EpiWhite Vision">
+
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+        Only one camera!
+	 </description>
+
+    <output name="LEFT_RED"      	sourcemodule="LEFT_EYE" source="RED" />
+    <output name="LEFT_GREEN"    	sourcemodule="LEFT_EYE" source="GREEN" />
+    <output name="LEFT_BLUE"     	sourcemodule="LEFT_EYE" source="BLUE" />
+    <output name="LEFT_INTENSITY"   sourcemodule="LEFT_EYE"	source="INTENSITY" />
+
+    <output name="RIGHT_RED"      	sourcemodule="LEFT_EYE" source="RED" /> <!-- Should be RIGHT -->
+    <output name="RIGHT_GREEN"    	sourcemodule="LEFT_EYE" source="GREEN" />
+    <output name="RIGHT_BLUE"     	sourcemodule="LEFT_EYE"	source="BLUE" />
+    <output name="RIGHT_INTENSITY"  sourcemodule="LEFT_EYE"	source="INTENSITY" />
+ 
+
+    <!-- Vision -->
+	<module
+		class   		= "InputVideo"
+		name			= "LEFT_EYE"			
+		size_x  		= "640"
+		size_y  		= "480"
+		list_devices 	= "no"
+		id 				= "0"
+		_frame_rate 		= "29.97"
+		frame_rate 		= "30"
+		period			= "2"
+	/>
+    
+</group>

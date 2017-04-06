@@ -80,10 +80,10 @@ Arbiter::SetSizes()
         int syi = GetInputSizeY(input_name[i]);
 
         if(sxi == unknown_size)
-            return; // Not ready yet
+            continue; // Not ready yet
 
         if(syi == unknown_size)
-            return; // Not ready yet
+            continue; // Not ready yet
 
         if(sx != 0 && sxi != 0 && sx != sxi)
             Notify(msg_fatal_error, "Inputs have different sizes");
@@ -95,6 +95,9 @@ Arbiter::SetSizes()
         sy = syi;
     }
 
+    if(sx == unknown_size || sy == unknown_size)
+        return;  // Not ready yet
+    
     SetOutputSize("OUTPUT", sx, sy);
     SetOutputSize("VALUE", 1);
 

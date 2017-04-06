@@ -1,7 +1,7 @@
 //
 //	  WebUI.cc		HTTP support for the IKAROS kernel
 //
-//    Copyright (C) 2005-2015  Christian Balkenius
+//    Copyright (C) 2005-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -1036,7 +1036,7 @@ WebUI::Run()
     }
 
     if(k->max_ticks != -1)
-        httpThread->Kill(); // This is a really ugly solution; but the this code will soon be replaced anyway
+        httpThread->Kill(); // This is a really ugly solution; but this code will soon be replaced anyway
     httpThread->Join();
 //    chdir(k->ikc_dir);
 }
@@ -1624,6 +1624,7 @@ WebUI::HandleHTTPRequest()
 			 strend(uri, ".svg") ||
 			 strend(uri, ".js") ||
 			 strend(uri, ".gif") ||
+			 strend(uri, ".stl") ||
 			 strend(uri, ".ico"))
     {
         if(!socket->SendFile(&uri[1], k->ikc_dir))  // Check IKC-directory first to allow files to be overriden
@@ -1859,6 +1860,10 @@ WebUI::SendGroups(XMLElement * xml)
 void
 WebUI::SendInspector()
 {
+    Dictionary rtheader;
+    rtheader.Set("Content-Type", "text/html");
+    socket->SendHTTPHeader(&rtheader);
+ 
     socket->Send("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n");
     socket->Send("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n");
     socket->Send("<head profile=\"http://www.w3.org/2005/11/profile\">\n");

@@ -332,12 +332,17 @@ create_array(int size)
 
 
 float *
-create_array(const char * s, int & size)
+create_array(const char * s, int & size, bool fixed_size)
 {
-    size = 0;
+    int sz = 0;
 
     if (s == NULL)
-        return NULL;
+    {
+        if(fixed_size)
+            return create_array(size);
+        else
+            return NULL;
+    }
     
     // Count values in s
     
@@ -345,24 +350,30 @@ create_array(const char * s, int & size)
     for (; isspace(*v) && *v != '\0'; v++) ;
     while(sscanf(v, "%*f")!=-1)
     {
-        size++;
+        sz++;
         for (; !isspace(*v) && *v != ',' && *v != '\0'; v++) ;
         if(*v==',') v++;
         for (; isspace(*v) && *v != '\0'; v++) ;
     }
     
-    if(size == 0)
+    if(sz == 0)
         return NULL;
 
+    if(!fixed_size)
+        size = sz;
+    
     float * a = create_array(size);
     
     // read values into array
 
     v = s;
     int i=0;
+    float scanned_value;
     for (; isspace(*v) && *v != '\0'; v++) ;
-    while(sscanf(v, "%f", &a[i])!=-1)
+    while(sscanf(v, "%f", &scanned_value)!=-1)
     {
+        if(i<size)
+            a[i] = scanned_value;
         i++;
         for (; !isspace(*v) && *v != ',' && *v != '\0'; v++) ;
         if(*v==',') v++;
@@ -405,7 +416,7 @@ float ****
 create_matrix(int sizex, int sizey, int sizez, int sizet)
 {
     float *** a = create_matrix(sizex, sizey, sizez*sizet);
-    float **** b = (float ****)malloc(sizez*sizeof(float ***));
+    float **** b = (float ****)malloc(sizet*sizeof(float ***));
     for (int j=0; j<sizet; j++)
         b[j] = &a[j*sizez];
     return b;
@@ -414,16 +425,18 @@ create_matrix(int sizex, int sizey, int sizez, int sizet)
 
 
 float **
-create_matrix(const char * s, int & sizex, int & sizey)
+create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
 {
-    sizex = 0;
-    sizey = 0;
-
     int sx = 0; // to allow &sizex == &sizey
     int sy = 1;
 
     if (s == NULL)
-        return NULL;
+    {
+        if(fixed_size)
+            return create_matrix(sizex, sizey);
+        else
+            return NULL;
+    }
     
     // Skip leading whitespace in s
     
@@ -462,13 +475,22 @@ create_matrix(const char * s, int & sizex, int & sizey)
     if(row_elements > sx)
         sx = row_elements;
 
-    float ** m = create_matrix(sx, sy);
-
+    if(!fixed_size)
+    {
+        sizex = sx;
+        sizey = sy;
+    }
+    float ** m = create_matrix(sizex, sizey);
+    
     v = ss;
     int j=0;
     int i=0;
-    while(sscanf(v, "%f", &m[j][i])!=-1)
+    float scanned_value;
+    while(sscanf(v, "%f", &scanned_value)!=-1)
     {
+        if(j*sizex+i<sizex*sizey) // this condition makes sure that the matrix can also be filled (but not overfilled) from array 
+            m[j][i] = scanned_value;
+        
         i++;
         for (; !isspace(*v) && *v != ',' && *v != ';' && *v != '\0'; v++) ;
         if(*v==',') v++;
@@ -483,9 +505,6 @@ create_matrix(const char * s, int & sizex, int & sizey)
     }
 
     destroy_string(ss);
-
-    sizex = sx;
-    sizey = sy;
 
     return m;
 }
@@ -590,6 +609,7 @@ get_row(float * a, float ** m, int row, int sizex)
 }
 
 
+
 float *
 get_col(float * a, float ** m, int col, int sizey)
 {
@@ -599,6 +619,110 @@ get_col(float * a, float ** m, int col, int sizey)
 }
 
 
+
+bool
+store_array(const char * path, const char * name, float * a, int size)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "w");
+    if(!f)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    fprintf(f, "T %d 0\n", size);   // text-format, size_x, size_y
+    for(int i=0; i<size; i++)
+        fprintf(f, "%.10f\t", a[i]);
+    fclose(f);
+    destroy_string(s);
+    return true;
+}
+
+
+
+bool
+store_matrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "w");
+    if(!f)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    fprintf(f, "T %d %d\n", size_x, size_y);   // text-format, size_x, size_y
+    for(int j=0; j<size_y; j++)
+    {
+        for(int i=0; i<size_x; i++)
+            fprintf(f, "%.10f\t", m[j][i]);
+        fprintf(f, "\n");
+    }
+    fclose(f);
+    destroy_string(s);
+    return true;
+}
+
+
+
+bool
+load_array(const char * path, const char * name, float * a, int size)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "r");
+    if(!f)
+     {
+        destroy_string(s);
+        return false;
+    }
+ 
+    int sx, sy;
+    fscanf(f, "T %d %d\n", &sx, &sy);
+ 
+    if(sx != size)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    for(int i=0; i<size; i++)
+        fscanf(f, "%f ", &a[i]);
+
+    return true;
+}
+
+
+
+bool
+load_matrix(const char * path, const char * name, float ** m, int size_x, int size_y)
+{
+    char * s = create_formatted_string("%s.%s", path, name);
+    FILE * f = fopen(s, "r");
+    if(!f)
+     {
+        destroy_string(s);
+        return false;
+    }
+ 
+    int sx, sy;
+    fscanf(f, "T %d %d\n", &sx, &sy);
+ 
+    if(sx != size_x || sy != size_y)
+    {
+        destroy_string(s);
+        return false;
+    }
+    
+    for(int j=0; j<size_y; j++)
+    {
+        for(int i=0; i<size_x; i++)
+            fscanf(f, "%f ", &m[j][i]);
+        fprintf(f, "\n");
+    }
+
+    return true;
+}
 
 
 
