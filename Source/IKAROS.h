@@ -27,7 +27,7 @@
 #define IKAROS
 
 
-#define VERSION "1.4"
+#define VERSION "2.0"
 
 #include "IKAROS_System.h"
 #include "Kernel/IKAROS_Timer.h"
@@ -67,10 +67,12 @@ const int bind_list     = 3;
 const int bind_array    = 4;
 const int bind_matrix   = 5;
 
+// Forward declarations
 
 class Module;
 class Kernel;
 class WebUI;
+class GroupElement;
 
 
 
@@ -192,6 +194,8 @@ private:
     friend class Module;
     friend class WebUI;
 };
+
+
 
 
 
@@ -425,8 +429,8 @@ public:
     int         Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay = 0, bool is_active = true);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay = 0, bool is_active = true);
     
-    XMLElement *	BuildClassGroup(XMLElement * xml, const char * current_class = NULL);
-    void			BuildGroup(XMLElement * xml, const char * current_class = NULL);
+    XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    void			BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			ReadXML();
     
     bool		InputConnected(Module * m, const char * input_name);
@@ -469,6 +473,8 @@ private:
     int                  print_mode;     // How much to print
     
     XMLDocument     *    xmlDoc;
+    
+    GroupElement    *    main_group;   // 2.0 main group
     
     Module          *    modules;        // List of modules
     Connection      *    connections;    // List of connections

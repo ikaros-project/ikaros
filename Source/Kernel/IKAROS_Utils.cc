@@ -514,23 +514,23 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
 float *
 resize_array(float * a, int size, bool clear=false)
 {
-    
+    return NULL;
 }
 
 
 
 float **
-resize_matrix(int sizex, int sizey, bool clear=false);
+resize_matrix(int sizex, int sizey, bool clear=false)
 {
-
+    return NULL;
 }
 
 
 
 float ***
-resize_matrix(int sizex, int sizey, int sizez, bool clear=false);
+resize_matrix(int sizex, int sizey, int sizez, bool clear=false)
 {
-
+    return NULL;
 }
 
 
