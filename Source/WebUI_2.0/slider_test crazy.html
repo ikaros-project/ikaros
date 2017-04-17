@@ -1,0 +1,71 @@
+<html>
+<head>
+<style>
+.vranger {
+  margin-top: 50px;
+   transform: rotate(200deg);
+}
+
+body {
+    padding: 30px;
+    background: lightgray;
+}
+
+input[type=range] {    
+    -webkit-appearance: none; /*removes default webkit styles*/    
+    width: 200px; /*required for proper track sizing in FF*/
+    height: 16px;
+    background-color:lightgray;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 200px;
+    height: 7px;
+    background: green;
+    border: 1px solid #ddd;
+    border-radius: 0;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 19px;
+    width: 19px;
+    border-radius: 50%;
+    border: 1px solid #777;
+    background: gray;
+    background-image: -webkit-linear-gradient(top, red, yellow);
+    margin-top: -7px;
+    box-shadow: 0px 0px 5px white;
+}
+
+/*
+input[type=range]:focus {
+    outline: none;
+}
+*/
+/*
+input[type=range]:focus::-webkit-slider-runnable-track {
+    background: #ccc;
+}
+*/
+
+input[type='range'].X {
+    -webkit-appearance: none;
+    padding-left:2px; padding-right:2px;
+    -webkit-border-radius: 5px;
+    background-image: -webkit-linear-gradient(top, #000000, #333333, #000000);
+}
+
+</style>
+</head>
+<body>
+<div class="vranger">
+<input type="range"><br/>
+<input type="range"><br/>
+<input type="range"><br/>
+<input type="range"><br/>
+<input type="range"><br/>
+</dvi>
+</body>
+</html>
