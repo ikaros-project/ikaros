@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>App Viewer</title>
+<script>
+
+/*
+ *
+ * Viewer scripts
+ *
+ */
+
+function toggleNav()
+{
+    var x = document.getElementById('navigator');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+function toggleInspector()
+{
+    var x = document.getElementById('inspector');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+</script>
+<script>
+/*
+ *
+ * Navigator scripts
+ *
+ */
+
+
+nav = {
+//	navigator: null,
+
+    group:
+	{
+		'name': 'Main Group',
+		'views': 
+		[
+			{'name': 'View 0.0' },
+			{'name': 'View 0.1' }
+		],
+		'children':
+		[
+			{'name':'Group 1',
+			 'children': 
+                [
+                        {'name':'Group 1.1'},
+                        {'name':'Group 1.2'}
+                ],
+			'views':
+                [
+                        {'name': 'view 1'},
+                        {'name': 'view 2'}
+                ]
+	
+			},
+			{'name':'Group 2'},
+			{'name':'Group 3'},
+			{'name':'Group 4'},
+			{'name':'Group 5'}
+		]
+    },
+
+	init: function () {
+		nav.navigator = document.getElementById('navigator');
+		nav.populate(nav.navigator);
+	},
+	buildList: function(groups) {
+		var s = "<ul>"
+		for(i in groups)
+			s +=  "<li>"+groups[i]['name']+"</li>";
+		s += "</ul>";
+		alert(s);
+		return s;
+	},		
+	populate: function (element, group) {
+		element.innerHTML = nav.buildList(nav.group['children']);
+	}
+}
+
+
+</script>
+<script>
+/*
+ *
+ * Inspector scripts
+ *
+ */
+
+obj1 = [
+	{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'}
+];
+
+
+obj2 = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
+	{'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
+	{'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
+];
+
+
+inspector = {
+	inspector: null,
+	table: null,
+	list: null,
+	init: function () {
+		inspector.inspector = document.getElementById('inspector');
+		inspector.table = document.getElementById('i_table');
+	},
+	remove: function () {
+		while(inspector.table.rows.length > 1)
+			inspector.table.deleteRow(-1);
+	},
+	add: function (list) {
+		inspector.list = list;
+		for(var i in list)
+		{
+			var row = inspector.table.insertRow(-1);
+			var cell1 = row.insertCell(0);
+			var cell2 = row.insertCell(1);
+			cell1.innerHTML = list[i].name;
+			cell2.innerHTML = list[i].default;
+			val = list[i].default; // val later
+			
+			switch(list[i].control)
+			{
+				case 'textedit':
+					cell2.contentEditable = true;
+					if(list[i].type == 'int' || list[i].type == 'float')
+					{
+						cell2.style.textAlign = 'right';
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'slider':
+					if(list[i].type == 'int' || list[i].type == 'float')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<div>0</div><input type="range" min="'+list[i].min+'" max="'+list[i].max+'" step="0.01"/>'
+						cell2.addEventListener("input", function(evt) {
+							s = thiscontrol.getElementsByTagName('div')[0];
+							console.log(evt)
+							s.innerText = evt.target.value;
+						});
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'menu':
+					var opts = list[i].values.split(',');
+					var s = '<select name="+list[i].name+">';
+					for(var j in opts)
+						s += '<option value="'+opts[j]+'">'+opts[j]+'</option>';
+					s += '</select>';
+					cell2.innerHTML= s;
+					// SET VALUE HERE
+				break;
+				
+				default:
+				
+				break;
+			}
+		}
+	},
+	select: function (obj)
+	{
+		inspector.remove();
+		inspector.add(obj)
+	},
+	update: function (attr_value)
+	{
+		// New data from server
+	},
+	change: function (attr_value)
+	{
+		// Send changed value to server
+	}
+}
+</script>
+<style>
+
+/*
+ *
+ * Functional part
+ *
+ */
+ 
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow:hidden;
+}
+
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    flex: 0 0 50px;
+}
+
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row; /* column from phone */ 
+    align-items: stretch;
+    height: 500px;
+}
+
+main {
+    flex: 1;
+ }
+
+nav {
+//    flex: 0 0 200px;
+    order: -1;
+
+	width: 200px;	/* sets minimum size (!) */
+    resize: horizontal;
+    
+    white-space: nowrap; 
+//    overflow: hidden;
+    text-overflow: ellipsis; 
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+aside {
+    flex: 0 0 200px;
+	display: block; /* or none to hide */
+}
+
+footer {
+    background:#888;
+    flex: 0 0 50px;
+}
+
+/*
+ *
+ * Styling part
+ *
+ */
+
+header {
+	padding: 5px;
+	background: lightgray;
+}
+
+nav {
+	padding: 10px;
+	background: white;
+}
+
+main {
+	padding: 10px;
+    background:lightyellow;
+}
+
+aside {
+	padding: 10px;
+	background: white;
+}
+
+</style>
+</head>
+
+<body>
+	
+	<header>
+		<button onclick="toggleNav()">Nav</button>
+		<button onclick="toggleInspector()">Inspector</button>
+	</header>
+	
+	<section>
+	
+		<main>A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />
+		</main>
+	
+		<nav id="navigator">
+			<script>
+			nav.init();
+			</script>
+		</nav>
+	
+		<aside id="inspector">		
+			<button onclick="inspector.remove()">None</button>
+			<button onclick="inspector.select(obj1)">Select 1</button>
+			<button onclick="inspector.select(obj2)">Select 2</button>
+
+			<div id="inspector">
+				<div id="i_header"></div>
+				<table id="i_table">
+					<tr><th>Attr</th><th>Value</th></tr>
+				</table>
+			</div>
+			<script>
+			inspector.init();
+			//inspector.add(obj2);
+			</script>
+		</aside>
+	
+	</section>
+	
+	<footer>fixed height sticky footer</footer>
+
+</body>
+</html>
+
