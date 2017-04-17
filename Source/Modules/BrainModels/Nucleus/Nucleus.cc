@@ -108,7 +108,7 @@ Nucleus::Tick()
             if(x < 0)
                 *output = 0;
             else
-                *output = alpha + beta * atan(x)/atan(1);
+                *output = alpha + beta * atan(x)/tan(1);
             break;
     }
 

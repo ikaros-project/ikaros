@@ -27,8 +27,6 @@
 #include "IKAROS_Socket.h"
 #include "IKAROS_Math.h"
 
-using namespace ikaros;
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -51,6 +49,8 @@ using namespace ikaros;
 #define BACKLOG		10 		// how many pending connections queue will hold
 #define TIMEOUT		1000	// number of attempts to read
 #define TIMEOUTDEL	1000	// number of usec to sleep before each read
+
+using namespace ikaros;
 
 
 
