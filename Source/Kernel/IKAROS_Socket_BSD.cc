@@ -402,7 +402,7 @@ ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content l
     else
 		Send("HTTP/1.1 %s\r\n", response);
 
-    d->Set("Server", "Ikaros/1.2");
+    d->Set("Server", "Ikaros/2.0");
     d->Set("Connection", "Close");
 	
     time_t rawtime;

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>App Viewer</title>
+<script>
+
+
+/*
+ *
+ * Communication scripts
+ *
+ */
+
+function updateProgress(oEvent)
+{
+    if (oEvent.lengthComputable) 
+    {
+        var percentComplete = oEvent.loaded / oEvent.total;
+        console.log("Progress: ", 100*percentComplete, "% complete");
+    } 
+    else 
+    {
+        // Unable to compute progress information since the total size is unknown
+    }
+}
+
+function transferComplete(evt) {
+    console.log("The transfer is complete.");
+}
+
+function transferFailed(evt) {
+    console.log("An error occurred while transferring the file.");
+}
+
+function transferCanceled(evt) {
+    console.log("The transfer has been canceled by the user.");
+}
+
+function get(url, callback, progress_callback)
+{
+    xhr = new XMLHttpRequest();		
+    xhr.open("GET", url, true);
+
+    xhr.onloadstart = function(evt)
+    {
+        console.log("onloadstart");
+     }
+
+    xhr.onprogress = function(evt)
+    {
+        if (evt.lengthComputable) 
+        {
+            var percentComplete = evt.loaded / evt.total;
+            console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
+        }
+    }
+    xhr.onerror = function(evt)
+    {
+        console.log("onerror");
+        console.log(evt);
+        if(evt.lengthComputable && evt.loaded < evt.total)
+            console.log("Failed to load resource: The network connection was lost.");
+        else if(evt.total == 0 )
+            console.log("Failed to load resource: Could not connect to the server.");
+        else
+            console.log("Unknown error.");
+   }
+    xhr.ontimeout = function(evt)
+    {
+        console.log("ontimeout");
+        console.log(evt);
+    }
+    xhr.onload = function(evt)
+    {
+        console.log("The transfer is complete.");
+        console.log(xhr.response);
+    }
+    
+    xhr.responseType = 'json';
+    xhr.timeout = 10000;
+    xhr.send();
+}
+
+
+
+function testGet()
+{
+    get("http://127.0.0.1:8000/xhrtest.json");
+}
+
+
+/*
+ *
+ * Viewer scripts
+ *
+ */
+
+function toggleNav()
+{
+    var x = document.getElementById('navigator');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+function toggleInspector()
+{
+    var x = document.getElementById('inspector');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+</script>
+<script>
+/*
+ *
+ * Navigator scripts
+ *
+ */
+
+
+nav = {
+//	navigator: null,
+
+    test_group:
+	{
+		'name': 'Main Group',
+		'views': 
+		[
+			{'name': 'View 0.0' },
+			{'name': 'View 0.1' }
+		],
+		'children':
+		[
+			{'name':'Group 1',
+				 'children': 
+					[
+							{'name':'Group 1.1'},
+							{'name':'Group 1.2',
+								 'children': [
+										{'name':'Group 1.2.1'},
+										{'name':'Group 1.2.2'}
+								 ]
+							}
+					],
+				'views':
+					[
+							{'name': 'view 1'},
+							{'name': 'view 2'}
+					]
+			},
+			{'name':'Group 2'},
+			{'name':'Group 3'},
+			{'name':'Group 4',
+				'children': [
+									{'name':'Group 4.1'},
+									{'name':'Group 4.2'}
+							 ]
+				},
+			{'name':'Group 5'}
+		]
+    },
+    
+    group:
+{
+	"name": "Test",
+	"parameters":
+	[
+		{
+			"target": "MC",
+			"name": "qqq"
+		}
+	],
+	"connections":
+	[
+		{
+			"delay": "10",
+			"target": "INPUT",
+			"targetmodule": "SoundOutput",
+			"source": "SOUND_TRIG",
+			"sourcemodule": "MC"
+		}
+	],
+	"views":
+	[
+		{
+			"name": "View",
+			"objects":
+			[
+				{
+					"max": "1",
+					"w": "6",
+					"y": "0",
+					"source": "ANIMATION_TRIG",
+					"x": "0",
+					"title": "Animation",
+					"module": "MC",
+					"class": "BarGraph"
+				},
+				{
+					"max": "1",
+					"w": "6",
+					"y": "1",
+					"source": "SOUND_TRIG",
+					"x": "0",
+					"title": "Sound",
+					"module": "MC",
+					"class": "BarGraph"
+				},
+				{
+					"max": "1",
+					"w": "6",
+					"y": "2",
+					"source": "SOUND_ACTIVE",
+					"x": "0",
+					"title": "Sound Active",
+					"min": "0.0",
+					"module": "MC",
+					"class": "Plot"
+				}
+			]
+		},
+		{
+			"name": "ExtraEmpty",
+			"objects": []
+		}
+	],
+	"groups":
+	[
+		{
+			"class": "SoundOutput",
+			"sounds": "snd/fewer.mp3, snd/goodTeacher.mp3, snd/hasToBeThis.mp3, snd/higher.mp3, snd/hmm.mp3, snd/instructionGreen.mp3, snd/instructionRed.mp3, snd/isItThisOne.mp3, snd/isThisRight.mp3, snd/letsGo.mp3, snd/lower.mp3, snd/more.mp3, snd/myTurn1.mp3, snd/myTurn2.mp3, snd/ok1.mp3, snd/ok2.mp3, snd/tryAgain.mp3, snd/wasCorrect.mp3, snd/whatISaid.mp3, snd/whatIThought.mp3, snd/willYouHelpMe.mp3, snd/wrong1.mp3, snd/wrong2.mp3, snd/wrongShow.mp3, snd/ballongamepandaIntro.mp3, snd/beeflightpandaIntro2.mp3, snd/beeflightpandaIntro3.mp3, snd/birdheropandaIntro.mp3, snd/lizardpandaIntro1.mp3, snd/lizardpandaIntro2.mp3, snd/vehiclepandaIntro1.mp3, snd/vehiclepandaIntro2.mp3",
+			"description": "plays a sound file",
+			"name": "SoundOutput",
+			"_command": "mpg123",
+			"parameters":
+			[
+				{
+					"type": "string",
+					"description": "comma separated list of sound file names (including path).",
+					"default": "",
+					"name": "sounds"
+				},
+				{
+					"type": "string",
+					"description": "the command to use to play sounds, The dafult is the OS X command afplay",
+					"default": "afplay",
+					"name": "command"
+				}
+			],
+			"connections": [],
+			"views": [],
+			"groups": []
+		},
+		{
+			"description": "Learning using the MagicalController rule",
+			"name": "MC",
+			"class": "MagicalController",
+			"no_of_sounds": "32",
+			"parameters":
+			[
+				{
+					"type": "int",
+					"description": "",
+					"default": "10",
+					"name": "no_of_sounds"
+				},
+				{
+					"type": "int",
+					"description": "",
+					"default": "10",
+					"name": "no_of_animations"
+				},
+				{
+					"type": "int",
+					"description": "The port that the module will listen on",
+					"default": "8001",
+					"name": "port"
+				}
+			],
+			"connections": [],
+			"views":
+			[
+				{
+					"name": "Default view for MagicalController",
+					"title": "MagicalController",
+					"objects":
+					[
+						{
+							"title": "Default view for MagicalController",
+							"source": "OUTPUT",
+							"module": "*",
+							"class": "BarGraph",
+							"w": "2",
+							"y": "0",
+							"x": "0"
+						}
+					]
+				}
+			],
+			"groups": []
+		}
+	]
+},
+
+	init: function () {
+		nav.navigator = document.getElementById('navigator');
+		nav.populate(nav.navigator);
+		nav.navigator.addEventListener("click", nav.navClick, false);
+	},
+	buildList: function(group, name) {
+		var s = "<li data-name='"+name+"/"+group.name+"'>" + group.name; // or title
+
+		if(group.views)
+		{
+			s +=  "<ul>"
+			for(i in group.views)
+				s += "<li data-name='"+name+"#"+group.views[i].name+"'> #" + group.views[i].name + "</li>";				
+			s += "</ul>";			
+		}
+
+		if(group.groups)
+		{
+			s +=  "<ul>"
+			for(i in group.groups)
+				s += nav.buildList(group.groups[i], name+"/"+group.name);
+			s += "</ul>";			
+		}
+
+		s += "</li>";
+
+		return s;
+	},		
+	populate: function (element, group) {
+		element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
+	},
+	navClick: function(e) {
+		if (e.target !== e.currentTarget)
+		{
+			alert(e.target.getAttribute("data-name"));
+		}
+		e.stopPropagation();
+	}
+}
+
+
+</script>
+<script>
+/*
+ *
+ * Inspector scripts
+ *
+ */
+
+obj1 = [
+	{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'}
+];
+
+
+obj2 = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
+	{'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
+	{'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
+];
+
+
+inspector = {
+	inspector: null,
+	table: null,
+	list: null,
+	init: function () {
+		inspector.inspector = document.getElementById('inspector');
+		inspector.table = document.getElementById('i_table');
+	},
+	remove: function () {
+		while(inspector.table.rows.length > 1)
+			inspector.table.deleteRow(-1);
+	},
+	add: function (list) {
+		inspector.list = list;
+		for(var i in list)
+		{
+			var row = inspector.table.insertRow(-1);
+			var cell1 = row.insertCell(0);
+			var cell2 = row.insertCell(1);
+			cell1.innerHTML = list[i].name;
+			cell2.innerHTML = list[i].default;
+			val = list[i].default; // val later
+			
+			switch(list[i].control)
+			{
+				case 'textedit':
+					cell2.contentEditable = true;
+					if(list[i].type == 'int' || list[i].type == 'float')
+					{
+						cell2.style.textAlign = 'right';
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'slider':
+					if(list[i].type == 'int' || list[i].type == 'float')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<div>0</div><input type="range" min="'+list[i].min+'" max="'+list[i].max+'" step="0.01"/>'
+						cell2.addEventListener("input", function(evt) {
+							s = thiscontrol.getElementsByTagName('div')[0];
+							console.log(evt)
+							s.innerText = evt.target.value;
+						});
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'menu':
+					var opts = list[i].values.split(',');
+					var s = '<select name="+list[i].name+">';
+					for(var j in opts)
+						s += '<option value="'+opts[j]+'">'+opts[j]+'</option>';
+					s += '</select>';
+					cell2.innerHTML= s;
+					// SET VALUE HERE
+				break;
+				
+				default:
+				
+				break;
+			}
+		}
+	},
+	select: function (obj)
+	{
+		inspector.remove();
+		inspector.add(obj)
+	},
+	update: function (attr_value)
+	{
+		// New data from server
+	},
+	change: function (attr_value)
+	{
+		// Send changed value to server
+	}
+}
+
+
+/*
+ *
+ * Object script test
+ *
+ */
+
+
+object = {
+	object: null,
+	init: function () {
+        object.object = document.getElementById('object');
+        console.log(object.object);
+//		object.innerHTML = "<canvas id='cv' width=\"200\" height=\"200\"></canvas>";
+        object.object.canvas = document.getElementById("cv");
+        
+        var ctx = object.object.canvas.getContext("2d");
+        ctx.moveTo(100,0);
+        ctx.lineTo(500,100);
+        ctx.moveTo(0,0);
+        ctx.lineTo(200,200);
+        ctx.stroke();
+	}
+}
+
+
+</script>
+<style>
+
+/*
+ *
+ * Functional part
+ *
+ */
+ 
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow:hidden;
+}
+
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    flex: 0 0 50px;
+}
+
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row; /* column from phone */ 
+    align-items: stretch;
+    height: 500px;
+}
+
+main {
+    flex: 1;
+    overflow: hidden;
+ }
+
+nav {
+//    flex: 0 0 200px;
+    order: -1;
+
+	width: 200px;	/* sets minimum size (!) */
+    resize: horizontal;
+    
+    white-space: nowrap; 
+//    overflow: hidden;
+    text-overflow: ellipsis; 
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+aside {
+    flex: 0 0 200px;
+	display: block; /* or none to hide */
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+footer {
+//    background:#888;
+	border-top: 1px solid black; /* temp */
+    flex: 0 0 50px;
+}
+
+/*
+ *
+ * Styling part
+ *
+ */
+
+header {
+	padding: 5px;
+	background: lightgray;
+}
+
+nav {
+	padding: 10px;
+	background: white;
+}
+
+main {
+	padding: 10px;
+    background:lightyellow;
+}
+
+aside {
+	padding: 10px;
+	background: white;
+}
+
+</style>
+</head>
+
+<body>
+	
+	<header>
+		<button onclick="toggleNav()">Nav</button>
+		<button onclick="toggleInspector()">Inspector</button>
+		<button onclick="testGet()">Test XHR</button>
+		<button onclick="object.init()">Test objects</button>
+
+	</header>
+	
+	<section>
+	
+		<main id="main">A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. <br />
+
+            <div id="object" style="height: 200px; width: 200px; border: 1px solid black;border-radius: 20%;position:relative; overflow:hidden">
+                <canvas id="cv" style="height: 100%; width:100%"></canvas>
+            </div>
+		</main>
+	
+		<nav id="navigator">
+			<script>
+			nav.init();
+			</script>
+		</nav>
+	
+		<aside id="inspector">		
+			<button onclick="inspector.remove()">None</button>
+			<button onclick="inspector.select(obj1)">Select 1</button>
+			<button onclick="inspector.select(obj2)">Select 2</button>
+
+			<div id="inspector">
+				<div id="i_header"></div>
+				<table id="i_table">
+					<tr><th>Attr</th><th>Value</th></tr>
+				</table>
+			</div>
+			<script>
+			inspector.init();
+			//inspector.add(obj2);
+			</script>
+		</aside>
+	
+	</section>
+	
+	<footer>fixed height sticky footer</footer>
+
+</body>
+</html>
+

@@ -1364,7 +1364,21 @@ WebUI::HandleHTTPRequest()
     char * uri = create_string(socket->header.Get("URI"));
 	if(char * x = strpbrk(uri, "?#")) *x = '\0';
     
-    if (!strcmp(uri, "/stop"))
+    if(!strcmp(uri, "/xhrtest.json"))
+    {
+		Dictionary rtheader;
+		rtheader.Set("Content-Type", "application/json");
+        return;
+		rtheader.Set("Content-Length", "28");
+		socket->SendHTTPHeader(&rtheader);
+        socket->Send("{\"a\":\"b\",\n\n");
+        Timer().Sleep(1000);
+        socket->Send("\"x\":\"y\",");
+        Timer().Sleep(100000);
+        socket->Send("\"q\":\"p\"}\n");
+        Timer().Sleep(1000);
+    }
+    else if (!strcmp(uri, "/stop"))
     {
         Pause();
         ui_state = ui_state_stop;
