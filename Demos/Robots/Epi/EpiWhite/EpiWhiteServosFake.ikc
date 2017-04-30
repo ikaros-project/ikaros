@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+
+<group>
+
+    <input name="GOAL_POSITION"       			targetmodule="SplitBody"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitHead"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitPupil"             	target="INPUT" /> 
+
+    <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" />
+    <input name="PUPIL_MOVING_SPEED"       	    targetmodule="NotAvailable"             target="INPUT" /> 
+
+    <input name="BODY_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" />
+    <input name="PUPIL_TORQUE_LIMIT"       	    targetmodule="NotAvailable"             target="INPUT" /> 
+    
+    <input name="BODY_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" />
+    <input name="PUPIL_TORQUE_ENABLE"           targetmodule="NotAvailable"             target="INPUT" /> 
+    
+    <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
+    <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
+    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="DegreesTomm"              source="OUTPUT" />
+    
+
+    <module class = "Sink" name = "NotAvailable" />
+        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
+
+
+	<!-- Splitting pos -->
+	<module class = "TruncateArray" 	name = "SplitBody" array_length = "2" selection = "1 2"         loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitHead" array_length = "4" selection = "3 4 5 6" 	loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "7 8" 		loop = "false"/>
+
+    
+    <!-- Body -->
+    <!-- No servoes in body -->
+    <module class = "Constant" name = "BODY_FEEBACK" data = "0 0"/> 
+
+    <!-- Head -->
+    
+	<module
+        class           = "MotionGuard"
+        name            = "H_Guard"
+        max_speed       = "100"
+        input_limit_min = "-60 -115 -12 -29"
+        input_limit_max = "65 110 30 11"
+        start_up_time   = "10"
+    />
+        <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
+        <connection sourcemodule = "SplitHead"  			source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "INPUT"  delay = "1"/>
+
+  <module
+		class="ServoConnector"
+		name="H_SC_GoalPosition"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 1 0 0" 
+        post_inverted   = "0 0 0 0" 
+        offset          = "180 180 180 180" 
+        output_size     = "4"
+	/>
+        <connection sourcemodule = "H_Guard"  source = "OUTPUT" targetmodule = "H_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+
+
+<!-- Overriding dynamixel -->
+
+    <module
+		class="ServoConnector"
+		name="H_SC_FeedBackPosition"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 0 0 0" 
+        post_inverted   = "0 1 0 0" 
+        offset          = "-180 -180 -180 -180" 
+        output_size     = "4"
+	/>
+	    <connection sourcemodule = "H_SC_GoalPosition" source = "OUTPUT" targetmodule = "H_SC_FeedBackPosition" target = "INPUT" delay = "0"/>
+
+	<!-- Pupil -->
+    <!-- No Pupil -->
+    <_module class = "Constant" name = "P_OPEN" data = "8 8" /> <!-- mm -->
+
+
+
+    <module
+        class = "LinearSplines"
+        name = "mmToDegrees"
+        points = "
+            4.84	80	4.88	80; 
+            5.73	70	5.87	70;
+            7.15	60	7.05	60;
+            8.35	50	8.33	50;
+            9.6	    40	9.6	    40;
+            11.09	30	11.12	30;
+            12.7	20	12.94	20;
+            14.59	10	14.96	10;
+            16.33	0	16.22	0"
+    />
+        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "mmToDegrees"  target = "INPUT" />
+
+
+    <module
+        class = "MotionGuard"
+        name = "GuardPupil"
+        max_speed = "20"
+        start_up_time = "1"
+        input_limit_min = "-10 -10"
+        input_limit_max = "70 70"
+    />
+        <connection sourcemodule = "mmToDegrees"  source = "OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
+        <connection sourcemodule = "SC_FB_P_PresentPosition"  source = "OUTPUT" targetmodule = "GuardPupil"  target = "REFERENCE" />
+
+    <module
+		class="ServoConnector"
+		name="SC_P_GoalPosition"
+		connector   =   "1 2"
+        pre_inverted    =   "0 0" 
+        post_inverted    =   "0 0" 
+        offset      =   "210 210" 
+        output_size =   "2"
+	/>
+        <connection sourcemodule = "GuardPupil"  source = "OUTPUT" targetmodule = "SC_P_GoalPosition"  target = "INPUT" />
+
+    <module
+			class="ServoConnector"
+			name="SC_FB_P_PresentPosition"
+			connector   =   "1 2"
+            pre_inverted    =   "0 0" 
+            post_inverted    =   "0 0" 
+            offset      =   "-210 -210" 
+            output_size =   "2"
+	/>
+	    <connection sourcemodule = "SC_P_GoalPosition" source = "OUTPUT" targetmodule = "SC_FB_P_PresentPosition" target = "INPUT" delay = "0"/>
+
+    <module
+        class = "LinearSplines"
+        name = "DegreesTomm"
+        points = "
+            0	16.33	0	16.22;
+            10	14.59	10	14.96;
+            20	12.7	20	12.94;
+            30	11.09	30	11.12;
+            40	9.6	    40	9.6;
+            50	8.35	50	8.33;
+            60	7.15	60	7.05;
+            70	5.73	70	5.87;
+            80	4.84	80	4.88"
+    />
+        <connection sourcemodule = "SC_FB_P_PresentPosition"  source = "OUTPUT" targetmodule = "DegreesTomm"  target = "INPUT" />
+
+</group>

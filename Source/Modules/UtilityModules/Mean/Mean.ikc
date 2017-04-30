@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Mean" description="Means inputs">
+<group name="Mean" description="caluates mean of all inputs">
 
 	<description type="text">
 		Module that calculates the means of all elements in its input.

@@ -75,6 +75,12 @@ def findIKCFiles():
     print('Exluded files (edit script to change this):')
     for e in excludeFiles:
         print(e);
+    for root, dirs, files in os.walk("../Demos"):
+        for file in files:
+            if file.endswith(".ikc"):
+                for e in excludeFiles:
+                    if not file.endswith(e):
+                        ikcFiles.append(os.path.join(root, file))
     for root, dirs, files in os.walk("../Examples"):
         for file in files:
             if file.endswith(".ikc"):
