@@ -580,6 +580,37 @@ aside {
 }
 
 </style>
+<style>
+object {
+    color: red;
+}
+object {
+    --line-width: 10px;
+    color: blue;
+}
+</style>
+<script>
+function getCSSRule(ruleName) {
+    ruleName = ruleName.toLowerCase();
+    var result = null;
+    var find = Array.prototype.find;
+
+    find.call(document.styleSheets, styleSheet => {
+        result = find.call(styleSheet.cssRules, cssRule => {
+            return cssRule instanceof CSSStyleRule 
+                && cssRule.selectorText.toLowerCase() == ruleName;
+        });
+        return result != null;
+    });
+    return result;
+}
+
+function show_styles()
+{
+    console.log(document.styleSheets);
+    console.log(getCSSRule("object"));
+}
+</script>
 </head>
 
 <body>
@@ -589,7 +620,7 @@ aside {
 		<button onclick="toggleInspector()">Inspector</button>
 		<button onclick="testGet()">Test XHR</button>
 		<button onclick="object.init()">Test objects</button>
-
+		<button onclick="show_styles()">Test styles</button>
 	</header>
 	
 	<section>
@@ -597,7 +628,7 @@ aside {
 		<main id="main">A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. <br />
 
             <div id="object" style="height: 200px; width: 200px; border: 1px solid black;border-radius: 20%;position:relative; overflow:hidden">
-                <canvas id="cv" style="height: 100%; width:100%"></canvas>
+                <canvas id="cv" style="height: 100%; width:100%" height="100" width="100"></canvas>
             </div>
 		</main>
 	
