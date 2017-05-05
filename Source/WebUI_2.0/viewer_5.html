@@ -454,12 +454,12 @@ inspector = {
 }
 
 
+
 /*
  *
  * Widget script test
  *
  */
-
 
 class CustomProgressBar extends HTMLElement {
   constructor()
@@ -483,7 +483,7 @@ class CustomProgressBar extends HTMLElement {
       this._label = shadowRoot.querySelector('.label');
       this._bar = shadowRoot.querySelector('.bar');
       
-      this._progressElement.onclick = function () { alert("HEJ HEJ"); }
+//      this._progressElement.onclick = function () { alert("HEJ HEJ"); }
   }
 
   static get observedAttributes()
@@ -533,7 +533,7 @@ if (!window.customElements.get('foo-widget')) {
 
 
 
-class WebUIWidget extends HTMLElement {
+class WebUIWidgetTest extends HTMLElement {
 /*
     constructor()
     {
@@ -586,7 +586,7 @@ class WebUIWidget extends HTMLElement {
   get progress()
   {
     console.log("get progress()");
-    return this.progressElement.getAttribute('aria-valuenow');
+    return this.getAttribute('progress');
   }
   set progress(newPercentage)
   {
@@ -599,29 +599,220 @@ class WebUIWidget extends HTMLElement {
         this.bar.style.width = newPercentage + '%';
   }
 };
-customElements.define('webui-widget', WebUIWidget);
+customElements.define('webui-widget-test', WebUIWidgetTest);
 
 
 
 
-object = {
-	object: null,
-	init: function () {
-        object.object = document.getElementById('object');
-        console.log(object.object);
-//		object.innerHTML = "<canvas id='cv' width=\"200\" height=\"200\"></canvas>";
-        object.object.canvas = document.getElementById("cv");
+class WebUIWidgetCanvas extends HTMLElement
+{
+    connectedCallback()
+    {
+        this.innerHTML = `
+            <style>
+                canvas { background-color: rgba(0,0,0,0); }
+            </style>
+            <canvas style="height: 100%; width:100%" height="100" width="100"></canvas>
+        `;
+        this.canvasElement = this.querySelector('canvas');
+        this.canvas = this.canvasElement.getContext("2d");
+        this.onclick = function () { this.redraw(); }
+        this.parentElement.setAttribute("data-name", "object #"+Math.round(1000*Math.random()));
+        this.redraw();
+    }
+
+    static get observedAttributes()
+    {
+        return ["progress"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue)
+    {
+        console.log("attributeChangedCallback()", name, oldValue, newValue);
+    }
+    
+    redraw()
+    {
+        let width = parseInt(getComputedStyle(this.canvasElement).width);
+        let height = parseInt(getComputedStyle(this.canvasElement).height);
+        if(width != this.canvasElement.width || height != this.canvasElement.height)
+        {
+            this.canvasElement.width = parseInt(width);
+            this.canvasElement.height = parseInt(height);
+        }
         
-        var ctx = object.object.canvas.getContext("2d");
-        ctx.moveTo(100,0);
-        ctx.lineTo(500,100);
-        ctx.moveTo(0,0);
-        ctx.lineTo(200,200);
-        ctx.stroke();
+        let c = "rgb("+Math.round(255*Math.random())+","+Math.round(0*Math.random())+","+Math.round(0*Math.random())+")";
+
+        this.canvas.beginPath();
+        this.canvas.lineWidth = 3;
+        this.canvas.strokeStyle = c;
+        this.canvas.moveTo(0, height*Math.random());
+        this.canvas.lineTo(width, height*Math.random());
+        this.canvas.stroke();
+        
+        var w = this;
+        setTimeout(function () { w.redraw()}, 100)
+    }
+};
+customElements.define('webui-widget-canvas', WebUIWidgetCanvas);
+
+</script>
+
+<script>
+
+/*
+ *
+ * Interaction scripts from Main Area
+ *
+ */
+
+interaction = {
+	initialMouseX: undefined,
+	initialMouseY: undefined,
+	startX: undefined,
+	startY: undefined,
+	selectedObject: undefined,
+	grid_spacing: 20,
+	sizegrid: 20,
+	editMode: true,
+    main: undefined,
+	
+    init: function () {
+        interaction.main = document.querySelector('main');
+        interaction.main.dataset.mode="run";
+    },
+	initElement: function (element) {
+		if (typeof element == 'string')
+			element = document.getElementById(element);
+		element.onmousedown = interaction.startDrag;
+		element.innerHTML += '<webui-widget-canvas></webui-widget-canvas><div class="handle"></div>'
+		handle = element.getElementsByClassName('handle')[0]
+		handle.onmousedown = interaction.startResize;
+	},
+	initDraggables: function () {
+        let nodes = document.getElementsByClassName("draggable");
+        for (var i = 0; i <	nodes.length; i++)
+            interaction.initElement(nodes[i]);
+        let  main = document.querySelector('main');
+        main.addEventListener('mousedown',interaction.deselectObject,false);
+	},
+	generateGrid: function (spacing) {
+	    interaction.grid_spacing = spacing;
+	    let grid = interaction.main.querySelector('#grid');
+	    if(grid)
+    	    interaction.main.removeChild(grid);
+		interaction.main.innerHTML += '<div id="grid"></div>'
+        grid = document.getElementById('grid');
+	    for(let i=1; i<250; i++)
+	    {
+		    grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px"></div>'
+		    grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px"></div>'
+	    }
+	},
+	changeGrid: function(spacing) {
+	    interaction.grid_spacing = spacing;
+	    vgrids = document.getElementsByClassName('vgrid');
+        for(let i = 0; i <	vgrids.length; i++)
+	        vgrids[i].style.left = ""+(i+1)*spacing+"px";
+	    hgrids = document.getElementsByClassName('hgrid');
+        for(let i = 0; i <	hgrids.length; i++)
+	        hgrids[i].style.top = ""+(i+1)*spacing+"px";
+	},
+	increaseGrid() {
+	    if(interaction.grid_spacing < 160)
+            interaction.changeGrid(2*interaction.grid_spacing);
+	},
+	decreaseGrid() {
+	    if(interaction.grid_spacing > 10)
+	        interaction.changeGrid(0.5*interaction.grid_spacing);
+	},
+	addObject() {
+	    let main = document.querySelector('main');
+	    newObject = document.createElement("div");
+	    newObject.setAttribute("class", "draggable");
+	    newObject.style.top = "10px";
+	    newObject.style.left = "10px";
+        interaction.main.appendChild(newObject);
+        interaction.initElement(newObject)
+	},
+	deselectObject() {
+	    if(interaction.selectedObject)
+        {
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/selected/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+            interaction.releaseElement();
+            interaction.selectedObject = null;
+		    document.getElementById('selected').innerText = ""
+		}
+	},
+	releaseElement: function() {
+	    document.removeEventListener('mousemove',interaction.move,false);
+	    document.removeEventListener('mousemove',interaction.resize,false);
+	    document.removeEventListener('mouseup',interaction.releaseElement,false);
+		interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+		interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+	},
+	selectObject(obj) {
+		interaction.deselectObject()
+		interaction.selectedObject = obj;	
+		interaction.selectedObject.className += ' selected';
+		document.getElementById('selected').innerText = interaction.selectedObject.dataset.name;
+	},
+	startDrag: function (evt) {
+ 		evt.stopPropagation()
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+	    interaction.selectObject(this);
+		interaction.selectedObject.className += ' dragged';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		document.addEventListener('mousemove',interaction.move,false);
+		document.addEventListener('mouseup',interaction.releaseElement,false);
+		return false;
+	},
+	move: function (evt) {
+		var dX = evt.clientX - interaction.initialMouseX;
+		var dY = evt.clientY - interaction.initialMouseY;
+		interaction.setPosition(dX,dY);
+		return false;
+	},
+	startResize: function (evt) {
+		evt.stopPropagation()
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+        interaction.selectObject(this.parentElement);
+        interaction.selectedObject.className += ' resized';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		document.addEventListener('mousemove',interaction.resize,false);
+		document.addEventListener('mouseup',interaction.releaseElement,false);
+		return false;
+	},
+	resize: function (evt) {
+		var dX = evt.clientX - interaction.initialMouseX;
+		var dY = evt.clientY - interaction.initialMouseY;
+		interaction.setSize(dX,dY);
+		return false;
+	},
+	setPosition: function (dx, dy) {
+	    newLeft = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
+	    newRight = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+		interaction.selectedObject.style.left = newLeft + 'px';
+		interaction.selectedObject.style.top = newRight + 'px';
+	},
+	setSize: function (dx, dy) {
+		newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
+		newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
+		interaction.selectedObject.style.width = newWidth + 'px';
+		interaction.selectedObject.style.height = newHeight + 'px';
+	},
+	toggleEditMode: function() {
+        interaction.edit_mode = ! interaction.edit_mode;
+	    let main = document.querySelector('main');
+        main.dataset.mode = interaction.edit_mode ? "edit" : "run";
 	}
 }
-
-
 </script>
 <style>
 
@@ -665,6 +856,7 @@ section {
 main {
     flex: 1;
     overflow: hidden;
+    position: relative;
  }
 
 nav {
@@ -714,6 +906,10 @@ nav {
 
 main {
 	padding: 10px;
+    background:white;
+}
+
+main[data-mode="edit"] {
     background:lightyellow;
 }
 
@@ -721,6 +917,112 @@ aside {
 	padding: 10px;
 	background: white;
 }
+
+/*
+*
+*  MAIN AREA
+*
+*
+*/
+
+
+
+/* Basic style for draggable object */
+
+.draggable {
+	position: absolute;
+	top: 10;
+	left: 10;
+    z-index: 200;
+    width: 101px;
+    height: 101px;
+    border: 1px solid lightgray;
+	background-color: rgba(0,0,0,0);
+	cursor: move;
+}
+
+.draggable:hover {
+}
+
+.dragged, .resized {
+    border-color: black;
+}
+
+.dragged, .resized {
+    box-shadow: 4px 4px 4px lightgray;
+}
+
+
+.selected {
+    border: 1px solid black;
+}
+
+
+.selected .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+.handle {
+    position:absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    display: none;
+    background-color: gray;
+    cursor: se-resize;
+}
+
+
+/* 
+.draggable:hover .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+/* Style for grid */
+
+main[data-mode="run"] div#grid {
+    display: none;
+}
+
+
+
+main[data-mode="edit"] div#grid {
+    display: block;
+}
+
+.vgrid {
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px solid lightblue;
+}
+
+.hgrid {
+	position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px solid lightblue;
+}
+
+/* Draggable overriding cusstom style */
+/*
+.draggable {
+    background-color: yellow;
+    border-color: brown;
+}
+*/
+
+.draggable:after {content: attr(data-name);}
+
 
 </style>
 <style>
@@ -768,15 +1070,16 @@ function show_styles()
         <custom-progress-bar progress="24"></custom-progress-bar>
         <webui-widget progress="55"></webui-widget>
         <foo-widget></foo-widget>
+        <button onclick="interaction.increaseGrid()">Grid +</button>
+        <button onclick="interaction.decreaseGrid()">Grid -</button>
+        <button onclick="interaction.addObject()">New Object</button>
+        <button onclick="interaction.toggleEditMode()">Toggle Edit</button>
+        <span>Selected:</span> <span id="selected"></span>
 	</header>
 	
 	<section>
 	
-		<main id="main">A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. <br />
-
-            <div id="object" style="height: 200px; width: 200px; border: 1px solid black;border-radius: 20%;position:relative; overflow:hidden">
-                <canvas id="cv" style="height: 100%; width:100%" height="100" width="100"></canvas>
-            </div>
+		<main id="main">
 		</main>
 	
 		<nav id="navigator">
@@ -808,8 +1111,9 @@ function show_styles()
 
 
 <script>
-    
-    document.querySelector('custom-progress-bar'); //.progress = 50;
+    interaction.init();
+    interaction.generateGrid(20);
+    interaction.initDraggables();
 </script>
 </body>
 </html>

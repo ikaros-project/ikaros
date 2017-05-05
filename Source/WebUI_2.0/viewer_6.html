@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>App Viewer</title>
+<script>
+
+
+/*
+ *
+ * Communication scripts
+ *
+ */
+
+function updateProgress(oEvent)
+{
+    if (oEvent.lengthComputable) 
+    {
+        var percentComplete = oEvent.loaded / oEvent.total;
+        console.log("Progress: ", 100*percentComplete, "% complete");
+    } 
+    else 
+    {
+        // Unable to compute progress information since the total size is unknown
+    }
+}
+
+function transferComplete(evt) {
+    console.log("The transfer is complete.");
+}
+
+function transferFailed(evt) {
+    console.log("An error occurred while transferring the file.");
+}
+
+function transferCanceled(evt) {
+    console.log("The transfer has been canceled by the user.");
+}
+
+function get(url, callback, progress_callback)
+{
+    xhr = new XMLHttpRequest();		
+    xhr.open("GET", url, true);
+
+    xhr.onloadstart = function(evt)
+    {
+        console.log("onloadstart");
+     }
+
+    xhr.onprogress = function(evt)
+    {
+        if (evt.lengthComputable) 
+        {
+            var percentComplete = evt.loaded / evt.total;
+            console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
+        }
+    }
+    xhr.onerror = function(evt)
+    {
+        console.log("onerror");
+        console.log(evt);
+        if(evt.lengthComputable && evt.loaded < evt.total)
+            console.log("Failed to load resource: The network connection was lost.");
+        else if(evt.total == 0 )
+            console.log("Failed to load resource: Could not connect to the server.");
+        else
+            console.log("Unknown error.");
+   }
+    xhr.ontimeout = function(evt)
+    {
+        console.log("ontimeout");
+        console.log(evt);
+    }
+    xhr.onload = function(evt)
+    {
+        console.log("The transfer is complete.");
+        console.log(xhr.response);
+    }
+    
+    xhr.responseType = 'json';
+    xhr.timeout = 10000;
+    xhr.send();
+}
+
+
+
+function testGet()
+{
+    get("http://127.0.0.1:8000/xhrtest.json");
+}
+
+
+/*
+ *
+ * Viewer scripts
+ *
+ */
+
+function toggleNav()
+{
+    var x = document.getElementById('navigator');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+function toggleInspector()
+{
+    var x = document.getElementById('windget_inspector');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+</script>
+<script>
+/*
+ *
+ * Navigator scripts
+ *
+ */
+
+
+nav = {
+//	navigator: null,
+
+    test_group:
+	{
+		'name': 'Main Group',
+		'views': 
+		[
+			{'name': 'View 0.0' },
+			{'name': 'View 0.1' }
+		],
+		'children':
+		[
+			{'name':'Group 1',
+				 'children': 
+					[
+							{'name':'Group 1.1'},
+							{'name':'Group 1.2',
+								 'children': [
+										{'name':'Group 1.2.1'},
+										{'name':'Group 1.2.2'}
+								 ]
+							}
+					],
+				'views':
+					[
+							{'name': 'view 1'},
+							{'name': 'view 2'}
+					]
+			},
+			{'name':'Group 2'},
+			{'name':'Group 3'},
+			{'name':'Group 4',
+				'children': [
+									{'name':'Group 4.1'},
+									{'name':'Group 4.2'}
+							 ]
+				},
+			{'name':'Group 5'}
+		]
+    },
+    
+    group:
+{
+	"name": "Test",
+	"parameters":
+	[
+		{
+			"target": "MC",
+			"name": "qqq"
+		}
+	],
+	"connections":
+	[
+		{
+			"delay": "10",
+			"target": "INPUT",
+			"targetmodule": "SoundOutput",
+			"source": "SOUND_TRIG",
+			"sourcemodule": "MC"
+		}
+	],
+	"views":
+	[
+		{
+			"name": "View",
+			"objects":
+			[
+				{
+					"max": "1",
+					"w": "6",
+					"y": "0",
+					"source": "ANIMATION_TRIG",
+					"x": "0",
+					"title": "Animation",
+					"module": "MC",
+					"class": "BarGraph"
+				},
+				{
+					"max": "1",
+					"w": "6",
+					"y": "1",
+					"source": "SOUND_TRIG",
+					"x": "0",
+					"title": "Sound",
+					"module": "MC",
+					"class": "BarGraph"
+				},
+				{
+					"max": "1",
+					"w": "6",
+					"y": "2",
+					"source": "SOUND_ACTIVE",
+					"x": "0",
+					"title": "Sound Active",
+					"min": "0.0",
+					"module": "MC",
+					"class": "Plot"
+				}
+			]
+		},
+		{
+			"name": "ExtraEmpty",
+			"objects": []
+		}
+	],
+	"groups":
+	[
+		{
+			"class": "SoundOutput",
+			"sounds": "snd/fewer.mp3, snd/goodTeacher.mp3, snd/hasToBeThis.mp3, snd/higher.mp3, snd/hmm.mp3, snd/instructionGreen.mp3, snd/instructionRed.mp3, snd/isItThisOne.mp3, snd/isThisRight.mp3, snd/letsGo.mp3, snd/lower.mp3, snd/more.mp3, snd/myTurn1.mp3, snd/myTurn2.mp3, snd/ok1.mp3, snd/ok2.mp3, snd/tryAgain.mp3, snd/wasCorrect.mp3, snd/whatISaid.mp3, snd/whatIThought.mp3, snd/willYouHelpMe.mp3, snd/wrong1.mp3, snd/wrong2.mp3, snd/wrongShow.mp3, snd/ballongamepandaIntro.mp3, snd/beeflightpandaIntro2.mp3, snd/beeflightpandaIntro3.mp3, snd/birdheropandaIntro.mp3, snd/lizardpandaIntro1.mp3, snd/lizardpandaIntro2.mp3, snd/vehiclepandaIntro1.mp3, snd/vehiclepandaIntro2.mp3",
+			"description": "plays a sound file",
+			"name": "SoundOutput",
+			"_command": "mpg123",
+			"parameters":
+			[
+				{
+					"type": "string",
+					"description": "comma separated list of sound file names (including path).",
+					"default": "",
+					"name": "sounds"
+				},
+				{
+					"type": "string",
+					"description": "the command to use to play sounds, The dafult is the OS X command afplay",
+					"default": "afplay",
+					"name": "command"
+				}
+			],
+			"connections": [],
+			"views": [],
+			"groups": []
+		},
+		{
+			"description": "Learning using the MagicalController rule",
+			"name": "MC",
+			"class": "MagicalController",
+			"no_of_sounds": "32",
+			"parameters":
+			[
+				{
+					"type": "int",
+					"description": "",
+					"default": "10",
+					"name": "no_of_sounds"
+				},
+				{
+					"type": "int",
+					"description": "",
+					"default": "10",
+					"name": "no_of_animations"
+				},
+				{
+					"type": "int",
+					"description": "The port that the module will listen on",
+					"default": "8001",
+					"name": "port"
+				}
+			],
+			"connections": [],
+			"views":
+			[
+				{
+					"name": "Default view for MagicalController",
+					"title": "MagicalController",
+					"objects":
+					[
+						{
+							"title": "Default view for MagicalController",
+							"source": "OUTPUT",
+							"module": "*",
+							"class": "BarGraph",
+							"w": "2",
+							"y": "0",
+							"x": "0"
+						}
+					]
+				}
+			],
+			"groups": []
+		}
+	]
+},
+
+	init: function () {
+		nav.navigator = document.getElementById('navigator');
+		nav.populate(nav.navigator);
+		nav.navigator.addEventListener("click", nav.navClick, false);
+	},
+	buildList: function(group, name) {
+		var s = "<li data-name='"+name+"/"+group.name+"'>" + group.name; // or title
+
+		if(group.views)
+		{
+			s +=  "<ul>"
+			for(i in group.views)
+				s += "<li data-name='"+name+"#"+group.views[i].name+"'> #" + group.views[i].name + "</li>";				
+			s += "</ul>";			
+		}
+
+		if(group.groups)
+		{
+			s +=  "<ul>"
+			for(i in group.groups)
+				s += nav.buildList(group.groups[i], name+"/"+group.name);
+			s += "</ul>";			
+		}
+
+		s += "</li>";
+
+		return s;
+	},		
+	populate: function (element, group) {
+		element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
+	},
+	navClick: function(e) {
+		if (e.target !== e.currentTarget)
+		{
+			alert(e.target.getAttribute("data-name"));
+		}
+		e.stopPropagation();
+	}
+}
+
+
+</script>
+<script>
+/*
+ *
+ * Inspector scripts
+ *
+ */
+
+obj1 = [
+	{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'}
+];
+
+
+obj2 = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
+	{'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
+	{'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
+];
+
+
+inspector = {
+	inspector: null,
+	table: null,
+	list: null,
+    widget: null,
+    
+	init: function () {
+		inspector.inspector = document.getElementById('windget_inspector');
+		inspector.table = document.getElementById('i_table');
+	},
+	remove: function () {
+		while(inspector.table.rows.length > 1)
+			inspector.table.deleteRow(-1);
+	},
+	add: function (widget) {
+        inspector.widget = widget;
+		inspector.list = widget.parameter_template;
+		for(let i in inspector.list)
+		{
+			var row = inspector.table.insertRow(-1);
+			var cell1 = row.insertCell(0);
+			var cell2 = row.insertCell(1);
+			cell1.innerHTML = inspector.list[i].name;
+			cell2.innerHTML = inspector.list[i].default;
+			val = inspector.list[i].default; // val later
+			
+			switch(inspector.list[i].control)
+			{
+				case 'textedit':
+					cell2.contentEditable = true;
+					if(inspector.list[i].type == 'int' || inspector.list[i].type == 'float')
+					{
+						cell2.style.textAlign = 'right';
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'slider':
+					if(inspector.list[i].type == 'int' || inspector.list[i].type == 'float')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<div>0</div><input type="range" min="'+inspector.list[i].min+'" max="'+inspector.list[i].max+'" step="0.01"/>'
+						cell2.addEventListener("input", function(evt) {
+							s = thiscontrol.getElementsByTagName('div')[0];
+							s.innerText = evt.target.value;
+                       // SET VALUE     inspector.widget.parameter[] = evt.target.value;
+						});
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'menu':
+					var opts = inspector.list[i].values.split(',');
+					var s = '<select name="+inspector.list[i].name+">';
+					for(var j in opts)
+						s += '<option value="'+opts[j]+'">'+opts[j]+'</option>';
+					s += '</select>';
+					cell2.innerHTML= s;
+					// SET VALUE HERE
+				break;
+				
+				default:
+				
+				break;
+			}
+		}
+	},
+	select: function (obj)
+	{
+		inspector.remove();
+		inspector.add(obj)
+	},
+	update: function (attr_value)
+	{
+		// New data from server
+	},
+	change: function (attr_value)
+	{
+		// Send changed value to server
+	}
+}
+
+
+
+class WebUIWidgetCanvas extends HTMLElement
+{
+    constructor()
+    {
+        super();
+        let t = this.constructor.parameter_template();
+        this.parameters = {};
+        for(let i in this.constructor.parameter_template())
+            this.parameters[t[i].name] = t[i].default;
+    }
+
+    static parameter_template()
+    {
+        return [{'name':'source', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'color', 'default':1, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
+            {'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+            {'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+            {'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
+            {'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+            {'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+            {'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
+        ]};
+
+    connectedCallback()
+    {
+        this.innerHTML = `
+            <style>
+                canvas { background-color: rgba(0,0,0,0); }
+                main[data-mode="run"] canvas { cursor: default; }
+            </style>
+            <canvas style="height: 100%; width:100%" height="100" width="100"></canvas>
+        `;
+        this.canvasElement = this.querySelector('canvas');
+        this.canvas = this.canvasElement.getContext("2d");
+        
+        this.onmousedown = function () { console.log("WebUIWidgetCanvas: mouse down"); }
+        this.onmouseup = function () { console.log("WebUIWidgetCanvas: mouse up"); }
+        this.onclick = function () { console.log("WebUIWidgetCanvas: click"); }
+        this.onmousemove = function () { console.log("WebUIWidgetCanvas: mousemove"); }
+        this.onmouseover = function () { console.log("WebUIWidgetCanvas: mouseover"); }
+        this.onmouseout = function () { console.log("WebUIWidgetCanvas: mouseout"); }
+
+//        this.addEventListener('mousedown', function () { console.log("WebUIWidgetCanvas: mousedown") }, true);
+//        this.addEventListener('click', function () { console.log("WebUIWidgetCanvas: click") }, false);
+
+        this.parentElement.setAttribute("data-name", "object #"+Math.round(1000*Math.random()));
+        this.redraw();
+    }
+
+    static get observedAttributes()
+    {
+        return ["progress"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue)
+    {
+        console.log("attributeChangedCallback()", name, oldValue, newValue);
+    }
+    
+    redraw()
+    {
+        let width = parseInt(getComputedStyle(this.canvasElement).width);
+        let height = parseInt(getComputedStyle(this.canvasElement).height);
+        if(width != this.canvasElement.width || height != this.canvasElement.height)
+        {
+            this.canvasElement.width = parseInt(width);
+            this.canvasElement.height = parseInt(height);
+        }
+        
+        let c = "rgb("+Math.round(255*Math.random())+","+Math.round(0*Math.random())+","+Math.round(0*Math.random())+")";
+
+        this.canvas.beginPath();
+        this.canvas.lineWidth = 3;
+        this.canvas.strokeStyle = c;
+        this.canvas.moveTo(0, height*Math.random());
+        this.canvas.lineTo(width, height*Math.random());
+        this.canvas.stroke();
+        
+        var w = this;
+        setTimeout(function () { w.redraw()}, 100)
+    }
+};
+customElements.define('webui-widget-canvas', WebUIWidgetCanvas);
+
+</script>
+
+<script>
+
+/*
+ *
+ * Interaction scripts from Main Area
+ *
+ */
+
+interaction = {
+	initialMouseX: undefined,
+	initialMouseY: undefined,
+	startX: undefined,
+	startY: undefined,
+	selectedObject: undefined,
+	grid_spacing: 20,
+	sizegrid: 20,
+	editMode: true,
+    main: undefined,
+    widget_inspector: undefined,
+    system_inspector: undefined,
+    grid_inspector: undefined,
+	
+    init: function () {
+        interaction.main = document.querySelector('main');
+        interaction.main.dataset.mode="run";
+
+        interaction.widget_inspector = document.querySelector('#widget_inspector');
+        interaction.system_inspector = document.querySelector('#system_inspector');
+        interaction.grid_inspector = document.querySelector('#grid_inspector');
+    },
+    stopEvents: function (e) {
+        if(interaction.main.dataset.mode == "edit") e.stopPropagation()
+    },
+	initElement: function (element) {
+		if (typeof element == 'string')
+			element = document.getElementById(element);
+            
+        element.addEventListener('mousedown', interaction.startDrag, true); //capture
+        element.innerHTML += '<webui-widget-canvas></webui-widget-canvas><div class="handle"></div>'
+		element.handle = element.getElementsByClassName('handle')[0] // use querySelector
+		element.handle.onmousedown = interaction.startResize;
+        
+        console.log(WebUIWidgetCanvas.parameter_template());
+        element.parameter_template = WebUIWidgetCanvas.parameter_template();
+/*
+        element.parameter_template = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+            {'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
+            {'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+            {'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+            {'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
+            {'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+            {'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+            {'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
+        ];
+*/
+	},
+	initDraggables: function () {
+        let nodes = document.querySelectorAll(".draggable");
+        for (var i = 0; i <	nodes.length; i++)
+            interaction.initElement(nodes[i]);
+        let  main = document.querySelector('main');
+        main.addEventListener('mousedown',interaction.deselectObject,false);
+	},
+	generateGrid: function (spacing) {
+	    interaction.grid_spacing = spacing;
+	    let grid = interaction.main.querySelector('#grid');
+	    if(grid)
+    	    interaction.main.removeChild(grid);
+		interaction.main.innerHTML += '<div id="grid"></div>'
+        grid = document.getElementById('grid');
+	    for(let i=1; i<250; i++)
+	    {
+		    grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px"></div>'
+		    grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px"></div>'
+	    }
+	},
+	changeGrid: function(spacing) {
+	    interaction.grid_spacing = spacing;
+	    vgrids = document.querySelectorAll('.vgrid');
+        for(let i = 0; i <	vgrids.length; i++)
+	        vgrids[i].style.left = ""+(i+1)*spacing+"px";
+	    hgrids = document.querySelectorAll('.hgrid');
+        for(let i = 0; i <	hgrids.length; i++)
+	        hgrids[i].style.top = ""+(i+1)*spacing+"px";
+	},
+	increaseGrid() {
+	    if(interaction.grid_spacing < 160)
+            interaction.changeGrid(2*interaction.grid_spacing);
+	},
+	decreaseGrid() {
+	    if(interaction.grid_spacing > 10)
+	        interaction.changeGrid(0.5*interaction.grid_spacing);
+	},
+	addObject() {
+	    let main = document.querySelector('main');
+	    newObject = document.createElement("div");
+	    newObject.setAttribute("class", "draggable");
+	    newObject.style.top = "10px";
+	    newObject.style.left = "10px";
+        interaction.main.appendChild(newObject);
+        interaction.initElement(newObject)
+        interaction.selectObject(newObject);
+	},
+	deselectObject() {
+	    if(interaction.selectedObject)
+        {
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/selected/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+            interaction.releaseElement();
+            interaction.selectedObject = null;
+		    document.getElementById('selected').innerText = ""
+
+            interaction.widget_inspector.style.display = "none";
+            interaction.system_inspector.style.display = "none";
+            interaction.grid_inspector.style.display = "block";
+		}
+	},
+	releaseElement: function(evt) {
+	    interaction.main.removeEventListener('mousemove',interaction.move,true);
+	    interaction.main.removeEventListener('mousemove',interaction.resize,true);
+	    interaction.main.removeEventListener('mouseup',interaction.releaseElement,true);
+//        if(interaction.selectedObject)
+        {
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+        }
+		if(evt) evt.stopPropagation()
+	},
+	selectObject(obj) {
+		interaction.deselectObject()
+		interaction.selectedObject = obj;	
+		interaction.selectedObject.className += ' selected';
+		document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
+        
+        inspector.select(obj);
+        
+        interaction.widget_inspector.style.display = "block";
+        interaction.system_inspector.style.display = "none";
+        interaction.grid_inspector.style.display = "none";
+	},
+	startDrag: function (evt) {
+        // do nothing in run mode
+        if(interaction.main.dataset.mode == "run")
+            return;
+            
+        // continue propagation if in resize handle
+        let r = this.handle.getBoundingClientRect();
+        if( r.left < evt.clientX && evt.clientX < r.right &&
+            r.top  < evt.clientY && evt.clientY < r.bottom)
+            return;
+        
+        // handle the drag
+        
+		evt.stopPropagation()
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+	    interaction.selectObject(this);
+		interaction.selectedObject.className += ' dragged';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		interaction.main.addEventListener('mousemove',interaction.move, true);
+		interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
+		return false;
+	},
+	move: function (evt) {
+		evt.stopPropagation()
+		let dX = evt.clientX - interaction.initialMouseX;
+		let dY = evt.clientY - interaction.initialMouseY;
+		interaction.setPosition(dX,dY);
+		return false;
+	},
+	startResize: function (evt) {
+		evt.stopPropagation()
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+        interaction.selectObject(this.parentElement);
+        interaction.selectedObject.className += ' resized';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		interaction.main.addEventListener('mousemove',interaction.resize,true);
+		interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
+		return false;
+	},
+	resize: function (evt) {
+		let dX = evt.clientX - interaction.initialMouseX;
+		let dY = evt.clientY - interaction.initialMouseY;
+		interaction.setSize(dX,dY);
+		return false;
+	},
+	setPosition: function (dx, dy) {
+	    newLeft = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
+	    newRight = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+		interaction.selectedObject.style.left = newLeft + 'px';
+		interaction.selectedObject.style.top = newRight + 'px';
+	},
+	setSize: function (dx, dy) {
+		let newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
+		let newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
+		interaction.selectedObject.style.width = newWidth + 'px';
+		interaction.selectedObject.style.height = newHeight + 'px';
+	},
+	toggleEditMode: function() {
+        interaction.edit_mode = ! interaction.edit_mode;
+        interaction.deselectObject();
+	    let main = document.querySelector('main');
+        main.dataset.mode = interaction.edit_mode ? "edit" : "run";
+        
+        if(main.dataset.mode == "edit")
+        {
+            interaction.widget_inspector.style.display = "none";
+            interaction.system_inspector.style.display = "none";
+            interaction.grid_inspector.style.display = "block";
+            interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
+            interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
+            interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
+           interaction.main.addEventListener('click', interaction.stopEvents, true);
+        }
+        else if(main.dataset.mode == "run")
+        {
+            interaction.widget_inspector.style.display = "none";
+            interaction.system_inspector.style.display = "block";
+            interaction.grid_inspector.style.display = "none";
+
+            interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
+            interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
+            interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
+            interaction.main.removeEventListener('click', interaction.stopEvents, true);
+        }
+	}
+}
+</script>
+<style>
+
+/*
+ *
+ * Functional part
+ *
+ */
+ 
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow:hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    flex: 0 0 50px;
+}
+
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row; /* column from phone */ 
+    align-items: stretch;
+    height: 500px;
+}
+
+main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+ }
+
+nav {
+//    flex: 0 0 200px;
+    order: -1;
+
+	width: 200px;	/* sets minimum size (!) */
+    resize: horizontal;
+    
+    white-space: nowrap; 
+     text-overflow: ellipsis;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+aside {
+    flex: 0 0 200px;
+	display: block; /* or none to hide */
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+footer {
+//    background:#888;
+	border-top: 1px solid black; /* temp */
+    flex: 0 0 50px;
+}
+
+/*
+ *
+ * Styling part
+ *
+ */
+
+header {
+	padding: 5px;
+	background: lightgray;
+}
+
+nav {
+	padding: 10px;
+	background: white;
+    border-right: 1px solid gray;
+}
+
+nav li {
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+main {
+	padding: 10px;
+    background:white;
+}
+
+main[data-mode="edit"] {
+    background:lightyellow;
+}
+
+aside {
+	padding: 10px;
+	background: white;
+    border-left: 1px solid gray;
+}
+
+/*
+*
+*  MAIN AREA
+*
+*
+*/
+
+
+
+/* Basic style for draggable object */
+
+.draggable {
+	position: absolute;
+	top: 10;
+	left: 10;
+    z-index: 200;
+    width: 101px;
+    height: 101px;
+    border: 1px solid lightgray;
+	background-color: rgba(0,0,0,0);
+	cursor: move;
+}
+
+.draggable:hover {
+}
+
+.dragged, .resized {
+    border-color: black;
+}
+
+.dragged, .resized {
+    box-shadow: 4px 4px 4px lightgray;
+}
+
+
+.selected {
+    border: 1px solid black;
+}
+
+
+.selected .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+.handle {
+    position:absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    display: none;
+    background-color: gray;
+    cursor: se-resize;
+}
+
+
+/* 
+.draggable:hover .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+/* Style for grid */
+
+main[data-mode="run"] div#grid {
+    display: none;
+}
+
+
+
+main[data-mode="edit"] div#grid {
+    display: block;
+}
+
+.vgrid {
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px solid lightblue;
+}
+
+.hgrid {
+	position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px solid lightblue;
+}
+
+/* Draggable overriding cusstom style */
+/*
+.draggable {
+    background-color: yellow;
+    border-color: brown;
+}
+*/
+
+.draggable:after {content: attr(data-name);}
+
+
+</style>
+<style>
+object {
+    color: red;
+}
+object {
+    --line-width: 10px;
+    color: blue;
+}
+</style>
+<script>
+function getCSSRule(ruleName) {
+    ruleName = ruleName.toLowerCase();
+    var result = null;
+    var find = Array.prototype.find;
+
+    find.call(document.styleSheets, styleSheet => {
+        result = find.call(styleSheet.cssRules, cssRule => {
+            return cssRule instanceof CSSStyleRule 
+                && cssRule.selectorText.toLowerCase() == ruleName;
+        });
+        return result != null;
+    });
+    return result;
+}
+
+function show_styles()
+{
+    console.log(document.styleSheets);
+    console.log(getCSSRule("object"));
+}
+</script>
+</head>
+
+<body>
+	
+	<header>
+		<button onclick="toggleNav()">Nav</button>
+<!--
+		<button onclick="toggleInspector()">Inspector</button>
+		<button onclick="testGet()">Test XHR</button>
+		<button onclick="show_styles()">Test styles</button>
+-->
+        <button onclick="interaction.toggleEditMode()">Toggle Edit</button>
+        <span>Selected:</span> <span id="selected"></span>
+	</header>
+	
+	<section>
+	
+		<main id="main">
+		</main>
+	
+		<nav id="navigator">
+			<script>
+			nav.init();
+			</script>
+		</nav>
+	
+		<aside id="widget_inspector">
+<!--
+			<button onclick="inspector.remove()">None</button>
+			<button onclick="inspector.select(obj1)">Select 1</button>
+			<button onclick="inspector.select(obj2)">Select 2</button>
+-->
+			<div id="inspector">
+				<div id="i_header"></div>
+				<table id="i_table">
+					<tr><th>Attr</th><th>Value</th></tr>
+				</table>
+			</div>
+            
+			<script>
+			inspector.init();
+			//inspector.add(obj2);
+			</script>
+		</aside>
+
+		<aside id="grid_inspector">
+            <h1>Edit Mode</h1>
+            <button onclick="interaction.increaseGrid()">Grid +</button>
+            <button onclick="interaction.decreaseGrid()">Grid -</button>
+            <button onclick="interaction.addObject()">New Object</button>
+		</aside>
+
+
+		<aside id="system_inspector">
+            <h1>Run Mode</h1>
+            <p>Ikaros System Info</p>
+		</aside>
+
+
+	</section>
+	
+	<footer>fixed height sticky footer</footer>
+
+
+<script>
+    interaction.init();
+    interaction.generateGrid(20);
+    interaction.initDraggables();
+</script>
+</body>
+</html>
+
