@@ -357,23 +357,6 @@ nav = {
  *
  */
 
-obj1 = [
-	{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
-	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'}
-];
-
-
-obj2 = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
-	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
-	{'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-	{'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-	{'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
-	{'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-	{'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
-	{'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
-];
-
-
 inspector = {
 	inspector: null,
 	table: null,
@@ -390,49 +373,113 @@ inspector = {
 	},
 	add: function (widget) {
         inspector.widget = widget;
-		inspector.list = widget.parameter_template;
-		for(let i in inspector.list)
+		inspector.parameter_template = widget.parameter_template;
+		for(let i in inspector.parameter_template)
 		{
-			var row = inspector.table.insertRow(-1);
-			var cell1 = row.insertCell(0);
-			var cell2 = row.insertCell(1);
-			cell1.innerHTML = inspector.list[i].name;
-			cell2.innerHTML = inspector.list[i].default;
-			val = inspector.list[i].default; // val later
-			
-			switch(inspector.list[i].control)
+			let row = inspector.table.insertRow(-1);
+			let value = inspector.widget.parameters[inspector.parameter_template[i].name];
+            let cell1 = row.insertCell(0);
+			let cell2 = row.insertCell(1);
+
+			cell1.innerHTML = inspector.parameter_template[i].name;
+			cell2.innerHTML = value;
+
+			switch(inspector.parameter_template[i].control)
 			{
 				case 'textedit':
 					cell2.contentEditable = true;
-					if(inspector.list[i].type == 'int' || inspector.list[i].type == 'float')
+					if(inspector.parameter_template[i].type == 'int' || inspector.parameter_template[i].type == 'float')
 					{
 						cell2.style.textAlign = 'right';
 					}
-					// SET VALUE HERE
+                    cell2.addEventListener("keypress", function(evt) {
+                        if(evt.keyCode == 13)
+                        {
+                            evt.target.blur();
+                            evt.preventDefault();
+                            return;
+                        }
+                        else if(inspector.parameter_template[i].type == 'int')
+                        {
+                            if(evt.key < "0" || evt.key > "9")
+                                evt.preventDefault();
+                        }
+                        else if(inspector.parameter_template[i].type == 'float')
+                        {
+                            if(evt.key == ".")
+                            {
+                                if(evt.target.innerHTML.indexOf(".") != -1)
+                                    evt.preventDefault();
+                            }
+                            else if(evt.key < "0" || evt.key > "9")
+                                evt.preventDefault();
+                        }
+                        else if(inspector.parameter_template[i].type == 'source')
+                        {
+                            if("abcdefghijklmnopqrtuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ-_.0123456789".indexOf(evt.key) == -1)
+                                evt.preventDefault();
+                        }
+                    });
+                    cell2.addEventListener("blur", function(evt) {
+                        if(inspector.parameter_template[i].type == 'int')
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = parseInt(evt.target.innerText);
+                        else if(inspector.parameter_template[i].type == 'float')
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = parseFloat(evt.target.innerText);
+                        else
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.innerText;
+                    });
 				break;
-				
+
 				case 'slider':
-					if(inspector.list[i].type == 'int' || inspector.list[i].type == 'float')
+					if(inspector.parameter_template[i].type == 'int' || inspector.parameter_template[i].type == 'float')
 					{
 						var thiscontrol = cell2;
-						cell2.innerHTML= '<div>0</div><input type="range" min="'+inspector.list[i].min+'" max="'+inspector.list[i].max+'" step="0.01"/>'
+						cell2.innerHTML= '<div>'+value+'</div><input type="range" value="'+value+'" min="'+inspector.parameter_template[i].min+'" max="'+inspector.parameter_template[i].max+'" step="'+(inspector.parameter_template[i].type == 'int' ?  1: 0.01)+'"/>';
 						cell2.addEventListener("input", function(evt) {
-							s = thiscontrol.getElementsByTagName('div')[0];
-							s.innerText = evt.target.value;
-                       // SET VALUE     inspector.widget.parameter[] = evt.target.value;
+							evt.target.parentElement.querySelector('div').innerText = evt.target.value;
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
 						});
 					}
-					// SET VALUE HERE
 				break;
 				
 				case 'menu':
-					var opts = inspector.list[i].values.split(',');
-					var s = '<select name="+inspector.list[i].name+">';
+					var opts = inspector.parameter_template[i].values.split(',');
+					var s = '<select name="'+inspector.parameter_template[i].name+'">';
 					for(var j in opts)
-						s += '<option value="'+opts[j]+'">'+opts[j]+'</option>';
+                    {
+                        let value = inspector.parameter_template[i].type == 'int' ? j : opts[j];
+                        if(opts[j] == inspector.widget.parameters[inspector.parameter_template[i].name])
+                            s += '<option value="'+value+'" selected >'+opts[j]+'</option>';
+                        else
+                            s += '<option value="'+value+'">'+opts[j]+'</option>';
+                    }
 					s += '</select>';
 					cell2.innerHTML= s;
-					// SET VALUE HERE
+                    cell2.addEventListener("input", function(evt) {
+                         inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+                    });
+ 				break;
+				
+				case 'checkbox':
+					if(inspector.parameter_template[i].type == 'bool')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<input type="checkbox" value="'+value+'" />';
+						cell2.addEventListener("input", function(evt) {
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+						});
+					}
+ 				break;
+				
+				case 'number':
+					if(inspector.parameter_template[i].type == 'int')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<input type="number" value="'+value+'" min="'+inspector.parameter_template[i].min+'" max="'+inspector.parameter_template[i].max+'"/>';
+						cell2.addEventListener("input", function(evt) {
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+						});
+					}
 				break;
 				
 				default:
@@ -444,7 +491,7 @@ inspector = {
 	select: function (obj)
 	{
 		inspector.remove();
-		inspector.add(obj)
+		inspector.add(obj.widget)
 	},
 	update: function (attr_value)
 	{
@@ -456,93 +503,10 @@ inspector = {
 	}
 }
 
-
-
-class WebUIWidgetCanvas extends HTMLElement
-{
-    constructor()
-    {
-        super();
-        let t = this.constructor.parameter_template();
-        this.parameters = {};
-        for(let i in this.constructor.parameter_template())
-            this.parameters[t[i].name] = t[i].default;
-    }
-
-    static parameter_template()
-    {
-        return [{'name':'source', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'color', 'default':1, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
-            {'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-            {'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-            {'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
-            {'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-            {'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
-            {'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
-        ]};
-
-    connectedCallback()
-    {
-        this.innerHTML = `
-            <style>
-                canvas { background-color: rgba(0,0,0,0); }
-                main[data-mode="run"] canvas { cursor: default; }
-            </style>
-            <canvas style="height: 100%; width:100%" height="100" width="100"></canvas>
-        `;
-        this.canvasElement = this.querySelector('canvas');
-        this.canvas = this.canvasElement.getContext("2d");
-        
-        this.onmousedown = function () { console.log("WebUIWidgetCanvas: mouse down"); }
-        this.onmouseup = function () { console.log("WebUIWidgetCanvas: mouse up"); }
-        this.onclick = function () { console.log("WebUIWidgetCanvas: click"); }
-        this.onmousemove = function () { console.log("WebUIWidgetCanvas: mousemove"); }
-        this.onmouseover = function () { console.log("WebUIWidgetCanvas: mouseover"); }
-        this.onmouseout = function () { console.log("WebUIWidgetCanvas: mouseout"); }
-
-//        this.addEventListener('mousedown', function () { console.log("WebUIWidgetCanvas: mousedown") }, true);
-//        this.addEventListener('click', function () { console.log("WebUIWidgetCanvas: click") }, false);
-
-        this.parentElement.setAttribute("data-name", "object #"+Math.round(1000*Math.random()));
-        this.redraw();
-    }
-
-    static get observedAttributes()
-    {
-        return ["progress"];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue)
-    {
-        console.log("attributeChangedCallback()", name, oldValue, newValue);
-    }
-    
-    redraw()
-    {
-        let width = parseInt(getComputedStyle(this.canvasElement).width);
-        let height = parseInt(getComputedStyle(this.canvasElement).height);
-        if(width != this.canvasElement.width || height != this.canvasElement.height)
-        {
-            this.canvasElement.width = parseInt(width);
-            this.canvasElement.height = parseInt(height);
-        }
-        
-        let c = "rgb("+Math.round(255*Math.random())+","+Math.round(0*Math.random())+","+Math.round(0*Math.random())+")";
-
-        this.canvas.beginPath();
-        this.canvas.lineWidth = 3;
-        this.canvas.strokeStyle = c;
-        this.canvas.moveTo(0, height*Math.random());
-        this.canvas.lineTo(width, height*Math.random());
-        this.canvas.stroke();
-        
-        var w = this;
-        setTimeout(function () { w.redraw()}, 100)
-    }
-};
-customElements.define('webui-widget-canvas', WebUIWidgetCanvas);
-
 </script>
+
+<script src="WebUIWidgetCanvas.js"></script>
+
 
 <script>
 
@@ -582,23 +546,16 @@ interaction = {
 			element = document.getElementById(element);
             
         element.addEventListener('mousedown', interaction.startDrag, true); //capture
-        element.innerHTML += '<webui-widget-canvas></webui-widget-canvas><div class="handle"></div>'
-		element.handle = element.getElementsByClassName('handle')[0] // use querySelector
+
+	    element.widget = document.createElement("webui-widget-canvas");
+        element.appendChild(element.widget);
+
+	    element.handle = document.createElement("div");
+        element.handle.setAttribute("class", "handle");
+//      element.innerHTML += '<div class="handle"></div>'
+//		element.handle = element.getElementsByClassName('handle')[0] // use querySelector
 		element.handle.onmousedown = interaction.startResize;
-        
-        console.log(WebUIWidgetCanvas.parameter_template());
-        element.parameter_template = WebUIWidgetCanvas.parameter_template();
-/*
-        element.parameter_template = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
-            {'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
-            {'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-            {'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-            {'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
-            {'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
-            {'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
-            {'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
-        ];
-*/
+        element.appendChild(element.handle);
 	},
 	initDraggables: function () {
         let nodes = document.querySelectorAll(".draggable");
@@ -835,7 +792,7 @@ nav {
 }
 
 aside {
-    flex: 0 0 200px;
+    flex: 0 0 300px;
 	display: block; /* or none to hide */
 
     overflow-y: auto;
@@ -846,6 +803,16 @@ footer {
 //    background:#888;
 	border-top: 1px solid black; /* temp */
     flex: 0 0 50px;
+}
+
+table {
+    table-layout: fixed;
+}
+
+td {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 200px;
 }
 
 /*
@@ -1051,11 +1018,6 @@ function show_styles()
 		</nav>
 	
 		<aside id="widget_inspector">
-<!--
-			<button onclick="inspector.remove()">None</button>
-			<button onclick="inspector.select(obj1)">Select 1</button>
-			<button onclick="inspector.select(obj2)">Select 2</button>
--->
 			<div id="inspector">
 				<div id="i_header"></div>
 				<table id="i_table">
@@ -1065,7 +1027,6 @@ function show_styles()
             
 			<script>
 			inspector.init();
-			//inspector.add(obj2);
 			</script>
 		</aside>
 
