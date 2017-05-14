@@ -1,4 +1,4 @@
-class WebUIWidgetCanvas extends WebUIWidget
+class WebUIWidgetPlot extends WebUIWidgetCanvas
 {
 
     static template()
@@ -17,25 +17,17 @@ class WebUIWidgetCanvas extends WebUIWidget
             {'name':'direction', 'default':'all', 'type':'string-öh', 'min':0, 'max':2, 'control': 'menu', 'values': "all,horizontal,vertical"}
         ]};
     
-    static html()
-    {
-        return `
-            <style>
-                canvas { background-color: rgba(0,0,0,0); }
-                main[data-mode="run"] canvas { cursor: default; }
-            </style>
-            <canvas style="height: 100%; width:100%" height="100" width="100"></canvas>
-        `;
-    }
 
-    connectedCallback()
-    {
-        this.innerHTML = this.constructor.html();
-        this.canvasElement = this.querySelector('canvas');
-        this.canvas = this.canvasElement.getContext("2d");
-        this.update();
-    }
 
+
+    init()
+    {
+        this.data = [10, 83, 32, 56];   // Should connect to main data structure
+        
+        this.onclick = function () { alert(this.data) };
+    }
+    
+    
     update()
     {
         let width = parseInt(getComputedStyle(this.canvasElement).width);
@@ -45,8 +37,13 @@ class WebUIWidgetCanvas extends WebUIWidget
             this.canvasElement.width = parseInt(width);
             this.canvasElement.height = parseInt(height);
         }
-        draw();
+        
+        this.width = parseInt(width);
+        this.height = parseInt(height);
+
+        this.draw();
     }
+
 
 
     draw()
@@ -79,16 +76,16 @@ class WebUIWidgetCanvas extends WebUIWidget
         switch(this.parameters.direction)
         {
             case "all":
-                this.canvas.moveTo(width*Math.random(), height*Math.random());
-                this.canvas.lineTo(width*Math.random(), height*Math.random());
+                this.canvas.moveTo(this.width*Math.random(), this.height*Math.random());
+                this.canvas.lineTo(this.width*Math.random(), this.height*Math.random());
                 break;
             case "horizontal":
-                this.canvas.moveTo(0, height*Math.random());
-                this.canvas.lineTo(width, height*Math.random());
+                this.canvas.moveTo(0, this.height*Math.random());
+                this.canvas.lineTo(width, this.height*Math.random());
                 break;
             case "vertical":
-                this.canvas.moveTo(width*Math.random(), 0);
-                this.canvas.lineTo(width*Math.random(), height);
+                this.canvas.moveTo(this.width*Math.random(), 0);
+                this.canvas.lineTo(this.width*Math.random(), this.height);
                 break;
         }
         this.canvas.stroke();
@@ -100,4 +97,4 @@ class WebUIWidgetCanvas extends WebUIWidget
 
 
 
-webui_widgets.add('webui-widget-canvas', WebUIWidgetCanvas);
+webui_widgets.add('webui-widget-plot', WebUIWidgetPlot);

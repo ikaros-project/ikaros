@@ -26,6 +26,7 @@
 #ifndef IKAROS
 #define IKAROS
 
+#include <string>
 
 #define VERSION "2.0"
 
@@ -436,6 +437,8 @@ public:
     bool		InputConnected(Module * m, const char * input_name);
     bool        OutputConnected(Module * m, const char * output_name);
     
+    std::string JSONString();
+
     long        GetTick()
     {
         return tick;
