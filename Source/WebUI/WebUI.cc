@@ -1354,7 +1354,6 @@ WebUI::Pause()
 }
 
 
-
 void
 WebUI::HandleHTTPRequest()
 {
@@ -1368,14 +1367,13 @@ WebUI::HandleHTTPRequest()
     
     if(!strcmp(uri, "/xhrtest.json"))
     {
-        std::string s = k->JSONString(); // .c_str()
+        std::string s = k->JSONString();
+        
 		Dictionary rtheader;
 		rtheader.Set("Content-Type", "application/json");
 		rtheader.Set("Content-Length", int(s.size()));
 		socket->SendHTTPHeader(&rtheader);
-
-        printf("SENDING(%lu): %s\n", s.size()-1, s.c_str());
-        socket->Send(s.c_str());
+        socket->SendData(s.c_str(), int(s.size()));
     }
     else if (!strcmp(uri, "/stop"))
     {

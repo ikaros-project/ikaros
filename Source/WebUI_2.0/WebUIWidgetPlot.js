@@ -91,7 +91,7 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
         this.canvas.stroke();
         
         var w = this;
-        setTimeout(function () { w.redraw()}, 100)
+        setTimeout(function () { w.draw()}, 100)
     }
 };
 
