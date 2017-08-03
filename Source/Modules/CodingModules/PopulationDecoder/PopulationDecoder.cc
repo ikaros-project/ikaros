@@ -28,14 +28,14 @@ using namespace ikaros;
 void
 PopulationDecoder::SetSizes()
 {
-//    size_x  =   GetInputSizeX("INPUT");
-    size_y  =   GetInputSizeY("INPUT");
-
-    if (size_y != unknown_size)
-    {
-        SetOutputSize("OUTPUT", size_y);
-        SetOutputSize("AMPLITUDE", size_y);
-    }
+	size_x  =   GetInputSizeX("INPUT");
+	size_y  =   GetInputSizeY("INPUT");
+	
+	if (size_x != unknown_size && size_y != unknown_size)
+	{
+		SetOutputSize("OUTPUT", size_y);
+		SetOutputSize("AMPLITUDE", size_y);
+	}
 }
 
 

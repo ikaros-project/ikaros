@@ -18,6 +18,7 @@
 		<object class="Image" type="rgb" module = "InputVideo1" source = "RED+GREEN+BLUE" x="0" y="0" />
 		<object class="Image" type="rgb" module = "InputVideo2" source = "RED+GREEN+BLUE" x="1" y="0" />
 	</view>
+    
     <module class = "Logger" name = "Logger" />
 </group>
  

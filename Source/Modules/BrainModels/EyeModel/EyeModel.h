@@ -41,6 +41,8 @@ public:
     float       pupil_max;
 
     float       epsilon;
+    float       m3;
+    float       alpha1a;
 
     float *     gaze;
 

@@ -82,7 +82,7 @@ Nucleus::Tick()
 
     if(excitation)
         a += phi * phi_scale * s * sum(excitation, excitation_size);
-    
+
      if(inhibition)
         a -= psi * psi_scale * sum(inhibition, inhibition_size);
 

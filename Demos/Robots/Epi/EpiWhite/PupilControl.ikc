@@ -1,5 +1,6 @@
-<group name="PupilControl" epsilon = "1"  phi = "1"
->
+<?xml version="1.0"?>
+
+<group name="PupilControl" epsilon = "1"  phi = "1">
 
 
     <input name="PTA" targetmodule="PTA" target="INPUT" />
@@ -34,8 +35,9 @@
     <module
         class="Nucleus"
         name="CG"
-     	alpha = "190"
-        beta = "60"
+     	_alpha = "16"
+     	alpha = "20"
+        beta = "-10"
     />
 
     <!-- ********************************* SYMPATHETIC COMPONENT ********************************* -->

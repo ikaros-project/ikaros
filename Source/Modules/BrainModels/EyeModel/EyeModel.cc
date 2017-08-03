@@ -34,7 +34,9 @@ EyeModel::Init()
     Bind(pupil_max, "pupil_max");
 
     Bind(epsilon, "epsilon");
-
+    Bind(m3, "m3");
+    Bind(alpha1a, "alpha1a");
+    
     gaze = GetInputArray("GAZE");
 
     pupil_sphincter = GetInputArray("PUPIL_SPHINCTER");
@@ -56,7 +58,7 @@ EyeModel::Tick()
         output[1] = gaze[1];
     }
     
-    float p = pupil_min + (pupil_max-pupil_min) * clip(pupil_dilator[0]-pupil_sphincter[0], 0, 1);
+    float p = pupil_min + (pupil_max-pupil_min) * clip(alpha1a*pupil_dilator[0]-m3*pupil_sphincter[0], 0, 1);
 
     pupil_diameter[0]  += epsilon * (p - pupil_diameter[0]);
     
