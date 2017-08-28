@@ -29,7 +29,9 @@ void
 Trainer::SetSizes()
 {
     int sx = GetInputSizeX("TRAINING_DATA_X");
-    int sy = GetInputSizeX("TRAINING_DATA_Y");
+    int sy = 1;
+    if(GetInputSize("TRAINING_DATA_Y"))
+    	sy = GetInputSizeX("TRAINING_DATA_Y");
 
     if (sx != unknown_size && sy != unknown_size)
     {
@@ -50,6 +52,7 @@ Trainer::Init()
 {
     Bind(order, "order");
     Bind(crossvalidation, "crossvalidation");
+    Bind(repetitions, "repetitions");
 
     training_data_x = GetInputMatrix("TRAINING_DATA_X");
     training_data_y = GetInputMatrix("TRAINING_DATA_Y");
@@ -89,11 +92,15 @@ Trainer::Init()
 void
 Trainer::Tick()
 {
+    if(GetTick() % repetitions != 0)
+        return;
+
     switch(crossvalidation)
     {
         case 0: // none
             copy_array(train_x, training_data_x[training_current], size_x);
-            copy_array(train_y, training_data_y[training_current], size_y);
+            if(training_data_y)
+            	copy_array(train_y, training_data_y[training_current], size_y);
             if(order == random_order) // random
                 training_current = random(training_no_of_examples);
             else if(++training_current >= training_no_of_examples)
@@ -103,7 +110,8 @@ Trainer::Tick()
         case 1: // all
             *error = dist(test_y_last, test_y, size_y);
             copy_array(train_x, training_data_x[training_current], size_x);
-            copy_array(train_y, training_data_y[training_current], size_y);
+            if(training_data_y)
+            	copy_array(train_y, training_data_y[training_current], size_y);
             copy_array(test_x, train_x, size_x);
             copy_array(test_y_last, train_y, size_y);
 
@@ -116,7 +124,8 @@ Trainer::Tick()
         case 2: // even
             *error = dist(test_y_last, test_y, size_y);
             copy_array(train_x, training_data_x[training_current], size_x);
-            copy_array(train_y, training_data_y[training_current], size_y);
+            if(training_data_y)
+            	copy_array(train_y, training_data_y[training_current], size_y);
             copy_array(test_x, training_data_x[testing_current], size_x);
             copy_array(test_y_last, training_data_y[testing_current], size_y);
             
@@ -132,7 +141,7 @@ Trainer::Tick()
                 
                 if(training_current >= training_no_of_examples)
                     training_current = 1;
-               if(testing_current >= training_no_of_examples)
+               	if(testing_current >= training_no_of_examples)
                     testing_current = 0;
             }
             break;
@@ -140,7 +149,8 @@ Trainer::Tick()
         case 3: // odd
             *error = dist(test_y_last, test_y, size_y);
             copy_array(train_x, training_data_x[training_current], size_x);
-            copy_array(train_y, training_data_y[training_current], size_y);
+            if(training_data_y)
+            	copy_array(train_y, training_data_y[training_current], size_y);
             copy_array(test_x, training_data_x[testing_current], size_x);
             copy_array(test_y_last, training_data_y[testing_current], size_y);
             
@@ -164,7 +174,8 @@ Trainer::Tick()
         case 4: // input
             *error = dist(test_y_last, test_y, size_y);
             copy_array(train_x, training_data_x[training_current], size_x);
-            copy_array(train_y, training_data_y[training_current], size_y);
+            if(training_data_y)
+            	copy_array(train_y, training_data_y[training_current], size_y);
             copy_array(test_x, testing_data_x[testing_current], size_x);
             copy_array(test_y_last, testing_data_y[testing_current], size_y);
             

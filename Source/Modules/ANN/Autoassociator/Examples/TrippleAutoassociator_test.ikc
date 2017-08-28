@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+   <module
+        class = "Constant"
+        name = "X"
+        outputsize_x = "6"
+        outputsize_y = "2"
+        data = "
+        	1	0	1	0	1	0;
+        	0	1	0	1	0	1
+        "
+    />
+
+   <module
+        class = "Constant"
+        name = "NULL6"
+        outputsize_x = "6"
+        outputsize_y = "1"
+        data = "
+        	1	0	0	0	0	0
+        "
+    />
+
+   <module
+        class = "Constant"
+        name = "NULL4"
+        outputsize_x = "6"
+        outputsize_y = "1"
+        data = "
+        	0	0	0	0
+        "
+    />
+
+   <module
+        class = "Constant"
+        name = "Y"
+        outputsize_x = "4"
+        outputsize_y = "2"
+        data = "
+        	1	1	0	0;
+        	0	0	1	1
+        "
+    />
+
+    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
+    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
+
+    <module
+        class = "Trainer" 
+        name = "Trainer"
+        repetitions = "20"
+        order = "sequential"
+    />
+
+
+	<module
+		class = "Autoassociator"
+		name = "A"
+        epsilon = "0.05"
+	/>
+	
+	
+	<module
+		class = "Autoassociator"
+		name = "B"
+        epsilon = "0.05"
+	/>
+	
+	
+	<module
+		class = "Autoassociator"
+		name = "C"
+        epsilon = "0.05"
+	/>
+	
+	<!-- All are trained with the same data as test -->
+    
+	<_connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "A"  target = "INPUT" />
+	<connection sourcemodule = "NULL6"  source = "OUTPUT" targetmodule = "A"  target = "INPUT" />
+
+	<connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "A"  target = "T-INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "B"  target = "AUX-T-INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "C"  target = "AUX-T-INPUT" />
+    <connection sourcemodule = "B"  source = "OUTPUT" targetmodule = "A"  target = "AUX-INPUT" />
+    <connection sourcemodule = "C"  source = "OUTPUT" targetmodule = "A"  target = "AUX-INPUT" />
+
+	<_connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "B"  target = "INPUT" />
+	<connection sourcemodule = "NULL6"  source = "OUTPUT" targetmodule = "B"  target = "INPUT" />
+    
+	<connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "B"  target = "T-INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "A"  target = "AUX-T-INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "C"  target = "AUX-T-INPUT" />
+    <connection sourcemodule = "A"  source = "OUTPUT" targetmodule = "B"  target = "AUX-INPUT" />
+    <connection sourcemodule = "C"  source = "OUTPUT" targetmodule = "B"  target = "AUX-INPUT" />
+    
+	<_connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "C"  target = "INPUT" />
+	<connection sourcemodule = "NULL4"  source = "OUTPUT" targetmodule = "C"  target = "INPUT" />
+	<connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "C"  target = "T-INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "A"  target = "AUX-T-INPUT" />
+    <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "B"  target = "AUX-T-INPUT" />
+    <connection sourcemodule = "A"  source = "OUTPUT" targetmodule = "C"  target = "AUX-INPUT" />
+    <connection sourcemodule = "B"  source = "OUTPUT" targetmodule = "C"  target = "AUX-INPUT" />
+
+
+	<view name="View">
+        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />
+        <object class="BarGraph" title="A" module="A" source="OUTPUT" x="0" y="1" w="3" min="0.0" max="1" />
+        <object class="Grid" title="W" module="A" source="W" x="0" y="2" w="3" h="3" min="0.0" max="1" />
+        <object class="Grid" title="U" module="A" source="U" x="0" y="5" w="3" h="3" min="0.0" max="1" />
+
+        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="3" y="0" w="3" max="1" />
+        <object class="BarGraph" title="B" module="B" source="OUTPUT" x="3" y="1" w="3" min="0.0" max="1" />
+        <object class="Grid" title="W" module="B" source="W" x="3" y="2" w="3" h="3" min="0.0" max="1" />
+        <object class="Grid" title="U" module="B" source="U" x="3" y="5" w="3" h="3" min="0.0" max="1" />
+
+        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_Y" x="6" y="0" w="3" max="1" />
+        <object class="BarGraph" title="C" module="C" source="OUTPUT" x="6" y="1" w="3" min="0.0" max="1" />
+        <object class="Grid" title="W" module="C" source="W" x="6" y="2" w="3" h="3" min="0.0" max="1" />
+        <object class="Grid" title="U" module="C" source="U" x="6" y="5" w="3" h="3" min="0.0" max="1" />
+ 	</view>
+</group>
+ 

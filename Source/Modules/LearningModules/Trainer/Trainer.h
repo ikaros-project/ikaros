@@ -50,6 +50,7 @@ public:
     
     int         order;
     int         crossvalidation;
+    int			repetitions;
 
     Trainer(Parameter * p): Module(p) {};
     virtual ~Trainer() {};

@@ -1,9 +1,9 @@
 //
-//		HopfieldNetwork.h		This file is a part of the IKAROS project
+//		Autoassociator.h		This file is a part of the IKAROS project
 //
 //
 //    Copyright (C) 2016 Christian Balkenius
-///
+//
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
 //    the Free Software Foundation; either version 2 of the License, or
@@ -19,22 +19,23 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef HopfieldNetwork_
-#define HopfieldNetwork_
+#ifndef Autoassociator_
+#define Autoassociator_
 
 #include "IKAROS.h"
-#include "RNN.h"
+#include "LearningModule.h"
 
-class HopfieldNetwork: public RNN
+class Autoassociator: public LearningModule
 {
 public:
-	static Module * Create(Parameter * p) { return new HopfieldNetwork(p); }
+	static Module * Create(Parameter * p) { return new Autoassociator(p); }
 	
-				HopfieldNetwork(Parameter * p) : RNN(p) {};
-    virtual		~HopfieldNetwork() {};
+				Autoassociator(Parameter * p) : LearningModule(p) {};
+    virtual		~Autoassociator() {};
 
-    void		Init();
-    void		Tick();
+    virtual void		Learn();
+    virtual void		Init();
+    virtual void		Tick();
 };
 
 #endif
