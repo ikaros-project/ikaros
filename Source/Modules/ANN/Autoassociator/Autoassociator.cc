@@ -29,10 +29,14 @@ Autoassociator::Learn()
 {
 	for(int j=0; j<output_size; j++)
     	for(int i=0; i<input_size; i++)
+        {
         	if(i!=j)
 	        	w[j][i] += learning_rate * (2*t_input[j]-1) * (2*t_input[i]-1);
-
-	clip(w, -1, 1, input_size, output_size);
+//            if (i==10 && j==11)
+//            	printf("%f %f => %f\n", t_input[i], t_input[j], (2*t_input[j]-1) * (2*t_input[i]-1));
+        }
+    
+//	clip(w, -1, 1, input_size, output_size);
     
     if(u)
     {
@@ -60,12 +64,18 @@ void
 Autoassociator::Init()
 {
     LearningModule::Init();
+    
+    energy = GetOutputArray("ENERGY");
 }
+
+
 
 static float f(float x)
 {
 	return 1/(1+exp(-2*x));
 }
+
+
 
 void
 Autoassociator::Tick()
@@ -74,7 +84,7 @@ Autoassociator::Tick()
 
 	Learn();
     
-    if(GetTick() % 300 == 0)
+    if(GetTick() % 100 == 0)
     	reset_array(output, output_size);
     
     // Calculate output
@@ -93,6 +103,16 @@ Autoassociator::Tick()
         
         output[j] += 0.1 * (f(net_j + input[j]) - old[j]);
     }
+    
+    // Calculate energy
+    
+    float e = 0;
+    for(int j=0; j<output_size; j++)
+    	for(int i=0; i<input_size; i++)
+        {
+        	e += output[i]*output[j]*w[j][i];
+        }
+	*energy = -0.5*e;
 }
 
 

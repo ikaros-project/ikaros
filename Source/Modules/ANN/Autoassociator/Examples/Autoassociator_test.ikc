@@ -5,11 +5,32 @@
    <module
         class = "Constant"
         name = "X"
+        outputsize_x = "12"
+        outputsize_y = "7"
+        data = "
+        	1	0	1	0	1	0	0 0 0 0 0 1;
+        	0	1	0	1	0	1	0 0 0 0 1 0;
+        	1	1	1	0	0	0	0 0 0 1 0 0;
+        	0	0	0	1	1	1	0 0 1 0 0 0;
+        	0	1	1	1	1	0	0 1 0 0 0 0;
+        	1	1	0	0	1	1	1 0 0 0 0 0;
+            0.5	0.5	0.5	0.5	0.5	0.5 0.5 0.5 0.5 0.5 0.5 0.5
+        "
+    />
+
+  <module
+        class = "Constant"
+        name = "X_old"
         outputsize_x = "6"
-        outputsize_y = "2"
+        outputsize_y = "7"
         data = "
         	1	0	1	0	1	0;
-        	0	1	0	1	0	1
+        	0	1	0	1	0	1;
+        	1	1	1	0	0	0;
+        	1	1	1	0	0	0;
+        	0	1	1	1	1	0;
+        	1	1	0	0	1	1;
+            0.5	0.5	0.5	0.5	0.5	0.5
         "
     />
 
@@ -25,9 +46,8 @@
         class = "Randomizer"
         name = "RAND"
         max="1"
-        outputsize_x = "6"
+        outputsize_x = "12"
         outputsize_y = "1"
-        _period="300"
     />
 
     <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
@@ -39,11 +59,11 @@
         repetitions = "20"
     />
 
-
 	<module
 		class = "Autoassociator"
 		name = "A1"
-        epsilon = "0.05"
+        epsilon = "1"
+        learning_rate = "1"
 	/>
 	
 	
@@ -55,8 +75,9 @@
         <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />
         <object class="BarGraph" title="RAND" module="RAND" source="OUTPUT" x="0" y="1" w="3" max="1" />
         <object class="BarGraph" title="A1" module="A1" source="OUTPUT" x="0" y="2" w="3" min="0" max="1" />
-        <object class="Grid" title="W" module="A1" source="W" x="0" y="3" w="3" h="3" min="-1" max="1" />
-        <object class="Plot" title="f(x)" module="A1" source="OUTPUT" select="0, 1, 2, 3, 4, 5"  color="red, green, blue, yellow, white, pink" x="0" y="6" w="3" h="1" min="0" max="1" />
+        <object class="Grid" title="W" module="A1" source="W"  x="0" y="3" w="3" h="3" min="-10" max="10" />
+        <object class="Plot" title="f(x)" module="A1" source="OUTPUT" select="0, 1, 2, 3, 4, 5"  color="red, green, blue, yellow, white, pink" x="0" y="6" w="12" h="1" min="0" max="1" />
+        <object class="Plot" title="E" module="A1" source="ENERGY" color="red" x="0" y="7" w="12" h="1" min="-3" max="1" />
  	</view>
 </group>
  

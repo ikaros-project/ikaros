@@ -36,6 +36,8 @@ public:
     virtual void		Learn();
     virtual void		Init();
     virtual void		Tick();
+    
+    float *				energy;
 };
 
 #endif

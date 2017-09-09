@@ -19,6 +19,7 @@
 	<input name="INPUT" description="Main input" />
 	<output name="OUTPUT" description="Main output with the current input" size_set="INPUT" />
 
+	<output name="ENERGY" description="Energy of the current state" size="1" />
 
 	<!-- TRAINING -->
 
@@ -51,7 +52,7 @@
 	<output name="W" description="Internal weights" size_set_x="INPUT" size_set_y="INPUT" />		<!-- y actually OUTPUT -->
 	<output name="U" description="Auxilliary weights"  size_set_x="AUX-T-INPUT" size_set_y="INPUT" optional="yes" />
 
-    <parameter name="learning_rate" type="float" default="0.1" description="Learning rate" />
+    <parameter name="learning_rate" type="float" default="0.001" description="Learning rate" />
 
 
 	<module class="Autoassociator" />
