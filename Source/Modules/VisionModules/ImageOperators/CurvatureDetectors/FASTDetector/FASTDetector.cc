@@ -31,7 +31,8 @@ void
 FASTDetector::Init()
 {
     Bind(threshold, "threshold");
-    
+    Bind(max_points, "max_points");
+  
     input	= GetInputMatrix("INPUT");
     output	= GetOutputMatrix("OUTPUT");
     
@@ -56,14 +57,15 @@ FASTDetector::Tick()
     int numcorners;
     xy * points = fast9_detect_nonmax(data, size_x, size_y, size_x, threshold, &numcorners);
     
-    reset_matrix(corners, 2, 5000);
-    for(int i=0; i<numcorners; i++)
+    reset_matrix(corners, 2, max_points);
+    int point_count = min(numcorners, max_points);
+    for(int i=0; i<point_count; i++)
     {
         corners[i][0] = float(points[i].x)/float(size_x);
         corners[i][1] = float(points[i].y)/float(size_y);
     }
     
-    *corner_count = float(numcorners);
+    *corner_count = float(point_count);
     
     free(points);
     delete [] data;

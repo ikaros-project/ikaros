@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="DirectionDetector" description="calculates motion in an image">
+
+	<description type="text">
+		Detect various visual motion
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DirectionDetector"
+			name="DirectionDetector"
+		/>
+	</example>
+
+	<parameter name="no_of_directions" type="int" default="8" description="Number of direcions to categorize" />
+	<parameter name="crop" type="array" default="" description="Ignore vectors outside this region: (x0, y0, x1, y1)" />
+
+	<input name="INPUT" description="Table of vectors: (x0, y0, x1, y1)" />
+	<input name="NO-OF-ROWS" description="The number of rows in the input to use" />
+
+	<output name="MOTION-VECTOR" description="Main motion vector" size="2" />
+	<output name="MOTION-DIRECTION" description="Main movement direcion: left, right, up, down (binary categories)" size="4" />
+	<output name="LOOMING" description="Detects motion towards the camera (binary category)" size="1" />
+	<output name="LEFT-FIELD-MOTION" description="Detects motion to the left of the image" size="1" />
+	<output name="RIGHT-FIELD-MOTION" description="Detects motion to the right of the image" size="1" />
+
+	<output name="MOTION-VECTOR-DRAW" description="Main motion vector (for visulization, start at center of image)" size="4" />
+
+	<module class="DirectionDetector" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>DirectionDetector.h</file>
+   		<file>DirectionDetector.cc</file>
+   		<file>DirectionDetector.ikc</file>
+   </files>
+
+</group>
