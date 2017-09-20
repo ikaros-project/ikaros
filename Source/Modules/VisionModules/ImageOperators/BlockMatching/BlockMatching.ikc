@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="BlockMatching" description="calculates motion in an image">
+
+	<description type="text">
+		Calculates motion in an image using block matching.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="BlockMatching"
+			name="BlockMatching"
+		/>
+	</example>
+
+	<parameter name="block_radius" type="int" default="5" description="Radius of the block" />
+	<parameter name="search_window_radius" type="int" default="32" description="Radius of the search window" />
+
+	<parameter name="search_method" type="list" list="full" default="0" description="Radius of the search window" />
+	<parameter name="metric" type="list" list="MSE" default="0" description="Metric to use for block comparison" />
+
+	<input name="INPUT" description="The current frame" />
+	<input name="INPUT-LAST" description="The previous frame" />
+	<input name="POINTS" description="Points that are used for the motion estimation" />
+	<input name="NO-OF-POINTS" description="The number of points to use" />
+
+	<output name="FLOW" description="A list of motion vectors; x,y before, x,y now" size_set_y="POINTS" size_x="4" />
+	<output name="FLOW-SIZE" description="The number of motion vectors" size="1" />
+
+	<output name="DEBUG" description="The number of motion vectors" size_x="320" size_y="240" />
+
+	<module class="BlockMatching" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>BlockMatching.h</file>
+   		<file>BlockMatching.cc</file>
+   		<file>BlockMatching.ikc</file>
+   </files>
+
+</group>
