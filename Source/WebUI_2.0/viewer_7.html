@@ -1,92 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>App Viewer</title>
+<title>Ikaros WebUi 2.0</title>
 <script>
 
 
-/*
- *
- * Communication scripts
- *
- */
-
-function updateProgress(oEvent)
-{
-    if (oEvent.lengthComputable) 
-    {
-        var percentComplete = oEvent.loaded / oEvent.total;
-        console.log("Progress: ", 100*percentComplete, "% complete");
-    } 
-    else 
-    {
-        // Unable to compute progress information since the total size is unknown
-    }
-}
-
-function transferComplete(evt) {
-    console.log("The transfer is complete.");
-}
-
-function transferFailed(evt) {
-    console.log("An error occurred while transferring the file.");
-}
-
-function transferCanceled(evt) {
-    console.log("The transfer has been canceled by the user.");
-}
-
-function get(url, callback, progress_callback)
-{
-    xhr = new XMLHttpRequest();		
-    xhr.open("GET", url, true);
-
-    xhr.onloadstart = function(evt)
-    {
-        console.log("onloadstart");
-     }
-
-    xhr.onprogress = function(evt)
-    {
-        if (evt.lengthComputable) 
-        {
-            var percentComplete = evt.loaded / evt.total;
-            console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
-        }
-    }
-    xhr.onerror = function(evt)
-    {
-        console.log("onerror");
-        console.log(evt);
-        if(evt.lengthComputable && evt.loaded < evt.total)
-            console.log("Failed to load resource: The network connection was lost.");
-        else if(evt.total == 0 )
-            console.log("Failed to load resource: Could not connect to the server.");
-        else
-            console.log("Unknown error.");
-   }
-    xhr.ontimeout = function(evt)
-    {
-        console.log("ontimeout");
-        console.log(evt);
-    }
-    xhr.onload = function(evt)
-    {
-        console.log("The transfer is complete.");
-        console.log(xhr.response);
-    }
-    
-    xhr.responseType = 'json';
-    xhr.timeout = 10000;
-    xhr.send();
-}
-
-
-
-function testGet()
-{
-    get("http://127.0.0.1:8000/xhrtest.json");
-}
 
 
 /*
@@ -125,190 +43,9 @@ function toggleInspector()
 
 
 nav = {
-//	navigator: null,
 
-    test_group:
-	{
-		'name': 'Main Group',
-		'views': 
-		[
-			{'name': 'View 0.0' },
-			{'name': 'View 0.1' }
-		],
-		'children':
-		[
-			{'name':'Group 1',
-				 'children': 
-					[
-							{'name':'Group 1.1'},
-							{'name':'Group 1.2',
-								 'children': [
-										{'name':'Group 1.2.1'},
-										{'name':'Group 1.2.2'}
-								 ]
-							}
-					],
-				'views':
-					[
-							{'name': 'view 1'},
-							{'name': 'view 2'}
-					]
-			},
-			{'name':'Group 2'},
-			{'name':'Group 3'},
-			{'name':'Group 4',
-				'children': [
-									{'name':'Group 4.1'},
-									{'name':'Group 4.2'}
-							 ]
-				},
-			{'name':'Group 5'}
-		]
-    },
-    
-    group:
-{
-	"name": "Test",
-	"parameters":
-	[
-		{
-			"target": "MC",
-			"name": "qqq"
-		}
-	],
-	"connections":
-	[
-		{
-			"delay": "10",
-			"target": "INPUT",
-			"targetmodule": "SoundOutput",
-			"source": "SOUND_TRIG",
-			"sourcemodule": "MC"
-		}
-	],
-	"views":
-	[
-		{
-			"name": "View",
-			"objects":
-			[
-				{
-					"max": "1",
-					"w": "6",
-					"y": "0",
-					"source": "ANIMATION_TRIG",
-					"x": "0",
-					"title": "Animation",
-					"module": "MC",
-					"class": "BarGraph"
-				},
-				{
-					"max": "1",
-					"w": "6",
-					"y": "1",
-					"source": "SOUND_TRIG",
-					"x": "0",
-					"title": "Sound",
-					"module": "MC",
-					"class": "BarGraph"
-				},
-				{
-					"max": "1",
-					"w": "6",
-					"y": "2",
-					"source": "SOUND_ACTIVE",
-					"x": "0",
-					"title": "Sound Active",
-					"min": "0.0",
-					"module": "MC",
-					"class": "Plot"
-				}
-			]
-		},
-		{
-			"name": "ExtraEmpty",
-			"objects": []
-		}
-	],
-	"groups":
-	[
-		{
-			"class": "SoundOutput",
-			"sounds": "snd/fewer.mp3, snd/goodTeacher.mp3, snd/hasToBeThis.mp3, snd/higher.mp3, snd/hmm.mp3, snd/instructionGreen.mp3, snd/instructionRed.mp3, snd/isItThisOne.mp3, snd/isThisRight.mp3, snd/letsGo.mp3, snd/lower.mp3, snd/more.mp3, snd/myTurn1.mp3, snd/myTurn2.mp3, snd/ok1.mp3, snd/ok2.mp3, snd/tryAgain.mp3, snd/wasCorrect.mp3, snd/whatISaid.mp3, snd/whatIThought.mp3, snd/willYouHelpMe.mp3, snd/wrong1.mp3, snd/wrong2.mp3, snd/wrongShow.mp3, snd/ballongamepandaIntro.mp3, snd/beeflightpandaIntro2.mp3, snd/beeflightpandaIntro3.mp3, snd/birdheropandaIntro.mp3, snd/lizardpandaIntro1.mp3, snd/lizardpandaIntro2.mp3, snd/vehiclepandaIntro1.mp3, snd/vehiclepandaIntro2.mp3",
-			"description": "plays a sound file",
-			"name": "SoundOutput",
-			"_command": "mpg123",
-			"parameters":
-			[
-				{
-					"type": "string",
-					"description": "comma separated list of sound file names (including path).",
-					"default": "",
-					"name": "sounds"
-				},
-				{
-					"type": "string",
-					"description": "the command to use to play sounds, The dafult is the OS X command afplay",
-					"default": "afplay",
-					"name": "command"
-				}
-			],
-			"connections": [],
-			"views": [],
-			"groups": []
-		},
-		{
-			"description": "Learning using the MagicalController rule",
-			"name": "MC",
-			"class": "MagicalController",
-			"no_of_sounds": "32",
-			"parameters":
-			[
-				{
-					"type": "int",
-					"description": "",
-					"default": "10",
-					"name": "no_of_sounds"
-				},
-				{
-					"type": "int",
-					"description": "",
-					"default": "10",
-					"name": "no_of_animations"
-				},
-				{
-					"type": "int",
-					"description": "The port that the module will listen on",
-					"default": "8001",
-					"name": "port"
-				}
-			],
-			"connections": [],
-			"views":
-			[
-				{
-					"name": "Default view for MagicalController",
-					"title": "MagicalController",
-					"objects":
-					[
-						{
-							"title": "Default view for MagicalController",
-							"source": "OUTPUT",
-							"module": "*",
-							"class": "BarGraph",
-							"w": "2",
-							"y": "0",
-							"x": "0"
-						}
-					]
-				}
-			],
-			"groups": []
-		}
-	]
-},
-
-	init: function () {
+	init: function (g) {
+        nav.group = g;
 		nav.navigator = document.getElementById('navigator');
 		nav.populate(nav.navigator);
 		nav.navigator.addEventListener("click", nav.navClick, false);
@@ -320,7 +57,7 @@ nav = {
 		{
 			s +=  "<ul>"
 			for(i in group.views)
-				s += "<li data-name='"+name+"#"+group.views[i].name+"'> #" + group.views[i].name + "</li>";				
+				s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>#" + group.views[i].name + "</li>";
 			s += "</ul>";			
 		}
 
@@ -335,19 +72,18 @@ nav = {
 		s += "</li>";
 
 		return s;
-	},		
+	},
 	populate: function (element, group) {
 		element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
 	},
 	navClick: function(e) {
 		if (e.target !== e.currentTarget)
 		{
-			alert(e.target.getAttribute("data-name"));
+			console.log(controller.views[e.target.getAttribute("data-name")]);
 		}
 		e.stopPropagation();
 	}
 }
-
 
 </script>
 <script>
@@ -504,8 +240,22 @@ inspector = {
 }
 
 </script>
+<script>
 
+webui_widgets = {
+    constructors: {},
+    add: function(element_name, class_object) {
+        customElements.define(element_name, class_object);
+        webui_widgets.constructors[element_name] = class_object;
+    }
+};
+</script>
+
+<script src="WebUIWidget.js"></script>
 <script src="WebUIWidgetCanvas.js"></script>
+
+<script src="WebUIWidgetPlot.js"></script>
+<script src="WebUIWidgetBarGraph.js"></script>
 
 
 <script>
@@ -547,13 +297,34 @@ interaction = {
             
         element.addEventListener('mousedown', interaction.startDrag, true); //capture
 
-	    element.widget = document.createElement("webui-widget-canvas");
+//	    element.widget = document.createElement("webui-widget-canvas");
+
+        let widget_select = document.querySelector('#widget_select');
+        let widget_name = widget_select.options[widget_select.selectedIndex].value;
+        let constr = webui_widgets.constructors[widget_name];
+        if(!constr)
+        {
+            alert("Internal Error: No constructor found for "+widget_name);
+            return;
+        }
+	    element.widget = new webui_widgets.constructors[widget_name]; //new WebUIWidgetBarGraph();
+        element.widget.init();
+
         element.appendChild(element.widget);
+        
+        let windgetStyles = window.getComputedStyle(element.widget);
+        let x = windgetStyles.getPropertyValue('--x');
+        let y = windgetStyles.getPropertyValue('--y');
+        let width = windgetStyles.getPropertyValue('--width');
+        let height = windgetStyles.getPropertyValue('--height');
+
+	    newObject.style.top = x;
+	    newObject.style.left = y;
+	    newObject.style.width = width;
+	    newObject.style.height = height;
 
 	    element.handle = document.createElement("div");
         element.handle.setAttribute("class", "handle");
-//      element.innerHTML += '<div class="handle"></div>'
-//		element.handle = element.getElementsByClassName('handle')[0] // use querySelector
 		element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
 	},
@@ -598,8 +369,6 @@ interaction = {
 	    let main = document.querySelector('main');
 	    newObject = document.createElement("div");
 	    newObject.setAttribute("class", "draggable");
-	    newObject.style.top = "10px";
-	    newObject.style.left = "10px";
         interaction.main.appendChild(newObject);
         interaction.initElement(newObject)
         interaction.selectObject(newObject);
@@ -642,12 +411,10 @@ interaction = {
         interaction.system_inspector.style.display = "none";
         interaction.grid_inspector.style.display = "none";
 
-        // TEST
-
-        let bodyStyles = window.getComputedStyle(obj.widget);
-        let testVal = bodyStyles.getPropertyValue('--test-property');
-
-        console.log(testVal);
+// TEST
+//        let bodyStyles = window.getComputedStyle(obj.widget);
+//        let testVal = bodyStyles.getPropertyValue('--test-property');
+//        console.log(testVal);
 	},
 	startDrag: function (evt) {
         // do nothing in run mode
@@ -662,7 +429,7 @@ interaction = {
         
         // handle the drag
         
-		evt.stopPropagation()
+		evt.stopPropagation();
 		interaction.startX = this.offsetLeft;
 		interaction.startY = this.offsetTop;
 	    interaction.selectObject(this);
@@ -681,7 +448,7 @@ interaction = {
 		return false;
 	},
 	startResize: function (evt) {
-		evt.stopPropagation()
+		evt.stopPropagation();
 		interaction.startX = this.offsetLeft;
 		interaction.startY = this.offsetTop;
         interaction.selectObject(this.parentElement);
@@ -709,6 +476,7 @@ interaction = {
 		let newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
 		interaction.selectedObject.style.width = newWidth + 'px';
 		interaction.selectedObject.style.height = newHeight + 'px';
+        interaction.selectedObject.widget.update(); //***************
 	},
 	toggleEditMode: function() {
         interaction.edit_mode = ! interaction.edit_mode;
@@ -864,10 +632,17 @@ webui-widget-canvas {
     --color: yellow;
     --line: yellow;
     --fill: yellow;
+<<<<<<< HEAD
     --line_width: 10px;
     --line_dash: none;
     --line_cap: butt;
     --line_join: miter;
+=======
+    --line-width: 10px;
+    --line-dash: none;
+    --line-cap: butt;
+    --line-join: miter;
+>>>>>>> origin/kernel-2.0
     --miter-limit: 10;
     --line_arrow_end: none;
     --line_arrow_start: none;
@@ -879,6 +654,12 @@ webui-widget-canvas {
     --orientation: horizontal;
     --font_size: 12pt;
     --decimals: 2;
+     --select: 0;
+    --order: row;
+    --x: 20px;
+    --y: 20px;
+    --height: 400px;
+    --width: 100px;
 }
 
 
@@ -1045,7 +826,7 @@ function show_styles()
 	
 		<nav id="navigator">
 			<script>
-			nav.init();
+//			nav.init();
 			</script>
 		</nav>
 	
@@ -1066,29 +847,193 @@ function show_styles()
             <h1>Edit Mode</h1>
             <button onclick="interaction.increaseGrid()">Grid +</button>
             <button onclick="interaction.decreaseGrid()">Grid -</button>
-            <button onclick="interaction.addObject()">New Object</button>
+            
+            <br>
+            
+            <select id="widget_select">
+                <option value="webui-widget-plot">Plot</option>
+                <option value="webui-widget-bar-graph">BarGraph</option>
+            </select>
+
+            <br>
+            <button onclick="interaction.addObject()">Add Widget</button>
 		</aside>
 
 
 		<aside id="system_inspector">
-            <h1>Run Mode</h1>
-            <p>Ikaros System Info</p>
+            <h1>Ikaros System Info</h1>
+             <button>Stop</button>
+            <button>Pause</button>
+            <button>Step</button>
+            <button>Play</button>
+            <button>FF</button>
+            
+            <br>
+            <progress value="22" max="100"></progress>
 		</aside>
 
 
 	</section>
 	
-	<footer>fixed height sticky footer</footer>
-
+	<footer></footer>
 
 <script>
+
+/*
+ *
+ * Communication scripts
+ *
+ */
+
+
+
+
+/*
+ *
+ * Controller Scripts
+ *
+ */
+
+controller = {
+    run_mode: 'realtime',
+    tick: 0,
+    views: {},
+    
+/*
+    updateProgress: function (oEvent)
+    {
+        if (oEvent.lengthComputable) 
+        {
+            var percentComplete = oEvent.loaded / oEvent.total;
+            console.log("Progress: ", 100*percentComplete, "% complete");
+            document.querySelector("progress").setAttribute("value", 100*percentComplete);
+        } 
+        else 
+        {
+            // Unable to compute progress information since the total size is unknown
+             console.log("Progress: ", oEvent.loaded);
+       }
+    },
+
+    transferComplete: function (evt) {
+        console.log("The transfer is complete.");
+    },
+
+    transferFailed: function (evt) {
+        console.log("An error occurred while transferring the file.");
+    },
+
+    transferCanceled: function (evt) {
+        console.log("The transfer has been canceled by the user.");
+    },
+*/
+    get: function (url, callback)
+    {
+        xhr = new XMLHttpRequest();		
+        xhr.open("GET", url, true);
+
+        xhr.onloadstart = function(evt)
+        {
+            document.querySelector("progress").setAttribute("value", 0);
+        }
+
+        xhr.onprogress = function(evt)
+        {
+            if (evt.lengthComputable) 
+            {
+                var percentComplete = evt.loaded / evt.total;
+                console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
+                document.querySelector("progress").setAttribute("value", 100*percentComplete);
+            }
+        }
+        xhr.onerror = function(evt)
+        {
+            console.log("onerror");
+            console.log(evt);
+            if(evt.lengthComputable && evt.loaded < evt.total)
+                console.log("Failed to load resource. Incomplete.");
+            else if(evt.total == 0 )
+                console.log("Failed to load resource. No data.");
+            else
+                console.log("Failed to load resource.");
+       }
+        xhr.ontimeout = function(evt)
+        {
+            console.log("ontimeout");
+            console.log(evt);
+        }
+        xhr.onload = function(evt)
+        {
+    //        console.log("The transfer is complete.");
+    //        console.log(xhr.response);
+            callback(xhr.response);
+        }
+        
+        xhr.responseType = 'json';
+        xhr.timeout = 10000;
+        xhr.send();
+    },
+
+
+
+    init: function () {
+        controller.get("http://127.0.0.1:8000/xhrtest.json", controller.update);
+    },
+    
+    stop: function () {
+
+    },
+    
+    pause: function () {
+
+    },
+    
+    step: function () {
+    
+    },
+    
+    play: function () {
+    
+    },
+    
+    realtime: function () {
+
+    },
+    
+    buildViewDictionary: function(group, name) {
+
+		if(group.views)
+			for(i in group.views)
+                controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
+
+		if(group.groups)
+			for(i in group.groups)
+				controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
+	},
+
+    update: function (response) {
+        nav.init(response);
+        controller.buildViewDictionary(response, "");
+    }
+}
+
+</script>
+<script>
+/*
+ *
+ * Iitialization
+ *
+ */
+
     interaction.init();
     interaction.generateGrid(20);
     interaction.initDraggables();
 
     // TEST
+    
+    controller.init();
 
-    show_styles()
+//    show_styles()
 </script>
 </body>
 </html>

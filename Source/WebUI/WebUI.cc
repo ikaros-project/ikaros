@@ -38,6 +38,8 @@
 #include <atomic> // required C++11
 
 
+#include <string>
+
 using namespace ikaros;
 
 
@@ -1352,7 +1354,6 @@ WebUI::Pause()
 }
 
 
-
 void
 WebUI::HandleHTTPRequest()
 {
@@ -1366,17 +1367,13 @@ WebUI::HandleHTTPRequest()
     
     if(!strcmp(uri, "/xhrtest.json"))
     {
+        std::string s = k->JSONString();
+        
 		Dictionary rtheader;
 		rtheader.Set("Content-Type", "application/json");
-        return;
-		rtheader.Set("Content-Length", "28");
+		rtheader.Set("Content-Length", int(s.size()));
 		socket->SendHTTPHeader(&rtheader);
-        socket->Send("{\"a\":\"b\",\n\n");
-        Timer().Sleep(1000);
-        socket->Send("\"x\":\"y\",");
-        Timer().Sleep(100000);
-        socket->Send("\"q\":\"p\"}\n");
-        Timer().Sleep(1000);
+        socket->SendData(s.c_str(), int(s.size()));
     }
     else if (!strcmp(uri, "/stop"))
     {

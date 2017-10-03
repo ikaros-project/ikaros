@@ -224,7 +224,9 @@ class Dictionary
 		const char *		Get(Iterator i);
 		const int           GetInt(Iterator i);
 		const float         GetFloat(Iterator i);
-		const char *		GetKey(Iterator i);
+        char *              GetString(Iterator i); // get new string with value
+        const char *		GetKey(Iterator i);
+
 		
 		void			Print();
 		

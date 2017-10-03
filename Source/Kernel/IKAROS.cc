@@ -1921,6 +1921,15 @@ Kernel::~Kernel()
 #endif
 }
 
+
+std::string
+Kernel::JSONString()
+{
+    return main_group->JSONString();
+}
+
+
+
 void
 Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 {
@@ -3476,7 +3485,7 @@ Kernel::ReadXML()
     
 //    main_group->Print();
 
-        printf("%s\n", main_group->JSONString().c_str());
+//        printf("%s\n", main_group->JSONString().c_str());
 }
 
 

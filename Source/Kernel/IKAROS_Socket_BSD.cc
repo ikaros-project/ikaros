@@ -414,7 +414,9 @@ ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content l
     d->Set("Expires", tb);
     
     for(Dictionary::Iterator i = Dictionary::First(d); i.kv; ++i)
-		Send("%s: %s\r\n", d->GetKey(i), d->Get(i));
+    {
+		Send("%s: %s\r\n", d->GetKey(i), d->GetString(i));
+    }
 	
     Send("\r\n");
 	
@@ -428,7 +430,6 @@ ServerSocket::SendData(const char * buffer, long size)
 {
     if (data->new_fd == -1)
     {   
-//        printf("### connection closed unexpectedly\n");
         return false;	// Connection closed - ignore send
     }
     
@@ -439,10 +440,8 @@ ServerSocket::SendData(const char * buffer, long size)
      while (total < size)
     {
         n = send(data->new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);  // Write "handle SIGPIPE nostop print pass" in gdb to avoid break during debugging
-//        if (n == 0) printf("No data sent - SIGPIPEING....\n");
-        if (n == -1) 
+        if (n == -1)
         {
-//            printf("### send returned -1\n");
             break;
         }
         total += n;
@@ -451,7 +450,6 @@ ServerSocket::SendData(const char * buffer, long size)
 	
     if (n == -1 || bytesleft > 0) // We failed to send all data
     {
-//        printf("### failed to send all data\n");
         Close();	// Close the socket and ignore further data
         return false;
     }
