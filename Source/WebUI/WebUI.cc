@@ -1184,7 +1184,7 @@ WebUI::CopyUIData()
                     break;
                     
                 case data_source_matrix:
-                case data_source_gray_image:
+//                case data_source_gray_image:
                 case data_source_green_image:
                 case data_source_spectrum_image:
                 case data_source_fire_image:
@@ -1192,6 +1192,22 @@ WebUI::CopyUIData()
                     p += sd->size_x*sd->size_y;
                     break;
                     
+                case data_source_gray_image:
+                    {
+                        float * temp = copy_array(create_array(sd->size_x*sd->size_y), *(float **)(sd->data), sd->size_x*sd->size_y);
+                        float mn, mx;
+                        minmax(mn, mx, temp, sd->size_x*sd->size_y);
+                        if(mx-mn > 0)
+                        {
+                            subtract(temp, mn, sd->size_x*sd->size_y);
+                            multiply(temp, 1/(mx-mn), sd->size_x*sd->size_y);
+                        }
+                        copy_array(p, temp, sd->size_x*sd->size_y);
+                        p += sd->size_x*sd->size_y;
+                        destroy_array(temp);
+                    }
+                    break;
+
                 case data_source_rgb_image:
                 case data_source_bmp_image:
                     copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);

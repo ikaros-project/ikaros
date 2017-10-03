@@ -238,7 +238,7 @@ Module_IO::Allocate()
 {
     if (sizex == unknown_size || sizey == unknown_size)
     {
-        if (module != NULL)
+        if (module != NULL && !optional)
             module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name, module->GetName(), module->GetClassName());
         return;
     }
@@ -342,7 +342,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
 }
 
 void
-Module::AddOutput(const char * name, int sizeX, int sizeY, bool optional)
+Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
 {
     if (GetModule_IO(output_list, name) != NULL)
     {
@@ -1118,7 +1118,7 @@ Module::AddIOFromIKC()
     }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
-        AddOutput(kernel->GetXMLAttribute(e, "name"));
+        AddOutput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")));
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes

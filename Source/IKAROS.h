@@ -247,7 +247,7 @@ public:
     
 protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
-    void            AddOutput(const char * name, int size_x=unknown_size, int size_y=1, bool optional=false);    // Allocate output
+    void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
     void            AddIOFromIKC();
     void            SetOutputSize(const char * name, int size_x, int size_y=1);    // Set the output size for an output of unknown size; it is an error to change the output size
     

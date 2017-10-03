@@ -70,7 +70,7 @@ Average::Tick()
         if(window != NULL)
             destroy_matrix(window);
         
-        window = create_matrix(window_size, size);
+        window = create_matrix(size, window_size);
         tick_count = 0;
     }
 
@@ -105,7 +105,8 @@ Average::Tick()
             for(int j=0; j<size; j++)               // TODO: use set_col function
                 window[j][tick_count] = op[j];
             tick_count = (tick_count+1) % window_size;
-            mean(output, window, window_size, size);
+            
+            mean(output, window, size, min((int)GetTick(), window_size), 0);
             break;
         
         case 2: // EMA

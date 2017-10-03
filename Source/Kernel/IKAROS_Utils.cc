@@ -389,7 +389,7 @@ create_matrix(int sizex, int sizey)
 {
     if(sizex == 0 || sizey == 0)
     {
-        printf("IKAROS: Warning: Attempting to create matrix of size 0");
+        printf("IKAROS: Warning: Attempting to create matrix of size 0\n");
         return NULL;
     }
     

@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<!--- ImageTrainer Class File -->
+
+<group name="ImageTrainer" description="reads JPEG or PNG files">
+
+	<description type="text">
+		Module used for reading an image (or sequences of images) from a JPEG
+		file or a sequence of JPEG files. The files can be either
+		gray-scale or RGB.
+	</description>
+
+	<example description="Read a single file once">
+		<module
+			class = "ImageTrainer"
+			name = "IN"
+			filename = "image.jpg"
+		/>	
+	</example>
+
+	<example description="Read a sequence of three files ten times (e. g. image00.jpg, image01.jpg, image02.jpg)">
+		<module
+			class = "ImageTrainer"
+			name = "IN"
+			filename = "image%02d.jpg"
+			filecount = "3"
+			iterations = "10"
+		/>
+	</example>
+
+	<parameter name="filename" type="string" description="File to read the image from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'." />
+	<parameter name="filecount" type="int" default="1" description="Number of files to read" min="0" max="filecount-1" />
+	<parameter name="iterations" type="int" default="inf" description="Number of times to read the image(s)" min="1" max="filecount-1" />
+	<parameter name="read_once" type="bool" default="yes" description="Makes the module only read each JPEG image once." />
+
+	<parameter name="category_1_first_char" type="int" default="0" description="category 1 first character." />
+	<parameter name="category_1_char_count" type="int" default="0" description="category 1 number of character." />
+	<parameter name="category_1_n" type="int" default="0" description="number of categories for category 1." />
+
+	<parameter name="category_2_first_char" type="int" default="0" description="category 2 first character." />
+	<parameter name="category_2_char_count" type="int" default="0" description="category 2 number of character." />
+	<parameter name="category_2_n" type="int" default="0" description="number of categories for category 2." />
+
+	<output name="INTENSITY" description="The intensity of the image." />
+	<output name="RED" description="The red channel of the image (or intensity for a gray image)" />
+	<output name="GREEN" description="The green channel of the image (or intensity for a gray image)" />
+	<output name="BLUE" description="The blue channel of the image (or intensity for a gray image)" />
+
+	<output name="CATEGORY_1" description="Category vector 1 derived from file name" optional="yes" />
+	<output name="CATEGORY_2" description="Category vector 2 derived from file name" optional="yes" />
+
+	<module class="ImageTrainer" />
+    
+    <view name="View">
+        <object class="Image" title="Image" type="rgb" module="*" source="RED+GREEN+BLUE" x="0" y="0" w="2" h="2" />
+    </view>
+
+	<limitation>
+		The module calculates the intensity as the average of the R, G, and B channels incorrectly.
+	</limitation>
+
+	<acknowledgement>
+		This software is based in part on the work of the Independent JPEG Group.
+	</acknowledgement>
+	
+	<created>2017</created>
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>ImageTrainer.h</file>
+   		<file>ImageTrainer.cc</file>
+   		<file>ImageTrainer.ikc</file>
+   </files>
+
+</group>
+

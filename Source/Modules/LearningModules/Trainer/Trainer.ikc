@@ -16,11 +16,12 @@
 
 	<parameter name="order" type="list" values="random/sequential" description="Order in which to present data" />
 	<parameter name="crossvalidation" type="list" values="none/all/even/odd/input" description="Which data should be used for crossvalidation?" />
+	<parameter name="repetitions" type="int" default="1" description="Number of times to repeat each training point (similar bit not the same as period)" />
 
     <!-- THE DATA INPUTS -->
 
 	<input name="TRAINING_DATA_X" description="Training data set X-values" />
-	<input name="TRAINING_DATA_Y" description="Training data set Y-values" />
+	<input name="TRAINING_DATA_Y" description="Training data set Y-values" optional="yes" />
 	<input name="TESTING_DATA_X" description="Testing data set X-values" optional="yes" />
 	<input name="TESTING_DATA_Y" description="Testing data set Y-values" optional="yes" />
 
