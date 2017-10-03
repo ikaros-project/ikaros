@@ -30,32 +30,17 @@ Autoassociator::Learn()
 	for(int j=0; j<output_size; j++)
     	for(int i=0; i<input_size; i++)
         {
-        	if(i!=j)
-	        	w[j][i] += learning_rate * (2*t_input[j]-1) * (2*t_input[i]-1);
-//            if (i==10 && j==11)
-//            	printf("%f %f => %f\n", t_input[i], t_input[j], (2*t_input[j]-1) * (2*t_input[i]-1));
+         	if(i!=j && (t_input[i]>0))
+	        	w[i][j] += learning_rate_const * (2*t_input[j]-1) * (2*t_input[i]-1);
         }
-    
-//	clip(w, -1, 1, input_size, output_size);
     
     if(u)
     {
 		for(int j=0; j<output_size; j++)
     		for(int i=0; i<aux_input_size; i++)
-        		u[j][i] += learning_rate * (2*t_input[j]-1) * (2*aux_t_input[i]-1);
-
-		clip(u, -1, 1, aux_input_size, output_size);
+                if(i!=j && (aux_t_input[i]>0))
+        		    u[i][j] += learning_rate_const * (2*t_input[j]-1) * (2*aux_t_input[i]-1);
 	}
-    
-/*
-	for(int j=0; j<output_size; j++)
-    	for(int i=0; i<input_size; i++)
-        	w[j][i] += learning_rate * t_input[j] * t_input[i] * (1 - w[j][i]);
-
-	for(int j=0; j<output_size; j++)
-    	for(int i=0; i<aux_input_size; i++)
-        	u[j][i] += learning_rate * t_input[j] * aux_t_input[i] * (1 - u[j][i]);
-*/
 }
 
 
@@ -63,16 +48,59 @@ Autoassociator::Learn()
 void
 Autoassociator::Init()
 {
-    LearningModule::Init();
+    Bind(learning_rate_const, "learning_rate");
+    Bind(depression_rate, "depression_rate");
+    Bind(activation_gain_const, "activation_gain");
+    Bind(noise_level, "noise_level");
+
+    input = GetInputArray("INPUT");
+    reset = GetInputArray("RESET");
+    output = GetOutputArray("OUTPUT");
+
+    t_input = GetInputArray("T-INPUT");
+    t_output = GetOutputArray("T-OUTPUT");
     
+    delayed_t_input = GetInputArray("DELAYED-T-INPUT");
+    top_down_input = GetInputArray("TOP-DOWN-INPUT");
+
+    top_down_error = GetInputArray("TOP-DOWN-ERROR");
+    error_output = GetOutputArray("ERROR-OUTPUT");
+
+    learning_gain = GetInputArray("LEARNING-GAIN");
+    activation_gain = GetInputArray("ACTIVATION-GAIN");
+    
+    aux_input = GetInputArray("AUX-INPUT");
+    aux_output = GetOutputArray("AUX-OUTPUT");
+    aux_t_input = GetInputArray("AUX-T-INPUT");
+    aux_t_output = GetInputArray("AUX-T-OUTPUT");
+
+    input_size        = GetInputSize("INPUT");
+    aux_input_size    = GetInputSize("AUX-T-INPUT");
+    output_size        = GetOutputSize("OUTPUT");
+    
+    w = GetOutputMatrix("W"); //create_matrix(input_size, output_size);    // size(input) x size(output)
+    u = GetOutputMatrix("U"); //create_matrix(aux_input_size, output_size);    // size(aux_input) x size(output)
+
+    w_depression = GetOutputMatrix("W_DEPRESSION");
+    u_depression = GetOutputMatrix("U_DEPRESSION");
+
+    net = GetOutputArray("NET");
     energy = GetOutputArray("ENERGY");
 }
 
 
 
-static float f(float x)
+static float f(float x, float gain)
 {
-	return 1/(1+exp(-2*x));
+// return (x*x)/(0.01+x*x);
+// return 1/(1+exp(-10*x));
+
+	if(x < 0)
+    	return 0;
+    else if(gain*x > 1)
+    	return 1;
+    else
+    	return gain*x;
 }
 
 
@@ -80,38 +108,72 @@ static float f(float x)
 void
 Autoassociator::Tick()
 {
-//	print_array("input", t_input, input_size);
-
 	Learn();
     
-    if(GetTick() % 100 == 0)
-    	reset_array(output, output_size);
+    // Resst
     
+    if(reset && *reset>0)
+        reset_array(net, output_size);
+
     // Calculate output
     
     float old[output_size];
     copy_array(old, output, output_size);
+
+//    reset_array(net, output_size);
+
 	for(int j=0; j<output_size; j++)
     {
-    	float net_j = 0;
-        
     	for(int i=0; i<input_size; i++)
-        	net_j += w[j][i] * old[i];
+        {
+        	net[j] += (1-w_depression[i][j])*w[i][j] * old[i];
+
+	        if(old[i] > 0.5)
+                w_depression[i][j] += depression_rate * (1-w_depression[i][j])*abs(w[i][j]);
+            else
+                w_depression[i][j] *= (1-depression_rate);
+        }
         
     	for(int i=0; i<aux_input_size; i++)
-        	net_j += u[j][i] * aux_input[i];
+        {
+	        net[j] += (1-u_depression[i][j])*u[i][j] * aux_input[i];
+
+            if(aux_input[i] > 0.5)
+                u_depression[i][j] += depression_rate * (1-u_depression[i][j])*abs(u[i][j]);
+            else
+                u_depression[i][j] *= (1-depression_rate);
+        }
         
-        output[j] += 0.1 * (f(net_j + input[j]) - old[j]);
+        net[j] = clip(net[j], 0, 1);
+        
+        float input_inhibition = sum(input, input_size)/float(input_size);
+        
+        output[j] = f(net[j] + input[j] +  random(-noise_level, noise_level), activation_gain_const);
     }
-    
-    // Calculate energy
-    
+
+// LATERAL INHIBITION
+/*
+	int mm = 0;
+	for(int i=0; i<3; i++)
+	{
+	    if(output[i] > output[mm])
+            mm = i;
+	}
+	
+	output[0] = 0;
+    output[1] = 0;
+    output[2] = 0;
+    output[mm] = 1;
+*/
+    // Calculate Energy
+
     float e = 0;
     for(int j=0; j<output_size; j++)
     	for(int i=0; i<input_size; i++)
         {
-        	e += output[i]*output[j]*w[j][i];
+        	e += output[i]*output[j]*w[i][j];
         }
+
 	*energy = -0.5*e;
 }
 

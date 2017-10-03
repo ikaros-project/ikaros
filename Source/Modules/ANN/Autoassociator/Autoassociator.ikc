@@ -17,7 +17,9 @@
 	<!-- MAIN INPUT AND OUTPUT -->
 
 	<input name="INPUT" description="Main input" />
+    <input name="RESET" description="Reset input" optional="yes" />
 	<output name="OUTPUT" description="Main output with the current input" size_set="INPUT" />
+    <output name="NET" description="Net input for each neuron" size_set="INPUT" />
 
 	<output name="ENERGY" description="Energy of the current state" size="1" />
 
@@ -49,12 +51,17 @@
 
 	<!-- PRIMARY WEIGHTS -->
 	
-	<output name="W" description="Internal weights" size_set_x="INPUT" size_set_y="INPUT" />		<!-- y actually OUTPUT -->
-	<output name="U" description="Auxilliary weights"  size_set_x="AUX-T-INPUT" size_set_y="INPUT" optional="yes" />
+	<output name="W" description="Internal weights" size_set_y="INPUT" size_set_x="INPUT" />
+	<output name="U" description="Auxilliary weights"  size_set_y="AUX-T-INPUT" size_set_x="INPUT" optional="yes" />
+
+    <output name="W_DEPRESSION" description="depression" size_set_y="INPUT" size_set_x="INPUT" />
+    <output name="U_DEPRESSION" description="depression" size_set_y="AUX-T-INPUT" size_set_x="INPUT" optional="yes" />
 
     <parameter name="learning_rate" type="float" default="0.001" description="Learning rate" />
-
-
+    <parameter name="depression_rate" type="float" default="0.01" description="Synaptic depression rate" />
+    <parameter name="activation_gain" type="float" default="1" description="Use together with input or on its onw if input not connected" />
+    <parameter name="noise_level" type="float" default="0.01" description="activation noise" />
+    
 	<module class="Autoassociator" />
 
     <view title="Autoassociator">
@@ -66,7 +73,7 @@
             title="Default view for Autoassociator"
         />
     </view>
-    
+
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>

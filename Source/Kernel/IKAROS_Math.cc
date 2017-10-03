@@ -3025,7 +3025,7 @@ namespace ikaros
         t[2] = m[ 9]*v[0] + m[10]*v[1] + m[11]*v[2] + m[12]*v[3];
         t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3];
     
-        if(t[3] != 0 && false) // normalize vector
+        if(t[3] != /* DISABLES CODE */ (0) && false) // normalize vector
         {
             r[0] = t[0] / t[3];
             r[1] = t[1] / t[3];

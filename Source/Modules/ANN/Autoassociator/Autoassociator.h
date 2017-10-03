@@ -1,5 +1,5 @@
 //
-//		Autoassociator.h		This file is a part of the IKAROS project
+//    Autoassociator.h		This file is a part of the IKAROS project
 //
 //
 //    Copyright (C) 2016 Christian Balkenius
@@ -23,22 +23,61 @@
 #define Autoassociator_
 
 #include "IKAROS.h"
-#include "LearningModule.h"
+// #include "LearningModule.h"
 
-class Autoassociator: public LearningModule
+class Autoassociator : public Module
 {
 public:
 	static Module * Create(Parameter * p) { return new Autoassociator(p); }
 	
-				Autoassociator(Parameter * p) : LearningModule(p) {};
+				Autoassociator(Parameter * p) : Module(p) {};
     virtual		~Autoassociator() {};
 
-    virtual void		Learn();
-    virtual void		Init();
-    virtual void		Tick();
+	void		    Learn();
+	void		    Init();
+	void		    Tick();
     
-    float *				energy;
-};
+    float           learning_rate_const;
+    float           activation_gain_const;
+    float           depression_rate;
+    float           noise_level;
+
+    float *         input;
+    float *         output;
+    float *         net;
+    float *         reset;
+
+    float *         t_input;
+    float *         t_output;
+    
+    float *         delayed_t_input;
+    float *         top_down_input;
+
+    float *         top_down_error;
+    float *         error_output;
+
+    float *         learning_gain;
+    float *         activation_gain;
+    
+    float *         aux_input;
+    float *         aux_output;
+    float *         aux_t_input;
+    float *         aux_t_output;
+    
+    float **        w;    // size(input) x size(output)
+    float **        u;    // size(aux_input) x size(output)
+    
+    float **        w_depression;
+    float **        u_depression;
+
+
+    int             input_size;
+    int             aux_input_size;
+    int             output_size;
+
+    float *		    energy;
+    
+ };
 
 #endif
 

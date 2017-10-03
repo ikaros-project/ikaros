@@ -92,7 +92,7 @@ Trainer::Init()
 void
 Trainer::Tick()
 {
-	if(GetTick() > 20*6) // TOTO: REMOVE LATER
+	if(GetTick() > 20*4-1) // TOTO: REMOVE LATER
     	return;
     
     if(GetTick() % repetitions != 0)
