@@ -38,12 +38,15 @@ public:
     int                 type;
     long				iterations;
     long				iteration;
+    int                 repetitions;
+    int                 repetition;
     int                 extend;		// extra ticks with zero input before the module notifies the kernel of EOF
     int                 cur_extension;
     bool				extending;
     bool				print_iteration;
     int                 no_of_columns;
     int                 no_of_rows;
+	bool                send_end_of_file;
 
     char **             column_name;
     int *				column_size;
