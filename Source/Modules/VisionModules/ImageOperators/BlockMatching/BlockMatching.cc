@@ -80,7 +80,7 @@ to_position(float & image_x, float x, int size)
 	image_x = x/float(size-1);
 }
 
-
+/*
 static inline void
 crop_rect(int & x0, int & y0, int & x1, int & y1, int crop_x0, int crop_y0, int crop_x1, int crop_y1, int margin)
 {
@@ -96,7 +96,7 @@ crop_rect(int & x0, int & y0, int & x1, int & y1, int crop_x0, int crop_y0, int 
 	if(y1 > crop_y1-margin)
     	y1 = crop_y1-margin;
 }
-
+*/
 
 static inline void
 crop_interval(int & x0, int & x1, int crop_x0, int crop_x1, int margin)

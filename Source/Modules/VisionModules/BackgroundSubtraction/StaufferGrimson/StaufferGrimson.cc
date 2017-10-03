@@ -28,11 +28,6 @@
 
 #include "StaufferGrimson.h"
 
-namespace math
-{
-    #include <math.h>
-}
-
 using namespace ikaros;
 
 
@@ -66,7 +61,7 @@ create_matrix_int(int x, int y, int z)
 
 static double NormPDF(float * norm_data, double x, double mean, double stdDev)
 {
-    int y = (int)math::floor(abs(float((x-mean)/stdDev)) * 250 + 0.5 );
+    int y = (int)(abs(float((x-mean)/stdDev)) * 250 + 0.5 );
     if (y>999)
         return 0;
     else
