@@ -2,6 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(AttentionFocus)
 add_subdirectory(AttentionWindow)
+add_subdirectory(BackgroundSubtraction)
 add_subdirectory(CIFaceDetector)
 add_subdirectory(CircleDetector)
 add_subdirectory(ColorClassifier)
