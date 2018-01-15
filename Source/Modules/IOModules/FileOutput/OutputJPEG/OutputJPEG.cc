@@ -57,13 +57,13 @@ OutputJPEG::OutputJPEG(Parameter * p):
 
     cur_image = 0;
 
-    AddInput("WRITE");
+    //AddInput("WRITE");
 
-    AddInput("INTENSITY");
+    //AddInput("INTENSITY");
 
-    AddInput("RED");
-    AddInput("GREEN");
-    AddInput("BLUE");
+    //AddInput("RED");
+    //AddInput("GREEN");
+    //AddInput("BLUE");
 }
 
 
