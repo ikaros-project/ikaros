@@ -1135,13 +1135,15 @@ Module::GetSizeXFromList(const char * sizearg)
     // strip blanks
 
     int i=0, j=0;
-    while(l[i] != 0)
+    while(l[j] != 0)
     {
         if(l[j] == ' ')
             j++;
         else
             l[i++]=l[j++];
     }
+    l[i] = 0;
+    
     char * s = l;
     char * input;
     input = strsep(&s, ",");
@@ -1175,13 +1177,15 @@ Module::GetSizeYFromList(const char * sizearg)
     // strip blanks
 
     int i=0, j=0;
-    while(l[i] != 0)
+    while(l[j] != 0)
     {
         if(l[j] == ' ')
             j++;
         else
             l[i++]=l[j++];
     }
+    l[i] = 0;
+
     char * s = l;
     char * input;
     input = strsep(&s, ",");
