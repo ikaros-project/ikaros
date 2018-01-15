@@ -19,10 +19,10 @@
     <parameter name="delta" type="float" default="1" description="" />
     <parameter name="epsilon" type="float" default="1" description="" />
 
-    <parameter name="inverse" type="boolean" default="no" description="Set the output to delta-CR to immitate cereballar inhbition" />
+    <parameter name="inverse" type="boolean" default="no" description="Set the output to delta-CR to imitate cereballar inhbition" />
 
 	<input name="CS" description="The CS input" optional="yes" />
-	<input name="US" description="The US input"  optional="yes" />
+	<input name="US" description="The US input" optional="yes" />
 	<output name="CR" description="The output from the module" size="1" />
 
 	<module class="Delta" />
