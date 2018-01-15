@@ -42,7 +42,7 @@ KNN_Pick::KNN_Pick(Parameter * p): Module(p)
     AddInput("OUTPUT_TABLE");
     AddInput("DISTANCE_TABLE");
 
-    AddOutput("CLASS_OUTPUT", 1);
+    AddOutput("CLASS_OUTPUT", false, 1);
 
     CheckParameters();
 }

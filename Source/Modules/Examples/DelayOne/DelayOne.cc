@@ -52,7 +52,7 @@ DelayOne::DelayOne(Parameter * p):
     // The parameter 'unknown_size' can be left out since it is the default
     // It is included here for clarity
 
-    AddOutput("OUTPUT", unknown_size);
+    AddOutput("OUTPUT", false, unknown_size);
 
     // Set pointers to NULL if something goes wrong during initilization
     // This indicates that no memory has been allocated for these

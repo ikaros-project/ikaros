@@ -41,7 +41,7 @@ SSC32::SSC32(Parameter * p):
     no_of_servos = GetIntValue("no_of_servos", unknown_size);    // Default to automatic size setting
 
     AddInput("INPUT");
-    AddOutput("OUTPUT", no_of_servos);
+    AddOutput("OUTPUT", false, no_of_servos);
     
     int max_channels =32;
     max_speed = GetIntValue("maxspeed", 100);

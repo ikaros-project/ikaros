@@ -47,8 +47,8 @@ CannyEdgeDetector::CannyEdgeDetector(Parameter * p):
     AddOutput("OUTPUT");				// Final edges
     AddOutput("dx");					// Gradient estimation and categorization
     AddOutput("dy");
-    AddOutput("dGx", filtersize, filtersize);	// The filters used
-    AddOutput("dGy", filtersize, filtersize);
+    AddOutput("dGx", false, filtersize, filtersize);	// The filters used
+    AddOutput("dGy", false, filtersize, filtersize);
 
     input			= NULL;
     edges			= NULL;

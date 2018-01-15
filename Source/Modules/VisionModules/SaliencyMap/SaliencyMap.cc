@@ -63,10 +63,10 @@ SaliencyMap::SaliencyMap(Parameter * p):
     AddInput("REINFORCEMENT");
     AddInput("SPATIAL_BIAS");
 
-    AddOutput("GAIN", no_of_inputs);
+    AddOutput("GAIN", false, no_of_inputs);
     AddOutput("SALIENCE");
-    AddOutput("FOCUS", 2);
-    AddOutput("ESTIMATION", 1);
+    AddOutput("FOCUS", false, 2);
+    AddOutput("ESTIMATION", false, 1);
 
     integration_radius		= GetIntValue("integration_radius");
     reinforcement_delay	= GetIntValue("reinforcement_delay");

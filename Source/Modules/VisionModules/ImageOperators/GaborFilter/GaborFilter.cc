@@ -51,9 +51,9 @@ GaborFilter::GaborFilter(Parameter * p):
 
     AddInput("INPUT");
     AddOutput("OUTPUT");                                // Filter intensity
-    AddOutput("FILTER", filtersize, filtersize);		// The filter used
-    AddOutput("GAUSSIAN", filtersize, filtersize);
-    AddOutput("GRATING", filtersize, filtersize);
+    AddOutput("FILTER", false, filtersize, filtersize);		// The filter used
+    AddOutput("GAUSSIAN", false, filtersize, filtersize);
+    AddOutput("GRATING", false, filtersize, filtersize);
 
     input			= NULL;
     output			= NULL;

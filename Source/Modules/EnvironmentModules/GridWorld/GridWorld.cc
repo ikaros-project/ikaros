@@ -44,12 +44,12 @@ GridWorld::GridWorld(Parameter * p):
 
     AddInput("MOVE");
 
-    AddOutput("REWARD", 1);
-    AddOutput("COLLISION", 1);
-    AddOutput("COORDINATE", 2);
+    AddOutput("REWARD", false, 1);
+    AddOutput("COLLISION", false, 1);
+    AddOutput("COORDINATE", false, 2);
     AddOutput("LOCATION");
-    AddOutput("LOCAL_OBSTACLES", 3, 3);
-    AddOutput("LOCAL_VALUES", 3, 3);
+    AddOutput("LOCAL_OBSTACLES", false, 3, 3);
+    AddOutput("LOCAL_VALUES", false, 3, 3);
 	
     AddOutput("IMAGE");
 

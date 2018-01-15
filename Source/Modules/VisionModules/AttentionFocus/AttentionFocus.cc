@@ -40,7 +40,7 @@ AttentionFocus::AttentionFocus(Parameter * p):
 
     AddInput("FOCUS");
     AddInput("INPUT");
-    AddOutput("OUTPUT", output_radius*2+1, output_radius*2+1);
+    AddOutput("OUTPUT", false, output_radius*2+1, output_radius*2+1);
 
     input		= NULL;
     output		= NULL;

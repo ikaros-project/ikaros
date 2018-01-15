@@ -22,7 +22,7 @@ M02_Cortex::M02_Cortex(Parameter * p):
 	Module(p)
 {
 	AddInput("INPUT");
-	AddOutput("OUTPUT", GetIntValue("outputsize", 4));
+	AddOutput("OUTPUT", false, GetIntValue("outputsize", 4));
 
 	input			= NULL;
 	output			= NULL;

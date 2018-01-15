@@ -220,9 +220,9 @@ Module(p)
         return;
     }
     AddOutput("INTENSITY", false, size_x, size_y);
-    AddOutput("RED",false, size_x, size_y);
-    AddOutput("GREEN",false, size_x, size_y);
-    AddOutput("BLUE",false, size_x, size_y);
+    AddOutput("RED", false, size_x, size_y);
+    AddOutput("GREEN", false, size_x, size_y);
+    AddOutput("BLUE", false, size_x, size_y);
 }
 void
 InputVideo::Init()
