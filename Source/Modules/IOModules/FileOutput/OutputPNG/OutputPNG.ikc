@@ -35,7 +35,7 @@
 	<input name="WRITE" description="Signal to write or suppress a given
 	    image. If connected, an image will only actually be written if the
 	    value of the WRITE input is greter than 0. The file counter will
-	    still increase." />
+	    still increase." optional="yes" />
 
 	<module class="OutputPNG" />
     
