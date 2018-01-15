@@ -377,6 +377,8 @@ XMLDocument::XMLDocument(const char * filename, bool debug)
     try
     {
         prolog = Parse(NULL);
+		if (prolog == NULL)
+			throw "File is empty";
         prolog->SetPrev(NULL);
         
         // Find root
