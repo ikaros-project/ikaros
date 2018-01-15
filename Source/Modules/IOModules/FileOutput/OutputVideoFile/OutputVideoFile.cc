@@ -42,20 +42,14 @@ int OutputVideoFile::encode(AVCodecContext *avctx, AVPacket *pkt, int *got_packe
     return ret;
 }
 
-OutputVideoFile::OutputVideoFile(Parameter * p):
-Module(p)
-{
-    AddInput("INTENSITY");
-    AddInput("RED");
-    AddInput("GREEN");
-    AddInput("BLUE");
-}
 void
 OutputVideoFile::Init()
 {
-    if(InputConnected("INTENSITY"))
-    {
-        intensity	= GetInputArray("INTENSITY");
+	
+	intensity = GetInputArray("INTENSITY");
+	if(intensity)
+	{
+        //intensity	= GetInputArray("INTENSITY");
         size_x      = GetInputSizeX("INTENSITY");
         size_y      = GetInputSizeY("INTENSITY");
         color = false;

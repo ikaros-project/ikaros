@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="InputVideoFile Example">
+<group title="OutputVideoFile Example">
 	
 		<module
 			class = "InputVideo"
@@ -25,5 +25,6 @@
 	<view name="Movie View" object_size="500">
 		<object class="Image" type="rgb" module = "IN" source = "RED+GREEN+BLUE" x="0" y="0" />
 	</view>
+	
     <module class = "Logger" name = "Logger" />
 </group>
