@@ -6,11 +6,6 @@
 		<module
 			class = "InputVideo"
 			name = "IN"
-            size_x = "320"
-            size_y = "240"
-            _list_devices = "yes"
-            id = "2"
-            frame_rate="15.000015"
 		/>
 
 		<module
