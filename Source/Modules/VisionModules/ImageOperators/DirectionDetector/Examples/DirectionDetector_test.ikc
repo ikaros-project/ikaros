@@ -1,15 +1,7 @@
 <?xml version="1.0"?>
 
-<group title="Block Matching Test 2">
+<group title="Direction Test">
 
-		<_module
-			class = "InputVideoFile"
-			name = "IN"
-			_filename = "../../../../../../Examples/Media/ikaros.mov"
-			_filename = "/Users/cba/Desktop/test2.mp4"
-			filename = "/Volumes/Backup/Movies/Iron Man 3 (2013) [1080p]/Iron.Man.3.2013.1080p.BluRay.x264.YIFY.mp4"
-			loop = "yes"
-		/>
         
 		<module
 			class = "InputVideo"
