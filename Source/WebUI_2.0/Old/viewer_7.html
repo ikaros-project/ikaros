@@ -79,7 +79,8 @@ nav = {
 	navClick: function(e) {
 		if (e.target !== e.currentTarget)
 		{
-			console.log(controller.views[e.target.getAttribute("data-name")]);
+//			console.log(e.target.getAttribute("data-name"));
+            interaction.addView(e.target.getAttribute("data-name"));
 		}
 		e.stopPropagation();
 	}
@@ -163,6 +164,7 @@ inspector = {
                             inspector.widget.parameters[inspector.parameter_template[i].name] = parseFloat(evt.target.innerText);
                         else
                             inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.innerText;
+                        inspector.widget.update();
                     });
 				break;
 
@@ -252,11 +254,13 @@ webui_widgets = {
 </script>
 
 <script src="WebUIWidget.js"></script>
+
 <script src="WebUIWidgetCanvas.js"></script>
 
 <script src="WebUIWidgetPlot.js"></script>
 <script src="WebUIWidgetBarGraph.js"></script>
 
+<script src="WebUIWidgetText.js"></script>
 
 <script>
 
@@ -291,13 +295,13 @@ interaction = {
     stopEvents: function (e) {
         if(interaction.main.dataset.mode == "edit") e.stopPropagation()
     },
-	initElement: function (element) {
+	initElement: function (element) {   // For interactively created object
+        console.log("initELement:", element);
+
 		if (typeof element == 'string')
 			element = document.getElementById(element);
-            
-        element.addEventListener('mousedown', interaction.startDrag, true); //capture
 
-//	    element.widget = document.createElement("webui-widget-canvas");
+        element.addEventListener('mousedown', interaction.startDrag, true); //capture
 
         let widget_select = document.querySelector('#widget_select');
         let widget_name = widget_select.options[widget_select.selectedIndex].value;
@@ -308,6 +312,7 @@ interaction = {
             return;
         }
 	    element.widget = new webui_widgets.constructors[widget_name]; //new WebUIWidgetBarGraph();
+        element.widget.element = element;
         element.widget.init();
 
         element.appendChild(element.widget);
@@ -318,7 +323,7 @@ interaction = {
         let width = windgetStyles.getPropertyValue('--width');
         let height = windgetStyles.getPropertyValue('--height');
 
-	    newObject.style.top = x;
+	    newObject.style.top = x;        // uses global variable - why?
 	    newObject.style.left = y;
 	    newObject.style.width = width;
 	    newObject.style.height = height;
@@ -328,13 +333,68 @@ interaction = {
 		element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
 	},
-	initDraggables: function () {
+    initViewElement: function (element, data) {   // For object in view from IKC file
+        console.log("initViewElement:", data['class']);
+
+//        if (typeof element == 'string')
+//            element = document.getElementById(element);
+
+        element.addEventListener('mousedown', interaction.startDrag, true); //capture
+
+//        let widget_select = document.querySelector('#widget_select');
+//        let widget_name = widget_select.options[widget_select.selectedIndex].value;
+
+        let constr = webui_widgets.constructors[data['class']];
+        if(!constr)
+        {
+            console.log("Internal Error: No constructor found for "+data['class']);
+            element.widget = new webui_widgets.constructors['webui-widget-text'];
+            element.widget.element = element;
+            element.widget.parameters['text'] = "\""+data['class']+"\" not found.";
+        }
+        else
+        {
+            element.widget = new webui_widgets.constructors[data['class']];
+            
+            // Add parameters from IKC file here and defaults from CSS
+            
+        }
+
+        element.appendChild(element.widget);
+        element.widget.init();
+
+        let windgetStyles = window.getComputedStyle(element.widget);
+        let x = windgetStyles.getPropertyValue('--x');
+        let y = windgetStyles.getPropertyValue('--y');
+        let width = windgetStyles.getPropertyValue('--width');
+        let height = windgetStyles.getPropertyValue('--height');
+
+        x = data['x'] ? data['x'] : x;
+        y = data['y'] ? data['y'] : y;
+
+        newObject.style.top = x+"px";        // uses global variable - why?
+        newObject.style.left = y+"px";
+        newObject.style.width = width+"px";
+        newObject.style.height = height+"px";
+
+        element.handle = document.createElement("div");
+        element.handle.setAttribute("class", "handle");
+        element.handle.onmousedown = interaction.startResize;
+        element.appendChild(element.handle);
+    },
+	initDraggables: function () { // only needed if there are already draggable elements in the main view
         let nodes = document.querySelectorAll(".draggable");
         for (var i = 0; i <	nodes.length; i++)
             interaction.initElement(nodes[i]);
         let  main = document.querySelector('main');
         main.addEventListener('mousedown',interaction.deselectObject,false);
 	},
+    removeAllObjects() {
+        let main = document.querySelector('main');
+        let nodes = document.querySelectorAll(".draggable");
+        for (var i = 0; i < nodes.length; i++)
+            main.removeChild(nodes[i]);
+    },
 	generateGrid: function (spacing) {
 	    interaction.grid_spacing = spacing;
 	    let grid = interaction.main.querySelector('#grid');
@@ -367,12 +427,28 @@ interaction = {
 	},
 	addObject() {
 	    let main = document.querySelector('main');
-	    newObject = document.createElement("div");
+        newObject = document.createElement("div");
 	    newObject.setAttribute("class", "draggable");
         interaction.main.appendChild(newObject);
         interaction.initElement(newObject)
         interaction.selectObject(newObject);
 	},
+    addView(viewName) {
+        console.log("addView:", viewName);
+        console.log(controller.views[viewName]);
+        
+        interaction.removeAllObjects();
+
+        let main = document.querySelector('main');
+        let v = controller.views[viewName].objects;
+        for(let i=0; i<v.length; i++)
+        {
+            newObject = document.createElement("div");
+            newObject.setAttribute("class", "draggable");
+            interaction.main.appendChild(newObject);
+            interaction.initViewElement(newObject, v[i])
+        }
+    },
 	deselectObject() {
 	    if(interaction.selectedObject)
         {
@@ -632,17 +708,10 @@ webui-widget-canvas {
     --color: yellow;
     --line: yellow;
     --fill: yellow;
-<<<<<<< HEAD
     --line_width: 10px;
     --line_dash: none;
     --line_cap: butt;
     --line_join: miter;
-=======
-    --line-width: 10px;
-    --line-dash: none;
-    --line-cap: butt;
-    --line-join: miter;
->>>>>>> origin/kernel-2.0
     --miter-limit: 10;
     --line_arrow_end: none;
     --line_arrow_start: none;
@@ -999,7 +1068,7 @@ controller = {
     realtime: function () {
 
     },
-    
+
     buildViewDictionary: function(group, name) {
 
 		if(group.views)
@@ -1011,9 +1080,17 @@ controller = {
 				controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
 	},
 
+    selectView: function(view) {
+        console.log(view);
+        console.log(controller.views[view]);
+
+        // Create new view if it does not exist
+    },
+
     update: function (response) {
         nav.init(response);
         controller.buildViewDictionary(response, "");
+        controller.selectView(Object.keys(controller.views)[0]);
     }
 }
 

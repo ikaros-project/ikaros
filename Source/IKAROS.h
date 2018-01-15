@@ -477,7 +477,8 @@ private:
     
     XMLDocument     *    xmlDoc;
     
-    GroupElement    *    main_group;   // 2.0 main group
+    GroupElement    *    main_group;     // 2.0 main group
+    long                 session_id;     // 2.0 temporary
     
     Module          *    modules;        // List of modules
     Connection      *    connections;    // List of connections

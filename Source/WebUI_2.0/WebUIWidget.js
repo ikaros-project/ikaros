@@ -2,12 +2,14 @@ class WebUIWidget extends HTMLElement
 {
     constructor()
     {
+        console.log("WebUIWidget.constructor()");
         super();
         let pt = this.constructor.template();
         this.parameters = {};
         for(let i in pt)
             this.parameters[pt[i].name] = pt[i]['default'];
         this.parameter_template = pt;
+        console.log(this.parameters);
     }
 
     static html()
@@ -40,6 +42,11 @@ class WebUIWidget extends HTMLElement
 
 //        this.parentElement.setAttribute("data-name", "object #"+Math.round(1000*Math.random()));
 //        this.redraw();
+    }
+
+    requestData(data_set)
+    {
+    
     }
 
     static get observedAttributes()

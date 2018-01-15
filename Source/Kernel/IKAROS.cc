@@ -26,13 +26,14 @@
 #include "IKAROS.h"
 
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <stdio.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <fcntl.h>
 #include <ctype.h>
-
+#include <ctime>
+#include <iostream>
 
 #ifdef WINDOWS
 #include <direct.h>
@@ -361,7 +362,7 @@ public:
         
         printf("\n");
     };
-    
+
     std::string JSONString(int d=0)
     {
         std::string b;
@@ -3478,6 +3479,12 @@ Kernel::ReadXML()
     // 2.0 create top group
     
     main_group = new GroupElement();
+    
+    // set session id
+    
+    std::time_t result = std::time(nullptr);
+    main_group->attributes.insert({ "session-id", std::to_string(result) });
+    session_id = result; // temporary
     
     BuildGroup(main_group, xml);
     if (options->GetOption('x'))

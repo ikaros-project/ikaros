@@ -16,7 +16,6 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
             {'name':'blend', 'default':'absolute', 'type':'string', 'control': 'menu', 'values': "absolute,monochrome,mix"},
             {'name':'direction', 'default':'all', 'type':'string-öh', 'min':0, 'max':2, 'control': 'menu', 'values': "all,horizontal,vertical"}
         ]};
-    
 
 
 
@@ -25,9 +24,12 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
         this.data = [10, 83, 32, 56];   // Should connect to main data structure
         
         this.onclick = function () { alert(this.data) };
+        
+        var self = this;
+        this.timer = setInterval(function () { self.draw(); console.log("draw callback"); }, 100);
     }
-    
-    
+
+
     update()
     {
         let width = parseInt(getComputedStyle(this.canvasElement).width);
@@ -81,7 +83,7 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
                 break;
             case "horizontal":
                 this.canvas.moveTo(0, this.height*Math.random());
-                this.canvas.lineTo(width, this.height*Math.random());
+                this.canvas.lineTo(this.width, this.height*Math.random());
                 break;
             case "vertical":
                 this.canvas.moveTo(this.width*Math.random(), 0);
@@ -89,9 +91,6 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
                 break;
         }
         this.canvas.stroke();
-        
-        var w = this;
-        setTimeout(function () { w.draw()}, 100)
     }
 };
 

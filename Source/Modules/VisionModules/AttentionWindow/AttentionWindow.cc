@@ -101,7 +101,7 @@ AttentionWindow::Tick()
     }
     
     int k=0;
-    if(bottom_up_position && bottom_up_count > 0)
+    if(bottom_up_position && (*bottom_up_count > 0))
     {
         float d=maxfloat;
         
@@ -138,7 +138,7 @@ AttentionWindow::Tick()
         focus_y - window_size_y/2
     };
     
-    if(bottom_up_position && bottom_up_count > 0)
+    if(bottom_up_position && (*bottom_up_count > 0))
         for(int i=0; i<8; i++)
             bounds[i] = bottom_up_bounds[k][i];
     

@@ -1,7 +1,7 @@
 //
 //	  WebUI.cc		HTTP support for the IKAROS kernel
 //
-//    Copyright (C) 2005-2016  Christian Balkenius
+//    Copyright (C) 2005-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
 using namespace ikaros;
 
 
-static char * //TODO: Move base64_encode to ikaros utils
+static char * // TODO: Move base64_encode to ikaros utils
 base64_encode(const unsigned char * data,
               size_t size_in,
               size_t *size_out)
@@ -268,16 +268,16 @@ SendJSONMatrixData(ServerSocket * socket, char * module, char * source, float * 
 	
     int k = 0;
 
-    socket->Send("\t\"%s\":\n\t[\n", source);	// module
+    socket->Send("\t\t\"%s\":\n\t\t[\n", source);	// module
     for (int j=0; j<sizey; j++)
     {
-        socket->Send("\t\t[%.4E", checknan(matrix[k++]));
+        socket->Send("\t\t\t[%.4E", checknan(matrix[k++]));
         for (int i=1; i<sizex; i++)
             socket->Send(", %.4E", checknan(matrix[k++]));
         if (j<sizey-1)
-            socket->Send("],\n");
+            socket->Send("\t],\n");
         else
-            socket->Send("]\n\t]");
+            socket->Send("\t]\n\t\t]");
     }
 	
     return true;
@@ -983,29 +983,11 @@ WebUI::SendView(const char * view)
 void
 WebUI::Run()
 {
+    isRunning = true;   // FIXME: TEMPORARY START UP
+
     if(socket == NULL)
         return;
 	
-	// Synchronization
-	
-	if(xml)
-	{
-		const char * ip = k->GetXMLAttribute(xml, "masterip");
-		if(ip)
-		{
-			Socket s;
-			char rr[100];
-			int masterport = string_to_int(k->GetXMLAttribute(xml, "masterport"), 9000);
-			k->Notify(msg_print, "Waiting for master: %s:%d\n", ip, masterport);
-			fflush(stdout);
-			if(!s.Get(ip, masterport, "*", rr, 100))
-			{
-				k->Notify(msg_terminate, "Master not running.\n");
-				throw -1; // No master
-			}
-		}
-	}
-
     chdir(k->ikc_dir); // TODO: Check if already set
 
     k->timer->Restart();
@@ -1043,54 +1025,6 @@ WebUI::Run()
 //    chdir(k->ikc_dir);
 }
 
-
-/*
-void
-WebUI::TEST_SIZE()
-{
-    int size = 0;
-
-    for (ModuleData * md=view_data; md != NULL; md=md->next)
-    {
-        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
-        {
-            switch(sd->type)
-            {
-                 case data_source_array:
-                    size += sd->size_x;
-                    break;
-                    
-                case data_source_matrix:
-                case data_source_gray_image:
-                case data_source_green_image:
-                case data_source_spectrum_image:
-                case data_source_fire_image:
-                    size += sd->size_x * sd->size_y;
-                    break;
-            
-                case data_source_rgb_image:
-                case data_source_bmp_image:
-                    size += 3 * sd->size_x * sd->size_y;
-                    break;
-                    
-                case data_source_float:
-                case data_source_int:
-                case data_source_bool:
-                case data_source_list:
-                    size++; // int, list, bool, float
-                    break;
-
-                default:
-                    k->Notify(msg_warning, "WebUI: Unkown data type");
-                    break;
-            }
-        }
-    }
-
-//    printf("\tDATA SIZE: %d\n", size);
-
-}
-*/
 
 
 void
@@ -1218,7 +1152,6 @@ WebUI::CopyUIData()
 }
 
 
-
 void
 WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
 {
@@ -1235,21 +1168,26 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     
     Dictionary header;
 	
-    header.Set("Content-Type", "text/json");
+    header.Set("Session-Id", std::to_string(k->session_id).c_str());
+//    header.Set("Content-Type", "text/json");
+    header.Set("Content-Type", "application/json");
     header.Set("Cache-Control", "no-cache");
     header.Set("Cache-Control", "no-store");
     header.Set("Pragma", "no-cache");
     header.Set("Expires", "0");
+    
 
     socket->SendHTTPHeader(&header);
 
     socket->Send("{\n");
-    socket->Send("state: %d,\n", ui_state);  // ui_state; ui_state_run
-    socket->Send("iteration: %d", k->GetTick());
+    socket->Send("\t\"state\": %d,\n", ui_state);  // ui_state; ui_state_run
+    socket->Send("\t\"iteration\": %d", k->GetTick());
 	
     if(!p)
     {
         socket->Send("\n}\n");
+        printf("SENT EMPTY PACKAGE\n");
+
         return;
     }
 
@@ -1261,9 +1199,9 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     for (ModuleData * md=view_data; md != NULL; md=md->next)
     {
         if(equal_strings(md->name, k->GetXMLAttribute(current_xml_root, "name")))
-            socket->Send("\"*\":\n{\n");
+            socket->Send("\t\"*\":\n\t{\n");
         else
-            socket->Send("\"%s\":\n{\n", md->name);
+            socket->Send("\t\"%s\":\n\t{\n", md->name);
         
         for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
         {
@@ -1273,7 +1211,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
                 case data_source_list:
                 case data_source_bool:
                 case data_source_float:
-                    socket->Send("\t\"%s\": [[%f]]", sd->name, *p++);
+                    socket->Send("\t\t\"%s\": [[%f]]", sd->name, *p++);
                      break;
 
                  case data_source_array:
@@ -1287,39 +1225,39 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
                     break;
                      
                 case data_source_rgb_image:
-                    socket->Send("\t\"%s:rgb\": ", sd->name);
+                    socket->Send("\t\t\"%s:rgb\": ", sd->name);
                     s = sd->size_x * sd->size_y;
                     SendColorJPEGbase64(socket, p, &p[s], &p[2*s], sd->size_x, sd->size_y);
                     p += 3 * s;
                     break;
                     
                 case data_source_bmp_image:
-                    socket->Send("\t\"%s:bmp\": ", sd->name);
+                    socket->Send("\t\t\"%s:bmp\": ", sd->name);
                     s = sd->size_x * sd->size_y;
                     SendColorBMPbase64(socket, p, &p[s], &p[2*s], sd->size_x, sd->size_y);
                     p += 3 * s;
                     break;
                     
                 case data_source_gray_image:
-                     socket->Send("\t\"%s:gray\": ", sd->name);
+                     socket->Send("\t\t\"%s:gray\": ", sd->name);
                     SendColorJPEGbase64(socket, p, p, p, sd->size_x, sd->size_y);
                     p += sd->size_x * sd->size_y;
                     break;
                     
                 case data_source_green_image:
-                    socket->Send("\t\"%s:green\": ", sd->name);
+                    socket->Send("\t\t\"%s:green\": ", sd->name);
                     SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
                     p += sd->size_x * sd->size_y;
                     break;
 
                 case data_source_spectrum_image:
-                    socket->Send("\t\"%s:spectrum\": ", sd->name);
+                    socket->Send("\t\t\"%s:spectrum\": ", sd->name);
                     SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
                     p += sd->size_x * sd->size_y;
                     break;
 
                 case data_source_fire_image:
-                    socket->Send("\t\"%s:fire\": ", sd->name);
+                    socket->Send("\t\t\"%s:fire\": ", sd->name);
                     SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
                     p += sd->size_x * sd->size_y;
                     break;
@@ -1332,14 +1270,16 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
         }
 		
         if (md->next != NULL)
-            socket->Send("},\n");
+            socket->Send("\t},\n");
         else
-            socket->Send("}\n");
+            socket->Send("\t}\n");
     }
 
     socket->Send("}\n");
     
     destroy_array(q);
+    
+    printf("SENT DATA PACKAGE\n");
 }
 
 
@@ -1354,26 +1294,117 @@ WebUI::Pause()
 }
 
 
+
 void
 WebUI::HandleHTTPRequest()
 {
-    if (debug_mode)
-        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
-	
+    printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+
+    std::string s = socket->header.Get("URI");
+    
     // Copy URI and remove index
     
-    char * uri = create_string(socket->header.Get("URI"));
-	if(char * x = strpbrk(uri, "?#")) *x = '\0';
+    char * uri_p = create_string(socket->header.Get("URI"));
+    char * uri = strsep(&uri_p, "?");
+    char * args = uri_p;
+
+    if(!strcmp(uri, "/update.json"))
+    {
+        if(!args) // not a data request - send view data
+        {
+            std::string s = k->JSONString();
+            Dictionary rtheader;
+            rtheader.Set("Session-Id", std::to_string(k->session_id).c_str());
+            rtheader.Set("Content-Type", "application/json");
+            rtheader.Set("Content-Length", int(s.size()));
+            socket->SendHTTPHeader(&rtheader);
+            socket->SendData(s.c_str(), int(s.size()));
+        }
+        else // possibly a data request - send requested data - very temporary version without thread or real-time support
+        {
+            char * var = strsep(&args, "=");
+            printf("\t\tVARIABLE: %s\n", var);
+            
+            // Build data package
+
+            while(args)
+            {
+                char * ms = strsep(&args, "+");
+                
+                char * module = strsep(&ms, ".");
+                char * source = ms;
+                
+                printf("\t\tSOURCE: %s:%s\n", module, source);
+                AddDataSource(module, source);
+                
+            }
+            
+//            while(dont_copy_data) // Wait for data to become available
+//                printf("waiting\n");
+
+            CopyUIData();
+            SendUIData();
+        }
+    }
+
+
+
+
+
+
+
+    //
+    // OLD CODE BELOW - SOME OF IT WILL BE INCLUDED AGAIN LATER
+    //
     
+    return;
+/*
+    if (debug_mode)
+        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+
+    std::string s = socket->header.Get("URI");
+    
+    // Copy URI and remove index
+    
+    char * uri_p = create_string(socket->header.Get("URI"));
+    char * uri = strsep(&uri_p, "?");
+    char * args = uri_p;
+    
+//	if(char * x = strpbrk(uri, "?#")) *x = '\0';                // TODO: can probably be removed
+//strsep(&p, " "))
+
     if(!strcmp(uri, "/xhrtest.json"))
     {
-        std::string s = k->JSONString();
-        
-		Dictionary rtheader;
-		rtheader.Set("Content-Type", "application/json");
-		rtheader.Set("Content-Length", int(s.size()));
-		socket->SendHTTPHeader(&rtheader);
-        socket->SendData(s.c_str(), int(s.size()));
+        if(!args) // not a data request - send view data
+        {
+            std::string s = k->JSONString();
+            Dictionary rtheader;
+            rtheader.Set("Content-Type", "application/json");
+            rtheader.Set("Content-Length", int(s.size()));
+            socket->SendHTTPHeader(&rtheader);
+            socket->SendData(s.c_str(), int(s.size()));
+        }
+        else // possibly a data request - send requested data - very temporary version without thread or real-time support
+        {
+            char * var = strsep(&args, "=");
+            printf("\t\tVARIABLE: %s\n", var);
+            
+            // Build data package
+
+            while(args)
+            {
+                char * ms = strsep(&args, "+");
+                
+                char * module = strsep(&ms, ".");
+                char * source = ms;
+                
+                printf("\t\tSOURCE: %s:%s\n", module, source);
+                AddDataSource(module, source);
+                
+            }
+            CopyUIData();
+            SendUIData();
+        }
     }
     else if (!strcmp(uri, "/stop"))
     {
@@ -1656,6 +1687,7 @@ WebUI::HandleHTTPRequest()
     }
     
     destroy_string(uri);
+    */
 }
 
 
@@ -1665,6 +1697,7 @@ WebUI::HandleHTTPThread()
 {
     while(!k->Terminate())
     {
+        printf("*\n");
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))
@@ -1672,9 +1705,9 @@ WebUI::HandleHTTPThread()
                 while(copying_data)  // wait for copy operation to complete
                 //    printf("waiting\n")
                     ;
-                dont_copy_data = true;
+//                dont_copy_data = true;
                 HandleHTTPRequest();
-                dont_copy_data = false;
+//                dont_copy_data = false;
             }
             socket->Close();
         }
