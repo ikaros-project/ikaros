@@ -485,7 +485,7 @@ private:
     int         phase_count;
     
     bool        end_of_file_reached;                        // Flags set on notification from modules
-    bool        fatal_error_occured;
+    bool        fatal_error_occurred;
     bool        terminate;
     
     bool        sizeChangeFlag;
