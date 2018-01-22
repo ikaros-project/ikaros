@@ -1,5 +1,14 @@
 class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 {
+/*
+    constructor()
+    {
+        super();
+        this.test = 42;
+        console.log("Hej Hej", this.drawLayout);
+    }
+*/
+
 
     static template()
     {
@@ -38,6 +47,10 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
         
         this.width = parseInt(width);
         this.height = parseInt(height);
+        
+        this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
+        this.format.height = this.height - this.format.marginTop - this.format.marginBottom;
+
 
         this.draw(data);
     }
@@ -46,37 +59,65 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 
     draw(d)
     {
+        this.canvas.setTransform(1, 0, 0, 1, 0.5, 0.5);
+        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.drawTitle();
+
+        this.drawLayout();
+
         try {
             let m = this.parameters['module']
             let s = this.parameters['source']
-            this.data = d[m][s][0]  // shold concatenate all rows while drawing instaed
+            this.data = d[m][s]
             
             if(!this.data)
                 return;
-        
-            let lineWidth = getComputedStyle(this.canvasElement).getPropertyValue('--line-width');  // These should be used only as default - not here
-            let color = getComputedStyle(this.canvasElement).getPropertyValue('--color');
-            let fill = getComputedStyle(this.canvasElement).getPropertyValue('--fill');
 
+            let size_y = this.data.length;
+            let size_x = this.data[0].length;
+            let pane_y = (this.format.height+1)/size_y;
+            
+            this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft+0.5, this.format.marginTop+0.5);
+            
+            for(let y=0; y<size_y; y++)
+            {
+                this.canvas.beginPath();
+                this.canvas.strokeStyle = "red";
+                this.canvas.rect(-1, pane_y*y-1, this.format.width+1, pane_y);
+                this.canvas.stroke();
+
+                let n = size_x;
+                let bar_width = Math.round(this.format.width/ n);
+                let bar_height = pane_y;
+                let max = 1;
+            
+                for(let i=0; i<n; i++)
+                {
+                    let h = (this.data[y][i]/max)
+                    this.canvas.beginPath();
+                    this.setColor(i)
+                    this.canvas.rect(i*bar_width, pane_y*(1+y)-1 - bar_height*h, bar_width, bar_height*h);
+                    this.canvas.fill();
+                    this.canvas.stroke();
+                }
+            }
+            
+            return;
+            
             let n = this.data.length;
-            let bar_width = Math.round((this.width-10) / n);
-            let bar_height = this.height;
+            let bar_width = Math.round(this.format.width/ n);
+            let bar_height = this.format.height;
             let max = 1;
         
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.beginPath();
-            
             for(let i=0; i<n; i++)
             {
                 let h = (this.data[i]/max)
-                this.canvas.rect(5+i*bar_width, bar_height-bar_height*h, bar_width, bar_height*h);
-    //            this.canvas.fillStyle = "none";
-    //            this.canvas.fill();
-                this.canvas.lineWidth = 1;
-                this.canvas.strokeStyle = "red";
+                this.canvas.beginPath();
+                this.setColor(i)
+                this.canvas.rect(i*bar_width, bar_height-bar_height*h, bar_width, bar_height*h);
+                this.canvas.fill();
+                this.canvas.stroke();
             }
-            
-            this.canvas.stroke();
         }
         catch(err)
         {
@@ -85,5 +126,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 };
 
 
+//test = new WebUIWidgetBarGraph();
 
 webui_widgets.add('webui-widget-bar-graph', WebUIWidgetBarGraph);

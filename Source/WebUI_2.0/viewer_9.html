@@ -768,6 +768,27 @@ webui-widget-canvas {
 }
 
 
+canvas {
+    --title-font: 12px Arial;
+    --title-color: black;
+    --title-background: yellow;
+    --title-magins: no;
+    --title-align: left;
+    --title-offset: 10, -7;
+
+    --color: red, green, blue;
+    --fill: pink, lightgreen, lightblue;
+    --line-width: 1;
+    
+    --margin-left: 20;
+    --margin-right: 20;
+    --margin-top: 24;
+    --margin-bottom: 20;
+    
+    --spacing: 0.2;
+}
+
+
 
 /*
 *
@@ -787,8 +808,9 @@ webui-widget-canvas {
     z-index: 200;
     width: 101px;
     height: 101px;
-    border: 1px solid lightgray;
-	background-color: rgba(0,0,0,0);
+    border: 1px solid black;
+    overflow: hidden;
+	background-color: rgba(0, 0, 0, 0);
 	cursor: move;
 }
 
@@ -875,7 +897,40 @@ main[data-mode="edit"] div#grid {
 .draggable:after {content: attr(data-name);}
 
 
+/*
+ *
+ *  Extra styling
+ *
+ */
 
+/*
+.draggable {
+    border-radius: 15px;
+    border: 1px solid black;
+    overflow: hidden;
+    background-color: #1d1d1d;
+}
+
+canvas {
+    --title-font: 12px Arial;
+    --title-color: white;
+    --title-background: #0d0d0d;
+    --title-magins: no;
+    --title-align: left;
+    --title-offset: 10, -6;
+
+    --color: #FFFF00, #EEEE00, #DDDD00, #CCCC00, #DDDD00, #EEEE00;
+    --fill: #FFFF0080, #EEEE0080, #DDDD0080, #CCCC0080, #DDDD0080, #EEEE0080;
+    --line-width: 1;
+    
+    --margin-left: 20;
+    --margin-right: 10;
+    --margin-top: 20;
+    --margin-bottom: 10;
+    
+    --spacing: 0.0;
+}
+*/
 
 </style>
 <style>
@@ -1132,10 +1187,8 @@ controller = {
         interaction.addView(view);
     },
 
-    update: function (response, session_id) {
-    
-//       console.log(response, session_id);
-
+    update: function (response, session_id)
+    {
         // Check if this is a new session
         
         if(controller.session_id != session_id) // new session
@@ -1155,7 +1208,12 @@ controller = {
             // Very fragile loop - maybe use class to mark widgets or something
             let w = document.getElementsByClassName('draggable')
             for(let i=0; i<w.length; i++)
-                w[i].children[1].update(response);
+                try
+                {
+                    w[i].children[1].update(response);
+                }
+                catch(err)
+                {}
         }
     },
 
@@ -1171,14 +1229,15 @@ controller = {
         
         let data_set = new Set();
         
-        console.log("-------------------------------------")
-        console.log(interaction.currentView)
-        console.log("-------------------------------------")
-
         // Very fragile loop - maybe use class to mark widgets or something
         let w = document.getElementsByClassName('draggable')
         for(let i=0; i<w.length; i++)
-            w[i].children[1].requestData(data_set);
+            try
+            {
+                w[i].children[1].requestData(data_set);
+            }
+            catch(err)
+            {}
 
         let data_string = ""
         

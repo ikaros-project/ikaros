@@ -18,7 +18,6 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
         ]};
 
 
-
     init()
     {
         this.data = [10, 83, 32, 56];   // Should connect to main data structure
@@ -45,7 +44,6 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
 
         this.draw();
     }
-
 
 
     draw()

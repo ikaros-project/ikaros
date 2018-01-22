@@ -9,8 +9,7 @@ class WebUIWidget extends HTMLElement
         for(let i in pt)
             this.parameters[pt[i].name] = pt[i]['default'];
         this.parameter_template = pt;
-        console.log(this.parameters);
-    }
+     }
 
     static html()
     {
@@ -33,6 +32,8 @@ class WebUIWidget extends HTMLElement
     {
         this.innerHTML = this.constructor.html();
 
+        // These are for documentation purposes:
+        
         this.onmousedown = function () { console.log("WebUIWidgetCanvas: mouse down"); }
         this.onmouseup = function () { console.log("WebUIWidgetCanvas: mouse up"); }
         this.onclick = function () { console.log("WebUIWidgetCanvas: click"); }
@@ -44,19 +45,22 @@ class WebUIWidget extends HTMLElement
 //        this.redraw();
     }
 
+
     requestData(data_set)
     {
     
     }
-
+/*
     static get observedAttributes()
     {
         return [];
     }
-
+*/
+/*
     attributeChangedCallback(name, oldValue, newValue)
     {
     }
+*/
 };
 
 customElements.define('webui-widget', WebUIWidget);
