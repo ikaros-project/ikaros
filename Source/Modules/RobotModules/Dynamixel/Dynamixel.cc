@@ -42,7 +42,7 @@ Module(p)
 	com = new DynamixelComm(device, GetIntValue("baud_rate"));
 	if(!com)
 	{
-		Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened (Check baud rate.", device);
+		Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened (Check baud rate)", device);
 		return;
 	}
 	std::string csvPath     = GetClassPath();
