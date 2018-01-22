@@ -1,7 +1,7 @@
 //
 //    DynamixelComm.cc		Class to communicate with Dynamixel servos (version 2)
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -256,12 +256,14 @@ int
 DynamixelComm::Receive2(unsigned char * b)
 {
     int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1); // Get header and length of package
-    
+
     if(c < RECIVE_HEADER_2-1)
-        return 0;
-    
+	{
+		printf("Receive2: Did not get header\n");
+		return 0;
+	}
     int lengthOfPackage = (b[LEN_H_BYTE_2]<<8) + b[LEN_L_BYTE_2];
-    c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage); // Get the rest of the package
+    c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + 2); // Get the rest of the package
     
     if (!checkCrc(b))
         return 0;

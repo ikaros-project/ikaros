@@ -1,7 +1,7 @@
 //
 //    DynamixelComm.cc		Class to communicate with Dynamixel servos
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -171,14 +171,22 @@ DynamixelComm::Send1(unsigned char * b)
 	b[b[3]+3] = CalculateChecksum(b);
 	SendBytes((char *)b, b[3]+4);
 }
+
+// Calculate timeout
+// Timeout = com->time_per_byte*packet_length+ (LATENCY_TIMER*2) + 2.0 // Numbers from Robotis sdk. This might need to be tuned for different platform. Will be testing with raspberry pi 3.
+
 int
 DynamixelComm::Receive1(unsigned char * b)
 {
-	int c = ReceiveBytes((char *)b, 4);
-	if(c < 4)
+	// read 4 bytes to get header. This only works if the communication is not out of sync.?
+	int c = ReceiveBytes((char *)b, 4, (this->time_per_byte*4) + 8 + 2);
+	if(c < RECIVE_HEADER_1 - 1)
+	{
+		printf("Receive1: Did not get header\n");
 		return 0;
-	
-	c += ReceiveBytes((char *)&b[4], b[3]);
+	}
+
+	c += ReceiveBytes((char *)&b[4], b[3],  (this->time_per_byte*b[3]) + 8 + 2);
 	
 	unsigned char checksum = CalculateChecksum(b);
 	if(checksum != b[b[3]+3])
