@@ -203,7 +203,7 @@ Serial::FlushOut()
 void
 Serial::FlushIn()
 {
-    tcflush(data->fd, TCOFLUSH);
+    tcflush(data->fd, TCIFLUSH);
 }
 
 
