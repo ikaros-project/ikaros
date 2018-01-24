@@ -24,9 +24,6 @@
 #include "Dynamixel.h"
 #include "DynamixelComm.h"
 
-#define DYNAMIXEL_DEBUG
-//#define DYNAMIXEL_TIMING
-
 using namespace ikaros;
 
 Dynamixel::Dynamixel(Parameter * p):
@@ -45,6 +42,8 @@ Module(p)
 		Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened (Check baud rate)", device);
 		return;
 	}
+
+	
 	std::string csvPath     = GetClassPath();
 	use_feedback            = GetBoolValue("feedback");
 	start_up_delay          = GetIntValue("start_up_delay");
@@ -858,7 +857,11 @@ Dynamixel::PrintAll()
 		{
 			printf("%-8i %-32s|", j, servo[servoIndex[0]]->controlTable[j].Name.c_str());
 			for(int i=0; i<nrOfServos; i++)
-				printf(" %6i|",servo[servoIndex[i]]->GetValueAtAdress(j));
+				if (servo[servoIndex[i]]->GetValueAtAdress(j) == -1)
+					printf("      -|");
+				else
+					printf(" %6i|",servo[servoIndex[i]]->GetValueAtAdress(j));
+
 			printf("\n");
 		}
 	}
