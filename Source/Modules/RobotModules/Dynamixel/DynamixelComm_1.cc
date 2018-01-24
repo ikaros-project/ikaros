@@ -228,45 +228,27 @@ DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, int to
 		return (false);
 
 	}
-//		if(n==0)
-//	{
-//		FlushIn();
-//		FlushOut();
-//		return false;
-//	}
-	
-//	// Check checksum
-//	unsigned char CheckSumAnswer = CalculateChecksum(inbuf);
-//	if (inbuf[inbuf[3]+3] != CheckSumAnswer)
-//	{
-//		FlushIn();
-//		FlushOut();
-//		return false;
-//	}
 
-	
 	// Extended check of the message
 	// Checking first bytes id, model etc to make sure these are the right ones.
 	int checkBytesToAdress = 6;
 	if (bytesToRead < checkBytesToAdress)
 		checkBytesToAdress = bytesToRead;
 	
-//	for (int i = 0; i <checkBytesToAdress; i++)
-//	{
-//		if (buffer[i] != inbuf[5+i] && buffer[i] != 0)
-//		{
-//#ifdef LOG_COMM_ERROR
-//			printf("DynamixelComm (ReadMemoryRange1): Extended check byte %i of id %i (%i != %i) does not match\n",i, id, buffer[i], inbuf[i]);
-//#endif
-//			extendedError++;
-//			return (false);
-//		}
-//	}
+	for (int i = 0; i <checkBytesToAdress; i++)
+	{
+		if (buffer[i] != inbuf[5+i] && buffer[i] != 0)
+		{
+#ifdef LOG_COMM_ERROR
+			printf("DynamixelComm (ReadMemoryRange1): Extended check byte %i of id %i (%i != %i) does not match\n",i, id, buffer[i], inbuf[i]);
+#endif
+			extendedError++;
+			return (false);
+		}
+	}
 #ifdef LOG_COMM
 	printf("DynamixelComm (ReadMemoryRange1): Fill internal buffer from recived buffer. (id:%i)\n",id);
 #endif
-	//printf("Printing memory\n");
-	//PrintMemory1(buffer, 0, 40);
 	memcpy(&buffer[0], &inbuf[5], bytesToRead * sizeof(unsigned char));
 	return true;
 }
@@ -294,19 +276,26 @@ DynamixelComm::Receive1(unsigned char * b)
 #endif
 	// read 4 bytes to get header. This only works if the communication is not out of sync.?
 	int c = ReceiveBytes((char *)b, 4, (this->time_per_byte*4) + 8 + 2);
+
 	if(c < RECIVE_HEADER_1 - 1)
 	{
 #ifdef LOG_COMM
-		printf("DynamixelComm (Receive1): Did not get header (Timed out)\n");
+		printf("DynamixelComm (Receive1): Did not get header (Timed out. Got %i bytes)\n",c);
 #endif
-		return 0;
+		return ERROR_NO_HEADER;
 	}
 
 	c += ReceiveBytes((char *)&b[4], b[3],  (this->time_per_byte*b[3]) + 8 + 2);
-	
+	if(c < b[3])
+	{
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive1): Did not get all message (Timed out. Got %i bytes)\n",c);
+#endif
+		return ERROR_NOT_COMPLETE;
+	}
 	unsigned char checksum = CalculateChecksum(b);
 	if(checksum != b[b[3]+3])
-		return 0;
+		return ERROR_CRC;
 	
 	return c;
 }
@@ -318,11 +307,16 @@ DynamixelComm::Ping1(int id)
 #ifdef LOG_COMM
 	printf("DynamixelComm (Ping1) ID %i\n", id);
 #endif
+	Flush();
 	unsigned char outbuf[256] = {0XFF, 0XFF, static_cast<unsigned char>(id), 2, INST_PING, 0X00};
 	unsigned char inbuf[256];
 	Send1(outbuf);
 	int n = Receive1(inbuf);
-	return (n != 0);
+	if (n < 0)
+		return (false);
+	else
+		return (true);
+
 }
 
 void

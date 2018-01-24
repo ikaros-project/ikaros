@@ -27,6 +27,8 @@
 #ifndef DYNAMIXELSERVO
 #define DYNAMIXELSERVO
 
+//#define DEBUG_SERVO
+
 // Protocol version 1
 // #define DYNAMIXEL_EPROM_SIZE 18
 // #define DYNAMIXEL_RAM_SIZE 70-18 // AX-12 Ony have 50 something. Add this to invidiual servos instead.

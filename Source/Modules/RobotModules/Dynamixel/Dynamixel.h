@@ -22,6 +22,9 @@
 #ifndef Dynamixel_
 #define Dynamixel_
 
+//#define DYNAMIXEL_DEBUG
+//#define DYNAMIXEL_TIMING
+
 #include "IKAROS.h"
 #include "DynamixelComm.h"
 #include "DynamixelServo.h"

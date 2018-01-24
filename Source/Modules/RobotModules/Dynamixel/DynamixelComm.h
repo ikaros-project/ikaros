@@ -27,6 +27,9 @@
 #ifndef DYNAMIXELCOMM
 #define DYNAMIXELCOMM
 
+//#define LOG_COMM_ERROR
+//#define LOG_COMM
+
 #include "IKAROS.h"
 
 // Protocol version 1 instruction package
@@ -75,8 +78,6 @@
 #define ERROR_EXT -3
 #define ERROR_NOT_COMPLETE -4
 
-//#define LOG_COMM_ERROR
-//#define LOG_COMM
 
 class DynamixelComm : public Serial
 {

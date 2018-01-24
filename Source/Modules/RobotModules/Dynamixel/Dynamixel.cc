@@ -861,7 +861,6 @@ Dynamixel::PrintAll()
 					printf("      -|");
 				else
 					printf(" %6i|",servo[servoIndex[i]]->GetValueAtAdress(j));
-
 			printf("\n");
 		}
 	}

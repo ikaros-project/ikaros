@@ -29,7 +29,6 @@
 #include "IKAROS.h"
 #include <unistd.h>
 
-//#define DEBUG_SERVO
 
 using namespace ikaros;
 
