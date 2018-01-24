@@ -24,12 +24,94 @@
 //
 
 #include "DynamixelComm.h"
-#include "DynamixelServo.h"
+//#include "DynamixelServo.h"
 
 
+// AddDataSyncWrite1 will add data to a syncwrite package similar to the addDataBulkWrite. However, AddDataSyncWrite1 does not check the data that will be sent.
+// When calling AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize) multiple times int adress and int dSize must not change.
+// Ex. AddDataSyncWrite1(servo1, adress, value1, length of value) next call AddDataSyncWrite1(servo2, adress, value2, length of value) etc. adress and length of value must be the same.
+
+int DynamixelComm::AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize)
+{
+	// Grab the first adress and dSize. Could be remvoed
+	if (SyncWriteBufferLength == -1)
+	{
+		SyncWriteAdress = adress;
+		SyncWriteBlockSize = dSize;
+	}
+	
+#ifdef LOG_COMM
+	printf("DynamixelComm (AddDataSyncWrite1) Adding data to syncwrite ID: %i, adress %i, start adress %i, length %i, total length %i\n", ID, adress, SyncWriteAdress, dSize, SyncWriteBlockSize);
+#endif
+	
+	if (SyncWriteBufferLength + 1 + dSize > 1024)  // 1 = id
+		return false;
+	
+	SyncWriteBuffer[++SyncWriteBufferLength] = ID;
+	memcpy(&SyncWriteBuffer[++SyncWriteBufferLength], data, dSize);
+	SyncWriteBufferLength+=dSize-1;
+	
+	//PrintDataSyncWrite1();
+	return 0;
+}
+void DynamixelComm::PrintDataSyncWrite1()
+{
+	printf("DynamixelComm (PrintDataSyncWrite1) Adress %i, Blocksize %i\n",SyncWriteAdress,SyncWriteBlockSize);
+	 for (int i = 0; i <= SyncWriteBufferLength; i++) {
+		printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", i, SyncWriteBuffer[i], SyncWriteBuffer[i]);
+	}
+}
+
+int DynamixelComm::SendSyncWrite1()
+{
+#ifdef LOG_COMM
+	printf("DynamixelComm (SendSyncWrite1) Sending SyncWrite command.");
+#endif
+	if (SyncWriteBufferLength == -1)
+		return -1;
+
+	// Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes.
+	// FIXME: CHECK SyncWriteBufferLength
+	if (SyncWriteBufferLength+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
+	{
+		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
+		SyncWriteBufferLength = -1;
+		return -1;
+	}
+
+	//static_cast<unsigned char>((datalength+1)*nrServoToSendTo+4) // (datalength+1)*N+4
+	unsigned char id = 0XFE; 															// Broadcast
+	unsigned char length = static_cast<unsigned char>(SyncWriteBufferLength+1+4); 		// Length (L+1) X N + 4   (L: Data Length per RX-64, N: the number of RX-64s)
+	unsigned char adress = static_cast<unsigned char>(SyncWriteAdress);					// Start address to write Data
+	unsigned char paramterLenght = static_cast<unsigned char>(SyncWriteBlockSize);		// Length of Data to write
+
+	// Message
+	unsigned char outbuf[256] = {0XFF, 0XFF, id, length, INST_SYNC_WRITE, adress, paramterLenght};
+	// Message data
+	memcpy(&outbuf[SYNC_WRITE_HEADER_1], &SyncWriteBuffer[0], (SyncWriteBufferLength+1) * sizeof(unsigned char));
+
+	//PrintFullInstructionPackage1(outbuf);
+	Send1(outbuf);
+	
+	// Reset memory
+#ifdef LOG_COMM
+	printf("DynamixelComm (SendSyncWrite1) Reset SyncWrite memory\n");
+#endif
+	SyncWriteBufferLength = -1;
+	SyncWriteBlockSize = 0;
+	SyncWriteAdress = 0;
+	return 0;
+}
+
+
+
+// ids, start adress, parameter size, n)
 // MARK: Sync write functions (block memory)
 void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * bindedAdress, int * size, int n)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (SyncWriteWithIdRange1)\n");
+#endif
 	int datalength = -1;
 	int nrServoToSendTo = 0;
 	
@@ -63,44 +145,14 @@ void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned c
 		return;
 	
 	//printf("Number of servos to send to %i\n",nrServoToSendTo);
-	
+#ifdef LOG_COMM
+	printf("DynamixelComm (SyncWriteWithIdRange1) Number of servos to send to %i\n",nrServoToSendTo);
+#endif
 	// Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes.
 	// If there is a higher value than this we need to split it into smaller pecies.
 	if (datalength*n+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
 	{
 		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
-		
-		//        // Finding out how many servoes we can send to each time.
-		//        nrServoToSendTo = ((DYNAMIXEL_MAX_BUFFER-SYNC_WRITE_HEADER_1)/datalength)-2;
-		//        int nTo = nrServoToSendTo;
-		//        int nFrom = 0;
-		//        while (nFrom != n)
-		//        {
-		//            unsigned char outbuf[256] =
-		//            {
-		//                0XFF,
-		//                0XFF,
-		//                0XFE,
-		//                static_cast<unsigned char>((datalength+1)*(nTo-nFrom+1)+4),     // (datalength+1)*N+4
-		//                0X83,                                                           // sync_write
-		//                static_cast<unsigned char>(adress),                               // address
-		//                static_cast<unsigned char>(datalength)                          // length
-		//            };
-		//
-		//            int k = 0;
-		//            for(int i=nFrom; i<=nTo; i++)
-		//            {
-		//                outbuf[SYNC_WRITE_HEADER_1+k*(datalength+1)] = servo_id[i];
-		//                memcpy(&outbuf[SYNC_WRITE_HEADER_1 + (datalength+1)*k+1], &DynamixelMemoeries[i][adress], (datalength) * sizeof(unsigned char) );
-		//                k++;
-		//            }
-		//            Send1(outbuf);
-		//
-		//            nFrom = nTo+1; // Next send from
-		//            nTo = nTo + nrServoToSendTo; // Next send to
-		//            if(nTo+1 > n)
-		//                nTo = n-1;
-		//        }
 	}
 	else // No splitting needed.
 	{
@@ -129,6 +181,10 @@ void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned c
 bool
 DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, int to)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (ReadMemoryRange1): (id:%i) (%i-%i)\n",id, from, to);
+#endif
+	
 	// Example 0 to 57 (EX-106+). Read 58 bytes (57-0 + 1) form adress 0.
 	int bytesToRead = to-from+1;
 	
@@ -141,26 +197,76 @@ DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, int to
 	int n = Receive1(inbuf);
 	//PrintFullStatusPackage1(inbuf);
 	
-	// Nothing in.
-	if(n==0)
+	// Do all message checking here
+	if (n == ERROR_NO_HEADER)
 	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): Did not get the header (4 bytes). Flushing (id:%i)\n",id);
+#endif
 		FlushIn();
-		FlushOut();
-		return false;
+		missingBytesError++;
+		return (false);
+
 	}
-	
-	// Check checksum
-	unsigned char CheckSumAnswer = CalculateChecksum(inbuf);
-	if (inbuf[inbuf[3]+3] != CheckSumAnswer)
+	if (n == ERROR_CRC)
 	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): CRC error. Flushing (id:%i)\n",id);
+#endif
 		FlushIn();
-		FlushOut();
-		return false;
+		crcError++;
+		return (false);
+
 	}
-	// Could we check this even more??
+	if (n == ERROR_NOT_COMPLETE)
+	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): Did not get all bytes expected. Flushing (id:%i)\n",id);
+		FlushIn();
+#endif
+		notCompleteError++;
+		return (false);
+
+	}
+//		if(n==0)
+//	{
+//		FlushIn();
+//		FlushOut();
+//		return false;
+//	}
 	
-	// Copy recived data to servo memory
-	// Or Is it here?
+//	// Check checksum
+//	unsigned char CheckSumAnswer = CalculateChecksum(inbuf);
+//	if (inbuf[inbuf[3]+3] != CheckSumAnswer)
+//	{
+//		FlushIn();
+//		FlushOut();
+//		return false;
+//	}
+
+	
+	// Extended check of the message
+	// Checking first bytes id, model etc to make sure these are the right ones.
+	int checkBytesToAdress = 6;
+	if (bytesToRead < checkBytesToAdress)
+		checkBytesToAdress = bytesToRead;
+	
+//	for (int i = 0; i <checkBytesToAdress; i++)
+//	{
+//		if (buffer[i] != inbuf[5+i] && buffer[i] != 0)
+//		{
+//#ifdef LOG_COMM_ERROR
+//			printf("DynamixelComm (ReadMemoryRange1): Extended check byte %i of id %i (%i != %i) does not match\n",i, id, buffer[i], inbuf[i]);
+//#endif
+//			extendedError++;
+//			return (false);
+//		}
+//	}
+#ifdef LOG_COMM
+	printf("DynamixelComm (ReadMemoryRange1): Fill internal buffer from recived buffer. (id:%i)\n",id);
+#endif
+	//printf("Printing memory\n");
+	//PrintMemory1(buffer, 0, 40);
 	memcpy(&buffer[0], &inbuf[5], bytesToRead * sizeof(unsigned char));
 	return true;
 }
@@ -168,6 +274,10 @@ DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, int to
 void
 DynamixelComm::Send1(unsigned char * b)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (Send1)\n");
+#endif
+	
 	b[b[3]+3] = CalculateChecksum(b);
 	SendBytes((char *)b, b[3]+4);
 }
@@ -178,11 +288,17 @@ DynamixelComm::Send1(unsigned char * b)
 int
 DynamixelComm::Receive1(unsigned char * b)
 {
+	
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive1)\n");
+#endif
 	// read 4 bytes to get header. This only works if the communication is not out of sync.?
 	int c = ReceiveBytes((char *)b, 4, (this->time_per_byte*4) + 8 + 2);
 	if(c < RECIVE_HEADER_1 - 1)
 	{
-		printf("Receive1: Did not get header\n");
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive1): Did not get header (Timed out)\n");
+#endif
 		return 0;
 	}
 
@@ -199,6 +315,9 @@ DynamixelComm::Receive1(unsigned char * b)
 bool
 DynamixelComm::Ping1(int id)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (Ping1) ID %i\n", id);
+#endif
 	unsigned char outbuf[256] = {0XFF, 0XFF, static_cast<unsigned char>(id), 2, INST_PING, 0X00};
 	unsigned char inbuf[256];
 	Send1(outbuf);

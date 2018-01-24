@@ -29,13 +29,26 @@
 #include "IKAROS.h"
 #include <unistd.h>
 
+//#define DEBUG_SERVO
+
 using namespace ikaros;
 
 DynamixelServo::DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel)
 {
+#ifdef DEBUG_SERVO
+	printf("\nDynamixelServo: Constructor start\n");
+	printf("DynamixelServo: Pinging Servo with ID %i\n",id);
+#endif
+	
+	// Pinging again to get protocol
     protocol = com->Ping(id);
+#ifdef DEBUG_SERVO
+	printf("DynamixelServo: Setting protocol as %i\n",protocol);
+#endif
     extraInfo.Set("ID", id);
-    
+#ifdef DEBUG_SERVO
+	printf("DynamixelServo: Setting ID as %i\n",id);
+#endif
     dynamixelMemory = new unsigned char[DYNAMIXEL_MEM_BUFFER];
     
     // Get a few important features of the servo
@@ -51,7 +64,9 @@ DynamixelServo::DynamixelServo(DynamixelComm *com, int id, const char * csvPath,
         model = dynamixelMemory[P_MODEL_NUMBER]+256*dynamixelMemory[P_MODEL_NUMBER+1];
     
     extraInfo.Set("Model", model);
-
+#ifdef DEBUG_SERVO
+	printf("DynamixelServo: Setting model as %i\n",model);
+#endif
     // Get Additional information about servo
     GetAdditionalInfo(model);
     
@@ -78,7 +93,10 @@ DynamixelServo::DynamixelServo(DynamixelComm *com, int id, const char * csvPath,
         extraInfo.Set("Operation Type", OP_MULTI_TURN);  // Multi turn mode
     else
         extraInfo.Set("Operation Type", OP_JOINT);  // Joint mode
-    return;
+#ifdef DEBUG_SERVO
+	printf("DynamixelServo: Constructor Done\n\n");
+#endif
+	return;
 }
 
 DynamixelServo::~DynamixelServo()

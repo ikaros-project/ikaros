@@ -41,7 +41,7 @@
 #define INST_BYTE_2                 7
 #define ERROR_BYTE_2                8
 
-// Common (Protocol version 2 instructions)
+// Common (Protocol instructions)
 #define INST_PING               1
 #define INST_READ               2
 #define INST_WRITE              3
@@ -69,6 +69,15 @@
 #define DYNAMIXEL_MAX_BUFFER 143
 
 
+// Errors
+#define ERROR_NO_HEADER -1
+#define ERROR_CRC -2
+#define ERROR_EXT -3
+#define ERROR_NOT_COMPLETE -4
+
+//#define LOG_COMM_ERROR
+//#define LOG_COMM
+
 class DynamixelComm : public Serial
 {
 public:
@@ -93,6 +102,16 @@ public:
     //void            ResetDynamixel1(int id);
     bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
     void            SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+	
+	// New syncwrite functions
+	int 			AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize);
+	void 			PrintDataSyncWrite1();
+	int 			SendSyncWrite1();
+	
+	unsigned char   SyncWriteBuffer[1024];
+	int				SyncWriteBufferLength = -1;
+	int				SyncWriteAdress = 0;
+	int				SyncWriteBlockSize = 0;
 
     unsigned char   CalculateChecksum(unsigned char * b);
     
@@ -112,6 +131,25 @@ public:
     void            BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
     bool            checkCrc(unsigned char * package);
+	
+	// New bulkwrite functions
+	int 			AddDataBulkWrite2(int ID, int adress, unsigned char * data, int dSize);
+	void 			PrintDataBulkWrite2();
+	int 			SendBulkWrite2();
+	
+	unsigned char   bulkWriteBuffer[1024];
+	int				bulkWriteBufferLength  = -1;
+	
+	// Error counters
+	int crcError;
+	int missingBytesError;
+	int notCompleteError;
+	int extendedError;
+	
+	// Timers
+	float sendTimer;
+	float ReciveTimer;
+	float ReciveTimerTotal;
 };
 
 #endif

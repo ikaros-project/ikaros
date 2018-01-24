@@ -30,10 +30,19 @@ DynamixelComm::DynamixelComm(const char * serial_device, unsigned long baud_rate
 Serial(serial_device, baud_rate)
 {
     max_failed_reads = 1;
+	
+	// Errors
+	crcError = missingBytesError = notCompleteError = extendedError = 0;
+	
+	// Make sure nothing is in the buffer
+	Flush();
 }
 
 DynamixelComm::~DynamixelComm()
-{}
+{
+	Flush();
+
+}
 
 // Ping a dynamixel to see if it exists. Return protocol version
 int

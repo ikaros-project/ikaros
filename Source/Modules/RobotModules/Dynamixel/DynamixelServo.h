@@ -28,12 +28,12 @@
 #define DYNAMIXELSERVO
 
 // Protocol version 1
-#define DYNAMIXEL_EPROM_SIZE 18
-#define DYNAMIXEL_RAM_SIZE 70-18 // AX-12 Ony have 50 something. Add this to invidiual servos instead.
+// #define DYNAMIXEL_EPROM_SIZE 18
+// #define DYNAMIXEL_RAM_SIZE 70-18 // AX-12 Ony have 50 something. Add this to invidiual servos instead.
 
 // Protocol version 2
-#define DYNAMIXEL2_EPROM_SIZE 18
-#define DYNAMIXEL2_RAM_SIZE 52-18
+// #define DYNAMIXEL2_EPROM_SIZE 18
+// #define DYNAMIXEL2_RAM_SIZE 52-18
 
 // Common
 #define DYNAMIXEL_MEM_BUFFER 1024 // Using 128 instead of 70 as in control table. Incresed this to 1024 as Pro seem to have more memory.
@@ -82,17 +82,17 @@ class DynamixelServo
 {
 public:
     
-    DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel);
+    DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel);  // forceModel is used by condiguration module only.
 
     ~DynamixelServo();
     
     // Variables
     unsigned char * dynamixelMemory;    // Copy of dynamixel memory
-    Dictionary extraInfo;               // Some extra information about the model
-    CT controlTable[C_TABLE_SIZE];            // The Control table read from file. Here is the mapping to ikaros IO
+    Dictionary extraInfo;               // Some extra information about the model.
+    CT controlTable[C_TABLE_SIZE];      // The Control table read from csv file. Here is the mapping to ikaros IO
     int protocol;
     int model;
-    
+	
     // Functions
     bool ReadCSVFileToCtable(CT * ctable, int model, int * size, const char * csvPath);
     void PrintControlTable();
