@@ -26,8 +26,6 @@
 
 #include "DynamixelComm.h"
 
-
-
 int DynamixelComm::AddDataBulkWrite2(int ID, int adress, unsigned char * data, int dSize)
 {
 #ifdef LOG_COMM
@@ -45,18 +43,8 @@ int DynamixelComm::AddDataBulkWrite2(int ID, int adress, unsigned char * data, i
 	memcpy(&bulkWriteBuffer[++bulkWriteBufferLength], data, dSize * sizeof(unsigned char));
 	bulkWriteBufferLength+=dSize-1;
 	
-	
-	//	outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
-	//	outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
-	//	outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;
-	//	outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+3] = size[i]&0xff;
-	//	outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+4] = (size[i]>>8)&0xff;
-	//	memcpy(&outbuf[BULK_WRITE_HEADER_2 + k*(size[i]+5)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
-	
-	
-	PrintDataBulkWrite2();
+	//PrintDataBulkWrite2();
 	return 0;
-	
 }
 
 void DynamixelComm::PrintDataBulkWrite2()
@@ -90,7 +78,7 @@ int DynamixelComm::SendBulkWrite2()
 	// Message data
 	memcpy(&outbuf[SYNC_WRITE_HEADER_1], &bulkWriteBuffer[0], (bulkWriteBufferLength+1) * sizeof(unsigned char));
 	
-	PrintFullInstructionPackage2(outbuf);
+	//PrintFullInstructionPackage2(outbuf);
 	//Send1(outbuf);
 	
 	// Reset memory
@@ -101,6 +89,7 @@ int DynamixelComm::SendBulkWrite2()
 	return 0;
 }
 
+// MARK: REMOVE!!
 void DynamixelComm::BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
 {
 	int nrServoToSendTo = 0;
@@ -160,82 +149,125 @@ void DynamixelComm::BulkWrite2(int * servo_id, int * mask, unsigned char ** Dyna
 }
 
 // MARK: Read memory block
-bool
-DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, int to)
+bool DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, int to)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (ReadMemoryRange2): (id:%i) (%i-%i)\n",id, from, to);
+#endif
+	
 	int bytesToRead = to-from+1;
 	unsigned int parameter_length = 4; // Read has 4 byte
 	unsigned int length=3+parameter_length;
 	
-	unsigned char outbuf[256] = {
-		0XFF,
-		0XFF,
-		0XFD,
-		0X00,
-		static_cast<unsigned char>(id),
-		static_cast<unsigned char>(length&0xff),
-		static_cast<unsigned char>((length>>8)&0xff),
-		INST_READ,
-		static_cast<unsigned char>(from&0xff),
-		static_cast<unsigned char>((from>>8)&0xff),
-		static_cast<unsigned char>(bytesToRead&0xff),
-		static_cast<unsigned char>((bytesToRead>>8)&0xff)
-	};
+	unsigned char outbuf[256] = {0XFF, 0XFF, 0XFD, 0X00, static_cast<unsigned char>(id), static_cast<unsigned char>(length&0xff), static_cast<unsigned char>((length>>8)&0xff), INST_READ, static_cast<unsigned char>(from&0xff), static_cast<unsigned char>((from>>8)&0xff), static_cast<unsigned char>(bytesToRead&0xff), static_cast<unsigned char>((bytesToRead>>8)&0xff)};
 	// Two more bytes for crc
 	// Calucate CRC (Function from robotis)
 	unsigned short crc = update_crc(0,outbuf,12);
 	
 	outbuf[12]=crc&0xff;
 	outbuf[13]=(crc>>8)&0xff;
-	//PrintFullInstructionPackage(outbuf);
 	Send2(outbuf);
-	
 	unsigned char inbuf[1024];
 	int n = Receive2(inbuf);
-	//PrintFullStatusPackage(inbuf);
-	if(n==0)
-	{
-		FlushIn();
-		FlushOut();
-		return false;
-	}
 	
-	// Copy the new data to the dynamixel memories
+	// Do all message checking here
+	if(n==ERROR_NO_HEADER)
+	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange2): Did not get the header (4 bytes). Flushing (id:%i)\n",id);
+#endif
+		FlushIn();
+		missingBytesError++;
+		return (false);
+	}
+	if (n == ERROR_CRC)
+	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange2): CRC error. Flushing (id:%i)\n",id);
+#endif
+		FlushIn();
+		crcError++;
+		return (false);
+	}
+	if (n == ERROR_NOT_COMPLETE)
+	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): Did not get all bytes expected. Flushing (id:%i)\n",id);
+		FlushIn();
+#endif
+		notCompleteError++;
+		return (false);
+	}
+	// Extended check of the message
+	// Checking first bytes id, model etc to make sure these are the right ones.
+	int checkBytesToAdress = 6;
+	if (bytesToRead < checkBytesToAdress)
+		checkBytesToAdress = bytesToRead;
+	
+	for (int i = 0; i <checkBytesToAdress; i++)
+	{
+		if (buffer[i] != inbuf[5+i] && buffer[i] != 0)
+		{
+#ifdef LOG_COMM_ERROR
+			printf("DynamixelComm (ReadMemoryRange2): Extended check byte %i of id %i (%i != %i) does not match\n",i, id, buffer[i], inbuf[i]);
+#endif
+			extendedError++;
+			return (false);
+		}
+	}
+#ifdef LOG_COMM
+	printf("DynamixelComm (ReadMemoryRange2): Fill internal buffer from recived buffer. (id:%i)\n",id);
+#endif
 	memcpy(&buffer[0], &inbuf[RECIVE_HEADER_2+from+1], bytesToRead * sizeof(unsigned char)-1); // -1 error bit in protocol2
 	return true;
 }
 // MARK: Send/Recive
-void
-DynamixelComm::Send2(unsigned char * b)
+void DynamixelComm::Send2(unsigned char * b)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (Send2)\n");
+#endif
 	SendBytes((char *)b, (b[LEN_H_BYTE_2]<<8) + b[LEN_L_BYTE_2] + 7);
 }
 
-int
-DynamixelComm::Receive2(unsigned char * b)
+int DynamixelComm::Receive2(unsigned char * b)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (Receive2)\n");
+#endif
 	int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1); // Get header and length of package
 	
 	if(c < RECIVE_HEADER_2-1)
 	{
-		//printf("Receive2: Did not get header (Timed out)\n");
-		return 0;
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive2): Did not get header (Timed out. Got %i bytes)\n",c);
+#endif
+		return ERROR_NO_HEADER;
 	}
 	int lengthOfPackage = (b[LEN_H_BYTE_2]<<8) + b[LEN_L_BYTE_2];
 	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + 2); // Get the rest of the package
-	
+
+	if(c < lengthOfPackage)
+	{
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive2): Did not get all message (Timed out. Got %i bytes)\n",c);
+#endif
+		return ERROR_NOT_COMPLETE;
+	}
 	if (!checkCrc(b))
-		return 0;
+		return ERROR_CRC;
 	
 	return c;
 }
 // MARK: MISC
-bool
-DynamixelComm::Ping2(int id)
+bool DynamixelComm::Ping2(int id)
 {
+#ifdef LOG_COMM
+	printf("DynamixelComm (Ping2) ID %i\n", id);
+#endif
+	Flush();
 	unsigned int parameter_length = 0; // Ping has no data
 	unsigned int length=3+parameter_length;
-	
 	unsigned char outbuf[256] = {0XFF,0XFF,0XFD,0X00,static_cast<unsigned char>(id),static_cast<unsigned char>(length&0xff),static_cast<unsigned char>((length>>8)&0xff), INST_PING}; // Two more bytes for crc
 	
 	// Calucate CRC (Function from robotis)
@@ -243,15 +275,16 @@ DynamixelComm::Ping2(int id)
 	
 	outbuf[8]=crc&0xff;
 	outbuf[9]=(crc>>8)&0xff;
-	//PrintFullInstructionPackage(outbuf);
 	Send2(outbuf);
 	
 	unsigned char inbuf[256];
 	int n = Receive2(inbuf);
-	return (n != 0);
+	if (n < 0)
+		return (false);
+	else
+		return (true);
 }
-void
-DynamixelComm::Reset2(int id)
+void DynamixelComm::Reset2(int id)
 {
 	printf("Dynamixel: Trying to reset id: %i\n", id);
 	unsigned char outbuf[256] = {0XFF,0XFF,0XFD,0X00, static_cast<unsigned char>(id),2,INST_RESET, 0X00};
@@ -351,6 +384,7 @@ bool DynamixelComm::checkCrc(unsigned char * package)
 	
 	return true;
 }
+
 unsigned short DynamixelComm::update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size)
 {
 	unsigned short i, j;
@@ -398,6 +432,5 @@ unsigned short DynamixelComm::update_crc(unsigned short crc_accum, unsigned char
 		i = ((unsigned short)(crc_accum >> 8) ^ *data_blk_ptr++) & 0xFF;
 		crc_accum = (crc_accum << 8) ^ crc_table[i];
 	}
-	
 	return crc_accum;
 }
