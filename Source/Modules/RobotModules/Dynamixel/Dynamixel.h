@@ -54,6 +54,8 @@
 #define IK_OUT_GOAL_TORQUE           14
 #define IK_OUT_GOAL_ACCELERATION     15
 
+#define IK_INPUTS 10
+#define IK_OUTPUTS 16
 
 class Dynamixel: public Module
 {
@@ -63,7 +65,7 @@ public:
     Dynamixel(Parameter * p);
     virtual ~Dynamixel();
     
-    void        SetSizes();
+    //void        SetSizes();
     
     void		Init();
     void		Tick();
@@ -75,6 +77,7 @@ private:
     int         init_print;
     int         index_mode;
     int         angle_unit;
+	bool		optimize_mode = 0;
     
     bool        use_feedback;
     int         start_up_delay;			// To make sure nothing strange is recived from the ikaros system during the first ticks.
@@ -84,9 +87,13 @@ private:
     // index of where to find ikaros data in the dynamixel memory block
     int **      ikarosInBind;           // Array of where to store input data in the dynamixel memory block
     int **      ikarosOutBind;          // Array of where to grab output data in the dynamixel memory block
-    int **      parameterInSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size. 
+    int **      parameterInSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
+	bool **		active;
+	bool **		optimize;
     int         protocol;               // The protocol used. No mixed protocol allowed.
     int *       mask;
+	bool 		connected[IK_INPUTS];
+
 
     // Inputs
     float *     torqueEnable;
@@ -141,6 +148,7 @@ private:
     
     void		Print();
     void        PrintAll();
+	void		OptimizeSendCalls();
 };
 
 #endif
