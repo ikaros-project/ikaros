@@ -24,7 +24,7 @@
 #include "Dynamixel.h"
 #include "DynamixelComm.h"
 
-//#define DYNAMIXEL_DEBUG
+#define DYNAMIXEL_DEBUG
 //#define DYNAMIXEL_TIMING
 
 using namespace ikaros;
@@ -203,13 +203,13 @@ Module(p)
 			if (servo[servoIndex[i]]->controlTable[j].IkarosOutputs >= 0)
 				ikarosOutBind[servo[servoIndex[i]]->controlTable[j].IkarosOutputs][i] = servo[servoIndex[i]]->controlTable[j].Adress;
 		}
-	printf("Bindings IN\n");
-	for (int j = 0; j < IK_INPUTS; j++)
-	{
-		for (int k = 0; k < nrOfServos; k++)
-			printf("%i:%i : %i\t",k ,j, ikarosInBind[j][k]) ;
-		printf("\n");
-	}
+//	printf("Bindings IN\n");
+//	for (int j = 0; j < IK_INPUTS; j++)
+//	{
+//		for (int k = 0; k < nrOfServos; k++)
+//			printf("%i:%i : %i\t",k ,j, ikarosInBind[j][k]) ;
+//		printf("\n");
+//	}
 	//	printf("Bindings OUT\n");
 	//	for (int j = 0; j < IK_OUTPUTS; j++)
 	//	{
@@ -326,8 +326,8 @@ Dynamixel::Init()
 	if (goalAcceleration != NULL)
 		connected[IK_IN_GOAL_ACCELERATION] = true;
 	
-	for (int i = 0; i <IK_INPUTS; i++)
-		printf("%i = %i\n",i, connected[i]);
+//	for (int i = 0; i <IK_INPUTS; i++)
+//		printf("%i = %i\n",i, connected[i]);
 	
 	// Create memory active map. Connected and have the parameter gives active
 	active = new bool * [nrOfServos];
@@ -612,7 +612,7 @@ Dynamixel::Tick()
 	{
 		for(int i=0; i<nrOfServos; i++)
 		{
-			// Bug/feature sending torque is not good.
+			// Bug/feature sending torqueEnable is not good.
 			if (torqueEnableConnected && ikarosInBind[IK_IN_TORQUE_ENABLE][i] != -1)
 			{
 				servo[servoIndex[i]]->SetTorqueEnableFormated(ikarosInBind[IK_IN_TORQUE_ENABLE][i],torqueEnable[servoIndex[i]]);
@@ -635,17 +635,15 @@ Dynamixel::Tick()
 			if (movingSpeedConnected && ikarosInBind[IK_IN_MOVING_SPEED][i] != -1)
 				servo[servoIndex[i]]->SetMovingSpeedFormated(ikarosInBind[IK_IN_MOVING_SPEED][i],movingSpeed[servoIndex[i]]);
 			
-			if (GetTick() <= start_up_delay + torque_up_delay)
+			if (GetTick() <= start_up_delay)
+				torqueMultiplier = 0; // No torque during start_up
+			else if (GetTick() <= start_up_delay + torque_up_delay)
 				torqueMultiplier = ((GetTick() - start_up_delay) / float(torque_up_delay)); // Ramping up torque from value servo has now
 			else
 				torqueMultiplier = 1;
 			
-			// For a smooth start both with torque limit connected and torque limit not connected.
-			// If torque limit is connected use this value. If torque limit is not connected use torque stored in memory
-			if (torqueLimitConnected && ikarosInBind[IK_IN_TORQUE_LIMIT][i] != -1)
-				servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i],torqueLimit[servoIndex[i]]*torqueMultiplier); // Ramp up torque from input
-			else
-				servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i],servo[servoIndex[i]]->GetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i]*torqueMultiplier)); // Ramp up from memory
+			if (torqueLimitConnected && ikarosInBind[IK_IN_TORQUE_LIMIT][i] != -1) // TorqueLimitConnected must be connected
+				servo[servoIndex[i]]->SetTorqueLimitFormated(ikarosInBind[IK_IN_TORQUE_LIMIT][i], torqueLimit[servoIndex[i]]*torqueMultiplier); // Ramp up torque
 			
 			if (goalTorqueConnected && ikarosInBind[IK_IN_GOAL_TORQUE][i] != -1)
 				servo[servoIndex[i]]->SetGoalTorqueFormated(ikarosInBind[IK_IN_GOAL_TORQUE][i],goalTorque[servoIndex[i]]);
@@ -659,10 +657,7 @@ Dynamixel::Tick()
 		// Check protocol
 		if (protocol == 1)
 		{
-#ifdef DYNAMIXEL_DEBUG
-			printf("Protocol 1\n");
-#endif
-			
+	
 			for(int i=0; i<nrOfServos; i++)
 				if (active[i][IK_IN_TORQUE_ENABLE] and !optimize[i][IK_IN_TORQUE_ENABLE])
 					com->AddDataSyncWrite1(servoId[i], ikarosInBind[IK_IN_TORQUE_ENABLE][i], &servo[servoIndex[i]]->dynamixelMemory[ikarosInBind[IK_IN_TORQUE_ENABLE][i]], parameterInSize[IK_IN_TORQUE_ENABLE][i]);
@@ -723,9 +718,6 @@ Dynamixel::Tick()
 		}
 		if (protocol == 2)
 		{
-#ifdef DYNAMIXEL_DEBUG
-			printf("Protocol 2\n");
-#endif
 			// Version 2
 			// Using bulkwrite in the same way as syncwrite. A limitation of bulkwrite is that a servo id is only allowed once for each call. By using bulkwrite the adress and sizes may change with dynamixel versions. This has not been fully tested.
 			for(int i=0; i<nrOfServos; i++)
