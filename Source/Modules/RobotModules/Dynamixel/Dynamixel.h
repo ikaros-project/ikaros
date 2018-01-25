@@ -24,6 +24,7 @@
 
 //#define DYNAMIXEL_DEBUG
 //#define DYNAMIXEL_TIMING
+//#define DYNAMIXEL_COM_REPORT
 
 #include "IKAROS.h"
 #include "DynamixelComm.h"

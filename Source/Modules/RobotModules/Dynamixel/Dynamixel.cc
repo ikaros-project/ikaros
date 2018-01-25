@@ -457,7 +457,9 @@ Dynamixel::~Dynamixel()
 		timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
 	}
 	
-	// TODO: MAKE OUTPUTS
+	// TODO: Module output
+	
+#ifdef DYNAMIXEL_COM_REPORT
 	// Comminication Error report
 	printf("\nError Report\n");
 	printf("Crc Errors:\t\t%i\n",com->crcError);
@@ -465,7 +467,8 @@ Dynamixel::~Dynamixel()
 	printf("Not complete:\t%i\n",com->notCompleteError);
 	printf("Extended check:\t%i\n",com->extendedError);
 	printf("Ticks:\t\t\t%li\n",GetTick());
-	
+#endif
+
 	
 	
 	// Free memory
@@ -508,11 +511,10 @@ Dynamixel::Tick()
 			else
 				ignore[i][j] = false;
 	
-	
 	// Check that the device exists and is open
 	if(!device || !com)
 		return;
-	
+
 	float torqueMultiplier = 0; // For ramping up torque at start.
 	
 #ifdef DYNAMIXEL_DEBUG
