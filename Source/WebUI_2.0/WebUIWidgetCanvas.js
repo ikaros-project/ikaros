@@ -164,9 +164,9 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.beginPath();
         this.canvas.fillStyle = this.format.titleBackground;
         if(this.format.titleBackgroundMargins)
-            this.canvas.rect(+this.format.marginLeft-0.5, 0, this.width - this.format.marginRight-0.5, +this.format.titleHeight-0.5);
+            this.canvas.rect(+this.format.marginLeft-0.5, 0, this.width - this.format.marginRight-0.5, +this.format.marginTop-0.5);
         else
-            this.canvas.rect(-0.5, -0.5, this.width, +this.format.titleHeight);
+            this.canvas.rect(-0.5, -0.5, this.width, +this.format.marginTop);
         this.canvas.fill();
 
         this.canvas.font = this.format.titleFont;
@@ -229,7 +229,6 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.stroke();
     }
 
-
     drawRow(width, height, row)
     {
     
@@ -280,6 +279,8 @@ class WebUIWidgetCanvas extends WebUIWidget
     {
         this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
 
+        this.drawTitle();
+
         this.canvas.beginPath();
         this.canvas.lineWidth = 1;
         this.canvas.strokeStyle = "gray";
@@ -305,45 +306,89 @@ class WebUIWidgetCanvas extends WebUIWidget
         let pane_y = (this.height - this.format.marginTop - this.format.marginBottom+1)/size_y;
         let pane_x = (this.width - this.format.marginLeft - this.format.marginRight+1)/size_x;
 
-
-        for(let y=0; y<size_y; y++)
+        if(this.format.direction == 'vertical')
         {
-            let top = Math.round(y*(pane_y));
-            let bottom = Math.round((y+1)*pane_y);
-            
-            this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, top+this.format.marginTop-1.5);
-            this.canvas.beginPath();
-            this.canvas.lineWidth = 1;
-            this.canvas.strokeStyle = "red";
-            this.canvas.rect(0, 0, this.format.width+1, bottom-top);
-            this.canvas.stroke();
+            for(let y=0; y<size_y; y++)
+            {
+                let top = Math.round(y*(pane_y));
+                let bottom = Math.round((y+1)*pane_y);
+                
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, top+this.format.marginTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "red";
+                this.canvas.rect(0, 0, this.format.width+1, bottom-top);
+                this.canvas.stroke();
 
-            // axes
-            this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, top+this.format.marginTop+this.format.spaceTop-1.5);
-            this.canvas.beginPath();
-            this.canvas.lineWidth = 1;
-            this.canvas.strokeStyle = "yellow";
-            this.canvas.rect(0, 0, this.format.width+1, bottom-top-this.format.spaceTop);
-            this.canvas.stroke();
+                // axes
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, top+this.format.marginTop+this.format.spaceTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "yellow";
+                this.canvas.rect(0, 0, this.format.width+1, bottom-top-this.format.spaceTop);
+                this.canvas.stroke();
 
-            // gridlines, ticks and scales
-            this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, this.format.marginTop+top+this.format.spaceTop-1.5);
-            this.canvas.beginPath();
-            this.canvas.lineWidth = 1;
-            this.canvas.strokeStyle = "blue";
-            this.canvas.rect(0, 0, this.format.width+1, bottom-top-this.format.spaceTop);
-            this.canvas.stroke();
-            
-            this.drawHorizontalGridlines(this.format.width+1, bottom-top-this.format.spaceTop)
+                // gridlines, ticks and scales
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, this.format.marginTop+top+this.format.spaceTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "blue";
+                this.canvas.rect(0, 0, this.format.width+1, bottom-top-this.format.spaceTop);
+                this.canvas.stroke();
+                
+                this.drawHorizontalGridlines(this.format.width+1, bottom-top-this.format.spaceTop)
 
-            // plot
-            this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft+this.format.spaceLeft-1.5, this.format.marginTop+top+this.format.spaceTop-1.5);
-            this.canvas.beginPath();
-            this.canvas.lineWidth = 1;
-            this.canvas.strokeStyle = "green";
-            this.canvas.rect(0, 0, this.format.width-this.format.spaceLeft-this.format.spaceRight+1, bottom-top-this.format.spaceTop-this.format.spaceBottom);
-            this.canvas.stroke();
+                // plot
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft+this.format.spaceLeft-1.5, this.format.marginTop+top+this.format.spaceTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "green";
+                this.canvas.rect(0, 0, this.format.width-this.format.spaceLeft-this.format.spaceRight+1, bottom-top-this.format.spaceTop-this.format.spaceBottom);
+                this.canvas.stroke();
+            }
+        }
+        else
+        {
+             for(let x=0; x<size_x; x++)
+            {
+                let left = Math.round(x*(pane_x));
+                let right = Math.round((x+1)*pane_x);
+                
+                this.canvas.setTransform(1, 0, 0, 1, left+this.format.marginLeft-1.5, this.format.marginTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "red";
+                this.canvas.rect(0, 0, right-left, this.format.height+1);
+                this.canvas.stroke();
+/*
+                // axes
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft-1.5, top+this.format.marginTop+this.format.spaceTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "yellow";
+                this.canvas.rect(0, 0, this.format.width+1, bottom-top-this.format.spaceTop);
+                this.canvas.stroke();
+*/
+                // gridlines, ticks and scales
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft+left+this.format.spaceLeft-1.5, this.format.marginTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "blue";
+                this.canvas.rect(0, 0, right-left-this.format.spaceLeft-this.format.spaceRight, this.format.height+1);
+                this.canvas.stroke();
+                
+//                this.drawHorizontalGridlines(right-left-this.format.width+1, this.format.spaceTop)
 
+
+                // plot
+                this.canvas.setTransform(1, 0, 0, 1, this.format.marginLeft+left+this.format.spaceLeft-1.5, this.format.marginTop+this.format.spaceTop-1.5);
+                this.canvas.beginPath();
+                this.canvas.lineWidth = 1;
+                this.canvas.strokeStyle = "green";
+                this.canvas.rect(0, 0, right-left-this.format.spaceLeft-this.format.spaceRight, this.format.height-this.format.spaceTop-this.format.spaceBottom+1);
+                this.canvas.stroke();
+
+            }
         }
     }
 

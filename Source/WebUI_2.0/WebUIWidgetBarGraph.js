@@ -53,7 +53,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
         this.height = parseInt(height);
         
         this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
-        this.format.height = this.height - this.format.titleHeight - this.format.marginBottom;
+        this.format.height = this.height - this.format.marginTop - this.format.marginBottom;
 
         this.draw(data);
     }
@@ -215,10 +215,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 
     draw(d)
     {
-        this.canvas.clearRect(0, 0, this.width, this.height);
-//        this.drawTitle();
-        
-        this.drawFullLayout(1, 7);
+        this.canvas.clearRect(0, 0, this.width, this.height);        
+        this.drawFullLayout(3, 1);
         
         return;
 
