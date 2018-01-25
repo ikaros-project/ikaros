@@ -473,14 +473,18 @@ Dynamixel::~Dynamixel()
 	
 	// Free memory
 	for(int i=0; i<nrOfServos; i++)
+	{
 		delete(inAdress[i]);
-	delete(inAdress);
-	for(int i=0; i<nrOfServos; i++)
 		delete(inAdressSize[i]);
-	delete(inAdressSize);
-	for(int i=0; i<nrOfServos; i++)
 		delete(outAdress[i]);
+		delete(optimize[i]);
+		delete(active[i]);
+	}
+	delete(inAdress);
+	delete(inAdressSize);
 	delete(outAdress);
+	delete(optimize);
+	delete(active);
 	delete servoIndex;
 	delete servoId;
 	delete com;
