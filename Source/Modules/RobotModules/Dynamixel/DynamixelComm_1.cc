@@ -213,8 +213,8 @@ bool DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, i
 	{
 #ifdef LOG_COMM_ERROR
 		printf("DynamixelComm (ReadMemoryRange1): Did not get all bytes expected. Flushing (id:%i)\n",id);
-		FlushIn();
 #endif
+		FlushIn();
 		notCompleteError++;
 		return (false);
 	}
