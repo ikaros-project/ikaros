@@ -66,23 +66,6 @@ DynamixelComm::Reset(int id, int protocol)
 	
 }
 
-//void
-//DynamixelComm::WriteToServo(int * servo_id, int * mask, int protocol, unsigned  char ** buffer, int * ikarosInBind, int * size, int n)
-//{
-//	switch (protocol) {
-//		case 1:
-//			return SyncWriteWithIdRange1(servo_id, mask, buffer, ikarosInBind, size, n); // Size and adress must be fixed. BUT first servo may not have size of paramter.
-//			break;
-//		case 2:
-//			return BulkWrite2(servo_id, mask, buffer, ikarosInBind, size, n); // Must use bulkwrite as paramters differer in size and adress in dynamixel 2
-//			break;
-//
-//		default:
-//			break;
-//	}
-//	return;
-//}
-
 bool
 DynamixelComm::ReadMemoryRange(int id, int protocol, unsigned char * buffer, int from, int to)
 {
@@ -92,7 +75,6 @@ DynamixelComm::ReadMemoryRange(int id, int protocol, unsigned char * buffer, int
 			break;
 		case 2:
 			return ReadMemoryRange2(id,  buffer, from, to);
-			
 			break;
 			
 		default:

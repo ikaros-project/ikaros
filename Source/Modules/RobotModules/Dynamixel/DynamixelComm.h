@@ -36,6 +36,7 @@
 #define ID_BYTE_1                   2
 #define LEN_BYTE_1                  3
 #define INST_BYTE_1                 4
+#define ERROR_BYTE_1                5
 
 // Protocol version 2 instruction package
 #define ID_BYTE_2                   4
@@ -133,16 +134,14 @@ public:
 	unsigned char   bulkWriteBuffer[1024];
 	int				bulkWriteBufferLength  = -1;
 	
-	// Error counters
-	int crcError;
-	int missingBytesError;
-	int notCompleteError;
-	int extendedError;
+	int 			crcError;
+	int 			missingBytesError;
+	int 			notCompleteError;
+	int 			extendedError;
 	
-	// Timers
-	float sendTimer;
-	float reciveTimer;
-	float reciveTimerTotal;
+	float 			sendTimer;
+	float 			reciveTimer;
+	float 			reciveTimerTotal;
 };
 
 #endif
