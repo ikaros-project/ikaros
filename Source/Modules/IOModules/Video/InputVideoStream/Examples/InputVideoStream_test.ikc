@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<group title="InputVideoStream Example">
+	
+		<module
+			class = "InputVideoStream"
+			name = "InputVideoStream"
+            filename = "http://righteye.local:8080/stream/video.mjpeg"
+		/>
+		
+	<view name="Movie View" object_size="500">
+		<object class="Image" type="rgb" module = "InputVideoStream" source = "RED+GREEN+BLUE" x="0" y="0" />
+	</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
