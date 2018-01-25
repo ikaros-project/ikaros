@@ -107,76 +107,76 @@ int DynamixelComm::SendSyncWrite1()
 // ids, start adress, parameter size, n)
 // MARK: Sync write functions (block memory).
 // MARK: REMOVE!!
-void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * bindedAdress, int * size, int n)
-{
-#ifdef LOG_COMM
-	printf("DynamixelComm (SyncWriteWithIdRange1)\n");
-#endif
-	int datalength = -1;
-	int nrServoToSendTo = 0;
-	
-	// Find parameter size. Same in SyncWrite
-	for (int i = 0; i < n; i++)
-		if (size[i] != -1)
-		{
-			datalength = size[i]; // Fixed size for all servoes in sync_write mode.
-			break;
-		}
-	
-	if (datalength == -1)
-		return;
-	
-	// Find parameter adress.
-	int adress = -1;
-	for (int i = 0; i < n; i++)
-	{
-		if (bindedAdress[i] != -1)
-		{
-			adress = bindedAdress[i]; // Fixed size for all servoes in sync_write mode.
-			break;
-		}
-	}
-	for (int i = 0; i < n; i++)
-		if (bindedAdress[i] != -1)
-			if (mask[i] == 1)
-				nrServoToSendTo++;
-	
-	if (adress == -1)
-		return;
-	
-	//printf("Number of servos to send to %i\n",nrServoToSendTo);
-#ifdef LOG_COMM
-	printf("DynamixelComm (SyncWriteWithIdRange1) Number of servos to send to %i\n",nrServoToSendTo);
-#endif
-	// Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes.
-	// If there is a higher value than this we need to split it into smaller pecies.
-	if (datalength*n+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
-	{
-		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
-	}
-	else // No splitting needed.
-	{
-		unsigned char outbuf[256] =
-		{
-			0XFF,
-			0XFF,
-			0XFE,
-			static_cast<unsigned char>((datalength+1)*nrServoToSendTo+4),   // (datalength+1)*N+4
-			0X83,                                                           // sync_write
-			static_cast<unsigned char>(adress),                             // address
-			static_cast<unsigned char>(datalength)                          // length
-		};
-		
-		for(int i=0; i<n; i++)
-			if (bindedAdress[i] != -1 && mask[i] == 1) // Skipp servo if it can not handle parameter (PID parameters etc) and not masked.
-			{
-				outbuf[SYNC_WRITE_HEADER_1+i*(datalength+1)] = servo_id[i];
-				memcpy(&outbuf[SYNC_WRITE_HEADER_1 + i*(datalength+1)+1], &DynamixelMemoeries[i][adress], datalength * sizeof(unsigned char) );
-			}
-		//PrintFullInstructionPackage1(outbuf);
-		Send1(outbuf);
-	}
-}
+//void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * bindedAdress, int * size, int n)
+//{
+//#ifdef LOG_COMM
+//	printf("DynamixelComm (SyncWriteWithIdRange1)\n");
+//#endif
+//	int datalength = -1;
+//	int nrServoToSendTo = 0;
+//	
+//	// Find parameter size. Same in SyncWrite
+//	for (int i = 0; i < n; i++)
+//		if (size[i] != -1)
+//		{
+//			datalength = size[i]; // Fixed size for all servoes in sync_write mode.
+//			break;
+//		}
+//	
+//	if (datalength == -1)
+//		return;
+//	
+//	// Find parameter adress.
+//	int adress = -1;
+//	for (int i = 0; i < n; i++)
+//	{
+//		if (bindedAdress[i] != -1)
+//		{
+//			adress = bindedAdress[i]; // Fixed size for all servoes in sync_write mode.
+//			break;
+//		}
+//	}
+//	for (int i = 0; i < n; i++)
+//		if (bindedAdress[i] != -1)
+//			if (mask[i] == 1)
+//				nrServoToSendTo++;
+//	
+//	if (adress == -1)
+//		return;
+//	
+//	//printf("Number of servos to send to %i\n",nrServoToSendTo);
+//#ifdef LOG_COMM
+//	printf("DynamixelComm (SyncWriteWithIdRange1) Number of servos to send to %i\n",nrServoToSendTo);
+//#endif
+//	// Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes.
+//	// If there is a higher value than this we need to split it into smaller pecies.
+//	if (datalength*n+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
+//	{
+//		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
+//	}
+//	else // No splitting needed.
+//	{
+//		unsigned char outbuf[256] =
+//		{
+//			0XFF,
+//			0XFF,
+//			0XFE,
+//			static_cast<unsigned char>((datalength+1)*nrServoToSendTo+4),   // (datalength+1)*N+4
+//			0X83,                                                           // sync_write
+//			static_cast<unsigned char>(adress),                             // address
+//			static_cast<unsigned char>(datalength)                          // length
+//		};
+//		
+//		for(int i=0; i<n; i++)
+//			if (bindedAdress[i] != -1 && mask[i] == 1) // Skipp servo if it can not handle parameter (PID parameters etc) and not masked.
+//			{
+//				outbuf[SYNC_WRITE_HEADER_1+i*(datalength+1)] = servo_id[i];
+//				memcpy(&outbuf[SYNC_WRITE_HEADER_1 + i*(datalength+1)+1], &DynamixelMemoeries[i][adress], datalength * sizeof(unsigned char) );
+//			}
+//		//PrintFullInstructionPackage1(outbuf);
+//		Send1(outbuf);
+//	}
+//}
 // MARK: Read memory block
 bool DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, int to)
 {

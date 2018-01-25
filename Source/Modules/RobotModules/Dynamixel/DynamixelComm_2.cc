@@ -88,65 +88,65 @@ int DynamixelComm::SendBulkWrite2()
 	bulkWriteBufferLength = -1;
 	return 0;
 }
-
-// MARK: REMOVE!!
-void DynamixelComm::BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
-{
-	int nrServoToSendTo = 0;
-	//int bytesToWrite = 0;
-	for (int i = 0; i < n; i++)
-		if (ikarosInBind[i] != -1 && mask[i] == 1)
-			nrServoToSendTo++;
-	
-	unsigned int parameter_length = 0;
-	for (int i = 0; i < n; i++)
-		if (ikarosInBind[i] != -1 && mask[i] == 1)
-			parameter_length += (size[i] + 1 + 2 + 2); // adding up data sizes + id size (two bytes) + adress + size size
-	
-	unsigned int length=1+parameter_length+2; // Length is the packet length AFTER packet length feild. Inst + Parameters + CRC
-	unsigned int lengthPackage = length + BULK_WRITE_HEADER_2-1; // Total length of the package with all feilds. BULK_WRITE_HEADER_2-1 as inst feild is included in BULK_WRITE_HEADER_2
-	
-	if (lengthPackage > DYNAMIXEL_MAX_BUFFER)
-	{
-		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos or data sent to the servos\n");
-		
-		
-	}
-	else
-	{
-		unsigned char outbuf[256] = {
-			0XFF,
-			0XFF,
-			0XFD,
-			0X00,
-			0XFE,
-			static_cast<unsigned char>(length&0xff),
-			static_cast<unsigned char>((length>>8)&0xff),
-			INST_BULK_WRITE
-		};
-		
-		int k= 0;
-		for(int i=0; i<n; i++)
-		{
-			
-			if (ikarosInBind[i] != -1 && mask[i] == 1){
-				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
-				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
-				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;
-				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+3] = size[i]&0xff;
-				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+4] = (size[i]>>8)&0xff;
-				memcpy(&outbuf[BULK_WRITE_HEADER_2 + k*(size[i]+5)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
-				k++;
-			}
-		}
-		
-		unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
-		outbuf[lengthPackage-2]=crc&0xff;
-		outbuf[lengthPackage-1]=(crc>>8)&0xff;
-		//PrintFullInstructionPackage2(outbuf);
-		Send2(outbuf);
-	}
-}
+//
+//// MARK: REMOVE!!
+//void DynamixelComm::BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
+//{
+//	int nrServoToSendTo = 0;
+//	//int bytesToWrite = 0;
+//	for (int i = 0; i < n; i++)
+//		if (ikarosInBind[i] != -1 && mask[i] == 1)
+//			nrServoToSendTo++;
+//	
+//	unsigned int parameter_length = 0;
+//	for (int i = 0; i < n; i++)
+//		if (ikarosInBind[i] != -1 && mask[i] == 1)
+//			parameter_length += (size[i] + 1 + 2 + 2); // adding up data sizes + id size (two bytes) + adress + size size
+//	
+//	unsigned int length=1+parameter_length+2; // Length is the packet length AFTER packet length feild. Inst + Parameters + CRC
+//	unsigned int lengthPackage = length + BULK_WRITE_HEADER_2-1; // Total length of the package with all feilds. BULK_WRITE_HEADER_2-1 as inst feild is included in BULK_WRITE_HEADER_2
+//	
+//	if (lengthPackage > DYNAMIXEL_MAX_BUFFER)
+//	{
+//		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos or data sent to the servos\n");
+//		
+//		
+//	}
+//	else
+//	{
+//		unsigned char outbuf[256] = {
+//			0XFF,
+//			0XFF,
+//			0XFD,
+//			0X00,
+//			0XFE,
+//			static_cast<unsigned char>(length&0xff),
+//			static_cast<unsigned char>((length>>8)&0xff),
+//			INST_BULK_WRITE
+//		};
+//		
+//		int k= 0;
+//		for(int i=0; i<n; i++)
+//		{
+//			
+//			if (ikarosInBind[i] != -1 && mask[i] == 1){
+//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
+//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
+//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;
+//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+3] = size[i]&0xff;
+//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+4] = (size[i]>>8)&0xff;
+//				memcpy(&outbuf[BULK_WRITE_HEADER_2 + k*(size[i]+5)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
+//				k++;
+//			}
+//		}
+//		
+//		unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
+//		outbuf[lengthPackage-2]=crc&0xff;
+//		outbuf[lengthPackage-1]=(crc>>8)&0xff;
+//		//PrintFullInstructionPackage2(outbuf);
+//		Send2(outbuf);
+//	}
+//}
 
 // MARK: Read memory block
 bool DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, int to)
