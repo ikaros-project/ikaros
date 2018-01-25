@@ -85,9 +85,9 @@ public:
     
     DynamixelComm(const char * device_name, unsigned long baud_rate);
     ~DynamixelComm();
+	// Can be use for both protocols
     int             Ping(int id);
     void            Reset(int id, int protocol);
-    //void            WriteToServo(int * servo_id, int * mask, int protocol, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
   
     // Protocol version 1
@@ -100,20 +100,16 @@ public:
     void            PrintFullStatusPackage1(unsigned char * package);
     void            PrintPartStatusPackage1(unsigned char * package, int from, int to);
     void            PrintMemory1(unsigned char * outbuf, int from, int to);
-    //void            ResetDynamixel1(int id);
     bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    //void            SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
-	
-	// New syncwrite functions
 	int 			AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize);
 	void 			PrintDataSyncWrite1();
 	int 			SendSyncWrite1();
 	
-	unsigned char   SyncWriteBuffer[1024];
-	int				SyncWriteBufferLength = -1;
-	int				SyncWriteAdress = 0;
-	int				SyncWriteBlockSize = 0;
-
+	unsigned char   syncWriteBuffer[1024];
+	int				syncWriteBufferLength = -1;
+	int				syncWriteAdress = 0;
+	int				syncWriteBlockSize = 0;
+	
     unsigned char   CalculateChecksum(unsigned char * b);
     
     // Protocol version 2
@@ -126,14 +122,10 @@ public:
     void            PrintFullStatusPackage2(unsigned char * package);
     void            PrintPartStatusPackage2(unsigned char * package, int from, int to);
     void            PrintMemory2(unsigned char * outbuf, int from, int to);
-    //void            ResetDynamixel2(int id);
     bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    //void            SyncWriteWithIdRange2(int * servo_id, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int from, int *to, int n);
-    //void            BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+
     unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
     bool            checkCrc(unsigned char * package);
-	
-	// New bulkwrite functions
 	int 			AddDataBulkWrite2(int ID, int adress, unsigned char * data, int dSize);
 	void 			PrintDataBulkWrite2();
 	int 			SendBulkWrite2();
@@ -149,8 +141,8 @@ public:
 	
 	// Timers
 	float sendTimer;
-	float ReciveTimer;
-	float ReciveTimerTotal;
+	float reciveTimer;
+	float reciveTimerTotal;
 };
 
 #endif

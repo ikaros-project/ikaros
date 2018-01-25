@@ -31,8 +31,8 @@ int DynamixelComm::AddDataBulkWrite2(int ID, int adress, unsigned char * data, i
 #ifdef LOG_COMM
 	printf("DynamixelComm (AddDataBulkWrite2) Adding data to bulkwrite ID: %i, adress %i, length %i\n", ID, adress, dSize);
 #endif
-	// FIXME: NEED MORE
-	if (bulkWriteBufferLength + 1 + dSize > 1024)  // 1 = id
+
+	if (bulkWriteBufferLength + 1 + 2 + 2 + dSize > 1024)  // 1 = id 2 = adress 2 = size
 		return false;
 	
 	bulkWriteBuffer[++bulkWriteBufferLength] = ID; // ID

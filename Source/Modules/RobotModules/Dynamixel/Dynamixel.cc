@@ -1,7 +1,7 @@
 //
 //	Dynamixel.cc	This file is a part of the IKAROS project
 //
-//    Copyright (C) 2016 Birger Johansson
+//    Copyright (C) 2018 Birger Johansson
 //
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -389,76 +389,91 @@ Dynamixel::Init()
 Dynamixel::~Dynamixel()
 {
 #ifdef DYNAMIXEL_DEBUG
-	printf("Shuting down\n");
+	printf("Power off servo\n");
 #endif
+	Timer timer;
+	if (init_print == 2 || init_print == 1)
+		printf("\nPower off servo(s)");
 	
-	if(torqueLimitConnected)
+	int blink = 0;
+	// Turn off torque for all servos. Stepwise to zero
+	for(float j=1.0f; j>=0; j = j - 0.1)
 	{
-#ifdef DYNAMIXEL_DEBUG
-		printf("Power off servo\n");
-#endif
-		Timer timer;
-		if (init_print == 2 || init_print == 1)
-			printf("\nPower off servo(s)");
-		
-		int blink = 0;
-		// Turn off torque for all servos. Stepwise to zero
-		for(float j=1.0f; j>=0; j = j - 0.1)
+		for(int i=0; i<nrOfServos; i++)
 		{
-			for(int i=0; i<nrOfServos; i++)
-			{
-				servo[servoIndex[i]]->SetTorqueLimitFormated(outAdress[i][IK_IN_TORQUE_LIMIT], servo[servoIndex[i]]->GetTorqueLimitFormated(outAdress[i][IK_OUT_TORQUE_LIMIT])*j);
+			servo[servoIndex[i]]->SetTorqueLimitFormated(outAdress[i][IK_IN_TORQUE_LIMIT], servo[servoIndex[i]]->GetTorqueLimitFormated(outAdress[i][IK_OUT_TORQUE_LIMIT])*j);
+			if (protocol == 1)
 				com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_TORQUE_LIMIT]], inAdressSize[i][IK_IN_TORQUE_LIMIT]);
-			}
-			com->SendSyncWrite1();
-			
-			for(int i=0; i<nrOfServos; i++)
-			{
-				servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_IN_LED], blink);
-				com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
-			}
-			com->SendSyncWrite1();
-			
-			if (init_print == 2 || init_print == 1)
-				printf(".");
-			
-			if (blink == 1)
-				blink = 0;
 			else
-				blink = 1;
-			
-			timer.Sleep(100); // Blink
+				com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_TORQUE_LIMIT]], inAdressSize[i][IK_IN_TORQUE_LIMIT]);
 		}
+		if (protocol == 1)
+			com->SendSyncWrite1();
+		else
+			com->SendBulkWrite2();
+		
+		
+		for(int i=0; i<nrOfServos; i++)
+		{
+			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_IN_LED], blink);
+			if (protocol == 1)
+				com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+			else
+				com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+		}
+		if (protocol == 1)
+			com->SendSyncWrite1();
+		else
+			com->SendBulkWrite2();
+		
 		if (init_print == 2 || init_print == 1)
-			printf("Done\n");
+			printf(".");
 		
-#ifdef DYNAMIXEL_DEBUG
-		printf("Turning off LED\n");
-#endif
-		// Turn off LED
-		for(int i=0; i<nrOfServos; i++)
-		{
-			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_IN_LED], 0);
-			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
-		}
-		com->SendSyncWrite1();
+		if (blink == 1)
+			blink = 0;
+		else
+			blink = 1;
 		
-		// Get feedback
-		for(int i=0; i<nrOfServos; i++)
-		{
-			com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
-			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_OUT_PRESENT_POSITION]));
-			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
-		}
-#ifdef DYNAMIXEL_DEBUG
-		printf("Setting GoalPosition to current position\n");
-#endif
-		com->SendSyncWrite1();
-		timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
+		timer.Sleep(100); // Blink
 	}
+	if (init_print == 2 || init_print == 1)
+		printf("Done\n");
+	
+#ifdef DYNAMIXEL_DEBUG
+	printf("Turning off LED\n");
+#endif
+	// Turn off LED
+	for(int i=0; i<nrOfServos; i++)
+	{
+		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_IN_LED], 0);
+		if (protocol == 1)
+			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+		else
+			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+	}
+	com->SendSyncWrite1();
+	
+	// Get feedback
+	for(int i=0; i<nrOfServos; i++)
+	{
+		com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
+		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_OUT_PRESENT_POSITION]));
+		if (protocol == 1)
+			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
+		else
+			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
+	}
+#ifdef DYNAMIXEL_DEBUG
+	printf("Setting GoalPosition to current position\n");
+#endif
+	if (protocol == 1)
+		com->SendSyncWrite1();
+	else
+		com->SendBulkWrite2();
+	timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
+	
 	
 	// TODO: Module output
-	
 #ifdef DYNAMIXEL_COM_REPORT
 	// Comminication Error report
 	printf("\nError Report\n");
@@ -468,8 +483,6 @@ Dynamixel::~Dynamixel()
 	printf("Extended check:\t%i\n",com->extendedError);
 	printf("Ticks:\t\t\t%li\n",GetTick());
 #endif
-	
-	
 	
 	// Free memory
 	for(int i=0; i<nrOfServos; i++)

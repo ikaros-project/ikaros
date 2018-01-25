@@ -90,7 +90,6 @@
 
 
 	<module class="Dynamixel" />
-
 		<view>
 			<object class ="BarGraph" title="Torque Enable" module="*" source="FEEDBACK_TORQUE_ENABLE" x="0" y="0" w="2" />
 			<object class ="BarGraph" title="Torque Limit" module="*" source="FEEDBACK_TORQUE_LIMIT" x="0" y="1" w="2" />
@@ -99,8 +98,7 @@
 			<object class ="BarGraph" title="Load" module="*" source="FEEDBACK_PRESENT_LOAD" x="0" y="4" w="2" />
 			<object class ="BarGraph" title="Temperature" module="*" source="FEEDBACK_PRESENT_TEMPERATURE" x="0" y="5" w="2" />
 		</view>
-
-
+		
     <limitation>
         Only tested with AX-12, MX-28, MX-106.
     </limitation>

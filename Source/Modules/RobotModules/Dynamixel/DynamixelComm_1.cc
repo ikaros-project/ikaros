@@ -33,31 +33,31 @@
 int DynamixelComm::AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize)
 {
 	// Grab the first adress and dSize. Could be remvoed
-	if (SyncWriteBufferLength == -1)
+	if (syncWriteBufferLength == -1)
 	{
-		SyncWriteAdress = adress;
-		SyncWriteBlockSize = dSize;
+		syncWriteAdress = adress;
+		syncWriteBlockSize = dSize;
 	}
 	
 #ifdef LOG_COMM
 	printf("DynamixelComm (AddDataSyncWrite1) Adding data to syncwrite ID: %i, adress %i, start adress %i, length %i, total length %i\n", ID, adress, SyncWriteAdress, dSize, SyncWriteBlockSize);
 #endif
 	
-	if (SyncWriteBufferLength + 1 + dSize > 1024)  // 1 = id
+	if (syncWriteBufferLength + 1 + dSize > 1024)  // 1 = id
 		return false;
 	
-	SyncWriteBuffer[++SyncWriteBufferLength] = ID;
-	memcpy(&SyncWriteBuffer[++SyncWriteBufferLength], data, dSize);
-	SyncWriteBufferLength+=dSize-1;
+	syncWriteBuffer[++syncWriteBufferLength] = ID;
+	memcpy(&syncWriteBuffer[++syncWriteBufferLength], data, dSize);
+	syncWriteBufferLength+=dSize-1;
 	
 	//PrintDataSyncWrite1();
 	return 0;
 }
 void DynamixelComm::PrintDataSyncWrite1()
 {
-	printf("DynamixelComm (PrintDataSyncWrite1) Adress %i, Blocksize %i\n",SyncWriteAdress,SyncWriteBlockSize);
-	for (int i = 0; i <= SyncWriteBufferLength; i++) {
-		printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", i, SyncWriteBuffer[i], SyncWriteBuffer[i]);
+	printf("DynamixelComm (PrintDataSyncWrite1) Adress %i, Blocksize %i\n",syncWriteAdress,syncWriteBlockSize);
+	for (int i = 0; i <= syncWriteBufferLength; i++) {
+		printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", i, syncWriteBuffer[i], syncWriteBuffer[i]);
 	}
 }
 
@@ -66,28 +66,27 @@ int DynamixelComm::SendSyncWrite1()
 #ifdef LOG_COMM
 	printf("DynamixelComm (SendSyncWrite1) Sending SyncWrite command.");
 #endif
-	if (SyncWriteBufferLength == -1)
+	if (syncWriteBufferLength == -1)
 		return -1;
 	
 	// Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes.
 	// FIXME: CHECK SyncWriteBufferLength
-	if (SyncWriteBufferLength+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
+	if (syncWriteBufferLength+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
 	{
 		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
-		SyncWriteBufferLength = -1;
+		syncWriteBufferLength = -1;
 		return -1;
 	}
 	
-	//static_cast<unsigned char>((datalength+1)*nrServoToSendTo+4) // (datalength+1)*N+4
 	unsigned char id = 0XFE; 															// Broadcast
-	unsigned char length = static_cast<unsigned char>(SyncWriteBufferLength+1+4); 		// Length (L+1) X N + 4   (L: Data Length per RX-64, N: the number of RX-64s)
-	unsigned char adress = static_cast<unsigned char>(SyncWriteAdress);					// Start address to write Data
-	unsigned char paramterLenght = static_cast<unsigned char>(SyncWriteBlockSize);		// Length of Data to write
+	unsigned char length = static_cast<unsigned char>(syncWriteBufferLength+1+4); 		// Length (L+1) X N + 4   (L: Data Length per RX-64, N: the number of RX-64s)
+	unsigned char adress = static_cast<unsigned char>(syncWriteAdress);					// Start address to write Data
+	unsigned char paramterLenght = static_cast<unsigned char>(syncWriteBlockSize);		// Length of Data to write
 	
 	// Message
 	unsigned char outbuf[256] = {0XFF, 0XFF, id, length, INST_SYNC_WRITE, adress, paramterLenght};
 	// Message data
-	memcpy(&outbuf[SYNC_WRITE_HEADER_1], &SyncWriteBuffer[0], (SyncWriteBufferLength+1) * sizeof(unsigned char));
+	memcpy(&outbuf[SYNC_WRITE_HEADER_1], &syncWriteBuffer[0], (syncWriteBufferLength+1) * sizeof(unsigned char));
 	
 	//PrintFullInstructionPackage1(outbuf);
 	Send1(outbuf);
@@ -96,9 +95,9 @@ int DynamixelComm::SendSyncWrite1()
 #ifdef LOG_COMM
 	printf("DynamixelComm (SendSyncWrite1) Reset SyncWrite memory\n");
 #endif
-	SyncWriteBufferLength = -1;
-	SyncWriteBlockSize = 0;
-	SyncWriteAdress = 0;
+	syncWriteBufferLength = -1;
+	syncWriteBlockSize = 0;
+	syncWriteAdress = 0;
 	return 0;
 }
 
