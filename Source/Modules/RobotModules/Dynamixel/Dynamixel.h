@@ -151,6 +151,7 @@ private:
     void		Print();
     void        PrintAll();
 	void		OptimizeSendCalls();
+	void		PrintMaps();
 };
 
 #endif
