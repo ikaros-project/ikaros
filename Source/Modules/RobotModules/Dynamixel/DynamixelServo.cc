@@ -1,7 +1,7 @@
 //
 //    DynamixelComm.cc
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -22,13 +22,9 @@
 //
 //    Created: March, 2016
 
-
-// When using sync write the maximum size sent total is 143.
-
 #include "DynamixelServo.h"
 #include "IKAROS.h"
 #include <unistd.h>
-
 
 using namespace ikaros;
 
@@ -38,14 +34,10 @@ DynamixelServo::DynamixelServo(DynamixelComm *com, int id, const char * csvPath,
 	printf("\nDynamixelServo: Constructor start\n");
 	printf("DynamixelServo: Pinging Servo with ID %i\n",id);
 #endif
-	
-	// Pinging again to get protocol
-    protocol = com->Ping(id);
-#ifdef DEBUG_SERVO
-	printf("DynamixelServo: Setting protocol as %i\n",protocol);
-#endif
+	protocol = com->Ping(id);
     extraInfo.Set("ID", id);
 #ifdef DEBUG_SERVO
+	printf("DynamixelServo: Setting protocol as %i\n",protocol);
 	printf("DynamixelServo: Setting ID as %i\n",id);
 #endif
     dynamixelMemory = new unsigned char[DYNAMIXEL_MEM_BUFFER];
@@ -66,8 +58,8 @@ DynamixelServo::DynamixelServo(DynamixelComm *com, int id, const char * csvPath,
 #ifdef DEBUG_SERVO
 	printf("DynamixelServo: Setting model as %i\n",model);
 #endif
-    // Get Additional information about servo
-    GetAdditionalInfo(model);
+
+	GetAdditionalInfo(model);     // Get Additional information about servo
     
     int controlTableSize;
     if (!ReadCSVFileToCtable(controlTable,model,&controlTableSize,csvPath)) // read cvs file with control table and ikaros related IO.
@@ -134,6 +126,12 @@ bool DynamixelServo::SetValueAtAdress(int adress, int value)
 // MARK: Get from memory
 int DynamixelServo::GetValueAtAdress(int adress)
 {
+	if (adress == -1)
+	{
+		printf("DynamixelServo (GetValueAtAdress): Not valid adress %i\n", adress);
+		return NULL;
+	}
+	
     int value = -1;
     switch (controlTable[adress].Size) {
         case 1:
@@ -185,7 +183,6 @@ int DynamixelServo::GetModelBaudRateMax()
 }
 
 // MARK: Get formated
-
 float DynamixelServo::GetModelGapAngleFormated(int angle_unit)
 {
     float angle = 360 - GetModelAngleMax(); // GetModelAngleMax in degrees
@@ -213,10 +210,11 @@ float DynamixelServo::GetLEDFormated(int adress)
 }
 float DynamixelServo::GetDGainFormated(int adress)
 {
-    if (adress != -1)
+	
+    //if (adress != -1)
         return (float)GetValueAtAdress(adress);
-    else
-        return float(-1);
+    //else
+    //    return float(-1);
 }
 float DynamixelServo::GetIGainFormated(int adress)
 {

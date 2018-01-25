@@ -29,16 +29,8 @@
 
 //#define DEBUG_SERVO
 
-// Protocol version 1
-// #define DYNAMIXEL_EPROM_SIZE 18
-// #define DYNAMIXEL_RAM_SIZE 70-18 // AX-12 Ony have 50 something. Add this to invidiual servos instead.
-
-// Protocol version 2
-// #define DYNAMIXEL2_EPROM_SIZE 18
-// #define DYNAMIXEL2_RAM_SIZE 52-18
-
 // Common
-#define DYNAMIXEL_MEM_BUFFER 1024 // Using 128 instead of 70 as in control table. Incresed this to 1024 as Pro seem to have more memory.
+#define DYNAMIXEL_MEM_BUFFER 1024
 
 #define OP_WHEEL                    0
 #define OP_JOINT                    1
@@ -89,10 +81,11 @@ public:
     ~DynamixelServo();
     
     // Variables
-    unsigned char * dynamixelMemory;    // Copy of dynamixel memory
-    Dictionary extraInfo;               // Some extra information about the model.
+    unsigned char * dynamixelMemory;    // Memory of the servo is mirrored here
+    Dictionary extraInfo;               // Some extra model specific information
     CT controlTable[C_TABLE_SIZE];      // The Control table read from csv file. Here is the mapping to ikaros IO
-    int protocol;
+	
+	int protocol;
     int model;
 	
     // Functions
