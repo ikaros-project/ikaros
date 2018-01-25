@@ -235,18 +235,18 @@ Dynamixel::Dynamixel(Parameter * p):Module(p)
 #endif
 	if (protocol == 1)
 	{
-	for(int i=0; i<nrOfServos; i++)
-	{
-		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_IN_GOAL_POSITION]));
-		com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
-	}
-	com->SendSyncWrite1();
-	for(int i=0; i<nrOfServos; i++)
-	{
-		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_TORQUE_LIMIT], 0);
-		com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
-	}
-	com->SendSyncWrite1();
+		for(int i=0; i<nrOfServos; i++)
+		{
+			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_IN_GOAL_POSITION]));
+			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
+		}
+		com->SendSyncWrite1();
+		for(int i=0; i<nrOfServos; i++)
+		{
+			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_TORQUE_LIMIT], 0);
+			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
+		}
+		com->SendSyncWrite1();
 	}
 	if (protocol == 2)
 	{
@@ -255,13 +255,13 @@ Dynamixel::Dynamixel(Parameter * p):Module(p)
 			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_IN_GOAL_POSITION]));
 			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
 		}
-		com->SendSyncWrite1();
+		com->SendBulkWrite2();
 		for(int i=0; i<nrOfServos; i++)
 		{
 			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_TORQUE_LIMIT], 1);
 			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
 		}
-		com->SendSyncWrite1();
+		com->SendBulkWrite2();
 	}
 }
 
@@ -383,7 +383,7 @@ Dynamixel::Init()
 #ifdef DYNAMIXEL_DEBUG
 	PrintMaps();
 #endif
-
+	
 }
 
 Dynamixel::~Dynamixel()
@@ -468,7 +468,7 @@ Dynamixel::~Dynamixel()
 	printf("Extended check:\t%i\n",com->extendedError);
 	printf("Ticks:\t\t\t%li\n",GetTick());
 #endif
-
+	
 	
 	
 	// Free memory
@@ -514,7 +514,7 @@ Dynamixel::Tick()
 	// Check that the device exists and is open
 	if(!device || !com)
 		return;
-
+	
 	float torqueMultiplier = 0; // For ramping up torque at start.
 	
 #ifdef DYNAMIXEL_DEBUG
@@ -528,8 +528,6 @@ Dynamixel::Tick()
 	
 	if(GetTick() >= start_up_delay) // Do not send any instructions during start_up_delay.
 	{
-
-		
 		for(int i=0; i<nrOfServos; i++)
 		{
 			if (active[i][IK_IN_TORQUE_ENABLE])
@@ -562,7 +560,6 @@ Dynamixel::Tick()
 				servo[servoIndex[i]]->SetGoalAccelerationFormated(inAdress[i][IK_IN_GOAL_ACCELERATION],goalAcceleration[servoIndex[i]]);
 		}
 		
-	
 #ifdef DYNAMIXEL_TIMING
 		t.Restart();
 		com->sendTimer = 0;
@@ -601,57 +598,8 @@ Dynamixel::Tick()
 				{
 					if (active[i][j] and !optimize[i][j] and !ignore[i][j])
 						com->AddDataBulkWrite2(servoId[i], inAdress[i][j], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][j]], inAdressSize[i][j]);
-					com->SendSyncWrite1();
+					com->SendBulkWrite2();
 				}
-			
-			
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (torqueEnableConnected && inAdress[i][IK_IN_TORQUE_ENABLE] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_TORQUE_ENABLE], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_TORQUE_ENABLE]], inAdressSize[i][IK_IN_TORQUE_ENABLE]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (LEDConnected && inAdress[i][IK_IN_LED] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (dGainConnected && inAdress[i][IK_IN_D_GAIN] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_D_GAIN], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_D_GAIN]], inAdressSize[i][IK_IN_D_GAIN]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (iGainConnected && inAdress[i][IK_IN_I_GAIN] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_I_GAIN], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_D_GAIN]], inAdressSize[i][IK_IN_D_GAIN]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (pGainConnected && inAdress[i][IK_IN_P_GAIN] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_P_GAIN], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_D_GAIN]], inAdressSize[i][IK_IN_D_GAIN]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (goalPositionConnected && inAdress[i][IK_IN_GOAL_POSITION] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
-			//			com->SendBulkWrite2();
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (movingSpeedConnected && inAdress[i][IK_IN_MOVING_SPEED] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_MOVING_SPEED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_MOVING_SPEED]], inAdressSize[i][IK_IN_MOVING_SPEED]);
-			//			com->SendBulkWrite2();
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (torqueLimitConnected && inAdress[i][IK_IN_TORQUE_LIMIT] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_TORQUE_LIMIT]], inAdressSize[i][IK_IN_TORQUE_LIMIT]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (goalTorqueConnected && inAdress[i][IK_IN_GOAL_TORQUE] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_GOAL_TORQUE], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_TORQUE]], inAdressSize[i][IK_IN_GOAL_TORQUE]);
-			//			com->SendBulkWrite2();
-			//
-			//			for(int i=0; i<nrOfServos; i++)
-			//				if (goalAccelerationConnected && inAdress[i][IK_IN_GOAL_ACCELERATION] != -1)
-			//					com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_GOAL_ACCELERATION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_ACCELERATION]], inAdressSize[i][IK_IN_GOAL_ACCELERATION]);
-			//			com->SendBulkWrite2();
 		}
 	}
 #ifdef DYNAMIXEL_TIMING
@@ -754,7 +702,6 @@ Dynamixel::PrintAll()
 void Dynamixel::OptimizeSendCalls()
 {
 	// Skipping sending if the servo has the same value as we trying to send.
-	// Check performence
 	for(int i=0; i<nrOfServos; i++)
 		for(int j=0; j<IK_INPUTS; j++)
 			if (active[i][j])
@@ -803,14 +750,6 @@ void Dynamixel::OptimizeSendCalls()
 					default:
 						break;
 				}
-	
-	//	printf("Optimize\n");
-	//	for(int i=0; i<nrOfServos; i++)
-	//	{
-	//		for(int j=0; j<IK_INPUTS; j++)
-	//			printf("%i:%i=%i\t",i ,j, optimize[i][j]) ;
-	//		printf("\n");
-	//	}
 }
 
 void Dynamixel::PrintMaps()
@@ -845,7 +784,13 @@ void Dynamixel::PrintMaps()
 			printf("%i:%i : %i\t",i ,j, outAdress[i][j]) ;
 		printf("\n");
 	}
-	
+	//	printf("Optimize\n");
+	//	for(int i=0; i<nrOfServos; i++)
+	//	{
+	//		for(int j=0; j<IK_INPUTS; j++)
+	//			printf("%i:%i=%i\t",i ,j, optimize[i][j]) ;
+	//		printf("\n");
+	//	}
 	
 }
 static InitClass init("Dynamixel", &Dynamixel::Create, "Source/Modules/RobotModules/Dynamixel/");
