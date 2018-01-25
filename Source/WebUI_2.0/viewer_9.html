@@ -769,33 +769,60 @@ webui-widget-canvas {
 
 
 canvas {
-    --title-font: 12px Arial;
-    --title-color: black;
-    --title-background: yellow;
-    --title-magins: no;
-    --title-align: left;
-    --title-offset: 10, -7;
+    --title-height: 36;
+    --title-font: 18px Arial;
+    --title-color: white;
+    --title-background: black;
+    --title-margins: yes;
+    --title-align: center;
+    --title-offset: 10, -5;
 
-    --color: red, green, blue;
-    --fill: pink, lightgreen, lightblue;
-    --line-width: 1;
-    
     --margin-left: 20;
     --margin-right: 20;
-    --margin-top: 24;
+    --margin-top: 60;
     --margin-bottom: 20;
+
+    --space-left: 20;
+    --space-right: 20;
+    --space-top: 30;
+    --space-bottom: 0;
+
+   --frame: black;
+
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 7;
+    --grid-color: lightgray;         /*  #00000000 for none  */
+    --grid-fill: lightgreen;
+    --grid-line-width: 1;
     
-    --spacing: 0.2;
+    --x-axis: yes;
+    --y-axis: yes;
+    --axis-color: black;
+    --left-tick-marks: 0;
+    --right-tick-marks: 0;
+    --left-scale: 2;
+    --right-scale: 0;
+    --scale-font: 12px Arial;
+    --scale-offset: 10;
+    
+    --labels: yes;
+    
+    --direction: vertical;      /*  horizontal  */
+    --spacing: 0.25;
+    --spacing-extra: 0.2;
+
+    --color: black;
+    --fill: lightblue;
+    --line-width: 1;
 }
 
 
 
 /*
-*
-*  MAIN AREA
-*
-*
-*/
+ *
+ *  MAIN AREA
+ *
+ */
 
 
 
@@ -810,7 +837,7 @@ canvas {
     height: 101px;
     border: 1px solid black;
     overflow: hidden;
-	background-color: rgba(0, 0, 0, 0);
+	background-color: white;
 	cursor: move;
 }
 
@@ -924,11 +951,14 @@ canvas {
     --line-width: 1;
     
     --margin-left: 20;
-    --margin-right: 10;
+    --margin-right: 25;
     --margin-top: 20;
-    --margin-bottom: 10;
+    --margin-bottom: 20;
     
     --spacing: 0.0;
+    
+    --draw-gridlines: 0;
+    --draw-scale: 2;
 }
 */
 
