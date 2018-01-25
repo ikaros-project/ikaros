@@ -88,14 +88,13 @@ private:
 	
     int         max_temperature;		// Max temerature before shut down module
     // index of where to find ikaros data in the dynamixel memory block
-    int **      ikarosInBind;           // Array of where to store input data in the dynamixel memory block
-    int **      ikarosOutBind;          // Array of where to grab output data in the dynamixel memory block
-    int **      parameterInSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
+    int **      inAdress;           	// Array of where to store input data in the dynamixel memory block
+    int **      outAdress;          	// Array of where to grab output data in the dynamixel memory block
+    int **      inAdressSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
 	bool **		active;
 	bool **		optimize;
     int         protocol;               // The protocol used. No mixed protocol allowed.
-    int *       mask;
-	bool 		connected[IK_INPUTS];
+	bool 		connected[IK_INPUTS];	// Connected inputs
 
 
     // Inputs
