@@ -188,7 +188,6 @@ Dynamixel::Dynamixel(Parameter * p):Module(p)
 	for(int i=0; i<nrOfServos; i++)
 		outAdress[i] = new int [IK_OUTPUTS];
 	
-	
 	// Reset array
 	for (int i = 0; i < nrOfServos; i++)
 		for (int j = 0; j < IK_INPUTS; j++)
@@ -228,40 +227,16 @@ Dynamixel::Dynamixel(Parameter * p):Module(p)
 		for(int j=0; j<IK_INPUTS; j++)
 			optimize[i][j] = false;
 	
-	// Set Goal position to whatever position the servo has now.
-	// Set Torque limit to 0
+	// Set Goal position to whatever position the servo has now and torque limit to 0
 #ifdef DYNAMIXEL_DEBUG
 	printf("Setting torque limit to 0 and goalposition to current\n");
 #endif
-	if (protocol == 1)
+	for(int i=0; i<nrOfServos; i++)
 	{
-		for(int i=0; i<nrOfServos; i++)
-		{
-			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_IN_GOAL_POSITION]));
-			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
-		}
-		com->SendSyncWrite1();
-		for(int i=0; i<nrOfServos; i++)
-		{
-			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_TORQUE_LIMIT], 0);
-			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
-		}
-		com->SendSyncWrite1();
-	}
-	if (protocol == 2)
-	{
-		for(int i=0; i<nrOfServos; i++)
-		{
-			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_IN_GOAL_POSITION]));
-			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
-		}
-		com->SendBulkWrite2();
-		for(int i=0; i<nrOfServos; i++)
-		{
-			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_TORQUE_LIMIT], 1);
-			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
-		}
-		com->SendBulkWrite2();
+		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_IN_GOAL_POSITION]));
+		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
+		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_TORQUE_LIMIT], 0);
+		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
 	}
 }
 
@@ -402,38 +377,15 @@ Dynamixel::~Dynamixel()
 		for(int i=0; i<nrOfServos; i++)
 		{
 			servo[servoIndex[i]]->SetTorqueLimitFormated(outAdress[i][IK_IN_TORQUE_LIMIT], servo[servoIndex[i]]->GetTorqueLimitFormated(outAdress[i][IK_OUT_TORQUE_LIMIT])*j);
-			if (protocol == 1)
-				com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_TORQUE_LIMIT]], inAdressSize[i][IK_IN_TORQUE_LIMIT]);
-			else
-				com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_TORQUE_LIMIT]], inAdressSize[i][IK_IN_TORQUE_LIMIT]);
-		}
-		if (protocol == 1)
-			com->SendSyncWrite1();
-		else
-			com->SendBulkWrite2();
-		
-		
-		for(int i=0; i<nrOfServos; i++)
-		{
+			com->WriteToServo(servoId[i], protocol, inAdress[i][IK_OUT_TORQUE_LIMIT], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_TORQUE_LIMIT]], inAdressSize[i][IK_OUT_TORQUE_LIMIT]);
 			servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_IN_LED], blink);
-			if (protocol == 1)
-				com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
-			else
-				com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+			com->WriteToServo(servoId[i], protocol, inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
 		}
-		if (protocol == 1)
-			com->SendSyncWrite1();
-		else
-			com->SendBulkWrite2();
 		
 		if (init_print == 2 || init_print == 1)
 			printf(".");
-		
-		if (blink == 1)
-			blink = 0;
-		else
-			blink = 1;
-		
+
+		blink = 1 -blink;
 		timer.Sleep(100); // Blink
 	}
 	if (init_print == 2 || init_print == 1)
@@ -442,36 +394,22 @@ Dynamixel::~Dynamixel()
 #ifdef DYNAMIXEL_DEBUG
 	printf("Turning off LED\n");
 #endif
-	// Turn off LED
 	for(int i=0; i<nrOfServos; i++)
 	{
 		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_IN_LED], 0);
-		if (protocol == 1)
-			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
-		else
-			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
-	}
-	com->SendSyncWrite1();
-	
-	// Get feedback
-	for(int i=0; i<nrOfServos; i++)
-	{
-		com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
-		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_OUT_PRESENT_POSITION]));
-		if (protocol == 1)
-			com->AddDataSyncWrite1(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
-		else
-			com->AddDataBulkWrite2(servoId[i], inAdress[i][IK_OUT_GOAL_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_GOAL_POSITION]], inAdressSize[i][IK_IN_GOAL_POSITION]);
+		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
 	}
 #ifdef DYNAMIXEL_DEBUG
 	printf("Setting GoalPosition to current position\n");
 #endif
-	if (protocol == 1)
-		com->SendSyncWrite1();
-	else
-		com->SendBulkWrite2();
+	for(int i=0; i<nrOfServos; i++)
+	{
+		com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
+		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_OUT_PRESENT_POSITION]));
+		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_OUT_PRESENT_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_PRESENT_POSITION]], inAdressSize[i][IK_OUT_PRESENT_POSITION]);
+	}
+
 	timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
-	
 	
 	// TODO: Module output
 #ifdef DYNAMIXEL_COM_REPORT
