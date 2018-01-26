@@ -36,7 +36,7 @@
 #define OP_JOINT                    1
 #define OP_MULTI_TURN               2
 
-// A few Eprom adresses needed (Hopefully the same on all models)
+// A few Eprom adresses needed (Hopefully the same on all models).
 #define P_MODEL_NUMBER              0
 #define P_ID                        3
 #define P_BAUD_RATE                 4
@@ -46,9 +46,7 @@
 
 #define C_TABLE_SIZE                DYNAMIXEL_MEM_BUFFER
 
-
 #include "IKAROS.h"
-
 #include "DynamixelComm.h"
 #include "DynamixelServo.h"
 
@@ -77,7 +75,6 @@ class DynamixelServo
 public:
     
     DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel);  // forceModel is used by condiguration module only.
-
     ~DynamixelServo();
     
     // Variables
@@ -147,4 +144,3 @@ public:
     
 };
 #endif
-

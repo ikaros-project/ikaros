@@ -384,7 +384,7 @@ Dynamixel::~Dynamixel()
 		
 		if (init_print == 2 || init_print == 1)
 			printf(".");
-
+		
 		blink = 1 -blink;
 		timer.Sleep(100); // Blink
 	}
@@ -408,7 +408,7 @@ Dynamixel::~Dynamixel()
 		servo[servoIndex[i]]->SetValueAtAdress(outAdress[i][IK_OUT_GOAL_POSITION], servo[servoIndex[i]]->GetValueAtAdress(outAdress[i][IK_OUT_PRESENT_POSITION]));
 		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_OUT_PRESENT_POSITION], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_OUT_PRESENT_POSITION]], inAdressSize[i][IK_OUT_PRESENT_POSITION]);
 	}
-
+	
 	timer.Sleep(100); // Sleep to make sure everyting is sent to servo before deleting memory
 	
 	// TODO: Module output
@@ -739,13 +739,13 @@ void Dynamixel::PrintMaps()
 			printf("%i:%i : %i\t",i ,j, outAdress[i][j]) ;
 		printf("\n");
 	}
-	//	printf("Optimize\n");
-	//	for(int i=0; i<nrOfServos; i++)
-	//	{
-	//		for(int j=0; j<IK_INPUTS; j++)
-	//			printf("%i:%i=%i\t",i ,j, optimize[i][j]) ;
-	//		printf("\n");
-	//	}
+	printf("Optimize\n");
+	for(int i=0; i<nrOfServos; i++)
+	{
+		for(int j=0; j<IK_INPUTS; j++)
+			printf("%i:%i : %i\t",i ,j, optimize[i][j]) ;
+		printf("\n");
+	}
 	
 }
 static InitClass init("Dynamixel", &Dynamixel::Create, "Source/Modules/RobotModules/Dynamixel/");

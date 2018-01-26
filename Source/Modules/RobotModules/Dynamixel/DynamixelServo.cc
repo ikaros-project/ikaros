@@ -24,7 +24,6 @@
 
 #include "DynamixelServo.h"
 #include "IKAROS.h"
-#include <unistd.h>
 
 using namespace ikaros;
 
@@ -128,8 +127,8 @@ int DynamixelServo::GetValueAtAdress(int adress)
 {
 	if (adress == -1)
 	{
-		printf("DynamixelServo (GetValueAtAdress): Not valid adress %i\n", adress);
-		return NULL;
+		printf("DynamixelServo (GetValueAtAdress): Not valid adress %i. This should never happen! Check config files\n", adress);
+		return -1;
 	}
 	
     int value = -1;
