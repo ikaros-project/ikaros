@@ -415,10 +415,10 @@ Dynamixel::~Dynamixel()
 #ifdef DYNAMIXEL_COM_REPORT
 	// Comminication Error report
 	printf("\nError Report\n");
-	printf("Crc Errors:\t\t%i\n",com->crcError);
+	printf("Crc:\t\t%i\n",com->crcError);
 	printf("Missing bytes:\t%i\n",com->missingBytesError);
 	printf("Not complete:\t%i\n",com->notCompleteError);
-	printf("Extended check:\t%i\n",com->extendedError);
+	printf("Extended:\t%i\n",com->extendedError);
 	printf("Ticks:\t\t\t%li\n",GetTick());
 #endif
 	
@@ -559,7 +559,7 @@ Dynamixel::Tick()
 	}
 #ifdef DYNAMIXEL_TIMING
 	t.Restart();
-	com->ReciveTimer = 0;
+	com->reciveTimer = 0;
 #endif
 	
 	// Get feedback
@@ -568,7 +568,7 @@ Dynamixel::Tick()
 		if(use_feedback)
 			com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
 #ifdef DYNAMIXEL_TIMING
-		com->ReciveTimer = t.GetTime()-com->ReciveTimer;
+		com->reciveTimer = t.GetTime()-com->reciveTimer;
 #endif
 		if (outAdress[i][IK_OUT_TORQUE_ENABLE] != -1)
 			feedbackTorqueEnable[servoIndex[i]]  = servo[servoIndex[i]]->GetTorqueEnableFormated(outAdress[i][IK_OUT_TORQUE_ENABLE]);
@@ -611,7 +611,7 @@ Dynamixel::Tick()
 			Notify(msg_fatal_error, "Servo temperature is over limit. Shuting down ikaros\n");
 		}
 #ifdef DYNAMIXEL_TIMING
-	printf("Timers Send:%f\t Recv:%f\n", com->sendTimer, com->ReciveTimer);
+	printf("Timers Send:%f\t Recv:%f\n", com->sendTimer, com->reciveTimer);
 #endif
 }
 
