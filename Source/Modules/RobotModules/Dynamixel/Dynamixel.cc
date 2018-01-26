@@ -461,11 +461,13 @@ Dynamixel::Tick()
 	bool ignore[nrOfServos][IK_INPUTS];
 	for(int i=0; i<nrOfServos; i++)
 		for(int j=0; j<IK_INPUTS; j++)
-			if (torqueEnable[servoIndex[i]] == 0)
-				ignore[i][j] = true;
-			else
-				ignore[i][j] = false;
-	
+			if (connected[IK_IN_TORQUE_ENABLE])
+			{
+				if (torqueEnable[servoIndex[i]] == 0)
+					ignore[i][j] = true;
+				else
+					ignore[i][j] = false;
+			}
 	// Check that the device exists and is open
 	if(!device || !com)
 		return;
