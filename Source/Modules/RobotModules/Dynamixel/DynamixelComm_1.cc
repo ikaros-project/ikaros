@@ -39,7 +39,7 @@ int DynamixelComm::AddDataSyncWrite1(int ID, int adress, unsigned char * data, i
 	}
 	
 #ifdef LOG_COMM
-	printf("DynamixelComm (AddDataSyncWrite1) Adding data to syncwrite ID: %i, adress %i, start adress %i, length %i, total length %i\n", ID, adress, SyncWriteAdress, dSize, SyncWriteBlockSize);
+	printf("DynamixelComm (AddDataSyncWrite1) Adding data to syncwrite ID: %i, adress %i, start adress %i, length %i, total length %i\n", ID, adress, syncWriteAdress, dSize, syncWriteBlockSize);
 #endif
 	
 	if (syncWriteBufferLength + 1 + dSize > 1024)  // 1 = id

@@ -1,7 +1,7 @@
 //
 //    DynamixelComm.h
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@
 #ifndef DYNAMIXELCOMM
 #define DYNAMIXELCOMM
 
-//#define LOG_COMM_ERROR
-//#define LOG_COMM
+// #define LOG_COMM_ERROR
+// #define LOG_COMM
 
 #include "IKAROS.h"
 
@@ -90,7 +90,8 @@ public:
     int             Ping(int id);
     void            Reset(int id, int protocol);
     bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
-  
+	int				WriteToServo(int id, int protocol, int adress, unsigned char * data, int dSize);
+
     // Protocol version 1
     void            Send1(unsigned char * b);
     int             Receive1(unsigned char * b);

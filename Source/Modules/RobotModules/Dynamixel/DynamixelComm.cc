@@ -83,3 +83,23 @@ DynamixelComm::ReadMemoryRange(int id, int protocol, unsigned char * buffer, int
 	
 	return false;
 }
+
+int DynamixelComm::WriteToServo(int id, int protocol, int adress, unsigned char * data, int dSize)
+{
+	switch (protocol) {
+		case 1:
+			AddDataSyncWrite1(id, adress, data, dSize);
+			return SendSyncWrite1();
+			break;
+		case 2:
+			AddDataBulkWrite2(id, adress, data, dSize);
+			return SendBulkWrite2();
+			break;
+			
+		default:
+			break;
+	}
+	
+	return false;
+	
+}
