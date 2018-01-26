@@ -247,6 +247,9 @@ void DynamixelConfigure::Tick()
 	else
 	{
 		PrintChange(selectedServo);
+		reset_array(changeModeOut, nrOfServos);
+		changeModeOut[selectedServo] = 1;
+		
 		if(set[0] == 1) // Write to a single dynamixel ID
 		{
 			servo[servoIndex[selectedServo]]->SetValueAtAdress(changeAdress, newValue);
