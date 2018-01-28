@@ -769,54 +769,62 @@ webui-widget-canvas {
 
 
 canvas {
-    --direction: horizontal;      /*  vertica, horizontal  */
+    --direction: horizontal;      /*  vertical, horizontal  */
 
-    --title-height: 36;
+    --title-height: 35;
     --title-font: 18px Arial;
     --title-color: white;
     --title-background: black;
-    --title-margins: yes;
+    --title-margins: no;
     --title-align: center;
     --title-offset: 10, -5;
 
-    --margin-left: 20;
-    --margin-right: 20;
-    --margin-top: 40;
-    --margin-bottom: 20;
+    --margin-left: 40;
+    --margin-right: 10;
+    --margin-top: 10;
+    --margin-bottom: 40;
 
-    --space-left: 10;
-    --space-right: 10;
+    --space-left: 20;
+    --space-right: 18;
     --space-top: 10;
     --space-bottom: 10;
 
-   --frame: black;
+    --frame: none;
 
-    --vertical-gridlines: 0;
-    --horizontal-gridlines: 7;
+    --vertical-gridlines: 5;
+    --horizontal-gridlines: 5;
     --grid-color: lightgray;         /*  #00000000 for none  */
     --grid-fill: lightgreen;
     --grid-line-width: 1;
     
-    --x-axis: yes;
+    --x-axis: yes;  /* width? color? */
     --y-axis: yes;
     --axis-color: black;
     --left-tick-marks: 0;
     --right-tick-marks: 0;
-    --left-scale: 2;
+    --left-scale: 3;
     --right-scale: 0;
-    --scale-font: 12px Arial;
+    --bottom-scale: 5;
+    --scale-font: 11px Arial;
     --scale-offset: 10;
     
     --labels: yes;
     
-    --spacing: 0.25;
-    --spacing-extra: 0.2;
-
-    --color: black;
-    --fill: lightblue;
+    --spacing: 0.2;
+ 
+    --color: darkgray; //, green, blue;
+    --fill: darkgray;
     --line-width: 1;
+    
+    --decimals: 1;
+    --min: 0;
+    --max: 1;
 }
 
+webui-widget-bar-graph {
+    --direction: vertical;      /*  vertical, horizontal  */
+    background-color: red;
+}
 
 
 /*
@@ -824,7 +832,6 @@ canvas {
  *  MAIN AREA
  *
  */
-
 
 
 /* Basic style for draggable object */
@@ -838,7 +845,7 @@ canvas {
     height: 101px;
     border: 1px solid black;
     overflow: hidden;
-	background-color: white;
+	background-color: gray;
 	cursor: move;
 }
 
