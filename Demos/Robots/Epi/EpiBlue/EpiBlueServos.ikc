@@ -2,47 +2,92 @@
 
 <group name="EpiBlue Servos">
 	
-    <input name="GOAL_POSITION"       			targetmodule="SplitBody"             	target="INPUT" /> 
-    <input name="GOAL_POSITION"       			targetmodule="SplitHead"             	target="INPUT" /> 
-    <input name="GOAL_POSITION"       			targetmodule="SplitLeftArm"             target="INPUT" /> 
-    <input name="GOAL_POSITION"       			targetmodule="SplitRightArm"            target="INPUT" /> 
-    <input name="GOAL_POSITION"       			targetmodule="SplitPupil"             	target="INPUT" /> 
-
-    <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
-    <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
-    <input name="LEFT_ARM_MOVING_SPEED"      	targetmodule="LeftArm"                	target="MOVING_SPEED" />
-    <input name="RIGHT_ARM_MOVING_SPEED"     	targetmodule="RightArm"                	target="MOVING_SPEED" />
-    <input name="PUPIL_ARM_MOVING_SPEED"       	targetmodule="NotAvailable"             target="INPUT" /> 
-
-    <input name="BODY_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" /> 
-    <input name="HEAD_TORQUE_LIMIT"       		targetmodule="Head"                 	target="TORQUE_LIMIT" />
-    <input name="LEFT_ARM_TORQUE_LIMIT"      	targetmodule="LeftArm"                	target="TORQUE_LIMIT" />
-    <input name="RIGHT_ARM_TORQUE_LIMIT"     	targetmodule="RightArm"                	target="TORQUE_LIMIT" />
-    <input name="PUPIL_ARM_TORQUE_LIMIT"       	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitPHead"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitPLeftArm"            target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitPRightArm"           target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="NotAvailable"             target="INPUT" /> 
+	
+	<input name="MOVING_SPEED"      		 	targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="MOVING_SPEED"       			targetmodule="SplitSHead"             	target="INPUT" /> 
+    <input name="MOVING_SPEED"       			targetmodule="SplitSLeftArm"            target="INPUT" /> 
+    <input name="MOVING_SPEED"  		     	targetmodule="SplitSRightArm"           target="INPUT" /> 
+    <input name="MOVING_SPEED"			       	targetmodule="NotAvailable"             target="INPUT" /> 
     
-    <input name="BODY_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" /> 
-    <input name="HEAD_TORQUE_ENABLE"       		targetmodule="Head"                 	target="TORQUE_ENABLE" />
-    <input name="LEFT_ARM_TORQUE_ENABLE"      	targetmodule="LeftArm"                	target="TORQUE_ENABLE" />
-    <input name="RIGHT_ARM_TORQUE_ENABLE"     	targetmodule="RightArm"                	target="TORQUE_ENABLE" />
-    <input name="PUPIL_ARM_TORQUE_ENABLE"       targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="TORQUE_LIMIT"       			targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="TORQUE_LIMIT"       			targetmodule="SplitTLHead"              target="INPUT" />
+    <input name="TORQUE_LIMIT"      			targetmodule="SplitTLLeftArm"           target="INPUT" />
+    <input name="TORQUE_LIMIT"     				targetmodule="SplitTLRightArm"          target="INPUT" />
+    <input name="TORQUE_LIMIT"       			targetmodule="NotAvailable"             target="INPUT" /> 
     
+    <input name="TORQUE_ENABLE"       			targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="TORQUE_ENABLE"       			targetmodule="SplitTEHead"              target="INPUT" />
+    <input name="TORQUE_ENABLE"      			targetmodule="SplitTELeftArm"           target="INPUT" />
+    <input name="TORQUE_ENABLE"     			targetmodule="SplitTERightArm"          target="INPUT" />
+    <input name="TORQUE_ENABLE"       			targetmodule="NotAvailable"             target="INPUT" /> 
+
+	
+	<!-- All Feedback -->
+	<output name="ALL_FEEDBACK_POSITION"       sourcemodule="JoinFeedback"             source="OUTPUT" />
+	<module class = "DataConverter" name = "JoinFeedback" output_size_x = "20" output_size_y = "1"/>
+        <connection sourcemodule = "P_OPEN"  				source = "OUTPUT" targetmodule = "JoinFeedback"  target = "INPUT" delay = "1"/>
+        <connection sourcemodule = "RA_SC_FeedBackPosition"	source = "OUTPUT" targetmodule = "JoinFeedback"  target = "INPUT" delay = "1"/>
+        <connection sourcemodule = "LA_SC_FeedBackPosition" source = "OUTPUT" targetmodule = "JoinFeedback"  target = "INPUT" delay = "1"/>
+        <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "JoinFeedback"  target = "INPUT" delay = "1"/>
+        <connection sourcemodule = "BODY_FEEBACK"  			source = "OUTPUT" targetmodule = "JoinFeedback"  target = "INPUT" delay = "1"/>
+
+    <!-- output of body parts -->
     <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
     <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
     <output name="LEFT_ARM_FEEDBACK_POSITION"   sourcemodule="LA_SC_FeedBackPosition"   source="OUTPUT" />
     <output name="RIGHT_ARM_FEEDBACK_POSITION"  sourcemodule="RA_SC_FeedBackPosition"   source="OUTPUT" />
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
+	<!-- When adding more outputs. Remember that +/- could be inverted. Like Load -->
+	
     <module class = "Sink" name = "NotAvailable" />
-        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
-        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
-
-
+ 
 	<!-- Splitting pos -->
-	<module class = "TruncateArray" 	name = "SplitBody" array_length = "2" selection = "1 2" 				loop = "false"/>
-    <module class = "TruncateArray" 	name = "SplitHead" array_length = "4" selection = "3 4 5 6" 			loop = "false"/>
-    <module class = "TruncateArray" 	name = "SplitLeftArm" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
-    <module class = "TruncateArray" 	name = "SplitRightArm" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
-    <module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "19 20" 				loop = "false"/>
+	<!--<module class = "TruncateArray" 	name = "SplitPBody" array_length = "2" selection = "1 2" 					loop = "false"/>-->
+    <module class = "TruncateArray" 	name = "SplitPHead" array_length = "4" selection = "3 4 5 6" 				loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitPLeftArm" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitPRightArm" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
+    <!--<module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "19 20" 					loop = "false"/>-->
+
+	<!-- Splitting speed -->
+	<!--<module class = "TruncateArray" 	name = "SplitSBody" array_length = "2" selection = "1 2" 					loop = "false"/>-->
+    <module class = "TruncateArray" 	name = "SplitSHead" array_length = "4" selection = "3 4 5 6" 				loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitSLeftArm" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitSRightArm" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
+    <!--<module class = "TruncateArray" 	name = "SplitSPupil" array_length = "2" selection = "19 20" 					loop = "false"/>-->
+
+    <connection sourcemodule = "SplitSHead" source = "OUTPUT" targetmodule = "Head"  target = "MOVING_SPEED" delay = "1"/>
+    <connection sourcemodule = "SplitSLeftArm" source = "OUTPUT" targetmodule = "LeftArm"  target = "MOVING_SPEED" delay = "1"/>
+    <connection sourcemodule = "SplitSRightArm" source = "OUTPUT" targetmodule = "RightArm"  target = "MOVING_SPEED" delay = "1"/>
+    
+	<!-- Splitting torqueLimit -->
+	<!--<module class = "TruncateArray" 	name = "SplitTLBody" array_length = "2" selection = "1 2" 					loop = "false"/>-->
+    <module class = "TruncateArray" 	name = "SplitTLHead" array_length = "4" selection = "3 4 5 6" 				loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitTLLeftArm" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitTLRightArm" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
+    <!--<module class = "TruncateArray" 	name = "SplitTLPupil" array_length = "2" selection = "19 20" 					loop = "false"/>-->
+
+    <connection sourcemodule = "SplitTLHead" source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_LIMIT" delay = "1"/>
+    <connection sourcemodule = "SplitTLLeftArm" source = "OUTPUT" targetmodule = "LeftArm"  target = "TORQUE_LIMIT" delay = "1"/>
+    <connection sourcemodule = "SplitTLRightArm" source = "OUTPUT" targetmodule = "RightArm"  target = "TORQUE_LIMIT" delay = "1"/>
+    
+    <!-- Splitting torqueEnable -->
+	<!--<module class = "TruncateArray" 	name = "SplitTEBody" array_length = "2" selection = "1 2" 						loop = "false"/>-->
+    <module class = "TruncateArray" 	name = "SplitTEHead" array_length = "4" selection = "3 4 5 6" 					loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitTELeftArm" array_length = "6" selection = "7 8 9 10 11 12" 		loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitTERightArm" array_length = "6" selection = "13 14 15 16 17 18" 	loop = "false"/>
+    <!--<module class = "TruncateArray" 	name = "SplitTEPupil" array_length = "2" selection = "19 20" 					loop = "false"/>-->
+    
+    <connection sourcemodule = "SplitTEHead" source = "OUTPUT" targetmodule = "Head"  target = "TORQUE_ENABLE" delay = "1"/>
+    <connection sourcemodule = "SplitTELeftArm" source = "OUTPUT" targetmodule = "LeftArm"  target = "TORQUE_ENABLE" delay = "1"/>
+    <connection sourcemodule = "SplitTERightArm" source = "OUTPUT" targetmodule = "RightArm"  target = "TORQUE_ENABLE" delay = "1"/>    
+
+
 
     
     <!-- Body -->
@@ -60,7 +105,7 @@
         start_up_time   = "10"
     />
         <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
-        <connection sourcemodule = "SplitHead"  			source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection sourcemodule = "SplitPHead"  			source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "INPUT"  delay = "1"/>
 
   <module
 		class="ServoConnector"
@@ -113,7 +158,7 @@
         max_speed       = "100"
     />
         <connection sourcemodule = "LA_SC_FeedBackPosition"  	source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
-        <connection sourcemodule = "SplitLeftArm"  				source = "OUTPUT" 	targetmodule = "LA_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection sourcemodule = "SplitPLeftArm"  				source = "OUTPUT" 	targetmodule = "LA_Guard"  	target = "INPUT"  delay = "1"/>
 
     <module
 		class           = "ServoConnector"
@@ -176,7 +221,7 @@
         output_size     = "6"
 	/>
         <connection sourcemodule = "RA_Guard"  source = "OUTPUT" targetmodule = "RA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
-        <connection sourcemodule = "SplitRightArm"  source = "OUTPUT" 	targetmodule = "RA_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection sourcemodule = "SplitPRightArm"  source = "OUTPUT" 	targetmodule = "RA_Guard"  	target = "INPUT"  delay = "1"/>
 
  	<module
     	class           = "Dynamixel"
