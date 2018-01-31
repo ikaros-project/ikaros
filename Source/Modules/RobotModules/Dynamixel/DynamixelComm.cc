@@ -29,73 +29,77 @@
 DynamixelComm::DynamixelComm(const char * serial_device, unsigned long baud_rate):
 Serial(serial_device, baud_rate)
 {
-    max_failed_reads = 1;
+	// Errors
+	crcError = missingBytesError = notCompleteError = extendedError = 0;
 }
 
 DynamixelComm::~DynamixelComm()
-{}
+{
+	Flush();
+}
 
 // Ping a dynamixel to see if it exists. Return protocol version
-int
-DynamixelComm::Ping(int id)
+int DynamixelComm::Ping(int id)
 {
-    if (Ping1(id))
-        return(1);
-    if (Ping2(id))
-        return(2);
-    return (-1);
+	if (Ping1(id))
+		return(1);
+	if (Ping2(id))
+		return(2);
+	return (-1);
 }
 
 void
 DynamixelComm::Reset(int id, int protocol)
 {
-    switch (protocol) {
-        case 1:
-            return Reset1(id);
-            break;
-        case 2:
-            return Reset2(id);
-            break;
-            
-        default:
-            break;
-    }
-    return;
-    
-}
-
-void
-DynamixelComm::WriteToServo(int * servo_id, int * mask, int protocol, unsigned  char ** buffer, int * ikarosInBind, int * size, int n)
-{
-    switch (protocol) {
-        case 1:
-            return SyncWriteWithIdRange1(servo_id, mask, buffer, ikarosInBind, size, n); // Size and adress must be fixed. BUT first servo may not have size of paramter.
-            break;
-        case 2:
-            return BulkWrite2(servo_id, mask, buffer, ikarosInBind, size, n); // Must use bulkwrite as paramters differer in size and adress in dynamixel 2
-            break;
-            
-        default:
-            break;
-    }
-    return;
+	switch (protocol) {
+		case 1:
+			return Reset1(id);
+			break;
+		case 2:
+			return Reset2(id);
+			break;
+			
+		default:
+			break;
+	}
+	return;
+	
 }
 
 bool
 DynamixelComm::ReadMemoryRange(int id, int protocol, unsigned char * buffer, int from, int to)
 {
-    switch (protocol) {
-        case 1:
-            return ReadMemoryRange1(id,  buffer, from, to);
-            break;
-        case 2:
-            return ReadMemoryRange2(id,  buffer, from, to);
-            
-            break;
-            
-        default:
-            break;
-    }
-    
-    return false;
+	switch (protocol) {
+		case 1:
+			return ReadMemoryRange1(id,  buffer, from, to);
+			break;
+		case 2:
+			return ReadMemoryRange2(id,  buffer, from, to);
+			break;
+			
+		default:
+			break;
+	}
+	
+	return false;
+}
+
+int DynamixelComm::WriteToServo(int id, int protocol, int adress, unsigned char * data, int dSize)
+{
+	switch (protocol) {
+		case 1:
+			AddDataSyncWrite1(id, adress, data, dSize);
+			return SendSyncWrite1();
+			break;
+		case 2:
+			AddDataBulkWrite2(id, adress, data, dSize);
+			return SendBulkWrite2();
+			break;
+			
+		default:
+			break;
+	}
+	
+	return false;
+	
 }

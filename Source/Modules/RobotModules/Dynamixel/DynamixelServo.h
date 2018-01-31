@@ -27,22 +27,16 @@
 #ifndef DYNAMIXELSERVO
 #define DYNAMIXELSERVO
 
-// Protocol version 1
-#define DYNAMIXEL_EPROM_SIZE 18
-#define DYNAMIXEL_RAM_SIZE 70-18 // AX-12 Ony have 50 something. Add this to invidiual servos instead.
-
-// Protocol version 2
-#define DYNAMIXEL2_EPROM_SIZE 18
-#define DYNAMIXEL2_RAM_SIZE 52-18
+//#define DEBUG_SERVO
 
 // Common
-#define DYNAMIXEL_MEM_BUFFER 1024 // Using 128 instead of 70 as in control table. Incresed this to 1024 as Pro seem to have more memory.
+#define DYNAMIXEL_MEM_BUFFER 1024
 
 #define OP_WHEEL                    0
 #define OP_JOINT                    1
 #define OP_MULTI_TURN               2
 
-// A few Eprom adresses needed (Hopefully the same on all models)
+// A few Eprom adresses needed (Hopefully the same on all models).
 #define P_MODEL_NUMBER              0
 #define P_ID                        3
 #define P_BAUD_RATE                 4
@@ -52,9 +46,7 @@
 
 #define C_TABLE_SIZE                DYNAMIXEL_MEM_BUFFER
 
-
 #include "IKAROS.h"
-
 #include "DynamixelComm.h"
 #include "DynamixelServo.h"
 
@@ -82,17 +74,17 @@ class DynamixelServo
 {
 public:
     
-    DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel);
-
+    DynamixelServo(DynamixelComm *com, int id, const char * csvPath, int forceModel);  // forceModel is used by condiguration module only.
     ~DynamixelServo();
     
     // Variables
-    unsigned char * dynamixelMemory;    // Copy of dynamixel memory
-    Dictionary extraInfo;               // Some extra information about the model
-    CT controlTable[C_TABLE_SIZE];            // The Control table read from file. Here is the mapping to ikaros IO
-    int protocol;
+    unsigned char * dynamixelMemory;    // Memory of the servo is mirrored here
+    Dictionary extraInfo;               // Some extra model specific information
+    CT controlTable[C_TABLE_SIZE];      // The Control table read from csv file. Here is the mapping to ikaros IO
+	
+	int protocol;
     int model;
-    
+	
     // Functions
     bool ReadCSVFileToCtable(CT * ctable, int model, int * size, const char * csvPath);
     void PrintControlTable();
@@ -152,4 +144,3 @@ public:
     
 };
 #endif
-

@@ -23,7 +23,7 @@
 #define IKAROS_SERIAL
 
 
-#define DEFAULT_MAX_FAILED_READS 10
+#define DEFAULT_MAX_FAILED_READS 100
 
 #include "IKAROS.h"
 
@@ -60,6 +60,9 @@ public:
 	int ReceiveUntil(char *rcvbuf, char c);
 	int ReceiveBytes(char *rcvbuf, int length);
 
+	int ReceiveUntil(char *rcvbuf, char c, int timeout); // Timeout in ms.
+	int ReceiveBytes(char *rcvbuf, int length, int timeout);
+
     void Close();
 
     void Flush();
@@ -68,7 +71,7 @@ public:
 
 protected:
     int             max_failed_reads;
-    
+	int 			time_per_byte;
 private:
     SerialData *    data;
 };

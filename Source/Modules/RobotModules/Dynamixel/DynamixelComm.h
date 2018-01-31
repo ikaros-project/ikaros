@@ -1,7 +1,7 @@
 //
 //    DynamixelComm.h
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -27,12 +27,16 @@
 #ifndef DYNAMIXELCOMM
 #define DYNAMIXELCOMM
 
+// #define LOG_COMM_ERROR
+// #define LOG_COMM
+
 #include "IKAROS.h"
 
 // Protocol version 1 instruction package
 #define ID_BYTE_1                   2
 #define LEN_BYTE_1                  3
 #define INST_BYTE_1                 4
+#define ERROR_BYTE_1                5
 
 // Protocol version 2 instruction package
 #define ID_BYTE_2                   4
@@ -41,7 +45,7 @@
 #define INST_BYTE_2                 7
 #define ERROR_BYTE_2                8
 
-// Common (Protocol version 2 instructions)
+// Common (Protocol instructions)
 #define INST_PING               1
 #define INST_READ               2
 #define INST_WRITE              3
@@ -69,17 +73,25 @@
 #define DYNAMIXEL_MAX_BUFFER 143
 
 
+// Errors
+#define ERROR_NO_HEADER -1
+#define ERROR_CRC -2
+#define ERROR_EXT -3
+#define ERROR_NOT_COMPLETE -4
+
+
 class DynamixelComm : public Serial
 {
 public:
     
     DynamixelComm(const char * device_name, unsigned long baud_rate);
     ~DynamixelComm();
+	// Can be use for both protocols
     int             Ping(int id);
     void            Reset(int id, int protocol);
-    void            WriteToServo(int * servo_id, int * mask, int protocol, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
     bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
-  
+	int				WriteToServo(int id, int protocol, int adress, unsigned char * data, int dSize);
+
     // Protocol version 1
     void            Send1(unsigned char * b);
     int             Receive1(unsigned char * b);
@@ -90,10 +102,16 @@ public:
     void            PrintFullStatusPackage1(unsigned char * package);
     void            PrintPartStatusPackage1(unsigned char * package, int from, int to);
     void            PrintMemory1(unsigned char * outbuf, int from, int to);
-    //void            ResetDynamixel1(int id);
     bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    void            SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
-
+	int 			AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize);
+	void 			PrintDataSyncWrite1();
+	int 			SendSyncWrite1();
+	
+	unsigned char   syncWriteBuffer[1024];
+	int				syncWriteBufferLength = -1;
+	int				syncWriteAdress = 0;
+	int				syncWriteBlockSize = 0;
+	
     unsigned char   CalculateChecksum(unsigned char * b);
     
     // Protocol version 2
@@ -106,12 +124,25 @@ public:
     void            PrintFullStatusPackage2(unsigned char * package);
     void            PrintPartStatusPackage2(unsigned char * package, int from, int to);
     void            PrintMemory2(unsigned char * outbuf, int from, int to);
-    //void            ResetDynamixel2(int id);
     bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
-    //void            SyncWriteWithIdRange2(int * servo_id, unsigned  char ** DynamixelMemoeries, int * ikarosInBind, int from, int *to, int n);
-    void            BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n);
+
     unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
     bool            checkCrc(unsigned char * package);
+	int 			AddDataBulkWrite2(int ID, int adress, unsigned char * data, int dSize);
+	void 			PrintDataBulkWrite2();
+	int 			SendBulkWrite2();
+	
+	unsigned char   bulkWriteBuffer[1024];
+	int				bulkWriteBufferLength  = -1;
+	
+	int 			crcError;
+	int 			missingBytesError;
+	int 			notCompleteError;
+	int 			extendedError;
+	
+	float 			sendTimer;
+	float 			reciveTimer;
+	float 			reciveTimerTotal;
 };
 
 #endif

@@ -1,7 +1,7 @@
 //
 //	Dynamixel.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2016 Birger Johansson
+//    Copyright (C) 2018 Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -42,42 +42,38 @@ public:
     
 private:
     int         size;
-    int         servos;
+    int         nrOfServos;
     int         max_servo_id;
     int         index_mode;
     int         blink;
     int         baud_rate;
     bool        list_servos;
 
-    int **      ikarosInBind;
-    int **      ikarosOutBind;
+    int **      inAdress;
     int         protocol;
-    int **      parameterInSize;
-    int *       mask;
+    int **      inAdressSize;
+
+    float * 	resetModeOut;
+    float * 	changeModeOut;
     
-    float * resetModeOut;
-    float * changeModeOut;
+    float * 	set;
+    float * 	active;
     
-    float * set;
-    float * active;
-    
-    bool resetMode;
-    bool scan_mode;
+    bool 		resetMode;
+    bool 		scan_mode;
     DynamixelServo **    servo;
     
     // Arrays used to send commands to servos // FIXME: USE separat list for continous servos
-    int *       servo_index;
-    int *       servo_id;
-    
-    unsigned char ** DynamixelMemoeries;
-    
+    int *       servoIndex;
+    int *       servoId;
+	
     const char *    device;
     DynamixelComm * com;
     
     void PrintChange(int active);
-    int changeAdress;
-    int newValue;
-    int forceModel;
+    int 		changeAdress;
+    int			newValue;
+    int 		forceModel;
 };
 
 #endif

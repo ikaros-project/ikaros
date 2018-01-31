@@ -22,6 +22,10 @@
 #ifndef Dynamixel_
 #define Dynamixel_
 
+//#define DYNAMIXEL_DEBUG
+//#define DYNAMIXEL_TIMING
+//#define DYNAMIXEL_COM_REPORT
+
 #include "IKAROS.h"
 #include "DynamixelComm.h"
 #include "DynamixelServo.h"
@@ -54,6 +58,8 @@
 #define IK_OUT_GOAL_TORQUE           14
 #define IK_OUT_GOAL_ACCELERATION     15
 
+#define IK_INPUTS 10
+#define IK_OUTPUTS 16
 
 class Dynamixel: public Module
 {
@@ -63,29 +69,34 @@ public:
     Dynamixel(Parameter * p);
     virtual ~Dynamixel();
     
-    void        SetSizes();
+    //void        SetSizes();
     
     void		Init();
     void		Tick();
     
 private:
-    int         size;           // Size of the servo[]. Size != number of servoes as in direct mode it can be gap between servos.
-    int         servos;         // Number of servoes found
+    int         size;           		// Size of the servo[]. Size != number of servoes as in direct mode it can be gap between servos.
+    int         nrOfServos = 0;      	// Number of servoes found
     
     int         init_print;
     int         index_mode;
     int         angle_unit;
+	bool		optimize_mode = 0;
     
     bool        use_feedback;
-    int         start_up_delay;
-	int			torque_up_delay;
-    int         max_temperature;
+    int         start_up_delay;			// To make sure nothing strange is recived from the ikaros system during the first ticks.
+	int			torque_up_delay;		// After start_up_delay the system start reiving real values but should ramp up torque to have a smooth start of the system.
+	
+    int         max_temperature;		// Max temerature before shut down module
     // index of where to find ikaros data in the dynamixel memory block
-    int **      ikarosInBind;           // Array of where to store input data in the dynamixel memory block
-    int **      ikarosOutBind;          // Array of where to grab output data in the dynamixel memory block
-    int **      parameterInSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
+    int **      inAdress;           	// Array of where to store input data in the dynamixel memory block
+    int **      outAdress;          	// Array of where to grab output data in the dynamixel memory block
+    int **      inAdressSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
+	bool **		active;
+	bool **		optimize;
     int         protocol;               // The protocol used. No mixed protocol allowed.
-    int *       mask;
+	bool 		connected[IK_INPUTS];	// Connected inputs
+
 
     // Inputs
     float *     torqueEnable;
@@ -140,6 +151,8 @@ private:
     
     void		Print();
     void        PrintAll();
+	void		OptimizeSendCalls();
+	void		PrintMaps();
 };
 
 #endif
