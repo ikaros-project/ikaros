@@ -633,34 +633,35 @@ Dynamixel::Tick()
 
 void Dynamixel::getErrors(int index)
 {
+	printf("Errors index: %i\n", index);
 
 	// Communication errors
-		errors[index][0] = float (com->missingBytesError);
-		errors[index][1] = float (com->crcError);
-		errors[index][2] = float (com->extendedError);
-		errors[index][3] = float (com->notCompleteError);
+		errors[0][index] = float (com->missingBytesError);
+		errors[1][index] = float (com->crcError);
+		errors[2][index] = float (com->extendedError);
+		errors[3][index] = float (com->notCompleteError);
 	
 	// Get servo errors
 	if (protocol == 1)
 	{
-		errors[index][4] = com->ErrorServoIntruction;
-		errors[index][5] = com->ErrorServoOverload;
-		errors[index][6] = com->ErrorServoChecksum;
-		errors[index][7] = com->ErrorServoRange;
-		errors[index][8] = com->ErrorServoOverHeating;
-		errors[index][9] = com->ErrorServoAngleLimit;
-		errors[index][10] = com->ErrorServoInputVoltage;
+		errors[4][index] = com->ErrorServoIntruction;
+		errors[5][index] = com->ErrorServoOverload;
+		errors[6][index] = com->ErrorServoChecksum;
+		errors[7][index] = com->ErrorServoRange;
+		errors[8][index] = com->ErrorServoOverHeating;
+		errors[9][index] = com->ErrorServoAngleLimit;
+		errors[10][index] = com->ErrorServoInputVoltage;
 	}
 	else if (protocol == 2)
 	{
-		errors[index][11] = com->ErrorServo2;
-		errors[index][12] = com->ErrorServoResaultFail2;
-		errors[index][13] = com->ErrorServoIntruction2;
-		errors[index][14] = com->ErrorServoCrc2;
-		errors[index][15] = com->ErrorServoRange2;
-		errors[index][16] = com->ErrorServoLength2;
-		errors[index][17] = com->ErrorServoLimit2;
-		errors[index][18] = com->ErrorServoAccess2;
+		errors[11][index] = com->ErrorServo2;
+		errors[12][index] = com->ErrorServoResaultFail2;
+		errors[13][index] = com->ErrorServoIntruction2;
+		errors[14][index] = com->ErrorServoCrc2;
+		errors[15][index] = com->ErrorServoRange2;
+		errors[16][index] = com->ErrorServoLength2;
+		errors[17][index] = com->ErrorServoLimit2;
+		errors[18][index] = com->ErrorServoAccess2;
 	}
 	resetComErrors();
 }

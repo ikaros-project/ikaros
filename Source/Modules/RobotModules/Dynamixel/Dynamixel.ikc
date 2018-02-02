@@ -37,6 +37,7 @@
 			class="Dynamixel"
 			name="Dynamixel"
 		/>
+		
 	</example>
 
 
@@ -93,6 +94,10 @@
 			<object class ="BarGraph" title="Speed" module="*" source="FEEDBACK_PRESENT_SPEED" x="0" y="3" w="2" />
 			<object class ="BarGraph" title="Load" module="*" source="FEEDBACK_PRESENT_LOAD" x="0" y="4" w="2" />
 			<object class ="BarGraph" title="Temperature" module="*" source="FEEDBACK_PRESENT_TEMPERATURE" x="0" y="5" w="2" />
+		</view>
+		<view name="Dynamixel Tuning">
+			<object class="Slider" title="Serial latency" module = "*" parameter = "serial_latency" x="0" y="0" h="3" min ="1" max="1000" />
+			<object class="Table" title="Errors" module = "*" source = "ERRORS" x="1" y="0" w="3" h="3" />
 		</view>
 		
     <limitation>
