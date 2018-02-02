@@ -82,8 +82,8 @@
     <output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" size_set="TORQUE_LIMIT" />
     <output name="FEEDBACK_GOAL_TORQUE" description="The goal torque value (Not yet tested)" size_set="TORQUE_LIMIT" />
     <output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" size_set="TORQUE_LIMIT" />
-
-
+    <output name="ERRORS" description="Errors" size_set_x="TORQUE_LIMIT" size_y = "19"/>
+	
 	<module class="Dynamixel" />
 		<view>
 			<object class ="BarGraph" title="Torque Enable" module="*" source="FEEDBACK_TORQUE_ENABLE" x="0" y="0" w="2" />

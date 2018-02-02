@@ -255,6 +255,17 @@
         />
         
     </view>
+    <view>
+        <object
+        class="Table"
+        title="Errors"
+        module = "Dynamixel"
+        source = "ERRORS"
+        x="0" y="0"
+        w="6" h="3"
+        />
+    </view>
+
     <module class = "Logger" name = "Logger" />
 </group>
 

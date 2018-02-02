@@ -158,6 +158,9 @@ bool DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, i
 			return (false);
 		}
 	}
+	// Parse servo error byte
+	getServoError2(inbuf[ERROR_BYTE_1]);
+
 #ifdef LOG_COMM
 	printf("DynamixelComm (ReadMemoryRange1): Fill internal buffer from recived buffer. (id:%i)\n",id);
 #endif
@@ -338,3 +341,32 @@ unsigned char DynamixelComm::CalculateChecksum(unsigned char * b)
 	
 	return checksum;
 }
+
+// MARK: Error
+void DynamixelComm::getServoError1(unsigned char errorByte)
+{
+	
+	
+	// Bit 7 0 -
+	// Bit 6 Instruction Error In case of sending an undefined instruction or delivering the         action command without the reg_write command, it is set as 1.
+	// Bit 5 Overload Error When the current load cannot be controlled by the set Torque, it is set as 1.
+	// Bit 4 Checksum Error When the Checksum of the transmitted Instruction Packet is incorrect, it is set as 1.
+	// Bit 3 Range Error When a command is out of the range for use, it is set as 1.
+	// Bit 2 Overheating Error When internal temperature of Dynamixel is out of the range of operating temperature set in the Control table, it is set as 1.
+	// Bit 1 Angle Limit Error When Goal Position is written out of the range from CW Angle Limit to CCW Angle Limit , it is set as 1.
+	// Bit 0 Input Voltage Error When the applied voltage is out of the range of operating voltage set in the Control table, it is as 1.
+	
+	
+	ErrorServoInputVoltage = (errorByte >> 0) & 0x1;
+	ErrorServoAngleLimit = (errorByte >> 1) & 0x1;
+	ErrorServoOverHeating = (errorByte >> 2) & 0x1;
+	ErrorServoRange = (errorByte >> 3) & 0x1;
+	ErrorServoChecksum = (errorByte >> 4) & 0x1;
+	ErrorServoOverload = (errorByte >> 5) & 0x1;
+	ErrorServoIntruction = (errorByte >> 6) & 0x1;
+	//ErrorServoInputVoltage = (errorByte >> 7) & 0x1;
+}
+
+
+
+
