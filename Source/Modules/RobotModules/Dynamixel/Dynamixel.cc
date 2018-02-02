@@ -633,8 +633,6 @@ Dynamixel::Tick()
 
 void Dynamixel::getErrors(int index)
 {
-	printf("Errors index: %i\n", index);
-
 	// Communication errors
 		errors[0][index] = float (com->missingBytesError);
 		errors[1][index] = float (com->crcError);
