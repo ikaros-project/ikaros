@@ -63,7 +63,7 @@ void DynamixelComm::PrintDataSyncWrite1()
 int DynamixelComm::SendSyncWrite1()
 {
 #ifdef LOG_COMM
-	printf("DynamixelComm (SendSyncWrite1) Sending SyncWrite command.");
+	printf("DynamixelComm (SendSyncWrite1) Sending SyncWrite command.\n");
 #endif
 	if (syncWriteBufferLength == -1)
 		return -1;

@@ -465,19 +465,22 @@ Dynamixel::Tick()
 	if (optimize_mode)
 		OptimizeSendCalls();
 	
-	// Torque enable feature/bug.
-	// If goal position is sent to the servo, the servo will set tourque enable to 1.
-	bool ignore[nrOfServos][IK_INPUTS];
-	for(int i=0; i<nrOfServos; i++)
-		for(int j=0; j<IK_INPUTS; j++)
-			if (connected[IK_IN_TORQUE_ENABLE])
-			{
-				if (torqueEnable[servoIndex[i]] == 0)
-					ignore[i][j] = true;
-				else
-					ignore[i][j] = false;
-			}
-	// Check that the device exists and is open
+    // Torque enable feature/bug.
+    // If goal position or speed (more?)is sent to the servo, the servo will set tourque enable to 1.
+    bool ignore[nrOfServos][IK_INPUTS];
+    // Reset ignore matrix
+    for(int i=0; i<nrOfServos; i++)
+        for(int j=0; j<IK_INPUTS; j++)
+            ignore[i][j] = false;
+    
+    for(int i=0; i<nrOfServos; i++)
+        if (connected[IK_IN_TORQUE_ENABLE])
+            if (torqueEnable[servoIndex[i]] == 0)
+            {
+                ignore[i][IK_IN_GOAL_POSITION] = true;
+                ignore[i][IK_IN_MOVING_SPEED] = true;
+            }
+    // Check that the device exists and is open
 	if(!device || !com)
 		return;
 	
