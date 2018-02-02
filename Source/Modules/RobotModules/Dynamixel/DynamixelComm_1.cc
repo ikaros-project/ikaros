@@ -187,7 +187,7 @@ int DynamixelComm::Receive1(unsigned char * b)
 	printf("DynamixelComm (Receive1)\n");
 #endif
 	// read 4 bytes to get header. This only works if the communication is not out of sync.?
-	int c = ReceiveBytes((char *)b, 4, (this->time_per_byte*4) + 8 + 2);
+	int c = ReceiveBytes((char *)b, 4, (this->time_per_byte*4) + 8 + serialLatency);
 	
 	if(c < RECIVE_HEADER_1 - 1)
 	{
@@ -197,7 +197,7 @@ int DynamixelComm::Receive1(unsigned char * b)
 		return ERROR_NO_HEADER;
 	}
 	
-	c += ReceiveBytes((char *)&b[4], b[3],  (this->time_per_byte*b[3]) + 8 + 2);
+	c += ReceiveBytes((char *)&b[4], b[3],  (this->time_per_byte*b[3]) + 8 + serialLatency);
 	if(c < b[3])
 	{
 #ifdef LOG_COMM
@@ -356,7 +356,6 @@ void DynamixelComm::getServoError1(unsigned char errorByte)
 	// Bit 1 Angle Limit Error When Goal Position is written out of the range from CW Angle Limit to CCW Angle Limit , it is set as 1.
 	// Bit 0 Input Voltage Error When the applied voltage is out of the range of operating voltage set in the Control table, it is as 1.
 	
-	
 	ErrorServoInputVoltage = (errorByte >> 0) & 0x1;
 	ErrorServoAngleLimit = (errorByte >> 1) & 0x1;
 	ErrorServoOverHeating = (errorByte >> 2) & 0x1;
@@ -366,7 +365,3 @@ void DynamixelComm::getServoError1(unsigned char errorByte)
 	ErrorServoIntruction = (errorByte >> 6) & 0x1;
 	//ErrorServoInputVoltage = (errorByte >> 7) & 0x1;
 }
-
-
-
-

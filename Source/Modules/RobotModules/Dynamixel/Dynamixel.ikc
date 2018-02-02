@@ -54,6 +54,7 @@
 	<parameter name="torque_up_delay" type="int" default="100" description="Number of ticks to ramp up torque limit after start_up_delay" />
 	<parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shuting down ikaros." />
 	<parameter name="optimize" type="bool" default="true" description="Reduce the servo calls by avoid sending identical value as already on servo. If feedback is not used this parameter should be set to false." />
+	<parameter name="serial_latency" type="int" default="16" description="The serial latency in ms set by the operation system." />
 	
     <input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" optional="yes"/>
     <input name="LED" description="LED On/Off, Off if not connected" optional="yes"/>

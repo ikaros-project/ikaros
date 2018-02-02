@@ -145,6 +145,8 @@ public:
 	unsigned char   bulkWriteBuffer[1024];
 	int				bulkWriteBufferLength  = -1;
 	
+	int				serialLatency;
+
 	int 			crcError;
 	int 			missingBytesError;
 	int 			notCompleteError;

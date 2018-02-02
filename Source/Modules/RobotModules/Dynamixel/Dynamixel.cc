@@ -56,6 +56,8 @@ Dynamixel::Dynamixel(Parameter * p):Module(p)
 	max_temperature         = GetIntValue("max_temperature");
 	
 	Bind(optimize_mode, "optimize");
+	Bind(serial_latency, "serial_latency");
+
 	
 	int maxServos           = GetIntValue("max_servo_id");
 	int servoId_list_size  	= 0;
@@ -453,7 +455,9 @@ Dynamixel::Tick()
 	Timer t;
 #endif
 
-
+	// Update serial latency. Can perhaps be used for tuning.
+	com->serialLatency = serial_latency;
+	
 	// Reset optimize matrix
 	for(int i=0; i<nrOfServos; i++)
 		for(int j=0; j<IK_INPUTS; j++)

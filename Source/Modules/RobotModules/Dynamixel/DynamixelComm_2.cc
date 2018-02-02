@@ -180,7 +180,7 @@ int DynamixelComm::Receive2(unsigned char * b)
 #ifdef LOG_COMM
 	printf("DynamixelComm (Receive2)\n");
 #endif
-	int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1); // Get header and length of package
+	int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1, (this->time_per_byte*RECIVE_HEADER_2-1) + 8 + serialLatency); // Get header
 	
 	if(c < RECIVE_HEADER_2-1)
 	{
@@ -190,7 +190,7 @@ int DynamixelComm::Receive2(unsigned char * b)
 		return ERROR_NO_HEADER;
 	}
 	int lengthOfPackage = (b[LEN_H_BYTE_2]<<8) + b[LEN_L_BYTE_2];
-	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + 2); // Get the rest of the package
+	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + serialLatency); // Get the rest of the package
 
 	if(c < lengthOfPackage)
 	{
