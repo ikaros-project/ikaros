@@ -88,65 +88,6 @@ int DynamixelComm::SendBulkWrite2()
 	bulkWriteBufferLength = -1;
 	return 0;
 }
-//
-//// MARK: REMOVE!!
-//void DynamixelComm::BulkWrite2(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * ikarosInBind, int * size, int n)
-//{
-//	int nrServoToSendTo = 0;
-//	//int bytesToWrite = 0;
-//	for (int i = 0; i < n; i++)
-//		if (ikarosInBind[i] != -1 && mask[i] == 1)
-//			nrServoToSendTo++;
-//	
-//	unsigned int parameter_length = 0;
-//	for (int i = 0; i < n; i++)
-//		if (ikarosInBind[i] != -1 && mask[i] == 1)
-//			parameter_length += (size[i] + 1 + 2 + 2); // adding up data sizes + id size (two bytes) + adress + size size
-//	
-//	unsigned int length=1+parameter_length+2; // Length is the packet length AFTER packet length feild. Inst + Parameters + CRC
-//	unsigned int lengthPackage = length + BULK_WRITE_HEADER_2-1; // Total length of the package with all feilds. BULK_WRITE_HEADER_2-1 as inst feild is included in BULK_WRITE_HEADER_2
-//	
-//	if (lengthPackage > DYNAMIXEL_MAX_BUFFER)
-//	{
-//		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos or data sent to the servos\n");
-//		
-//		
-//	}
-//	else
-//	{
-//		unsigned char outbuf[256] = {
-//			0XFF,
-//			0XFF,
-//			0XFD,
-//			0X00,
-//			0XFE,
-//			static_cast<unsigned char>(length&0xff),
-//			static_cast<unsigned char>((length>>8)&0xff),
-//			INST_BULK_WRITE
-//		};
-//		
-//		int k= 0;
-//		for(int i=0; i<n; i++)
-//		{
-//			
-//			if (ikarosInBind[i] != -1 && mask[i] == 1){
-//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)] = servo_id[i];
-//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+1] = ikarosInBind[i]&0xff;
-//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+2] = (ikarosInBind[i]>>8)&0xff;
-//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+3] = size[i]&0xff;
-//				outbuf[BULK_WRITE_HEADER_2 +k*(size[i]+5)+4] = (size[i]>>8)&0xff;
-//				memcpy(&outbuf[BULK_WRITE_HEADER_2 + k*(size[i]+5)+5], &DynamixelMemoeries[i][ikarosInBind[i]],size[i] * sizeof(unsigned char));
-//				k++;
-//			}
-//		}
-//		
-//		unsigned short crc = update_crc(0,outbuf,lengthPackage-2);
-//		outbuf[lengthPackage-2]=crc&0xff;
-//		outbuf[lengthPackage-1]=(crc>>8)&0xff;
-//		//PrintFullInstructionPackage2(outbuf);
-//		Send2(outbuf);
-//	}
-//}
 
 // MARK: Read memory block
 bool DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, int to)
@@ -218,6 +159,10 @@ bool DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, i
 #ifdef LOG_COMM
 	printf("DynamixelComm (ReadMemoryRange2): Fill internal buffer from recived buffer. (id:%i)\n",id);
 #endif
+	
+	// Parse servo error byte
+	getServoError2(inbuf[ERROR_BYTE_2]);
+	
 	memcpy(&buffer[0], &inbuf[RECIVE_HEADER_2+from+1], bytesToRead * sizeof(unsigned char)-1); // -1 error bit in protocol2
 	return true;
 }
@@ -235,7 +180,7 @@ int DynamixelComm::Receive2(unsigned char * b)
 #ifdef LOG_COMM
 	printf("DynamixelComm (Receive2)\n");
 #endif
-	int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1); // Get header and length of package
+	int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1, (this->time_per_byte*RECIVE_HEADER_2-1) + 8 + serialLatency); // Get header
 	
 	if(c < RECIVE_HEADER_2-1)
 	{
@@ -245,7 +190,7 @@ int DynamixelComm::Receive2(unsigned char * b)
 		return ERROR_NO_HEADER;
 	}
 	int lengthOfPackage = (b[LEN_H_BYTE_2]<<8) + b[LEN_L_BYTE_2];
-	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + 2); // Get the rest of the package
+	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + serialLatency); // Get the rest of the package
 
 	if(c < lengthOfPackage)
 	{
@@ -433,4 +378,35 @@ unsigned short DynamixelComm::update_crc(unsigned short crc_accum, unsigned char
 		crc_accum = (crc_accum << 8) ^ crc_table[i];
 	}
 	return crc_accum;
+}
+// MARK: Error
+void DynamixelComm::getServoError2(unsigned char errorByte)
+{
+	// 0x01 Result Fail
+	//	- When it has failed to process the sent Instruction Packet
+	// 0x02 Instruction Error
+	//	- When an undefined Instruction has been used
+	//	- When Action has been used without Reg Write
+	// 0x03 CRC Error
+	//	- When the CRC of the sent Packet does not match
+	// 0x04 Data Range Error
+	//	- When the Data to be written in the corresponding Address is outside the range of the minimum/maximum value
+	// 0x05 Data Length Error
+	//	- When you attempt to write Data that is shorter than the data length of the corresponding Address (ex: when you attempt to only use 2 bytes of a item that has been defined as 4 bytes)
+	// 0x06 Data Limit Error
+	//	- When the Data to be written in the corresponding Address is outside of the Limit value
+	// 0x07 Access Error
+	//	- When you attempt to write a value in an Address that is Read Only or has not been defined
+	//	- When you attempt to read a value in an Address that is Write Only or has not been defined
+	//	- When you attempt to write a value in the ROM domain while in a state of Torque Enable(ROM Lock)
+	
+	
+	ErrorServo2 = (errorByte >> 0) & 0x1;
+	ErrorServoResaultFail2 = (errorByte >> 1) & 0x1;
+	ErrorServoIntruction2 = (errorByte >> 2) & 0x1;
+	ErrorServoCrc2 = (errorByte >> 3) & 0x1;
+	ErrorServoRange2 = (errorByte >> 4) & 0x1;
+	ErrorServoLength2 = (errorByte >> 5) & 0x1;
+	ErrorServoLimit2 = (errorByte >> 6) & 0x1;
+	ErrorServoAccess2 = (errorByte >> 7) & 0x1;
 }

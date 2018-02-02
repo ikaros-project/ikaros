@@ -56,6 +56,8 @@ Dynamixel::Dynamixel(Parameter * p):Module(p)
 	max_temperature         = GetIntValue("max_temperature");
 	
 	Bind(optimize_mode, "optimize");
+	Bind(serial_latency, "serial_latency");
+
 	
 	int maxServos           = GetIntValue("max_servo_id");
 	int servoId_list_size  	= 0;
@@ -344,6 +346,10 @@ Dynamixel::Init()
 	feedbackPresentCurrent		= GetOutputArray("FEEDBACK_PRESENT_CURRENT");
 	feedbackGoalTorque          = GetOutputArray("FEEDBACK_GOAL_TORQUE");
 	feedbackGoalAcceleration	= GetOutputArray("FEEDBACK_GOAL_ACCELERATION");
+	errors						= GetOutputMatrix("ERRORS");
+	errorsSizeY					= GetOutputSizeY("ERRORS");
+
+	reset_matrix(errors, nrOfServos, errorsSizeY);
 	
 	// Print to console
 	if (init_print == 1)
@@ -448,6 +454,9 @@ Dynamixel::Tick()
 #ifdef DYNAMIXEL_TIMING
 	Timer t;
 #endif
+
+	// Update serial latency. Can perhaps be used for tuning.
+	com->serialLatency = serial_latency;
 	
 	// Reset optimize matrix
 	for(int i=0; i<nrOfServos; i++)
@@ -567,8 +576,12 @@ Dynamixel::Tick()
 	// Get feedback
 	for(int i=0; i<nrOfServos; i++)
 	{
-		if(use_feedback)
+		if(use_feedback){
+		
 			com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
+			getErrors(servoIndex[i]);
+		}
+		
 #ifdef DYNAMIXEL_TIMING
 		com->reciveTimer = t.GetTime()-com->reciveTimer;
 #endif
@@ -615,10 +628,50 @@ Dynamixel::Tick()
 #ifdef DYNAMIXEL_TIMING
 	printf("Timers Send:%f\t Recv:%f\n", com->sendTimer, com->reciveTimer);
 #endif
+	
 }
 
-void
-Dynamixel::Print()
+void Dynamixel::getErrors(int index)
+{
+	// Communication errors
+		errors[0][index] = float (com->missingBytesError);
+		errors[1][index] = float (com->crcError);
+		errors[2][index] = float (com->extendedError);
+		errors[3][index] = float (com->notCompleteError);
+	
+	// Get servo errors
+	if (protocol == 1)
+	{
+		errors[4][index] = com->ErrorServoIntruction;
+		errors[5][index] = com->ErrorServoOverload;
+		errors[6][index] = com->ErrorServoChecksum;
+		errors[7][index] = com->ErrorServoRange;
+		errors[8][index] = com->ErrorServoOverHeating;
+		errors[9][index] = com->ErrorServoAngleLimit;
+		errors[10][index] = com->ErrorServoInputVoltage;
+	}
+	else if (protocol == 2)
+	{
+		errors[11][index] = com->ErrorServo2;
+		errors[12][index] = com->ErrorServoResaultFail2;
+		errors[13][index] = com->ErrorServoIntruction2;
+		errors[14][index] = com->ErrorServoCrc2;
+		errors[15][index] = com->ErrorServoRange2;
+		errors[16][index] = com->ErrorServoLength2;
+		errors[17][index] = com->ErrorServoLimit2;
+		errors[18][index] = com->ErrorServoAccess2;
+	}
+	resetComErrors();
+}
+void Dynamixel::resetComErrors()
+{
+#ifdef DYNAMIXEL_DEBUG
+	printf("Reset errors\n");
+#endif
+	com->missingBytesError = com->crcError = com->extendedError = com->notCompleteError = 0;
+}
+
+void Dynamixel::Print()
 {
 	printf("\nDYNAMIXEL\n");
 	printf("Number of servos: %d\n\n", nrOfServos);

@@ -113,7 +113,17 @@ public:
 	int				syncWriteBlockSize = 0;
 	
     unsigned char   CalculateChecksum(unsigned char * b);
-    
+	void 			getServoError1(unsigned char errorByte);
+
+	bool			ErrorServoInputVoltage;
+	bool			ErrorServoAngleLimit;
+	bool			ErrorServoOverHeating;
+	bool			ErrorServoRange;
+	bool			ErrorServoChecksum;
+	bool			ErrorServoOverload;
+	bool			ErrorServoIntruction;
+
+	
     // Protocol version 2
     void            Send2(unsigned char * b);
     int             Receive2(unsigned char * b);
@@ -135,6 +145,8 @@ public:
 	unsigned char   bulkWriteBuffer[1024];
 	int				bulkWriteBufferLength  = -1;
 	
+	int				serialLatency;
+
 	int 			crcError;
 	int 			missingBytesError;
 	int 			notCompleteError;
@@ -143,6 +155,18 @@ public:
 	float 			sendTimer;
 	float 			reciveTimer;
 	float 			reciveTimerTotal;
+
+	void 			getServoError2(unsigned char errorByte);
+	
+	bool			ErrorServo2;
+	bool			ErrorServoResaultFail2;
+	bool			ErrorServoIntruction2;
+	bool			ErrorServoCrc2;
+	bool			ErrorServoRange2;
+	bool			ErrorServoLength2;
+	bool			ErrorServoLimit2;
+	bool			ErrorServoAccess2;
+	
 };
 
 #endif

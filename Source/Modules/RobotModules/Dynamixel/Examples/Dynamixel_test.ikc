@@ -255,6 +255,28 @@
         />
         
     </view>
+    <view>
+        <object
+        class="Slider"
+        title="Serial latency"
+        module = "Dynamixel"
+        parameter = "serial_latency"
+        x="0" y="0" h="3"
+        min ="1"
+        max="1000"
+        />
+    </view>
+    <view>
+        <object
+        class="Table"
+        title="Errors"
+        module = "Dynamixel"
+        source = "ERRORS"
+        x="0" y="0"
+        w="6" h="3"
+        />
+    </view>
+
     <module class = "Logger" name = "Logger" />
 </group>
 

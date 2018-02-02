@@ -37,6 +37,7 @@
 			class="Dynamixel"
 			name="Dynamixel"
 		/>
+		
 	</example>
 
 
@@ -54,6 +55,7 @@
 	<parameter name="torque_up_delay" type="int" default="100" description="Number of ticks to ramp up torque limit after start_up_delay" />
 	<parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shuting down ikaros." />
 	<parameter name="optimize" type="bool" default="true" description="Reduce the servo calls by avoid sending identical value as already on servo. If feedback is not used this parameter should be set to false." />
+	<parameter name="serial_latency" type="int" default="16" description="The serial latency in ms set by the operation system." />
 	
     <input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" optional="yes"/>
     <input name="LED" description="LED On/Off, Off if not connected" optional="yes"/>
@@ -82,8 +84,8 @@
     <output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" size_set="TORQUE_LIMIT" />
     <output name="FEEDBACK_GOAL_TORQUE" description="The goal torque value (Not yet tested)" size_set="TORQUE_LIMIT" />
     <output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" size_set="TORQUE_LIMIT" />
-
-
+    <output name="ERRORS" description="Errors" size_set_x="TORQUE_LIMIT" size_y = "19"/>
+	
 	<module class="Dynamixel" />
 		<view>
 			<object class ="BarGraph" title="Torque Enable" module="*" source="FEEDBACK_TORQUE_ENABLE" x="0" y="0" w="2" />
@@ -92,6 +94,10 @@
 			<object class ="BarGraph" title="Speed" module="*" source="FEEDBACK_PRESENT_SPEED" x="0" y="3" w="2" />
 			<object class ="BarGraph" title="Load" module="*" source="FEEDBACK_PRESENT_LOAD" x="0" y="4" w="2" />
 			<object class ="BarGraph" title="Temperature" module="*" source="FEEDBACK_PRESENT_TEMPERATURE" x="0" y="5" w="2" />
+		</view>
+		<view name="Dynamixel Tuning">
+			<object class="Slider" title="Serial latency" module = "*" parameter = "serial_latency" x="0" y="0" h="3" min ="1" max="1000" />
+			<object class="Table" title="Errors" module = "*" source = "ERRORS" x="1" y="0" w="3" h="3" />
 		</view>
 		
     <limitation>

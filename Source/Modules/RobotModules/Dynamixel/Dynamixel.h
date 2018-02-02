@@ -82,7 +82,7 @@ private:
     int         index_mode;
     int         angle_unit;
 	bool		optimize_mode = 0;
-    
+	int 		serial_latency;			// serial latency in ms
     bool        use_feedback;
     int         start_up_delay;			// To make sure nothing strange is recived from the ikaros system during the first ticks.
 	int			torque_up_delay;		// After start_up_delay the system start reiving real values but should ramp up torque to have a smooth start of the system.
@@ -91,12 +91,12 @@ private:
     // index of where to find ikaros data in the dynamixel memory block
     int **      inAdress;           	// Array of where to store input data in the dynamixel memory block
     int **      outAdress;          	// Array of where to grab output data in the dynamixel memory block
-    int **      inAdressSize;        // Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
+    int **      inAdressSize;        	// Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
 	bool **		active;
 	bool **		optimize;
     int         protocol;               // The protocol used. No mixed protocol allowed.
 	bool 		connected[IK_INPUTS];	// Connected inputs
-
+	int 		errorsSizeY;			// Size of error output matrix [nrServoes][errorsSizeY]
 
     // Inputs
     float *     torqueEnable;
@@ -137,7 +137,8 @@ private:
     float *     feedbackPresentCurrent;
     float *     feedbackGoalTorque;
     float *     feedbackGoalAcceleration;
-    
+	float **	errors;
+	
     DynamixelServo **   servo; // Array of servo data
     
     // Arrays used to send commands to servos
@@ -148,11 +149,14 @@ private:
     
     const char      *   device;
     DynamixelComm   *   com;
-    
+	
     void		Print();
     void        PrintAll();
 	void		OptimizeSendCalls();
 	void		PrintMaps();
+	void 		getErrors(int index);
+	void 		resetComErrors();
+
 };
 
 #endif
