@@ -46,7 +46,7 @@
 <!-- Torque enable -->
 <module class = "Constant" name = "B_TORQUE_ENABLE" data = "0 0" />
 <module class = "Constant" name = "H_TORQUE_ENABLE" data = "1 1 1 1" />
-<module class = "Constant" name = "LA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
+<module class = "Constant" name = "LA_TORQUE_ENABLE" data = "1 1 1 1 1 1" />
 <module class = "Constant" name = "RA_TORQUE_ENABLE" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "P_TORQUE_ENABLE" data = "0 0" />
 
