@@ -88,6 +88,10 @@ OutputFile::OutputFile(Parameter * p):
 void
 OutputFile::Init()
 {
+    Bind(single_trig, "single_trig");
+    
+    last_trig = false;
+
     for (int i=0; i<no_of_columns; i++)
     {
         column_data[i] = GetInputArray(column_name[i]);
@@ -185,9 +189,15 @@ OutputFile::Tick()
         WriteHeader();
     }
     
-    if(!write || *write > 0)
+    if(!write || (single_trig && !last_trig && *write > 0) || (!single_trig && *write > 0))
+    {
+        last_trig = true;
         WriteData();
-    
+    }
+
+    if(write && *write == 0)
+        last_trig = false;
+
     time++;
 }
 
