@@ -91,6 +91,7 @@ OutputJPEG::Init()
     }
     
     trig = false;
+    last_trig = false;
 }
 
 
@@ -248,10 +249,21 @@ OutputJPEG::Tick()
 {
     // If we are using a gating signal from outside, we're looking for it here
     
-    if(!writesig || ((!trig || !single_trig) && *writesig > 0.0))
+    trig = false;
+
+    if(!writesig)
         trig = true;
+
+    if(!(single_trig) && writesig && *writesig > 0.0)
+        trig = true;
+
+    if(!(last_trig) && writesig && *writesig > 0.0)
+        trig = true;
+    
     if(writesig && *writesig == 0.0)
         trig = false;
+    
+    last_trig = (writesig && *writesig > 0.0);
     
     // Set file name
 

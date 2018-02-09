@@ -43,6 +43,7 @@ public:
     bool        single_trig;
     bool        increase_file_no_on_trig;
     bool        trig;
+    bool        last_trig;
 
 
     float *         writesig;           // If you want to write selectively

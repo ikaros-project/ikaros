@@ -2,35 +2,45 @@
 
 <!--
 
-	This network reads the jpeg image "rgb.jpeg" five times and writes a new numbered JPEG color image.
-	
+    Testing button that writes image to file each time it is pressed
+ 
 -->
 
 <group>
-		<module
-			class = "InputJPEG"
-			name = "IN"
+        <module
+            class = "InputJPEG"
+            name = "IN"
             filename = "../../../../../../Examples/Media/colorrobot.jpg"
-			iterations = "5"
-		/>
-		
-		<module 
-			class = "OutputJPEG"
-			name = "OUT"
-			filename = "color%02d.jpg"
-			quiality = "1"
-		/>
+            _iterations = "5"
+        />
+        
+        <module
+            class = "OutputJPEG"
+            name = "OUT"
+            filename = "color%02d.jpg"
+            quality = "1"
+            increase_file_no_on_trig = "yes"
+            single_trig = "yes"
+        />
 
-		<connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "RED" />
-		<connection sourcemodule = "IN" source = "GREEN" targetmodule = "OUT" target = "GREEN" />
-		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "OUT" target = "BLUE" />
+        <module
+            class = "Constant"
+            name = "Trig"
+            data = "0"
+        />
 
-		<view name = "View 1">
-			<object class="Image" module="IN" source="RED" x="0" y="0" min="0" max="255" />
-			<object class="Image" module="IN" source="GREEN" x="1" y="0" min="0" max="255" />
-			<object class="Image" module="IN" source="BLUE" x="2" y="0" min="0" max="255" />
-		</view>
+        <connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "RED" />
+        <connection sourcemodule = "IN" source = "GREEN" targetmodule = "OUT" target = "GREEN" />
+        <connection sourcemodule = "IN" source = "BLUE" targetmodule = "OUT" target = "BLUE" />
 
-    <module class = "Logger" name = "Logger" />
+        <connection sourcemodule = "Trig" source = "OUTPUT" targetmodule = "OUT" target = "WRITE" />
+
+        <view name = "View 1">
+            <object class="Image" type="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0" h="2" w="2" />
+            <object class="Button" module="Trig" parameter="data" x="2" y="0"  />
+        </view>
+
+        <module class = "Logger" name = "Logger" />
 </group>
+
 
