@@ -58,7 +58,7 @@ void DynamixelComm::PrintDataBulkWrite2()
 int DynamixelComm::SendBulkWrite2()
 {
 #ifdef LOG_COMM
-	printf("DynamixelComm (SendBulkWrite2) Sending BulkWrite command.");
+	printf("DynamixelComm (SendBulkWrite2) Sending BulkWrite command.\n");
 #endif
 	if (bulkWriteBufferLength == -1)
 		return -1;
