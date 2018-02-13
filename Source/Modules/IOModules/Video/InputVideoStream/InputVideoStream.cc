@@ -25,6 +25,7 @@
 // http://dranger.com/ffmpeg/
 // https://sourceforge.net/u/leixiaohua1020/profile/
 // https://blogs.gentoo.org/lu_zero/2016/03/29/new-avcodec-api/
+// And enormous amount of googleing...
 
 #include "InputVideoStream.h"
 
@@ -33,32 +34,35 @@ using namespace ikaros;
 InputVideoStream::InputVideoStream(Parameter * p):
 Module(p)
 {
-	filename = GetValue("filename");
-	if (filename == NULL)
+	url = GetValue("url");
+	if (url == NULL)
 	{
 		Notify(msg_fatal_error, "No input file parameter supplied.\n");
 		return;
 	}
 	
-	loop = GetBoolValue("loop", false);
-	printInfo = GetBoolValue("info", false);
+	printInfo = GetBoolValue("info");
+	force_h264 = GetBoolValue("force_h264");
 	
 	// Register all formats and codecs
 	av_register_all();
 	avformat_network_init();
 	av_log_set_level(AV_LOG_FATAL);
 	
+	AVInputFormat *file_iformat = NULL;
+	if (force_h264)
+	file_iformat = av_find_input_format("h264");
+	
 	/// Open video file
-	if(avformat_open_input(&input_format_context, filename, NULL, NULL) != 0) // Allocating input_format_context
+	if(avformat_open_input(&input_format_context, url, file_iformat, NULL) != 0) // Allocating input_format_context
 	{
 		Notify(msg_fatal_error, "Could not open file.\n");
 		return;
 	}
 	
 	/// Retrieve stream information
-	//if(avformat_find_stream_info(input_format_context, NULL) < 0)
-	if(av_find_best_stream(input_format_context, AVMEDIA_TYPE_VIDEO,-1,-1,NULL,0))
-		
+	if(avformat_find_stream_info(input_format_context, NULL) < 0)
+	//if(av_find_best_stream(input_format_context, AVMEDIA_TYPE_VIDEO,-1,-1,NULL,0))
 	{
 		Notify(msg_fatal_error, "Couldn't find stream information\n");
 		return;
@@ -66,15 +70,15 @@ Module(p)
 	
 	/// Dump information about file onto standard error
 	if (printInfo)
-		av_dump_format(input_format_context, 0, filename, 0);
+	av_dump_format(input_format_context, 0, url, 0);
 	
 	/// Find the first video stream
 	videoStreamId = -1;
 	for(int i=0; i<input_format_context->nb_streams; i++)
-		if(input_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-			videoStreamId=i;
-			break;
-		}
+	if(input_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+		videoStreamId=i;
+		break;
+	}
 	if(videoStreamId==-1)
 	{
 		Notify(msg_fatal_error, "Didn't find a video stream\n");
@@ -83,10 +87,13 @@ Module(p)
 	
 	// Decoding video
 	
+	// FIXME:: Check if this
 	/// Find the decoder for the video stream
+	if (force_h264)
+	input_codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+	else
 	input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
-	//input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
-	//input_codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+	
 	
 	if(input_codec==NULL) {
 		fprintf(stderr, "Unsupported codec!\n");
@@ -124,6 +131,8 @@ Module(p)
 		return;
 	}
 	
+	// This is not working anymore!
+	// FIXME:: Maybe set defualt to -1?
 	// Is the output size set in ikc file? If not use native size
 	size_x = GetIntValue("size_x");
 	size_y = GetIntValue("size_y");
@@ -136,8 +145,8 @@ Module(p)
 		size_x = native_size_x;
 		size_y = native_size_y;
 	}
-	
-	outputFrame = av_frame_alloc();   // Output (after resize and convertions)
+
+	outputFrame = av_frame_alloc();   		// Output (after resize and convertions)
 	outputFrame->format = AV_PIX_FMT_RGB24;
 	outputFrame->width  = size_x;
 	outputFrame->height = size_y;
@@ -149,7 +158,6 @@ Module(p)
 		return;
 	}
 	
-	
 	AddOutput("INTENSITY", false, size_x, size_y);
 	AddOutput("RED", false, size_x, size_y);
 	AddOutput("GREEN", false, size_x, size_y);
@@ -159,14 +167,10 @@ Module(p)
 void
 InputVideoStream::Init()
 {
-	
 	intensity	= GetOutputArray("INTENSITY");
 	red			= GetOutputArray("RED");
 	green		= GetOutputArray("GREEN");
 	blue		= GetOutputArray("BLUE");
-	
-	restart     = GetOutputArray("RESTART");
-	restart[0]  = -1; // indicates first tick
 }
 
 int
@@ -177,13 +181,13 @@ InputVideoStream::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, 
 	if (pkt) {
 		ret = avcodec_send_packet(avctx, pkt);
 		if (ret < 0)
-			return ret == AVERROR_EOF ? 0 : ret;
+		return ret == AVERROR_EOF ? 0 : ret;
 	}
 	ret = avcodec_receive_frame(avctx, frame);
 	if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-		return ret;
+	return ret;
 	if (ret >= 0)
-		*got_frame = 1;
+	*got_frame = 1;
 	return 0;
 }
 
@@ -192,7 +196,6 @@ InputVideoStream::Tick()
 {
 	const float c13 = 1.0/3.0;
 	const float c1255 = 1.0/255.0;
-	restart[0] = (restart[0] == -1 ? 1 : 0);
 	
 	int gotFrame = 0;
 	while (!gotFrame)                                           // Keep reading from source until we get a video packet
@@ -204,7 +207,7 @@ InputVideoStream::Tick()
 				decode(avctx, inputFrame, &gotFrame, &packet);
 				if (gotFrame)                                   // Decode gave us a frame
 				{
-					// Convert teh frame to AV_PIX_FMT_RGB24 format
+					// Convert the frame to AV_PIX_FMT_RGB24 format
 					static struct SwsContext *img_convert_ctx;
 					img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
 														   avctx->pix_fmt,
@@ -219,51 +222,34 @@ InputVideoStream::Tick()
 					// Put data in ikaros output
 					unsigned char * data = outputFrame->data[0];
 					for(int y=0; y<size_y; y++)
-						for(int x=0; x<size_x; x++)
-						{
-							int yLineSize = y*outputFrame->linesize[0];
-							int y1 = y*size_x;
-							int xy = x + y1;
-							int x3  = x*3;
-							intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
-							intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
-							intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
-							intensity[xy]   *=  c13;
-						}
+					for(int x=0; x<size_x; x++)
+					{
+						int yLineSize = y*outputFrame->linesize[0];
+						int y1 = y*size_x;
+						int xy = x + y1;
+						int x3  = x*3;
+						intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
+						intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
+						intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
+						intensity[xy]   *=  c13;
+					}
 				}
 			}
 		}
-		else // End of file
+		else // End of file. Not sure if this happens with a stream
 		{
 			decode(avctx, inputFrame, &gotFrame, NULL); // Decoding the last frames. Do not send any data to decoder
 			
-			if(!gotFrame)                           // Decoder do not give us any more frames
+			if(!gotFrame)							// Decoder does not give us any more frames
 			{
-				if (loop)
-				{
-					restart[0] = 1;
-					avcodec_flush_buffers(avctx);       // Need to be done before rewinding
-					if(av_seek_frame(input_format_context, 0, 0, AVSEEK_FLAG_ANY) < 0)  // Rewind movie
-						printf("error while seeking\n");
-					
-					// When looping the decoder outputs
-					// [h264 @ 0x106005a00] co located POCs unavailable
-					//
-					//                        From: h264_direct.c
-					//                        if (h->picture_structure == PICT_FRAME) {
-					//                        int cur_poc  = h->cur_pic_ptr->poc;
-					//                        int *col_poc = sl->ref_list[1][0].parent->field_poc;
-					//                        if (col_poc[0] == INT_MAX && col_poc[1] == INT_MAX) {
-					//                            av_log(h->avctx, AV_LOG_ERROR, "co located POCs unavailable\n");
-					//                            sl->col_parity = 1;
-					//                        }
-				}
-				else
-				{
-					Notify(msg_end_of_file, "End of movie");
-					return;
-				}
+				avcodec_flush_buffers(avctx);       // Need to be done before rewinding
 			}
+			else
+			{
+				Notify(msg_end_of_file, "End of movie");
+				return;
+			}
+			
 		}
 		av_packet_unref(&packet);
 	}

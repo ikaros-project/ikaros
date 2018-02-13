@@ -44,7 +44,7 @@ public:
     void            Init();
     void            Tick();
     
-    const char *	filename;
+    const char *	url;
     
     int				size_x;
     int				size_y;
@@ -56,10 +56,10 @@ public:
     float *			red;
     float *			green;
     float *			blue;
-    float *         restart;
-    bool            loop;
+	
     bool            printInfo;
-    
+	bool			force_h264;
+	
     // FFmpeg related
     AVFormatContext *input_format_context;
     int             videoStreamId;

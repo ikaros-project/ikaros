@@ -17,12 +17,10 @@
 	
 	<parameter name="size_x" type="int" default="640" description="Size of the image" />
 	<parameter name="size_y" type="int" default="480" description="Size of the image" />
+	<parameter name="url" type="string" description="Stream adress" />
 	
-	<parameter name="list_devices" type="bool" description="List the device ids of available devices on start-up" default="no" />
-	
-	<parameter name="frame_rate" type="float" default="30" description="Frame rate" />
-	<parameter name="id" type="int" default="0" description="id" />
-	
+	<parameter name="force_h264" type="bool" default="false" description="Forces system to decode stream as h264. This is usefull when receiving raw h264 stream from vu4l server on a raspberry." />
+
 	<output name="RED" description="The red channel." />
 	<output name="GREEN" description="The green channel." />
 	<output name="BLUE" description="The blue channel." />
