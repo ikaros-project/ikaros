@@ -1926,7 +1926,10 @@ Kernel::~Kernel()
 std::string
 Kernel::JSONString()
 {
-    return main_group->JSONString();
+    if(main_group)
+        return main_group->JSONString();
+    else
+        return "{}";
 }
 
 
@@ -2227,7 +2230,7 @@ Kernel::Init()
     if (options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_fatal_error, "No IKC file supplied.\n"); // Maybe this should only be a warning
+        Notify(msg_warning, "No IKC file supplied.\n"); // Maybe this should only be a warning - YES!
     
     DetectCycles();
     if(fatal_error_occured)
