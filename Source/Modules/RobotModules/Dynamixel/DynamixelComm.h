@@ -61,11 +61,11 @@
 
 #define SYNC_WRITE_HEADER_1 7
 #define INSTRUCTION_HEADER_1 5
-#define RECIVE_HEADER_1 5
+#define RECEIVE_HEADER_1 5
 
 #define SYNC_WRITE_HEADER_2 8
 #define SYNC_WRITE_COMMON_2 4
-#define RECIVE_HEADER_2 8
+#define RECEIVE_HEADER_2 8
 
 #define BULK_WRITE_HEADER_2 8
 
@@ -153,8 +153,8 @@ public:
 	int 			extendedError;
 	
 	float 			sendTimer;
-	float 			reciveTimer;
-	float 			reciveTimerTotal;
+	float 			recieveTimer;
+	float 			recieveTimerTotal;
 
 	void 			getServoError2(unsigned char errorByte);
 	

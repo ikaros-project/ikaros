@@ -84,7 +84,7 @@ private:
 	bool		optimize_mode = 0;
 	int 		serial_latency;			// serial latency in ms
     bool        use_feedback;
-    int         start_up_delay;			// To make sure nothing strange is recived from the ikaros system during the first ticks.
+    int         start_up_delay;			// To make sure nothing strange is received from the ikaros system during the first ticks.
 	int			torque_up_delay;		// After start_up_delay the system start reiving real values but should ramp up torque to have a smooth start of the system.
 	
     int         max_temperature;		// Max temerature before shut down module

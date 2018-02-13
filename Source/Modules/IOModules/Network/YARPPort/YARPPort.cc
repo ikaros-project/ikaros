@@ -195,7 +195,7 @@ YARPPort::YarpRead()
 {
     
     if (receiveStrict)
-        port.setStrict();     // Read every recived message.
+        port.setStrict();     // Read every received message.
     
     PortablePair<Bottle,Vector> *pp = port.read(false);
     

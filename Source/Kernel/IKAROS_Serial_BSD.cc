@@ -214,7 +214,7 @@ Serial::SendString(const char *sendbuf)
 	return int(write(data->fd, sendbuf, strlen(sendbuf)));
 }
 
-// Read characters until we recive character c
+// Read characters until we receive character c
 int
 Serial::ReceiveUntil(char *rcvbuf, char c)
 {

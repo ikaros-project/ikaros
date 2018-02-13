@@ -162,13 +162,13 @@ bool DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, i
 	getServoError2(inbuf[ERROR_BYTE_1]);
 
 #ifdef LOG_COMM
-	printf("DynamixelComm (ReadMemoryRange1): Fill internal buffer from recived buffer. (id:%i)\n",id);
+	printf("DynamixelComm (ReadMemoryRange1): Fill internal buffer from received buffer. (id:%i)\n",id);
 #endif
 	
 	memcpy(&buffer[0], &inbuf[5], bytesToRead * sizeof(unsigned char));
 	return true;
 }
-// MARK: Send/Recive
+// MARK: Send/Receive
 void DynamixelComm::Send1(unsigned char * b)
 {
 #ifdef LOG_COMM
@@ -189,7 +189,7 @@ int DynamixelComm::Receive1(unsigned char * b)
 	// read 4 bytes to get header. This only works if the communication is not out of sync.?
 	int c = ReceiveBytes((char *)b, 4, (this->time_per_byte*4) + 8 + serialLatency);
 	
-	if(c < RECIVE_HEADER_1 - 1)
+	if(c < RECEIVE_HEADER_1 - 1)
 	{
 #ifdef LOG_COMM
 		printf("DynamixelComm (Receive1): Did not get header (Timed out. Got %i bytes)\n",c);
@@ -234,7 +234,7 @@ void DynamixelComm::Reset1(int id)
 	printf("Dynamixel: Trying to reset id: %i\n", id);
 	unsigned char outbuf[256] = {0XFF, 0XFF, static_cast<unsigned char>(id), 2, INST_RESET, 0X00};
 	Send1(outbuf);
-	// Recive status packet but do not do anyting with it.
+	// Receive status packet but do not do anyting with it.
 	unsigned char inbuf[256];
 	Receive1(inbuf);
 }
@@ -315,14 +315,14 @@ void DynamixelComm::PrintPartStatusPackage1(unsigned char * outbuf, int from, in
 			case 4:
 				printf("============= Error =============\n");
 				break;
-			case RECIVE_HEADER_1:
+			case RECEIVE_HEADER_1:
 				printf("*********** Parameters (%i) ******\n",datalength);
 				printf("============= Data bytes ========\n");
 				break;
 			default:
 				break;
 		}
-		if (ix < RECIVE_HEADER_1)
+		if (ix < RECEIVE_HEADER_1)
 			printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", ix, outbuf[ix], outbuf[ix]);
 		else
 			printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", ix, jx++, outbuf[ix],outbuf[ix]);

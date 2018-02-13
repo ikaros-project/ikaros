@@ -157,16 +157,16 @@ bool DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, i
 		}
 	}
 #ifdef LOG_COMM
-	printf("DynamixelComm (ReadMemoryRange2): Fill internal buffer from recived buffer. (id:%i)\n",id);
+	printf("DynamixelComm (ReadMemoryRange2): Fill internal buffer from recieved buffer. (id:%i)\n",id);
 #endif
 	
 	// Parse servo error byte
 	getServoError2(inbuf[ERROR_BYTE_2]);
 	
-	memcpy(&buffer[0], &inbuf[RECIVE_HEADER_2+from+1], bytesToRead * sizeof(unsigned char)-1); // -1 error bit in protocol2
+	memcpy(&buffer[0], &inbuf[RECEIVE_HEADER_2+from+1], bytesToRead * sizeof(unsigned char)-1); // -1 error bit in protocol2
 	return true;
 }
-// MARK: Send/Recive
+// MARK: Send/Receive
 void DynamixelComm::Send2(unsigned char * b)
 {
 #ifdef LOG_COMM
@@ -180,9 +180,9 @@ int DynamixelComm::Receive2(unsigned char * b)
 #ifdef LOG_COMM
 	printf("DynamixelComm (Receive2)\n");
 #endif
-	int c = ReceiveBytes((char *)b, RECIVE_HEADER_2-1, (this->time_per_byte*RECIVE_HEADER_2-1) + 8 + serialLatency); // Get header
+	int c = ReceiveBytes((char *)b, RECEIVE_HEADER_2-1, (this->time_per_byte*RECEIVE_HEADER_2-1) + 8 + serialLatency); // Get header
 	
-	if(c < RECIVE_HEADER_2-1)
+	if(c < RECEIVE_HEADER_2-1)
 	{
 #ifdef LOG_COMM
 		printf("DynamixelComm (Receive2): Did not get header (Timed out. Got %i bytes)\n",c);
@@ -234,7 +234,7 @@ void DynamixelComm::Reset2(int id)
 	printf("Dynamixel: Trying to reset id: %i\n", id);
 	unsigned char outbuf[256] = {0XFF,0XFF,0XFD,0X00, static_cast<unsigned char>(id),2,INST_RESET, 0X00};
 	Send2(outbuf);
-	// Recive status packet but do not do anyting with it.
+	// Receive status packet but do not do anyting with it.
 	unsigned char inbuf[256];
 	Receive2(inbuf);
 }
@@ -249,7 +249,7 @@ void DynamixelComm::PrintPartInstructionPackage2(unsigned char * outbuf, int fro
 	int totalLengthOfPackage = (outbuf[LEN_H_BYTE_2]<<8) + outbuf[LEN_L_BYTE_2] + 7;    // length of package
 	
 	printf("\n====== Instruction Packet (Send) (%i) ========\n",totalLengthOfPackage);
-	for(int j=0; j<RECIVE_HEADER_2; j++){
+	for(int j=0; j<RECEIVE_HEADER_2; j++){
 		if (j == 0)
 			printf("============= Start Bytes =======\n");
 		if (j == 4)
@@ -267,7 +267,7 @@ void DynamixelComm::PrintPartInstructionPackage2(unsigned char * outbuf, int fro
 	{
 		if (j == 0)
 			printf("============= Data bytes ========\n");
-		printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", RECIVE_HEADER_2+j, from+j-1, outbuf[RECIVE_HEADER_2+j],outbuf[RECIVE_HEADER_2+j]);
+		printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", RECEIVE_HEADER_2+j, from+j-1, outbuf[RECEIVE_HEADER_2+j],outbuf[RECEIVE_HEADER_2+j]);
 	}
 	printf("*********************************\n");
 	
@@ -291,7 +291,7 @@ void DynamixelComm::PrintPartStatusPackage2(unsigned char * outbuf, int from, in
 	int totalLengthOfPackage = (outbuf[LEN_H_BYTE_2]<<8) + outbuf[LEN_L_BYTE_2] + 7;    // length of package
 	
 	printf("\n======= Status Package (%i) ======\n",totalLengthOfPackage);
-	for(int j=0; j<RECIVE_HEADER_2; j++){
+	for(int j=0; j<RECEIVE_HEADER_2; j++){
 		if (j == 0)
 			printf("============= Start Bytes =======\n");
 		if (j == 4)
@@ -311,7 +311,7 @@ void DynamixelComm::PrintPartStatusPackage2(unsigned char * outbuf, int from, in
 			printf("============= Error byte ========\n");
 		if (j == 1)
 			printf("============= Data bytes ========\n");
-		printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", RECIVE_HEADER_2+j, j, outbuf[RECIVE_HEADER_2+j],outbuf[RECIVE_HEADER_2+j]);
+		printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", RECEIVE_HEADER_2+j, j, outbuf[RECEIVE_HEADER_2+j],outbuf[RECEIVE_HEADER_2+j]);
 	}
 	printf("*********************************\n");
 	
