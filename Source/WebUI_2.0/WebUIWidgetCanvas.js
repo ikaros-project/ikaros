@@ -12,14 +12,10 @@ class WebUIWidgetCanvas extends WebUIWidget
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
-    
+
     static html()
     {
         return `
-            <style>
-                canvas { background-color: rgba(0,0,0,0); }
-                main[data-mode="run"] canvas { cursor: default; }
-            </style>
             <canvas style="height: 100%; width:100%" height="100" width="100"></canvas>
         `;
     }
@@ -131,12 +127,14 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.format.horizontalGridlines =   this.getInt('--horizontal-gridlines');
         this.format.leftTickMarks =         this.getInt('--left-tick-marks');
         this.format.rightTickMarks =        this.getInt('--right-tick-marks');
+        this.format.bottomTickMarks =       this.getInt('--bottom-tick-marks');
         this.format.leftScale =             this.getInt('--left-scale');
         this.format.rightScale =            this.getInt('--right-scale');
         this.format.bottomScale =           this.getInt('--bottom-scale');
         this.format.scaleOffset =           this.getInt('--scale-offset');
         this.format.scaleFont =             this.getProp('--scale-font');
         this.format.labels =                this.getBool('--labels');
+        this.format.labelColor =            this.getProp('--label-color');
 
         this.format.direction =             this.getProp('--direction');
 
@@ -220,13 +218,13 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.stroke();
     }
 
-    draw_leftTickMarks(top, bottom)
+    drawLeftTickMarks(top, bottom)
     {
         let n = this.format.leftTickMarks;
         if(n==0)
             return;
 
-        let i=top+this.format.marginTop;
+        let i=0;
         for(let j=0; j<n; j++)
         {
             this.canvas.beginPath();
@@ -236,17 +234,17 @@ class WebUIWidgetCanvas extends WebUIWidget
             this.canvas.lineTo(-7, i);
             this.canvas.stroke();
             
-            i += (bottom-(top+this.format.marginTop))/(n-1);
+            i += (bottom)/(n-1);
         }
     }
 
-    draw_rightTickMarks(top, bottom)
+    drawRightTickMarks(top, bottom)
     {
         let n = this.format.rightTickMarks;
         if(n==0)
             return;
 
-        let i=top+this.format.marginTop;
+        let i=0;
         for(let j=0; j<n; j++)
         {
             this.canvas.beginPath();
@@ -256,7 +254,26 @@ class WebUIWidgetCanvas extends WebUIWidget
             this.canvas.lineTo(this.format.width+7, i);
             this.canvas.stroke();
             
-            i += (bottom-(top+this.format.marginTop))/(n-1);
+            i += (bottom)/(n-1);
+        }
+    }
+
+    drawBottomTickMarks(width, height)
+    {
+        let n = this.format.bottomTickMarks;
+        if(n==0)
+            return;
+
+        let i=0;
+        for(let j=0; j<n; j++)
+        {
+            this.canvas.beginPath();
+            this.canvas.lineWidth = 1;
+            this.canvas.strokeStyle = this.format.axisColor;
+            this.canvas.moveTo(i, height);
+            this.canvas.lineTo(i, height+7);
+            this.canvas.stroke();
+            i += width/(n-1);
         }
     }
 
@@ -348,19 +365,7 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.lineTo(0, height);
         this.canvas.stroke();
     }
-/*
-    draw_gridFill(top, bottom)
-    {
-        if(this.format.gridFill=="none")
-            return;
 
-        this.canvas.beginPath();
-        this.canvas.lineWidth = 1;
-        this.canvas.fillStyle = this.format.gridFill;
-        this.canvas.rect(-1, this.format.marginTop-1, this.format.width+1, bottom-top);
-        this.canvas.fill();
-    }
-*/
     drawFrame(width, height)
     {
         if(this.format.frame=="none")
@@ -368,15 +373,6 @@ class WebUIWidgetCanvas extends WebUIWidget
 
         this.canvas.beginPath();
         this.canvas.strokeStyle = this.format.frame;
-        this.canvas.rect(0, 0, width, height);
-        this.canvas.stroke();
-    }
-
-    drawPane(width, height)
-    {
-        this.canvas.beginPath();
-        this.canvas.lineWidth = 1;
-        this.canvas.strokeStyle = "red";
         this.canvas.rect(0, 0, width, height);
         this.canvas.stroke();
     }
@@ -439,7 +435,7 @@ class WebUIWidgetCanvas extends WebUIWidget
 
     drawLabelsVertical(width, height)
     {
-        this.canvas.fillStyle = "white"; // this.format.gridColor;
+        this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "center";
         this.canvas.textBaseline= "top";
 
@@ -447,19 +443,20 @@ class WebUIWidgetCanvas extends WebUIWidget
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
-        bar_width = Math.round(bar_width);
 
-        this.canvas.translate(this.format.spaceLeft+bar_width/2, 0);
+        this.canvas.save();
+        this.canvas.translate(this.format.spaceLeft+Math.round(bar_width)/2, 0);
         for(let i=0; i<n; i++)
         {
             this.canvas.fillText(l[i].trim(), 0, 0);
             this.canvas.translate(bar_spacing, 0);
         }
+        this.canvas.restore();
     }
 
     drawLabelsHorizontal(width, height)
     {
-        this.canvas.fillStyle = "white"; // this.format.gridColor;
+        this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "right";
         this.canvas.textBaseline= "middle";
 
@@ -467,98 +464,77 @@ class WebUIWidgetCanvas extends WebUIWidget
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
-        bar_height = Math.round(bar_height);
 
-        this.canvas.translate(0, this.format.spaceTop+bar_height/2);
+        this.canvas.save();
+        this.canvas.translate(0, this.format.spaceTop+Math.round(bar_height)/2);
         for(let i=0; i<n; i++)
         {
             this.canvas.fillText(l[i].trim(), 0, 0);
             this.canvas.translate(0, bar_spacing);
         }
+        this.canvas.restore();
     }
 
-   // draw handles the layout of the graphs in horizontal or vertical secrions
-    
-    draw(size_x, size_y)
+    draw(size_x, size_y)    // draw handles the layout of the graphs in horizontal or vertical sections
     {
         this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
         this.canvas.clearRect(0, 0, this.width, this.height);
         this.drawTitle();
-        this.canvas.translate(0, this.format.titleHeight);
-//        this.drawLayout();
-
-        this.canvas.translate(this.format.marginLeft, this.format.marginTop);
-
+        this.canvas.translate(this.format.marginLeft, this.format.marginTop+this.format.titleHeight);
+        
         if(this.format.direction == 'vertical')
         {
-            let pane_y = Math.round((this.format.height)/size_y);   // -this.format.marginTop
+            let pane_y = Math.round((this.format.height)/size_y);
             let pane_x = Math.round(this.format.width);
-
             let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
             let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
-
-            let grid_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
-            let grid_width = pane_x;
 
             for(let y=0; y<size_y; y++)
             {
                 this.canvas.save();
-                this.canvas.translate(0, this.format.spaceTop);
-                this.drawHorizontalGridlines(grid_width, grid_height);
-                
-                this.canvas.save();
-                this.canvas.translate(this.format.spaceLeft, 0);
-                this.drawPlotVertical(plot_width, plot_height, y);
-                this.canvas.restore();
-
-                this.drawLeftScale(grid_width, grid_height);
-                this.drawRightScale(grid_width, grid_height);
-                this.drawXAxis(grid_width, grid_height);
-                this.drawYAxis(grid_width, grid_height);
-
-                this.canvas.translate(0, -this.format.spaceTop);
-                this.drawFrame(grid_width, pane_y);
-
+                    this.canvas.translate(0, this.format.spaceTop);
+                    this.drawHorizontalGridlines(pane_x, plot_height);
+                    this.canvas.save();
+                        this.canvas.translate(this.format.spaceLeft, 0);
+                        this.drawPlotVertical(plot_width, plot_height, y);
+                    this.canvas.restore();
+                    this.drawLeftScale(pane_x, plot_height);
+                    this.drawRightScale(pane_x, plot_height);
+                    this.drawXAxis(pane_x, plot_height);
+                    this.drawYAxis(pane_x, plot_height);
+                    this.drawLeftTickMarks(plot_width, plot_height);
+                    this.drawRightTickMarks(plot_width, plot_height);
+                    this.canvas.translate(0, -this.format.spaceTop);
+                    this.drawFrame(pane_x, pane_y);
                 this.canvas.restore();
                 this.canvas.translate(0, pane_y);
             }
-            
             this.drawLabelsVertical(plot_width, this.format.height);
         }
         else
         {
             let pane_y = Math.round(this.format.height);
             let pane_x = Math.round((this.format.width)/size_x);
-
             let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
             let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
 
-            let grid_height = pane_y;
-            let grid_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
-
-            this.canvas.save();
             this.drawLabelsHorizontal(this.format.width, plot_height);
-            this.canvas.restore();
-            
             for(let x=0; x<size_x; x++)
             {
                 this.canvas.save();
-                this.canvas.translate(this.format.spaceLeft, 0);
-                this.drawVerticalGridlines(grid_width, grid_height);
-                this.drawBottomScale(grid_width, grid_height);
-                
-                this.canvas.save();
-                this.canvas.translate(0, this.format.spaceTop);
-                this.drawPlotHorizontal(plot_width, plot_height, x);
-                this.canvas.restore();
-
-                this.drawBottomScale(grid_width, grid_height);
-                this.drawXAxis(grid_width, grid_height);
-                this.drawYAxis(grid_width, grid_height);
-
-                this.canvas.translate(-this.format.spaceLeft, 0);
-                this.drawFrame(pane_x, this.format.height);
-
+                    this.canvas.translate(this.format.spaceLeft, 0);
+                    this.drawVerticalGridlines(plot_width, pane_y);
+                    this.drawBottomScale(plot_width, pane_y);
+                    this.canvas.save();
+                        this.canvas.translate(0, this.format.spaceTop);
+                        this.drawPlotHorizontal(plot_width, plot_height, x);
+                    this.canvas.restore();
+                    this.drawBottomScale(plot_width, pane_y);
+                    this.drawXAxis(plot_width, pane_y);
+                    this.drawYAxis(plot_width, pane_y);
+                    this.drawBottomTickMarks(plot_width, pane_y);
+                    this.canvas.translate(-this.format.spaceLeft, 0);
+                    this.drawFrame(pane_x, this.format.height);
                 this.canvas.restore();
                 this.canvas.translate(pane_x, 0);
             }

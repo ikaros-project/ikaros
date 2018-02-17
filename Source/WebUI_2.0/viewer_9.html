@@ -767,9 +767,8 @@ webui-widget-canvas {
     --width: 100px;
 }
 
-
 canvas {
-    --direction: horizontal;      /*  vertical, horizontal  */
+    --direction: vertical;      /*  vertical, horizontal  */
 
     --title-height: 35;
     --title-font: 18px Arial;
@@ -782,11 +781,11 @@ canvas {
     --margin-left: 40;
     --margin-right: 10;
     --margin-top: 10;
-    --margin-bottom: 40;
+    --margin-bottom: 30;
 
     --space-left: 20;
-    --space-right: 18;
-    --space-top: 10;
+    --space-right: 10;
+    --space-top: 30;
     --space-bottom: 10;
 
     --frame: none;
@@ -800,15 +799,17 @@ canvas {
     --x-axis: yes;  /* width? color? */
     --y-axis: yes;
     --axis-color: black;
-    --left-tick-marks: 0;
-    --right-tick-marks: 0;
+    --left-tick-marks: 5;
+    --right-tick-marks: 3;
+    --bottom-tick-marks: 3;
     --left-scale: 3;
     --right-scale: 0;
-    --bottom-scale: 5;
+    --bottom-scale: 3;
     --scale-font: 11px Arial;
     --scale-offset: 10;
     
     --labels: yes;
+    --label-color: gray;
     
     --spacing: 0.2;
  
@@ -816,7 +817,7 @@ canvas {
     --fill: darkgray;
     --line-width: 1;
     
-    --decimals: 1;
+    --decimals: 2;
     --min: 0;
     --max: 1;
 }
@@ -825,7 +826,6 @@ webui-widget-bar-graph {
     --direction: vertical;      /*  vertical, horizontal  */
     background-color: red;
 }
-
 
 /*
  *
@@ -845,7 +845,7 @@ webui-widget-bar-graph {
     height: 101px;
     border: 1px solid black;
     overflow: hidden;
-	background-color: gray;
+	background-color: yellow;
 	cursor: move;
 }
 

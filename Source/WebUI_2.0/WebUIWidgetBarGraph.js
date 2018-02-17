@@ -138,10 +138,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
         {
             console.log(err);
         }
-
-        // Horizontal Bars
-
-
     }
 };
 
