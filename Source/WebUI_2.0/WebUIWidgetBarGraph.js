@@ -1,27 +1,22 @@
 class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 {
-/*
-    constructor()
-    {
-        super();
-        this.test = 42;
-        console.log("Hej Hej", this.drawLayout);
-    }
-*/
-
-
-
     static template()
     {
         return [
+            {'name': "PARAMETERS", 'control':'header'},
+            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'}
+            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'direction', 'default':'all', 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
+            {'name': "STYLE", 'control':'header'},
+            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
-
-
 
     init()
     {
+        super.init();
+        
         this.data = [[0.10, 1.0, 0.32, 0.2, 0.55], [0.56, 0.2, 0.55, 0.2, 0.55], [0.1, 0.7, 0.3, 0.2, 0.55], [0.56, 0.2, 0.55, 0.2, 0.55], [0.1, 0.7, 0.3, 0.2, 0.55]];   // Should connect to main data structure
         
         this.onclick = function () { alert(this.data) };
@@ -29,8 +24,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
         this.min = 0;
         this.max = 1;
     }
-
-
 
     requestData(data_set)
     {
@@ -105,8 +98,17 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 
     update(d)
     {
-        let width = parseInt(getComputedStyle(this.canvasElement).width);
-        let height = parseInt(getComputedStyle(this.canvasElement).height);
+ //       let widgetStyles = window.getComputedStyle(this);
+//        let test = widgetStyles.getPropertyValue('--test');
+//        console.log(test);
+    
+    
+//        let width = parseInt(getComputedStyle(this.canvasElement).width);
+//        let height = parseInt(getComputedStyle(this.canvasElement).height);
+
+        let width = this.parameters.width;
+        let height = this.parameters.height;
+
         if(width != this.canvasElement.width || height != this.canvasElement.height)
         {
             this.canvasElement.width = parseInt(width);
@@ -141,7 +143,5 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
     }
 };
 
-
-//test = new WebUIWidgetBarGraph();
 
 webui_widgets.add('webui-widget-bar-graph', WebUIWidgetBarGraph);

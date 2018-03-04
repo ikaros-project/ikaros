@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Ikaros WebUI 2.0</title>
-<script>
-
-
-
-
 /*
  *
  * Viewer scripts
@@ -16,6 +7,17 @@
 function toggleNav()
 {
     var x = document.getElementById('navigator');
+    var s = window.getComputedStyle(x, null);
+    if (s.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+function toggleFooter()
+{
+    var x = document.querySelector('footer');
     var s = window.getComputedStyle(x, null);
     if (s.display === 'none') {
         x.style.display = 'block';
@@ -35,8 +37,18 @@ function toggleInspector()
     }
 }
 
-</script>
-<script>
+function toggleSystem()
+{
+    var x = document.getElementById('system_inspector');
+    var s = window.getComputedStyle(x, null);
+    if (s.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+
 /*
  *
  * Navigator scripts
@@ -45,82 +57,81 @@ function toggleInspector()
 
 nav = {
 
-	init: function (g) {
+    init: function (g) {
         nav.group = g;
-		nav.navigator = document.getElementById('navigator');
-		nav.populate(nav.navigator);
-		nav.navigator.addEventListener("click", nav.navClick, false);
-	},
-	buildList: function(group, name) {
-		var s = "<li data-name='"+name+"/"+group.name+"'>" + group.name; // or title
+        nav.navigator = document.getElementById('navigator');
+        nav.populate(nav.navigator);
+        nav.navigator.addEventListener("click", nav.navClick, false);
+    },
+    buildList: function(group, name) {
+        var s = "<li data-name='"+name+"/"+group.name+"'>" + group.name; // or title
 
-		if(group.views)
-		{
-			s +=  "<ul>"
-			for(i in group.views)
-				s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>#" + group.views[i].name + "</li>";
-			s += "</ul>";			
-		}
+        if(group.views)
+        {
+            s +=  "<ul>"
+            for(i in group.views)
+                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>#" + group.views[i].name + "</li>";
+            s += "</ul>";
+        }
 
-		if(group.groups)
-		{
-			s +=  "<ul>"
-			for(i in group.groups)
-				s += nav.buildList(group.groups[i], name+"/"+group.name);
-			s += "</ul>";			
-		}
+        if(group.groups)
+        {
+            s +=  "<ul>"
+            for(i in group.groups)
+                s += nav.buildList(group.groups[i], name+"/"+group.name);
+            s += "</ul>";
+        }
 
-		s += "</li>";
+        s += "</li>";
 
-		return s;
-	},
-	populate: function (element) {
-		element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
-	},
-	navClick: function(e) {
-		if (e.target !== e.currentTarget)
-		{
-//			console.log(e.target.getAttribute("data-name"));
+        return s;
+    },
+    populate: function (element) {
+        element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
+    },
+    navClick: function(e) {
+        if (e.target !== e.currentTarget)
+        {
+//            console.log(e.target.getAttribute("data-name"));
             interaction.addView(e.target.getAttribute("data-name"));
-		}
-		e.stopPropagation();
-	}
+        }
+        e.stopPropagation();
+    }
 }
 
-</script>
-<script>
+
 /*
  *
  * Inspector scripts
  *
  */
 inspector = {
-	inspector: null,
-	table: null,
-	list: null,
+    inspector: null,
+    table: null,
+    list: null,
     webui_object: null,
     
-	init: function () {
-		inspector.inspector = document.getElementById('widget_inspector');
-		inspector.table = document.getElementById('i_table');
-	},
-	remove: function () {
-		while(inspector.table.rows.length)
-			inspector.table.deleteRow(-1);
-	},
-	add: function (webui_object) {
+    init: function () {
+        inspector.inspector = document.getElementById('widget_inspector');
+        inspector.table = document.getElementById('i_table');
+    },
+    remove: function () {
+        while(inspector.table.rows.length)
+            inspector.table.deleteRow(-1);
+    },
+    add: function (webui_object) {
         let widget = webui_object.widget;
         let parameters = widget.parameters;
 
         inspector.webui_object = webui_object;
-		inspector.parameter_template = widget.parameter_template;
+        inspector.parameter_template = widget.parameter_template;
 
         for(let p of inspector.parameter_template)
-		{
-			let row = inspector.table.insertRow(-1);
-			let value = parameters[p.name];
+        {
+            let row = inspector.table.insertRow(-1);
+            let value = parameters[p.name];
             let cell1 = row.insertCell(0);
-            let cell2 = row.insertCell(1);            
+            let cell2 = row.insertCell(1);
             cell1.innerText = p.name;
             cell2.innerHTML = value;
             cell2.setAttribute('class', p.type);
@@ -215,24 +226,23 @@ inspector = {
                 
                 break;
             }
-		}
-	},
-	select: function (obj)
-	{
-		inspector.remove();
-		inspector.add(obj);
-	},
-	update: function (attr_value)
-	{
-		// New data from server
-	},
-	change: function (attr_value)
-	{
-		// Send changed value to server
-	}
+        }
+    },
+    select: function (obj)
+    {
+        inspector.remove();
+        inspector.add(obj);
+    },
+    update: function (attr_value)
+    {
+        // New data from server
+    },
+    change: function (attr_value)
+    {
+        // Send changed value to server
+    }
 }
-</script>
-<script>
+
 
 webui_widgets = {
     constructors: {},
@@ -241,15 +251,7 @@ webui_widgets = {
         webui_widgets.constructors[element_name] = class_object;
     }
 };
-</script>
 
-<script src="WebUIWidget.js"></script>
-<script src="WebUIWidgetCanvas.js"></script>
-<script src="WebUIWidgetPlot.js"></script>
-<script src="WebUIWidgetBarGraph.js"></script>
-<script src="WebUIWidgetText.js"></script>
-
-<script>
 
 /*
  *
@@ -258,38 +260,38 @@ webui_widgets = {
  */
 
 interaction = {
-	initialMouseX: undefined,
-	initialMouseY: undefined,
-	startX: undefined,
-	startY: undefined,
-	selectedObject: undefined,
-	grid_spacing: 20,
-	sizegrid: 20,
-	editMode: true,
+    initialMouseX: undefined,
+    initialMouseY: undefined,
+    startX: undefined,
+    startY: undefined,
+    selectedObject: undefined,
+    grid_spacing: 20,
+    sizegrid: 20,
+    editMode: true,
     main: undefined,
     currentView: undefined,
     currentViewName: undefined,
     widget_inspector: undefined,
     system_inspector: undefined,
-    grid_inspector: undefined,
-	
+    edit_inspector: undefined,
+    
     init: function () {
         interaction.main = document.querySelector('main');
 
         interaction.widget_inspector = document.querySelector('#widget_inspector');
         interaction.system_inspector = document.querySelector('#system_inspector');
-        interaction.grid_inspector = document.querySelector('#grid_inspector');
+        interaction.edit_inspector = document.querySelector('#edit_inspector');
 
         interaction.setMode('run');
     },
     stopEvents: function (e) {
         if(interaction.main.dataset.mode == "edit") e.stopPropagation()
     },
-	initElement: function (element) {   // For interactively created object
+    initElement: function (element) {   // For interactively created object
         console.log("initELement:", element);
 
-//		if (typeof element == 'string')
-//			element = document.getElementById(element);
+//        if (typeof element == 'string')
+//            element = document.getElementById(element);
 
         element.addEventListener('mousedown', interaction.startDrag, true); //capture
 
@@ -301,7 +303,7 @@ interaction = {
             alert("Internal Error: No constructor found for "+widget_name);
             return;
         }
-	    element.widget = new webui_widgets.constructors[widget_name];
+        element.widget = new webui_widgets.constructors[widget_name];
         element.widget.parameters['class'] = widget_name;
         element.widget.element = element;
         element.appendChild(element.widget);
@@ -326,11 +328,11 @@ interaction = {
         element.style.width = element.widget.parameters['width']+"px";
         element.style.height = element.widget.parameters['height']+"px";
 
-	    element.handle = document.createElement("div");
+        element.handle = document.createElement("div");
         element.handle.setAttribute("class", "handle");
-		element.handle.onmousedown = interaction.startResize;
+        element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
-	},
+    },
     initViewElement: function (element, data) {   // For object in view from IKC file
         console.log("initViewElement:", data['class']);
 
@@ -378,58 +380,58 @@ interaction = {
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
     },
-	initDraggables: function () { // only needed if there are already frame elements in the main view
+    initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");
-        for (var i = 0; i <	nodes.length; i++)
+        for (var i = 0; i <    nodes.length; i++)
             interaction.initElement(nodes[i]);
         let  main = document.querySelector('main');
         main.addEventListener('mousedown',interaction.deselectObject,false);
-	},
+    },
     removeAllObjects() {
         let main = document.querySelector('main');
         let nodes = document.querySelectorAll(".frame");
         for (var i = 0; i < nodes.length; i++)
             main.removeChild(nodes[i]);
     },
-	generateGrid: function (spacing) {
-	    interaction.grid_spacing = spacing;
-	    let grid = interaction.main.querySelector('#grid');
-	    if(grid)
-    	    interaction.main.removeChild(grid);
-		interaction.main.innerHTML += '<div id="grid"></div>'
+    generateGrid: function (spacing) {
+        interaction.grid_spacing = spacing;
+        let grid = interaction.main.querySelector('#grid');
+        if(grid)
+            interaction.main.removeChild(grid);
+        interaction.main.innerHTML += '<div id="grid"></div>'
         grid = document.getElementById('grid');
-	    for(let i=1; i<250; i++)
-	    {
-		    grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px"></div>'
-		    grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px"></div>'
-	    }
-	},
-	changeGrid: function(spacing) {
-	    interaction.grid_spacing = spacing;
-	    vgrids = document.querySelectorAll('.vgrid');
-        for(let i = 0; i <	vgrids.length; i++)
-	        vgrids[i].style.left = ""+(i+1)*spacing+"px";
-	    hgrids = document.querySelectorAll('.hgrid');
-        for(let i = 0; i <	hgrids.length; i++)
-	        hgrids[i].style.top = ""+(i+1)*spacing+"px";
-	},
-	increaseGrid() {
-	    if(interaction.grid_spacing < 160)
+        for(let i=1; i<250; i++)
+        {
+            grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px"></div>'
+            grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px"></div>'
+        }
+    },
+    changeGrid: function(spacing) {
+        interaction.grid_spacing = spacing;
+        vgrids = document.querySelectorAll('.vgrid');
+        for(let i = 0; i <    vgrids.length; i++)
+            vgrids[i].style.left = ""+(i+1)*spacing+"px";
+        hgrids = document.querySelectorAll('.hgrid');
+        for(let i = 0; i <    hgrids.length; i++)
+            hgrids[i].style.top = ""+(i+1)*spacing+"px";
+    },
+    increaseGrid() {
+        if(interaction.grid_spacing < 160)
             interaction.changeGrid(2*interaction.grid_spacing);
-	},
-	decreaseGrid() {
-	    if(interaction.grid_spacing > 10)
-	        interaction.changeGrid(0.5*interaction.grid_spacing);
-	},
-	addObject() {
-	    let main = document.querySelector('main');
+    },
+    decreaseGrid() {
+        if(interaction.grid_spacing > 10)
+            interaction.changeGrid(0.5*interaction.grid_spacing);
+    },
+    addObject() {
+        let main = document.querySelector('main');
         let newObject = document.createElement("div");
-	    newObject.setAttribute("class", "frame");
+        newObject.setAttribute("class", "frame");
         interaction.main.appendChild(newObject);
         interaction.initElement(newObject);
         interaction.currentView.objects.push(newObject.widget.parameters);
         interaction.selectObject(newObject);
-	},
+    },
     addView(viewName) {
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
@@ -445,50 +447,50 @@ interaction = {
             interaction.initViewElement(newObject, v[i])
         }
     },
-	deselectObject() {
-	    if(interaction.selectedObject)
+    deselectObject() {
+        if(interaction.selectedObject)
         {
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/selected/,'');
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
             interaction.releaseElement();
             interaction.selectedObject = null;
-		    document.getElementById('selected').innerText = ""
+            //document.getElementById('selected').innerText = ""
 
             interaction.widget_inspector.style.display = "none";
-            interaction.system_inspector.style.display = "none";
-            interaction.grid_inspector.style.display = "block";
-		}
-	},
-	releaseElement: function(evt) {
-	    interaction.main.removeEventListener('mousemove',interaction.move,true);
-	    interaction.main.removeEventListener('mousemove',interaction.resize,true);
-	    interaction.main.removeEventListener('mouseup',interaction.releaseElement,true);
+//            interaction.system_inspector.style.display = "none";
+            interaction.edit_inspector.style.display = "block";
+        }
+    },
+    releaseElement: function(evt) {
+        interaction.main.removeEventListener('mousemove',interaction.move,true);
+        interaction.main.removeEventListener('mousemove',interaction.resize,true);
+        interaction.main.removeEventListener('mouseup',interaction.releaseElement,true);
 //        if(interaction.selectedObject)
         {
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
         }
-		if(evt) evt.stopPropagation()
-	},
-	selectObject: function(obj) {
-		interaction.deselectObject()
-		interaction.selectedObject = obj;	
-		interaction.selectedObject.className += ' selected';
-		document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
+        if(evt) evt.stopPropagation()
+    },
+    selectObject: function(obj) {
+        interaction.deselectObject()
+        interaction.selectedObject = obj;
+        interaction.selectedObject.className += ' selected';
+        //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
         
         inspector.select(obj);
         
         interaction.widget_inspector.style.display = "block";
-        interaction.system_inspector.style.display = "none";
-        interaction.grid_inspector.style.display = "none";
+ //       interaction.system_inspector.style.display = "none";
+        interaction.edit_inspector.style.display = "none";
 
-	},
-	startDrag: function (evt) {
+    },
+    startDrag: function (evt) {
         // do nothing in run mode
         if(interaction.main.dataset.mode == "run")
             return;
-            
+        
         // continue propagation if in resize handle
         let r = this.handle.getBoundingClientRect();
         if( r.left < evt.clientX && evt.clientX < r.right &&
@@ -497,65 +499,65 @@ interaction = {
         
         // handle the drag
         
-		evt.stopPropagation();
-		interaction.startX = this.offsetLeft;
-		interaction.startY = this.offsetTop;
-	    interaction.selectObject(this);
-		interaction.selectedObject.className += ' dragged';
-		interaction.initialMouseX = evt.clientX;
-		interaction.initialMouseY = evt.clientY;	
-		interaction.main.addEventListener('mousemove',interaction.move, true);
-		interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
-		return false;
-	},
-	move: function (evt) {
-		evt.stopPropagation()
-		let dX = evt.clientX - interaction.initialMouseX;
-		let dY = evt.clientY - interaction.initialMouseY;
-		interaction.setPosition(dX,dY);
-		return false;
-	},
-	startResize: function (evt) {
-		evt.stopPropagation();
-		interaction.startX = this.offsetLeft;
-		interaction.startY = this.offsetTop;
+        evt.stopPropagation();
+        interaction.startX = this.offsetLeft;
+        interaction.startY = this.offsetTop;
+        interaction.selectObject(this);
+        interaction.selectedObject.className += ' dragged';
+        interaction.initialMouseX = evt.clientX;
+        interaction.initialMouseY = evt.clientY;
+        interaction.main.addEventListener('mousemove',interaction.move, true);
+        interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
+        return false;
+    },
+    move: function (evt) {
+        evt.stopPropagation()
+        let dX = evt.clientX - interaction.initialMouseX;
+        let dY = evt.clientY - interaction.initialMouseY;
+        interaction.setPosition(dX,dY);
+        return false;
+    },
+    startResize: function (evt) {
+        evt.stopPropagation();
+        interaction.startX = this.offsetLeft;
+        interaction.startY = this.offsetTop;
         interaction.selectObject(this.parentElement);
         interaction.selectedObject.className += ' resized';
-		interaction.initialMouseX = evt.clientX;
-		interaction.initialMouseY = evt.clientY;	
-		interaction.main.addEventListener('mousemove',interaction.resize,true);
-		interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
-		return false;
-	},
-	resize: function (evt) {
-		let dX = evt.clientX - interaction.initialMouseX;
-		let dY = evt.clientY - interaction.initialMouseY;
-		interaction.setSize(dX,dY);
-		return false;
-	},
-	setPosition: function (dx, dy) {
-	    let newLeft = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
-	    let newTop = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
-		interaction.selectedObject.style.left = newLeft + 'px';
-		interaction.selectedObject.style.top = newTop + 'px';
+        interaction.initialMouseX = evt.clientX;
+        interaction.initialMouseY = evt.clientY;
+        interaction.main.addEventListener('mousemove',interaction.resize,true);
+        interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
+        return false;
+    },
+    resize: function (evt) {
+        let dX = evt.clientX - interaction.initialMouseX;
+        let dY = evt.clientY - interaction.initialMouseY;
+        interaction.setSize(dX,dY);
+        return false;
+    },
+    setPosition: function (dx, dy) {
+        let newLeft = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
+        let newTop = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+        interaction.selectedObject.style.left = newLeft + 'px';
+        interaction.selectedObject.style.top = newTop + 'px';
   
         // Update view data
 //        console.log(interaction.selectedObject.parameters);
         interaction.selectedObject.widget.parameters['x'] = newLeft;
         interaction.selectedObject.widget.parameters['y'] = newTop;
-	},
-	setSize: function (dx, dy) {
-		let newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
-		let newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
-		interaction.selectedObject.style.width = newWidth + 'px';
-		interaction.selectedObject.style.height = newHeight + 'px';
+    },
+    setSize: function (dx, dy) {
+        let newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
+        let newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
+        interaction.selectedObject.style.width = newWidth + 'px';
+        interaction.selectedObject.style.height = newHeight + 'px';
         
         // Update view data
         interaction.selectedObject.widget.parameters['width'] = newWidth;
         interaction.selectedObject.widget.parameters['height'] = newHeight;
         
         interaction.selectedObject.widget.update(); //***************
-	},
+    },
     setMode: function(mode) {
         interaction.deselectObject();
         let main = document.querySelector('main');
@@ -564,8 +566,8 @@ interaction = {
         if(main.dataset.mode == "edit")
         {
             interaction.widget_inspector.style.display = "none";
-            interaction.system_inspector.style.display = "none";
-            interaction.grid_inspector.style.display = "block";
+        //    interaction.system_inspector.style.display = "none";
+            interaction.edit_inspector.style.display = "block";
             interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
@@ -574,8 +576,8 @@ interaction = {
         else if(main.dataset.mode == "run")
         {
             interaction.widget_inspector.style.display = "none";
-            interaction.system_inspector.style.display = "block";
-            interaction.grid_inspector.style.display = "none";
+        //    interaction.system_inspector.style.display = "block";
+            interaction.edit_inspector.style.display = "none";
 
             interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
@@ -583,487 +585,14 @@ interaction = {
             interaction.main.removeEventListener('click', interaction.stopEvents, true);
         }
     },
-	toggleEditMode: function() {
+    toggleEditMode: function() {
         interaction.edit_mode = ! interaction.edit_mode;
         if(interaction.edit_mode)
             interaction.setMode("edit")
         else
             interaction.setMode("run");
-	}
+    }
 }
-</script>
-<style>
-
-/*
- *
- * Functional part
- *
- */
- 
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow:hidden;
-    --test: "qwerty";
-}
-
-body {
-    display: flex;
-    flex-direction: column;
-}
-
-header {
-    flex: 0 0 50px;
-}
-
-section {
-    background:white;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: row; /* column from phone */ 
-    align-items: stretch;
-    height: 500px;
-}
-
-main {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
- }
-
-nav {
-//    flex: 0 0 200px;
-    order: -1;
-
-	width: 200px;	/* sets minimum size (!) */
-    resize: horizontal;
-    
-    white-space: nowrap; 
-     text-overflow: ellipsis;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    display: none;
-}
-
-aside {
-    flex: 0 0 300px;
-	display: block; /* or none to hide */
-
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-footer {
-//    background:#888;
-	border-top: 1px solid black; /* temp */
-    flex: 0 0 50px;
-}
-
-table {
-    table-layout: fixed;
-}
-
-td {
-    word-wrap: break-word;
-    white-space: pre-wrap;
-/*    max-width: 200px; */
-}
-
-/*
- *
- * Styling part
- *
- */
-
-header {
-	padding: 5px;
-	background: lightgray;
-}
-
-nav {
-	padding: 10px;
-	background: white;
-    border-right: 1px solid gray;
-}
-
-nav li {
-    overflow-x: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-main {
-	padding: 0px;
-    background:black;
-    
-    /* global variables should be set here! Will be inherited by enclosed elements */
-}
-
-main[data-mode="edit"] {
-    background:lightyellow;
-}
-
-/* Inspector Styles */
-
-aside {
-	padding: 10px;
-	background: white;
-    border-left: 1px solid gray;
-}
-
-aside table {
-    width: 100%;
-    margin: 5px;
-}
-
-aside table td.header {
-    padding-top: 10px;
-    padding-bottom: 10px;
-   font-weight: bold;
-}
-
-aside table td.textedit {
-    border: 1px solid gray;
-}
-
-div.frame {
-    /* style for the enclosing frame of widgets here */
-    _border-radius:50px;
-    border: 1px solid blue;
-    background:none;
-}
-
-webui-widget {
-    --webui-widget-prop: "abc"
-}
-
-webui-widget-canvas {
-    --color: yellow;
-    --line: yellow;
-    --fill: yellow;
-    --line_width: 10px;
-    --line_dash: none;
-    --line_cap: butt;
-    --line_join: miter;
-    --miter-limit: 10;
-    --line_arrow_end: none;
-    --line_arrow_start: none;
-    --size: 1.0;
-    --scale: 1.0;
-    --offset: 0;
-    --offset_x: 0;
-    --offset_y: 0;
-    --orientation: horizontal;
-    --font_size: 12pt;
-    --decimals: 2;
-    --select: 0;
-    --order: row;
-}
-
-webui-widget-bar-graph {
-    --direction: vertical;
-
-    --title-height: 35;
-    --title-font: 18px Arial;
-    --title-color: white;
-    --title-background: black;
-    --title-margins: no;
-    --title-align: center;
-    --title-offset: 10, -5;
-
-    --margin-left: 40;
-    --margin-right: 10;
-    --margin-top: 10;
-    --margin-bottom: 30;
-
-    --space-left: 20;
-    --space-right: 10;
-    --space-top: 30;
-    --space-bottom: 10;
-
-    --frame: none;
-
-    --vertical-gridlines: 5;
-    --horizontal-gridlines: 5;
-    --grid-color: lightgray;         /*  #00000000 for none  */
-    --grid-fill: lightgreen;
-    --grid-line-width: 1;
-    
-    --x-axis: yes;  /* width? color? */
-    --y-axis: yes;
-    --axis-color: black;
-    --left-tick-marks: 5;
-    --right-tick-marks: 3;
-    --bottom-tick-marks: 3;
-    --left-scale: 3;
-    --right-scale: 0;
-    --bottom-scale: 3;
-    --scale-font: 11px Arial;
-    --scale-offset: 10;
-    
-    --labels: yes;
-    --label-color: gray;
-    
-    --spacing: 0.2;
- 
-    --color: darkgray; //, green, blue;
-    xx--fill: darkgray;
-    --line-width: 1;
-    
-    --decimals: 2;
-    --min: 0;
-    --max: 1;
-}
-
-_webui-widget-bar-graph {
-    --direction: horizontal;
-}
-
-/*
- *
- *  MAIN AREA
- *
- */
-
-
-/* Basic style for frame object */
-
-.frame {
-	position: absolute;
-	top: 10;
-	left: 10;
-    z-index: 200;
-    width: 101px;
-    height: 101px;
-    border: 1px solid black;
-    overflow: hidden;
-	background-color: none;
-	cursor: move;
-}
-
-.frame:hover {
-}
-
-.dragged, .resized {
-    border-color: black;
-}
-
-.dragged, .resized {
-    box-shadow: 4px 4px 4px lightgray;
-}
-
-
-.selected {
-    border: 1px solid black;
-}
-
-
-.selected .handle,
-.dragged .handle, 
-.resized .handle {
-    display: block;
-}
-
-
-.handle {
-    position:absolute;
-    right: 0;
-    bottom: 0;
-    width: 10px;
-    height: 10px;
-    display: none;
-    background-color: gray;
-    cursor: se-resize;
-}
-
-
-/* 
-.frame:hover .handle,
-.dragged .handle, 
-.resized .handle {
-    display: block;
-}
-
-
-/* Style for grid */
-
-main[data-mode="run"] div#grid {
-    display: none;
-}
-
-
-
-main[data-mode="edit"] div#grid {
-    display: block;
-}
-
-.vgrid {
-	position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    border-left: 1px solid lightblue;
-}
-
-.hgrid {
-	position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    border-top: 1px solid lightblue;
-}
-
-/* Draggable overriding cusstom style */
-/*
-.frame {
-    background-color: yellow;
-    border-color: brown;
-}
-*/
-
-.frame:after {content: attr(data-name);}
-
-
-/*
- *
- *  Extra styling
- *
- */
-
-/*
-.frame {
-    border-radius: 15px;
-    border: 1px solid black;
-    overflow: hidden;
-    background-color: #1d1d1d;
-}
-
-canvas {
-    --title-font: 12px Arial;
-    --title-color: white;
-    --title-background: #0d0d0d;
-    --title-magins: no;
-    --title-align: left;
-    --title-offset: 10, -6;
-
-    --color: #FFFF00, #EEEE00, #DDDD00, #CCCC00, #DDDD00, #EEEE00;
-    --fill: #FFFF0080, #EEEE0080, #DDDD0080, #CCCC0080, #DDDD0080, #EEEE0080;
-    --line-width: 1;
-    
-    --margin-left: 20;
-    --margin-right: 25;
-    --margin-top: 20;
-    --margin-bottom: 20;
-    
-    --spacing: 0.0;
-    
-    --draw-gridlines: 0;
-    --draw-scale: 2;
-}
-*/
-
-</style>
-<script>
-function getCSSRule(ruleName) {
-    ruleName = ruleName.toLowerCase();
-    var result = null;
-    var find = Array.prototype.find;
-
-    find.call(document.styleSheets, styleSheet => {
-        result = find.call(styleSheet.cssRules, cssRule => {
-            return cssRule instanceof CSSStyleRule 
-                && cssRule.selectorText.toLowerCase() == ruleName;
-        });
-        return result != null;
-    });
-    return result;
-}
-
-function show_styles()
-{
-    console.log(document.styleSheets);
-    console.log(getCSSRule("object"));
-}
-</script>
-</head>
-
-<body>
-	
-	<header>
-		<button onclick="toggleNav()">Nav</button>
-<!--
-		<button onclick="toggleInspector()">Inspector</button>
-		<button onclick="testGet()">Test XHR</button>
-		<button onclick="show_styles()">Test styles</button>
--->
-        <button onclick="interaction.toggleEditMode()">Toggle Edit</button>
-        <span>Selected:</span> <span id="selected"></span>
-	</header>
-	
-	<section>
-	
-		<main id="main">
-		</main>
-	
-		<nav id="navigator">
-		</nav>
-	
-		<aside id="widget_inspector">
-			<div id="inspector">
-				<div id="i_header"></div>
-				<table id="i_table">
-				<!--	<tr><th>Attr</th><th>Value</th></tr> -->
-				</table>
-			</div>
-            
-			<script>
-			inspector.init();
-			</script>
-		</aside>
-
-		<aside id="grid_inspector">
-            <h1>Edit Mode</h1>
-            <button onclick="interaction.increaseGrid()">Grid +</button>
-            <button onclick="interaction.decreaseGrid()">Grid -</button>
-            
-            <br>
-            
-            <select id="widget_select">
-                <option value="webui-widget-plot">Plot</option>
-                <option value="webui-widget-bar-graph">BarGraph</option>
-            </select>
-
-            <br>
-            <button onclick="interaction.addObject()">Add Widget</button>
-		</aside>
-
-
-		<aside id="system_inspector">
-            <h1>Ikaros System Info</h1>
-             <button>Stop</button>
-            <button>Pause</button>
-            <button>Step</button>
-            <button>Play</button>
-            <button>RT</button>
-            
-            <br>
-            <progress value="22" max="100"></progress>
-		</aside>
-
-
-	</section>
-	
-	<footer></footer>
-
-<script>
 
 /*
  *
@@ -1080,13 +609,13 @@ controller = {
 /*
     updateProgress: function (oEvent)
     {
-        if (oEvent.lengthComputable) 
+        if (oEvent.lengthComputable)
         {
             var percentComplete = oEvent.loaded / oEvent.total;
             console.log("Progress: ", 100*percentComplete, "% complete");
             document.querySelector("progress").setAttribute("value", 100*percentComplete);
-        } 
-        else 
+        }
+        else
         {
             // Unable to compute progress information since the total size is unknown
              console.log("Progress: ", oEvent.loaded);
@@ -1110,7 +639,7 @@ controller = {
         var last_request = url;
  //       console.log("SENDING GET:"+url);
         
-        xhr = new XMLHttpRequest();		
+        xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
 
         xhr.onloadstart = function(evt)
@@ -1120,7 +649,7 @@ controller = {
 
         xhr.onprogress = function(evt)
         {
-            if (evt.lengthComputable) 
+            if (evt.lengthComputable)
             {
                 var percentComplete = evt.loaded / evt.total;
 //                console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
@@ -1138,7 +667,7 @@ controller = {
                 console.log("Failed to load resource. No data.");
             else
                 console.log("Failed to load resource.");
-                
+ 
 //            console.log("Resending request");
 //            controller.get(last_request, controller.update);
 */
@@ -1191,14 +720,14 @@ controller = {
 
     buildViewDictionary: function(group, name) {
 
-		if(group.views)
-			for(i in group.views)
+        if(group.views)
+            for(i in group.views)
                 controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
 
-		if(group.groups)
-			for(i in group.groups)
-				controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
-	},
+        if(group.groups)
+            for(i in group.groups)
+                controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
+    },
 
     selectView: function(view) {
         console.log(view);
@@ -1273,25 +802,4 @@ controller = {
         controller.get("http://127.0.0.1:8000/update.json?data="+encodeURIComponent(data_string), controller.update);
     }
 }
-</script>
-<script>
-/*
- *
- * Iitialization
- *
- */
-
-    interaction.init();
-    interaction.generateGrid(20);
-    interaction.initDraggables();
-//    interaction.setMode('run');
-
-    // TEST
-    
-    controller.init();
-
-//    show_styles()
-</script>
-</body>
-</html>
 

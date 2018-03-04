@@ -1,157 +1,41 @@
 class WebUIWidgetCanvas extends WebUIWidget
 {
-/*
-    constructor()
-    {
-        super();
-    }
-*/
-    static template()
-    {
-        return [
-            {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'}
-        ]};
-
     static html()
     {
         return `
-            <canvas style="height: 100%; width:100%" height="100" width="100"></canvas>
+            <canvas style="height: 100%; width:100%" height="250" width="250"></canvas>
         `;
     }
 
-    getProp(attribute, index)
-    {
-        try
-        {
-            if(index)
-                return getComputedStyle(this.canvasElement).getPropertyValue(attribute).split(",")[index];
-            else
-                return getComputedStyle(this.canvasElement).getPropertyValue(attribute).trim();
-        }
-        catch(err)
-        {
-            return undefined;
-        }
-    }
 
-    getInt(attribute, index)
+    connectedCallback()
     {
-        try
-        {
-            if(index)
-                return parseInt(this.getProp(attribute).split(",")[index]);
-            else
-                return parseInt(this.getProp(attribute));
-        }
-        catch(err)
-        {
-            return 0;
-        }
-    }
+        super.connectedCallback();
 
-    getFloat(attribute, index)
-    {
-        try
-        {
-            if(index)
-                return parseFloat(this.getProp(attribute).split(",")[index]);
-            else
-                return parseFloat(this.getProp(attribute));
-        }
-        catch(err)
-        {
-            return 0;
-        }
-    }
+//        this.style.display = "block";
 
-    getBool(attribute, index)
-    {
-        try
-        {
-            if(index)
-                return ['yes','true'].includes(this.getProp(attribute).split(",")[index].toLowerCase());
-            else
-                return ['yes','true'].includes(this.getProp(attribute).toLowerCase());
-        }
-        catch(err)
-        {
-            return false;
-        }
-    }
 
-   connectedCallback()
+//        this.innerHTML = this.constructor.html();
+        
+        // update style
+        
+ //       this.updateStyle(this, this.parameters['style']);
+ //       this.updateStyle(this.parentNode, this.parameters['frame-style']);
+ //       this.readCSSvariables();
+        
+    }
+    
+    init()
     {
-        this.innerHTML = this.constructor.html();
         this.canvasElement = this.querySelector('canvas');
         this.canvas = this.canvasElement.getContext("2d");
-
-        // read CSS variables - TODO: allow to work also when some variable is missing
-
-        this.format = {}
-
-        this.format.titleHeight =           this.getInt('--title-height');
-        this.format.titleFont =             this.getProp('--title-font');
-        this.format.titleColor =            this.getProp('--title-color');
-        this.format.titleBackground =       this.getProp('--title-background');
-        this.format.titleMargins =          this.getBool('--title-margins');
-        this.format.titleAlign =            this.getProp('--title-align');
-        this.format.titleOffsetX =          this.getFloat('--title-offset', 0);
-        this.format.titleOffsetY =          this.getFloat('--title-offset', 1);
-
-        this.format.marginLeft =            this.getInt('--margin-left');
-        this.format.marginRight =           this.getInt('--margin-right');
-        this.format.marginTop =             this.getInt('--margin-top');
-        this.format.marginBottom =          this.getInt('--margin-bottom');
-
-        this.format.spaceLeft =             this.getInt('--space-left');
-        this.format.spaceRight =            this.getInt('--space-right');
-        this.format.spaceTop =              this.getInt('--space-top');
-        this.format.spaceBottom =           this.getInt('--space-bottom');
-
-        this.format.spacing =               this.getFloat('--spacing');
-
-        this.format.color =                 this.getProp('--color');
-        this.format.lineWidth =             this.getProp('--line-width');
-        this.format.fill =                  this.getProp('--fill');
-
-        this.format.gridColor =             this.getProp('--grid-color');
-        this.format.gridLineWidth =         this.getProp('--grid-line-width');
-        this.format.gridFill =              this.getProp('--grid-fill');
-
-        this.format.frame =                 this.getProp('--frame');
-        this.format.xAxis =                 this.getBool('--x-axis');
-        this.format.yAxis =                 this.getBool('--y-axis');
-        this.format.axisColor =             this.getProp('--axis-color');
-        this.format.verticalGridlines =     this.getInt('--vertical-gridlines');
-        this.format.horizontalGridlines =   this.getInt('--horizontal-gridlines');
-        this.format.leftTickMarks =         this.getInt('--left-tick-marks');
-        this.format.rightTickMarks =        this.getInt('--right-tick-marks');
-        this.format.bottomTickMarks =       this.getInt('--bottom-tick-marks');
-        this.format.leftScale =             this.getInt('--left-scale');
-        this.format.rightScale =            this.getInt('--right-scale');
-        this.format.bottomScale =           this.getInt('--bottom-scale');
-        this.format.scaleOffset =           this.getInt('--scale-offset');
-        this.format.scaleFont =             this.getProp('--scale-font');
-        this.format.labels =                this.getBool('--labels');
-        this.format.labelColor =            this.getProp('--label-color');
-
-        this.format.direction =             this.getProp('--direction');
-
-        this.format.decimals =              this.getInt('--decimals');
-        this.format.min =                   this.getInt('--min');
-        this.format.max =                   this.getInt('--max');
-
-        // read parameters
-
-        // set colors etc from parameters if set
     }
-
+    
     drawTitle()
     {
         this.canvas.beginPath();
         this.canvas.lineWidth = 1;
-        this.canvas.strokeStyle = "purple";
+//        this.canvas.strokeStyle = "purple";
         this.canvas.fillStyle = this.format.titleBackground;
 
         if(this.format.titleMargins)
