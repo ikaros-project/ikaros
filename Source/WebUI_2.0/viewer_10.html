@@ -67,14 +67,16 @@
 
 		<aside id="system_inspector">
             <h1>Ikaros System Info</h1>
-            <button>Stop</button>
-            <button>Pause</button>
-            <button>Step</button>
-            <button>Play</button>
-            <button>RT</button>
-            
+            <button onmousedown="controller.stop()">Stop</button>
+            <button onmousedown="controller.pause()">Pause</button>
+            <button onmousedown="controller.step()">Step</button>
+            <button onmousedown="controller.play()">Play</button>
+            <button onmousedown="controller.realtime()">RT</button>
             <br>
             <progress value="22" max="100"></progress>
+            <br>
+            <p id="iteration">0</p>
+            <p id="title"></p>
 		</aside>
 
 

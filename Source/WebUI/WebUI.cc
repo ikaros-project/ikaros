@@ -1298,7 +1298,7 @@ WebUI::Pause()
 void
 WebUI::HandleHTTPRequest()
 {
-    printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+//    printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
 
     std::string s = socket->header.Get("URI");
     
@@ -1344,7 +1344,56 @@ WebUI::HandleHTTPRequest()
 
             CopyUIData();
             SendUIData();
+            return;
         }
+    }
+    else if (!strcmp(uri, "/stop"))
+    {
+        Pause();
+        ui_state = ui_state_stop;
+        CopyUIData();
+        SendUIData();
+        k->Notify(msg_terminate, "Sent by WebUI.\n");
+    }
+    else if (!strcmp(uri, "/step"))
+    {
+        Pause();
+        ui_state = ui_state_pause;
+        k->Tick();
+        CopyUIData();
+        SendUIData();
+    }
+    else if (!strcmp(uri, "/play"))
+    {
+        Pause();
+        ui_state = ui_state_run;
+        
+        for(int i=0; i<iterations_per_runstep; i++)
+            k->Tick();
+        
+        CopyUIData();
+        SendUIData();
+    }
+    
+    else if (!strcmp(uri, "/pause"))
+    {
+        Pause();
+        ui_state = ui_state_pause;
+        CopyUIData();
+        SendUIData();
+    }
+    else if (!strcmp(uri, "/realtime"))
+    {
+        ui_state = ui_state_realtime;
+        
+        Dictionary rtheader;
+        rtheader.Set("Content-Type", "text/plain");
+        socket->SendHTTPHeader(&rtheader);
+        socket->Send("REALTIME\n");
+        
+        k->timer->Restart();
+        tick = 0;
+        isRunning = true;
     }
 
 
@@ -1357,18 +1406,18 @@ WebUI::HandleHTTPRequest()
     // OLD CODE BELOW - SOME OF IT WILL BE INCLUDED AGAIN LATER
     //
     
-    return;
-/*
+//    return;
+
     if (debug_mode)
         printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
 
-    std::string s = socket->header.Get("URI");
+ //   std::string s = socket->header.Get("URI");
     
     // Copy URI and remove index
     
-    char * uri_p = create_string(socket->header.Get("URI"));
-    char * uri = strsep(&uri_p, "?");
-    char * args = uri_p;
+//    char * uri_p = create_string(socket->header.Get("URI"));
+//    char * uri = strsep(&uri_p, "?");
+//    char * args = uri_p;
     
 //	if(char * x = strpbrk(uri, "?#")) *x = '\0';                // TODO: can probably be removed
 //strsep(&p, " "))
@@ -1687,7 +1736,6 @@ WebUI::HandleHTTPRequest()
     }
     
     destroy_string(uri);
-    */
 }
 
 

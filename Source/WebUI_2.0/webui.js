@@ -658,7 +658,6 @@ controller = {
         }
         xhr.onerror = function(evt)
         {
-/*
             console.log("onerror");
 //            console.log(evt);
             if(evt.lengthComputable && evt.loaded < evt.total)
@@ -670,7 +669,6 @@ controller = {
  
 //            console.log("Resending request");
 //            controller.get(last_request, controller.update);
-*/
        }
         xhr.ontimeout = function(evt)
         {
@@ -699,23 +697,23 @@ controller = {
     },
     
     stop: function () {
-
+        controller.get("http://127.0.0.1:8000/stop", controller.update);
     },
     
     pause: function () {
-
+        controller.get("http://127.0.0.1:8000/pause", controller.update);
     },
     
     step: function () {
-    
+        controller.get("http://127.0.0.1:8000/step", controller.update);
     },
     
     play: function () {
-    
+        controller.get("http://127.0.0.1:8000/play", controller.update);
     },
     
     realtime: function () {
-
+        controller.get("http://127.0.0.1:8000/realtime", controller.update);
     },
 
     buildViewDictionary: function(group, name) {
@@ -754,6 +752,9 @@ controller = {
         else // same session - proably new data package
         {
 //            console.log("SAME SESSION "+session_id);
+            
+            e = document.querySelector("#iteration");
+            e.innerText = response.iteration;
             
             // Update the views with data in response
             // Very fragile loop - maybe use class to mark widgets or something
