@@ -228,15 +228,8 @@ bool DynamixelComm::Ping1(int id)
 	//PrintFullInstructionPackage1(outbuf);
 	
 	unsigned char inbuf[256];
-	//int n = Receive1(inbuf);
-	return (Receive1(inbuf) > 0);
-
 	//PrintFullStatusPackage1(inbuf);
-	//return (Receive1(inbuf) < 0);
-//		if (n < 0)
-//			return (false);
-//		else
-//			return (true);
+	return (Receive1(inbuf) > 0);
 }
 
 void DynamixelComm::Reset1(int id)

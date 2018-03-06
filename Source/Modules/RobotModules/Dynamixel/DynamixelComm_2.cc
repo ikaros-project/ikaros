@@ -231,11 +231,6 @@ bool DynamixelComm::Ping2(int id)
 	
 	unsigned char inbuf[256];
 	return (Receive2(inbuf) > 0);
-//	int n = Receive2(inbuf);
-//	if (n < 0)
-//		return (false);
-//	else
-//		return (true);
 }
 void DynamixelComm::Reset2(int id)
 {
