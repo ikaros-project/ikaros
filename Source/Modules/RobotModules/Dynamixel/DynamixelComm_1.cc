@@ -339,7 +339,7 @@ void DynamixelComm::GetServoError1(unsigned char errorByte)
 	//errorServoInputVoltage = (errorByte >> 7) & 0x1;
 	
 #ifdef LOG_COMM_ERROR
-	if (ErrorServo2 != 0)
+	if (errorServoInputVoltage != 0 && errorServoAngleLimit != 0 && errorServoOverHeating != 0 && errorServoRange != 0 && errorServoChecksum != 0 && errorServoOverload != 0 && errorServoIntruction != 0 )
 	{
 		printf("DynamixelComm: Error byte\n");
 		printf("%i %i %i %i %i %i %i\n",errorServoInputVoltage,errorServoAngleLimit,errorServoOverHeating,errorServoRange,errorServoChecksum,errorServoOverload,errorServoIntruction);

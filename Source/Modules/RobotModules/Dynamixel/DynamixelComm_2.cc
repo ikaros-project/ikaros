@@ -402,7 +402,7 @@ void DynamixelComm::GetServoError2(unsigned char errorByte)
 	errorServoAccess2 = (errorByte >> 7) & 0x1;
 	
 #ifdef LOG_COMM_ERROR
-	if (ErrorServo2 != 0)
+	if (errorServo2 != 0)
 	{
 		printf("DynamixelComm: Error byte\n");
 		printf("%i %i %i %i %i %i %i %i\n",errorServo2,errorServoResaultFail2,errorServoIntruction2,errorServoCrc2,errorServoRange2,errorServoLength2,errorServoLimit2,errorServoAccess2);
