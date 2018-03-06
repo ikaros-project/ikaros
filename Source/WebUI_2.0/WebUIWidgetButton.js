@@ -1,12 +1,12 @@
-class WebUIWidgetText extends WebUIWidget
+class WebUIWidgetBUtton extends WebUIWidget
 {
     static template()
     {
         return [
             {'name': "PARAMETERS", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'text', 'default':"Default Text", 'type':'string', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'title', 'default':"Button", 'type':'string', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
@@ -14,24 +14,21 @@ class WebUIWidgetText extends WebUIWidget
 
     static html()
     {
-        return "<div> </div>";
+        return "<button></button>";
     }
 
     init()
     {
-        this.text = this.parameters.text;
-        this.innerText = this.text;
+        this.firstChild.innerText = this.parameters.title;
     }
     
     update()
     {
-        this.text = this.parameters.text;
-        this.data = this.text;
-        this.innerText = this.text;
+        this.firstChild.innerText = this.parameters.title;
     }
 };
 
 
 
-webui_widgets.add('webui-widget-text', WebUIWidgetText);
+webui_widgets.add('webui-widget-button', WebUIWidgetBUtton);
 

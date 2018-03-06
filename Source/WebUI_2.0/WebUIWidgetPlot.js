@@ -1,4 +1,4 @@
-class WebUIWidgetBarGraph extends WebUIWidgetCanvas
+class WebUIWidgetPlot extends WebUIWidgetGraph
 {
     static template()
     {
@@ -144,4 +144,4 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 };
 
 
-webui_widgets.add('webui-widget-bar-graph', WebUIWidgetBarGraph);
+webui_widgets.add('webui-widget-plot', WebUIWidgetPlot);

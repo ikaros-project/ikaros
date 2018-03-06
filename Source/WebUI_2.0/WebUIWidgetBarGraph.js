@@ -1,4 +1,4 @@
-class WebUIWidgetBarGraph extends WebUIWidgetCanvas
+class WebUIWidgetBarGraph extends WebUIWidgetGraph
 {
     static template()
     {
@@ -17,7 +17,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
     {
         super.init();
         
-        this.data = [[0.10, 1.0, 0.32, 0.2, 0.55], [0.56, 0.2, 0.55, 0.2, 0.55], [0.1, 0.7, 0.3, 0.2, 0.55], [0.56, 0.2, 0.55, 0.2, 0.55], [0.1, 0.7, 0.3, 0.2, 0.55]];   // Should connect to main data structure
+        this.data = [];
         
         this.onclick = function () { alert(this.data) };
         
@@ -29,8 +29,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
     {
         data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
-
-
 
     drawBarHorizontal(width, height, i)
     {
@@ -48,16 +46,10 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
         this.canvas.rect(0, 0, width, height);
         this.canvas.fill();
         this.canvas.stroke();
-/*
-        this.canvas.beginPath();
-        this.canvas.arc(width/2, height/2, width/2, 0, 2*Math.PI, false);
-        this.canvas.stroke();
-*/
     }
 
     drawPlotHorizontal(width, height, y)
     {
-//        super.drawPlotVertical(width, height, y); // draws the frame
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -77,7 +69,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 
     drawPlotVertical(width, height, y)
     {
-//        super.drawPlotVertical(width, height, y); // draws the frame
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
@@ -98,14 +89,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 
     update(d)
     {
- //       let widgetStyles = window.getComputedStyle(this);
-//        let test = widgetStyles.getPropertyValue('--test');
-//        console.log(test);
-    
-    
-//        let width = parseInt(getComputedStyle(this.canvasElement).width);
-//        let height = parseInt(getComputedStyle(this.canvasElement).height);
-
         let width = this.parameters.width;
         let height = this.parameters.height;
 
@@ -120,8 +103,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetCanvas
 
         this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
         this.format.height = this.height - this.format.marginTop - this.format.marginBottom - this.format.titleHeight;
-
-//        this.drawLayout();
 
         try {
             let m = this.parameters['module']

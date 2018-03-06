@@ -37,6 +37,16 @@ class WebUIWidget extends HTMLElement
         this.parameter_template = pt;        
      }
 
+    requestData(data_set)
+    {
+        try
+        {
+            data_set.add(this.parameters['module']+"."+this.parameters['source']);
+        }
+        catch(err)
+        {
+        }
+    }
 
     getProp(attribute, index)
     {
@@ -126,6 +136,8 @@ class WebUIWidget extends HTMLElement
         this.format.spacing =               this.getFloat('--spacing');
 
         this.format.color =                 this.getProp('--color');
+        this.format.positiveColor =         this.getProp('--positive-color');
+        this.format.negativeColor =         this.getProp('--negative-color');
         this.format.lineWidth =             this.getProp('--line-width');
         this.format.fill =                  this.getProp('--fill');
 
@@ -157,6 +169,34 @@ class WebUIWidget extends HTMLElement
         this.format.max =                   this.getInt('--max');
     }
 
+    getColor(i, v)
+    {
+        try
+        {
+            if(v>=0 && this.format.positiveColor)
+            {
+                let l = this.format.positiveColor.split(",");
+                let n = l.length;
+                return l[i % n].trim();
+            }
+            else if(this.format.negativeColor)
+            {
+                let l = this.format.negativeColor.split(",");
+                let n = l.length;
+                return l[i % n].trim();
+            }
+            else
+            {
+                let l = this.format.color.split(",");
+                let n = l.length;
+                return l[i % n].trim();
+            }
+        }
+        catch(err)
+        {
+            return "black";
+        }
+    }
 
     connectedCallback()
     {
