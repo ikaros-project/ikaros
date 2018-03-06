@@ -28,53 +28,47 @@
 class DynamixelConfigure: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new DynamixelConfigure(p); }
-    
-    DynamixelConfigure(Parameter * p);
-    virtual ~DynamixelConfigure();
-    
-    void        SetSizes();
-    
-    void		Init();
-    void		Tick();
-    
-    void        PrintAll();
-    
-private:
-    int         size;
-    int         nrOfServos;
-    int         max_servo_id;
-    int         index_mode;
-    int         blink;
-    int         baud_rate;
-    bool        list_servos;
-
-    int **      inAdress;
-    int         protocol;
-    int **      inAdressSize;
-
-    float * 	resetModeOut;
-    float * 	changeModeOut;
-    
-    float * 	set;
-    float * 	active;
-    
-    bool 		resetMode;
-    bool 		scan_mode;
-    DynamixelServo **    servo;
-    
-    // Arrays used to send commands to servos // FIXME: USE separat list for continous servos
-    int *       servoIndex;
-    int *       servoId;
+	static Module * Create(Parameter * p) { return new DynamixelConfigure(p); }
 	
-    const char *    device;
-    DynamixelComm * com;
-    
-    void PrintChange(int active);
-    int 		changeAdress;
-    int			newValue;
-    int 		forceModel;
+	DynamixelConfigure(Parameter * p);
+	virtual ~DynamixelConfigure();
+	void        SetSizes();
+	void		Init();
+	void		Tick();
+	
+	void        PrintAll();
+	
+private:
+	int         size;
+	int         nrOfServos;
+	int         blink;
+	int         baudRate;
+	
+	int **      inAdress;
+	int         protocol;
+	int **      inAdressSize;
+	
+	float * 	resetModeOut;
+	float * 	changeModeOut;
+	
+	float * 	set;
+	float * 	active;
+	
+	bool 		resetMode;
+	bool 		scan_mode;
+	DynamixelServo **    servo;
+	
+	// Arrays used to send commands to servos // FIXME: USE separat list for continous servos
+	int *       servoIndex;
+	int *       servoId;
+	
+	const char * device;
+	DynamixelComm * com;
+	
+	int 		changeAdress;
+	int			newValue;
+	int 		forceModel;
+	
+	void 		PrintChange(int active);
 };
-
 #endif
-

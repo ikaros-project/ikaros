@@ -27,8 +27,8 @@
 #ifndef DYNAMIXELCOMM
 #define DYNAMIXELCOMM
 
-// #define LOG_COMM_ERROR
-// #define LOG_COMM
+//#define LOG_COMM_ERROR
+//#define LOG_COMM
 
 #include "IKAROS.h"
 
@@ -45,6 +45,14 @@
 #define INST_BYTE_2                 7
 #define ERROR_BYTE_2                8
 
+// Protocol version length
+#define INSTRUCTION_HEADER_1 5
+#define STATUS_HEADER_1 5
+
+// Protocol version 2 length
+#define INSTRUCTION_HEADER_2 8		// Header + Reserved + Packet ID + Packet Length + Instruction
+#define STATUS_HEADER_2 9			// Header + Reserved + Packet ID + Packet Length + Instruction + Error
+
 // Common (Protocol instructions)
 #define INST_PING               1
 #define INST_READ               2
@@ -59,18 +67,11 @@
 #define INST_BULK_READ          146
 #define INST_BULK_WRITE         147
 
-#define SYNC_WRITE_HEADER_1 7
-#define INSTRUCTION_HEADER_1 5
-#define RECEIVE_HEADER_1 5
-
-#define SYNC_WRITE_HEADER_2 8
-#define SYNC_WRITE_COMMON_2 4
-#define RECEIVE_HEADER_2 8
-
-#define BULK_WRITE_HEADER_2 8
 
 #define MAX_SERVOS 256
 #define DYNAMIXEL_MAX_BUFFER 143
+
+#define BUFFER_SIZE 1024
 
 
 // Errors
@@ -79,74 +80,72 @@
 #define ERROR_EXT -3
 #define ERROR_NOT_COMPLETE -4
 
+/**
+ * Class for serial communication with dynamixel servos
+ */
 
 class DynamixelComm : public Serial
 {
 public:
-    
-    DynamixelComm(const char * device_name, unsigned long baud_rate);
-    ~DynamixelComm();
-	// Can be use for both protocols
-    int             Ping(int id);
-    void            Reset(int id, int protocol);
-    bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
-	int				WriteToServo(int id, int protocol, int adress, unsigned char * data, int dSize);
-
-    // Protocol version 1
-    void            Send1(unsigned char * b);
-    int             Receive1(unsigned char * b);
-    void            Reset1(int id);
-    bool            Ping1(int id);
-    void            PrintFullInstructionPackage1(unsigned char * package);
-    void            PrintPartInstructionPackage1(unsigned char * package, int from, int to);
-    void            PrintFullStatusPackage1(unsigned char * package);
-    void            PrintPartStatusPackage1(unsigned char * package, int from, int to);
-    void            PrintMemory1(unsigned char * outbuf, int from, int to);
-    bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
-	int 			AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize);
-	void 			PrintDataSyncWrite1();
-	int 			SendSyncWrite1();
 	
-	unsigned char   syncWriteBuffer[1024];
+	DynamixelComm(const char * device_name, unsigned long baud_rate);
+	~DynamixelComm();
+	// Can be use for both protocols
+	int             Ping(int id);
+	void            Reset(int id, int protocol);
+	bool            ReadMemoryRange(int id, int protocol, unsigned char * buffer, int fromAddress, int toAddress);
+	int				WriteToServo(int id, int protocol, int adress, unsigned char * data, int dSize);
+	
+	// Protocol version 1
+	void            Send1(unsigned char * b);
+	int             Receive1(unsigned char * b);
+	void            Reset1(int id);
+	bool            Ping1(int id);
+	void            PrintFullInstructionPackage1(unsigned char * package);
+	void            PrintFullStatusPackage1(unsigned char * package);
+	void            PrintMemory1(unsigned char * b, int fromAddress, int toAddress);
+	bool            ReadMemoryRange1(int id, unsigned char * buffer, int fromAddress, int toAddress);
+	bool 			AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize);
+	void 			PrintDataSyncWrite1();
+	bool 			SendSyncWrite1();
+	
+	unsigned char   syncWriteBuffer[BUFFER_SIZE];
 	int				syncWriteBufferLength = -1;
 	int				syncWriteAdress = 0;
 	int				syncWriteBlockSize = 0;
 	
-    unsigned char   CalculateChecksum(unsigned char * b);
-	void 			getServoError1(unsigned char errorByte);
-
-	bool			ErrorServoInputVoltage;
-	bool			ErrorServoAngleLimit;
-	bool			ErrorServoOverHeating;
-	bool			ErrorServoRange;
-	bool			ErrorServoChecksum;
-	bool			ErrorServoOverload;
-	bool			ErrorServoIntruction;
-
+	unsigned char   CalculateChecksum(unsigned char * b);
+	void 			GetServoError1(unsigned char errorByte);
 	
-    // Protocol version 2
-    void            Send2(unsigned char * b);
-    int             Receive2(unsigned char * b);
-    void            Reset2(int id);
-    bool            Ping2(int id);
-    void            PrintFullInstructionPackage2(unsigned char * package);
-    void            PrintPartInstructionPackage2(unsigned char * package, int from, int to);
-    void            PrintFullStatusPackage2(unsigned char * package);
-    void            PrintPartStatusPackage2(unsigned char * package, int from, int to);
-    void            PrintMemory2(unsigned char * outbuf, int from, int to);
-    bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
-
-    unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
-    bool            checkCrc(unsigned char * package);
-	int 			AddDataBulkWrite2(int ID, int adress, unsigned char * data, int dSize);
+	bool			errorServoInputVoltage;
+	bool			errorServoAngleLimit;
+	bool			errorServoOverHeating;
+	bool			errorServoRange;
+	bool			errorServoChecksum;
+	bool			errorServoOverload;
+	bool			errorServoIntruction;
+	
+	// Protocol version 2
+	void            Send2(unsigned char * b);
+	int             Receive2(unsigned char * b);
+	void            Reset2(int id);
+	bool            Ping2(int id);
+	void            PrintFullInstructionPackage2(unsigned char * package);
+	void            PrintFullStatusPackage2(unsigned char * package);
+	void            PrintMemory2(unsigned char * b, int fromAddress, int toAddress);
+	bool            ReadMemoryRange2(int id, unsigned char * buffer, int fromAddress, int toAddress);
+	
+	unsigned short  update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size);
+	bool            checkCrc(unsigned char * package);
+	bool 			AddDataBulkWrite2(int ID, int adress, unsigned char * data, int dSize);
 	void 			PrintDataBulkWrite2();
-	int 			SendBulkWrite2();
+	bool 			SendBulkWrite2();
 	
-	unsigned char   bulkWriteBuffer[1024];
+	unsigned char   bulkWriteBuffer[BUFFER_SIZE];
 	int				bulkWriteBufferLength  = -1;
 	
 	int				serialLatency;
-
+	
 	int 			crcError;
 	int 			missingBytesError;
 	int 			notCompleteError;
@@ -155,19 +154,17 @@ public:
 	float 			sendTimer;
 	float 			recieveTimer;
 	float 			recieveTimerTotal;
-
-	void 			getServoError2(unsigned char errorByte);
 	
-	bool			ErrorServo2;
-	bool			ErrorServoResaultFail2;
-	bool			ErrorServoIntruction2;
-	bool			ErrorServoCrc2;
-	bool			ErrorServoRange2;
-	bool			ErrorServoLength2;
-	bool			ErrorServoLimit2;
-	bool			ErrorServoAccess2;
+	void 			GetServoError2(unsigned char errorByte);
+	
+	bool			errorServo2;
+	bool			errorServoResaultFail2;
+	bool			errorServoIntruction2;
+	bool			errorServoCrc2;
+	bool			errorServoRange2;
+	bool			errorServoLength2;
+	bool			errorServoLimit2;
+	bool			errorServoAccess2;
 	
 };
-
 #endif
-

@@ -1,63 +1,62 @@
 <?xml version="1.0"?>
 
 <group name="DynamixelConfigure" description="configures Dynamixel servos">
-    
-    <description type="xhtml">
-        <p>
-            This module let you configure Dynamixel servos. Please refer to dynamixel manual's control table.
-        </p>
-    </description>
-    
-    <example description="A simple example">
-        <module
-        class = "DynamixelConfigure"
-        name = "DynamixelConfigure"
-        device  = "/dev/cu.usbserial-A8006Esq"
-        />
-    </example>
-    
-    <parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
-    <parameter name="baud_rate" type="int" default="1000000" description="Serial baud rate" />
-    <parameter name="max_servo_id" type="int" default="32" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
-    
-    <parameter name="adress" type="int" default="0" description="Adress" />
-    <parameter name="value" type="int" default="1" description="Value" />
-   
-    <parameter name="force_model" type="int" default="0" description="Force the system to detect the servoes as certain model (should only by used if servo need resetting and the model number is corrupt). See dynamixel manuals for model number (MX-28T/MX-28R : 29, AX-12/AX-12+/AX-12A	= 12, MX-106T/MX-106R = 320)" />
-
-    <parameter name="reset_mode" type="bool" description="Enter reset mode. In this mode a dynamixel servo can be reseted to factory settings."/>
-    <parameter name="scan_mode" type="bool" description="Enter scan mode. In this mode all available id and baud rates are scaned to find missing dynamixels."/>
-    <parameter name="quick_scan" type="bool" description="If in scan mode. The module will only scan for servo with ID 0 - 20"/>
-    
-    <input name="SET" description="if 1 the changes are written to dynaxmiel servos" />
-    <input name="ACTIVE" description="ID of the servo to write changes to. If 0 all servos found will be updated with the new settings." />
-    
-    <output name="RESET_MODE" description="One if the module is in RESET mode" size_x = "1" />
-    <output name="CHANGE_MODE" description="One if the module is in CHANGE mode" size_x = "1" />
-    
-    
-    <module class="DynamixelConfigure" />
-    
-    <limitation>
-    Only tested with AX-12, MX-28, MX-106.
-    </limitation>
-    
-    <author>
-        <name>Birger Johansson</name>
-        <email>m@birgerjohansson.com</email>
-        <affiliation>Lund University Cognitive Science</affiliation>
-        <homepage>http://www.birgerjohansson.com</homepage>
-    </author>
-    
-    <files>
-        <file>DynamixelConfigure.h</file>
-        <file>DynamixelConfigure.cc</file>
-        <file>DynamixelConfigure.ikc</file>
-        <file>DynamixelComm.h</file>
-        <file>DynamixelComm.cc</file>
-        <file>DynamixelServo.h</file>
-        <file>DynamixelServo.cc</file>
-    </files>
-    
+	
+	<description type="xhtml">
+		<p>
+			This module configures Dynamixel servos. Please refer to dynamixel manual's control table.
+		</p>
+	</description>
+	
+	<example description="A simple example">
+		<module
+		class = "DynamixelConfigure"
+		name = "DynamixelConfigure"
+		device  = "/dev/cu.usbserial-A8006Esq"
+		/>
+	</example>
+	
+	<parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
+	<parameter name="baud_rate" type="int" default="1000000" description="Serial baud rate" />
+	<parameter name="max_servo_id" type="int" default="32" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
+	
+	<parameter name="adress" type="int" default="0" description="Adress" />
+	<parameter name="value" type="int" default="1" description="Value" />
+	
+	<parameter name="force_model" type="int" default="0" description="Force the system to detect the servos as certain model (should only by used if servo need resetting and the model number is corrupt). See dynamixel manuals for model number (MX-28T/MX-28R : 29, AX-12/AX-12+/AX-12A	= 12, MX-106T/MX-106R = 320)" />
+	
+	<parameter name="reset_mode" type="bool" description="Enter reset mode. In this mode a dynamixel servo can be reseted to factory settings."/>
+	<parameter name="scan_mode" type="bool" description="Enter scan mode. In this mode all available id and baud rates are scaned to find missing dynamixels."/>
+	<parameter name="quick_scan" type="bool" description="If in scan mode. The module will only scan for servo with ID 0 - 20"/>
+	
+	<input name="SET" description="if 1 the changes are written to dynaxmiel servos" />
+	<input name="ACTIVE" description="ID of the servo to write changes to. If 0 all servos found will be updated with the new settings." />
+	
+	<output name="RESET_MODE" description="One if the module is in RESET mode" size_x = "1" />
+	<output name="CHANGE_MODE" description="One if the module is in CHANGE mode" size_x = "1" />
+	
+	
+	<module class="DynamixelConfigure" />
+	
+	<limitation>
+		Only tested with AX-12, MX-28, MX-106, XL-320.
+	</limitation>
+	
+	<author>
+		<name>Birger Johansson</name>
+		<email>m@birgerjohansson.com</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+	
+	<files>
+		<file>DynamixelConfigure.h</file>
+		<file>DynamixelConfigure.cc</file>
+		<file>DynamixelConfigure.ikc</file>
+		<file>DynamixelComm.h</file>
+		<file>DynamixelComm.cc</file>
+		<file>DynamixelServo.h</file>
+		<file>DynamixelServo.cc</file>
+	</files>
+	
 </group>
-

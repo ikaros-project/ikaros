@@ -1,7 +1,7 @@
 //
 //	Dynamixel.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2010-2012  Christian Balkenius and Birger Johansson
+//    Copyright (C) 2018  Christian Balkenius and Birger Johansson
 //
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@
 #define IK_IN_MOVING_SPEED         6
 #define IK_IN_TORQUE_LIMIT         7
 #define IK_IN_GOAL_TORQUE          8
-#define IK_IN_GOAL_ACCELERATION    9
+#define IK_IN_GOAL_ACCELERATION	   9
 
 #define IK_OUT_TORQUE_ENABLE         0
 #define IK_OUT_LED                   1
@@ -64,99 +64,85 @@
 class Dynamixel: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new Dynamixel(p); }
-    
-    Dynamixel(Parameter * p);
-    virtual ~Dynamixel();
-    
-    //void        SetSizes();
-    
-    void		Init();
-    void		Tick();
-    
+	static Module * Create(Parameter * p) { return new Dynamixel(p); }
+	
+	Dynamixel(Parameter * p);
+	virtual ~Dynamixel();
+	void		Init();
+	void		Tick();
+	
+	
 private:
-    int         size;           		// Size of the servo[]. Size != number of servoes as in direct mode it can be gap between servos.
-    int         nrOfServos = 0;      	// Number of servoes found
-    
-    int         init_print;
-    int         index_mode;
-    int         angle_unit;
-	bool		optimize_mode = 0;
-	int 		serial_latency;			// serial latency in ms
-    bool        use_feedback;
-    int         start_up_delay;			// To make sure nothing strange is received from the ikaros system during the first ticks.
-	int			torque_up_delay;		// After start_up_delay the system start reiving real values but should ramp up torque to have a smooth start of the system.
+	int         size;           		// Size of the servo[]. Size != number of servos as in direct mode it can be gap between servos.
+	int         nrOfServos = 0;      	// Number of servos found
 	
-    int         max_temperature;		// Max temerature before shut down module
-    // index of where to find ikaros data in the dynamixel memory block
-    int **      inAdress;           	// Array of where to store input data in the dynamixel memory block
-    int **      outAdress;          	// Array of where to grab output data in the dynamixel memory block
-    int **      inAdressSize;        	// Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servoes may have different paramter size.
-	bool **		active;
-	bool **		optimize;
-    int         protocol;               // The protocol used. No mixed protocol allowed.
+	int         infoLevel;
+	int         indexMode;
+	int         angleUnit;
+	bool		optimizeMode;
+	int 		serialLatency;			// serial latency in ms
+	bool        useFeedback;
+	int         startUpDelay;			// To make sure nothing strange is received from the ikaros system during the first ticks.
+	int			torqueUpDelay;			// After startUpDelay the system start reiving real values but will ramp up torque to have a smooth start of the system.
+	int         maxTemperature;			// Max temerature before shut down module
+	// index of where to find ikaros data in the dynamixel memory block
+	int **      inAdress;           	// Array of where to store input data in the dynamixel memory block
+	int **      inAdressSize;        	// Array of how many bytes the input parameter. This one is needed to calculate packate size in bulk_write as servos may have different paramter size.
+	int **      outAdress;          	// Array of where to grab output data in the dynamixel memory block
+	bool **		active;					// Is input connected and exist parameter for selected servo
+	bool **		optimize;				// Is inputvalue same as read from servo. Do not resend.
+	int         protocol;               // The protocol used. No mixed protocol allowed.
+
+	
+	// Inputs
 	bool 		connected[IK_INPUTS];	// Connected inputs
-	int 		errorsSizeY;			// Size of error output matrix [nrServoes][errorsSizeY]
-
-    // Inputs
-    float *     torqueEnable;
-    bool        torqueEnableConnected;
-    float *     LED;
-    bool        LEDConnected;
-    float *     dGain;
-    bool        dGainConnected;
-    float *     iGain;
-    bool        iGainConnected;
-    float *     pGain;
-    bool        pGainConnected;
-    float *     goalPosition;
-    bool        goalPositionConnected;
-    float *     movingSpeed;
-    bool        movingSpeedConnected;
-    float *     torqueLimit;
-    bool        torqueLimitConnected;
-    float *     goalTorque;
-    bool        goalTorqueConnected;
-    float *     goalAcceleration;
-    bool        goalAccelerationConnected;
-    
-    // Outputs
-    float *     feedbackTorqueEnable;
-    float *     feedbackLED;
-    float *     feedbackDGain;
-    float *     feedbackIGain;
-    float *     feedbackPGain;
-    float *     feedbackGoalPosition;
-    float *     feedbackMoving;
-    float *     feedbackTorqueLimit;
-    float *     feedbackPresentPosition;
-    float *     feedbackPresentSpeed;
-    float *     feedbackPresentLoad;
-    float *     feedbackPresentVoltage;
-    float *     feedbackPresentTemperature;
-    float *     feedbackPresentCurrent;
-    float *     feedbackGoalTorque;
-    float *     feedbackGoalAcceleration;
+	float *     torqueEnable;
+	float *     LED;
+	float *     dGain;
+	float *     iGain;
+	float *     pGain;
+	float *     goalPosition;
+	float *     movingSpeed;
+	float *     torqueLimit;
+	float *     goalTorque;
+	float *     goalAcceleration;
+	
+	// Outputs
+	float *     feedbackTorqueEnable;
+	float *     feedbackLED;
+	float *     feedbackDGain;
+	float *     feedbackIGain;
+	float *     feedbackPGain;
+	float *     feedbackGoalPosition;
+	float *     feedbackMoving;
+	float *     feedbackTorqueLimit;
+	float *     feedbackPresentPosition;
+	float *     feedbackPresentSpeed;
+	float *     feedbackPresentLoad;
+	float *     feedbackPresentVoltage;
+	float *     feedbackPresentTemperature;
+	float *     feedbackPresentCurrent;
+	float *     feedbackGoalTorque;
+	float *     feedbackGoalAcceleration;
 	float **	errors;
-	
-    DynamixelServo **   servo; // Array of servo data
-    
-    // Arrays used to send commands to servos
-    int             *   servoIndex;        // Array of indexes of where to find servoes in the servo[] array.
-    int             *   servoId;           // Array of ids example [1,2,3] or [1,5,19]
-    
-    unsigned char   **  DynamixelMemoeries;
-    
-    const char      *   device;
-    DynamixelComm   *   com;
-	
-    void		Print();
-    void        PrintAll();
-	void		OptimizeSendCalls();
-	void		PrintMaps();
-	void 		getErrors(int index);
-	void 		resetComErrors();
+	int 		errorsSizeY;			// Size of error output matrix [nrServos][errorsSizeY]
 
+	DynamixelServo **   servo; // Array of servo data
+	
+	int             *   servoIndex;        // Array of indexes of where to find servos in the servo[] array.
+	int             *   servoId;           // Array of ids example [1,2,3] or [1,5,19]
+	
+	const char      *   device;
+	DynamixelComm   *   com;
+	
+	void		OptimizeSends();
+
+	void 		GetErrors(int index);
+	void 		ResetComErrors();
+	
+	void		PrintMinimal();
+	void        PrintAll();
+	void		PrintMaps();
 };
 
 #endif
