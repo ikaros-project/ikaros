@@ -19,6 +19,7 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 //
+
 #include "Dynamixel.h"
 #include "DynamixelConfigure.h"
 
@@ -61,26 +62,26 @@ Module(p)
 		{
 			switch (i) {
 				case 250:
-					baud_rate = 2250000;
+					baudRate = 2250000;
 					break;
 				case 251:
-					baud_rate = 2500000;
+					baudRate = 2500000;
 					break;
 				case 252:
-					baud_rate = 3000000;
+					baudRate = 3000000;
 					break;
 				case 253:
-					baud_rate = 3500000;
+					baudRate = 3500000;
 					//case 254:
 					//    baud_rate = 4000000; // guessing
 					break;
 					
 				default:
-					baud_rate = 2000000/(float(i)+1);
+					baudRate = 2000000/(float(i)+1);
 					break;
 			}
-			printf("\n%-3i\tScannning baud rate \t %i\n",i, baud_rate);
-			com = new DynamixelComm(device, baud_rate);
+			printf("\n%-3i\tScannning baud rate \t %i\n",i, baudRate);
+			com = new DynamixelComm(device, baudRate);
 			if(com)
 			{
 				size = 0;
@@ -100,8 +101,8 @@ Module(p)
 		Notify(msg_terminate, "Scan completed. quiting ikaros...");
 	}
 	
-	baud_rate = GetIntValue("baud_rate");
-	com = new DynamixelComm(device, baud_rate);
+	baudRate = GetIntValue("baud_rate");
+	com = new DynamixelComm(device, baudRate);
 	if(!com)
 	{
 		Notify(msg_warning, "Dynamixel serial device \"%s\" could not be opened.", device);
@@ -184,12 +185,6 @@ void DynamixelConfigure::Init()
 	for(int i=0; i<nrOfServos; i++)
 		inAdressSize[i] = new int [IK_INPUTS];
 	
-	for(int i=0; i<nrOfServos; i++)
-		for(int j=0; j<IK_INPUTS; j++)
-			if(inAdress[i][j]!= -1)
-				inAdressSize[i][j] =  servo[servoIndex[i]]->controlTable[inAdress[i][j]].Size;
-			else
-				inAdressSize[i][j] =  -1;
 	
 	// Reset array
 	for (int i = 0; i < nrOfServos; i++)
@@ -203,7 +198,13 @@ void DynamixelConfigure::Init()
 			if (servo[servoIndex[i]]->controlTable[j].IkarosInputs >= 0)
 				inAdress[i][servo[servoIndex[i]]->controlTable[j].IkarosInputs] = servo[servoIndex[i]]->controlTable[j].Adress;
 		}
-
+	for(int i=0; i<nrOfServos; i++)
+		for(int j=0; j<IK_INPUTS; j++)
+			if(inAdress[i][j]!= -1)
+				inAdressSize[i][j] =  servo[servoIndex[i]]->controlTable[inAdress[i][j]].Size;
+			else
+				inAdressSize[i][j] =  -1;
+	
 	// Do not allow mixed protocols
 	protocol = -1;
 	if (nrOfServos > 0)
@@ -254,7 +255,7 @@ void DynamixelConfigure::Tick()
 		{
 			servo[servoIndex[selectedServo]]->SetValueAtAdress(changeAdress, newValue);
 			com->WriteToServo(servoId[selectedServo], protocol, changeAdress, &servo[servoIndex[selectedServo]]->dynamixelMemory[changeAdress], servo[servoIndex[selectedServo]]->controlTable[changeAdress].Size);
-
+			
 			timer.Sleep(500); // to make sure we have time to write changes before shuting down ikaros.
 			// Shutdown ikaros.
 			Notify(msg_terminate, "DynamixelConfigure: Settings written to dynamixel(s). Quiting Ikaros...");

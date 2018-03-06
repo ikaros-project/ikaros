@@ -1,7 +1,7 @@
 //
 //    DynamixelComm.cc		Class to communicate with Dynamixel servos (version 2)
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -101,5 +101,4 @@ int DynamixelComm::WriteToServo(int id, int protocol, int adress, unsigned char 
 	}
 	
 	return false;
-	
 }
