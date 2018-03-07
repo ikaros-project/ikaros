@@ -220,7 +220,7 @@ int DynamixelComm::Receive1(unsigned char * b)
 bool DynamixelComm::Ping1(int id)
 {
 	Timer t;
-	t.Sleep(100);
+	t.Sleep(100); // Dynamixel wait 100 ms between package. 100 ms sleep will make servo discard any not completed message
 	Flush();
 	t.Sleep(100);
 
