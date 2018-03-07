@@ -215,10 +215,14 @@ int DynamixelComm::Receive2(unsigned char * b)
 // MARK: MISC
 bool DynamixelComm::Ping2(int id)
 {
+	Timer t;
+	t.Sleep(100);
+	Flush();
+	t.Sleep(100);
+	
 #ifdef LOG_COMM
 	printf("DynamixelComm (Ping2) ID %i\n", id);
 #endif
-	Flush();
 	unsigned int parameter_length = 0; // Ping has no data
 	unsigned int length=3+parameter_length;
 	unsigned char outbuf[256] = {0XFF,0XFF,0XFD,0X00,static_cast<unsigned char>(id),static_cast<unsigned char>(length&0xff),static_cast<unsigned char>((length>>8)&0xff), INST_PING}; // Two more bytes for crc
