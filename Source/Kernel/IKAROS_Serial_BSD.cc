@@ -295,12 +295,8 @@ Serial::ReceiveBytes(char *rcvbuf, int length, int timeout_ms)
 		
 		if (read_bytes_tot >= length)
 			break;
+		usleep(500); // Sleep 0.5 ms to reduce CPU Load.
 	}
-	
-	//printf("Time %f TImeout %i\n",t.GetTime(),timeout_ms);
-	// MARK: REMOVE ME LATER
-	//if (t.GetTime() > timeout_ms)
-	//	printf("Timed out %f\n");
 	
 	if (read_bytes_tot == 0)
 		return int(read_bytes);
