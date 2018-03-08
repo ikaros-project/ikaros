@@ -91,7 +91,7 @@ ColorMatch::Tick()
 
     // Retune Target
 
-    if (reinforcement != NULL && focus != NULL && alpha != 0)
+    if (reinforcement != NULL && focus != NULL && alpha != 0 && target_input0 && target_input1 && target_input2)
     {
         float d = alpha * reinforcement[0];
         target0 = (1.0-d)*target0 + d*target_input0[int(focus[1])][int(focus[0])];

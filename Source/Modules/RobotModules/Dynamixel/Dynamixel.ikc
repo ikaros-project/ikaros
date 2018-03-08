@@ -1,123 +1,124 @@
 <?xml version="1.0"?>
 
 <group name="Dynamixel" description="interfaces Dynamixel servos">
-
+	
 	<description type="xhtml">
-        <p>
-            Driver for the Dynamixel servos from ROBOTIS. The module can control servos both in position and continuous (wheel) mode. The IDs of the modules can be set with the parameter 'servo_id'. If this parameter is not set, the module will instead scan the bus for servos.
-        </p>
-        <p>
-            When the index_mode indirect is set, the input and output arrays ranges from 0 to N, where N is the number of connected servos. If the module scanned for the IDs, they will be in numerical order, otherwise they will be in the order listen in the pramater servo_id.
-        </p>
-        <p>
-            When the index_mode is set to direct, the input and output arrays ranges from 0 to the ID of the servos with highest ID. In this mode, some of the elements in the input and output arrays may not be used and will always be set to 0.
-        </p>
-        <p>
-            If the parameter size is set, it will override the other calculations of the size of the arrays and either truncate or extend the array to the requested size.
-        </p>
-        <p>
-            The module comunicates with the servos using serial communication (TTL or RS-485).
-            
-            Use USB2Dynamixel:
-            OSX:
-            It is usually necessary to install the drivers for the FTDI USB serial driver before using the
+		<p>
+			Driver for the Dynamixel servos from ROBOTIS. The module can control servos both in position and continuous (wheel) mode. The IDs of the modules can be set with the parameter 'servo_id'. If this parameter is not set, the module will instead scan the bus for servos.
+		</p>
+		<p>
+			When the index_mode indirect is set, the input and output arrays ranges from 0 to N, where N is the number of connected servos. If the module scanned for the IDs, they will be in numerical order, otherwise they will be in the order listen in the pramater servo_id.
+		</p>
+		<p>
+			When the index_mode is set to direct, the input and output arrays ranges from 0 to the ID of the servos with highest ID. In this mode, some of the elements in the input and output arrays may not be used and will always be set to 0.
+		</p>
+		<p>
+			If the parameter size is set, it will override the other calculations of the size of the arrays and either truncate or extend the array to the requested size.
+		</p>
+		<p>
+			The module comunicates with the servos using serial communication (TTL or RS-485).
+			
+			Use USB2Dynamixel:
+			OSX:
+			It is usually necessary to install the drivers for the FTDI USB serial driver before using the
 			USB2Dynamixel with Ikaros. This driver is available from the FTDI site. When the driver is
 			installed a device called something like "cu.usbserial-A7005Lxn" will show up under the /dev directory.
-            Linux:
-            No drivers needed. The device will show up as "/dev/ttyUSB0" or similary.
-            Windows:
-            Not tested but devices should be COMX.
-        </p>
-        <p>
-            If the servo is set up to run in continuous mode, the module uses the input MOVING_SPEED to set the speed directly
-            between min (0) and max (1). No speed control is performed by this module.
-        </p>
-
+			Linux:
+			No drivers needed. The device will show up as "/dev/ttyUSB0" or similary.
+		</p>
+		<p>
+			If the servo is set up to run in continuous mode, the module uses the input MOVING_SPEED to set the speed directly
+			between min (0) and max (1). No speed control is performed by this module.
+		</p>
 	</description>
-
+	
 	<example description="A simple example">
 		<module
-			class="Dynamixel"
-			name="Dynamixel"
+		class="Dynamixel"
+		name="Dynamixel"
 		/>
+		
 	</example>
-
-
-    <parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
-    <parameter name="baud_rate" type="int" default="1000000" description="Serial baud rate" />
-	<parameter name="print_info" type="list" values="none/minimal/full" default="minimal" description="Print information about the servos to console. Minimal prints a few important features of the servo. Full prints the whole control table." />
-
+	
+	
+	<parameter name="device" type="string" default="/dev/cu.usbserial-A7005Lxn" description="Path to serial device" />
+	<parameter name="baud_rate" type="int" default="1000000" description="Serial baud rate" />
+	<parameter name="print_info" type="list" values="none/minimal/full" default="minimal" description="Print information about the servos to console. Minimal prints a few important features of the servo. Full prints the complete control table." />
 	<parameter name="servo_id" type="string" default="" description="The IDs of the Dynamixel servos. If this parameter is not set, the module will scan for servos" />
-    <parameter name="strict_servo_id" type="bool" default="no" description="WARNING or ERROR if the servo_id can not be found" />
-    <parameter name="index_mode" type="list" values="direct/indirect" default="direct" description="The relation between the indices of the input and output arrays and the IDs of the servos. In direct mode, the index of the arrays correponds to the IDs of the servos while in indirect mode the inputs and outputs has the same size as the number of servos." />
-    <parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
-	<parameter name="max_servo_id" type="int" default="32" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
-	<parameter name="size" type="int" default="0" description="This parameter forces a specific size of the output. In the normal case when it is not set, the size will be derived from the list of servo_ids" />
+	<parameter name="strict_servo_id" type="bool" default="no" description="WARNING or ERROR if the servo ids can not be found" />
+	<parameter name="index_mode" type="list" values="direct/indirect" default="direct" description="The relation between the indices of the input and output arrays and the IDs of the servos. In direct mode, the index of the arrays correponds to the IDs of the servos while in indirect mode the inputs and outputs has the same size as the number of servos." />
+	<parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
+	<parameter name="max_servo_id" type="int" default="12" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
+	<parameter name="size" type="int" default="0" description="This parameter forces a specific size of the output. In the normal case when it is not set, the size will be derived from the list of servo ids" />
 	<parameter name="feedback" type="bool" default="yes" description="If set to 'no' the module works faster and do not ask servos for position feedback etc. Set to 'no' the feedback outputs will be filled with the inputs' values (FEEDBACK_GOAL_POSITION will just be a copy of the GOAL_POSITION). If the feedback does not have a matching input it will be set to -1 (FEEDBACK_PRESENT_VOLTAGE will be set to -1)"/>
 	<parameter name="start_up_delay" type="int" default="10" description="Number of ticks to wait before a position command is sent to the servos." />
 	<parameter name="torque_up_delay" type="int" default="100" description="Number of ticks to ramp up torque limit after start_up_delay" />
 	<parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shuting down ikaros." />
-
-
-    <input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" />
-    <input name="LED" description="LED On/Off, Off if not connected" />
-	<input name="D_GAIN" description="D value for PID regulation. Current set value if not connected" />
-    <input name="I_GAIN" description="I value for PID regulation. Current set value if not connected" />
-    <input name="P_GAIN" description="P value for PID regulation. Current set value if not connected" />
-    <input name="GOAL_POSITION" description="The desired servo positions (in units set by angle_unit). Current set value if not connected" />
-    <input name="MOVING_SPEED" description="The moving servo positions (0..1). Current set value if not connected" />
-    <input name="TORQUE_LIMIT" description="The torque limit (0..1). Current set value if not connected" />
-    <input name="GOAL_TORQUE" description="The goal torque value (Not yet tested)" />
-    <input name="GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" />
-    
-    <output name="FEEDBACK_TORQUE_ENABLE" description="Torque Enable" />
-    <output name="FEEDBACK_LED" description="LED" />
-	<output name="FEEDBACK_D_GAIN" description="D value for PID regulation" />
-    <output name="FEEDBACK_I_GAIN" description="I value for PID regulation." />
-    <output name="FEEDBACK_P_GAIN" description="P value for PID regulation." />
-    <output name="FEEDBACK_GOAL_POSITION" description="The desired servo positions set" />
-    <output name="FEEDBACK_MOVING_SPEED" description="The moving servo positions set" />
-    <output name="FEEDBACK_TORQUE_LIMIT" description="The torque limit set" />
-	<output name="FEEDBACK_PRESENT_POSITION" description="The current servo positions (in units set by angle_units)" />
-	<output name="FEEDBACK_PRESENT_SPEED" description="The current servo speed (in units set by angle_units)" />
-	<output name="FEEDBACK_PRESENT_LOAD" description="The current load of the servo (in percent)" />
-	<output name="FEEDBACK_PRESENT_VOLTAGE" description="The current voltage (in Volts)" />
-	<output name="FEEDBACK_PRESENT_TEMPERATURE" description="The current temperature (in degrees Celsius, °C)" />
-    <output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" />
-    <output name="FEEDBACK_GOAL_TORQUE" description="The goal torque value (Not yet tested)" />
-    <output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" />
-
+	<parameter name="optimize" type="bool" default="true" description="Reduce the servo calls by avoid sending identical value as already on servo. If feedback is not used this parameter should be set to false." />
+	<parameter name="serial_latency" type="int" default="16" description="The serial latency in ms set by the operation system." />
+	
+	<input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" optional="yes"/>
+	<input name="LED" description="LED On/Off, Off if not connected" optional="yes"/>
+	<input name="D_GAIN" description="D value for PID regulation. Current set value if not connected" optional="yes"/>
+	<input name="I_GAIN" description="I value for PID regulation. Current set value if not connected" optional="yes"/>
+	<input name="P_GAIN" description="P value for PID regulation. Current set value if not connected" optional="yes"/>
+	<input name="GOAL_POSITION" description="The desired servo positions (in units set by angle_unit). Current set value if not connected" optional="yes"/>
+	<input name="MOVING_SPEED" description="The moving servo positions (0..1). Current set value if not connected" optional="yes"/>
+	<input name="TORQUE_LIMIT" description="The torque limit (0..1). Current set value if not connected" optional="no"/>
+	<input name="GOAL_TORQUE" description="The goal torque value (Not yet tested)" optional="yes"/>
+	<input name="GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" optional="yes"/>
+	
+	<output name="FEEDBACK_TORQUE_ENABLE" description="Torque Enable" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_LED" description="LED" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_D_GAIN" description="D value for PID regulation" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_I_GAIN" description="I value for PID regulation." size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_P_GAIN" description="P value for PID regulation." size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_GOAL_POSITION" description="The desired servo positions set" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_MOVING_SPEED" description="The moving servo positions set" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_TORQUE_LIMIT" description="The torque limit set" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_PRESENT_POSITION" description="The current servo positions (in units set by angle_units)" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_PRESENT_SPEED" description="The current servo speed (in units set by angle_units)" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_PRESENT_LOAD" description="The current load of the servo (in percent)" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_PRESENT_VOLTAGE" description="The current voltage (in Volts)" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_PRESENT_TEMPERATURE" description="The current temperature (in degrees Celsius, °C)" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_GOAL_TORQUE" description="The goal torque value (Not yet tested)" size_set="TORQUE_LIMIT" />
+	<output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" size_set="TORQUE_LIMIT" />
+	<output name="ERRORS" description="Errors" size_set_x="TORQUE_LIMIT" size_y = "19"/>
+	
 	<module class="Dynamixel" />
-
-		<view>
-			<object class ="BarGraph" title="Torque Enable" module="*" source="FEEDBACK_TORQUE_ENABLE" x="0" y="0" w="2" />
-			<object class ="BarGraph" title="Torque Limit" module="*" source="FEEDBACK_TORQUE_LIMIT" x="0" y="1" w="2" />
-			<object class ="BarGraph" title="Position" module="*" source="FEEDBACK_PRESENT_POSITION" x="0" y="2" w="2" />
-			<object class ="BarGraph" title="Speed" module="*" source="FEEDBACK_PRESENT_SPEED" x="0" y="3" w="2" />
-			<object class ="BarGraph" title="Load" module="*" source="FEEDBACK_PRESENT_LOAD" x="0" y="4" w="2" />
-			<object class ="BarGraph" title="Temperature" module="*" source="FEEDBACK_PRESENT_TEMPERATURE" x="0" y="5" w="2" />
-		</view>
-
-
-    <limitation>
-        Only tested with AX-12, MX-28, MX-106.
-    </limitation>
-    
+	<view>
+		<object class ="BarGraph" title="Torque Enable" module="*" source="FEEDBACK_TORQUE_ENABLE" x="0" y="0" w="2" />
+		<object class ="BarGraph" title="Torque Limit" module="*" source="FEEDBACK_TORQUE_LIMIT" x="0" y="1" w="2" />
+		<object class ="BarGraph" title="Position" module="*" source="FEEDBACK_PRESENT_POSITION" x="0" y="2" w="2" />
+		<object class ="BarGraph" title="Speed" module="*" source="FEEDBACK_PRESENT_SPEED" x="0" y="3" w="2" />
+		<object class ="BarGraph" title="Load" module="*" source="FEEDBACK_PRESENT_LOAD" x="0" y="4" w="2" />
+		<object class ="BarGraph" title="Temperature" module="*" source="FEEDBACK_PRESENT_TEMPERATURE" x="0" y="5" w="2" />
+	</view>
+	<view name="Dynamixel Tuning">
+		<object class="Slider" title="Serial latency" module = "*" parameter = "serial_latency" x="0" y="0" h="3" min ="1" max="1000" />
+		<object class="Table" title="Errors" module = "*" source = "ERRORS" x="1" y="0" w="3" h="3" />
+	</view>
+	
+	<limitation>
+		Tested on AX-12, EX-106+, MX-28, MX-106, XL-320.
+	</limitation>
+	
 	<author>
 		<name>Christian Balkenius and Birger Johansson</name>
 		<email>Birger.johansson@lucs.lu.se</email>
 		<affiliation>Lund University Cognitive Science</affiliation>
 		<homepage>http://www.birgerjohansson.com</homepage>
 	</author>
-
-   <files>
-   		<file>Dynamixel.h</file>
-   		<file>Dynamixel.cc</file>
-   		<file>Dynamixel.ikc</file>
-   		<file>DynamixelComm.h</file>
-        <file>DynamixelComm.cc</file>
-        <file>DynamixelServo.cc</file>
-        <file>DynamixelServo.h</file>
-   </files>
+	
+	<files>
+		<file>Dynamixel.h</file>
+		<file>Dynamixel.cc</file>
+		<file>Dynamixel.ikc</file>
+		<file>DynamixelComm.h</file>
+		<file>DynamixelComm.cc</file>
+		<file>DynamixelServo.cc</file>
+		<file>DynamixelServo.h</file>
+	</files>
 </group>
 

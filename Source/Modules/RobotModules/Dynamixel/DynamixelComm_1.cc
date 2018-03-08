@@ -1,7 +1,7 @@
 //
-//    DynamixelComm.cc		Class to communicate with Dynamixel servos
+//    DynamixelComm.cc		Class to communicate with Dynamixel servos (version 1)
 //
-//    Copyright (C) 2016  Birger Johansson
+//    Copyright (C) 2018  Birger Johansson
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -24,232 +24,256 @@
 //
 
 #include "DynamixelComm.h"
-#include "DynamixelServo.h"
 
-
-// MARK: Sync write functions (block memory)
-void DynamixelComm::SyncWriteWithIdRange1(int * servo_id, int * mask, unsigned char ** DynamixelMemoeries, int * bindedAdress, int * size, int n)
+// MARK: SyncWrite
+// AddDataSyncWrite1 will add data to a syncwrite package similar to the addDataBulkWrite.
+// When calling AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize) multiple times int adress and int dSize must not change.
+// Ex. AddDataSyncWrite1(servo1, adress, value1, length of value) next call AddDataSyncWrite1(servo2, adress, value2, length of value) etc. adress and length of value must be the same.
+bool DynamixelComm::AddDataSyncWrite1(int ID, int adress, unsigned char * data, int dSize)
 {
-	int datalength = -1;
-	int nrServoToSendTo = 0;
-	
-	// Find parameter size. Same in SyncWrite
-	for (int i = 0; i < n; i++)
-		if (size[i] != -1)
-		{
-			datalength = size[i]; // Fixed size for all servoes in sync_write mode.
-			break;
-		}
-	
-	if (datalength == -1)
-		return;
-	
-	// Find parameter adress.
-	int adress = -1;
-	for (int i = 0; i < n; i++)
+	// Grab the first adress and dSize.
+	if (syncWriteBufferLength == -1)
 	{
-		if (bindedAdress[i] != -1)
-		{
-			adress = bindedAdress[i]; // Fixed size for all servoes in sync_write mode.
-			break;
-		}
+		syncWriteAdress = adress;
+		syncWriteBlockSize = dSize;
 	}
-	for (int i = 0; i < n; i++)
-		if (bindedAdress[i] != -1)
-			if (mask[i] == 1)
-				nrServoToSendTo++;
 	
-	if (adress == -1)
-		return;
+#ifdef LOG_COMM
+	printf("DynamixelComm (AddDataSyncWrite1) Adding data to syncwrite ID: %i, adress %i, start adress %i, length %i, total length %i\n", ID, adress, syncWriteAdress, dSize, syncWriteBlockSize);
+#endif
+	// Check syncWriteBuffer overflow
+	if (syncWriteBufferLength + 1 + dSize > 1024)  // 1 = id
+		return false;
 	
-	//printf("Number of servos to send to %i\n",nrServoToSendTo);
+	syncWriteBuffer[++syncWriteBufferLength] = ID;
+	memcpy(&syncWriteBuffer[++syncWriteBufferLength], data, dSize);
+	syncWriteBufferLength+=dSize-1;
+	
+	//PrintDataSyncWrite1();
+	return true;
+}
+void DynamixelComm::PrintDataSyncWrite1()
+{
+	printf("DynamixelComm (PrintDataSyncWrite1) Adress %i, Blocksize %i\n",syncWriteAdress,syncWriteBlockSize);
+	for (int i = 0; i <= syncWriteBufferLength; i++)
+		printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", i, syncWriteBuffer[i], syncWriteBuffer[i]);
+}
+
+bool DynamixelComm::SendSyncWrite1()
+{
+#ifdef LOG_COMM
+	printf("DynamixelComm (SendSyncWrite1) Sending SyncWrite command\n");
+#endif
+	if (syncWriteBufferLength == -1)
+		return false;
+	
+	unsigned int length=1+syncWriteBufferLength+4; // Length is the packet length AFTER packet length feild. Inst + Parameters + CRC  (L+1) X N + 4   (L: Data Length per RX-64, N: the number of RX-64s)
+	unsigned int lengthPackage = length + INSTRUCTION_HEADER_1; // Total length of the package with all feilds
+	unsigned char id = 0XFE; // Broadcast
+	//unsigned char length = static_cast<unsigned char>(syncWriteBufferLength+1+4); 		// Length (L+1) X N + 4   (L: Data Length per RX-64, N: the number of RX-64s)
+	unsigned char adress = static_cast<unsigned char>(syncWriteAdress);	// Start address to write Data
+	unsigned char paramterLength = static_cast<unsigned char>(syncWriteBlockSize); // Length of data to write
 	
 	// Check if the length of the packages is vailed. The maximum buffer size for the dynamixel is 147 bytes.
-	// If there is a higher value than this we need to split it into smaller pecies.
-	if (datalength*n+SYNC_WRITE_HEADER_1 > DYNAMIXEL_MAX_BUFFER)
+	if (lengthPackage > DYNAMIXEL_MAX_BUFFER)
 	{
-		printf("DynamixelCommunication: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
-		
-		//        // Finding out how many servoes we can send to each time.
-		//        nrServoToSendTo = ((DYNAMIXEL_MAX_BUFFER-SYNC_WRITE_HEADER_1)/datalength)-2;
-		//        int nTo = nrServoToSendTo;
-		//        int nFrom = 0;
-		//        while (nFrom != n)
-		//        {
-		//            unsigned char outbuf[256] =
-		//            {
-		//                0XFF,
-		//                0XFF,
-		//                0XFE,
-		//                static_cast<unsigned char>((datalength+1)*(nTo-nFrom+1)+4),     // (datalength+1)*N+4
-		//                0X83,                                                           // sync_write
-		//                static_cast<unsigned char>(adress),                               // address
-		//                static_cast<unsigned char>(datalength)                          // length
-		//            };
-		//
-		//            int k = 0;
-		//            for(int i=nFrom; i<=nTo; i++)
-		//            {
-		//                outbuf[SYNC_WRITE_HEADER_1+k*(datalength+1)] = servo_id[i];
-		//                memcpy(&outbuf[SYNC_WRITE_HEADER_1 + (datalength+1)*k+1], &DynamixelMemoeries[i][adress], (datalength) * sizeof(unsigned char) );
-		//                k++;
-		//            }
-		//            Send1(outbuf);
-		//
-		//            nFrom = nTo+1; // Next send from
-		//            nTo = nTo + nrServoToSendTo; // Next send to
-		//            if(nTo+1 > n)
-		//                nTo = n-1;
-		//        }
+		printf("DynamixelComm: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos\n");
+		syncWriteBufferLength = -1;
+		return false;
 	}
-	else // No splitting needed.
-	{
-		unsigned char outbuf[256] =
-		{
-			0XFF,
-			0XFF,
-			0XFE,
-			static_cast<unsigned char>((datalength+1)*nrServoToSendTo+4),   // (datalength+1)*N+4
-			0X83,                                                           // sync_write
-			static_cast<unsigned char>(adress),                             // address
-			static_cast<unsigned char>(datalength)                          // length
-		};
-		
-		for(int i=0; i<n; i++)
-			if (bindedAdress[i] != -1 && mask[i] == 1) // Skipp servo if it can not handle parameter (PID parameters etc) and not masked.
-			{
-				outbuf[SYNC_WRITE_HEADER_1+i*(datalength+1)] = servo_id[i];
-				memcpy(&outbuf[SYNC_WRITE_HEADER_1 + i*(datalength+1)+1], &DynamixelMemoeries[i][adress], datalength * sizeof(unsigned char) );
-			}
-		//PrintFullInstructionPackage1(outbuf);
-		Send1(outbuf);
-	}
-}
-// MARK: Read block
-bool
-DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int from, int to)
-{
-	// Example 0 to 57 (EX-106+). Read 58 bytes (57-0 + 1) form adress 0.
-	int bytesToRead = to-from+1;
 	
-	unsigned char outbuf[256] = {0XFF,0XFF, static_cast<unsigned char>(id), 4, INST_READ, static_cast<unsigned char>(from), static_cast<unsigned char>(bytesToRead), 0X00};
-	Send1(outbuf);
+	// Message
+	unsigned char outbuf[256] = {0XFF, 0XFF, id, static_cast<unsigned char>(length), INST_SYNC_WRITE, adress, paramterLength};
+	// Message data
+	memcpy(&outbuf[INSTRUCTION_HEADER_1 + 2], &syncWriteBuffer[0], (syncWriteBufferLength+1) * sizeof(unsigned char));
 	
 	//PrintFullInstructionPackage1(outbuf);
+	Send1(outbuf);
 	
-	unsigned char inbuf[256];
+	// Reset memory
+	syncWriteBufferLength = -1;
+	syncWriteBlockSize = 0;
+	syncWriteAdress = 0;
+	return true;
+}
+
+// MARK: Read memory block
+bool DynamixelComm::ReadMemoryRange1(int id, unsigned char * buffer, int fromAdress, int toAdress)
+{
+#ifdef LOG_COMM
+	printf("DynamixelComm (ReadMemoryRange1): (id:%i) (%i-%i)\n",id, fromAdress, toAdress);
+#endif
+	
+	int bytesToRead = toAdress-fromAdress+1;
+	unsigned char outbuf[256] = {0XFF,0XFF, static_cast<unsigned char>(id), 4, INST_READ, static_cast<unsigned char>(fromAdress), static_cast<unsigned char>(bytesToRead), 0X00};
+	Send1(outbuf);
+	//PrintFullInstructionPackage1(outbuf);
+	
+	unsigned char inbuf[BUFFER_SIZE];
 	int n = Receive1(inbuf);
 	//PrintFullStatusPackage1(inbuf);
 	
-	// Nothing in.
-	if(n==0)
+	// Do all message checking here
+	if (n == ERROR_NO_HEADER)
 	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): Did not get the header (4 bytes). Flushing (id:%i)\n",id);
+#endif
 		FlushIn();
-		FlushOut();
-		return false;
+		missingBytesError++;
+		return (false);
+	}
+	if (n == ERROR_CRC)
+	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): CRC error. Flushing (id:%i)\n",id);
+#endif
+		FlushIn();
+		crcError++;
+		return (false);
+	}
+	if (n == ERROR_NOT_COMPLETE)
+	{
+#ifdef LOG_COMM_ERROR
+		printf("DynamixelComm (ReadMemoryRange1): Did not get all bytes expected. Flushing (id:%i)\n",id);
+#endif
+		FlushIn();
+		notCompleteError++;
+		return (false);
 	}
 	
-	// Check checksum
-	unsigned char CheckSumAnswer = CalculateChecksum(inbuf);
-	if (inbuf[inbuf[3]+3] != CheckSumAnswer)
-	{
-		FlushIn();
-		FlushOut();
-		return false;
-	}
-	// Could we check this even more??
+	// Extended check of the message
+	// Checking first bytes id, model etc to make sure these are the right ones.
+	//	int checkBytesToAdress = 6;
+	//	if (bytesToRead < checkBytesToAdress)
+	//		checkBytesToAdress = bytesToRead;
+	//
+	//	for (int i = 0; i <checkBytesToAdress; i++)
+	//	{
+	//		if (buffer[i] != inbuf[5+i] && buffer[i] != 0)
+	//		{
+	//#ifdef LOG_COMM_ERROR
+	//			printf("DynamixelComm (ReadMemoryRange1): Extended check byte %i of id %i (%i != %i) does not match\n",i, id, buffer[i], inbuf[i]);
+	//#endif
+	//			extendedError++;
+	//			return (false);
+	//		}
+	//	}
+	// Parse servo error byte
+	GetServoError2(inbuf[ERROR_BYTE_1]);
 	
-	// Copy recived data to servo memory
-	// Or Is it here?
+#ifdef LOG_COMM
+	printf("DynamixelComm (ReadMemoryRange1): Fill internal buffer from received buffer. (id:%i)\n",id);
+#endif
+	
 	memcpy(&buffer[0], &inbuf[5], bytesToRead * sizeof(unsigned char));
 	return true;
 }
-// MARK: Send/Recive
-void
-DynamixelComm::Send1(unsigned char * b)
+// MARK: Send/Receive
+void DynamixelComm::Send1(unsigned char * b)
 {
-	b[b[3]+3] = CalculateChecksum(b);
-	SendBytes((char *)b, b[3]+4);
+#ifdef LOG_COMM
+	printf("DynamixelComm (Send1)\n");
+#endif
+	b[b[LEN_BYTE_1]+LEN_BYTE_1] = CalculateChecksum(b);
+	SendBytes((char *)b, b[LEN_BYTE_1]+4);
 }
-int
-DynamixelComm::Receive1(unsigned char * b)
-{
-	int c = ReceiveBytes((char *)b, 4);
-	if(c < 4)
-		return 0;
+
+// Calculate timeout
+// Timeout = com->time_per_byte*packet_length + (LATENCY_TIMER*2) + 2.0 // Numbers from Robotis sdk. This might need to be tuned for different platform. Will be testing with raspberry pi 3.
+
+int DynamixelComm::Receive1(unsigned char * b)
+{	
+#ifdef LOG_COMM
+	printf("DynamixelComm (Receive1)\n");
+#endif
+	int c = ReceiveBytes((char *)b, LEN_BYTE_1 + 1, (this->time_per_byte*(LEN_BYTE_1 +1)) + 8 + serialLatency); // Get first part of message to calculate total length of package.
+	if(c < LEN_BYTE_1 + 1)
+	{
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive1): Did not get header (Timed out. Got %i bytes)\n",c);
+#endif
+		FlushIn();
+		return ERROR_NO_HEADER;
+	}
+	int lengthOfPackage = b[LEN_BYTE_1];
+	c += ReceiveBytes((char *)&b[LEN_BYTE_1+1], lengthOfPackage,  (this->time_per_byte*lengthOfPackage) + 8 + serialLatency);
 	
-	c += ReceiveBytes((char *)&b[4], b[3]);
-	
+	if(c < lengthOfPackage)
+	{
+#ifdef LOG_COMM
+		printf("DynamixelComm (Receive1): Did not get all message (Timed out. Got %i bytes)\n",c);
+#endif
+		FlushIn();
+		return ERROR_NOT_COMPLETE;
+	}
 	unsigned char checksum = CalculateChecksum(b);
 	if(checksum != b[b[3]+3])
-		return 0;
-	
+	{
+		FlushIn();
+		return ERROR_CRC;
+	}
 	return c;
 }
 
 // MARK: MISC
-bool
-DynamixelComm::Ping1(int id)
+bool DynamixelComm::Ping1(int id)
 {
+	Timer t;
+	t.Sleep(100); // Dynamixel wait 100 ms between package. 100 ms sleep will make servo discard any not completed message
+	Flush();
+	t.Sleep(100);
+
+#ifdef LOG_COMM
+	printf("DynamixelComm (Ping1) ID %i\n", id);
+#endif
+	
 	unsigned char outbuf[256] = {0XFF, 0XFF, static_cast<unsigned char>(id), 2, INST_PING, 0X00};
-	unsigned char inbuf[256];
 	Send1(outbuf);
-	int n = Receive1(inbuf);
-	return (n != 0);
+	//PrintFullInstructionPackage1(outbuf);
+	
+	unsigned char inbuf[256];
+	//PrintFullStatusPackage1(inbuf);
+	return (Receive1(inbuf) > 0);
 }
 
-void
-DynamixelComm::Reset1(int id)
+void DynamixelComm::Reset1(int id)
 {
-	printf("Dynamixel: Trying to reset id: %i\n", id);
+	printf("Dynamixel: Sending Reset id: %i\n", id);
 	unsigned char outbuf[256] = {0XFF, 0XFF, static_cast<unsigned char>(id), 2, INST_RESET, 0X00};
 	Send1(outbuf);
-	// Recive status packet but do not do anyting with it.
 	unsigned char inbuf[256];
-	Receive1(inbuf);
+	Receive1(inbuf); // Ignore status package
 }
 // MARK: Print
 void DynamixelComm::PrintFullInstructionPackage1(unsigned char * package)
 {
-	PrintPartInstructionPackage1(package, 1, package[3]-2);
-}
-void DynamixelComm::PrintPartInstructionPackage1(unsigned char * outbuf, int from, int to)
-{
-	int datalength = to-from+1;                      // Bytes of parameters
-	int totalLengthOfPackage = 3 + outbuf[3] + 1;    // The total length of package (3 bytes before length + lenght + crc byte)
+	int k = 0;
+	int l = 0;
+	int totalLength = INSTRUCTION_HEADER_1 - 1 + package[LEN_BYTE_1]; // -1 Error byte
+	int crcPos = totalLength - 1;
 	
-	int ix = 0;
-	int jx = 0;
-	printf("\n== Instruction Packet (Send) (%i) ======\n",totalLengthOfPackage);
-	for (ix = 0; ix < totalLengthOfPackage-1; ix++)
-	{
-		switch (ix) {
-			case 0:
-				printf("============= Start Bytes =======\n");
-				break;
-			case 2:
-				printf("============= ID ================\n");
-				break;
-			case 3:
-				printf("============= Length ============\n");
-				break;
-			case 4:
-				printf("============= Inst ==============\n");
-				break;
-			case INSTRUCTION_HEADER_1:
-				printf("*********** Parameters (%i) ******\n",datalength);
-				printf("============= Data bytes ========\n");
-				break;
-			default:
-				break;
-		}
-		if (ix < INSTRUCTION_HEADER_1)
-			printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", ix, outbuf[ix], outbuf[ix]);
+	printf("\n== Instruction Packet (Send) (%i) =\n",totalLength);
+	while (k < totalLength) {
+		if (k == 0)
+			printf("============= Start Bytes =======\n");
+		if (k == 2)
+			printf("============= ID ================\n");
+		if (k == 3)
+			printf("============= Length ============\n");
+		if (k == 4)
+			printf("============= Inst ==============\n");
+		if (k == 5)
+			printf("============= Data bytes ========\n");
+		if (k == crcPos)
+			printf("============= CRC ===============\n");
+		
+		if (k > INSTRUCTION_HEADER_1 - 1 and k < crcPos)
+			printf("%3i (%2i) BUFFER: %#04X (%3i)\n", k, l++, package[k],package[k]);
 		else
-			printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", ix, jx++, outbuf[ix],outbuf[ix]);
+			printf("%3i \t\tBUFFER: %#04X \t(%3i)\n", k, package[k], package[k]);
+		k++;
 	}
-	printf("============ CRC ================\n");
-	printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", ix, outbuf[ix], outbuf[ix]);
 }
 void DynamixelComm::PrintMemory1(unsigned char * m, int from, int to)
 {
@@ -258,58 +282,73 @@ void DynamixelComm::PrintMemory1(unsigned char * m, int from, int to)
 		printf("%3i \t\tBUFFER: %#04X \t(%3i)\n", j, m[j],m[j]);
 }
 
-// Print full message (from parameter 1 to whole package)
 void DynamixelComm::PrintFullStatusPackage1(unsigned char * package)
 {
-	PrintPartStatusPackage1(package, 1, package[3]-2);
-}
-void DynamixelComm::PrintPartStatusPackage1(unsigned char * outbuf, int from, int to)
-{
-	int datalength = to-from+1;                      // Bytes of parameters
-	int totalLengthOfPackage = 3 + outbuf[3] + 1;    // The total length of package (3 bytes before length + lenght + crc byte)
-	
-	int ix = 0;
-	int jx = 0;
-	printf("\n====== Status Package (%i) ======\n",totalLengthOfPackage);
-	for (ix = 0; ix < totalLengthOfPackage-1; ix++)
-	{
-		switch (ix) {
-			case 0:
-				printf("============= Start Bytes =======\n");
-				break;
-			case 2:
-				printf("============= ID ================\n");
-				break;
-			case 3:
-				printf("============= Length ============\n");
-				break;
-			case 4:
-				printf("============= Error =============\n");
-				break;
-			case RECIVE_HEADER_1:
-				printf("*********** Parameters (%i) ******\n",datalength);
-				printf("============= Data bytes ========\n");
-				break;
-			default:
-				break;
-		}
-		if (ix < RECIVE_HEADER_1)
-			printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", ix, outbuf[ix], outbuf[ix]);
+	int k = 0;
+	int l = 0;
+	int totalLength = STATUS_HEADER_1 - 1 + package[LEN_BYTE_1]; // - 1 error byte
+	int crcPos = totalLength - 1;
+	printf("\n== Status Packet (Send) (%i) =====\n",totalLength);
+	while (k < totalLength) {
+		if (k == 0)
+			printf("============= Start Bytes =======\n");
+		if (k == 2)
+			printf("============= ID ================\n");
+		if (k == 3)
+			printf("============= Length ============\n");
+		if (k == 4)
+			printf("============= Error =============\n");
+		if (k == 5)
+			printf("============= Data bytes ========\n");
+		if (k == crcPos)
+			printf("============= CRC ===============\n");
+		
+		if (k > STATUS_HEADER_1 - 1 and k < crcPos)
+			printf("%3i (%2i) BUFFER: %#04X (%3i)\n", k, l++, package[k],package[k]);
 		else
-			printf("%3i (%2i) \tBUFFER: %#04X \t(%3i)\n", ix, jx++, outbuf[ix],outbuf[ix]);
+			printf("%3i \t\tBUFFER: %#04X \t(%3i)\n", k, package[k], package[k]);
+		k++;
 	}
-	printf("============ CRC ================\n");
-	printf("%3i  \t\tBUFFER: \%#04X\t(%3i)\n", ix, outbuf[ix], outbuf[ix]);
 }
 
 // MARK: CRC
-unsigned char
-DynamixelComm::CalculateChecksum(unsigned char * b)
+unsigned char DynamixelComm::CalculateChecksum(unsigned char * b)
 {
 	unsigned char checksum = 0;
 	for(int i=0; i<(b[3]+1); i++)
 		checksum += b[i+2];
 	checksum = ~checksum;
-	
 	return checksum;
+}
+
+// MARK: Error
+void DynamixelComm::GetServoError1(unsigned char errorByte)
+{
+	
+	// Bit 7 0 -
+	// Bit 6 Instruction Error In case of sending an undefined instruction or delivering the         action command without the reg_write command, it is set as 1.
+	// Bit 5 Overload Error When the current load cannot be controlled by the set Torque, it is set as 1.
+	// Bit 4 Checksum Error When the Checksum of the transmitted Instruction Packet is incorrect, it is set as 1.
+	// Bit 3 Range Error When a command is out of the range for use, it is set as 1.
+	// Bit 2 Overheating Error When internal temperature of Dynamixel is out of the range of operating temperature set in the Control table, it is set as 1.
+	// Bit 1 Angle Limit Error When Goal Position is written out of the range from CW Angle Limit to CCW Angle Limit , it is set as 1.
+	// Bit 0 Input Voltage Error When the applied voltage is out of the range of operating voltage set in the Control table, it is as 1.
+	
+	errorServoInputVoltage = (errorByte >> 0) & 0x1;
+	errorServoAngleLimit = (errorByte >> 1) & 0x1;
+	errorServoOverHeating = (errorByte >> 2) & 0x1;
+	errorServoRange = (errorByte >> 3) & 0x1;
+	errorServoChecksum = (errorByte >> 4) & 0x1;
+	errorServoOverload = (errorByte >> 5) & 0x1;
+	errorServoIntruction = (errorByte >> 6) & 0x1;
+	//errorServoInputVoltage = (errorByte >> 7) & 0x1;
+	
+#ifdef LOG_COMM_ERROR
+	if (errorServoInputVoltage != 0 && errorServoAngleLimit != 0 && errorServoOverHeating != 0 && errorServoRange != 0 && errorServoChecksum != 0 && errorServoOverload != 0 && errorServoIntruction != 0 )
+	{
+		printf("DynamixelComm: Error byte\n");
+		printf("%i %i %i %i %i %i %i\n",errorServoInputVoltage,errorServoAngleLimit,errorServoOverHeating,errorServoRange,errorServoChecksum,errorServoOverload,errorServoIntruction);
+	}
+#endif
+	
 }

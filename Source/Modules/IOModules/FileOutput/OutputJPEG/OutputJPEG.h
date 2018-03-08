@@ -28,21 +28,26 @@
 class OutputJPEG: public Module
 {
 public:
-    int			cur_image;
-    const char *		file_name;
+    int             cur_image;
+    const char *    file_name;
 
-    float			scale;
+    float		scale;
     int			quality;
 
-    int			supress;
+    int			suppress;
     int			offset;
 
     int			size_x;
     int			size_y;
+    
+    bool        single_trig;
+    bool        increase_file_no_on_trig;
+    bool        trig;
+    bool        last_trig;
 
 
-    float *		writesig;		// If you want to write selectively
-    float **		input_intensity;		// Connect this one
+    float *         writesig;           // If you want to write selectively
+    float **		input_intensity;    // Connect this one
 
     float **		input_red;			// Or all of these
     float **		input_green;

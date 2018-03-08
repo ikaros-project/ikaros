@@ -57,13 +57,6 @@ OutputPNG::OutputPNG(Parameter * p):
 
     cur_image = 0;
 
-    AddInput("WRITE");
-
-    AddInput("INTENSITY");
-
-    AddInput("RED");
-    AddInput("GREEN");
-    AddInput("BLUE");
 }
 
 

@@ -43,9 +43,12 @@ OutputJPEG::Create(Parameter * p)
 OutputJPEG::OutputJPEG(Parameter * p):
         Module(p)
 {
+    Bind(single_trig, "single_trig");
+    Bind(increase_file_no_on_trig, "increase_file_no_on_trig");
+    
     scale	 	= GetFloatValue("scale");
     file_name   = GetValue("filename");
-    supress		= GetIntValue("supress");
+    suppress    = GetIntValue("suppress");
     offset	 	= GetIntValue("offset");
     quality		= GetIntValue("quality");
 
@@ -56,14 +59,6 @@ OutputJPEG::OutputJPEG(Parameter * p):
     }
 
     cur_image = 0;
-
-    AddInput("WRITE");
-
-    AddInput("INTENSITY");
-
-    AddInput("RED");
-    AddInput("GREEN");
-    AddInput("BLUE");
 }
 
 
@@ -94,6 +89,9 @@ OutputJPEG::Init()
 
         // Check connection consistency
     }
+    
+    trig = false;
+    last_trig = false;
 }
 
 
@@ -249,23 +247,41 @@ OutputJPEG::WriteRGBJPEG(FILE * fileref, float ** r, float ** g, float ** b)
 void
 OutputJPEG::Tick()
 {
+    // If we are using a gating signal from outside, we're looking for it here
+    
+    trig = false;
+
+    if(!writesig)
+        trig = true;
+
+    if(!(single_trig) && writesig && *writesig > 0.0)
+        trig = true;
+
+    if(!(last_trig) && writesig && *writesig > 0.0)
+        trig = true;
+    
+    if(writesig && *writesig == 0.0)
+        trig = false;
+    
+    last_trig = (writesig && *writesig > 0.0);
+    
+    // Set file name
+
     char fn[256];
     sprintf(fn, file_name, offset + cur_image);
 
-    // If we are using a gating signal from outside, we're looking for it here
-    
-    if ((writesig != NULL) && (!(writesig[0] > 0.0))) {
-
-        Notify(msg_verbose, " Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
+    if(suppress > cur_image)
+    {
+        Notify(msg_verbose, "Suppressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
         cur_image++;
         return;
     }
- 
-
-    if (supress > cur_image)
+    
+    if(!trig)
     {
-        Notify(msg_verbose, "Supressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
-        cur_image++;
+        Notify(msg_verbose, "Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
+        if(!increase_file_no_on_trig)
+            cur_image++;
         return;
     }
 
@@ -286,7 +302,8 @@ OutputJPEG::Tick()
 
     fclose(file);
 
-    cur_image++;
+    if(!increase_file_no_on_trig || trig)
+        cur_image++;
 }
 
 static InitClass init("OutputJPEG", &OutputJPEG::Create, "Source/Modules/IOModules/FileOutput/OutputJPEG/");

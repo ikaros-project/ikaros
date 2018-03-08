@@ -40,10 +40,9 @@ class OutputVideoFile: public Module
 {
 public:
     static Module * Create(Parameter * p) { return new OutputVideoFile(p); }
-
-    OutputVideoFile(Parameter * p);
+	OutputVideoFile(Parameter * p) : Module(p) {}
     virtual ~OutputVideoFile();
-    
+	
     void            Init();
     void            Tick();
     

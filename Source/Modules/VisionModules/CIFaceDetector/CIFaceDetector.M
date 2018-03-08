@@ -180,7 +180,7 @@ CIFaceDetector::Tick()
                 float mvx = f.mouthPosition.x - p0x;
                 float mvy = f.mouthPosition.y - p0y;
                 
-                float d = (mdx*mvx+mdy*mvy)/(hypot(dx,dy)*hypot(mvx,mvy));
+                float d = (mdx*mvx+mdy*mvy)/(ikaros::hypot(dx,dy)*ikaros::hypot(mvx,mvy));
                 
                 float mpx =  p0x + d * mdx;
                 float mpy =  p0y + d * mdy;

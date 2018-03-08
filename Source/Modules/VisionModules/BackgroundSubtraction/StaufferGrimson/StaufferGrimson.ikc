@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<group name="StaufferGrimson" description="forground/background segmentation">
+
+<description type="text">
+Implementation of the Stauffer-Grimson forground/background segmentation for grayscale images.
+</description>
+
+<example description="A simple example">
+<module
+class="StaufferGrimson"
+name="StaufferGrimson"
+/>
+</example>
+
+<parameter
+    name="alpha"
+    type="float"
+    default="0.005"
+    description="The update rate"
+/>
+
+
+<parameter
+    name="T"
+    type="float"
+    default="0.8"
+    description="The background portion"
+/>
+
+
+<parameter
+    name="threshold"
+    type="float"
+    default="2.5"
+    description="The threshold as value times standard deviation"
+/>
+
+
+<parameter
+    name="gaussPerPixel"
+    type="int"
+    default="5"
+    description="Number of gaussians per pixel"
+/>
+
+
+<parameter
+    name="initialStandardDeviation"
+    type="float"
+    default="0.02"
+    description="The initial standard deviation"
+/>
+
+
+
+<input
+    name="INPUT"
+    description="The input image"
+/>
+
+<output
+    name="OUTPUT"
+    size_set="INPUT"
+    description="The processed image"
+/>
+
+<module class="StaufferGrimson" />
+
+<author>
+<name>Christian Balkenius</name>
+<email>christian.balkenius@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Christian.Balkenius/</homepage>
+</author>
+
+<files>
+<file>StaufferGrimson.h</file>
+<file>StaufferGrimson.cc</file>
+<file>StaufferGrimson.ikc</file>
+</files>
+
+</group>
+
+

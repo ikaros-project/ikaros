@@ -306,6 +306,7 @@ div.frame  *:nth-child(2) {
 
 
 .frame:hover {
+    border: 1px solid red;
 }
 
 .dragged, .resized {

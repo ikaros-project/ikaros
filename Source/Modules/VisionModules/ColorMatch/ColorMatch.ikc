@@ -23,13 +23,13 @@
 	<parameter name="target1" type="float" description="Initial color target 1" default="0" />
 	<parameter name="target2" type="float" description="Initial color target 2" default="0" />
 
-	<input name="INPUT0" description="The first input channel" optional="yes" />
-	<input name="INPUT1" description="The second input channel" optional="yes" />
-	<input name="INPUT2" description="The third input channel" optional="yes" />
+	<input name="INPUT0" description="The first input channel" />
+	<input name="INPUT1" description="The second input channel" />
+	<input name="INPUT2" description="The third input channel" />
 
-	<input name="TARGETINPUT0" description="The first target channel" />
-	<input name="TARGETINPUT1" description="The second target channel" />
-	<input name="TARGETINPUT2" description="The third target channel" />
+	<input name="TARGETINPUT0" description="The first target channel" optional="yes" />
+	<input name="TARGETINPUT1" description="The second target channel" optional="yes" />
+	<input name="TARGETINPUT2" description="The third target channel" optional="yes" />
 
 	<input name="FOCUS" description="Pixel with the target color x, y" optional="yes" />
 

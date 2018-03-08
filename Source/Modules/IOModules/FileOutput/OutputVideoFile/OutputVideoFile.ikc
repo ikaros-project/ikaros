@@ -21,10 +21,10 @@
     <parameter name="frame_rate" type="int" default="25" description="Frame rate"/>
 
         
-    <input name="INTENSITY" description="The gray level image data to be written to the file" />
-    <input name="RED" description="The red channel image data to be written to the file" />
-    <input name="GREEN" description="The green channel image data to be written to the file" />
-    <input name="BLUE" description="The blue channel image data to be written to the file" />
+    <input name="INTENSITY" description="The gray level image data to be written to the file" optional="yes"/>
+    <input name="RED" description="The red channel image data to be written to the file" optional="yes"/>
+    <input name="GREEN" description="The green channel image data to be written to the file" optional="yes"/>
+    <input name="BLUE" description="The blue channel image data to be written to the file" optional="yes" />
 
     <author>
 		<name>Birger Johansson</name>

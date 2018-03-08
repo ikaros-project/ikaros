@@ -7,7 +7,7 @@
 -->
 
 <group title="FAST Detector">
-		<module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "20" />
+		<module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "2000" />
 
 		<module  class = "FASTDetector" name = "FAST" />
 

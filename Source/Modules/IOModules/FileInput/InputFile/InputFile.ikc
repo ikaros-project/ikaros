@@ -49,7 +49,9 @@
 	<parameter name="filename" type="string" description="File to read the data from" />
 	<parameter name="type" type="list" values="dynamic/static" deafult="dynamic" description="Setting type to static uses the full file as output that does not change over time" />
 	<parameter name="iterations" type="int" deafult="1" description="Number of times to iterate the files" />
+    <parameter name="repetitions" type="int" deafult="1" description="Number of repetitions of each row" />
 	<parameter name="extend" type="int" default="0" description="Number of additional time steps to run before the module sends the end-of-file signal to the IKAROS kernel. This attribute is used to allow the data in the input file to propagate through the network of modules before the execution is terminated." />
+    <parameter name="send_end_of_file" type="bool" default="yes" description="Set to 'no' to have the module send arrays of zeros forever." />
 	<parameter name="print_iteration" type="bool" default="no" description="Print the iteration number to standard out" />
 
 	<output name="*" description="The outputs generated from columns in the file." />

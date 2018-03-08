@@ -55,6 +55,9 @@ private:
 
     float *     newfile;
     float *     write;
+    
+    bool        last_trig;
+    bool        single_trig;
 
     void	WriteHeader();						// Iterates over the input_list and writes the single line header to the file
     void	WriteData();						// Iterates over the input_list and writes data to the file

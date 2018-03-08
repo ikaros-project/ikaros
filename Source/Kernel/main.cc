@@ -217,7 +217,7 @@ run_batch(Options * options)
         }
         catch(...)
         {
-            printf("IKAROS: BATCH: An error occured\n");
+            printf("IKAROS: BATCH: An error occurred\n");
         }
     }
 

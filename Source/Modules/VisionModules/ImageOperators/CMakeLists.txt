@@ -1,7 +1,9 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_subdirectory(BlockMatching)
 add_subdirectory(ChangeDetector)
 add_subdirectory(CurvatureDetectors)
+add_subdirectory(DirectionDetector)
 add_subdirectory(EdgeDetectors)
 add_subdirectory(GaborFilter)
 add_subdirectory(GaussianFilter)
@@ -10,6 +12,7 @@ add_subdirectory(LoGFilter)
 add_subdirectory(MedianFilter)
 add_subdirectory(ZeroCrossings)
 add_subdirectory(MorphologicalOperators)
+
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

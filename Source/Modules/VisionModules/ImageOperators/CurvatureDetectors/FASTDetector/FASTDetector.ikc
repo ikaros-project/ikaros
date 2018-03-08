@@ -13,6 +13,7 @@
 	</example>
     
     <parameter name="threshold" type="int" default="40" description="the threshold for the FAST detector" />
+    <parameter name="max_points" type="int" default="5000" description="maximum number of points to detect" />
 
 	<input name="INPUT" description="The input image" />
 	<output name="OUTPUT" description="Output" size_set="INPUT" />

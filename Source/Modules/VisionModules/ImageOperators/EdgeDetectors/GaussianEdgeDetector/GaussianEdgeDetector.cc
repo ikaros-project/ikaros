@@ -50,8 +50,8 @@ GaussianEdgeDetector::GaussianEdgeDetector(Parameter * p):
     AddOutput("ORIENTATION");		// Orientation estimation
     AddOutput("dx");				// The filters used
     AddOutput("dy");
-    AddOutput("dGx", filtersize, filtersize);	// The filters used
-    AddOutput("dGy", filtersize, filtersize);
+    AddOutput("dGx", false, filtersize, filtersize);	// The filters used
+    AddOutput("dGy", false, filtersize, filtersize);
 }
 
 

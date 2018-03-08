@@ -37,6 +37,7 @@ public:
     void 		Tick();
 
     int         threshold;
+    int			max_points;
     
     int			size_x;
     int			size_y;

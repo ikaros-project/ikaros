@@ -187,10 +187,10 @@ NetworkCamera::NetworkCamera(Parameter * p):
     fps				=	GetIntValue("fps", 10);
     compression		=	GetIntValue("compression", 50);
 
-    AddOutput("INTENSITY", size_x, size_y);
-    AddOutput("RED", size_x, size_y);
-    AddOutput("GREEN", size_x, size_y);
-    AddOutput("BLUE", size_x, size_y);
+    AddOutput("INTENSITY", false, size_x, size_y);
+    AddOutput("RED", false, size_x, size_y);
+    AddOutput("GREEN", false, size_x, size_y);
+    AddOutput("BLUE", false, size_x, size_y);
 
     // Create socket
 

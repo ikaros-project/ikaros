@@ -41,6 +41,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(CMAKE_C_COMPILER "gcc")
 	set(CMAKE_CXX_COMPILER "g++")
 	add_definitions(-DLINUX)
+    # Remove a few warnings
+    add_definitions(-Wno-unused-value)
+    add_definitions(-Wno-unused-result)
+
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

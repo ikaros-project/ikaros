@@ -5,6 +5,7 @@ add_subdirectory(InputJPEG)
 add_subdirectory(InputPNG)
 add_subdirectory(InputRawImage)
 add_subdirectory(InputVideoFile)
+#add_subdirectory(ImageTrainer)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

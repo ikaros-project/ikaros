@@ -523,7 +523,7 @@ Module_IO::Allocate()
 {
     if (sizex == unknown_size || sizey == unknown_size)
     {
-        if (module != NULL)
+        if (module != NULL && !optional)
             module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name, module->GetName(), module->GetClassName());
         return;
     }
@@ -627,7 +627,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
 }
 
 void
-Module::AddOutput(const char * name, int sizeX, int sizeY, bool optional)
+Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
 {
     if (GetModule_IO(output_list, name) != NULL)
     {
@@ -1403,7 +1403,7 @@ Module::AddIOFromIKC()
     }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
-        AddOutput(kernel->GetXMLAttribute(e, "name"));
+        AddOutput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")));
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
@@ -1420,13 +1420,15 @@ Module::GetSizeXFromList(const char * sizearg)
     // strip blanks
 
     int i=0, j=0;
-    while(l[i] != 0)
+    while(l[j] != 0)
     {
         if(l[j] == ' ')
             j++;
         else
             l[i++]=l[j++];
     }
+    l[i] = 0;
+    
     char * s = l;
     char * input;
     input = strsep(&s, ",");
@@ -1460,13 +1462,15 @@ Module::GetSizeYFromList(const char * sizearg)
     // strip blanks
 
     int i=0, j=0;
-    while(l[i] != 0)
+    while(l[j] != 0)
     {
         if(l[j] == ' ')
             j++;
         else
             l[i++]=l[j++];
     }
+    l[i] = 0;
+
     char * s = l;
     char * input;
     input = strsep(&s, ",");
@@ -1778,7 +1782,7 @@ Kernel::Kernel()
     period_count        = 0;
     phase_count         = 0;
     end_of_file_reached = false;
-    fatal_error_occured	= false;
+    fatal_error_occurred	= false;
     terminate			= false;
     sizeChangeFlag      = false;
     threadGroups        = NULL;
@@ -1865,7 +1869,7 @@ Kernel::Kernel(Options * opt)
     period_count        = 0;
     phase_count         = 0;
     end_of_file_reached = false;
-    fatal_error_occured	= false;
+    fatal_error_occurred	= false;
     terminate			= false;
     sizeChangeFlag      = false;
     threadGroups        = NULL;
@@ -1986,15 +1990,15 @@ Kernel::Terminate()
         Notify(msg_verbose, "Max ticks reached.\n");
         return true;
     }
-    return end_of_file_reached || fatal_error_occured  || global_fatal_error || terminate || global_terminate;
+    return end_of_file_reached || fatal_error_occurred  || global_fatal_error || terminate || global_terminate;
 }
 
 void
 Kernel::Run()
 {
-    if (fatal_error_occured || global_fatal_error)
+    if (fatal_error_occurred || global_fatal_error)
     {
-        Notify(msg_fatal_error, "Terminating because a fatal error occured.\n");
+        Notify(msg_fatal_error, "Terminating because a fatal error occurred.\n");
         throw 4;
     }
     if (max_ticks == 0)
@@ -2233,7 +2237,7 @@ Kernel::Init()
         Notify(msg_warning, "No IKC file supplied.\n"); // Maybe this should only be a warning - YES!
     
     DetectCycles();
-    if(fatal_error_occured)
+    if(fatal_error_occurred)
         return;
     SortModules();
     CalculateDelays();
@@ -2242,7 +2246,7 @@ Kernel::Init()
     InitInputs();		// Calculate the input sizes and allocate memory for the inputs or connect 0-delays
     CheckOutputs();
     CheckInputs();
-    if (fatal_error_occured)
+    if (fatal_error_occurred)
         return;
     InitModules();
 }
@@ -3081,7 +3085,7 @@ Kernel::Notify(int msg, const char * format, ...)
     switch (msg)
     {
         case msg_fatal_error:
-            fatal_error_occured	= true;
+            fatal_error_occurred	= true;
             break;
         case msg_end_of_file:
             end_of_file_reached	= true;

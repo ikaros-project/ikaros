@@ -214,31 +214,31 @@ Serial::SendString(const char * sendbuf)
 
 
 
-// Read characters until we recive a '\n'
+// Read characters until we receive a '\n'
 int Serial::ReceiveUntil(char * buffer, char c)
 {
     char * bufptr = buffer;
     int nbytes = 0;
     int counter = 0;
-    bool start_recive = false;
+    bool start_receive = false;
 
     unsigned long readed = 0;
 
-    //while ((!ReadFile(hCom, buffer, 1, &readed, 0)) || start_recive == false)
+    //while ((!ReadFile(hCom, buffer, 1, &readed, 0)) || start_receive == false)
     while ((nbytes = ReadFile(data->hCom, bufptr, 1, &readed, 0)))
     {
         //printf("in recieve string loop %i",bufptr);
         //printf("nbyte = %i and readed = %i\t read= %c\n",nbytes,readed, buffer[0]);
         bufptr += readed;
         if (nbytes > 0)
-            start_recive = true;
+            start_receive = true;
         nbytes = 0;
         counter++;
         if (bufptr[-1] == c)
             break;
 
         // Loop 50 times and then return with a error
-//        if (counter > 50 && start_recive == false)
+//        if (counter > 50 && start_receive == false)
 //        {
 //            // No resonse from the e-puck. Wait for 0.5 sec and then flush the buffer.
 //            Timer::Sleep(200);
@@ -248,10 +248,10 @@ int Serial::ReceiveUntil(char * buffer, char c)
     }
 
 #ifdef SHOWCOM
-    printf("Recive (String)\t");
+    printf("receive (String)\t");
     for (int i = 0; i < strlen(buffer); i++)
         printf("%c",buffer[i]);
-    printf("\n(%i bytes recived)\n", strlen(buffer));
+    printf("\n(%i bytes receive)\n", strlen(buffer));
     printf("==================\n");
 #endif
     return(strlen(buffer));
@@ -288,7 +288,7 @@ Serial::ReceiveBytes(char *rcvbuf, int length)
     int bytes_left = length;
     int sum_bytes = 0;
     int counter = 0;
-    bool start_recive = false;
+    bool start_receive = false;
 
     unsigned long readed = 0;
 
@@ -322,7 +322,7 @@ Serial::ReceiveBytes(char *rcvbuf, int length)
     }
 //////////////////////////////////
 
-//    while ((nbytes = ReadFile(hCom, buffer, length, &readed, 0)) > 0 || start_recive == false)
+//    while ((nbytes = ReadFile(hCom, buffer, length, &readed, 0)) > 0 || start_receive == false)
 //    {
 //
 //        sum_bytes += nbytes;
@@ -331,11 +331,11 @@ Serial::ReceiveBytes(char *rcvbuf, int length)
 //        bufptr += nbytes;
 //        bytes_left -= nbytes;
 //        if (nbytes > 0)
-//            start_recive = true;
+//            start_receive = true;
 //        nbytes = 0;
 //        counter++;
 //        // Loop 10 times and then return with a error
-//        if (counter > 10 && start_recive == false)
+//        if (counter > 10 && start_receive == false)
 //        {
 //            // No resonse from the e-puck. Wait for 0.5 sec and then flush the buffer.
 //            Timer::Sleep(50);
@@ -347,10 +347,10 @@ Serial::ReceiveBytes(char *rcvbuf, int length)
 //        return (-1);
 
 #ifdef SHOWCOM
-    printf("Recived (Binary)\t\t");
+    printf("received (Binary)\t\t");
     for (int i = 0; i < length; i++)
         printf(" %c",buffer[i]);
-    printf("\n(%i bytes recived)\n", sum_bytes);
+    printf("\n(%i bytes received)\n", sum_bytes);
     printf("===================\n");
 #endif
     return sum_bytes;

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<!-- Placeholder - not ready yet -->
+
+<group name="Test">
+	
+    <module
+        class="RNN"
+        name="RNN"
+    />
+
+</group>
+ 

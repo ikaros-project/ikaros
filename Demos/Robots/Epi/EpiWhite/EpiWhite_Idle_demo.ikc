@@ -240,7 +240,7 @@
 
 
     <view name="Check position">
-        <object class="Table" title = "HLFocusArb"              module="HLFocusArb" source = "OUTPUT" w = "4" h="1"x="0" y="0" />    
+        <object class="Table" title = "HLFocusArb"              module="HLFocusArb" source = "OUTPUT" w = "4" h="1" x="0" y="0" />    
         <object class="Table" title = "Epi"                     module="Epi" source = "MATRIX" w = "4" h="1" x="0" y="1" />    
         <object class="Table" title = "GazeControllFocusPoint"  module="GazeControllFocusPoint" source = "MATRIX" w = "4" h="1" x="0" y="2" />    
     </view>

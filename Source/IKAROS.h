@@ -252,7 +252,7 @@ public:
     
 protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
-    void            AddOutput(const char * name, int size_x=unknown_size, int size_y=1, bool optional=false);    // Allocate output
+    void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
     void            AddIOFromIKC();
     void            SetOutputSize(const char * name, int size_x, int size_y=1);    // Set the output size for an output of unknown size; it is an error to change the output size
     
@@ -495,7 +495,7 @@ private:
     int         phase_count;
     
     bool        end_of_file_reached;                        // Flags set on notification from modules
-    bool        fatal_error_occured;
+    bool        fatal_error_occurred;
     bool        terminate;
     
     bool        sizeChangeFlag;

@@ -78,6 +78,8 @@ InputFile::InputFile(Parameter * p):
     type = GetIntValueFromList("type");
     iteration	= 1;
     iterations  = GetIntValue("iterations");
+    repetitions = GetIntValue("repetitions");
+    repetition  = repetitions;
     extend = GetIntValue("extend", 0);
     cur_extension = 0;
     extending = false;
@@ -134,11 +136,11 @@ InputFile::InputFile(Parameter * p):
         while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
         {
     #ifdef DEBUG_INPUTFILE
-            //	printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
+	        printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
     #endif
             column_name[col] = create_string(col_label);		// Allocate memory for the column name
             column_size[col] = col_size;
-            AddOutput(column_name[col], col_size);
+            AddOutput(column_name[col], false, col_size);
             col++;
             fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
         }
@@ -192,7 +194,7 @@ InputFile::InputFile(Parameter * p):
         // Allocate outputs
         
         for(int j=0; j<col; j++)
-            AddOutput(column_name[j], column_size[j], line_count);
+            AddOutput(column_name[j], false, column_size[j], line_count);
 
         no_of_rows = line_count;
         
@@ -230,6 +232,8 @@ InputFile::Create(Parameter * p)
 void
 InputFile::Init()
 {
+	Bind(send_end_of_file, "send_end_of_file");
+
     if(type == 1)
     {
         file = fopen(filename, "rb");
@@ -335,7 +339,7 @@ InputFile::Tick()
 
     if (extending)
     {
-        if (cur_extension >= extend-1)
+        if (cur_extension >= extend-1 && send_end_of_file)
             Notify(msg_end_of_file);
 
         else if (cur_extension == 0)
@@ -349,6 +353,11 @@ InputFile::Tick()
         return;
     }
 
+	if(repetition++ < repetitions)
+	    return;
+    else
+        repetition = 1;
+	
     skip_comment_lines(file);
     ReadData();
 
@@ -366,7 +375,7 @@ InputFile::Tick()
             fscanf(file, "\n");
         }
 
-        else if (extend == 0)
+        else if (extend == 0 && send_end_of_file)
             Notify(msg_end_of_file, "Reached in \"%s\".\n", filename);
 
         else

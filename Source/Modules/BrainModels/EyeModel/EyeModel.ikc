@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group name="EyeModel" description="models an eye">
+
+	<description type="text">
+        Model of two eyes with pupil control. Does almost nothing but could include a dynamical model of eye motion in the future"
+    </description>
+
+	<example description="A simple example">
+		<module
+			class="EyeModel"
+			name="EyeModel"
+		/>
+	</example>
+    
+    <parameter name="pupil_min" type="float" default="2" description="Minimum size of pupil"/>
+    <parameter name="pupil_max" type="float" default="8" description="Maximum size od pupil"/>
+
+    <parameter name="epsilon" type="float" default="0.5" description="Time constant. How fast does the pupil change size; 1 means immediately"/>
+
+    <parameter name="m3" type="float" default="1.0" description="Muscarine receptor sensitivity/upregulation"/>
+    <parameter name="alpha1a" type="float" default="1.0" description="alpha 1a receptor sensitivity/upregulation"/>
+
+    <input name="GAZE" description="The horizontal and vertical eye direction (-1..1)" optional="yes" />
+    <input name="PUPIL_SPHINCTER" description="The constriction input to the pupil" />
+    <input name="PUPIL_DILATOR" description="The dilation input to the puptil" />
+
+    <output name="PUPIL_DIAMETER" size="1" description="Current diameter of the pupil" />
+    
+    <output name="OUTPUT" size="3" description="Output for visualization of the left eye: (x, y, pupil_size)" />
+
+	<module class="EyeModel" />
+    
+    <view title="Eye Model">
+        <object class="CCircle" title="Right Eye" module="*" source="OUTPUT" x="0" y="0" min="-1" max="1" h="1" w="1" fill="white" size="20"/>
+        <object class="CCircle" module="*" source="OUTPUT" x="0" y="0" min="-1" max="1" h="1" w="1" color="lightblue" fill="lightblue" size="0.35"/>
+        <object class="CCircle" module="*" source="OUTPUT" x="0" y="0" min="-1" max="1" h="1" w="1" color="black" fill="black" select_size="2" scale_size="0.15"/>
+
+        <object class="Plot" title="Gaze" module="*" source="OUTPUT" x="0" y="1" w="2" select="0,1" min="-1" />
+        <object class="Plot" title="Pupil Diameter" module="*" source="PUPIL_DIAMETER" x="0" y="2" w="2" min="0" max="10" />
+    </view>
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EyeModel.h</file>
+   		<file>EyeModel.cc</file>
+   		<file>EyeModel.ikc</file>
+   </files>
+
+</group>
+

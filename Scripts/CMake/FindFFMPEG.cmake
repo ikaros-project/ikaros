@@ -30,7 +30,8 @@ find_path(FFMPEG_INCLUDE_DIR1
   		/usr/include/ffmpeg/libavformat
   		/usr/local/include/libavformat
   		/usr/include/x86_64-linux-gnu/libavformat
-
+        /usr/include/i386-linux-gnu/libavformat
+        /usr/include/arm-linux-gnueabihf/libavformat
   	)
 
 find_path(FFMPEG_INCLUDE_DIR2
@@ -43,6 +44,8 @@ find_path(FFMPEG_INCLUDE_DIR2
   		/usr/include/ffmpeg/libavutil
   		/usr/local/include/libavutil
   		/usr/include/x86_64-linux-gnu/libavutil
+        /usr/include/i386-linux-gnu/libavutil
+        /usr/include/arm-linux-gnueabihf/libavutil
 
   	)
   	
@@ -56,6 +59,8 @@ find_path(FFMPEG_INCLUDE_DIR3
   		/usr/include/ffmpeg/libavcodec
   		/usr/local/include/libavcodec
   		/usr/include/x86_64-linux-gnu/libavcodec
+        /usr/include/i386-linux-gnu/libavcodec
+        /usr/include/arm-linux-gnueabihf/libavcodec
 
   	)
 
@@ -69,6 +74,8 @@ find_path(FFMPEG_INCLUDE_DIR4
   		/usr/include/ffmpeg/libswscale
   		/usr/local/include/libswscale
   		/usr/include/x86_64-linux-gnu/libswscale
+        /usr/include/i386-linux-gnu/libswscale
+        /usr/include/arm-linux-gnueabihf/libswscale
 
   	)
 
@@ -82,6 +89,8 @@ find_path(FFMPEG_INCLUDE_DIR5
   		/usr/include/ffmpeg/libavdevice
   		/usr/local/include/libavdevice
   		/usr/include/x86_64-linux-gnu/libavdevice
+        /usr/include/i386-linux-gnu/libavdevice
+        /usr/include/arm-linux-gnueabihf/libavdevice
 
   	)
   	
@@ -103,6 +112,7 @@ find_library(FFMPEG_LIBRARY1
     	/usr/local/lib
     	/usr/lib
     	/usr/lib/x86_64-linux-gnu
+        /usr/lib/arm-linux-gnueabihf
 	)
 	
 find_library(FFMPEG_LIBRARY2
@@ -112,6 +122,7 @@ find_library(FFMPEG_LIBRARY2
     	/usr/local/lib
     	/usr/lib
     	/usr/lib/x86_64-linux-gnu
+        /usr/lib/arm-linux-gnueabihf
 	)
 	
 find_library(FFMPEG_LIBRARY3
@@ -121,6 +132,7 @@ find_library(FFMPEG_LIBRARY3
     	/usr/local/lib
     	/usr/lib
     	/usr/lib/x86_64-linux-gnu
+        /usr/lib/arm-linux-gnueabihf
 	)
 
 find_library(FFMPEG_LIBRARY4
@@ -130,6 +142,8 @@ find_library(FFMPEG_LIBRARY4
     	/usr/local/lib
     	/usr/lib
     	/usr/lib/x86_64-linux-gnu
+        /usr/lib/arm-linux-gnueabihf
+
 	)
 
 
@@ -140,6 +154,8 @@ find_library(FFMPEG_LIBRARY5
     	/usr/local/lib
     	/usr/lib
     	/usr/lib/x86_64-linux-gnu
+        /usr/lib/arm-linux-gnueabihf
+
 	)
 	
 find_library(FFMPEG_LIBRARY6
@@ -149,6 +165,7 @@ find_library(FFMPEG_LIBRARY6
     	/usr/local/lib
     	/usr/lib
     	/usr/lib/x86_64-linux-gnu
+        /usr/lib/arm-linux-gnueabihf
 	)
 	
 	find_library(FFMPEG_LIBRARY7
