@@ -175,7 +175,7 @@ inspector = {
                             if(p.name == "frame-style")
                                 widget.updateStyle(webui_object, evt.target.innerText);
                          }
-                        widget.update();
+                        widget.updateAll();
                     });
                 break;
 
@@ -186,6 +186,7 @@ inspector = {
                         cell2.addEventListener("input", function(evt) {
                             evt.target.parentElement.querySelector('div').innerText = evt.target.value;
                             parameters[p.name] = evt.target.value;
+                            widget.updateAll();
                         });
                     }
                 break;
@@ -203,14 +204,17 @@ inspector = {
                     }
                     s += '</select>';
                     cell2.innerHTML= s;
-                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; });
+                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.updateAll();});
                 break;
                 
                 case 'checkbox':
                     if(p.type == 'bool')
                     {
-                        cell2.innerHTML= '<input type="checkbox" value="'+value+'" />';
-                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; });
+                       if(value)
+                            cell2.innerHTML= '<input type="checkbox" checked />';
+                        else
+                            cell2.innerHTML= '<input type="checkbox" />';
+                        cell2.addEventListener("change", function(evt) { parameters[p.name] = evt.target.checked; widget.updateAll();});
                     }
                 break;
                 
@@ -218,7 +222,7 @@ inspector = {
                     if(p.type == 'int')
                     {
                         cell2.innerHTML= '<input type="number" value="'+value+'" min="'+p.min+'" max="'+p.max+'"/>';
-                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; });
+                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.updateAll();});
                     }
                 break;
                 
@@ -308,7 +312,7 @@ interaction = {
         element.widget.element = element;
         element.appendChild(element.widget);
         element.widget.init();
-        element.widget.update();
+        element.widget.updateAll();
 
         // TODO: Add default data field to view data structure **********
 
@@ -350,15 +354,20 @@ interaction = {
         {
             element.widget = new webui_widgets.constructors[data['class']];
             
-            // Add default parameters from CSS
-
-            // Add parameters from IKC file
+            // Add default parameters from CSS - possibly...
+ 
+            for(k in element.widget.parameters)
+                if(data[k] === undefined)
+                    data[k] = element.widget.parameters[k];
             
             element.widget.parameters = data;
         }
 
+        element.widget.setAttribute('class', 'widget');
         element.appendChild(element.widget);    // must append before next section
 
+        // Section below should not exists - probably...
+/*
         let widgetStyles = window.getComputedStyle(element.widget);
         let x = widgetStyles.getPropertyValue('--x');
         let y = widgetStyles.getPropertyValue('--y');
@@ -369,16 +378,21 @@ interaction = {
         y = data['y'] ? data['y'] : y;
         width = data['width'] ? data['width'] : width;
         height = data['height'] ? data['height'] : height;
+*/
 
-        element.style.top = y+"px";
-        element.style.left = x+"px";
-        element.style.width = width+"px";
-        element.style.height = height+"px";
+        element.style.top = data.y+"px";
+        element.style.left = data.x+"px";
+        element.style.width = data.width+"px";
+        element.style.height = data.height+"px";
 
         element.handle = document.createElement("div");
         element.handle.setAttribute("class", "handle");
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
+        
+        element.widget.updateAll();
+        
+        let r = element.widget.getBoundingClientRect();
     },
     initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");
@@ -433,6 +447,7 @@ interaction = {
         interaction.selectObject(newObject);
     },
     addView(viewName) {
+        interaction.deselectObject();
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
         interaction.removeAllObjects();
@@ -441,8 +456,14 @@ interaction = {
         let v = interaction.currentView.objects;
         for(let i=0; i<v.length; i++)
         {
-            newObject = document.createElement("div");
-            newObject.setAttribute("class", "frame");
+            let newObject = document.createElement("div");
+            newObject.setAttribute("class", "frame visible");
+            
+            let newTitle = document.createElement("div");
+            newTitle.setAttribute("class", "title");
+            newTitle.innerHTML = "TITLE";
+            newObject.appendChild(newTitle);
+            
             interaction.main.appendChild(newObject);
             interaction.initViewElement(newObject, v[i])
         }
@@ -556,7 +577,7 @@ interaction = {
         interaction.selectedObject.widget.parameters['width'] = newWidth;
         interaction.selectedObject.widget.parameters['height'] = newHeight;
         
-        interaction.selectedObject.widget.update(); //***************
+        interaction.selectedObject.widget.updateAll(); //***************
     },
     setMode: function(mode) {
         interaction.deselectObject();
@@ -717,7 +738,6 @@ controller = {
     },
 
     buildViewDictionary: function(group, name) {
-
         if(group.views)
             for(i in group.views)
                 controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
@@ -762,7 +782,7 @@ controller = {
             for(let i=0; i<w.length; i++)
                 try
                 {
-                    w[i].children[0].update(response);
+                    w[i].children[1].update(response);
                 }
                 catch(err)
                 {}
@@ -786,7 +806,7 @@ controller = {
         for(let i=0; i<w.length; i++)
             try
             {
-                w[i].children[0].requestData(data_set);
+                w[i].children[1].requestData(data_set);
             }
             catch(err)
             {}

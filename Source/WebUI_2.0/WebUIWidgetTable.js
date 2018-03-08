@@ -8,13 +8,17 @@ class WebUIWidgetTable extends WebUIWidget
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
+            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'decimals', 'default': 4, 'type':'int', 'control': 'textedit'},
+            {'name':'colorize', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
     static html()
     {
-        return "<div>TITLE</div><table> </table>";
+        return "<table> </table>";
     }
 
     init()
@@ -46,12 +50,16 @@ class WebUIWidgetTable extends WebUIWidget
 
     update(d)
     {
-        this.div.innerText = this.parameters.title;
+        // Frame styling
+        this.parentElement.className = this.parentElement.className.replace(/visible/,'');
+        this.parentElement.className += this.parameters.show_frame ? ' visible' : '';
+        this.parentElement.firstChild.style.display = this.parameters.show_title ? 'block' : 'none';
+        this.parentElement.firstChild.innerText = this.parameters.title;
 
         try {
-            let m = this.parameters['module']
-            let s = this.parameters['source']
-            this.data = d[m][s]
+            let m = this.parameters['module'];
+            let s = this.parameters['source'];
+            this.data = d[m][s];
 
             if(!this.data)
                 return;
@@ -62,12 +70,21 @@ class WebUIWidgetTable extends WebUIWidget
             if(this.rows != size_y || this.cols != size_x)
                 this.reshapeTable(size_y, size_x);
             
-            for(let j=0; j<size_y; j++)
-                for(let i=0; i<size_x; i++)
-                {
-                    this.table.rows[j].cells[i].innerHTML = this.data[j][i];
-                    this.table.rows[j].cells[i].style.color = this.getColor(i, this.data[j][i]);    // use this.format.decimals
-                }
+            if(this.parameters.colorize)
+                for(let j=0; j<size_y; j++)
+                    for(let i=0; i<size_x; i++)
+                    {
+                        this.table.rows[j].cells[i].innerHTML = this.data[j][i];
+                        this.table.rows[j].cells[i].style.color = this.getColor(i, this.data[j][i]);    // use this.format.decimals
+                    }
+            else
+               for(let j=0; j<size_y; j++)
+                    for(let i=0; i<size_x; i++)
+                    {
+                        this.table.rows[j].cells[i].innerHTML = this.data[j][i];
+                        this.table.rows[j].cells[i].style.color = this.getColor(i);    // use this.format.decimals
+                    }
+
           }
         catch(err)
         {

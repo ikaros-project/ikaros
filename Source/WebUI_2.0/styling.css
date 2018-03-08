@@ -7,6 +7,8 @@
 
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
@@ -112,21 +114,21 @@ main {
     /* global variables should be set here! Will be inherited by enclosed elements */
 
     --direction: vertical;
-
-    --title-height: 35;
+/*
+    --title-height: 0;
     --title-font: 18px Arial;
     --title-color: white;
     --title-background: black;
     --title-margins: no;
     --title-align: center;
     --title-offset: 10, -5;
-
+*/
     --margin-left: 40;
     --margin-right: 10;
     --margin-top: 10;
-    --margin-bottom: 30;
+    --margin-bottom: 10;
 
-    --space-left: 20;
+    --space-left: 10;
     --space-right: 10;
     --space-top: 10;
     --space-bottom: 10;
@@ -181,6 +183,7 @@ aside table {
 }
 
 aside table td.header {
+    text-align: left;
     padding-top: 10px;
     padding-bottom: 10px;
     font-weight: bold;
@@ -192,16 +195,22 @@ aside table td.textedit {
 
 div {
     color: white;
-    padding: 10px;
     font: 12px Arial;
 }
 
 div.frame {
-    /* style for the enclosing frame of widgets here */
-    border: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    border: none;
     background: none;
 }
 
+div.title {
+    background: white;
+    color: black;
+    height: 18px;
+    border: none;
+}
 
 webui-widget-table div {
     height: 35px;
@@ -256,6 +265,7 @@ webui-widget-button button {
  */
 
 
+
 /* Basic style for frame object */
 
 .frame {
@@ -269,7 +279,31 @@ webui-widget-button button {
     overflow: hidden;
     background-color: none;
     cursor: move;
+    border: 10px solid blue;
 }
+
+/*
+div.frame  *:nth-child(2) {
+    flex-grow:1;
+    display: flex;
+    flex-direction: column;
+    border: 10px solid yellow;
+}
+*/
+.widget {
+    flex-grow:1;
+    display: flex;
+    flex-direction: column;
+    border: none;
+ }
+
+.widget * { /* eg canvas */
+    flex-grow:1;
+    display: flex;
+    flex-direction: column;
+    border: none;
+ }
+
 
 .frame:hover {
 }
@@ -340,8 +374,6 @@ main[data-mode="edit"] div#grid {
     height: 1px;
     border-top: 1px solid lightblue;
 }
-
-.frame:after {content: attr(data-name);}
 
 
 #system_inspector {

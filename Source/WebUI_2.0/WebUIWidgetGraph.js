@@ -261,8 +261,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
     {
         this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
         this.canvas.clearRect(0, 0, this.width, this.height);
-        this.drawTitle();
-        this.canvas.translate(this.format.marginLeft, this.format.marginTop+this.format.titleHeight);
+//        this.drawTitle();
+        this.canvas.translate(this.format.marginLeft, this.format.marginTop); // +0*this.format.titleHeight
         
         if(this.format.direction == 'vertical')
         {

@@ -238,6 +238,29 @@ class WebUIWidget extends HTMLElement
         this.readCSSvariables();
     }
 
+    updateFrame()
+    {
+        this.parentElement.className = this.parentElement.className.replace(/visible/,'');
+        this.parentElement.className += this.parameters.show_frame ? ' visible' : '';
+        this.parentElement.firstChild.style.display = this.parameters.show_title ? 'block' : 'none';
+        this.parentElement.firstChild.innerText = this.parameters.title;
+
+    }
+    
+    init()
+    {
+        this.update();
+    }
+ 
+    update()
+    {
+    }
+    
+    updateAll()
+    {
+        this.updateFrame();
+        this.update();
+    }
 };
 
 customElements.define('webui-widget', WebUIWidget);

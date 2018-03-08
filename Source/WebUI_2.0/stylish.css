@@ -1,3 +1,5 @@
+/*
+
 header {
     text-align: right;
     background-color: black;
@@ -8,7 +10,7 @@ main {
     background: black;
     
     --main-color: #2079D7;
-    
+
     --title-height: 0;
     --title-font:  bold small-caps 20px "Frutiger LT Std";
     --title-color: rgba(0,0,0,0);
@@ -31,11 +33,11 @@ main {
 
     --vertical-gridlines: 0;
     --horizontal-gridlines: 0;
-    --grid-color: lightgray;        /*  #00000000 for none  */
+    --grid-color: lightgray;
     --grid-fill: lightgreen;
     --grid-line-width: 1;
     
-    --x-axis: yes;  /* width? color? */
+    --x-axis: yes; 
     --y-axis: yes;
     --axis-color: black;
     --left-tick-marks: 0;
@@ -68,9 +70,28 @@ footer {
 }
 
 div.frame {
-    /* style for the enclosing frame of widgets here */
-    border: 2px solid #2079D7;
+    border: none;
     background: none;
+}
+
+div.frame  *:last-child {
+    border: 2px solid #31587C;
+}
+
+div.frame.visible {
+    border: none;
+    background: none;
+}
+
+div.title {
+    height: 40px;
+    background: none;
+    border: none;
+    color: #09559E;
+    font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: bold;
+    line-height: 24pt;
 }
 
 main[data-mode="edit"] {
@@ -90,6 +111,10 @@ main[data-mode="edit"] {
 }
 
 div.selected {
+    border: 1px solid red;
+}
+
+div.visible.selected {
     border: 1px solid red;
 }
 
@@ -118,3 +143,5 @@ li {
 li:hover {
     color: #3089E7;
 }
+
+*/
