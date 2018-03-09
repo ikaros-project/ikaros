@@ -7,69 +7,34 @@ class WebUIWidgetCanvas extends WebUIWidget
         `;
     }
 
-
+/*
     connectedCallback()
     {
         super.connectedCallback();
-
-//        this.style.display = "block";
-
-
-//        this.innerHTML = this.constructor.html();
-        
-        // update style
-        
- //       this.updateStyle(this, this.parameters['style']);
- //       this.updateStyle(this.parentNode, this.parameters['frame-style']);
- //       this.readCSSvariables();
-        
     }
-    
+*/
+
+    updateFrame()
+    {
+        super.updateFrame();
+        
+        this.canvasElement.width = this.offsetWidth;
+        this.canvasElement.height = this.offsetHeight;
+        this.canvasElement.style.width = this.offsetWidth+"px";
+        this.canvasElement.style.height = this.offsetHeight+"px";
+
+        this.width = this.canvasElement.width;
+        this.height = this.canvasElement.height;
+        this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
+        this.format.height = this.height - this.format.marginTop - this.format.marginBottom;
+    }
+
     init()
     {
         this.canvasElement = this.querySelector('canvas');
         this.canvas = this.canvasElement.getContext("2d");
     }
-/*
-    drawTitle()
-    {
-        this.canvas.beginPath();
-        this.canvas.lineWidth = 1;
-//        this.canvas.strokeStyle = "purple";
-        this.canvas.fillStyle = this.format.titleBackground;
 
-        if(this.format.titleMargins)
-            this.canvas.rect(this.format.marginLeft, 0, this.width - this.format.marginLeft - this.format.marginRight, this.format.titleHeight);
-        else
-            this.canvas.rect(0, 0, this.width, this.format.titleHeight);
-        this.canvas.fill();
-        this.canvas.stroke();
-        
-        this.canvas.font = this.format.titleFont;
-        this.canvas.fillStyle = this.format.titleColor;
-        this.canvas.textAlign = this.format.titleAlign;
-        this.canvas.textBaseline="bottom";
-
-        if(this.format.titleMargins)
-        {
-            if(this.canvas.textAlign == 'left')
-                this.canvas.fillText(this.parameters.title, this.format.marginLeft+this.format.titleOffsetX, this.format.titleHeight+this.format.titleOffsetY-1);
-            else if(this.canvas.textAlign == 'right')
-                this.canvas.fillText(this.parameters.title, this.width - this.format.marginRight-this.format.titleOf. this.format.titleHeight+this.format.titleOffsetY-1);
-            else if(this.canvas.textAlign == 'center')
-                this.canvas.fillText(this.parameters.title, +this.format.marginLeft+this.format.width/2, this.format.titleHeight+this.format.titleOffsetY-1);
-        }
-        else
-        {
-             if(this.canvas.textAlign == 'left')
-                this.canvas.fillText(this.parameters.title, this.format.titleOffsetX-1, this.format.titleHeight+this.format.titleOffsetY-1);
-            else if(this.canvas.textAlign == 'right')
-                this.canvas.fillText(this.parameters.title, this.width-this.format.titleOffsetX, this.format.titleHeight+this.format.titleOffsetY-1);
-            else if(this.canvas.textAlign == 'center')
-                this.canvas.fillText(this.parameters.title, this.width/2, this.format.titleHeight+this.format.titleOffsetY-1);
-        }
-    }
-*/
     setColor(i)
     {
         var l = this.format.color.split(",");

@@ -7,7 +7,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'direction', 'default':'all', 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
+            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
             {'name': "STYLE", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -91,29 +91,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     update(d)
     {
-        // Canvas styling
-
-        let width = this.parameters.width;
-        let height = this.parameters.height;
-/*
-        if(width != this.canvasElement.width || height != this.canvasElement.height)
-        {
-            this.canvasElement.width = parseInt(width);
-            this.canvasElement.height = parseInt(height);
-        }
-*/
-
-        this.canvasElement.width = this.canvasElement.clientWidth;
-        this.canvasElement.height = this.canvasElement.clientHeight;
-
-        this.width = this.canvasElement.width; //parseInt(width)+1;     // Add one since coordinate system is shifted 0.5 pixels
-        this.height = this.canvasElement.height; // parseInt(height)+1;
-
-        this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
-        this.format.height = this.height - this.format.marginTop - this.format.marginBottom; // - this.format.titleHeight;
-
-        // actual update
-
         try {
             let m = this.parameters['module']
             let s = this.parameters['source']

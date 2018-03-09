@@ -161,6 +161,7 @@ class WebUIWidget extends HTMLElement
         this.format.scaleFont =             this.getProp('--scale-font');
         this.format.labels =                this.getBool('--labels');
         this.format.labelColor =            this.getProp('--label-color');
+        this.format.labelFont =             this.getProp('--label-font');
 
         this.format.direction =             this.getProp('--direction');
 
@@ -173,13 +174,13 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(v>=0 && this.format.positiveColor)
+            if(v && v>=0 && this.format.positiveColor)
             {
                 let l = this.format.positiveColor.split(",");
                 let n = l.length;
                 return l[i % n].trim();
             }
-            else if(this.format.negativeColor)
+            else if(v && this.format.negativeColor)
             {
                 let l = this.format.negativeColor.split(",");
                 let n = l.length;
@@ -249,7 +250,7 @@ class WebUIWidget extends HTMLElement
     
     init()
     {
-        this.update();
+        this.updateAll();
     }
  
     update()

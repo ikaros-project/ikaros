@@ -217,6 +217,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     drawLabelsVertical(width, height)
     {
+        this.canvas.font = this.format.labelFont;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "center";
         this.canvas.textBaseline= "top";
@@ -227,7 +228,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
 
         this.canvas.save();
-        this.canvas.translate(this.format.spaceLeft+Math.round(bar_width)/2, 0);
+        this.canvas.translate(this.format.spaceLeft+Math.round(bar_width)/2, 5);
         for(let i=0; i<n; i++)
         {
             this.canvas.fillText(l[i].trim(), 0, 0);
@@ -238,6 +239,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     drawLabelsHorizontal(width, height)
     {
+        this.canvas.font = this.format.labelFont;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "right";
         this.canvas.textBaseline= "middle";
@@ -264,7 +266,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 //        this.drawTitle();
         this.canvas.translate(this.format.marginLeft, this.format.marginTop); // +0*this.format.titleHeight
         
-        if(this.format.direction == 'vertical')
+        if(this.parameters.direction == 'vertical')
         {
             let pane_y = Math.round((this.format.height)/size_y);
             let pane_x = Math.round(this.format.width);
@@ -323,7 +325,6 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         }
     }
 };
-
 
 
 webui_widgets.add('webui-widget-graph', WebUIWidgetGraph);

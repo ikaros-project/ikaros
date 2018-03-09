@@ -391,8 +391,6 @@ interaction = {
         element.appendChild(element.handle);
         
         element.widget.updateAll();
-        
-        let r = element.widget.getBoundingClientRect();
     },
     initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");

@@ -50,13 +50,7 @@ class WebUIWidgetTable extends WebUIWidget
 
     update(d)
     {
-        // Frame styling
-        this.parentElement.className = this.parentElement.className.replace(/visible/,'');
-        this.parentElement.className += this.parameters.show_frame ? ' visible' : '';
-        this.parentElement.firstChild.style.display = this.parameters.show_title ? 'block' : 'none';
-        this.parentElement.firstChild.innerText = this.parameters.title;
-
-        try {
+         try {
             let m = this.parameters['module'];
             let s = this.parameters['source'];
             this.data = d[m][s];
