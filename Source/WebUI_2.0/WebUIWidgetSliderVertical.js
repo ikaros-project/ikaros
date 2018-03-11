@@ -18,12 +18,15 @@ class WebUIWidgetSlider extends WebUIWidgetControl
 
     static html()
     {
-        return '<div class="vranger"><input type="range"><br><input type="range"><br><input type="range"><br></div>';
+         return `<div class="vranger">
+                    <div><span class="slider_label">XXXXXXXX</span><input type="range"><span class="slider_value">0</span></div>
+                    <div><span class="slider_label">X</span><input type="range"><span class="slider_value">0</span></div>
+                    <div><span class="slider_label">X</span><input type="range"><span class="slider_value">0.34</span></div>
+                </div>`;
     }
-
     update()
     {
-//        this.firstChild.innerText = this.parameters.label;
+        console.log(this.firstChild.children[0].children[1]);
     }
 };
 
