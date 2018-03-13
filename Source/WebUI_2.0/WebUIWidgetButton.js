@@ -9,6 +9,9 @@ class WebUIWidgetBUtton extends WebUIWidgetControl
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'value', 'default':1, 'type':'int', 'control': 'textedit'},
+            {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -19,6 +22,29 @@ class WebUIWidgetBUtton extends WebUIWidgetControl
     static html()
     {
         return "<button></button>";
+    }
+
+    button_down()
+    {
+        if(this.parameters.module && this.parameters.parameter)
+            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
+    }
+
+    button_up()
+    {
+        if(this.parameters.module && this.parameters.parameter)
+            this.get("/control/"+this.module+"/"+this.parameter+"/"+this.xindex+"/"+this.yindex+"/0");
+    }
+
+    init()
+    {
+        super.init();
+        this.firstChild.onmousedown = function (){
+            this.parentElement.button_down();
+        }
+        this.firstChild.onmouseup = function (){
+            this.parentElement.button_up();
+        }
     }
 
     update()

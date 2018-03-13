@@ -6,9 +6,15 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name': "PARAMETERS", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'min', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'max', 'default':1, 'type':'int', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
- //           {'name':'direction', 'default':'all', 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
+            {'name':'buffer_size', 'default':50, 'type':'int', 'control': 'textedit'},
+            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "vertical"},
             {'name': "STYLE", 'control':'header'},
+            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
@@ -16,21 +22,25 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     init()
     {
         super.init();
-        
+        this.data = [];
         this.buffer = [];
-        this.data = [];   // Should connect to main data structure
-        
-        this.onclick = function () { alert(this.data) };
-        
-        this.min = 0;
-        this.max = 1;
-    }
+        this.ix = 0;
+
+        this.onclick = function () { alert(this.data) }; // last matrix
+   }
 
     requestData(data_set)
     {
         data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
 
+    getBufferSize()
+    {
+        if(this.parameters.buffer_size == 0)
+            return this.width;
+        else
+            return this.parameters.buffer_size;
+    }
 
     drawBarHorizontal(width, height, i)
     {
@@ -40,7 +50,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.canvas.fill();
         this.canvas.stroke();
     }
-    
+
     drawBarVertical(width, height, i)
     {
         this.canvas.beginPath();
@@ -48,16 +58,11 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.canvas.rect(0, 0, width, height);
         this.canvas.fill();
         this.canvas.stroke();
-/*
-        this.canvas.beginPath();
-        this.canvas.arc(width/2, height/2, width/2, 0, 2*Math.PI, false);
-        this.canvas.stroke();
-*/
     }
 
     drawPlotHorizontal(width, height, y)
     {
-//        super.drawPlotVertical(width, height, y); // draws the frame
+    /*
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -73,66 +78,69 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             this.canvas.restore();
             this.canvas.translate(0, bar_spacing);
         }
+    */
     }
 
     drawPlotVertical(width, height, y)
     {
-//        super.drawPlotVertical(width, height, y); // draws the frame
-        let n = this.data[0].length;
-        let bar_width = (width)/(n + (n-1)*this.format.spacing);
-        let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
-        bar_width = Math.round(bar_width);
-        let min = 0;
-        let max = 1;
+        let min = this.parameters.min;
+        let max = this.parameters.max;
+        let w = this.getBufferSize();
+        let dx = width/w;
 
-        for(let i=0; i<n; i++)
+        for(let xx=0; xx<this.data[0].length; xx++)
         {
-            let h = (this.data[y][i]-min)/(max-min);
-            this.canvas.save();
-            this.canvas.translate(0, (1-h)*height);
-            this.drawBarVertical(bar_width, h*height, i);
-            this.canvas.restore();
-            this.canvas.translate(bar_spacing, 0);
+            let x = 0;
+
+            this.canvas.beginPath();
+            this.setColor(xx);
+
+            if(this.ix >= 1)
+            {
+                this.canvas.moveTo(x, height-height*(this.buffer[0][y][xx]-min)/(max-min));
+                x += dx;
+                for(let i=1; i<this.ix; i++)
+                {
+                    this.canvas.lineTo(x, height-height*(this.buffer[i][y][xx]-min)/(max-min));
+                    x += dx;
+                }
+            }
+
+            if(this.ix <this.buffer.length)
+            {
+                this.canvas.moveTo(x, height-height*(this.buffer[this.ix][y][xx]-min)/(max-min));
+                x += dx;
+                for(let i=this.ix+1; i<this.buffer.length; i++)
+                {
+                    this.canvas.lineTo(x, height-height*(this.buffer[i][y][xx]-min)/(max-min));
+                    x += dx;
+                }
+            }
+            this.canvas.stroke();
         }
     }
 
     update(d)
     {
- //       let widgetStyles = window.getComputedStyle(this);
-//        let test = widgetStyles.getPropertyValue('--test');
-//        console.log(test);
-    
-    
-//        let width = parseInt(getComputedStyle(this.canvasElement).width);
-//        let height = parseInt(getComputedStyle(this.canvasElement).height);
-
-        let width = this.parameters.width;
-        let height = this.parameters.height;
-
-        if(width != this.canvasElement.width || height != this.canvasElement.height)
-        {
-            this.canvasElement.width = parseInt(width);
-            this.canvasElement.height = parseInt(height);
-        }
-
-        this.width = parseInt(width)+1;     // Add once since coordinate system is shifted 0.5 pixels
-        this.height = parseInt(height)+1;
-
-        this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
-        this.format.height = this.height - this.format.marginTop - this.format.marginBottom - this.format.titleHeight;
-
-//        this.drawLayout();
-
         try {
-            let m = this.parameters['module']
-            let s = this.parameters['source']
-            this.data = d[m][s]
+            let m = this.parameters['module'];
+            let s = this.parameters['source'];
+            this.data = d[m][s];
 
             if(!this.data)
                 return;
 
             let size_y = this.data.length;
             let size_x = this.data[0].length;
+
+            if(this.buffer.length < this.getBufferSize())
+                this.buffer.push(this.data);
+            else
+                this.buffer[this.ix] = this.data;
+
+            this.ix++;
+            if(this.ix >= this.getBufferSize())
+                this.ix = 0;
 
             this.draw(size_y, size_y);
         }

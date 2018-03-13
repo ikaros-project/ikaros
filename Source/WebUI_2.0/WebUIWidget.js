@@ -37,6 +37,63 @@ class WebUIWidget extends HTMLElement
         this.parameter_template = pt;        
      }
 
+   get(url, callback)
+    {
+        var last_request = url;
+
+        xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://127.0.0.1:8000"+url, true);
+
+        xhr.onloadstart = function(evt)
+        {
+            document.querySelector("progress").setAttribute("value", 0);
+        }
+
+        xhr.onprogress = function(evt)
+        {
+            if (evt.lengthComputable)
+            {
+                var percentComplete = evt.loaded / evt.total;
+//                console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
+                document.querySelector("progress").setAttribute("value", 100*percentComplete);
+            }
+        }
+        xhr.onerror = function(evt)
+        {
+            console.log("onerror");
+//            console.log(evt);
+            if(evt.lengthComputable && evt.loaded < evt.total)
+                console.log("Failed to load resource. Incomplete.");
+            else if(evt.total == 0 )
+                console.log("Failed to load resource. No data.");
+            else
+                console.log("Failed to load resource.");
+ 
+//            console.log("Resending request");
+//            controller.get(last_request, controller.update);
+       }
+        xhr.ontimeout = function(evt)
+        {
+            console.log("Timeout - resending request");
+//            console.log(evt);
+            
+            // Resend request
+            
+//            controller.get(last_request, controller.update);
+        }
+        xhr.onload = function(evt)
+        {
+    //        console.log("The transfer is complete.");
+    //        console.log(xhr.response);
+            if(callback)
+                callback(xhr.response, xhr.getResponseHeader("Session-Id"));
+        }
+        
+        xhr.responseType = 'json';
+        xhr.timeout = 1000;
+        xhr.send();
+    }
+
     requestData(data_set)
     {
         try

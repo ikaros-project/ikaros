@@ -1,4 +1,4 @@
-class WebUIWidgetBarGraph extends WebUIWidgetGraph
+class WebUIWidgetPlot extends WebUIWidgetGraph
 {
     static template()
     {
@@ -6,13 +6,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name': "PARAMETERS", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'int', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
+ //           {'name':'direction', 'default':'all', 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
             {'name': "STYLE", 'control':'header'},
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
@@ -21,7 +17,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
         super.init();
         
-        this.data = [];
+        this.buffer = [];
+        this.data = [];   // Should connect to main data structure
         
         this.onclick = function () { alert(this.data) };
         
@@ -33,6 +30,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
         data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
+
 
     drawBarHorizontal(width, height, i)
     {
@@ -50,10 +48,16 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         this.canvas.rect(0, 0, width, height);
         this.canvas.fill();
         this.canvas.stroke();
+/*
+        this.canvas.beginPath();
+        this.canvas.arc(width/2, height/2, width/2, 0, 2*Math.PI, false);
+        this.canvas.stroke();
+*/
     }
 
     drawPlotHorizontal(width, height, y)
     {
+//        super.drawPlotVertical(width, height, y); // draws the frame
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -73,6 +77,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotVertical(width, height, y)
     {
+//        super.drawPlotVertical(width, height, y); // draws the frame
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
@@ -93,6 +98,31 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     update(d)
     {
+ //       let widgetStyles = window.getComputedStyle(this);
+//        let test = widgetStyles.getPropertyValue('--test');
+//        console.log(test);
+    
+    
+//        let width = parseInt(getComputedStyle(this.canvasElement).width);
+//        let height = parseInt(getComputedStyle(this.canvasElement).height);
+
+        let width = this.parameters.width;
+        let height = this.parameters.height;
+
+        if(width != this.canvasElement.width || height != this.canvasElement.height)
+        {
+            this.canvasElement.width = parseInt(width);
+            this.canvasElement.height = parseInt(height);
+        }
+
+        this.width = parseInt(width)+1;     // Add once since coordinate system is shifted 0.5 pixels
+        this.height = parseInt(height)+1;
+
+        this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
+        this.format.height = this.height - this.format.marginTop - this.format.marginBottom - this.format.titleHeight;
+
+//        this.drawLayout();
+
         try {
             let m = this.parameters['module']
             let s = this.parameters['source']
@@ -114,4 +144,4 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 };
 
 
-webui_widgets.add('webui-widget-bar-graph', WebUIWidgetBarGraph);
+webui_widgets.add('webui-widget-plot', WebUIWidgetPlot);

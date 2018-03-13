@@ -1295,7 +1295,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     
     destroy_array(q);
     
-    printf("SENT DATA PACKAGE\n");
+//    printf("SENT DATA PACKAGE\n");
 }
 
 
@@ -1339,7 +1339,7 @@ WebUI::HandleHTTPRequest()
         else // possibly a data request - send requested data - very temporary version without thread or real-time support
         {
             char * var = strsep(&args, "=");
-            printf("\t\tVARIABLE: %s\n", var);
+//            printf("\t\tVARIABLE: %s\n", var);
             
             // Build data package
 
@@ -1350,7 +1350,7 @@ WebUI::HandleHTTPRequest()
                 char * module = strsep(&ms, ".");
                 char * source = ms;
                 
-                printf("\t\tSOURCE: %s:%s\n", module, source);
+//                printf("\t\tSOURCE: %s:%s\n", module, source);
                 AddDataSource(module, source);
                 
             }
@@ -1761,7 +1761,7 @@ WebUI::HandleHTTPThread()
 {
     while(!k->Terminate())
     {
-        printf("*\n");
+//        printf("*\n");
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))

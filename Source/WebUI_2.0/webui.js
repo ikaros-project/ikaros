@@ -1,3 +1,5 @@
+"don't use strict";
+
 /*
  *
  * Viewer scripts

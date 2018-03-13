@@ -169,7 +169,7 @@ main {
 
     --spacing: 0.1;
  
-    --color: darkgray;
+    --color: red, green, blue, purple, pink;
     --positive-color: green;
     --negative-color: red;
 

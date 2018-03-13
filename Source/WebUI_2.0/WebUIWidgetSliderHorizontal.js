@@ -22,6 +22,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'step', 'default':0.01, 'type':'float', 'control': 'textedit'},
+            {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'show_values', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -33,18 +34,19 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
 
     static html()
     {
-         return `<div class="hranger">
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                    <div><span class="slider_label"></span><input type="range"><span class="slider_value">0</span></div>
-                </div>`;
+         return `<div class="hranger"></div>`;
     }
-    update()
+
+    slider_moved(index, value)
     {
+        if(this.parameters.module && this.parameters.parameter)
+            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+index+"/0/"+value);
+    }
+
+    updateAll()
+    {
+        super.updateAll();
+
         // add or remove sliders
         
         while(this.firstChild.childElementCount > this.parameters.count)
@@ -65,10 +67,26 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             slider.max = this.parameters.max;
             slider.step = this.parameters.step;
         }
-        
-        if(this.parameters.labels == "")
+
+        let mode = this.parameters.labels.trim() == "" ? 'non' : 'block';
             for(let label of this.querySelectorAll(".slider_label"))
+                label.style.display = mode;
+
+        for(let label of this.querySelectorAll(".slider_label"))
+            try {
+                label.innerText = l[i++].trim();
+            }
+            catch(err)
+            {
+                label.innerText = "";
+            }
+
+        if(this.parameters.labels.trim() == "")
+            for(let label of this.querySelectorAll(".slider_label"))
+            {
                 label.style.display = 'none';
+                label.innerText = "";
+            }
         else
         {
             let l = this.parameters.labels.split(',');
@@ -76,10 +94,29 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             for(let label of this.querySelectorAll(".slider_label"))
             {
                 label.style.display = 'block';
-                label.innerText = l[i++].trim();
+                try {
+                    label.innerText = l[i++].trim();
+                }
+                catch(err)
+                {
+                }
             }
         }
-        
+
+        // sset-up event handlers
+
+        let i = 0;
+        for(let slider of this.querySelectorAll("input"))
+        {
+            slider.index = i++;
+            slider.oninput = function (){
+                this.parentElement.parentElement.parentElement.slider_moved(this.index, this.value);
+            }
+        }
+    }
+
+    update()
+    {
         for(let value of this.querySelectorAll(".slider_value"))
         {
             value.style.display = this.parameters.show_values ? 'block' : 'none'
