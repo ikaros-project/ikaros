@@ -29,6 +29,10 @@
 
 #include "InputVideoStream.h"
 
+#include <unistd.h>
+#include <thread>
+
+using namespace std;
 using namespace ikaros;
 
 InputVideoStream::InputVideoStream(Parameter * p):
@@ -41,128 +45,53 @@ Module(p)
 		return;
 	}
 	
-	printInfo = GetBoolValue("info");
-	force_h264 = GetBoolValue("force_h264");
-	
-	// Register all formats and codecs
-	av_register_all();
-	avformat_network_init();
-	av_log_set_level(AV_LOG_FATAL);
-	
-	AVInputFormat *file_iformat = NULL;
-	if (force_h264)
-	file_iformat = av_find_input_format("h264");
-	
-	/// Open video file
-	if(avformat_open_input(&input_format_context, url, file_iformat, NULL) != 0) // Allocating input_format_context
-	{
-		Notify(msg_fatal_error, "Could not open file.\n");
-		return;
-	}
-	
-	/// Retrieve stream information
-	if(avformat_find_stream_info(input_format_context, NULL) < 0)
-	//if(av_find_best_stream(input_format_context, AVMEDIA_TYPE_VIDEO,-1,-1,NULL,0))
-	{
-		Notify(msg_fatal_error, "Couldn't find stream information\n");
-		return;
-	}
-	
-	/// Dump information about file onto standard error
-	if (printInfo)
-	av_dump_format(input_format_context, 0, url, 0);
-	
-	/// Find the first video stream
-	videoStreamId = -1;
-	for(int i=0; i<input_format_context->nb_streams; i++)
-	if(input_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-		videoStreamId=i;
-		break;
-	}
-	if(videoStreamId==-1)
-	{
-		Notify(msg_fatal_error, "Didn't find a video stream\n");
-		return;
-	}
-	
-	// Decoding video
-	
-	// FIXME:: Check if this
-	/// Find the decoder for the video stream
-	if (force_h264)
-	input_codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-	else
-	input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
-	
-	
-	if(input_codec==NULL) {
-		fprintf(stderr, "Unsupported codec!\n");
-		return; // Codec not found
-	}
-	
-	// Creating decoding context
-	avctx = avcodec_alloc_context3(input_codec);
-	if (!avctx) {
-		fprintf(stderr, "Could not allocate a decoding context\n");
-		avformat_close_input(&input_format_context);
-		return;
-	}
-	
-	// Setting parmeters to context?
-	int error = avcodec_parameters_to_context(avctx, (*input_format_context).streams[videoStreamId]->codecpar);
-	if (error < 0) {
-		avformat_close_input(&input_format_context);
-		avcodec_free_context(&avctx);
-		return;
-	}
-	
-	/// Open codec
-	if( avcodec_open2(avctx, input_codec, NULL) < 0 )
-	{
-		Notify(msg_fatal_error, "Could not open codec\n");
-		return;
-	}
-	
-	inputFrame = av_frame_alloc();    // Input
-	
-	if(inputFrame == NULL)
-	{
-		Notify(msg_fatal_error, "Could not allocate AVFrame\n");
-		return;
-	}
-	
-	// This is not working anymore!
-	// FIXME:: Maybe set defualt to -1?
-	// Is the output size set in ikc file? If not use native size
 	size_x = GetIntValue("size_x");
 	size_y = GetIntValue("size_y");
 	
-	native_size_x = int(avctx->width);
-	native_size_y = int(avctx->height);
+	printInfo = GetBoolValue("info");
 	
-	if(size_x == 0 || size_y == 0)
-	{
-		size_x = native_size_x;
-		size_y = native_size_y;
-	}
-
-	outputFrame = av_frame_alloc();   		// Output (after resize and convertions)
-	outputFrame->format = AV_PIX_FMT_RGB24;
-	outputFrame->width  = size_x;
-	outputFrame->height = size_y;
-	av_image_alloc(outputFrame->data, outputFrame->linesize, size_x, size_y, AV_PIX_FMT_RGB24, 32);
+	uv4l = GetBoolValue("uv4l"); // Tune code fore uv4l server
 	
-	if(outputFrame==NULL)
-	{
-		Notify(msg_fatal_error, "Could not allocate AVFrame\n");
-		return;
-	}
+	syncGrab = GetBoolValue("syncronized_framegrabber");
+	syncTick = GetBoolValue("syncronized_tick");
+	
+	// Create a int to float table to speed up int to float cast.
+	for (int i = 0;i <= 255; i++)
+		convertIntToFloat[i] = 1.0/255.0 * i;
+	
+	// Create a grabber
+	framegrabber = new FFMpegGrab();
+	
+	// Set paramters.
+	framegrabber->uv4l = uv4l;
+	framegrabber->url = url; // copy string?
+	framegrabber->printInfo = printInfo;
+	
+	framegrabber->outputSizeX = size_x;
+	framegrabber->outputSizeY = size_y;
+	framegrabber->syncronized = syncGrab;
+	
+	
+	// Check sizes
+	//	if(size_x == 0 || size_y == 0)
+	//	{
+	//		size_x = framegrabber->native_size_x;
+	//		size_y = framegrabber->native_size_y;
+	//	}
+	//size_x = framegrabber->inputSizeX;
+	//size_y = framegrabber->inputSizeY;
+	
+	// Create memory
+	newFrame = new uint8_t[size_x*size_y*3*sizeof(uint8_t)];
+	
+	// Init grabber
+	if (!framegrabber->Init())
+		Notify(msg_fatal_error, "Can not start frame grabber.");
 	
 	AddOutput("INTENSITY", false, size_x, size_y);
 	AddOutput("RED", false, size_x, size_y);
 	AddOutput("GREEN", false, size_x, size_y);
 	AddOutput("BLUE", false, size_x, size_y);
-	AddOutput("RESTART",false, 1);
 }
 void
 InputVideoStream::Init()
@@ -173,96 +102,184 @@ InputVideoStream::Init()
 	blue		= GetOutputArray("BLUE");
 }
 
-int
-InputVideoStream::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
-{
-	int ret;
-	*got_frame = 0;
-	if (pkt) {
-		ret = avcodec_send_packet(avctx, pkt);
-		if (ret < 0)
-		return ret == AVERROR_EOF ? 0 : ret;
-	}
-	ret = avcodec_receive_frame(avctx, frame);
-	if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-	return ret;
-	if (ret >= 0)
-	*got_frame = 1;
-	return 0;
-}
-
 void
 InputVideoStream::Tick()
 {
-	const float c13 = 1.0/3.0;
-	const float c1255 = 1.0/255.0;
+	std::mutex mtx;           // mutex for critical section
+	Timer timer;
+
+	// Modes
+	// Get all frames (waitForNewData + syncronized)
+	// Get latest frame	(waitForNewData + !syncronized)
+	// Get a frame every tick (could be the same as last tick) 	(!waitForNewData + !syncronized)
 	
-	int gotFrame = 0;
-	while (!gotFrame)                                           // Keep reading from source until we get a video packet
+	bool waitForNewData = syncTick;
+	bool gotNewData = false;
+
+	mtx.lock();
+	gotNewData = framegrabber->freshData;
+	mtx.unlock();
+	
+	if (!gotNewData and waitForNewData) // No new data
+		while (!gotNewData) // wait until new data
+		{
+			mtx.lock();
+			gotNewData = framegrabber->freshData;
+			mtx.unlock();
+			usleep(1000);
+		}
+	
+#ifdef DEBUGTIMER
+	if (gotNewData)
 	{
-		if(av_read_frame(input_format_context, &packet)>=0)     // Read packet from source
-		{
-			if(packet.stream_index==videoStreamId)              // Is this a packet from the video stream?
-			{
-				decode(avctx, inputFrame, &gotFrame, &packet);
-				if (gotFrame)                                   // Decode gave us a frame
-				{
-					// Convert the frame to AV_PIX_FMT_RGB24 format
-					static struct SwsContext *img_convert_ctx;
-					img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
-														   avctx->pix_fmt,
-														   size_x, size_y, AV_PIX_FMT_RGB24,
-														   SWS_BICUBIC, NULL, NULL, NULL);
-					
-					// Scale the image
-					sws_scale(img_convert_ctx, (const uint8_t * const *)inputFrame->data,
-							  inputFrame->linesize, 0, avctx->height,
-							  outputFrame->data, outputFrame->linesize);
-					
-					// Put data in ikaros output
-					unsigned char * data = outputFrame->data[0];
-					for(int y=0; y<size_y; y++)
-					for(int x=0; x<size_x; x++)
-					{
-						int yLineSize = y*outputFrame->linesize[0];
-						int y1 = y*size_x;
-						int xy = x + y1;
-						int x3  = x*3;
-						intensity[xy] 	=   red[xy]       = c1255*data[yLineSize+x3+0];
-						intensity[xy] 	+=  green[xy]     = c1255*data[yLineSize+x3+1];
-						intensity[xy] 	+=  blue[xy]      = c1255*data[yLineSize+x3+2];
-						intensity[xy]   *=  c13;
-					}
-				}
-			}
-		}
-		else // End of file. Not sure if this happens with a stream
-		{
-			decode(avctx, inputFrame, &gotFrame, NULL); // Decoding the last frames. Do not send any data to decoder
-			
-			if(!gotFrame)							// Decoder does not give us any more frames
-			{
-				avcodec_flush_buffers(avctx);       // Need to be done before rewinding
-			}
-			else
-			{
-				Notify(msg_end_of_file, "End of movie");
-				return;
-			}
-			
-		}
-		av_packet_unref(&packet);
+		printf("InputVideoStream:We got an new image Time %f\n", timer.GetTime());
+		timer.Restart();
 	}
+#endif
+
+	if (!gotNewData) // No need to int->float convert again. Use last output.
+		return;
+	
+	mtx.lock();
+	memcpy(newFrame, framegrabber->ikarosFrame, size_x*size_y*3*sizeof(uint8_t));
+	framegrabber->freshData = 0;
+	mtx.unlock();
+#ifdef DEBUGTIMER
+		printf("InputVideoStream: memcpy %f\n", timer.GetTime());
+		timer.Restart();
+#endif
+	unsigned char * data = newFrame;
+	
+//	float * r = red;
+//	float * g = green;
+//	float * b = blue;
+//	float * inte = intensity;
+//	int t = 0;
+	
+	// Singel core
+//	while(t++ < size_x*size_y)
+//	{
+//		*r++       = convertIntToFloat[*data++];
+//		*g++       = convertIntToFloat[*data++];
+//		*b++       = convertIntToFloat[*data++];
+//		*inte++ = *r + *g + *b;
+
+//		*r       = *data++;
+//		*g       = *data++;
+//		*b       = *data++;
+//		*r++ = (*data >> 8) & 0xFF;
+//		*g++ = (*data >> 8) & 0xFF;
+//		*b++ = *data & 0xFF;
+//		data++;
+//		data++;
+//		data++;
+		//*inte++ = *r++ + *g++ + *b++;
+//	}
+
+//		const int nrOfCores = 3;//thread::hardware_concurrency();
+//		// Create some threads pointers
+//		thread tConv[nrOfCores];
+//		for(int j=0; j<nrOfCores; j++)
+//		{
+//			tConv[j] = thread([&,j]()
+//							  {
+//								  int l = 0;
+//								  unsigned char * d = data;
+//								  float * p = NULL;
+//								  switch (j) {
+//									  case 0:
+//										  p = r;
+//										  break;
+//									  case 1:
+//										  p = g;
+//										  d++;
+//										  break;
+//									  case 2:
+//										  p = b;
+//										  d++;
+//										  d++;
+//										  break;
+//									  default:
+//
+//										  break;
+//								  };
+//
+//								  while(l++ < size_x*size_y){
+//									  *p++  = convertIntToFloat[*d];
+//									  d++;
+//									  d++;
+//									  d++;
+//								  }
+//							  });
+//		}
+//
+//		for(int j=0; j<nrOfCores; j++)
+//			tConv[j].join();
+
+	
+		// Multi core 2
+		const int nrOfCores = 4;
+		// Create some threads pointers
+		thread tConv[nrOfCores];
+		//printf("Number of threads %i\n",thread::hardware_concurrency());
+		int span = size_x*size_y/nrOfCores;
+
+		for(int j=0; j<nrOfCores; j++)
+		{
+			tConv[j] = thread([&,j]()
+							  {
+								  float * r = red;
+								  float * g = green;
+								  float * b = blue;
+								  float * inte = intensity;
+								  int t = 0;
+
+								  unsigned char * d = data;
+
+								  for (int i = 0; i < j*span; i++)
+								  {
+									  d++;
+									  d++;
+									  d++;
+									  r++;
+									  g++;
+									  b++;
+									  inte++;
+								  }
+								  while(t++ < span)
+								  {
+//									  *r       = *convertIntToFloat*(*d++);
+//									  *g       = *convertIntToFloat*(*d++);
+//									  *b       = *convertIntToFloat*(*d++);
+//									  *inte++ = *r++ + *g++ + *b++;
+									  *r       = convertIntToFloat[*d++];
+									  *g       = convertIntToFloat[*d++];
+									  *b       = convertIntToFloat[*d++];
+//									  *r       = convertIntToFloat[*d & 0xFF];
+//									  *g       = convertIntToFloat[(*d >> 8) & 0xFF];
+//									  *b       = convertIntToFloat[(*d >> 16) & 0xFF];
+//									  d++;d++;d++;
+
+									  *inte++ = *r++ + *g++ + *b++;
+								  }
+							  });
+
+		}
+		for(int j=0; j<nrOfCores; j++)
+			tConv[j].join();
+	
+#ifdef DEBUGTIMER
+	printf("InputVideoStream: float convert %f\n", timer.GetTime());
+	timer.Restart();
+#endif
+	
 }
 
 InputVideoStream::~InputVideoStream()
 {
-	av_freep(&inputFrame->data[0]);
-	av_free(inputFrame);
-	av_freep(&outputFrame->data[0]);
-	av_free(outputFrame);
-	av_free(buffer);
-	avcodec_close(avctx);
-	avformat_close_input(&input_format_context);
+	delete newFrame;
+	delete framegrabber;
 }
+
+
 static InitClass init("InputVideoStream", &InputVideoStream::Create, "Source/Modules/IOModules/Video/InputVideoStream/");

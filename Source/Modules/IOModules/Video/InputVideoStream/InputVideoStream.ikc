@@ -18,15 +18,18 @@
 	<parameter name="size_x" type="int" default="640" description="Size of the image" />
 	<parameter name="size_y" type="int" default="480" description="Size of the image" />
 	<parameter name="url" type="string" description="Stream adress" />
-	
-	<parameter name="force_h264" type="bool" default="false" description="Forces system to decode stream as h264. This is usefull when receiving raw h264 stream from vu4l server on a raspberry." />
+	<parameter name="info" type="string" description="Print info about stream" />
+	<parameter name="syncronized_framegrabber" default="false" type="bool" description="The framegrabber (grabs and decodes frame) is either syncronized with the tick or run as fast/slow as it can. This is usefull when grabbing live streams where the last frame is more important than get all frames." />
+	<parameter name="syncronized_tick" default="true" type="bool" description="Ikaros wait until a new frame is given by the framegrabber. If set to false ikaros does not care of the input is new or not. This can give the module a faster tick time but could potentially feed unnecessarily data into ikaros (false is not recomended)."/>
+
+	<parameter name="uv4l" type="bool" default="false" description="Forces system to decode stream as h264. This is usefull when receiving raw h264 stream from vu4l server on a raspberry." />
 
 	<output name="RED" description="The red channel." />
 	<output name="GREEN" description="The green channel." />
 	<output name="BLUE" description="The blue channel." />
 	<output name="INTENSITY" description="The intensity channel." />
 	
-	<view name="Movie View" object_size="500">
+	<view name="View" object_size="500">
 		<object class="Image" type="rgb" module = "*" source = "RED+GREEN+BLUE" x="0"  y="0" />
 	</view>
 	
