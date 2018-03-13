@@ -199,7 +199,7 @@ InputVideoFile::Tick()
                 decode(avctx, inputFrame, &gotFrame, &packet);
                 if (gotFrame)                                   // Decode gave us a frame
                 {
-                    // Convert teh frame to AV_PIX_FMT_RGB24 format
+                    // Convert the frame to AV_PIX_FMT_RGB24 format
                     static struct SwsContext *img_convert_ctx;
                     img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
                                                            avctx->pix_fmt,
