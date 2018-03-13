@@ -294,7 +294,7 @@ interaction = {
         if(interaction.main.dataset.mode == "edit") e.stopPropagation()
     },
     initElement: function (element) {   // For interactively created object
-        console.log("initELement:", element);
+        console.log("initElement:", element);
 
 //        if (typeof element == 'string')
 //            element = document.getElementById(element);
@@ -340,21 +340,21 @@ interaction = {
         element.appendChild(element.handle);
     },
     initViewElement: function (element, data) {   // For object in view from IKC file
-        console.log("initViewElement:", data['class']);
+        console.log("initViewElement:", "webui-widget-"+data['class']);
 
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
-        let constr = webui_widgets.constructors[data['class']];
+        let constr = webui_widgets.constructors["webui-widget-"+data['class']];
         if(!constr)
         {
-            console.log("Internal Error: No constructor found for "+data['class']);
+            console.log("Internal Error: No constructor found for "+"webui-widget-"+data['class']);
             element.widget = new webui_widgets.constructors['webui-widget-text'];
             element.widget.element = element;
-            element.widget.parameters['text'] = "\""+data['class']+"\" not found.";
+            element.widget.parameters['text'] = "\""+"webui-widget-"+data['class']+"\" not found.";
         }
         else
         {
-            element.widget = new webui_widgets.constructors[data['class']];
+            element.widget = new webui_widgets.constructors["webui-widget-"+data['class']];
             
             // Add default parameters from CSS - possibly...
  
