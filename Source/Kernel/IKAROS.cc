@@ -3393,18 +3393,19 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
             ViewElement * v = new ViewElement();
             for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
                 v->attributes.insert({ attr->name, attr->value });
-            for(XMLElement * xml_obj = xml_node->GetContentElement("object"); xml_obj != NULL; xml_obj = xml_obj->GetNextElement("object"))
+            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement())     // WAS "object"
             {
                 ViewObjectElement * o = new ViewObjectElement();
+                o->attributes.insert({ "class", xml_obj->name });
                 for(XMLAttribute * attr=xml_obj->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
                     o->attributes.insert({ attr->name, attr->value });
                 v->objects.push_back(o);
             }
             group->views.push_back(v);
         }
-    
+
     // Create connections in group
-    
+
     for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
     {
         const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
