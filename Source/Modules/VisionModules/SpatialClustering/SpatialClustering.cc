@@ -255,7 +255,7 @@ SpatialClustering::compare_cluster(const void * c1, const void * c2)
 
 // TEST
 
-float x0=0, x1=0, x2=0, y0=0, y1=0, y2=0;
+//static float x0=0, x1=0, x2=0, y0=0, y1=0, y2=0;
 
 // get center method: average / center of rect
 

@@ -190,7 +190,7 @@ DepthBlobList::Tick()
         {
             for (int jj=clip(j-ww, 0, grid_size_y); jj<clip(j+ww, 0, grid_size_y); jj++)
                 for (int ii=clip(i-ww, 0, grid_size_x); ii<clip(i+ww, 0, grid_size_x); ii++)
-                    smoothed[j][i] += 0.00001*detection[jj][ii]*exp(-0.001*hypot(j-jj, i-ii));
+                    smoothed[j][i] += 0.00001*detection[jj][ii]*exp(-0.001*ikaros::hypot(j-jj, i-ii));
         }
 
     // find local maxima

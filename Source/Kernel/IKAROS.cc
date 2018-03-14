@@ -21,17 +21,19 @@
 //
 //	Created July 13, 2001
 //
+// Before 2.0: 3200 lines
 
 #include "IKAROS.h"
 
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <stdio.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <fcntl.h>
 #include <ctype.h>
-
+#include <ctime>
+#include <iostream>
 
 #ifdef WINDOWS
 #include <direct.h>
@@ -50,13 +52,20 @@
 #include <new>
 
 
+// Kernel 2.0
+
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <regex>
+
 
 using namespace ikaros;
 
-bool			global_fatal_error = false;	// Must be global because it is used before the kernel is created
-bool			global_terminate = false;	// Used to flag that CTRL-C has been received
-int             global_error_count = 0;
-int             global_warning_count = 0;
+bool        global_fatal_error = false;	// Must be global because it is used before the kernel is created
+bool        global_terminate = false;	// Used to flag that CTRL-C has been received
+int         global_error_count = 0;
+int         global_warning_count = 0;
 
 //#define USE_MALLOC_DEBUG
 
@@ -184,6 +193,282 @@ dump_memory()
 }
 
 #endif
+
+
+
+//
+// Group (2.0)
+//
+
+class Element
+{
+public:
+    std::unordered_map<std::string, std::string> attributes;
+
+    std::string  GetAttribute(std::string a)  // implements the inheritance (1) directly and (2) with renaming through parameter elements // TODO: implement inheritance
+    {
+        if(attributes.count(a))
+            return attributes[a];
+        else
+            return "";
+    };
+    
+    void PrintAttributes(int d=0)
+    {
+        for(auto a : attributes)
+            printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
+    }
+    
+    std::string JSONAttributeString(int d=0)
+    {
+        std::string b;
+        std::string s;
+        for(auto a : attributes)
+        {
+            std::string value = std::regex_replace(a.second, std::regex("\\s+"), " "); // JSON does not allow line breaks in attribute values
+            s += b + std::string(d, '\t') + "\"" + a.first + "\": \"" + value + "\"";
+            b = ",\n";
+        }
+        return s;
+    }
+};
+
+class ParameterElement: public Element
+{
+public:
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tPARAMETER: "+GetAttribute("name")).c_str());
+        PrintAttributes(d);
+    };
+    
+    std::string JSONString(int d=0)
+    {
+        std::string s = std::string(d, '\t')+"{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
+class ConnectionElement: public Element
+{
+public:
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tCONNECTION: ").c_str());
+        PrintAttributes(d);
+    }
+    
+    std::string JSONString(int d=0)
+    {
+        std::string s = std::string(d, '\t')+"{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
+class ViewObjectElement: public Element
+{
+public:
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tOBJECT: ").c_str());
+        PrintAttributes(d);
+    }
+
+    std::string JSONString(int d=0)
+    {
+        std::string tab = std::string(d, '\t');
+        std::string s = tab + "{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + tab+"}";
+        return s;
+    };
+};
+
+class ViewElement: public Element
+{
+public:
+    std::vector<ViewObjectElement *> objects;
+
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tVIEW: ").c_str());
+        PrintAttributes(d);
+        printf("%s\n", (std::string(d, '\t')+"\tOBJECTS: ").c_str());
+        for(auto o : objects)
+            o->Print(d+1);
+    }
+
+    std::string JSONString(int d=0)
+    {
+        std::string tab = std::string(d, '\t');
+        std::string tab2 = std::string(d+1, '\t');
+        std::string b;
+        std::string s = tab+"{\n";
+        s += JSONAttributeString(d+1) + ",\n";
+        
+        if(objects.size())
+        {
+            s += tab2 + "\"objects\":\n" + tab2 + "[\n";
+            for(auto o : objects)
+            {
+                s += b + o->JSONString(d+2);
+                b = ",\n";
+            }
+            s += "\n";
+            s += tab2 + "]";
+        }
+        else
+            s += tab2 + "\"objects\": []";
+        
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
+class GroupElement: public Element
+{
+public:
+    GroupElement * parent;
+    std::unordered_map<std::string, GroupElement *> groups;
+    std::unordered_map<std::string, ParameterElement *> parameters;
+    std::vector<ConnectionElement *> connections;
+    std::vector<ViewElement *> views;
+    
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"GROUP:"+GetAttribute("name")).c_str());
+
+        printf("%s\n", (std::string(d, '\t')+"\tATTRIBUTES:").c_str());
+        PrintAttributes(d+1);
+
+        printf("%s\n", (std::string(d, '\t')+"\tPARAMETERS:").c_str());
+        for(auto p : parameters)
+            p.second->Print(d+1);
+
+        printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
+        for(auto c : connections)
+            c->Print(d+1);
+
+        printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
+        for(auto v : views)
+            v->Print(d+1);
+        
+        for(auto g : groups)
+            g.second->Print(d+1);
+        
+        printf("\n");
+    };
+
+    std::string JSONString(int d=0)
+    {
+        std::string b;
+        std::string tab = std::string(d, '\t');
+        std::string tab2 = std::string(d+1, '\t');
+        
+        std::string s = tab + "{\n";
+
+        s += JSONAttributeString(d+1);
+        s += ",\n";
+        
+        if(parameters.size())
+        {
+            s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
+            for(auto p : parameters)
+            {
+                s += b + p.second->JSONString(d+2);
+                b = ",\n";
+            }
+            s += "\n";
+            s += tab2 + "]";
+        }
+        else
+            s += tab2 + "\"parameters\": []";
+        
+        s += ",\n";
+  
+        
+        if(connections.size())
+        {
+            b = "";
+            s += tab2 + "\"connections\":\n" + tab2 + "[\n";
+            for(auto c : connections)
+            {
+                s += b + c->JSONString(d+2);
+                b = ",\n";
+            }
+            s += "\n";
+            s += tab2 + "]";
+        }
+        else
+            s += tab2 + "\"connections\": []";
+        
+        s += ",\n";
+
+        if(views.size())
+        {
+            b = "";
+            s += tab2 + "\"views\":\n" + tab2 + "[\n";
+            for(auto v : views)
+            {
+                s += b + v->JSONString(d+2);
+                b = ",\n";
+            }
+            s += "\n";
+            s += tab2 + "]";
+        }
+        else
+            s += tab2 + "\"views\": []";
+        
+        s += ",\n";
+      
+      
+/*
+        printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
+        for(auto v : views)
+            v->Print(d+1);
+*/
+
+        if(groups.size())
+        {
+            s += tab2 + "\"groups\":\n" + tab2 + "[\n";
+            b = "";
+            for(auto g : groups)
+            {
+                s += b + g.second->JSONString(d+2);
+                b = ",\n";
+            }
+            s += "\n";
+            s += tab2 + "]\n";
+        }
+        else
+            s += tab2 + "\"groups\": []\n";
+
+        s += tab + "}";
+        
+        return s;
+    };
+
+};
+
+
+class InputElement: public Element
+{
+public:
+};
+
+
+class OutputElement: public Element
+{
+public:
+};
+
+
+
+
 
 
 //
@@ -1641,6 +1926,18 @@ Kernel::~Kernel()
 #endif
 }
 
+
+std::string
+Kernel::JSONString()
+{
+    if(main_group)
+        return main_group->JSONString();
+    else
+        return "{}";
+}
+
+
+
 void
 Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 {
@@ -1937,7 +2234,7 @@ Kernel::Init()
     if (options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_fatal_error, "No IKC file supplied.\n"); // Maybe this should only be a warning
+        Notify(msg_warning, "No IKC file supplied.\n"); // Maybe this should only be a warning - YES!
     
     DetectCycles();
     if(fatal_error_occurred)
@@ -2967,7 +3264,7 @@ file_exists(const char * path)
 // Read class file (or included file) and merge with the current XML-tree
 
 XMLElement * 
-Kernel::BuildClassGroup(XMLElement * xml_node, const char * class_name)
+Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name)
 {
 	char include_file[PATH_MAX] ="";
 	const char * filename = file_exists(append_string(copy_string(include_file, class_name, PATH_MAX), ".ikc", PATH_MAX));
@@ -3014,7 +3311,7 @@ Kernel::BuildClassGroup(XMLElement * xml_node, const char * class_name)
 	
 	// 4. Build the class group
 	
-	BuildGroup(cgroup, class_name);
+	BuildGroup(group, cgroup, class_name);
 	
 	// 5. Delete original element and replace it with the newly merged group
 	
@@ -3031,19 +3328,26 @@ Kernel::BuildClassGroup(XMLElement * xml_node, const char * class_name)
 static int group_number = 0;
 
 void
-Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
+Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class)
 {
     const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
         group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
 
+    // 2.0 add attributes to group element
+    
+    for(XMLAttribute * attr=group_xml->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+        group->attributes.insert({ attr->name, attr->value });
+    
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
         if (xml_node->IsElement("module"))	// Add module
         {
             char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
-				xml_node = BuildClassGroup(xml_node, class_name);
+                GroupElement * subgroup = new GroupElement();
+				xml_node = BuildClassGroup(subgroup, xml_node, class_name);
+                group->groups.insert( { subgroup->GetAttribute("name"), subgroup });
             }
             
 			else if (class_name != NULL)	// Create the module using standard class
@@ -3065,10 +3369,43 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
             destroy_string(class_name);
         }
         else if (xml_node->IsElement("group"))	// Add group
-            BuildGroup(xml_node);
-    
+        {
+            GroupElement * subgroup = new GroupElement();
+            BuildGroup(subgroup, xml_node);
+            group->groups.insert( { subgroup->GetAttribute("name"), subgroup });
+        }
+        else if (xml_node->IsElement("parameter"))
+        {
+            ParameterElement * p = new ParameterElement();
+            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+                p->attributes.insert({ attr->name, attr->value });
+            group->parameters.insert( { p->GetAttribute("name"), p });
+        }
+        else if (xml_node->IsElement("connection"))
+        {
+            ConnectionElement * c = new ConnectionElement();
+            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+                c->attributes.insert({ attr->name, attr->value });
+            group->connections.push_back(c);
+        }
+        else if (xml_node->IsElement("view"))
+        {
+            ViewElement * v = new ViewElement();
+            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+                v->attributes.insert({ attr->name, attr->value });
+            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement())     // WAS "object"
+            {
+                ViewObjectElement * o = new ViewObjectElement();
+                o->attributes.insert({ "class", xml_obj->name });
+                for(XMLAttribute * attr=xml_obj->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+                    o->attributes.insert({ attr->name, attr->value });
+                v->objects.push_back(o);
+            }
+            group->views.push_back(v);
+        }
+
     // Create connections in group
-    
+
     for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
     {
         const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
@@ -3147,9 +3484,23 @@ Kernel::ReadXML()
             xml->SetAttribute("title", title);
     }
     
-    BuildGroup(xml);
+    // 2.0 create top group
+    
+    main_group = new GroupElement();
+    
+    // set session id
+    
+    std::time_t result = std::time(nullptr);
+    main_group->attributes.insert({ "session-id", std::to_string(result) });
+    session_id = result; // temporary
+    
+    BuildGroup(main_group, xml);
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
+    
+//    main_group->Print();
+
+//        printf("%s\n", main_group->JSONString().c_str());
 }
 
 

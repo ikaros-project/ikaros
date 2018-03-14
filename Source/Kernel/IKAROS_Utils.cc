@@ -512,6 +512,30 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
 
 
 float *
+resize_array(float * a, int size, bool clear=false)
+{
+    return NULL;
+}
+
+
+
+float **
+resize_matrix(int sizex, int sizey, bool clear=false)
+{
+    return NULL;
+}
+
+
+
+float ***
+resize_matrix(int sizex, int sizey, int sizez, bool clear=false)
+{
+    return NULL;
+}
+
+
+
+float *
 reset_array(float * a, int size)
 {
 #ifdef USE_VDSP
@@ -749,6 +773,12 @@ copy_matrix(float ** r, float ** a, int sizex, int sizey)
     return r;
 }
 
+float ***
+copy_matrix(float *** r, float *** a, int sizex, int sizey, int sizez)
+{
+    memcpy(r[0][0], a[0][0], sizex*sizey*sizez*sizeof(float));
+    return r;
+}
 
 
 // Options
@@ -1125,6 +1155,24 @@ const float
 Dictionary::GetFloat(Dictionary::Iterator i)
 {
 	return i.kv->float_value;
+}
+
+char *
+Dictionary::GetString(Iterator i)
+{
+    switch(i.kv->type)
+    {
+        case 0:
+            return create_string(i.kv->value);
+
+        case 1:
+            return create_formatted_string("%d", i.kv->int_value);
+
+        case 2:
+            return create_formatted_string("%.4f", i.kv->float_value);
+    }
+    
+    return create_string("");
 }
 
 const char *

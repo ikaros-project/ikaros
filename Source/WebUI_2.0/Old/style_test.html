@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+#main {
+    width: calc(100% - 122px);  /* 122 = 2*(border+padding+margin) */
+    height: calc(100% - 142px );
+    padding: 30px;
+    border: 1px solid black;
+    margin: 30px;
+    position: absolute;
+    overflow: hidden;
+}
+
+
+.draggable {
+	position: absolute;
+	top: 10;
+	left: 10;
+    z-index: 200;
+    width: 101px;
+    height: 101px;
+    border: 1px solid lightgray;
+	background-color: white;
+	cursor: move;
+}
+
+.selected {
+    border: 1px solid red;
+}
+
+
+
+</style>
+</head>
+<body>
+
+<div id="main">
+    <div class="selected draggable " data-name="Box A">
+    </div>
+</div>
+
+<script>
+interaction.generateGrid(20);
+interaction.initDraggables();
+document.onkeypress = function () {alert(1);};
+</script>
+</body>
+</html>
+

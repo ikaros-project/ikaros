@@ -27,8 +27,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-//#include <malloc/malloc.h> // FIXME: Remove
-
 // includes for image processing (JPEG)
 
 #include <stdio.h>
