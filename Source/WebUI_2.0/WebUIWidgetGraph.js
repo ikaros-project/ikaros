@@ -217,6 +217,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     drawLabelsVertical(width, height)
     {
+        if(!this.parameters.labels)
+            return;
+        
         this.canvas.font = this.format.labelFont;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "center";
@@ -239,6 +242,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     drawLabelsHorizontal(width, height)
     {
+        if(!this.parameters.labels)
+            return;
+        
         this.canvas.font = this.format.labelFont;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "right";

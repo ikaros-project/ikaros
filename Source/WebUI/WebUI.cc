@@ -690,7 +690,6 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
 
 
 
-
 WebUI::WebUI(Kernel * kernel)
 {
     k = kernel;
@@ -746,8 +745,11 @@ WebUI::WebUI(Kernel * kernel)
     k->Notify(msg_print, "Connect from a browser on this computer with the URL \"http://127.0.0.1:%d/\".\n", port);
     k->Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", port);
 	
-    webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH);    
-	
+    if(k->options->GetOption('2'))
+        webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH2);
+    else
+        webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH);
+
 	//    printf("WebUI Path: %s\n", webui_dir);
 	
 	//    char * p = create_formatted_string("%s%s", webui_dir, "/log.tmp");
@@ -984,7 +986,8 @@ void
 WebUI::Run()
 {
     isRunning = true;   // FIXME: TEMPORARY START UP
-
+    first_request = true;
+    
     if(socket == NULL)
         return;
 	
@@ -1314,7 +1317,7 @@ WebUI::Pause()
 void
 WebUI::HandleHTTPRequest()
 {
-//    printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+    printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
 
     std::string s = socket->header.Get("URI");
     
@@ -1326,8 +1329,9 @@ WebUI::HandleHTTPRequest()
 
     if(!strcmp(uri, "/update.json"))
     {
-        if(!args) // not a data request - send view data
+        if(!args || first_request) // not a data request - send view data
         {
+            first_request = false;
             std::string s = k->JSONString();
             Dictionary rtheader;
             rtheader.Set("Session-Id", std::to_string(k->session_id).c_str());
@@ -1349,10 +1353,8 @@ WebUI::HandleHTTPRequest()
                 
                 char * module = strsep(&ms, ".");
                 char * source = ms;
-                
-//                printf("\t\tSOURCE: %s:%s\n", module, source);
+                printf("AddDataSource:%s::%s\n", module, source);
                 AddDataSource(module, source);
-                
             }
             
 //            while(dont_copy_data) // Wait for data to become available

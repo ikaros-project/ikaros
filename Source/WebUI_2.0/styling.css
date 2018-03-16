@@ -62,8 +62,8 @@ aside {
     display: block; /* or none to hide */
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 10px;
-    background: white;
+    padding: 0px;
+    background: lightgray;
     border-left: 1px solid gray;
 }
 
@@ -81,8 +81,14 @@ footer {
 }
 
 table {
-    table-layout: fixed;
+//    table-layout: fixed;
+//    border-collapse: collapse;
 }
+
+tr {
+
+}
+
 
 td {
     word-wrap: break-word;
@@ -190,7 +196,7 @@ main[data-mode="edit"] {
 
 aside table {
     width: 100%;
-    margin: 5px;
+//    margin: 5px;
 }
 
 aside table td.header {
@@ -201,7 +207,7 @@ aside table td.header {
 }
 
 aside table td.textedit {
-    border: 1px solid gray;
+//    border: 1px solid gray;
 }
 
 div.title {

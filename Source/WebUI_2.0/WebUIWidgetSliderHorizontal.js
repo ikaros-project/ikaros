@@ -37,6 +37,11 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
          return `<div class="hranger"></div>`;
     }
 
+    requestData(data_set)
+    {
+        data_set.add(this.parameters.module+"."+this.parameters.parameter);
+    }
+
     slider_moved(index, value)
     {
         if(this.parameters.module && this.parameters.parameter)
@@ -103,7 +108,12 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             }
         }
 
-        // sset-up event handlers
+        for(let value of this.querySelectorAll(".slider_value"))
+        {
+            value.style.display = this.parameters.show_values ? 'block' : 'none';
+        }
+        
+        // set-up event handlers
 
         let i = 0;
         for(let slider of this.querySelectorAll("input"))
@@ -115,12 +125,30 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
         }
     }
 
-    update()
+    update(d)
     {
-        for(let value of this.querySelectorAll(".slider_value"))
+         try {
+            let m = this.parameters.module;
+            let s = this.parameters.parameter;
+            this.data = d[m][s];
+
+            if(this.data)
+            {
+                let size_y = this.data.length;
+                let size_x = this.data[0].length;
+                
+                let i = 0;
+                for(let slider of this.querySelectorAll("input"))
+                    slider.value = this.data[0][i++];
+            }
+
+            if(this.parameters.show_values)
+                for(let value of this.querySelectorAll(".slider_value"))
+                    value.innerText = value.parentNode.children[1].value;
+        }
+        catch(err)
         {
-            value.style.display = this.parameters.show_values ? 'block' : 'none'
-            value.innerText = value.parentNode.children[1].value;
+        
         }
     }
 };

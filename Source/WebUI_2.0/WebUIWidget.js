@@ -42,7 +42,7 @@ class WebUIWidget extends HTMLElement
         var last_request = url;
 
         xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://127.0.0.1:8000"+url, true);
+        xhr.open("GET", url, true);
 
         xhr.onloadstart = function(evt)
         {
@@ -261,14 +261,14 @@ class WebUIWidget extends HTMLElement
         this.innerHTML = this.constructor.html();
 
         // These are for documentation purposes:
-        
+/*
         this.onmousedown = function () { console.log("WebUIWidgetCanvas: mouse down"); }
         this.onmouseup = function () { console.log("WebUIWidgetCanvas: mouse up"); }
         this.onclick = function () { console.log("WebUIWidgetCanvas: click"); }
         this.onmousemove = function () { console.log("WebUIWidgetCanvas: mousemove"); }
         this.onmouseover = function () { console.log("WebUIWidgetCanvas: mouseover"); }
         this.onmouseout = function () { console.log("WebUIWidgetCanvas: mouseout"); }
-
+*/
         this.updateStyle(this, this.parameters['style']);
         this.updateStyle(this.parentNode, this.parameters['frame-style']);
         this.readCSSvariables();

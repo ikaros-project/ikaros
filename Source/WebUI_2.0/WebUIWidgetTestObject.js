@@ -1,4 +1,4 @@
-class WebUIWidgetPlot extends WebUIWidgetCanvas
+class WebUIWidgetTestObject extends WebUIWidgetCanvas
 {
 
     static template()
@@ -94,4 +94,4 @@ class WebUIWidgetPlot extends WebUIWidgetCanvas
 
 
 
-webui_widgets.add('webui-widget-plot', WebUIWidgetPlot);
+webui_widgets.add('webui-widget-test-object', WebUIWidgetTestObject);

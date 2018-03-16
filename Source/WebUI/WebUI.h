@@ -1,7 +1,7 @@
 //
-//  WebUI.h		Web UI code for the IKAROS project
+//    WebUI.h		Web UI code for the IKAROS project
 //
-//    Copyright (C) 2005-2012  Christian Balkenius
+//    Copyright (C) 2005-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 
 #ifndef     WEBUIPATH
 #define		WEBUIPATH	"Source/WebUI/"
+#define     WEBUIPATH2  "Source/WebUI_2.0/"
 #endif
 
 #define		PORT 8000
@@ -120,7 +121,8 @@ public:
     long			tick;
     int             ui_state;
     int             iterations_per_runstep;
-    
+    bool            first_request;
+
     std::atomic<float *>  ui_data;
     std::atomic<bool> copying_data;
     std::atomic<bool> dont_copy_data;

@@ -340,7 +340,7 @@ interaction = {
         element.appendChild(element.handle);
     },
     initViewElement: function (element, data) {   // For object in view from IKC file
-        console.log("initViewElement:", "webui-widget-"+data['class']);
+//        console.log("initViewElement:", "webui-widget-"+data['class']);
 
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
@@ -702,6 +702,9 @@ controller = {
         }
         xhr.onload = function(evt)
         {
+            if(!xhr.response)   // empty response is ignored
+                return;
+
     //        console.log("The transfer is complete.");
     //        console.log(xhr.response);
             callback(xhr.response, xhr.getResponseHeader("Session-Id"));
@@ -713,28 +716,28 @@ controller = {
     },
 
     init: function () {
-        controller.get("http://127.0.0.1:8000/update.json", controller.update);
+        controller.get("update.json", controller.update);
         setInterval(function() {controller.requestUpdate();}, 100); // Use adaptive frequency later
     },
     
     stop: function () {
-        controller.get("http://127.0.0.1:8000/stop", controller.update);
+        controller.get("stop", controller.update);
     },
     
     pause: function () {
-        controller.get("http://127.0.0.1:8000/pause", controller.update);
+        controller.get("pause", controller.update);
     },
     
     step: function () {
-        controller.get("http://127.0.0.1:8000/step", controller.update);
+        controller.get("step", controller.update);
     },
     
     play: function () {
-        controller.get("http://127.0.0.1:8000/play", controller.update);
+        controller.get("play", controller.update);
     },
     
     realtime: function () {
-        controller.get("http://127.0.0.1:8000/realtime", controller.update);
+        controller.get("realtime", controller.update);
     },
 
     buildViewDictionary: function(group, name) {
@@ -748,8 +751,8 @@ controller = {
     },
 
     selectView: function(view) {
-        console.log(view);
-        console.log(controller.views[view]);
+ //       console.log(view);
+ //       console.log(controller.views[view]);
 
         // Create new view if it does not exist
         
@@ -767,7 +770,7 @@ controller = {
             nav.init(response);
             controller.buildViewDictionary(response, "");
             controller.selectView(Object.keys(controller.views)[0]);
-            controller.get("http://127.0.0.1:8000/update.json", controller.update);
+            controller.get("update.json", controller.update);
         }
         else // same session - proably new data package
         {
@@ -793,7 +796,7 @@ controller = {
     {
         if(!interaction.currentView) // no view selected
         {
-            controller.get("http://127.0.0.1:8000/update.json", controller.update);
+            controller.get("update.json", controller.update);
             return;
         }
 
@@ -820,7 +823,7 @@ controller = {
             sep = "+"
          }
         
-        controller.get("http://127.0.0.1:8000/update.json?data="+encodeURIComponent(data_string), controller.update);
+        controller.get("update.json?data="+encodeURIComponent(data_string), controller.update);
     }
 }
 

@@ -2620,12 +2620,10 @@ Kernel::GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr
                 
                 if(equal_strings("interval", n))
                 {
-                    printf("STOP\n");
+//                    printf("STOP\n");
                 }
-
 			}
-            
-            
+
             return GetBinding(xml, m, type, value_ptr, sx, sy, new_module, new_parameter);
 		}
 

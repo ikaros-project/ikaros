@@ -31,7 +31,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     requestData(data_set)
     {
-        data_set.add(this.parameters['module']+"."+this.parameters['source']);
+        data_set.add(this.parameters.module+"."+this.parameters.source);
     }
 
     drawBarHorizontal(width, height, i)
