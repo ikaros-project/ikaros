@@ -96,6 +96,13 @@ float **    set_col(float ** m, float * a, int col, int sizey);
 float *     get_row(float * a, float ** m, int row, int sizex);
 float *     get_col(float * a, float ** m, int col, int sizey);
 
+// Reshape functions
+
+float *     put(float *target, const int *indices, const float *source, const int len);
+float *     repeat(float *target, const float *src, const int repeats, const int srclen);
+float *     take(float *target, const int *indices, const float *source, const int len);
+float *     tile(float *target, const float *src, const int tiles, const int srclen);
+
 
 // Load and Store arrays and matrices
 
