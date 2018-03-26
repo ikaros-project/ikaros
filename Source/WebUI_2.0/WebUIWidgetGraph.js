@@ -73,7 +73,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = this.format.min + (n-j-1)*(this.format.max-this.format.min)/(n-1);   // ????
+            let v = this.parameters.min + (n-j-1)*(this.parameters.max-this.parameters.min)/(n-1);   // ????
             this.canvas.fillText(v.toFixed(this.format.decimals), -this.format.scaleOffset, i);
             i += height/(n-1);
         }
@@ -94,7 +94,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = this.format.min + (n-j-1)*(this.format.max-this.format.min)/(n-1);
+            let v = this.parameters.min + (n-j-1)*(this.parameters.max-this.parameters.min)/(n-1);
             this.canvas.fillText(v.toFixed(this.format.decimals), width+this.format.scaleOffset, i);
             i += height/(n-1);
         }
@@ -115,7 +115,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = this.format.min + (n-j-1)*(this.format.max-this.format.min)/(n-1);
+            let v = this.parameters.min + (n-j-1)*(this.parameters.max-this.parameters.min)/(n-1);
             this.canvas.fillText(v.toFixed(this.format.decimals), i, height+this.format.scaleOffset);
             i += width/(n-1);
         }

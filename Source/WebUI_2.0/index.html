@@ -55,33 +55,47 @@
 			</script>
 		</aside>
 
-		<aside id="edit_inspector">
-            <button onclick="interaction.increaseGrid()">Grid +</button>
+		<aside id="edit_inspector" >
             <button onclick="interaction.decreaseGrid()">Grid -</button>
-            
-            <br>
-            
-            <select id="widget_select">
-                <option value="webui-widget-plot">Plot</option>
-                <option value="webui-widget-bar-graph">BarGraph</option>
-            </select>
-
-            <br>
-            <button onclick="interaction.addObject()">Add Widget</button>
+            <button onclick="interaction.increaseGrid()">Grid +</button>
+ 
+            <table id="i_table">
+                 <tbody>
+                    <tr><td colspan="2" class="header">ADD WIDGET</td></tr>
+                    <tr>
+                        <td>
+                            <select id="widget_select">
+                                <option value="webui-widget-plot">Plot</option>
+                                <option value="webui-widget-bar-graph">BarGraph</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button onclick="interaction.addObject()">Add Widget</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 		</aside>
 
 
 		<aside id="system_inspector">
-            <h1>Ikaros System Info</h1>
             <button onmousedown="controller.stop()">Stop</button>
             <button onmousedown="controller.pause()">Pause</button>
             <button onmousedown="controller.step()">Step</button>
             <button onmousedown="controller.play()">Play</button>
             <button onmousedown="controller.realtime()">RT</button>
-            <br>
-            <progress value="22" max="100"></progress>
-            <br>
-            <p id="iteration">0</p>
+            <table id="i_table">
+                 <tbody>
+                    <tr><td colspan="2" class="header">SYSTEM INFO</td></tr>
+                    <tr>
+                        <td>Iteration</td><td id="iteration">0</td>
+                    </tr>
+                    <tr>
+                        <td>Progress</td><td><progress value="22" max="100"></progress></td>
+                    </tr>
+                </tbody>
+            </table>
+
             <p id="title"></p>
 		</aside>
 

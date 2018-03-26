@@ -9,6 +9,9 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
 }
 
 html, body {
@@ -25,7 +28,11 @@ body {
 }
 
 header {
-    flex: 0 0 50px;
+    flex: 0 0 30px;
+    color: #b0b0b0;
+    background: #38383A;
+    border-bottom: 1px solid red;
+    text-align: right;
 }
 
 section {
@@ -63,8 +70,9 @@ aside {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0px;
-    background: lightgray;
-    border-left: 1px solid gray;
+    color: #b0b0b0;
+    background: #38383A;
+    border-left: 1px solid black;
 }
 
 footer {
@@ -81,24 +89,55 @@ footer {
 }
 
 table {
-//    table-layout: fixed;
-//    border-collapse: collapse;
+    border-spacing: 0;
 }
-
-tr {
-
-}
-
 
 td {
     word-wrap: break-word;
     white-space: pre-wrap;
 /*    max-width: 200px; */
+    padding-top: 5px;
+    padding-bottom: 2px;
+    padding-left: 20px;
+    color: #b0b0b0;
+    font-size: 10pt;
+/*    font-weight: bold; */
+    width: 100px;
+    text-align: left;
+    outline: none;
+
+    border-top: 1px solid #585858;
+    border-bottom: 1px solid #171717;
+}
+
+td + td {
+    width: 200px;
+}
+
+td + td.textedit {
+    padding-right: 20px;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+td + td.textedit:hover
+{
+    background-color: #303034;
+}
+
+td + td.textedit:focus
+{
+    color: black;
+    background-color: lightgray;
 }
 
 header {
     padding: 5px;
     border-bottom: 1px solid gray;
+}
+
+select {
+    outline: none;
 }
 
 nav {
@@ -188,15 +227,13 @@ main {
 }
 
 main[data-mode="edit"] {
-    background: lightyellow;
+    background: white; /* lightyellow */
 }
-
 
 /* Inspector Styles */
 
 aside table {
     width: 100%;
-//    margin: 5px;
 }
 
 aside table td.header {
@@ -226,20 +263,14 @@ div.frame {
     background: none;
 }
 
-
 webui-widget-table div {
     height: 35px;
     padding: 0;
 }
 
 table {
-    width: 100%;
+//    width: 100%;
 }
-
-td {
-    text-align: right;
-}
-
 
 _webui-widget-bar-graph {
 
@@ -302,11 +333,11 @@ div.frame.visible {
 
 
 div.selected {
-    border: 2px solid red;
+    border: 1px solid red;
 }
 
 div.visible.selected {
-    border: 2px solid red;
+    border: 1px solid red;
 }
 
 
@@ -352,7 +383,7 @@ main[data-mode="edit"] div#grid {
     top: 0;
     bottom: 0;
     width: 1px;
-    border-left: 1px solid lightblue;
+    border-left: 1px solid lightgray;
 }
 
 .hgrid {
@@ -360,7 +391,7 @@ main[data-mode="edit"] div#grid {
     left: 0;
     right: 0;
     height: 1px;
-    border-top: 1px solid lightblue;
+    border-top: 1px solid lightgray;
 }
 
 
@@ -368,6 +399,30 @@ main[data-mode="edit"] div#grid {
     display: none;
 }
 
+button {
+    background-color: transparent;
+    padding-top: 2px;
+    padding-bottom: 0px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+    margin-right: 0px;
+    color: lightgray;
+    border: 1px solid gray;
+    border-radius: 0px;
+}
+
+button:hover {
+    background-color: lightgray;
+    color: black;
+}
+
+button:active {
+    background-color: black;
+    color: white;
+}
 
 /* Specific widgets - this could be included in the template instead for non-standard widgets */
 

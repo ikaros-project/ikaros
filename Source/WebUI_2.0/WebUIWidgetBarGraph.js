@@ -6,8 +6,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name': "PARAMETERS", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'int', 'control': 'textedit'},
+            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
             {'name': "STYLE", 'control':'header'},
@@ -24,9 +24,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         this.data = [];
         
         this.onclick = function () { alert(this.data) };
-        
-        this.min = 0;
-        this.max = 1;
     }
 
     requestData(data_set)

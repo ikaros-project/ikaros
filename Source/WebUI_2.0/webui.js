@@ -159,7 +159,7 @@ inspector = {
                             evt.preventDefault();
                         else if(p.type == 'float' && evt.key == "." && evt.target.innerHTML.indexOf(".") != -1)
                             evt.preventDefault();
-                        else if(p.type == 'float' &&  (evt.key < "0" || evt.key > "9"))
+                        else if(p.type == 'float' && evt.key != "." && (evt.key < "0" || evt.key > "9"))
                             evt.preventDefault();
                         else if(p.type == 'source' && "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ-_.0123456789".indexOf(evt.key) == -1)
                             evt.preventDefault();

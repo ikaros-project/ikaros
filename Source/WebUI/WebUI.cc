@@ -1353,7 +1353,7 @@ WebUI::HandleHTTPRequest()
                 
                 char * module = strsep(&ms, ".");
                 char * source = ms;
-                printf("AddDataSource:%s::%s\n", module, source);
+//                printf("AddDataSource:%s::%s\n", module, source);
                 AddDataSource(module, source);
             }
             

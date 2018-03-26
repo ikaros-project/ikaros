@@ -27,13 +27,27 @@ class WebUIWidget extends HTMLElement
 
     // top level function
 
+    setType(x, t)
+    {
+        if(t == 'int')
+            return parseInt(x);
+        
+        if(t == 'float')
+            return parseFloat(x);
+        
+        if(t == 'bool')
+            return x == 'true'; // only 'true'/'false' for now
+        
+        return x;
+    }
+    
     constructor()
     {
         super();
         let pt = this.constructor.template();
         this.parameters = {};
         for(let i in pt)
-            this.parameters[pt[i].name] = pt[i]['default'];
+            this.parameters[pt[i].name] = this.setType(pt[i]['default'], pt[i]['type']);
         this.parameter_template = pt;        
      }
 
