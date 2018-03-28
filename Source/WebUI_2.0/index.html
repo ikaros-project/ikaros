@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="styling.css">
+<link rel="stylesheet" type="text/css" href="stylish.css">
+<title>Ikaros WebUI 2.0</title>
+<script src="webui.js"></script>
+<script src="WebUIWidget.js"></script>
+<script src="WebUIWidgetCanvas.js"></script>
+<script src="WebUIWidgetGraph.js"></script>
+<script src="WebUIWidgetBarGraph.js"></script>
+<script src="WebUIWidgetPlot.js"></script>
+<script src="WebUIWidgetText.js"></script>
+<script src="WebUIWidgetTable.js"></script>
+<script src="WebUIWidgetControl.js"></script>
+<script src="WebUIWidgetButton.js"></script>
+<script src="WebUIWidgetSliderHorizontal.js"></script>
+<script src="WebUIWidgetSliderVertical.js"></script>
+</head>
+<body>
+	<header>
+		<button onclick="toggleNav()">Nav</button>
+        <button onclick="toggleFooter()">Messages</button>
+        <button onclick="toggleSystem()">System</button>
+        <button onclick="interaction.toggleEditMode()">Edit</button>
+<!--        <button onclick="toggleInspector()">Inspector</button>    -->
+
+<!--
+        <span>Selected:</span> <span id="selected"></span>
+-->
+	</header>
+
+	<section>
+		<main id="main">
+		</main>
+	
+		<nav id="navigator">
+		</nav>
+	
+		<aside id="widget_inspector">
+			<div id="inspector">
+                <button>To Front</button>
+                <button>To Back</button>
+                <button>Duplicate</button>
+                <button>Delete</button>
+				<div id="i_header"></div>
+				<table id="i_table">
+				<!--	<tr><th>Attr</th><th>Value</th></tr> -->
+				</table>
+			</div>
+            
+			<script>
+			inspector.init();
+			</script>
+		</aside>
+
+		<aside id="edit_inspector" >
+            <button onclick="interaction.decreaseGrid()">Grid -</button>
+            <button onclick="interaction.increaseGrid()">Grid +</button>
+ 
+            <table id="i_table">
+                 <tbody>
+                    <tr><td colspan="2" class="header">ADD WIDGET</td></tr>
+                    <tr>
+                        <td>
+                            <select id="widget_select">
+                                <option value="webui-widget-plot">Plot</option>
+                                <option value="webui-widget-bar-graph">BarGraph</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button onclick="interaction.addObject()">Add Widget</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+		</aside>
+
+
+		<aside id="system_inspector">
+            <button onmousedown="controller.stop()">Stop</button>
+            <button onmousedown="controller.pause()">Pause</button>
+            <button onmousedown="controller.step()">Step</button>
+            <button onmousedown="controller.play()">Play</button>
+            <button onmousedown="controller.realtime()">RT</button>
+            <table id="i_table">
+                 <tbody>
+                    <tr><td colspan="2" class="header">SYSTEM INFO</td></tr>
+                    <tr>
+                        <td>Iteration</td><td id="iteration">0</td>
+                    </tr>
+                    <tr>
+                        <td>Progress</td><td><progress value="22" max="100"></progress></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p id="title"></p>
+		</aside>
+
+
+	</section>
+	
+	<footer></footer>
+<script>
+    interaction.init();
+    interaction.generateGrid(20);
+    interaction.initDraggables();
+//    interaction.setMode('run');
+    controller.init();
+    
+//    setInterval(function (){ console.log("NOW"); f = document.querySelector('footer'); f.innerHTML += "<p>Hej! ("+Date.now()+")</p>"; f.scrollTop = f.scrollHeight; }, 1000);
+</script>
+</body>
+</html>
+

@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ikaros WebUi 2.0</title>
+<script>
+
+
+
+
+/*
+ *
+ * Viewer scripts
+ *
+ */
+
+function toggleNav()
+{
+    var x = document.getElementById('navigator');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+function toggleInspector()
+{
+    var x = document.getElementById('windget_inspector');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+</script>
+<script>
+/*
+ *
+ * Navigator scripts
+ *
+ */
+
+
+nav = {
+
+	init: function (g) {
+        nav.group = g;
+		nav.navigator = document.getElementById('navigator');
+		nav.populate(nav.navigator);
+		nav.navigator.addEventListener("click", nav.navClick, false);
+	},
+	buildList: function(group, name) {
+		var s = "<li data-name='"+name+"/"+group.name+"'>" + group.name; // or title
+
+		if(group.views)
+		{
+			s +=  "<ul>"
+			for(i in group.views)
+				s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>#" + group.views[i].name + "</li>";
+			s += "</ul>";			
+		}
+
+		if(group.groups)
+		{
+			s +=  "<ul>"
+			for(i in group.groups)
+				s += nav.buildList(group.groups[i], name+"/"+group.name);
+			s += "</ul>";			
+		}
+
+		s += "</li>";
+
+		return s;
+	},
+	populate: function (element, group) {
+		element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
+	},
+	navClick: function(e) {
+		if (e.target !== e.currentTarget)
+		{
+//			console.log(e.target.getAttribute("data-name"));
+            interaction.addView(e.target.getAttribute("data-name"));
+		}
+		e.stopPropagation();
+	}
+}
+
+</script>
+<script>
+/*
+ *
+ * Inspector scripts
+ *
+ */
+
+inspector = {
+	inspector: null,
+	table: null,
+	list: null,
+    widget: null,
+    
+	init: function () {
+		inspector.inspector = document.getElementById('windget_inspector');
+		inspector.table = document.getElementById('i_table');
+	},
+	remove: function () {
+		while(inspector.table.rows.length > 1)
+			inspector.table.deleteRow(-1);
+	},
+	add: function (widget) {
+        inspector.widget = widget;
+		inspector.parameter_template = widget.parameter_template;
+		for(let i in inspector.parameter_template)
+		{
+			let row = inspector.table.insertRow(-1);
+			let value = inspector.widget.parameters[inspector.parameter_template[i].name];
+            let cell1 = row.insertCell(0);
+			let cell2 = row.insertCell(1);
+
+			cell1.innerHTML = inspector.parameter_template[i].name;
+			cell2.innerHTML = value;
+
+			switch(inspector.parameter_template[i].control)
+			{
+				case 'textedit':
+					cell2.contentEditable = true;
+					if(inspector.parameter_template[i].type == 'int' || inspector.parameter_template[i].type == 'float')
+					{
+						cell2.style.textAlign = 'right';
+					}
+                    cell2.addEventListener("keypress", function(evt) {
+                        if(evt.keyCode == 13)
+                        {
+                            evt.target.blur();
+                            evt.preventDefault();
+                            return;
+                        }
+                        else if(inspector.parameter_template[i].type == 'int')
+                        {
+                            if(evt.key < "0" || evt.key > "9")
+                                evt.preventDefault();
+                        }
+                        else if(inspector.parameter_template[i].type == 'float')
+                        {
+                            if(evt.key == ".")
+                            {
+                                if(evt.target.innerHTML.indexOf(".") != -1)
+                                    evt.preventDefault();
+                            }
+                            else if(evt.key < "0" || evt.key > "9")
+                                evt.preventDefault();
+                        }
+                        else if(inspector.parameter_template[i].type == 'source')
+                        {
+                            if("abcdefghijklmnopqrtuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ-_.0123456789".indexOf(evt.key) == -1)
+                                evt.preventDefault();
+                        }
+                    });
+                    cell2.addEventListener("blur", function(evt) {
+                        if(inspector.parameter_template[i].type == 'int')
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = parseInt(evt.target.innerText);
+                        else if(inspector.parameter_template[i].type == 'float')
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = parseFloat(evt.target.innerText);
+                        else
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.innerText;
+                        inspector.widget.update();
+                    });
+				break;
+
+				case 'slider':
+					if(inspector.parameter_template[i].type == 'int' || inspector.parameter_template[i].type == 'float')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<div>'+value+'</div><input type="range" value="'+value+'" min="'+inspector.parameter_template[i].min+'" max="'+inspector.parameter_template[i].max+'" step="'+(inspector.parameter_template[i].type == 'int' ?  1: 0.01)+'"/>';
+						cell2.addEventListener("input", function(evt) {
+							evt.target.parentElement.querySelector('div').innerText = evt.target.value;
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+						});
+					}
+				break;
+				
+				case 'menu':
+					var opts = inspector.parameter_template[i].values.split(',');
+					var s = '<select name="'+inspector.parameter_template[i].name+'">';
+					for(var j in opts)
+                    {
+                        let value = inspector.parameter_template[i].type == 'int' ? j : opts[j];
+                        if(opts[j] == inspector.widget.parameters[inspector.parameter_template[i].name])
+                            s += '<option value="'+value+'" selected >'+opts[j]+'</option>';
+                        else
+                            s += '<option value="'+value+'">'+opts[j]+'</option>';
+                    }
+					s += '</select>';
+					cell2.innerHTML= s;
+                    cell2.addEventListener("input", function(evt) {
+                         inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+                    });
+ 				break;
+				
+				case 'checkbox':
+					if(inspector.parameter_template[i].type == 'bool')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<input type="checkbox" value="'+value+'" />';
+						cell2.addEventListener("input", function(evt) {
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+						});
+					}
+ 				break;
+				
+				case 'number':
+					if(inspector.parameter_template[i].type == 'int')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<input type="number" value="'+value+'" min="'+inspector.parameter_template[i].min+'" max="'+inspector.parameter_template[i].max+'"/>';
+						cell2.addEventListener("input", function(evt) {
+                            inspector.widget.parameters[inspector.parameter_template[i].name] = evt.target.value;
+						});
+					}
+				break;
+				
+				default:
+				
+				break;
+			}
+		}
+	},
+	select: function (obj)
+	{
+		inspector.remove();
+		inspector.add(obj.widget)
+	},
+	update: function (attr_value)
+	{
+		// New data from server
+	},
+	change: function (attr_value)
+	{
+		// Send changed value to server
+	}
+}
+
+</script>
+<script>
+
+webui_widgets = {
+    constructors: {},
+    add: function(element_name, class_object) {
+        customElements.define(element_name, class_object);
+        webui_widgets.constructors[element_name] = class_object;
+    }
+};
+</script>
+
+<script src="WebUIWidget.js"></script>
+
+<script src="WebUIWidgetCanvas.js"></script>
+
+<script src="WebUIWidgetPlot.js"></script>
+<script src="WebUIWidgetBarGraph.js"></script>
+
+<script src="WebUIWidgetText.js"></script>
+
+<script>
+
+/*
+ *
+ * Interaction scripts from Main Area
+ *
+ */
+
+interaction = {
+	initialMouseX: undefined,
+	initialMouseY: undefined,
+	startX: undefined,
+	startY: undefined,
+	selectedObject: undefined,
+	grid_spacing: 20,
+	sizegrid: 20,
+	editMode: true,
+    main: undefined,
+    widget_inspector: undefined,
+    system_inspector: undefined,
+    grid_inspector: undefined,
+	
+    init: function () {
+        interaction.main = document.querySelector('main');
+        interaction.main.dataset.mode="run";
+
+        interaction.widget_inspector = document.querySelector('#widget_inspector');
+        interaction.system_inspector = document.querySelector('#system_inspector');
+        interaction.grid_inspector = document.querySelector('#grid_inspector');
+    },
+    stopEvents: function (e) {
+        if(interaction.main.dataset.mode == "edit") e.stopPropagation()
+    },
+	initElement: function (element) {   // For interactively created object
+        console.log("initELement:", element);
+
+		if (typeof element == 'string')
+			element = document.getElementById(element);
+
+        element.addEventListener('mousedown', interaction.startDrag, true); //capture
+
+        let widget_select = document.querySelector('#widget_select');
+        let widget_name = widget_select.options[widget_select.selectedIndex].value;
+        let constr = webui_widgets.constructors[widget_name];
+        if(!constr)
+        {
+            alert("Internal Error: No constructor found for "+widget_name);
+            return;
+        }
+	    element.widget = new webui_widgets.constructors[widget_name]; //new WebUIWidgetBarGraph();
+        element.widget.element = element;
+        element.widget.init();
+
+        element.appendChild(element.widget);
+        
+        let windgetStyles = window.getComputedStyle(element.widget);
+        let x = windgetStyles.getPropertyValue('--x');
+        let y = windgetStyles.getPropertyValue('--y');
+        let width = windgetStyles.getPropertyValue('--width');
+        let height = windgetStyles.getPropertyValue('--height');
+
+	    newObject.style.top = x;        // uses global variable - why?
+	    newObject.style.left = y;
+	    newObject.style.width = width;
+	    newObject.style.height = height;
+
+	    element.handle = document.createElement("div");
+        element.handle.setAttribute("class", "handle");
+		element.handle.onmousedown = interaction.startResize;
+        element.appendChild(element.handle);
+	},
+    initViewElement: function (element, data) {   // For object in view from IKC file
+        console.log("initViewElement:", data['class']);
+
+//        if (typeof element == 'string')
+//            element = document.getElementById(element);
+
+        element.addEventListener('mousedown', interaction.startDrag, true); //capture
+
+//        let widget_select = document.querySelector('#widget_select');
+//        let widget_name = widget_select.options[widget_select.selectedIndex].value;
+
+        let constr = webui_widgets.constructors[data['class']];
+        if(!constr)
+        {
+            console.log("Internal Error: No constructor found for "+data['class']);
+            element.widget = new webui_widgets.constructors['webui-widget-text'];
+            element.widget.element = element;
+            element.widget.parameters['text'] = "\""+data['class']+"\" not found.";
+        }
+        else
+        {
+            element.widget = new webui_widgets.constructors[data['class']];
+            
+            // Add parameters from IKC file here and defaults from CSS
+            
+        }
+
+        element.appendChild(element.widget);
+        element.widget.init();
+
+        let windgetStyles = window.getComputedStyle(element.widget);
+        let x = windgetStyles.getPropertyValue('--x');
+        let y = windgetStyles.getPropertyValue('--y');
+        let width = windgetStyles.getPropertyValue('--width');
+        let height = windgetStyles.getPropertyValue('--height');
+
+        x = data['x'] ? data['x'] : x;
+        y = data['y'] ? data['y'] : y;
+
+        newObject.style.top = x+"px";        // uses global variable - why?
+        newObject.style.left = y+"px";
+        newObject.style.width = width+"px";
+        newObject.style.height = height+"px";
+
+        element.handle = document.createElement("div");
+        element.handle.setAttribute("class", "handle");
+        element.handle.onmousedown = interaction.startResize;
+        element.appendChild(element.handle);
+    },
+	initDraggables: function () { // only needed if there are already draggable elements in the main view
+        let nodes = document.querySelectorAll(".draggable");
+        for (var i = 0; i <	nodes.length; i++)
+            interaction.initElement(nodes[i]);
+        let  main = document.querySelector('main');
+        main.addEventListener('mousedown',interaction.deselectObject,false);
+	},
+    removeAllObjects() {
+        let main = document.querySelector('main');
+        let nodes = document.querySelectorAll(".draggable");
+        for (var i = 0; i < nodes.length; i++)
+            main.removeChild(nodes[i]);
+    },
+	generateGrid: function (spacing) {
+	    interaction.grid_spacing = spacing;
+	    let grid = interaction.main.querySelector('#grid');
+	    if(grid)
+    	    interaction.main.removeChild(grid);
+		interaction.main.innerHTML += '<div id="grid"></div>'
+        grid = document.getElementById('grid');
+	    for(let i=1; i<250; i++)
+	    {
+		    grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px"></div>'
+		    grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px"></div>'
+	    }
+	},
+	changeGrid: function(spacing) {
+	    interaction.grid_spacing = spacing;
+	    vgrids = document.querySelectorAll('.vgrid');
+        for(let i = 0; i <	vgrids.length; i++)
+	        vgrids[i].style.left = ""+(i+1)*spacing+"px";
+	    hgrids = document.querySelectorAll('.hgrid');
+        for(let i = 0; i <	hgrids.length; i++)
+	        hgrids[i].style.top = ""+(i+1)*spacing+"px";
+	},
+	increaseGrid() {
+	    if(interaction.grid_spacing < 160)
+            interaction.changeGrid(2*interaction.grid_spacing);
+	},
+	decreaseGrid() {
+	    if(interaction.grid_spacing > 10)
+	        interaction.changeGrid(0.5*interaction.grid_spacing);
+	},
+	addObject() {
+	    let main = document.querySelector('main');
+        newObject = document.createElement("div");
+	    newObject.setAttribute("class", "draggable");
+        interaction.main.appendChild(newObject);
+        interaction.initElement(newObject)
+        interaction.selectObject(newObject);
+	},
+    addView(viewName) {
+        console.log("addView:", viewName);
+        console.log(controller.views[viewName]);
+        
+        interaction.removeAllObjects();
+
+        let main = document.querySelector('main');
+        let v = controller.views[viewName].objects;
+        for(let i=0; i<v.length; i++)
+        {
+            newObject = document.createElement("div");
+            newObject.setAttribute("class", "draggable");
+            interaction.main.appendChild(newObject);
+            interaction.initViewElement(newObject, v[i])
+        }
+    },
+	deselectObject() {
+	    if(interaction.selectedObject)
+        {
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/selected/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+            interaction.releaseElement();
+            interaction.selectedObject = null;
+		    document.getElementById('selected').innerText = ""
+
+            interaction.widget_inspector.style.display = "none";
+            interaction.system_inspector.style.display = "none";
+            interaction.grid_inspector.style.display = "block";
+		}
+	},
+	releaseElement: function(evt) {
+	    interaction.main.removeEventListener('mousemove',interaction.move,true);
+	    interaction.main.removeEventListener('mousemove',interaction.resize,true);
+	    interaction.main.removeEventListener('mouseup',interaction.releaseElement,true);
+//        if(interaction.selectedObject)
+        {
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+        }
+		if(evt) evt.stopPropagation()
+	},
+	selectObject(obj) {
+		interaction.deselectObject()
+		interaction.selectedObject = obj;	
+		interaction.selectedObject.className += ' selected';
+		document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
+        
+        inspector.select(obj);
+        
+        interaction.widget_inspector.style.display = "block";
+        interaction.system_inspector.style.display = "none";
+        interaction.grid_inspector.style.display = "none";
+
+// TEST
+//        let bodyStyles = window.getComputedStyle(obj.widget);
+//        let testVal = bodyStyles.getPropertyValue('--test-property');
+//        console.log(testVal);
+	},
+	startDrag: function (evt) {
+        // do nothing in run mode
+        if(interaction.main.dataset.mode == "run")
+            return;
+            
+        // continue propagation if in resize handle
+        let r = this.handle.getBoundingClientRect();
+        if( r.left < evt.clientX && evt.clientX < r.right &&
+            r.top  < evt.clientY && evt.clientY < r.bottom)
+            return;
+        
+        // handle the drag
+        
+		evt.stopPropagation();
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+	    interaction.selectObject(this);
+		interaction.selectedObject.className += ' dragged';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		interaction.main.addEventListener('mousemove',interaction.move, true);
+		interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
+		return false;
+	},
+	move: function (evt) {
+		evt.stopPropagation()
+		let dX = evt.clientX - interaction.initialMouseX;
+		let dY = evt.clientY - interaction.initialMouseY;
+		interaction.setPosition(dX,dY);
+		return false;
+	},
+	startResize: function (evt) {
+		evt.stopPropagation();
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+        interaction.selectObject(this.parentElement);
+        interaction.selectedObject.className += ' resized';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		interaction.main.addEventListener('mousemove',interaction.resize,true);
+		interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
+		return false;
+	},
+	resize: function (evt) {
+		let dX = evt.clientX - interaction.initialMouseX;
+		let dY = evt.clientY - interaction.initialMouseY;
+		interaction.setSize(dX,dY);
+		return false;
+	},
+	setPosition: function (dx, dy) {
+	    newLeft = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
+	    newRight = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+		interaction.selectedObject.style.left = newLeft + 'px';
+		interaction.selectedObject.style.top = newRight + 'px';
+	},
+	setSize: function (dx, dy) {
+		let newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
+		let newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
+		interaction.selectedObject.style.width = newWidth + 'px';
+		interaction.selectedObject.style.height = newHeight + 'px';
+        interaction.selectedObject.widget.update(); //***************
+	},
+	toggleEditMode: function() {
+        interaction.edit_mode = ! interaction.edit_mode;
+        interaction.deselectObject();
+	    let main = document.querySelector('main');
+        main.dataset.mode = interaction.edit_mode ? "edit" : "run";
+        
+        if(main.dataset.mode == "edit")
+        {
+            interaction.widget_inspector.style.display = "none";
+            interaction.system_inspector.style.display = "none";
+            interaction.grid_inspector.style.display = "block";
+            interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
+            interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
+            interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
+           interaction.main.addEventListener('click', interaction.stopEvents, true);
+        }
+        else if(main.dataset.mode == "run")
+        {
+            interaction.widget_inspector.style.display = "none";
+            interaction.system_inspector.style.display = "block";
+            interaction.grid_inspector.style.display = "none";
+
+            interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
+            interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
+            interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
+            interaction.main.removeEventListener('click', interaction.stopEvents, true);
+        }
+	}
+}
+</script>
+<style>
+
+/*
+ *
+ * Functional part
+ *
+ */
+ 
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow:hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    flex: 0 0 50px;
+}
+
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row; /* column from phone */ 
+    align-items: stretch;
+    height: 500px;
+}
+
+main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+ }
+
+nav {
+//    flex: 0 0 200px;
+    order: -1;
+
+	width: 200px;	/* sets minimum size (!) */
+    resize: horizontal;
+    
+    white-space: nowrap; 
+     text-overflow: ellipsis;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+aside {
+    flex: 0 0 300px;
+	display: block; /* or none to hide */
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+footer {
+//    background:#888;
+	border-top: 1px solid black; /* temp */
+    flex: 0 0 50px;
+}
+
+table {
+    table-layout: fixed;
+}
+
+td {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 200px;
+}
+
+/*
+ *
+ * Styling part
+ *
+ */
+
+header {
+	padding: 5px;
+	background: lightgray;
+}
+
+nav {
+	padding: 10px;
+	background: white;
+    border-right: 1px solid gray;
+}
+
+nav li {
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+main {
+	padding: 10px;
+    background:white;
+}
+
+main[data-mode="edit"] {
+    background:lightyellow;
+}
+
+aside {
+	padding: 10px;
+	background: white;
+    border-left: 1px solid gray;
+}
+
+webui-widget-canvas {
+    --color: yellow;
+    --line: yellow;
+    --fill: yellow;
+    --line_width: 10px;
+    --line_dash: none;
+    --line_cap: butt;
+    --line_join: miter;
+    --miter-limit: 10;
+    --line_arrow_end: none;
+    --line_arrow_start: none;
+    --size: 1.0;
+    --scale: 1.0;
+    --offset: 0;
+    --offset_x: 0;
+    --offset_y: 0;
+    --orientation: horizontal;
+    --font_size: 12pt;
+    --decimals: 2;
+     --select: 0;
+    --order: row;
+    --x: 20px;
+    --y: 20px;
+    --height: 400px;
+    --width: 100px;
+}
+
+
+
+/*
+*
+*  MAIN AREA
+*
+*
+*/
+
+
+
+/* Basic style for draggable object */
+
+.draggable {
+	position: absolute;
+	top: 10;
+	left: 10;
+    z-index: 200;
+    width: 101px;
+    height: 101px;
+    border: 1px solid lightgray;
+	background-color: rgba(0,0,0,0);
+	cursor: move;
+}
+
+.draggable:hover {
+}
+
+.dragged, .resized {
+    border-color: black;
+}
+
+.dragged, .resized {
+    box-shadow: 4px 4px 4px lightgray;
+}
+
+
+.selected {
+    border: 1px solid black;
+}
+
+
+.selected .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+.handle {
+    position:absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    display: none;
+    background-color: gray;
+    cursor: se-resize;
+}
+
+
+/* 
+.draggable:hover .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+/* Style for grid */
+
+main[data-mode="run"] div#grid {
+    display: none;
+}
+
+
+
+main[data-mode="edit"] div#grid {
+    display: block;
+}
+
+.vgrid {
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px solid lightblue;
+}
+
+.hgrid {
+	position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px solid lightblue;
+}
+
+/* Draggable overriding cusstom style */
+/*
+.draggable {
+    background-color: yellow;
+    border-color: brown;
+}
+*/
+
+.draggable:after {content: attr(data-name);}
+
+
+
+
+</style>
+<style>
+object {
+    color: red;
+}
+object {
+    --line-width: 10px;
+    color: blue;
+}
+</style>
+<script>
+function getCSSRule(ruleName) {
+    ruleName = ruleName.toLowerCase();
+    var result = null;
+    var find = Array.prototype.find;
+
+    find.call(document.styleSheets, styleSheet => {
+        result = find.call(styleSheet.cssRules, cssRule => {
+            return cssRule instanceof CSSStyleRule 
+                && cssRule.selectorText.toLowerCase() == ruleName;
+        });
+        return result != null;
+    });
+    return result;
+}
+
+function show_styles()
+{
+    console.log(document.styleSheets);
+    console.log(getCSSRule("object"));
+}
+</script>
+</head>
+
+<body>
+	
+	<header>
+		<button onclick="toggleNav()">Nav</button>
+<!--
+		<button onclick="toggleInspector()">Inspector</button>
+		<button onclick="testGet()">Test XHR</button>
+		<button onclick="show_styles()">Test styles</button>
+-->
+        <button onclick="interaction.toggleEditMode()">Toggle Edit</button>
+        <span>Selected:</span> <span id="selected"></span>
+	</header>
+	
+	<section>
+	
+		<main id="main">
+		</main>
+	
+		<nav id="navigator">
+			<script>
+//			nav.init();
+			</script>
+		</nav>
+	
+		<aside id="widget_inspector">
+			<div id="inspector">
+				<div id="i_header"></div>
+				<table id="i_table">
+					<tr><th>Attr</th><th>Value</th></tr>
+				</table>
+			</div>
+            
+			<script>
+			inspector.init();
+			</script>
+		</aside>
+
+		<aside id="grid_inspector">
+            <h1>Edit Mode</h1>
+            <button onclick="interaction.increaseGrid()">Grid +</button>
+            <button onclick="interaction.decreaseGrid()">Grid -</button>
+            
+            <br>
+            
+            <select id="widget_select">
+                <option value="webui-widget-plot">Plot</option>
+                <option value="webui-widget-bar-graph">BarGraph</option>
+            </select>
+
+            <br>
+            <button onclick="interaction.addObject()">Add Widget</button>
+		</aside>
+
+
+		<aside id="system_inspector">
+            <h1>Ikaros System Info</h1>
+             <button>Stop</button>
+            <button>Pause</button>
+            <button>Step</button>
+            <button>Play</button>
+            <button>FF</button>
+            
+            <br>
+            <progress value="22" max="100"></progress>
+		</aside>
+
+
+	</section>
+	
+	<footer></footer>
+
+<script>
+
+/*
+ *
+ * Communication scripts
+ *
+ */
+
+
+
+
+/*
+ *
+ * Controller Scripts
+ *
+ */
+
+controller = {
+    run_mode: 'realtime',
+    tick: 0,
+    views: {},
+    
+/*
+    updateProgress: function (oEvent)
+    {
+        if (oEvent.lengthComputable) 
+        {
+            var percentComplete = oEvent.loaded / oEvent.total;
+            console.log("Progress: ", 100*percentComplete, "% complete");
+            document.querySelector("progress").setAttribute("value", 100*percentComplete);
+        } 
+        else 
+        {
+            // Unable to compute progress information since the total size is unknown
+             console.log("Progress: ", oEvent.loaded);
+       }
+    },
+
+    transferComplete: function (evt) {
+        console.log("The transfer is complete.");
+    },
+
+    transferFailed: function (evt) {
+        console.log("An error occurred while transferring the file.");
+    },
+
+    transferCanceled: function (evt) {
+        console.log("The transfer has been canceled by the user.");
+    },
+*/
+    get: function (url, callback)
+    {
+        xhr = new XMLHttpRequest();		
+        xhr.open("GET", url, true);
+
+        xhr.onloadstart = function(evt)
+        {
+            document.querySelector("progress").setAttribute("value", 0);
+        }
+
+        xhr.onprogress = function(evt)
+        {
+            if (evt.lengthComputable) 
+            {
+                var percentComplete = evt.loaded / evt.total;
+                console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
+                document.querySelector("progress").setAttribute("value", 100*percentComplete);
+            }
+        }
+        xhr.onerror = function(evt)
+        {
+            console.log("onerror");
+            console.log(evt);
+            if(evt.lengthComputable && evt.loaded < evt.total)
+                console.log("Failed to load resource. Incomplete.");
+            else if(evt.total == 0 )
+                console.log("Failed to load resource. No data.");
+            else
+                console.log("Failed to load resource.");
+       }
+        xhr.ontimeout = function(evt)
+        {
+            console.log("ontimeout");
+            console.log(evt);
+        }
+        xhr.onload = function(evt)
+        {
+    //        console.log("The transfer is complete.");
+    //        console.log(xhr.response);
+            callback(xhr.response);
+        }
+        
+        xhr.responseType = 'json';
+        xhr.timeout = 10000;
+        xhr.send();
+    },
+
+
+
+    init: function () {
+        controller.get("http://127.0.0.1:8000/xhrtest.json", controller.update);
+    },
+    
+    stop: function () {
+
+    },
+    
+    pause: function () {
+
+    },
+    
+    step: function () {
+    
+    },
+    
+    play: function () {
+    
+    },
+    
+    realtime: function () {
+
+    },
+
+    buildViewDictionary: function(group, name) {
+
+		if(group.views)
+			for(i in group.views)
+                controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
+
+		if(group.groups)
+			for(i in group.groups)
+				controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
+	},
+
+    selectView: function(view) {
+        console.log(view);
+        console.log(controller.views[view]);
+
+        // Create new view if it does not exist
+    },
+
+    update: function (response) {
+        nav.init(response);
+        controller.buildViewDictionary(response, "");
+        controller.selectView(Object.keys(controller.views)[0]);
+    }
+}
+
+</script>
+<script>
+/*
+ *
+ * Initialization
+ *
+ */
+
+    interaction.init();
+    interaction.generateGrid(20);
+    interaction.initDraggables();
+
+    // TEST
+    
+    controller.init();
+
+//    show_styles()
+</script>
+</body>
+</html>
+

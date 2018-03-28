@@ -219,10 +219,15 @@ int DynamixelComm::Receive1(unsigned char * b)
 // MARK: MISC
 bool DynamixelComm::Ping1(int id)
 {
+	Timer t;
+	t.Sleep(100); // Dynamixel wait 100 ms between package. 100 ms sleep will make servo discard any not completed message
+	Flush();
+	t.Sleep(100);
+
 #ifdef LOG_COMM
 	printf("DynamixelComm (Ping1) ID %i\n", id);
 #endif
-	Flush();
+	
 	unsigned char outbuf[256] = {0XFF, 0XFF, static_cast<unsigned char>(id), 2, INST_PING, 0X00};
 	Send1(outbuf);
 	//PrintFullInstructionPackage1(outbuf);

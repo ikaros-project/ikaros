@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>App Viewer</title>
+<style>
+html { 
+    height:100%; 
+    overflow:hidden;
+}
+
+body {
+    height:100%; 
+    padding:0; 
+    margin:0; 
+    background:red;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background:#aaa;
+    flex: 0 0 50px;
+}
+
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row; /* column from phone */ 
+    align-items: stretch;
+    height: 500px;
+}
+
+article {
+    background:#bbb;
+    flex: 1;
+ }
+
+nav {
+//    flex: 0 0 200px;
+    order: -1;
+
+	width: 200px;	/* sets minimum size (!) */
+    resize: horizontal;
+    
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+//	background:white;
+}
+
+aside {
+    flex: 0 0 200px;
+	display: block; /* or none to hide */
+    background:#ddd;
+}
+
+footer {
+    background:#888;
+    flex: 0 0 50px;
+}
+
+
+</style>
+</head>
+
+<body>
+	
+	<header>fixed height header</header>
+	
+	<section>
+	
+		<article>A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps.A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps. A horizontal line that wraps.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />A line to check the sticky footer.<br />
+		</article>
+	
+		<nav>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		A horizontal line that should b eclipped but isn't. 
+		 <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV <br/>NAV 
+		</nav>
+	
+		<aside>fixed width aside</aside>
+	
+	</section>
+	
+	<footer>fixed height sticky footer</footer>
+
+</body>
+</html>
+

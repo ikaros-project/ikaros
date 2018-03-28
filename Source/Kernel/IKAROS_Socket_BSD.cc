@@ -27,8 +27,6 @@
 #include "IKAROS_Socket.h"
 #include "IKAROS_Math.h"
 
-using namespace ikaros;
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -47,10 +45,13 @@ using namespace ikaros;
 #include <sys/wait.h>
 #include <netdb.h>
 
+#include <string>
 
 #define BACKLOG		10 		// how many pending connections queue will hold
 #define TIMEOUT		1000	// number of attempts to read
 #define TIMEOUTDEL	1000	// number of usec to sleep before each read
+
+using namespace ikaros;
 
 
 
@@ -326,8 +327,9 @@ strip(char * s)
 	return s;
 }
 
+/*
 static char *
-recode(char * s)	    // Replace %20 and others with a space
+recode(char * s)	    // Replace %20 and others with a space - no longer used - replaced with UriDecode
 {
     int j = 0;
     for (int i=0; s[i]; i++)
@@ -339,6 +341,76 @@ recode(char * s)	    // Replace %20 and others with a space
             j+=3;
         }
     return s;
+}
+*/
+
+
+// https://www.codeguru.com/cpp/cpp/algorithms/strings/article.php/c12759/URI-Encoding-and-Decoding.htm
+
+const char HEX2DEC[256] =
+{
+    /*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
+    /* 0 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 1 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 2 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 3 */  0, 1, 2, 3,  4, 5, 6, 7,  8, 9,-1,-1, -1,-1,-1,-1,
+    
+    /* 4 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 5 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 6 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 7 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    
+    /* 8 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* 9 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* A */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* B */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    
+    /* C */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* D */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* E */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    /* F */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
+};
+
+
+static std::string UriDecode(const std::string & sSrc)
+{
+   // Note from RFC1630: "Sequences which start with a percent
+   // sign but are not followed by two hexadecimal characters
+   // (0-9, A-F) are reserved for future extension"
+ 
+   const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
+   const long SRC_LEN = sSrc.length();
+   const unsigned char * const SRC_END = pSrc + SRC_LEN;
+   // last decodable '%'
+   const unsigned char * const SRC_LAST_DEC = SRC_END - 2;
+ 
+   char * const pStart = new char[SRC_LEN];
+   char * pEnd = pStart;
+ 
+   while (pSrc < SRC_LAST_DEC)
+   {
+      if (*pSrc == '%')
+      {
+         char dec1, dec2;
+         if (-1 != (dec1 = HEX2DEC[*(pSrc + 1)])
+            && -1 != (dec2 = HEX2DEC[*(pSrc + 2)]))
+         {
+            *pEnd++ = (dec1 << 4) + dec2;
+            pSrc += 3;
+            continue;
+         }
+      }
+ 
+      *pEnd++ = *pSrc++;
+   }
+ 
+   // the last 2- chars
+   while (pSrc < SRC_END)
+      *pEnd++ = *pSrc++;
+ 
+   std::string sResult(pStart, pEnd);
+   delete [] pStart;
+   return sResult;
 }
 
 
@@ -376,7 +448,7 @@ ServerSocket::GetRequest(bool block)
 	header.Clear();
     
 	header.Set("Method", strsep(&p, " "));
-	header.Set("URI", recode(strsep(&p, " ")));
+	header.Set("URI", UriDecode(strsep(&p, " ")).c_str());
 	header.Set("HTTP-Version", strsep(&p, "\r"));
 	strsep(&p, "\n");
 	while(p && *p != '\r')
@@ -402,7 +474,7 @@ ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content l
     else
 		Send("HTTP/1.1 %s\r\n", response);
 
-    d->Set("Server", "Ikaros/1.2");
+    d->Set("Server", "Ikaros/2.0");
     d->Set("Connection", "Close");
 	
     time_t rawtime;
@@ -414,7 +486,9 @@ ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content l
     d->Set("Expires", tb);
     
     for(Dictionary::Iterator i = Dictionary::First(d); i.kv; ++i)
-		Send("%s: %s\r\n", d->GetKey(i), d->Get(i));
+    {
+		Send("%s: %s\r\n", d->GetKey(i), d->GetString(i));
+    }
 	
     Send("\r\n");
 	
@@ -428,7 +502,6 @@ ServerSocket::SendData(const char * buffer, long size)
 {
     if (data->new_fd == -1)
     {   
-//        printf("### connection closed unexpectedly\n");
         return false;	// Connection closed - ignore send
     }
     
@@ -439,10 +512,8 @@ ServerSocket::SendData(const char * buffer, long size)
      while (total < size)
     {
         n = send(data->new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);  // Write "handle SIGPIPE nostop print pass" in gdb to avoid break during debugging
-//        if (n == 0) printf("No data sent - SIGPIPEING....\n");
-        if (n == -1) 
+        if (n == -1)
         {
-//            printf("### send returned -1\n");
             break;
         }
         total += n;
@@ -451,7 +522,6 @@ ServerSocket::SendData(const char * buffer, long size)
 	
     if (n == -1 || bytesleft > 0) // We failed to send all data
     {
-//        printf("### failed to send all data\n");
         Close();	// Close the socket and ignore further data
         return false;
     }

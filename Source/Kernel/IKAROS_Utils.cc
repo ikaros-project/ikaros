@@ -33,6 +33,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <cstring>
+#include <algorithm>
 
 
 #if defined USE_VDSP
@@ -512,6 +514,30 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
 
 
 float *
+resize_array(float * a, int size, bool clear=false)
+{
+    return NULL;
+}
+
+
+
+float **
+resize_matrix(int sizex, int sizey, bool clear=false)
+{
+    return NULL;
+}
+
+
+
+float ***
+resize_matrix(int sizex, int sizey, int sizez, bool clear=false)
+{
+    return NULL;
+}
+
+
+
+float *
 reset_array(float * a, int size)
 {
 #ifdef USE_VDSP
@@ -594,6 +620,65 @@ get_col(float * a, float ** m, int col, int sizey)
     return a;
 }
 
+
+
+//
+// put source into target with given indeces
+//
+float *
+put(float *target, const int *indices, const float *source, const int len)
+{
+    for (int i=0; i<len; ++i)
+        target[indices[i]] = source[i];
+   return target;
+}
+
+//
+// repeat values 1d
+//
+
+float *
+repeat(float *target, const float *src, const int repeats, const int srclen)
+{
+    float *start = target;
+    for(int i=0; i<srclen; ++i)
+    {
+        std::fill_n(start, repeats, src[i]);
+        start += repeats;
+    }
+    return target;
+}
+
+
+//
+// take source into target using array of indeces
+//
+float *
+take(float *target, const int *indices, const float *source, const int len)
+{
+    for (int i=0; i< len; ++i)
+        target[i] = source[indices[i]];
+    return target;
+}
+
+
+//
+// tile an array 1d
+//
+
+
+float *
+tile(float *target, const float *src, const int tiles, const int srclen)
+{
+    int datasz = 4; // float is 4 bytes
+    float* start = target;
+    for (int i=0; i< tiles; ++i)
+    {
+        std::memcpy(start, src, srclen*datasz);
+        start += srclen;
+    }
+   return target;
+}
 
 
 bool
@@ -749,6 +834,12 @@ copy_matrix(float ** r, float ** a, int sizex, int sizey)
     return r;
 }
 
+float ***
+copy_matrix(float *** r, float *** a, int sizex, int sizey, int sizez)
+{
+    memcpy(r[0][0], a[0][0], sizex*sizey*sizez*sizeof(float));
+    return r;
+}
 
 
 // Options
@@ -1125,6 +1216,24 @@ const float
 Dictionary::GetFloat(Dictionary::Iterator i)
 {
 	return i.kv->float_value;
+}
+
+char *
+Dictionary::GetString(Iterator i)
+{
+    switch(i.kv->type)
+    {
+        case 0:
+            return create_string(i.kv->value);
+
+        case 1:
+            return create_formatted_string("%d", i.kv->int_value);
+
+        case 2:
+            return create_formatted_string("%.4f", i.kv->float_value);
+    }
+    
+    return create_string("");
 }
 
 const char *

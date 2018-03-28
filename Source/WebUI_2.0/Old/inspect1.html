@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+
+obj1 = [
+	{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'}
+];
+
+
+obj2 = [{'name':'x', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'y', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'slider'},
+	{'name':'Z', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'abc', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'def', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "abba,dabba,gabba,blabla"},
+	{'name':'qwe', 'default':12, 'type':'int', 'min':0, 'max':1, 'control': 'menu', 'values': "a,b,c,d"},
+	{'name':'YUO', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'},
+	{'name':'JKL', 'default':10, 'type':'int', 'min':0, 'max':1, 'control': 'textedit'}
+];
+
+
+inspector = {
+	inspector: null,
+	table: null,
+	list: null,
+	init: function () {
+		inspector.inspector = document.getElementById('inspector');
+		inspector.table = document.getElementById('i_table');
+	},
+	remove: function () {
+		while(inspector.table.rows.length > 1)
+			inspector.table.deleteRow(-1);
+	},
+	add: function (list) {
+		inspector.list = list;
+		for(var i in list)
+		{
+			var row = inspector.table.insertRow(-1);
+			var cell1 = row.insertCell(0);
+			var cell2 = row.insertCell(1);
+			cell1.innerHTML = list[i].name;
+			cell2.innerHTML = list[i].default;
+			val = list[i].default; // val later
+			
+			switch(list[i].control)
+			{
+				case 'textedit':
+					cell2.contentEditable = true;
+					if(list[i].type == 'int' || list[i].type == 'float')
+					{
+						cell2.style.textAlign = 'right';
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'slider':
+					if(list[i].type == 'int' || list[i].type == 'float')
+					{
+						var thiscontrol = cell2;
+						cell2.innerHTML= '<div>0</div><input type="range" min="'+list[i].min+'" max="'+list[i].max+'" step="0.01"/>'
+						cell2.addEventListener("input", function(evt) {
+							s = thiscontrol.getElementsByTagName('div')[0];
+							console.log(evt)
+							s.innerText = evt.target.value;
+						});
+					}
+					// SET VALUE HERE
+				break;
+				
+				case 'menu':
+					var opts = list[i].values.split(',');
+					var s = '<select name="+list[i].name+">';
+					for(var j in opts)
+						s += '<option value="'+opts[j]+'">'+opts[j]+'</option>';
+					s += '</select>';
+					cell2.innerHTML= s;;
+					// SET VALUE HERE
+				break;
+				
+				default:
+				
+				break;
+			}
+		}
+	},
+	select: function (obj)
+	{
+		inspector.remove();
+		inspector.add(obj)
+	},
+	update: function (attr_value)
+	{
+		// New data from server
+	},
+	change: function (attr_value)
+	{
+		// Send changed value to server
+	}
+}
+</script>
+<style>
+#i_table {
+	border-collapse: collapse;
+}
+
+#i_table td {
+	border-top: 1px solid gray;
+	padding:3px 3px 3px 6px;
+	width:100px;
+	background-color: #eee;
+}
+
+#i_table td + td {
+	width:150px;
+	text-align: right;
+}
+
+
+#i_table td div {
+	text-align: right;
+}
+</style>
+<style>
+/* For Looks */
+#inspector {
+	padding-top: 30px;
+	font-family: arial;
+}
+
+#i_table {
+	border: 2px solid black;
+	font-family: arial;
+}
+#i_table td {
+	border-top: 1px solid gray;
+	padding:3px 3px 3px 6px;
+	width:100px;
+	background-color: #eee;
+}
+</style>
+</head>
+<body>
+<button onclick="inspector.remove()">None</button>
+<button onclick="inspector.select(obj1)">Select 1</button>
+<button onclick="inspector.select(obj2)">Select 2</button>
+
+<div id="inspector">
+	<div id="i_header"></div>
+	<table id="i_table">
+		<tr><th>Attr</th><th>Value</th></tr>
+	</table>
+</div>
+<script>
+inspector.init();
+inspector.add(obj2);
+</script>
+</body>
+</html>
+

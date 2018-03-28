@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+interaction = {
+	initialMouseX: undefined,
+	initialMouseY: undefined,
+	startX: undefined,
+	startY: undefined,
+	selectedObject: undefined,
+	grid: 20,
+	sizegrid: 20,
+	editMode: false,
+	
+	initElement: function (element) {
+		if (typeof element == 'string')
+			element = document.getElementById(element);
+		element.onmousedown = interaction.startDrag;
+		element.innerHTML += '<div class="handle"></div>'
+		handle = element.getElementsByClassName('handle')[0]
+		handle.onmousedown = interaction.startResize;
+	},
+	initDraggables: function () {
+        var	nodes = document.getElementsByClassName("draggable");
+        for (var i = 0; i <	nodes.length; i++)
+            interaction.initElement(nodes[i]);
+        var main = document.getElementById('main');
+        main.addEventListener('mousedown',interaction.deselectObject,false);
+	},
+	generateGrid: function (spacing) {
+	    interaction.grid = spacing;
+	    main = document.getElementById('main');
+	    grid = document.getElementById('grid'); 
+	    if(grid)
+    	    main.removeChild(grid);
+		main.innerHTML += '<div id="grid"></div>'
+	    grid = document.getElementById('grid');
+	    for(var i=1; i<200; i++)
+	    {
+		    grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid+'px"></div>'
+		    grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid+'px"></div>'
+	    }
+	},
+	changeGrid: function(spacing) {
+	    interaction.grid = spacing;
+	    vgrids = document.getElementsByClassName('vgrid');
+        for (var i = 0; i <	vgrids.length; i++)
+	        vgrids[i].style.left = ""+(i+1)*spacing+"px";
+	    hgrids = document.getElementsByClassName('hgrid');
+        for (var i = 0; i <	hgrids.length; i++)
+	        hgrids[i].style.top = ""+(i+1)*spacing+"px";
+	},
+	increaseGrid() {
+	    interaction.changeGrid(2*interaction.grid);
+	},
+	decreaseGrid() {
+	    if(interaction.grid > 20)
+	        interaction.changeGrid(0.5*interaction.grid);
+	},
+	addObject() {
+	    main = document.getElementById('main');
+	    newObject = document.createElement("div");
+	    newObject.setAttribute("class", "draggable");
+	    newObject.style.top = "10px";
+	    newObject.style.left = "10px";
+        main.appendChild(newObject);
+        interaction.initElement(newObject)
+	},
+	deselectObject() {
+	    if(interaction.selectedObject)
+        {
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/selected/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+            interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+            interaction.releaseElement();
+            interaction.selectedObject = null;
+		    document.getElementById('selected').innerText = ""
+		}
+	},
+	releaseElement: function() {
+	    document.removeEventListener('mousemove',interaction.move,false);
+	    document.removeEventListener('mousemove',interaction.resize,false);
+	    document.removeEventListener('mouseup',interaction.releaseElement,false);
+		interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+		interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+	},
+	selectObject(obj) {
+		interaction.deselectObject()
+		interaction.selectedObject = obj;	
+		interaction.selectedObject.className += ' selected';
+		document.getElementById('selected').innerText = interaction.selectedObject.dataset.name;
+	},
+	startDrag: function (evt) {
+		evt.stopPropagation()
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+	    interaction.selectObject(this);
+		interaction.selectedObject.className += ' dragged';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		document.addEventListener('mousemove',interaction.move,false);
+		document.addEventListener('mouseup',interaction.releaseElement,false);
+		return false;
+	},
+	move: function (evt) {
+		var dX = evt.clientX - interaction.initialMouseX;
+		var dY = evt.clientY - interaction.initialMouseY;
+		interaction.setPosition(dX,dY);
+		return false;
+	},
+	startResize: function (evt) {
+		evt.stopPropagation()
+		interaction.startX = this.offsetLeft;
+		interaction.startY = this.offsetTop;
+        interaction.selectObject(this.parentElement);
+        interaction.selectedObject.className += ' resized';
+		interaction.initialMouseX = evt.clientX;
+		interaction.initialMouseY = evt.clientY;	
+		document.addEventListener('mousemove',interaction.resize,false);
+		document.addEventListener('mouseup',interaction.releaseElement,false);
+		return false;
+	},
+	resize: function (evt) {
+		var dX = evt.clientX - interaction.initialMouseX;
+		var dY = evt.clientY - interaction.initialMouseY;
+		interaction.setSize(dX,dY);
+		return false;
+	},
+	setPosition: function (dx, dy) {
+	    newLeft = interaction.grid*Math.round((interaction.startX + dx)/interaction.grid);
+	    newRight = interaction.grid*Math.round((interaction.startY + dy)/interaction.grid);
+		interaction.selectedObject.style.left = newLeft + 'px';
+		interaction.selectedObject.style.top = newRight + 'px';
+	},
+	setSize: function (dx, dy) {
+		newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
+		newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
+		interaction.selectedObject.style.width = newWidth + 'px';
+		interaction.selectedObject.style.height = newHeight + 'px';
+	},
+	toggleEditMode: function() {
+	
+	}
+}
+
+</script>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+/*
+#main {
+    width: calc(100% - 122px);  /* 122 = 2*(border+padding+margin) */
+    height: calc(100% - 142px );
+    padding: 30px;
+    border: 1px solid black;
+    margin: 30px;
+    position: absolute;
+    overflow: hidden;
+}
+*/
+
+/* Basic style for draggable object */
+
+.draggable {
+	position: absolute;
+	top: 10;
+	left: 10;
+    z-index: 200;
+    width: 101px;
+    height: 101px;
+    border: 1px solid lightgray;
+	background-color: white;
+	cursor: move;
+}
+
+.draggable:hover {
+}
+
+.dragged, .resized {
+    border-color: black;
+}
+
+.dragged, .resized {
+//    box-shadow: 4px 4px 4px lightgray;
+}
+
+
+.selected {
+    border: 1px solid black;
+}
+
+
+.selected .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+.handle {
+    position:absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    display: none;
+    background-color: gray;
+    cursor: se-resize;
+}
+
+
+/* 
+.draggable:hover .handle,
+.dragged .handle, 
+.resized .handle {
+    display: block;
+}
+
+
+/* Style for grid */
+
+.vgrid {
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px solid lightgray;
+}
+
+.hgrid {
+	position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px solid lightgray;
+}
+
+/* Draggable overriding cusstom style */
+/*
+.draggable {
+    background-color: yellow;
+    border-color: brown;
+}
+*/
+
+.draggable:after {content: attr(data-name);}
+
+/* Three column design */
+
+.body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+}
+</style>
+</head>
+<body class="body">
+
+<div class="header">
+    <button onclick="interaction.increaseGrid()">Grid +</button>
+    <button onclick="interaction.decreaseGrid()">Grid -</button>
+    <button onclick="interaction.addObject()">New Object</button>
+    <button onclick="interaction.toggleEditMode()">Toggle Edit</button>
+    <span>Selected:</span> <span id="selected"></span>
+</div/>
+
+<div class="content">
+    <div class="left">
+    left
+    </div>
+
+    <div class="main" id="main">
+        <div class="draggable" data-name="Box A">
+        </div>
+    <!--
+        <div class="draggable" data-name="Box B">
+        </div>
+
+        <div class="draggable" data-name="Box C">
+        </div>
+    -->
+    </div>
+    <div class="right">
+    right
+    </div>
+</div>
+
+<div class="footer">
+footer
+</div>
+
+<script>
+interaction.generateGrid(20);
+interaction.initDraggables();
+document.onkeypress = function () {alert(1);};
+</script>
+</body>
+</html>
+

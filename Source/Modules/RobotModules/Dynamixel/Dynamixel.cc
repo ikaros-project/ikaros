@@ -564,7 +564,7 @@ Dynamixel::Tick()
 	}
 #ifdef DYNAMIXEL_TIMING
 	t.Restart();
-	com->receiveTimer = 0;
+	com->recieveTimer = 0;
 #endif
 	
 	// Get feedback
@@ -577,7 +577,7 @@ Dynamixel::Tick()
 		}
 		
 #ifdef DYNAMIXEL_TIMING
-		com->receiveTimer = t.GetTime()-com->receiveTimer;
+		com->recieveTimer = t.GetTime()-com->recieveTimer;
 #endif
 		if (outAdress[i][IK_OUT_TORQUE_ENABLE] != -1)
 			feedbackTorqueEnable[servoIndex[i]]  = servo[servoIndex[i]]->GetTorqueEnableFormated(outAdress[i][IK_OUT_TORQUE_ENABLE]);
@@ -620,7 +620,7 @@ Dynamixel::Tick()
 			Notify(msg_fatal_error, "Servo temperature is over limit. Shuting down ikaros\n");
 		}
 #ifdef DYNAMIXEL_TIMING
-	printf("Timers Send:%f\t Recv:%f\n", com->sendTimer, com->receiveTimer);
+	printf("Timers Send:%f\t Recv:%f\n", com->sendTimer, com->recieveTimer);
 #endif
 	
 }

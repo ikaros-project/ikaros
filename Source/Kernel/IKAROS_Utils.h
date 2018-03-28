@@ -1,7 +1,7 @@
 //
 //	IKAROS_Utils.h		Various utilities for the IKAROS project
 //
-//    Copyright (C) 2001-2011  Christian Balkenius
+//    Copyright (C) 2001-2016  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -18,8 +18,6 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 //    See http://www.ikaros-project.org/ for more information.
-//
-//	Created: July 17 2001
 //
 
 #ifndef IKAROS_UTILS
@@ -69,6 +67,12 @@ float ***   create_matrix(int sizex, int sizey, int sizez);
 float ****  create_matrix(int sizex, int sizey, int sizez, int sizet);
 
 
+/*
+float *     resize_array(float * a, int & size, bool clear=false);
+float **    resize_matrix(float ** m, int & sizex, int & sizey, bool clear=false);
+float ***   resize_matrix(float *** m, int & sizex, int & sizey, int & sizez, bool clear=false);
+*/
+
 void        destroy_array(float * a);
 void        destroy_matrix(float ** m);
 void        destroy_matrix(float *** m);
@@ -76,6 +80,7 @@ void        destroy_matrix(float **** m);
 
 float *     copy_array(float * r, float * a, int size);
 float **    copy_matrix(float ** r, float ** a, int sizex, int sizey);
+float ***   copy_matrix(float *** r, float *** a, int sizex, int sizey);
 
 float *     reset_array(float * a, int size);
 float **	reset_matrix(float ** m, int sizex, int sizey);
@@ -90,6 +95,13 @@ float **    set_col(float ** m, float * a, int col, int sizey);
 
 float *     get_row(float * a, float ** m, int row, int sizex);
 float *     get_col(float * a, float ** m, int col, int sizey);
+
+// Reshape functions
+
+float *     put(float *target, const int *indices, const float *source, const int len);
+float *     repeat(float *target, const float *src, const int repeats, const int srclen);
+float *     take(float *target, const int *indices, const float *source, const int len);
+float *     tile(float *target, const float *src, const int tiles, const int srclen);
 
 
 // Load and Store arrays and matrices
@@ -219,7 +231,9 @@ class Dictionary
 		const char *		Get(Iterator i);
 		const int           GetInt(Iterator i);
 		const float         GetFloat(Iterator i);
-		const char *		GetKey(Iterator i);
+        char *              GetString(Iterator i); // get new string with value
+        const char *		GetKey(Iterator i);
+
 		
 		void			Print();
 		
