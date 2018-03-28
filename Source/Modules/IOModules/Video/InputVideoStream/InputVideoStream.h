@@ -24,6 +24,8 @@
 #ifndef InputVideoStream_
 #define InputVideoStream_
 
+//#define DEBUGTIMER
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -32,6 +34,7 @@ extern "C" {
 }
 
 #include "IKAROS.h"
+#include "FFMpegGrab.h"
 
 class InputVideoStream: public Module
 {
@@ -58,21 +61,15 @@ public:
     float *			blue;
 	
     bool            printInfo;
-	bool			force_h264;
-	
-    // FFmpeg related
-    AVFormatContext *input_format_context;
-    int             videoStreamId;
-    AVCodec         *input_codec;
-    AVCodecContext  *avctx;
-    AVFrame         *inputFrame;
-    AVFrame         *outputFrame;
-    AVPacket        packet;
-    int             numBytes;
-    uint8_t         *buffer;
-    
-    int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
-};
+	bool			forceH264;
+	bool			uv4l;
+	bool			syncGrab;
+	bool			syncTick;
 
+	float 			convertIntToFloat[256];
+	uint8_t * 		newFrame = NULL;
+
+	FFMpegGrab * framegrabber;
+};
 #endif
 

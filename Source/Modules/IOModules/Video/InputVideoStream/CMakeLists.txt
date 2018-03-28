@@ -7,6 +7,7 @@ find_package(FFMPEG)
 if(FFMPEG_FOUND)
     set(SOURCE ${SOURCE}
 	${CMAKE_CURRENT_SOURCE_DIR}/InputVideoStream.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/FFMpegGrab.cc
 	PARENT_SCOPE
 	)
 	set(MODULES_INCLUDS
