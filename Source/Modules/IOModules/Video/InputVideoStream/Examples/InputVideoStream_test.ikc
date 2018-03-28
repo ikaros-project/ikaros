@@ -1,33 +1,14 @@
 <?xml version="1.0"?>
-
 <group title="InputVideoStream Example">
-	
-		<module
-			class = "InputVideoStream"
-			name = "InputVideoStream"
-            url = "http://righteye.local:8080/stream/video.h264"
-            uv4l = "true"
-			info = "true"
-size_x = "1920"
-size_y = "1080"
-_size_x = "640"
-_size_y = "480"
-		/>
-		
-		<module
-			class = "InputVideoStream"
-			name = "InputVideoStream2"
-            url = "http://lefteye.local:8080/stream/video.h264"
-            uv4l = "true"
-			info = "true"
-size_x = "1920"
-size_y = "1080"
-
-		/>
+	<module
+		class = "InputVideoStream"
+		name = "InputVideoStream"
+        url = "http://lefteye.local:8080/stream/video.h264"
+        uv4l = "true"
+		info = "false"
+	/>
 	<view name="Movie View" object_size="500">
 		<object class="Image" type="rgb" module = "InputVideoStream" source = "RED+GREEN+BLUE" x="0" y="0" />
-		<object class="Image" type="rgb" module = "InputVideoStream2" source = "RED+GREEN+BLUE" x="1" y="0" />
-
 	</view>
     <module class = "Logger" name = "Logger" />
 </group>

@@ -71,6 +71,5 @@ public:
 
 	FFMpegGrab * framegrabber;
 };
-
 #endif
 

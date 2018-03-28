@@ -23,8 +23,8 @@
 #ifndef FFMpegGrab_h
 #define FFMpegGrab_h
 
-#define FFMPEGLOG
-#define FFMPEGTIMER
+//#define FFMPEGLOG
+//#define FFMPEGTIMER
 
 #include "IKAROS.h"
 
@@ -77,9 +77,12 @@ class FFMpegGrab
 	bool 			freshData = false;
 	
 	float 			FPS;
+	Timer 			timer;
 	
 	
 	private:
+	bool 			shutdown = false;
+	bool 			shutdownComplete = false;
 };
 
 #endif

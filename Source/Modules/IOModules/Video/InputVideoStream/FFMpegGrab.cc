@@ -38,7 +38,7 @@ FFMpegGrab::FFMpegGrab()
 #endif
 	av_register_all();
 	avformat_network_init();
-	av_log_set_level(AV_LOG_TRACE);
+	av_log_set_level(AV_LOG_INFO);
 }
 
 bool FFMpegGrab::Init()
@@ -53,54 +53,31 @@ bool FFMpegGrab::Init()
 		file_iformat = av_find_input_format("h264");
 	
 	AVDictionary *options = NULL;
-	if (uv4l)
-	{
-		av_dict_set(&options, "probesize", "192", 0);
-		//av_dict_set(&options, "max_analyze_duration", "500", 0);
-		// Change input buffer
-		//av_dict_set(&options, "max_picture_buffer", "102400", 0);
-	}
 
-	//av_dict_set(&options, "video_size", "640x480", 0);
-	//av_dict_set(&options, "pixel_format", "yuv420p", 0);
-	//av_dict_set(&options, "r_frame_rate", "1/60", 0);
-	//av_dict_set(&options, "probesize", "192", 0);
-	//av_dict_set(&options, "max_picture_buffer", "102400", 0);
-	//av_dict_set(&options, "max_index_size", "10240", 0);
-	//av_dict_set(&options, "max_analyze_duration", "500", 0);
-	//max_picture_buffer = 1024*100
-	
-	//max_index_size = 1024*50
-	//av_dict_set(&options, "pixel_format", "rgb24", 0);
-	
+	if (uv4l)
+		av_dict_set(&options, "probesize", "192", 0);
+
 	/// Open video file
 	if(avformat_open_input(&input_format_context, url, file_iformat, &options) != 0) // Allocating input_format_context
 	{
-		printf("FFMpegGrabber: Could not open file %s\n",url);
+		printf("FFMpegGrab: Could not open file %s\n",url);
 		return false;
 	}
 	av_dict_free(&options);
-	
-	if (uv4l)
-	{
-		//input_format_context->flags     |= CODEC_FLAG_LOW_DELAY;
-		//input_format_context->flags     |= CODEC_FLAG_LOW_DELAY;
-		//input_format_context->flags    |= CODEC_FLAG2_FAST;
-		//input_format_context->flags|= CODEC_FLAG_TRUNCATED;
-		//input_format_context->skip_frame       =  AVDISCARD_NONREF;
-	}
 	
 	// Retrieve stream information
 	//if(avformat_find_stream_info(input_format_context, NULL) < 0)
 	if(av_find_best_stream(input_format_context, AVMEDIA_TYPE_VIDEO,0,0,NULL,0))
 	{
-		printf("FFMpegGrabber: Couldn't find stream information\n");
+		printf("FFMpegGrab: Couldn't find stream information\n");
 		return false;
 	}
 	
 	if (printInfo)
 		av_dump_format(input_format_context, 0, url, 0);
 	
+	av_log_set_level(AV_LOG_ERROR);
+
 	/// Find the first video stream
 	videoStreamId = -1;
 	for(int i=0; i<input_format_context->nb_streams; i++)
@@ -112,7 +89,7 @@ bool FFMpegGrab::Init()
 	}
 	if(videoStreamId==-1)
 	{
-		printf("FFMpegGrabber: Didn't find a video stream\n");
+		printf("FFMpegGrab: Didn't find a video stream\n");
 		return false;
 	}
 	
@@ -121,7 +98,7 @@ bool FFMpegGrab::Init()
 	{
 		input_codec = avcodec_find_decoder_by_name ("h264_mmal");
 		if (input_codec)
-			printf("FFMpegGrabber:Using HW decoding (mmal)\n");
+			printf("FFMpegGrab:Using HW decoding (mmal)\n");
 		else
 			input_codec = avcodec_find_decoder(AV_CODEC_ID_H264);
 	}
@@ -130,7 +107,7 @@ bool FFMpegGrab::Init()
 	
 	if(input_codec==NULL)
 	{
-		printf("FFMpegGrabber: Unsupported codec!\n");
+		printf("FFMpegGrab: Unsupported codec!\n");
 		return false;
 	}
 	
@@ -138,7 +115,7 @@ bool FFMpegGrab::Init()
 	avctx = avcodec_alloc_context3(input_codec);
 	if (!avctx)
 	{
-		printf("FFMpegGrabber: Could not allocate a decoding context\n");
+		printf("FFMpegGrab: Could not allocate a decoding context\n");
 		avformat_close_input(&input_format_context);
 		return false;
 	}
@@ -149,21 +126,21 @@ bool FFMpegGrab::Init()
 	{
 		avformat_close_input(&input_format_context);
 		avcodec_free_context(&avctx);
-		printf("FFMpegGrabber: Could not set paramters to context\n");
+		printf("FFMpegGrab: Could not set paramters to context\n");
 		return false;
 		
 	}
 	/// Open codec
 	if( avcodec_open2(avctx, input_codec, NULL) < 0 )
 	{
-		printf("FFMpegGrabber: Could not open codec\n");
+		printf("FFMpegGrab: Could not open codec\n");
 		return false;
 	}
 	
 	inputFrame = av_frame_alloc();    // Input
 	if(inputFrame == NULL)
 	{
-		printf("FFMpegGrabber: Could not allocate AVFrame\n");
+		printf("FFMpegGrab: Could not allocate AVFrame\n");
 		return false;
 	}
 	
@@ -175,11 +152,12 @@ bool FFMpegGrab::Init()
 	outputFrame->format = AV_PIX_FMT_RGB24;
 	outputFrame->width  = outputSizeX;
 	outputFrame->height = outputSizeY;
+	
 	av_image_alloc(outputFrame->data, outputFrame->linesize, outputFrame->width, outputFrame->height, AV_PIX_FMT_RGB24, 32);
 	
 	if(outputFrame==NULL)
 	{
-		printf("FFMpegGrabber: Could not allocate AVFrame\n");
+		printf("FFMpegGrab: Could not allocate AVFrame\n");
 		return false;
 	}
 	
@@ -194,6 +172,13 @@ bool FFMpegGrab::Init()
 
 FFMpegGrab::~FFMpegGrab()
 {
+	// Stop ffmpeg loop
+	shutdown = true;
+	while (!shutdownComplete) {
+		sleep(1);
+	}
+	if (printInfo)
+		printf("FFMpegGrab: Shuting down complete\n");
 	delete ikarosFrame;
 	av_freep(&inputFrame->data[0]);
 	av_free(inputFrame);
@@ -206,8 +191,7 @@ FFMpegGrab::~FFMpegGrab()
 
 void FFMpegGrab::loop()
 {
-	Timer timer;
-
+	
 #ifdef FFMPEGTIMER
 	Timer timerSub;
 	Timer timer3;
@@ -232,11 +216,9 @@ void FFMpegGrab::loop()
 				if (gotFrame)                                   // Decoder gave us a video frame
 				{
 #ifdef FFMPEGTIMER
-					printf("FFMpegGrab:Decoded Time %f\n",timerSub.GetTime());
+					printf("FFMpegGrab: Decoded Time %f\n",timerSub.GetTime());
 					timerSub.Restart();
 #endif
-					FPS = FPS + (1.0/timer.GetTime()*1000.0-FPS)*0.1; // Moving avarage mean FPS
-					timer.Restart();
 
 					//	Convert the frame to AV_PIX_FMT_RGB24 format
 					static struct SwsContext *img_convert_ctx;
@@ -245,7 +227,7 @@ void FFMpegGrab::loop()
 														   outputSizeX, outputSizeY, AV_PIX_FMT_RGB24,
 														   SWS_BICUBIC, NULL, NULL, NULL);
 #ifdef FFMPEGTIMER
-					printf("FFMpegGrab:sws_getCachedContext Time %f\n",timerSub.GetTime());
+					printf("FFMpegGrab: sws_getCachedContext Time %f\n",timerSub.GetTime());
 					timerSub.Restart();
 #endif
 					// Scale the image
@@ -255,7 +237,7 @@ void FFMpegGrab::loop()
 					
 					bool waitForCollected = true;
 #ifdef FFMPEGTIMER
-					printf("FFMpegGrab:sws_scale Time %f\n",timerSub.GetTime());
+					printf("FFMpegGrab: sws_scale Time %f\n",timerSub.GetTime());
 					timerSub.Restart();
 #endif
 					mtx.lock();
@@ -263,7 +245,7 @@ void FFMpegGrab::loop()
 					memcpy(ikarosFrame, outputFrame->data[0], outputSizeX*outputSizeY*3*sizeof(uint8_t));
 					mtx.unlock();
 #ifdef FFMPEGTIMER
-					printf("FFMpegGrab:memcpy Time %f\n",timerSub.GetTime());
+					printf("FFMpegGrab: memcpy Time %f\n",timerSub.GetTime());
 					timerSub.Restart();
 #endif
 					if (syncronized)
@@ -275,15 +257,28 @@ void FFMpegGrab::loop()
 							mtx.unlock();
 						}
 #ifdef FFMPEGTIMER
-					printf("FFMpegGrab:syncronized %f\n",timerSub.GetTime());
+					printf("FFMpegGrab: syncronized %f\n",timerSub.GetTime());
 					timerSub.Restart();
 #endif
 					gotFrame = 0;
+					if (printInfo)
+					{
+						FPS = FPS + (1.0/timer.GetTime()*1000.0-FPS)*0.02; // Moving avarage mean FPS
+						timer.Restart();
+						printf("FFMpegGrab: FPS %.0f\n",FPS);
+					}
+					if (shutdown)
+					{
+						if (printInfo)
+							printf("FFMpegGrab: Shuting down\n");
+						break;
+					}
 				}
 			}
 		}
 		av_packet_unref(&packet);
 	}
+	shutdownComplete = true;
 }
 int FFMpegGrab::decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
 {

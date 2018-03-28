@@ -66,27 +66,16 @@ Module(p)
 	framegrabber->uv4l = uv4l;
 	framegrabber->url = url; // copy string?
 	framegrabber->printInfo = printInfo;
-	
 	framegrabber->outputSizeX = size_x;
 	framegrabber->outputSizeY = size_y;
 	framegrabber->syncronized = syncGrab;
 	
-	
-	// Check sizes
-	//	if(size_x == 0 || size_y == 0)
-	//	{
-	//		size_x = framegrabber->native_size_x;
-	//		size_y = framegrabber->native_size_y;
-	//	}
-	//size_x = framegrabber->inputSizeX;
-	//size_y = framegrabber->inputSizeY;
-	
-	// Create memory
-	newFrame = new uint8_t[size_x*size_y*3*sizeof(uint8_t)];
-	
 	// Init grabber
 	if (!framegrabber->Init())
 		Notify(msg_fatal_error, "Can not start frame grabber.");
+	
+	// Create memory
+	newFrame = new uint8_t[size_x*size_y*3*sizeof(uint8_t)];
 	
 	AddOutput("INTENSITY", false, size_x, size_y);
 	AddOutput("RED", false, size_x, size_y);
@@ -150,31 +139,20 @@ InputVideoStream::Tick()
 #endif
 	unsigned char * data = newFrame;
 	
-//	float * r = red;
-//	float * g = green;
-//	float * b = blue;
-//	float * inte = intensity;
-//	int t = 0;
+	float * r = red;
+	float * g = green;
+	float * b = blue;
+	float * inte = intensity;
+	int t = 0;
 	
 	// Singel core
-//	while(t++ < size_x*size_y)
-//	{
-//		*r++       = convertIntToFloat[*data++];
-//		*g++       = convertIntToFloat[*data++];
-//		*b++       = convertIntToFloat[*data++];
-//		*inte++ = *r + *g + *b;
-
-//		*r       = *data++;
-//		*g       = *data++;
-//		*b       = *data++;
-//		*r++ = (*data >> 8) & 0xFF;
-//		*g++ = (*data >> 8) & 0xFF;
-//		*b++ = *data & 0xFF;
-//		data++;
-//		data++;
-//		data++;
-		//*inte++ = *r++ + *g++ + *b++;
-//	}
+	while(t++ < size_x*size_y)
+	{
+		*r       = convertIntToFloat[*data++];
+		*g       = convertIntToFloat[*data++];
+		*b       = convertIntToFloat[*data++];
+		*inte++ = *r++ + *g++ + *b++;
+	}
 
 //		const int nrOfCores = 3;//thread::hardware_concurrency();
 //		// Create some threads pointers
@@ -217,56 +195,47 @@ InputVideoStream::Tick()
 //			tConv[j].join();
 
 	
-		// Multi core 2
-		const int nrOfCores = 4;
-		// Create some threads pointers
-		thread tConv[nrOfCores];
-		//printf("Number of threads %i\n",thread::hardware_concurrency());
-		int span = size_x*size_y/nrOfCores;
-
-		for(int j=0; j<nrOfCores; j++)
-		{
-			tConv[j] = thread([&,j]()
-							  {
-								  float * r = red;
-								  float * g = green;
-								  float * b = blue;
-								  float * inte = intensity;
-								  int t = 0;
-
-								  unsigned char * d = data;
-
-								  for (int i = 0; i < j*span; i++)
-								  {
-									  d++;
-									  d++;
-									  d++;
-									  r++;
-									  g++;
-									  b++;
-									  inte++;
-								  }
-								  while(t++ < span)
-								  {
-//									  *r       = *convertIntToFloat*(*d++);
-//									  *g       = *convertIntToFloat*(*d++);
-//									  *b       = *convertIntToFloat*(*d++);
+//		// Multi core 2
+//		const int nrOfCores = 4;
+//		// Create some threads pointers
+//		thread tConv[nrOfCores];
+//		//printf("Number of threads %i\n",thread::hardware_concurrency());
+//		int span = size_x*size_y/nrOfCores;
+//
+//		for(int j=0; j<nrOfCores; j++)
+//		{
+//			tConv[j] = thread([&,j]()
+//							  {
+//								  float * r = red;
+//								  float * g = green;
+//								  float * b = blue;
+//								  float * inte = intensity;
+//								  int t = 0;
+//
+//								  unsigned char * d = data;
+//
+//								  for (int i = 0; i < j*span; i++)
+//								  {
+//									  d++;
+//									  d++;
+//									  d++;
+//									  r++;
+//									  g++;
+//									  b++;
+//									  inte++;
+//								  }
+//								  while(t++ < span)
+//								  {
+//									  *r       = convertIntToFloat[*d++];
+//									  *g       = convertIntToFloat[*d++];
+//									  *b       = convertIntToFloat[*d++];
 //									  *inte++ = *r++ + *g++ + *b++;
-									  *r       = convertIntToFloat[*d++];
-									  *g       = convertIntToFloat[*d++];
-									  *b       = convertIntToFloat[*d++];
-//									  *r       = convertIntToFloat[*d & 0xFF];
-//									  *g       = convertIntToFloat[(*d >> 8) & 0xFF];
-//									  *b       = convertIntToFloat[(*d >> 16) & 0xFF];
-//									  d++;d++;d++;
-
-									  *inte++ = *r++ + *g++ + *b++;
-								  }
-							  });
-
-		}
-		for(int j=0; j<nrOfCores; j++)
-			tConv[j].join();
+//								  }
+//							  });
+//
+//		}
+//		for(int j=0; j<nrOfCores; j++)
+//			tConv[j].join();
 	
 #ifdef DEBUGTIMER
 	printf("InputVideoStream: float convert %f\n", timer.GetTime());
@@ -278,6 +247,7 @@ InputVideoStream::Tick()
 InputVideoStream::~InputVideoStream()
 {
 	delete newFrame;
+	
 	delete framegrabber;
 }
 
