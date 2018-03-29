@@ -579,10 +579,10 @@
         <object
             class   	= "Ikaros3D"
             title   	= "EpiWhite"
-            module  	= "ModelMatrix"
-            source  	= "OUTPUT"
-            id_module  	= "ModelID"
-            id_location = "OUTPUT"
+            model_mat_module  	= "ModelMatrix"
+            model_mat_source  	= "OUTPUT"
+            model_id_module  	= "ModelID"
+            model_id_source     = "OUTPUT"
             x="0" y="0"
             w="4" h="4"
         />
