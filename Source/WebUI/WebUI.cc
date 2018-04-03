@@ -1205,7 +1205,8 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     if(!p)
     {
         socket->Send("\n}\n");
-        printf("SENT EMPTY PACKAGE\n");
+		if (debug_mode)
+			printf("SENT EMPTY PACKAGE\n");
 
         return;
     }
@@ -1317,7 +1318,8 @@ WebUI::Pause()
 void
 WebUI::HandleHTTPRequest()
 {
-    printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+	if (debug_mode)
+		printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
 
     std::string s = socket->header.Get("URI");
     
