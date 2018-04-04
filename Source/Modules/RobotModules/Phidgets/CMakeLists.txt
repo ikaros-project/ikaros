@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
 # Phidgets
-find_package(PHIDGETS)
+find_package(Phidgets)
 
 # if all libraries found add source file, include dirs and libraries
 if(PHIDGETS_FOUND)

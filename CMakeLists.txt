@@ -120,7 +120,7 @@ if (Threads_FOUND)
 endif (Threads_FOUND)
 
 # Turbo JPEG
-find_package (Turbo_JPEG)
+find_package (Jpeg-Turbo)
   if (TURBO_JPEG_FOUND)
   	include_directories(${TURBO_JPEG_INCLUDE_DIR})
   	target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
