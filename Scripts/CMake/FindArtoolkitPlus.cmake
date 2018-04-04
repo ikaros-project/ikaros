@@ -8,24 +8,23 @@
 # ARTOOLKITPLUS_FOUND
 
 
-find_path(ARTOOLKITPLUS_INCLUDE_DIR 
-    NAMES
-		ARToolKitPlus.h
-	PATHS
-		/usr/include/ARToolKitPlus
-  		/usr/local/include/ARToolKitPlus
+find_path(ARTOOLKITPLUS_INCLUDE_DIR
+  NAMES
+    ARToolKitPlus.h
+  PATHS
+    /usr/include/ARToolKitPlus
+    /usr/local/include/ARToolKitPlus
 )
 
-find_library(ARTOOLKITPLUS_LIBRARIES 
-    NAMES
-		ARToolKitPlus
-	PATHS
-		/usr/local/lib/ARToolKitPlus
-		/usr/lib/ARToolKitPlus
+find_library(ARTOOLKITPLUS_LIBRARIES
+  NAMES
+    ARToolKitPlus
+  PATHS
+    /usr/local/lib/ARToolKitPlus
+    /usr/lib/ARToolKitPlus
 )
 
 if (ARTOOLKITPLUS_INCLUDE_DIR AND ARTOOLKITPLUS_LIBRARIES)
-    message(STATUS "Found ArToolKitPlus. Includes: ${ARTOOLKITPLUS_INCLUDE_DIR} Libraries: ${ARTOOLKITPLUS_LIBRARIES}")
-	set(ARTOOLKITPLUS_FOUND "YES" )
+  message(STATUS "Found ArToolKitPlus: Includes: ${ARTOOLKITPLUS_INCLUDE_DIR} Libraries: ${ARTOOLKITPLUS_LIBRARIES}")
+  set(ARTOOLKITPLUS_FOUND "YES" )
 endif ()
-

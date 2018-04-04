@@ -1,6 +1,6 @@
 # www.ikaros-project.org
 #
-# Find the JPEG includes and libraries
+# Find the libjpeg-turbo includes and libraries
 # Used by the ikaros kernel
 #
 # This module defines
@@ -8,35 +8,29 @@
 # TURBO_JPEG_LIBRARIES
 # TURBO_JPEG_FOUND
 
-# Specific parameters for different OS
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-
 # Find header files
 find_path(TURBO_JPEG_INCLUDE_DIR
-	NAMES
-      jconfig.h jerror.h jmorecfg.h jpeglib.h turbojpeg.h
-    PATHS
-		/usr/local/opt/jpeg-turbo/include/
-  	)
-  	
-# Finding libs  
-find_library(TURBO_JPEG_LIBRARIES
-    NAMES
-    	jpeg
-    PATHS
-    	/usr/local/opt/jpeg-turbo/lib
-	)
+  NAMES
+    turbojpeg.h
+  PATHS
+    /usr/local/opt/jpeg-turbo/ # homebrew
+    /usr/lib/x86_64-linux-gnu/ # Ubuntu 16.04
+  PATH_SUFFIXES
+    include
+)
 
-  		
+# Finding libs
+find_library(TURBO_JPEG_LIBRARIES
+  NAMES
+    turbojpeg libturbojpeg.so.1 libturbojpeg.so.0
+  PATHS
+    /usr/local/opt/jpeg-turbo/ # homebrew
+    /usr/lib/x86_64-linux-gnu/ # Ubuntu 16.04
+  PATH_SUFFIXES
+    lib
+  )
+
 if (TURBO_JPEG_INCLUDE_DIR AND TURBO_JPEG_LIBRARIES)
-    #message("Found TURBO JPEG. Includes: ${TURBO_JPEG_INCLUDE_DIR} Libraries: ${TURBO_JPEG_LIBRARIES}")
-	set(TURBO_JPEG_FOUND "YES" )
+  message(STATUS "Found libjpeg-turbo: Includes: ${TURBO_JPEG_INCLUDE_DIR} Libraries: ${TURBO_JPEG_LIBRARIES}")
+  set(TURBO_JPEG_FOUND "YES" )
 endif ()

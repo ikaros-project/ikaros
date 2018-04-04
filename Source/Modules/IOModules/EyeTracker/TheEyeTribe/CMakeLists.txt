@@ -24,7 +24,7 @@ if(EYETRIBE_LIB_FOUND)
     ) 
 
 else()
-	message(STATUS "Ikaros: The Eye Tribe not found. The Eye Tribe module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
+	message(STATUS "Ikaros: TheEyeTribe module is not included. Visit www.ikaros-project.org for information of module dependencies." )
 endif()
 
 
