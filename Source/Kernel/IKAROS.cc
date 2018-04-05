@@ -1512,46 +1512,46 @@ Module::SetSizes()
             int sx = unknown_size;
             int sy = unknown_size;
 
-            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param_x")) && (arg = GetValue(sizearg)))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_param_x")) && (arg = GetValue(sizearg)))
                 sx = string_to_int(arg);
             
-            if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param_y")) && (arg = GetValue(sizearg)))
+            if((sy == unknown_size) && (sizearg = e->GetAttribute( "size_param_y")) && (arg = GetValue(sizearg)))
                 sy = string_to_int(arg);
             
-            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_param")) && (arg = GetValue(sizearg)))
             {
                 sx = string_to_int(arg);
                 sy = 1;
             }
             
-            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_x")))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_x")))
                 sx = string_to_int(sizearg);
             
-            if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_y")))
+            if((sy == unknown_size) && (sizearg = e->GetAttribute( "size_y")))
                 sy = string_to_int(sizearg);
             
-            if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size")))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size")))
             {
                 sx = string_to_int(sizearg);
                 sy = 1;
             }
             
-			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set"))) // Set output size x & y from one or multiple inputs
+			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = e->GetAttribute( "size_set"))) // Set output size x & y from one or multiple inputs
             {
                 sx = GetSizeXFromList(sizearg);
                 sy = GetSizeYFromList(sizearg);
 			}
             
-			else if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set_x")) && (sizeargy = kernel->GetXMLAttribute(e, "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
+			else if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_set_x")) && (sizeargy = e->GetAttribute( "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
 			{
                 sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
                 sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
 			}
             
-			else if((sx == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set_x"))) // Set output size x from one or multiple inputs
+			else if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_set_x"))) // Set output size x from one or multiple inputs
                 sx = GetSizeXFromList(sizearg);
             
-			else if((sy == unknown_size) && (sizearg = kernel->GetXMLAttribute(e, "size_set_y"))) // Set output size y from one or multiple inputs
+			else if((sy == unknown_size) && (sizearg = e->GetAttribute( "size_set_y"))) // Set output size y from one or multiple inputs
                 sy = GetSizeYFromList(sizearg);
             
             SetOutputSize(output_name, sx, sy);
