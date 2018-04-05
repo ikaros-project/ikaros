@@ -7,7 +7,7 @@
 			Driver for the Dynamixel servos from ROBOTIS. The module can control servos both in position and continuous (wheel) mode. The IDs of the modules can be set with the parameter 'servo_id'. If this parameter is not set, the module will instead scan the bus for servos.
 		</p>
 		<p>
-			When the index_mode indirect is set, the input and output arrays ranges from 0 to N, where N is the number of connected servos. If the module scanned for the IDs, they will be in numerical order, otherwise they will be in the order listen in the pramater servo_id.
+			When the index_mode indirect is set, the input and output arrays ranges from 0 to N, where N is the number of connected servos. If the module scanned for the IDs, they will be in numerical order, otherwise they will be in the order listen in the parameter servo_id.
 		</p>
 		<p>
 			When the index_mode is set to direct, the input and output arrays ranges from 0 to the ID of the servos with highest ID. In this mode, some of the elements in the input and output arrays may not be used and will always be set to 0.
@@ -16,15 +16,9 @@
 			If the parameter size is set, it will override the other calculations of the size of the arrays and either truncate or extend the array to the requested size.
 		</p>
 		<p>
-			The module comunicates with the servos using serial communication (TTL or RS-485).
+			The module communicates with the servos using serial communication (TTL or RS-485).
 			
-			Use USB2Dynamixel:
-			OSX:
-			It is usually necessary to install the drivers for the FTDI USB serial driver before using the
-			USB2Dynamixel with Ikaros. This driver is available from the FTDI site. When the driver is
-			installed a device called something like "cu.usbserial-A7005Lxn" will show up under the /dev directory.
-			Linux:
-			No drivers needed. The device will show up as "/dev/ttyUSB0" or similary.
+			Serial ports: In OSX the device will show up as "/dev/cu.usbserialXXXXXX" and in linux as "/dev/ttyUSBX".
 		</p>
 		<p>
 			If the servo is set up to run in continuous mode, the module uses the input MOVING_SPEED to set the speed directly
@@ -46,14 +40,14 @@
 	<parameter name="print_info" type="list" values="none/minimal/full" default="minimal" description="Print information about the servos to console. Minimal prints a few important features of the servo. Full prints the complete control table." />
 	<parameter name="servo_id" type="string" default="" description="The IDs of the Dynamixel servos. If this parameter is not set, the module will scan for servos" />
 	<parameter name="strict_servo_id" type="bool" default="no" description="WARNING or ERROR if the servo ids can not be found" />
-	<parameter name="index_mode" type="list" values="direct/indirect" default="direct" description="The relation between the indices of the input and output arrays and the IDs of the servos. In direct mode, the index of the arrays correponds to the IDs of the servos while in indirect mode the inputs and outputs has the same size as the number of servos." />
+	<parameter name="index_mode" type="list" values="direct/indirect" default="direct" description="The relation between the indices of the input and output arrays and the IDs of the servos. In direct mode, the index of the arrays corresponds to the IDs of the servos while in indirect mode the inputs and outputs has the same size as the number of servos." />
 	<parameter name="angle_unit" type="list" values="degrees/radians/tau" default="degrees" description="What units should be used for position inputs and outputs? 0-360 (degrees), 0-2π (radians), or 0-1, where 1 either corresponds to 360° (tau)." />
 	<parameter name="max_servo_id" type="int" default="12" description="The maximum servo ID to scan for. This parameter must be increased if servos with higher IDs are used. The value can be decreased to speed up the start-up of the module." />
 	<parameter name="size" type="int" default="0" description="This parameter forces a specific size of the output. In the normal case when it is not set, the size will be derived from the list of servo ids" />
 	<parameter name="feedback" type="bool" default="yes" description="If set to 'no' the module works faster and do not ask servos for position feedback etc. Set to 'no' the feedback outputs will be filled with the inputs' values (FEEDBACK_GOAL_POSITION will just be a copy of the GOAL_POSITION). If the feedback does not have a matching input it will be set to -1 (FEEDBACK_PRESENT_VOLTAGE will be set to -1)"/>
 	<parameter name="start_up_delay" type="int" default="10" description="Number of ticks to wait before a position command is sent to the servos." />
 	<parameter name="torque_up_delay" type="int" default="100" description="Number of ticks to ramp up torque limit after start_up_delay" />
-	<parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shuting down ikaros." />
+	<parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shutting down ikaros." />
 	<parameter name="optimize" type="bool" default="true" description="Reduce the servo calls by avoid sending identical value as already on servo. If feedback is not used this parameter should be set to false." />
 	<parameter name="serial_latency" type="int" default="16" description="The serial latency in ms set by the operation system." />
 	
