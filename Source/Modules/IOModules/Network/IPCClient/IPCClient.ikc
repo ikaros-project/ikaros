@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<group name="IPCInput" description="minimal example module">
+
+	<description type="text">
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="IPCInput"
+			name="IPCInput"
+			time_out_in_ms = "50"
+		/>
+	</example>
+
+    <parameter name="time_out_in_ms" type="int" default="0" description="Time out in ms. (if set to 0 no timeout is used)" />
+    <output name="OUTPUT" description="The first output" size="20" />
+    <output name="TIME_OUT" description="Time out" size="1" />
+	
+	<module class="IPCClient" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>IPCClient.h</file>
+   		<file>IPCClient.cc</file>
+   		<file>IPCClient.ikc</file>
+   </files>
+
+</group>
+

@@ -1,5 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_subdirectory(IPCClient)
+add_subdirectory(IPCServer)
 add_subdirectory(YARPPort)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

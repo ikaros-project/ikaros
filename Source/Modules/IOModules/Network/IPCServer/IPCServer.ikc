@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group name="IPCServer" description="Module to send data using sockets">
+
+	<description type="text">
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="IPCServer"
+			name="IPCServer"
+		/>
+	</example>
+
+
+	<input name="INPUT" description="The first output" size="2" />
+
+	<module class="IPCServer" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>IPCServer.h</file>
+   		<file>IPCServer.cc</file>
+   		<file>IPCServer.ikc</file>
+   </files>
+
+</group>
+
