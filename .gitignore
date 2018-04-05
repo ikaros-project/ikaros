@@ -1,5 +1,8 @@
-Bin/
-Build/
+Bin/*
+Build/*
+# exception to the rule
+!Bin/.placeholder
+!Build/.placeholder
 
 # Compiled source #
 ###################
