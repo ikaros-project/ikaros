@@ -3,6 +3,8 @@ Build/*
 # exception to the rule
 !Bin/.placeholder
 !Build/.placeholder
+!Bin/Placeholder.txt
+!Build/Placeholder.txt
 
 # Compiled source #
 ###################
