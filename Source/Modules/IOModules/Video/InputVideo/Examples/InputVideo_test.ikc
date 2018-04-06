@@ -1,15 +1,144 @@
 <?xml version="1.0"?>
 
 <group title="InputVideo Example">
-	
+
 		<module
 			class = "InputVideo"
-			name = "InputVideo"
-		/>
-		
+			name = "CAMERA"
+			frame_rate = "30"
+			list_devices = "true"
+			id = "0"
+			size_x = "320"
+			size_y = "240"
+
+/>
+		<module
+	            class = "CIFaceDetector"
+	            name = "FaceDetector"
+	            min_size = "0.0"
+	            use_tracking = "yes"
+	        />
+
+	        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" />
+
+			<view name="Input" >
+				<object
+					class   ="Image"
+	                title   = "Face"
+					type	= "rgb"
+					module  = "CAMERA"
+					source  = "RED+GREEN+BLUE"
+					x="0" y="0"
+					w="4" h="3"
+					min = "0"
+					max = "1"
+				/>
+
+	             <object
+	                class   = "Path"
+	                title   = "Faces"
+	                module  = "FaceDetector"
+	                source  = "FACE_BOUNDS"
+	                length_source = "FACE_COUNT"
+	                x="0" y="0"
+	                w="4" h="3"
+	                min = "0"
+	                max = "1"
+	                select = "0"
+	                count = "4"
+	                close = "yes"
+	                color="white"
+	                line_width="1"
+	                line_dash="[5,5]"
+	                fill = "none"
+	                temp="rgba(255,255,255,0.25)"
+	                line_join="round"
+	            />
+
+	            <object
+	                class = "Marker"
+	                module  = "FaceDetector"
+	                source= "FACE_POSITION"
+	                angle_source = "ROTATION"
+	                size_source = "FACE_SIZE"
+	                length_source = "FACE_COUNT"
+	                fill = "rgba(0,0,0,0.25)"
+	                line_width="15"
+	                color="rgba(128,128,128,0.45)"
+	                x="0" y="0"
+	                w="4" h="3"
+	            />
+
+				<_object
+	                class   = "Circle"
+	                color = "red"
+	                size    = "0.025"
+	                module  = "FaceDetector"
+	                source  = "EYE_LEFT_POSITION"
+	                x="0" y="0"
+	                w="4" h="3"
+				/>
+
+				<_object
+	                class   = "Circle"
+	                color = "green"
+	                size    = "0.025"
+	                module  = "FaceDetector"
+	                source  = "EYE_RIGHT_POSITION"
+	                x="0" y="0"
+	                w="4" h="3"
+				/>
+
+				<_object
+	                class   = "Circle"
+	                color = "blue"
+	                size    = "0.03"
+	                module  = "FaceDetector"
+	                source  = "MOUTH_POSITION"
+	                x="0" y="0"
+	                w="4" h="3"
+				/>
+
+	            <object
+	                class = "BarGraph"
+	                x="0" y="3"
+	                module = "FaceDetector"
+	                source = "ROTATION"
+	                min = "-25"
+	                max = "25"
+	            />
+
+	            <object
+	                class = "BarGraph"
+	                x="1" y="3"
+	                module = "FaceDetector"
+	                source = "NOVELTY"
+	            />
+
+	             <object
+	                class = "BarGraph"
+	                x="2" y="3"
+	                module = "FaceDetector"
+	                source = "SMILE"
+	            />
+
+	             <object
+	                class = "BarGraph"
+	                x="3" y="3"
+	                module = "FaceDetector"
+	                source = "BLINK_LEFT"
+	            />
+
+	             <object
+	                class = "BarGraph"
+	                x="4" y="3"
+	                module = "FaceDetector"
+	                source = "BLINK_RIGHT"
+	            />
+	       </view>
+
 	<view name="Movie View" object_size="500">
 		<object class="Image" type="rgb" module = "InputVideo" source = "RED+GREEN+BLUE" x="0" y="0" />
 	</view>
     <module class = "Logger" name = "Logger" />
 </group>
- 

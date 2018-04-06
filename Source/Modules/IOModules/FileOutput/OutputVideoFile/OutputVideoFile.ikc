@@ -2,42 +2,41 @@
 
 <group name="OutputVideoFile" description="save to a video file">
 
-	<description type="text">
-		Module transcodes ikaros output to a mp4 file using the h264 codec.
-	</description>
+  <description type="text">
+    Module transcodes ikaros output to a mp4 file using the h264 codec.
+  </description>
 
-	<example description="A simple example">
-		<module
-			class="OutputVideoFile"
-			name="OutputVideoFile"
-            filename = "movie.mp4"
-		/>
-	</example>
+  <example description="A simple example">
+    <module
+      class="OutputVideoFile"
+      name="OutputVideoFile"
+      filename = "movie.mp4"
+    />
+  </example>
 
-	<module class="OutputVideoFile" />
-    
+  <module class="OutputVideoFile" />
+
     <parameter name="filename" type="string" description="Video filename. Must end with .mp4" />
     <parameter name="quality" type="list" values="verylow/low/normal/high" default="normal" description="Setting encoder quality"/>
     <parameter name="frame_rate" type="int" default="25" description="Frame rate"/>
 
-        
+
     <input name="INTENSITY" description="The gray level image data to be written to the file" optional="yes"/>
     <input name="RED" description="The red channel image data to be written to the file" optional="yes"/>
     <input name="GREEN" description="The green channel image data to be written to the file" optional="yes"/>
     <input name="BLUE" description="The blue channel image data to be written to the file" optional="yes" />
 
     <author>
-		<name>Birger Johansson</name>
-		<email>birger.johansson@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.birgerjohansson.com</homepage>
-	</author>
-    
+    <name>Birger Johansson</name>
+    <email>birger.johansson@lucs.lu.se</email>
+    <affiliation>Lund University Cognitive Science</affiliation>
+    <homepage>http://www.birgerjohansson.com</homepage>
+  </author>
+
    <files>
-   		<file>OutputVideoFile.h</file>
-   		<file>OutputVideoFile.cc</file>
-   		<file>OutputVideoFile.ikc</file>
+       <file>OutputVideoFile.h</file>
+       <file>OutputVideoFile.cc</file>
+       <file>OutputVideoFile.ikc</file>
    </files>
 
 </group>
-
