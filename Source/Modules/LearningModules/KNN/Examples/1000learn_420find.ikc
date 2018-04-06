@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		name = "R4"
+		class = "Randomizer"
+		outputsize = "4"
+	/>
+
+	<module
+		name = "R1"
+		class = "Randomizer"
+		outputsize = "1"
+	/>
+
+	<module
+		class = "InputFile"
+		name = "INFILE"
+		filename = "1000learn_420find.data"
+		iterations = "1"
+	/>
+
+	<module
+		class = "KNN"
+		name = "KNN"
+		k = "133"
+		verbose = "yes"
+		distance_type = "euclidian"
+	/>
+
+	<connection sourcemodule = "R4"  source = "OUTPUT"
+		targetmodule = "KNN"  target = "INPUT" />
+
+	<connection sourcemodule = "R4"  source = "OUTPUT"
+		targetmodule = "KNN"  target = "T_INPUT" />
+
+	<connection sourcemodule = "R1"  source = "OUTPUT"
+		targetmodule = "KNN"  target = "T_OUTPUT" />
+
+	<connection sourcemodule = "INFILE"  source = "LEARN"
+		targetmodule = "KNN"  target = "LEARN" />
+
+
+</group>

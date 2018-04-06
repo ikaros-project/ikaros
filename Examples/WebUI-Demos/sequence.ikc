@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This file demonstrates how to declare multiple <view> elements that shows different views of an image
+	
+-->
+
+<group title="Images">
+
+	<module
+        class="InputJPEG"
+        name="Image"
+        filename="../Media/Sequence/img%d.jpg"
+        filecount = "8"
+        xiterations = "10"
+    />
+
+	<view name="Main View">
+		<object class="Image" name="Color Image"  type="rgb" module="Image" source="RED+GREEN+BLUE" x="0" y="0" w="2" h="2"/>
+		<object class="Text" text="This is the main view with the image in color" x="0" y="2" w="2" />
+	</view>
+
+	<view name="R+G+B">
+		<object class="Image" name="Red"  type="gray" module="Image" source="RED" x="0" y="0" />
+		<object class="Image" name="Green" type="gray" module="Image" source="GREEN" x="1" y="0" />
+		<object class="Image" name="Blue"  type="gray" module="Image" source="BLUE" x="2" y="0" />
+		<object class="Text" text="This is view #1 with the separate color channels" x="0" y="1" w="3" />
+	</view>
+	
+	<view name="Pseudocolor">
+		<object class="Image" name="Fire"  type="fire" module="Image" source="INTENSITY" x="0" y="0" />
+		<object class="Image" name="Spectrum"  type="spectrum" module="Image" source="INTENSITY" x="1" y="0" />
+		<object class="Image" name="Green"  type="green" module="Image" source="INTENSITY" x="2" y="0" />
+		<object class="Text" text="This is view #2 with pseudocoloring of the image intensity" x="0" y="1" w="3" />
+	</view>
+	
+	<view name="Layout Test">
+		<object class="Image" name="Fire"  type="fire" module="Image" source="INTENSITY" x="0" y="0" />
+		<object class="Image" name="Spectrum"  type="spectrum" module="Image" source="INTENSITY" x="1" y="0" h="2" w="2" />
+		<object class="Image" name="Green"  type="green" module="Image" source="INTENSITY" x="0" y="1" />
+		<object class="Image" name="Green"  type="green" module="Image" source="INTENSITY" x="0" y="2" w="3" />
+		<object class="Image" name="Green"  type="green" module="Image" source="INTENSITY" x="3" y="0" h="3" />
+	</view>
+	
+</group>
+

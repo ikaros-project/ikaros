@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+    $("button").click(function(e){
+        $.get("http://127.0.0.1:8001/"+e.target.innerText);
+    });
+    
+    $("div").mousemove(function(event){
+        $.get("http://127.0.0.1:8001/target/"+event.pageX + ", " + event.pageY); 
+    });
+});
+</script>
+</head>
+<body>
+
+<p>Animations</p>
+
+<button>animation/0</button>
+<button>animation/1</button>
+<button>animation/2</button>
+<button>animation/3</button>
+<button>animation/4</button>
+<br />
+<button>animation/5</button>
+<button>animation/6</button>
+<button>animation/7</button>
+<button>animation/8</button>
+<button>animation/9</button>
+<br />
+
+<p>Sounds</p>
+
+<button>sound/0</button>
+<button>sound/1</button>
+<button>sound/2</button>
+<button>sound/3</button>
+<button>sound/4</button>
+<br />
+<button>sound/5</button>
+<button>sound/6</button>
+<button>sound/7</button>
+<button>sound/8</button>
+<button>sound/9</button>
+<br />
+
+<p>Target</p>
+
+<div style="height: 300px; width: 300px; border: 1px solid black; background-color: #eee">
+
+</div>
+</body>
+</html>
+

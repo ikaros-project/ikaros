@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<group name="black_box_vision" description="minimal example module">
+
+	<description type="text">
+		Minimal module that can be used as a start for a new module.
+		Simply change all occurrences of "MinimalModule" to the name of your new module in
+		MinimalModule.cc, MinimalModule.h and MinimalModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="black_box_vision"
+			name="black_box_vision"
+		/>
+        
+        <view name="View" object_size = "200">
+            <object class="Image"    module="black_box_vision" source="S_INTENSITY" x="0" y="0" />
+            <object class="BarGraph" module="black_box_vision" source="EMOTION_POS" x="1" y="0" w="2" />
+            <object class="BarGraph" module="black_box_vision" source="EMOTION_NEG" x="3" y="0" w="2" />
+            <object class="BarGraph" module="black_box_vision" source="NOVELTY" x="1" y="1" w="2"/>
+            <object class="BarGraph" module="black_box_vision" source="OBJECT" x="1" y="2" w="2"/>
+        </view>
+        
+	</example>
+    
+    <parameter name="image_size_x" type="int" default="32" description="" />
+    <parameter name="image_size_y" type="int" default="32" description="" />
+
+
+    <parameter name="number_of_objects" type="int" default="10" description="Number of objects that the vision system knows about" />
+
+
+    <input name="TOTAL_KNOWLEDGE_TABLE" description="Unrealistic model of vision" />
+
+    <output name="S_INTENSITY" description="Intensity of the stimuli" size_param_x="image_size_x" size_param_y="image_size_y" />
+    
+    <output name="NOVELTY" description="Novelty" size_y = "1" size_x = "10" />
+    <output name="EMOTION_POS" description="Emotion" size_y = "1" size_x = "10"/>
+    <output name="EMOTION_NEG" description="Emotion" size_y = "1" size_x = "10"/>
+    <output name="OBJECT" description="Object detection" size_y = "1" size_x = "10" />
+    
+	<module class="black_box_vision" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>black_box_vision.h</file>
+   		<file>black_box_vision.cc</file>
+   		<file>black_box_vision.ikc</file>
+   </files>
+
+</group>
+

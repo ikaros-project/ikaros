@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		class = "Epuck"
+		name = "EPUCK"
+		port = "/dev/tty.e-puck_1022-COM1"
+	/>
+
+
+	<module
+		class = "InputFile"
+		name = "IF"
+		filename = "inputs.data"
+		iterations = "4"
+	/>
+
+
+	<connection sourcemodule = "IF"  source = "LIGHT"
+		targetmodule = "EPUCK"  target = "LIGHT" />
+	<connection sourcemodule = "IF"  source = "BODY"
+		targetmodule = "EPUCK"  target = "BODY" />
+	<connection sourcemodule = "IF"  source = "LED"
+		targetmodule = "EPUCK"  target = "LED" />
+	<connection sourcemodule = "IF"  source = "SOUND"
+		targetmodule = "EPUCK"  target = "SOUND" />
+	<connection sourcemodule = "IF"  source = "VELOCITY"
+		targetmodule = "EPUCK"  target = "VELOCITY" />
+
+
+</group>

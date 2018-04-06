@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+
+<group name="EpiBlue Vision" frame_rate="7.492507" left_eye_id="0" right_eye_id="2" >
+
+    <description>
+        WARNING. These modules are under development and can be change anytime!
+        Two cameras test - at lower frame rate 7.492507 fps
+    </description>
+
+
+    <parameter name="left_eye_id" module="LEFT_EYE" target="id" />
+    <parameter name="right_eye_id" module="RIGHT_EYE" target="id" />
+
+    <output name="LEFT_RED"      	sourcemodule="LEFT_EYE_FLIP_RED"        source="OUTPUT" />
+    <output name="LEFT_GREEN"    	sourcemodule="LEFT_EYE_FLIP_GREEN"      source="OUTPUT" />
+    <output name="LEFT_BLUE"     	sourcemodule="LEFT_EYE_FLIP_BLUE"       source="OUTPUT" />
+    <output name="LEFT_INTENSITY"   sourcemodule="LEFT_EYE_FLIP_INTENSITY"	source="OUTPUT" />
+
+    <output name="RIGHT_RED"      	sourcemodule="RIGHT_EYE_FLIP_RED"        source="OUTPUT" />
+    <output name="RIGHT_GREEN"    	sourcemodule="RIGHT_EYE_FLIP_GREEN"      source="OUTPUT" />
+    <output name="RIGHT_BLUE"     	sourcemodule="RIGHT_EYE_FLIP_BLUE"		 source="OUTPUT" />
+    <output name="RIGHT_INTENSITY"  sourcemodule="RIGHT_EYE_FLIP_INTENSITY"	 source="OUTPUT" />
+
+    
+    <!-- FOCUS is realtion to camera. FIX This! -->
+
+    <output name="FOCUS" sourcemodule="MarkerTracker" source="MATRIX" />
+
+    <!-- Vision -->
+
+    <module
+        class       = "InputVideo"
+        name        = "LEFT_EYE"
+		size_x      = "640"
+		size_y      = "480"
+    />
+    
+    <_module
+        class       = "InputVideo"
+        name        = "RIGHT_EYE"
+		size_x      = "640"
+		size_y      = "480"
+    />
+
+    	
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_RED" 		type = "rotate-180"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "LEFT_EYE_FLIP_RED"  target = "INPUT" />
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_GREEN"	 	type = "rotate-180"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "GREEN" targetmodule = "LEFT_EYE_FLIP_GREEN"  target = "INPUT" />
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_BLUE" 		type = "rotate-180"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "BLUE" targetmodule = "LEFT_EYE_FLIP_BLUE"  target = "INPUT" />
+	<module	class = "Flip" name = "LEFT_EYE_FLIP_INTENSITY" type = "rotate-180" />
+		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "LEFT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
+
+	<module	class = "Flip" name = "RIGHT_EYE_FLIP_RED" 		type = "rotate-180"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "RIGHT_EYE_FLIP_RED"  target = "INPUT" />
+	<module	class = "Flip" name = "RIGHT_EYE_FLIP_GREEN"	 	type = "rotate-180"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "GREEN" targetmodule = "RIGHT_EYE_FLIP_GREEN"  target = "INPUT" />
+	<module	class = "Flip" name = "RIGHT_EYE_FLIP_BLUE" 		type = "rotate-180"/>
+		<connection sourcemodule = "LEFT_EYE"  source = "BLUE" targetmodule = "RIGHT_EYE_FLIP_BLUE"  target = "INPUT" />
+	<module	class = "Flip" name = "RIGHT_EYE_FLIP_INTENSITY" type = "rotate-180" />
+		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "RIGHT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
+
+    <module
+        class       = "Add"
+        name        = "DOUBLE"
+    />
+        <connection sourcemodule = "RIGHT_EYE_FLIP_INTENSITY" source = "OUTPUT" targetmodule = "DOUBLE"  target = "INPUT1"/>
+		<connection sourcemodule = "LEFT_EYE_FLIP_INTENSITY"  source = "OUTPUT" targetmodule = "DOUBLE"  target = "INPUT2"/>
+
+    <module
+        class       = "Scale"
+        name        = "DOUBLE_VISION"
+        factor      = "0.5"
+    />
+		<connection sourcemodule = "DOUBLE"  source = "OUTPUT" targetmodule = "DOUBLE_VISION"  target = "INPUT"/>
+
+
+	<view name="Camera View">
+		<object class="Image" title="LEFT" type="gray" module = "LEFT_EYE_FLIP_INTENSITY" source = "OUTPUT" x="0" y="0" h="3" w="3"/>
+		<object class="Image" title="RIGHT" type="gray" module = "RIGHT_EYE_FLIP_INTENSITY" source = "OUTPUT" x="3" y="0" h="3" w="3" />
+		<object class="Image" title="DOUBLE VISION" type="gray" module = "DOUBLE_VISION" source = "OUTPUT" x="6" y="0" h="3" w="3" />
+	</view>
+
+</group>
+ 

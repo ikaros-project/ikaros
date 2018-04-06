@@ -1,0 +1,43 @@
+Examples of how long various functions take to execute:
+
+IKAROS: Epuck - SetSpeed() took 0 ms
+IKAROS: Epuck - SetLight() took 0 ms
+IKAROS: Epuck - SetLeds() took 0 ms
+IKAROS: Epuck - SetBodyLight() took 0 ms
+IKAROS: Epuck - SetSound() took 0 ms
+IKAROS: Epuck - GetProximity() took 31 ms
+IKAROS: Epuck - GetAccelerationPlain() took 65 ms
+IKAROS: Epuck - GetAcceleration() took 33 ms
+IKAROS: Epuck - GetEncoder() took 85 ms
+IKAROS: Epuck - GetMicrophoneVolume() took 32 ms
+IKAROS: Epuck - GetMicrophoneBuffer() took 123 ms
+IKAROS: Epuck - GetImage() took 227 ms
+
+IKAROS: Epuck - SetSpeed() took 0 ms
+IKAROS: Epuck - SetLight() took 0 ms
+IKAROS: Epuck - SetLeds() took 0 ms
+IKAROS: Epuck - SetBodyLight() took 0 ms
+IKAROS: Epuck - SetSound() took 0 ms
+IKAROS: Epuck - GetProximity() took 24 ms
+IKAROS: Epuck - GetAccelerationPlain() took 39 ms
+IKAROS: Epuck - GetAcceleration() took 31 ms
+IKAROS: Epuck - GetEncoder() took 9 ms
+IKAROS: Epuck - GetMicrophoneVolume() took 32 ms
+IKAROS: Epuck - GetMicrophoneBuffer() took 92 ms
+IKAROS: Epuck - GetImage() took 156 ms
+
+IKAROS: Epuck - SetSpeed() took 0 ms
+IKAROS: Epuck - SetLight() took 0 ms
+IKAROS: Epuck - SetLeds() took 0 ms
+IKAROS: Epuck - SetBodyLight() took 0 ms
+IKAROS: Epuck - SetSound() took 0 ms
+IKAROS: Epuck - GetProximity() took 33 ms
+IKAROS: Epuck - GetAccelerationPlain() took 39 ms
+IKAROS: Epuck - GetAcceleration() took 35 ms
+IKAROS: Epuck - GetEncoder() took 16 ms
+IKAROS: Epuck - GetMicrophoneVolume() took 31 ms
+IKAROS: Epuck - GetMicrophoneBuffer() took 71 ms
+IKAROS: Epuck - GetImage() took 234 ms
+
+As you can see the times vary. This most likely depends
+on the bluetooth communication.

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group name="BilateralPeripheralPupilControlTest" description="test of peripheral component of pupil model">
+
+    <module
+        class="FunctionGenerator"
+        name="LightInput"
+        type = "ticksquare"
+        basetime = "190"
+        tickduty = "10"
+        amplitude = "1.0"
+    />
+
+    <module
+        class="BilateralPeripheralPupilControl"
+        name="PupilControl"
+    />
+    
+    <connection sourcemodule="LightInput" source="OUTPUT" targetmodule="PupilControl" target="PTA_Left" />
+    <connection sourcemodule="LightInput" source="OUTPUT" targetmodule="PupilControl" target="PTA_Right" />
+
+    <view name="Parasympathetic Circuit">
+        <object class="Plot" title="Light" module="LightInput" source="OUTPUT" x="0" y="0" w="4" max="1" />
+
+        <object class="Plot" title="Left CG (Constriction)" module="PupilControl" source="CG_OUTPUT_Left" x="0" y="1" w="4" max="1" />
+        <object class="Plot" title="Left SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT_Left" x="0" y="2" w="4" max="1" />
+
+        <object class="Plot" title="Right CG (Constriction)" module="PupilControl" source="CG_OUTPUT_Right" x="0" y="3" w="4" max="1" />
+        <object class="Plot" title="Right SCG (Dilation)" module="PupilControl" source="SCG_OUTPUT_Right" x="0" y="4" w="4" max="1" />
+
+        <object class="Slider" title="Duty" module="LightInput" parameter="tickduty" x="4" y="0" h="2" max="190" />
+    </view>
+    
+</group>
+

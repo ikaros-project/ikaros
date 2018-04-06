@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+
+<group name="KNN" description="(K Nearest Neighbors) using a KD-tree">
+
+
+<description type="text">
+	The KNN module implements a K Nearest Neighbors System. It has inputs
+	for simultaneous learning and choosing of neighbors. The underlying
+	data structure used is a KD-Tree.
+</description>
+
+
+<example description="A simple example">
+<module
+	class="KNN"
+	name="KNN"
+/>
+</example>
+
+
+<input name="INPUT"
+	description="The coordinates of a target to look for neighbors for." />
+<input name="T_INPUT"
+	description="Training input. The coordinates of an example to learn/store." />
+<input name="T_OUTPUT"
+	description="Training output. The class values of the example to learn/store" />
+<input name="LEARN"
+	description="Learns from T_INPUT/T_OUTPUT if this is > 0." />
+
+<output name="INPUT_TABLE"
+	description="A matrix of the coordinates of the neighbors that were found around the last INPUT." />
+<output name="OUTPUT_TABLE"
+	description="A matrix of the class values of the neighbors that were found around the last INPUT." />
+<output name="DISTANCE_TABLE"
+	description="An array of the distances of the neighbors that were found around the last INPUT.
+	NOTE: When it was not possible to find K neighbors (the tree was smaller than size K nodes)
+	the distances for the neighbors that were not found is set to -1.0" />
+
+<parameter name="k"
+	description="How many neighbors to look for."
+	type="int"
+	min="1"
+	default="5"/>
+<parameter name="distance_type"
+	description="Type of distance calculation. Euclidian is the usual sqrt(sum of squares),
+	manhattan is just the addition of differences in all the dimensions."
+	type="list"
+	values="euclidian/manhattan"
+	default="euclidian"/>
+<parameter name="auto_rebuild"
+	description="Automatically check if some sub tree can be balanced after	an insert."
+	type="bool"
+	default="true"/>
+<parameter name="minimum_tree_size_for_rebuild"
+	description="Will not auto rebuild smaller sub trees than this."
+	type="int"
+	min="10"
+	default="100"/>
+<parameter name="unbalanced_tree_size_ratio_limit"
+	description="Defines what is considered unbalanced. The ratio means ratio between the sizes of
+	the left and right sub trees of a tree."
+	type="float"
+	min="1.5"
+	default="2.4"/>
+<parameter name="verbose"
+	description="Print some info."
+	type="bool"
+	default="false"/>
+<parameter name="check_for_clones"
+	description="Dont insert an example if it is already in the tree."
+	type="bool"
+	default="false"/>
+
+
+
+
+
+<module class="KNN" />
+
+
+<author>
+	<name>Alexander Kolodziej</name>
+	<_email>alexander.kolodziej@gmail.com</_email>
+	<affiliation>LUCS</affiliation>
+</author>
+
+<files>
+	<file>KNN.h</file>
+	<file>KNN.cc</file>
+	<file>KNN.ikc</file>
+	<file>KD_Tree.ccc</file>
+	<file>KD_Tree.h</file>
+</files>
+
+</group>

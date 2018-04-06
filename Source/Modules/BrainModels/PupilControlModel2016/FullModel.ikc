@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+
+<group name="FullModel" description="full pupil control model">
+
+    <description>
+        Implementation of  a system-level connectionist model of pupil control that includes brain regions believed to influence the size of the pupil. It includes parts of the sympathetic and parasympathetic nervous systems together with the hypothalamus, amygdala, locus coeruleus, and cerebellum. Computer simulations show that the model is able to reproduce a number of important aspects of how the pupil reacts to different stimuli: (1) It reproduces the characteristic shape and latency of the light-reflex. (2) It elicits pupil dilation as a response to novel stimuli. (3) It produces pupil dilation when shown emotionally charged stimuli, and can be trained to respond to initially neutral stimuli through classical conditioning. (4) The model can learn to expect light changes for particular stimuli, such as images of the sun, and produces a ‘light-response’ to such stimuli even when there is no change in light intensity. (5) It also reproduces the fear-inhibited light reflex effect where reactions to increased light is weaker after a presentation of a conditioned stimulus that predicts punishment. (Johansson and Balkenius, "A Computational Model of Pupil Dilation", Connection Science, 2017)
+    </description>
+    
+    
+    <input name="PTA_Left" targetmodule="PeripheralPupilControl" target="PTA_Left" />
+    <input name="PTA_Right" targetmodule="PeripheralPupilControl" target="PTA_Right" />
+
+    <output name="Eye_Left" sourcemodule="LeftEye" source="OUTPUT" />
+    <output name="Eye_Right" sourcemodule="RightEye" source="OUTPUT" />
+
+    <!-- parameters that can be controlled at the top level -->
+
+    <parameter name="LCa_alpha" module="LCb" target="alpha_a" />
+    <parameter name="LCb_alpha" module="LCb" target="alpha_b" />
+    <parameter name="CG_alpha7" module="PeripheralPupilControl" target="CG_alpha7" default="1" />
+    <parameter name="Eye_m3" module="LeftEye" target="m3" default="1" />
+    <parameter name="Eye_m3" module="RightEye" target="m3" default="1" />
+
+   <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
+
+    <module
+        class="BilateralPeripheralPupilControl"
+        name="PeripheralPupilControl"
+    />
+
+    <!-- ********************************* LOCUS COERULEUS *********************************   -->
+
+    <module
+        class="Nucleus"
+        name="LCa"
+        beta="0.05"
+        alpha="0.8"
+    />
+
+    <module
+        class="Nucleus"
+        name="LCb"
+        beta="0.05"
+    />
+
+    <!-- LC => IML -->
+    
+    <connection sourcemodule="LCa" source="OUTPUT" targetmodule="PeripheralPupilControl" target="IML_EXCITATION_Left" />
+    <connection sourcemodule="LCa" source="OUTPUT" targetmodule="PeripheralPupilControl" target="IML_EXCITATION_Right" />
+
+    <connection sourcemodule="LCb" source="OUTPUT" targetmodule="PeripheralPupilControl" target="EW_SHUNTING_Left" />
+    <connection sourcemodule="LCb" source="OUTPUT" targetmodule="PeripheralPupilControl" target="EW_SHUNTING_Right" />
+
+    <!-- ********************************* AMYGDALA ********************************* -->
+    
+    <_connection sourcemodule="VisionBlackBock" source="OBJECT" targetmodule="Amygdala" target="CS" delay="105" />
+    <_connection sourcemodule="VisionBlackBock" source="EMOTION_NEG" targetmodule="Amygdala" target="US" />
+
+    <module
+        class="Amygdala"
+        name="Amygdala"
+        alpha = "0.05"
+    />
+
+    <connection sourcemodule="Amygdala" source="CR" targetmodule="LCa" target="EXCITATION" />    <!-- CR OUTPUT -->
+    <connection sourcemodule="Amygdala" source="CR" targetmodule="LCb" target="EXCITATION" />    <!-- CR OUTPUT -->
+
+    <!-- ********************************* CERBELLUM ********************************* -->
+    
+    <_connection sourcemodule="VisionBlackBock" source="OBJECT" targetmodule="Cerebellum" target="CS" />    <!-- CS INPUT -->
+
+    <connection sourcemodule="PeripheralPupilControl" source="EW_OUTPUT_Left" targetmodule="Cerebellum_Left" target="US" />    <!-- US INPUT (target) -->
+    <connection sourcemodule="PeripheralPupilControl" source="EW_OUTPUT_Right" targetmodule="Cerebellum_Right" target="US" />    <!-- US INPUT (target) -->
+
+    <module
+        class="Cerebellum"
+        name="Cerebellum_Left"
+        alpha = "0.1"
+    />
+
+    <module
+        class="Cerebellum"
+        name="Cerebellum_Right"
+        alpha = "0.1"
+    />
+
+    <connection sourcemodule="Cerebellum_Left" source="CR" targetmodule="PeripheralPupilControl" target="EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
+    <connection sourcemodule="Cerebellum_Right" source="CR" targetmodule="PeripheralPupilControl" target="EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
+
+    <!-- ********************************* EYES ********************************* -->
+    
+    <!-- delay = 12 gives a minumum 260 ms latency of pupilary response -->
+
+    <connection sourcemodule="PeripheralPupilControl" source="SCG_OUTPUT_Left" targetmodule="LeftEye" target="PUPIL_DILATOR" delay="12" />
+    <connection sourcemodule="PeripheralPupilControl" source="CG_OUTPUT_Left" targetmodule="LeftEye" target="PUPIL_SPHINCTER" delay="12" />
+
+    <connection sourcemodule="PeripheralPupilControl" source="SCG_OUTPUT_Right" targetmodule="RightEye" target="PUPIL_DILATOR" delay="12" />
+    <connection sourcemodule="PeripheralPupilControl" source="CG_OUTPUT_Right" targetmodule="RightEye" target="PUPIL_SPHINCTER"delay="12" />
+
+    <module
+        class="EyeModel"
+        name="LeftEye"
+        epsilon = "0.1"
+    />
+    
+    <module
+        class="EyeModel"
+        name="RightEye"
+        epsilon = "0.1"
+    />
+    
+    
+    <!-- ********************************* VIEW ********************************* -->
+    
+    <view title="Face View">
+        <object
+            class="EpiFace"
+            left_module="LeftEye"
+            left_source="OUTPUT"
+            right_module="LeftEye"
+            right_source="OUTPUT"
+            x="0" y="0"
+            h="4" w="4"
+        />
+    </view>
+    
+</group>
+

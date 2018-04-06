@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		class = "Epuck"
+		name = "EPUCK"
+		port = "/dev/tty.e-puck_1022-COM1"
+        BaudRate = "9600"
+	/>
+
+
+	<module
+		class = "InputFile"
+		name = "IF"
+		filename = "movements.data"
+		iterations = "10000"
+	/>
+
+	<connection sourcemodule = "IF"  source = "VELOCITY"
+		targetmodule = "EPUCK"  target = "VELOCITY" />
+
+
+</group>

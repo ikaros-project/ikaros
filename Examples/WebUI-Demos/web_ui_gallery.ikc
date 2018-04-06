@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+
+<!-- Example of the different WebUI objects fillled with random values. -->
+
+<group title="WebUI Demo">
+	
+    <module class="InputJPEG" name="Image" filename="../Media/colorrobot.jpg" size_x="256" size_y="256" />
+
+    <module
+        class = "Randomizer"
+        name = "R5"
+        outputsize = "5"
+    />
+
+    <module
+        class = "Constant"
+        name = "C"
+        outputsize = "5"
+        data= "-1 -0.5 0 0.5 1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R5X"
+        outputsize = "5"
+        min = "-1"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23"
+        outputsize_x = "2"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R33"
+        outputsize_x = "3"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23T"
+        outputsize_x = "2"
+        outputsize_y = "3"
+        min="-1"
+        max="1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "PM28"
+        min = "-1"
+        max ="1"
+        outputsize_x = "2"
+        outputsize_y = "8"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.9"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "S"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "G"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "B"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R25"
+        outputsize = "25"
+        max = "1"
+        min = "-1"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "PP25"
+        outputsize = "13"
+        max = "0.5"
+        min = "1.0"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "X"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+        min = "-1"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "Y"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+        min = "-1"
+    />
+		
+    <module
+        class = "Randomizer"
+        name = "R2"
+        outputsize = "2"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RColorGrid"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "MaxGrayGrid"
+        outputsize_x = "25"
+        outputsize_y = "25"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RGrayGrid"
+        outputsize_x = "25"
+        outputsize_y = "25"
+        max = "1"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "FG"
+        type = "sin"
+        frequency = "0.1"
+    />
+		  
+    <module
+        class = "FunctionGenerator"
+        name = "FG2"
+        type = "sin"
+        frequency = "0.04"
+        offset = "0.2"
+        amplitude = "0.2"
+    />
+		  
+	<module
+		class="InputJPEG"
+		name="SmallImage"
+		filename="../Media/SmallSequence/img%d.jpg"
+		filecount = "32"
+    />
+
+    <module
+        class = "Constant"
+        name = "Lines"
+        outputsize_x = "4"
+        outputsize_y = "4"
+        data= "0.1 0.4 0.9 0.4; 0.9 0.4 0.9 0.9; 0.9 0.9 0.1 0.9; 0.1 0.9 0.1 0.4"
+    />
+
+    <view name="Bar Graph" _object_size="80" _object_spacing="5">
+ 
+        <bar-graph
+            x="0" y="0" 
+            source="R5.OUTPUT"
+            title = "Bar Graph 1"
+        />
+
+        <bar-graph
+            x="1" y="0"
+            source="R5X.OUTPUT"
+            min="-1" max="1"
+            title = "Bar Graph 2"
+        />
+			
+         <bar-graph
+            x="0" y="1"
+            source="R5.OUTPUT"
+            title = "Bar Graph 3"
+            color = "red,green,blue,yellow"
+            fill = "red,green,blue,yellow"
+        />
+
+        <bar-graph
+            x="1" y="1"
+            source="R5X.OUTPUT"
+            min="-1" max="1"
+            title = "Bar Graph 2"
+            positive_color = "blue"
+            positive_fill = "darkblue"
+            negative_color = "red"
+            negative_fill = "darkred"
+        />
+    </view>
+
+</group>
+ 
+

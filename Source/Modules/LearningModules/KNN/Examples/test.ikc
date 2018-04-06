@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		class = "InputFile"
+		name = "INFILE"
+		filename = "test.data"
+		iterations = "1"
+	/>
+
+	<module
+		class = "OutputFile"
+		name = "OUTFILE"
+		filename = "test.output"
+		iterations = "1">
+		<column name = "INPUT_TABLE"/>
+		<column name = "OUTPUT_TABLE"/>
+		<column name = "DISTANCE_TABLE"/>
+
+	</module>
+
+	<module
+		class = "KNN"
+		name = "KNN"
+		k = "4"
+		distance_type = "euclidian"
+		minimum_tree_size_for_rebuild = "10"
+		verbose = "no"
+	/>
+
+	<connection sourcemodule = "INFILE"  source = "INPUT"
+		targetmodule = "KNN"  target = "INPUT" />
+
+	<connection sourcemodule = "INFILE"  source = "T_INPUT"
+		targetmodule = "KNN"  target = "T_INPUT" />
+
+	<connection sourcemodule = "INFILE"  source = "T_OUTPUT"
+		targetmodule = "KNN"  target = "T_OUTPUT" />
+
+	<connection sourcemodule = "INFILE"  source = "LEARN"
+		targetmodule = "KNN"  target = "LEARN" />
+
+	<connection sourcemodule = "KNN"  source = "INPUT_TABLE"
+		targetmodule = "OUTFILE"  target = "INPUT_TABLE" />
+
+	<connection sourcemodule = "KNN"  source = "OUTPUT_TABLE"
+		targetmodule = "OUTFILE"  target = "OUTPUT_TABLE" />
+
+	<connection sourcemodule = "KNN"  source = "DISTANCE_TABLE"
+		targetmodule = "OUTFILE"  target = "DISTANCE_TABLE" />
+
+</group>

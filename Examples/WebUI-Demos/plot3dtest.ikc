@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<group title="Plot3D Demo">
+
+	<module
+		class="InputJPEG"
+		name="Image"
+		filename="../Media/SmallSequence/img%d.jpg"
+		filecount = "32"
+        />
+
+	<view name="Plots">
+		<object class="Plot3D" color="LUT_fire" module="Image" source="INTENSITY" x="0" y="0" />
+		<object class="Plot3D" color="LUT_spectrum" module="Image" source="INTENSITY" x="1" y="0" />
+		<object class="Plot3D" color="LUT_gray" module="Image" source="INTENSITY" x="2" y="0" />
+
+		<object class="Plot3D" color="LUT_fire" stroke="black" stroke_width="0.5" module="Image" source="INTENSITY" x="0" y="1" />
+		<object class="Plot3D" color="none" stroke="red" stroke_width="0.5" module="Image" source="INTENSITY" x="1" y="1" />
+		<object class="Plot3D" color="white, white, white, blue"  stroke="black" stroke_width="0.5" module="Image" source="INTENSITY" x="2" y="1" />
+	</view>
+	
+	<view name="Large">
+		<object class="Plot3D" color="LUT_fire" module="Image" source="INTENSITY" x="0" y="0" h="4" w="4"  />
+	</view>
+	
+</group>
+

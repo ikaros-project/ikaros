@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<!--
+
+    This file demonstrates how to define views inside included groups or modules
+
+-->
+
+<group title="Outer">
+
+    <group name="X">
+        <output name="OUTPUT" source="OUTPUT" sourcemodule="R5" />
+
+        <module
+            class = "Randomizer"
+            name = "R5"
+            outputsize = "5"
+        />
+
+        <module
+            class = "Randomizer"
+            name = "R7"
+            outputsize = "7"
+        />
+        
+       <view name="Bar Graph X">
+            <object
+                x="0" y="0" 
+                class="BarGraph" 
+                module="R5" 
+                source="OUTPUT"
+                title = "X"
+            />
+        </view>
+    </group>
+
+
+
+    <group name="Y">
+        <module
+            class = "Randomizer"
+            name = "R3"
+            outputsize = "3"
+        />
+
+        <view name="Bar Graph Y">
+            <object
+                x="0" y="0" 
+                class="BarGraph" 
+                module="R3" 
+                source="OUTPUT"
+                title = "Y"
+            />
+        </view>
+    </group>
+
+
+
+    <view name="Outer Plot" >
+        <object
+            x="0" y="0" 
+            class="Plot" 
+            module="X" 
+            source="OUTPUT"
+            title = "Bar Graph"
+        />
+    </view>
+
+</group>
+
