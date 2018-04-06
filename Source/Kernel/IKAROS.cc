@@ -587,7 +587,7 @@ Module_IO::SetSize(int x, int y)
     }
     if (s == size)
         return;
-    if (s <= 0)  // WAS: s == 0
+    if (s == 0)
         return;
     if (module != NULL) module->Notify(msg_verbose, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name, module->instance_name, module->GetClassName(), s, max_delay);
     sizex = x;
