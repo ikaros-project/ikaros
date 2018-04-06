@@ -1,0 +1,69 @@
+<group>
+        <module
+            class="Constant"
+            name = "R"
+            data = "1 1 1 0 0 0 0 0 1 1 0 0"
+
+        />
+
+        <module
+            class="Constant"
+            name = "G"
+            data = "0 0 0 1 1 0 0 0 1 1 0 0"
+        />
+
+        <module
+            class="Constant"
+            name = "B"
+            data = "0 0 1 0 0 1 1 1 0 0 1 1"
+        />
+
+        <module
+            class="Constant"
+            name = "MOUTH_R"
+            data = "0 0 1 1 1 1 0 0 0"
+
+        />
+
+        <module
+            class="Constant"
+            name = "MOUTH_G"
+            data = "0 0 0 0 0 0 0 0 0"
+        />
+
+        <module
+            class="Constant"
+            name = "MOUTH_B"
+            data = "0 0 0 0 0 0 0 0 0"
+        />
+
+
+		<module
+			class = "FadeCandy"
+			name = "FadeCandy"
+		>
+            <channel name="MOUTH_TOP"  channel="0" size="8" />
+            <channel name="MOUTH_BOTTOM" channel="1" size="8" />
+            <channel name="LEFT_EYE"  channel="2" size="8" />
+            <channel name="RIGHT_EYE" channel="3" size="8" />
+        </module>
+
+        <connection sourcemodule = "R" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
+        <connection sourcemodule = "G" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
+        <connection sourcemodule = "B" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
+
+        <connection sourcemodule = "R" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_RED" />
+        <connection sourcemodule = "G" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_GREEN" />
+        <connection sourcemodule = "B" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_BLUE" />
+
+        <connection sourcemodule = "MOUTH_R" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_RED" />
+        <connection sourcemodule = "MOUTH_G" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_GREEN" />
+        <connection sourcemodule = "MOUTH_B" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_BLUE" />
+
+        <connection sourcemodule = "MOUTH_R" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_RED" />
+        <connection sourcemodule = "MOUTH_G" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_GREEN" />
+        <connection sourcemodule = "MOUTH_B" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_BLUE" />
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
