@@ -52,11 +52,13 @@ const int data_source_array = bind_array;
 const int data_source_matrix = bind_matrix;
 
 const int data_source_gray_image = 6;
-const int data_source_green_image = 7;
-const int data_source_fire_image = 8;
-const int data_source_spectrum_image = 9; // not used
-const int data_source_rgb_image = 10;
-const int data_source_bmp_image = 11;
+const int data_source_red_image = 7;
+const int data_source_green_image = 8;
+const int data_source_blue_image = 9;
+const int data_source_fire_image = 10;
+const int data_source_spectrum_image = 11; // not used
+const int data_source_rgb_image = 12;
+const int data_source_bmp_image = 13;
 
 
 class DataSource

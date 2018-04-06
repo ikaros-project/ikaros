@@ -129,11 +129,19 @@ SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey
 
     switch(type)
     {
-        case data_source_green_image:
+        case data_source_red_image:
+            jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_red);
+            break;
+            
+         case data_source_green_image:
             jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_green);
             break;
             
-        case data_source_fire_image:
+        case data_source_blue_image:
+            jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_blue);
+            break;
+            
+       case data_source_fire_image:
             jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_fire);
             break;
             
@@ -667,6 +675,23 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         }
     }
     
+    else if(equal_strings(type, "red") && k->GetSource(group, m, io, module, source))
+    {
+        for (ModuleData * md=view_data; md != NULL; md=md->next)
+            if (!strcmp(md->name, module))
+            {
+                if(io->matrix)
+                    md->AddSource(source, data_source_red_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                return;
+            }
+        
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_red_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
+    }
+    
     else if(equal_strings(type, "green") && k->GetSource(group, m, io, module, source))
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
@@ -681,6 +706,23 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         {
             view_data = new ModuleData(module, m, view_data);
             view_data->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
+    }
+    
+    else if(equal_strings(type, "blue") && k->GetSource(group, m, io, module, source))
+    {
+        for (ModuleData * md=view_data; md != NULL; md=md->next)
+            if (!strcmp(md->name, module))
+            {
+                if(io->matrix)
+                    md->AddSource(source, data_source_blue_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                return;
+            }
+        
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_blue_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
         }
     }
     
@@ -1057,7 +1099,9 @@ WebUI::CopyUIData()
                     
                 case data_source_matrix:
                 case data_source_gray_image:
+                case data_source_red_image:
                 case data_source_green_image:
+                case data_source_blue_image:
                 case data_source_spectrum_image:
                 case data_source_fire_image:
                     size += sd->size_x * sd->size_y;
@@ -1124,7 +1168,9 @@ WebUI::CopyUIData()
                     
                 case data_source_matrix:
 //                case data_source_gray_image:
+                case data_source_red_image:
                 case data_source_green_image:
+                case data_source_blue_image:
                 case data_source_spectrum_image:
                 case data_source_fire_image:
                     copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
@@ -1264,8 +1310,20 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
                     p += sd->size_x * sd->size_y;
                     break;
                     
+                case data_source_red_image:
+                    socket->Send("\t\t\"%s:red\": ", sd->name);
+                    SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
+                    p += sd->size_x * sd->size_y;
+                    break;
+
                 case data_source_green_image:
                     socket->Send("\t\t\"%s:green\": ", sd->name);
+                    SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
+                    p += sd->size_x * sd->size_y;
+                    break;
+
+                case data_source_blue_image:
+                    socket->Send("\t\t\"%s:blue\": ", sd->name);
                     SendPseudoColorJPEGbase64(socket, p, sd->size_x, sd->size_y, sd->type);
                     p += sd->size_x * sd->size_y;
                     break;
@@ -1351,12 +1409,17 @@ WebUI::HandleHTTPRequest()
 
             while(args)
             {
-                char * ms = strsep(&args, "+");
+                char * ms = strsep(&args, "#");
                 
                 char * module = strsep(&ms, ".");
-                char * source = ms;
+                char * source = strsep(&ms, ":");
+                char * format = ms;
 //                printf("AddDataSource:%s::%s\n", module, source);
-                AddDataSource(module, source);
+
+                if(format)
+                    AddImageDataSource(module, source, format);
+                else
+                    AddDataSource(module, source);
             }
             
 //            while(dont_copy_data) // Wait for data to become available
