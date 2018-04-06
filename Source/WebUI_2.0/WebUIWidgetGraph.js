@@ -265,6 +265,65 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.restore();
     }
 
+    drawVertical(size_x, size_y)
+    {
+        let pane_y = Math.round((this.format.height)/size_y);
+        let pane_x = Math.round(this.format.width);
+        let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
+        let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
+
+        for(let y=0; y<size_y; y++)
+        {
+            this.canvas.save();
+                this.canvas.translate(0, this.format.spaceTop);
+                this.drawHorizontalGridlines(pane_x, plot_height);
+                this.canvas.save();
+                    this.canvas.translate(this.format.spaceLeft, 0);
+                    this.drawPlotVertical(plot_width, plot_height, y);
+                this.canvas.restore();
+                this.drawLeftScale(pane_x, plot_height);
+                this.drawRightScale(pane_x, plot_height);
+                this.drawXAxis(pane_x, plot_height);
+                this.drawYAxis(pane_x, plot_height);
+                this.drawLeftTickMarks(plot_width, plot_height);
+                this.drawRightTickMarks(plot_width, plot_height);
+                this.canvas.translate(0, -this.format.spaceTop);
+                this.drawFrame(pane_x, pane_y);
+            this.canvas.restore();
+            this.canvas.translate(0, pane_y);
+        }
+        this.drawLabelsVertical(plot_width, this.format.height);
+    }
+
+    drawHorizontal(size_x, size_y)
+    {
+        let pane_y = Math.round(this.format.height);
+        let pane_x = Math.round((this.format.width)/size_x);
+        let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
+        let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
+
+        this.drawLabelsHorizontal(this.format.width, plot_height);
+        for(let x=0; x<size_x; x++)
+        {
+            this.canvas.save();
+                this.canvas.translate(this.format.spaceLeft, 0);
+                this.drawVerticalGridlines(plot_width, pane_y);
+                this.drawBottomScale(plot_width, pane_y);
+                this.canvas.save();
+                    this.canvas.translate(0, this.format.spaceTop);
+                    this.drawPlotHorizontal(plot_width, plot_height, x);
+                this.canvas.restore();
+                this.drawBottomScale(plot_width, pane_y);
+                this.drawXAxis(plot_width, pane_y);
+                this.drawYAxis(plot_width, pane_y);
+                this.drawBottomTickMarks(plot_width, pane_y);
+                this.canvas.translate(-this.format.spaceLeft, 0);
+                this.drawFrame(pane_x, this.format.height);
+            this.canvas.restore();
+            this.canvas.translate(pane_x, 0);
+        }
+    }
+    
     draw(size_x, size_y)    // draw handles the layout of the graphs in horizontal or vertical sections
     {
         this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
@@ -274,60 +333,26 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         
         if(this.parameters.direction == 'vertical')
         {
-            let pane_y = Math.round((this.format.height)/size_y);
-            let pane_x = Math.round(this.format.width);
-            let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
-            let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
-
-            for(let y=0; y<size_y; y++)
-            {
-                this.canvas.save();
-                    this.canvas.translate(0, this.format.spaceTop);
-                    this.drawHorizontalGridlines(pane_x, plot_height);
-                    this.canvas.save();
-                        this.canvas.translate(this.format.spaceLeft, 0);
-                        this.drawPlotVertical(plot_width, plot_height, y);
-                    this.canvas.restore();
-                    this.drawLeftScale(pane_x, plot_height);
-                    this.drawRightScale(pane_x, plot_height);
-                    this.drawXAxis(pane_x, plot_height);
-                    this.drawYAxis(pane_x, plot_height);
-                    this.drawLeftTickMarks(plot_width, plot_height);
-                    this.drawRightTickMarks(plot_width, plot_height);
-                    this.canvas.translate(0, -this.format.spaceTop);
-                    this.drawFrame(pane_x, pane_y);
-                this.canvas.restore();
-                this.canvas.translate(0, pane_y);
-            }
-            this.drawLabelsVertical(plot_width, this.format.height);
+            this.drawVertical(size_x, size_y);
         }
         else
         {
-            let pane_y = Math.round(this.format.height);
-            let pane_x = Math.round((this.format.width)/size_x);
-            let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
-            let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
+            this.drawHorizontal(size_x, size_y);
+        }
+    }
 
-            this.drawLabelsHorizontal(this.format.width, plot_height);
-            for(let x=0; x<size_x; x++)
-            {
-                this.canvas.save();
-                    this.canvas.translate(this.format.spaceLeft, 0);
-                    this.drawVerticalGridlines(plot_width, pane_y);
-                    this.drawBottomScale(plot_width, pane_y);
-                    this.canvas.save();
-                        this.canvas.translate(0, this.format.spaceTop);
-                        this.drawPlotHorizontal(plot_width, plot_height, x);
-                    this.canvas.restore();
-                    this.drawBottomScale(plot_width, pane_y);
-                    this.drawXAxis(plot_width, pane_y);
-                    this.drawYAxis(plot_width, pane_y);
-                    this.drawBottomTickMarks(plot_width, pane_y);
-                    this.canvas.translate(-this.format.spaceLeft, 0);
-                    this.drawFrame(pane_x, this.format.height);
-                this.canvas.restore();
-                this.canvas.translate(pane_x, 0);
-            }
+    update(d)
+    {
+        this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+//        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.canvas.translate(this.format.marginLeft, this.format.marginTop); // +0*this.format.titleHeight
+        try {
+            this.drawVertical(1, 1);
+            this.drawHorizontal(1, 1);
+        }
+        catch(err)
+        {
+//            console.log(err);
         }
     }
 };

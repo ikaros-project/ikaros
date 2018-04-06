@@ -2,12 +2,14 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes" />
 <link rel="stylesheet" type="text/css" href="styling.css">
-<link rel="stylesheet" type="text/css" href="stylish.css">
+<link rel="stylesheet" type="text/css" href="default.css" id="stylesheet">
 <title>Ikaros WebUI 2.0</title>
 <script src="webui.js"></script>
 <script src="WebUIWidget.js"></script>
 <script src="WebUIWidgetCanvas.js"></script>
+<script src="WebUIWidgetImage.js"></script>
 <script src="WebUIWidgetGraph.js"></script>
 <script src="WebUIWidgetBarGraph.js"></script>
 <script src="WebUIWidgetPlot.js"></script>
@@ -56,21 +58,41 @@
 		</aside>
 
 		<aside id="edit_inspector" >
-            <button onclick="interaction.decreaseGrid()">Grid -</button>
-            <button onclick="interaction.increaseGrid()">Grid +</button>
  
             <table id="i_table">
                  <tbody>
-                    <tr><td colspan="2" class="header">ADD WIDGET</td></tr>
+                 
                     <tr>
+                       <td>
+                            Grid
+                        </td>
+                        <td>
+                            <button onclick="interaction.decreaseGrid()">Grid -</button>
+                            <button onclick="interaction.increaseGrid()">Grid +</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Widget
+                        </td>
                         <td>
                             <select id="widget_select">
                                 <option value="webui-widget-plot">Plot</option>
                                 <option value="webui-widget-bar-graph">BarGraph</option>
                             </select>
+                            <button onclick="interaction.addObject()">Add</button>
                         </td>
+                    </tr>
+                    <tr>
                         <td>
-                            <button onclick="interaction.addObject()">Add Widget</button>
+                            Stylesheet
+                         </td>
+                        <td>
+                            <select id="stylesheet_select" onclick="interaction.changeStylesheet()">
+                                <option value="default.css">default</option>
+                                <option value="demo.css">demo</option>
+                                <option value="classic.css">classic</option>
+                            </select>
                         </td>
                     </tr>
                 </tbody>
@@ -88,12 +110,35 @@
                  <tbody>
                     <tr><td colspan="2" class="header">SYSTEM INFO</td></tr>
                     <tr>
-                        <td>Iteration</td><td id="iteration">0</td>
+                        <td>iteration</td><td id="iteration">0</td>
                     </tr>
                     <tr>
-                        <td>Progress</td><td><progress value="22" max="100"></progress></td>
+                        <td>progress</td><td><progress value="22" max="100"></progress></td>
                     </tr>
-                </tbody>
+                    <tr><td colspan="2" class="header">REAL-TIME</td></tr>
+                    <tr>
+                        <td>ticks/s</td><td id="ticks_per_s">0</td>
+                    </tr>
+                    <tr>
+                        <td>timebase</td><td id="timebase">0 ms</td>
+                    </tr>
+                    <tr>
+                        <td>actual</td><td id="timebase_actual">0 ms</td>
+                    </tr>
+                     <tr>
+                        <td>lag</td><td id="lag">0 ms</td>
+                    </tr>
+                     <tr><td colspan="2" class="header">WEB UI</td></tr>
+                    <tr>
+                        <td>updates/s</td><td id="updates_per_se">0</td>
+                    </tr>
+                   <tr>
+                        <td>interval</td><td id="interval">0 ms</td>
+                    </tr>
+                    <tr>
+                        <td>ping</td><td id="ping">0 ms</td>
+                    </tr>
+               </tbody>
             </table>
 
             <p id="title"></p>

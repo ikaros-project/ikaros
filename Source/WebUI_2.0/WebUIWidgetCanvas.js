@@ -18,13 +18,13 @@ class WebUIWidgetCanvas extends WebUIWidget
     {
         super.updateFrame();
         
-        this.canvasElement.width = this.offsetWidth;
-        this.canvasElement.height = this.offsetHeight;
+        this.canvasElement.width = this.offsetWidth * (this.oversampling ? this.oversampling : 1);
+        this.canvasElement.height = this.offsetHeight * (this.oversampling ? this.oversampling : 1);
         this.canvasElement.style.width = this.offsetWidth+"px";
         this.canvasElement.style.height = this.offsetHeight+"px";
 
-        this.width = this.canvasElement.width;
-        this.height = this.canvasElement.height;
+        this.width = this.offsetWidth;
+        this.height = this.offsetHeight;
         this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
         this.format.height = this.height - this.format.marginTop - this.format.marginBottom;
     }

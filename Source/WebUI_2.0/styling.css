@@ -12,6 +12,7 @@
     user-select: none;
     -webkit-user-select: none;
     font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
+    overflow: hidden;
 }
 
 html, body {
@@ -31,8 +32,9 @@ header {
     flex: 0 0 30px;
     color: #b0b0b0;
     background: #38383A;
-    border-bottom: 1px solid red;
+    border-bottom: 1px solid black;
     text-align: right;
+    padding: 5px;
 }
 
 section {
@@ -94,7 +96,7 @@ table {
 
 td {
     word-wrap: break-word;
-    white-space: pre-wrap;
+/*    white-space: pre-wrap; */
 /*    max-width: 200px; */
     padding-top: 5px;
     padding-bottom: 2px;
@@ -129,11 +131,6 @@ td + td.textedit:focus
 {
     color: black;
     background-color: lightgray;
-}
-
-header {
-    padding: 5px;
-    border-bottom: 1px solid gray;
 }
 
 select {
@@ -261,6 +258,7 @@ div.frame {
     flex-direction: column;
     border: none;
     background: none;
+    overflow: hidden;
 }
 
 webui-widget-table div {

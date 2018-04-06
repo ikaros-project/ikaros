@@ -72,7 +72,7 @@ nav = {
         {
             s +=  "<ul>"
             for(i in group.views)
-                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>#" + group.views[i].name + "</li>";
+                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>📉 " + group.views[i].name + "</li>";
             s += "</ul>";
         }
 
@@ -161,7 +161,7 @@ inspector = {
                             evt.preventDefault();
                         else if(p.type == 'float' && evt.key != "." && (evt.key < "0" || evt.key > "9"))
                             evt.preventDefault();
-                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ-_.0123456789".indexOf(evt.key) == -1)
+                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ+-_.0123456789".indexOf(evt.key) == -1)
                             evt.preventDefault();
                     });
                     cell2.addEventListener("blur", function(evt) {
@@ -194,7 +194,8 @@ inspector = {
                 break;
                 
                 case 'menu':
-                    var opts = p.values.split(',');
+                    var opts = p.values.split(',').map(o=>o.trim());
+                    
                     var s = '<select name="'+p.name+'">';
                     for(var j in opts)
                     {
@@ -206,7 +207,7 @@ inspector = {
                     }
                     s += '</select>';
                     cell2.innerHTML= s;
-                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.updateAll();});
+                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value.trim(); widget.updateAll();});
                 break;
                 
                 case 'checkbox':
@@ -505,7 +506,6 @@ interaction = {
         interaction.widget_inspector.style.display = "block";
  //       interaction.system_inspector.style.display = "none";
         interaction.edit_inspector.style.display = "none";
-
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -612,6 +612,10 @@ interaction = {
             interaction.setMode("edit")
         else
             interaction.setMode("run");
+    },
+    changeStylesheet: function() {
+        let sheet = document.getElementById("stylesheet_select").value;
+        document.getElementById("stylesheet").setAttribute("href", sheet);
     }
 }
 
@@ -626,7 +630,10 @@ controller = {
     tick: 0,
     session_id: 0,
     views: {},
-    
+    load_count: 0,
+    load_count_timeout: null,
+    g_data: null,
+
 /*
     updateProgress: function (oEvent)
     {
@@ -759,6 +766,63 @@ controller = {
         interaction.addView(view);
     },
 
+    updateWidgets(data)
+    {
+        // Update the views with data in response
+        let w = document.getElementsByClassName('frame')
+        for(let i=0; i<w.length; i++)
+            try
+            {
+                w[i].children[1].update(data);
+            }
+            catch(err)
+            {}
+    },
+    
+    clear_wait()
+    {
+        controller.load_count = 0;
+    },
+
+    wait_for_load(data)
+    {
+        if(controller.load_count > 0)
+            setTimeout("controller.wait_for_load()", 1);
+        else
+        {
+            clearTimeout(controller.load_count_timeout);
+            controller.updateWidgets(controller.g_data);
+        }
+    },
+    
+    updateImages(data)
+    {
+        controller.load_count = 0;
+        controller.g_data = data;
+
+        try
+        {
+            let w = document.getElementsByClassName('frame')
+            for(let i=0; i<w.length; i++)
+            {
+                if(w[i].children[1].loadData)
+                {
+                    controller.load_count += w[i].children[1].loadData(data);
+                }
+            }
+     
+            controller.load_count_timeout = setTimeout("controller.clear_wait()", 200); // give up after 1/5 s and continue
+            setTimeout("controller.wait_for_load()", 1);
+        }
+        catch(err)
+        {
+            //     view is being loaded - ignore!
+            //        if(console) console.log("Error: "+err.message);
+            //        alert("Exception");
+        }
+    },
+    
+
     update(response, session_id)
     {
         // Check if this is a new session
@@ -778,17 +842,7 @@ controller = {
             
             e = document.querySelector("#iteration");
             e.innerText = response.iteration;
-            
-            // Update the views with data in response
-            // Very fragile loop - maybe use class to mark widgets or something
-            let w = document.getElementsByClassName('frame')
-            for(let i=0; i<w.length; i++)
-                try
-                {
-                    w[i].children[1].update(response);
-                }
-                catch(err)
-                {}
+            controller.updateImages(response);
         }
     },
 
@@ -820,7 +874,7 @@ controller = {
         for(s of data_set)
         {
             data_string += (sep + s);
-            sep = "+"
+            sep = "#"
          }
         
         controller.get("update.json?data="+encodeURIComponent(data_string), controller.update);
