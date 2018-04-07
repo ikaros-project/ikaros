@@ -246,29 +246,35 @@ BlockMatching::MatchBlock(int i) // Correlation
     to_pixels(x, points[i][0], size_x);
     to_pixels(y, points[i][1], size_y);
     
+    if(x-block_radius < 0 || x+block_radius >= size_x)
+        return;
+    
+    if(y-block_radius < 0 || y+block_radius >= size_y)
+        return;
+    
     int wx0 = x - search_window_radius;
     int wx1 = x + search_window_radius;
     int wy0 = y - search_window_radius;
     int wy1 = y + search_window_radius;
     
-    crop_interval(wx0, wx1, 0, size_x, block_radius+search_window_radius+1);
-    crop_interval(wy0, wy1, 0, size_y, block_radius+search_window_radius+1);
+    crop_interval(wx0, wx1, 0, size_x, block_radius+search_window_radius); // was +1
+    crop_interval(wy0, wy1, 0, size_y, block_radius+search_window_radius);
     
     float d = 0;
     float L0 = 0;
     float L1 = 0;
     for(int dj=-block_radius; dj<=block_radius; dj++)
         for(int di=-block_radius; di<=block_radius; di++)
-        {
-            d += input_last[y+dj][x+di] * input[y+dj][x+di];
-            L0 += input_last[y+dj][x+di]  * input_last[y+dj][x+di];
-            L1 += input[y+dj][x+di] * input[y+dj][x+di];
-        }
+            {
+                d += input_last[y+dj][x+di] * input[y+dj][x+di];
+                L0 += input_last[y+dj][x+di]  * input_last[y+dj][x+di];
+                L1 += input[y+dj][x+di] * input[y+dj][x+di];
+            }
     float dz = d/(sqrt(L0)*sqrt(L1));
     
     // zero displacement
 
-    // dispalced
+    // displaced
     
     int min_x = x;
     int min_y = y;

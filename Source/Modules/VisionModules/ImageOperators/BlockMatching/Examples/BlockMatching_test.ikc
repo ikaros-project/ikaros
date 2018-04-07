@@ -53,7 +53,7 @@
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
         <_object class="Image" module="FAST" source="OUTPUT" x="4" y="0" h="2" w="2"  />
             
-        <_object class="Cross"  module="FAST" source="POINTS" x="0" y="0" h="2" w="2"  size="0.005" color="red"/>
+        <object class="Cross"  module="FAST" source="POINTS" x="0" y="0" h="2" w="2"  size="0.005" color="red"/>
         <object class="Path"  module="BlockMatching" source="FLOW" line_width="3" color="yellow" x="0" y="0" h="2" w="2"/>
 
        	<_object class="Grid" module="BlockMatching" source="DEBUG" x="2" y="0" h="2" w="2" max="1" />
