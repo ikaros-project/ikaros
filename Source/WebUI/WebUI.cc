@@ -1058,14 +1058,14 @@ WebUI::Run()
             
             if (k->tick_length > 0)
             {
-                float lag = k->timer->WaitUntil(float(tick*k->tick_length));
-                if (lag > 0.1) k->Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, k->tick);
+                k->lag = k->timer->WaitUntil(float(tick*k->tick_length));
+                if (k->lag > 0.1) k->Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", k->lag, k->tick);
             }
         }
     }
 
     if(k->max_ticks != -1)
-        httpThread->Kill(); // This is a really ugly solution; but this code will soon be replaced anyway
+        httpThread->Kill(); // FIXME: This is a really ugly solution; but this code will soon be replaced anyway
     httpThread->Join();
 //    chdir(k->ikc_dir);
 }
@@ -1246,8 +1246,22 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 
     socket->Send("{\n");
     socket->Send("\t\"state\": %d,\n", ui_state);  // ui_state; ui_state_run
-    socket->Send("\t\"iteration\": %d", k->GetTick());
-	
+    socket->Send("\t\"iteration\": %d,\n", k->GetTick());
+    
+    socket->Send("\t\"progress\": %f,\n", (k->max_ticks > 0 ? float(k->tick)/float(k->max_ticks) : 0));
+    
+    // Timing information
+    
+    float total_time = k->timer->GetTime()/1000.0; // in seconds
+
+    socket->Send("\t\"total_time\": %.2f,\n", total_time);
+    socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
+    socket->Send("\t\"timebase\": %d,\n", k->tick_length);
+    socket->Send("\t\"timebase_actual\": %.0f,\n", 1000*float(total_time)/float(k->tick));
+    socket->Send("\t\"lag\": %.0f,\n", k->lag);
+
+    socket->Send("\t\"cpu_cores\": %d\n", k->cpu_cores); // FIXME: send with initial package instead
+
     if(!p)
     {
         socket->Send("\n}\n");
@@ -1876,7 +1890,7 @@ WebUI::SendXML()
 
 
 void
-WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
+WebUI::SendModule(Module * m)
 {
         socket->Send("<table>\n");
 		

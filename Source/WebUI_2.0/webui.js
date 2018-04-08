@@ -840,8 +840,22 @@ controller = {
         {
 //            console.log("SAME SESSION "+session_id);
             
-            e = document.querySelector("#iteration");
-            e.innerText = response.iteration;
+            // Set system info from package
+            
+            try
+            {
+                document.querySelector("#iteration").innerText = response.iteration;
+                document.querySelector("#progress").value = response.progress;
+                document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
+                document.querySelector("#timebase").innerText = response.timebase+" ms";
+                document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
+                document.querySelector("#lag").innerText = response.lag+" ms";
+                document.querySelector("#cpu_cores").innerText = response.cpu_cores;
+            }
+            catch(err)
+            {
+            }
+            
             controller.updateImages(response);
         }
     },

@@ -63,7 +63,7 @@ Timer::GetTime()
 float
 Timer::WaitUntil(float time)
 {
-float dt;
+    float dt;
 	while ((dt = GetTime()-time) < - 128){usleep(127000);};
 	while ((dt = GetTime()-time) < - 4){usleep(3000);};
 	while ((dt = GetTime()-time) < - 1){usleep(100);};

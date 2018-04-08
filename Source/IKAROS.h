@@ -454,7 +454,6 @@ public:
         return classes->GetClassPath(class_name);
     }
 
-    
     void        ListInfo();
     void        ListModulesAndConnections();
     void        ListScheduling();
@@ -464,14 +463,23 @@ public:
     void        ListProfiling();
     void        PrintTiming();           // Print total timing information
     
-private:
-    ModuleClass        *     classes;    // List of module classes
+    // FIXME: make following variables private again when WebUI-code has been merged with kernel
+
     long               tick;             // Updated every iteration
     long               max_ticks;        // Max iterations, stop after these many ticks
     
     long               tick_length;      // Desired length (in ms) of each tick
     Timer *            timer;            // Global timer
     float              total_time;       // Total execution time at termination
+
+    float              actual_tick_length; // Actual lengt of a tick in real-time mode
+    float              lag;                // Lag of a tick in real-time mode
+    
+    int                 cpu_cores;
+    
+    
+private:
+    ModuleClass     *    classes;        // List of module classes
     
     int                  print_mode;     // How much to print
     
