@@ -54,13 +54,11 @@
 
 // Kernel 2.0
 
-#ifdef MAC_OS_X
-#include <sys/sysctl.h>
-#endif
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <regex>
+#include <thread>
 
 
 using namespace ikaros;
@@ -2235,12 +2233,8 @@ void
 Kernel::Init()
 {
     // Get system statistics // FIXME: move this to somewhere else
-
-#ifdef MAC_OS_X
-    size_t count_len = sizeof(cpu_cores);
-    sysctlbyname("hw.logicalcpu", &cpu_cores, &count_len, NULL, 0);
-#endif
-
+    cpu_cores = std::thread::hardware_concurrency();
+    
     if (options->GetFilePath())
         ReadXML();
     else
