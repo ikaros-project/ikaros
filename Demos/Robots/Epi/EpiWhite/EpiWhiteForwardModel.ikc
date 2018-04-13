@@ -84,8 +84,8 @@
     <module class = "Constant" name = "HeadID"          data = "10; 11; 12; 13; 14; 15;" /> <!-- ID IS NOT USED -->
     <module class = "Constant" name = "HeadFrame"       data = "2; 2; 2; 2; 2; 2;" />
 
-    <module class = "Constant" name = "SensorID"          data = "10; 11;" /> <!-- ID IS NOT USED -->
-    <module class = "Constant" name = "SensorFrame"       data = "2; 2;" />
+    <module class = "Constant" name = "SensorID"        data = "10; 11;" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "SensorFrame"     data = "2; 2;" />
 
 
    <!-- Position -> Body  --> 
@@ -104,7 +104,6 @@
         <connection sourcemodule = "Head"           source = "OUTPUT"       targetmodule = "BodyHead" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "BodyHead" target = "OBJECT_ID_2" delay = "0"/>
         <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "BodyHead" target = "FRAME_ID_2"  delay = "0"/>
-
 	<!-- SENSORS -->
     <!-- Body -> Head --> 
     <module class="Transform"   name="SensorBodyHead" />
@@ -112,7 +111,7 @@
         <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorBodyHead" target = "OBJECT_ID_1" delay = "0"/>
         <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorBodyHead" target = "FRAME_ID_1"  delay = "0"/>
         <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "SensorBodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "SensorID"         source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "SensorFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "SensorID"       source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
+        <connection sourcemodule = "SensorFrame"    source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
 
 </group>

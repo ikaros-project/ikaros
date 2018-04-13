@@ -21,7 +21,7 @@
     <output name="RIGHT_BLUE"     	sourcemodule="RIGHT_EYE_FLIP_BLUE"		 source="OUTPUT" />
     <output name="RIGHT_INTENSITY"  sourcemodule="RIGHT_EYE_FLIP_INTENSITY"	 source="OUTPUT" />
 
-    
+
     <!-- FOCUS is realtion to camera. FIX This! -->
 
     <output name="FOCUS" sourcemodule="MarkerTracker" source="MATRIX" />
@@ -33,8 +33,9 @@
         name        = "LEFT_EYE"
 		size_x      = "640"
 		size_y      = "480"
+    frame_rate ="30.000000"
     />
-    
+
     <module
         class       = "InputVideo"
         name        = "RIGHT_EYE"
@@ -42,7 +43,7 @@
 		size_y      = "480"
     />
 
-    	
+
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_RED" 		type = "rotate-180"/>
 		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "LEFT_EYE_FLIP_RED"  target = "INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_GREEN"	 	type = "rotate-180"/>
@@ -83,4 +84,3 @@
 	</view>
 
 </group>
- 

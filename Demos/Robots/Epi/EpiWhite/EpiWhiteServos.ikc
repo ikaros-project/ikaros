@@ -65,7 +65,8 @@
     <module
   		class 			= "Dynamixel"
    		name 			= "Head"
-    	device  		= "/dev/ttyUSB0"
+    	_device  		= "/dev/ttyUSB0"
+    	device  		= "/dev/cu.usbserial-FTX1OQJC"
     	index_mode 		= "indirect"
    	 	print_info 		= "full"
     	baud_rate 		= "1000000"
@@ -138,7 +139,8 @@
      <module
         class = "Dynamixel"
         name = "Pupil"
-    	device  = "/dev/ttyUSB1"
+    	_device  = "/dev/ttyUSB1"
+    	device  = "/dev/cu.usbserial-A7005Lxn"
         index_mode = "indirect"
         print_info ="full"
         feedback ="false"

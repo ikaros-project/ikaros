@@ -178,12 +178,12 @@
 
    <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L4A_T1" />
-        <connection sourcemodule = "M_L3A_T1"       source = "OUTPUT"     targetmodule = "M_L4A_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "M_L3A_R1"       source = "OUTPUT"     targetmodule = "M_L4A_T1" target = "INPUT1" delay = "0"/>
         <connection sourcemodule = "L4_T1"          source = "OUTPUT"     targetmodule = "M_L4A_T1" target = "INPUT2" delay = "0"/>
 
    <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L4B_T1" />
-        <connection sourcemodule = "M_L3B_T1"       source = "OUTPUT"     targetmodule = "M_L4B_T1" target = "INPUT1" delay = "0"/>
+        <connection sourcemodule = "M_L3B_R1"       source = "OUTPUT"     targetmodule = "M_L4B_T1" target = "INPUT1" delay = "0"/>
         <connection sourcemodule = "L4_T1"          source = "OUTPUT"     targetmodule = "M_L4B_T1" target = "INPUT2" delay = "0"/>
 
 

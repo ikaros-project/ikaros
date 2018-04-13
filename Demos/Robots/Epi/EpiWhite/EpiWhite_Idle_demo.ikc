@@ -39,13 +39,13 @@
     <!-- ********************************* 	-->
 
     <!-- Set the coordinate where Epi should look at in egocentric coordinates -->
-    <_module class = "Constant" name = "ManFocusPoint" data = "
+    <module class = "Constant" name = "ManFocusPoint" data = "
     1 0 0 1
     0 1 0 -0.5 
     0 0 1 2 
     0 0 0 1"/>
     
-	<module
+	<_module
 		class		=	"FunctionGenerator"
 		name		=	"ManualX"
 		type		=	"sin"
@@ -56,18 +56,19 @@
     />
 
     <_module class="Constant" name="ManualX" data = "2" />
-    <module class="Constant" name="ManualY" data = "2" />
-    <module class="Constant" name="ManualZ" data = "1" />
+    <_module class="Constant" name="ManualY" data = "2" />
+    <_module class="Constant" name="ManualZ" data = "1" />
     
     <!-- Drifts away -->
 
     <module class="Constant" name="ChangeID" data = "500" /> <!-- All change has the same ID -->
 
+
     <!-- Change -->
-    <module class="RotationConverter" name="ManFocusPoint" input_format = "xyz" output_format = "matrix" />
-        <connection sourcemodule = "ManualZ"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
-        <connection sourcemodule = "ManualY"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
-        <connection sourcemodule = "ManualX"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
+    <_module class="RotationConverter" name="ManFocusPoint" input_format = "xyz" output_format = "matrix" />
+        <_connection sourcemodule = "ManualZ"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
+        <_connection sourcemodule = "ManualY"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
+        <_connection sourcemodule = "ManualX"       source = "OUTPUT" targetmodule = "ManFocusPoint"  target = "INPUT" />
 
     
     <!-- Set positions of servos -->
@@ -79,16 +80,16 @@
     <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
     <!-- Speed -->
     <module class = "Constant" name = "DirectBSpeed" data = "0.2 0.2" />
-    <module class = "Constant" name = "DirectHSpeed" data = "0.01 0.01 0.05 0.05" />
-    <module class = "Constant" name = "DirectPSpeed" data = "0.9 0.9" />
+    <module class = "Constant" name = "DirectHSpeed" data = "0.01 0.01 0.02 0.02" />
+    <module class = "Constant" name = "DirectPSpeed" data = "0.2 0.2" />
 
     <!-- Torque limit -->
     <module class = "Constant" name = "DirectBTorqueLimit" data = "0.2 0.2" />
-    <module class = "Constant" name = "DirectHTorqueLimit" data = "0.2 0.2 0.2 0.2" />
-    <module class = "Constant" name = "DirectPTorqueLimit" data = "0.2 0.2" />
+    <module class = "Constant" name = "DirectHTorqueLimit" data = "0.3 0.3 0.1 0.1" />
+    <module class = "Constant" name = "DirectPTorqueLimit" data = "0.5 0.5" />
 
     <!-- Torque enable -->
-    <module class = "Constant" name = "DirectBTorqueEnable" data = "1 1" />
+    <module class = "Constant" name = "DirectBTorqueEnable" data = "0 0" />
     <module class = "Constant" name = "DirectHTorqueEnable" data = "1 1 1 1" />
     <module class = "Constant" name = "DirectPTorqueEnable" data = "1 1" />
 
@@ -101,9 +102,9 @@
     <!-- ********************************* 	-->
 
     <!-- Random movements -->
-    <module class = "Randomizer" name = "RandomFocusX" outputsize = "1" min = "-2" max = "2" interval = "40"/>
-    <module class = "Randomizer" name = "RandomFocusY" outputsize = "1" min = "1.5" max = "6" interval = "40"/>
-    <module class = "Randomizer" name = "RandomFocusZ" outputsize = "1" min = "1.5" max = "2" interval = "40"/>
+    <module class = "Randomizer" name = "RandomFocusX" outputsize = "1" min = "-2" max = "2" interval = "80"/>
+    <module class = "Randomizer" name = "RandomFocusY" outputsize = "1" min = "1.5" max = "6" interval = "80"/>
+    <module class = "Randomizer" name = "RandomFocusZ" outputsize = "1" min = "1.5" max = "2" interval = "80"/>
 
     <!-- Change -->
     <module class="RotationConverter" name="RandomFocus" input_format = "xyz" output_format = "matrix" />
@@ -120,7 +121,7 @@
     <!-- ************************ -->
     
     <!-- EXO -->
-    <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "4"/>
+    <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "5"/>
         <!-- ManualFocusPoint -->
         <connection sourcemodule = "ManFocusPoint"   	source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "INPUT_1" />
         <connection sourcemodule = "ManFocusPointValue" source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "VALUE_1" />
@@ -133,20 +134,25 @@
         <!-- Random Focus points -->
         <connection sourcemodule = "RandomFocus"   		source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "INPUT_4" />
         <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT"   targetmodule = "HLFocusArb"  target = "VALUE_4" />
+       <!-- FaceDetector (Left) -->
+        <connection sourcemodule = "Detectors"   		source = "L_FACE_WORLD" targetmodule = "HLFocusArb"  target = "INPUT_5" />
+        <connection sourcemodule = "Detectors"          source = "L_FACE_CONF"  targetmodule = "HLFocusArb"  target = "VALUE_5" />
    
      <view name="Focus Point">
-        <object class="BarGraph" name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" min = "-1" max = "1"  x="0" y="0"/>    
-        <object class="BarGraph" name = "Marker" module="MarkerTrackerValue" source = "OUTPUT" min = "-1" max = "1" x="1" y="0"/>    
-        <object class="BarGraph" name = "Change" module="ChangeSubtractV" source = "OUTPUT" min = "-1" max = "1" x="2" y="0"/>    
-        <object class="BarGraph" name = "Random" module="RandomFocusPointValue" source = "OUTPUT" min = "-1" max = "1" x="3" y="0"/>    
+        <object class="Table" name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" min = "-1" max = "1"  x="0" y="0" decimals ="5"/>    
+        <object class="Table" name = "Marker" module="MarkerTrackerValue" source = "OUTPUT" min = "-1" max = "1" x="1" y="0" decimals ="5"/>    
+        <object class="Table" name = "Change" module="ChangeSubtractV" source = "OUTPUT" min = "-1" max = "1" x="2" y="0" decimals ="5"/>    
+        <object class="Table" name = "Random" module="RandomFocusPointValue" source = "OUTPUT" min = "-1" max = "1" x="3" y="0" decimals ="5"/>    
+        <object class="Table" name = "Face" module="Detectors" source = "L_FACE_CONF" min = "-1" max = "1" x="4" y="0" decimals ="5"/>    
     </view>
 
 
     <!-- This should be moved to population code and use amplitude instead --> 	
-    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.01"/>
-    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.02"/>
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.00001"/>
+    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.00002"/>
     <_module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
-    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.1"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.001"/>
+    <_module class = "Constant" name = "FaceDetectionValue"  data = "0.2"/>
 
     <!-- If the robot is moving. Disable Change detector -->
     <module class="Mean" name="MotorSpeed"/>
@@ -248,8 +254,8 @@
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
         <!-- This will be handle in LLArbiter with mixing is enable -->
-        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="AddP" source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="AddP" source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <_connection sourcemodule="ManPPos" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
 
         <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
@@ -346,6 +352,51 @@
         <connection sourcemodule="HZeros"       source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
         <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
 
+    <!-- Special pupil behavior -->
+    <!-- Large pupil when looking at a face -->
+
+
+	<module class = "Threshold" name = "FaceDetected" type  = "binary" threshold = "0.005" /> 
+        <connection sourcemodule="Detectors" 	    source="L_FACE_IN_CENTER" 	targetmodule="FaceDetected" target="INPUT" />
+
+	<module class = "Constant" name = "ConstantPInv" outputsize = "1" data="1" />
+    <module class = "Subtract" name = "SubInv"/>
+		<connection sourcemodule="ConstantPInv" source="OUTPUT" targetmodule="SubInv" target="INPUT1" />
+		<connection sourcemodule="FaceDetected" source="OUTPUT" targetmodule="SubInv" target="INPUT2" />
+
+    <module
+        class = "SpectralTiming"
+        name = "SpectralTiming"
+        no_of_taps = "6"
+		decay ="0.9"
+    />
+        <connection sourcemodule="FaceDetected" 	    source="OUTPUT" 	targetmodule="SpectralTiming" target="INPUT" />
+
+		<module class = "Constant" name = "ConstantP" outputsize = "1" data="6" />
+		<module
+			class = "Multiply"
+			name = "MultiplyP"
+		/>
+		
+		<connection sourcemodule="SpectralTiming" source="TRACE" targetmodule="MultiplyP" target="INPUT1" />
+		<connection sourcemodule="ConstantP" source="OUTPUT" targetmodule="MultiplyP" target="INPUT2" />
+
+		<module class = "Constant" name = "ConstantPOffset" outputsize = "1" data="12" />
+        <module class = "Add" name = "AddP"/>
+	        <connection sourcemodule="MultiplyP" source="OUTPUT" targetmodule="AddP" target="INPUT1" />
+	        <connection sourcemodule="ConstantPOffset" source="OUTPUT" targetmodule="AddP" target="INPUT2" />
+
+
+    <view name="View">
+        <object class="Plot" module="FaceDetected" source="OUTPUT" max="1" colors="yellow"  x="0" y="0" w="4" />
+        <object class="Plot" module="SpectralTiming" source="TRACE" max="1" colors="yellow"  x="0" y="1" w="4" />
+        <object class="Plot" module="MultiplyP" source="OUTPUT" max="20" colors="yellow"  x="0" y="2" w="4" />
+        <object class="Plot" module="AddP" source="OUTPUT" max="20" colors="yellow"  x="0" y="3" w="4" />
+
+    </view>
+
+
+
 
 
 
@@ -439,14 +490,14 @@
     </view>
 
  <!-- LED -->
-	<module class = "FadeCandy" name = "FadeCandy" start_server = "False">
+	<module class = "FadeCandy" name = "FadeCandy" start_server = "true">
         <channel name="MOUTH_TOP"  channel="0" size="8" />
         <channel name="MOUTH_BOTTOM" channel="1" size="8" />
         <channel name="LEFT_EYE"  channel="2" size="12" />
         <channel name="RIGHT_EYE" channel="3" size="12" />
     </module>
 
-    <module class = "Constant" name = "LedBlueV"  data = "0.1" /> 
+    <module class = "Constant" name = "LedBlueV"  data = "0.01" /> 
     <_module class = "Constant" name = "LedGreenV" data = "0.5" />
 
     <module class = "Threshold" name = "LedGreenV" type  = "binary" threshold = "0.1"/>    
@@ -470,19 +521,19 @@
         <connection sourcemodule = "LedRBlue"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_1" />
         <connection sourcemodule = "LedRGreen"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_2" />
-        <connection sourcemodule = "LedGreenV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_2" />
+        <connection sourcemodule = "Detectors"  source = "L_FACE_CONF"  targetmodule = "EyeColorR"  target = "VALUE_2" />
 
     <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2" switch_time = "5"/>
         <connection sourcemodule = "LedGBlue"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_1" />
         <connection sourcemodule = "LedGGreen"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_2" />
-        <connection sourcemodule = "LedGreenV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_2" />
+        <connection sourcemodule = "Detectors"  source = "L_FACE_CONF"  targetmodule = "EyeColorG"  target = "VALUE_2" />
 
     <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2" switch_time = "5"/>
         <connection sourcemodule = "LedBBlue"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_1" />
         <connection sourcemodule = "LedBGreen"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_2" />
-        <connection sourcemodule = "LedGreenV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_2" />
+        <connection sourcemodule = "Detectors"  source = "L_FACE_CONF"  targetmodule = "EyeColorB"  target = "VALUE_2" />
 
 
     <!-- Blink -->
@@ -586,6 +637,8 @@
             x="0" y="0"
             w="4" h="4"
         />
+        <object class="Image" title="Input"                     module="Vision" source="LEFT_INTENSITY"   x="0" y="4" w="2" h="2" />
+
 
         <object class="Slider" title = "ManualFocusPoint (Exo) X" module="ManFocusPoint" parameter="data" x="4" y="0" select = "3" min = "-2" max = "2"/>
         <object class="Slider" title = "ManualFocusPoint (Exo) Y" module="ManFocusPoint" parameter="data" x="5" y="0" select = "7" min = "-2" max = "2"/>

@@ -15,8 +15,8 @@
 <!-- This ikc file includes all the subsystems needed -->
 <module class = "Constant" name = "EpiPosition" data = "
 1 0 0 0
-0 1 0 0 
-0 0 1 0 
+0 1 0 0
+0 0 1 0
 0 0 0 1"/>
 
 
@@ -35,7 +35,7 @@
 <module class = "Constant" name = "LA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 <module class = "Constant" name = "RA_SPEED" data = "0.02 0.02 0.02 0.02 0.02 0.02" />
 <module class = "Constant" name = "P_SPEED" data = "0.02 0.02" />
-	
+
 <!-- Torque limit -->
 <module class = "Constant" name = "B_TORQUE_LIMIT" data = "0.02 0.02" />
 <module class = "Constant" name = "H_TORQUE_LIMIT" data = "0.02 0.02 0.02 0.02" />
@@ -67,7 +67,7 @@
 <module class = "Constant" name = "RA_POS" data = "0 0 0 0 0 0" />
 <module class = "Constant" name = "P_POS" data = "0 0" />
 
-<!-- Chaning this value to 1 will always trigger manual mode --> 	
+<!-- Chaning this value to 1 will always trigger manual mode -->
 <module class = "Constant" name = "ManualValue" 		data = "0.5"/>
 
 
@@ -95,10 +95,10 @@
 	<!-- MarkerTracker (Left) -->
 	<connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO"  	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2" />
 	<connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"         	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2" />
-	
+
 <!-- Values -->
 <module class = "Constant" name = "MarkerTrackerValue" 	data = "0.7"/>
-    
+
 
 
 <!-- Motor Control -->
@@ -171,7 +171,7 @@
 
 
 <!-- Actuators/Proprioception -->
-<module class = "EpiBlueServos" 	name = "Servos" 		/>
+<module class = "EpiBlueServosFake" 	name = "Servos" 		/>
 	<connection sourcemodule = "Pos"   source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
 
 	<connection sourcemodule = "B_SPEED"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
@@ -183,12 +183,12 @@
 	<connection sourcemodule = "H_TORQUE_LIMIT"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
 	<connection sourcemodule = "LA_TORQUE_LIMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_LIMIT" />
 	<connection sourcemodule = "RA_TORQUE_LIMIT"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_LIMIT" />
-	
+
 	<connection sourcemodule = "B_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
 	<connection sourcemodule = "H_TORQUE_ENABLE"   source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
 	<connection sourcemodule = "LA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "LEFT_ARM_TORQUE_ENABLE" />
 	<connection sourcemodule = "RA_TORQUE_ENABLE"  source = "OUTPUT"  targetmodule = "Servos"  target = "RIGHT_ARM_TORQUE_ENABLE" />
-		
+
 <module class = "EpiBlueForwardModel" 	name = "ForwardModel" 	/>
 	<connection sourcemodule = "Servos"   	source = "BODY_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "HEAD_FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
@@ -196,7 +196,7 @@
 	<connection sourcemodule = "Servos"   	source = "RIGHT_ARM_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "RIGHT_ARM_FEEDBACK_POSITION" />
 	<connection sourcemodule = "Servos"   	source = "PUPIL_FEEDBACK_POSITION"      targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
 
-		
+
 <module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1"/>
 	<connection sourcemodule = "HighLevelMotorArbiter"   		source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
 	<connection sourcemodule = "HighLevelMotorArbiterValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
@@ -208,22 +208,22 @@
 <!-- LAB -->
 
 <!-- Table -->
-<module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;" 
+<module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;"
 data = "
-1 0 0 0.85; 
-0 1 0 0.6; 
-0 0 1 0; 
+1 0 0 0.85;
+0 1 0 0.6;
+0 0 1 0;
 0 0 0 1;"/>
 <module class = "Constant" name = "TableID"        data = "10000"/>
 
 <!-- Join all models -->
 <module class = "DataConverter" name = "MODEL_MATRIX" output_size_x = "16" output_size_y = "22"/>
     <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "MODEL_MATRIX"  target = "INPUT" />
-    <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX" targetmodule = "MODEL_MATRIX"  target = "INPUT" /> 
-    
+    <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX" targetmodule = "MODEL_MATRIX"  target = "INPUT" />
+
 <module class = "DataConverter" name = "MODEL_ID" output_size_x = "22" output_size_y = "1"/>
     <connection sourcemodule = "TableID"       source = "OUTPUT"       targetmodule = "MODEL_ID"  target = "INPUT" />
-    <connection sourcemodule = "ForwardModel"   source = "MODEL_ID" targetmodule = "MODEL_ID"  target = "INPUT" /> 
+    <connection sourcemodule = "ForwardModel"   source = "MODEL_ID" targetmodule = "MODEL_ID"  target = "INPUT" />
 
 <view name="3D View">
 	<object
@@ -237,8 +237,7 @@ data = "
         w="4" h="4"
     />
 </view>
-    
-    
+
+
 
 </group>
-
