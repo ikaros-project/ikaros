@@ -53,7 +53,7 @@ CSOM_PCA::CSOM_PCA(Parameter * p):
 CSOM_PCA::~CSOM_PCA()
 {
     return;
-    CSOM::~CSOM();
+//    CSOM::~CSOM();
 }
 
  

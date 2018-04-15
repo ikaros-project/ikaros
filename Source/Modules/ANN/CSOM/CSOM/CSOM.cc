@@ -181,7 +181,7 @@ CSOM::Init()
 CSOM::~CSOM()
 {
     return;
-    
+/*
     // FIXME: destroy w and dw here ***
 
     destroy_matrix(backward_gain);
@@ -203,7 +203,7 @@ CSOM::~CSOM()
         delete [] dw[j];
     }    
     delete dw;
-        
+*/        
 }
 
 
