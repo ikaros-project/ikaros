@@ -146,7 +146,7 @@ Autoassociator::Tick()
         
         net[j] = clip(net[j], 0, 1);
         
-        float input_inhibition = sum(input, input_size)/float(input_size);
+//        float input_inhibition = sum(input, input_size)/float(input_size);
         
         output[j] = f(net[j] + input[j] +  random(-noise_level, noise_level), activation_gain_const);
     }
