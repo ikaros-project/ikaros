@@ -1416,7 +1416,7 @@ WebUI::HandleHTTPRequest()
         }
         else // possibly a data request - send requested data - very temporary version without thread or real-time support
         {
-            char * var = strsep(&args, "=");
+            [[maybe_unused]] char * var = strsep(&args, "=");
 //            printf("\t\tVARIABLE: %s\n", var);
             
             // Build data package
