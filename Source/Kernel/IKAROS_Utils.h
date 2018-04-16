@@ -143,6 +143,8 @@ public:
 
 
 
+char *  base64_encode(const unsigned char * data, size_t size_in, size_t *size_out);
+
 // Options
 
 class Options

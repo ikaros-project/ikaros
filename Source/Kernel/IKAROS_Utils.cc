@@ -842,6 +842,40 @@ copy_matrix(float *** r, float *** a, int sizex, int sizey, int sizez)
 }
 
 
+char *
+base64_encode(const unsigned char * data,
+              size_t size_in,
+              size_t *size_out)
+{
+    static char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static int mod_table[] = {0, 2, 1};
+    *size_out = ((size_in - 1) / 3) * 4 + 4;
+    
+    char *encoded_data = (char *)malloc(*size_out);
+    if (encoded_data == NULL) return NULL;
+    
+    for (int i = 0, j = 0; i < size_in;)
+    {
+        unsigned int octet_a = i < size_in ? data[i++] : 0;
+        unsigned int octet_b = i < size_in ? data[i++] : 0;
+        unsigned int octet_c = i < size_in ? data[i++] : 0;
+        
+        unsigned int triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+        
+        encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
+    }
+    
+    for (int i = 0; i < mod_table[size_in % 3]; i++)
+        encoded_data[*size_out - 1 - i] = '=';
+    
+    return encoded_data;
+}
+
+
+
 // Options
 Options::Options(int argc, char *argv[])
 {
