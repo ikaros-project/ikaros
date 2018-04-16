@@ -26,12 +26,14 @@ using namespace ikaros;
 Arbiter::Arbiter(Parameter * p):
     Module(p)
 {
+    Bind(by_row, "by_row");
+
     no_of_inputs = GetIntValue("no_of_inputs");
 
     input_name  = new char * [no_of_inputs];
     value_name  = new char * [no_of_inputs];
 
-    input      = new float * [no_of_inputs];
+    input      = new float ** [no_of_inputs];
     value_in   = new float * [no_of_inputs];
 
     for (int i=0; i<no_of_inputs; i++)
@@ -97,14 +99,27 @@ Arbiter::SetSizes()
 
     if(sx == unknown_size || sy == unknown_size)
         return;  // Not ready yet
-    
-    SetOutputSize("OUTPUT", sx, sy);
-    SetOutputSize("VALUE", 1);
 
-    SetOutputSize("AMPLITUDES", no_of_inputs);
-    SetOutputSize("ARBITRATION", no_of_inputs);
-    SetOutputSize("SMOOTHED", no_of_inputs);
-    SetOutputSize("NORMALIZED", no_of_inputs);
+    if(by_row)
+    {
+        SetOutputSize("OUTPUT", sx, sy);
+        SetOutputSize("VALUE", sy);
+
+        SetOutputSize("AMPLITUDES", no_of_inputs, sy);
+        SetOutputSize("ARBITRATION", no_of_inputs, sy);
+        SetOutputSize("SMOOTHED", no_of_inputs, sy);
+        SetOutputSize("NORMALIZED", no_of_inputs, sy);
+    }
+    else
+    {
+        SetOutputSize("OUTPUT", sx, sy);
+        SetOutputSize("VALUE", 1);
+
+        SetOutputSize("AMPLITUDES", no_of_inputs, 1);
+        SetOutputSize("ARBITRATION", no_of_inputs, 1);
+        SetOutputSize("SMOOTHED", no_of_inputs, 1);
+        SetOutputSize("NORMALIZED", no_of_inputs, 1);
+    }
 }
 
 
@@ -122,7 +137,7 @@ Arbiter::Init()
     int vcnt = 0;
     for(int i=0; i<no_of_inputs; i++)
     {
-        input[i] = GetInputArray(input_name[i]);
+        input[i] = GetInputMatrix(input_name[i]);
         value_in[i] = GetInputArray(value_name[i], false);
         if(value_in[i])
             vcnt++;
@@ -131,43 +146,53 @@ Arbiter::Init()
     if(vcnt!=0 && vcnt != no_of_inputs)
         Notify(msg_fatal_error, "All VALUE inputs must have connections - or none");
 
-    amplitudes = GetOutputArray("AMPLITUDES");
-    arbitration_state = GetOutputArray("ARBITRATION");
-    smoothed = GetOutputArray("SMOOTHED");
-    normalized = GetOutputArray("NORMALIZED");
+    amplitudes = GetOutputMatrix("AMPLITUDES");
+    arbitration_state = GetOutputMatrix("ARBITRATION");
+    smoothed = GetOutputMatrix("SMOOTHED");
+    normalized = GetOutputMatrix("NORMALIZED");
 
-    output = GetOutputArray("OUTPUT");
-    value_out = GetOutputArray("VALUE");
+    output = GetOutputMatrix("OUTPUT");
+    value_out = GetOutputMatrix("VALUE");
 
-    size = GetOutputSize("OUTPUT");
+    if(by_row)
+    {
+        size_x = GetOutputSizeX("OUTPUT");
+        size_y = GetOutputSizeY("OUTPUT");
+    }
+    else
+    {
+        size_x = GetOutputSizeX("OUTPUT") * GetOutputSizeY("OUTPUT"); // overflow to next line
+        size_y = 1;
+
+    }
 }
 
 
 
 void
-Arbiter::CalculateAmplitues()
+Arbiter::CalculateAmplitudes(int row)
 {
     if(value_in[0])
     {
         for(int i=0; i<no_of_inputs; i++)
-            amplitudes[i] = *value_in[i];
+            amplitudes[row][i] = value_in[i][row]; // FIXME: This needs to be checked
     }
     else if(metric == 0)
     {
         for(int i=0; i<no_of_inputs; i++)
-            amplitudes[i] = norm1(input[i], size);
+            amplitudes[row][i] = norm1(input[i][row], size_x);
     }
     else if(metric == 1)
     {
         for(int i=0; i<no_of_inputs; i++)
-            amplitudes[i] = norm(input[i], size);
+            amplitudes[row][i] = norm(input[i][row], size_x);
     }
 }
 
 
 
 void
-Arbiter::Arbitrate()
+Arbiter::Arbitrate(int row)
 {
     // Do the actual arbitration
 
@@ -175,36 +200,36 @@ Arbiter::Arbitrate()
     switch(arbitration_method)
     {
         case 0: // WTA
-            a = arg_max(amplitudes, no_of_inputs);
-            reset_array(arbitration_state, no_of_inputs);
-            arbitration_state[a] = amplitudes[a];
+            a = arg_max(amplitudes[row], no_of_inputs);
+            reset_array(arbitration_state[row], no_of_inputs);
+            arbitration_state[row][a] = amplitudes[row][a];
             break;
 
         case 1: // hysteresis
-            a = arg_max(amplitudes, no_of_inputs);
-            if(amplitudes[a] > amplitudes[winner] + hysteresis_threshold || amplitudes[winner] == 0)
+            a = arg_max(amplitudes[row], no_of_inputs);
+            if(amplitudes[row][a] > amplitudes[row][winner] + hysteresis_threshold || amplitudes[row][winner] == 0)
                 winner = a;
-            reset_array(arbitration_state, no_of_inputs);
-            arbitration_state[winner] = amplitudes[winner];
+            reset_array(arbitration_state[row], no_of_inputs);
+            arbitration_state[row][winner] = amplitudes[row][winner];
             break;
 
         case 2: // softmax
             for(int i=0; i<no_of_inputs; i++)
-                arbitration_state[i] = pow(amplitudes[i], softmax_exponent);
+                arbitration_state[row][i] = pow(amplitudes[row][i], softmax_exponent);
             break;
 
         case 3: // hierarchy
             for(int i=no_of_inputs-1; i>=0; i--)
-                if(amplitudes[i] > 0 || i==0)
+                if(amplitudes[row][i] > 0 || i==0)
                 {
-                    reset_array(arbitration_state, no_of_inputs);
-                    arbitration_state[i] = amplitudes[i];
+                    reset_array(arbitration_state[row], no_of_inputs);
+                    arbitration_state[row][i] = amplitudes[row][i];
                     break;
                 }
             break;
 
         default: // no arbitration - should never happen
-            copy_array(arbitration_state, amplitudes, no_of_inputs);
+            copy_array(arbitration_state[row], amplitudes[row], no_of_inputs);
             break;
     }
     
@@ -217,16 +242,16 @@ Arbiter::Arbitrate()
 
 
 void
-Arbiter::Smooth()
+Arbiter::Smooth(int row)
 {
     float a = alpha;
     if(switch_time != 0)
         a = 1.0/switch_time;
 
     if(switch_time > 0 || alpha != 1)
-        add(smoothed, 1-a, smoothed, a, arbitration_state, no_of_inputs);
+        add(smoothed[row], 1-a, smoothed[row], a, arbitration_state[row], no_of_inputs);
     else
-        copy_array(smoothed, arbitration_state, no_of_inputs);
+        copy_array(smoothed[row], arbitration_state[row], no_of_inputs);
 }
 
 
@@ -234,20 +259,23 @@ Arbiter::Smooth()
 void
 Arbiter::Tick()
 {
-    CalculateAmplitues();
-    Arbitrate();
-    Smooth();
+    for(int r=0; r < (by_row ? size_y : 1); r++)
+    {
+        CalculateAmplitudes(r);
+        Arbitrate(r);
+        Smooth(r);
 
-    // Normalize
+        // Normalize
 
-    copy_array(normalized, smoothed, no_of_inputs);
-    normalize1(normalized, no_of_inputs);
+        copy_array(normalized[r], smoothed[r], no_of_inputs);
+        normalize1(normalized[r], no_of_inputs);
 
-    // Weigh inputs together
+        // Weigh inputs together
 
-    reset_array(output, size);
-    for(int i=0; i<no_of_inputs; i++)
-        add(output, normalized[i], input[i], size);
+        reset_array(output[r], size_x);
+        for(int i=0; i<no_of_inputs; i++)
+            add(output[r], normalized[r][i], input[i][r], size_x);
+    }
 }
 
 

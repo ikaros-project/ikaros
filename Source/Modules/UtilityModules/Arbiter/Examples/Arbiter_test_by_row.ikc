@@ -2,22 +2,23 @@
 
 <!-- Example for the Arbiter module -->
 
-<group name="Arbiter Test">
+<group name="Arbitrate by Row">
 	
 		<module
 			class = "Arbiter"
 			name = "Arbiter"
+            by_row = "yes"
 		/>
 
-		<module class = "Constant" name = "C1" data = "1 2 3; 1 2 3" />
-		<module class = "Constant" name = "C2" data = "5 6 7; 9 8 6" />
+		<module class = "Constant" name = "C1" data = "1 2 3; 9 8 6" />
+		<module class = "Constant" name = "C2" data = "5 6 7; 1 2 3" />
 		<module class = "Constant" name = "V1" data = "2" />
 		<module class = "Constant" name = "V2" data = "2" />
 
 		<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_1" delay="0" />
 		<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_2" delay="0" />
-		<connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_1" delay="0" />
-		<connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_2" delay="0" />
+		<_connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_1" delay="0" />
+		<_connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_2" delay="0" />
 
 		<view>
 			<object class ="DropDownMenu" title="arbitration" list="WTA/hysteresis/softmax/hierarchy" module="Arbiter" parameter="arbitration" x="0" y="0" w="4" min="0" max="10" />

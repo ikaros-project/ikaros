@@ -1,7 +1,7 @@
 //
 //		Arbiter.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2006-2016 Christian Balkenius
+//    Copyright (C) 2006-2018 Christian Balkenius
 ///
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -35,25 +35,27 @@ public:
     char **     input_name;
     char **     value_name;
 
-    float **    input;
+    float ***   input;
     float **    value_in;
 
-    float *     output;
-    float *     value_out;
+    float **    output;
+    float **    value_out;
 
-    float *     amplitudes;
-    float *     arbitration_state;
-    float *     smoothed;
-    float *     normalized;
+    float **    amplitudes;
+    float **    arbitration_state;
+    float **    smoothed;
+    float **    normalized;
     
     int         no_of_inputs;
-    int         size;
+    int         size_x;
+    int         size_y;
     
     int         switch_time;
     float       alpha;
 
     int         metric;
     int         arbitration_method;
+    bool        by_row;
     float       softmax_exponent;
     float       hysteresis_threshold;
     
@@ -64,9 +66,9 @@ public:
 
     void        SetSizes();
 
-    void        CalculateAmplitues();
-    void        Arbitrate();
-    void        Smooth();
+    void        CalculateAmplitudes(int row = 0);
+    void        Arbitrate(int row = 0);
+    void        Smooth(int row = 0);
 
     void		Init();
     void		Tick();
