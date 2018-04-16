@@ -996,7 +996,7 @@ WebUI::SendView(const char * view)
 void
 WebUI::Run()
 {
-    isRunning = false;   // FIXME: TEMPORARY START UP
+    isRunning = true;   // FIXME: TEMPORARY START UP
     first_request = true;
     
     if(socket == NULL)
