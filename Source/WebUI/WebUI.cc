@@ -1474,8 +1474,8 @@ WebUI::HandleHTTPRequest()
     
 //    return;
 
-    if (debug_mode)
-        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+//    if (debug_mode)
+//        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
 
  //   std::string s = socket->header.Get("URI");
     
@@ -1521,6 +1521,7 @@ WebUI::HandleHTTPRequest()
             SendUIData();
         }
     }
+/*
     else if (!strcmp(uri, "/stop"))
     {
         Pause();
@@ -1580,7 +1581,7 @@ WebUI::HandleHTTPRequest()
         tick = 0;
         isRunning = true;
     }
-
+*/
     else if (strstart(uri, "/setroot"))
     {
         if(current_xml_root_path) destroy_string(current_xml_root_path);
