@@ -626,7 +626,7 @@ interaction = {
  */
 
 controller = {
-    run_mode: 'realtime',
+    run_mode: 'pause',
     tick: 0,
     session_id: 0,
     views: {},
@@ -712,9 +712,9 @@ controller = {
             if(!xhr.response)   // empty response is ignored
                 return;
 
-    //        console.log("The transfer is complete.");
-    //        console.log(xhr.response);
             callback(xhr.response, xhr.getResponseHeader("Session-Id"));
+            if(controller.run_mode == 'play')
+                controller.play();
         }
         
         xhr.responseType = 'json';
@@ -728,22 +728,27 @@ controller = {
     },
     
     stop: function () {
+       controller.run_mode = 'stop';
         controller.get("stop", controller.update);
-    },
+     },
     
     pause: function () {
+        controller.run_mode = 'pause';
         controller.get("pause", controller.update);
     },
     
     step: function () {
+        controller.run_mode = 'pause';
         controller.get("step", controller.update);
     },
     
     play: function () {
+        controller.run_mode = 'play';
         controller.get("play", controller.update);
     },
     
     realtime: function () {
+        controller.run_mode = 'realtime';
         controller.get("realtime", controller.update);
     },
 
