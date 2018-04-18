@@ -309,7 +309,8 @@ public:
         std::string tab2 = std::string(d+1, '\t');
         std::string b;
         std::string s = tab+"{\n";
-        s += JSONAttributeString(d+1) + ",\n";
+        if(attributes.size())
+            s += JSONAttributeString(d+1) + ",\n";
         
         if(objects.size())
         {
