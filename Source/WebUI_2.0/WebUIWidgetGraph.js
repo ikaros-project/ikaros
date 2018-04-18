@@ -65,6 +65,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
 
+        let min = parseFloat(this.parameters.min);
+        let max = parseFloat(this.parameters.max);
+
         this.canvas.font = this.format.scaleFont;
         this.canvas.fillStyle = this.format.axisColor;
         this.canvas.textAlign = "right";
@@ -73,7 +76,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = this.parameters.min + (n-j-1)*(this.parameters.max-this.parameters.min)/(n-1);   // ????
+            let v = min + (n-j-1)*(max-min)/(n-1);
             this.canvas.fillText(v.toFixed(this.format.decimals), -this.format.scaleOffset, i);
             i += height/(n-1);
         }
@@ -86,6 +89,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
 
+        let min = parseFloat(this.parameters.min);
+        let max = parseFloat(this.parameters.max);
+
         this.canvas.font = this.format.scaleFont;
         this.canvas.fillStyle = this.format.axisColor;
         this.canvas.textAlign = "left";
@@ -94,7 +100,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = this.parameters.min + (n-j-1)*(this.parameters.max-this.parameters.min)/(n-1);
+            let v = min + (n-j-1)*(max-min)/(n-1);
             this.canvas.fillText(v.toFixed(this.format.decimals), width+this.format.scaleOffset, i);
             i += height/(n-1);
         }
@@ -107,6 +113,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
 
+        let min = parseFloat(this.parameters.min);
+        let max = parseFloat(this.parameters.max);
+
         this.canvas.font = this.format.scaleFont;
         this.canvas.fillStyle = this.format.axisColor;
         this.canvas.textAlign = "center";
@@ -115,7 +124,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = this.parameters.min + (n-j-1)*(this.parameters.max-this.parameters.min)/(n-1);
+            let v = min + (n-j-1)*(max-min)/(n-1);
             this.canvas.fillText(v.toFixed(this.format.decimals), i, height+this.format.scaleOffset);
             i += width/(n-1);
         }

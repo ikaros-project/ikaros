@@ -55,8 +55,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
         bar_height = Math.round(bar_height);
-        let min = 0;
-        let max = 1;
+        let min = parseFloat(this.parameters.min);
+        let max = parseFloat(this.parameters.max);
 
         for(let i=0; i<n; i++)
         {
@@ -74,8 +74,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
         bar_width = Math.round(bar_width);
-        let min = 0;
-        let max = 1;
+        let min = parseFloat(this.parameters.min);
+        let max = parseFloat(this.parameters.max);
 
         for(let i=0; i<n; i++)
         {
