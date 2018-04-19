@@ -22,7 +22,7 @@ find_path(TURBO_JPEG_INCLUDE_DIR
 # Finding libs
 find_library(TURBO_JPEG_LIBRARIES
   NAMES
-    turbojpeg libturbojpeg.so.1 libturbojpeg.so.0
+    turbojpeg libturbojpeg.so.1 libturbojpeg.so.0 libturbojpeg.0.dylib
   PATHS
     /usr/local/opt/jpeg-turbo/ # homebrew
     /usr/lib/x86_64-linux-gnu/ # Ubuntu 16.04
