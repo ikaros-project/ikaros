@@ -23,14 +23,19 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    	include_directories( /Developer/Headers/FlatCarbon )
    	find_library(ACCELERATE_LIBRARY Accelerate)
     find_library(COCOA_LIBRARY Cocoa)
-    find_library(QTKIT_LIBRARY QTKit)
     find_library(QUARTZ_LIBRARY Quartz)
+    find_library(VIDEOTOOLBOX_LIBRARY VideoToolbox)
+    find_library(AVKIT_LIBRARY AVKit)
+    find_library(AVFOUNDATION_LIBRARY AVFoundation)
+
 
   	mark_as_advanced(ACCELERATE_LIBRARY
                      COCOA_LIBRARY
-                     QTKIT_LIBRARY
+                     VIDEOTOOLBOX_LIBRARY
+                     AVFOUNDATION_LIBRARY
+                     AVKIT_LIBRARY
                      QUARTZ_LIBRARY)
-    set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${QTKIT_LIBRARY} ${QUARTZ_LIBRARY})
+    set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${VIDEOTOOLBOX_LIBRARY} ${AVFOUNDATION_LIBRARY} ${AVFKIT_LIBRARY} ${QUARTZ_LIBRARY})
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
