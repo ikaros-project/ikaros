@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
-<group title="Ikaros Example">
-	
+<group title="Ikaros Minimal Example">
+    
     <module
         class = "Randomizer"
         name = "R"
@@ -10,5 +10,5 @@
     />
 
 </group>
- 
+
 
