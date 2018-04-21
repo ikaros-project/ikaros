@@ -6,10 +6,6 @@
 # EYETRIBE_LIBRARIES
 # EYETRIBE_LIB_FOUND
 
-# Using "FIND_PACKAGE( Boost COMPONENTS thread system)" gives warnings when no boost library is installed. FIND_PACKAGE(Boost) gives no warnings without boost installed. To get rid of the warnings message for all user without boost the script first search for boost and if that is found then search for the components.
-
-FIND_PACKAGE( Boost)
-
 IF(Boost_FOUND) # Hack to get rid of warnings with no boost installed (Tested of OSX using homebrew)
   SET(Boost_FOUND FALSE)
   SET(Boost_USE_MULTITHREAD ON)

@@ -162,7 +162,7 @@ OutputVideoFile::Init()
                 c->codec_id     = output_codec->id;
                 c->width        = size_x;
                 c->height       = size_y;
-                c->flags       |= CODEC_FLAG_GLOBAL_HEADER;// Magic... Makes quicktime happy..
+                c->flags       |= AV_CODEC_FLAG_GLOBAL_HEADER;// Magic... Makes quicktime happy..
                 c->time_base    = (AVRational){1,frameRate};
                 c->gop_size     = 12;
                 c->pix_fmt      = AV_PIX_FMT_YUV420P;
