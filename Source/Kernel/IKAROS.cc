@@ -2201,7 +2201,7 @@ Kernel::InitInputs()
             }
             // First connection to this target: initialize
             if (c->target_io->size == unknown_size)    // start calculation with size 0
-                c->target_io->size = c->target_offset + c->size;
+                c->target_io->size = max(c->target_io->size, c->target_offset+c->size);
 
             // Target not used previously: ok to connect anything
             if (c->target_io->sizex == unknown_size)
@@ -2214,7 +2214,8 @@ Kernel::InitInputs()
             else if (c->target_io->sizey == 1 && c->source_io->sizey == 1)
             {
                 Notify(msg_verbose, "Adding additional connection.\n");
-                c->target_io->sizex = max(c->target_io->sizex, c->target_offset + c->size);
+                c->target_io->sizex = max(c->target_io->sizex, c->target_offset+c->size);
+                c->target_io->size = c->target_io->sizex; // FIXME: Test if this breaks something
             }
             // Collapse matrix to array
             else
@@ -2795,6 +2796,8 @@ Kernel::CalculateInputSizeX(Module_IO * i)
         {
             if (c->source_io->sizex == unknown_size)
                 return unknown_size;
+            else if(c->target_offset>0 && c->size>0) // offset connection
+                s = max(s, c->target_offset + c->size);
             else if (s == 0)
                 s =  c->source_io->sizex;
             else

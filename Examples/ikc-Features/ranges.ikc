@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+
+<group title="Ikaros Ranges Example">
+
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize = "3"
+    />
+
+    <module
+        class = "Gate"
+        name = "G"
+    />
+
+    <connection
+        sourcemodule="R"
+        source="OUTPUT"
+        sourceoffset="1"
+        targetmodule="G"
+        target="INPUT"
+        targetoffset="10"
+        size="2"
+    />
+
+     <connection
+        sourcemodule="R"
+        source="OUTPUT"
+        sourceoffset="0"
+        targetmodule="G"
+        target="INPUT"
+        targetoffset="3"
+        size="3"
+    />
+        
+     <connection
+        sourcemodule="R"
+        source="OUTPUT"
+        sourceoffset="2"
+        targetmodule="G"
+        target="INPUT"
+        targetoffset="7"
+        size="1"
+    />
+
+      <connection
+        sourcemodule="R"
+        source="OUTPUT"
+        sourceoffset="0"
+        targetmodule="G"
+        target="INPUT"
+        targetoffset="1"
+        size="1"
+    />
+
+
+  <view>
+       <bar-graph
+            x="10" y="10"
+            width="201"
+            height="201"
+            module="R"
+            source="OUTPUT"
+            title = "Randomizer R"
+            labels = "1, 2, 3"
+            show_title = "yes"
+            show_frame = "yes"
+        />
+       <bar-graph
+            x="220" y="10"
+            width="401"
+            height="201"
+            module="G"
+            source="OUTPUT"
+            title = "Gate G"
+            labels = ",1,,1,2,3,,2,,,2, 3"
+            show_title = "yes"
+            show_frame = "yes"
+        />
+        <text
+            x="10"
+            y="220"
+            height="200"
+            width="601"
+            text="This example shows how to use the attributes 'sourceoffset', 'targetoffset' and 'size' on a connection to select individual parts of an output and send them to a selected part of an input. Here, there are four connections between the Randomizer, R, and the Gate, G. The labels show how the outputs of G are mapped onto the input (and output) of G."
+        />
+    </view>
+</group>
+
