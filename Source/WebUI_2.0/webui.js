@@ -94,7 +94,6 @@ nav = {
     navClick: function(e) {
         if (e.target !== e.currentTarget)
         {
-//            console.log(e.target.getAttribute("data-name"));
             interaction.addView(e.target.getAttribute("data-name"));
         }
         e.stopPropagation();
@@ -341,8 +340,6 @@ interaction = {
         element.appendChild(element.handle);
     },
     initViewElement: function (element, data) {   // For object in view from IKC file
-//        console.log("initViewElement:", "webui-widget-"+data['class']);
-
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
         let constr = webui_widgets.constructors["webui-widget-"+data['class']];
@@ -370,18 +367,6 @@ interaction = {
         element.appendChild(element.widget);    // must append before next section
 
         // Section below should not exists - probably...
-/*
-        let widgetStyles = window.getComputedStyle(element.widget);
-        let x = widgetStyles.getPropertyValue('--x');
-        let y = widgetStyles.getPropertyValue('--y');
-        let width = widgetStyles.getPropertyValue('--width');
-        let height = widgetStyles.getPropertyValue('--height');
-
-        x = data['x'] ? data['x'] : x;
-        y = data['y'] ? data['y'] : y;
-        width = data['width'] ? data['width'] : width;
-        height = data['height'] ? data['height'] : height;
-*/
 
         element.style.top = data.y+"px";
         element.style.left = data.x+"px";
@@ -477,10 +462,8 @@ interaction = {
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
             interaction.releaseElement();
             interaction.selectedObject = null;
-            //document.getElementById('selected').innerText = ""
 
             interaction.widget_inspector.style.display = "none";
-//            interaction.system_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
         }
     },
@@ -504,7 +487,6 @@ interaction = {
         inspector.select(obj);
         
         interaction.widget_inspector.style.display = "block";
- //       interaction.system_inspector.style.display = "none";
         interaction.edit_inspector.style.display = "none";
     },
     startDrag: function (evt) {
@@ -561,9 +543,7 @@ interaction = {
         let newTop = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
-  
         // Update view data
-//        console.log(interaction.selectedObject.parameters);
         interaction.selectedObject.widget.parameters['x'] = newLeft;
         interaction.selectedObject.widget.parameters['y'] = newTop;
     },
@@ -577,7 +557,7 @@ interaction = {
         interaction.selectedObject.widget.parameters['width'] = newWidth;
         interaction.selectedObject.widget.parameters['height'] = newHeight;
         
-        interaction.selectedObject.widget.updateAll(); //***************
+        interaction.selectedObject.widget.updateAll();
     },
     setMode: function(mode) {
         interaction.deselectObject();
@@ -587,19 +567,16 @@ interaction = {
         if(main.dataset.mode == "edit")
         {
             interaction.widget_inspector.style.display = "none";
-        //    interaction.system_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
             interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
-           interaction.main.addEventListener('click', interaction.stopEvents, true);
+            interaction.main.addEventListener('click', interaction.stopEvents, true);
         }
         else if(main.dataset.mode == "run")
         {
             interaction.widget_inspector.style.display = "none";
-        //    interaction.system_inspector.style.display = "block";
             interaction.edit_inspector.style.display = "none";
-
             interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
@@ -665,7 +642,6 @@ controller = {
     get: function (url, callback)
     {
         var last_request = url;
- //       console.log("SENDING GET:"+url);
         
         xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
@@ -680,32 +656,24 @@ controller = {
             if (evt.lengthComputable)
             {
                 var percentComplete = evt.loaded / evt.total;
-//                console.log("Progress: "+parseInt(100*percentComplete)+"% complete");
                 document.querySelector("progress").setAttribute("value", 100*percentComplete);
             }
         }
         xhr.onerror = function(evt)
         {
-            console.log("onerror");
-//            console.log(evt);
-            if(evt.lengthComputable && evt.loaded < evt.total)
+             if(evt.lengthComputable && evt.loaded < evt.total)
                 console.log("Failed to load resource. Incomplete.");
             else if(evt.total == 0 )
                 console.log("Failed to load resource. No data.");
             else
                 console.log("Failed to load resource.");
- 
 //            console.log("Resending request");
 //            controller.get(last_request, controller.update);
        }
         xhr.ontimeout = function(evt)
         {
             console.log("Timeout - resending request");
-//            console.log(evt);
-            
-            // Resend request
-            
-//            controller.get(last_request, controller.update);
+//            controller.get(last_request, controller.update); // Resend request
         }
         xhr.onload = function(evt)
         {
@@ -724,7 +692,7 @@ controller = {
 
     init: function () {
         controller.get("update.json", controller.update);
-        setInterval(function() {controller.requestUpdate();}, 100); // Use adaptive frequency later
+        setInterval(function() {controller.requestUpdate();}, 100); // FIXME: Use adaptive frequency later
     },
     
     stop: function () {
@@ -763,9 +731,6 @@ controller = {
     },
 
     selectView: function(view) {
- //       console.log(view);
- //       console.log(controller.views[view]);
-
         // Create new view if it does not exist
         
         interaction.addView(view);
