@@ -1331,14 +1331,14 @@ Module::GetOutputSizeY(const char * name)
     return 0;
 }
 
-bool
+[[deprecated]] bool
 Module::InputConnected(const char * name)
 {
     Notify(msg_warning, "InputConnected is deprecated and will be removed in future versions.\n");
     return kernel->InputConnected(this, name);
 }
 
-bool
+[[deprecated]] bool
 Module::OutputConnected(const char * name)
 {
     return kernel->OutputConnected(this, name);
@@ -2151,7 +2151,7 @@ Kernel::InitInputs()
                 c->target_io->max_delay = 0;
             }
         }
-        else if(c->target_io)
+        else if(c->target_io && c->size == unknown_size)
         {
             // Check that this connection does not interfere with zero-delay connection
             if (c->target_io->max_delay == 0)
@@ -2186,6 +2186,44 @@ Kernel::InitInputs()
             // Set connection variables
             c->target_offset = target_offset;
             c->size = c->source_io->size;
+            // Allocate input memory and reset
+            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
+            c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
+            c->target_io->Allocate();
+        }
+        else if(c->target_io) // fixed offset connection
+        {
+            Notify(msg_verbose, "Adding fixed offset connection.\n");
+            // Check that this connection does not interfere with zero-delay connection
+            if (c->target_io->max_delay == 0)
+            {
+                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
+            }
+            // First connection to this target: initialize
+            if (c->target_io->size == unknown_size)    // start calculation with size 0
+                c->target_io->size = c->target_offset + c->size;
+
+            // Target not used previously: ok to connect anything
+            if (c->target_io->sizex == unknown_size)
+            {
+                Notify(msg_verbose, "New connection.\n");
+                c->target_io->sizex = c->target_io->size;
+                c->target_io->sizey = 1;
+            }
+            // Connect one dimensional output
+            else if (c->target_io->sizey == 1 && c->source_io->sizey == 1)
+            {
+                Notify(msg_verbose, "Adding additional connection.\n");
+                c->target_io->sizex = max(c->target_io->sizex, c->target_offset + c->size);
+            }
+            // Collapse matrix to array
+            else
+            {
+                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name);
+                c->target_io->sizex = c->target_io->size;
+                c->target_io->sizey = 1;
+            }
+            // Set connection variables
             // Allocate input memory and reset
             Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
             c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
@@ -3138,7 +3176,8 @@ Kernel::Notify(int msg, const char * format, ...)
 // Create one or several connections with different delays between two ModuleIOs
 
 int
-Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay, bool is_active)
+//Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay, bool is_active)
+Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const char * delay, int extra_delay, bool is_active)
 {
     int c = 0;
     char * dstring = create_string(delay);
@@ -3146,11 +3185,11 @@ Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_
     if(!dstring || (!strchr(dstring, ':') && !strchr(dstring, ',')))
     {
         int d = string_to_int(dstring, 1);
-        connections = new Connection(connections, sio, 0, tio, unknown_size, unknown_size, d+extra_delay, is_active);
+        connections = new Connection(connections, sio, s_offset, tio, t_offset, size, d+extra_delay, is_active);
         c++;
     }
     
-    else // parse delay string for multiple delays
+    else // parse delay string for multiple delays               Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a);
     {
 		char * d = create_string(dstring);
         char * p = strtok(d, ",");
@@ -3163,7 +3202,7 @@ Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_
             
             for(int i=a; i<=b; i++)
             {
-                connections = new Connection(connections, sio, 0, tio, unknown_size, unknown_size, i+extra_delay, is_active);
+                connections = new Connection(connections, sio, s_offset, tio, t_offset, size, i+extra_delay, is_active);
                 c++;
             }
             p = strtok(NULL, ",");
@@ -3178,7 +3217,7 @@ Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_
 
 
 int
-Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay, bool is_active)
+Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size, const char * delay, int extra_delay, bool is_active)
 {
     int c = 0; // no of generated connections
     
@@ -3196,7 +3235,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
                 else if(tio == NULL)
                     Notify(msg_fatal_error, "Could not make connection. Target \"%s\" of module \"%s\" missing.\n", t_name, tm_name);
                 else
-                    c += Connect(sio, tio, delay, extra_delay, is_active);
+                    c += Connect(sio, s_offset, tio, t_offset, size, delay, extra_delay, is_active);
             }
         }
     
@@ -3215,13 +3254,14 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
                     bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
 
                     if(!equal_strings(t,""))
-                        c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
+                        c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
                     else
                         c++; // ignore connections if both are nil
                 }
         }
     
     if(!connection_made) // look of wildcard connections
+    {
         for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
             if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
             {
@@ -3235,11 +3275,12 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
                         bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
 
                         if(!equal_strings(t,""))
-                            c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
+                            c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
                         else
                             c++; // ignore connections if both are nil
                     }
             }
+    }
     
     return c;
 }
@@ -3427,11 +3468,15 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         if(!t_name)
             Notify(msg_fatal_error, "Incomplete connection: target not set.");
         
+        int so = string_to_int(GetXMLAttribute(xml_connection, "sourceoffset"));
+        int to = string_to_int(GetXMLAttribute(xml_connection, "targetoffset"));
+        int sz = string_to_int(GetXMLAttribute(xml_connection, "size"), unknown_size);
+
         Module * sm;
         Module_IO * sio;
         int c = 0;
         if (GetSource(group_xml, sm, sio, sm_name, s_name))
-            c = Connect(group_xml, sm, sio, tm_name, t_name, delay, 0, a);
+            c = Connect(group_xml, sm, sio, so, tm_name, t_name, to, sz, delay, 0, a);
         else
             Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name, s_name);   // TODO: Should check for indirect connections here
         
