@@ -259,92 +259,6 @@ SendJSONMatrixData(ServerSocket * socket, char * module, char * source, float * 
 }
 
 
-/*
-void SendSyntheticModuleSVG(ServerSocket * socket, XMLElement * x, const char * module_name);
-
-void
-SendSyntheticModuleSVG(ServerSocket * socket, XMLElement * x, const char * module_name)
-{
-    char * module_ref = create_string(module_name);
-    module_ref[strlen(module_ref)-16] = 0;
-    
-    // Go down the group tree (should use XPath functions)
-    
-    char * p = module_ref;
-    char * group_in_path;
-    XMLElement * group_xml = x;
-    while((group_in_path = strsep(&p, "/")))
-    {
-        group_xml = group_xml->GetElement("group");
-        for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-            if(equal_strings(xml_module->GetAttribute("name"), group_in_path))
-            {
-                group_xml = xml_module;
-                break;
-            }
-    }
-    
-    if(!group_xml)
-        return;
-    
-    // TODO: Check if a specific svg exist for this class, otherwise use the code below
-    
-    // Send the SVG
-    
-    Dictionary header;
-	
-    //    header.Set("Connection",  "Close"); // TODO: check if socket uses persistent connections
-    //    header.Set("Server", "Ikaros/1.2");
-    header.Set("Content-Type", "image/svg+xml");
-    
-    socket->SendHTTPHeader(&header);
-    
-    socket->Send("<?xml version='1.0' encoding='utf-8'?>\n");
-    socket->Send("\n");
-    socket->Send("<g xmlns = 'http://www.w3.org/2000/svg'  name='%s'>\n", module_ref);
-    socket->Send("<rect x='5' y='5' fill='#000' width='100' height='50' fill-opacity='0.25'/> \n");
-    socket->Send("<rect x='0' y='0' fill='#FFF' stroke='#000' width='100' height='50' /> \n");
-    socket->Send("<text x='50' y='30' text-anchor='middle' text-rendering='optimizeLegibility' style='font-size:11pt;font-family:sans-serif;' name='name'>ModuleName</text>\n");
-    
-    // Send Inputs
-    
-    if(x)
-    {
-        int c=0;
-        for (XMLElement * xml_input = group_xml->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-            c++;
-        int inc = 50/(c+1); // should also increase height of box if more inputs (or outputs) ***
-        int i = inc;    
-        
-        for (XMLElement * xml_input = group_xml->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-        {
-            socket->Send("<circle cx='0' cy='%d'  r='5' fill='red' stroke='black' name='%s' />\n", i, xml_input->GetAttribute("name"));
-            i+= inc;
-        }
-        
-        c=0;
-        for (XMLElement * xml_input = group_xml->GetContentElement("output"); xml_input != NULL; xml_input = xml_input->GetNextElement("output"))
-            c++;
-        inc = 50/(c+1);
-        i = inc;    
-        
-        for (XMLElement * xml_input = group_xml->GetContentElement("output"); xml_input != NULL; xml_input = xml_input->GetNextElement("output"))
-        {
-            socket->Send("<circle cx='100' cy='%d'  r='5' fill='green' stroke='black' name='%s' />\n", i, xml_input->GetAttribute("name"));
-            i+= inc;
-        }
-    }
-
-    socket->Send("<g name='selection' visibility='hidden'>\n");
-    socket->Send("<rect x='0' y='0' width='100' height='50' fill='#555' fill-opacity='0.25'  />\n");
-    socket->Send("</g>\n");
-    socket->Send("</g>\n");
-    
-    destroy_string(module_ref);
-}
-*/
-
-
 
 DataSource::DataSource(const char * s, int t, void * data_ptr, int sx, int sy, DataSource * n)
 {
@@ -756,17 +670,8 @@ WebUI::WebUI(Kernel * kernel)
     k->Notify(msg_print, "Connect from a browser on this computer with the URL \"http://127.0.0.1:%d/\".\n", port);
     k->Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", port);
 	
-//    if(k->options->GetOption('2'))
-//        webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH2);
-//    else
-        webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH);
+    webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH);
 
-	//    printf("WebUI Path: %s\n", webui_dir);
-	
-	//    char * p = create_formatted_string("%s%s", webui_dir, "/log.tmp");
-	//    k->logfile = fopen(p, "wb+");
-	//    destroy_string(p);
-    
     ReadXML(k->xmlDoc);
 	
     socket =  new ServerSocket(port);
@@ -783,7 +688,7 @@ WebUI::~WebUI()
 }
 
 
-
+/*
 // Layout constants
 
 const float margin_x = 8.5;
@@ -990,7 +895,7 @@ WebUI::SendView(const char * view)
 	
     socket->SendFile("404.html");
 }
-
+*/
 
 
 void
@@ -1389,7 +1294,7 @@ WebUI::HandleHTTPRequest()
             // Build data package
 
             char * root = strsep(&args, "#");
-            char * view_name = strsep(&args, "#");
+            [[maybe_unused]] char * view_name = strsep(&args, "#");
             
             // set root (should be a separate function) // FIXME: make saparete function with C++ strings
             
@@ -1485,34 +1390,7 @@ WebUI::HandleHTTPRequest()
         tick = 0;
         isRunning = true;
     }
-
-
-
-
-
-
-
-    //
-    // OLD CODE BELOW - SOME OF IT WILL BE INCLUDED AGAIN LATER
-    //
-    
-//    return;
-
-//    if (debug_mode)
-//        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
-
- //   std::string s = socket->header.Get("URI");
-    
-    // Copy URI and remove index
-    
-//    char * uri_p = create_string(socket->header.Get("URI"));
-//    char * uri = strsep(&uri_p, "?");
-//    char * args = uri_p;
-    
-//	if(char * x = strpbrk(uri, "?#")) *x = '\0';                // TODO: can probably be removed
-//strsep(&p, " "))
-
-    if(!strcmp(uri, "/xhrtest.json"))
+    else if(!strcmp(uri, "/xhrtest.json"))
     {
         if(!args) // not a data request - send view data
         {
@@ -1546,93 +1424,6 @@ WebUI::HandleHTTPRequest()
         }
     }
 /*
-    else if (!strcmp(uri, "/stop"))
-    {
-        Pause();
-        ui_state = ui_state_stop;
-        CopyUIData();
-        SendUIData();
-        k->Notify(msg_terminate, "Sent by WebUI.\n");
-    }
-	
-    else if (!strcmp(uri, "/step"))
-    {
-        Pause();
-        ui_state = ui_state_pause;
-        
-        for(int i=0; i<iterations_per_runstep; i++)
-            k->Tick();
-        
-        CopyUIData();
-        SendUIData();
-    }
-	
-    else if (!strcmp(uri, "/runstep"))
-    {
-        Pause();
-        ui_state = ui_state_run;
-        
-        for(int i=0; i<iterations_per_runstep; i++)
-            k->Tick();
-        
-        CopyUIData();
-        SendUIData();
-    }
-
-    else if (!strcmp(uri, "/update"))
-    {
-        SendUIData();   // Send last stored ui data package
-    }
-	
-    else if (!strcmp(uri, "/pause"))
-    {
-        Pause();
-        ui_state = ui_state_pause;
-        CopyUIData();
-        SendUIData();
-    }
-
-    else if (!strcmp(uri, "/realtime"))
-    {
-        ui_state = ui_state_realtime;
-
-		Dictionary rtheader;
-		rtheader.Set("Content-Type", "text/plain");
-		socket->SendHTTPHeader(&rtheader);
-        socket->Send("REALTIME\n");
-
-        k->timer->Restart();
-        tick = 0;
-        isRunning = true;
-    }
-
-    else if (strstart(uri, "/setroot"))
-    {
-        if(current_xml_root_path) destroy_string(current_xml_root_path);
-        current_xml_root_path = create_string(&uri[8]);
-        char * p = create_string(uri);  // TODO: write as separate function (XPath style?)
-        char * group_in_path;
-        XMLElement * group_xml = xml;
-        strsep(&p, "/");    // group_in_path =
-        strsep(&p, "/");
-        while((group_in_path = strsep(&p, "/")))
-        {
-            group_xml = group_xml->GetElement("group");
-            for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-                if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
-                {
-                    group_xml = xml_module;
-                    break;
-                }
-        }
-        current_xml_root = group_xml;
-        destroy_string(p);
-		Dictionary rtheader;
-		rtheader.Set("Content-Type", "text/plain");
-		socket->SendHTTPHeader(&rtheader);
-        socket->Send("OK\n");
-    }
-*/
     else if (strstart(uri, "/usesBase64"))
     {
         char * module = new char [256];
@@ -1678,7 +1469,7 @@ WebUI::HandleHTTPRequest()
 		delete [] module;
         delete [] source;
     }
-
+*/
     else if (strstart(uri, "/control/"))
     {
         char module_name[255];
@@ -1715,7 +1506,7 @@ WebUI::HandleHTTPRequest()
         else
             socket->Send("ERROR - No logfile found\n");
     }
-    
+/*
     else if (strend(uri, "/editor.svg"))
     {
         socket->SendFile("editor.svg", webui_dir);
@@ -1725,17 +1516,17 @@ WebUI::HandleHTTPRequest()
     {
         socket->SendFile("editor.js", webui_dir);
     }
-    
+
     else if (!strcmp(uri, "/ikcfile.js"))
     {
         socket->Send("getXML('/xml.ikc', function(xml) {bg.read_modules(xml);});\n");
     }
-    
+
     else if(strstart(uri, "/view") && strend(uri, ".html"))
     {
         SendView(uri);
 	}
-    
+*/
     else if (strstart(uri, "/module/"))
     {
         char module[256], output[256], type[256];
@@ -1768,7 +1559,7 @@ WebUI::HandleHTTPRequest()
             return;
         }
     }
-	
+/*
     else if(strend(uri, "/inspector.html"))
     {
         SendInspector();
@@ -1778,12 +1569,12 @@ WebUI::HandleHTTPRequest()
     {
         SendXML();
     }
-	
+*/
     else if(equal_strings(uri, "/"))
     {
         socket->SendFile("index.html", webui_dir);
     }
-    
+/*
     else if (!strcmp(uri, "/Buttons/realtime.png"))
     {
         if(k->GetTickLength() > 0)
@@ -1791,7 +1582,7 @@ WebUI::HandleHTTPRequest()
         else
             socket->SendFile("Buttons/ff.png", webui_dir);
     }
-
+*/
     else if (
 			 strend(uri, ".xml") ||
 			 strend(uri, ".jpg") ||
@@ -1877,7 +1668,7 @@ WebUI::SendXML()
 }
 
 
-
+/*
 void
 WebUI::SendModule(Module * m)
 {
@@ -2095,7 +1886,7 @@ WebUI::SendInspector()
     
     socket->Close();
 }
-
+*/
 
 
 void

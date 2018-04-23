@@ -124,7 +124,7 @@ public:
     int             iterations_per_runstep;
     bool            first_request;
 
-    std::atomic<float *>  ui_data;
+    std::atomic<float *> ui_data;
     std::atomic<bool> copying_data;
     std::atomic<bool> dont_copy_data;
     std::atomic<bool> is_running;
@@ -137,10 +137,10 @@ public:
     void			AddDataSource(const char * module, const char * source);
     void			AddImageDataSource(const char * module, const char * source, const char * type);
     void			AddParameterSource(const char * module, const char * source);
-    void			SendView(const char * view);
-    void            SendModule(Module * m);
-    void            SendGroups(XMLElement * xml);
-    void            SendInspector();
+//    void			SendView(const char * view);
+//    void            SendModule(Module * m);
+//    void            SendGroups(XMLElement * xml);
+//    void            SendInspector();
     void            SendXML();
     void			ReadXML(XMLDocument * xmlDoc);
     void            CopyUIData();
