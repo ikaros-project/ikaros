@@ -397,7 +397,7 @@ main[data-mode="edit"] div#grid {
     display: none;
 }
 
-button {
+header button, aside button {
     background-color: transparent;
     padding-top: 2px;
     padding-bottom: 0px;
@@ -412,12 +412,12 @@ button {
     border-radius: 0px;
 }
 
-button:hover {
+header button:hover, aside button:hover {
     background-color: lightgray;
     color: black;
 }
 
-button:active {
+header button:active, aside button:active {
     background-color: black;
     color: white;
 }
