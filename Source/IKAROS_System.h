@@ -1,7 +1,7 @@
 //
 //	IKAROS_System.h		Definition of the target system for which to compile
 //
-//    Copyright (C) 2001-2012  Christian Balkenius
+//    Copyright (C) 2001-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -26,14 +26,14 @@
 
 
 //
-//	Target system can be set using a compiler flag, e.g., -DMAC_OS_X or -DWINDOWS
+//	Target system can be set using a compiler flag, e.g., -DMAC_OS_X
 //	Alternatively, the appropriate #define below can be uncommented
 //
 
 //#define MINIMAL
 //#define MAC_OS_X
 //#define LINUX
-//#define WINDOWS
+
 
 
 //
@@ -45,7 +45,6 @@
 //
 //  An absolute path can be set using a compiler flag, for example: 
 //  -DIKAROSPATH="\"/home/me/Ikaros.1.3/\""
-//  -DIKAROSPATH="C:\\Users\\me\\ikaros\\" (Windows)
 //
 
 #ifndef IKAROSPATH
@@ -118,9 +117,9 @@
 
 
 //
-// Windows Defines
+// Windows Defines [we no longer support windows so these lines could be removed]
 //
-
+/*
 #ifdef WINDOWS
 #define PLATFORM  "WINDOWS"
 
@@ -156,7 +155,7 @@
 #pragma warning( disable : 4244) 
 #pragma warning( disable : 4290) 
 #endif
-
+*/
 
 //
 // Unix includes (some distributions lack PATH_MAX)
@@ -174,9 +173,6 @@
 // Include the socket header file if some socket library is used
 
 #ifdef USE_BSD_SOCKET
-#define USE_SOCKET
-#endif
-#ifdef USE_WIN_SOCKET
 #define USE_SOCKET
 #endif
 
