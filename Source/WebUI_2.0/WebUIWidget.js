@@ -110,13 +110,8 @@ class WebUIWidget extends HTMLElement
 
     requestData(data_set)
     {
-        try
-        {
+        if(this.parameters['module'] && this.parameters['source'])
             data_set.add(this.parameters['module']+"."+this.parameters['source']);
-        }
-        catch(err)
-        {
-        }
     }
 
     getProp(attribute, index)
