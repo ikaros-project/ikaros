@@ -756,9 +756,9 @@ WebUI::WebUI(Kernel * kernel)
     k->Notify(msg_print, "Connect from a browser on this computer with the URL \"http://127.0.0.1:%d/\".\n", port);
     k->Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", port);
 	
-    if(k->options->GetOption('2'))
-        webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH2);
-    else
+//    if(k->options->GetOption('2'))
+//        webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH2);
+//    else
         webui_dir = create_formatted_string("%s%s", k->ikaros_dir, WEBUIPATH);
 
 	//    printf("WebUI Path: %s\n", webui_dir);
@@ -1353,7 +1353,6 @@ WebUI::Pause()
         ;
     dont_copy_data = false;
 }
-
 
 
 void

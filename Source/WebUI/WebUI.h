@@ -34,8 +34,7 @@
 #ifdef USE_SOCKET
 
 #ifndef     WEBUIPATH
-#define		WEBUIPATH	"Source/WebUI/"
-#define     WEBUIPATH2  "Source/WebUI_2.0/"
+#define		WEBUIPATH	"Source/WebUI_2.0/"
 #endif
 
 #define		PORT 8000
