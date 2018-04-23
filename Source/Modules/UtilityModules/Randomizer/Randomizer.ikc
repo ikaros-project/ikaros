@@ -33,12 +33,15 @@
 	<module class="Randomizer" />
 
     <view title="Randomizer">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
+       <bar-graph
+            x="10" y="10"
+            width="201"
+            height="201"
             module="*"
             source="OUTPUT"
-            title="Default view for Randomizer"
+            title = "Default view for Randomizer"
+            show_title = "yes"
+            show_frame = "yes"
         />
     </view>
     
