@@ -852,7 +852,7 @@ controller = {
             catch(err)
             {}
 
-        let data_string = ""
+        let data_string = interaction.currentViewName+"#";
         
         let sep = "";
         for(s of data_set)

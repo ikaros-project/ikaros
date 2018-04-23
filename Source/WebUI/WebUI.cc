@@ -1385,9 +1385,34 @@ WebUI::HandleHTTPRequest()
         else // possibly a data request - send requested data - very temporary version without thread or real-time support
         {
             [[maybe_unused]] char * var = strsep(&args, "=");
-//            printf("\t\tVARIABLE: %s\n", var);
             
             // Build data package
+
+            char * root = strsep(&args, "#");
+            char * view_name = strsep(&args, "#");
+            
+            // set root (should be a separate function) // FIXME: make saparete function with C++ strings
+            
+            if(current_xml_root_path)
+                destroy_string(current_xml_root_path);
+            current_xml_root_path = create_string(root); // create_string(&uri[8]);
+            char * p = create_string(root);  // was uri
+            char * group_in_path;
+            XMLElement * group_xml = xml;
+ //           strsep(&p, "/");    // group_in_path =
+ //           strsep(&p, "/");
+            while((group_in_path = strsep(&p, "/")))
+            {
+                group_xml = group_xml->GetElement("group");
+                for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
+                    if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
+                    {
+                        group_xml = xml_module;
+                        break;
+                    }
+            }
+            current_xml_root = group_xml;
+            destroy_string(p);
 
             while(args)
             {
@@ -1580,7 +1605,7 @@ WebUI::HandleHTTPRequest()
         tick = 0;
         isRunning = true;
     }
-*/
+
     else if (strstart(uri, "/setroot"))
     {
         if(current_xml_root_path) destroy_string(current_xml_root_path);
@@ -1607,7 +1632,7 @@ WebUI::HandleHTTPRequest()
 		socket->SendHTTPHeader(&rtheader);
         socket->Send("OK\n");
     }
-
+*/
     else if (strstart(uri, "/usesBase64"))
     {
         char * module = new char [256];
