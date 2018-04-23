@@ -4,6 +4,25 @@
 
 <group name="WebUI Demo">
 	
+    <group name="Inner">
+         <module
+            class = "Randomizer"
+            name = "Randomic"
+            outputsize = "10"
+        />
+
+        <view name="Plots">
+            <plot
+                x="40" y="40"
+                width="301"
+                height="301"
+                module="Randomic"
+                source="OUTPUT"
+                title = "Plot"
+            />
+        </view>
+    </group>
+    
     <module
         class="InputJPEG"
         name="Image"
