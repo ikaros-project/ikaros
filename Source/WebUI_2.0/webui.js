@@ -852,7 +852,7 @@ controller = {
             catch(err)
             {}
 
-        let data_string = interaction.currentViewName+"#";
+        let data_string = interaction.currentViewName+"#"; // should be added to names to support multiple clients
         
         let sep = "";
         for(s of data_set)

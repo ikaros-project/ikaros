@@ -1296,7 +1296,7 @@ WebUI::HandleHTTPRequest()
             char * root = strsep(&args, "#");
             [[maybe_unused]] char * view_name = strsep(&args, "#");
             
-            // set root (should be a separate function) // FIXME: make saparete function with C++ strings
+            // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
             
             if(current_xml_root_path)
                 destroy_string(current_xml_root_path);
