@@ -177,14 +177,14 @@ main {
     --title-offset: 10, -5;
 */
     --margin-left: 40;
-    --margin-right: 10;
-    --margin-top: 10;
-    --margin-bottom: 30;
+    --margin-right: 40;
+    --margin-top: 40;
+    --margin-bottom: 40;
 
-    --space-left: 10;
-    --space-right: 10;
+    --space-left: 20;
+    --space-right: 20;
     --space-top: 20;
-    --space-bottom: 0;
+    --space-bottom: 20;
 
     --frame: none;
 
@@ -198,11 +198,11 @@ main {
     --y-axis: yes;
     --axis-color: black;
     --left-tick-marks: 5;
-    --right-tick-marks: 0;
-    --bottom-tick-marks: 0;
+    --right-tick-marks: 5;
+    --bottom-tick-marks: 5;
     --left-scale: 3;
-    --right-scale: 0;
-    --bottom-scale: 0;
+    --right-scale: 3;
+    --bottom-scale: 3;
     --scale-font: 9pt Arial;
     --scale-offset: 10;
     
@@ -417,7 +417,7 @@ header button:hover, aside button:hover {
     color: black;
 }
 
-header button:active, aside button:active {
+header button:active, aside button:hover {
     background-color: black;
     color: white;
 }
