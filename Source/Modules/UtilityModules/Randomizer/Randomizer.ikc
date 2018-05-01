@@ -35,8 +35,8 @@
     <view title="Randomizer">
        <bar-graph
             x="10" y="10"
-            width="201"
-            height="201"
+            width="401"
+            height="401"
             module="*"
             source="OUTPUT"
             title = "Default view for Randomizer"
