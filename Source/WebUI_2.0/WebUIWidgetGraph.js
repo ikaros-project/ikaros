@@ -1,5 +1,20 @@
 class WebUIWidgetGraph extends WebUIWidgetCanvas
 {
+    init()
+    {
+        super.init();
+
+        this.usesLeftScale = true;
+        this.usesRightScale = true;
+        this.usesBottomScale = true;
+        this.usesYLabels = true;
+        this.usesXLabels = true;
+        this.usesGridOverlay = false;
+
+        this.parameters.min = 0;
+        this.parameters.max = 1;
+    }
+    
     drawLeftTickMarks(top, bottom)
     {
         let n = this.format.leftTickMarks;
@@ -109,6 +124,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     drawBottomScale(width, height)
     {
+//        this.canvas.fillStyle = '#ccffff';
+//        this.canvas.fillRect(0, 0, width, height);
+
         let n = this.format.bottomScale;
         if(n==0)
             return;
@@ -124,7 +142,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = min + (n-j-1)*(max-min)/(n-1);
+            let v = min + j*(max-min)/(n-1);
             this.canvas.fillText(v.toFixed(this.format.decimals), i, height+this.format.scaleOffset);
             i += width/(n-1);
         }
@@ -224,9 +242,16 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.stroke();
     }
 
-    drawLabelsVertical(width, height)
+    drawLabelsVertical(width, height, n)
     {
-        if(!this.parameters.labels)
+//        this.canvas.fillStyle = '#ffffcc';
+ //       this.canvas.fillRect(0, 0, width, height);
+        
+        if(!this.usesXLabels)
+            return;
+        
+        let labels = (this.parameters.labels_x ? this.parameters.labels_x : this.parameters.labels);
+        if(!labels)
             return;
         
         this.canvas.font = this.format.labelFont;
@@ -234,8 +259,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.textAlign = "center";
         this.canvas.textBaseline= "top";
 
-        let l = this.parameters.labels.split(',');
-        let n = this.data[0].length;
+        let l = labels.split(',');
+//        let n = this.data.length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
 
@@ -249,18 +274,25 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.restore();
     }
 
-    drawLabelsHorizontal(width, height)
+    drawLabelsHorizontal(width, height, n)
     {
-        if(!this.parameters.labels)
+//        this.canvas.fillStyle = '#ccffcc';
+//        this.canvas.fillRect(0, 0, width, height);
+
+        if(!this.usesYLabels)
             return;
         
+        let labels = (this.parameters.labels_y ? this.parameters.labels_y : this.parameters.labels);
+        if(!labels)
+            return;
+
         this.canvas.font = this.format.labelFont;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "right";
         this.canvas.textBaseline= "middle";
 
-        let l = this.parameters.labels.split(',');
-        let n = this.data[0].length;
+        let l = labels.split(',');
+//        let n = this.data.length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
 
@@ -281,6 +313,15 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
         let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
 
+        this.drawLabelsHorizontal(plot_width, this.format.height, size_y);
+
+        this.canvas.save();
+            this.canvas.translate(this.format.spaceLeft, 0);
+            this.drawVerticalGridlines(plot_width, this.format.height);
+            this.drawBottomScale(plot_width, this.format.height);
+            this.drawBottomTickMarks(plot_width, this.format.height);
+        this.canvas.restore();
+
         for(let y=0; y<size_y; y++)
         {
             this.canvas.save();
@@ -292,47 +333,60 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
                 this.canvas.restore();
                 this.drawLeftScale(pane_x, plot_height);
                 this.drawRightScale(pane_x, plot_height);
-                this.drawXAxis(pane_x, plot_height);
-                this.drawYAxis(pane_x, plot_height);
                 this.drawLeftTickMarks(plot_width, plot_height);
                 this.drawRightTickMarks(plot_width, plot_height);
                 this.canvas.translate(0, -this.format.spaceTop);
+                this.drawXAxis(pane_x, pane_y);
+                this.drawYAxis(pane_x, pane_y);
                 this.drawFrame(pane_x, pane_y);
             this.canvas.restore();
             this.canvas.translate(0, pane_y);
         }
-        this.drawLabelsVertical(plot_width, this.format.height);
+        this.drawLabelsVertical(plot_width, this.format.height, size_x);
     }
 
     drawHorizontal(size_x, size_y)
     {
         let pane_y = Math.round(this.format.height);
-        let pane_x = Math.round((this.format.width)/size_x);
+        let pane_x = Math.round((this.format.width)/size_y);
         let plot_height = pane_y-this.format.spaceTop-this.format.spaceBottom;
         let plot_width = pane_x-this.format.spaceLeft-this.format.spaceRight;
 
-        this.drawLabelsHorizontal(this.format.width, plot_height);
-        for(let x=0; x<size_x; x++)
+        this.drawLabelsHorizontal(this.format.width, plot_height, size_x);
+        this.canvas.save();
+            this.canvas.translate(0, this.format.height);
+            this.drawLabelsVertical(this.format.width, this.format.height, size_y);
+        this.canvas.restore();
+
+        this.canvas.save();
+            this.canvas.translate(0, this.format.spaceTop);
+            this.drawLeftScale(pane_x, plot_height);
+            this.drawLeftTickMarks(plot_width, plot_height);
+            this.drawHorizontalGridlines(this.format.width, plot_height);
+            this.drawRightScale(this.format.width, plot_height);
+            this.drawRightTickMarks(this.format.width, plot_height);
+        this.canvas.restore();
+
+       for(let y=0; y<size_y; y++)
         {
             this.canvas.save();
                 this.canvas.translate(this.format.spaceLeft, 0);
                 this.drawVerticalGridlines(plot_width, pane_y);
-                this.drawBottomScale(plot_width, pane_y);
+                this.drawBottomScale(plot_width, pane_y); // ****
                 this.canvas.save();
                     this.canvas.translate(0, this.format.spaceTop);
-                    this.drawPlotHorizontal(plot_width, plot_height, x);
+                    this.drawPlotHorizontal(plot_width, plot_height, y);
                 this.canvas.restore();
-                this.drawBottomScale(plot_width, pane_y);
-                this.drawXAxis(plot_width, pane_y);
-                this.drawYAxis(plot_width, pane_y);
                 this.drawBottomTickMarks(plot_width, pane_y);
                 this.canvas.translate(-this.format.spaceLeft, 0);
-                this.drawFrame(pane_x, this.format.height);
+                this.drawXAxis(pane_x, pane_y);
+                this.drawYAxis(pane_x, pane_y);
+                this.drawFrame(pane_x, pane_y);
             this.canvas.restore();
             this.canvas.translate(pane_x, 0);
         }
-    }
-    
+     }
+
     draw(size_x, size_y)    // draw handles the layout of the graphs in horizontal or vertical sections
     {
         this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
@@ -350,13 +404,13 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         }
     }
 
-    update(d)
+    update(d) // USED ONLY FOR TESTING
     {
         this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
-//        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.canvas.clearRect(0, 0, this.width, this.height);
         this.canvas.translate(this.format.marginLeft, this.format.marginTop); // +0*this.format.titleHeight
         try {
-            this.drawVertical(1, 1);
+//            this.drawVertical(1, 1);
             this.drawHorizontal(1, 1);
         }
         catch(err)

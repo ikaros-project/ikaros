@@ -10,6 +10,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
+            {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -51,6 +52,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotHorizontal(width, height, y)
     {
+//        this.canvas.fillStyle = '#ffcccc';
+//        this.canvas.fillRect(0, 0, width, height);
+
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -70,6 +74,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotVertical(width, height, y)
     {
+//        this.canvas.fillStyle = '#ffcccc';
+//        this.canvas.fillRect(0, 0, width, height);
+
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
@@ -101,7 +108,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             let size_y = this.data.length;
             let size_x = this.data[0].length;
 
-            this.draw(size_y, size_y);
+            this.draw(size_x, size_y);
         }
         catch(err)
         {

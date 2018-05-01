@@ -176,7 +176,6 @@ class WebUIWidget extends HTMLElement
 
     readCSSvariables()
     {
-
         // read CSS variables - TODO: allow to work also when some variable is missing
 
         this.format = {}

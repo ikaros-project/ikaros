@@ -1,4 +1,4 @@
-class WebUIWidgetImage extends WebUIWidgetCanvas
+class WebUIWidgetImage extends WebUIWidgetGraph
 {
     static template()
     {
@@ -56,22 +56,30 @@ class WebUIWidgetImage extends WebUIWidgetCanvas
         return 0;
     }
 
+    drawPlotHorizontal(width, height)   // Draw actual image in a coordinate system
+    {
+        let w = this.oversampling*width;   // this could be done in updateFrame and stored
+        let h = this.oversampling*height;
+        if(this.parameters.scale == "width")
+            h = this.imageObj.height;
+        else if(this.parameters.scale == "height")
+            w = this.imageObj.width;
+        else if(this.parameters.scale == "none")
+        {
+            w = this.imageObj.width;
+            h = this.imageObj.height;
+        }
+
+        this.canvas.drawImage(this.imageObj, 0, 0, w, h);
+    }
+    
     update(d)
     {
         try
         {
-            let w = this.oversampling*this.width;   // this could be done in updateFrame and stored
-            let h = this.oversampling*this.height;
-            if(this.parameters.scale == "width")
-                h = this.imageObj.height;
-            else if(this.parameters.scale == "height")
-                w = this.imageObj.width;
-            else if(this.parameters.scale == "none")
-            {
-                w = this.imageObj.width;
-                h = this.imageObj.height;
-            }
-            this.canvas.drawImage(this.imageObj, 0, 0, w, h);
+            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.drawHorizontal(1, 1);  // Draw grid over image
         }
         catch(err)
         {
@@ -85,30 +93,3 @@ class WebUIWidgetImage extends WebUIWidgetCanvas
 
 
 webui_widgets.add('webui-widget-image', WebUIWidgetImage);
-
-
-
-/*
-ImageStream.prototype.LoadData = function(data)
-{
-    if(this.module)
-    {
-        var d = data[this.module];
-        if(!d) return;
-        d = d[this.source+':'+this.type]
-        if(!d) return;
-        this.imageObj.onload = function ()
-        {
-            load_count--;
-        };
-        this.imageObj.src = d;
-        return 1;
-    }
-
-    return 0;
-}
-ImageStream.prototype.Update = function(data)
-{
-    this.context.drawImage(this.imageObj, 0, 0, this.oversampling*this.width, this.oversampling*this.height);
-}
-*/

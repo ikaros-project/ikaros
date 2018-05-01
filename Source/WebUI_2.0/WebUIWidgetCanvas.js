@@ -46,11 +46,54 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.fillStyle = l[i % n].trim();
     }
 
-    drawLayout()
+    drawArrow(arrow)
     {
         this.canvas.beginPath();
-        this.canvas.lineWidth = 1;
-        this.canvas.strokeStyle = "gray";
+        this.canvas.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+        for(var i=0;i<arrow.length;i++){
+            this.canvas.lineTo(arrow[i][0],arrow[i][1]);
+        }
+        this.canvas.closePath();
+        this.canvas.fill();
+        this.canvas.stroke();
+    }
+
+    moveArrow(arrow, x, y)
+    {
+        var rv = [];
+        for(var i=0;i<arrow.length;i++){
+            rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+        }
+        return rv;
+    }
+
+    rotateArrow(arrow,angle)
+    {
+        var rv = [];
+        for(var i=0; i<arrow.length;i++){
+            rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                     (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+        }
+        return rv;
+    }
+
+    drawArrowHead(fromX, fromY, toX, toY)
+    {
+        var angle = Math.atan2(toY-fromY, toX-fromX);
+        var arrow = [[0,0], [-10,-5], [-10, 5]];
+        this.canvas.save();
+        this.canvas.lineJoin = "miter";
+        this.canvas.fillStyle = this.canvas.strokeStyle;
+        this.drawArrow(this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+        this.canvas.restore();
+    }
+
+
+    drawLayout()
+    {
+        this.canvas.canvas.beginPath();
+        this.canvas.canvas.lineWidth = 1;
+        this.canvas.canvas.strokeStyle = "gray";
 
         this.canvas.moveTo(0, this.format.marginTop);
         this.canvas.lineTo(this.width, this.format.marginTop);
