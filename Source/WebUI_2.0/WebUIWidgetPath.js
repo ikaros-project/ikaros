@@ -1,4 +1,4 @@
-class WebUIWidgetPlot extends WebUIWidgetGraph
+class WebUIWidgetPath extends WebUIWidgetGraph
 {
     static template()
     {
@@ -16,8 +16,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'buffer_size', 'default':50, 'type':'int', 'control': 'textedit'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "vertical"},
             {'name': "STYLE", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -30,8 +28,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     {
         super.init();
         this.data = [];
-        this.buffer = [];
-        this.ix = 0;
 
         this.onclick = function () { alert(this.data) }; // last matrix
    }
@@ -48,93 +44,110 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     {
         this.canvas.clearRect(0, 0, this.width, this.height);
         
-        var xx = (this.count ? this.select+2*this.count : d[0].length);
+        let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         
         for(var i=0; i<rows; i++)
         {
-            this.canvas.lineWidth = this.line_width_LUT[i % this.line_width_LUT.length];
-            this.canvas.setLineDash(this.line_dash_LUT[i % this.line_dash_LUT.length]);
-            this.canvas.strokeStyle = this.stroke_LUT[i % this.stroke_LUT.length];
-            this.canvas.fillStyle = this.fill_LUT[i % this.fill_LUT.length];
-            
+            this.setColor(i);
             this.canvas.beginPath();
             
-            var lx = 0;
-            var ly = 0;
-            var x = (d[i][this.select+0]-this.min_x)*this.scale_x * this.width;
-            var y = (d[i][this.select+1]-this.min_y)*this.scale_y * this.height;
+            let lx = 0;
+            let ly = 0;
+            let x = (d[i][this.parameters.select+0]-this.parameters.min_x)*this.parameters.scale_x * this.width;
+            let y = (d[i][this.parameters.select+1]-this.parameters.min_y)*this.parameters.scale_y * this.height;
             this.canvas.moveTo(x, y);
             
-            for(var j=this.select+2; j<xx;)
+            for(var j=this.parameters.select+2; j<xx;)
             {
                 lx = x;
                 ly = y;
-                x = (d[i][j++]-this.min_x)*this.scale_x * this.width;
-                y = (d[i][j++]-this.min_y)*this.scale_y * this.height;
+                x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * this.width;
+                y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * this.height;
                 
                 this.canvas.lineTo(x, y);
             }
             
-            if(this.fill_LUT[i % this.fill_LUT.length]!= 'none')
-                this.canvas.fill();
-            if(this.close)
+            this.canvas.fill();
+            if(this.parameters.close)
                 this.canvas.closePath();
             this.canvas.stroke();
             
-            if(this.arrow_head_LUT[i % this.arrow_head_LUT.length]=="yes")
-                this.canvas.drawArrowHead(lx, ly, x, y);
+            if(this.parameters.arrow)
+                this.drawArrowHead(lx, ly, x, y);
         }
     }
 
 
 
-    drawCols = function(d, rows)
+    drawCols(d, rows)
     {
         this.canvas.clearRect(0, 0, this.width, this.height);
-        this.canvas.lineWidth = this.stroke_width;
+        this.canvas.lineWidth = this.parameters.stroke_width;
         
-        var xx = (this.count ? this.select+2*this.count : d[0].length);
-        
-        for(var i=this.select; i<xx; i+=2)
+        let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        let c = 0;
+        for(var i=this.parameters.select; i<xx; i+=2)
         {
-            this.canvas.lineWidth = this.line_width_LUT[i % this.line_width_LUT.length];
-            this.canvas.setLineDash(this.line_dash_LUT[i % this.line_dash_LUT.length]);
-            this.canvas.strokeStyle = this.stroke_LUT[i % this.stroke_LUT.length];
-            this.canvas.fillStyle = this.fill_LUT[i % this.fill_LUT.length];
-            
+            this.setColor(c);
             this.canvas.beginPath();
             
-            var lx = 0;
-            var ly = 0;
-            var x = (d[0][i+0]-this.min_x)*this.scale_x * this.width;
-            var y = (d[0][i+1]-this.min_y)*this.scale_y * this.height;
+            let lx = 0;
+            let ly = 0;
+            let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * this.width;
+            let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * this.height;
             this.canvas.moveTo(x, y);
             
             for(var j=1; j<rows;j++)
             {
                 lx = x;
                 ly = y;
-                x = (d[j][i+0]-this.min_x)*this.scale_x * this.width;
-                y = (d[j][i+1]-this.min_y)*this.scale_y * this.height;
+                x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * this.width;
+                y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * this.height;
                 
                 this.canvas.lineTo(x, y);
             }
 
-            if(this.fill_LUT[i % this.fill_LUT.length]!= 'none')
-                this.canvas.fill();
-            if(this.close)
+//            if(this.fill_LUT[i % this.fill_LUT.length]!= 'none')
+//                this.canvas.fill();
+            if(this.parameters.close)
                 this.canvas.closePath();
             this.canvas.stroke();
             
-            if(this.arrow)
-                this.canvas.drawArrowHead(lx, ly, x, y);
+//            if(this.arrow)
+//                this.canvas.drawArrowHead(lx, ly, x, y);
+
+            c++;
         }
     }
 
 
 
-    update(d)
+    drawPlotHorizontal(width, height)
     {
+        if(this.parameters.order)
+            this.drawRows(this.data, rows);
+        else
+            this.drawCols(this.data, rows);
+    }
+    
+    update(d)   // default for Graph - should not be needed here
+    {
+        // update parameters
+        // FIXME: should be moved to graph later for all graphs
+        
+        this.parameters.select = (this.parameters.select ? this.parameters.select : 0);
+        this.parameters.scale = 1/(this.parameters.max == this.parameters.min ? 1 : this.parameters.max-this.parameters.min);
+        
+        this.parameters.min_x = (this.parameters.min_x ? this.parameters.min_x : this.parameters.min);
+        this.parameters.max_x = (this.parameters.max_x ? this.parameters.max_x : this.parameters.max);
+        this.parameters.scale_x = 1/(this.parameters.max_x == this.parameters.min_x ? 1 : this.parameters.max_x-this.parameters.min_x);
+        
+        this.parameters.min_y = (this.parameters.min_y ? this.parameters.min_y : this.parameters.min);
+        this.parameters.max_y = (this.parameters.max_y ? this.parameters.max_y : this.parameters.max);
+        this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
+
+
+        // darw if data available
         if(!d)
             return;
         
@@ -160,14 +173,11 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             }
 
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
-            if(this.order)
-                this.drawRows(d, rows);
-            else
-                this.drawCols(d, rows);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
         catch(err)
         {
-//            console.log(err);
         }
     }
 };
