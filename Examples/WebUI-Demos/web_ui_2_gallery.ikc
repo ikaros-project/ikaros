@@ -231,8 +231,106 @@
         loop = "yes"
     />
 
+    <view name="Bar Graphs">
+        <bar-graph
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="R3x7"
+            source="OUTPUT"
+            title = "Bar Graph X"
+            labels_x = "X, Y, Z"
+            labels_y = "A, B, C"
+            style = ""
+        />
+
+        <bar-graph
+            x="340" y="40"
+            width="301"
+            height="301"
+            module="R3x7"
+            source="OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+
+        <bar-graph
+            x="40" y="400"
+            width="300"
+            height="300"
+            module="R23"
+            source="OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <bar-graph
+            x="340" y="400"
+            width="300"
+            height="300"
+            module="R23"
+            source="OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+    </view>
+    
+    <view name="Plots">
+        <plot
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="R3x7"
+            source="OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <plot
+            x="340" y="40"
+            width="301"
+            height="301"
+            module="R3x7"
+            source="OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+
+        <plot
+            x="40" y="400"
+            width="300"
+            height="300"
+            module="R23"
+            source="OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <plot
+            x="340" y="400"
+            width="300"
+            height="300"
+            module="R23"
+            source="OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+    </view>
+
+
     <view name="Graph">
-        <graph x="40" y="40" width="400" height="400" />
+        <graph x="40" y="40" width="400" height="400" labels_x = "A, B, C, D" labels_y="X, Y, Z, T" />
     </view>
 
     <view name="New Images">
@@ -271,19 +369,6 @@
         />
     </view>
 
-    <view name="Plots">
-        <plot
-            x="40" y="40"
-            width="301"
-            height="301"
-            module="R3x7"
-            source="OUTPUT"
-            title = "Plot"
-            _labels = "A, B, C, D, E, F, G"
-            style = ""
-        />
-    </view>
-
     <view name="Controls">
         <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
         <button label="Me Too" module="R23T" parameter="data" x="40" y="140" width="100" height="100" />
@@ -315,63 +400,114 @@
         />
     </view>
 
-    <view name="Bar Graphs">
-        <bar-graph
-            x="40" y="40"
-            width="301"
-            height="301"
-            module="R3x7"
+
+    <view name="Paths">
+
+        <path
+            x="20" y="20"
+            width="200"
+            height="200"
+            title="Multicolored Path"
+            module="Lines"
             source="OUTPUT"
-            title = "Bar Graph X"
-            labels = "A, B, C, D, E, F, G"
-            style = ""
+            stroke_width = "1"
+            _color = "red, green, blue, yellow"
+        />
+        
+        <path
+            x="220" y="20"
+            width="200"
+            height="200"
+            title="Triangles"
+            module="R"
+            source="OUTPUT"
+            order="row"
+            _stroke_width = "9"
+            _arrow="no"
+            close="yes"
+            _color = "red, green, blue, yellow"
+            _lineCap = "round"
+            _lineJoin = "round"
         />
 
-        <_bar-graph
-            x="40" y="400"
-            width="300"
-            height="300"
-            module="R23"
-            source="OUTPUT"
-            title = "Bar Graph 2"
-            labels = "A, B, C, D, E, F, G"
-            style = ""
-        />
 
 <!--
         <object
-            x="110" y="10" width="300"
-            class="bar-graph"
-            module="R5X" 
+            x="0" y="1"
+            class="Path"
+            title="Lines and Circles"
+            module="Lines"
             source="OUTPUT"
-            min="-1" max="1"
-            title = "Bar Graph 2"
-        />
-			
-        <object
-            x="10" y="110"
-            class="bar-graph"
-            module="R5" 
-            source="OUTPUT"
-            title = "Bar Graph 3"
-            color = "red,green,blue,yellow"
-            fill = "red,green,blue,yellow"
+            stroke_width = "1"
+            color = "red, green, blue, yellow"
         />
 
         <object
-            x="210" y="110"
-            class="bar-graph"
-            module="R5X" 
+            x="0" y="1"
+            class="CCircle"
+             module="Lines"
             source="OUTPUT"
-            min="-1" max="1"
-            title = "Bar Graph 2"
-            positive_color = "blue"
-            positive_fill = "darkblue"
-            negative_color = "red"
-            negative_fill = "darkred"
+            stroke_width = "9"
+            color = "red, green, blue, yellow"
+            size = "0.02"
+            fill =  "red, green, blue, yellow"
+            select = "2"
         />
+
+        <object
+            x="2" y="0"
+            class="Path"
+            title="Paths (Flip X)"
+            module="R"
+            source="OUTPUT"
+            stroke_width = "5"
+            arrow="no"
+            color = "red, green, blue, yellow"
+            flip_x_axis = "yes"
+        />
+
+        <object
+            x="1" y="1"
+            class="Path"
+            title="Arrows (Flip Y)"
+            module="R"
+            source="OUTPUT"
+            stroke_width = "1"
+            arrow = "yes"
+            color = "red, green, blue, yellow"
+            flip_y_axis = "yes"
+        />
+
+        <object
+            x="2" y="1"
+            class="Path"
+            title="Filled (Flip X and Y)"
+            module="R"
+            source="OUTPUT"
+            stroke_width = "1"
+            arrow = "no"
+            close = "yes"
+            fill = "rgba(255,0,0,0.5),rgba(0,255,0,0.25),rgba(0,0,255,0.5),rgba(255,255,0,0.5)"
+            color = "red, green, blue, yellow"
+            flip_x_axis = "yes"
+            flip_y_axis = "yes"
+        />
+
+        <object
+            x="3" y="0"
+            class="CCircle"
+            title="Circles"
+             module="R"
+            source="OUTPUT"
+            line_width = "9"
+            color = "red, green, blue, yellow"
+            size = "0.1"
+            select = "2"
+            select_size = "1"
+            scale_size = "0.1"
+        />
+
 -->
-
     </view>
 
 <!-- OLD STUFF BELOW. WILL NOT YET FUNCTION WITH WEB UI 2.0 -->
@@ -960,109 +1096,6 @@
         />
 	</view>
 
-	<view name="Paths">
-
-		<object
-			x="0" y="0" 
-			class="Path" 
-			title="Multicolored Path" 
-			module="Lines" 
-			source="OUTPUT"
-			stroke_width = "1"
-            color = "red, green, blue, yellow"
-		/>
-
-		<object
-			x="0" y="1"
-			class="Path" 
-			title="Lines and Circles"
-			module="Lines" 
-			source="OUTPUT"
-			stroke_width = "1"
-            color = "red, green, blue, yellow"
-		/>
-
-		<object
-			x="0" y="1"
-			class="CCircle"
- 			module="Lines"
-			source="OUTPUT"
-			stroke_width = "9"
-            color = "red, green, blue, yellow"
-            size = "0.02"
-            fill =  "red, green, blue, yellow"
-            select = "2"
-		/>
-
-		<object
-			x="1" y="0" 
-			class="Path" 
-			title="Arrows" 
-			module="R" 
-			source="OUTPUT"
-			stroke_width = "9"
-			arrow="yes"
-            color = "red, green, blue, yellow"
-            lineCap = "round"
-            lineJoin = "round"
-            select = "2"
-		/>
-
-		<object
-			x="2" y="0" 
-			class="Path" 
-			title="Paths (Flip X)" 
-			module="R" 
-			source="OUTPUT"
-			stroke_width = "5"
-			arrow="no"
-            color = "red, green, blue, yellow"
-            flip_x_axis = "yes"
-		/>
-
-		<object
-			x="1" y="1" 
-			class="Path" 
-			title="Arrows (Flip Y)" 
-			module="R" 
-			source="OUTPUT"
-			stroke_width = "1"
-			arrow = "yes"
-            color = "red, green, blue, yellow"
-            flip_y_axis = "yes"
-		/>
-
-		<object
-			x="2" y="1" 
-			class="Path" 
-			title="Filled (Flip X and Y)" 
-			module="R" 
-			source="OUTPUT"
-			stroke_width = "1"
-			arrow = "no"
-            close = "yes"
-            fill = "rgba(255,0,0,0.5),rgba(0,255,0,0.25),rgba(0,0,255,0.5),rgba(255,255,0,0.5)"
-            color = "red, green, blue, yellow"
-            flip_x_axis = "yes"
-            flip_y_axis = "yes"
-		/>
-
-		<object
-			x="3" y="0"
-			class="CCircle"
-			title="Circles"
- 			module="R"
-			source="OUTPUT"
-			line_width = "9"
-            color = "red, green, blue, yellow"
-            size = "0.1"
-            select = "2"
-            select_size = "1"
-            scale_size = "0.1"
-		/>
-
-
-	</view>
 
 	<view name="Grab Bag">
 
