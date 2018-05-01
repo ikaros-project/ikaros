@@ -212,7 +212,7 @@ inspector = {
                 case 'checkbox':
                     if(p.type == 'bool')
                     {
-                       if(value)
+                        if(value)
                             cell2.innerHTML= '<input type="checkbox" checked />';
                         else
                             cell2.innerHTML= '<input type="checkbox" />';
@@ -356,6 +356,8 @@ interaction = {
             
             // Add default parameters from CSS - possibly...
  
+            // FIXME: we should type convert here also according to default_template
+            
             for(k in element.widget.parameters)
                 if(data[k] === undefined)
                     data[k] = element.widget.parameters[k];
