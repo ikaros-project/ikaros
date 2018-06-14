@@ -4311,5 +4311,323 @@ namespace ikaros
         draw_rectangle(blue_image, size_x, size_y, x0, y0, x1, y1, blue);
     }
 
+    // mark - TAT additions
+    float *
+    soft_max(float *r, float *a, int size)
+    {
+        // TODO check if vector op exists
+        for (int i=0; i < size; ++i)
+            r[i] = exp(a[i]);
+        float s=0;
+        for (int i=0; i < size; ++i)
+            s += r[i];
+        if(s>0)
+            for (int i=0; i < size; ++i)
+                r[i] = r[i]/s;
+        else
+            reset_array(r, size);
+        return r;
+    }
+	
+    // per element multiplication where a is a col vec and b is a row vec
+    // interpreted as b being replicated to size of a and scaled by it
+    // r(sizey, sizex) = a(sizey)*b(sizex)
+    float **
+    multiply(float **r, float *a, float *b, int sizex, int sizey)
+    {
+
+        for (int i = 0; i < sizey; ++i)
+            multiply(r[i], b, a[i], sizex);
+        
+        return r;
+    }
+	
+    // per element multiplication where a is col vec and b is matrix
+    // r(sizey, sizex) = a(sizey) * b(sizey, sizex)
+    float **
+    multiply(float **r, float *a, float **b, int sizex, int sizey)
+    {
+        for (int i = 0; i < sizey; ++i)
+            multiply(r[i], b[i], a[i] , sizex);
+        return r;
+    }
+	
+    //
+	// Multiply with transpose. Input b will be transposed by BLAS call
+	// Expects: 
+	// a rows:sizey, cols:n
+	// b rows:n, cols:sizex (will be transposed to have rows: sizex cols:n)
+	// r rows:sizex cols:sizey
+    float **
+    multiply_t(float ** r, float ** a, float ** b, int sizex, int sizey, int n)
+    {
+        float ** aa = a;
+        float ** bb = b;
+
+        if(r==a)
+            aa = copy_matrix(create_matrix(sizex, sizey), a, sizex, sizey);
+
+        if(r==b)
+            bb = copy_matrix(create_matrix(sizex, sizey), b, sizex, sizey);
+        
+#ifdef USE_BLAS
+        cblas_sgemm(CblasRowMajor, CblasTrans, CblasTrans,
+                    sizex, sizey, n, 1.0, *bb, sizex, *aa, n, 0.0, *r, sizey);
+#else
+		printf("WARNING: multiply_t currently only works with blas enabled\n");
+#endif
+
+        if(a!=aa)
+            destroy_matrix(aa);
+            
+        if(b!=bb)
+            destroy_matrix(bb);
+
+        return r;
+	}
+
+	// float **	multiply(float ** r, float alpha, float ** a, float ** b, int sizex, int sizey, int n);	// alpha*matrix x matrix; size of result, n = columns of a = rows of b
+    float **
+    multiply(float ** r, float alpha, float ** a, float ** b, int sizex, int sizey, int n)
+    {
+        float ** aa = a;
+        float ** bb = b;
+
+        if(r==a)
+            aa = copy_matrix(create_matrix(sizex, sizey), a, sizex, sizey);
+
+        if(r==b)
+            bb = copy_matrix(create_matrix(sizex, sizey), b, sizex, sizey);
+        
+#ifdef USE_BLAS
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                    sizey, sizex, n, alpha, *aa, n, *bb, sizex, 0.0, *r, sizex);
+#else
+        float s;
+        int n1 = n-1;
+        for (int j=0; j<sizey; j++)
+        {
+            for (int i=0; i<sizex; i++)
+            {
+                s = 0;
+                float * aj = aa[j];
+                float * bki = &bb[0][i];
+                for (int k=n1; k>=0; k--)
+                {
+                    s += (*aj++) * (*bki);
+                    bki += sizex;
+                }
+                r[j][i] = alpha*s;
+            }
+        }
+#endif
+        if(a!=aa)
+            destroy_matrix(aa);
+            
+        if(b!=bb)
+            destroy_matrix(bb);
+
+        return r;
+    }
+
+    float** spanned_im2row(
+        float ** result, 
+        float ** source, 
+        int map_size_x, 
+        int map_size_y, 
+        int source_size_x, 
+        int source_size_y, 
+        int kernel_size_x, 
+        int kernel_size_y, 
+        int stride_x, 
+        int stride_y,
+        int block_x,
+        int block_y,
+        int span_x,
+        int span_y)  // mode = 'sliding'
+    {
+        float * r = *result;
+        int r_ix = 0;
+        for(int j=0; j<map_size_y; j++)
+            for(int i=0; i<map_size_x; i++)
+            {
+                int s[kernel_size_y];
+                // for rows
+                for(int k=0; k<kernel_size_y; k++){
+                    int dv = k/block_y;
+                    int offset = dv*span_y;
+                    s[k] = (j*stride_y+k+offset)*source_size_x + i*stride_x;
+                }
+                for(int k=0; k<kernel_size_y; k++)
+                    for(int v=0; v<kernel_size_x; v++){
+                        int dv = v/block_x;
+                        int offset = dv*span_x;
+                        int s_ix = offset + s[k]++;
+                        r[r_ix++] = (*source)[s_ix];
+                    }
+            }
+        return result;
+    }
+
+    float ** spanned_row2im(float **out, float **in, 
+        int out_x, int out_y,
+        int map_x, int map_y,
+        int rf_x, int rf_y,
+        int inc_x, int inc_y,
+        int blk_x, int blk_y,
+        int spn_x, int spn_y)
+    {
+        int *s = (int*)calloc(rf_y, sizeof(int));
+        float *o = *out;
+
+        int r_ix = 0;
+        for (int j = 0; j < map_y; ++j)
+            for (int i = 0; i < map_x; ++i)
+            {
+                memset(s, rf_y, 0);
+                for (int k = 0; k < rf_y; ++k)
+                {
+                    int dv = k / blk_y;
+                    int offset = dv * spn_y;
+                    s[k] = (j*inc_y + k + offset) * out_x + 
+                        i * inc_x;
+                }
+                for (int k = 0; k < rf_y; ++k)
+                    for (int v = 0; v < rf_x; ++v)
+                    {
+                        int dv = v / blk_x;
+                        int offset = dv * spn_x;
+                        int s_ix = offset + s[k];
+                        o[s_ix] += (*in)[r_ix];
+                        r_ix += 1;
+                        s[k] += 1;
+                    }
+            }
+        free (s);
+        return out;
+    }
+	// // linear algebra - TAT
+    // int 		eigs(float **result, float **matrix, int sizex, int sizey);
+    // void 		sprand(float *array, int size, float fillfactor, float min, float max, float meanval, float var);
+    // void 		gen_weight_matrix(float **returnmat, int dim, float fillfactor);
+    
+    // // various - TAT
+    // float *		tanh(float *array, int size);
+	// float *		tanh(float *r, float *a, int size);
+    // float **    tanh(float ** matrix, int sizex, int sizey);
+	// float **	tanh(float **r, float **a, int sizex, int sizey);
+	// float *		atanh(float *array, int size);
+	// float		sigmoidf(float a);
+	// float *		sigmoid(float *array, int size);
+    // bool        equal(float a, float b, float tolerance);
+    // bool        equal(float *a, float *b, int size, float tolerance);
+    // bool        equal(float *a, float b, int size, float tolerance);
+    // bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
+    float *
+    tanh(float *array, int size)
+    {
+        for (int i=0; i<size; i++) {
+            array[i] = tanhf(array[i]);
+        }
+        return array;
+    }
+
+    float*
+    tanh(float *r, float*a, int size)
+    {
+        copy_array(r, a, size);
+        return tanh(r, size);
+    }
+    
+    float **
+    tanh(float ** matrix, int sizex, int sizey)
+    {
+        for (int i=0; i < sizey; i++) {
+            tanh(matrix[i], sizex);
+        }
+        return matrix;
+    }
+
+    float **
+    tanh(float **r, float **a, int sizex, int sizey)
+    {
+        copy_matrix(r, a, sizex, sizey);
+        return tanh(r, sizex, sizey);
+    }
+
+    float *     
+    atanh(float *array, int size)
+    {
+        for (int i = 0; i < size; ++i)
+            array[i] = atanhf(array[i]);
+        return array;
+    }
+
+    float
+    sigmoidf(float a)
+    {
+        return 1.f/(1+exp(-a));
+    }
+
+    float *
+    sigmoid(float *array, int size)
+    {
+        for (int i = 0; i < size; ++i)
+            array[i] = sigmoidf(array[i]);
+        return array;
+    }
+
+    bool 
+    equal(float a, float b, float tolerance)
+    { 
+        return abs((float)a-b) <= tolerance;
+    }
+    
+    bool 
+     equal(float *a, float *b, int size, float tolerance)
+     {
+         bool retval = true;
+        //for (int i = size; i-- && retval;)
+        for (int i = 0; i < size && retval; ++i)
+        {
+            retval = equal(a[i], b[i], tolerance);
+              if(!retval) break;
+        }
+        return retval;
+     }
+
+     bool
+     equal(float *a, float b, int size, float tolerance)
+     {
+        bool retval = true;
+        for (int i = 0; i < size; ++i)
+        {
+            retval = equal(a[i], b, tolerance);
+            if(!retval) break;
+        }
+        return retval;
+     }
+
+     bool 
+     equal(float **a, float **b, int size_x, int size_y, float tolerance)
+     {
+        bool retval = true;
+        for (int i = 0; i < size_y; ++i)
+        {
+            retval = equal(a[i], b[i], size_x, tolerance);
+            if(!retval) break;
+        }
+        return retval;
+     }
+    
+	//  void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
+    void map(float *r, float *a, float lo_src, float hi_src, float lo_trg, float hi_trg, int size)
+    {
+        for(int i=0; i < size; ++i)
+        r[i] = lo_trg + 
+            (hi_trg - lo_trg) * (a[i] - lo_src) 
+            / (hi_src - lo_src);
+    }
+
 }
 

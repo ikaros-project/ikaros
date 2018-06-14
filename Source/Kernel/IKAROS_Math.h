@@ -419,6 +419,31 @@ namespace ikaros
     
     void        draw_rectangle(float ** image, int size_x, int size_y, int x0, int y0, int x1, int y1, float color);
     void        draw_rectangle(float ** red_image, float ** green_image, float ** blue_image, int size_x, int size_y, int x0, int y0, int x1, int y1, float red, float green, float blue);
-}
+
+	// mark - TAT additions
+	float *		soft_max(float *r, float * a, int size);
+	float **		multiply(float **r, float *a, float *b, int sizex, int sizey); //tat
+	float ** multiply(float **r, float *a, float **b, int sizex, int sizey); // tat
+	float **	multiply_t(float ** r, float ** a, float ** b, int sizex, int sizey, int n); // matrix x  matrix' tat
+	float **	multiply(float ** r, float alpha, float ** a, float ** b, int sizex, int sizey, int n);	// alpha*matrix x matrix; size of result, n = columns of a = rows of b
+	float ** 	spanned_im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x, int stride_y, int block_x, int block_y, int span_x, int span_y);
+	float ** 	spanned_row2im(float **out, float **in, int out_x, int out_y,int in_x, int in_y,int rf_x, int rf_y,int inc_x, int inc_y,int blk_x, int blk_y,int spn_x, int spn_y);
+	
+    // various - TAT
+    float *		tanh(float *array, int size);
+	float *		tanh(float *r, float *a, int size);
+    float **    tanh(float ** matrix, int sizex, int sizey);
+	float **	tanh(float **r, float **a, int sizex, int sizey);
+	float *		atanh(float *array, int size);
+	float		sigmoidf(float a);
+	float *		sigmoid(float *array, int size);
+    bool        equal(float a, float b, float tolerance);
+    bool        equal(float *a, float *b, int size, float tolerance);
+    bool        equal(float *a, float b, int size, float tolerance);
+    bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
+	 float		r_squared(float **y, float **f, int sizex, int sizey);
+	 void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
+
+}	
 
 #endif
