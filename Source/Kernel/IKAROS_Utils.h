@@ -113,6 +113,7 @@ bool        load_array(const char * path, const char * name, float * a, int size
 bool        load_matrix(const char * path, const char * name, float ** m, int size_x, int size_y);      // will return false if size of data is not correct
 
 
+
 // Delay Line
 
 class DelayLine
@@ -242,6 +243,15 @@ class Dictionary
 		static Iterator      First(Dictionary * d) { return (d ? Iterator(d->first): NULL); }
 	};
 
+
+    // mark - TAT additions
+    void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
+    void        get_submatrix(float *S, int mrows, int mcols, float *A, int ncols, int row, int col);
+	 void 		repeat(float *r, float *a, int repeats);
+	 void 		tile(float *r, float *a, int tiles);
+	 void			put(float *r, float *a, int *indeces);
+	 void 		take(float *r, float *a, int *indeces);
+	 
 
 #endif
 

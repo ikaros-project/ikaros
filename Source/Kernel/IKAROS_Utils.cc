@@ -874,6 +874,113 @@ base64_encode(const unsigned char * data,
     return encoded_data;
 }
 
+// mark - TAT additions
+// void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
+    //  Taken from: http://www.mymathlib.com/
+    //  Arguments:                                                                //
+    //     double *A    (Destination) Pointer to the first element of the matrix A[n][n].       //
+    //     int    ncols The number of columns of the matrix A.                    //
+    //     double *S    (Source) Source address of the submatrix.                     //
+    //     int    mrows The number of rows matrix S.                              //
+    //     int    mcols The number of columns of the matrix S.                    //
+    //     int    row   (Offset) The row of A corresponding to the first row of S.         //
+    //     int    col   (Offset) The column of A corresponding to the first column of S.   //
+    //                                                                            //
+void set_submatrix(float *A, int ncols, float *S, int mrows, int mcols,
+                    int row, int col)
+{
+    int i,j;
+    
+    for ( A += row * ncols + col, i = 0; i < mrows; A += ncols, i++)
+        for (j = 0; j < mcols; j++) *(A + j) = *S++;
+}
+
+//  Taken from: http://www.mymathlib.com/
+//  Description:                                                              //
+//     Copy the mrows and mcols of the nrows x ncols matrix A starting with   //
+//     A[row][col] to the submatrix S.                                        //
+//     Note that S should be declared double S[mrows][mcols] in the calling   //
+//     routine.                                                               //
+//                                                                            //
+//  Arguments:                                                                //
+//     double *S    (Target) Destination address of the submatrix.                     //
+//     int    mrows The number of rows of the matrix S.                       //
+//     int    mcols The number of columns of the matrix S.                    //
+//     double *A    Pointer to the first element of the matrix A[nrows][ncols]//
+//     int    ncols The number of columns of the matrix A.                    //
+//     int    row   The row of A corresponding to the first row of S.         //
+//     int    col   The column of A corresponding to the first column of S.   //
+void get_submatrix(float *S, int mrows, int mcols,
+                    float *A, int ncols, int row, int col)
+{
+    int number_of_bytes = sizeof(float) * mcols;
+    
+    for (A += row * ncols + col; mrows > 0; A += ncols, S+= mcols, mrows--)
+        memcpy(S, A, number_of_bytes);
+}
+
+// void 		repeat(float *r, float *a, int repeats);
+//
+// Repeats each value in source array a given number of times
+// r - result containing repeated array, must be size len*repeats
+// a - source array
+// len - length of source
+// repeats - number of repeats
+void repeat(float *r, float *a, int len, int repeats)
+{ 
+float *start = r;
+    for(int i=0; i<len; ++i)
+    {
+        std::fill_n(start, repeats, a[i]);
+        start += repeats;
+    }
+}
+
+// void 		tile(float *r, float *a, int tiles);
+//
+// Tiles source array a given number of times
+// r - result containing repeated array, must be size len*tiles
+// a - source array
+// len - length of source
+// tiles - number of tiles 
+void tile(float *r, float *a, int len, int tiles)
+{
+    int datasz = sizeof(float); // float is 4 bytes
+    float* start = r;
+    for (int i=0; i< tiles; ++i)
+    {
+        memcpy(start, a, len*datasz);
+        start += len;
+    }
+}
+
+
+// void			put(float *r, float *a, int *indeces);
+//
+// Puts source array into result array mapped by given indeces
+// r - result containing mapped values 
+// a - source array
+// len - length of source
+// indeces - array of target indeces
+void put(float *r, float *a, int len, int *indeces)
+{
+    for (int i=0; i<len; ++i)
+        r[indeces[i]] = a[i];
+}
+
+
+// void 		take(float *r, float *a, int *indeces);
+//
+// Takes values from source mapped by given indeces array, into result array 
+// r - result containing mapped values 
+// a - source array
+// len - length of source
+// indeces - array of source indeces
+void take(float *r, float *a,int len, int *indeces)
+{
+    for (int i=0; i< len; ++i)
+        r[i] = a[indeces[i]];
+}
 
 
 // Options
