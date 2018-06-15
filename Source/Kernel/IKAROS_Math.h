@@ -294,7 +294,7 @@ namespace ikaros
     float *     h_eye(h_matrix r);
     float *     h_rotation_matrix(h_matrix r, axis a, float alpha);
     float *     h_rotation_matrix(h_matrix r, float x, float y, float z);
-    float *     h_translatation_matrix(h_matrix r, float tx, float ty, float tz);
+    float *     h_translation_matrix(h_matrix r, float tx, float ty, float tz);
     float *     h_reflection_matrix(h_matrix r, axis a);
     float *     h_scaling_matrix(h_matrix r, float sx, float sy, float sz);
     
@@ -441,7 +441,6 @@ namespace ikaros
     bool        equal(float *a, float *b, int size, float tolerance);
     bool        equal(float *a, float b, int size, float tolerance);
     bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
-	 float		r_squared(float **y, float **f, int sizex, int sizey);
 	 void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
 
 }	

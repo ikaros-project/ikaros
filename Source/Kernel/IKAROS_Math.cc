@@ -2831,7 +2831,7 @@ namespace ikaros
     }
     
     float *
-    h_translatation_matrix(h_matrix r, float tx, float ty, float tz)
+    h_translation_matrix(h_matrix r, float tx, float ty, float tz)
     {
         r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = tx;
         r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = ty;
