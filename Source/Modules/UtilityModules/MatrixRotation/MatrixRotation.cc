@@ -126,6 +126,6 @@ MatrixRotation::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("MatrixRotation", &MatrixRotation::Create, "Source/UserModules/MatrixRotation/");
+static InitClass init("MatrixRotation", &MatrixRotation::Create, "Source/Modules/UtilityModules/MatrixRotation/");
 
 
