@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="Map" description="minimal example module">
+
+	<description type="text">
+		Maps from one interval to another
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Map"
+			name="Map"
+			low_source = "0"
+			high_source = "360"
+			low_target = "0"
+			high_target = "1"
+		/>
+	</example>
+
+	<parameter name="low_source" type="float" default="0.0" description="Low value of source range" />
+	<parameter name="high_source" type="float" default="1.0" description="High value of source range" />
+	<parameter name="low_target" type="float" default="0.0" description="Low value of target range" />
+	<parameter name="high_target" type="float" default="1.0" description="High value of target range" />
+
+	<input name="INPUT" description="Input value" />
+	
+	<output name="OUTPUT" description="Mapped output" size_set="INPUT" />
+	
+	<module class="Map" />
+
+	<author>
+		<name>Trond Arild Tjøstheim</name>
+		<email>trond_arild.tjostheim@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Map.h</file>
+   		<file>Map.cc</file>
+   		<file>Map.ikc</file>
+   </files>
+
+</group>
+
