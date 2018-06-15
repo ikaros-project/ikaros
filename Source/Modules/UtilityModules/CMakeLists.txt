@@ -1,4 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(MatrixRotation)
+add_subdirectory(MatrixScale)
+add_subdirectory(MatrixTranslation)
 add_subdirectory(Map)
 add_subdirectory(Abs)
 add_subdirectory(Add)

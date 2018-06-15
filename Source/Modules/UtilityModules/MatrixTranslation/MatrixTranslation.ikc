@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="MatrixTranslation" description="minimal example module">
+
+	<description type="text">
+		Translates content of a matrix.
+		TODO: add option to project to a larger image - set
+		the output size
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MatrixTranslation"
+			name="MatrixTranslation"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The matrix input" />
+	<input name="X" description="The x translation" size="1"/>
+	<input name="Y" description="The y translation" size="1"/>
+
+	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+
+	<module class="MatrixTranslation" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>MatrixTranslation.h</file>
+   		<file>MatrixTranslation.cc</file>
+   		<file>MatrixTranslation.ikc</file>
+   </files>
+
+</group>
+

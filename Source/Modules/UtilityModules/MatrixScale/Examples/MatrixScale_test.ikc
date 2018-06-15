@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+
+<group title="MatrixScale Example">
+	
+<module
+	        class = "InputJPEG"
+	        name = "InputImg"
+	        filename = "uppercase00_rz.jpg"
+        
+        />
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGenX"
+		  type        =   "sin"
+		  frequency  =  "0.009"
+		  offset      =   "1.9"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+		<!--module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGenY"
+		  type        =   "sin"
+		  frequency  =  "0.009"
+		  offset      =   "2"
+		  amplitude   =   "0.5"
+		  shift       =   "0.0"
+		/-->
+
+		<module
+			class = "MatrixScale"
+			name = "MatrixScaleInstance"
+			debug = "no"
+		/>
+		
+        <connection sourcemodule = "SinGenX" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "X" />
+        <connection sourcemodule = "SinGenX" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "Y" />
+        <connection sourcemodule = "InputImg" source = "INTENSITY" targetmodule = "MatrixScaleInstance" target = "INPUT" />
+
+		<view name="View">
+			<object class="Plot " 
+				module="SinGenX" 
+				source="OUTPUT" 
+				x="0" y="0" w="2" h="2"
+				min="-10"
+				max="10"
+				color="yellow"
+			/>
+			<_object class="Plot " 
+				module="SinGenY" 
+				source="OUTPUT" 
+				x="2" y="0" w="2" h="2"
+				min="10"
+				max="-10"
+				color="green"
+			/>
+			<object class= "Image" type="gray" module="InputImg" source="INTENSITY"
+                x="0" y="2" h="2" w="2" />
+            <object class= "Image" type="gray" module="MatrixScaleInstance" source="OUTPUT"
+                x="2" y="2" h="2" w="2" />
+		</view>
+
+</group>
+ 

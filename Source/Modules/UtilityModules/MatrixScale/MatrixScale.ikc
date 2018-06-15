@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="MatrixScale" description="minimal example module">
+
+	<description type="text">
+		Scales content of matrix. Typically used for images.
+		TODO: add option to project into a larger matrix by setting output size
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MatrixScale"
+			name="MatrixScale"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The input matrix" />
+	<input name="X" description="The x scale" size="1"/>
+	<input name="Y" description="The y scale" size="1"/>
+
+	<output name="OUTPUT" description="The matrix output" size_set="INPUT" />
+
+	<module class="MatrixScale" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>MatrixScale.h</file>
+   		<file>MatrixScale.cc</file>
+   		<file>MatrixScale.ikc</file>
+   </files>
+
+</group>
+

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="MatrixRotation" description="minimal example module">
+
+	<description type="text">
+        Rotates a matrix by given angle. Rotation is around the center
+        of the matrix.
+        TODO: add specified origo so can do rotation about any point.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MatrixRotation"
+			name="MatrixRotation"
+			angle_format = "deg"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="angle_format" type="list" default="deg" description="Format of input angle: deg or rad" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The matrix to rotate" />
+    <input name="ANGLE" description="Angle to rotate" size = "1"/>
+
+	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+
+	<module class="MatrixRotation" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>MatrixRotation.h</file>
+   		<file>MatrixRotation.cc</file>
+   		<file>MatrixRotation.ikc</file>
+   </files>
+
+</group>
+
