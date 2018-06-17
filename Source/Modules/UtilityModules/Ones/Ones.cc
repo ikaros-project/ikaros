@@ -66,6 +66,6 @@ Ones::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("Ones", &Ones::Create, "Source/UserModules/Ones/");
+static InitClass init("Ones", &Ones::Create, "Source/Modules/UtilityModules/Ones/");
 
 
