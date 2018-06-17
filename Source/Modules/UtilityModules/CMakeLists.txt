@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(ListIterator)
 add_subdirectory(SetSubmatrix)
 add_subdirectory(SumMatrix)
 add_subdirectory(Ones)
