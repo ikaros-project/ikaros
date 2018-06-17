@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+ <group description="Simple list iterator that iterates number in list as often as given by period">
+ 	<!--Parameters-->
+ 		<parameter name="list" module="ListIterator" target="list" default="1" />
+ 		<parameter name="list_length" module="ListIterator" target="list_length" default="1" />
+ 		<parameter name="repeat" module="ListIterator" target="repeat" default="yes" />
+
+ 		<parameter name="period" module="SquareGen" target="basetime" default="1" /> 
+ 
+ 	<!--Inputs and outputs-->
+	 	<output name="OUTPUT" sourcemodule = "ListIterator" source = "OUTPUT" set_size="1"/>
+	 	<output name="EPOCH_OUT" sourcemodule = "ListIterator" source = "SYNC OUTPUT" set_size="1"/>
+	 	<output name="SYNC_OUT" sourcemodule = "SquareGen" source = "OUTPUT" set_size="1"/>
+
+ 
+ 	
+ 	<!--Modules-->
+	 	<module
+			class = "Constant"
+			name = "Select"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		<module
+	        class       =   "FunctionGenerator"
+	        name        =   "SquareGen"
+	        type        =   "ticksquare"
+	        offset      =   "0.0"
+	        amplitude   =   "1"
+	        shift       =   "0.0"
+	        tickduty	  = 	"1"
+	   	/>
+
+	 	<module
+			class="ListIterator"
+			name="ListIterator"
+			debug = "no"
+		/>
+
+	<!--Connections-->
+ 		<connection sourcemodule = "Select" source = "OUTPUT" targetmodule = "ListIterator" target = "SELECT" />
+ 		<connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "ListIterator" target = "SYNC IN" />		
+
+ 	<view title="SimpleListIterator">
+	    <object
+	        x="0" y="0" w="2"
+	        class="Plot"
+	        module="SquareGen"
+	        source="OUTPUT"
+	        title="Tick"
+	    />
+
+	    <object
+	        x="0" y="2" w="2"
+	        class="Plot"
+	        module="ListIterator"
+	        source="OUTPUT"
+	        title="Iterator Output"
+	    />
+	    <object
+	        x="0" y="4" w="2"
+	        class="Plot"
+	        module="ListIterator"
+	        source="SYNC OUT"
+	        title="Iterator Sync out"
+	    />
+	</view>
+ 
+    <files>
+    		<file>SimpleListIterator.ikc</file> <!--Use name="Default_Speed" in calling file-->
+    </files>
+ 
+ </group>

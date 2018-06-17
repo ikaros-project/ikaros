@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+
+<group title="ListIterator Example">
+		<module
+			class = "Constant"
+			name = "Index"
+			data = "0"
+		/>
+
+		<module
+        class       =   "FunctionGenerator"
+        name        =   "SquareGen"
+        type        =   "ticksquare"
+        _frequency  =  "0.001"
+        basetime		= 	"10"	
+        offset      =   "0.0"
+        amplitude   =   "1"
+        shift       =   "0.0"
+        tickduty	  = 	"1"
+   	/>
+
+		<module
+			class="ListIterator"
+			name="ServoIndex"
+			repeat = "true"
+			list = "0 1 2"
+			list_length = "3"
+			debug = "true"
+		/>
+		<module
+			class="ListIterator"
+			name="ServoSpeed"
+			repeat = "true"
+			list = "0.25 0.5 0.75 1"
+			list_length = "4"
+			debug = "false"
+		/>
+		<module class = "OutputFile" 
+			name = "OUT" 
+			filename = "data.txt" > 
+			<column name = "SERVOIX" />  
+			<column name = "SERVOSPEED" decimals="2" />  
+		</module>
+
+
+        <connection sourcemodule = "Index" source = "OUTPUT" targetmodule = "ServoIndex" target = "SELECT" />
+        <connection sourcemodule = "ServoSpeed" source = "SYNC OUT" targetmodule = "ServoIndex" target = "SYNC IN" />
+
+        
+        <connection sourcemodule = "ServoIndex" source = "OUTPUT" targetmodule = "ServoSpeed" target = "SELECT" />
+        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "ServoSpeed" target = "SYNC IN" />
+
+
+        <connection sourcemodule = "ServoIndex" source = "OUTPUT" targetmodule = "OUT" target = "SERVOIX" delay="10"/>
+        <connection sourcemodule = "ServoSpeed" source = "OUTPUT" targetmodule = "OUT" target = "SERVOSPEED" />
+
+        
+		<view name="View">
+			<object class="Plot " 
+				module="SquareGen" 
+				source="OUTPUT" 
+				x="0" y="0" w="1" h="1"
+				min="0"
+				max="2"
+			/>
+			<object class="Plot " 
+				module="ServoIndex" 
+				source="OUTPUT" 
+				x="0" y="1" w="1" h="1"
+				min="0"
+				max="4"
+			/>
+			<object class="Plot " 
+				module="ServoSpeed" 
+				source="OUTPUT" 
+				x="0" y="2" w="1" h="1"
+				min="0"
+				max="2"
+				select = "0"
+			/>
+			<object class="Plot " 
+				module="ServoSpeed" 
+				source="OUTPUT" 
+				x="1" y="2" w="1" h="1"
+				min="0"
+				max="2"
+				select = "1"
+			/>
+			<object class="Plot " 
+				module="ServoSpeed" 
+				source="OUTPUT" 
+				x="2" y="2" w="1" h="1"
+				min="0"
+				max="2"
+				select = "2"
+			/>  
+		</view>
+
+</group>
+ 

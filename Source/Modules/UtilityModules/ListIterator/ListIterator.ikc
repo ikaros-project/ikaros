@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="ListIterator" description="minimal example module">
+
+	<description type="text">
+		Iterates through a list of numbers whenever SYNC_IN is 1, sets SYNC_OUT to 1 on beginning of every iteration.
+
+		Handy for iterating through given values for experiments
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ListIterator"
+			name="ListIterator"
+			repeat = "true"
+			list = "0 1 2"
+			list_length = "3"
+			debug = "true"
+		/>
+	</example>
+	
+
+	<parameter name="repeat" type="bool" default="false" description="Whether to repeat when get to end of list" />
+	<parameter name="list" type="list" default="" description="A list of floats to iterate through" /> 
+	<parameter name="list_length" type="int" default="0" description="A list of floats to iterate through" /> 
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="SYNC IN" description="When this is 1 list will be iterated" size="1"/>
+	<input name="SELECT" description="Which output index to output on" size="1"/>
+
+	<output name="SYNC OUT" description="Set to 1 at every beginning of iteration" size="1" />
+	<output name="OUTPUT" description="Outputs current list element at selected index" size="3" />
+	<module class="ListIterator" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>ListIterator.h</file>
+   		<file>ListIterator.cc</file>
+   		<file>ListIterator.ikc</file>
+   </files>
+
+</group>
+
