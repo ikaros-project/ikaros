@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="Ones" description="A matrix with a single value">
+
+	<description type="text">
+		Simply a matrix filled with a given value, default=1.0
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Ones"
+			name="Ones"
+			size_x="2"
+			size_y="2"
+			value="1"
+		/>
+	</example>
+
+	<output name="OUTPUT" description="The first output" size_param_x="size_x" size_param_y="size_y" />
+
+	<parameter name="size_x" type="int" default="1" description="Width of matrix" />
+	<parameter name="size_y" type="int" default="1" description="Height of matrix" />
+	<parameter name="value" type="float" default="1.0" description="Value to fill with" />
+
+	<module class="Ones" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Ones.h</file>
+   		<file>Ones.cc</file>
+   		<file>Ones.ikc</file>
+   </files>
+
+</group>
+
