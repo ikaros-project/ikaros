@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+
+<group title="InputSelector Example">
+	
+		
+		<module
+         class = "InputJPEG"
+         name = "Input1"
+         filename = "letter_00_rz.jpg"
+         period = "1"
+         
+      />
+      <module
+         class = "InputJPEG"
+         name = "Input2"
+         filename = "letter_01_rz.jpg"
+         period = "1"
+      />
+	  <module
+         class = "InputJPEG"
+         name = "Input3"
+         filename = "letter_02_rz.jpg"
+         period = "1"
+      />
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "sine"
+		  frequency  =  "0.01"
+		  offset      =   "1.1"
+		  amplitude   =   "1.05"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "InputSelector"
+			name = "InputSelectorInstance"
+			inputs = "3"
+			
+		/>
+		
+        <connection sourcemodule = "Input1" source = "INTENSITY" targetmodule = "InputSelectorInstance" target = "INPUT1" />
+        <connection sourcemodule = "Input2" source = "INTENSITY" targetmodule = "InputSelectorInstance" target = "INPUT2" />
+		<connection sourcemodule = "Input3" source = "INTENSITY" targetmodule = "InputSelectorInstance" target = "INPUT3" />
+        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "InputSelectorInstance" target = "SELECT" />
+
+		<view name="View">
+			<object class="Plot " 
+				module="SquareGen" 
+				source="OUTPUT" 
+				x="0" y="0" w="1" h="1"
+				min="0"
+				max="2"
+			/>
+			<object class="Image" 
+				type="gray"
+				module="InputSelectorInstance" 
+				source="OUTPUT" 
+				x="0" y="1" w="1" h="1"
+				
+			/>
+		</view>
+
+</group>
+ 
