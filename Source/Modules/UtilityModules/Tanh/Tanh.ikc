@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="Tanh" description="minimal example module">
+
+	<description type="text">
+		Module that applies the tanh function to the input
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Tanh"
+			name="Tanh"
+			
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The first input" />
+
+	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+
+	<module class="Tanh" />
+
+	<view>
+		<object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for tanh"
+        />
+	</view>
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Tanh.h</file>
+   		<file>Tanh.cc</file>
+   		<file>Tanh.ikc</file>
+   </files>
+
+</group>
+

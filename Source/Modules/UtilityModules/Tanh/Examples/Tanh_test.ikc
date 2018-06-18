@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group title="Tanh Example">
+	
+		  <module
+			class = "Randomizer"
+			name = "Randomizer"
+			outputsize_x = "5"
+			outputsize_y = "5"
+			min = "-2"
+			max = "3"
+		/>
+		
+
+		<module
+			class = "Tanh"
+			name = "TanhInstance"
+		
+		/>
+		
+        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "TanhInstance" target = "INPUT" />
+        
+		<view name="View">
+			<object
+				class="Grid"
+				module="Randomizer"
+				source="OUTPUT"
+				x="0"
+				y="0"
+				color="LUT_fire"
+				/>
+			<object
+				class="Grid"
+				module="TanhInstance"
+				source="OUTPUT"
+				x="0"
+				y="1"
+				color="LUT_fire"
+				/>
+		</view>
+
+</group>
+ 

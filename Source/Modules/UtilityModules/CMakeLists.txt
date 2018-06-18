@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(Tanh)
 add_subdirectory(InputSelector)
 add_subdirectory(FanOut)
 add_subdirectory(FanIn)
