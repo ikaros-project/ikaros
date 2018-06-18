@@ -526,7 +526,7 @@ Module_IO::Allocate()
     if (sizex == unknown_size || sizey == unknown_size)
     {
         if (module != NULL && !optional)
-            module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name, module->GetName(), module->GetClassName());
+            module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
         return;
     }
     if (module != NULL) module->Notify(msg_verbose, "Allocating data of size %d.\n", size);
@@ -584,14 +584,15 @@ Module_IO::SetSize(int x, int y)
     if (size != unknown_size && s != size)
     {
         if (module != NULL)
-            module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name, module->GetName(), module->GetClassName(), size, s);
+            module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name.c_str(), module->GetName(), module->GetClassName(), size, s);
         return;
     }
     if (s == size)
         return;
     if (s == 0)
         return;
-    if (module != NULL) module->Notify(msg_verbose, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name, module->instance_name, module->GetClassName(), s, max_delay);
+    if (module != NULL)
+        module->Notify(msg_verbose, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name.c_str(), module->instance_name, module->GetClassName(), s, max_delay);
     sizex = x;
     sizey = y;
     size = x*y;
@@ -1150,7 +1151,7 @@ Module_IO *
 Module::GetModule_IO(Module_IO * list, const char * name)
 {
     for (Module_IO * i = list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
             return i;
     return NULL;
 }
@@ -1175,7 +1176,7 @@ float *
 Module::GetInputArray(const char * name, bool required)
 {
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
         {
             if (i->data == NULL)
             {
@@ -1194,7 +1195,7 @@ float *
 Module::GetOutputArray(const char * name, bool required)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
         {
             if (i->data == NULL)
             {
@@ -1213,7 +1214,7 @@ float **
 Module::GetInputMatrix(const char * name, bool required)
 {
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
         {
             if (i->matrix == NULL)
             {
@@ -1232,7 +1233,7 @@ float **
 Module::GetOutputMatrix(const char * name, bool required)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
         {
             if (i->matrix == NULL)
             {
@@ -1252,7 +1253,7 @@ Module::GetInputSize(const char * input_name)
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(input_name, i->name))
+        if (equal_strings(input_name, i->name.c_str()))
         {
             if (i->size != unknown_size)
                 return i->size;
@@ -1270,7 +1271,7 @@ Module::GetInputSizeX(const char * input_name)
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(input_name, i->name))
+        if (equal_strings(input_name, i->name.c_str()))
         {
             if (i->sizex != unknown_size)
                 return i->sizex;
@@ -1288,7 +1289,7 @@ Module::GetInputSizeY(const char * input_name)
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(input_name, i->name))
+        if (equal_strings(input_name, i->name.c_str()))
         {
             if (i->sizex != unknown_size)	// Yes, sizeX is correct
                 return i->sizey;
@@ -1305,7 +1306,7 @@ int
 Module::GetOutputSize(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
             return i->size;
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
@@ -1315,7 +1316,7 @@ int
 Module::GetOutputSizeX(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
             return  i->sizex;
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
@@ -1325,7 +1326,7 @@ int
 Module::GetOutputSizeY(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
             return  i->sizey;
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
@@ -1353,7 +1354,7 @@ Module::SetOutputSize(const char * name, int x, int y)
         return;
     }
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name))
+        if (equal_strings(name, i->name.c_str()))
             i->SetSize(x, y);
 }
 
@@ -1610,7 +1611,7 @@ Module::Notify(int msg, const char *format, ...)
 Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a)
 {
     if(d == 0 && !a)
-        kernel().Notify(msg_warning, "Zero-delay connection from \"%s\" of module \"%s\" to \"%s\" of module \"%s\" cannot be inactivated. Will be active.", sio->name, sio->module->GetName(), tio->name, tio->module->GetName());
+        kernel().Notify(msg_warning, "Zero-delay connection from \"%s\" of module \"%s\" to \"%s\" of module \"%s\" cannot be inactivated. Will be active.", sio->name.c_str(), sio->module->GetName(), tio->name.c_str(), tio->module->GetName());
 
     source_io = sio;
     source_offset = so;
@@ -1642,7 +1643,7 @@ Connection::Propagate(long tick)
     if (tick % target_io->module->period != target_io->module->phase)
         return;
     if (source_io != NULL && source_io->module != NULL)
-        source_io->module->Notify(msg_verbose, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name, target_io->module->GetName(), target_io->name, source_io->data, target_io->data, size);
+        source_io->module->Notify(msg_verbose, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
     for (int i=0; i<size; i++)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
 }
@@ -2066,7 +2067,7 @@ Kernel::CheckNAN()
                 float v = i->matrix[0][0][j];
                 if((v) != (v))
                 {
-                    Notify(msg_fatal_error, "NAN in output \"%s\" of module \"%s\" (%s).\n", i->name, i->module->instance_name, i->module->GetClassName());
+                    Notify(msg_fatal_error, "NAN in output \"%s\" of module \"%s\" (%s).\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
                     break;
                 }
             }
@@ -2089,7 +2090,7 @@ Kernel::CheckInputs()
                         connected = true;
                 if (connected)
                 {
-                    Notify(msg_fatal_error, "Size of input \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name, i->module->instance_name, i->module->GetClassName());
+                    Notify(msg_fatal_error, "Size of input \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
                 }
                 else
                     i->size = 0; // ok if not connected
@@ -2112,7 +2113,7 @@ Kernel::CheckOutputs()
                         connected = true;
                 if (connected)
                 {
-                    Notify(msg_fatal_error, "Size of output \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name, i->module->instance_name, i->module->GetClassName());
+                    Notify(msg_fatal_error, "Size of output \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
                 }
             }
     }
@@ -2125,19 +2126,19 @@ Kernel::InitInputs()
     {
         if (c->source_io->size == unknown_size)
         {
-            Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
+            Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
         }
         else if(c->target_io->data != NULL && c->target_io->allow_multiple == false)
         {
-            Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->module->GetClassName());
+            Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->module->GetClassName());
         }
         else if (c->delay == 0)
         {
-            Notify(msg_verbose, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
+            Notify(msg_verbose, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             // already connected to 0 or longer delay?
             if (c->target_io->data != NULL)
             {
-                Notify(msg_fatal_error, "Failed to connect zero-delay connection from \"%s\" of module \"%s\" (%s) because target is already connected.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
+                Notify(msg_fatal_error, "Failed to connect zero-delay connection from \"%s\" of module \"%s\" (%s) because target is already connected.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             }
             else
             {
@@ -2156,7 +2157,7 @@ Kernel::InitInputs()
             // Check that this connection does not interfere with zero-delay connection
             if (c->target_io->max_delay == 0)
             {
-                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
+                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             }
             // First connection to this target: initialize
             if (c->target_io->size == unknown_size)	// start calculation with size 0
@@ -2179,7 +2180,7 @@ Kernel::InitInputs()
             // Collapse matrix to array
             else
             {
-                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name);
+                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
                 c->target_io->sizex = c->target_io->size;
                 c->target_io->sizey = 1;
             }
@@ -2187,7 +2188,7 @@ Kernel::InitInputs()
             c->target_offset = target_offset;
             c->size = c->source_io->size;
             // Allocate input memory and reset
-            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
+            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
             c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
             c->target_io->Allocate();
         }
@@ -2197,7 +2198,7 @@ Kernel::InitInputs()
             // Check that this connection does not interfere with zero-delay connection
             if (c->target_io->max_delay == 0)
             {
-                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
+                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             }
             // First connection to this target: initialize
             if (c->target_io->size == unknown_size)    // start calculation with size 0
@@ -2220,13 +2221,13 @@ Kernel::InitInputs()
             // Collapse matrix to array
             else
             {
-                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name);
+                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
                 c->target_io->sizex = c->target_io->size;
                 c->target_io->sizey = 1;
             }
             // Set connection variables
             // Allocate input memory and reset
-            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
+            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
             c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
             c->target_io->Allocate();
         }
@@ -2991,11 +2992,11 @@ Kernel::ListModulesAndConnections()
         Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
             if(i->data)
-                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
+                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
             else
-                Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name);
+                Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name.c_str());
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
+            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
         Notify(msg_print, "\n");
     }
     Notify(msg_print, "Connections:\n");
@@ -3003,20 +3004,20 @@ Kernel::ListModulesAndConnections()
     for (Connection * c = connections; c != NULL; c = c->next)
         if (c->delay == 0)
             Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name, 0, c->source_io->size-1,
-                   c->target_io->module->instance_name, c->target_io->name, 0, c->source_io->size-1,
+                   c->source_io->module->instance_name, c->source_io->name.c_str(), 0, c->source_io->size-1,
+                   c->target_io->module->instance_name, c->target_io->name.c_str(), 0, c->source_io->size-1,
                    c->delay,
                    c->active ? "" : "[inactive]");
         else if (c->size > 1)
             Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name, c->source_offset, c->source_offset+c->size-1,
-                   c->target_io->module->instance_name, c->target_io->name, c->target_offset, c->target_offset+c->size-1,
+                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset, c->source_offset+c->size-1,
+                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset, c->target_offset+c->size-1,
                    c->delay,
                    c->active ? "" : "[inactive]");
         else
             Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name, c->source_offset,
-                   c->target_io->module->instance_name, c->target_io->name, c->target_offset,
+                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset,
+                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset,
                    c->delay,
                    c->active ? "" : "[inactive]");
     Notify(msg_print, "\n");

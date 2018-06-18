@@ -185,7 +185,8 @@ private:
     
     Module_IO   *   next;
     Module      *   module;
-    const char  *   name;
+    //const char  *   name;
+    std::string     name;
     float       **  data;        // Array for delays
     int             size;        // should equal sizex*sizey
     int             max_delay;   // maximum number of arrays/matrices
