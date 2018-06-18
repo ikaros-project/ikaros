@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group title="FanOut Example">
+	
+		<module
+            class = "InputPNG"
+            name = "Input"
+            _filename = "../../Models/pics/coil-100/thumbs/obj1%1d__10.png"
+            filename = "../../../../../Examples/Media/colorrobot.png"
+            filecount = "9"
+            iterations = "1000000"
+      />
+		
+
+		<module
+			class = "FanIn"
+			name = "FanInInstance"
+			inputs  = "4"
+			cell_size_x = "2"
+			cell_size_y = "2"
+		/>
+		<module
+			class = "FanOut"
+			name = "FanOutInstance"
+			outputs  = "4"
+			cell_size_x = "2"
+			cell_size_y = "2"
+		/>
+		
+       <connection sourcemodule = "Input" source = "RED" targetmodule = "FanInInstance" target = "INPUT1" />
+		<connection sourcemodule = "Input" source = "GREEN" targetmodule = "FanInInstance" target = "INPUT2" />
+		<connection sourcemodule = "Input" source = "BLUE" targetmodule = "FanInInstance" target = "INPUT3" />
+		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "FanInInstance" target = "INPUT4" />
+        <connection sourcemodule = "FanInInstance" source = "OUTPUT" targetmodule = "FanOutInstance" target = "INPUT" />
+		
+		<view name="View">
+			<object class= "Image" type="rgb" module="Input" source="RED+GREEN+BLUE"
+			                                        x="0" y="0" h="2" w="2" />
+			<object class= "Image" type="gray" module="Input" source="INTENSITY"
+			                                        x="0" y="2" h="2" w="2" />													
+			<object class= "Image" type="gray" module="FanInInstance" source="OUTPUT"
+			                                        x="2" y="0" h="2" w="2" />
+			<object class= "Image" type="rgb" module="FanOutInstance" source="OUTPUT1+OUTPUT2+OUTPUT3"
+			                                        x="2" y="0" h="2" w="2" />
+			<object class= "Image" type="gray" module="FanOutInstance" source="OUTPUT4"
+			                                        x="2" y="2" h="2" w="2" />
+		</view>
+
+</group>
+ 
