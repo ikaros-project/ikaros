@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="FanIn" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "FanIn" to the name of your new module in
+		FanIn.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="FanIn"
+			name="FanIn"
+			
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="inputs" type="int" default="1" description="Number of fan-in inputs" />
+	<parameter name="cell_size_x" type="int" default="1" description="X size of fan-in cell" />
+	<parameter name="cell_size_y" type="int" default="1" description="Y size of fan-in cell" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="*" description="The input" />
+
+	<output name="OUTPUT" description="The first output" />
+
+	<module class="FanIn" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>FanIn.h</file>
+   		<file>FanIn.cc</file>
+   		<file>FanIn.ikc</file>
+   </files>
+
+</group>
+
