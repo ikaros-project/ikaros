@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h> // memset
 
 // includes for image processing (JPEG)
 
