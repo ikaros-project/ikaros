@@ -10,7 +10,7 @@
 		<module
 			class="InputVideoFile"
 			name="InputVideoFile"
-            filename = "../../../../../../Examples/Media/ikaros.mov"
+            filename = "../../../../../../Examples/Media/ikaros.mp4"
 		/>
 
 	</example>

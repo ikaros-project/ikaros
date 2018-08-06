@@ -6,7 +6,7 @@
 		<module
 			class = "InputVideoFile"
 			name = "IN"
-			filename = "../../../../../../Examples/Media/ikaros.mov"
+			filename = "../../../../../../Examples/Media/ikaros.mp4"
 			loop = "yes"
 		/>
 

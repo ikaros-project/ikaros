@@ -5,7 +5,7 @@
 		<module
 			class = "InputVideoFile"
 			name = "InputVideoFile"
-            filename = "../../../../../../Examples/Media/ikaros.mov"
+            filename = "../../../../../../Examples/Media/ikaros.mp4"
 		/>
 		
 	<view name="Movie View" object_size="500">
