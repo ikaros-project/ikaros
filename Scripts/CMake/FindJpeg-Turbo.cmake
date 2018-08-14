@@ -11,10 +11,10 @@
 # Find header files
 find_path(TURBO_JPEG_INCLUDE_DIR
   NAMES
-    turbojpeg.h
+    turbojpeg.h jpeglib.h
   PATHS
     /usr/local/opt/jpeg-turbo/ # homebrew
-    /usr/lib/x86_64-linux-gnu/ # Ubuntu 16.04
+    /usr/lib/x86_64-linux-gnu/ # Ubuntu
   PATH_SUFFIXES
     include
 )
@@ -22,10 +22,10 @@ find_path(TURBO_JPEG_INCLUDE_DIR
 # Finding libs
 find_library(TURBO_JPEG_LIBRARIES
   NAMES
-    turbojpeg libturbojpeg.so.1 libturbojpeg.so.0 libturbojpeg.0.dylib
+    turbojpeg libturbojpeg.so.1 libturbojpeg.so.0 libturbojpeg.0.dylib libjpeg.so
   PATHS
     /usr/local/opt/jpeg-turbo/ # homebrew
-    /usr/lib/x86_64-linux-gnu/ # Ubuntu 16.04
+    /usr/lib/x86_64-linux-gnu/ # Ubuntu
   PATH_SUFFIXES
     lib
   )
