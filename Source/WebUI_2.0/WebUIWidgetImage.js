@@ -11,6 +11,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'format', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,red,green,blue,rgb"},
             {'name':'scale', 'default':"both", 'type':'string', 'control': 'menu', 'values': "none,width,height,both"},
             {'name': "STYLE", 'control':'header'},
+            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no", 'class':'true'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -25,7 +26,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
     updateFrame()
     {
-        this.oversampling = (this.parameters.file ? 4 : 1);
+        this.oversampling = 1; //(this.parameters.file ? 4 : 1);
         this.imageObj = new Image();
         if(this.parameters.file)
             this.imageObj.src = "/"+this.parameters.file;
@@ -69,7 +70,6 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             w = this.imageObj.width;
             h = this.imageObj.height;
         }
-
         this.canvas.drawImage(this.imageObj, 0, 0, w, h);
     }
     
@@ -79,6 +79,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         {
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
+            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+
             this.drawHorizontal(1, 1);  // Draw grid over image
         }
         catch(err)

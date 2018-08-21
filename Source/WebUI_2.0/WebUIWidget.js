@@ -2,10 +2,6 @@ class WebUIWidget extends HTMLElement
 {
     // functions that should be overridden in subclasses
     
-    init()
-    {
-    }
-    
     requestData(data_set)
     {
     }
@@ -36,11 +32,11 @@ class WebUIWidget extends HTMLElement
             return parseFloat(x);
         
         if(t == 'bool')
-            return x == 'true'; // only 'true'/'false' for now
+            return ['on','yes','true'].includes(x); // .toLowerCase()
         
         return x;
     }
-    
+
     constructor()
     {
         super();
@@ -114,14 +110,20 @@ class WebUIWidget extends HTMLElement
             data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
 
+    // ACCESS FUNCTIONS: Need some cleanup
+
+    // getProp finds a format variable by first looking through the attributes of the widget
+    // and then at the variables set in CSS
+
     getProp(attribute, index)
     {
         try
         {
+            let v = getComputedStyle(this).getPropertyValue(attribute);
             if(index)
-                return getComputedStyle(this).getPropertyValue(attribute).split(",")[index];
+                return v.split(",")[index].trim();
             else
-                return getComputedStyle(this).getPropertyValue(attribute).trim();
+                return v.trim();
         }
         catch(err)
         {
@@ -174,65 +176,102 @@ class WebUIWidget extends HTMLElement
         }
     }
 
+    getOfType(attribute, index, type)
+    {
+        if(type == 'bool')
+            return this.getBool(attribute, index)
+        else if(type == 'int')
+            return this.getInt(attribute, index)
+        else if(type == 'float')
+            return this.getFloat(attribute, index)
+        else
+            return this.getProp(attribute, index)
+    }
+    
+    setFormat(variable, attribute, type, index=undefined)
+    {
+        let v = null;
+        if(variable in this.parameters)
+        {
+            if(index)
+                v = this.parameters[variable].split(",")[index].toLowerCase()
+            else
+                v = this.parameters[variable];
+            v = this.setType(v, type);
+        }
+        else
+        {
+            v = this.getOfType(attribute, index, type)
+        }
+        
+        this.format[variable] = v;
+    }
+
     readCSSvariables()
     {
         // read CSS variables - TODO: allow to work also when some variable is missing
 
         this.format = {}
-        this.format.titleHeight =           this.getInt('--title-height');
-        this.format.titleFont =             this.getProp('--title-font');
-        this.format.titleColor =            this.getProp('--title-color');
-        this.format.titleBackground =       this.getProp('--title-background');
-        this.format.titleMargins =          this.getBool('--title-margins');
-        this.format.titleAlign =            this.getProp('--title-align');
-        this.format.titleOffsetX =          this.getFloat('--title-offset', 0);
-        this.format.titleOffsetY =          this.getFloat('--title-offset', 1);
 
-        this.format.marginLeft =            this.getInt('--margin-left');
-        this.format.marginRight =           this.getInt('--margin-right');
-        this.format.marginTop =             this.getInt('--margin-top');
-        this.format.marginBottom =          this.getInt('--margin-bottom');
+        this.setFormat('direction', '--direction', 'string');
 
-        this.format.spaceLeft =             this.getInt('--space-left');
-        this.format.spaceRight =            this.getInt('--space-right');
-        this.format.spaceTop =              this.getInt('--space-top');
-        this.format.spaceBottom =           this.getInt('--space-bottom');
+        this.setFormat('titleHeight', '--title-height', 'int');
+        this.setFormat('titleFont', '--title-font', 'string');
+        this.setFormat('titleColor', '--title-color', 'string');
+        this.setFormat('titleBackground', '--title-background', 'string');
+        this.setFormat('titleMargins', '--title-margins','int');
+        this.setFormat('titleAlign', '--title-align', 'string');
+        this.setFormat('titleOffsetX', '--title-offset','int', 0);
+        this.setFormat('titleOffsetY', '--title-offset','int', 1);
 
-        this.format.spacing =               this.getFloat('--spacing');
+        this.setFormat('marginLeft', '--margin-left', 'int');
+        this.setFormat('marginRight', '--margin-right', 'int');
+        this.setFormat('marginTop', '--margin-top', 'int');
+        this.setFormat('marginBottom', '--margin-bottom', 'int');
 
-        this.format.color =                 this.getProp('--color');
-        this.format.positiveColor =         this.getProp('--positive-color');
-        this.format.negativeColor =         this.getProp('--negative-color');
-        this.format.lineWidth =             this.getProp('--line-width');
-        this.format.fill =                  this.getProp('--fill');
+        this.setFormat('spaceLeft', '--space-left', 'int');
+        this.setFormat('spaceRight', '--space-right', 'int');
+        this.setFormat('spaceTop', '--space-top', 'int');
+        this.setFormat('spaceBottom', '--space-bottom', 'int');
 
-        this.format.gridColor =             this.getProp('--grid-color');
-        this.format.gridLineWidth =         this.getProp('--grid-line-width');
-        this.format.gridFill =              this.getProp('--grid-fill');
+        this.setFormat('spacing', '--spacing', 'int');
 
-        this.format.frame =                 this.getProp('--frame');
-        this.format.xAxis =                 this.getBool('--x-axis');
-        this.format.yAxis =                 this.getBool('--y-axis');
-        this.format.axisColor =             this.getProp('--axis-color');
-        this.format.verticalGridlines =     this.getInt('--vertical-gridlines');
-        this.format.horizontalGridlines =   this.getInt('--horizontal-gridlines');
-        this.format.leftTickMarks =         this.getInt('--left-tick-marks');
-        this.format.rightTickMarks =        this.getInt('--right-tick-marks');
-        this.format.bottomTickMarks =       this.getInt('--bottom-tick-marks');
-        this.format.leftScale =             this.getInt('--left-scale');
-        this.format.rightScale =            this.getInt('--right-scale');
-        this.format.bottomScale =           this.getInt('--bottom-scale');
-        this.format.scaleOffset =           this.getInt('--scale-offset');
-        this.format.scaleFont =             this.getProp('--scale-font');
-        this.format.labels =                this.getBool('--labels');
-        this.format.labelColor =            this.getProp('--label-color');
-        this.format.labelFont =             this.getProp('--label-font');
+        this.setFormat('color', '--color', 'string')
+        this.setFormat('positiveColor', '--positive-color', 'string');
+        this.setFormat('negativeColor', '--negative-color', 'string');
+        this.setFormat('lineWidth', '--line-width', 'string');
+        this.setFormat('fill', '--fill', 'string');
 
-        this.format.direction =             this.getProp('--direction');
+        this.setFormat('gridColor', '--grid-color', 'string');
+        this.setFormat('gridLineWidth', '--grid-line-width', 'string');
+        this.setFormat('gridFill', '--grid-fill', 'string');
 
-        this.format.decimals =              this.getInt('--decimals');
-        this.format.min =                   this.getInt('--min');
-        this.format.max =                   this.getInt('--max');
+        this.setFormat('frame', '--frame', 'string');
+        this.setFormat('xAxis', '--x-axis', 'bool');
+        this.setFormat('yAxis', '--y-axis', 'bool');
+        this.setFormat('axisColor', '--axis-color', 'string');
+        this.setFormat('verticalGridlines', '--vertical-gridlines', 'int');
+        this.setFormat('horizontalGridlines', '--horizontal-gridlines', 'int');
+        this.setFormat('verticalGridlinesOver', '--vertical-gridlines-over', 'int');
+        this.setFormat('horizontalGridlinesOver', '--horizontal-gridlines-over', 'int');
+        this.setFormat('leftTickMarks', '--left-tick-marks', 'int');
+        this.setFormat('rightTickMarks', '--right-tick-marks', 'int');
+        this.setFormat('bottomTickMarks', '--bottom-tick-marks', 'int');
+        this.setFormat('leftScale', '--left-scale', 'int');
+        this.setFormat('rightScale', '--right-scale', 'int');
+        this.setFormat('bottomScale', '--bottom-scale', 'int');
+        this.setFormat('scaleOffset', '--scale-offset', 'int');
+        this.setFormat('scaleFont', '--scale-font', 'string');
+        
+        this.setFormat('labels', '--labels', 'bool');
+        this.setFormat('labelColor', '--label-color', 'string');
+        this.setFormat('labelFont', '--label-font', 'string');
+        this.setFormat('drawLabelsX', '--draw-labels-x', 'bool');
+        this.setFormat('drawLabelsY', '--draw-labels-y', 'bool');
+        
+        this.setFormat('decimals', '--decimals', 'int');
+        this.setFormat('min', '--min', 'int');
+        this.setFormat('max', '--max', 'int');
     }
 
     getColor(i, v)
@@ -264,6 +303,14 @@ class WebUIWidget extends HTMLElement
         }
     }
 
+    setCSSClass()
+    {
+        this.className = "widget "
+        for(let p of this.parameter_template)
+            if(p['class'])
+                this.className += p['name']+'-'+this.parameters[p['name']] + " "
+    }
+    
     connectedCallback()
     {
         this.innerHTML = this.constructor.html();
@@ -281,9 +328,10 @@ class WebUIWidget extends HTMLElement
         this.updateStyle(this.parentNode, this.parameters['frame-style']);
         this.readCSSvariables();
 
+        // set classes for formating
+
         this.init();
     }
-
 
     updateStyle(element, style)
     {
@@ -310,9 +358,10 @@ class WebUIWidget extends HTMLElement
         this.parentElement.className += this.parameters.show_frame ? ' visible' : '';
         this.parentElement.firstChild.style.display = this.parameters.show_title ? 'block' : 'none';
         this.parentElement.firstChild.innerText = this.parameters.title;
-
+        this.setCSSClass();
+        this.readCSSvariables(); // TEST
     }
-    
+
     init()
     {
         this.updateAll();
@@ -321,7 +370,7 @@ class WebUIWidget extends HTMLElement
     update()
     {
     }
-    
+
     updateAll()
     {
         this.updateFrame();
@@ -330,4 +379,3 @@ class WebUIWidget extends HTMLElement
 };
 
 customElements.define('webui-widget', WebUIWidget);
-

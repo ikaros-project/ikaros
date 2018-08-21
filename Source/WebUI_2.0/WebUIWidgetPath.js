@@ -17,6 +17,9 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
+            {'name':'color', 'default':'black', 'type':'string', 'control': 'textedit'},   // no default = get from CSS
+            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
+            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no", 'class':'true'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -40,9 +43,9 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     }
 
 
-    drawRows(d, rows)
+    drawRows(width, height)
     {
-        this.canvas.clearRect(0, 0, this.width, this.height);
+//        this.canvas.clearRect(0, 0, this.width, this.height);
         
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         
@@ -78,10 +81,12 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     }
 
 
-
-    drawCols(d, rows)
+    drawCols(width, height)
     {
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        let d = this.data;
+        let rows = this.data.length;
+        
+//        this.canvas.clearRect(0, 0, width, height);
         this.canvas.lineWidth = this.parameters.stroke_width;
         
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
@@ -93,41 +98,38 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
-            let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * this.width;
-            let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * this.height;
+            let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
+            let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
             this.canvas.moveTo(x, y);
             
             for(var j=1; j<rows;j++)
             {
                 lx = x;
                 ly = y;
-                x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * this.width;
-                y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * this.height;
+                x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
+                y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
                 
                 this.canvas.lineTo(x, y);
             }
 
-//            if(this.fill_LUT[i % this.fill_LUT.length]!= 'none')
-//                this.canvas.fill();
+            this.canvas.fill();
             if(this.parameters.close)
                 this.canvas.closePath();
             this.canvas.stroke();
             
-//            if(this.arrow)
-//                this.canvas.drawArrowHead(lx, ly, x, y);
+            if(this.parameters.arrow)
+                this.drawArrowHead(lx, ly, x, y);
 
             c++;
         }
     }
 
-
-
     drawPlotHorizontal(width, height)
     {
-        if(this.parameters.order)
-            this.drawRows(this.data, rows);
+        if(this.parameters.order=="row")
+            this.drawRows(width, height);
         else
-            this.drawCols(this.data, rows);
+            this.drawCols(width, height);
     }
     
     update(d)   // default for Graph - should not be needed here
@@ -146,8 +148,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         this.parameters.max_y = (this.parameters.max_y ? this.parameters.max_y : this.parameters.max);
         this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
 
-
-        // darw if data available
+        // draw if data available
         if(!d)
             return;
         
@@ -159,7 +160,11 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             if(!this.data)
                 return;
 
-            let rows = this.data.length;
+/*
+            if(this.parameters.order=="row")
+                this.count = this.data.length;
+            else
+                this.count = this.data[0].length;
 
             if(this.parameters.length_source)
             {
@@ -168,12 +173,14 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                 {
                     r = r[this.parameters.length_source];
                     if(r)
-                        rows = r[0][0];
+                        this.count = r[0][0];
                 }
             }
-
+*/
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
+            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
         catch(err)

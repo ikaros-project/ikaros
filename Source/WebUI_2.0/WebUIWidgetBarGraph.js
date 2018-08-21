@@ -9,7 +9,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical"},
+            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical", 'class':'true'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -21,9 +21,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     init()
     {
         super.init();
-        
         this.data = [];
-        
         this.onclick = function () { alert(this.data) };
     }
 
@@ -40,7 +38,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         this.canvas.fill();
         this.canvas.stroke();
     }
-    
+
     drawBarVertical(width, height, i)
     {
         this.canvas.beginPath();
@@ -54,7 +52,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
 //        this.canvas.fillStyle = '#ffcccc';
 //        this.canvas.fillRect(0, 0, width, height);
-
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -76,7 +73,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
 //        this.canvas.fillStyle = '#ffcccc';
 //        this.canvas.fillRect(0, 0, width, height);
-
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
@@ -95,6 +91,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         }
     }
 
+    // update() gest the data for the graph and calls WebUIWidgetGraph::draw() which in turn calls
+    // drawPlotHorizontal() or drawPlotVertical()
+    
     update(d)
     {
         try {

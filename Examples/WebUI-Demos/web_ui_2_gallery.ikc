@@ -1,235 +1,161 @@
 <?xml version="1.0"?>
 
-<!-- Example of the different WebUI 2.0 objects fillled with random values. -->
+<!-- Example of the different WebUI 2.0 objects filled with random values. -->
 
 <group name="WebUI Demo">
 	
-    <group name="Inner">
-         <module
-            class = "Randomizer"
-            name = "Randomic"
-            outputsize = "10"
+    <view name="Paths">
+
+        <path
+            x="20" y="20"
+            width="200"
+            height="200"
+            title="Multicolored Path"
+            module="Lines"
+            source="OUTPUT"
+            stroke_width = "4"
+            arrow = "yes"
+            fill = "yellow"
+            color = "red, green, blue, yellow"
+        />
+ 
+         <table title="Default Table" module="Lines" source="OUTPUT" x="240" y="20" width="200" height="200" />
+         
+<!--        <path
+            x="220" y="20"
+            width="200"
+            height="200"
+            title="Triangles"
+            module="R"
+            source="OUTPUT"
+            order="row"
+            _stroke_width = "9"
+            _arrow="no"
+            close="yes"
+            _color = "red, green, blue, yellow"
+            _lineCap = "round"
+            _lineJoin = "round"
         />
 
-        <view name="Plots">
-            <plot
-                x="40" y="40"
-                width="301"
-                height="301"
-                module="Randomic"
-                source="OUTPUT"
-                title = "Plot"
-            />
-        </view>
-    </group>
-    
-    <module
-        class="InputJPEG"
-        name="Image"
-        filename="../Media/colorrobot.jpg"
-        size_x="256"
-        size_y="256"
-    />
 
-    <module
-        class = "Randomizer"
-        name = "R5"
-        outputsize = "10"
-    />
 
-    <module
-        class = "Randomizer"
-        name = "R3x7"
-        outputsize_x = "2"
-        outputsize_y = "1"
-    />
+        <object
+            x="0" y="1"
+            class="Path"
+            title="Lines and Circles"
+            module="Lines"
+            source="OUTPUT"
+            stroke_width = "1"
+            color = "red, green, blue, yellow"
+        />
 
-    <module
-        class = "Constant"
-        name = "C"
-        outputsize = "5"
-        data= "-1 -0.5 0 0.5 1"
-    />
+        <object
+            x="0" y="1"
+            class="CCircle"
+             module="Lines"
+            source="OUTPUT"
+            stroke_width = "9"
+            color = "red, green, blue, yellow"
+            size = "0.02"
+            fill =  "red, green, blue, yellow"
+            select = "2"
+        />
 
-    <module
-        class = "Randomizer"
-        name = "R5X"
-        outputsize = "5"
-        min = "-1"
-        max = "1"
-    />
+        <object
+            x="2" y="0"
+            class="Path"
+            title="Paths (Flip X)"
+            module="R"
+            source="OUTPUT"
+            stroke_width = "5"
+            arrow="no"
+            color = "red, green, blue, yellow"
+            flip_x_axis = "yes"
+        />
 
-    <module
-        class = "Randomizer"
-        name = "R23"
-        outputsize_x = "2"
-        outputsize_y = "3"
-    />
+        <object
+            x="1" y="1"
+            class="Path"
+            title="Arrows (Flip Y)"
+            module="R"
+            source="OUTPUT"
+            stroke_width = "1"
+            arrow = "yes"
+            color = "red, green, blue, yellow"
+            flip_y_axis = "yes"
+        />
 
-    <module
-        class = "Randomizer"
-        name = "R33"
-        outputsize_x = "3"
-        outputsize_y = "3"
-    />
+        <object
+            x="2" y="1"
+            class="Path"
+            title="Filled (Flip X and Y)"
+            module="R"
+            source="OUTPUT"
+            stroke_width = "1"
+            arrow = "no"
+            close = "yes"
+            fill = "rgba(255,0,0,0.5),rgba(0,255,0,0.25),rgba(0,0,255,0.5),rgba(255,255,0,0.5)"
+            color = "red, green, blue, yellow"
+            flip_x_axis = "yes"
+            flip_y_axis = "yes"
+        />
 
-    <module
-        class = "Randomizer"
-        name = "R23T"
-        outputsize_x = "2"
-        outputsize_y = "3"
-        min="-1"
-        max="1"
-    />
+        <object
+            x="3" y="0"
+            class="CCircle"
+            title="Circles"
+             module="R"
+            source="OUTPUT"
+            line_width = "9"
+            color = "red, green, blue, yellow"
+            size = "0.1"
+            select = "2"
+            select_size = "1"
+            scale_size = "0.1"
+        />
 
-    <module
-        class = "Randomizer"
-        name = "PM28"
-        min = "-1"
-        max ="1"
-        outputsize_x = "2"
-        outputsize_y = "8"
-    />
+-->
+    </view>
 
-    <module
-        class = "Randomizer"
-        name = "R"
-        outputsize_x = "6"
-        outputsize_y = "3"
-        min = "0.1"
-        max = "0.9"
-    />
+    <view name="Images">
 
-    <module
-        class = "Randomizer"
-        name = "S"
-        outputsize_x = "6"
-        outputsize_y = "3"
-        min = "0.1"
-        max = "0.3"
-    />
+        <image
+            x="340" y="40"
+            width="301"
+            height="301"
+            module="InputVideoFile"
+            source="INTENSITY"
+            title = "Moving Image"
+            file = ""
+            style = ""
+        />
+ 
+         <graph x="640" y="40" width="301" height="301" labels_x = "A, B, C, D"
+            labels_y="X, Y, Z, T" />
 
-    <module
-        class = "Randomizer"
-        name = "G"
-        outputsize_x = "5"
-        outputsize_y = "5"
-    />
+         <image
+            x="340" y="340"
+            width="1280"
+            height="720"
+            module="InputVideoFile"
+            source="RED+GREEN+BLUE"
+            title = "Moving Colors"
+            format = "rgb"
+            file = ""
+            style = ""
+        />
 
-    <module
-        class = "Randomizer"
-        name = "B"
-        outputsize_x = "5"
-        outputsize_y = "5"
-    />
-
-    <module
-        class = "Randomizer"
-        name = "R25"
-        outputsize = "25"
-        max = "1"
-        min = "-1"
-    />
-		
-    <module
-        class = "Randomizer"
-        name = "PP25"
-        outputsize = "13"
-        max = "0.5"
-        min = "1.0"
-    />
-		
-    <module
-        class = "Randomizer"
-        name = "X"
-        outputsize_x = "5"
-        outputsize_y = "5"
-        max = "1"
-        min = "-1"
-    />
-		
-    <module
-        class = "Randomizer"
-        name = "Y"
-        outputsize_x = "5"
-        outputsize_y = "5"
-        max = "1"
-        min = "-1"
-    />
-		
-    <module
-        class = "Randomizer"
-        name = "R2"
-        outputsize = "2"
-    />
-
-    <module
-        class = "Randomizer"
-        name = "RColorGrid"
-        outputsize_x = "5"
-        outputsize_y = "5"
-        max = "1"
-    />
-
-    <module
-        class = "Randomizer"
-        name = "MaxGrayGrid"
-        outputsize_x = "25"
-        outputsize_y = "25"
-        max = "1"
-    />
-
-    <module
-        class = "Randomizer"
-        name = "RGrayGrid"
-        outputsize_x = "25"
-        outputsize_y = "25"
-        max = "1"
-    />
-
-    <module
-        class = "FunctionGenerator"
-        name = "FG"
-        type = "sin"
-        frequency = "0.1"
-    />
-		  
-    <module
-        class = "FunctionGenerator"
-        name = "FG2"
-        type = "sin"
-        frequency = "0.04"
-        offset = "0.2"
-        amplitude = "0.2"
-    />
-		  
-	<module
-		class="InputJPEG"
-		name="SmallImage"
-		filename="../Media/SmallSequence/img%d.jpg"
-		filecount = "32"
-    />
-
-    <module
-        class = "Constant"
-        name = "Lines"
-        outputsize_x = "4"
-        outputsize_y = "4"
-        data= "0.1 0.4 0.9 0.4; 0.9 0.4 0.9 0.9; 0.9 0.9 0.1 0.9; 0.1 0.9 0.1 0.4"
-    />
-
-    <module
-        class = "Constant"
-        name = "CCC"
-        data = "0 0.5 1"
-    />
-    
-    <module
-        class = "InputVideoFile"
-        name = "InputVideoFile"
-        filename = "../Media/ikaros.mp4"
-        loop = "yes"
-    />
+       <image
+            x="940" y="40"
+            width="301"
+            height="301"
+            _module="R3x7"
+            _source="OUTPUT"
+            title = "Fixed Image"
+            file = "bike2.png"
+            style = ""
+        />
+    </view>
 
     <view name="Bar Graphs">
         <bar-graph
@@ -239,7 +165,8 @@
             module="R3x7"
             source="OUTPUT"
             title = "Bar Graph X"
-            labels_x = "X, Y, Z"
+            labels = "A, B"
+            _labels_x = "X, Y, Z"
             labels_y = "A, B, C"
             style = ""
         />
@@ -251,7 +178,7 @@
             module="R3x7"
             source="OUTPUT"
             title = "Bar Graph X"
-            labels = "A, B, C, D, E, F, G"
+            labels = "A, B"
             style = ""
             direction="horizontal"
         />
@@ -333,41 +260,6 @@
         <graph x="40" y="40" width="400" height="400" labels_x = "A, B, C, D" labels_y="X, Y, Z, T" />
     </view>
 
-    <view name="New Images">
-        <image
-            x="340" y="40"
-            width="301"
-            height="301"
-            module="InputVideoFile"
-            source="INTENSITY"
-            title = "Moving Image"
-            file = ""
-            style = ""
-        />
- 
-         <image
-            x="340" y="340"
-            width="1280"
-            height="720"
-            module="InputVideoFile"
-            source="RED+GREEN+BLUE"
-            title = "Moving Colors"
-            format = "rgb"
-            file = ""
-            style = ""
-        />
-
-       <image
-            x="40" y="40"
-            width="301"
-            height="301"
-            _module="R3x7"
-            _source="OUTPUT"
-            title = "Fixed Image"
-            file = "bike2.png"
-            style = ""
-        />
-    </view>
 
     <view name="Controls">
         <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
@@ -401,139 +293,12 @@
     </view>
 
 
-    <view name="Paths">
-
-        <path
-            x="20" y="20"
-            width="200"
-            height="200"
-            title="Multicolored Path"
-            module="Lines"
-            source="OUTPUT"
-            stroke_width = "1"
-            _color = "red, green, blue, yellow"
-        />
-        
-        <path
-            x="220" y="20"
-            width="200"
-            height="200"
-            title="Triangles"
-            module="R"
-            source="OUTPUT"
-            order="row"
-            _stroke_width = "9"
-            _arrow="no"
-            close="yes"
-            _color = "red, green, blue, yellow"
-            _lineCap = "round"
-            _lineJoin = "round"
-        />
-
-
-<!--
-        <object
-            x="0" y="1"
-            class="Path"
-            title="Lines and Circles"
-            module="Lines"
-            source="OUTPUT"
-            stroke_width = "1"
-            color = "red, green, blue, yellow"
-        />
-
-        <object
-            x="0" y="1"
-            class="CCircle"
-             module="Lines"
-            source="OUTPUT"
-            stroke_width = "9"
-            color = "red, green, blue, yellow"
-            size = "0.02"
-            fill =  "red, green, blue, yellow"
-            select = "2"
-        />
-
-        <object
-            x="2" y="0"
-            class="Path"
-            title="Paths (Flip X)"
-            module="R"
-            source="OUTPUT"
-            stroke_width = "5"
-            arrow="no"
-            color = "red, green, blue, yellow"
-            flip_x_axis = "yes"
-        />
-
-        <object
-            x="1" y="1"
-            class="Path"
-            title="Arrows (Flip Y)"
-            module="R"
-            source="OUTPUT"
-            stroke_width = "1"
-            arrow = "yes"
-            color = "red, green, blue, yellow"
-            flip_y_axis = "yes"
-        />
-
-        <object
-            x="2" y="1"
-            class="Path"
-            title="Filled (Flip X and Y)"
-            module="R"
-            source="OUTPUT"
-            stroke_width = "1"
-            arrow = "no"
-            close = "yes"
-            fill = "rgba(255,0,0,0.5),rgba(0,255,0,0.25),rgba(0,0,255,0.5),rgba(255,255,0,0.5)"
-            color = "red, green, blue, yellow"
-            flip_x_axis = "yes"
-            flip_y_axis = "yes"
-        />
-
-        <object
-            x="3" y="0"
-            class="CCircle"
-            title="Circles"
-             module="R"
-            source="OUTPUT"
-            line_width = "9"
-            color = "red, green, blue, yellow"
-            size = "0.1"
-            select = "2"
-            select_size = "1"
-            scale_size = "0.1"
-        />
-
--->
+    <view name="Tables">
+        <table title="Default Table" module="R23T" source="OUTPUT" x="40" y="20" width="300" height="300" />
+        <table title="Colored Table" module="R23T" source="OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
+        <table title="Color by Sign" module="R23T" source="OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
     </view>
 
-<!-- OLD STUFF BELOW. WILL NOT YET FUNCTION WITH WEB UI 2.0 -->
-
-    <view name="Table">
-        <table title="Default Table" module="R23T" source="OUTPUT" x="40" y="40" width="300" height="300" />
-        <table title="Colored Table" module="R23T" source="OUTPUT" x="40" y="380" width="300" height="300"  color="red, green, blue" />
-        <table title="Color by Sign" module="R23T" source="OUTPUT" x="40" y="700" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
-    </view>
-    
-
-	<view name="Images">
-		<object class="Image" title="Color Image"  type="rgb" module="Image" source="RED+GREEN+BLUE" x="10" y="10" />
-		<object class="text" text="The viewobject to the left shows an RGB image. The images below are different pseudo color version of the intensity channel. The final row shows static PNG images. In the middle, a PNG image with a transparent circle is used as an overlay." x="110" y="10" width="200" />
-
-		<object class="Image" title="Fire" type="fire" module="Image" source="INTENSITY" x="10" y="110" />
-		<object class="Image" title="Spectrum"  type="spectrum" module="Image" source="INTENSITY" x="110" y="110" />
-		<object class="Image" title="Green"  type="green" module="Image" source="INTENSITY" x="210" y="110" />
-
-		<object class="Image" title="Image File" type="file" file="bike.jpg" x="10" y="210" />
-
-		<object class="Image" opaque="no"  type="fire" module="Image" source="INTENSITY" x="110" y="210" />
-		<object class="Image" opaque="no"  type="file" file="bike.png" x="110" y="210" />
-
-		<object class="Image" opaque="no"  type="file" file="bike2.png" x="210" y="210" />
-	</view>
 
     <view name="Grids">
         <object class="Grid" title="Gray Grid" module="RGrayGrid" source="OUTPUT" x="0" y="0" color="LUT_gray" />
@@ -545,6 +310,27 @@
             class="Text" 
             text="These are two Grid objects, one in gray scale and one in color."
         />
+    </view>
+
+
+
+<!-- OLD STUFF BELOW. WILL NOT YET FUNCTION WITH WEB UI 2.0 -->
+
+
+    <view name="Old Images">
+        <object class="Image" title="Color Image"  type="rgb" module="Image" source="RED+GREEN+BLUE" x="10" y="10" />
+        <object class="text" text="The viewobject to the left shows an RGB image. The images below are different pseudo color version of the intensity channel. The final row shows static PNG images. In the middle, a PNG image with a transparent circle is used as an overlay." x="110" y="10" width="200" />
+
+        <object class="Image" title="Fire" type="fire" module="Image" source="INTENSITY" x="10" y="110" />
+        <object class="Image" title="Spectrum"  type="spectrum" module="Image" source="INTENSITY" x="110" y="110" />
+        <object class="Image" title="Green"  type="green" module="Image" source="INTENSITY" x="210" y="110" />
+
+        <object class="Image" title="Image File" type="file" file="bike.jpg" x="10" y="210" />
+
+        <object class="Image" opaque="no"  type="fire" module="Image" source="INTENSITY" x="110" y="210" />
+        <object class="Image" opaque="no"  type="file" file="bike.png" x="110" y="210" />
+
+        <object class="Image" opaque="no"  type="file" file="bike2.png" x="210" y="210" />
     </view>
 
     <view name="Plot">
@@ -1147,6 +933,239 @@
             title = "1148"
         />
     </view>
+    
+    <group name="Inner">
+         <module
+            class = "Randomizer"
+            name = "Randomic"
+            outputsize = "10"
+        />
+
+        <view name="Plots">
+            <plot
+                x="40" y="40"
+                width="301"
+                height="301"
+                module="Randomic"
+                source="OUTPUT"
+                title = "Plot"
+            />
+        </view>
+    </group>
+    
+    <module
+        class="InputJPEG"
+        name="Image"
+        filename="../Media/colorrobot.jpg"
+        size_x="256"
+        size_y="256"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R5"
+        outputsize = "10"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R3x7"
+        outputsize_x = "2"
+        outputsize_y = "1"
+    />
+
+    <module
+        class = "Constant"
+        name = "C"
+        outputsize = "5"
+        data= "-1 -0.5 0 0.5 1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R5X"
+        outputsize = "5"
+        min = "-1"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23"
+        outputsize_x = "2"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R33"
+        outputsize_x = "3"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23T"
+        outputsize_x = "2"
+        outputsize_y = "3"
+        min="-1"
+        max="1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "PM28"
+        min = "-1"
+        max ="1"
+        outputsize_x = "2"
+        outputsize_y = "8"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.9"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "S"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "G"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "B"
+        outputsize_x = "5"
+        outputsize_y = "5"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R25"
+        outputsize = "25"
+        max = "1"
+        min = "-1"
+    />
+    
+    <module
+        class = "Randomizer"
+        name = "PP25"
+        outputsize = "13"
+        max = "0.5"
+        min = "1.0"
+    />
+    
+    <module
+        class = "Randomizer"
+        name = "X"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+        min = "-1"
+    />
+    
+    <module
+        class = "Randomizer"
+        name = "Y"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+        min = "-1"
+    />
+    
+    <module
+        class = "Randomizer"
+        name = "R2"
+        outputsize = "2"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RColorGrid"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "MaxGrayGrid"
+        outputsize_x = "25"
+        outputsize_y = "25"
+        max = "1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RGrayGrid"
+        outputsize_x = "25"
+        outputsize_y = "25"
+        max = "1"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "FG"
+        type = "sin"
+        frequency = "0.1"
+    />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "FG2"
+        type = "sin"
+        frequency = "0.04"
+        offset = "0.2"
+        amplitude = "0.2"
+    />
+    
+    <module
+        class="InputJPEG"
+        name="SmallImage"
+        filename="../Media/SmallSequence/img%d.jpg"
+        filecount = "32"
+    />
+
+    <module
+        class = "Constant"
+        name = "Lines"
+        _outputsize_x = "2"
+        _outputsize_y = "4"
+        data= "
+        0.0 0.0;
+        0.0 1.0;
+        1.0 1.0;
+        0.5 0.5"
+       _data= "0.1 0.4 0.9 0.4; 0.9 0.4 0.9 0.9; 0.9 0.9 0.1 0.9; 0.1 0.9 0.1 0.4"
+    />
+
+    <module
+        class = "Constant"
+        name = "CCC"
+        data = "0 0.5 1"
+    />
+    
+    <module
+        class = "InputVideoFile"
+        name = "InputVideoFile"
+        filename = "../Media/ikaros.mp4"
+        loop = "yes"
+    />
+
 </group>
  
 

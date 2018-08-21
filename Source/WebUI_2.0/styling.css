@@ -188,8 +188,10 @@ main {
 
     --frame: none;
 
-    --vertical-gridlines: 5;
-    --horizontal-gridlines: 5;
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --vertical-gridlines-over: 0;
+    --horizontal-gridlines-over: 0;
     --grid-color: lightgray;        /*  #00000000 for none  */
     --grid-fill: lightgreen;
     --grid-line-width: 1;
@@ -197,17 +199,19 @@ main {
     --x-axis: yes;  /* width? color? */
     --y-axis: yes;
     --axis-color: black;
-    --left-tick-marks: 5;
-    --right-tick-marks: 5;
-    --bottom-tick-marks: 5;
-    --left-scale: 3;
-    --right-scale: 3;
-    --bottom-scale: 3;
+    --left-tick-marks: 0
+    --right-tick-marks: 0;
+    --bottom-tick-marks: 0;
+    --left-scale: 0;
+    --right-scale: 0;
+    --bottom-scale: 0;
     --scale-font: 9pt Arial;
     --scale-offset: 10;
     
     --label-color: gray;
     --label-font: 12pt Arial;
+    --draw-labels-x: no;
+    --draw-labels-y: no;
 
     --spacing: 0.1;
  

@@ -11,7 +11,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'buffer_size', 'default':50, 'type':'int', 'control': 'textedit'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "vertical"},
+            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "vertical", 'class':'true'},
             {'name': "STYLE", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -41,8 +41,8 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         else
             return this.parameters.buffer_size;
     }
-
-    drawBarHorizontal(width, height, i)
+/*
+    drawBarHorizontal(width, height, i) // not used
     {
         this.canvas.beginPath();
         this.setColor(i)
@@ -51,7 +51,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.canvas.stroke();
     }
 
-    drawBarVertical(width, height, i)
+    drawBarVertical(width, height, i)// not used
     {
         this.canvas.beginPath();
         this.setColor(i)
@@ -59,7 +59,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.canvas.fill();
         this.canvas.stroke();
     }
-
+*/
     drawPlotHorizontal(width, height, y)
     {
     /*

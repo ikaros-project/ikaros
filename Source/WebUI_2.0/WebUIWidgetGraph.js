@@ -3,14 +3,13 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
     init()
     {
         super.init();
-
+/*
         this.usesLeftScale = true;
         this.usesRightScale = true;
         this.usesBottomScale = true;
         this.usesYLabels = true;
         this.usesXLabels = true;
-        this.usesGridOverlay = false;
-
+*/
         this.parameters.min = 0;
         this.parameters.max = 1;
     }
@@ -224,6 +223,43 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         }
     }
 
+    drawHorizontalGridlinesOver(width, height)
+    {
+        let n = this.format.horizontalGridlinesOver;
+        if(n==0)
+            return;
+        
+        let p=0;
+        for(let j=0; j<n; j++)
+        {
+            let q = Math.round(p)
+            this.canvas.beginPath();
+            this.canvas.strokeStyle = this.format.gridColor;
+            this.canvas.moveTo(0, q);
+            this.canvas.lineTo(width, q);
+            this.canvas.stroke();
+            p += height/(n-1);
+        }
+    }
+
+    drawVerticalGridlinesOver(width, height)
+    {
+        let n = this.format.verticalGridlinesOver;
+        if(n==0)
+            return;
+        
+        let p=0;
+        for(let j=0; j<n; j++)
+        {
+            let q = Math.round(p)
+            this.canvas.beginPath();
+            this.canvas.strokeStyle = this.format.gridColor;
+            this.canvas.moveTo(q, 0);
+            this.canvas.lineTo(q, height);
+            this.canvas.stroke();
+            p += width/(n-1);
+        }
+    }
     drawPlotVertical(width, height)
     {
         this.canvas.beginPath();
@@ -247,7 +283,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 //        this.canvas.fillStyle = '#ffffcc';
  //       this.canvas.fillRect(0, 0, width, height);
         
-        if(!this.usesXLabels)
+        if(!this.format.drawLabelsX)
             return;
         
         let labels = (this.parameters.labels_x ? this.parameters.labels_x : this.parameters.labels);
@@ -279,7 +315,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 //        this.canvas.fillStyle = '#ccffcc';
 //        this.canvas.fillRect(0, 0, width, height);
 
-        if(!this.usesYLabels)
+        if(!this.format.drawLabelsY)
             return;
         
         let labels = (this.parameters.labels_y ? this.parameters.labels_y : this.parameters.labels);
@@ -322,6 +358,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             this.drawBottomTickMarks(plot_width, this.format.height);
         this.canvas.restore();
 
+        this.canvas.save();
         for(let y=0; y<size_y; y++)
         {
             this.canvas.save();
@@ -335,6 +372,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
                 this.drawRightScale(pane_x, plot_height);
                 this.drawLeftTickMarks(plot_width, plot_height);
                 this.drawRightTickMarks(plot_width, plot_height);
+                this.drawHorizontalGridlinesOver(pane_x, plot_height);
                 this.canvas.translate(0, -this.format.spaceTop);
                 this.drawXAxis(pane_x, pane_y);
                 this.drawYAxis(pane_x, pane_y);
@@ -343,6 +381,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             this.canvas.translate(0, pane_y);
         }
         this.drawLabelsVertical(plot_width, this.format.height, size_x);
+        this.canvas.restore();
+        this.canvas.translate(this.format.spaceLeft, 0);
+        this.drawVerticalGridlinesOver(plot_width, this.format.height);
     }
 
     drawHorizontal(size_x, size_y)
@@ -367,24 +408,29 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             this.drawRightTickMarks(this.format.width, plot_height);
         this.canvas.restore();
 
-       for(let y=0; y<size_y; y++)
-        {
-            this.canvas.save();
-                this.canvas.translate(this.format.spaceLeft, 0);
-                this.drawVerticalGridlines(plot_width, pane_y);
-                this.drawBottomScale(plot_width, pane_y); // ****
+        this.canvas.save();
+            for(let y=0; y<size_y; y++)
+            {
                 this.canvas.save();
-                    this.canvas.translate(0, this.format.spaceTop);
-                    this.drawPlotHorizontal(plot_width, plot_height, y);
+                    this.canvas.translate(this.format.spaceLeft, 0);
+                    this.drawVerticalGridlines(plot_width, pane_y);
+                    this.drawBottomScale(plot_width, pane_y); // ****
+                    this.canvas.save();
+                        this.canvas.translate(0, this.format.spaceTop);
+                        this.drawPlotHorizontal(plot_width, plot_height, y);
+                    this.canvas.restore();
+                    this.drawBottomTickMarks(plot_width, pane_y);
+                    this.drawVerticalGridlinesOver(plot_width, pane_y);
+                    this.canvas.translate(-this.format.spaceLeft, 0);
+                    this.drawXAxis(pane_x, pane_y);
+                    this.drawYAxis(pane_x, pane_y);
+                    this.drawFrame(pane_x, pane_y);
                 this.canvas.restore();
-                this.drawBottomTickMarks(plot_width, pane_y);
-                this.canvas.translate(-this.format.spaceLeft, 0);
-                this.drawXAxis(pane_x, pane_y);
-                this.drawYAxis(pane_x, pane_y);
-                this.drawFrame(pane_x, pane_y);
-            this.canvas.restore();
-            this.canvas.translate(pane_x, 0);
-        }
+                this.canvas.translate(pane_x, 0);
+            }
+        this.canvas.restore();
+        this.canvas.translate(0, this.format.spaceTop);
+        this.drawHorizontalGridlinesOver(this.format.width, plot_height);
      }
 
     draw(size_x, size_y)    // draw handles the layout of the graphs in horizontal or vertical sections
