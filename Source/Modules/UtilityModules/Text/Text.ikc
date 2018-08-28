@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<group name="Text" description="tests a text parameter">
+
+	<description type="text">
+		Module that tests parameters of type text.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Text"
+			name="Text"
+            OUTPUT="ABC"
+		/>
+	</example>
+
+	<parameter name="OUTPUT" type="Text" default="Alpha" description="parameter containing a string that is used as output from the module" />
+
+	<module class="Text" />
+
+    <view title="Text">
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>Text.h</file>
+   		<file>Text.cc</file>
+   		<file>Text.ikc</file>
+   </files>
+
+</group>
+
