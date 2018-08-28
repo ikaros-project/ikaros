@@ -1147,6 +1147,16 @@ Module::Bind(bool & v, const char * n)
 
 
 
+void
+Module::Bind(std::string & v, const char * n)
+{
+    // TODO: check type here
+    v = std::string(GetValue(n));
+    bindings = new Binding(this, n, bind_string, &v, 0, 0, bindings);
+}
+
+
+
 Module_IO *
 Module::GetModule_IO(Module_IO * list, const char * name)
 {
