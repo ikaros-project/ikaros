@@ -993,6 +993,14 @@ WebUI::CopyUIData()
                     size++; // int, list, bool, float
                     break;
 
+                case data_source_string:
+                {
+                    const char * cs = ((std::string *)(sd->data))->c_str();
+                    size += strlen(cs)/sizeof(float)+1;
+//                     printf("############ SIZE: %d; %s\n", strlen(cs)/sizeof(float)+1, cs);
+                    break;
+                }
+                
                 default:
                     k->Notify(msg_warning, "WebUI: Unkown data type");
                     break;
@@ -1013,7 +1021,7 @@ WebUI::CopyUIData()
     }
 
     float * p = local_ui_data;
-    
+
     // Step 2: copy the data
 
     for (ModuleData * md=view_data; md != NULL; md=md->next)
@@ -1034,12 +1042,22 @@ WebUI::CopyUIData()
                 case data_source_float:
                     *(p++) = *(float *)(sd->data);
                     break;
-                    
+
+                case data_source_string: // not so elegans since pading to sizeof(/)float) is needed
+                {
+                    char *  cp = (char *)p;
+                    const char * cs = ((std::string *)(sd->data))->c_str();
+//                    printf(">>>>>>>> %s, %ld, %ld, %ld\n", cs, strlen(cs), strlen(cs)/sizeof(float)+1, sizeof(float));
+                    strcpy(cp, cs);
+                    p += strlen(((std::string &)(sd->data)).c_str())/sizeof(float)+1;
+                    break;
+                }
+
                 case data_source_array:
                     copy_array(p, (float *)(sd->data), sd->size_x);
                     p += sd->size_x;
                     break;
-                    
+
                 case data_source_matrix:
 //                case data_source_gray_image:
                 case data_source_red_image:
@@ -1050,7 +1068,7 @@ WebUI::CopyUIData()
                     copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
                     p += sd->size_x*sd->size_y;
                     break;
-                    
+
                 case data_source_gray_image:
                     {
                         float * temp = copy_array(create_array(sd->size_x*sd->size_y), *(float **)(sd->data), sd->size_x*sd->size_y);
@@ -1108,20 +1126,17 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     Dictionary header;
 	
     header.Set("Session-Id", std::to_string(k->session_id).c_str());
-//    header.Set("Content-Type", "text/json");
     header.Set("Content-Type", "application/json");
     header.Set("Cache-Control", "no-cache");
     header.Set("Cache-Control", "no-store");
     header.Set("Pragma", "no-cache");
     header.Set("Expires", "0");
     
-
     socket->SendHTTPHeader(&header);
 
     socket->Send("{\n");
     socket->Send("\t\"state\": %d,\n", ui_state);  // ui_state; ui_state_run
     socket->Send("\t\"iteration\": %d,\n", k->GetTick());
-    
     socket->Send("\t\"progress\": %f,\n", (k->max_ticks > 0 ? float(k->tick)/float(k->max_ticks) : 0));
     
     // Timing information
@@ -1133,8 +1148,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     socket->Send("\t\"timebase\": %d,\n", k->tick_length);
     socket->Send("\t\"timebase_actual\": %.0f,\n", 1000*float(total_time)/float(k->tick));
     socket->Send("\t\"lag\": %.0f,\n", k->lag);
-
-    socket->Send("\t\"cpu_cores\": %d\n", k->cpu_cores); // FIXME: send with initial package instead
+    socket->Send("\t\"cpu_cores\": %d", k->cpu_cores); // FIXME: send with initial package instead
 
     if(!p)
     {
@@ -1166,9 +1180,14 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
                 case data_source_bool:
                 case data_source_float:
                     socket->Send("\t\t\"%s\": [[%f]]", sd->name, *p++);
-                     break;
+                    break;
 
-                 case data_source_array:
+                case data_source_string:
+                    socket->Send("\t\t\"%s\": \"%s\"", sd->name, (char *)p);
+                    p += strlen((char *)p)/sizeof(float)+1;
+                    break;
+                
+                case data_source_array:
                     SendJSONArrayData(socket, md->name, sd->name, p, sd->size_x);
                     p += sd->size_x;
                     break;

@@ -1,95 +1,170 @@
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Ikaros Viewer</title>
-<link rel="stylesheet" type="text/css" href="/style.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="stylesheet" type="text/css" href="styling.css">
+<link rel="stylesheet" type="text/css" href="default.css" id="stylesheet">
+<title>Ikaros WebUI 2.0</title>
+<script src="webui.js"></script>
+<script src="WebUIWidget.js"></script>
+<script src="WebUIWidgetCanvas.js"></script>
+<script src="WebUIWidgetGraph.js"></script>
+<script src="WebUIWidgetImage.js"></script>
+<script src="WebUIWidgetBarGraph.js"></script>
+<script src="WebUIWidgetPlot.js"></script>
+<script src="WebUIWidgetPath.js"></script>
+<script src="WebUIWidgetText.js"></script>
+<script src="WebUIWidgetTable.js"></script>
+<script src="WebUIWidgetControl.js"></script>
+<script src="WebUIWidgetButton.js"></script>
+<script src="WebUIWidgetSliderHorizontal.js"></script>
+<script src="WebUIWidgetSliderVertical.js"></script>
 </head>
 <body>
+	<header>
+		<button onclick="toggleNav()">Nav</button>
+        <button onclick="toggleFooter()">Messages</button>
+        <button onclick="toggleSystem()">System</button>
+        <button onclick="interaction.toggleEditMode()">Edit</button>
+<!--        <button onclick="toggleInspector()">Inspector</button>    -->
+
+<!--
+        <span>Selected:</span> <span id="selected"></span>
+-->
+	</header>
+
+	<section>
+		<main id="main">
+		</main>
+	
+		<nav id="navigator">
+		</nav>
+	
+		<aside id="widget_inspector">
+			<div id="inspector">
+                <button>To Front</button>
+                <button>To Back</button>
+                <button>Duplicate</button>
+                <button>Delete</button>
+				<div id="i_header"></div>
+				<table id="i_table">
+				<!--	<tr><th>Attr</th><th>Value</th></tr> -->
+				</table>
+			</div>
+            
+			<script>
+			inspector.init();
+			</script>
+		</aside>
+
+		<aside id="edit_inspector" >
+ 
+            <table id="i_table">
+                 <tbody>
+                 
+                    <tr>
+                       <td>
+                            Grid
+                        </td>
+                        <td>
+                            <button onclick="interaction.decreaseGrid()">Grid -</button>
+                            <button onclick="interaction.increaseGrid()">Grid +</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Widget
+                        </td>
+                        <td>
+                            <select id="widget_select">
+                                <option value="webui-widget-plot">Plot</option>
+                                <option value="webui-widget-bar-graph">BarGraph</option>
+                            </select>
+                            <button onclick="interaction.addObject()">Add</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Stylesheet
+                         </td>
+                        <td>
+                            <select id="stylesheet_select" onclick="interaction.changeStylesheet()">
+                                <option value="default.css">default</option>
+                                <option value="demo.css">demo</option>
+                                <option value="classic.css">classic</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+		</aside>
+
+
+		<aside id="system_inspector">
+            <button onmousedown="controller.stop()">Stop</button>
+            <button onmousedown="controller.pause()">Pause</button>
+            <button onmousedown="controller.step()">Step</button>
+            <button onmousedown="controller.play()">Play</button>
+            <button onmousedown="controller.realtime()">Realtime</button>
+            <table id="i_table">
+                 <tbody>
+                    <tr><td colspan="2" class="header">SYSTEM INFO</td></tr>
+                    <tr>
+                        <td>iteration</td><td id="iteration">0</td>
+                    </tr>
+                    <tr>
+                        <td>progress</td><td><progress  id="progress"value="0" max="1"></progress></td>
+                    </tr>
+                    <tr><td colspan="2" class="header">REAL-TIME</td></tr>
+                    <tr>
+                        <td>ticks/s</td><td id="ticks_per_s">0</td>
+                    </tr>
+                    <tr>
+                        <td>timebase</td><td id="timebase">0 ms</td>
+                    </tr>
+                    <tr>
+                        <td>actual</td><td id="timebase_actual">0 ms</td>
+                    </tr>
+                     <tr>
+                        <td>lag</td><td id="lag">0 ms</td>
+                    </tr>
+                     <tr><td colspan="2" class="header">WEB UI</td></tr>
+                    <tr>
+                        <td>updates/s</td><td id="updates_per_se">0</td>
+                    </tr>
+                   <tr>
+                        <td>interval</td><td id="interval">0 ms</td>
+                    </tr>
+                    <tr>
+                        <td>ping</td><td id="ping">0 ms</td>
+                    </tr>
+                     <tr><td colspan="2" class="header">CPU</td></tr>
+                    <tr>
+                        <td>cores</td><td id="cpu_cores">1</td>
+                    </tr>
+                   <tr>
+                        <td>usage</td><td><progress  id="progress"value="0" max="1"></progress></td>
+                    </tr>
+              </tbody>
+            </table>
+
+            <p id="title"></p>
+		</aside>
+
+
+	</section>
+	
+	<footer></footer>
+<script>
+    interaction.init();
+    interaction.generateGrid(20);
+    interaction.initDraggables();
+//    interaction.setMode('run');
+    controller.init();
     
-<table>
-    <tr>
-        <td id="controlframe">
-                    
-            <div id="controls">
-                
-                <a class="button">
-                    <img src="Buttons/stop.png" onmousedown="do_stop();">
-                </a>
-                
-                <a class="button">
-                    <img src="Buttons/pause.png" onmousedown="do_pause();">
-                </a>
-                
-                <a class="button">
-                    <img src="Buttons/step.png" onmousedown="do_step();" onmouseup="do_pause();">
-                </a>
-                
-                <a class="button">
-                    <img src="Buttons/run.png" onmousedown="do_run();">
-                </a>
-                
-                <a class="button">
-                    <img src="Buttons/realtime.png" onmousedown="do_realtime();">
-                </a>
-            </div>
-                    
-        </td>
-        <td id="iteration">0</td>
-        <td id="title"></td>
-    </tr>
-    <tr>
-        <td colspan="3">
-        <table>
-         <tr>
-            <td id="pane" style="width: 0px">
-                <div id="grouppane">
-                    <ul id="grouplist">                
-                    </ul>
-                </div>
-            </td>
-        
-            <td id="viewbox" colspan="3">
-                <div id="viewframe">
-                    <iframe id="view" seamless="seamless" frameborder="0" src="" width="100%">
-                    </iframe>
-                    <script type="text/javascript">
-                        function resizeIframe() {
-                            var height = document.documentElement.clientHeight;
-                            height -= document.getElementById('view').offsetTop;
-                            height -= 115;
-                            document.getElementById('view').style.height = height +"px";
-                         };
-                        document.getElementById('view').onload = resizeIframe;
-                        window.onresize = resizeIframe;
-                    </script>
-                 </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-            </td>
-            <td id="footer" colspan="3" >
-                <div id="viewdots">
-                </div>
-                <div id="toggle">
-                    <a onclick="toggle_inspector();"><img src="Icons/split.png" id="split" style="margin-bottom: -2px;" width="13" height="13" /></a>
-                </div>
-                <div id="viewcontrol">
-                    <span id="viewname">View 0</span>
-                    &nbsp;
-                    <a onclick="prev_view();">◄</a>
-                    <a onclick="next_view();">►</a>
-                </div>
-            </td>
-        </tr>
-
-        </table>
-        </td>
-    </tr>
-</table>
-    
-<script src="control.js"></script>
-
+//    setInterval(function (){ console.log("NOW"); f = document.querySelector('footer'); f.innerHTML += "<p>Hej! ("+Date.now()+")</p>"; f.scrollTop = f.scrollHeight; }, 1000);
+</script>
 </body>
 </html>
+
