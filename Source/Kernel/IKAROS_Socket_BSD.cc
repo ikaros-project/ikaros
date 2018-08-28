@@ -1,7 +1,7 @@
 //
 //    IKAROS_Socket.cc		Socket utilities for the IKAROS project
 //
-//    Copyright (C) 2001-2011  Christian Balkenius
+//    Copyright (C) 2001-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -593,7 +593,7 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
     h->Set("Connection",  "Close"); // TODO: check if socket uses persistent connections
     char length[256];
     h->Set("Content-Length", int_to_string(length, (int)len, 256));
-    h->Set("Server", "Ikaros/1.2");
+    h->Set("Server", "Ikaros/2.0");
 	
     if(strend(filename, ".html"))
 		h->Set("Content-Type", "text/html");
@@ -614,7 +614,7 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
     else if(strend(filename, ".xml"))
 		h->Set("Content-Type", "text/xml");
     else if(strend(filename, ".ico"))
-		h->Set("Content-Type", "image/vnd.microsoft.icon");	// use incorrect type image/ico before
+		h->Set("Content-Type", "image/vnd.microsoft.icon");
 	
     SendHTTPHeader(h);
 	
