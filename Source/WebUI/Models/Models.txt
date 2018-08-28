@@ -1,0 +1,22 @@
+101     EpiBlue: Body
+102     EpiWhite/EpiGreen: Body
+103     EpiBlack: Base
+104     EpiBlack: UpperBody
+201     EpiALL: Body center to first head joint
+202     EpiALL: Link between joint 1 and Joint 2
+203     EpiALL: Head (Should have a servo also in the model)
+204     EpiALL: Eye
+301     EpiALL: LeftArm 
+302     EpiALL: LeftArm 
+303     EpiALL: LeftArm 
+304     EpiALL: LeftArm 
+305     EpiALL: LeftArm 
+306     EpiALL: LeftArm 
+401     EpiALL: RightArm 
+402     EpiALL: RightArm 
+403     EpiALL: RightArm 
+404     EpiALL: RightArm 
+405     EpiALL: RightArm 
+406     EpiALL: RightArm 
+10000   Lab Table with XYZ 
+
