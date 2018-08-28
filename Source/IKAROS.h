@@ -67,6 +67,7 @@ const int bind_bool     = 2;
 const int bind_list     = 3;
 const int bind_array    = 4;
 const int bind_matrix   = 5;
+const int bind_string   = 6;
 
 // Forward declarations
 
@@ -284,7 +285,7 @@ protected:
     void            Bind(bool & v, const char * n);                         // Bind boolean
     void            Bind(float * & v, int size, const char * n, bool fixed_size = false);              //  // Creates and binds array; also gets the array size; uses the supplied size instead if fixed_size = true.
     void            Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size = false); // Creates and binds matrix; also gets the matrix size; uses the supplied size instead if fixed_size = true.
-
+    void            Bind(std::string & v, const char * n);                  // Bind string
 
     void            SetParameter(const char * parameter_name, int x, int y, float value);
 
