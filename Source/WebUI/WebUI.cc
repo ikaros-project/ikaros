@@ -995,7 +995,6 @@ WebUI::CopyUIData()
                 {
                     const char * cs = ((std::string *)(sd->data))->c_str();
                     size += strlen(cs)/sizeof(float)+1;
-//                     printf("############ SIZE: %d; %s\n", strlen(cs)/sizeof(float)+1, cs);
                     break;
                 }
                 
@@ -1041,13 +1040,12 @@ WebUI::CopyUIData()
                     *(p++) = *(float *)(sd->data);
                     break;
 
-                case data_source_string: // not so elegans since pading to sizeof(/)float) is needed
+                case data_source_string:
                 {
                     char *  cp = (char *)p;
                     const char * cs = ((std::string *)(sd->data))->c_str();
-//                    printf(">>>>>>>> %s, %ld, %ld, %ld\n", cs, strlen(cs), strlen(cs)/sizeof(float)+1, sizeof(float));
                     strcpy(cp, cs);
-                    p += strlen(((std::string &)(sd->data)).c_str())/sizeof(float)+1;
+                    p += strlen(cs)/sizeof(float)+1;
                     break;
                 }
 
