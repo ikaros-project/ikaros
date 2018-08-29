@@ -19,8 +19,6 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//    Created: August 31, 2005
-//    Based on IKAROS_HTTP
 
 #include "WebUI.h"
 
@@ -35,7 +33,7 @@
 
 #include <string.h>
 #include <fcntl.h>
-#include <atomic> // required C++11
+#include <atomic>
 
 
 #include <string>
