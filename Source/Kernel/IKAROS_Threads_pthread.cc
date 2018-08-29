@@ -24,8 +24,6 @@
 
 #include "IKAROS_System.h"
 
-#ifdef USE_THREADS
-
 #include "IKAROS_Threads.h"
 
 #include <pthread.h>
@@ -81,4 +79,3 @@ Thread::~Thread()
     delete data;
 }
 
-#endif
