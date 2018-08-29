@@ -117,6 +117,13 @@
 -->
     </view>
 
+
+    <view name="Text">
+        <text module="String" parameter="OUTPUT" x="20" y="20" width="200" height="100"/>
+        <text text="Static text" x="20" y="120" width="200" height="100"/>
+    </view>
+
+
     <view name="Images">
 
         <image
@@ -952,7 +959,14 @@
             />
         </view>
     </group>
-    
+
+
+    <module
+        class = "Text"
+        name = "String"
+        OUTPUT = "Parameter text from module"
+    />
+
     <module
         class="InputJPEG"
         name="Image"
@@ -1165,6 +1179,7 @@
         filename = "../Media/ikaros.mp4"
         loop = "yes"
     />
+    
 
 </group>
  
