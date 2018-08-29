@@ -34,23 +34,9 @@
 #include <ctype.h>
 #include <ctime>
 #include <iostream>
-
-#ifdef WINDOWS
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
-
-#ifdef WINDOWS
-#include <windows.h>
-#undef GetClassName
-#else
-#include <unistd.h>
-#endif
-
 #include <exception> // for std::bad_alloc
 #include <new>
-
 
 // Kernel 2.0
 
@@ -1840,11 +1826,8 @@ Kernel::SetOptions(Options * opt)
     // Seed random number generator
                         
     if(options->GetOption('z'))
-#ifdef WINDOWS
-        srand(string_to_int(options->GetArgument('z')));
-#else
         srandom(string_to_int(options->GetArgument('z')));
-#endif
+
     
     // Fix module paths
     
@@ -1908,11 +1891,7 @@ Kernel::Kernel(Options * opt)
 	// Seed random number generator
 	
 	if(options->GetOption('z'))
-#ifdef WINDOWS
-    srand(string_to_int(options->GetArgument('z')));
-#else
-    srandom(string_to_int(options->GetArgument('z')));
-#endif
+        srandom(string_to_int(options->GetArgument('z')));
 }
 
 Kernel::~Kernel()
@@ -2946,9 +2925,6 @@ Kernel::ListInfo()
 #endif
 #ifdef USE_BSD_SOCKET
     Notify(msg_print, "BSD-socket\n");
-#endif
-#ifdef USE_WIN_SOCKET
-    Notify(msg_print, "WIN-socket\n");
 #endif
 #ifdef USE_LIBJPEG
     Notify(msg_print, "libjpeg\n");

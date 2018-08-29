@@ -1,7 +1,7 @@
 //
 //	IKAROS_Utils.h		Various utilities for the IKAROS project
 //
-//    Copyright (C) 2001-2016  Christian Balkenius
+//    Copyright (C) 2001-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -40,10 +40,6 @@ bool    equal_strings(const char * a, const char * b);
 
 bool	strstart(const char * s1, const char *s2); // does s1 start with s2
 bool	strend(const char * s1, const char * s2); // does 1s end with s2
-
-#ifdef WINDOWS
-char* strsep(char **stringp, const char *delim);
-#endif
 
 // File path operations
 

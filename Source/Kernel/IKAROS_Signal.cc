@@ -25,44 +25,6 @@
 
 #include "IKAROS_System.h"
 
-#ifdef WINDOWS
-#include <windows.h>
-#include <stdio.h>
-
-#include <signal.h>
-
-extern bool global_terminate;				// Used to flag that CTRL-C has been received; defined in IKAROS.cc
-BOOL WINAPI ConsoleHandler1(DWORD dwCtrlType)
-{
-    printf("\nIKAROS: Will terminate after this iteration.\n");
-    global_terminate= true;
-    SetConsoleCtrlHandler(ConsoleHandler1,FALSE);
-    return true;
-
-}
-class Signal
-{
-
-private:
-
-public:
-    bool install_handler()
-    {
-        if (!(SetConsoleCtrlHandler(ConsoleHandler1,TRUE)))
-        {
-            printf("Unable to install (CTRL-C) handler!\n");
-            return -1;
-        }
-        return true;
-    }
-    Signal()
-    {
-        install_handler();
-    }
-}
-INIT;
-#endif
-
 #ifdef POSIX
 #include <stdio.h>
 #include <signal.h>

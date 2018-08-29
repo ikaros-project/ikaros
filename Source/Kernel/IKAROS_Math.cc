@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.cc		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2014  Christian Balkenius
+//    Copyright (C) 2006-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -54,23 +54,6 @@ extern "C"
 #endif
 #endif
 
-#ifdef WINDOWS
-#define	MAXFLOAT	3.402823466e+38f
-#ifdef USE_BLAS
-extern "C"
-{
-#include "gsl/gsl_blas.h"
-}
-#endif
-#endif
-
-#ifdef WINDOWS
-//#include <amp_math.h>
-#define M_PI 3.14159265358979323846264338328f
-#undef min
-#undef max
-#endif
-
 namespace ikaros
 {
 	extern const float maxfloat = MAXFLOAT;
@@ -79,11 +62,7 @@ namespace ikaros
     
     float eps(float x)
     {
-#ifdef WINDOWS
-		return x+1E-20;
-#else
         return nextafterf(fabsf(x), MAXFLOAT)-fabsf(x);
-#endif
     }
         
 	// misc scalar functions
@@ -93,11 +72,7 @@ namespace ikaros
     
 	float trunc(float x)
 	{
-#ifdef WINDOWS
-		return (float)((int)x);
-#else
 		return ::truncf((int)x);
-#endif
 	}
 	float exp(float x)
 	{
@@ -267,11 +242,7 @@ namespace ikaros
 	float
 	random(float low, float high)
 	{
-#ifdef WINDOWS
-		return low + (float(::rand())/float(RAND_MAX))*(high-low);
-#else
 		return low + (float(::random())/float(RAND_MAX))*(high-low);
-#endif
 	}
 	
 	
@@ -297,11 +268,7 @@ namespace ikaros
 	int
     random(int high)
     {
-#ifdef WINDOWS
-		return int(::rand() % high);
-#else
 		return int(::random() % high);
-#endif
     }
     
     
@@ -481,11 +448,7 @@ namespace ikaros
 	float
 	hypot(float x, float y)
 	{
-#ifdef WINDOWS
-		return (float)_hypot(x, y);
-#else
 		return ::hypotf(x, y);
-#endif
 	}
 	
 	float *
@@ -1914,14 +1877,8 @@ namespace ikaros
     {
         int i,j,k;
         float scale,sigma,sum,tau;
-
-#ifdef WINDOWS
-		float * c = create_array(size);
-		float * d = create_array(size);
-#else
         float c[size];
         float d[size];
-#endif
         
         copy_matrix(r, a, size, size);
         
@@ -1996,11 +1953,6 @@ namespace ikaros
                     r[i][j] = -r[i][j];
                     q[j][i] = - q[j][i];
                 }
-
-#ifdef WINDOWS
-		destroy_array(c);
-		destroy_array(d);
-#endif
 
         return singular;
     }
@@ -2700,14 +2652,7 @@ namespace ikaros
 	int
 	lround(float x)
 	{
-#ifdef WINDOWS
-		if ( x >= (int)x + 0.5f )
-			return (int)x + 1;
-		else
-			return (int)x;
-#else
 		return int(::lroundf(x));
-#endif
 	}
 	
 	void
@@ -2757,11 +2702,7 @@ namespace ikaros
 		if (s == NULL)
 			return d;
 		else
-#ifdef WINDOWS
-			return (float)strtod(s, NULL);
-#else
-        return strtof(s, NULL);
-#endif
+            return strtof(s, NULL);
 	}
 	
 	char *

@@ -1,7 +1,7 @@
 //
 //    main.cc		The main code for the IKAROS project
 //
-//    Copyright (C) 2001-2007  Christian Balkenius
+//    Copyright (C) 2001-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -28,20 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef WINDOWS
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
-
-#ifdef WINDOWS
-#include <windows.h>
-#undef GetClassName
-#else
-#include <unistd.h>
-#endif
-
 #include <new>
 
 // Kernel

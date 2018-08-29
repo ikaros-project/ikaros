@@ -115,48 +115,6 @@
 #endif
 
 
-
-//
-// Windows Defines [we no longer support windows so these lines could be removed]
-//
-/*
-#ifdef WINDOWS
-#define PLATFORM  "WINDOWS"
-
-#define USE_WIN_SOCKET
-#define USE_LIBJPEG
-#define USE_THREADS
-//#define USE_LIBPNG
-//#define USE_BLAS
-#define USE_WIN_SERIAL
-#define USE_THREADED_WEBUI
-#include <direct.h> // Include chdir
-#define chdir _chdir
-#define getcwd _getcwd
-
-#define M_PI 3.14159265358979323846264338328f
-#undef min
-#undef max
-
-#ifdef WINDOWS
-//#define vsnprintf _vsnprintf
-#define snprintf _snprintf
-#define PATH_MAX 255
-#endif
-//#define POSIX
-//#define USE_QUICKTIME
-//#define USE_MPI
-#endif
-
-#if defined(_MSC_VER)
-#define _CRT_SECURE_NO_DEPRECATE (1)
-#define _CRT_NONSTDC_NO_DEPRECATE
-#pragma warning( disable : 4305)
-#pragma warning( disable : 4244) 
-#pragma warning( disable : 4290) 
-#endif
-*/
-
 //
 // Unix includes (some distributions lack PATH_MAX)
 //

@@ -1,7 +1,7 @@
 //
 //	IKAROS_Utils.cc		Various utilities for the IKAROS project
 //
-//    Copyright (C) 2001-2008  Christian Balkenius
+//    Copyright (C) 2001-2018  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -22,14 +22,9 @@
 #include "IKAROS_Utils.h"
 #include "IKAROS_System.h"
 
-#ifdef WINDOWS
-#include <direct.h>
-#else
-#include <unistd.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
@@ -184,44 +179,6 @@ append_string(char * dest, const char * a, int len)
     return dest;
 }
 
-#ifdef WINDOWS
-/*
- * Get next token from string *stringp, where tokens are possibly-empty
- * strings separated by characters from delim.
- *
- * Writes NULs into the string at *stringp to end tokens.
- * delim need not remain constant from call to call.
- * On return, *stringp points past the last NUL written (if there might
- * be further tokens), or is NULL (if there are definitely no more tokens).
- *
- * If *stringp is NULL, strsep returns NULL.
- */
-char* strsep(char **stringp, const char *delim)
-{
-    char *s;
-    const char *spanp;
-    int c, sc;
-    char *tok;
-    
-    if ((s = *stringp) == NULL)
-        return (NULL);
-    for (tok = s;;) {
-        c = *s++;
-        spanp = delim;
-        do {
-            if ((sc = *spanp++) == c) {
-                if (c == 0)
-                    s = NULL;
-                else
-                    s[-1] = 0;
-                *stringp = s;
-                return (tok);
-            }
-        } while (sc != 0);
-    }
-}
-
-#endif
 
 bool
 is_path(const char * p)
@@ -1035,19 +992,12 @@ Options::Options(int argc, char *argv[])
     // Compute binary directory (if possible)
 	
     binary_dir = NULL;
-#ifdef WINDOWS
-    if(is_path(argv[0]))
-#endif
     {
         char * bin_path;
         if(is_absolute_path(argv[0]))
 			bin_path = create_string(argv[0]);
         else
-#ifdef WINDOWS
-        bin_path = create_formatted_string("%s\\%s", working_dir, argv[0]);
-#else
 		bin_path = create_formatted_string("%s/%s", working_dir, argv[0]);
-#endif
         int i;
         for(i=int(strlen(bin_path))-1; i>0 && bin_path[i] != '/' && bin_path[i] !='\\'; i--)  ; 
         binary_dir = create_string_head(bin_path, i+1);
