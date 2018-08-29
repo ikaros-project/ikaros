@@ -19,7 +19,6 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-//
 //    Created: August 22, 2002 
 //
 
@@ -30,10 +29,8 @@
 //	Alternatively, the appropriate #define below can be uncommented
 //
 
-//#define MINIMAL
 //#define MAC_OS_X
 //#define LINUX
-
 
 
 //
@@ -53,27 +50,6 @@
 
 
 //
-// Minimal Defines
-//
-
-// If Ikaros does not compile, try starting with the minmal version by declaring MINIMAL
-// This will compile a minmal Ikaros version without support for sockets, WebUI, or threads.
-// The minimal version is plain C++ using only the standard libraries and should compile on
-// any system.
-
-#ifdef MINIMAL
-#define PLATFORM  "MINIMAL-UNKOWN"
-//#define POSIX
-//#define USE_BSD_SOCKET
-//#define USE_LIBJPEG
-//#define USE_THREADS
-//#define USE_BLAS
-//#define USE_MPI
-#endif
-
-
-
-//
 // Linux Defines
 //
 
@@ -85,7 +61,6 @@
 #define USE_LIBJPEG
 //#define USE_V4L2
 //#define USE_KEEPON
-#define USE_THREADS
 #define USE_BLAS
 #define USE_LIBPNG
 //#define USE_MPI
@@ -110,7 +85,6 @@
 #define USE_VFORCE
 #define USE_BLAS
 #define USE_LAPACK
-#define USE_THREADS
 #define USE_MPI
 #endif
 
