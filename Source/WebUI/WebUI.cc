@@ -64,28 +64,6 @@ SendColorJPEGbase64(ServerSocket * socket, float * r, float * g, float * b, int 
 }
 
 
-/*
-static bool
-SendGrayJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey) // Compress image to jpg and send from memory after base64 encoding
-{
-    long  size;
-    unsigned char * jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey);
-    
-    size_t input_length = size;
-    size_t output_length;
-    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
-    
-    socket->Send("\"data:image/jpeg;base64,");
-    bool ok = socket->SendData(jpeg_base64, output_length);
-    socket->Send("\"\n");
-    
-    destroy_jpeg((char *)jpeg);
-    free(jpeg_base64);
-    return ok;
-}
-*/
-
-
 static bool
 SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey, int type)
 {
@@ -152,28 +130,6 @@ SendColorBMPbase64(ServerSocket * socket, float * r, float * g, float * b, int s
     return ok;
 }
 
-
-/*
-static bool
-SendTextData(ServerSocket * socket, float ** matrix, int sizex, int sizey)
-{
-    Dictionary header;
-    header.Set("Content-Type", "text/plain");
-    socket->SendHTTPHeader(&header);
-    
-    for (int j=0; j<sizey; j++)
-    {
-        for (int i=0; i<sizex; i++)
-            if (i==0 && j==0)
-                socket->Send("%.4f", matrix[0][0]);	// no space before first
-            else
-                socket->Send(" %.4f", matrix[j][i]);
-        socket->Send("\n");
-    }
-    
-    return true;
-}
-*/
 
 
 static bool
@@ -376,18 +332,14 @@ WebUI::AddDataSource(const char * module, const char * source)
             if (!strcmp(md->name, module))
             {
                 if(!io->matrix)
-                {
-//                    TEST_SIZE();
                     return;
-                }
+
                 md->AddSource(source, data_source_matrix, io->matrix[0], io->sizex, io->sizey);
-//                TEST_SIZE();
                 return;
             }
         
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, io);
-//        TEST_SIZE();
     }
     else if(k->GetBinding(group, m, type, value_ptr, size_x, size_y, module, source))
     {
@@ -395,13 +347,11 @@ WebUI::AddDataSource(const char * module, const char * source)
             if (!strcmp(md->name, module))
             {
                 md->AddSource(source, type, value_ptr, size_x, size_y);
-//                TEST_SIZE();
                 return;
             }
         
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, type, value_ptr, size_x, size_y);
-//        TEST_SIZE();
     }
     
     else
@@ -685,215 +635,6 @@ WebUI::~WebUI()
     destroy_string(webui_dir);
 }
 
-
-/*
-// Layout constants
-
-const float margin_x = 8.5;
-const float margin_y = 8.5;
-
-const float padding_x = 5.0;
-const float padding_y = 7.0;
-
-// const float object_spacing = 15.0;
-// const float object_size = 140.0;	// was 70 / 100
-const float title_height = 0; // **************** was: 20.0;
-
-const float offset_x = margin_x+padding_x;
-const float offset_y = margin_y+padding_y+title_height;
-
-const float menu_offset = 15.0;
-const float menu_width = 150.0;
-
-const float view_min_width = 700;
-const float view_min_height = 500;
-
-void
-WebUI::SendView(const char * view)
-{
-//    while(copying_data) ;
-
-    if (debug_mode)
-        printf("Sending HTML View: %s\n", view);
-    
-    // Get last part of view path
-    
-    int z=int(strlen(view))-1;
-    while(z>0 && view[z] != '/')
-        z--;
-    char * view_name = create_string(&view[z]);
-    
-    // Traverse XML to find views at the current level
-    
-    char * group_ref = create_string(view);
-    unsigned long i = strlen(group_ref)-1;
-    while(group_ref[i] != '/')
-    {
-        group_ref[i] = 0;
-        i--;
-    }
-    group_ref[i] = 0;
-    
-    char * pp = group_ref;
-    char * group_in_path;
-    XMLElement * group_xml = xml;
-    while((group_in_path = strsep(&pp, "/")))
-    {
-        group_xml = group_xml->GetElement("group");
-        for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-            if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
-            {
-                group_xml = xml_module;
-                break;
-            }
-    }
-    
-    if(!group_xml)
-        return;
-    
-    delete view_data;
-    view_data = NULL;
-    
-    int v = 0;
-    int j = 0;
-    while(view_name[j] < '0' || view_name[j] > '9')
-        j++;
-	int ix = string_to_int(&view_name[j]);
-    
-    for (XMLElement * xml_view = group_xml->GetContentElement("view"); xml_view != NULL; xml_view = xml_view->GetNextElement("view"), v++)
-    {
-        const char * n = k->GetXMLAttribute(xml_view, "name");
-        if (
-            (n != NULL && !strncmp(&view_name[1], n, strlen(view_name)-5)) ||	// test view name
-            (!strncmp(view_name, "/view", 5) && v == ix)   // FIXME: test view number 0-9 for backward compatibility
-			)
-        {
-			
-            float object_spacing = string_to_float(k->GetXMLAttribute(xml_view, "object_spacing"), 15.0);
-            float object_size = string_to_float(k->GetXMLAttribute(xml_view, "object_size"), 140.0);
-			
-            // Calculate View Size
-			
-            int view_width = 0;
-            int view_height = 0;
-			
-            for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
-            {
-                // char * object_class = xml_uiobject->FindAttribute("class");
-                int x = string_to_int(k->GetXMLAttribute(xml_uiobject, "x"), -1);
-                int y = string_to_int(k->GetXMLAttribute(xml_uiobject, "y"), -1);
-                int width = string_to_int(k->GetXMLAttribute(xml_uiobject, "w"), 1);
-                int height = string_to_int(k->GetXMLAttribute(xml_uiobject, "h"), 1);
-				
-                if (x+width > view_width)
-                    view_width = x+width;
-				
-                if (y+height > view_height)
-                    view_height = y+height;
-            }
-			
-            float view_width_px = 2*padding_x + view_width*object_size +(view_width-1)*object_spacing + menu_offset + menu_width;
-            float view_height_px = 2*padding_y + view_height*(object_size+title_height)+(view_height-1)*object_spacing;
-			
-            // set minimum view size here if larger than what is set above (from <view size=.../>)
-			
-            view_width_px = max(view_min_width, view_width_px);
-            view_height_px = max(view_min_height, view_height_px);
-			
-            // Send Header
-			
-            Dictionary header;
-            header.Set("Content-Type", "text/html");
-            socket->SendHTTPHeader(&header);
-
-//          socket->SendFile("viewer.html"); //FIXME: This should work
-            // Include the file "viewer.html"
-
-            char path[1024] = "";
-            append_string(path, webui_dir, 1024);
-            FILE * f = fopen(append_string(path, "Viewer/viewer.html", 1024), "r");
-            if(!f)
-            {
-                printf("Cannot find \"viewer.html\"; webui_dir=\"%s\"\n", webui_dir);
-                socket->Send("</html>\n");
-                return;
-            }
-            fseek(f, 0, SEEK_END);
-            size_t len  = ftell(f);
-            fseek(f, 0, SEEK_SET);
-            char * s = new char[len];
-            fread(s, len, 1, f);
-            socket->SendData(s, len);
-            delete [] s;
-            fclose(f);
-
-            socket->Send("<body>\n");
-            socket->Send("<div style='position: absolute; width:%.2fpx; height:%.2fpx' id='frame' >\n", 2*margin_x + view_width_px, margin_y + margin_x + view_height_px);
-            socket->Send("</div>\n");
-            socket->Send("<script>\n");
-
-             // Send the UIObjects
-			
-            float ** occ = create_matrix(50, 50); // max elements in view
-            for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
-            {
-                const char * object_class = k->GetXMLAttribute(xml_uiobject, "class");
-                int x = string_to_int(k->GetXMLAttribute(xml_uiobject, "x"), 0);
-                int y = string_to_int(k->GetXMLAttribute(xml_uiobject, "y"), 0);
-                int width = string_to_int(k->GetXMLAttribute(xml_uiobject, "w"), 1);
-                int height = string_to_int(k->GetXMLAttribute(xml_uiobject, "h"), 1);
-                
-                // Check opacity
-                
-                bool behind = true;
-                for(int j=0; j<height; j++)
-                    for(int i=0; i<width; i++)
-                        if(occ[y+j][x+i] == 1)
-                            behind = false;
-                        else
-                            occ[y+j][x+i] = 1;
-                
-                // Trick to avoid namespace clashes in JavaScript; yes it leaks but we don't care
-                
-                if(equal_strings(object_class, "Image"))
-                    object_class = create_string("ImageStream");
-
-                socket->Send("add(new %s({", object_class);
-                for (XMLAttribute * p = xml_uiobject->attributes; p != NULL; p = (XMLAttribute *)(p->next))
-                    if (!(!strcmp(p->name, "x") || !strcmp(p->name, "y") || !strcmp(p->name, "w") || !strcmp(p->name, "h") || !strcmp(p->name, "class")))
-                    {
-                        // TODO: Test number - do this properly later
-                        unsigned long l = strlen(p->value)-1;
-                        if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9') && (!equal_strings(p->name, "title")))
-                            socket->Send("%s:%s, ", p->name, p->value);
-                    //    else if(equal_strings(p->value, "*"))
-                    //        socket->Send("%s:'%s', ", p->name, current_xml_root->GetAttribute("name"));
-                        else
-                            socket->Send("%s:'%s', ", p->name, p->value); // quote other content
-                    }
-				
-                if(behind)
-                    socket->Send("behind:true, ");
-                else
-					socket->Send("behind:false, ");
-				
-                socket->Send("x:%.2f, y:%.2f, width:%.2f, height:%.2f}));\n",
-                             offset_x+(object_size+object_spacing)*x, offset_y+(title_height+object_size+object_spacing)*y,
-                             object_size+(object_size+object_spacing)*float(width-1), object_size+(title_height+object_size+object_spacing)*float(height-1));
-            }
-            
-            destroy_matrix(occ);
-			
-            socket->Send("</script>\n");
-            socket->Send("</body>\n");
-            socket->Send("</html>\n");
-            return;
-        }
-    }
-	
-    socket->SendFile("404.html");
-}
-*/
 
 
 void
@@ -1337,11 +1078,9 @@ WebUI::HandleHTTPRequest()
             while(args)
             {
                 char * ms = strsep(&args, "#");
-                
                 char * module = strsep(&ms, ".");
                 char * source = strsep(&ms, ":");
                 char * format = ms;
-//                printf("AddDataSource:%s::%s\n", module, source);
 
                 if(format)
                     AddImageDataSource(module, source, format);
@@ -1438,53 +1177,6 @@ WebUI::HandleHTTPRequest()
             SendUIData();
         }
     }
-/*
-    else if (strstart(uri, "/usesBase64"))
-    {
-        char * module = new char [256];
-        char * output = new char [256];
-        char * type = new char [256];
-        int c = sscanf(uri, "/usesBase64/%[^/]/%[^/]/%[^/]", module, output, type);
-        if (c == 3)
-        {
-            AddImageDataSource(module, output, type);
-            float * old_ui_data = atomic_exchange(&ui_data, (float *)(NULL));  //Invalidate old buffer
-            if(old_ui_data)
-                destroy_array(old_ui_data);
-        }
-		
-		Dictionary header;
-		header.Set("Content-Type", "text/plain");
-		socket->SendHTTPHeader(&header);
-        socket->Send("OK\n");
-        
-		delete[] module;
-        delete[] output;
-        delete[] type;
-    }
-
-    else if (strstart(uri, "/uses"))
-    {
-        char * module = new char [256];
-        char * source = new char [256];
-        int c = sscanf(uri, "/uses/%[^/]/%[^/]", module, source);
-        if (c == 2)
-        {
-            AddDataSource(module, source);
-            float * old_ui_data = atomic_exchange(&ui_data, (float *)(NULL));  //Invalidate old buffer
-            if(old_ui_data)
-                destroy_array(old_ui_data);
-        }
-
-		Dictionary header;
-		header.Set("Content-Type", "text/plain");
-		socket->SendHTTPHeader(&header);
-        socket->Send("OK\n");
-        
-		delete [] module;
-        delete [] source;
-    }
-*/
     else if (strstart(uri, "/control/"))
     {
         char module_name[255];
@@ -1511,9 +1203,7 @@ WebUI::HandleHTTPRequest()
 		header.Set("Pragma", "no-cache");
 		socket->SendHTTPHeader(&header);
         socket->Send("OK\n");
-        // return;
     }
-    
     else if (!strcmp(uri, "/getlog"))
     {
         if (k->logfile)
@@ -1521,27 +1211,6 @@ WebUI::HandleHTTPRequest()
         else
             socket->Send("ERROR - No logfile found\n");
     }
-/*
-    else if (strend(uri, "/editor.svg"))
-    {
-        socket->SendFile("editor.svg", webui_dir);
-    }
-    
-    else if (!strcmp(uri, "/editor.js"))
-    {
-        socket->SendFile("editor.js", webui_dir);
-    }
-
-    else if (!strcmp(uri, "/ikcfile.js"))
-    {
-        socket->Send("getXML('/xml.ikc', function(xml) {bg.read_modules(xml);});\n");
-    }
-
-    else if(strstart(uri, "/view") && strend(uri, ".html"))
-    {
-        SendView(uri);
-	}
-*/
     else if (strstart(uri, "/module/"))
     {
         char module[256], output[256], type[256];
@@ -1574,30 +1243,10 @@ WebUI::HandleHTTPRequest()
             return;
         }
     }
-/*
-    else if(strend(uri, "/inspector.html"))
-    {
-        SendInspector();
-    }
-
-    else if(strstart(uri, "/xml"))
-    {
-        SendXML();
-    }
-*/
     else if(equal_strings(uri, "/"))
     {
         socket->SendFile("index.html", webui_dir);
     }
-/*
-    else if (!strcmp(uri, "/Buttons/realtime.png"))
-    {
-        if(k->GetTickLength() > 0)
-            socket->SendFile("Buttons/realtime.png", webui_dir);
-        else
-            socket->SendFile("Buttons/ff.png", webui_dir);
-    }
-*/
     else if (
 			 strend(uri, ".xml") ||
 			 strend(uri, ".jpg") ||
@@ -1666,7 +1315,7 @@ WebUI::StartHTTPThread(void * webui)
 
 
 // Send XML sends the XML tree
-
+/*
 void
 WebUI::SendXML()
 {
@@ -1681,231 +1330,11 @@ WebUI::SendXML()
     remove("temp.xml");
 //    socket->Close();
 }
-
-
-/*
-void
-WebUI::SendModule(Module * m)
-{
-        socket->Send("<table>\n");
-		
-//        m->GetFullName();
-		
-        socket->Send("<tr><th colspan='2' align='center' style='background-color: gray; border: 1px solid gray; padding: 3px; color: black'><id=\"%s\">\n", m->GetName());
-        const char * n = m->GetFullName();
-        socket->Send("%s", n);
-        socket->Send("</th></tr>\n");
-		
-        socket->Send("<tr><td>Class:</td><td><span class='classname' onclick='toggle_class_info(this)'>%s</span>\n", m->class_name, m->class_name);
-		
-        XMLElement * gg = m->xml->GetParentElement();
-        if(gg)
-        {
-            XMLElement * x = gg->GetContentElement("description");
-            if(x)
-            {
-                XMLCharacterData * c = (XMLCharacterData *)(x->content);
-                if(c)
-                {
-                    char * description = c->data;
-                    socket->Send("<br /><div class='hidden' style='width: 400px; padding-top: 10px; color: #BBB'>%s <a href=\"http://www.ikaros-project.org/module/%s\" target='_window'><img style='vertical-align: middle' src='Icons/link.png'/></a></div>\n", description, m->class_name);
-                }
-            }
-        }
-
-        socket->Send("</td></tr>\n");
-
-        // Parameters
-        
-        socket->Send("<tr><td>Parameters:</td><td>\n");
-        socket->Send("<table class=\"io\">\n");
-        
-        socket->Send("<tr><td>period</td><td width='172' align='right'>%d</td><td width='25' align='right'>int</td></tr>\n", m->period);
-        socket->Send("<tr><td>phase</td><td width='172' align='right'>%d</td><td width='25' align='right'>int</td></tr>\n", m->phase);
-		
-        XMLElement * g = m->xml->GetParentElement();
-        if(g)
-            for (XMLElement * parameter = g->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
-            {
-                const char * name = parameter->GetAttribute("name");    // No inheritance here
-                const char * type = parameter->GetAttribute("type");    // No inheritance here
-                const char * description = parameter->GetAttribute("description");    // No inheritance here
-				
-                // TODO: Allow editing if bound
-                // ****
-                
-                socket->Send("<tr>\n");
-                socket->Send("<td  title='%s'><div class='paramname' onclick='toggle_parameter_info(this)'>%s</div><div class='hidden' style='padding-top: 10px; padding-left: 10px; color: #BBB;'>%s</div></td>\n", description, name, description);
-                if(type)
-                {
-                    if(equal_strings(type, "int"))
-                        socket->Send("<td width='172' align='right'>%d</td>\n", m->GetIntValue(name));
-                    else if(equal_strings(type, "float"))
-                        socket->Send("<td width='172' align='right'>%f</td>\n", m->GetFloatValue(name));
-                    else if(equal_strings(type, "bool"))
-                        socket->Send("<td width='172' align='right'>%s</td>\n", (m->GetBoolValue(name) ? "yes" : "no"));
-                    else if(equal_strings(type, "list"))
-                        socket->Send("<td width='172' align='right'>%s</td>\n", m->GetValue(name));
-                    else if(equal_strings(type, "string"))
-                        socket->Send("<td width='172' align='right'>%s</td>\n", m->GetValue(name));
-                    else
-                        socket->Send("<td width='172' align='right'>-</td>\n");
-					
-                    socket->Send("<td width='25' align='right'>%s</td>\n", type);
-                }
-                else
-                {
-                    socket->Send("<td width='172' align='right'></td>\n");
-                    socket->Send("<td width='25' align='right' style='color: red' title='The type of \"%s\" has not been specified in the class file \"%s.ikc\".'>ERR</td>\n", name, m->class_name);
-                }
-				
-                socket->Send("</tr>\n");
-            }
-        socket->Send("</table>\n");
-        socket->Send("</td></tr>\n");
-
-        // Inputs
-
-        if(m->input_list)
-        {
-            socket->Send("<tr><td>Inputs:</td><td>\n");
-            socket->Send("<table class=\"io\">\n");
-            for (Module_IO * i = m->input_list; i != NULL; i = i->next)
-            {
-                socket->Send("<tr>\n");
-                if(!i->data)
-                {
-                    socket->Send("<td>%-10s</td>\n", i->name);
-                    socket->Send("<td width='25' align='right'> </td>\n");
-                    socket->Send("<td width='25' align='right'> </td>\n");
-                    socket->Send("<td width='100' align='right' title='Not connected'>nc</td>\n");
-                    socket->Send("<td width='25' align='right'>&nbsp;</td>\n");
-				}
-                else
-                {
-                    socket->Send("<td>%-10s</td>\n", i->name);
-                    socket->Send("<td width='25' align='right'>%d</td>\n", i->sizex);
-                    socket->Send("<td width='25' align='right'>%d</td>\n", i->sizey);
-                    socket->Send("<td width='100' align='right'>%p</td>\n", (i->data == NULL ? NULL : i->data[0]));
-                    socket->Send("<td width='25' align='right'>&nbsp;</td>\n");
-                }
-                socket->Send("</tr>\n", i->name, i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
-            }
-            socket->Send("</table>\n");
-            socket->Send("</td></tr>\n");
-        }
-
-
-
-
-        // Outputs
-        
-        if(m->output_list)
-        {
-            socket->Send("<tr><td>Outputs:</td><td>\n");
-            socket->Send("<table class=\"io\">\n");
-			for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-			{
-				socket->Send("<tr>\n");
-				socket->Send("<td><a onclick=\"var w = window.open('/module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetFullName(), i->name, i->name);
-				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizex);
-				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizey);
-				if(m->OutputConnected(i->name))
-					socket->Send("<td width='100' align='right'>%p</td>\n", (i->data == NULL ? NULL : i->data[0]));
-				else
-					socket->Send("<td width='100' align='right' title='Not connected'>nc, %p</td>\n", (i->data == NULL ? NULL : i->data[0]));
-				socket->Send("<td width='25' align='right'>%d</td>\n", i->max_delay);
-				socket->Send("</tr>\n");
-			}
-            socket->Send("</table>\n");
-            socket->Send("</td></tr>\n");
-        }
-        
-		socket->Send("</table><p></p>\n");
-}
-
-
-
-void
-WebUI::SendGroups(XMLElement * xml)
-{
-    for(XMLNode * e = xml->content; e != NULL; e = e->next)
-        if(e->IsElement())
-        {
-            if(equal_strings(((XMLElement *)(e))->name, "group"))
-                SendGroups((XMLElement *)(e));
-            else if(equal_strings( ((XMLElement *)(e))->name, "module") && ((XMLElement *)(e))->aux)
-                SendModule((Module *)((XMLElement *)(e)->aux));
-        }
-}
-
-
-
-void
-WebUI::SendInspector()
-{
-    Dictionary rtheader;
-    rtheader.Set("Content-Type", "text/html");
-    socket->SendHTTPHeader(&rtheader);
- 
-    socket->Send("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n");
-    socket->Send("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n");
-    socket->Send("<head profile=\"http://www.w3.org/2005/11/profile\">\n");
-    socket->Send("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
-    socket->Send("<title>Modules</title>\n");
-    socket->Send("<link rel='stylesheet' type='text/css' href='/Inspector/inspector.css' />\n");
-    socket->Send("<script src='/Inspector/inspector.js'></script>");
-    socket->Send("</head>\n");
-    socket->Send("<body>\n");
-    
-    if(!k->modules)
-    {
-        socket->Send("<p>No modules</p>\n");
-    }
-
-    SendGroups(current_xml_root);
-    
-    // Connections
-    
-    socket->Send("<table>\n");
-    
-    socket->Send("<tr><th colspan='4' align='center' style='background-color: gray; border: 1px solid gray; padding: 3px; color: black'>Connections</th></tr>\n");
-	
-	if(!k->connections)
-    {
-        socket->Send("<tr><td colspan='4' style='border: 1px solid gray;' >No connections</td></tr>\n");
-    }
-	
-    for (Connection * c = k->connections; c != NULL; c = c->next)
-    {
-        if(!c->source_io->module->GetName() || !c->target_io->module->GetName())
-            socket->Send("<tr><td>XXX</td></tr>X");
-        if (c->delay == 0)
-            socket->Send("<tr><td><a href=\"#%s\">%s</a>.%s[%d..%d]</td><td>==</td><td><a href=\"#%s\">%s</a>.%s[%d..%d]</td><td>%d</td></tr>\n",
-						 c->source_io->module->GetName(), c->source_io->module->GetName(), c->source_io->name, 0, c->source_io->size-1,
-						 c->target_io->module->GetName(), c->target_io->module->GetName(), c->target_io->name, 0, c->source_io->size-1,
-						 c->delay);
-        else if (c->size > 1)
-            socket->Send("<tr><td><a href=\"#%s\">%s</a>.%s[%d..%d]</td><td>-></td><td><a href=\"#%s\">%s</a>.%s[%d..%d]</td><td>%d</td></tr>\n",
-						 c->source_io->module->GetName(), c->source_io->module->GetName(), c->source_io->name, c->source_offset, c->source_offset+c->size-1,
-						 c->target_io->module->GetName(), c->target_io->module->GetName(), c->target_io->name, c->target_offset, c->target_offset+c->size-1,
-						 c->delay);
-        else
-            socket->Send("<tr><td><a href=\"#%s\">%s</a>.%s[%d]</td><td>></td><td><a href=\"#%s\">%s</a>.%s[%d]</td><td>%d</td></tr>\n",
-						 c->source_io->module->GetName(), c->source_io->module->GetName(), c->source_io->name, c->source_offset,
-						 c->target_io->module->GetName(), c->target_io->module->GetName(), c->target_io->name, c->target_offset,
-						 c->delay);
-    }
-    socket->Send("</table>\n");
-    socket->Send("</body>\n</html>");
-    
-    socket->Close();
-}
 */
 
 
 void
-WebUI::ReadXML(XMLDocument * xmlDoc)
+WebUI::ReadXML(XMLDocument * xmlDoc) // TODO: should be integrated into kernel tree
 {
     if (xmlDoc == NULL)
     {
