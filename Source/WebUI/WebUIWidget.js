@@ -240,6 +240,11 @@ class WebUIWidget extends HTMLElement
         this.setFormat('positiveColor', '--positive-color', 'string');
         this.setFormat('negativeColor', '--negative-color', 'string');
         this.setFormat('lineWidth', '--line-width', 'string');
+        this.setFormat('lineDash', '--line-dash', 'string');
+        this.setFormat('lineCap', '--line-cap', 'string');
+        this.setFormat('lineJoin', '--line-join', 'string');
+        this.setFormat('close', '--close', 'bool');
+        this.setFormat('arrow', '--arrow', 'bool');
         this.setFormat('fill', '--fill', 'string');
 
         this.setFormat('gridColor', '--grid-color', 'string');
@@ -262,7 +267,7 @@ class WebUIWidget extends HTMLElement
         this.setFormat('bottomScale', '--bottom-scale', 'int');
         this.setFormat('scaleOffset', '--scale-offset', 'int');
         this.setFormat('scaleFont', '--scale-font', 'string');
-        
+
         this.setFormat('labels', '--labels', 'bool');
         this.setFormat('labelColor', '--label-color', 'string');
         this.setFormat('labelFont', '--label-font', 'string');
@@ -270,8 +275,8 @@ class WebUIWidget extends HTMLElement
         this.setFormat('drawLabelsY', '--draw-labels-y', 'bool');
         
         this.setFormat('decimals', '--decimals', 'int');
-        this.setFormat('min', '--min', 'int');
-        this.setFormat('max', '--max', 'int');
+//        this.setFormat('min', '--min', 'int');
+//        this.setFormat('max', '--max', 'int');
     }
 
     getColor(i, v)

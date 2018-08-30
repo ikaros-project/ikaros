@@ -13,6 +13,10 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
+            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
             {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -45,8 +49,12 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
     drawRows(width, height)
     {
-//        this.canvas.clearRect(0, 0, this.width, this.height);
-        
+        let d = this.data;
+        let rows = this.data.length;
+        this.canvas.lineWidth = this.format.lineWidth;
+        this.canvas.lineCap = this.format.lineCap;
+        this.canvas.lineJoin = this.format.lineJoin;
+
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         
         for(var i=0; i<rows; i++)
@@ -56,26 +64,26 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
-            let x = (d[i][this.parameters.select+0]-this.parameters.min_x)*this.parameters.scale_x * this.width;
-            let y = (d[i][this.parameters.select+1]-this.parameters.min_y)*this.parameters.scale_y * this.height;
+            let x = (d[i][this.parameters.select+0]-this.parameters.min_x)*this.parameters.scale_x * width;
+            let y = (d[i][this.parameters.select+1]-this.parameters.min_y)*this.parameters.scale_y * height;
             this.canvas.moveTo(x, y);
             
             for(var j=this.parameters.select+2; j<xx;)
             {
                 lx = x;
                 ly = y;
-                x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * this.width;
-                y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * this.height;
+                x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
+                y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * height;
                 
                 this.canvas.lineTo(x, y);
             }
             
             this.canvas.fill();
-            if(this.parameters.close)
+            if(this.format.close)
                 this.canvas.closePath();
             this.canvas.stroke();
             
-            if(this.parameters.arrow)
+            if(this.format.arrow)
                 this.drawArrowHead(lx, ly, x, y);
         }
     }
@@ -85,10 +93,10 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     {
         let d = this.data;
         let rows = this.data.length;
-        
-//        this.canvas.clearRect(0, 0, width, height);
-        this.canvas.lineWidth = this.parameters.stroke_width;
-        
+        this.canvas.lineWidth = this.format.lineWidth;
+        this.canvas.lineCap = this.format.lineCap;
+        this.canvas.lineJoin = this.format.lineJoin;
+
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         let c = 0;
         for(var i=this.parameters.select; i<xx; i+=2)
@@ -113,11 +121,11 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             }
 
             this.canvas.fill();
-            if(this.parameters.close)
+            if(this.format.close)
                 this.canvas.closePath();
             this.canvas.stroke();
             
-            if(this.parameters.arrow)
+            if(this.format.arrow)
                 this.drawArrowHead(lx, ly, x, y);
 
             c++;

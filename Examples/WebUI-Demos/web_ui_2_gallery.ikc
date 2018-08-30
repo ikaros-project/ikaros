@@ -5,40 +5,215 @@
 <group name="WebUI Demo">
 	
     <view name="Paths">
-
         <path
             x="20" y="20"
             width="200"
             height="200"
-            title="Multicolored Path"
+            title="Default Path"
             module="Lines"
             source="OUTPUT"
-            stroke_width = "4"
-            arrow = "yes"
-            fill = "yellow"
-            color = "red, green, blue, yellow"
+            fill = "transparent"
         />
- 
-         <table title="Default Table" module="Lines" source="OUTPUT" x="240" y="20" width="200" height="200" />
-         
-<!--        <path
-            x="220" y="20"
+        <text
+            x="20" y="230"
+            width="200"
+            height="60"
+            text="Default path"
+        />
+        
+        <path
+            x="240" y="20"
+            width="200"
+            height="200"
+            title="Arrow"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+        />
+        <text
+            x="240" y="230"
+            width="200"
+            height="60"
+            text="Thicker green line with arrow"
+        />
+        
+       <path
+            x="460" y="20"
+            width="200"
+            height="200"
+            title="Line caps and joins"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "18"
+            lineCap = "round"
+            lineJoin = "round"
+            _arrow = "yes"
+            fill = "transparent"
+            color = "orange"
+        />
+        <text
+            x="460" y="230"
+            width="200"
+            height="60"
+            text="Thicker orange line with round lineCap and lineJoin"
+        />
+        
+       <path
+            x="680" y="20"
+            width="200"
+            height="200"
+            title="Filled closed path"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "no"
+            fill = "yellow"
+            color = "red"
+            close = "yes"
+        />
+        <text
+            x="680" y="230"
+            width="200"
+            height="60"
+            text="Filled closed path"
+        />
+        
+        <table
+            title="Path data"
+            module="Lines"
+            source="OUTPUT"
+            x="900"
+            y="20"
+            width="200"
+            height="200"
+        />
+        <text
+            x="900" y="130"
+            width="200"
+            height="60"
+            text="The data used to draw the paths in column order"
+        />
+
+
+
+        <path
+            x="20" y="300"
+            width="200"
+            height="200"
+            title="Default Path"
+            module="Lines"
+            source="OUTPUT"
+            fill = "transparent"
+            scales = "yes"
+        />
+        <text
+            x="20" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+        
+        <path
+            x="240" y="300"
+            width="200"
+            height="200"
+            title="Arrow"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+        />
+        <text
+            x="240" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+        
+       <path
+            x="460" y="300"
+            width="200"
+            height="200"
+            title="Line caps and joins"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "18"
+            lineCap = "round"
+            lineJoin = "round"
+            _arrow = "yes"
+            fill = "transparent"
+            color = "orange"
+            scales = "yes"
+        />
+        <text
+            x="460" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+        
+       <path
+            x="680" y="300"
+            width="200"
+            height="200"
+            title="Filled closed path"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "no"
+            fill = "yellow"
+            color = "red"
+            close = "yes"
+            scales = "yes"
+        />
+        <text
+            x="680" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+
+
+        <path
+            x="20" y="580"
             width="200"
             height="200"
             title="Triangles"
             module="R"
             source="OUTPUT"
             order="row"
-            _stroke_width = "9"
-            _arrow="no"
+            lineWidth = "3"
+            arrow="no"
             close="yes"
-            _color = "red, green, blue, yellow"
-            _lineCap = "round"
-            _lineJoin = "round"
+            color = "red, green, blue, yellow"
+            fill = "#ff000088, #00ff0088, #0000ff88, #ffff0088"
+            lineCap = "round"
+            lineJoin = "round"
         />
 
+        <table
+            title="Path Data"
+            module="R"
+            source="OUTPUT"
+            x="240"
+            y="620"
+            width="500"
+            height="200"
+        />
+       <text
+            x="240" y="710"
+            width="500"
+            height="60"
+            text="The data used to draw the three triangles to the left using row order"
+        />
 
-
+<!--
         <object
             x="0" y="1"
             class="Path"
