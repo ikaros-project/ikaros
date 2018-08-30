@@ -25,17 +25,10 @@
 #ifdef USE_SOCKET
 #include "Kernel/IKAROS_ColorTables.h"
 
-#ifdef WINDOWS
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
-
 #include <string.h>
 #include <fcntl.h>
 #include <atomic>
-
-
 #include <string>
 
 using namespace ikaros;
@@ -1144,39 +1137,6 @@ WebUI::HandleHTTPRequest()
         tick = 0;
         isRunning = true;
     }
-    else if(!strcmp(uri, "/xhrtest.json"))
-    {
-        if(!args) // not a data request - send view data
-        {
-            std::string s = k->JSONString();
-            Dictionary rtheader;
-            rtheader.Set("Content-Type", "application/json");
-            rtheader.Set("Content-Length", int(s.size()));
-            socket->SendHTTPHeader(&rtheader);
-            socket->SendData(s.c_str(), int(s.size()));
-        }
-        else // possibly a data request - send requested data - very temporary version without thread or real-time support
-        {
-            char * var = strsep(&args, "=");
-            printf("\t\tVARIABLE: %s\n", var);
-            
-            // Build data package
-
-            while(args)
-            {
-                char * ms = strsep(&args, "+");
-                
-                char * module = strsep(&ms, ".");
-                char * source = ms;
-                
-                printf("\t\tSOURCE: %s:%s\n", module, source);
-                AddDataSource(module, source);
-                
-            }
-            CopyUIData();
-            SendUIData();
-        }
-    }
     else if (strstart(uri, "/control/"))
     {
         char module_name[255];
@@ -1312,25 +1272,6 @@ WebUI::StartHTTPThread(void * webui)
     return NULL;
 }
 
-
-
-// Send XML sends the XML tree
-/*
-void
-WebUI::SendXML()
-{
-    FILE * f = fopen("temp.xml","w");
-    if(!f) return;
-    if(k->xmlDoc)
-        k->xmlDoc->xml->Print(f, 0);
-    fclose(f);
-    
-    socket->SendFile("temp.xml");
-    
-    remove("temp.xml");
-//    socket->Close();
-}
-*/
 
 
 void
