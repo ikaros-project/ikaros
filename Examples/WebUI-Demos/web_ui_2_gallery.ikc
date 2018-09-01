@@ -210,8 +210,97 @@
             x="240" y="710"
             width="500"
             height="60"
-            text="The data used to draw the three triangles to the left using row order"
+            text="The random data used to draw the three triangles to the left using row order"
         />
+
+
+        <path
+            x="20" y="800"
+            width="200"
+            height="200"
+            title="Normal"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+        />
+        <text
+            x="20" y="1030"
+            width="200"
+            height="60"
+            text="Normal"
+        />
+
+
+        <path
+            x="240" y="800"
+            width="200"
+            height="200"
+            title="Flip x-axis"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+            flipXAxis = "yes"
+        />
+        <text
+            x="240" y="1030"
+            width="200"
+            height="60"
+            text="Flip x-axis"
+        />
+
+
+        <path
+            x="460" y="800"
+            width="200"
+            height="200"
+            title="Flip y-axis"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+            flipYAxis = "yes"
+        />
+        <text
+            x="460" y="1030"
+            width="200"
+            height="60"
+            text="Flip y-axis"
+        />
+
+
+        <path
+            x="680" y="800"
+            width="200"
+            height="200"
+            title="Flip both axes"
+            module="Lines"
+            source="OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+            flipXAxis = "yes"
+            flipYAxis = "yes"
+        />
+        <text
+            x="680" y="1030"
+            width="200"
+            height="60"
+            text="Flip both axes"
+        />
+
 
 <!--
         <object

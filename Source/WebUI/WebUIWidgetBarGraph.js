@@ -50,8 +50,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotHorizontal(width, height, y)
     {
-//        this.canvas.fillStyle = '#ffcccc';
-//        this.canvas.fillRect(0, 0, width, height);
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -71,8 +69,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotVertical(width, height, y)
     {
-//        this.canvas.fillStyle = '#ffcccc';
-//        this.canvas.fillRect(0, 0, width, height);
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);

@@ -251,6 +251,9 @@ class WebUIWidget extends HTMLElement
         this.setFormat('gridLineWidth', '--grid-line-width', 'string');
         this.setFormat('gridFill', '--grid-fill', 'string');
 
+        this.setFormat('flipXAxis', '--flip-x-axis', 'bool');
+        this.setFormat('flipYAxis', '--flip-y-axis', 'bool');
+
         this.setFormat('frame', '--frame', 'string');
         this.setFormat('xAxis', '--x-axis', 'bool');
         this.setFormat('yAxis', '--y-axis', 'bool');
@@ -275,8 +278,9 @@ class WebUIWidget extends HTMLElement
         this.setFormat('drawLabelsY', '--draw-labels-y', 'bool');
         
         this.setFormat('decimals', '--decimals', 'int');
-//        this.setFormat('min', '--min', 'int');
-//        this.setFormat('max', '--max', 'int');
+
+        this.setFormat('min', '--min', 'int');
+        this.setFormat('max', '--max', 'int');
     }
 
     getColor(i, v)

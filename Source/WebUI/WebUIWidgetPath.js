@@ -11,8 +11,12 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'values': "col,row"},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+//            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
+//            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
@@ -20,6 +24,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
             {'name': "STYLE", 'control':'header'},
             {'name':'color', 'default':'black', 'type':'string', 'control': 'textedit'},   // no default = get from CSS
             {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
@@ -37,7 +43,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         this.data = [];
 
         this.onclick = function () { alert(this.data) }; // last matrix
-   }
+    }
 
     requestData(data_set)
     {
@@ -45,7 +51,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         if(this.parameters['length_module'])
             data_set.add(this.parameters['length_module']+"."+this.parameters['length_source']);
     }
-
 
     drawRows(width, height)
     {
@@ -87,7 +92,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                 this.drawArrowHead(lx, ly, x, y);
         }
     }
-
 
     drawCols(width, height)
     {
@@ -139,8 +143,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         else
             this.drawCols(width, height);
     }
-    
-    update(d)   // default for Graph - should not be needed here
+
+    update(d) // default for Graph - should not be needed here
     {
         // update parameters
         // FIXME: should be moved to graph later for all graphs
@@ -168,23 +172,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             if(!this.data)
                 return;
 
-/*
-            if(this.parameters.order=="row")
-                this.count = this.data.length;
-            else
-                this.count = this.data[0].length;
-
-            if(this.parameters.length_source)
-            {
-                let r = d[this.parameters.length_module];
-                if(r)
-                {
-                    r = r[this.parameters.length_source];
-                    if(r)
-                        this.count = r[0][0];
-                }
-            }
-*/
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
