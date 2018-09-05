@@ -1,4 +1,4 @@
-class WebUIWidgetPath extends WebUIWidgetGraph
+class WebUIWidgetMarker extends WebUIWidgetGraph
 {
     static template()
     {
@@ -12,19 +12,30 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'values': "col,row"},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'selectValue', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
-             {'name': "STYLE", 'control':'header'},
+             {'name': "MARKER STYLE", 'control':'header'},
 
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
+            {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'values': "none,circle,cross"}, // dot, square, rectangle?
+            {'name':'size', 'default':0.02, 'type':'float', 'control': 'textedit'},
+
+             {'name': "LABEL STYLE", 'control':'header'},
+
+            {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'values': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
+            {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'labelPrefix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'labelPostfix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'labelAnchor', 'default':"middle", 'type':'string', 'control': 'menu', 'values': "start, middle, end"}, // dot, square, rectangle?
+            {'name':'labelOffsetX', 'default':"0", 'type':'float', 'control': 'textedit'},
+            {'name':'labelOffsetY', 'default':"0", 'type':'float', 'control': 'textedit'},
+
+            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
             {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
+            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,square"},
             {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
-            
-            {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
@@ -73,6 +84,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
     drawRows(width, height, index, transform)
     {
+        let s = this.parameters.size*(width+height)/2
         let d = this.data;
         let rows = this.data.length;
         this.canvas.lineWidth = this.format.lineWidth;
@@ -90,7 +102,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             let ly = 0;
             let x = (d[i][this.parameters.select+0]-this.parameters.min_x)*this.parameters.scale_x * width;
             let y = (d[i][this.parameters.select+1]-this.parameters.min_y)*this.parameters.scale_y * height;
-            this.canvas.moveTo(...transform(x, y));
             
             for(var j=this.parameters.select+2; j<xx;)
             {
@@ -99,21 +110,30 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                 x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
                 y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * height;
                 
-                this.canvas.lineTo(...transform(x, y));
+                if(this.parameters.markerType == "circle")
+                {
+                    this.canvas.arc(...transform(x, y), s, 0, 2*Math.PI);
+                }
+                else if(this.parameters.markerType == "cross")
+                {
+                    this.canvas.moveTo(...transform(x-s, y));
+                    this.canvas.lineTo(...transform(x+s, y));
+                    this.canvas.moveTo(...transform(x, y-s));
+                    this.canvas.lineTo(...transform(x, y+s));
+               }
             }
             
             this.canvas.fill();
-            if(this.parameters.close)
-                this.canvas.closePath();
             this.canvas.stroke();
-            
-            if(this.parameters.arrow)
-                this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
         }
     }
 
     drawCols(width, height, index, transform)
     {
+        let l = this.parameters.labels.split(',');
+        let n = l.length;
+    
+        let s = this.parameters.size*(width+height)/2
         let d = this.data;
         let rows = this.data.length;
         this.canvas.lineWidth = this.format.lineWidth;
@@ -124,32 +144,46 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         let c = 0;
         for(var i=this.parameters.select; i<xx; i+=2)
         {
-            this.setColor(c);
-            this.canvas.beginPath();
-            
             let lx = 0;
             let ly = 0;
             let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
             let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
-            this.canvas.moveTo(...transform(x, y));
             
-            for(var j=1; j<rows;j++)
+            for(var j=0; j<rows;j++)
             {
-                lx = x;
-                ly = y;
+//                lx = x;
+//                ly = y;
                 x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
                 y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
-                
-                this.canvas.lineTo(...transform(x, y));
-            }
 
-            this.canvas.fill();
-            if(this.parameters.close)
-                this.canvas.closePath();
-            this.canvas.stroke();
-            
-            if(this.parameters.arrow)
-                this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
+                this.setColor(c);
+                this.canvas.beginPath();
+                
+                if(this.parameters.markerType == "circle")
+                {
+                    this.canvas.arc(...transform(x, y), s, 0, 2*Math.PI);
+                }
+                else if(this.parameters.markerType == "cross")
+                {
+                    this.canvas.moveTo(...transform(x-s/2, y));
+                    this.canvas.lineTo(...transform(x+s/2, y));
+                    this.canvas.moveTo(...transform(x, y-s/2));
+                    this.canvas.lineTo(...transform(x, y+s/2));
+               }
+
+                this.canvas.fill();
+                this.canvas.stroke();
+                
+                if(this.parameters.labelType == "none")
+                {
+                }
+                else if(this.parameters.labelType == "labels")
+                {
+ //                   this.canvas.textAlign = "right";
+ //                   this.canvas.textBaseline = "middle";
+                    this.canvas.fillText(l[j % n], ...transform(x, y));    // OFFSET
+                }
+            }
 
             c++;
         }
@@ -163,11 +197,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             this.drawCols(width, height, index, transform);
     }
 
-    update(d) // default for Graph - should not be needed here
+    update(d)
     {
-        // update parameters
-        // FIXME: should be moved to graph later for all graphs
-        
         this.parameters.select = (this.parameters.select ? this.parameters.select : 0);
         this.parameters.scale = 1/(this.parameters.max == this.parameters.min ? 1 : this.parameters.max-this.parameters.min);
         
@@ -204,4 +235,4 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 };
 
 
-webui_widgets.add('webui-widget-path', WebUIWidgetPath);
+webui_widgets.add('webui-widget-marker', WebUIWidgetMarker);

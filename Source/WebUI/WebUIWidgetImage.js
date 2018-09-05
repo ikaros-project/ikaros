@@ -3,15 +3,27 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "DATA", 'control':'header'},
+            {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
+
+            {'name': "STYLE", 'control':'header'},
+
             {'name':'format', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,red,green,blue,rgb"},
             {'name':'scale', 'default':"both", 'type':'string', 'control': 'menu', 'values': "none,width,height,both"},
-            {'name': "STYLE", 'control':'header'},
+
+           {'name': "COORDINATE SYSTEM", 'control':'header'},
+
             {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no", 'class':'true'},
+            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            
+            {'name': "FRAME", 'control':'header'},
+            
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},

@@ -3,16 +3,17 @@ class WebUIWidgetBUtton extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
+            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'value', 'default':1, 'type':'int', 'control': 'textedit'},
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name': "STYLE", 'control':'header'},
+
+            {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},

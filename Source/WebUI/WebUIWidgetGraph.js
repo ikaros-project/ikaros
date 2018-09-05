@@ -83,12 +83,14 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.font = this.format.scaleFont;
         this.canvas.fillStyle = this.format.axisColor;
         this.canvas.textAlign = "right";
-        this.canvas.textBaseline="middle";
+        this.canvas.textBaseline = "middle";
 
         let i=0;
         for(let j=0; j<n; j++)
         {
             let v = min + (n-j-1)*(max-min)/(n-1);
+            if(this.format.flipYAxis)
+                v = max - v;
             this.canvas.fillText(v.toFixed(this.format.decimals), -this.format.scaleOffset, i);
             i += height/(n-1);
         }
@@ -118,6 +120,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         for(let j=0; j<n; j++)
         {
             let v = min + (n-j-1)*(max-min)/(n-1);
+            if(this.format.flipYAxis)
+                v = max - v;
             this.canvas.fillText(v.toFixed(this.format.decimals), width+this.format.scaleOffset, i);
             i += height/(n-1);
         }
@@ -150,6 +154,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         for(let j=0; j<n; j++)
         {
             let v = min + j*(max-min)/(n-1);
+            if(this.format.flipXAxis)
+                v = max - v;
             this.canvas.fillText(v.toFixed(this.format.decimals), i, height+this.format.scaleOffset);
             i += width/(n-1);
         }
@@ -374,17 +380,26 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
                 this.drawHorizontalGridlines(pane_x, plot_height);
                 this.canvas.save();
                     this.canvas.translate(this.format.spaceLeft, 0);
-                        if(this.format.flipXAxis)
+                        if(this.format.flipXCanvas)
                         {
                             this.canvas.translate(plot_width, 0);
                             this.canvas.scale(-1, 1);
                         }
-                        if(this.format.flipYAxis)
+                        if(this.format.flipYCanvas)
                         {
                             this.canvas.translate(0, plot_height);
                             this.canvas.scale(1, -1);
                         }
-                    this.drawPlotVertical(plot_width, plot_height, y);
+
+                        if(this.format.flipXAxis && this.format.flipYAxis)
+                            this.drawPlotVertical(plot_width, plot_height, y, function (x, y) { return [plot_width-x, plot_height-y] });
+                        else if(this.format.flipYAxis)
+                            this.drawPlotVertical(plot_width, plot_height, y, function (x, y) { return [x, plot_height-y] });
+                        else if(this.format.flipXAxis)
+                            this.drawPlotVertical(plot_width, plot_height, y, function (x, y) { return [plot_width-x, y] });
+                        else
+                            this.drawPlotVertical(plot_width, plot_height, y, function (x, y) { return [x, y] });
+
                 this.canvas.restore();
                 this.drawLeftScale(pane_x, plot_height);
                 this.drawRightScale(pane_x, plot_height);
@@ -435,17 +450,26 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
                     this.drawBottomScale(plot_width, pane_y); // ****
                     this.canvas.save();
                         this.canvas.translate(0, this.format.spaceTop);
-                        if(this.format.flipXAxis)
+                        if(this.format.flipXCanvas)
                         {
                             this.canvas.translate(plot_width, 0);
                             this.canvas.scale(-1, 1);
                         }
-                        if(this.format.flipYAxis)
+                        if(this.format.flipYCanvas)
                         {
                             this.canvas.translate(0, plot_height);
                             this.canvas.scale(1, -1);
                         }
-                       this.drawPlotHorizontal(plot_width, plot_height, y);
+                
+                        if(this.format.flipXAxis && this.format.flipYAxis)
+                            this.drawPlotHorizontal(plot_width, plot_height, y, function (x, y) { return [plot_width-x, plot_height-y] });
+                        else if(this.format.flipYAxis)
+                            this.drawPlotHorizontal(plot_width, plot_height, y, function (x, y) { return [x, plot_height-y] });
+                        else if(this.format.flipXAxis)
+                            this.drawPlotHorizontal(plot_width, plot_height, y, function (x, y) { return [plot_width-x, y] });
+                        else
+                            this.drawPlotHorizontal(plot_width, plot_height, y, function (x, y) { return [x, y] });
+                
                     this.canvas.restore();
                     this.drawBottomTickMarks(plot_width, pane_y);
                     this.drawVerticalGridlinesOver(plot_width, pane_y);
@@ -485,7 +509,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.translate(this.format.marginLeft, this.format.marginTop); // +0*this.format.titleHeight
         try {
 //            this.drawVertical(1, 1);
-            this.drawHorizontal(1, 1);
+            this.drawHorizontal(1, 1, 0, this.transform);
         }
         catch(err)
         {

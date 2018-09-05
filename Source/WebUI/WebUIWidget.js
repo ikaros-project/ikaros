@@ -191,7 +191,7 @@ class WebUIWidget extends HTMLElement
     setFormat(variable, attribute, type, index=undefined)
     {
         let v = null;
-        if(variable in this.parameters)
+        if(variable in this.parameters && this.parameters[variable] != "")  // use style if parameter has no value (or no default)
         {
             if(index)
                 v = this.parameters[variable].split(",")[index].toLowerCase()
@@ -209,8 +209,6 @@ class WebUIWidget extends HTMLElement
 
     readCSSvariables()
     {
-        // read CSS variables - TODO: allow to work also when some variable is missing
-
         this.format = {}
 
         this.setFormat('direction', '--direction', 'string');
@@ -253,6 +251,8 @@ class WebUIWidget extends HTMLElement
 
         this.setFormat('flipXAxis', '--flip-x-axis', 'bool');
         this.setFormat('flipYAxis', '--flip-y-axis', 'bool');
+        this.setFormat('flipXCanvas', '--flip-x-canvas', 'bool');
+        this.setFormat('flipYCanvas', '--flip-y-canvas', 'bool');
 
         this.setFormat('frame', '--frame', 'string');
         this.setFormat('xAxis', '--x-axis', 'bool');
@@ -368,14 +368,14 @@ class WebUIWidget extends HTMLElement
         this.parentElement.firstChild.style.display = this.parameters.show_title ? 'block' : 'none';
         this.parentElement.firstChild.innerText = this.parameters.title;
         this.setCSSClass();
-        this.readCSSvariables(); // TEST
+        this.readCSSvariables();
     }
 
     init()
     {
         this.updateAll();
     }
- 
+
     update()
     {
     }

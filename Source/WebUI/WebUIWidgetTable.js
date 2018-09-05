@@ -3,15 +3,18 @@ class WebUIWidgetTable extends WebUIWidget
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "DATA", 'control':'header'},
+            {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
+            
             {'name': "STYLE", 'control':'header'},
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'decimals', 'default': 4, 'type':'int', 'control': 'textedit'},
             {'name':'colorize', 'default':true, 'type':'bool', 'control': 'checkbox'},
+
+            {'name': "FRAME", 'control':'header'},
+            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
@@ -28,7 +31,7 @@ class WebUIWidgetTable extends WebUIWidget
         this.rows = 0;
         this.cols = 0;
     }
-    
+
     reshapeTable(r, c)
     {
         this.rows = r;

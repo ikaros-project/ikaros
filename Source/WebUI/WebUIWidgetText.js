@@ -3,12 +3,13 @@ class WebUIWidgetText extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "DATA", 'control':'header'},
+            {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
             {'name':'text', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name': "STYLE", 'control':'header'},
+            
+            {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},

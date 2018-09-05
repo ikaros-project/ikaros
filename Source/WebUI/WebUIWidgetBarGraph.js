@@ -3,15 +3,26 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "DATA", 'control':'header'},
+            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
+
+            {'name': "STYLE", 'control':'header'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical", 'class':'true'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name': "STYLE", 'control':'header'},
+            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
+            {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'lineCap', 'default':"", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
+            {'name':'lineJoin', 'default':"", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
+
+            {'name': "COORDINATE SYSTEM", 'control':'header'},
+            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            
+            {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -22,7 +33,17 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
         super.init();
         this.data = [];
-        this.onclick = function () { alert(this.data) };
+
+        this.onclick = function () {
+            let s = "";
+            for(let r of this.data)
+            {
+                for(let c of r)
+                    s += c+"\t";
+                s += "\n"
+            }
+            alert(s);
+        };
     }
 
     requestData(data_set)

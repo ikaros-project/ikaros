@@ -14,18 +14,21 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "DATA", 'control':'header'},
+            {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'count', 'default':1, 'type':'int', 'control': 'textedit'},
-            {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
+            
+            {'name': "STYLE", 'control':'header'},
+            {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'step', 'default':0.01, 'type':'float', 'control': 'textedit'},
-            {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name': "STYLE", 'control':'header'},
-            {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'show_values', 'default':false, 'type':'bool', 'control': 'checkbox'},
+
+            {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},

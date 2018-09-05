@@ -205,7 +205,6 @@ webui-widget-image.scales-no {
     --y-axis: no;
 }
 
-
 webui-widget-image.scales-yes {
     --vertical-gridlines: 5;
     --horizontal-gridlines: 5;
@@ -215,6 +214,9 @@ webui-widget-image.scales-yes {
     --y-axis: no;
     --left-scale: 5;
     --bottom-scale: 5;
+}
+
+webui-widget-path {
 }
 
 webui-widget-path.scales-no {
@@ -237,6 +239,16 @@ webui-widget-path.scales-yes {
     --bottom-scale: 3;
     --vertical-gridlines: 5;
     --horizontal-gridlines: 5;
+}
+
+
+webui-widget-path.scales-invisible {
+    --left-scale: 0;
+    --bottom-scale: 0;
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --x-axis: no;
+    --y-axis: no;
 }
 
 webui-widget-table table {
