@@ -160,8 +160,6 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             
             for(var j=0; j<rows;j++)
             {
-//                lx = x;
-//                ly = y;
                 x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
                 y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
 
@@ -204,7 +202,6 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                     this.canvas.fillText(this.parameters.labelPrefix+lbl+this.parameters.labelPostfix, ...transform(x+this.parameters.labelOffsetX, y+this.parameters.labelOffsetY));
                 }
             }
-
             c++;
         }
     }

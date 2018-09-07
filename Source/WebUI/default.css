@@ -289,6 +289,44 @@ webui-widget-marker.scales-invisible {
 }
 
 
+webui-widget-grid {
+}
+
+webui-widget-grid.scales-no {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
+    
+    --x-axis: no;
+    --y-axis: no;
+}
+
+webui-widget-grid.scales-yes {
+    --left-scale: 3;
+    --bottom-scale: 3;
+    --vertical-gridlines: 5;
+    --horizontal-gridlines: 5;
+}
+
+
+webui-widget-grid.scales-invisible {
+    --left-scale: 0;
+    --bottom-scale: 0;
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --x-axis: no;
+    --y-axis: no;
+}
+
+
+
+
 webui-widget-table table {
     border-top: 1px solid gray;
     width: 100%;

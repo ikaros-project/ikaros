@@ -4,6 +4,16 @@
 
 <group name="WebUI Demo">
 
+    <view name="Grid">
+        <grid
+            x="20" y="20"
+            width="200"
+            height="200"
+            title="Default Grid"
+            module="RGrayGrid"
+            source="OUTPUT"
+        />
+    </view>
 
      <view name="Markers">
         <path
