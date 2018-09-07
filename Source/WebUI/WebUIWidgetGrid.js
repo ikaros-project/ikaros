@@ -17,12 +17,14 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name': "STYLE", 'control':'header'},
 
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,custom color table"},
-            {'name':'coloTable', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,custom"},
+            {'name':'colorTable', 'default':'yellow,red,green', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'values': "rectangle,square,circle"},
+            {'name':'size', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
+ //           {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
+ //           {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
@@ -79,20 +81,44 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
+        let ct = LUT_gray;
+        if(this.parameters.fill == 'fire')
+            ct = LUT_fire;
+        else if(this.parameters.fill == 'spectrum')
+            ct = LUT_spectrum;
+        else if(this.parameters.fill == 'custom')
+        {
+            let q = this.parameters.colorTable;
+            ct = this.parameters.colorTable.split(',');
+        }
+
+        let n = ct.length;
         let dx = width/cols;
         let dy = height/rows;
-        let sx = dx;
-        let sy = dy;
+        let sx = dx*this.parameters.size;
+        let sy = dy*this.parameters.size;
+        
+        if(this.parameters.shape == 'square' || this.parameters.shape == 'circle')
+        {
+            let minimum = Math.min(sx, sy);
+            sx = minimum;
+            sy = minimum;
+        }
 
         for(var i=0; i<rows; i++)
             for(var j=0; j<cols; j++)
             {
                 this.setColor(i+j);
                 this.canvas.beginPath();
-                let v = Math.round(16*(d[j][i]-this.parameters.min)/(this.parameters.max-this.parameters.min));
-                let c = v.toString(16);
-                this.canvas.fillStyle = "#" + c + c + c;
-                this.canvas.rect(dx*i, dy*j, sx, sy);
+                let f = (d[j][i]-this.parameters.min)/(this.parameters.max-this.parameters.min);
+                let ix = Math.floor(n*f);
+                this.canvas.fillStyle = ct[ix].trim();
+                
+                if(this.parameters.shape == 'circle')
+                    this.canvas.arc(dx*i+dx/2, dy*j+dy/2, sx/2, 0, 2*Math.PI);
+                else
+                    this.canvas.rect(dx*i, dy*j, sx, sy);
+                
                 this.canvas.fill();
                 this.canvas.stroke();
             }

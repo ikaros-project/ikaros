@@ -190,7 +190,7 @@ inspector = {
                             parameters[p.name] = parseFloat(evt.target.innerText);
                         else
                         {
-                            parameters[p.name] = evt.target.innerText.replace("\n", "").replace("\l", "");
+                            parameters[p.name] = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
                             if(p.name == "style")
                                 widget.updateStyle(widget, evt.target.innerText);
                             if(p.name == "frame-style")

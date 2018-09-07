@@ -1532,8 +1532,8 @@
     <module
         class = "Randomizer"
         name = "RGrayGrid"
-        outputsize_x = "25"
-        outputsize_y = "25"
+        outputsize_x = "5"
+        outputsize_y = "5"
         max = "1"
     />
 
