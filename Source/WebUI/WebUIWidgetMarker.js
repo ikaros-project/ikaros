@@ -15,18 +15,21 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             {'name':'selectValue', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
-             {'name': "MARKER STYLE", 'control':'header'},
+            {'name': "MARKER STYLE", 'control':'header'},
 
             {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'values': "none,circle,cross"}, // dot, square, rectangle?
             {'name':'size', 'default':0.02, 'type':'float', 'control': 'textedit'},
 
-             {'name': "LABEL STYLE", 'control':'header'},
+            {'name': "LABEL STYLE", 'control':'header'},
 
             {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'values': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'labelFont', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
+            {'name':'labelDecimals', 'default':2, 'type':'int', 'control': 'textedit'},
             {'name':'labelPrefix', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'labelPostfix', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelAnchor', 'default':"middle", 'type':'string', 'control': 'menu', 'values': "start, middle, end"}, // dot, square, rectangle?
+            {'name':'labelAlign', 'default':"center", 'type':'string', 'control': 'menu', 'values': "left, center, right"},
+            {'name':'labelBaseline', 'default':"middle", 'type':'string', 'control': 'menu', 'values': "top, bottom, middle, alphabetic, hanging"},
             {'name':'labelOffsetX', 'default':"0", 'type':'float', 'control': 'textedit'},
             {'name':'labelOffsetY', 'default':"0", 'type':'float', 'control': 'textedit'},
 
@@ -47,7 +50,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
             {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
             {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYCanvas', 'default':"yes", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
 
             {'name': "FRAME", 'control':'header'},
 
@@ -136,9 +139,15 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         let s = this.parameters.size*(width+height)/2
         let d = this.data;
         let rows = this.data.length;
+
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
+
+        this.canvas.font = this.parameters.labelFont;
+        this.canvas.textAlign = this.parameters.labelAlign;
+        this.canvas.textBaseline = this.parameters.labelBaseline;
+
 
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         let c = 0;
@@ -174,14 +183,25 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 this.canvas.fill();
                 this.canvas.stroke();
                 
-                if(this.parameters.labelType == "none")
+                if(this.parameters.labelType != "none")
                 {
-                }
-                else if(this.parameters.labelType == "labels")
-                {
- //                   this.canvas.textAlign = "right";
- //                   this.canvas.textBaseline = "middle";
-                    this.canvas.fillText(l[j % n], ...transform(x, y));    // OFFSET
+                    let lbl = l[j % n];
+                    if(this.parameters.labelType == "alphabetical")
+                        lbl = String.fromCharCode(65+j);
+                    if(this.parameters.labelType == "numbered")
+                        lbl = j;
+                    if(this.parameters.labelType == "x_value")
+                        lbl = d[j][i+0].toFixed(this.parameters.labelDecimals);
+                    else if(this.parameters.labelType == "y_value")
+                        lbl = d[j][i+1].toFixed(this.parameters.labelDecimals);
+                    else if(this.parameters.labelType == "xy_value")
+                        lbl = d[j][i+0].toFixed(this.parameters.labelDecimals)+", "+d[j][i+1].toFixed(this.parameters.labelDecimals);
+                    else if(this.parameters.labelType == "z_value")
+                         lbl = d[j][i+2].toFixed(this.parameters.labelDecimals);
+                    else if(this.parameters.labelType == "value")
+                        lbl = d[j][this.parameters.selectValue].toFixed(this.parameters.labelDecimals);
+
+                    this.canvas.fillText(this.parameters.labelPrefix+lbl+this.parameters.labelPostfix, ...transform(x+this.parameters.labelOffsetX, y+this.parameters.labelOffsetY));
                 }
             }
 

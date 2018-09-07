@@ -316,9 +316,6 @@ interaction = {
     initElement: function (element) {   // For interactively created object
         console.log("initElement:", element);
 
-//        if (typeof element == 'string')
-//            element = document.getElementById(element);
-
         element.addEventListener('mousedown', interaction.startDrag, true); //capture
 
         let widget_select = document.querySelector('#widget_select');
