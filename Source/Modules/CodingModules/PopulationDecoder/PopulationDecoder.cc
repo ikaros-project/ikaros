@@ -72,7 +72,7 @@ decode_population_code(float * x, int size, float min, float max)
     }
     else
     {
-        return (max-min)/2;
+        return min + (max-min)/2;
     }
 }
 
