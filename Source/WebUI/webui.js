@@ -845,7 +845,7 @@ controller = {
         let data_set = new Set();
         
         // Very fragile loop - maybe use class to mark widgets or something
-        let w = document.getElementsByClassName('frame')
+        let w = document.getElementsByClassName('frame');
         for(let i=0; i<w.length; i++)
             try
             {
@@ -864,6 +864,47 @@ controller = {
          }
         
         controller.get("update.json?data="+encodeURIComponent(data_string), controller.update);
+    },
+
+    copyToClipboard: function (text)
+    {
+        if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+            var textarea = document.createElement("textarea");
+            textarea.textContent = text;
+            textarea.style.position = "fixed";
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+            } catch (ex) {
+                console.warn("Copy to clipboard failed.", ex);
+                return false;
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+    },
+
+    copyView: function()
+    {
+        let s = "<view name=\""+interaction.currentViewName.split('#')[1]+"\">\n\n"; // FIXME: probably don't work for included views
+        let w = document.getElementsByClassName('frame');
+        for(let i=0; i<w.length; i++)
+            try
+            {
+                let wgt = w[i].children[1]
+                s += "\t<widget\n"
+                for(let p in wgt.parameters)
+                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p])
+                        s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
+                s += "\t/>\n\n"
+            }
+            catch(err)
+            {
+                s += " AN ERROR OCCURED";
+            }
+        s += "</view>"
+        controller.copyToClipboard(s);
     }
 }
 
