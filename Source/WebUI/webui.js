@@ -885,7 +885,7 @@ controller = {
         }
     },
 
-    copyView: function()
+    copyView: function() // TODO: Remove default parameters
     {
         let s = "<view name=\""+interaction.currentViewName.split('#')[1]+"\">\n\n"; // FIXME: probably don't work for included views
         let w = document.getElementsByClassName('frame');
@@ -893,7 +893,8 @@ controller = {
             try
             {
                 let wgt = w[i].children[1]
-                s += "\t<widget\n"
+                let name = wgt.localName.replace("webui-widget-", "");
+                s += "\t<"+name+"\n"
                 for(let p in wgt.parameters)
                     if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p])
                         s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
