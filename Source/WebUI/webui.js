@@ -6,6 +6,26 @@
  *
  */
 
+function copyToClipboard(text)
+{
+    if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = text;
+        textarea.style.position = "fixed";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+        } catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+}
+
+
 function toggleNav()
 {
     var x = document.getElementById('navigator');
@@ -310,7 +330,7 @@ interaction = {
             return;
         }
         element.widget = new webui_widgets.constructors[widget_name];
-        element.widget.parameters['class'] = widget_name;
+ //       element.widget.parameters['class'] = widget_name;
         element.widget.element = element;
         element.appendChild(element.widget);
         element.widget.init();
@@ -866,25 +886,6 @@ controller = {
         controller.get("update.json?data="+encodeURIComponent(data_string), controller.update);
     },
 
-    copyToClipboard: function (text)
-    {
-        if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
-            var textarea = document.createElement("textarea");
-            textarea.textContent = text;
-            textarea.style.position = "fixed";
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                return document.execCommand("copy");  // Security exception may be thrown by some browsers.
-            } catch (ex) {
-                console.warn("Copy to clipboard failed.", ex);
-                return false;
-            } finally {
-                document.body.removeChild(textarea);
-            }
-        }
-    },
-
     copyView: function() // TODO: Remove default parameters
     {
         let s = "<view name=\""+interaction.currentViewName.split('#')[1]+"\">\n\n"; // FIXME: probably don't work for included views
@@ -905,7 +906,7 @@ controller = {
                 s += " AN ERROR OCCURED";
             }
         s += "</view>"
-        controller.copyToClipboard(s);
+        copyToClipboard(s);
     }
 }
 
