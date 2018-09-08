@@ -19,6 +19,12 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 
             {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'values': "none,circle,cross"}, // dot, square, rectangle?
             {'name':'size', 'default':0.02, 'type':'float', 'control': 'textedit'},
+            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
+            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
+            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,square"},
+            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
 
             {'name': "LABEL STYLE", 'control':'header'},
 
@@ -33,12 +39,6 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             {'name':'labelOffsetX', 'default':"0", 'type':'float', 'control': 'textedit'},
             {'name':'labelOffsetY', 'default':"0", 'type':'float', 'control': 'textedit'},
 
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,square"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
@@ -139,6 +139,9 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         let s = this.parameters.size*(width+height)/2
         let d = this.data;
         let rows = this.data.length;
+        
+        this.parameters.labelOffsetX = parseFloat(this.parameters.labelOffsetX);    // FIXME: should be converted somewhere else
+        this.parameters.labelOffsetY = parseFloat(this.parameters.labelOffsetY);
 
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.lineCap = this.format.lineCap;
@@ -147,7 +150,6 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         this.canvas.font = this.parameters.labelFont;
         this.canvas.textAlign = this.parameters.labelAlign;
         this.canvas.textBaseline = this.parameters.labelBaseline;
-
 
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         let c = 0;
