@@ -8,24 +8,20 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'values': "col,row"},
-            {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'min', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
 
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,custom"},
-            {'name':'colorTable', 'default':'yellow,red,green', 'type':'string', 'control': 'textedit'},
+            {'name':'colorTable', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'values': "rectangle,square,circle"},
             {'name':'size', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
- //           {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
-            
+             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
             {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no,invisible", 'class':'true'},
@@ -78,26 +74,30 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         let cols = d[0].length;
         
         this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.textAlign = 'left';
+        this.canvas.textBaseline = 'middle';
 
         let ct = LUT_gray;
         if(this.parameters.fill == 'fire')
             ct = LUT_fire;
         else if(this.parameters.fill == 'spectrum')
             ct = LUT_spectrum;
-        else if(this.parameters.fill == 'custom')
+
+        if(this.parameters.colorTable != "")
         {
             let q = this.parameters.colorTable;
             ct = this.parameters.colorTable.split(',');
         }
 
+        let labels = this.parameters.labels === "" ? [] : this.parameters.labels.split(',');
+        let ln = labels.length;
+        let ls = (ln ? parseInt(this.parameters.labelWidth) : 0);
         let n = ct.length;
-        let dx = width/cols;
+        let dx = (width-ls)/cols;
         let dy = height/rows;
         let sx = dx*this.parameters.size;
         let sy = dy*this.parameters.size;
-        
+
         if(this.parameters.shape == 'square' || this.parameters.shape == 'circle')
         {
             let minimum = Math.min(sx, sy);
@@ -106,6 +106,13 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
 
         for(var i=0; i<rows; i++)
+        {
+            if(ln)
+            {
+                this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
+                this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
+            }
+
             for(var j=0; j<cols; j++)
             {
                 this.setColor(i+j);
@@ -115,32 +122,18 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 this.canvas.fillStyle = ct[ix].trim();
                 
                 if(this.parameters.shape == 'circle')
-                    this.canvas.arc(dx*i+dx/2, dy*j+dy/2, sx/2, 0, 2*Math.PI);
+                    this.canvas.arc(ls+dx*j+dx/2, dy*i+dy/2, sx/2, 0, 2*Math.PI);
                 else
-                    this.canvas.rect(dx*i, dy*j, sx, sy);
-                
+                    this.canvas.rect(ls+dx*j+dx/2-sx/2, dy*i+dy/2-sy/2, sx, sy);
+
                 this.canvas.fill();
                 this.canvas.stroke();
             }
+        }
     }
 
     update(d) // default for Graph - should not be needed here
     {
-        // update parameters
-        // FIXME: should be moved to graph later for all graphs
-        
-        this.parameters.select = (this.parameters.select ? this.parameters.select : 0);
-        this.parameters.scale = 1/(this.parameters.max == this.parameters.min ? 1 : this.parameters.max-this.parameters.min);
-        
-        this.parameters.min_x = (this.parameters.min_x ? this.parameters.min_x : this.parameters.min);
-        this.parameters.max_x = (this.parameters.max_x ? this.parameters.max_x : this.parameters.max);
-        this.parameters.scale_x = 1/(this.parameters.max_x == this.parameters.min_x ? 1 : this.parameters.max_x-this.parameters.min_x);
-        
-        this.parameters.min_y = (this.parameters.min_y ? this.parameters.min_y : this.parameters.min);
-        this.parameters.max_y = (this.parameters.max_y ? this.parameters.max_y : this.parameters.max);
-        this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
-
-        // draw if data available
         if(!d)
             return;
         
