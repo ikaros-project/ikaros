@@ -4,7 +4,40 @@
 
 <group name="WebUI Demo">
 
-     <view name="Markers">
+    <view name="Controls">
+        <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
+        <button label="Me Too" module="R23T" parameter="data" x="40" y="140" width="100" height="100" />
+        <button label="And Me" module="R23T" parameter="data" x="40" y="240" width="100" height="100" />
+
+        <switch label="Alarm" module="SwitchValue" parameter="data" x="40" y="360" width="100" height="100" />
+
+        <slider-horizontal label="X" module="CCC" parameter="data" count="3" x="200" y="40" width="100" height="100" />
+        <slider-horizontal label="X" module="CCC" parameter="data" count="3" x="300" y="40" width="100" height="100" />
+
+        <bar-graph
+            x="440" y="40"
+            width="301"
+            height="301"
+            module="CCC"
+            source="OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <plot
+            x="440" y="440"
+            width="301"
+            height="301"
+            module="CCC"
+            source="OUTPUT"
+            title = "Plot"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+    </view>
+
+    <view name="Markers">
         <marker
             x="20" y="20" width="200" height="200"
             title="Default Path"
@@ -840,55 +873,10 @@
     </view>
 
 
-    <view name="Controls">
-        <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
-        <button label="Me Too" module="R23T" parameter="data" x="40" y="140" width="100" height="100" />
-        <button label="And Me" module="R23T" parameter="data" x="40" y="240" width="100" height="100" />
-
-        <slider-horizontal label="X" module="CCC" parameter="data" count="3" x="200" y="40" width="100" height="100" />
-        <slider-horizontal label="X" module="CCC" parameter="data" count="3" x="300" y="40" width="100" height="100" />
-
-        <bar-graph
-            x="440" y="40"
-            width="301"
-            height="301"
-            module="CCC"
-            source="OUTPUT"
-            title = "Bar Graph X"
-            labels = "A, B, C, D, E, F, G"
-            style = ""
-        />
-
-        <plot
-            x="440" y="440"
-            width="301"
-            height="301"
-            module="CCC"
-            source="OUTPUT"
-            title = "Plot"
-            _labels = "A, B, C, D, E, F, G"
-            style = ""
-        />
-    </view>
-
-
     <view name="Tables">
         <table title="Default Table" module="R23T" source="OUTPUT" x="40" y="20" width="300" height="300" />
         <table title="Colored Table" module="R23T" source="OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
         <table title="Color by Sign" module="R23T" source="OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
-    </view>
-
-
-    <view name="Grids">
-        <object class="Grid" title="Gray Grid" module="RGrayGrid" source="OUTPUT" x="0" y="0" color="LUT_gray" />
-        <object class="Grid" title="Color Grid" module="RColorGrid" source="OUTPUT" x="1" y="0"  color = "black, yellow, red, green, blue" />
-        <object
-            x="0"
-            y="1"
-            w="2"
-            class="Text" 
-            text="These are two Grid objects, one in gray scale and one in color."
-        />
     </view>
 
 
@@ -1753,7 +1741,13 @@
         name = "CCC"
         data = "0 0.5 1"
     />
-    
+
+    <module
+        class = "Constant"
+        name = "SwitchValue"
+        data = "0"
+    />
+
     <module
         class = "InputVideoFile"
         name = "InputVideoFile"

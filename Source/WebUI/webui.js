@@ -25,7 +25,6 @@ function copyToClipboard(text)
     }
 }
 
-
 function toggleNav()
 {
     var x = document.getElementById('navigator');

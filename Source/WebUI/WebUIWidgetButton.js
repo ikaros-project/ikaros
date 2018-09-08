@@ -1,4 +1,4 @@
-class WebUIWidgetBUtton extends WebUIWidgetControl
+class WebUIWidgetButton extends WebUIWidgetControl
 {
     static template()
     {
@@ -56,5 +56,5 @@ class WebUIWidgetBUtton extends WebUIWidgetControl
 
 
 
-webui_widgets.add('webui-widget-button', WebUIWidgetBUtton);
+webui_widgets.add('webui-widget-button', WebUIWidgetButton);
 
