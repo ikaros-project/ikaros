@@ -35,10 +35,50 @@
 	<connection sourcemodule="N2" source="OUTPUT" targetmodule="N3" target="EXCITATION" />
 
 	<view name="View">
-        <object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />
-        <object class="Plot" title="N1" module="N1" source="OUTPUT" x="0" y="1" w="6" min="0.0" max="1" />
-        <object class="Plot" title="N2" module="N2" source="OUTPUT" x="0" y="2" w="6" min="0.0" max="1" />
-        <object class="Plot" title="N3" module="N3" source="OUTPUT" x="0" y="3" w="6" min="0.0" max="1" />
+        <_object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />
+        <_object class="Plot" title="N1" module="N1" source="OUTPUT" x="0" y="1" w="6" min="0.0" max="1" />
+        <_object class="Plot" title="N2" module="N2" source="OUTPUT" x="0" y="2" w="6" min="0.0" max="1" />
+        <_object class="Plot" title="N3" module="N3" source="OUTPUT" x="0" y="3" w="6" min="0.0" max="1" />
+		<plot
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="L"
+            source="OUTPUT"
+            title = "L"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="340"
+            width="301"
+            height="301"
+            module="N1"
+            source="OUTPUT"
+            title = "N1"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="640"
+            width="301"
+            height="301"
+            module="N2"
+            source="OUTPUT"
+            title = "N2"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="940"
+            width="301"
+            height="301"
+            module="N3"
+            source="OUTPUT"
+            title = "N3"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
 	</view>
     <module class = "Logger" name = "Logger" />
 </group>
