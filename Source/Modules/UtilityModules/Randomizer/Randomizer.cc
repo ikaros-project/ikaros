@@ -1,6 +1,6 @@
 //
 //	Randomizer.cc	This file is a part of the IKAROS project
-// 					Implements a a modules that outputs a random array
+// 					Implements a modules that outputs a random array
 //
 //    Copyright (C) 2003-2011 Christian Balkenius
 //
