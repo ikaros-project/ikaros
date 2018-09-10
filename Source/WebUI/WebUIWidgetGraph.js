@@ -3,8 +3,6 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
     init()
     {
         super.init();
-        this.parameters.min = 0;
-        this.parameters.max = 1;
     }
     
     drawLeftTickMarks(top, bottom)

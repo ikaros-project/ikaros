@@ -279,8 +279,8 @@ class WebUIWidget extends HTMLElement
         
         this.setFormat('decimals', '--decimals', 'int');
 
-        this.setFormat('min', '--min', 'int');
-        this.setFormat('max', '--max', 'int');
+        this.setFormat('min', '--min', 'float');
+        this.setFormat('max', '--max', 'float');
     }
 
     getColor(i, v)
