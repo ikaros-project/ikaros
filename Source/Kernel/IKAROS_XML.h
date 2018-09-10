@@ -177,7 +177,7 @@ public:
     XMLElement * xml;
     XMLNode * prolog;
 
-    XMLDocument(const char * filename, bool debug = false);
+    XMLDocument(const char * filename, bool included = false, bool debug = false);
     ~XMLDocument();
 
     bool		Match(const char c, bool skip=true);
@@ -193,6 +193,7 @@ public:
     void		SetAction(const char *);
 
     XMLNode *	ParseXMLDeclaration(XMLNode * parent);
+    XMLNode *   ParseIncludedFile(XMLNode * parent); // non standard
     XMLNode *	ParseProcessingInstruction(XMLNode * parent);
     XMLNode *	ParseComment(XMLNode * parent);
     XMLNode *	ParseDoctype(XMLNode * parent);

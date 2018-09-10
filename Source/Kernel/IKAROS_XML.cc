@@ -339,7 +339,6 @@ XMLElement::GetParentElement()
 }
 
 
-
 XMLProcessingInstruction::XMLProcessingInstruction(char * nm, char * c, XMLNode * n) :
     XMLNode()
 {
@@ -371,7 +370,7 @@ XMLProcessingInstruction::Print(FILE * f, int d)
 
 
 
-XMLDocument::XMLDocument(const char * filename, bool debug)
+XMLDocument::XMLDocument(const char * filename, bool included, bool debug)
 {
     debug_mode = debug;
     action = "";
@@ -422,9 +421,11 @@ XMLDocument::XMLDocument(const char * filename, bool debug)
             
         // Delete data after root (should never have been parsed)
         
-        delete xml->next;
-        xml->next = NULL;
-        
+        if(!included)
+        {
+            delete xml->next;
+            xml->next = NULL;
+        }
     }
     catch (const char * msg)
     {
@@ -656,6 +657,43 @@ XMLDocument::ParseXMLDeclaration(XMLNode * parent)
 
 
 XMLNode *
+XMLDocument::ParseIncludedFile(XMLNode * parent)
+{
+    SetAction("parsing included file");
+//    PushName("N<");
+//    char * name = create_string(buffer);
+
+//    if (pos == 0) throw "Valid character for processing instruction name expected";
+
+    SkipWhitespace("WS");
+    if(!Match("file"))
+            throw "'file' expected";
+    SkipWhitespace("WS");
+    if(!Match("="))
+            throw "'=' expected";
+    SkipWhitespace("WS");
+    if(!Match("\""))
+            throw "'\"' expected";
+    PushUntil("FL", "\"");
+    char * filename = create_string(buffer);
+
+    PushUntil("IN", "?>");
+    Skip("IN", 2);
+
+    XMLDocument * xml_doc = new XMLDocument(filename, true);
+    
+    XMLNode * final_node = xml_doc->xml;
+    while(final_node->next)
+        final_node = final_node->next;
+    
+    final_node->next = Parse(parent);
+    
+    return xml_doc->xml;
+}
+
+
+
+XMLNode *
 XMLDocument::ParseProcessingInstruction(XMLNode * parent)
 {
     SetAction("parsing procesing instruction");
@@ -876,6 +914,9 @@ XMLDocument::Parse(XMLNode * parent)
 
     if (Match("<?xml"))
         return ParseXMLDeclaration(parent);
+
+    else if (Match("<?include"))
+        return ParseIncludedFile(parent);
 
     else if (Match("<?"))
         return ParseProcessingInstruction(parent);

@@ -133,7 +133,7 @@ run_batch(Options * options)
         return -1;
     }
     
-    XMLDocument * xmlDoc = new XMLDocument(ikc_file_name, options->GetOption('X'));
+    XMLDocument * xmlDoc = new XMLDocument(ikc_file_name, false, options->GetOption('X'));
 
     if (xmlDoc->xml == NULL)
     {

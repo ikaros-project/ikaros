@@ -1966,7 +1966,7 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 bool
 Kernel::Terminate()
 {
-    if (max_ticks != -1)
+    if (max_ticks > 0)
     {
         const int segments = 50;
         int lp = int(100*float(tick-1)/float(max_ticks));
@@ -3504,7 +3504,7 @@ Kernel::ReadXML()
         Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
         return;
     }
-    xmlDoc = new XMLDocument(ikc_file_name, options->GetOption('X'));
+    xmlDoc = new XMLDocument(ikc_file_name, false, options->GetOption('X'));
     if (xmlDoc->xml == NULL)
     {
         Notify(msg_fatal_error, "Could not read (or find) \"%s\".\n", ikc_file_name);
