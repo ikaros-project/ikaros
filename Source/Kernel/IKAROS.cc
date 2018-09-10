@@ -833,7 +833,12 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
     // Check for local value in this element
     const char * value = kernel->GetXMLAttribute(xml, n);
     if (value != NULL)
-        return value;
+    {
+        if(value[0] == '@')
+            return GetValue(&n[1]); // implements variables
+        else
+            return value;
+    }
     // not found here, loop up the group hierarchy
     for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
     {
@@ -861,7 +866,12 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
         }
         value = kernel->GetXMLAttribute(parent, n);
         if (value != NULL)
-            return value;
+        {
+            if(value[0] == '@')
+                return GetValue(&n[1]); // implements variables
+            else
+                return value;
+        }
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
         module_name = kernel->GetXMLAttribute(parent, "name");
     }

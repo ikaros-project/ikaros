@@ -240,11 +240,30 @@ XMLElement::SetPrev(XMLNode * p)
 
 
 const char *
-XMLElement::GetAttribute(const char * attribute_name)
+XMLElement::GetAttribute(const char * attribute_name)       // Implement variables and inheritance here - not standard XML but implemented here for simpicity
+                                                            // FIXME: move to kernel and always use kernel function exept for raw acces to XML
 {
     for (XMLAttribute * a = attributes; a != NULL; a = (XMLAttribute *)(a->next))
         if (!strcmp(a->name, attribute_name))
-            return a->value;
+        {
+            if(a->value[0] != '@')
+            {
+                return a->value;
+            }
+            else // Variables
+            {
+                const char * v = GetAttribute(&a->value[1]);
+                if(v)
+                    return v;
+            }
+        }
+  
+    // Inhertiance
+    if(parent != NULL && parent->IsElement())
+    {
+        return ((XMLElement *)(parent))->GetAttribute(attribute_name);
+    }
+
     return NULL;
 }
 

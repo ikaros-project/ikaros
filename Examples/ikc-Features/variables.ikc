@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<!--
+
+    This file demonstrates how to use variables in groups and modules
+
+-->
+
+<group title="Outer" a="12" b="23" c="34" zzz="@a">
+
+    <group name="Inner"  a="45" b="56" yyy="@zzz">
+    
+        <!-- Get value from attribute in surrounding group -->
+        <module
+            class = "Randomizer"
+            name = "R1"
+            outputsize = "@a"
+        />
+    
+        <!-- Rename variable locally for this module and value from attribute in surrounding group: outputsize -> x -> b -> 56 -->
+        <module
+            class = "Randomizer"
+            name = "R2"
+            x = "@b"
+            outputsize = "@x"
+        />
+
+        <!-- Variable value is inherited from outer group -->
+        <module
+            class = "Randomizer"
+            name = "R2"
+            outputsize = "@c"
+        />
+
+        <!-- Several levels of indircetion -->
+        <module
+            class = "Randomizer"
+            name = "R2"
+            xxx = "@yyy"
+            outputsize = "@xxx"
+        />
+
+    </group>
+</group>
+
