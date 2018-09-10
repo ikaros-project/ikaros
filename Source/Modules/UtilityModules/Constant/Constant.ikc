@@ -41,10 +41,9 @@
 
 	<module class="Constant" />
 
-    <view title="Constant">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
+    <view name="Constant">
+        <bar-graph
+            x="20" y="20" width="400" height="400"
             module="*"
             source="OUTPUT"
             title="Default view for Constant"
