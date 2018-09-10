@@ -326,10 +326,22 @@ webui-widget-grid.scales-invisible {
 
 
 
+webui-widget-drop-down-menu {
+    padding:5px;
+}
+
+webui-widget-drop-down-menu>select {
+    width: 90%;
+}
+
+webui-widget-drop-down-menu>label {
+}
+
 
 webui-widget-table table {
     border-top: 1px solid gray;
     width: 100%;
+    padding-left:120px;
 }
 
 webui-widget-table td {

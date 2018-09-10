@@ -24,6 +24,7 @@
 <script src="WebUIWidgetSwitch.js"></script>
 <script src="WebUIWidgetSliderHorizontal.js"></script>
 <script src="WebUIWidgetSliderVertical.js"></script>
+<script src="WebUIWidgetDropDownMenu.js"></script>
 </head>
 <body>
 	<header>
@@ -40,6 +41,8 @@
 
 	<section>
 		<main id="main">
+            <canvas id="maincanvas" width="2000" height="2000">
+            </canvas>
 		</main>
 	
 		<nav id="navigator">
@@ -163,8 +166,6 @@
 
             <p id="title"></p>
 		</aside>
-
-
 	</section>
 	
 	<footer></footer>
@@ -176,6 +177,7 @@
     controller.init();
     
 //    setInterval(function (){ console.log("NOW"); f = document.querySelector('footer'); f.innerHTML += "<p>Hej! ("+Date.now()+")</p>"; f.scrollTop = f.scrollHeight; }, 1000);
+
 </script>
 </body>
 </html>
