@@ -17,6 +17,10 @@ class WebUIWidgetImage extends WebUIWidgetGraph
            {'name': "COORDINATE SYSTEM", 'control':'header'},
 
             {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no", 'class':'true'},
+            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
             {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
             {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
