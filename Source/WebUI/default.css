@@ -341,7 +341,6 @@ webui-widget-drop-down-menu>label {
 webui-widget-table table {
     border-top: 1px solid gray;
     width: 100%;
-    padding-left:120px;
 }
 
 webui-widget-table td {

@@ -948,7 +948,15 @@
         filename = "../Media/ikaros.mp4"
         loop = "yes"
     />
-    
+
+   <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.9"
+    />
 
 </group>
  
