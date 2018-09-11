@@ -3,8 +3,7 @@
 <group>
 	
     <description>
-        WARNING. These modules are under development and can change at any time!
-	 </description>
+	</description>
     
     <input name="BODY_FEEDBACK_POSITION" 		targetmodule="Body" 	target="FEEDBACK_POSITION" />
     <input name="HEAD_FEEDBACK_POSITION" 		targetmodule="Head" 	target="FEEDBACK_POSITION" />

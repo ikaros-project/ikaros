@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+
+<group name="Epi"
+
+servosIndexBody = "0"
+servosIndexHead = "1"
+servosIndexLeftArm = "5"
+servosIndexRightArm = "11"
+servosIndexPupil = "17"
+
+nrServosBody = "1"
+nrServosHead = "4"
+nrServosLeftArm = "6"
+nrServosRightArm = "6"
+nrServosPupil = "2"
+nrServosTotal = "19"
+
+>
+	<!-- import frame and id for epi robots> -->
+	<!-- <module class = "FRAMES" name = "EpiFrames"/> -->
+
+
+
+<module class = "Constant" name = "EpiPosition" data = "
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1"/>
+
+
+
+	<input name = "FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1"/>
+
+<!-- 			Attention 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!-- What should we look at? -->
+<module class = "Constant" 			name = "FocusValue" 		data = "0.5"/>
+<module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "1"/>
+	<connection sourcemodule = "FocusValue" 		source = "OUTPUT"  			targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
+
+
+
+<!-- 			Motor control 			-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- Servo paramters Format -->
+<!-- BodyAngle1 -->
+<!-- NeckTilt NeckPan LeftEye RightEye -->
+<!-- LeftArm1 LeftArm2 LeftArm3 LeftArm4 LeftArm5 LeftHand -->
+<!-- RightArm1 RightArm2 RightArm3 RightArm4 RightArm5 RightHand -->
+<!-- LeftPupil RightPupil -->
+
+<!-- External Motor control -->
+<input name = "SERVO_ANGLES"      		targetmodule = "EXT_SERVO_ANGLE"		target = "INPUT"/>
+<input name = "SERVO_ANGLES_AMPLITUDE"	targetmodule = "EXT_SERVO_ANGLE_A"		target = "INPUT"/>
+
+<!-- Dummy module -->
+<module class = "Gate" name = "EXT_SERVO_ANGLE"/>
+	<connection sourcemodule = "EXT_SERVO_ANGLE" 	source = "OUTPUT"  	targetmodule = "ExtServoAngleCode"  target = "INPUT" />
+<module class = "Gate" name = "EXT_SERVO_ANGLE_A"/>
+	<connection sourcemodule = "EXT_SERVO_ANGLE_A" 	source = "OUTPUT"  	targetmodule = "ExtServoAngleCode"  target = "AMPLITUDE" />
+    
+<!-- Internal Motor control -->
+<module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+	<connection sourcemodule = "INT_SERVO_ANGLE" 	source = "OUTPUT"  	targetmodule = "IntServoAngleCode"  target = "INPUT" />
+<module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+	<connection sourcemodule = "INT_SERVO_ANGLE_A" 	source = "OUTPUT"  	targetmodule = "IntServoAngleCode"  target = "AMPLITUDE" />
+
+<!-- This needs to be taken cared of sometime -->
+<module class = "Constant" name = "SERVO_SPEED" 		data = "0.02 	0.02 0.02 0.02 0.02  	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02" />
+<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	     0.5  0.5  0.5  0.5 	0.5 0.5 0.5 0.5 0.5 0.5 		0.5 0.5 0.5 0.5 0.5 0.02	0.02 0.02" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "1  		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0     					0 0" />
+
+<!-- Population coding of positions-->
+<module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+<module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+
+
+
+<!-- 			HIGH LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!-- Should be removed amplitude should be used -->
+<module class = "Constant" name = "HighLevelMotorArbiterValue" 		data = "1"/>
+
+<module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "2"/>
+	<connection sourcemodule = "ExtServoAngleCode"      source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
+	<connection sourcemodule = "IntServoAngleCode"      source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_2"/>
+
+
+<!-- 			LOW LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!-- Sensors -->
+
+<!-- Actuators/Proprioception -->
+<module class = "EpiServos" 	name = "Servos" 		/>
+	<connection sourcemodule = "GOAL_POSITION"   		source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
+	<connection sourcemodule = "SERVO_SPEED"   			source = "OUTPUT"  targetmodule = "Servos"  target = "MOVING_SPEED" />
+	<connection sourcemodule = "SERVO_TORQUE_LIMIT"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_LIMIT" />
+	<connection sourcemodule = "SERVO_TORQUE_ENABLE"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
+
+<!-- This can be cleaned up now when we have include and variables -->
+<module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
+	<connection sourcemodule = "Servos"   	source = "FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" 		targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+	<connection sourcemodule = "Servos"   	source = "FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" 		targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+	<connection sourcemodule = "Servos"   	source = "FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "LEFT_ARM_FEEDBACK_POSITION" 	targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	<connection sourcemodule = "Servos"   	source = "FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "RIGHT_ARM_FEEDBACK_POSITION" 	targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+	<connection sourcemodule = "Servos"   	source = "FEEDBACK_POSITION"       targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" 		targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
+
+
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1"/>
+	<connection sourcemodule = "HighLevelMotorArbiter"   		source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "INPUT_1" />
+	<connection sourcemodule = "HighLevelMotorArbiterValue"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter"  target = "VALUE_1" />
+
+<!-- Popalation decoder -->
+<module class = "PopulationDecoder" name = "GOAL_POSITION" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	<connection sourcemodule = "LowLevelArbiter"   	source = "OUTPUT"  targetmodule = "GOAL_POSITION"  target = "INPUT" />
+
+<!-- LAB -->
+
+<!-- Table -->
+<module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;"
+data = "
+1 0 0 0.85;
+0 1 0 0.6;
+0 0 1 0;
+0 0 0 1;"/>
+<module class = "Constant" name = "TableID"        data = "10000"/> 
+
+<!-- Join all models -->
+<module class = "DataConverter" name = "MODEL_MATRIX" output_size_x = "16" output_size_y = "22"/>
+    <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "MODEL_MATRIX"  target = "INPUT" />
+    <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX" targetmodule = "MODEL_MATRIX"  target = "INPUT" />
+
+<module class = "DataConverter" name = "MODEL_ID" output_size_x = "22" output_size_y = "1"/>
+    <connection sourcemodule = "TableID"       source = "OUTPUT"       targetmodule = "MODEL_ID"  target = "INPUT" />
+    <connection sourcemodule = "ForwardModel"   source = "MODEL_ID" targetmodule = "MODEL_ID"  target = "INPUT" />
+
+
+    <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.9"
+    />
+<view name="Manual Control"   color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink">
+    <slider-horizontal title="Internal Amplitude" label="Servo Angles" module="INT_SERVO_ANGLE_A" parameter="data" count="20" x="10" y="50" width="150" height="450" show_title = "true" show_value = "true"/>
+    <slider-horizontal title="Internal Angles" label="Servo Angles" module="INT_SERVO_ANGLE" parameter="data" count="20" x="180" y="50" width="300" height="450" show_title = "true" min = "-180" max ="180" step ="5" labels = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" show_value = "true"/>
+	
+
+	<text text="External Manual Control" x="500" y="50" width="300" height="100"/>
+	<table title="External Manual" module="EXT_SERVO_ANGLE" source="OUTPUT" x="500" y="100" width="1200" height="50" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" decimals="2"/>
+	<table title="Amplitude" module="EXT_SERVO_ANGLE_A" source="OUTPUT" x="500" y="150" width="1200" height="200" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"  decimals="2"/>
+
+	<text text="Internal Manual Control" x="500" y="200" width="300" height="100"/>
+	<table title="External Manual" module="INT_SERVO_ANGLE" source="OUTPUT" x="500" y="250" width="1200" height="50"  color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"  decimals="2"/>
+	<table title="Amplitude" module="INT_SERVO_ANGLE_A" source="OUTPUT" x="500" y="300" width="1200" height="200" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"  decimals="0"/>
+
+	<text text="Output to servos" x="500" y="400" width="300" height="50"/>
+	<table title="Low level motor arbiter" module="GOAL_POSITION" source="OUTPUT" x="500" y="450" width="1200" height="300" decimals="0" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" />
+
+	<text text="Feedback from servos" x="500" y="500" width="300" height="50"/>
+	<table title="Feedback" module="Servos" source="FEEDBACK_POSITION" x="500" y="550" width="1200" height="300"decimals="1" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" />
+
+</view>
+ 
+<view name="3D View">
+        <canvas3d
+            x="10" y="10"
+            width="1000"
+            height="600"
+            title="Triangles"
+        	model_mat_module  	= "MODEL_MATRIX"
+        	model_mat_source  	= "OUTPUT"
+       	 	model_id_module  	= "MODEL_ID"
+        	model_id_source     = "OUTPUT"
+        />
+</view>
+
+</group>

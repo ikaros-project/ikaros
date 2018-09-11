@@ -12,7 +12,7 @@
     <output name="MODEL_ID"     sourcemodule="MODEL_ID"             source="OUTPUT" />
 
     <!-- Model IDs -->
-    <module class = "Constant" name = "MODEL_ID" data = "101 50" />
+    <module class = "Constant" name = "MODEL_ID" data = "50 104" />
 
     <!-- Used to filll xyz intputs of rotationConverter -->
     <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
