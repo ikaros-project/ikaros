@@ -144,7 +144,7 @@ public:
 	unsigned char   bulkWriteBuffer[BUFFER_SIZE];
 	int				bulkWriteBufferLength  = -1;
 	
-	int				serialLatency;
+	int				serialLatency = 16;
 	
 	int 			crcError;
 	int 			missingBytesError;
