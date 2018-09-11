@@ -42,75 +42,116 @@
     <connection sourcemodule = "Add"  source = "OUTPUT" targetmodule = "Subtract"  target = "INPUT1" delay="0"/>
     <connection sourcemodule = "Subtract"  source = "OUTPUT" targetmodule = "DynamixelConfigure"  target = "ACTIVE" delay="0"/>
     
-    <view>
-        <object
-        class="Button"
-        module = "ADD_ONE"
+    <view name="Configure servo">
+
+	<button
+		y = "160"
+		x = "80"
+		title = "NEXT"
         parameter = "data"
-        title="UP"
-        x="0" y="0"
+		module = "ADD_ONE"
+		class = "button"
+		label = "Press"
+		value = "1"
+		show_title = "true"
         />
         
-        <object
-        class="Button"
-        module = "SUBTRACT_ONE"
+	<button
+		y = "280"
+		x = "80"
+		title = "PREVIOUS"
         parameter = "data"
-        title="DOWN"
-        x="0" y="1"
+		module = "SUBTRACT_ONE"
+		class = "button"
+		label = "Press"
+		value = "1"
+		show_title = "true"
         />
         
-        <object
-        class="Button"
-        module = "SET"
-        parameter = "data"
-        title="Write to DYNXMIXEL Servo"
+	<button
+		h = "1"
+		w = "2"
+		y = "180"
+		x = "760"
+		max = "1"
         xindex = "0"
-        x="4" y="1"
-        w="2" h="1"
-        max="1"
+		title = "Write to DYNXMIXEL Servo"
+		parameter = "data"
+		module = "SET"
+		class = "button"
+		label = "Press"
+		value = "1"
+		show_title = "true"
         />
         
-        <object
-        class="Text"
+	<text
+		y = "660"
+		x = "560"
+		text = "Reset mode:"
         name = "Title of the text:"
-        text="Reset mode:"
-        x="1" y="0"
+		class = "text"
+		title = "Default Title"
+		width = "121"
+		height = "21"
         />
         
-        <object
-        class="BarGraph"
-        title ="Reset mode"
+	<bar-graph
+		fill = "red"
+		h = "1"
+		w = "2"
+		y = "460"
+		source = "RESET_MODE"
+		x = "40"
+		color = "yellow"
+		title = "Change mode"
         module = "DynamixelConfigure"
-        source = "RESET_MODE"
-        x="2" y="0"
-        w ="2" h ="1"
-        color ="red"
-        fill ="red"
+		class = "bar-graph"
+		direction = "vertical"
+		lineWidth = "1"
+		max = "1"
+		width = "301"
+		height = "201"
+	/>
         
-        />
-        <object
-        class="Text"
+	<text
+		y = "660"
+		x = "140"
+		text = "Change mode:"
         name = "Title of the text:"
-        text="Change mode:"
-        x="1" y="1"
+		class = "text"
+		title = "Default Title"
+		width = "161"
+		height = "41"
         />
         
-        <object
-        class="BarGraph"
-        title ="Change mode"
+	<bar-graph
+		fill = "yellow"
+		h = "1"
+		w = "2"
+		y = "460"
+		source = "CHANGE_MODE"
+		x = "40"
+		color = "yellow"
+		title = "Change mode"
         module = "DynamixelConfigure"
-        source = "CHANGE_MODE"
-        x="2" y="1"
-        w ="2" h ="1"
-        color ="yellow"
-        fill ="yellow"
+		class = "bar-graph"
+		direction = "vertical"
+		lineWidth = "1"
+		max = "1"
+		width = "301"
+		height = "201"
         />
-        <object
-        class="Text"
+
+	<text
+		y = "220"
+		x = "260"
+		w = "5"
+		text = "This module can be used to set parameters in the Dynaxmiel control table. Use the bottons to find the servo you want to change/reset (active servo is blinking) and then press Write to DYNAMIXEL SERVO."
         name = "Title of the text:"
-        text="This module can be used to set parameters in the Dynaxmiel control table. Use the bottons to find the servo you want to change/reset (active servo is blinking) and then press Write to DYNAMIXEL SERVO."
-        x="0" y="2"
-        w = "5"
+		class = "text"
+		title = "Default Title"
+		width = "421"
+		height = "81"
         />
         
     </view>
