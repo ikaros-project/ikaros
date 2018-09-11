@@ -36,7 +36,7 @@
 
 
     <!-- Model IDs -->
-    <module class = "Constant" name = "MODEL_ID" data = "401 402 403 404 405 406" />
+    <module class = "Constant" name = "MODEL_ID" data = "11401 11402 11303 11304 11305 11406" />
    
     <!-- Used to filll xyz intputs of rotationConverter -->
     <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
