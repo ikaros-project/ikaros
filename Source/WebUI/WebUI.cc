@@ -1217,14 +1217,22 @@ WebUI::HandleHTTPRequest()
 			 strend(uri, ".js") ||
 			 strend(uri, ".gif") ||
 			 strend(uri, ".stl") ||
+			 strend(uri, ".gltf") ||
+			 strend(uri, ".glb") ||
 			 strend(uri, ".ico"))
     {
         if(!socket->SendFile(&uri[1], k->ikc_dir))  // Check IKC-directory first to allow files to be overriden
         if(!socket->SendFile(&uri[1], webui_dir))   // Now look in WebUI directory
         {
-            // Send 404 if not file found
-			
-            socket->SendFile("404.html", webui_dir);
+			if (strend(uri, ".gltf") || strend(uri, ".glb"))
+			{
+				socket->SendFile("/Models/glTF/Error.gltf", webui_dir);   // Send error model
+			}
+			else
+			{
+				// Send 404 if not file found
+				socket->SendFile("404.html", webui_dir);
+			}
         }
     }
 	
