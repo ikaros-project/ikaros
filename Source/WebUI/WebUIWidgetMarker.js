@@ -219,14 +219,13 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
     update(d)
     {
         this.parameters.select = (this.parameters.select ? this.parameters.select : 0);
-        this.parameters.scale = 1/(this.parameters.max == this.parameters.min ? 1 : this.parameters.max-this.parameters.min);
-        
-        this.parameters.min_x = (this.parameters.min_x ? this.parameters.min_x : this.parameters.min);
-        this.parameters.max_x = (this.parameters.max_x ? this.parameters.max_x : this.parameters.max);
+
+        this.parameters.min_x = (typeof this.parameters.min_x !== 'undefined' ? this.parameters.min_x : this.parameters.min);
+        this.parameters.max_x = (typeof this.parameters.max_x !== 'undefined' ? this.parameters.max_x : this.parameters.max);
         this.parameters.scale_x = 1/(this.parameters.max_x == this.parameters.min_x ? 1 : this.parameters.max_x-this.parameters.min_x);
         
-        this.parameters.min_y = (this.parameters.min_y ? this.parameters.min_y : this.parameters.min);
-        this.parameters.max_y = (this.parameters.max_y ? this.parameters.max_y : this.parameters.max);
+        this.parameters.min_y = (typeof this.parameters.min_y !== 'undefined' ? this.parameters.min_y : this.parameters.min);
+        this.parameters.max_y = (typeof this.parameters.max_y !== 'undefined' ? this.parameters.max_y : this.parameters.max);
         this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
 
         // draw if data available
