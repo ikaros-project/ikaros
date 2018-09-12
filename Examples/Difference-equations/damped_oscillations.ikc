@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+
+<group title="Damped oscillations">
+<!-- Modules -->
+    
+    <!--Constants-->
+    <module
+        class = "Constant"
+        name = "K"
+        outputsize  = "1"
+        data  = "2000"
+    />
+    <module
+        class = "Constant"
+        name = "Pos"
+        outputsize  = "1"
+        data  = "2"
+    />
+    <module
+        class = "Constant"
+        name = "Vel"
+        outputsize  = "1"
+        data  = "0"
+    />
+    <module
+        class = "Constant"
+        name = "Damp"
+        outputsize  = "1"
+        data  = "200"
+    />
+    <module
+        class = "Constant"
+        name = "dT"
+        outputsize  = "1"
+        data  = "0.01"
+    />
+    <module
+        class = "Constant"
+        name = "Mass"
+        outputsize  = "1"
+        data  = "50"
+    />
+    <module
+        class = "Constant"
+        name = "Zero"
+        outputsize  = "1"
+        data  = "0"
+    />
+    <module
+        class = "Constant"
+        name = "One"
+        outputsize  = "1"
+        data  = "1"
+    />
+
+    <!--Morphisms-->
+        <module
+            class = "Subtract"
+            name = "NegPos"
+        />
+        <module
+            class = "Subtract"
+            name = "NegVel"
+        />
+        <module
+            class = "Multiply"
+            name = "Mult_K_NegPos"
+        />
+        <module
+            class = "Multiply"
+            name = "Mult_D_NegVel"
+        />
+        <module
+            class = "Add"
+            name = "Add_Pos_Vel"
+        />
+        <module
+            class = "Multiply"
+            name = "Mult_Dt"
+        />
+        <module
+            class = "Divide"
+            name = "Div_Mass"
+        />
+
+        <!---->
+        <module
+            class = "Add"
+            name = "Add_Vel"
+        />
+        <module
+            class = "Multiply"
+            name = "Mult_Vel_Dt"
+        />
+        <module
+            class = "Add"
+            name = "Add_Pos"
+        />
+
+        <!---->
+        <module
+			class = "InputSelector"
+			name = "Sel_Vel"
+			inputs = "2"
+		/>
+        <module
+			class = "InputSelector"
+			name = "Sel_Pos"
+			inputs = "2"
+		/>
+        <module
+			class="ListIterator"
+			name="ListIt"
+			repeat = "no"
+			list = "0 0 0 0 0 1"
+			list_length = "6"
+            debug = "false"
+		/>
+<!--Connections-->	
+    <connection sourcemodule = "One" source = "OUTPUT" targetmodule = "ListIt" target = "SYNC IN" />
+    <connection sourcemodule = "Zero" source = "OUTPUT" targetmodule = "ListIt" target = "SELECT" />
+    <!--Change from using initial condition after 1 tick-->
+    <connection sourcemodule = "Pos" source = "OUTPUT" targetmodule = "Sel_Pos" target = "INPUT1" />
+    <connection sourcemodule = "Add_Pos" source = "OUTPUT" targetmodule = "Sel_Pos" target = "INPUT2" />
+    <connection sourcemodule = "ListIt" source = "OUTPUT" targetmodule = "Sel_Pos" target = "SELECT" />
+
+    <connection sourcemodule = "Vel" source = "OUTPUT" targetmodule = "Sel_Vel" target = "INPUT1" />
+    <connection sourcemodule = "Add_Vel" source = "OUTPUT" targetmodule = "Sel_Vel" target = "INPUT2" />
+    <connection sourcemodule = "ListIt" source = "OUTPUT" targetmodule = "Sel_Vel" target = "SELECT" />
+
+    <!--dT*(-position*k-velocity*damp)/mass-->
+    <!--Note: use delay = 0 to make sure the whole difference equation  -->
+    <!--        is calculated in one go; otherwise it diverges          -->
+    <connection delay ="0" sourcemodule = "Zero" source = "OUTPUT" targetmodule = "NegPos" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Sel_Pos" source = "OUTPUT" targetmodule = "NegPos" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "K" source = "OUTPUT" targetmodule = "Mult_K_NegPos" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "NegPos" source = "OUTPUT" targetmodule = "Mult_K_NegPos" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "Zero" source = "OUTPUT" targetmodule = "NegVel" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Sel_Vel" source = "OUTPUT" targetmodule = "NegVel" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "Damp" source = "OUTPUT" targetmodule = "Mult_D_NegVel" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "NegVel" source = "OUTPUT" targetmodule = "Mult_D_NegVel" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "Mult_K_NegPos" source = "OUTPUT" targetmodule = "Add_Pos_Vel" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Mult_D_NegVel" source = "OUTPUT" targetmodule = "Add_Pos_Vel" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "dT" source = "OUTPUT" targetmodule = "Mult_Dt" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Add_Pos_Vel" source = "OUTPUT" targetmodule = "Mult_Dt" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "Mult_Dt" source = "OUTPUT" targetmodule = "Div_Mass" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Mass" source = "OUTPUT" targetmodule = "Div_Mass" target = "INPUT2" />
+
+    <!---->
+    <connection delay ="0" sourcemodule = "Div_Mass" source = "OUTPUT" targetmodule = "Add_Vel" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Sel_Vel" source = "OUTPUT" targetmodule = "Add_Vel" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "Sel_Vel" source = "OUTPUT" targetmodule = "Mult_Vel_Dt" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "dT" source = "OUTPUT" targetmodule = "Mult_Vel_Dt" target = "INPUT2" />
+
+    <connection delay ="0" sourcemodule = "Sel_Pos" source = "OUTPUT" targetmodule = "Add_Pos" target = "INPUT1" />
+    <connection delay ="0" sourcemodule = "Mult_Vel_Dt" source = "OUTPUT" targetmodule = "Add_Pos" target = "INPUT2" />
+<!-- View -->
+<view>
+    <text
+        x="80" y="40"
+        width="100"
+        height="20"
+        text="Position plot"
+    />
+    <plot
+        x="40" y="40"
+        width="301"
+        height="301"
+        module="Add_Pos"
+        source="OUTPUT"
+        title = "Position"
+        labels = "A"
+        max = "2"
+        min = "-2"
+        style = ""
+    />
+    <text
+        x="80" y="340"
+        width="100"
+        height="20"
+        text="Velocity plot"
+    />
+    <plot
+        x="40" y="340"
+        width="301"
+        height="301"
+        module="Add_Vel"
+        source="OUTPUT"
+        title = "Velocity"
+        labels = "B"
+        max = "20"
+        min = "-20"
+        style = ""
+    />
+    <!--tables-->
+    <text
+        x="440" y="40"
+        width="100"
+        height="60"
+        text="Mult pos"
+    />
+    <table
+        title="Mult pos"
+        module="Mult_K_NegPos"
+        source="OUTPUT"
+        x="340"
+        y="40"
+        width="100"
+        height="50"
+    />
+    <text
+        x="440" y="100"
+        width="100"
+        height="60"
+        text="Mult vel"
+    />
+    <table
+        title="Mult vel"
+        module="Mult_K_NegPos"
+        source="OUTPUT"
+        x="340"
+        y="100"
+        width="100"
+        height="50"
+    />
+    <text
+        x="440" y="150"
+        width="100"
+        height="60"
+        text="Add pos vel"
+    />
+    <table
+        title="Add pos vel"
+        module="Add_Pos_Vel"
+        source="OUTPUT"
+        x="340"
+        y="150"
+        width="100"
+        height="50"
+    />
+    <text
+        x="440" y="200"
+        width="100"
+        height="60"
+        text="Div Mass"
+    />
+    <table
+        title="Div_Mass"
+        module="Div_Mass"
+        source="OUTPUT"
+        x="340"
+        y="200"
+        width="100"
+        height="50"
+    />
+    <text
+        x="440" y="250"
+        width="100"
+        height="60"
+        text="Position"
+    />
+    <table
+        title="Add_Pos"
+        module="Add_Pos"
+        source="OUTPUT"
+        x="340"
+        y="250"
+        width="100"
+        height="50"
+    />
+    <text
+        x="440" y="300"
+        width="100"
+        height="60"
+        text="Velocity"
+    />
+    <table
+        title="Add_Vel"
+        module="Add_Vel"
+        source="OUTPUT"
+        x="340"
+        y="300"
+        width="100"
+        height="50"
+    />
+</view>
+
+</group>
