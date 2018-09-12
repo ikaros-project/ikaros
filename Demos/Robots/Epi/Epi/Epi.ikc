@@ -73,7 +73,7 @@ nrServosTotal = "19"
 <!-- This needs to be taken cared of sometime -->
 <module class = "Constant" name = "SERVO_SPEED" 		data = "0.02 	0.02 0.02 0.02 0.02  	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02" />
 <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	     0.5  0.5  0.5  0.5 	0.5 0.5 0.5 0.5 0.5 0.5 		0.5 0.5 0.5 0.5 0.5 0.02	0.5 0.5" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "1  		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0     					1 1" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "1  		1 1 1 1   				1 1 1 1 1 1    					1 1 1 1 1 1     					0 0" />
 
 <!-- Population coding of positions-->
 <module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
@@ -144,6 +144,9 @@ data = "
 <module class = "DataConverter" name = "MODEL_ID" output_size_x = "22" output_size_y = "1"/>
     <connection sourcemodule = "TableID"       source = "OUTPUT"       targetmodule = "MODEL_ID"  target = "INPUT" />
     <connection sourcemodule = "ForwardModel"   source = "MODEL_ID" targetmodule = "MODEL_ID"  target = "INPUT" />
+
+
+    <?include file="EpiLed.ikc" ?>
 
 
     <module
