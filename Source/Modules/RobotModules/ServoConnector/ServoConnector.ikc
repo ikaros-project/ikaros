@@ -27,9 +27,8 @@
 	<output name="OUTPUT" description="Output" size_param="output_size" />
 
 	<view title="ServoConnector">
-		<object
+		<table
 		x="0" y="0" w="2"
-		class="Table"
 		module="*"
 		source="OUTPUT"
 		title="Default view for ServoConnector"
