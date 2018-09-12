@@ -1,4 +1,6 @@
-<group>
+<?xml version="1.0"?>
+
+<group name="Fadecandy test">
         <module
             class="Constant"
             name = "R"
