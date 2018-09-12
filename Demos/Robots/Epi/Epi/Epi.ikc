@@ -65,15 +65,15 @@ nrServosTotal = "19"
 	<connection sourcemodule = "EXT_SERVO_ANGLE_A" 	source = "OUTPUT"  	targetmodule = "ExtServoAngleCode"  target = "AMPLITUDE" />
     
 <!-- Internal Motor control -->
-<module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+<module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
 	<connection sourcemodule = "INT_SERVO_ANGLE" 	source = "OUTPUT"  	targetmodule = "IntServoAngleCode"  target = "INPUT" />
 <module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
 	<connection sourcemodule = "INT_SERVO_ANGLE_A" 	source = "OUTPUT"  	targetmodule = "IntServoAngleCode"  target = "AMPLITUDE" />
 
 <!-- This needs to be taken cared of sometime -->
 <module class = "Constant" name = "SERVO_SPEED" 		data = "0.02 	0.02 0.02 0.02 0.02  	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02" />
-<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	     0.5  0.5  0.5  0.5 	0.5 0.5 0.5 0.5 0.5 0.5 		0.5 0.5 0.5 0.5 0.5 0.02	0.02 0.02" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "1  		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0     					0 0" />
+<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	     0.5  0.5  0.5  0.5 	0.5 0.5 0.5 0.5 0.5 0.5 		0.5 0.5 0.5 0.5 0.5 0.02	0.5 0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "1  		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0     					1 1" />
 
 <!-- Population coding of positions-->
 <module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>

@@ -170,7 +170,7 @@
         device          = "@PupilSerialDevice" 
         index_mode      = "indirect"
         print_info      ="full"
-        feedback        ="false"
+        feedback        ="true"
         baud_rate       = "1000000"
         angle_unit      = "degrees"
         start_up_delay 	= "20"
