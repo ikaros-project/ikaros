@@ -25,6 +25,13 @@
 	<!-- Right Eye 	-->
     <output name="SENSOR_POS_EGO" 	sourcemodule="SensorBodyHead" source="MATRIX" />
 
+   <!-- FrameID and ObjectID -->
+    <output name="OBJECT_ID" 	sourcemodule="ForwardModelObjectID" source="OUTPUT" />
+    <output name="FRAME_ID" 	sourcemodule="ForwardModelFrameID" source="OUTPUT" />
+
+    <module class = "Constant" name = "ForwardModelObjectID"    data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
+    <module class = "Constant" name = "ForwardModelFrameID"     data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
+
 
 	<!-- MODEL -->
     <!-- Model IDs -->
