@@ -22,8 +22,8 @@
  		<module
 			class = "MotionRecorder"
 			name = "MotionRecorder"
-            mask = "1 1 1 1 1  1"
-            torque = "0.25 0.25 0.25 0.25 0.25"
+            mask = "1 1"
+            torque = "0.25 0.25"
             filename = "motion.%d.mot"
 		/>
 
@@ -33,25 +33,24 @@
 
         <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
 
-		<view name="View" object_size="50">
-			<object class="Plot" module="Joints" source="OUTPUT" color="green" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
-			<object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />
-			<object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
-			<object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
+		<view name="View">
+			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="0" y="0" width="800" height="400" />
+			<plot module="MotionRecorder" source="OUTPUT" color="red" select="0, 1" x="0" y="0" width="800" height="400" />
+			<bar-graph title="record" module="MotionRecorder" source="STATE" x="80" y="0" width="200" height="200" max="2" />
+			<table title="time" module="MotionRecorder" source="TIME" decimals="0" x="800" y="200" width="200" height="200" />
 
-            <object class="Button" title = "Off" module="MotionRecorder" parameter="off" x="10" y="0" h="1" w="2" />
-            <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="10" y="1" h="1" w="2" />
-            <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="10" y="2" h="1" w="2" />
-            <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="10" y="3" h="1" w="2" />
-            <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
-            <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="10" y="5" h="1" w="2" />
+            <button label = "Off" module="MotionRecorder" parameter="off" x="1000" y="0" height="100" width="200" />
+            <button label = "Stop" module="MotionRecorder" parameter="stop" x="1000" y="100" height="100" width="200" />
+            <button label = "Record" module="MotionRecorder" parameter="record" x="1000" y="200" height="100" width="200" />
+            <button label = "Play"  module="MotionRecorder" parameter="play" x="1000" y="300" height="100" width="200" />
+            <button label = "Train"  module="MotionRecorder" parameter="train" x="1000" y="400" height="100" width="200" />
+            <button label = "Save" module="MotionRecorder" parameter="save" x="1000" y="500" height="100" width="200" />
 
-			<object class="Plot" module="MotionRecorder" source="ERROR" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" min="-1" nax="1" x="0" y="5" w="8" h="4" />
-			<object class="Plot" module="MotionRecorder" source="MEAN_ERROR" x="0" y="9" w="8" h="2" />
-			<object class="Plot" module="MotionRecorder" source="TORQUE" x="0" y="11" w="8" h="2" />
+			<plot module="MotionRecorder" source="ERROR" min="-1" nax="1" x="0" y="50" width="80" height="40" />
+			<plot module="MotionRecorder" source="MEAN_ERROR" x="0" y="90" width="80" height="20" />
+			<plot module="MotionRecorder" source="TORQUE" x="0" y="110" width="80" height="20" />
 
-            <object class="Slider" title = "D0" module="Joints" parameter="data" select="0" x="8" y="11" h="2" w="1" />
-            <object class="Slider" title = "D1" module="Joints" parameter="data" select="1" x="9" y="11" h="2" w="1" />
+            <slider-horizontal title = "Joints" module="Joints" parameter="data" x="80" y="110" height="200" width="100" />
 		</view>
 
     <module class = "Logger" name = "Logger" />
