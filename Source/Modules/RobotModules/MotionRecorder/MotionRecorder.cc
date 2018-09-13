@@ -376,7 +376,8 @@ MotionRecorder::Tick()
 {
     if(GetTick() == 1)
     {
-        copy_array(stop_position, input, size);
+        // copy_array(stop_position, input, size);
+        reset_array(stop_position, size);
     }
     reset_array(completed, max_behaviors);
 
