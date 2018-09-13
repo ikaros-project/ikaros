@@ -34,7 +34,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     button_up()
     {
         if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.module+"/"+this.parameter+"/"+this.xindex+"/"+this.yindex+"/0");
+            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/0");
     }
 
     init()
