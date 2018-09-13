@@ -83,7 +83,7 @@
             labels = "play"
             labelWidth = "50"
             fill = "custom"
-            colorTable = "white, red, green"
+            colorTable = "white, red"
             lineWidth = "1"
             shape = "circle"
             size = "1"
