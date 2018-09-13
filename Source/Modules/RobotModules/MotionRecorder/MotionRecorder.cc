@@ -503,6 +503,13 @@ MotionRecorder::Tick()
         set_array(torque, 1, size); // Ok, but will be overridden if we just started
         set_array(enable, 1, size);
 
+        if(mode)
+        {
+            for(int i=0; i<size; i++)
+                if(mode && mode[i] == 3) // disable some channels
+                    enable[i] = 0;
+         }
+
         printf("stop\n");
     }
     else if(off)
@@ -627,8 +634,14 @@ MotionRecorder::Tick()
             }
         }
 
-        
         set_array(enable, 1, size);
+        if(mode)
+        {
+            for(int i=0; i<size; i++)
+                if(mode && mode[i] == 3) // disable some channels
+                    enable[i] = 0;
+         }
+
         copy_array(output, stop_position, size);
      }
 
