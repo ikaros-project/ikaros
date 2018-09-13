@@ -30,10 +30,15 @@ enum { state_stop, state_off, state_record, state_play, state_train, state_save,
 void copy_no_zeros(float * d, float * s1, float * s2, int size)
 {
     for(int i=0; i<size; i++)
+        d[i] = s1[i];
+    return;
+ /*
+    for(int i=0; i<size; i++)
         if(s1[i] != 0)
             d[i] = s1[i];
         else
             d[i] = s2[i];
+*/
 }
 
 
@@ -374,11 +379,14 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 void
 MotionRecorder::Tick()
 {
-    if(GetTick() == 1)
+    if(GetTick() < 20) // wait for valid data
     {
-        // copy_array(stop_position, input, size);
-        reset_array(stop_position, size);
+        copy_array(stop_position, input, size);
+        copy_array(output, stop_position, size);
+        reset_array(enable, size);
+        return;
     }
+
     reset_array(completed, max_behaviors);
 
     // Change state
