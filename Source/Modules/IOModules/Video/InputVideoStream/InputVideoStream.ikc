@@ -30,7 +30,7 @@
 	<output name="INTENSITY" description="The intensity channel." />
 	
 	<view name="View" object_size="500">
-		<object class="Image" type="rgb" module = "*" source = "RED+GREEN+BLUE" x="0"  y="0" />
+		<image format="rgb" module = "*" source = "RED+GREEN+BLUE" x="0" y="0"  width = "800" height = "600"/>
 	</view>
 	
 	<author>
