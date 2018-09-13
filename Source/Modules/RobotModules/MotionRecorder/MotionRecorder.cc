@@ -1,7 +1,7 @@
 //
 //	MotionRecorder.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015-2016 Christian Balkenius
+//    Copyright (C) 2015-2018 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -112,8 +112,8 @@ MotionRecorder::Init()
     if(timebase == 0)
         timebase = 1;
 
-    play_torque = GetArray("torque", size);
-    mask        = GetArray("mask", size);
+    play_torque = GetArray("torque", size, true);
+    mask        = GetArray("mask", size, true);
 
     file_name = GetValue("filename");
 
