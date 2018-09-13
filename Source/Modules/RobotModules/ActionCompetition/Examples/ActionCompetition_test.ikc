@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module
+			class = "ActionCompetition"
+			name = "Actions"
+                size = "10"
+                max = "1 1 1 1 1  1 1 1 1 1"
+                rest = "0.5 0.5 0.5 0.5 0.5  0.5 0.5 0.5 0.5 0.5"
+                passive = "0.01 0.02 0.01 0.01 0.01   0.01 0.01 0.01 0.01 0.01"
+                timeout = "500"
+		/>
+		
+        <_connection sourcemodule="Next" source="OUTPUT" targetmodule="Trigger" target="NEXT" />
+        
+		<view name="View">
+			<plot module="Actions" source="OUTPUT" min="0" max="1" x="10" y="10" width="400" height="400"/>
+		</view>
+
+        <module class = "Logger" name = "Logger" />
+</group>
+ 

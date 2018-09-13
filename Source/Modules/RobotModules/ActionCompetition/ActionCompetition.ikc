@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group name="ActionCompetition" description="maintains activation levels for a number iof actions">
+
+	<description type="text">
+        This module maintains an activation level for a number of actions that increase or decreas in urgency over time depending on internal and external factors.
+	</description>
+
+	<example description="Example">
+		<module
+			class="ActionCompetition"
+			name="ActionCompetition"
+		/>
+	</example>
+
+    <parameter name="size" type="int" default="1" description="number of actions" />
+    
+    <parameter name="initial_delay" type="int" default="0" description="ticks before first possible event"/>
+    <parameter name="duration" type="array" default="100" description="the nominal duration of each trigged event" />
+    <parameter name="timeout" type="array" default="0" description="time to wait for next signal before selecting next event" />
+
+    <parameter name="name" type="string" default="" description="name of each action (for reference)"/>
+    <parameter name="rest" type="float" default="0" description="resting level for each action"/>
+    <parameter name="min" type="float" default="0" description="min level for each action"/>
+    <parameter name="max" type="float" default="1" description="max level for each action"/>
+    <parameter name="passive" type="float" default="0.001" description="passive change per tick for each action; interacts with distance to resting level"/>
+    <parameter name="bias" type="float" default="1" description="input bias level for each action (can be negative)"/>
+    <parameter name="completion_bias" type="float" default="-100" description="change in level when action is completed (typically negative)"/>
+
+	<input name="INPUT" description="Steps to the next random state when any of its inputs is 1; can be different size than OUTPUT" optional="yes" />
+	<input name="COMPLETE" description="Signals that an action is complete; can be different size than OUTPUT" optional="yes" />
+
+	<output name="OUTPUT" description="The output" size_param="size" />
+
+	<module class="ActionCompetition" />
+
+    <view name="Default ActionCompetition View">
+        <bar-graph
+            x="10" y="10" height="200" width="200"
+            module="*"
+            source="OUTPUT"
+            title="Default view for ActionCompetition"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>ActionCompetition.h</file>
+   		<file>ActionCompetition.cc</file>
+   		<file>ActionCompetition.ikc</file>
+   </files>
+
+</group>
