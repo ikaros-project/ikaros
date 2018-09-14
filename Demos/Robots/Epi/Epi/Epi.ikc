@@ -221,7 +221,7 @@ nrServosTotal = "19"
     torque = "0.5 0.5     0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
     filename = "motion.%d.mot"
     smoothing_time = "10"
-    max_motions="100"
+    max_behaviors="100"
 />
 <connection sourcemodule = "Servos" source = "FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
 
