@@ -345,7 +345,7 @@ nrServosTotal = "19"
 
             <drop-down-menu
                 title="motion"
-                list="cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, idle left -2 A, idle left -2 B, idle left -2 B, , idle left -1 A, idle left -1 B, idle left -1 C, idle center 0 A, idle center 0 B, idle center 0 C, idle right +1 A, idle right +1 B, idle right +1 C, idle right +2 A, idle right +2 B, idle right +2 C,
+                list="cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, idle left -2 A, idle left -2 B, idle left -2 B, idle left -1 A, idle left -1 B, idle left -1 C, idle center 0 A, idle center 0 B, idle center 0 C, idle right +1 A, idle right +1 B, idle right +1 C, idle right +2 A, idle right +2 B, idle right +2 C,
                           look at hand left A, look at hand left B, look at hand left C, look at hand left D, look at hand left E,
                           look at hand right A, look at hand right B, look at hand right C, look at hand right D,look at hand right E,
                           look at table left -2, look at table left -1, look at table center 0, look at table right +1, look at table right +2,
@@ -489,7 +489,7 @@ nrServosTotal = "19"
         <connection sourcemodule="Vision" source="LEFT_INTENSITY" targetmodule="PupilControl" target="PTA" />
 
     <view name="Pupil">
-        <image title="Input"                     module="Vision" source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
+        <image title="Input"                     module="Vision"       source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
         <plot title="Response Light"             module="PupilControl" source="PTA_OUTPUT"   x="0" y="0" w="4" />
         <plot title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="1" w="4" min = "5" max="17" />
         <plot title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="2" w="4" min = "5" max="17" />
