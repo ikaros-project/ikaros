@@ -96,7 +96,7 @@
 		connector       = "   1        2    3    4    5      6    7    8    9   10   11     12   13   14   15   16   17      18   19"
         pre_inverted    = "   1        0    0    0    0      0    0    0    0    0    0      0    1    0    0    0    0       0    0" 
         post_inverted   = "   0        0    0    0    0      0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
-        offset          = " 170      180  180  180  180    180  180  180  180  180  180    180  180  180  180  180  180     210  210" 
+        offset          = " 170      180  180  180  180    180  180  180  180  225  180    180  180  180  180  135  180     210  210" 
         output_size     = "@nrServosTotal"
 	/>
         <connection sourcemodule = "MotionGuard" source = "OUTPUT" targetmodule = "SC_Angle" target = "INPUT" delay = "1"/>
@@ -186,7 +186,7 @@
 		connector       = "   1        2    3    4    5        6    7    8    9   10   11     12   13   14   15   16   17      18   19"
         pre_inverted    = "   0        0    0    0    0        0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
         post_inverted   = "   1        0    0    0    0        0    0    0    0    0    0      0    1    0    0    0    0       0    0" 
-        offset          = "   -170     -180 -180 -180 -180  -180 -180 -180 -180 -180 -180   -180 -180 -180 -180 -180 -180    -210 -210" 
+        offset          = "   -170     -180 -180 -180 -180  -180 -180 -180 -180 -225 -180   -180 -180 -180 -180 -135 -180    -210 -210" 
         output_size     = "@nrServosTotal"
 	/>
         <connection sourcemodule = "Body"       source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />

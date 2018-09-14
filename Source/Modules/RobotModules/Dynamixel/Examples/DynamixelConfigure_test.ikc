@@ -9,7 +9,7 @@
     <module
     class = "DynamixelConfigure"
     name = "DynamixelConfigure"
-    device  = "/dev/cu.usbserial-A8005hj3"
+    device  = "/dev/cu.usbserial-A501EKIZ"
     _comment57k_baud_rate = "57600"
     _comment115k_baud_rate = "115200"
     baud_rate = "1000000"
@@ -19,8 +19,8 @@
     _ID_adress = "3"
     _value = "2"
     
-    adress = "4"
-    value = "3"
+    adress = "5"
+    value = "10"
     
     _reset_mode = "true"
     _scan_mode = "true"
