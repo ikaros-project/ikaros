@@ -59,6 +59,7 @@ public:
 
     int         counter;
     int         current_winner;
+    int         last_winner;
 };
 
 
