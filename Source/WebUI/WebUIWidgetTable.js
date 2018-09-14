@@ -71,15 +71,15 @@ class WebUIWidgetTable extends WebUIWidget
                 for(let j=0; j<size_y; j++)
                     for(let i=0; i<size_x; i++)
                     {
-                        this.table.rows[j].cells[i].innerHTML = this.data[j][i];
-                        this.table.rows[j].cells[i].style.color = this.getColor(i, this.data[j][i]);    // use this.format.decimals
+                        this.table.rows[j].cells[i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
+                        this.table.rows[j].cells[i].style.color = this.getColor(i, this.data[j][i]);
                     }
             else
                for(let j=0; j<size_y; j++)
                     for(let i=0; i<size_x; i++)
                     {
-                        this.table.rows[j].cells[i].innerHTML = this.data[j][i];
-                        this.table.rows[j].cells[i].style.color = this.getColor(i);    // use this.format.decimals
+                        this.table.rows[j].cells[i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);;
+                        this.table.rows[j].cells[i].style.color = this.getColor(i);
                     }
 
           }
