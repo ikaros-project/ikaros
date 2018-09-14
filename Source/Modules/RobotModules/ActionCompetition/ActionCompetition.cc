@@ -28,7 +28,9 @@ ActionCompetition::Init()
 {
     output          = GetOutputArray("OUTPUT");
     output_size     = GetOutputSize("OUTPUT");
-    
+
+    trigger         = GetOutputArray("TRIGGER");
+
     input          = GetInputArray("INPUT");
     input_size     = GetInputSize("INPUT");
 
@@ -45,6 +47,8 @@ ActionCompetition::Init()
     passive         = GetArray("passive", output_size, true);
     bias            = GetArray("bias", output_size, true);
     completion_bias  = GetArray("completion_bias", output_size, true);
+
+    current_winner = -1;
 }
 
 
@@ -63,6 +67,17 @@ ActionCompetition::Tick()
         output[i] += (rest[i]-output[i])*passive[i]; // rest
         output[i] = clip(output[i], min_[i], max_[i]);
     }
+
+    if(counter == 0)
+    {
+        int last_winner = current_winner;
+        current_winner = arg_max(output, input_size);
+        reset_array(trigger, output_size);
+        trigger[current_winner] = 1;
+        counter = duration[current_winner];
+    }
+    else
+        counter--;
 }
 
 

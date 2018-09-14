@@ -44,6 +44,7 @@ public:
     float *     input;
     float *     complete;
     float *     output;
+    float *     trigger;
 
     float *     rest;
     float *     min_;
@@ -57,6 +58,7 @@ public:
     int         complete_size;
 
     int         counter;
+    int         current_winner;
 };
 
 

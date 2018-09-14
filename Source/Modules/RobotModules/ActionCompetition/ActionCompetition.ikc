@@ -31,6 +31,7 @@
 	<input name="COMPLETE" description="Signals that an action is complete; can be different size than OUTPUT" optional="yes" />
 
 	<output name="OUTPUT" description="The output" size_param="size" />
+	<output name="TRIGGER" description="The behavior triggor for the most active behavior" size_param="size" />
 
 	<module class="ActionCompetition" />
 
