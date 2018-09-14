@@ -48,6 +48,7 @@ ActionCompetition::Init()
     bias            = GetArray("bias", output_size, true);
     completion_bias  = GetArray("completion_bias", output_size, true);
 
+    last_winner = -1;
     current_winner = -1;
 }
 
@@ -56,28 +57,38 @@ ActionCompetition::Init()
 void
 ActionCompetition::Tick()
 {
+    last_winner = current_winner;
+    if(counter > 0)
+    {
+        counter--;
+        if(counter == 0 && current_winner != -1) // end of action duration
+        {
+            output[current_winner] += completion_bias[current_winner]; // internal completion signal
+            current_winner = -1;
+        }
+    }
+
     for(int i=0; i<output_size; i++)
     {
         if(i<input_size)
             output[i] += input[i]*bias[i];
 
         if(i<complete_size)
-            output[i] += complete[i]*completion_bias[i];
+            output[i] += complete[i]*completion_bias[i]; // external completion signal
 
         output[i] += (rest[i]-output[i])*passive[i]; // rest
-        output[i] = clip(output[i], min_[i], max_[i]);
-    }
+     }
 
-    if(counter == 0)
+    current_winner = arg_max(output, output_size);
+    if(current_winner != last_winner)
     {
-        int last_winner = current_winner;
-        current_winner = arg_max(output, input_size);
         reset_array(trigger, output_size);
         trigger[current_winner] = 1;
         counter = duration[current_winner];
     }
-    else
-        counter--;
+
+    for(int i=0; i<output_size; i++)
+       output[i] = clip(output[i], min_[i], max_[i]);
 }
 
 
