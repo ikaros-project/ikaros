@@ -763,7 +763,10 @@ MotionRecorder::Tick()
             *time += timebase;
         else
         {
-            Load();
+            // Load();
+            current_behavior ++;
+            if(current_behavior >= max_behaviors)
+                current_behavior = 0;
             *time = 0;
         }
     }
