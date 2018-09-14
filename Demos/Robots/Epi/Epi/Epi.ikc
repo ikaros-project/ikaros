@@ -221,11 +221,76 @@ nrServosTotal = "19"
     torque = "0.5 0.5     0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
     filename = "motion.%d.mot"
     smoothing_time = "10"
+    max_motions="100"
 />
 <connection sourcemodule = "Servos" source = "FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
 
 <connection sourcemodule = "MotionRecorder"   	source = "ENABLE"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
 
+		<view name="Motion Recorder View">
+            <grid
+                x = "10"
+                y = "10"
+                width = "121"
+                height = "41"
+                source = "STATE"
+                module = "MotionRecorder"
+                class = "grid"
+                max = "7"
+                labels = "state"
+                labelWidth = "50"
+                fill = "custom"
+                colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
+                lineWidth = "1"
+                shape = "circle"
+                size = "1"
+                scales = "no"
+            />
+
+            <grid
+                width = "121"
+                height = "41"
+                x="10"
+                y = "40"
+                source = "PLAYING"
+                module = "MotionRecorder"
+                class = "grid"
+                max = "1"
+                labels = "play"
+                labelWidth = "50"
+                fill = "custom"
+                colorTable = "white, red, green"
+                lineWidth = "1"
+                shape = "circle"
+                size = "1"
+                scales = "no"
+            />
+
+            <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+
+			<bar-graph module="MotionRecorder" source="ENABLE" x="130" y="531" width="800" height="201" />
+
+			<table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
+
+            <button label = "Off" module="MotionRecorder" parameter="off" x="10" y="121" height="41" width="101" />
+            <button label = "Stop" module="MotionRecorder" parameter="stop" x="10" y="161" height="41" width="101"  />
+            <button label = "Record" module="MotionRecorder" parameter="record" x="10" y="201" height="41" width="101"  />
+            <button label = "Play"  module="MotionRecorder" parameter="play" x="10" y="241" height="41" width="101"  />
+
+
+            <button label = "Load" module="MotionRecorder" parameter="load" x="10" y="361" height="41" width="101"  />
+            <button label = "Save" module="MotionRecorder" parameter="save" x="10" y="401" height="41" width="101"  />
+
+            <drop-down-menu
+                title="motion"
+                list="scratch left crotch, scratch laft hand, scratch left wrist, scratch left torso, scratch left chin, scratch left ear, scratch left eye, scratch left head back A, scratch left head back B,
+                      cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, scratch -18-, scratch -19-"
+
+
+                module="MotionRecorder" parameter="current_behavior" x="10" y="311" width="121" height="41" />
+
+             <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
+		</view>
 
 <module class = "Constant" name = "MotionRecPopAmplitude" 		data = "100   		100 100 100 100   				100 100 100 100  100 100    					100 100 100 100  100 100   					100 100" />
 
