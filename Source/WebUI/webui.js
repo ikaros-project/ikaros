@@ -355,7 +355,7 @@ interaction = {
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
     },
-    initViewElement: function (element, data) {   // For object in view from IKC file
+    initViewElement: function (element, data) {   // For object in view from IKC file - should be called add widget
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
         let constr = webui_widgets.constructors["webui-widget-"+data['class']];
@@ -410,6 +410,10 @@ interaction = {
         let nodes = document.querySelectorAll(".frame");
         for (var i = 0; i < nodes.length; i++)
             main.removeChild(nodes[i]);
+
+        nodes = document.querySelectorAll(".module");
+        for (var i = 0; i < nodes.length; i++)
+            main.removeChild(nodes[i]);
     },
     generateGrid: function (spacing) {
         interaction.grid_spacing = spacing;
@@ -456,20 +460,82 @@ interaction = {
         interaction.currentView = controller.views[viewName];
         interaction.removeAllObjects();
 
+        let canvas = document.querySelector("#maincanvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
         let main = document.querySelector('main');
-        let v = interaction.currentView.objects;
-        for(let i=0; i<v.length; i++)
+        
+        // Build widget view
+        
+        let v = interaction.currentView.objects;    // FIXME: objects should be called widgets
+        if(v)
         {
-            let newObject = document.createElement("div");
-            newObject.setAttribute("class", "frame visible");
+            for(let i=0; i<v.length; i++)
+            {
+                let newObject = document.createElement("div");
+                newObject.setAttribute("class", "frame visible");
+                
+                let newTitle = document.createElement("div");
+                newTitle.setAttribute("class", "title");
+                newTitle.innerHTML = "TITLE";
+                newObject.appendChild(newTitle);
+                
+                interaction.main.appendChild(newObject);
+                interaction.initViewElement(newObject, v[i])
+            }
+            return;
+        }
+        
+        // Build group view - experimental
+        
+        v = interaction.currentView.groups;
+        if(v)
+        {
+            let scale = 2*Math.PI/v.length;
+            for(let i=0; i<v.length; i++)
+            {
+                let newObject = document.createElement("div");
+                
+                console.log(v[i].groups);
+                if(v[i].groups.length == 0)
+                    newObject.setAttribute("class", "module");
+                else
+                    newObject.setAttribute("class", "module group");
+
+                newObject.innerHTML = v[i].name;
+                interaction.main.appendChild(newObject);
+            //    interaction.initViewElement(newObject, v[i])
             
-            let newTitle = document.createElement("div");
-            newTitle.setAttribute("class", "title");
-            newTitle.innerHTML = "TITLE";
-            newObject.appendChild(newTitle);
+                newObject.parameters = v[i];
+                
+                newObject.parameters.x = 600+400*Math.sin(scale*i);     // Center - or read from group data
+                newObject.parameters.y = 500-400*Math.cos(scale*i);
+                
+                newObject.style.top = newObject.parameters.y+"px";
+                newObject.style.left = newObject.parameters.x+"px";
+                newObject.style.width = "120px";
+                newObject.style.height = "60px";
+
+                newObject.addEventListener('mousedown', interaction.startDrag, true);
+            }
             
-            interaction.main.appendChild(newObject);
-            interaction.initViewElement(newObject, v[i])
+            // Draw connections (should be done somwhere else)
+            
+            let canvas = document.querySelector("#maincanvas");
+            let context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            for(let i=0; i<v.length; i++)
+                for(let j=0; j<v.length; j++)
+                if(Math.random()>0.9)
+                {
+                    context.beginPath();
+                    context.moveTo(v[i].x+60, v[i].y+30);
+                    context.lineTo(v[j].x+60, v[j].y+30);
+                    context.stroke();
+                }
+            
+            return;
         }
     },
     deselectObject() {
@@ -739,6 +805,8 @@ controller = {
     },
 
     buildViewDictionary: function(group, name) {
+        controller.views[name+"/"+group.name] = group;
+
         if(group.views)
             for(i in group.views)
                 controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
@@ -893,7 +961,7 @@ controller = {
                 let name = wgt.localName.replace("webui-widget-", "");
                 s += "\t<"+name+"\n"
                 for(let p in wgt.parameters)
-                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p])
+                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p]) 
                         s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
                 s += "\t/>\n\n"
             }
