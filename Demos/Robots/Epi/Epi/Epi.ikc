@@ -284,7 +284,7 @@ nrServosTotal = "19"
             <drop-down-menu
                 title="motion"
                 list="scratch left crotch, scratch laft hand, scratch left wrist, scratch left torso, scratch left chin, scratch left ear, scratch left eye, scratch left head back A, scratch left head back B,
-                      cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, idle left -2 A, idle left -2 B, idle left -2 B, , idle left -1 A, idle left -1 B, idle left -1 C, idle center 0 A, idle center 0 B, idle center 0 C, idle right +1 A, idle right +1 B, idle right +1 C, idle right +2 A, idle right +2 B, idle right +2 C"
+                      cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, idle left -2 A, idle left -2 B, idle left -2 B, idle left -1 A, idle left -1 B, idle left -1 C, idle center 0 A, idle center 0 B, idle center 0 C, idle right +1 A, idle right +1 B, idle right +1 C, idle right +2 A, idle right +2 B, idle right +2 C"
 
 
                 module="MotionRecorder" parameter="current_behavior" x="10" y="311" width="121" height="41" />
