@@ -3,7 +3,7 @@
 <group name="MotionRecorder" description="minimal example module">
 
 	<description type="text">
-		Module that records a sequence of keyframes and saves them into a file. EXPERIMENTAL.
+		Module that records a sequence of values and saves them into a file.
 	</description>
 
 	<example description="A simple example">
@@ -50,6 +50,62 @@
     <output name="PLAYING" description="State is 1 when the module plays" size="1" />
 
 	<module class="MotionRecorder" />
+
+    <view name="Default View">
+        <grid
+            x = "10"
+            y = "10"
+            width = "121"
+            height = "41"
+            source = "STATE"
+            module = "*"
+            class = "grid"
+            max = "7"
+            labels = "state"
+            labelWidth = "50"
+            fill = "custom"
+            colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
+            lineWidth = "1"
+            shape = "circle"
+            size = "1"
+            scales = "no"
+        />
+
+        <grid
+            width = "121"
+            height = "41"
+            x="10"
+            y = "40"
+            source = "PLAYING"
+            module = "*"
+            class = "grid"
+            max = "1"
+            labels = "play"
+            labelWidth = "50"
+            fill = "custom"
+            colorTable = "white, red"
+            lineWidth = "1"
+            shape = "circle"
+            size = "1"
+            scales = "no"
+        />
+
+        <plot module="*" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+
+        <table title="time" module="*" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
+
+        <button label = "Off" module="*" parameter="off" x="10" y="121" height="41" width="101" />
+        <button label = "Stop" module="*" parameter="stop" x="10" y="161" height="41" width="101"  />
+        <button label = "Record" module="*" parameter="record" x="10" y="201" height="41" width="101"  />
+        <button label = "Play"  module="*" parameter="play" x="10" y="241" height="41" width="101"  />
+
+        <button label = "Load" module="*" parameter="load" x="10" y="361" height="41" width="101"  />
+        <button label = "Save" module="*" parameter="save" x="10" y="401" height="41" width="101"  />
+
+        <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="*" parameter="current_behavior" x="10" y="311" width="121" height="41" />
+
+         <switch label=" Rec on trig" module="*" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
+    </view>
 
 	<author>
 		<name>Christian Balkenius</name>

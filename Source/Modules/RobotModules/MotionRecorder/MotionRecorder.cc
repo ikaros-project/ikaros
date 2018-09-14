@@ -30,10 +30,15 @@ enum { state_stop, state_off, state_record, state_play, state_train, state_save,
 void copy_no_zeros(float * d, float * s1, float * s2, int size)
 {
     for(int i=0; i<size; i++)
+        d[i] = s1[i];
+    return;
+ /*
+    for(int i=0; i<size; i++)
         if(s1[i] != 0)
             d[i] = s1[i];
         else
             d[i] = s2[i];
+*/
 }
 
 
@@ -374,10 +379,14 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 void
 MotionRecorder::Tick()
 {
-    if(GetTick() == 1)
+    if(GetTick() < 20) // wait for valid data
     {
         copy_array(stop_position, input, size);
+        copy_array(output, stop_position, size);
+        reset_array(enable, size);
+        return;
     }
+
     reset_array(completed, max_behaviors);
 
     // Change state
@@ -444,6 +453,13 @@ MotionRecorder::Tick()
         copy_array(start_torque, torque, size);
 //        copy_array(torque, play_torque, size);
         set_array(enable, 1, size);
+        if(mode)
+        {
+            for(int i=0; i<size; i++)
+                if(mode && mode[i] == 3) // disable some channels
+                    enable[i] = 0;
+         }
+
         *time = 0;
         printf("play\n");
     }
@@ -454,6 +470,13 @@ MotionRecorder::Tick()
 
         copy_array(torque, play_torque, size);
         set_array(enable, 1, size);
+        if(mode)
+        {
+            for(int i=0; i<size; i++)
+                if(mode && mode[i] == 3) // disable some channels
+                    enable[i] = 0;
+         }
+
         *time = 0;
         printf("sqplay\n");
     }
@@ -501,6 +524,12 @@ MotionRecorder::Tick()
         
         set_array(torque, 1, size); // Ok, but will be overridden if we just started
         set_array(enable, 1, size);
+        if(mode)
+        {
+            for(int i=0; i<size; i++)
+                if(mode && mode[i] == 3) // disable some channels
+                    enable[i] = 0;
+         }
 
         printf("stop\n");
     }
@@ -596,6 +625,13 @@ MotionRecorder::Tick()
                     copy_array(start_torque, torque, size);
 
                     set_array(enable, 1, size);
+                    if(mode)
+                    {
+                        for(int i=0; i<size; i++)
+                            if(mode && mode[i] == 3) // disable some channels
+                                enable[i] = 0;
+                     }
+
                     *time = 0;
                     *playing = 1;
 
@@ -626,8 +662,14 @@ MotionRecorder::Tick()
             }
         }
 
-        
         set_array(enable, 1, size);
+        if(mode)
+        {
+            for(int i=0; i<size; i++)
+                if(mode && mode[i] == 3) // disable some channels
+                    enable[i] = 0;
+         }
+
         copy_array(output, stop_position, size);
      }
 
@@ -704,6 +746,12 @@ MotionRecorder::Tick()
             copy_array(output, stop_position, size); // Just in case this is not run later
             set_array(torque, 1, size);
             set_array(enable, 1, size);
+            if(mode)
+            {
+                for(int i=0; i<size; i++)
+                    if(mode && mode[i] == 3) // disable some channels
+                        enable[i] = 0;
+             }
             *playing = 0;
         }
     }
@@ -715,7 +763,10 @@ MotionRecorder::Tick()
             *time += timebase;
         else
         {
-            Load();
+            // Load();
+            current_behavior ++;
+            if(current_behavior >= max_behaviors)
+                current_behavior = 0;
             *time = 0;
         }
     }

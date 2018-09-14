@@ -25,22 +25,22 @@
     <module class = "Constant" name = "LedBGreen" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
 
 
-    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2" switch_time = "5"/>
+    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "1" switch_time = "5"/>
         <connection sourcemodule = "LedRBlue"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "VALUE_1" />
-        <connection sourcemodule = "LedRGreen"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_2" />
+        <_connection sourcemodule = "LedRGreen"  source = "OUTPUT"  targetmodule = "EyeColorR"  target = "INPUT_2" />
         <_connection sourcemodule = "Detectors"  source = "L_FACE_CONF"  targetmodule = "EyeColorR"  target = "VALUE_2" />
 
-    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2" switch_time = "5"/>
+    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "1" switch_time = "5"/>
         <connection sourcemodule = "LedGBlue"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "VALUE_1" />
-        <connection sourcemodule = "LedGGreen"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_2" />
+        <_connection sourcemodule = "LedGGreen"  source = "OUTPUT"  targetmodule = "EyeColorG"  target = "INPUT_2" />
         <_connection sourcemodule = "Detectors"  source = "L_FACE_CONF"  targetmodule = "EyeColorG"  target = "VALUE_2" />
 
-    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2" switch_time = "5"/>
+    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "1" switch_time = "5"/>
         <connection sourcemodule = "LedBBlue"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_1" />
         <connection sourcemodule = "LedBlueV"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "VALUE_1" />
-        <connection sourcemodule = "LedBGreen"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_2" />
+        <_connection sourcemodule = "LedBGreen"  source = "OUTPUT"  targetmodule = "EyeColorB"  target = "INPUT_2" />
         <_connection sourcemodule = "Detectors"  source = "L_FACE_CONF"  targetmodule = "EyeColorB"  target = "VALUE_2" />
 
 

@@ -60,28 +60,28 @@ MotionGuard::Tick()
         if(speed > m)
             m = speed;
     }
-    if(m > max_speed)
-    {
-        speed_limit = true;
-        float scale = max_speed/m;
-        for(int i=0; i<size; i++)
-        {
-            float speed = (output[i] - reference[i]);
-            output[i] = reference[i] + scale * speed;
-        }
-    }
+//    if(m > max_speed)
+//    {
+//        speed_limit = true;
+//        float scale = max_speed/m;
+//        for(int i=0; i<size; i++)
+//        {
+//            float speed = (output[i] - reference[i]);
+//            output[i] = reference[i] + scale * speed;
+//        }
+//    }
 
 	// Check position software limit
     if (inputLimitMin && inputLimitMax)
     {
         for(int i=0; i<size; i++)
         {
-            if (output[i] < inputLimitMin[i] || output[i] > inputLimitMax[i])
-                position_limit = true;
-            if (output[i] < inputLimitMin[i])
-                output[i] = inputLimitMin[i];
-            if (output[i] > inputLimitMax[i])
-                output[i] = inputLimitMax[i];
+//            if (output[i] < inputLimitMin[i] || output[i] > inputLimitMax[i])
+//                position_limit = true;
+//            if (output[i] < inputLimitMin[i])
+//                output[i] = inputLimitMin[i];
+//            if (output[i] > inputLimitMax[i])
+//                output[i] = inputLimitMax[i];
         }
     }
 

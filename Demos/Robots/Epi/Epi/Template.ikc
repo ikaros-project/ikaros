@@ -10,11 +10,11 @@
 	RightArmSerialDevice= "/dev/cu.usbserial-FTU7KTFT"
 	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
 
-	BodyDynamixel = "DynamixelSimulate"
-	HeadDynamixel = "DynamixelSimulate"
-	LeftArmDynamixel = "DynamixelSimulate"
-	RightArmDynamixel = "DynamixelSimulate"
-	PupilDynamixel = "DynamixelSimulate"
+	BodyDynamixel = "Dynamixel"
+	HeadDynamixel = "Dynamixel"
+	LeftArmDynamixel = "Dynamixel"
+	RightArmDynamixel = "Dynamixel"
+	PupilDynamixel = "Dynamixel"
 	/>
 
 	<!-- Move EpiBlack -->
@@ -29,7 +29,10 @@
 	0 1 0 0.6
 	0 0 1 0
 	0 0 0 1"/>
-		<connection sourcemodule = "ManualFocusPoint"	source = "OUTPUT" targetmodule = "EpiBlack" target = "FOCUS_POINT"/>
+		<connection sourcemodule = "ManualFocusPoint"	source = "OUTPUT" targetmodule = "EpiBlack" target = "EXT_FOCUS_POINT"/>
+
+	<module class = "Constant" name = "ManualFocusPointValue" data = "0" />
+		<connection sourcemodule = "ManualFocusPointValue"	source = "OUTPUT" targetmodule = "EpiBlack" target = "EXT_FOCUS_POINT_V"/>
 
 
 	<!-- Importing Epi Pink
