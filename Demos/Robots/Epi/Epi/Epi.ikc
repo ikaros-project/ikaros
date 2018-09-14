@@ -283,8 +283,7 @@ nrServosTotal = "19"
 
             <drop-down-menu
                 title="motion"
-                list="scratch left crotch, scratch laft hand, scratch left wrist, scratch left torso, scratch left chin, scratch left ear, scratch left eye, scratch left head back A, scratch left head back B,
-                      cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, idle left -2 A, idle left -2 B, idle left -2 B, , idle left -1 A, idle left -1 B, idle left -1 C, idle center 0 A, idle center 0 B, idle center 0 C, idle right +1 A, idle right +1 B, idle right +1 C, idle right +2 A, idle right +2 B, idle right +2 C,
+                list="cratch left crotch, scratch right hand, scratch right wrist, scratch right torso, scratch right chin, scratch right ear, scratch right eye, scratch right head back A, scratch right head back B, idle left -2 A, idle left -2 B, idle left -2 B, , idle left -1 A, idle left -1 B, idle left -1 C, idle center 0 A, idle center 0 B, idle center 0 C, idle right +1 A, idle right +1 B, idle right +1 C, idle right +2 A, idle right +2 B, idle right +2 C,
                           look at hand left A, look at hand left B, look at hand left C, look at hand left D, look at hand left E,
                           look at hand right A, look at hand right B, look at hand right C, look at hand right D,look at hand right E,
                           look at table left -2, look at table left -1, look at table center 0, look at table right +1, look at table right +2,
@@ -294,9 +293,7 @@ nrServosTotal = "19"
                           Wave left -2, Wave left -1, Wave center 0, Wave right +1, Wave right +2,
                           Reach left -2, Reach left -1, Reach center 0, Reach right +1, Reach right +2,
                           Peekaboo A, Peekaboo B, Peekaboo C,
-                          Large movement A, Large movement B, Large movement C, Large movement D, Large movement E
-                      "
-
+                          Large movement A, Large movement B, Large movement C, Large movement D, Large movement E"
 
                 module="MotionRecorder" parameter="current_behavior" x="10" y="311" width="121" height="41" />
 
