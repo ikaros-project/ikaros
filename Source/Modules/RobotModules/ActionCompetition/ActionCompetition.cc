@@ -29,6 +29,8 @@ ActionCompetition::Init()
     output          = GetOutputArray("OUTPUT");
     output_size     = GetOutputSize("OUTPUT");
 
+    random(output, 0, 0.01, output_size);
+
     trigger         = GetOutputArray("TRIGGER");
 
     input          = GetInputArray("INPUT");

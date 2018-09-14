@@ -17,7 +17,7 @@
     
     <parameter name="initial_delay" type="int" default="0" description="ticks before first possible event"/>
     <parameter name="duration" type="array" default="100" description="the nominal duration of each trigged event" />
-    <parameter name="timeout" type="array" default="0" description="time to wait for next signal before selecting next event" />
+    <_parameter name="timeout" type="array" default="0" description="time to wait for next signal before selecting next event" />
 
     <parameter name="name" type="string" default="" description="name of each action (for reference)"/>
     <parameter name="rest" type="float" default="0" description="resting level for each action"/>

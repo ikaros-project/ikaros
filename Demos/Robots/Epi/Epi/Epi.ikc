@@ -224,8 +224,70 @@ nrServosTotal = "19"
     max_behaviors="100"
 />
 <connection sourcemodule = "Servos" source = "FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
-
 <connection sourcemodule = "MotionRecorder"   	source = "ENABLE"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
+
+<connection sourcemodule = "Actions"   	source = "TRIGGER"  targetmodule = "MotionRecorder"  target = "TRIG" />
+<connection sourcemodule = "MotionRecorder"   	source = "COMPLETED"  targetmodule = "Actions"  target = "COMPLETE" />
+
+    <module
+        class = "ActionCompetition"
+        name = "Actions"
+            size = "73"
+            max =   "1 1 1 1 1 1 1 1 1 1
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1
+                     1 1 1 1 1 1 1 1 1 1
+                     1 1 1"
+
+            bias =  "1 1 1 1 1 1 1 1 1 1
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1    
+                     1 1 1 1 1 1 1 1 1 1
+                     1 1 1 1 1 1 1 1 1 1
+                     1 1 1"
+
+            rest =  "0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5
+                     0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5    
+                     0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5    
+                     0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5    
+                     0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5    
+                     0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5
+                     0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5
+                     0.5 0.5 0.5"
+
+            passive = " 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+                        0.01 0.01 0.01"
+
+            duration = "10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
+                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
+                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
+                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
+                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
+                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
+                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
+                     10000 10000 10000"
+
+            completion_bias = "-100 -100 -100 -100 -100 -100 -100 -100 -100 -100
+                     -100 -100 -100 -100 -100 -100 -100 -100 -100 -100    
+                     -100 -100 -100 -100 -100 -100 -100 -100 -100 -100    
+                     -100 -100 -100 -100 -100 -100 -100 -100 -100 -100    
+                     -100 -100 -100 -100 -100 -100 -100 -100 -100 -100    
+                     -100 -100 -100 -100 -100 -100 -100 -100 -100 -100
+                     -100 -100 -100 -100 -100 -100 -100 -100 -100 -100
+                     -100 -100 -100"
+
+    />
+
 
 		<view name="Motion Recorder View">
             <grid
@@ -298,6 +360,11 @@ nrServosTotal = "19"
                 module="MotionRecorder" parameter="current_behavior" x="10" y="311" width="121" height="41" />
 
              <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
+
+
+			<plot module="Actions" source="OUTPUT" color="red,green,blue,yellow,pink,brown,maroon,black,purple" min="0" max="1" x="10" y="500" width="400" height="200"/>
+			<bar-graph module="Actions" source="TRIGGER" color="red,green,blue,yellow,pink,brown,maroon,black,purple"  fill="red,green,blue,yellow,pink,brown,maroon,black,purple"  min="0" max="1" x="10" y="700" width="400" height="100"/>
+
 		</view>
 
 <module class = "Constant" name = "MotionRecPopAmplitude" 		data = "100   		100 100 100 100   				100 100 100 100  100 100    					100 100 100 100  100 100   					100 100" />
