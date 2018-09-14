@@ -45,7 +45,9 @@ nrServosTotal = "19"
         <connection sourcemodule = "ExoID"            source = "OUTPUT"       targetmodule = "Epi" target = "OBJECT_ID_2" delay = "0"/>
         <connection sourcemodule = "ExoID"            source = "OUTPUT"       targetmodule = "Epi" target = "FRAME_ID_2"  delay = "0"/>
 
-    <input name = "FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1"/>
+
+    <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_6"/>
+    <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_6"/>
 
 
 <!-- 			Attention 				-->
@@ -98,7 +100,7 @@ nrServosTotal = "19"
 
     
     <!-- EXO -->
-    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "5"/>
+    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "6"/>
         <!-- ManualFocusPoint -->
         <connection sourcemodule = "ManFocusPoint"   	source = "OUTPUT"  		targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
         <connection sourcemodule = "ManFocusPointValue" source = "OUTPUT"  		targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
@@ -199,44 +201,39 @@ nrServosTotal = "19"
 
 
 <!-- This needs to be taken cared of sometime -->
-<module class = "Constant" name = "SERVO_SPEED" 		data = "0.02 	0.02 0.02 0.02 0.02  	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02 0.02 0.02 0.02 0.02 	0.02 0.02" />
-<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	     0.5  0.5  0.5  0.5 	0.5 0.5 0.5 0.5 0.5 0.5 		0.5 0.5 0.5 0.5 0.5 0.02	0.5 0.5" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "1  		1 1 1 1   				1 1 1 1 1 1    					1 1 1 1 1 1     					0 0" />
+<module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	   1    1    1    1   	    1    1    1    1    1    1     1    1    1    1    1    1      0    0" />
 
 
 
 <!--  Motion recorder -->
 <!-- ************************ -->
 <!-- ************************ -->
-<module
-    class = "Constant"
-    name = "Modes"
-    data = "0 0   0 0 0 0   0 0;
-            1 1   1 1 1 1   0 0;
-            0 0   1 1 1 1   1 1;
-            1 1   0 0 0 0   1 1"
-/>
 
-<module class = "SelectRow" name = "ModeSelector"/>
+<module class = "Constant" name = "RecordServo" data = "0   		0 0 3 3   				0 0 0 0 0 3   					0 0 0 0 0 3   					3 3" />
 
-<connection sourcemodule = "Modes" source = "OUTPUT" targetmodule = "ModeSelector" target = "INPUT" />
-<connection sourcemodule = "ModeSelector" source = "OUTPUT" targetmodule = "MotionRecorder" target = "MODE" />
+<connection sourcemodule = "RecordServo"   	source = "OUTPUT"  targetmodule = "MotionRecorder"  target = "MODE" />
+
 <module
     class = "MotionRecorder"
     name = "MotionRecorder"
-    mask = "1 1   1 1 1 1   1 1 "
-    torque = "0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
+    torque = "0.5 0.5     0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
     filename = "motion.%d.mot"
+    smoothing_time = "10"
 />
 <connection sourcemodule = "Servos" source = "FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
 
-<module class = "Constant" name = "MotionRecPopAmplitude" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+<connection sourcemodule = "MotionRecorder"   	source = "ENABLE"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
+
+
+<module class = "Constant" name = "MotionRecPopAmplitude" 		data = "100   		100 100 100 100   				100 100 100 100  100 100    					100 100 100 100  100 100   					100 100" />
 
 <module class = "PopulationCoder" name = "MotionRecPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
     <connection sourcemodule = "MotionRecorder"             source = "OUTPUT" targetmodule = "MotionRecPop" target = "INPUT" />
     <connection sourcemodule = "MotionRecPopAmplitude"      source = "OUTPUT" targetmodule = "MotionRecPop" target = "AMPLITUDE"/>
 
-
+    <!-- set torqueEnable to zero when recording -->
 
    <!--  Head/Eyes to FocusPoint -->
     <!-- ************************ -->
@@ -273,12 +270,14 @@ nrServosTotal = "19"
         <!-- This will be handle in LLArbiter with mixing is enable -->
         <connection sourcemodule="AddP" source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="AddP" source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <_connection sourcemodule="ManPPos" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+
+        <connection sourcemodule="AZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection sourcemodule="AZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
 
         <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
         <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
 
-        <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="AMPLITUDE" />
+        <connection sourcemodule="GazePosPopAmplitude" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="AMPLITUDE" />
 
         
 
@@ -332,7 +331,8 @@ nrServosTotal = "19"
 	<connection sourcemodule = "GOAL_POSITION"   		source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
 	<connection sourcemodule = "SERVO_SPEED"   			source = "OUTPUT"  targetmodule = "Servos"  target = "MOVING_SPEED" />
 	<connection sourcemodule = "SERVO_TORQUE_LIMIT"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_LIMIT" />
-	<connection sourcemodule = "SERVO_TORQUE_ENABLE"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
+    <!--  Done by motion recorder -->
+    <_connection sourcemodule = "SERVO_TORQUE_ENABLE"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
 
 <!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
@@ -358,9 +358,11 @@ nrServosTotal = "19"
     <module class = "Constant" name = "PupilContAmplitudeAmplitude" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
 
      <!-- Population coding -->
-    <module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "20"/>
+    <module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
         <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
         <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
+        <connection sourcemodule="AZeros" 	    source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
+        <connection sourcemodule="AZeros" 	    source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
         <connection sourcemodule="HZeros"       source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
         <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
 
@@ -424,7 +426,7 @@ nrServosTotal = "19"
 <!-- LAB -->
 
 <!-- Table -->
-<module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;"
+<!-- <module class = "Constant" name = "TablePos"       _data = "1 0 0 0.85; 0 1 0 0.60; 0 0 1 0; 0 0 0 1;"
 data = "
 1 0 0 0.85;
 0 1 0 0.6;
@@ -440,26 +442,26 @@ data = "
         <connection sourcemodule = "ForwardModel"   source = "MODEL_ID"     targetmodule = "ModelIDTab"  target = "INPUT" /> 
 
 
-    <module class = "Constant" name = "FocusPointID"        data = "203"/>
+    <module class = "Constant" name = "FocusPointID"        data = "203"/> -->
 
     <!-- Coordinate must be converted to exocentric coordinate system before adding to list -->
-    <module class="Transform"   name="EGOToEXO"/>
+    <!-- <module class="Transform"   name="EGOToEXO"/>
         <connection sourcemodule = "Epi"            source = "MATRIX"           targetmodule = "EGOToEXO" target = "MATRIX_1"    delay = "0"/>
         <connection sourcemodule = "EgoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_1" delay = "0"/>
         <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_1"  delay = "0"/>
         <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX"     targetmodule = "EGOToEXO" target = "MATRIX_2"    delay = "0"/>
         <connection sourcemodule = "ForwardModel"   source = "OBJECT_ID"        targetmodule = "EGOToEXO" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "ForwardModel"   source = "FRAME_ID"         targetmodule = "EGOToEXO" target = "FRAME_ID_2"  delay = "0"/>
+        <connection sourcemodule = "ForwardModel"   source = "FRAME_ID"         targetmodule = "EGOToEXO" target = "FRAME_ID_2"  delay = "0"/> -->
 
 
 
     <!-- Adding FocusPoint to 3D view -->
-   <module class = "DataConverter" name = "ModelMatrix" output_size_x = "16" output_size_y = "11"/>
+   <!-- <module class = "DataConverter" name = "ModelMatrix" output_size_x = "16" output_size_y = "11"/>
         <connection sourcemodule = "HighLevelFocusArbiter"         source = "OUTPUT"       targetmodule = "ModelMatrix"  target = "INPUT" />
         <connection sourcemodule = "ModelMatrixTab"     source = "OUTPUT"       targetmodule = "ModelMatrix"  target = "INPUT" />     
     <module class = "DataConverter" name = "ModelID" output_size_x = "11" output_size_y = "1"/>
         <connection sourcemodule = "FocusPointID"       source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" />
-        <connection sourcemodule = "ModelIDTab"         source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" /> 
+        <connection sourcemodule = "ModelIDTab"         source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" />  -->
 
 
 <!-- Sound -->
@@ -501,7 +503,8 @@ data = "
 
 
     <!-- Used when adding different parts. See GazeController -->
-    <module class = "Constant" name = "BZeros" 	data = "0 0"/>
+    <module class = "Constant" name = "AZeros" 	data = "0 0 0 0 0 0"/>
+    <module class = "Constant" name = "BZeros" 	data = "0"/>
     <module class = "Constant" name = "HZeros" 	data = "0 0 0 0"/>
     <module class = "Constant" name = "PZeros" 	data = "0 0"/>
 

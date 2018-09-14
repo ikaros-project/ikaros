@@ -202,6 +202,8 @@
         min_size = "0.0"
         use_tracking = "yes"
         max_faces = "1"
+        active = "no"
+
 
     />
     <module
@@ -210,6 +212,7 @@
         min_size = "0.0"
         use_tracking = "yes"
         max_faces = "1"
+        active = "no"
 
     />
 
@@ -229,8 +232,9 @@
             sigma = "20"
             size_x = "640"
             size_y = "640"
+            active = "no"
 		/>
-		<connection sourcemodule = "L_FaceDetector" source = "FACE_POSITION" targetmodule = "SaliencePoints" target = "INPUT" delay="0" />
+		<connection sourcemodule = "L_FaceDetector" source = "FACE_POSITION" targetmodule = "SaliencePoints" target = "INPUT" delay="1" />
         <_connection sourcemodule = "HALF" source = "OUTPUT" targetmodule = "SaliencePoints" target = "INPUT" delay="1" />   
         <_connection sourcemodule = "FaceZ" source = "OUTPUT" targetmodule = "SaliencePoints" target = "INPUT" delay="1" />   
 
@@ -242,6 +246,7 @@
         tracking_distance = "0.25"
         no_of_clusters = "1"
         sorting = "true"
+
     />
         <_connection sourcemodule="L_FaceDetector" source="FACE_POSITION" targetmodule="SpatialClusteringFace" target="INPUT" delay="0" />
     
@@ -388,6 +393,8 @@
         threshold 	= "auto"
         frame_id 	= "300"
         distance_unit = "m"
+                active = "no"
+
 	/>
     
 
@@ -414,6 +421,8 @@
         threshold 	= "auto"
         frame_id 	= "301"
         distance_unit = "m"
+                active = "no"
+
 	/>
     <!-- EGO-->
     <module class="Transform"   name="R_MarkerEgo" />
@@ -458,7 +467,10 @@
 
 
     <!-- Motion -->
-    <module class = "ChangeDetector" name = "Change" border = "0"/>
+    <module class = "ChangeDetector" name = "Change" border = "0"         
+    active = "no"
+
+/>
 
     <module
         class = "SpatialClustering"

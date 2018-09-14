@@ -25,6 +25,7 @@
         url = "http://lefteye.local:8080/stream/video.h264"
         uv4l = "true"
 		info = "false"
+        active = "no"
 	/>
     
 </group>
