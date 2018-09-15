@@ -454,6 +454,49 @@ interaction = {
         interaction.currentView.objects.push(newObject.widget.parameters);
         interaction.selectObject(newObject);
     },
+    
+    drawArrow(context, arrow)
+    {
+        context.beginPath();
+        context.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+        for(var i=0;i<arrow.length;i++){
+            context.lineTo(arrow[i][0],arrow[i][1]);
+        }
+        context.closePath();
+        context.fill();
+        context.stroke();
+    },
+
+    moveArrow(arrow, x, y)
+    {
+        var rv = [];
+        for(var i=0;i<arrow.length;i++){
+            rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+        }
+        return rv;
+    },
+
+    rotateArrow(arrow,angle)
+    {
+        var rv = [];
+        for(var i=0; i<arrow.length;i++){
+            rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                     (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+        }
+        return rv;
+    },
+
+    drawArrowHead(context, fromX, fromY, toX, toY)
+    {
+        var angle = Math.atan2(toY-fromY, toX-fromX);
+        var arrow = [[0,0], [-10,-5], [-10, 5]];
+        context.save();
+        context.lineJoin = "miter";
+        context.fillStyle = "black";
+        this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+        context.restore();
+    },
+
     addView(viewName) {
         interaction.deselectObject();
         interaction.currentViewName = viewName;
@@ -489,6 +532,7 @@ interaction = {
         
         // Build group view - experimental
         
+        let module_pos = {}
         v = interaction.currentView.groups;
         if(v)
         {
@@ -505,12 +549,12 @@ interaction = {
 
                 newObject.innerHTML = v[i].name;
                 interaction.main.appendChild(newObject);
-            //    interaction.initViewElement(newObject, v[i])
-            
+
                 newObject.parameters = v[i];
-                
                 newObject.parameters.x = 600+400*Math.sin(scale*i);     // Center - or read from group data
                 newObject.parameters.y = 500-400*Math.cos(scale*i);
+                
+                module_pos[v[i].name] = {'x':newObject.parameters.x + 120/2, 'y': newObject.parameters.y + 60/2};
                 
                 newObject.style.top = newObject.parameters.y+"px";
                 newObject.style.left = newObject.parameters.x+"px";
@@ -520,21 +564,24 @@ interaction = {
                 newObject.addEventListener('mousedown', interaction.startDrag, true);
             }
             
-            // Draw connections (should be done somwhere else)
+            // Draw connections (should be done somewhere else)
             
             let canvas = document.querySelector("#maincanvas");
             let context = canvas.getContext("2d");
             context.clearRect(0, 0, canvas.width, canvas.height);
-            for(let i=0; i<v.length; i++)
-                for(let j=0; j<v.length; j++)
-                if(Math.random()>0.9)
-                {
-                    context.beginPath();
-                    context.moveTo(v[i].x+60, v[i].y+30);
-                    context.lineTo(v[j].x+60, v[j].y+30);
-                    context.stroke();
-                }
             
+            let cons = interaction.currentView.connections;
+            for(let c of cons)
+            {
+                context.beginPath();
+                p1 = module_pos[c.sourcemodule];
+                p2 = module_pos[c.targetmodule];
+                context.moveTo(p1.x, p1.y);
+                context.lineTo(p2.x, p2.y);
+                context.stroke();
+                
+                this.drawArrowHead(context, p1.x, p1.y, (p1.x+p2.x)/2, (p1.y+p2.y)/2);
+            }
             return;
         }
     },
