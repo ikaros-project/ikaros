@@ -492,12 +492,54 @@ interaction = {
         var arrow = [[0,0], [-10,-5], [-10, 5]];
         context.save();
         context.lineJoin = "miter";
-        context.fillStyle = "black";
+//        context.fillStyle = "black";
         this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
         context.restore();
     },
 
-    addView(viewName) {
+    addView(viewName)
+    {
+
+        function bezier(t, p0, p1, p2, p3)
+        {
+            t2 = t * t;
+            t3 = t2 * t;
+            mt = 1-t;
+            mt2 = mt * mt;
+            mt3 = mt2 * mt;
+            x = p0.x*mt3 + 3*p1.x*mt2*t + 3*p2.x*mt*t2 + p3.x*t3;
+            y = p0.y*mt3 + 3*p1.y*mt2*t + 3*p2.y*mt*t2 + p3.y*t3;
+            return {x:x, y:y};
+        }
+
+        function draw_chord(context, x0, y0, x1, y1, xc, yc, r)
+        {
+            let d = Math.hypot(x0-x1, y0-y1);
+            let a = 0.3 + 0.5*d/(2*r);
+            let b = 1-a;
+
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
+            context.stroke();
+        }
+
+        function draw_bez_arrow(context, x0, y0, x1, y1, xc, yc, r)
+        {
+            let d = Math.hypot(x0-x1, y0-y1);
+            let a = 0.3 + 0.5*d/(2*r);
+            let b = 1-a;
+
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
+            context.stroke();
+            
+            m0 = bezier(0.7, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1})
+            m1 = bezier(0.8, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1})
+            interaction.drawArrowHead(context, m0.x, m0.y, m1.x, m1.y);
+        }
+
         interaction.deselectObject();
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
@@ -533,6 +575,7 @@ interaction = {
         // Build group view - experimental
         
         let module_pos = {}
+        let module_tpos = {}
         v = interaction.currentView.groups;
         if(v)
         {
@@ -553,9 +596,13 @@ interaction = {
                 newObject.parameters = v[i];
                 newObject.parameters.x = 600+400*Math.sin(scale*i);     // Center - or read from group data
                 newObject.parameters.y = 500-400*Math.cos(scale*i);
-                
+
+                newObject.parameters.tx = 600+400*Math.sin(scale*i);     // Center - or read from group data
+                newObject.parameters.ty = 500-400*Math.cos(scale*i);
+
                 module_pos[v[i].name] = {'x':newObject.parameters.x + 120/2, 'y': newObject.parameters.y + 60/2};
-                
+                module_tpos[v[i].name] = {'x':newObject.parameters.tx+ 120/2, 'y': newObject.parameters.ty + 60/2};
+
                 newObject.style.top = newObject.parameters.y+"px";
                 newObject.style.left = newObject.parameters.x+"px";
                 newObject.style.width = "120px";
@@ -570,17 +617,29 @@ interaction = {
             let context = canvas.getContext("2d");
             context.clearRect(0, 0, canvas.width, canvas.height);
             
+            context.strokeStyle="#EEEEEE";
+            context.lineWidth = 50;
+            context.beginPath();
+            context.arc(600+60, 500+30, 400, 0, 2*Math.PI);
+            context.stroke();
+
             let cons = interaction.currentView.connections;
             for(let c of cons)
             {
+                context.strokeStyle="#999";
+                context.fillStyle = "#999";
+                context.lineWidth = 3;
                 context.beginPath();
                 p1 = module_pos[c.sourcemodule];
-                p2 = module_pos[c.targetmodule];
+                p2 = module_tpos[c.targetmodule];
+ /*
                 context.moveTo(p1.x, p1.y);
                 context.lineTo(p2.x, p2.y);
                 context.stroke();
-                
                 this.drawArrowHead(context, p1.x, p1.y, (p1.x+p2.x)/2, (p1.y+p2.y)/2);
+*/
+                draw_chord(context, p1.x, p1.y, p2.x, p2.y, 600, 400, 400);
+                draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, 600, 400, 400);
             }
             return;
         }
