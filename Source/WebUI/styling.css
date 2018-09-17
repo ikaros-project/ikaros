@@ -373,24 +373,16 @@ div.visible.selected {
 
 div.module {
     position: absolute;
-    top: 10;
-    left: 10;
     z-index: 200;
-    width: 101px;
-    height: 101px;
-    border: 1px solid black;
-    border-radius: 10px;
     overflow: hidden;
     background-color: lightyellow;
     cursor: move;
-    border: none;
     border: 1px solid black;
     text-align: center;
-    padding-top:17px;
 }
 
 div.module:hover {
-    background-color: yellow;
+    background-color: gray;
 }
 
 div.group {

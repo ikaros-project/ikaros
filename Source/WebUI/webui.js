@@ -497,9 +497,8 @@ interaction = {
         context.restore();
     },
 
-    addView(viewName)
+    drawConnections()
     {
-
         function bezier(t, p0, p1, p2, p3)
         {
             t2 = t * t;
@@ -540,6 +539,32 @@ interaction = {
             interaction.drawArrowHead(context, m0.x, m0.y, m1.x, m1.y);
         }
 
+        let canvas = document.querySelector("#maincanvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    
+        context.strokeStyle="#EEEEEE";
+        context.lineWidth = 50;
+        context.beginPath();
+        context.arc(interaction.main_center, interaction.main_center, interaction.main_radius, 0, 2*Math.PI);
+        context.stroke();
+
+        let cons = interaction.currentView.connections;
+        for(let c of cons)
+        {
+            context.strokeStyle="#999";
+            context.fillStyle = "#999";
+            context.lineWidth = 3;
+            context.beginPath();
+            p1 = interaction.module_pos[c.sourcemodule];
+            p2 = interaction.module_pos[c.targetmodule];
+            draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+        }
+    },
+    
+    addView(viewName)
+    {
         interaction.deselectObject();
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
@@ -571,11 +596,22 @@ interaction = {
             }
             return;
         }
-        
+
         // Build group view - experimental
+
+        let m_width = 100;
+        let m_height = 100;
+        let m_corner = 50;
+        let m_radius_x = m_width/2;
+        let m_radius_y = m_height/2;
         
-        let module_pos = {}
-        let module_tpos = {}
+        interaction.main_radius = 400;
+        interaction.main_margin = 100;
+        interaction.main_center = interaction.main_radius+interaction.main_margin;
+        interaction.module_radius_x = m_radius_x;
+        interaction.module_radius_y = m_radius_x;
+
+        interaction.module_pos = {}
         v = interaction.currentView.groups;
         if(v)
         {
@@ -583,8 +619,6 @@ interaction = {
             for(let i=0; i<v.length; i++)
             {
                 let newObject = document.createElement("div");
-                
-                console.log(v[i].groups);
                 if(v[i].groups.length == 0)
                     newObject.setAttribute("class", "module");
                 else
@@ -594,54 +628,21 @@ interaction = {
                 interaction.main.appendChild(newObject);
 
                 newObject.parameters = v[i];
-                newObject.parameters.x = 600+400*Math.sin(scale*i);     // Center - or read from group data
-                newObject.parameters.y = 500-400*Math.cos(scale*i);
+                newObject.parameters.x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                newObject.parameters.y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
 
-                newObject.parameters.tx = 600+400*Math.sin(scale*i);     // Center - or read from group data
-                newObject.parameters.ty = 500-400*Math.cos(scale*i);
+                interaction.module_pos[v[i].name] = {'x':newObject.parameters.x, 'y': newObject.parameters.y};
 
-                module_pos[v[i].name] = {'x':newObject.parameters.x + 120/2, 'y': newObject.parameters.y + 60/2};
-                module_tpos[v[i].name] = {'x':newObject.parameters.tx+ 120/2, 'y': newObject.parameters.ty + 60/2};
+                newObject.style.top = (newObject.parameters.y-m_radius_x)+"px";
+                newObject.style.left = (newObject.parameters.x-m_radius_y)+"px";
+                newObject.style.width = m_width+"px";
+                newObject.style.height = m_height+"px";
+                newObject.style.borderRadius = m_corner+"px";
+                newObject.style.lineHeight = m_height+"px";
 
-                newObject.style.top = newObject.parameters.y+"px";
-                newObject.style.left = newObject.parameters.x+"px";
-                newObject.style.width = "120px";
-                newObject.style.height = "60px";
-
-                newObject.addEventListener('mousedown', interaction.startDrag, true);
+                newObject.addEventListener('mousedown', interaction.startDragModule, true);
             }
-            
-            // Draw connections (should be done somewhere else)
-            
-            let canvas = document.querySelector("#maincanvas");
-            let context = canvas.getContext("2d");
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            
-            context.strokeStyle="#EEEEEE";
-            context.lineWidth = 50;
-            context.beginPath();
-            context.arc(600+60, 500+30, 400, 0, 2*Math.PI);
-            context.stroke();
-
-            let cons = interaction.currentView.connections;
-            for(let c of cons)
-            {
-                context.strokeStyle="#999";
-                context.fillStyle = "#999";
-                context.lineWidth = 3;
-                context.beginPath();
-                p1 = module_pos[c.sourcemodule];
-                p2 = module_tpos[c.targetmodule];
- /*
-                context.moveTo(p1.x, p1.y);
-                context.lineTo(p2.x, p2.y);
-                context.stroke();
-                this.drawArrowHead(context, p1.x, p1.y, (p1.x+p2.x)/2, (p1.y+p2.y)/2);
-*/
-                draw_chord(context, p1.x, p1.y, p2.x, p2.y, 600, 400, 400);
-                draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, 600, 400, 400);
-            }
-            return;
+            interaction.drawConnections();
         }
     },
     deselectObject() {
@@ -699,7 +700,7 @@ interaction = {
         interaction.selectedObject.className += ' dragged';
         interaction.initialMouseX = evt.clientX;
         interaction.initialMouseY = evt.clientY;
-        interaction.main.addEventListener('mousemove',interaction.move, true);
+        interaction.main.addEventListener('mousemove',interaction.moveModule, true);
         interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
         return false;
     },
@@ -783,6 +784,58 @@ interaction = {
     changeStylesheet: function() {
         let sheet = document.getElementById("stylesheet_select").value;
         document.getElementById("stylesheet").setAttribute("href", sheet);
+    },
+    
+    // module interaction
+
+    startDragModule: function (evt) {
+        evt.stopPropagation();
+        interaction.startX = this.offsetLeft;
+        interaction.startY = this.offsetTop;
+        interaction.selectModule(this);
+        interaction.selectedObject.className += ' dragged';
+        interaction.initialMouseX = evt.clientX;
+        interaction.initialMouseY = evt.clientY;
+        interaction.main.addEventListener('mousemove',interaction.moveModule, true);
+        interaction.main.addEventListener('mouseup',interaction.releaseModule,true);
+        return false;
+    },
+    moveModule: function (evt) {
+        evt.stopPropagation()
+        let dX = evt.clientX - interaction.initialMouseX;
+        let dY = evt.clientY - interaction.initialMouseY;
+        interaction.setModulePosition(dX,dY);
+        interaction.drawConnections();
+        return false;
+    },
+    setModulePosition: function (dx, dy) {
+        let newLeft = interaction.startX + dx; // interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
+        let newTop = interaction.startY + dy; //interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+        interaction.selectedObject.style.left = newLeft + 'px';
+        interaction.selectedObject.style.top = newTop + 'px';
+        // Update view data
+        interaction.selectedObject.parameters['x'] = newLeft;
+        interaction.selectedObject.parameters['y'] = newTop;
+        
+        interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
+    },
+    selectModule: function(obj) {
+        interaction.deselectObject()
+        interaction.selectedObject = obj;
+        interaction.selectedObject.className += ' selected';
+        //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
+        
+//        inspector.select(obj);
+        
+        interaction.widget_inspector.style.display = "block";
+        interaction.edit_inspector.style.display = "none";
+    },
+    releaseModule: function(evt) {
+        interaction.main.removeEventListener('mousemove',interaction.moveModule,true);
+        interaction.main.removeEventListener('mouseup',interaction.releaseModule,true);
+        interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+        interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+        if(evt) evt.stopPropagation()
     }
 }
 
