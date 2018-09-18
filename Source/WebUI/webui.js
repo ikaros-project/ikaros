@@ -534,8 +534,8 @@ interaction = {
             context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
             context.stroke();
             
-            m0 = bezier(0.7, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1})
-            m1 = bezier(0.8, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1})
+            m0 = bezier(0.7, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1});
+            m1 = bezier(0.8, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1});
             interaction.drawArrowHead(context, m0.x, m0.y, m1.x, m1.y);
         }
 
@@ -562,7 +562,7 @@ interaction = {
             draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
         }
     },
-    
+
     addView(viewName)
     {
         interaction.deselectObject();
@@ -804,19 +804,26 @@ interaction = {
         evt.stopPropagation()
         let dX = evt.clientX - interaction.initialMouseX;
         let dY = evt.clientY - interaction.initialMouseY;
-        interaction.setModulePosition(dX,dY);
+        interaction.setModulePosition(dX,dY,!evt.altKey);
         interaction.drawConnections();
         return false;
     },
-    setModulePosition: function (dx, dy) {
-        let newLeft = interaction.startX + dx; // interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
-        let newTop = interaction.startY + dy; //interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+    setModulePosition: function (dx, dy, constrain) {
+        let newLeft = interaction.startX + dx;
+        let newTop = interaction.startY + dy;
+
+        if(constrain)
+        {
+            let a = Math.atan2(newTop-interaction.main_center + interaction.module_radius_x, newLeft-interaction.main_center + interaction.module_radius_y)
+            newLeft = interaction.main_center+interaction.main_radius*Math.cos(a) - interaction.module_radius_x;
+            newTop = interaction.main_center+interaction.main_radius*Math.sin(a) - interaction.module_radius_y;
+        }
+        
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
         interaction.selectedObject.parameters['x'] = newLeft;
         interaction.selectedObject.parameters['y'] = newTop;
-        
         interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
     },
     selectModule: function(obj) {
@@ -824,9 +831,7 @@ interaction = {
         interaction.selectedObject = obj;
         interaction.selectedObject.className += ' selected';
         //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
-        
 //        inspector.select(obj);
-        
         interaction.widget_inspector.style.display = "block";
         interaction.edit_inspector.style.display = "none";
     },
