@@ -173,6 +173,7 @@ nrServosTotal = "19"
 <module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
 <module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
 
+
 <module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
 	<connection sourcemodule = "INT_SERVO_ANGLE" 	source = "OUTPUT"  	targetmodule = "IntServoAngleCode"  target = "INPUT" />
 	<connection sourcemodule = "INT_SERVO_ANGLE_A" 	source = "OUTPUT"  	targetmodule = "IntServoAngleCode"  target = "AMPLITUDE" />
@@ -203,9 +204,7 @@ nrServosTotal = "19"
 <!-- This needs to be taken cared of sometime -->
 <module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
 <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	   1    1    1    1   	    1    1    1    1    1    1     1    1    1    1    1    1      0    0" />
-
-
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	   1    1    1    1   	    1    1    1    1    1    1     1    1    1    1    1    1      1    1" />
 
 <!--  Motion recorder -->
 <!-- ************************ -->
@@ -224,7 +223,9 @@ nrServosTotal = "19"
     max_behaviors="100"
 />
 <connection sourcemodule = "Servos" source = "FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
-<connection sourcemodule = "MotionRecorder"   	source = "ENABLE"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
+<connection sourcemodule = "MotionRecorder"   	source = "ENABLE"  targetmodule = "Servos"  target = "TORQUE_ENABLE" sourceoffset = "@servosIndexBody" targetoffset ="@servosIndexBody"  size = "@servosIndexPupil"/>
+
+
 
 <connection sourcemodule = "Actions"   	source = "TRIGGER"  targetmodule = "MotionRecorder"  target = "TRIG" />
 <connection sourcemodule = "MotionRecorder"   	source = "COMPLETED"  targetmodule = "Actions"  target = "COMPLETE" />
@@ -260,22 +261,23 @@ nrServosTotal = "19"
                      0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5
                      0.5 0.5 0.5"
 
-            passive = " 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
-                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
-                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
-                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
-                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
-                        0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
-                        0.01 0.01 0.01"
+            passive = " 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+                        0.001 0.001 0.001"
 
-            duration = "10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
-                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
-                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
-                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
-                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000    
-                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
-                     10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
-                     10000 10000 10000"
+            duration = "0 0 0 0 0 0 0 0 0 0
+                     0 0 0 0 0 0 0 0 0 0    
+                     0 0 0 0 0 0 0 0 0 0    
+                     0 0 0 0 0 0 0 0 0 0    
+                     0 0 0 0 0 0 0 0 0 0    
+                     0 0 0 0 0 0 0 0 0 0
+                     0 0 0 0 0 0 0 0 0 0
+                     0 0 0"
 
             completion_bias = "-100 -100 -100 -100 -100 -100 -100 -100 -100 -100
                      -100 -100 -100 -100 -100 -100 -100 -100 -100 -100    
@@ -367,7 +369,7 @@ nrServosTotal = "19"
 
 		</view>
 
-<module class = "Constant" name = "MotionRecPopAmplitude" 		data = "100   		100 100 100 100   				100 100 100 100  100 100    					100 100 100 100  100 100   					100 100" />
+<module class = "Constant" name = "MotionRecPopAmplitude" 		data = "100   		100 100 100 100   				100 100 100 100  100 100    					100 100 100 100  100 100   					0 0" />
 
 <module class = "PopulationCoder" name = "MotionRecPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
     <connection sourcemodule = "MotionRecorder"             source = "OUTPUT" targetmodule = "MotionRecPop" target = "INPUT" />
@@ -397,13 +399,13 @@ nrServosTotal = "19"
 
 
     <view name="Check position">
-        <table title = "HighLevelFocusArbiter"              module="HighLevelFocusArbiter" source = "OUTPUT" w = "4" h="1" x="0" y="0" />    
+        <table title = "HighLevelFocusArbiter"   module="HighLevelFocusArbiter" source = "OUTPUT" w = "4" h="1" x="0" y="0" />    
         <table title = "Epi"                     module="Epi" source = "MATRIX" w = "4" h="1" x="0" y="1" />    
         <table title = "GazeControllFocusPoint"  module="GazeControllFocusPoint" source = "MATRIX" w = "4" h="1" x="0" y="2" />    
     </view>
 
 
-    <module class = "Constant" name = "GazePosPopAmplitude" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+    <module class = "Constant" name = "GazePosPopAmplitude" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					100 100" />
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
@@ -434,7 +436,7 @@ nrServosTotal = "19"
 <!-- ********************************* 	-->
 <!-- ********************************* 	-->
 
-<module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "4"/>
+<module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "4" by_row = "true"/>
 	<connection sourcemodule = "ExtServoAngleCode"      source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_1"/>
 	<connection sourcemodule = "IntServoAngleCode"      source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_2"/>
     <connection sourcemodule = "GazePosPop"             source = "OUTPUT" targetmodule = "HighLevelMotorArbiter" target = "INPUT_3"/>
@@ -473,6 +475,8 @@ nrServosTotal = "19"
 	<connection sourcemodule = "SERVO_TORQUE_LIMIT"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_LIMIT" />
     <!--  Done by motion recorder -->
     <_connection sourcemodule = "SERVO_TORQUE_ENABLE"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_ENABLE" />
+    <!-- Pupil override -->
+    <connection sourcemodule = "SERVO_TORQUE_ENABLE"   	source = "OUTPUT"  targetmodule = "Servos"  target = "TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
 
 <!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
@@ -554,7 +558,7 @@ nrServosTotal = "19"
     <!-- ************************ -->
     <!-- ************************ -->
 
-<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2"/>
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2" by_row = "true"/>
 	<connection sourcemodule = "HighLevelMotorArbiter"   	source = "OUTPUT"  targetmodule = "LowLevelArbiter" target = "INPUT_1" />
     <connection sourcemodule = "PupilContPop"   	        source = "OUTPUT"  targetmodule = "LowLevelArbiter" target = "INPUT_2" />
  
