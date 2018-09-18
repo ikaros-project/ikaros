@@ -355,7 +355,7 @@ interaction = {
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
     },
-    initViewElement: function (element, data) {   // For object in view from IKC file
+    initViewElement: function (element, data) {   // For object in view from IKC file - should be called add widget
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
         let constr = webui_widgets.constructors["webui-widget-"+data['class']];
@@ -410,6 +410,10 @@ interaction = {
         let nodes = document.querySelectorAll(".frame");
         for (var i = 0; i < nodes.length; i++)
             main.removeChild(nodes[i]);
+
+        nodes = document.querySelectorAll(".module");
+        for (var i = 0; i < nodes.length; i++)
+            main.removeChild(nodes[i]);
     },
     generateGrid: function (spacing) {
         interaction.grid_spacing = spacing;
@@ -450,26 +454,195 @@ interaction = {
         interaction.currentView.objects.push(newObject.widget.parameters);
         interaction.selectObject(newObject);
     },
-    addView(viewName) {
+    
+    drawArrow(context, arrow)
+    {
+        context.beginPath();
+        context.moveTo(arrow[arrow.length-1][0],arrow[arrow.length-1][1]);
+        for(var i=0;i<arrow.length;i++){
+            context.lineTo(arrow[i][0],arrow[i][1]);
+        }
+        context.closePath();
+        context.fill();
+        context.stroke();
+    },
+
+    moveArrow(arrow, x, y)
+    {
+        var rv = [];
+        for(var i=0;i<arrow.length;i++){
+            rv.push([arrow[i][0]+x, arrow[i][1]+y]);
+        }
+        return rv;
+    },
+
+    rotateArrow(arrow,angle)
+    {
+        var rv = [];
+        for(var i=0; i<arrow.length;i++){
+            rv.push([(arrow[i][0] * Math.cos(angle)) - (arrow[i][1] * Math.sin(angle)),
+                     (arrow[i][0] * Math.sin(angle)) + (arrow[i][1] * Math.cos(angle))]);
+        }
+        return rv;
+    },
+
+    drawArrowHead(context, fromX, fromY, toX, toY)
+    {
+        var angle = Math.atan2(toY-fromY, toX-fromX);
+        var arrow = [[0,0], [-10,-5], [-10, 5]];
+        context.save();
+        context.lineJoin = "miter";
+//        context.fillStyle = "black";
+        this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
+        context.restore();
+    },
+
+    drawConnections()
+    {
+        function bezier(t, p0, p1, p2, p3)
+        {
+            t2 = t * t;
+            t3 = t2 * t;
+            mt = 1-t;
+            mt2 = mt * mt;
+            mt3 = mt2 * mt;
+            x = p0.x*mt3 + 3*p1.x*mt2*t + 3*p2.x*mt*t2 + p3.x*t3;
+            y = p0.y*mt3 + 3*p1.y*mt2*t + 3*p2.y*mt*t2 + p3.y*t3;
+            return {x:x, y:y};
+        }
+
+        function draw_chord(context, x0, y0, x1, y1, xc, yc, r)
+        {
+            let d = Math.hypot(x0-x1, y0-y1);
+            let a = 0.3 + 0.5*d/(2*r);
+            let b = 1-a;
+
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
+            context.stroke();
+        }
+
+        function draw_bez_arrow(context, x0, y0, x1, y1, xc, yc, r)
+        {
+            let d = Math.hypot(x0-x1, y0-y1);
+            let a = 0.3 + 0.5*d/(2*r);
+            let b = 1-a;
+
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
+            context.stroke();
+            
+            m0 = bezier(0.7, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1})
+            m1 = bezier(0.8, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1})
+            interaction.drawArrowHead(context, m0.x, m0.y, m1.x, m1.y);
+        }
+
+        let canvas = document.querySelector("#maincanvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    
+        context.strokeStyle="#EEEEEE";
+        context.lineWidth = 50;
+        context.beginPath();
+        context.arc(interaction.main_center, interaction.main_center, interaction.main_radius, 0, 2*Math.PI);
+        context.stroke();
+
+        let cons = interaction.currentView.connections;
+        for(let c of cons)
+        {
+            context.strokeStyle="#999";
+            context.fillStyle = "#999";
+            context.lineWidth = 3;
+            context.beginPath();
+            p1 = interaction.module_pos[c.sourcemodule];
+            p2 = interaction.module_pos[c.targetmodule];
+            draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+        }
+    },
+    
+    addView(viewName)
+    {
         interaction.deselectObject();
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
         interaction.removeAllObjects();
 
+        let canvas = document.querySelector("#maincanvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
         let main = document.querySelector('main');
-        let v = interaction.currentView.objects;
-        for(let i=0; i<v.length; i++)
+        
+        // Build widget view
+        
+        let v = interaction.currentView.objects;    // FIXME: objects should be called widgets
+        if(v)
         {
-            let newObject = document.createElement("div");
-            newObject.setAttribute("class", "frame visible");
-            
-            let newTitle = document.createElement("div");
-            newTitle.setAttribute("class", "title");
-            newTitle.innerHTML = "TITLE";
-            newObject.appendChild(newTitle);
-            
-            interaction.main.appendChild(newObject);
-            interaction.initViewElement(newObject, v[i])
+            for(let i=0; i<v.length; i++)
+            {
+                let newObject = document.createElement("div");
+                newObject.setAttribute("class", "frame visible");
+                
+                let newTitle = document.createElement("div");
+                newTitle.setAttribute("class", "title");
+                newTitle.innerHTML = "TITLE";
+                newObject.appendChild(newTitle);
+                
+                interaction.main.appendChild(newObject);
+                interaction.initViewElement(newObject, v[i])
+            }
+            return;
+        }
+
+        // Build group view - experimental
+
+        let m_width = 100;
+        let m_height = 100;
+        let m_corner = 50;
+        let m_radius_x = m_width/2;
+        let m_radius_y = m_height/2;
+        
+        interaction.main_radius = 400;
+        interaction.main_margin = 100;
+        interaction.main_center = interaction.main_radius+interaction.main_margin;
+        interaction.module_radius_x = m_radius_x;
+        interaction.module_radius_y = m_radius_x;
+
+        interaction.module_pos = {}
+        v = interaction.currentView.groups;
+        if(v)
+        {
+            let scale = 2*Math.PI/v.length;
+            for(let i=0; i<v.length; i++)
+            {
+                let newObject = document.createElement("div");
+                if(v[i].groups.length == 0)
+                    newObject.setAttribute("class", "module");
+                else
+                    newObject.setAttribute("class", "module group");
+
+                newObject.innerHTML = v[i].name;
+                interaction.main.appendChild(newObject);
+
+                newObject.parameters = v[i];
+                newObject.parameters.x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                newObject.parameters.y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+
+                interaction.module_pos[v[i].name] = {'x':newObject.parameters.x, 'y': newObject.parameters.y};
+
+                newObject.style.top = (newObject.parameters.y-m_radius_x)+"px";
+                newObject.style.left = (newObject.parameters.x-m_radius_y)+"px";
+                newObject.style.width = m_width+"px";
+                newObject.style.height = m_height+"px";
+                newObject.style.borderRadius = m_corner+"px";
+                newObject.style.lineHeight = m_height+"px";
+
+                newObject.addEventListener('mousedown', interaction.startDragModule, true);
+            }
+            interaction.drawConnections();
         }
     },
     deselectObject() {
@@ -527,7 +700,7 @@ interaction = {
         interaction.selectedObject.className += ' dragged';
         interaction.initialMouseX = evt.clientX;
         interaction.initialMouseY = evt.clientY;
-        interaction.main.addEventListener('mousemove',interaction.move, true);
+        interaction.main.addEventListener('mousemove',interaction.moveModule, true);
         interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
         return false;
     },
@@ -611,6 +784,58 @@ interaction = {
     changeStylesheet: function() {
         let sheet = document.getElementById("stylesheet_select").value;
         document.getElementById("stylesheet").setAttribute("href", sheet);
+    },
+    
+    // module interaction
+
+    startDragModule: function (evt) {
+        evt.stopPropagation();
+        interaction.startX = this.offsetLeft;
+        interaction.startY = this.offsetTop;
+        interaction.selectModule(this);
+        interaction.selectedObject.className += ' dragged';
+        interaction.initialMouseX = evt.clientX;
+        interaction.initialMouseY = evt.clientY;
+        interaction.main.addEventListener('mousemove',interaction.moveModule, true);
+        interaction.main.addEventListener('mouseup',interaction.releaseModule,true);
+        return false;
+    },
+    moveModule: function (evt) {
+        evt.stopPropagation()
+        let dX = evt.clientX - interaction.initialMouseX;
+        let dY = evt.clientY - interaction.initialMouseY;
+        interaction.setModulePosition(dX,dY);
+        interaction.drawConnections();
+        return false;
+    },
+    setModulePosition: function (dx, dy) {
+        let newLeft = interaction.startX + dx; // interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing);
+        let newTop = interaction.startY + dy; //interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing);
+        interaction.selectedObject.style.left = newLeft + 'px';
+        interaction.selectedObject.style.top = newTop + 'px';
+        // Update view data
+        interaction.selectedObject.parameters['x'] = newLeft;
+        interaction.selectedObject.parameters['y'] = newTop;
+        
+        interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
+    },
+    selectModule: function(obj) {
+        interaction.deselectObject()
+        interaction.selectedObject = obj;
+        interaction.selectedObject.className += ' selected';
+        //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
+        
+//        inspector.select(obj);
+        
+        interaction.widget_inspector.style.display = "block";
+        interaction.edit_inspector.style.display = "none";
+    },
+    releaseModule: function(evt) {
+        interaction.main.removeEventListener('mousemove',interaction.moveModule,true);
+        interaction.main.removeEventListener('mouseup',interaction.releaseModule,true);
+        interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
+        interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
+        if(evt) evt.stopPropagation()
     }
 }
 
@@ -739,6 +964,8 @@ controller = {
     },
 
     buildViewDictionary: function(group, name) {
+        controller.views[name+"/"+group.name] = group;
+
         if(group.views)
             for(i in group.views)
                 controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
@@ -893,7 +1120,7 @@ controller = {
                 let name = wgt.localName.replace("webui-widget-", "");
                 s += "\t<"+name+"\n"
                 for(let p in wgt.parameters)
-                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p])
+                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p]) 
                         s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
                 s += "\t/>\n\n"
             }

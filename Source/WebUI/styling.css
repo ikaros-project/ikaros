@@ -369,6 +369,27 @@ div.visible.selected {
     display: block;
 }
 
+/* Style for modules */
+
+div.module {
+    position: absolute;
+    z-index: 200;
+    overflow: hidden;
+    background-color: lightyellow;
+    cursor: move;
+    border: 1px solid black;
+    text-align: center;
+}
+
+div.module:hover {
+    background-color: gray;
+}
+
+div.group {
+    border: 5px solid black;
+ /*   background-color: lightgreen; */
+}
+
 
 /* Style for grid */
 
@@ -548,4 +569,5 @@ header button:active, aside button:hover {
     box-shadow: -2px 2px 5px #888888;
     border: 1px solid red;
 }
+
 
