@@ -700,7 +700,7 @@ interaction = {
         interaction.selectedObject.className += ' dragged';
         interaction.initialMouseX = evt.clientX;
         interaction.initialMouseY = evt.clientY;
-        interaction.main.addEventListener('mousemove',interaction.moveModule, true);
+        interaction.main.addEventListener('mousemove',interaction.move, true);
         interaction.main.addEventListener('mouseup',interaction.releaseElement,true);
         return false;
     },
