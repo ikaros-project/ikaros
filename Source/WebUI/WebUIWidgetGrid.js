@@ -21,7 +21,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'values': "rectangle,square,circle"},
             {'name':'size', 'default':1, 'type':'float', 'control': 'textedit'},
-             
+
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
             {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no,invisible", 'class':'true'},
