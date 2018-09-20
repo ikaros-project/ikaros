@@ -1,7 +1,7 @@
 //
 //	MotionRecorder.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015-2016 Christian Balkenius
+//    Copyright (C) 2015-2018 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -36,41 +36,45 @@ public:
     void 		Init();
     void 		Tick();
 
+    // Commands
+
     void        Command(std::string s);
 
+    void        Off();
+    void        Stop();
+    void        Record();
+    void        Play();
     void 		Save();
     void 		Load();
 
-    
     float *     trig;
     float *     trig_last;
     int         trig_size;
 
+    float *     state;
     float *     completed;
 
-    float *     output;
-    float *     state;
-    float *     torque;
-    float *     mask;
     float *     input;
-    float *     playing;
-    
+    float *     torque;
+    float *     output;
+
     int         smoothing_time; // for torque and position
     float *     stop_position;
     float *     start_position;
     float *     start_torque;
 
     float *     mode; // record, play, hold, free = (0, 1, 2, 3)
-
+    std::string mode_string;
     int         size;
 
     long        timebase;
 
+    float **    time_data;
     float ***   position_data;
     float ***   torque_data;
 
-    int         max_behaviors;
-    int         current_behavior;
+    int         max_motions;
+    int         current_motion;
 
     int         position_data_max;
     int   *     position_data_count;
@@ -81,28 +85,9 @@ public:
     float *     enable;
 
     const char * file_name;
-//    int          file_count;
-
-    bool        stop;
-    bool        off;
-    bool        record;
-    bool        play;
-    bool        clear;
-    bool        save;
-    bool        load;
-    bool        sqplay;
 
     bool        record_on_trig;
     bool        auto_save;
-
-    bool        stop_debounce;
-    bool        off_debounce;
-    bool        record_debounce;
-    bool        play_debounce;
-    bool        clear_debounce;
-    bool        save_debounce;
-    bool        load_debounce;
-    bool        sqplay_debounce;
 };
 
 #endif

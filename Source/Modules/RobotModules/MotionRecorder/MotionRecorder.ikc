@@ -14,29 +14,22 @@
 		/>
 	</example>
 
-	<parameter name="max_behaviors" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
-	<parameter name="current_behavior" type="int" default="0" description="The behavior that will be recorded" />
-
+	<parameter name="max_motions" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
+	<parameter name="current_motion" type="int" default="0" description="The behavior that will be recorded" />
 	<parameter name="position_data_max" type="int" default="5000" description="The maximum number of datapoints that can be stored" />
-	<parameter name="mask" type="array" default="1" description="Array that contains 1:s for the input channels that should be recorded." />
+    <parameter name="mode" type="string" default="stop" description="The current mode as a string" />
+
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
 	<parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
-	<parameter name="mask" type="array" default="1" description="The torque used during play. Single value or array of values for each servo." />
     <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque." />
 
 	<parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
 	<parameter name="auto_save" type="bool" default="no" description="Save all behaviors before termination" />
 
-	<parameter name="start" type="bool" default="false" description="Starts recording when set to true. Should be connected to a button control." />
-	<parameter name="stop" type="bool" default="false" description="Stops recording when set to true. Should be connected to a button control." />
-	<parameter name="save" type="bool" default="false" description="Saves the recorded movement when true. Should be connected to a button control." />
-	<parameter name="load" type="bool" default="false" description="Loads next recorded movement when true. Should be connected to a button control." />
-	<parameter name="sqplay" type="bool" default="false" description="Plays all behaviors in sequence. Should be connected to a button control." />
-
 	<parameter name="record_on_trig" type="bool" default="false" description="Start record on trig input." />
 
-	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_behaviors" optional="yes" />
-	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_behaviors" />
+	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_motions" optional="yes" />
+	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_motions" />
 
 	<input name="INPUT" description="Position data from the servos" />
     <input name="MODE" description="Record/Play/Hold/Free mode for each channel" optional="yes" />
@@ -47,7 +40,6 @@
 
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />
-    <output name="PLAYING" description="State is 1 when the module plays" size="1" />
 
 	<module class="MotionRecorder" />
 
@@ -59,7 +51,6 @@
             height = "41"
             source = "STATE"
             module = "*"
-            class = "grid"
             max = "7"
             labels = "state"
             labelWidth = "50"
@@ -71,38 +62,28 @@
             scales = "no"
         />
 
-        <grid
+        <text
             width = "121"
             height = "41"
             x="10"
             y = "40"
-            source = "PLAYING"
+            parameter = "mode"
             module = "*"
-            class = "grid"
-            max = "1"
-            labels = "play"
-            labelWidth = "50"
-            fill = "custom"
-            colorTable = "white, red"
-            lineWidth = "1"
-            shape = "circle"
-            size = "1"
-            scales = "no"
         />
 
         <plot module="*" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
 
         <table title="time" module="*" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
-        <button label = "Off" module="*" parameter="off" x="10" y="121" height="41" width="101" />
-        <button label = "Stop" module="*" parameter="stop" x="10" y="161" height="41" width="101"  />
-        <button label = "Record" module="*" parameter="record" x="10" y="201" height="41" width="101"  />
-        <button label = "Play"  module="*" parameter="play" x="10" y="241" height="41" width="101"  />
+        <button label = "Off" module="*" command="off" x="10" y="121" height="41" width="101" />
+        <button label = "Stop" module="*" command="stop" x="10" y="161" height="41" width="101"  />
+        <button label = "Record" module="*" command="record" x="10" y="201" height="41" width="101"  />
+        <button label = "Play"  module="*" command="play" x="10" y="241" height="41" width="101"  />
 
-        <button label = "Load" module="*" parameter="load" x="10" y="361" height="41" width="101"  />
-        <button label = "Save" module="*" parameter="save" x="10" y="401" height="41" width="101"  />
+        <button label = "Load" module="*" command="load" x="10" y="361" height="41" width="101"  />
+        <button label = "Save" module="*" command="save" x="10" y="401" height="41" width="101"  />
 
-        <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="*" parameter="current_behavior" x="10" y="311" width="121" height="41" />
+        <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="*" parameter="current_motion" x="10" y="311" width="121" height="41" />
 
          <switch label=" Rec on trig" module="*" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
     </view>
