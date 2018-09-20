@@ -36,6 +36,8 @@ public:
     void 		Init();
     void 		Tick();
 
+    void        Command(std::string s);
+
     void 		Save();
     void 		Load();
 

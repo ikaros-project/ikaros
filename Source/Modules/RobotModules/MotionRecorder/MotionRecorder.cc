@@ -375,6 +375,12 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 }
 
 
+void
+MotionRecorder::Command(std::string s)
+{
+    printf("%s\n", s.c_str());
+}
+
 
 void
 MotionRecorder::Tick()

@@ -2,17 +2,6 @@
 
 <group title="MotionRecorder">
 
-         <_module
-            class = "Dynamixel"
-            name = "Joints"
-            device  = "/dev/cu.usbserial-A7005Lxn"
-            index_mode = "indirect"
-            printf_info ="minimal"
-            use_feedback ="true"
-            baud_rate = "1000000"
-            angle_unit = "tau"
-        />
-
         <module
             class = "Constant"
             name = "Joints"
@@ -31,10 +20,6 @@
             _play_on_trig = "true"
             _record_on_trig = "true"
 		/>
-
-        <_connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "GOAL_POSITION" />
-        <_connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Joints" target = "TORQUE_LIMIT" />
-        <_connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Joints" target = "TORQUE_ENABLE" />
 
         <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
 
@@ -88,14 +73,12 @@
             <button label = "Record" module="MotionRecorder" parameter="record" x="10" y="201" height="41" width="101"  />
             <button label = "Play"  module="MotionRecorder" parameter="play" x="10" y="241" height="41" width="101"  />
 
-
             <button label = "Load" module="MotionRecorder" parameter="load" x="10" y="361" height="41" width="101"  />
             <button label = "Save" module="MotionRecorder" parameter="save" x="10" y="401" height="41" width="101"  />
 
             <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="MotionRecorder" parameter="current_behavior" x="10" y="311" width="121" height="41" />
 
-             <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
-
+            <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
 
             <slider-horizontal title = "Joints" module="Joints" parameter="data" count="2" x="130" y="710" height="100" width="200" />
 		</view>
