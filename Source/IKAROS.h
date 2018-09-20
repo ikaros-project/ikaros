@@ -243,6 +243,7 @@ public:
     virtual void    Store(const char * path);                            // Request data to be stored in directory path
     virtual void    Load(const char * path);                            // Request data to be loaded from directory path
     
+    virtual void    Command(std::string s) {};                   // Receive a command
     virtual void    SetSizes();								// Calculate and set the sizes of unknown output arrays    (OVERRIDE IN SUBCLASSES)
     virtual void    Init()
     {}            // Init memory for internal data                        (OVERRIDE IN SUBCLASSES)
@@ -251,7 +252,7 @@ public:
     
     void            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
     void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
-    
+
 protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
     void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
@@ -290,21 +291,21 @@ protected:
     void            SetParameter(const char * parameter_name, int x, int y, float value);
 
     XMLElement *    xml;
-    
+
 private:
     Module     *        next;                   // Next module in list
     Module     *        next_in_threadGroup;    // Next module in ThreadGroup
-    
+
     const char    *		class_name;
     const char *		instance_name;
 	char *				full_instance_name;
-	
+
     Kernel    *        kernel;
-    
+
     Module_IO    *    input_list;        // List of inputs
     Module_IO    *    output_list;       // List of outputs
     Binding      *      bindings;
-    
+
     int                period;           // How often should the module tick
     int                phase;            // Phase when the module ticks
     bool               active;           // If false, will not call Tick()
@@ -312,17 +313,17 @@ private:
     Timer *            timer;            // Statistics variables
     float            time;
     float            ticks;
-    
+
     void            DelayOutputs();
-    
+
     Module_IO *        GetModule_IO(Module_IO * list, const char * name);
     void            AllocateOutputs();                                // Allocate memory for outputs
-    
+
     friend class Kernel;
     friend class Module_IO;
     friend class Connection;
     friend class ThreadGroup;
-    
+
     friend Module *        CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);
     friend class WebUI;
 };
@@ -428,7 +429,8 @@ public:
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
-
+    void        SendCommand(XMLElement * group, const char * group_name, const char * command_name);
+    
     int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     
