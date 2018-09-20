@@ -2741,6 +2741,31 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
 
 
 
+void
+Kernel::SendCommand(XMLElement * group, const char * group_name, const char * command_name)
+{
+    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
+    {
+        // Set parameters of modules in this group
+    
+       if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+        {
+            Module * m = (Module *)(xml->aux);
+            if(m != NULL)
+                m->Command(command_name);
+         }
+
+        // Set parameters in included groups
+        
+        else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+        {
+            const char * new_module = wildcard;
+            SendCommand(xml, new_module, command_name);
+        }
+    }
+}
+
+
 bool
 Kernel::Precedes(Module * a, Module * b)
 {

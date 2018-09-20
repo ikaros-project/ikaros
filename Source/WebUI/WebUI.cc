@@ -1137,6 +1137,31 @@ WebUI::HandleHTTPRequest()
         tick = 0;
         isRunning = true;
     }
+    else if (strstart(uri, "/command/"))
+    {
+        char module_name[255];
+        char command[255];
+        int c = sscanf(uri, "/command/%[^/]/%[^/]", module_name, command);
+        if(c == 2)
+        {
+            XMLElement * group = current_xml_root;
+            if(equal_strings(module_name, "*"))
+            {
+                strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
+                group = group->GetParentElement();
+            }
+
+            k->SendCommand(group, module_name, command);
+        }
+
+        Dictionary header;
+        header.Set("Content-Type", "text/plain");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        socket->Send("OK\n");
+    }
     else if (strstart(uri, "/control/"))
     {
         char module_name[255];

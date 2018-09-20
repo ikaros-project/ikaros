@@ -7,6 +7,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'type', 'default':"command (down)", 'type':'string', 'control': 'menu', 'values': "command (down), command (up), value"},
+            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'value', 'default':1, 'type':'int', 'control': 'textedit'},
@@ -27,13 +29,19 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     button_down()
     {
-        if(this.parameters.module && this.parameters.parameter)
+        if(this.parameters.type == "command (down)" && this.parameters.module)
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.command);
+
+        else if(this.parameters.module && this.parameters.parameter)
             this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
     }
 
     button_up()
     {
-        if(this.parameters.module && this.parameters.parameter)
+        if(this.parameters.type == "command (up)" && this.parameters.module)
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.command);
+
+        elseif(this.parameters.module && this.parameters.parameter)
             this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/0");
     }
 
