@@ -63,7 +63,7 @@
             />
 
 			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
-			<plot module="MotionRecorder" source="OUTPUT" color="red" select="0, 1" x="130" y="281" width="800" height="301" />
+			<key-points module="MotionRecorder" color="red" select="0, 1" x="130" y="281" width="800" height="301" />
 			<bar-graph module="MotionRecorder" source="ENABLE" x="130" y="531" width="800" height="201" />
 
 			<table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
