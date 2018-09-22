@@ -356,11 +356,6 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         position_data_count[current_motion]++;
     }
 
-<<<<<<< HEAD
-=======
-//    position_data_count[current_motion]--;
-    
->>>>>>> bb7a6951c1506619261c04f5934e2dd2277fca12
     // Fill the rest of the buffer with the last read positions - necessary with multirecording with mixed play/record
     
     for(int p=position_data_count[current_motion]; p<position_data_max; p++)
