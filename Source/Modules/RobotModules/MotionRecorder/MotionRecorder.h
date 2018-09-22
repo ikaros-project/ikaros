@@ -38,7 +38,7 @@ public:
 
     // Commands
 
-    void        Command(std::string s);
+    void        Command(std::string s, int x, int y, std::string value);
 
     void        Off();
     void        Stop();
@@ -69,9 +69,10 @@ public:
 
     long        timebase;
 
-    float **    time_data;
-    float ***   position_data;
-    float ***   torque_data;
+    std::string *   motion_name;
+    float **        timestamp;
+    float ***       position_data;
+    float ***       torque_data;
 
     int         max_motions;
     int         current_motion;
@@ -85,6 +86,7 @@ public:
     float *     enable;
 
     const char * file_name;
+    const char * directory;
 
     bool        record_on_trig;
     bool        auto_save;

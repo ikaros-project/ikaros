@@ -1140,8 +1140,10 @@ WebUI::HandleHTTPRequest()
     else if (strstart(uri, "/command/"))
     {
         char module_name[255];
+        int x, y;
         char command[255];
-        int c = sscanf(uri, "/command/%[^/]/%[^/]", module_name, command);
+        char value[1024]; // FIXME: no range chacks
+        int c = sscanf(uri, "/command/%[^/]/%[^/]/%d/%d/%[^/]", module_name, command, &x, &y, value);
         if(c == 2)
         {
             XMLElement * group = current_xml_root;

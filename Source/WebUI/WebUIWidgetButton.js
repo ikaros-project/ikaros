@@ -11,9 +11,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'value', 'default':1, 'type':'int', 'control': 'textedit'},
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
 
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -30,7 +30,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     button_down()
     {
         if(this.parameters.type == "command (down)" && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.command);
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
 
         else if(this.parameters.module && this.parameters.parameter)
             this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
@@ -39,7 +39,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     button_up()
     {
         if(this.parameters.type == "command (up)" && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.command);
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
 
         elseif(this.parameters.module && this.parameters.parameter)
             this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/0");

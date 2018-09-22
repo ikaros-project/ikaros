@@ -22,9 +22,33 @@
 
 #include "MotionRecorder.h"
 
+#include <sys/types.h>
+#include <dirent.h>
+
 using namespace ikaros;
 
 enum { state_stop, state_off, state_record, state_play, state_train, state_save, state_load, state_sq_play };
+
+
+
+static bool
+endsWith(const std::string& str, const std::string& suffix)
+{
+    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+}
+
+void
+read_directory(const std::string& name)
+{
+    DIR* dirp = opendir(name.c_str());
+    struct dirent * dp;
+    while ((dp = readdir(dirp)) != NULL)
+    {
+        if(endsWith(dp->d_name, ".mot"))
+            printf("#>> %s\n", dp->d_name);
+    }
+    closedir(dirp);
+}
 
 
 void
@@ -34,7 +58,7 @@ MotionRecorder::Init()
     Bind(smoothing_time, "smoothing_time");
 
     Bind(current_motion, "current_motion");
-    Bind(mode_string, "mode");
+    Bind(mode_string, "mode_string");
     
     max_motions = GetIntValue("max_motions");
     current_motion = 0;
@@ -49,7 +73,23 @@ MotionRecorder::Init()
     position_data_max = GetIntValue("position_data_max");
     position_data_count = new int[max_motions];
     position_data  = create_matrix(size, position_data_max, max_motions);
-    time_data = create_matrix(size, position_data_max);
+    timestamp = create_matrix(size, position_data_max);
+
+    file_name = GetValue("filename");
+    directory = GetValue("directory");
+
+    motion_name = new std::string [max_motions];
+    for(int i=0; i<max_motions; i++)
+    {
+        char fname[1024];
+        snprintf(fname, 1023, file_name, i);
+        fname[1023] = 0;
+        motion_name[i] = std::string(fname);
+        printf(">>> %s\n",motion_name[i].c_str());
+    }
+
+    if(directory)
+        read_directory(std::string(directory));
 
     trig = GetInputArray("TRIG");
     trig_size = GetInputSize("TRIG");
@@ -67,13 +107,7 @@ MotionRecorder::Init()
     output = GetOutputArray("OUTPUT");
     torque = GetOutputArray("TORQUE");
     enable = GetOutputArray("ENABLE");
-
-    mode = GetInputArray("MODE");
-    if(!mode)
-    {
-        mode = create_array(size);
-        set_array(mode, 0, size);   // Set record mode for all channels as default
-    }
+    mode = GetOutputArray("MODE");
 
     state = GetOutputArray("STATE");
     *state = state_stop;
@@ -87,8 +121,6 @@ MotionRecorder::Init()
         timebase = 1;
 
     play_torque = GetArray("torque", size, true);
-
-    file_name = GetValue("filename");
 
     auto_save = GetBoolValue("auto_save"); // Cannot be called in destructor
     if(GetBoolValue("auto_load"))
@@ -119,9 +151,9 @@ MotionRecorder::~MotionRecorder()
 
 
 void
-MotionRecorder::Command(std::string s)
+MotionRecorder::Command(std::string s, int x, int y, std::string value)
 {
-    printf("Received command: %s\n", s.c_str());
+    printf("Received command: %s, %d, %d, %s\n", s.c_str(), x, y, value.c_str());
 
     if(s == "off")
         Off();
@@ -141,7 +173,6 @@ MotionRecorder::Command(std::string s)
 void
 MotionRecorder::Off()
 {
-    printf("Off");
     mode_string = "Off";
     *state = state_off;
     *state = state_off;
@@ -154,7 +185,6 @@ MotionRecorder::Off()
 void
 MotionRecorder::Stop()
 {
-    printf("Stop");
     mode_string = "Stop";
     *state = state_stop;
     copy_array(stop_position, input, size);
@@ -191,7 +221,6 @@ MotionRecorder::Stop()
 void
 MotionRecorder::Record()
 {
-    printf("Record");
     mode_string = "Rec";
     *state = state_record;
     set_array(torque, 0, size);
@@ -219,7 +248,6 @@ MotionRecorder::Record()
 void
 MotionRecorder::Play()
 {
-    printf("Play");
     mode_string = "Play";
     *state = state_play;
 
@@ -243,8 +271,7 @@ MotionRecorder::Save()
     *state = state_stop;
     mode_string = "Stop";
     
-   char fname[1024];
-
+    char fname[1024];
     snprintf(fname, 1023, file_name, current_motion);
     fname[1023] = 0;
 
@@ -329,6 +356,11 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         position_data_count[current_motion]++;
     }
 
+<<<<<<< HEAD
+=======
+//    position_data_count[current_motion]--;
+    
+>>>>>>> bb7a6951c1506619261c04f5934e2dd2277fca12
     // Fill the rest of the buffer with the last read positions - necessary with multirecording with mixed play/record
     
     for(int p=position_data_count[current_motion]; p<position_data_max; p++)

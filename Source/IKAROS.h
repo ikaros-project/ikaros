@@ -243,7 +243,6 @@ public:
     virtual void    Store(const char * path);                            // Request data to be stored in directory path
     virtual void    Load(const char * path);                            // Request data to be loaded from directory path
     
-    virtual void    Command(std::string s) {};                   // Receive a command
     virtual void    SetSizes();								// Calculate and set the sizes of unknown output arrays    (OVERRIDE IN SUBCLASSES)
     virtual void    Init()
     {}            // Init memory for internal data                        (OVERRIDE IN SUBCLASSES)
@@ -289,6 +288,7 @@ protected:
     void            Bind(std::string & v, const char * n);                  // Bind string
 
     void            SetParameter(const char * parameter_name, int x, int y, float value);
+    virtual void    Command(std::string s, int x=0, int y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
 
     XMLElement *    xml;
 

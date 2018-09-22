@@ -13,54 +13,46 @@
 			name = "MotionRecorder"
             mask = "1 1"
             torque = "0.25 0.25"
-            filename = "motion.%d.mot"
+            filename = "motions/motion.%d.mot"
             smoothing_time = "0"
             max_motions="20"
             auto_save="yes"
-            _play_on_trig = "true"
             _record_on_trig = "true"
 		/>
 
         <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
 
 		<view name="View">
-            <grid
-                x = "10"
-                y = "10"
-                width = "121"
-                height = "41"
-                source = "STATE"
-                module = "MotionRecorder"
-                class = "grid"
-                max = "7"
-                labels = "state"
-                labelWidth = "50"
-                fill = "custom"
-                colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
-                lineWidth = "1"
-                shape = "circle"
-                size = "1"
-                scales = "no"
-            />
+        <grid
+            x = "10"
+            y = "10"
+            width = "121"
+            height = "41"
+            source = "STATE"
+            module = "MotionRecorder"
+            max = "7"
+            labels = "state"
+            labelWidth = "50"
+            fill = "custom"
+            colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
+            lineWidth = "1"
+            shape = "circle"
+            size = "1"
+            scales = "no"
+        />
 
-            <grid
-                width = "121"
-                height = "41"
-                x="10"
-                y = "40"
-                source = "PLAYING"
-                module = "MotionRecorder"
-                class = "grid"
-                max = "1"
-                labels = "play"
-                labelWidth = "50"
-                fill = "custom"
-                colorTable = "white, red, green"
-                lineWidth = "1"
-                shape = "circle"
-                size = "1"
-                scales = "no"
-            />
+        <text
+            width = "121"
+            height = "41"
+            x="10"
+            y = "40"
+            parameter = "mode_string"
+            module = "MotionRecorder"
+        />
+
+        <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+
+        <table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
 			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
 			<key-points module="MotionRecorder" color="red" select="0, 1" x="130" y="281" width="800" height="301" />
@@ -68,15 +60,15 @@
 
 			<table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
-            <button label = "Off" module="MotionRecorder" parameter="off" x="10" y="121" height="41" width="101" />
-            <button label = "Stop" module="MotionRecorder" parameter="stop" x="10" y="161" height="41" width="101"  />
-            <button label = "Record" module="MotionRecorder" parameter="record" x="10" y="201" height="41" width="101"  />
-            <button label = "Play"  module="MotionRecorder" parameter="play" x="10" y="241" height="41" width="101"  />
+            <button label = "Off" module="MotionRecorder" command="off" x="10" y="121" height="41" width="101" />
+            <button label = "Stop" module="MotionRecorder" command="stop" x="10" y="161" height="41" width="101"  />
+            <button label = "Record" module="MotionRecorder" command="record" x="10" y="201" height="41" width="101"  />
+            <button label = "Play"  module="MotionRecorder" command="play" x="10" y="241" height="41" width="101"  />
 
-            <button label = "Load" module="MotionRecorder" parameter="load" x="10" y="361" height="41" width="101"  />
-            <button label = "Save" module="MotionRecorder" parameter="save" x="10" y="401" height="41" width="101"  />
+            <button label = "Load" module="MotionRecorder" command="load" x="10" y="361" height="41" width="101"  />
+            <button label = "Save" module="MotionRecorder" command="save" x="10" y="401" height="41" width="101"  />
 
-            <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="MotionRecorder" parameter="current_behavior" x="10" y="311" width="121" height="41" />
+            <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="MotionRecorder" parameter="current_motion" x="10" y="311" width="121" height="41" />
 
             <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
 
