@@ -17,9 +17,10 @@
 	<parameter name="max_motions" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
 	<parameter name="current_motion" type="int" default="0" description="The behavior that will be recorded" />
 	<parameter name="position_data_max" type="int" default="5000" description="The maximum number of datapoints that can be stored" />
-    <parameter name="mode" type="string" default="stop" description="The current mode as a string" />
+    <parameter name="mode_string" type="string" default="stop" description="The current mode as a string" />
 
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
+	<parameter name="directory" type="string" default="motions" description="The directory where the files will be stored." />
 	<parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
     <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque." />
 
@@ -32,8 +33,8 @@
 	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_motions" />
 
 	<input name="INPUT" description="Position data from the servos" />
-    <input name="MODE" description="Record/Play/Hold/Free mode for each channel" optional="yes" />
 
+    <output name="MODE" description="Record/Play/Hold/Free mode for each channel coded as a matrix" size_set_x="INPUT" size_y= "4" />
     <output name="OUTPUT" description="Position data to the servos" size_set="INPUT" />
 	<output name="TORQUE" description="Current torque for the motors" size_set="INPUT" />
 	<output name="ENABLE" description="Enable the motors" size_set="INPUT" />
@@ -67,7 +68,7 @@
             height = "41"
             x="10"
             y = "40"
-            parameter = "mode"
+            parameter = "mode_string"
             module = "*"
         />
 
@@ -85,7 +86,9 @@
 
         <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="*" parameter="current_motion" x="10" y="311" width="121" height="41" />
 
-         <switch label=" Rec on trig" module="*" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
+        <switch label=" Rec on trig" module="*" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
+
+        <grid module="*" source="MODE" color="red,green" x="130" y="600" width="800" height="501" />
     </view>
 
 	<author>
