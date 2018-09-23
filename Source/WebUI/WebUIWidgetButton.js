@@ -41,7 +41,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
         if(this.parameters.type == "command (up)" && this.parameters.module)
             this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
 
-        elseif(this.parameters.module && this.parameters.parameter)
+        else if(this.parameters.module && this.parameters.parameter)
             this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/0");
     }
 
