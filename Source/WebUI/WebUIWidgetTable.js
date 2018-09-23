@@ -53,6 +53,9 @@ class WebUIWidgetTable extends WebUIWidget
 
     update(d)
     {
+        if(!d)
+            return;
+        
          try {
             let m = this.parameters['module'];
             let s = this.parameters['source'];
