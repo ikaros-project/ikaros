@@ -1171,7 +1171,6 @@ WebUI::HandleHTTPRequest()
         int x, y;
         float value;
         int c = sscanf(uri, "/control/%[^/]/%[^/]/%d/%d/%f", module_name, name, &x, &y, &value);
-        printf("%s %s %d %d %f\n", module_name, name, x, y, value);
         if(c == 5)
         {
             XMLElement * group = current_xml_root;
