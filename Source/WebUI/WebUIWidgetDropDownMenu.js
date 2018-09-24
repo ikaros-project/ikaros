@@ -72,7 +72,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         super.updateAll();
  
         let selector = this.querySelector("select")
-        selector.onmouseup = function (e) {
+        selector.onchange = function (e) {
             this.parentElement.option_selected(this.parentElement.parameters.index, e.target.value);
         };
 
