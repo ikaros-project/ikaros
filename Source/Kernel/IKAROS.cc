@@ -2742,7 +2742,7 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
 
 
 void
-Kernel::SendCommand(XMLElement * group, const char * group_name, const char * command_name)
+Kernel::SendCommand(XMLElement * group, const char * group_name, const char * command_name, int x, int y, std::string value)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
     {
@@ -2752,7 +2752,7 @@ Kernel::SendCommand(XMLElement * group, const char * group_name, const char * co
         {
             Module * m = (Module *)(xml->aux);
             if(m != NULL)
-                m->Command(command_name);
+                m->Command(command_name, x, y, value);
          }
 
         // Set parameters in included groups
@@ -2760,7 +2760,7 @@ Kernel::SendCommand(XMLElement * group, const char * group_name, const char * co
         else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
         {
             const char * new_module = wildcard;
-            SendCommand(xml, new_module, command_name);
+            SendCommand(xml, new_module, command_name, x, y, value);
         }
     }
 }
