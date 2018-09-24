@@ -13,6 +13,13 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
 
+            {'name': "CONTROL", 'control':'header'},
+            
+            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'valueLow', 'default':0, 'type':'float', 'control': 'textedit'},
+            
             {'name': "STYLE", 'control':'header'},
 
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
@@ -48,16 +55,43 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         super.init();
         this.data = [];
 
-        this.onclick = function () {
-            let s = "";
-            for(let r of this.data)
+        this.onclick = function (evt)
+        {
+            if(!this.data)
+                return;
+            
+            if(!this.parameters.command && !this.parameters.parameter)
             {
-                for(let c of r)
-                    s += c+"\t";
-                s += "\n"
+                let s = "";
+                for(let r of this.data)
+                {
+                    for(let c of r)
+                        s += c+"\t";
+                    s += "\n"
+                }
+                alert(s);
+                return;
             }
-            alert(s);
-        };
+            
+            let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+            let r = this.canvasElement.getBoundingClientRect();
+            let x = Math.floor(this.data[0].length*(evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw));
+            let y = Math.floor(this.data.length*(evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom));
+
+            if(x < 0 || x >= this.data[0].length || y < 0 || y >= this.data.length)
+                return;
+
+            if(this.parameters.command && this.parameters.module)
+                this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+            
+            else if(this.parameters.parameter && this.parameters.module)
+            {
+                if(this.data[y][x] < this.parameters.valueHigh)
+                    this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+                else
+                    this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueLow);
+            }
+        }
     }
 
     requestData(data_set)
