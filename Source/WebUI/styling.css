@@ -284,6 +284,10 @@ webui-widget-button button {
     font-size: 14px;
 }
 
+webui-widget-button button:hover {
+    cursor: pointer;
+}
+
 /*
  *
  *  MAIN AREA
