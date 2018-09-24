@@ -1144,6 +1144,7 @@ WebUI::HandleHTTPRequest()
         char command[255];
         char value[1024]; // FIXME: no range chacks
         int c = sscanf(uri, "/command/%[^/]/%[^/]/%d/%d/%[^/]", module_name, command, &x, &y, value);
+        printf("COMMAND %s\n", command);
         if(c == 2)
         {
             XMLElement * group = current_xml_root;
@@ -1171,6 +1172,7 @@ WebUI::HandleHTTPRequest()
         int x, y;
         float value;
         int c = sscanf(uri, "/control/%[^/]/%[^/]/%d/%d/%f", module_name, name, &x, &y, &value);
+        printf("CONTROL %s\n", name);
         if(c == 5)
         {
             XMLElement * group = current_xml_root;
