@@ -117,7 +117,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {
                 this.setColor(i+j);
                 this.canvas.beginPath();
-                let f = (d[j][i]-this.parameters.min)/(this.parameters.max-this.parameters.min);
+                let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
                 let ix = Math.floor((n-1)*f);
                 this.canvas.fillStyle = ct[ix].trim();
                 
