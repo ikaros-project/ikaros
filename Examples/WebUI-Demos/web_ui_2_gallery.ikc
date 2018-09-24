@@ -271,6 +271,16 @@
             labelWidth = "50"
             scales = "yes"
         />
+        
+        <grid
+            x="20" y="690"
+            width="200"
+            height="200"
+            title="Gray Grid"
+            module="GridConst"
+            source="OUTPUT"
+            parameter="data"
+        />
     </view>
 
     <view name="Paths">
@@ -826,6 +836,12 @@
     </group>
 
 
+    <module
+        class = "Constant"
+        name = "GridConst"
+        data = "0 0 0 0 0; 0 0 1 0 0; 0 0 1 0 0; 0 0 1 1 0; 0 0 0 0 0"
+    />
+    
     <module
         class = "Text"
         name = "String"
