@@ -173,13 +173,11 @@ inspector = {
                             evt.preventDefault();
                             return;
                         }
-                        if(p.type == 'int' && (evt.key < "0" || evt.key > "9"))
+                        if(p.type == 'int' && "-0123456789".indexOf(evt.key) == -1)
                             evt.preventDefault();
-                        else if(p.type == 'float' && evt.key == "." && evt.target.innerHTML.indexOf(".") != -1)
+                        else if(p.type == 'float' && "-0123456789.".indexOf(evt.key) == -1)
                             evt.preventDefault();
-                        else if(p.type == 'float' && evt.key != "." && (evt.key < "0" || evt.key > "9"))
-                            evt.preventDefault();
-                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ+-_.0123456789".indexOf(evt.key) == -1)
+                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-_.0123456789".indexOf(evt.key) == -1)
                             evt.preventDefault();
                     });
                     cell2.addEventListener("blur", function(evt) {
