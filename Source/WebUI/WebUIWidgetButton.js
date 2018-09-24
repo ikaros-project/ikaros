@@ -7,13 +7,15 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'type', 'default':"command (down)", 'type':'string', 'control': 'menu', 'values': "command (down), command (up), value"},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'commandDown', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'valueDown', 'default':1, 'type':'string', 'control': 'textedit'},
+            {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
 
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -27,22 +29,28 @@ class WebUIWidgetButton extends WebUIWidgetControl
         return "<button></button>";
     }
 
+    button_click()
+    {
+        if(this.parameters.command && this.parameters.module)
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueDown);
+    }
+    
     button_down()
     {
-        if(this.parameters.type == "command (down)" && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
+        if(this.parameters.commandDown && this.parameters.module)
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.commandDown+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueDown);
 
         else if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
+            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueDown);
     }
 
     button_up()
     {
-        if(this.parameters.type == "command (up)" && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.value);
+        if(this.parameters.commandUp && this.parameters.module)
+            this.get("/command/"+this.parameters.module+"/"+this.parameters.commandUp+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueUp);
 
         else if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/0");
+            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueUp);
     }
 
     init()
@@ -53,6 +61,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
         }
         this.firstChild.onmouseup = function (){
             this.parentElement.button_up();
+        }
+        this.firstChild.onclick = function (){
+            this.parentElement.button_click();
         }
     }
 
