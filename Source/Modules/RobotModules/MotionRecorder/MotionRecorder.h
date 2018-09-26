@@ -40,6 +40,7 @@ public:
 
     void        Command(std::string s, int x, int y, std::string value);
 
+    void        ToggleMode(int x, int y);
     void        Off();
     void        Stop();
     void        Record();
@@ -55,7 +56,6 @@ public:
     float *     completed;
 
     float *     input;
-    float *     torque;
     float *     output;
 
     int         smoothing_time; // for torque and position
@@ -63,16 +63,18 @@ public:
     float *     start_position;
     float *     start_torque;
 
-    float *     mode; // record, play, hold, free = (0, 1, 2, 3)
-    std::string mode_string;
-    int         size;
+    float **     mode; // record, play, hold, free in matrix format
+    std::string  mode_string;
+    int          size;
 
     long        timebase;
 
     std::string *   motion_name;
-    float **        timestamp;
     float ***       position_data;
-    float ***       torque_data;
+    float **        timestamp_data;
+    
+    float **        keypoints; // of currently selected motion
+    float *         timestamps; // of currently selected motion
 
     int         max_motions;
     int         current_motion;
@@ -82,7 +84,6 @@ public:
 
     float *     time; // in ms
 
-    float *     play_torque;
     float *     enable;
 
     const char * file_name;

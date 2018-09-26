@@ -16,7 +16,7 @@
 
 	<parameter name="max_motions" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
 	<parameter name="current_motion" type="int" default="0" description="The behavior that will be recorded" />
-	<parameter name="position_data_max" type="int" default="5000" description="The maximum number of datapoints that can be stored" />
+	<parameter name="position_data_max" type="int" default="1000" description="The maximum number of datapoints that can be stored" />
     <parameter name="mode_string" type="string" default="stop" description="The current mode as a string" />
 
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
@@ -34,10 +34,13 @@
 
 	<input name="INPUT" description="Position data from the servos" />
 
-    <output name="MODE" description="Record/Play/Hold/Free mode for each channel coded as a matrix" size_set_x="INPUT" size_y= "4" />
+    <output name="MODE" description="off/stop/play/record mode for each channel coded as a matrix" size_set_x="INPUT" size_y= "4" />
     <output name="OUTPUT" description="Position data to the servos" size_set="INPUT" />
 	<output name="TORQUE" description="Current torque for the motors" size_set="INPUT" />
 	<output name="ENABLE" description="Enable the motors" size_set="INPUT" />
+
+    <output name="KEYPOINTS" description="The keypoint vectors" size_set_x="INPUT" size_param_y="position_data_max" />
+    <output name="TIMESTAMPS" description="Timestamp in ms for each keypoint" size_x="1" size_param_y="position_data_max" />
 
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />

@@ -16,7 +16,7 @@
             filename = "motions/motion.%d.mot"
             smoothing_time = "0"
             max_motions="20"
-            auto_save="yes"
+            _auto_save="yes"
             _record_on_trig = "true"
 		/>
 
@@ -49,14 +49,16 @@
             parameter = "mode_string"
             module = "MotionRecorder"
         />
-
+<!--
         <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
-
+-->
         <table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
-
+<!--
 			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
-			<key-points module="MotionRecorder" color="red" select="0, 1" x="130" y="281" width="800" height="301" />
-			<bar-graph module="MotionRecorder" source="ENABLE" x="130" y="531" width="800" height="201" />
+-->
+			<key-points module="MotionRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" />
+            <grid module="MotionRecorder" source="MODE" labels="off, stop, play, record" shape="circle" size="0.75" fill="custom" colorTable="white,green" command="toggle" x="130" y="350" width="800" height="101" />
+			<grid module="MotionRecorder" source="ENABLE" labels="torque" shape="circle" size="1" fill="custom" colorTable="white,red" x="130" y="451" width="800" height="41" />
 
 			<table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
@@ -73,6 +75,7 @@
             <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
 
             <slider-horizontal title = "Joints" module="Joints" parameter="data" count="2" x="130" y="710" height="100" width="200" />
+
 		</view>
 
     <module class = "Logger" name = "Logger" />
