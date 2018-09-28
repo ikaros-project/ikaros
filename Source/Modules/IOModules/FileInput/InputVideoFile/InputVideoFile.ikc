@@ -29,9 +29,9 @@
 	<output name="INTENSITY" description="The intensity channel." />
 	<output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
 
-    <view name="Movie View" object_size="500">
-        <object class="Image" type="rgb" module = "*" source = "RED+GREEN+BLUE" x="0"  y="0" />
-    </view>
+	<view name="View">
+		<image format="rgb" module = "*" source = "RED+GREEN+BLUE" x="0" y="0"  width = "800" height = "600"/>
+	</view>
     
     <author>
 		<name>Birger Johansson</name>

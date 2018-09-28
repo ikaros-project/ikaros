@@ -2,10 +2,10 @@
 
 <group title="InputVideo Example">
 
-	<module class="InputVideo" name="CAMERA"/>
+	<module class="InputVideo" name="InputVideo"/>
 
-	<view name="Movie View" object_size="500">
-		<object class="Image" type="rgb" module="InputVideo" source="RED+GREEN+BLUE" x="0" y="0"/>
+	<view name="View">
+		<image format="rgb" module = "InputVideo" source = "RED+GREEN+BLUE" x="0" y="0"  width = "800" height = "600"/>
 	</view>
 	<module class="Logger" name="Logger"/>
 </group>
