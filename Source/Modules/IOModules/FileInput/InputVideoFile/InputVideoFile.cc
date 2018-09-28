@@ -44,7 +44,7 @@ Module(p)
     printInfo = GetBoolValue("info", false);
     
     // Register all formats and codecs
-    av_register_all();
+    // av_register_all();
     
     av_log_set_level(AV_LOG_FATAL);
 

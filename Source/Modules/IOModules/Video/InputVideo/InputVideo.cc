@@ -89,7 +89,7 @@ Module(p)
     
     listDevices = GetBoolValue("list_devices");
     
-    av_register_all();              // Register all formats and codecs
+    //av_register_all();              // Register all formats and codecs
     input_format_context = avformat_alloc_context();
     avdevice_register_all();        // libavdevice
     

@@ -80,7 +80,7 @@ OutputVideoFile::Init()
         frameRate  =  GetIntValue("frame_rate");
 
         // Register all formats and codecs
-        av_register_all();
+        // av_register_all();
         av_log_set_level(AV_LOG_FATAL);
 
         filename = GetValue("filename");

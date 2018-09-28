@@ -36,7 +36,7 @@ FFMpegGrab::FFMpegGrab()
 #ifdef FFMPEGLOG
 	printf("FFMpegGrab Create()\n");
 #endif
-	av_register_all();
+	//av_register_all();
 	avformat_network_init();
 	av_log_set_level(AV_LOG_INFO);
 }
