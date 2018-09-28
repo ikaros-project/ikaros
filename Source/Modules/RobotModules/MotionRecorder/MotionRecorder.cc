@@ -25,31 +25,12 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+#include "json.hpp"
+
 using namespace ikaros;
 
 enum { state_stop, state_off, state_record, state_play, state_train, state_save, state_load, state_sq_play };
-
-
-
-static bool
-endsWith(const std::string& str, const std::string& suffix)
-{
-    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
-}
-
-void
-read_directory(const std::string& name)
-{
-    DIR* dirp = opendir(name.c_str());
-    struct dirent * dp;
-    while ((dp = readdir(dirp)) != NULL)
-    {
-        if(endsWith(dp->d_name, ".mot"))
-            printf("#>> %s\n", dp->d_name);
-    }
-    closedir(dirp);
-}
-
+enum { mode_off=0, mode_stop, mode_play, mode_record };
 
 void
 MotionRecorder::Init()
@@ -73,23 +54,12 @@ MotionRecorder::Init()
     position_data_max = GetIntValue("position_data_max");
     position_data_count = new int[max_motions];
     position_data  = create_matrix(size, position_data_max, max_motions);
-    timestamp = create_matrix(size, position_data_max);
+    timestamp_data = create_matrix(size, position_data_max);
 
     file_name = GetValue("filename");
     directory = GetValue("directory");
 
     motion_name = new std::string [max_motions];
-    for(int i=0; i<max_motions; i++)
-    {
-        char fname[1024];
-        snprintf(fname, 1023, file_name, i);
-        fname[1023] = 0;
-        motion_name[i] = std::string(fname);
-        printf(">>> %s\n",motion_name[i].c_str());
-    }
-
-    if(directory)
-        read_directory(std::string(directory));
 
     trig = GetInputArray("TRIG");
     trig_size = GetInputSize("TRIG");
@@ -105,22 +75,18 @@ MotionRecorder::Init()
     completed = GetOutputArray("COMPLETED");
 
     output = GetOutputArray("OUTPUT");
-    torque = GetOutputArray("TORQUE");
     enable = GetOutputArray("ENABLE");
-    mode = GetOutputArray("MODE");
+    mode = GetOutputMatrix("MODE");
+    for(int i=0; i<size; i++)
+        mode[mode_off][i] = 1;
 
     state = GetOutputArray("STATE");
     *state = state_stop;
-
-
-    torque_data  = set_matrix(create_matrix(size, position_data_max, max_motions), 0.5, size, position_data_max, max_motions);
 
     time = GetOutputArray("TIME");
     timebase = GetTickLength();
     if(timebase == 0)
         timebase = 1;
-
-    play_torque = GetArray("torque", size, true);
 
     auto_save = GetBoolValue("auto_save"); // Cannot be called in destructor
     if(GetBoolValue("auto_load"))
@@ -129,6 +95,9 @@ MotionRecorder::Init()
             Load();
         current_motion=0;
     }
+    
+    keypoints = GetOutputMatrix("KEYPOINTS");
+    timestamps = GetOutputArray("TIMESTAMPS");
 }
 
 
@@ -153,8 +122,7 @@ MotionRecorder::~MotionRecorder()
 void
 MotionRecorder::Command(std::string s, int x, int y, std::string value)
 {
-    printf("Received command: %s, %d, %d, %s\n", s.c_str(), x, y, value.c_str());
-
+    printf("##%s\n", s.c_str());
     if(s == "off")
         Off();
     else if (s == "stop")
@@ -167,7 +135,20 @@ MotionRecorder::Command(std::string s, int x, int y, std::string value)
         Load();
     else if (s == "save")
         Save();
+    else if (s == "toggle")
+        ToggleMode(x, y);
 }
+
+
+
+void
+MotionRecorder::ToggleMode(int x, int y)
+{
+    for(int i=0; i<4; i++) // reset row
+        mode[i][x] = 0;
+    mode[y][x] = 1;
+}
+
 
 
 void
@@ -177,7 +158,6 @@ MotionRecorder::Off()
     *state = state_off;
     *state = state_off;
     copy_array(output, input, size); // Immediate no torque response even before the button is released
-    set_array(torque, 0, size);
     set_array(enable, 0, size);
 }
 
@@ -195,22 +175,19 @@ MotionRecorder::Stop()
     if(*state == state_record)
     {
         for(int i=0; i<size; i++)
-            if(!mode || mode[i] == 0)
+            if(mode[mode_record][i])
                 for(int p=int(*time/float(timebase)); p<position_data_max; p++)
                     position_data[current_motion][p][i] = input[i];
     }
 
-    // Do the rest
-
     *state = state_stop;
     copy_array(output, stop_position, size); // Immediate freeze response even before the button is released
 
-    set_array(torque, 1, size); // Ok, but will be overridden if we just started
     set_array(enable, 1, size);
     if(mode)
     {
         for(int i=0; i<size; i++)
-            if(mode && mode[i] == 3) // disable some channels
+            if(mode[mode_off][i])
                 enable[i] = 0;
      }
 
@@ -223,22 +200,19 @@ MotionRecorder::Record()
 {
     mode_string = "Rec";
     *state = state_record;
-    set_array(torque, 0, size);
     set_array(enable, 0, size); // disable all
-    if(mode)
-    {
-        for(int i=0; i<size; i++)
-            if(mode && (mode[i] == 1 || mode[i] == 2)) // enabled channels with play
-            {
-                enable[i] = 1;
-                torque[i] = play_torque[i];
-            }
-            else
-            {
-                torque[i] = 0;
-                enable[i] = 0;
-            }
-    }
+
+    print_matrix("mode", mode, 2, 4);
+
+    for(int i=0; i<size; i++)
+        if(mode[mode_stop][i] || mode[mode_play][i]) // enabled channels with stop or play
+        {
+            enable[i] = 1;
+        }
+        else
+        {
+            enable[i] = 0;
+        }
 
     position_data_count[current_motion] = 0;
     *time = 0;
@@ -252,13 +226,11 @@ MotionRecorder::Play()
     *state = state_play;
 
     copy_array(start_position, input, size);
-    copy_array(start_torque, torque, size);
-//        copy_array(torque, play_torque, size);
     set_array(enable, 1, size);
     if(mode)
     {
         for(int i=0; i<size; i++)
-            if(mode && mode[i] == 3) // disable some channels
+            if(mode[mode_off][i]) // disable some channels
                 enable[i] = 0;
      }
     *time = 0;
@@ -332,9 +304,6 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
         return;
     }
 
-
-//    fprintf(f, "POSITION/%d TORQUE/%d MASK/%d\n", size, size, size);
-
     position_data_count[current_motion] = 0;
 
     char buff [1024];
@@ -370,9 +339,19 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 }
 
 
+
 void
 MotionRecorder::Tick()
 {
+    // TEST: Copy current data to webui output
+    
+    for(int c=0; c<2; c++)
+        for(int i=0; i<1000; i++)
+        {
+            keypoints[i][c] = position_data[current_motion][i][c]; // position_data_count[current_motion]
+            timestamps[i] = float(i)*20;    // ms
+        }
+    
     if(GetTick() < 20) // wait for valid data
     {
         copy_array(stop_position, input, size);
@@ -395,22 +374,18 @@ MotionRecorder::Tick()
 
                     *state = state_record;
 
-                    set_array(torque, 0, size);
                     set_array(enable, 0, size); // disable all
                     if(mode)
                     {
                         for(int i=0; i<size; i++)
-                            if(mode && (mode[i] == 1 || mode[i] == 2)) // enabled channels with play
+                            if(mode[mode_stop][i] || mode[mode_play][i])
                             {
                                 enable[i] = 1;
-                                torque[i] = play_torque[i];
                             }
                             else
                             {
-                                torque[i] = 0;
                                 enable[i] = 0;
                             }
-						
                     }
 
                     position_data_count[current_motion] = 0;
@@ -430,13 +405,12 @@ MotionRecorder::Tick()
                     *state = state_play;
 
                     copy_array(start_position, input, size);
-                    copy_array(start_torque, torque, size);
 
                     set_array(enable, 1, size);
                     if(mode)
                     {
                         for(int i=0; i<size; i++)
-                            if(mode && mode[i] == 3) // disable some channels
+                            if(mode[mode_off][i]) // disable some channels
                                 enable[i] = 0;
                      }
 
@@ -459,21 +433,12 @@ MotionRecorder::Tick()
     if(*state == state_stop)
     {
         *time = 0;
-        
-        if(GetTick() < smoothing_time)
-        {
-            float a = float(GetTick())/float(smoothing_time);
-            for(int i=0; i< size; i++)
-            {
-                torque[i] = (1-a) * start_torque[i] + a * play_torque[i];
-            }
-        }
 
         set_array(enable, 1, size);
         if(mode)
         {
             for(int i=0; i<size; i++)
-                if(mode && mode[i] == 3) // disable some channels
+                if(mode[mode_off][i]) // disable some channels
                     enable[i] = 0;
          }
 
@@ -483,7 +448,6 @@ MotionRecorder::Tick()
     else if(*state == state_off)
     {
         *time = 0;
-        set_array(torque, 0, size);
         set_array(enable, 0, size);
         copy_array(output, input, size);
     }
@@ -496,27 +460,13 @@ MotionRecorder::Tick()
             // copy_array(position_data[position_data_count], input, size);
             
             for(int i=0; i<size; i++)
-                switch(int(mode[i]))
-                {
-                    case 0: // record
+                    if(mode[mode_record][i])
                         position_data[current_motion][position_data_count[current_motion]][i] = input[i];
-                        break;
                         
-                    case 1: // play
+                    else if(mode[mode_play][i])
                         if(position_data[current_motion][f][i] != 0)
                             output[i] = position_data[current_motion][f][i];
-                        
-                    case 2: // hold
-                        break;
-                        
-                    case 3: // free
-                        break;
-                        
-                    default:
-                        break;
-                }
-                
-            copy_array(torque_data[current_motion][position_data_count[current_motion]], play_torque, size);
+
             position_data_count[current_motion]++;
         }
         else
@@ -534,7 +484,6 @@ MotionRecorder::Tick()
             {
                 if(position_data[current_motion][f] != 0)
                     output[i] = (1-a) * start_position[i] + a * position_data[current_motion][f][i];
-                torque[i] = (1-a) * start_torque[i] + a * play_torque[i];
             }
         }
         else
@@ -548,15 +497,13 @@ MotionRecorder::Tick()
             *state = state_stop;
             copy_array(stop_position, input, size);
             copy_array(output, stop_position, size); // Just in case this is not run later
-            set_array(torque, 1, size);
             set_array(enable, 1, size);
             if(mode)
             {
                 for(int i=0; i<size; i++)
-                    if(mode && mode[i] == 3) // disable some channels
+                    if(mode[mode_off][i]) // disable some channels
                         enable[i] = 0;
              }
-//            *playing = 0;
         }
     }
 
@@ -574,7 +521,6 @@ MotionRecorder::Tick()
             *time = 0;
         }
     }
-
 
     if(trig)
         copy_array(trig_last, trig, trig_size);
