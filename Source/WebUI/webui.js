@@ -6,6 +6,29 @@
  *
  */
 
+function startPeriodicTask(func, wait, times)
+{
+    var interv = function(w, t)
+    {
+        return function()
+        {
+            if(typeof t === "undefined" || t-- > 0){
+                setTimeout(interv, w);
+                try{
+                    func.call(null);
+                }
+                catch(e){
+                    t = 0;
+                    throw e.toString();
+                }
+            }
+        };
+    }(wait, times);
+
+    setTimeout(interv, wait);
+};
+
+
 function copyToClipboard(text)
 {
     if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
@@ -938,7 +961,7 @@ controller = {
 
     init: function () {
         controller.get("update.json", controller.update);
-        setInterval(function() {controller.requestUpdate();}, 100); // FIXME: Use adaptive frequency later
+        startPeriodicTask(function() {controller.requestUpdate();}, 100); // FIXME: Use adaptive frequency later
     },
     
     stop: function () {
