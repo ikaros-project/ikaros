@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group name="Expression" description="Mathematical expression">
+
+	<description type="text">
+		Module that can take in an string that makes up a 
+		mathematical expression, compile it, and evaluate it
+		every tick.
+		This version expects a single output, and that size of all 
+		input vectors be the same.
+		This module uses the Exprtk library:
+		http://partow.net/programming/exprtk/index.html
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Expression"
+			name="Expression"
+			expression = "x+y"
+			inputs = "x,y"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="expression" type="list" default="x" description="Expression string" />
+	<parameter name="inputs" type="list" default="x" description="Variable list" />
+	
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="*" description="The first input" />
+
+	<output name="OUTPUT" description="The first output" />
+
+	<module class="Expression" />
+	<view name="Expression">
+			<plot 
+				module="*" 
+				source="OUTPUT" 
+				x="10" y="10" w="200" h="400"
+				min="0"
+				max="2"
+			/>
+	</view>	
+	<author>
+		<name>Trond Arild Tjøstheim</name>
+		<email>trond_arild.tjosthem@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Expression.h</file>
+   		<file>Expression.cc</file>
+   		<file>Expression.ikc</file>
+   </files>
+
+</group>
+

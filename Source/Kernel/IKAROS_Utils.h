@@ -24,7 +24,8 @@
 #define IKAROS_UTILS
 
 #include <stddef.h> // for NULL
-
+#include <string>
+#include <vector>
 // Basic string functions
 
 char *	create_string(const char * c); // copy string c
@@ -40,7 +41,7 @@ bool    equal_strings(const char * a, const char * b);
 
 bool	strstart(const char * s1, const char *s2); // does s1 start with s2
 bool	strend(const char * s1, const char * s2); // does 1s end with s2
-
+const std::vector<std::string> split_string(const std::string &c, const char &d);
 // File path operations
 
 bool    is_path(const char * p);
