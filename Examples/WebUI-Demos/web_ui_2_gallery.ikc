@@ -958,7 +958,7 @@
         data = "0"
     />
 
-    <module
+    <_module
         class = "InputVideoFile"
         name = "InputVideoFile"
         filename = "../Media/ikaros.mp4"
