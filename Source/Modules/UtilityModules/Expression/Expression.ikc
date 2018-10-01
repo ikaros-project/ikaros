@@ -10,15 +10,15 @@
 		input vectors be the same.
 		This module uses the Exprtk library:
 		http://partow.net/programming/exprtk/index.html
-
-		Features:
+	</description>
+		<!--Features:
 		Mathematical operators (+, -, *, /, %, ^)
 
 		Functions (min, max, avg, sum, abs, ceil, floor, round, roundn, exp, log, log10, logn, pow, root, sqrt, clamp, inrange, swap)
 
 		Trigonometry (sin, cos, tan, acos, asin, atan, atan2, cosh, cot, csc, sec, sinh, tanh, d2r, r2d, d2g, g2d, hyp)
 
-		Equalities & Inequalities (=, ==, <>, !=, <, <=, >, >=)
+		Equalities and Inequalities (=, ==, < >, !=, <, <=, >, >=)
 
 		Assignment (:=, +=, -=, *=, /=, %=)
 
@@ -28,8 +28,8 @@
 
 		Loop structures (while loop, for loop, repeat until loop, break, continue)
 
-Optimization of expressions (constant folding, strength reduction, operator coupling, special functions and dead code elimination)
-	</description>
+		Optimization of expressions (constant folding, strength reduction, operator coupling, special functions and dead code elimination)
+		-->
 
 	<example description="A simple example">
 		<module
