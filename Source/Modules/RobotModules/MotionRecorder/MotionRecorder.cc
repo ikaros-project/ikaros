@@ -25,8 +25,6 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-#include "json.hpp"
-
 using namespace ikaros;
 
 enum { state_stop, state_off, state_record, state_play, state_train, state_save, state_load, state_sq_play };
@@ -504,21 +502,6 @@ MotionRecorder::Tick()
                     if(mode[mode_off][i]) // disable some channels
                         enable[i] = 0;
              }
-        }
-    }
-
-    else if(*state == state_sq_play)
-    {
-        copy_array(output, position_data[current_motion][f], size);
-        if(f < position_data_count[current_motion]-1)
-            *time += timebase;
-        else
-        {
-            // Load();
-            current_motion ++;
-            if(current_motion >= max_motions)
-                current_motion = 0;
-            *time = 0;
         }
     }
 
