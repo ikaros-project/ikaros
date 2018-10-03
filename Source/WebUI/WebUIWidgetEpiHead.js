@@ -18,6 +18,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             {'name':'gaze', 'default':0, 'type':'float', 'control': 'slider', 'min': -1.57, 'max': 1.57},
             {'name':'vergence', 'default':0, 'type':'float', 'control': 'slider', 'min': -1.57, 'max': 1.57},
             {'name':'pupil', 'default':0.5, 'type':'float', 'control': 'slider', 'min': 0, 'max': 1},
+            {'name':'visibleModule', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'visibleSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
             {'name':'color', 'default':"black", 'type':'string', 'control': 'textedit'},
             {'name':'fill', 'default':"white", 'type':'string', 'control': 'textedit'},
@@ -46,6 +48,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             data_set.add(this.parameters['gazeModule']+"."+this.parameters['gazeSource']);
         if(this.parameters['pupilModule'] && this.parameters['pupilSource'])
             data_set.add(this.parameters['pupilModule']+"."+this.parameters['pupilSource']);
+        if(this.parameters['visibleModule'] && this.parameters['visibleSource'])
+            data_set.add(this.parameters['visibleModule']+"."+this.parameters['visibleSource']);
     }
 
 
@@ -124,7 +128,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
         let mh = Math.floor(0.5*(h-s*165))+0.5;
 
         this.canvas.setTransform(s, 0, 0, s, mw, mh);
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.canvas.clearRect(-1, -1, this.width+1, this.height+1);
         this.canvas.lineWidth = 1;
 
         // ears
@@ -204,6 +208,12 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
     update(d)
     {
         try {
+            if(this.parameters['visibleModule'] && this.parameters['visibleSource'] &&d[this.parameters['visibleModule']][this.parameters['visibleSource']][0][0] == 0)
+            {
+                this.canvas.clearRect(-1, -1, this.width+1, this.height+1);
+                return;
+            }
+
             let gm = this.parameters['gazeModule'];
             let g = this.parameters['gazeSource'];
             let pm = this.parameters['pupilModule'];
