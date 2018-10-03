@@ -179,6 +179,29 @@ append_string(char * dest, const char * a, int len)
     return dest;
 }
 
+//
+// Taken from http://www.cplusplus.com/articles/2wA0RXSz/
+//
+const std::vector<std::string> split_string(const std::string &s, const char &c)
+{
+    std::string buff{""};
+    std::vector<std::string> v;
+
+    for (auto n : s)
+    {
+        if (n != c)
+            buff += n;
+        else if (n == c && buff != "")
+        {
+            v.push_back(buff);
+            buff = "";
+        }
+    }
+    if (buff != "")
+        v.push_back(buff);
+
+    return v;
+}
 
 bool
 is_path(const char * p)

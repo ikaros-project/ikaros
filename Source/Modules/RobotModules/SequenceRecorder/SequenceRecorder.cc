@@ -1,5 +1,5 @@
 //
-//	MotionRecorder.cc		This file is a part of the IKAROS project
+//	SequenceRecorder.cc		This file is a part of the IKAROS project
 //
 //    Copyright (C) 2015-2018 Christian Balkenius
 //
@@ -20,107 +20,84 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-#include "MotionRecorder.h"
+#include "SequenceRecorder.h"
 
 #include <sys/types.h>
 #include <dirent.h>
 
+#include "json.hpp"
+
 using namespace ikaros;
 
-enum { state_stop, state_off, state_record, state_play, state_train, state_save, state_load, state_sq_play };
+enum { state_stop, state_off, state_record, state_play };
 enum { mode_off=0, mode_stop, mode_play, mode_record };
 
 void
-MotionRecorder::Init()
+SequenceRecorder::Init()
 {
-    Bind(record_on_trig, "record_on_trig");
     Bind(smoothing_time, "smoothing_time");
-
+    Bind(nominal_torque, "torque");
     Bind(current_motion, "current_motion");
     Bind(mode_string, "mode_string");
     
-    max_motions = GetIntValue("max_motions");
     current_motion = 0;
 
-    input = GetInputArray("INPUT");
-    size = GetInputSize("INPUT");
+    // Mode
     
-    stop_position = create_array(size);
-    start_position = create_array(size);
-    start_torque = create_array(size);
+    mode = GetOutputMatrix("MODE");
+    for(int i=0; i<size; i++)
+        mode[mode_off][i] = 1;
 
-    position_data_max = GetIntValue("position_data_max");
-    position_data_count = new int[max_motions];
-    position_data  = create_matrix(size, position_data_max, max_motions);
-    timestamp_data = create_matrix(size, position_data_max);
-
-    file_name = GetValue("filename");
-    directory = GetValue("directory");
-
-    motion_name = new std::string [max_motions];
-
+    // Trig and completion
+    
+    completed = GetOutputArray("COMPLETED");
     trig = GetInputArray("TRIG");
     trig_size = GetInputSize("TRIG");
-    
     if(trig_size > max_motions)
     {
         Notify(msg_warning, "TRIG input larger than max behaviors");
         trig_size = max_motions;
     }
-    
-    trig_last = create_array(max_motions);
 
-    completed = GetOutputArray("COMPLETED");
+    // Input and outputs
 
+    input = GetInputArray("INPUT");
     output = GetOutputArray("OUTPUT");
+    torque = GetOutputArray("TORQUE");
     enable = GetOutputArray("ENABLE");
-    mode = GetOutputMatrix("MODE");
-    for(int i=0; i<size; i++)
-        mode[mode_off][i] = 1;
-
-    state = GetOutputArray("STATE");
-    *state = state_stop;
-
-    time = GetOutputArray("TIME");
-    timebase = GetTickLength();
-    if(timebase == 0)
-        timebase = 1;
-
-    auto_save = GetBoolValue("auto_save"); // Cannot be called in destructor
-    if(GetBoolValue("auto_load"))
-    {
-        for(current_motion=0; current_motion<max_motions; current_motion++)
-            Load();
-        current_motion=0;
-    }
+    size = GetInputSize("INPUT");
     
+    // Load/Save
+
+    file_name = GetValue("filename");
+
+    // UI
+    
+    time = GetOutputArray("TIME");
     keypoints = GetOutputMatrix("KEYPOINTS");
-    timestamps = GetOutputArray("TIMESTAMPS");
+    
+    // Misc
+    
+    stop_position = create_array(size); // How are these used
+    start_position = create_array(size);
+    start_torque = create_array(size);
 }
 
 
 
-MotionRecorder::~MotionRecorder()
+SequenceRecorder::~SequenceRecorder()
 {
     if(auto_save)
     {
-        for(current_motion=0; current_motion<max_motions; current_motion++)
-            Save();
     }
 
-    destroy_array(start_torque);
-    destroy_array(start_position);
-    destroy_array(stop_position);
-    destroy_matrix(position_data);
-    destroy_array(trig_last);
-    delete [] position_data_count;
 }
 
 
+
 void
-MotionRecorder::Command(std::string s, int x, int y, std::string value)
+SequenceRecorder::Command(std::string s, int x, int y, std::string value)
 {
-    printf("##%s\n", s.c_str());
     if(s == "off")
         Off();
     else if (s == "stop")
@@ -140,7 +117,7 @@ MotionRecorder::Command(std::string s, int x, int y, std::string value)
 
 
 void
-MotionRecorder::ToggleMode(int x, int y)
+SequenceRecorder::ToggleMode(int x, int y)
 {
     for(int i=0; i<4; i++) // reset row
         mode[i][x] = 0;
@@ -150,54 +127,36 @@ MotionRecorder::ToggleMode(int x, int y)
 
 
 void
-MotionRecorder::Off()
+SequenceRecorder::Off()
 {
     mode_string = "Off";
-    *state = state_off;
-    *state = state_off;
-    copy_array(output, input, size); // Immediate no torque response even before the button is released
-    set_array(enable, 0, size);
+    copy_array(output, input, size);
+    reset_array(torque, size);
+    reset_array(enable, size);
 }
 
 
 void
-MotionRecorder::Stop()
+SequenceRecorder::Stop()
 {
     mode_string = "Stop";
-    *state = state_stop;
-    copy_array(stop_position, input, size);
-    print_array("stop_position", stop_position, size);
 
-    // If we record - copy position for all recorded channels to the rest of the track
-
-    if(*state == state_record)
-    {
-        for(int i=0; i<size; i++)
-            if(mode[mode_record][i])
-                for(int p=int(*time/float(timebase)); p<position_data_max; p++)
-                    position_data[current_motion][p][i] = input[i];
-    }
-
-    *state = state_stop;
-    copy_array(output, stop_position, size); // Immediate freeze response even before the button is released
-
+    copy_array(stop_position, input, size); // Save stop position - why?
+    copy_array(output, input, size); // Immediately freeze response
     set_array(enable, 1, size);
-    if(mode)
-    {
-        for(int i=0; i<size; i++)
-            if(mode[mode_off][i])
-                enable[i] = 0;
-     }
 
-    printf("stop\n");
+    for(int i=0; i<size; i++)
+    {
+        enable[i] = mode[mode_off][i] ? 0 : 1;
+        torque[i] = mode[mode_off][i] ? 0 : nominal_torque;
+    }
 }
 
 
 void
-MotionRecorder::Record()
+SequenceRecorder::Record()
 {
     mode_string = "Rec";
-    *state = state_record;
     set_array(enable, 0, size); // disable all
 
     print_matrix("mode", mode, 2, 4);
@@ -218,10 +177,9 @@ MotionRecorder::Record()
 
 
 void
-MotionRecorder::Play()
+SequenceRecorder::Play()
 {
     mode_string = "Play";
-    *state = state_play;
 
     copy_array(start_position, input, size);
     set_array(enable, 1, size);
@@ -236,9 +194,8 @@ MotionRecorder::Play()
 
 
 void
-MotionRecorder::Save()
+SequenceRecorder::Save()
 {
-    *state = state_stop;
     mode_string = "Stop";
     
     char fname[1024];
@@ -278,9 +235,8 @@ MotionRecorder::Save()
 
 
 void
-MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT
+SequenceRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT
 {
-    *state = state_stop;
     mode_string = "Stop";
     char fname[1024];
 
@@ -339,15 +295,16 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 
 
 void
-MotionRecorder::Tick()
+SequenceRecorder::Tick()
 {
+ /*
     // TEST: Copy current data to webui output
     
     for(int c=0; c<2; c++)
         for(int i=0; i<1000; i++)
         {
             keypoints[i][c] = position_data[current_motion][i][c]; // position_data_count[current_motion]
-            timestamps[i] = float(i)*20;    // ms
+//            timestamps[i] = float(i)*20;    // ms
         }
     
     if(GetTick() < 20) // wait for valid data
@@ -359,70 +316,6 @@ MotionRecorder::Tick()
     }
 
     reset_array(completed, max_motions);
-
-    if(trig)
-    {
-        if(record_on_trig)
-        {
-            for(int i=0; i<trig_size; i++)
-            {
-                if(trig[i] == 1 && trig_last[i] == 0)
-                {
-                    current_motion = i;
-
-                    *state = state_record;
-
-                    set_array(enable, 0, size); // disable all
-                    if(mode)
-                    {
-                        for(int i=0; i<size; i++)
-                            if(mode[mode_stop][i] || mode[mode_play][i])
-                            {
-                                enable[i] = 1;
-                            }
-                            else
-                            {
-                                enable[i] = 0;
-                            }
-                    }
-
-                    position_data_count[current_motion] = 0;
-                    *time = 0;
-                    printf("record (trig)\n");
-                    break;
-                }
-            }
-        }
-        else // play on trig
-        {
-            for(int i=0; i<trig_size; i++)
-            {
-                if(trig[i] == 1 && trig_last[i] == 0)
-                {
-                    current_motion = i;
-                    *state = state_play;
-
-                    copy_array(start_position, input, size);
-
-                    set_array(enable, 1, size);
-                    if(mode)
-                    {
-                        for(int i=0; i<size; i++)
-                            if(mode[mode_off][i]) // disable some channels
-                                enable[i] = 0;
-                     }
-
-                    *time = 0;
-
-                    printf("play (trig)\n");
-                    break;
-                }
-
-                if(trig[i] > 0)
-                    break;
-            }
-        }
-    }
 
     // Handle the different states
 
@@ -505,11 +398,27 @@ MotionRecorder::Tick()
         }
     }
 
+    else if(*state == state_sq_play)
+    {
+        copy_array(output, position_data[current_motion][f], size);
+        if(f < position_data_count[current_motion]-1)
+            *time += timebase;
+        else
+        {
+            // Load();
+            current_motion ++;
+            if(current_motion >= max_motions)
+                current_motion = 0;
+            *time = 0;
+        }
+    }
+
     if(trig)
         copy_array(trig_last, trig, trig_size);
+    */
 }
 
 
 
-static InitClass init("MotionRecorder", &MotionRecorder::Create, "Source/Modules/RobotModules/MotionRecorder/");
+static InitClass init("SequenceRecorder", &SequenceRecorder::Create, "Source/Modules/RobotModules/SequenceRecorder/");
 

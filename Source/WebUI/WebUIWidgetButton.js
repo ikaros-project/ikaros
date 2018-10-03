@@ -8,10 +8,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'commandDown', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'valueDown', 'default':1, 'type':'string', 'control': 'textedit'},
+            {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
             {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
@@ -29,42 +28,32 @@ class WebUIWidgetButton extends WebUIWidgetControl
         return "<button></button>";
     }
 
-    button_click()
+    button_down(evt)
     {
-        if(this.parameters.command && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueDown);
-    }
-    
-    button_down()
-    {
-        if(this.parameters.commandDown && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.commandDown+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueDown);
+        let p = this.parentElement.parameters;
+        if(p.command && p.module)
+            this.parentElement.get("/command/"+p.module+"/"+p.command+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
 
-        else if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueDown);
+        else if(p.module && p.parameter)
+            this.parentElement.get("/control/"+p.module+"/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
     }
 
-    button_up()
+    button_up(evt)
     {
-        if(this.parameters.commandUp && this.parameters.module)
-            this.get("/command/"+this.parameters.module+"/"+this.parameters.commandUp+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueUp);
+        let p = this.parentElement.parameters;
+        if(p.commandUp && p.module)
+            this.parentElement.get("/command/"+p.module+"/"+p.commandUp+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
 
-        else if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+this.parameters.xindex+"/"+this.parameters.yindex+"/"+this.parameters.valueUp);
+        else if(p.module && p.parameter)
+            this.parentElement.get("/control/"+p.module+"/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
     }
 
     init()
     {
         super.init();
-        this.firstChild.onmousedown = function (){
-            this.parentElement.button_down();
-        }
-        this.firstChild.onmouseup = function (){
-            this.parentElement.button_up();
-        }
-        this.firstChild.onclick = function (){
-            this.parentElement.button_click();
-        }
+        this.firstChild.addEventListener("mousedown", this.button_down, true)
+        this.firstChild.addEventListener("mouseup", this.button_up, true)
+        this.firstChild.addEventListener("click", this.button_click, true)
     }
 
     update()
