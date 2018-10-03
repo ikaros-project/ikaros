@@ -8,6 +8,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'red', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'green', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'blue', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -23,7 +26,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name': "STYLE", 'control':'header'},
 
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,custom"},
+            {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,custom,rgb"},
             {'name':'colorTable', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'values': "rectangle,square,circle"},
@@ -96,16 +99,32 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     requestData(data_set)
     {
-        data_set.add(this.parameters['module']+"."+this.parameters['source']);
-        if(this.parameters['length_module'])
-            data_set.add(this.parameters['length_module']+"."+this.parameters['length_source']);
+        if(this.parameters.fill == "rgb")
+        {
+            data_set.add(this.parameters['module']+"."+this.parameters['red']);
+            data_set.add(this.parameters['module']+"."+this.parameters['green']);
+            data_set.add(this.parameters['module']+"."+this.parameters['blue']);
+        }
+        else
+            data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
 
     drawPlotHorizontal(width, height, index, transform)
     {
         let d = this.data;
-        let rows = d.length;
-        let cols = d[0].length;
+        let rows = 0;
+        let cols = 0;
+        
+        if(this.parameters.fill == "rgb")
+        {
+            rows = d[0].length;
+            cols = d[0][0].length;
+        }
+        else
+        {
+            rows = d.length;
+            cols = d[0].length;
+        }
         
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.textAlign = 'left';
@@ -139,29 +158,63 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             sy = minimum;
         }
 
-        for(var i=0; i<rows; i++)
+        if(this.parameters.fill == "rgb")
         {
-            if(ln)
-            {
-                this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
-                this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
-            }
+            for(var i=0; i<rows; i++)
+                {
+                    if(ln)
+                    {
+                        this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
+                        this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
+                    }
 
-            for(var j=0; j<cols; j++)
-            {
-                this.setColor(i+j);
-                this.canvas.beginPath();
-                let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
-                let ix = Math.min(Math.floor(n*f), n-1);
-                this.canvas.fillStyle = ct[ix].trim();
-                
-                if(this.parameters.shape == 'circle')
-                    this.canvas.arc(ls+dx*j+dx/2, dy*i+dy/2, sx/2, 0, 2*Math.PI);
-                else
-                    this.canvas.rect(ls+dx*j+dx/2-sx/2, dy*i+dy/2-sy/2, sx, sy);
+                    for(var j=0; j<cols; j++)
+                    {
+                        this.setColor(i+j);
+                        this.canvas.beginPath();
 
-                this.canvas.fill();
-                this.canvas.stroke();
+                        let r = (255*d[0][i][j]).toString(16);
+                        let g = (255*d[1][i][j]).toString(16);
+                        let b = (255*d[2][i][j]).toString(16);
+                        
+                        this.canvas.fillStyle = '#'+r+g+b;
+                        
+                        if(this.parameters.shape == 'circle')
+                            this.canvas.arc(ls+dx*j+dx/2, dy*i+dy/2, sx/2, 0, 2*Math.PI);
+                        else
+                            this.canvas.rect(ls+dx*j+dx/2-sx/2, dy*i+dy/2-sy/2, sx, sy);
+
+                        this.canvas.fill();
+                        this.canvas.stroke();
+                    }
+                }
+        }
+        else
+        {
+            for(var i=0; i<rows; i++)
+            {
+                if(ln)
+                {
+                    this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
+                    this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
+                }
+
+                for(var j=0; j<cols; j++)
+                {
+                    this.setColor(i+j);
+                    this.canvas.beginPath();
+                    let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
+                    let ix = Math.min(Math.floor(n*f), n-1);
+                    this.canvas.fillStyle = ct[ix].trim();
+                    
+                    if(this.parameters.shape == 'circle')
+                        this.canvas.arc(ls+dx*j+dx/2, dy*i+dy/2, sx/2, 0, 2*Math.PI);
+                    else
+                        this.canvas.rect(ls+dx*j+dx/2-sx/2, dy*i+dy/2-sy/2, sx, sy);
+
+                    this.canvas.fill();
+                    this.canvas.stroke();
+                }
             }
         }
     }
@@ -172,9 +225,21 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             return;
         
         try {
-            let m = this.parameters['module'];
-            let s = this.parameters['source'];
-            this.data = d[m][s];
+            if(this.parameters.fill == "rgb")
+            {
+                let m = this.parameters['module'];
+                let r = this.parameters['red'];
+                let g = this.parameters['green'];
+                let b = this.parameters['blue'];
+                this.data = [d[m][r], d[m][g], d[m][b]];
+            }
+            
+            else
+            {
+                let m = this.parameters['module'];
+                let s = this.parameters['source'];
+                this.data = d[m][s];
+            }
 
             if(!this.data)
                 return;

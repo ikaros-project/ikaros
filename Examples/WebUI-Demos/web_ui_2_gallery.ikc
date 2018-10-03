@@ -285,6 +285,19 @@
             source="OUTPUT"
             parameter="data"
         />
+
+        <grid
+            x="240" y="690"
+            width="200"
+            height="200"
+            title="Gray Grid"
+            module="GridConst"
+            source="OUTPUT"
+            red="OUTPUT"
+            green="OUTPUT"
+            blue="OUTPUT"
+            fill="rgb"
+        />
     </view>
 
     <view name="Paths">
@@ -634,7 +647,7 @@
             _format = "green"
         />
  
-          <image
+        <image
             x="10" y="240"
             _width="1280"
             _height="720"
@@ -924,6 +937,12 @@
         name="SmallImage"
         filename="../Media/SmallSequence/img%d.jpg"
         filecount = "32"
+    />
+
+    <module
+        class="InputJPEG"
+        name="ColorImage"
+        filename="../Media/cannes.jpg"
     />
 
     <module
