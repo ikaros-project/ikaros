@@ -10,11 +10,13 @@
 	RightArmSerialDevice= "/dev/cu.usbserial-FTU7KTFT"
 	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
 
-	BodyDynamixel = "Dynamixel"
-	HeadDynamixel = "Dynamixel"
-	LeftArmDynamixel = "Dynamixel"
-	RightArmDynamixel = "Dynamixel"
-	PupilDynamixel = "Dynamixel"
+	BodyDynamixel = "DynamixelSimulate"
+	HeadDynamixel = "DynamixelSimulate"
+	LeftArmDynamixel = "DynamixelSimulate"
+	RightArmDynamixel = "DynamixelSimulate"
+	PupilDynamixel = "DynamixelSimulate"
+
+	VisionInput = "InputVideo"
 	/>
 
 	<!-- Move EpiBlack -->
