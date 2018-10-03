@@ -12,10 +12,12 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
             {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
-            {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
+ //           {'name':'singleTrig', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
-
+            {'name':'enableModule', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
+                
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -26,6 +28,12 @@ class WebUIWidgetButton extends WebUIWidgetControl
     static html()
     {
         return "<button></button>";
+    }
+
+    requestData(data_set)
+    {
+        if(this.parameters.enableModule && this.parameters.enableSource)
+            data_set.add(this.parameters.enableModule+"."+this.parameters.enableSource);
     }
 
     button_down(evt)
@@ -51,14 +59,21 @@ class WebUIWidgetButton extends WebUIWidgetControl
     init()
     {
         super.init();
-        this.firstChild.addEventListener("mousedown", this.button_down, true)
-        this.firstChild.addEventListener("mouseup", this.button_up, true)
-        this.firstChild.addEventListener("click", this.button_click, true)
+        this.firstChild.addEventListener("mousedown", this.button_down, true);
+        this.firstChild.addEventListener("mouseup", this.button_up, true);
+        this.firstChild.addEventListener("click", this.button_click, true);
     }
 
-    update()
+    update(d)
     {
         this.firstChild.innerText = this.parameters.label;
+
+        try {
+            if(this.parameters.enableModule && this.parameters.enableSource)
+                this.firstChild.disabled = (d[this.parameters.enableModule][this.parameters.enableSource][0][0] == 0 ? true : false);
+        }
+        catch(err)
+        {}
     }
 };
 

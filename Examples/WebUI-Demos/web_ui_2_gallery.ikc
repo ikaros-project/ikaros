@@ -11,7 +11,7 @@
     <view name="Controls">
         <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
         <button label="Me Too" module="R23T" parameter="data" x="40" y="140" width="100" height="100" />
-        <button label="And Me" module="R23T" parameter="data" x="40" y="240" width="100" height="100" />
+        <button label="Sometimes" module="R23T" parameter="data" x="40" y="240" width="100" height="100" enableModule="Enable" enableSource="OUTPUT" />
 
         <switch label="Alarm" module="SwitchValue" parameter="data" x="40" y="360" width="100" height="100" />
 
@@ -1019,6 +1019,15 @@
     />
     <connection sourcemodule="P1" source="OUTPUT" targetmodule="P" target="INPUT" />
     <connection sourcemodule="P2" source="OUTPUT" targetmodule="P" target="INPUT" />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "Enable"
+        type = "ticksquare"
+        basetime = "50"
+        tickduty = "25"
+    />
+
 </group>
  
 
