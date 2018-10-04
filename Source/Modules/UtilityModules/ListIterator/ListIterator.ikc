@@ -29,7 +29,7 @@
 	<input name="SELECT" description="Which output index to output on" size="1"/>
 
 	<output name="SYNC OUT" description="Set to 1 at every beginning of iteration" size="1" />
-	<output name="OUTPUT" description="Outputs current list element at selected index" size="3" />
+	<output name="OUTPUT" description="Outputs current list element at selected index" size="1" />
 	<module class="ListIterator" />
 
 	<author>

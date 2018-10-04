@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<group name="InitialValue" description="Initial value for difference equations">
+
+	<description type="text">
+		Module that can be used as an initial value for difference equations.
+		The module works like a constant vector, but updates its values after a given number of ticks.
+		
+		In "stock and flow" models, this module can be used as a "stock" (i.e. a reservoir).
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="InitialValue"
+			name="InitialValue"
+			outputsize = "2"
+			data = "2 3"
+			wait= "1"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="outputsize" type="int" default="1" description="Size of vector" />
+	<parameter name="data" type="list" default="1" description="List of values" />
+	<parameter name="wait" type="int" default="1" description="Delay before values are updated" />
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The input with updated values. Size must be same as outputsize param" />
+
+	<output name="OUTPUT" description="The first output" size_param="outputsize" />
+
+	<module class="InitialValue" />
+	<view name="InitialValue">
+		<bar-graph
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="*"
+            source="OUTPUT"
+            title = "InitialValue"
+            
+            style = ""
+        />
+	</view>
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>trond_arild.tjostheim@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>InitialValue.h</file>
+   		<file>InitialValue.cc</file>
+   		<file>InitialValue.ikc</file>
+   </files>
+
+</group>
+
