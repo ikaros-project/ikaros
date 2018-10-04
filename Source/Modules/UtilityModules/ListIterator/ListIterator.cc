@@ -77,9 +77,11 @@ ListIterator::Tick()
     if(sync_in[0] && !stop)
     {
         reset_array(output_array, output_array_size);
-        if((int)select[0] < output_array_size)
+        int sel = (int)select[0];
+        if(sel < output_array_size)
         {
-            output_array[(int)select[0]] = list[index];
+            float tmp = list[index];
+            output_array[sel] = tmp;
             int nextix = (index < (list_length-1))? index+1 : 0;
             sync_sent = !(nextix==0 && index > 0);
             index = nextix;
