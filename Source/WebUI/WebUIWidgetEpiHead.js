@@ -116,11 +116,14 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
     
     draw(gaze, pupil)
     {
-        pupil[0] = Math.min(pupil[0], 1);
-        pupil[0] = Math.max(pupil[0], 0);
-        pupil[1] = Math.min(pupil[1], 1);
-        pupil[1] = Math.max(pupil[1], 0);
-
+        if(pupil)
+        {
+            pupil[0] = Math.min(pupil[0], 1);
+            pupil[0] = Math.max(pupil[0], 0);
+            pupil[1] = Math.min(pupil[1], 1);
+            pupil[1] = Math.max(pupil[1], 0);
+        }
+        
         let w = this.width;
         let h = this.height;
         let s = Math.min(this.width, this.height)/180;

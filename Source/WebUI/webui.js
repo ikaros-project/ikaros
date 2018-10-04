@@ -417,7 +417,14 @@ interaction = {
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
         
-        element.widget.updateAll();
+        try
+        {
+            element.widget.updateAll();
+        }
+        catch(err)
+        {
+            console.log(err);
+        }
     },
     initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");
