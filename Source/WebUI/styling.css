@@ -37,6 +37,10 @@ header {
     padding: 5px;
 }
 
+header > button:first-child {
+    float: left;
+}
+
 section {
     background:white;
     flex: 1 1 auto;
@@ -54,7 +58,7 @@ main {
 
 nav {
     order: -1;
-    width: 300px;
+    width: 200px;
     resize: horizontal;
     
     white-space: nowrap;

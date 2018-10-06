@@ -81,6 +81,17 @@ function toggleInspector()
     }
 }
 
+function toggleModuleInspector()
+{
+    var x = document.getElementById('module_inspector');
+    var s = window.getComputedStyle(x, null);
+    if (s.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
 function toggleSystem()
 {
     var x = document.getElementById('system_inspector');
@@ -290,6 +301,197 @@ inspector = {
 }
 
 
+
+
+/*
+ *
+ * Module inspector scripts
+ *
+ */
+module_inspector = {
+    inspector: null,
+    table: null,
+    list: null,
+    webui_object: null,
+    
+    init: function () {
+        module_inspector.inspector = document.getElementById('module_inspector');
+        module_inspector.table = document.getElementById('mi_table');
+    },
+    remove: function () {
+        while(module_inspector.table.rows.length)
+            module_inspector.table.deleteRow(-1);
+    },
+    add: function (module) {
+    //    let widget = webui_object.widget;
+    //    let parameters = widget.parameters;
+
+        module_inspector.module = module;
+   //     module_inspector.parameter_template = widget.parameter_template;
+
+    // Add header info
+
+    let m = module_inspector.module;
+    
+    let row = module_inspector.table.insertRow(-1);
+    let cell1 = row.insertCell(0);
+    let cell2 = row.insertCell(1);
+    cell1.innerText = "name";
+    cell2.innerHTML = m.parameters["name"];
+
+    row = module_inspector.table.insertRow(-1);
+    cell1 = row.insertCell(0);
+    cell2 = row.insertCell(1);
+    cell1.innerText = "class";
+    cell2.innerHTML = m.parameters["class"];
+
+
+    for(let p of m.parameters.parameters)
+    {
+        let row = module_inspector.table.insertRow(-1);
+        let value = m.parameters[p.name];
+        if(value)
+            value = value.toString();
+        else
+            value = p["default"]; // should never happen since all parameters should be sent to WebUI
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = p.name;
+        cell2.innerHTML = value;
+    }
+
+    // Add decsirption last
+    
+    row = module_inspector.table.insertRow(-1);
+    cell1 = row.insertCell(0);
+    cell2 = row.insertCell(1);
+    cell1.innerText = "description";
+    cell2.innerHTML = m.parameters["description"];
+
+
+/*
+        for(let p of module_inspector.parameter_template)
+        {
+            let row = module_inspector.table.insertRow(-1);
+            let value = parameters[p.name];
+            let cell1 = row.insertCell(0);
+            let cell2 = row.insertCell(1);
+            cell1.innerText = p.name;
+            cell2.innerHTML = value;
+            cell2.setAttribute('class', p.type);
+            switch(p.control)
+            {
+                case 'header':
+                    cell1.setAttribute("colspan", 2);
+                    cell1.setAttribute("class", "header");
+                    row.deleteCell(1);
+                    break;
+
+                case 'textedit':
+                    cell2.contentEditable = true;
+                    cell2.className += ' textedit';
+                    cell2.addEventListener("keypress", function(evt) {
+                        if(evt.keyCode == 13)
+                        {
+                            evt.target.blur();
+                            evt.preventDefault();
+                            return;
+                        }
+                        if(p.type == 'int' && "-0123456789".indexOf(evt.key) == -1)
+                            evt.preventDefault();
+                        else if(p.type == 'float' && "-0123456789.".indexOf(evt.key) == -1)
+                            evt.preventDefault();
+                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-_.0123456789".indexOf(evt.key) == -1)
+                            evt.preventDefault();
+                    });
+                    cell2.addEventListener("blur", function(evt) {
+                        if(p.type == 'int')
+                            parameters[p.name] = parseInt(evt.target.innerText);
+                        else if(p.type == 'float')
+                            parameters[p.name] = parseFloat(evt.target.innerText);
+                        else
+                        {
+                            parameters[p.name] = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
+                            if(p.name == "style")
+                                widget.updateStyle(widget, evt.target.innerText);
+                            if(p.name == "frame-style")
+                                widget.updateStyle(webui_object, evt.target.innerText);
+                         }
+                        widget.updateAll();
+                    });
+                break;
+
+                case 'slider':
+                    if(p.type == 'int' || p.type == 'float')
+                    {
+                        cell2.innerHTML= '<div>'+value+'</div><input type="range" value="'+value+'" min="'+p.min+'" max="'+p.max+'" step="'+(p.type == 'int' ?  1: 0.01)+'"/>';
+                        cell2.addEventListener("input", function(evt) {
+                            evt.target.parentElement.querySelector('div').innerText = evt.target.value;
+                            parameters[p.name] = evt.target.value;
+                            widget.updateAll();
+                        });
+                    }
+                break;
+                
+                case 'menu':
+                    var opts = p.values.split(',').map(o=>o.trim());
+                    
+                    var s = '<select name="'+p.name+'">';
+                    for(var j in opts)
+                    {
+                        let value = p.type == 'int' ? j : opts[j];
+                        if(opts[j] == parameters[p.name])
+                            s += '<option value="'+value+'" selected >'+opts[j]+'</option>';
+                        else
+                            s += '<option value="'+value+'">'+opts[j]+'</option>';
+                    }
+                    s += '</select>';
+                    cell2.innerHTML= s;
+                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value.trim(); widget.updateAll();});
+                break;
+                
+                case 'checkbox':
+                    if(p.type == 'bool')
+                    {
+                        if(value)
+                            cell2.innerHTML= '<input type="checkbox" checked />';
+                        else
+                            cell2.innerHTML= '<input type="checkbox" />';
+                        cell2.addEventListener("change", function(evt) { parameters[p.name] = evt.target.checked; widget.updateAll();});
+                    }
+                break;
+                
+                case 'number':
+                    if(p.type == 'int')
+                    {
+                        cell2.innerHTML= '<input type="number" value="'+value+'" min="'+p.min+'" max="'+p.max+'"/>';
+                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.updateAll();});
+                    }
+                break;
+                
+                default:
+                
+                break;
+            }
+        }
+    */
+    },
+    select: function (obj)
+    {
+        module_inspector.remove();
+        module_inspector.add(obj);
+    },
+    update: function (attr_value)
+    {
+        // New data from server
+    },
+    change: function (attr_value)
+    {
+        // Send changed value to server
+    }
+}
+
+
 webui_widgets = {
     constructors: {},
     add: function(element_name, class_object) {
@@ -320,13 +522,15 @@ interaction = {
     widget_inspector: undefined,
     system_inspector: undefined,
     edit_inspector: undefined,
-    
+    module_inspector: undefined,
+
     init: function () {
         interaction.main = document.querySelector('main');
 
         interaction.widget_inspector = document.querySelector('#widget_inspector');
         interaction.system_inspector = document.querySelector('#system_inspector');
         interaction.edit_inspector = document.querySelector('#edit_inspector');
+        interaction.module_inspector = document.querySelector('#module_inspector');
 
         interaction.setMode('run');
     },
@@ -683,6 +887,7 @@ interaction = {
             interaction.selectedObject = null;
 
             interaction.widget_inspector.style.display = "none";
+            interaction.module_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
         }
     },
@@ -707,6 +912,7 @@ interaction = {
         
         interaction.widget_inspector.style.display = "block";
         interaction.edit_inspector.style.display = "none";
+        interaction.module_inspector.style.display = "none";
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -786,6 +992,7 @@ interaction = {
         if(main.dataset.mode == "edit")
         {
             interaction.widget_inspector.style.display = "none";
+            interaction.module_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
             interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
@@ -796,6 +1003,7 @@ interaction = {
         {
             interaction.widget_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "none";
+            interaction.module_inspector.style.display = "none";
             interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
@@ -859,8 +1067,9 @@ interaction = {
         interaction.selectedObject = obj;
         interaction.selectedObject.className += ' selected';
         //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
-//        inspector.select(obj);
-        interaction.widget_inspector.style.display = "block";
+        module_inspector.select(obj);
+        interaction.module_inspector.style.display = "block";
+        interaction.widget_inspector.style.display = "none";
         interaction.edit_inspector.style.display = "none";
     },
     releaseModule: function(evt) {
