@@ -6,7 +6,7 @@
 			class = "Constant"
 			name = "MyConstant"
 			outputsize  = "2"
-			data  = "0.01 0.02"
+			data  = "-0.01 -0.02"
 		/>
 
 
@@ -20,12 +20,12 @@
 		/>
 
 		<module
-			class = "Subtract"
-			name = "Subtract"
+			class = "Multiply"
+			name = "Multiply"
 		/>
-		<connection sourcemodule = "InitialValueInstance" source = "OUTPUT" targetmodule = "Subtract" target = "INPUT1" delay="0"/>
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Subtract" target = "INPUT2" delay="0"/>
-        <connection sourcemodule = "Subtract" source = "OUTPUT" targetmodule = "InitialValueInstance" target = "INPUT" delay="1"/>
+		<connection sourcemodule = "InitialValueInstance" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" delay="0"/>
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT2" delay="0"/>
+        <connection sourcemodule = "Multiply" source = "OUTPUT" targetmodule = "InitialValueInstance" target = "INPUT" delay="1"/>
         
 		<view name="View">
 			
@@ -33,6 +33,13 @@
 				module="InitialValueInstance" 
 				source="OUTPUT" 
 				x="40" y="40" width="300" height="300"
+				min="0"
+				max="2"
+			/>
+			<plot
+				module="InitialValueInstance" 
+				source="OUTPUT" 
+				x="40" y="340" width="600" height="300"
 				min="0"
 				max="2"
 			/>

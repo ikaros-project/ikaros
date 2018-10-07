@@ -75,11 +75,13 @@ InitialValue::~InitialValue()
 void
 InitialValue::Tick()
 {
-    // TODO allow on-the-fly updating of values - if change in data use updated value instead of input
+    // TODO allow on-the-fly updating of values - 
+    // if change in data use updated value instead of input
     if(delay<=0)
     {
-        // copy input to output
-        copy_array(output_array, input_array, outputsize);
+        // add input to output
+        //copy_array(output_array, input_array, outputsize);
+        add(output_array, input_array, outputsize);
     }
     else
     {
