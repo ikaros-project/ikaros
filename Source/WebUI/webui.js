@@ -81,6 +81,17 @@ function toggleInspector()
     }
 }
 
+function toggleModuleInspector()
+{
+    var x = document.getElementById('module_inspector');
+    var s = window.getComputedStyle(x, null);
+    if (s.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
 function toggleSystem()
 {
     var x = document.getElementById('system_inspector');
@@ -290,6 +301,114 @@ inspector = {
 }
 
 
+
+
+/*
+ *
+ * Module inspector scripts
+ *
+ */
+module_inspector = {
+    inspector: null,
+    table: null,
+    list: null,
+    webui_object: null,
+    
+    init: function () {
+        module_inspector.inspector = document.getElementById('module_inspector');
+        module_inspector.table = document.getElementById('mi_table');
+    },
+    remove: function () {
+        while(module_inspector.table.rows.length)
+            module_inspector.table.deleteRow(-1);
+    },
+    add: function (module) {
+    //    let widget = webui_object.widget;
+    //    let parameters = widget.parameters;
+
+        module_inspector.module = module;
+   //     module_inspector.parameter_template = widget.parameter_template;
+
+    // Add header info
+
+    let m = module_inspector.module;
+    
+    if(m.parameters.groups.length > 0)
+    {
+        let row = module_inspector.table.insertRow(-1);
+        let cell1 = row.insertCell(0);
+        let cell2 = row.insertCell(1);
+        cell1.innerText = "GROUP";
+        cell2.innerHTML = m.parameters["name"];
+
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "modules";
+        cell2.innerHTML = m.parameters.groups.length;
+ 
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "connections";
+        cell2.innerHTML = m.parameters.connections.length;
+
+    }
+    
+    else // add module
+    {
+        let row = module_inspector.table.insertRow(-1);
+        let cell1 = row.insertCell(0);
+        let cell2 = row.insertCell(1);
+        cell1.innerText = "name";
+        cell2.innerHTML = m.parameters["name"];
+
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "class";
+        cell2.innerHTML = m.parameters["class"];
+
+
+        for(let p of m.parameters.parameters)
+        {
+            let row = module_inspector.table.insertRow(-1);
+            let value = m.parameters[p.name];
+            if(value)
+                value = value.toString();
+            else
+                value = p["default"]; // should never happen since all parameters should be sent to WebUI
+            cell1 = row.insertCell(0);
+            cell2 = row.insertCell(1);
+            cell1.innerText = p.name;
+            cell2.innerHTML = value;
+        }
+
+        // Add decsirption last
+        
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "description";
+        cell2.innerHTML = m.parameters["description"];
+    }
+    },
+    select: function (obj)
+    {
+        module_inspector.remove();
+        module_inspector.add(obj);
+    },
+    update: function (attr_value)
+    {
+        // New data from server
+    },
+    change: function (attr_value)
+    {
+        // Send changed value to server
+    }
+}
+
+
 webui_widgets = {
     constructors: {},
     add: function(element_name, class_object) {
@@ -320,13 +439,15 @@ interaction = {
     widget_inspector: undefined,
     system_inspector: undefined,
     edit_inspector: undefined,
-    
+    module_inspector: undefined,
+
     init: function () {
         interaction.main = document.querySelector('main');
 
         interaction.widget_inspector = document.querySelector('#widget_inspector');
         interaction.system_inspector = document.querySelector('#system_inspector');
         interaction.edit_inspector = document.querySelector('#edit_inspector');
+        interaction.module_inspector = document.querySelector('#module_inspector');
 
         interaction.setMode('run');
     },
@@ -683,6 +804,7 @@ interaction = {
             interaction.selectedObject = null;
 
             interaction.widget_inspector.style.display = "none";
+            interaction.module_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
         }
     },
@@ -707,6 +829,7 @@ interaction = {
         
         interaction.widget_inspector.style.display = "block";
         interaction.edit_inspector.style.display = "none";
+        interaction.module_inspector.style.display = "none";
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -786,6 +909,7 @@ interaction = {
         if(main.dataset.mode == "edit")
         {
             interaction.widget_inspector.style.display = "none";
+            interaction.module_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
             interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
@@ -796,6 +920,7 @@ interaction = {
         {
             interaction.widget_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "none";
+            interaction.module_inspector.style.display = "none";
             interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
@@ -859,8 +984,9 @@ interaction = {
         interaction.selectedObject = obj;
         interaction.selectedObject.className += ' selected';
         //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
-//        inspector.select(obj);
-        interaction.widget_inspector.style.display = "block";
+        module_inspector.select(obj);
+        interaction.module_inspector.style.display = "block";
+        interaction.widget_inspector.style.display = "none";
         interaction.edit_inspector.style.display = "none";
     },
     releaseModule: function(evt) {
