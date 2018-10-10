@@ -7,7 +7,7 @@
             name = "Joints"
             device  = "/dev/cu.usbserial-A7005Lxn"
             index_mode = "indirect"
-            printf_info ="minimal"
+            print_info ="minimal"
             use_feedback ="true"
             baud_rate = "1000000"
             angle_unit = "tau"
