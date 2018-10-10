@@ -339,7 +339,7 @@ bool DynamixelServo::SetGoalPositionFormated(int adress, float value, int angleU
 		printf("DynamixelServo (SetGoalPositionFormated): Value is out of limit %f degrees (%f -%f)\n", iV, GetModelGapAngleFormated(0)/2,360-GetModelGapAngleFormated(0)/2);
 		return false;
 	}
-	return SetValueAtAdress(adress, InternalToDynamixel(iV)); //To servo format (Position)
+	return SetValueAtAdress(adress, InternalToDynamixel(iV)); // To servo format (Position)
 };
 
 // In wheelmode value is -1 to 1. In Control Mode 0 to 1.
@@ -730,4 +730,14 @@ void DynamixelServo::PrintControlTable()
 			printf("%s",controlTable[i].Description.c_str() );
 			printf("\n");
 		}
+}
+
+// MARK: Print
+bool DynamixelServo::PrintMemory()
+{
+	printf("\nServo local memory\n");
+	for (int i = 0; i< extraInfo.GetInt("Model Memory"); i++)
+		printf("Data(%3i): %#04X (%3i)\n", i,dynamixelMemory[i], dynamixelMemory[i]);
+
+	return true;
 }

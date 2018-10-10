@@ -90,6 +90,7 @@ public:
 	bool ReadCSVFileToCtable(CT * ctable, int model, int * size, const char * csvPath);
 	void PrintControlTable();
 	void GetAdditionalInfo(int model);
+	bool PrintMemory();
 	
 	// Get/set memory
 	bool    SetValueAtAdress(int adress, int value);
