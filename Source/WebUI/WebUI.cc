@@ -831,7 +831,6 @@ WebUI::CopyUIData()
     // Step 3: store in ui_data
 
     float * old_ui_data = atomic_exchange(&ui_data, local_ui_data);
-
     if(old_ui_data)
         destroy_array(old_ui_data);
     
