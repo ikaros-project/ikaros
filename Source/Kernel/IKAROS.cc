@@ -190,22 +190,35 @@ dump_memory()
 class Element
 {
 public:
+    GroupElement * parent;
     std::unordered_map<std::string, std::string> attributes;
 
-    std::string  GetAttribute(std::string a)  // implements the inheritance (1) directly and (2) with renaming through parameter elements // TODO: implement inheritance
+    std::string GetAttribute(std::string a) // get attribute verbatim
     {
         if(attributes.count(a))
             return attributes[a];
         else
             return "";
     };
-    
+
+    std::string GetValue(std::string a) // FIXME: parameter renaming and inheritsnce is missing
+    {
+        if(a.empty())
+            return "";
+        else if(a[0] == '@')
+            return GetValue(GetValue(a.substr(1)));
+        else if(attributes.count(a))
+            return attributes[a];
+        else
+            return "";
+    };
+
     void PrintAttributes(int d=0)
     {
         for(auto a : attributes)
             printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
     }
-    
+
     std::string JSONAttributeString(int d=0)
     {
         std::string b;
@@ -320,7 +333,7 @@ public:
 class GroupElement: public Element
 {
 public:
-    GroupElement * parent;
+//    GroupElement * parent;
     std::unordered_map<std::string, GroupElement *> groups;
     std::unordered_map<std::string, ParameterElement *> parameters;
     std::vector<ConnectionElement *> connections;
@@ -340,11 +353,11 @@ public:
         printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
         for(auto c : connections)
             c->Print(d+1);
-
+/* TEMPORARY
         printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
         for(auto v : views)
             v->Print(d+1);
-        
+*/
         for(auto g : groups)
             g.second->Print(d+1);
         
@@ -1338,6 +1351,7 @@ Module::GetOutputSizeY(const char * name)
     return 0;
 }
 
+
 [[deprecated]] bool
 Module::InputConnected(const char * name)
 {
@@ -1345,11 +1359,13 @@ Module::InputConnected(const char * name)
     return kernel->InputConnected(this, name);
 }
 
+
 [[deprecated]] bool
 Module::OutputConnected(const char * name)
 {
     return kernel->OutputConnected(this, name);
 }
+
 
 void
 Module::SetOutputSize(const char * name, int x, int y)
@@ -2280,6 +2296,25 @@ Kernel::Init()
     else
         Notify(msg_warning, "No IKC file supplied.\n"); // Maybe this should only be a warning - YES!
     
+    // Fill data structures
+ 
+    for (Module * m = modules; m != NULL; m = m->next)
+        module_map.insert({ m->GetFullName(), m });
+
+    for (Connection * c = connections; c != NULL; c = c->next)
+        module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
+
+    printf("MODULES:\n");
+    for(const auto& pair : module_map)
+        printf("%s\n", pair.first.c_str());
+     
+    printf("CONNECTIONS:\n");
+    for(const auto& pair : module_map)
+        for(const auto& s : pair.second->outgoing_connection)
+            printf("%s -> %s\n", pair.first.c_str(), s.c_str());
+
+
+
     DetectCycles();
     if(fatal_error_occurred)
         return;
@@ -2766,6 +2801,7 @@ Kernel::SendCommand(XMLElement * group, const char * group_name, const char * co
 }
 
 
+
 bool
 Kernel::Precedes(Module * a, Module * b)
 {
@@ -2879,6 +2915,7 @@ Kernel::SortModules()
     }
     if (phase_count > period_count)
         period_count = phase_count;
+
     // Build a new sorted list of modules (precedence order) using selection sort
     Module * sorted_modules = NULL;
     while (modules != NULL)
@@ -2910,15 +2947,29 @@ Kernel::SortModules()
     modules = sorted_modules;
 
     // Check for loops
+/*
     for (Module * m = modules; m != NULL; m = m->next)
         if (Precedes(m, m))
             Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself.\n", m->GetName(), m->GetClassName());
-
+*/
     // Create Thread Groups
     threadGroups = new ThreadGroup(this);
     for (Module * m = modules; m != NULL; m = m->next)
         threadGroups->AddModule(m);
 }
+
+
+void
+Kernel::TopSortModules()
+{
+    // Add list of connections to each module
+    
+    for (Connection * c = connections; c != NULL; c = c->next)
+    {
+    }
+
+}
+
 
 void
 Kernel::CalculateDelays()
@@ -3571,7 +3622,7 @@ Kernel::ReadXML()
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
     
-//    main_group->Print();
+    main_group->Print();
 
 //        printf("%s\n", main_group->JSONString().c_str());
 }

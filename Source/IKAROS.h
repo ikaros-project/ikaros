@@ -27,6 +27,8 @@
 #define IKAROS
 
 #include <string>
+#include <map>
+#include <set>
 
 #define VERSION "2.0"
 
@@ -230,10 +232,11 @@ public:
     int        GetOutputSize(const char * name);                    // Get the size of an output array (size_x * size_y if two-dimensional)
     int        GetOutputSizeX(const char * name);                   // Get the horizontal size of an output array
     int        GetOutputSizeY(const char * name);                   // Get the vertical size of an output array (1 if one-dimensional)
-    
+
     bool        InputConnected(const char * name);                // True if input receives at least one connection
     bool        OutputConnected(const char * name);               // True if output is connected to at least one module
-    
+
+
     void            StoreArray(const char * path, const char * name, float * a, int size);
     void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
 
@@ -252,6 +255,10 @@ public:
     void            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
     void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
 
+    // TEMPORARY - outgoing zero delays
+    
+    std::set<std::string> outgoing_connection;
+    
 protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
     void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
@@ -344,7 +351,7 @@ private:
     int                    target_offset;
     int                    size;                // The size of the data to be copied
     int                    delay;
-    bool                   active;              // When false, datat should not be propagated
+    bool                   active;              // When false, data should not be propagated
     
     Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a); // int d = 1, bool a = true
     ~Connection();
@@ -492,6 +499,8 @@ private:
     GroupElement    *    main_group;     // 2.0 main group
     long                 session_id;     // 2.0 temporary
     
+    std::map<std::string, Module *>     module_map;
+    
     Module          *    modules;        // List of modules
     Connection      *    connections;    // List of connections
     bool                 useThreads;
@@ -518,6 +527,7 @@ private:
     bool        Precedes(Module * a, Module * b);
     void        DetectCycles();                                 // Find zero-delay loops in the connections
     void        SortModules();                                // Sort modules in precedence order
+    void        TopSortModules();                                // Sort modules in precedence order
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     
     void        InitInputs();                                 // Allocate memory for inputs in all modules
