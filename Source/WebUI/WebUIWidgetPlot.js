@@ -118,28 +118,17 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
     update()
     {
-        try {
-            this.data = this.getSource('source');
-            if(!this.data)
-                return;
-
-            let size_y = this.data.length;
-            let size_x = this.data[0].length;
-
+        if(this.data = this.getSource('source'))
+        {
             if(this.buffer.length < this.getBufferSize())
                 this.buffer.push(this.data);
             else
                 this.buffer[this.ix] = this.data;
 
-            this.ix++;
-            if(this.ix >= this.getBufferSize())
+            if(this.ix++ >= this.getBufferSize())
                 this.ix = 0;
 
-            this.draw(size_y, size_y);
-        }
-        catch(err)
-        {
-//            console.log(err);
+            this.draw(this.data[0].length, this.data.length);
         }
     }
 };

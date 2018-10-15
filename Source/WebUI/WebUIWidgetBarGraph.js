@@ -5,7 +5,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+ //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
@@ -44,11 +44,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             }
             alert(s);
         };
-    }
-
-    requestData(data_set)
-    {
-        data_set.add(this.parameters.module+"."+this.parameters.source);
     }
 
     drawBarHorizontal(width, height, i)
@@ -111,28 +106,10 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     // update() gest the data for the graph and calls WebUIWidgetGraph::draw() which in turn calls
     // drawPlotHorizontal() or drawPlotVertical()
     
-    update(d)
+    update()
     {
-        if(!d)
-            return;
-
-        try {
-            let m = this.parameters['module']
-            let s = this.parameters['source']
-            this.data = d[m][s]
-
-            if(!this.data)
-                return;
-
-            let size_y = this.data.length;
-            let size_x = this.data[0].length;
-
-            this.draw(size_x, size_y);
-        }
-        catch(err)
-        {
-            console.log(err);
-        }
+        if(this.data = this.getSource('source'))
+            this.draw(this.data[0].length, this.data.length);
     }
 };
 

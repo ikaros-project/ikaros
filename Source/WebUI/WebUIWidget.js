@@ -114,12 +114,13 @@ class WebUIWidget extends HTMLElement
 
     getSource(source, default_data=undefined)
     {
-        let s = this.parameters[source].rsplit('.',1);
         try {
+            let s = this.parameters[source].rsplit('.',1);
             return this.receivedData[s[0]][s[1]];
         }
         catch(err)
         {
+            console.log("ERROR", err);
             return default_data;
         }
     }
