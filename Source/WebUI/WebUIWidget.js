@@ -104,13 +104,39 @@ class WebUIWidget extends HTMLElement
         xhr.send();
     }
 
+/*
     requestData(data_set)
     {
         if(this.parameters['module'] && this.parameters['source'])
             data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
+*/
 
-    // ACCESS FUNCTIONS: Need some cleanup
+    getSource(source, default_data=undefined)
+    {
+        let s = this.parameters[source].rsplit('.',1);
+        try {
+            return this.receivedData[s[0]][s[1]];
+        }
+        catch(err)
+        {
+            return default_data;
+        }
+    }
+
+    addSource(data_set, source) // this will be default function for all widgets later
+    {
+        if(source)
+            data_set.add(source);
+    }
+
+
+    requestData(data_set) // this will be default function for all widgets later
+    {
+        this.parameter_template.filter(p => p.type == "source").forEach(p => { this.addSource(data_set, this.parameters[p.name]) });
+    }
+
+    // ACCESS FUNCTIONS: Needs some cleanup
 
     // getProp finds a format variable by first looking through the attributes of the widget
     // and then at the variables set in CSS

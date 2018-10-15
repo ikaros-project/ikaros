@@ -4,7 +4,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     {
         return [
             {'name': "PARAMETERS", 'control':'header'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
@@ -29,11 +29,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
         this.onclick = function () { alert(this.data) }; // last matrix
    }
-
-    requestData(data_set)
-    {
-        data_set.add(this.parameters['module']+"."+this.parameters['source']);
-    }
 
     getBufferSize()
     {
@@ -121,16 +116,10 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         }
     }
 
-    update(d)
+    update()
     {
-        if(!d)
-            return;
-        
         try {
-            let m = this.parameters['module'];
-            let s = this.parameters['source'];
-            this.data = d[m][s];
-
+            this.data = this.getSource('source');
             if(!this.data)
                 return;
 

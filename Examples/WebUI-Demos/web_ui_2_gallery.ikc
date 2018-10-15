@@ -5,8 +5,79 @@
 <group name="WebUI Demo">
 
     <view name="Epi the Robot">
-        <epi-head label="Epi"  gazeModule="G" gazeSource="OUTPUT" pupilModule="P" pupilSource="OUTPUT" x="20" y="20" width="300" height="300"  _visibleModule="Enable" _visibleSource="OUTPUT" />
-    </view>
+        <epi-head label="Epi"
+            gazeSource="G.OUTPUT"
+            pupilLeftSource="P.OUTPUT"
+            pupilRightSource="P.OUTPUT"
+            x="20" y="20"
+            width="300" height="300"
+            _visibleSource="Enable.OUTPUT"
+            offsetSource="Wave.OUTPUT"
+            irisLeftRed="WaveR.OUTPUT"
+            irisLeftGreen="WaveG.OUTPUT"
+            irisLeftBlue="WaveB.OUTPUT"
+            irisRightRed="WaveR.OUTPUT"
+            irisRightGreen="WaveG.OUTPUT"
+            irisRightBlue="WaveB.OUTPUT"
+        />
+
+        <bar-graph
+            x="20" y="400"
+            width="301"
+            height="301"
+            module="P"
+            source="OUTPUT"
+        />
+
+        <bar-graph
+            x="320" y="400"
+            width="301"
+            height="301"
+            module="G"
+            source="OUTPUT"
+            min = "-1"
+        />
+
+         <plot
+            x="620" y="400"
+            width="301"
+            height="301"
+            module="Wave"
+            source="OUTPUT"
+            min = "-10"
+            max = "10"
+            decimals = "0"
+        />
+
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            module="WaveR"
+            source="OUTPUT"
+            min = "0"
+            color = "red"
+        />
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            module="WaveG"
+            source="OUTPUT"
+            min = "0"
+            color = "green"
+        />
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            module="WaveB"
+            source="OUTPUT"
+            color = "blue"
+            min = "0"
+        />
+
+   </view>
     
     <view name="Controls">
         <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
@@ -918,6 +989,39 @@
 
     <module
         class = "FunctionGenerator"
+        name = "Wave"
+        type = "sin"
+        frequency = "0.01"
+        amplitude = "10"
+    />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "WaveR"
+        type = "sin"
+        frequency = "0.01"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "WaveG"
+        type = "sin"
+        frequency = "0.017"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "WaveB"
+        type = "sin"
+        frequency = "0.013"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+
+    <module
+        class = "FunctionGenerator"
         name = "FG"
         type = "sin"
         frequency = "0.1"
@@ -1018,26 +1122,13 @@
 
     <module
         class = "FunctionGenerator"
-        name = "P1"
-        type = "sin"
-        frequency = "0.05"
-        offset = "1"
-        amplitude = "0.5"
-    />
-    <module
-        class = "FunctionGenerator"
-        name = "P2"
-        type = "sin"
-        frequency = "0.05"
-        offset = "1"
-        amplitude = "0.5"
-    />
-    <module
-        class = "Gate"
         name = "P"
+        type = "sin"
+        frequency = "0.01"
+        offset = "0.5"
+        amplitude = "0.2"
+        size = "2"
     />
-    <connection sourcemodule="P1" source="OUTPUT" targetmodule="P" target="INPUT" />
-    <connection sourcemodule="P2" source="OUTPUT" targetmodule="P" target="INPUT" />
     
     <module
         class = "FunctionGenerator"
