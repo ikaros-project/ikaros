@@ -19,6 +19,8 @@
 		/>
 	</example>
 
+    <parameter name="size" type="int" default="1" description="Number of outputs (that will contain the same value)" />
+    
     <parameter name="type" type="list" values="sin/triangle/ramp/square/ticksquare" defult="sin" description="Function selector" />
     <parameter name="offset" type="float" default="0.0" description="A constant value added to the output" />
     <parameter name="amplitude" type="float" default="1.0" description="The amplitide of the signal" />
@@ -28,14 +30,13 @@
     <parameter name="basetime" type="int" default="2" description="Length of a cycle in ticks for ticksqare" />
     <parameter name="tickduty" type="int" default="1" description="Duty cycle of the ticksqare wave in ticks" />
     
-	<output name="OUTPUT" description="The time dependent output signal" size="1" />
+	<output name="OUTPUT" description="The time dependent output signal(s)" size_param="size" />
 
 	<module class="FunctionGenerator" />
 
     <view title="FunctionGenerator">
-        <object
-            x="0" y="0" w="2"
-            class="Plot"
+        <plot
+            x="20" y="20" width="400" height="300"
             module="*"
             source="OUTPUT"
             title="Default view for FunctionGenerator"
@@ -43,7 +44,7 @@
             max="1"
         />
     </view>
-    
+
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -58,3 +59,4 @@
    </files>
 
 </group>
+
