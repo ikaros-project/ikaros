@@ -6,7 +6,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name': "DATA", 'control':'header'},
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_module', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -62,13 +62,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             }
             alert(s);
         };
-    }
-
-    requestData(data_set)
-    {
-        data_set.add(this.parameters['module']+"."+this.parameters['source']);
-        if(this.parameters['length_module'])
-            data_set.add(this.parameters['length_module']+"."+this.parameters['length_source']);
     }
 
     drawRows(width, height, index, transform)
@@ -182,24 +175,15 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         if(!d)
             return;
         
-        try {
-            let m = this.parameters['module'];
-            let s = this.parameters['source'];
-            this.data = d[m][s];
-
-            if(!this.data)
-                return;
-
+        if(this.data = this.getSource('source'))
+        {
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
 
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
-        catch(err)
-        {
-        }
-    }
+     }
 };
 
 

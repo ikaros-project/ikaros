@@ -16,6 +16,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
+
+            {'name': "CONTROL", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
