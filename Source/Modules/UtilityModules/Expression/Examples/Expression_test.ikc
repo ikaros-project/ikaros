@@ -31,15 +31,13 @@
 
 		<view name="View">
 			<plot 
-				module="SquareGen" 
-				source="OUTPUT" 
+				source="SquareGen.OUTPUT"
 				x="10" y="10" w="200" h="400"
 				min="0"
 				max="2"
 			/>
-			<plot 
-				module="ExpressionInstance" 
-				source="OUTPUT" 
+			<plot
+				source="ExpressionInstance.OUTPUT"
 				x="10" y="400" w="200" h="400"
 				min="0"
 				max="2"
