@@ -330,11 +330,11 @@ nrServosTotal = "19"
                 scales = "no"
             />
 
-            <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+            <plot source="MotionRecorder.OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
 
-			<bar-graph module="MotionRecorder" source="ENABLE" x="130" y="531" width="800" height="201" />
+			<bar-graph module="MotionRecorder" source="MotionRecorder.ENABLE" x="130" y="531" width="800" height="201" />
 
-			<table title="time" module="MotionRecorder" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
+			<table title="time" source="MotionRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
             <button label = "Off" module="MotionRecorder" parameter="off" x="10" y="121" height="41" width="101" />
             <button label = "Stop" module="MotionRecorder" parameter="stop" x="10" y="161" height="41" width="101"  />
@@ -364,7 +364,7 @@ nrServosTotal = "19"
              <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
 
 
-			<plot module="Actions" source="OUTPUT" color="red,green,blue,yellow,pink,brown,maroon,black,purple" min="0" max="1" x="10" y="500" width="400" height="200"/>
+			<plot source="Actions.OUTPUT" color="red,green,blue,yellow,pink,brown,maroon,black,purple" min="0" max="1" x="10" y="500" width="400" height="200"/>
 			<bar-graph module="Actions" source="TRIGGER" color="red,green,blue,yellow,pink,brown,maroon,black,purple"  fill="red,green,blue,yellow,pink,brown,maroon,black,purple"  min="0" max="1" x="10" y="700" width="400" height="100"/>
 
 		</view>
@@ -494,9 +494,9 @@ nrServosTotal = "19"
 
     <view name="Pupil">
         <image title="Input"                     module="Vision"       source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
-        <plot title="Response Light"             module="PupilControl" source="PTA_OUTPUT"   x="0" y="0" w="4" />
-        <plot title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="1" w="4" min = "5" max="17" />
-        <plot title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="2" w="4" min = "5" max="17" />
+        <plot title="Response Light"             source="PupilControl.PTA_OUTPUT"   x="0" y="0" w="4" />
+        <plot title="Response CG (Constriction)" source="PupilControl.CG_OUTPUT"    x="0" y="1" w="4" min = "5" max="17" />
+        <plot title="Response SCG (Dilation)"    source="PupilControl.SCG_OUTPUT"   x="0" y="2" w="4" min = "5" max="17" />
     </view>
 
     <module class = "Constant" name = "PupilContAmplitudeAmplitude" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
@@ -547,10 +547,10 @@ nrServosTotal = "19"
 
 
     <view name="View">
-        <plot module="FaceDetected" source="OUTPUT" max="1" colors="yellow"  x="0" y="0" w="4" />
-        <plot module="SpectralTiming" source="TRACE" max="1" colors="yellow"  x="0" y="1" w="4" />
-        <plot module="MultiplyP" source="OUTPUT" max="20" colors="yellow"  x="0" y="2" w="4" />
-        <plot module="AddP" source="OUTPUT" max="20" colors="yellow"  x="0" y="3" w="4" />
+        <plot source="FaceDetected.OUTPUT" max="1" colors="yellow"  x="0" y="0" w="4" />
+        <plot source="SpectralTiming.TRACE" max="1" colors="yellow"  x="0" y="1" w="4" />
+        <plot source="MultiplyP.OUTPUT" max="20" colors="yellow"  x="0" y="2" w="4" />
+        <plot source="AddP.OUTPUT" max="20" colors="yellow"  x="0" y="3" w="4" />
 
     </view>
 
