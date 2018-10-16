@@ -17,9 +17,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
             {'name': "CONTROL", 'control':'header'},
             
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'valueLow', 'default':0, 'type':'float', 'control': 'textedit'},
             
