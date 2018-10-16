@@ -1,6 +1,15 @@
 "don't use strict";
 
 /*
+ *  Extensions of string
+ */
+
+String.prototype.rsplit = function(sep, maxsplit) {
+    var split = this.split(sep || /\s+/);
+    return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
+}
+
+/*
  *
  * Viewer scripts
  *
@@ -1147,7 +1156,8 @@ controller = {
         for(let i=0; i<w.length; i++)
             try
             {
-                w[i].children[1].update(data);
+                w[i].children[1].receivedData = data;
+                w[i].children[1].update(data); // include data for backward compatibility
             }
             catch(err)
             {}

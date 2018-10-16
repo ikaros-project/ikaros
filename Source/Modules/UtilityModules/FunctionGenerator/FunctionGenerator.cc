@@ -42,6 +42,7 @@ FunctionGenerator::Init()
     Bind(tickduty, "tickduty");
     
     output = GetOutputArray("OUTPUT");
+    size = GetOutputSize("OUTPUT");
 
     t = 0;
 }
@@ -97,30 +98,31 @@ ticksquare(int tick, int basetime, int duty)
 void
 FunctionGenerator::Tick()
 {
-    switch (type)
-    {
-        case 0:
-            output[0] = offset+amplitude*sin(frequency*(float(t)+shift));
-            break;
+    for(int i=0; i<size; i++)
+        switch (type)
+        {
+            case 0:
+                output[i] = offset+amplitude*sin(frequency*(float(t)+shift));
+                break;
 
-        case 1:
-            output[0] = offset+amplitude*triangle(frequency*(float(t)+shift));
-            break;
+            case 1:
+                output[i] = offset+amplitude*triangle(frequency*(float(t)+shift));
+                break;
 
-        case 2:
-            output[0] = offset+amplitude*ramp(frequency*(float(t)+shift));
-            break;
+            case 2:
+                output[i] = offset+amplitude*ramp(frequency*(float(t)+shift));
+                break;
 
-        case 3:
-            output[0] = offset+amplitude*square(frequency*(float(t)+shift), duty);
-            break;
+            case 3:
+                output[i] = offset+amplitude*square(frequency*(float(t)+shift), duty);
+                break;
 
-        case 4:
-            output[0] = offset+amplitude*ticksquare(t, basetime, tickduty);
-            break;
+            case 4:
+                output[i] = offset+amplitude*ticksquare(t, basetime, tickduty);
+                break;
 
-        default:
-            output[0] = 0;
+            default:
+                output[i] = 0;
         }
     t++;
 }

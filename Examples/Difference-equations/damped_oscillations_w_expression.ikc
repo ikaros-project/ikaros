@@ -14,7 +14,7 @@
 			name = "Damp"
             description="Constant vals for:k, damp, dt, mass"
 			outputsize  = "1"
-			data  = "10"
+			data  = "50"
 		/>
         <module
 			class = "Constant"
@@ -61,9 +61,9 @@
 		/>
         <module
 			class = "Expression"
-			name = "Add_Pos"
-			expression  = "dt*vel+pos"
-			inputs  = "vel,dt,pos"
+			name = "Pos_Delta"
+			expression  = "dt*vel"
+			inputs  = "vel,dt"
 			debug="false"
 		/>
 
@@ -106,20 +106,20 @@
                     targetmodule = "OscExp" 
                     target = "vel"
                     _delay="0" />
-            <!--To Add_pos-->
-                <connection sourcemodule = "InitPos" 
+            <!--To"Pos_Delta-->
+                <_connection sourcemodule = "InitPos" 
                     source = "OUTPUT" 
-                    targetmodule = "Add_Pos" 
+                    targetmodule = "Pos_Delta" 
                     target = "pos"
                     delay="0"/>
                 <connection sourcemodule = "Add_Vel" 
                     source = "OUTPUT" 
-                    targetmodule = "Add_Pos" 
+                    targetmodule = "Pos_Delta" 
                     target = "vel"
                     delay="0"/>
                 <connection sourcemodule = "dt" 
                     source = "OUTPUT" 
-                    targetmodule = "Add_Pos" 
+                    targetmodule = "Pos_Delta" 
                     target = "dt"
                     delay="0"/>
             <!--To Add_Vel-->
@@ -134,13 +134,13 @@
                     target = "INPUT2" 
                     delay="0" />
             <!--To InitVals-->
-                <connection sourcemodule = "Add_Pos" 
+                <connection sourcemodule = "Pos_Delta" 
                     source = "OUTPUT" 
                     targetmodule = "InitPos" 
                     target = "INPUT"
                     delay="1"
                      />
-                <connection sourcemodule = "Add_Vel" 
+                <connection sourcemodule = "OscExp" 
                     source = "OUTPUT" 
                     targetmodule = "InitVel" 
                     target = "INPUT"
@@ -166,7 +166,7 @@
 		labels = "A"
 		source = "OUTPUT"
 		min = "-2"
-		module = "Add_Pos"
+		module = "Pos_Delta"
 		height = "301"
 		title = "Position"
 		width = "301"

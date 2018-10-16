@@ -6,13 +6,17 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
+ 
+            {'name': "CONTROL", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
             {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
+            
  //           {'name':'singleTrig', 'default':true, 'type':'bool', 'control': 'checkbox'},
+ 
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'enableModule', 'default':"", 'type':'source', 'control': 'textedit'},

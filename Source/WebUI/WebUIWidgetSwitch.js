@@ -6,6 +6,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Switch Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
+
+            {'name': "CONTROL", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},

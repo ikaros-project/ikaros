@@ -5,8 +5,73 @@
 <group name="WebUI Demo">
 
     <view name="Epi the Robot">
-        <epi-head label="Epi"  gazeModule="G" gazeSource="OUTPUT" pupilModule="P" pupilSource="OUTPUT" x="20" y="20" width="300" height="300"  _visibleModule="Enable" _visibleSource="OUTPUT" />
-    </view>
+        <epi-head label="Epi"
+            gazeSource="G.OUTPUT"
+            pupilLeftSource="P.OUTPUT"
+            pupilRightSource="P.OUTPUT"
+            x="20" y="20"
+            width="300" height="300"
+            _visibleSource="Enable.OUTPUT"
+            offsetSource="Wave.OUTPUT"
+            irisLeftRed="WaveR.OUTPUT"
+            irisLeftGreen="WaveG.OUTPUT"
+            irisLeftBlue="WaveB.OUTPUT"
+            irisRightRed="WaveR.OUTPUT"
+            irisRightGreen="WaveG.OUTPUT"
+            irisRightBlue="WaveB.OUTPUT"
+        />
+
+        <bar-graph
+            x="20" y="400"
+            width="301"
+            height="301"
+            source="P.OUTPUT"
+        />
+
+        <bar-graph
+            x="320" y="400"
+            width="301"
+            height="301"
+            source="G.OUTPUT"
+            min = "-1"
+        />
+
+         <plot
+            x="620" y="400"
+            width="301"
+            height="301"
+            source="Wave.OUTPUT"
+            min = "-10"
+            max = "10"
+            decimals = "0"
+        />
+
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            source="WaveR.OUTPUT"
+            min = "0"
+            color = "red"
+        />
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            source="WaveG.OUTPUT"
+            min = "0"
+            color = "green"
+        />
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            source="WaveB.OUTPUT"
+            color = "blue"
+            min = "0"
+        />
+
+   </view>
     
     <view name="Controls">
         <button label="Press Me" module="R23T" parameter="data" x="40" y="40" width="100" height="100" />
@@ -25,8 +90,7 @@
             x="440" y="40"
             width="301"
             height="301"
-            module="CCC"
-            source="OUTPUT"
+            source="CCC.OUTPUT"
             title = "Bar Graph X"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -36,8 +100,7 @@
             x="440" y="440"
             width="301"
             height="301"
-            module="CCC"
-            source="OUTPUT"
+            source="CCC.OUTPUT"
             title = "Plot"
             _labels = "A, B, C, D, E, F, G"
             style = ""
@@ -176,8 +239,7 @@
             width="200"
             height="200"
             title="Gray Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
         />
 
         <grid
@@ -185,8 +247,7 @@
             width="200"
             height="200"
             title="Fire Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             fill = "fire"
         />
 
@@ -195,8 +256,7 @@
             width="200"
             height="200"
             title="Spectrum Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             fill = "spectrum"
         />
 
@@ -205,8 +265,7 @@
             width="200"
             height="200"
             title="Custom Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             colorTable = "black, red"
         />
 
@@ -215,8 +274,7 @@
             width="200"
             height="200"
             title="Default Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             shape = "circle"
             size = "0.5"
             fill = "custom"
@@ -228,8 +286,7 @@
             width="200"
             height="200"
             title="Default Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             shape = "square"
             size = "0.5"
             fill = "custom"
@@ -241,8 +298,7 @@
             width="400"
             height="200"
             title="Default Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             fill = "custom"
             colorTable = "purple, white, green, maroon"
             shape = "square"
@@ -253,8 +309,7 @@
             width="300"
             height="200"
             title="Default Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             shape = "circle"
             size = "0.5"
             fill = "custom"
@@ -268,8 +323,7 @@
             width="200"
             height="200"
             title="Default Grid"
-            module="RGrayGrid"
-            source="OUTPUT"
+            source="RGrayGrid.OUTPUT"
             shape = "rectangle"
             fill = "fire"
             labelWidth = "50"
@@ -281,8 +335,8 @@
             width="200"
             height="200"
             title="Gray Grid"
+            source="GridConst.OUTPUT"
             module="GridConst"
-            source="OUTPUT"
             parameter="data"
         />
 
@@ -291,11 +345,9 @@
             width="200"
             height="200"
             title="Gray Grid"
-            module="GridConst"
-            source="OUTPUT"
-            red="OUTPUT"
-            green="OUTPUT"
-            blue="OUTPUT"
+            red="GridConst.OUTPUT"
+            green="GridConst.OUTPUT"
+            blue="GridConst.OUTPUT"
             fill="rgb"
         />
     </view>
@@ -306,8 +358,7 @@
             width="200"
             height="200"
             title="Default Path"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             fill = "transparent"
         />
         <text
@@ -322,8 +373,7 @@
             width="200"
             height="200"
             title="Arrow"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "yes"
             fill = "transparent"
@@ -341,8 +391,7 @@
             width="200"
             height="200"
             title="Line caps and joins"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "18"
             lineCap = "round"
             lineJoin = "round"
@@ -362,8 +411,7 @@
             width="200"
             height="200"
             title="Filled closed path"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "no"
             fill = "yellow"
@@ -379,8 +427,7 @@
         
         <table
             title="Path data"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             x="900"
             y="20"
             width="200"
@@ -400,8 +447,7 @@
             width="200"
             height="200"
             title="Default Path"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             fill = "transparent"
             scales = "yes"
         />
@@ -417,8 +463,7 @@
             width="200"
             height="200"
             title="Arrow"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "yes"
             fill = "transparent"
@@ -437,8 +482,7 @@
             width="200"
             height="200"
             title="Line caps and joins"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "18"
             lineCap = "round"
             lineJoin = "round"
@@ -459,8 +503,7 @@
             width="200"
             height="200"
             title="Filled closed path"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "no"
             fill = "yellow"
@@ -481,8 +524,7 @@
             width="200"
             height="200"
             title="Triangles"
-            module="R"
-            source="OUTPUT"
+            source="R.OUTPUT"
             order="row"
             lineWidth = "3"
             arrow="no"
@@ -495,8 +537,7 @@
 
         <table
             title="Path Data"
-            module="R"
-            source="OUTPUT"
+            source="R.OUTPUT"
             x="240"
             y="620"
             width="500"
@@ -515,8 +556,7 @@
             width="200"
             height="200"
             title="Normal"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "yes"
             fill = "transparent"
@@ -536,8 +576,7 @@
             width="200"
             height="200"
             title="Flip x-axis"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "yes"
             fill = "transparent"
@@ -558,8 +597,7 @@
             width="200"
             height="200"
             title="Flip y-axis"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "yes"
             fill = "transparent"
@@ -580,8 +618,7 @@
             width="200"
             height="200"
             title="Flip both axes"
-            module="Lines"
-            source="OUTPUT"
+            source="Lines.OUTPUT"
             lineWidth = "4"
             arrow = "yes"
             fill = "transparent"
@@ -666,7 +703,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
         />
         
        <image
@@ -674,7 +711,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             flipXCanvas = "yes"
         />
         
@@ -683,7 +720,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             flipYCanvas = "yes"
         />
         
@@ -692,7 +729,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             flipXCanvas = "yes"
             flipYCanvas = "yes"
         />
@@ -703,7 +740,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             scales = "yes"
         />
         
@@ -726,8 +763,7 @@
             x="40" y="40"
             width="301"
             height="301"
-            module="R3x7"
-            source="OUTPUT"
+            source="R3x7.OUTPUT"
             title = "Bar Graph X"
             labels = "A, B"
             _labels_x = "X, Y, Z"
@@ -739,8 +775,7 @@
             x="340" y="40"
             width="301"
             height="301"
-            module="R3x7"
-            source="OUTPUT"
+            source="R3x7.OUTPUT"
             title = "Bar Graph X"
             labels = "A, B"
             style = ""
@@ -751,8 +786,7 @@
             x="40" y="400"
             width="300"
             height="300"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             title = "Bar Graph 2"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -762,8 +796,7 @@
             x="340" y="400"
             width="300"
             height="300"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             title = "Bar Graph 2"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -776,8 +809,7 @@
             x="40" y="40"
             width="301"
             height="301"
-            module="R3x7"
-            source="OUTPUT"
+            source="R3x7.OUTPUT"
             title = "Bar Graph X"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -787,8 +819,7 @@
             x="340" y="40"
             width="301"
             height="301"
-            module="R3x7"
-            source="OUTPUT"
+            source="R3x7.OUTPUT"
             title = "Bar Graph X"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -799,8 +830,7 @@
             x="40" y="400"
             width="300"
             height="300"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             title = "Bar Graph 2"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -810,8 +840,7 @@
             x="340" y="400"
             width="300"
             height="300"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             title = "Bar Graph 2"
             labels = "A, B, C, D, E, F, G"
             style = ""
@@ -819,17 +848,18 @@
         />
     </view>
 
+    <view name="Tables">
+        <table title="Default Table" source="R23T.OUTPUT" x="40" y="20" width="300" height="300" />
+        <table title="Colored Table" source="R23T.OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
+        <table title="Color by Sign" source="R23T.OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
+    </view>
+
+
 
     <view name="Graph">
         <graph x="40" y="40" width="400" height="400" labels_x = "A, B, C, D" labels_y="X, Y, Z, T" />
     </view>
 
-
-    <view name="Tables">
-        <table title="Default Table" module="R23T" source="OUTPUT" x="40" y="20" width="300" height="300" />
-        <table title="Colored Table" module="R23T" source="OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
-        <table title="Color by Sign" module="R23T" source="OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
-    </view>
 
 
 
@@ -845,8 +875,7 @@
                 x="40" y="40"
                 width="301"
                 height="301"
-                module="Randomic"
-                source="OUTPUT"
+                source="Randomic.OUTPUT"
                 title = "Plot"
             />
         </view>
@@ -914,6 +943,39 @@
         outputsize_x = "5"
         outputsize_y = "5"
         max = "1"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "Wave"
+        type = "sin"
+        frequency = "0.01"
+        amplitude = "10"
+    />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "WaveR"
+        type = "sin"
+        frequency = "0.01"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "WaveG"
+        type = "sin"
+        frequency = "0.017"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "WaveB"
+        type = "sin"
+        frequency = "0.013"
+        amplitude = "0.5"
+        offset = "0.5"
     />
 
     <module
@@ -1018,26 +1080,13 @@
 
     <module
         class = "FunctionGenerator"
-        name = "P1"
-        type = "sin"
-        frequency = "0.05"
-        offset = "1"
-        amplitude = "0.5"
-    />
-    <module
-        class = "FunctionGenerator"
-        name = "P2"
-        type = "sin"
-        frequency = "0.05"
-        offset = "1"
-        amplitude = "0.5"
-    />
-    <module
-        class = "Gate"
         name = "P"
+        type = "sin"
+        frequency = "0.01"
+        offset = "0.5"
+        amplitude = "0.2"
+        size = "2"
     />
-    <connection sourcemodule="P1" source="OUTPUT" targetmodule="P" target="INPUT" />
-    <connection sourcemodule="P2" source="OUTPUT" targetmodule="P" target="INPUT" />
     
     <module
         class = "FunctionGenerator"

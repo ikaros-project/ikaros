@@ -30,16 +30,17 @@ public:
     static Module * Create(Parameter * p) { return new FunctionGenerator(p); }
 
     int		t;
-    float *	output;
 
+    float   *	output;
+
+    int     size;
+    
     int		type;
-
-    float		offset;
-    float		amplitude;
-    float		frequency;
-    float		shift;
-    float		duty;
-
+    float	offset;
+    float	amplitude;
+    float	frequency;
+    float	shift;
+    float	duty;
     int		basetime;
     int		tickduty;
 
