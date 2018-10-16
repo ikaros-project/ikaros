@@ -346,7 +346,6 @@ webui-widget-table table {
 webui-widget-table td {
     border-top: none;
     border-bottom: 1px solid gray;
-    width: auto;
     text-align: right;
     padding-left: 10px;
     padding-right: 10px;
