@@ -703,7 +703,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
         />
         
        <image
@@ -711,7 +711,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             flipXCanvas = "yes"
         />
         
@@ -720,7 +720,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             flipYCanvas = "yes"
         />
         
@@ -729,7 +729,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             flipXCanvas = "yes"
             flipYCanvas = "yes"
         />
@@ -740,7 +740,7 @@
             width="201"
             height="201"
             title = "Fixed Image"
-            file = "bike2.png"
+            file = "bike.png"
             scales = "yes"
         />
         
@@ -848,17 +848,18 @@
         />
     </view>
 
-
-    <view name="Graph">
-        <graph x="40" y="40" width="400" height="400" labels_x = "A, B, C, D" labels_y="X, Y, Z, T" />
-    </view>
-
-
     <view name="Tables">
         <table title="Default Table" source="R23T.OUTPUT" x="40" y="20" width="300" height="300" />
         <table title="Colored Table" source="R23T.OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
         <table title="Color by Sign" source="R23T.OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
     </view>
+
+
+
+    <view name="Graph">
+        <graph x="40" y="40" width="400" height="400" labels_x = "A, B, C, D" labels_y="X, Y, Z, T" />
+    </view>
+
 
 
 
@@ -874,8 +875,7 @@
                 x="40" y="40"
                 width="301"
                 height="301"
-                module="Randomic"
-                source="OUTPUT"
+                source="Randomic.OUTPUT"
                 title = "Plot"
             />
         </view>
