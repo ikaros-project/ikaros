@@ -3,7 +3,7 @@
 <group name="Text" description="tests a text parameter">
 
 	<description type="text">
-		Module that tests parameters of type text.
+		Module that tests widget parameters of type text. The module has no other function and should probablly never be used.
 	</description>
 
 	<example description="A simple example">
