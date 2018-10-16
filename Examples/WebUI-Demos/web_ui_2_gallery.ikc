@@ -537,8 +537,7 @@
 
         <table
             title="Path Data"
-            module="R"
-            source="OUTPUT"
+            source="R.OUTPUT"
             x="240"
             y="620"
             width="500"
@@ -856,9 +855,9 @@
 
 
     <view name="Tables">
-        <table title="Default Table" module="R23T" source="OUTPUT" x="40" y="20" width="300" height="300" />
-        <table title="Colored Table" module="R23T" source="OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
-        <table title="Color by Sign" module="R23T" source="OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
+        <table title="Default Table" source="R23T.OUTPUT" x="40" y="20" width="300" height="300" />
+        <table title="Colored Table" source="R23T.OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
+        <table title="Color by Sign" source="R23T.OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
     </view>
 
 
