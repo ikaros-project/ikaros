@@ -5,7 +5,7 @@ class WebUIWidgetTable extends WebUIWidget
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+ //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             
             {'name': "STYLE", 'control':'header'},
@@ -51,19 +51,10 @@ class WebUIWidgetTable extends WebUIWidget
         }
     }
 
-    update(d)
+    update()
     {
-        if(!d)
-            return;
-        
-         try {
-            let m = this.parameters['module'];
-            let s = this.parameters['source'];
-            this.data = d[m][s];
-
-            if(!this.data)
-                return;
-
+        if(this.data = this.getSource('source'))
+        {
             let size_y = this.data.length;
             let size_x = this.data[0].length;
 
@@ -85,10 +76,6 @@ class WebUIWidgetTable extends WebUIWidget
                         this.table.rows[j].cells[i].style.color = this.getColor(i);
                     }
 
-          }
-        catch(err)
-        {
-            console.log(err);
         }
     }
 };
