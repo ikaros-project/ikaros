@@ -43,19 +43,24 @@
 
 // Messages to use with Notify
 
-const int    msg_fatal_error	=    1;
-const int    msg_exception		=    2;
-const int    msg_warning		=    3;
-const int    msg_print			=    4;
-const int    msg_end_of_file	=    5;
-const int    msg_terminate		=    6;
-const int    msg_verbose		=    7;
+const int    msg_exception		=    1;
+const int    msg_end_of_file	=    2;
+const int    msg_terminate		=    3;
+const int    msg_fatal_error	=    4;
+const int    msg_warning		=    5;
+const int    msg_print			=    6;
+const int    msg_debug          =    7;
+const int    msg_trace          =    8;
 
-// Print modes for Notify
+// Log level for Notify
 
-const int    print_silent		=    0;
-const int    print_normal		=    msg_print;
-const int    print_verbose		=    msg_verbose;
+const int    log_level_off		=    0;
+const int    log_level_fatal	=    3;
+const int    log_level_error	=    4;
+const int    log_level_warning	=    5;
+const int    log_level_info		=    6;
+const int    log_level_debug	=    7;
+const int    log_level_trace	=    8;
 
 // Size constant
 
@@ -307,7 +312,8 @@ private:
     const char *		instance_name;
 	char *				full_instance_name;
 
-    Kernel    *        kernel;
+    Kernel    *         kernel;
+    int                 log_level;
 
     Module_IO    *    input_list;        // List of inputs
     Module_IO    *    output_list;       // List of outputs
@@ -492,7 +498,7 @@ public:
 private:
     ModuleClass     *    classes;        // List of module classes
     
-    int                  print_mode;     // How much to print
+    int                  log_level;        // Global log level
     
     XMLDocument     *    xmlDoc;
     

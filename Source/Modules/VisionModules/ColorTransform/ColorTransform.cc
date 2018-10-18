@@ -179,7 +179,7 @@ ColorTransform::Init()
     transform	=	GetIntValueFromList("transform");
     scale		=	GetFloatValue("scale");
     
-    Notify(msg_verbose, "transform = %d\n", transform);
+    Notify(msg_debug, "transform = %d\n", transform);
 
     size_x	 	= GetInputSizeX("INPUT0");
     size_y	 	= GetInputSizeY("INPUT0");

@@ -136,7 +136,7 @@ InputJPEG::GetImageSize(int & x, int & y)
     (void) jpeg_read_header(&cinfo, TRUE);
     (void) jpeg_start_decompress(&cinfo);
 
-    Notify(msg_verbose, "Checking \"%s\"  (width = %d height = %d channels = %d)\n", fn, cinfo.output_width, cinfo.output_height, cinfo.output_components);
+    Notify(msg_debug, "Checking \"%s\"  (width = %d height = %d channels = %d)\n", fn, cinfo.output_width, cinfo.output_height, cinfo.output_components);
 
     x  = cinfo.output_width;
     y  = cinfo.output_height;
@@ -195,7 +195,7 @@ InputJPEG::Tick()
         (void) jpeg_read_header(&cinfo, TRUE);
         (void) jpeg_start_decompress(&cinfo);
         row_stride = cinfo.output_width * cinfo.output_components;
-        Notify(msg_verbose, "InputJPEG: width = %d height = %d components = %d\n", cinfo.output_width, cinfo.output_height, cinfo.output_components);
+        Notify(msg_debug, "InputJPEG: width = %d height = %d components = %d\n", cinfo.output_width, cinfo.output_height, cinfo.output_components);
 
         if (cinfo.output_width != (unsigned int)(size_x) ||  cinfo.output_height != (unsigned int)(size_y))
         {

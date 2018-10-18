@@ -91,7 +91,7 @@ InputRawImage::Tick()
     sprintf(fn, file_name, cur_image);
     file = fopen(fn, "rb");
 
-    Notify(msg_verbose, "Reading  \"%s\"\n", fn);
+    Notify(msg_debug, "Reading  \"%s\"\n", fn);
 
     if (file == NULL)
     {
@@ -121,7 +121,7 @@ InputRawImage::Tick()
     {
         cur_image = 0 ;
         iteration++;
-        Notify(msg_verbose, "InputRawImage: Iteration (%d/%d)\n", iteration-1, iterations);  fflush(NULL);
+        Notify(msg_debug, "InputRawImage: Iteration (%d/%d)\n", iteration-1, iterations);  fflush(NULL);
     }
 
     if (iterations != 0 && iteration > iterations)

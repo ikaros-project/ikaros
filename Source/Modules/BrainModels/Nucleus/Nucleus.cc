@@ -56,6 +56,9 @@ Nucleus::Init()
 void
 Nucleus::Tick()
 {
+    
+    Notify(msg_trace, "Test from %s\n", GetFullName());
+    
     if(scale)
     {
         if(excitation_size > 0)

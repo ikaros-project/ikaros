@@ -31,7 +31,7 @@ TheEyeTribe::Init()
 	
 	// Try to connect to server
 	if( m_api.connect() )
-		Notify(msg_verbose,"Connected");
+		Notify(msg_debug,"Connected");
 	else
 		Notify(msg_fatal_error, "Could not connect to TheEyeTribe server. Is it running?");
 	
@@ -39,12 +39,12 @@ TheEyeTribe::Init()
 	gtl::ServerState SS;
 	SS = m_api.get_server_state();
 	
-	Notify(msg_verbose,"Eye Tribe server state");
-	Notify(msg_verbose,"Version: %i",SS.version);
-	Notify(msg_verbose,"Trackerstate: %i",SS.trackerstate);
-	Notify(msg_verbose,"framerate: %i",SS.framerate);
-	Notify(msg_verbose,"isCalibrated: %i",SS.iscalibrated);
-	Notify(msg_verbose,"isCalibrating: %i",SS.iscalibrating);
+	Notify(msg_debug,"Eye Tribe server state");
+	Notify(msg_debug,"Version: %i",SS.version);
+	Notify(msg_debug,"Trackerstate: %i",SS.trackerstate);
+	Notify(msg_debug,"framerate: %i",SS.framerate);
+	Notify(msg_debug,"isCalibrated: %i",SS.iscalibrated);
+	Notify(msg_debug,"isCalibrating: %i",SS.iscalibrating);
 	
 	gtl::GazeData gaze_data;
 	m_api.get_frame(gaze_data);
