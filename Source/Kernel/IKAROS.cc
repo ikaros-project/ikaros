@@ -56,7 +56,7 @@ int         global_warning_count = 0;
 
 //#define USE_MALLOC_DEBUG
 
-#ifdef USE_MALLOC_DEBUG
+#ifndef USE_MALLOC_DEBUG
 
 void* operator new (std::size_t size) noexcept(false)
 {
@@ -90,7 +90,7 @@ size_t        mem_size[mem_max_blocks];
 bool          mem_block_deleted[mem_max_blocks];
 
 void *
-operator new (std::size_t size) throw (std::bad_alloc)
+operator new (std::size_t size) noexcept(false)
 {
     void *p=calloc(size, sizeof(char)); 
     if (p==0) // did calloc succeed?
@@ -111,7 +111,7 @@ operator new (std::size_t size) throw (std::bad_alloc)
 }
 
 void *
-operator new [] (std::size_t size) throw (std::bad_alloc)
+operator new [] (std::size_t size) noexcept(false)
 {
     return operator new(size);
 }
@@ -135,7 +135,7 @@ operator delete (void *p) throw()
             
             else
             {
-                mem_block[i] == NULL;
+                mem_block[i] = NULL;
                 mem_block_deleted[i] = true;
                 mem_block_deleted_count++;
                 mem_allocated -= malloc_size(p);
