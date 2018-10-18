@@ -114,7 +114,7 @@ InputVideoAV::InputVideoAV(Parameter * p):
 
 InputVideoAV::~InputVideoAV()
 {
-    Notify(msg_verbose, "Closing Grabber\n");
+    Notify(msg_debug, "Closing Grabber\n");
     
     [(AVGrab *)grabber stopSession];  
     [(AVGrab *)grabber release];

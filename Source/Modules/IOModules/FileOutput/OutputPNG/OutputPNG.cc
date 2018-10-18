@@ -324,7 +324,7 @@ OutputPNG::Tick()
     // If we are using a gating signal from outside, we're looking for it here
     if ((writesig != NULL) && ((!writesig[0]) > 0.0)) {
 
-	Notify(msg_verbose, " Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
+	Notify(msg_debug, " Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
 	cur_image++;
 	return;
     }
@@ -332,14 +332,14 @@ OutputPNG::Tick()
 	
     if(supress > cur_image)
     {
-	Notify(msg_verbose, "Supressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
+	Notify(msg_debug, "Supressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
 	cur_image++;
 	return;
     }
 
     file = fopen(fn, "wb");
 
-    Notify(msg_verbose, "Writing \"%s\" (%dx%d)\n", fn, size_x, size_y);
+    Notify(msg_debug, "Writing \"%s\" (%dx%d)\n", fn, size_x, size_y);
 
     if(file == NULL)
     {

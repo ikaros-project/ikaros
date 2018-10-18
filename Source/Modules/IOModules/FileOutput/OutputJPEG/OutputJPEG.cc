@@ -272,14 +272,14 @@ OutputJPEG::Tick()
 
     if(suppress > cur_image)
     {
-        Notify(msg_verbose, "Suppressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
+        Notify(msg_debug, "Suppressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
         cur_image++;
         return;
     }
     
     if(!trig)
     {
-        Notify(msg_verbose, "Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
+        Notify(msg_debug, "Write signal suppression: \"%s\" (%dx%d)\n", fn, size_x, size_y);
         if(!increase_file_no_on_trig)
             cur_image++;
         return;
@@ -287,7 +287,7 @@ OutputJPEG::Tick()
 
     file = fopen(fn, "wb");
 
-    Notify(msg_verbose, "Writing \"%s\" (%dx%d)\n", fn, size_x, size_y);
+    Notify(msg_debug, "Writing \"%s\" (%dx%d)\n", fn, size_x, size_y);
 
     if (file == NULL)
     {
