@@ -45,6 +45,7 @@ public:
     void        Stop();
     void        Record();
     void        Play();
+    void        SaveAsJSON();
     void 		Save();
     void 		Load();
 
@@ -87,6 +88,7 @@ public:
     float *     enable;
 
     const char * file_name;
+    const char * json_file_name;
     const char * directory;
 
     bool        record_on_trig;
