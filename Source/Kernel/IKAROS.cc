@@ -56,9 +56,9 @@ int         global_warning_count = 0;
 
 //#define USE_MALLOC_DEBUG
 
-#ifndef USE_MALLOC_DEBUG
+#ifdef USE_MALLOC_DEBUG
 
-void* operator new (std::size_t size) throw (std::bad_alloc)
+void* operator new (std::size_t size) noexcept(false)
 {
     void *p=calloc(size, sizeof(char)); 
     if (p==0) // did calloc succeed?
