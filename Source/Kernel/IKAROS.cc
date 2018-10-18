@@ -1568,8 +1568,6 @@ Module::SetSizes()
 	}
 }
 
-
-
 void
 Module::Notify(int msg)
 {
@@ -1589,6 +1587,8 @@ Module::Notify(int msg)
 void
 Module::Notify(int msg, const char *format, ...)
 {
+    if(msg>log_level)
+        return;
     char 	message[512];
     sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
@@ -1596,9 +1596,9 @@ Module::Notify(int msg, const char *format, ...)
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
-    if (kernel != NULL)
+    if (kernel != NULL && msg>=log_level)
     {
-        kernel->Notify(msg, message);
+        kernel->Notify(-msg, message);
     }
     else if (msg == msg_fatal_error)
     {
@@ -3150,7 +3150,7 @@ Kernel::ListProfiling()
 void
 Kernel::Notify(int msg, const char * format, ...)
 {
-    switch (msg)
+    switch (ikaros::abs(msg))
     {
         case msg_fatal_error:
             fatal_error_occurred = true;
@@ -3164,11 +3164,11 @@ Kernel::Notify(int msg, const char * format, ...)
         default:
             break;
     }
-    if (msg > log_level)
+    if(msg > log_level)
         return;
     char 	message[512];
     int n = 0;
-    switch (msg)
+    switch (ikaros::abs(msg))
     {
         case msg_fatal_error:
             n = snprintf(message, 512, "ERROR: ");
@@ -3189,7 +3189,7 @@ Kernel::Notify(int msg, const char * format, ...)
     }
     va_list 	args;
     va_start(args, format);
-    vsnprintf(&message[n], 512-n, format, args); // Fix #22 (public)
+    vsnprintf(&message[n], 512-n, format, args);
     va_end(args);
     printf("IKAROS: %s", message);
     if(message[strlen(message)-1] != '\n')

@@ -42,7 +42,6 @@
         class="Nucleus"
         name="PULV"
         beta="1"
-        log_level="8"
     />
 
     <connection sourcemodule="SC" source="OUTPUT" targetmodule="PULV" target="EXCITATION" />
