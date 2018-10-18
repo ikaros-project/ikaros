@@ -59,8 +59,8 @@ ImageConvolution::ImageConvolution(Parameter * p):
     for (int j=0; j<filtersize_y; j++)
     {
         for (int i=0; i<filtersize_x; i++)
-            Notify(msg_verbose, "%f\t", filter[j][i]);
-        Notify(msg_verbose, "\n");
+            Notify(msg_debug, "%f\t", filter[j][i]);
+        Notify(msg_debug, "\n");
     }
 
     // prescale filter coefficients

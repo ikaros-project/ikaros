@@ -92,7 +92,7 @@ Perceptron::Init()
     int i;
     float rand_weights_min, rand_weights_max;
 
-    Notify(msg_verbose, "Module Perceptron - perceptrons: %i\tweights: %i (incl bias)\n", target_size, input_size + 1);
+    Notify(msg_debug, "Module Perceptron - perceptrons: %i\tweights: %i (incl bias)\n", target_size, input_size + 1);
 
     train_tick = 0;
 
@@ -504,17 +504,17 @@ Perceptron::CheckParameters(float rw_min, float rw_max)
 {
     if (learning_rate < 0.001)
         Notify(msg_fatal_error, "Module Perceptron - faulty value '0' to parameter learning_rate.\n");
-    Notify(msg_verbose, "Module Perceptron - learning_rate is '%.2f'\n", learning_rate);
+    Notify(msg_debug, "Module Perceptron - learning_rate is '%.2f'\n", learning_rate);
     switch (learning_rate_mod){
         case DEFAULT:
             learning_rate_now = learning_rate;
-            Notify(msg_verbose, "Module Perceptron - learning_rate_mod is \"none\". learning_rate unmodified.\n");
+            Notify(msg_debug, "Module Perceptron - learning_rate_mod is \"none\". learning_rate unmodified.\n");
             break;
         case SQRT:
-            Notify(msg_verbose, "Module Perceptron - learning_rate_mod is 'sqrt'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rate_mod is 'sqrt'\n");
             break;
         case LOG:
-            Notify(msg_verbose, "Module Perceptron - learning_rate_mod is 'log'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rate_mod is 'log'\n");
             break;
         default:
             Notify(msg_fatal_error, "Module Perceptron - Weirdo value for learning_rate_mod (%i)\n", learning_rate_mod);
@@ -522,60 +522,60 @@ Perceptron::CheckParameters(float rw_min, float rw_max)
 
     if (bias == 0)
         Notify(msg_warning, "Module Perceptron - faulty value '0' for parameter bias?\n");
-    Notify(msg_verbose, "Module Perceptron - bias is '%.2f'\n", bias);
+    Notify(msg_debug, "Module Perceptron - bias is '%.2f'\n", bias);
 
     if (rw_min >= rw_max)
         Notify(msg_warning, "Module Perceptron - 'rand_weights_min' is not smaller than 'rand_weights_max'.\n");
     if (rw_min < -1 || rw_max > 1)
         Notify(msg_warning, "Module Perceptron - Really have the weights randomized outside interval -1 to 1?\n");
-    Notify(msg_verbose, "Module Perceptron - rand_weights_min=%.2f\trand_weights_max=%.2f\n", rw_min, rw_max);
+    Notify(msg_debug, "Module Perceptron - rand_weights_min=%.2f\trand_weights_max=%.2f\n", rw_min, rw_max);
 
     if (correct_average_size < 1)
         Notify(msg_fatal_error, "Module Perceptron - correct_average_size should be at least 1. (was %i).\n", correct_average_size);
 
     if (normalize_target == YES)
-        Notify(msg_verbose, "Module Perceptron - will normalize target!\n");
+        Notify(msg_debug, "Module Perceptron - will normalize target!\n");
 
     switch (learning_rule){
         case DEFAULT:
-            Notify(msg_verbose, "Module Perceptron - learning_rule defaults to 'rosenblatt'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rule defaults to 'rosenblatt'\n");
             learning_rule = ROSENBLATT;
             LearnUpdate = &Perceptron::LearnRosenblatt;
             break;
         case ROSENBLATT:
-            Notify(msg_verbose, "Module Perceptron - learning_rule is 'rosenblatt'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rule is 'rosenblatt'\n");
             LearnUpdate = &Perceptron::LearnRosenblatt;
             break;
         case ROSENBLATT_MARGIN:
-            Notify(msg_verbose, "Module Perceptron - learning_rule is 'rosenblatt_margin'\n");
-            Notify(msg_verbose, "Module Perceptron - margin is '%.2f'\n", margin);
+            Notify(msg_debug, "Module Perceptron - learning_rule is 'rosenblatt_margin'\n");
+            Notify(msg_debug, "Module Perceptron - margin is '%.2f'\n", margin);
             tmp_memory = create_array(input_size + 1);
             LearnUpdate = &Perceptron::LearnRosenblattMargin;
             break;
         case MAY:
-            Notify(msg_verbose, "Module Perceptron - learning_rule is 'may'\n");
-            Notify(msg_verbose, "Module Perceptron - margin is '%.2f'\n", margin);
+            Notify(msg_debug, "Module Perceptron - learning_rule is 'may'\n");
+            Notify(msg_debug, "Module Perceptron - margin is '%.2f'\n", margin);
             tmp_memory = create_array(input_size + 1);
             LearnUpdate = &Perceptron::LearnMay;
             break;
         case ALPHA_LMS:
-            Notify(msg_verbose, "Module Perceptron - learning_rule is 'alpha_lms'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rule is 'alpha_lms'\n");
             if (alpha <= 0 || alpha >= 2)
                 Notify(msg_fatal_error, "Module Perceptron - alpha has nonsens value '%.2f'\n", alpha);
-            Notify(msg_verbose, "Module Perceptron - alpha is '%.2f'\n", alpha);
+            Notify(msg_debug, "Module Perceptron - alpha is '%.2f'\n", alpha);
             tmp_memory = create_array(input_size + 1);
             LearnUpdate = &Perceptron::LearnAlpha_LMS;
             break;
         case MU_LMS:
-            Notify(msg_verbose, "Module Perceptron - learning_rule is 'mu_lms'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rule is 'mu_lms'\n");
             if (mu <= 0)
                 Notify(msg_fatal_error, "Module Perceptron - mu has nonsens value '%.2f'\n", mu);
-            Notify(msg_verbose, "Module Perceptron - mu is '%.2f'\n", mu);
+            Notify(msg_debug, "Module Perceptron - mu is '%.2f'\n", mu);
             tmp_memory = create_array(input_size + 1);
             LearnUpdate = &Perceptron::LearnMu_LMS;
             break;
         case DELTA:
-            Notify(msg_verbose, "Module Perceptron - learning_rule is 'delta'\n");
+            Notify(msg_debug, "Module Perceptron - learning_rule is 'delta'\n");
             if (activation_type != SIGMOID && activation_type != TANH)
                 Notify(msg_fatal_error, "Module Perceptron - activation type must be 'sigmoid' or 'tanh' with learning rule 'delta'!\n");
             if (beta <= 0) // is this sound???
@@ -589,29 +589,29 @@ Perceptron::CheckParameters(float rw_min, float rw_max)
     }
     switch (activation_type){
         case DEFAULT:
-            Notify(msg_verbose, "Module Perceptron - activation_type defaults to 'step'\n");
+            Notify(msg_debug, "Module Perceptron - activation_type defaults to 'step'\n");
             activation_type = STEP;
             Activate = &Perceptron::ActivateStep;
             break;
         case STEP:
-            Notify(msg_verbose, "Module Perceptron - activation_type is 'step'\n");
-            Notify(msg_verbose, "Module Perceptron - step_threshold is %.2f\n", step_threshold);
+            Notify(msg_debug, "Module Perceptron - activation_type is 'step'\n");
+            Notify(msg_debug, "Module Perceptron - step_threshold is %.2f\n", step_threshold);
             if (learning_rule == ROSENBLATT_MARGIN || learning_rule == MAY)
                 Notify(msg_fatal_error, "Module Perceptron - Activation types 'step' and 'sigmoid' do not work with learning rules 'rosenblatt_margin' and 'may'!\n");
             Activate = &Perceptron::ActivateStep;
             break;
         case SIGN:
-            Notify(msg_verbose, "Module Perceptron - activation_type is 'sign'\n");
+            Notify(msg_debug, "Module Perceptron - activation_type is 'sign'\n");
             Activate = &Perceptron::ActivateSign;
             break;
         case SIGMOID:
-            Notify(msg_verbose, "Module Perceptron - activation_type is 'sigmoid'\n");
+            Notify(msg_debug, "Module Perceptron - activation_type is 'sigmoid'\n");
             if (learning_rule == ROSENBLATT_MARGIN || learning_rule == MAY)
                 Notify(msg_fatal_error, "Module Perceptron - Activation types 'step' and 'sigmoid' do not work with learning rules 'rosenblatt_margin' and 'may'!\n");
             Activate = &Perceptron::ActivateSigmoid;
             break;
         case TANH:
-            Notify(msg_verbose, "Module Perceptron - activation_type is 'tanh'\n");
+            Notify(msg_debug, "Module Perceptron - activation_type is 'tanh'\n");
             Activate = &Perceptron::ActivateTanh;
             break;
         default:
@@ -620,28 +620,28 @@ Perceptron::CheckParameters(float rw_min, float rw_max)
     }
     switch (learning_type){
         case DEFAULT:
-            Notify(msg_verbose, "Module Perceptron - learning_type defaults to 'instant'\n");
+            Notify(msg_debug, "Module Perceptron - learning_type defaults to 'instant'\n");
             learning_type = INSTANT;
             break;
         case INSTANT:
-            Notify(msg_verbose, "Module Perceptron - learning_type is 'instant'\n");
+            Notify(msg_debug, "Module Perceptron - learning_type is 'instant'\n");
             break;
         case BATCH:
-            Notify(msg_verbose, "Module Perceptron - learning_type is 'batch'\n");
+            Notify(msg_debug, "Module Perceptron - learning_type is 'batch'\n");
             if (batch_size < 1)
                 Notify(msg_fatal_error, "Module Perceptron - batch_size is <0. This just doesnt work.\n");
             if (batch_size == 1)
                 Notify(msg_warning, "Module Perceptron - batch_size is 1. This is the same as learning_type == 'instant'. But ok, lets go.\n");
             else
-                Notify(msg_verbose, "Module Perceptron - batch_size is %i. Lets go!\n", batch_size);
+                Notify(msg_debug, "Module Perceptron - batch_size is %i. Lets go!\n", batch_size);
             batch_memory = create_matrix(input_size + 1, target_size);
             batch_errors_seen = 0;
             break;
         case MOMENTUM:
-            Notify(msg_verbose, "Module Perceptron - learning_type is 'momentum'\n");
+            Notify(msg_debug, "Module Perceptron - learning_type is 'momentum'\n");
             if (momentum_ratio <= 0 || momentum_ratio >= 1)
                 Notify(msg_fatal_error, "Module Perceptron - momentum_ratio is outside reasonable range. Please set it between 0 an 1 (excluding).\n");
-            Notify(msg_verbose, "Module Perceptron - momentum_ratio is '%.2f'\n", momentum_ratio);
+            Notify(msg_debug, "Module Perceptron - momentum_ratio is '%.2f'\n", momentum_ratio);
             m_ratio_1 = 1 - momentum_ratio;         // see DoMomentum() for explanation
             m_ratio_2 = momentum_ratio / m_ratio_1; // see DoMomentum() for explanation
             momentum_memory = create_matrix(input_size + 1, target_size);

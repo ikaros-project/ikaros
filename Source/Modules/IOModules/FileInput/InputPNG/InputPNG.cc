@@ -193,7 +193,7 @@ InputPNG::SetSizes()
 		&p_color_type,
 		NULL, NULL, NULL);
 
-	Notify (msg_verbose, "%s: Width:%d Height:%d Depth:%d Color:%d \n", 
+	Notify (msg_debug, "%s: Width:%d Height:%d Depth:%d Color:%d \n", 
 		fn, p_width, p_height, p_bdepth, p_color_type);
 
 	size_x = int(p_width);
@@ -339,7 +339,7 @@ InputPNG::Tick()
 		NULL, NULL, NULL);
 	p_channels = png_get_channels (png_ptr, info_ptr);
 
-	Notify (msg_verbose, "%s: Width:%d Height:%d Depth:%d Color:%d Channels:%d\n", 
+	Notify (msg_debug, "%s: Width:%d Height:%d Depth:%d Color:%d Channels:%d\n", 
 		fn, p_width, p_height, p_bdepth, p_color_type, p_channels);
 	
 

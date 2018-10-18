@@ -136,7 +136,7 @@ OutputFile::~OutputFile()
     for (int i=0; i<no_of_columns; i++)
     {
 #ifdef DEBUG
-        Notify(msg_verbose, "      Deleting char * \"%s\".\n", column_name[i]);
+        Notify(msg_debug, "      Deleting char * \"%s\".\n", column_name[i]);
 #endif
         delete [] column_name[i];
     }

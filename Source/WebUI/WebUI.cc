@@ -580,22 +580,22 @@ WebUI::WebUI(Kernel * kernel)
     if (k->options->GetOption('w'))
     {
         port = string_to_int(k->options->GetArgument('w'), PORT);
-        k->Notify(msg_verbose, "Setting up WebUI port at %d\n", port);
+        k->Notify(msg_debug, "Setting up WebUI port at %d\n", port);
     }
 	
     if (k->options->GetOption('R'))
     {
         port = string_to_int(k->options->GetArgument('R'), PORT);
-        k->Notify(msg_verbose, "Setting up WebUI port at %d\n", port);
+        k->Notify(msg_debug, "Setting up WebUI port at %d\n", port);
         if(k->options->GetOption('r'))
         {
             ui_state = ui_state_realtime;
-            k->Notify(msg_verbose, "Setting real-time mode.\n");
+            k->Notify(msg_debug, "Setting real-time mode.\n");
         }
         else
         {
             ui_state = ui_state_run;
-            k->Notify(msg_verbose, "Setting run mode.\n");
+            k->Notify(msg_debug, "Setting run mode.\n");
         }
         isRunning = true;
     }
@@ -603,7 +603,7 @@ WebUI::WebUI(Kernel * kernel)
     if (k->options->GetOption('W'))
     {
         port = string_to_int(k->options->GetArgument('W'), PORT);
-        k->Notify(msg_verbose, "Setting up WebUI port at %d in debug mode\n", port);
+        k->Notify(msg_debug, "Setting up WebUI port at %d in debug mode\n", port);
         debug_mode = true;
     }
 	
