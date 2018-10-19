@@ -161,7 +161,7 @@ CSOM_L::Init()
 	{
 		for(int y=0; y<rf_size_y; y++)
 			for(int x=0; x<rf_size_x; x++)
-				arbor[y][x] = max(0.0f, 1.0f-sqr(hypot(x-c, y-c))/sqr(r));
+				arbor[y][x] = max(0.0f, 1.0f-sqr(ikaros::hypot(x-c, y-c))/sqr(r));
 	}
 
     w	= new float *** [som_size_y];
@@ -231,15 +231,15 @@ N(int topology, int neighborhood, int i, int j, int mx, int my, int size_x, int 
 
     if(topology==1) // torus
     {
-        dx = min(abs(dx), min(abs(dx-size_x), abs(dx+size_x)));
-        dy = min(abs(dy), min(abs(dy-size_y), abs(dy+size_y)));
+        dx = min(ikaros::abs(dx), min(ikaros::abs(dx-size_x), ikaros::abs(dx+size_x)));
+        dy = min(ikaros::abs(dy), min(ikaros::abs(dy-size_y), ikaros::abs(dy+size_y)));
     }
 
     switch(neighborhood)
     {
-        case 0: return gaussian1(hypot(dx, dy), sigma);
+        case 0: return gaussian1(ikaros::hypot(dx, dy), sigma);
         case 1: return dx*dx+dy*dy < sigma*sigma ? 1 : 0;
-        case 2: return abs(dx)+abs(dy) < sigma ? 1 : 0;
+        case 2: return ikaros::abs(dx)+ikaros::abs(dy) < sigma ? 1 : 0;
         case 3: return dx*dx+dy*dy < sigma*sigma ? 1/((1+dx*dx+dy*dy)/sigma) : 0;   // ogenomtänkt men ok tror jag
         default: return 0;
     }

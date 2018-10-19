@@ -238,10 +238,6 @@ public:
     int        GetOutputSizeX(const char * name);                   // Get the horizontal size of an output array
     int        GetOutputSizeY(const char * name);                   // Get the vertical size of an output array (1 if one-dimensional)
 
-    bool        InputConnected(const char * name);                // True if input receives at least one connection
-    bool        OutputConnected(const char * name);               // True if output is connected to at least one module
-
-
     void            StoreArray(const char * path, const char * name, float * a, int size);
     void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
 
@@ -450,9 +446,6 @@ public:
     XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			ReadXML();
-    
-    bool		InputConnected(Module * m, const char * input_name);
-    bool        OutputConnected(Module * m, const char * output_name);
     
     std::string JSONString();
 

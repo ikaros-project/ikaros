@@ -1352,20 +1352,6 @@ Module::GetOutputSizeY(const char * name)
 }
 
 
-[[deprecated]] bool
-Module::InputConnected(const char * name)
-{
-    Notify(msg_warning, "InputConnected is deprecated and will be removed in future versions.\n");
-    return kernel->InputConnected(this, name);
-}
-
-
-[[deprecated]] bool
-Module::OutputConnected(const char * name)
-{
-    return kernel->OutputConnected(this, name);
-}
-
 
 void
 Module::SetOutputSize(const char * name, int x, int y)
@@ -2983,22 +2969,7 @@ Kernel::CalculateDelays()
     }
 }
 
-bool
-Kernel::InputConnected(Module * m, const char * input_name)
-{
-    return m->GetInputArray(input_name, false) != NULL;
-}
 
-bool
-Kernel::OutputConnected(Module * m, const char * output_name)
-{
-    if (connections == NULL)
-        return false;
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->source_io->module == m && m->GetModule_IO(m->output_list, output_name) == c->source_io)
-            return true;
-    return false;
-}
 
 void
 Kernel::ListInfo()
