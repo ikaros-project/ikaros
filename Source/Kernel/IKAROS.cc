@@ -2301,9 +2301,8 @@ Kernel::Init()
         for(const auto& s : pair.second->outgoing_connection)
             printf("%s -> %s\n", pair.first.c_str(), s.c_str());
 
+    DetectCycles(); // FIXME: not necessary, done in TSortModules()
 
-
-    DetectCycles();
     if(fatal_error_occurred)
         return;
     SortModules();
@@ -2434,6 +2433,10 @@ Kernel::AddModule(Module * m)
     m->next = modules;
     modules = m;
     m->kernel = this;
+
+    // 2.0
+
+    _modules.push_back(m);
 }
 
 
@@ -2891,6 +2894,54 @@ Kernel::DetectCycles()
 
 
 
+/*
+
+L ← Empty list that will contain the sorted nodes
+while there are unmarked nodes do
+    select an unmarked node n
+    visit(n)
+
+ function visit(node n)
+    if n has a permanent mark (2) then return
+    if n has a temporary mark (1) then stop   (not a DAG)
+    mark n temporarily
+    for each node m with an edge from n to m do
+        visit(m)
+    mark n permanently (2)
+    add n to head of L
+
+*/
+
+
+void
+Kernel::TSortVisit(Module * n, std::deque<Module *> & _sorted_modules)
+{
+    if(n->mark == 2)
+        return;
+
+    if(n->mark == 1)
+        return; // ERROR not a DAG
+
+    n->mark = 1;
+    for(Module * m in n.output)
+        TSortVisit(m, _sorted_modules);
+    n->mark = 2
+    // add n to head of _sorted_modules
+}
+
+
+
+void
+Kernel::TSortModules()
+{
+    std::deque<Module *> _sorted_modules;
+    for(int i=0; i<_modules.size(); i++)
+        if(!module->mark)
+            TSortVisit(_modules[i], _sorted_modules);
+}
+
+
+
 void
 Kernel::SortModules()
 {
@@ -2906,6 +2957,8 @@ Kernel::SortModules()
 
     // Build a new sorted list of modules (precedence order) using selection sort
     Module * sorted_modules = NULL;
+
+
     while (modules != NULL)
     {
         // Find smallest module
@@ -3566,26 +3619,26 @@ Kernel::ReadXML()
         return;
     }
     
-    // Set default parameters - TODO: could handle batch arguments here as well in the future
+    // Set default parameters
     
     xml->SetAttribute("log_level", create_formatted_string("%d", log_level));
     
     // Build The Main Group
-    
-    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute
+/*
+    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute // TODO: SHOULD PROBABLY BE REMOVED
     {
         const char * name = GetXMLAttribute(xml, "name"); // Instantiate name and title from command line options if not set in the file
         if(name)
             xml->SetAttribute("name", name);
     }
     
-    if(!xml->GetAttribute("title"))
+    if(!xml->GetAttribute("title")) // TODO: SHOULD PROBABLY BE REMOVED
     {
         const char * title = GetXMLAttribute(xml, "title");
         if(title)
             xml->SetAttribute("title", title);
     }
-    
+*/
     // 2.0 create top group
     
     main_group = new GroupElement();
@@ -3594,7 +3647,7 @@ Kernel::ReadXML()
     
     std::time_t result = std::time(nullptr);
     main_group->attributes.insert({ "session-id", std::to_string(result) });
-    session_id = result; // temporary
+    session_id = result; // temporary, get from top level group
     
     BuildGroup(main_group, xml);
     if (options->GetOption('x'))
@@ -3606,6 +3659,7 @@ Kernel::ReadXML()
 }
 
 
+// The following lines will create the kernel the first time it is accessed by on of the modules
 
 Kernel& kernel()
 {

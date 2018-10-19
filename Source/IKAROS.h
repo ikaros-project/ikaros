@@ -62,19 +62,19 @@ const int    log_level_info		=    6;
 const int    log_level_debug	=    7;
 const int    log_level_trace	=    8;
 
-// Size constant
-
-const int    unknown_size		=    -1;
-
 // Binding constants - type constants
 
-const int bind_float    = 0;
-const int bind_int      = 1;
-const int bind_bool     = 2;
-const int bind_list     = 3;
-const int bind_array    = 4;
-const int bind_matrix   = 5;
-const int bind_string   = 6;
+const int   bind_float    = 0;
+const int   bind_int      = 1;
+const int   bind_bool     = 2;
+const int   bind_list     = 3;
+const int   bind_array    = 4;
+const int   bind_matrix   = 5;
+const int   bind_string   = 6;
+
+// Size constant
+
+const int    unknown_size   =    -1;
 
 // Forward declarations
 
@@ -173,13 +173,15 @@ public:
 //
 // Module_IO is used internally by Module and Kernel to represent the input and output connections of a module
 //
+// data: matrix[***], optional, allow_multiple, module, name, max_delay
+// methods: delay_output - could be a matrix function => no methods
 
 class Module_IO
 {
 public:
     int                 sizex;        // no of columns    *** made public for WebUI ***
     int                 sizey;        // no of rows
-    float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes in 0.8.0 for delays
+    float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes for delays
     bool                optional;
     bool                allow_multiple;
 private:
@@ -190,10 +192,8 @@ private:
     void                SetSize(int x, int y=1);
     void                DelayOutputs();
     
-    
     Module_IO   *   next;
     Module      *   module;
-    //const char  *   name;
     std::string     name;
     float       **  data;        // Array for delays
     int             size;        // should equal sizex*sizey
@@ -212,6 +212,7 @@ private:
 //
 // Module is the base class for all simulation modules
 //
+// Bind(io_matrix_or_variable, "name") should replace all GetValue and GetInput/Output and get_size
 
 class Module
 {
@@ -309,19 +310,21 @@ private:
 	char *				full_instance_name;
 
     Kernel    *         kernel;
-    int                 log_level;
 
     Module_IO    *    input_list;        // List of inputs
     Module_IO    *    output_list;       // List of outputs
     Binding      *      bindings;
 
+    // Exposed as parameters
+
     int                period;           // How often should the module tick
     int                phase;            // Phase when the module ticks
     bool               active;           // If false, will not call Tick()
+    int                log_level;
 
-    Timer *            timer;            // Statistics variables
-    float            time;
-    float            ticks;
+    Timer *             timer;            // Statistics variables
+    float               time;
+    float               ticks;
 
     void            DelayOutputs();
 
@@ -439,7 +442,8 @@ public:
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
     void        SendCommand(XMLElement * group, const char * group_name, const char * command_name, int x, int y, std::string value);
-    
+
+
     int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     
@@ -498,8 +502,9 @@ private:
     GroupElement    *    main_group;     // 2.0 main group
     long                 session_id;     // 2.0 temporary
     
-    std::map<std::string, Module *>     module_map;
-    
+    std::map<std::string, Module *>     module_map; // 2.0
+    std::vector <Module *>  _modules;               // 2.0
+
     Module          *    modules;        // List of modules
     Connection      *    connections;    // List of connections
     bool                 useThreads;
@@ -524,9 +529,13 @@ private:
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
     bool        Precedes(Module * a, Module * b);
-    void        DetectCycles();                                 // Find zero-delay loops in the connections
+    void        DetectCycles();                               // Find zero-delay loops in the connections
     void        SortModules();                                // Sort modules in precedence order
-    void        TopSortModules();                                // Sort modules in precedence order
+
+    void        TSortVisit(Module * n, std::deque<Module *> & _sorted_modules);
+    void        TSortModules();                               // Sort modules using topological sort
+    
+    void        TopSortModules();                             // Sort modules in precedence order
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     
     void        InitInputs();                                 // Allocate memory for inputs in all modules
@@ -534,9 +543,9 @@ private:
     void        AllocateOutputs();                            // Allocate memory for outputs
     void        InitModules();                                // Init all modules; called by Init()
     
-    int         CalculateInputSize(Module_IO * i);             // Calculate the size of the input using connections to it
-    int         CalculateInputSizeX(Module_IO * i);            // Calculate the size of the input using connections to it
-    int         CalculateInputSizeY(Module_IO * i);            // Calculate the size of the input using connections to it
+    int         CalculateInputSize(Module_IO * i);            // Calculate the size of the input using connections to it
+    int         CalculateInputSizeX(Module_IO * i);           // Calculate the size of the input using connections to it
+    int         CalculateInputSizeY(Module_IO * i);           // Calculate the size of the input using connections to it
     
     void        NotifySizeChange();
     

@@ -851,10 +851,10 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     long int s = 0;
 
     // Send
-    
+
     Dictionary header;
 	
-    header.Set("Session-Id", std::to_string(k->session_id).c_str());
+    header.Set("Session-Id", std::to_string(k->session_id).c_str()); // FIXME: GetValue("session_id")
     header.Set("Content-Type", "application/json");
     header.Set("Cache-Control", "no-cache");
     header.Set("Cache-Control", "no-store");
