@@ -2905,9 +2905,12 @@ Kernel::AddToThreadGroup(ThreadGroup * tg, Module * m, std::deque<Module *> & so
     for (Module * n : m->connects_to_with_zero_delay)
     {
         std::deque<Module *>::iterator f = find(sorted_modules.begin(), sorted_modules.end(), n);
-        Module * x = *f;
-        sorted_modules.erase(f);
-        AddToThreadGroup(tg, x, sorted_modules);
+        if(f != sorted_modules.end())
+        {
+            Module * x = *f;
+            sorted_modules.erase(f);
+            AddToThreadGroup(tg, x, sorted_modules);
+        }
     }
 }
 
@@ -2956,16 +2959,14 @@ Kernel::TSortVisit(std::deque<Module *> & sorted_modules, Module * n)
     if(n->mark == 1)
         return false; // ERROR not a DAG
 
-    bool isDAG = true;
     n->mark = 1;
     for(Module * m : n->connects_to_with_zero_delay)
-        if(!(isDAG &= TSortVisit(sorted_modules, m)))
+        if(!TSortVisit(sorted_modules, m))
             return false;
     
     n->mark = 2;
-
     sorted_modules.push_front(n);
-    return isDAG;
+    return true;
 }
 
 
@@ -2974,35 +2975,27 @@ void
 Kernel::TSortModules()
 {
     std::deque<Module *> sorted_modules;
-    bool isDAG = true;
     for(int i=0; i<_modules.size(); i++)
         if(!_modules[i]->mark)
-            isDAG &= TSortVisit(sorted_modules, _modules[i]);
+            if(!TSortVisit(sorted_modules, _modules[i]))
+            {
+                Notify(msg_fatal_error, "Network contains loop with zero-connections");
+                return;
+            }
 
-    if(!isDAG)
-    {
-        Notify(msg_fatal_error, "Network contains loop with zero-connections");
-    }
-    else
-    {
-        // PRINT SORTED MODULE LIST
+    // PRINT SORTED MODULE LIST
         
-        printf("\n\n\n\n**********************************************************\n");
-        for(Module * m : sorted_modules)
-        {
-            std::cout << m->GetFullName() << '\n';
-        }
-        printf("**********************************************************\n");
-    }
+    printf("\n\n\n\n**********************************************************\n");
+    for(Module * m : sorted_modules)
+        std::cout << m->GetFullName() << '\n';
+    printf("**********************************************************\n");
     
     CreateThreadGroups(sorted_modules);
     for(ThreadGroup * tg : _threadGroups)
     {
         std::cout << "Thread Group:\n";
         for(Module * m : tg->_modules)
-        {
-                std::cout << "\t" << m->GetFullName() << '\n';
-        }
+            std::cout << "\t" << m->GetFullName() << '\n';
     }
     printf("**********************************************************\n\n\n\n\n");
 }

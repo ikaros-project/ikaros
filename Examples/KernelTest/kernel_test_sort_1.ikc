@@ -15,7 +15,7 @@
 
     <connection sourcemodule="C"  source="OUTPUT" targetmodule="M1" target="INPUT" delay="0" />
     <connection sourcemodule="M3" source="OUTPUT" targetmodule="M4" target="INPUT" delay="1" />
-    <connection sourcemodule="M1" source="OUTPUT" targetmodule="M2" target="INPUT" delay="0" />
-    <connection sourcemodule="M2" source="OUTPUT" targetmodule="M3" target="INPUT" delay="0" />
+    <connection sourcemodule="M1" source="OUTPUT" targetmodule="M2" target="INPUT" delay="1" />
+    <connection sourcemodule="M2" source="OUTPUT" targetmodule="M1" target="INPUT" delay="0" />
 </group>
 
