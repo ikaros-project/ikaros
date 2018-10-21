@@ -2899,7 +2899,7 @@ Kernel::DetectCycles()
 
 
 void
-Kernel::AddToThreadGroup(ThreadGroup * tg, Module * m, std::deque<Module *> & sorted_modules)
+Kernel::AddToThreadGroup(ThreadGroup * tg, Module * m, std::deque<Module *> & sorted_modules)   // TODO: Fix period constarins as well!!!
 {
     tg->_modules.push_back(m);
     for (Module * n : m->connects_to_with_zero_delay)
