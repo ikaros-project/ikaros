@@ -2290,7 +2290,11 @@ Kernel::Init()
         module_map.insert({ m->GetFullName(), m });
 
     for (Connection * c = connections; c != NULL; c = c->next)
+    {
         module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
+        if(c->delay == 0)
+            module_map[c->source_io->module->GetFullName()]->connects_to_with_zero_delay.push_back(c->target_io->module);
+    }
 
     printf("MODULES:\n");
     for(const auto& pair : module_map)
@@ -2301,7 +2305,7 @@ Kernel::Init()
         for(const auto& s : pair.second->outgoing_connection)
             printf("%s -> %s\n", pair.first.c_str(), s.c_str());
 
-    DetectCycles(); // FIXME: not necessary, done in TSortModules()
+    TSortModules();
 
     if(fatal_error_occurred)
         return;
@@ -2894,7 +2898,37 @@ Kernel::DetectCycles()
 
 
 
+void
+Kernel::AddToThreadGroup(ThreadGroup * tg, Module * m, std::deque<Module *> & sorted_modules)
+{
+    tg->_modules.push_back(m);
+    for (Module * n : m->connects_to_with_zero_delay)
+    {
+        std::deque<Module *>::iterator f = find(sorted_modules.begin(), sorted_modules.end(), n);
+        Module * x = *f;
+        sorted_modules.erase(f);
+        AddToThreadGroup(tg, x, sorted_modules);
+    }
+}
+
+
+
+void
+Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)
+{
+    while(!sorted_modules.empty())
+    {
+        ThreadGroup * tg = new ThreadGroup(this);
+        _threadGroups.push_back(tg);
+        Module * m = sorted_modules.front();
+        sorted_modules.pop_front();
+        AddToThreadGroup(tg, m, sorted_modules);
+    }
+}
+
 /*
+
+Topological Sort:
 
 L ← Empty list that will contain the sorted nodes
 while there are unmarked nodes do
@@ -2913,20 +2947,25 @@ while there are unmarked nodes do
 */
 
 
-void
-Kernel::TSortVisit(Module * n, std::deque<Module *> & _sorted_modules)
+bool
+Kernel::TSortVisit(std::deque<Module *> & sorted_modules, Module * n)
 {
     if(n->mark == 2)
-        return;
+        return true;
 
     if(n->mark == 1)
-        return; // ERROR not a DAG
+        return false; // ERROR not a DAG
 
+    bool isDAG = true;
     n->mark = 1;
-    for(Module * m in n.output)
-        TSortVisit(m, _sorted_modules);
-    n->mark = 2
-    // add n to head of _sorted_modules
+    for(Module * m : n->connects_to_with_zero_delay)
+        if(!(isDAG &= TSortVisit(sorted_modules, m)))
+            return false;
+    
+    n->mark = 2;
+
+    sorted_modules.push_front(n);
+    return isDAG;
 }
 
 
@@ -2934,10 +2973,38 @@ Kernel::TSortVisit(Module * n, std::deque<Module *> & _sorted_modules)
 void
 Kernel::TSortModules()
 {
-    std::deque<Module *> _sorted_modules;
+    std::deque<Module *> sorted_modules;
+    bool isDAG = true;
     for(int i=0; i<_modules.size(); i++)
-        if(!module->mark)
-            TSortVisit(_modules[i], _sorted_modules);
+        if(!_modules[i]->mark)
+            isDAG &= TSortVisit(sorted_modules, _modules[i]);
+
+    if(!isDAG)
+    {
+        Notify(msg_fatal_error, "Network contains loop with zero-connections");
+    }
+    else
+    {
+        // PRINT SORTED MODULE LIST
+        
+        printf("\n\n\n\n**********************************************************\n");
+        for(Module * m : sorted_modules)
+        {
+            std::cout << m->GetFullName() << '\n';
+        }
+        printf("**********************************************************\n");
+    }
+    
+    CreateThreadGroups(sorted_modules);
+    for(ThreadGroup * tg : _threadGroups)
+    {
+        std::cout << "Thread Group:\n";
+        for(Module * m : tg->_modules)
+        {
+                std::cout << "\t" << m->GetFullName() << '\n';
+        }
+    }
+    printf("**********************************************************\n\n\n\n\n");
 }
 
 
@@ -2957,7 +3024,6 @@ Kernel::SortModules()
 
     // Build a new sorted list of modules (precedence order) using selection sort
     Module * sorted_modules = NULL;
-
 
     while (modules != NULL)
     {
@@ -2999,17 +3065,6 @@ Kernel::SortModules()
         threadGroups->AddModule(m);
 }
 
-
-void
-Kernel::TopSortModules()
-{
-    // Add list of connections to each module
-    
-    for (Connection * c = connections; c != NULL; c = c->next)
-    {
-    }
-
-}
 
 
 void

@@ -29,6 +29,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <deque>
 
 #define VERSION "2.0"
 
@@ -260,6 +261,9 @@ public:
     // TEMPORARY - outgoing zero delays
     
     std::set<std::string> outgoing_connection;
+    std::vector<Module *> connects_to_with_zero_delay;
+    
+    int             mark;
     
 protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
@@ -380,6 +384,7 @@ public:
     ThreadGroup *    next;
     Module *        modules;
     Module *        last_module;        // Last module in list
+    std::vector<Module *> _modules;
     
     int            period;              // How often should the thread be started
     int            phase;               // Phase when the thread should start
@@ -510,6 +515,7 @@ private:
     bool                 useThreads;
     
     ThreadGroup     *    threadGroups;   // List of ThreadGroups
+    std::vector<ThreadGroup *>  _threadGroups;
     
     bool                nan_checks;      // Look for NANs in all outputs efter every tick - slow; use only for debugging
     
@@ -532,10 +538,12 @@ private:
     void        DetectCycles();                               // Find zero-delay loops in the connections
     void        SortModules();                                // Sort modules in precedence order
 
-    void        TSortVisit(Module * n, std::deque<Module *> & _sorted_modules);
+    void        AddToThreadGroup(ThreadGroup * th, Module * m, std::deque<Module *> & sorted_modules);
+    void        CreateThreadGroups(std::deque<Module *> & sorted_modules);
+
+    bool        TSortVisit(std::deque<Module *> & sorted_modules, Module * n); // Returns false if not a DAG
     void        TSortModules();                               // Sort modules using topological sort
     
-    void        TopSortModules();                             // Sort modules in precedence order
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     
     void        InitInputs();                                 // Allocate memory for inputs in all modules
