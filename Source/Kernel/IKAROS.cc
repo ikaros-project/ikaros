@@ -1656,61 +1656,7 @@ Connection::Propagate(long tick)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
 }
 
-void
-ThreadGroup::AddModule(Module * m)
-{
-    // Add module if thread is empty
-    if (modules == NULL)
-    {
-        kernel->Notify(msg_debug, "Adding module %s to new thread group\n", m->GetName());
-        modules = m;
-        last_module = m;
-        period = m->period;
-        phase = m->phase;
-        return;
-    }
-	
-    // Check if any module already in the group preceedes the new one
-    
-    bool p = false;
-    for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
-        p = p | kernel->Precedes(pm, m);
-    
-    // Check for the case where this module preceedes a module that will be added to the group in the future
-	
-    if(!p)
-        for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
-            for(Module * nm = m->next; nm != NULL; nm = nm->next)
-                if(kernel->Precedes(pm, nm) && kernel->Precedes(m, nm))
-                {
-                    p = true;
-                    break;
-                }
-    
-    // Add module if this module should run in same thread as the other (and last) modules
-    if (p)
-    {
-        if(m->period != period)
-        {
-            kernel->Notify(msg_fatal_error, "Module %s do not have the correct period for thread group (Should be %d rather than %d)\n", m->GetName(), period, m->period);
-            return;
-        }
-        
-        kernel->Notify(msg_debug, "Adding module %s to thread groups after %s\n", m->GetName(), last_module->GetName());
-        last_module->next_in_threadGroup = m;
-        last_module = m;
-        return;
-    }
-    // Add to a new group if this was the last one
-    if (next == NULL)
-    {
-        next = new ThreadGroup(kernel);
-        next->AddModule(m);
-        return;
-    }
-    // Try to add the module to the next group
-    next->AddModule(m);
-}
+
 
 ThreadGroup::ThreadGroup(Kernel * k)
 {
@@ -1722,6 +1668,19 @@ ThreadGroup::ThreadGroup(Kernel * k)
     phase = 0;
     thread = new Thread();
 }
+
+
+ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
+{
+    kernel = k;
+    next = NULL;
+    modules = NULL;
+    last_module = NULL;
+    period = period_;
+    phase = phase_;
+    thread = new Thread();
+}
+
 
 ThreadGroup::~ThreadGroup()
 {
@@ -1760,7 +1719,7 @@ ThreadGroup::Stop(long tick)
 void
 ThreadGroup::Tick()
 {
-    for (Module * m = modules; m != NULL; m = m->next_in_threadGroup)
+    for (Module * m: _modules)
     {
         m->timer->Restart();
         if(m->active)
@@ -2278,12 +2237,12 @@ Kernel::Init()
 {
     // Get system statistics // FIXME: move this to somewhere else
     cpu_cores = std::thread::hardware_concurrency();
-    
+
     if (options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_warning, "No IKC file supplied.\n"); // Maybe this should only be a warning - YES!
-    
+        Notify(msg_warning, "No IKC file supplied.\n");
+
     // Fill data structures
  
     for (Module * m = modules; m != NULL; m = m->next)
@@ -2293,23 +2252,29 @@ Kernel::Init()
     {
         module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
         if(c->delay == 0)
+        {
             module_map[c->source_io->module->GetFullName()]->connects_to_with_zero_delay.push_back(c->target_io->module);
+            module_map[c->target_io->module->GetFullName()]->connects_from_with_zero_delay.push_back(c->source_io->module);
+        }
     }
 
     printf("MODULES:\n");
     for(const auto& pair : module_map)
         printf("%s\n", pair.first.c_str());
-     
+
     printf("CONNECTIONS:\n");
     for(const auto& pair : module_map)
         for(const auto& s : pair.second->outgoing_connection)
             printf("%s -> %s\n", pair.first.c_str(), s.c_str());
 
-    TSortModules();
+    printf("\n\n");
+
+    SortModules();
 
     if(fatal_error_occurred)
         return;
-    SortModules();
+
+//    SortModules();
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
     AllocateOutputs();
@@ -2327,16 +2292,17 @@ Kernel::Tick()
     Notify(msg_debug, "Kernel::Tick()\n");
     Propagate();
     DelayOutputs();
+  
     if (useThreads)
     {
-        for (ThreadGroup * g = threadGroups; g != NULL; g = g->next)
+        for (auto & g : _threadGroups)
             g->Start(tick);
-        for (ThreadGroup * g = threadGroups; g != NULL; g = g->next)
+        for (auto & g : _threadGroups)
             g->Stop(tick);
     }
     else if (log_level < log_level_debug)
     {
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (auto & m : _modules)
             if (tick % m->period == m->phase)
             {
                 m->timer->Restart();
@@ -2348,7 +2314,7 @@ Kernel::Tick()
     }
     else
     {
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (auto & m : _modules)
             if (tick % m->period == m->phase)
             {
                 m->timer->Restart();
@@ -2363,7 +2329,7 @@ Kernel::Tick()
             }
         
     }
-    
+ 
     if(nan_checks)
         CheckNAN();
     
@@ -2796,27 +2762,6 @@ Kernel::SendCommand(XMLElement * group, const char * group_name, const char * co
 }
 
 
-
-bool
-Kernel::Precedes(Module * a, Module * b)
-{
-    // Base case
-    
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0 && c->source_io->module == a && c->target_io->module == b)
-            return true;
-    
-    // Transitivity test (also checks for direct loop)
-    
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0 && c->source_io->module == a && Precedes(c->target_io->module,  b))
-            return true;
-    
-    return false;
-}
-
-
-
 int
 Kernel::CalculateInputSize(Module_IO * i)
 {
@@ -2888,46 +2833,53 @@ Kernel::CalculateInputSizeY(Module_IO * i)
 
 
 
+/*
+    Partition Graph:
+
+    For all unassigned modules:
+    1. Recursively mark all connected modules
+    2. Assign all marked modules to new group
+ 
+*/
+
 void
-Kernel::DetectCycles()
+Kernel::MarkSubgraph(Module * m)  // recursively mark all connected modules
 {
-    for (Module * m = modules; m != NULL; m = m->next)
-        if(Precedes(m, m))
-            Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself (directly or indirectly).\n", m->GetName(), m->GetClassName());
+    m->mark = 3;
+    for(auto & n : m->connects_to_with_zero_delay)
+        if(n->mark != 3)
+            MarkSubgraph(n);
+    for(auto & n : m->connects_from_with_zero_delay)
+        if(n->mark != 3)
+            MarkSubgraph(n);
 }
 
 
 
 void
-Kernel::AddToThreadGroup(ThreadGroup * tg, Module * m, std::deque<Module *> & sorted_modules)   // TODO: Fix period constarins as well!!!
+Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)   // FIXME: possibly change to use emplace and no new
 {
-    tg->_modules.push_back(m);
-    for (Module * n : m->connects_to_with_zero_delay)
-    {
-        std::deque<Module *>::iterator f = find(sorted_modules.begin(), sorted_modules.end(), n);
-        if(f != sorted_modules.end())
+    for(auto & m : sorted_modules)
+        if(m->mark < 3)
         {
-            Module * x = *f;
-            sorted_modules.erase(f);
-            AddToThreadGroup(tg, x, sorted_modules);
+            ThreadGroup * tg = new ThreadGroup(this, m->period, m->phase);
+            _threadGroups.push_back(tg);
+            MarkSubgraph(m);
+            for(auto & m :sorted_modules)
+                if(m->mark == 3)
+                {
+                    if(tg->period != m->period || tg->phase != m->phase)
+                    {
+                        Notify(msg_fatal_error, "Module period and phase does not match rest of subgraph (%s).", m->GetFullName());
+                        return;
+                    }
+                    tg->_modules.push_back(m);
+                    m->mark = 4;
+                }
         }
-    }
 }
 
 
-
-void
-Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)
-{
-    while(!sorted_modules.empty())
-    {
-        ThreadGroup * tg = new ThreadGroup(this);
-        _threadGroups.push_back(tg);
-        Module * m = sorted_modules.front();
-        sorted_modules.pop_front();
-        AddToThreadGroup(tg, m, sorted_modules);
-    }
-}
 
 /*
 
@@ -2950,18 +2902,22 @@ while there are unmarked nodes do
 */
 
 
+
 bool
-Kernel::TSortVisit(std::deque<Module *> & sorted_modules, Module * n)
+Kernel::Visit(std::deque<Module *> & sorted_modules, Module * n)
 {
     if(n->mark == 2)
         return true;
 
     if(n->mark == 1)
-        return false; // ERROR not a DAG
+    {
+        Notify(msg_fatal_error, "Network contains zero-connection loop at %s", n->GetFullName());
+        return false;
+    }
 
     n->mark = 1;
-    for(Module * m : n->connects_to_with_zero_delay)
-        if(!TSortVisit(sorted_modules, m))
+    for(auto & m : n->connects_to_with_zero_delay)
+        if(!Visit(sorted_modules, m))
             return false;
     
     n->mark = 2;
@@ -2972,90 +2928,14 @@ Kernel::TSortVisit(std::deque<Module *> & sorted_modules, Module * n)
 
 
 void
-Kernel::TSortModules()
-{
-    std::deque<Module *> sorted_modules;
-    for(int i=0; i<_modules.size(); i++)
-        if(!_modules[i]->mark)
-            if(!TSortVisit(sorted_modules, _modules[i]))
-            {
-                Notify(msg_fatal_error, "Network contains loop with zero-connections");
-                return;
-            }
-
-    // PRINT SORTED MODULE LIST
-        
-    printf("\n\n\n\n**********************************************************\n");
-    for(Module * m : sorted_modules)
-        std::cout << m->GetFullName() << '\n';
-    printf("**********************************************************\n");
-    
-    CreateThreadGroups(sorted_modules);
-    for(ThreadGroup * tg : _threadGroups)
-    {
-        std::cout << "Thread Group:\n";
-        for(Module * m : tg->_modules)
-            std::cout << "\t" << m->GetFullName() << '\n';
-    }
-    printf("**********************************************************\n\n\n\n\n");
-}
-
-
-
-void
 Kernel::SortModules()
 {
-    // For statistics only
-    for (Module * m = modules; m != NULL; m = m->next)
-    {
-        phase_count = (m->phase < phase_count ? phase_count : m->phase);
-        period_count = (m->period < period_count ? period_count : m->period);
-        module_count++;
-    }
-    if (phase_count > period_count)
-        period_count = phase_count;
+    std::deque<Module *> sorted_modules;
+    for(auto & m : _modules)
+        if(!m->mark && !Visit(sorted_modules, m))
+            return; // fail
 
-    // Build a new sorted list of modules (precedence order) using selection sort
-    Module * sorted_modules = NULL;
-
-    while (modules != NULL)
-    {
-        // Find smallest module
-        Module * sm = modules;
-        for (Module * m = modules; m != NULL; m = m->next)
-            if (Precedes(sm, m))
-                sm = m;
-
-        // Remove from list
-        if (sm == modules)  // First
-        {
-            modules = modules->next;
-            sm->next = sorted_modules;
-            sorted_modules = sm;
-        }
-        else
-        {
-            // Find prev (double linked list would have been better)
-            Module * psm = NULL;
-            for (psm = modules; psm->next != sm; psm = psm->next)
-                ;
-            psm->next = sm->next;
-            sm->next = sorted_modules;
-            sorted_modules = sm;
-        }
-    }
-    modules = sorted_modules;
-
-    // Check for loops
-/*
-    for (Module * m = modules; m != NULL; m = m->next)
-        if (Precedes(m, m))
-            Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself.\n", m->GetName(), m->GetClassName());
-*/
-    // Create Thread Groups
-    threadGroups = new ThreadGroup(this);
-    for (Module * m = modules; m != NULL; m = m->next)
-        threadGroups->AddModule(m);
+    CreateThreadGroups(sorted_modules);
 }
 
 
@@ -3115,6 +2995,8 @@ Kernel::ListInfo()
     Notify(msg_print, "ikc file directory: %s\n", ikc_dir);
     Notify(msg_print, "ikaros root directory: %s\n", ikaros_dir);
 }
+
+
 
 void
 Kernel::ListModulesAndConnections()
@@ -3176,12 +3058,13 @@ Kernel::ListThreads()
     Notify(msg_print, "\n");
     Notify(msg_print,"ThreadManagers:\n");
     Notify(msg_print, "\n");
-    int tt = 0;
-    for (ThreadGroup * t = threadGroups; t != NULL; t = t->next)
+    int i=0;
+    for(ThreadGroup * tg : _threadGroups)
     {
-        Notify(msg_print,"ThreadManager %d [Period:%d, Phase:%d]\n", tt++, t->period, t->phase);
-        for (Module * m = t->modules; m != NULL; m=m->next_in_threadGroup)
-            Notify(msg_print,"\tModule: %s\n", m->GetName());
+        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d]\n", i++, tg->period, tg->phase);
+        for(Module * m : tg->_modules)
+            Notify(msg_print, "\t Module: %s\n", m->GetFullName());
+        i++;
     }
     Notify(msg_print, "\n");
 }

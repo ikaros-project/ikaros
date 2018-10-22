@@ -258,13 +258,14 @@ public:
     void            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
     void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
 
-    // TEMPORARY - outgoing zero delays
-    
+    // zero connections in both directions
+
     std::set<std::string> outgoing_connection;
     std::vector<Module *> connects_to_with_zero_delay;
-    
+    std::vector<Module *> connects_from_with_zero_delay;
+
     int             mark;
-    
+
 protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
     void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
@@ -381,9 +382,9 @@ class ThreadGroup
 {
 public:
     Kernel *        kernel;
-    ThreadGroup *    next;
-    Module *        modules;
-    Module *        last_module;        // Last module in list
+    ThreadGroup *   next;               // FIXME: remove
+    Module *        modules;            // FIXME: remove
+    Module *        last_module;        // Last module in list FIXME: remove
     std::vector<Module *> _modules;
     
     int            period;              // How often should the thread be started
@@ -391,9 +392,10 @@ public:
     
     Thread *        thread;
     
-    void        AddModule(Module * m);        // Try to add module to this or next thread; return false if it is necessary to create a new thread
+//    void        AddModule(Module * m);        // Try to add module to this or next thread; return false if it is necessary to create a new thread
     
     ThreadGroup(Kernel * k);
+    ThreadGroup(Kernel * k, int period, int phase);
     ~ThreadGroup();
     
     void        Start(long tick);
@@ -534,15 +536,14 @@ private:
     void        CheckInputs();                                // Check that memory for all connected inputs have been allocated
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
-    bool        Precedes(Module * a, Module * b);
-    void        DetectCycles();                               // Find zero-delay loops in the connections
-    void        SortModules();                                // Sort modules in precedence order
+//    bool        Precedes(Module * a, Module * b);
+//    void        SortModules();                                // Sort modules in precedence order
 
-    void        AddToThreadGroup(ThreadGroup * th, Module * m, std::deque<Module *> & sorted_modules);
+    void        MarkSubgraph(Module * m);
     void        CreateThreadGroups(std::deque<Module *> & sorted_modules);
 
-    bool        TSortVisit(std::deque<Module *> & sorted_modules, Module * n); // Returns false if not a DAG
-    void        TSortModules();                               // Sort modules using topological sort
+    bool        Visit(std::deque<Module *> & sorted_modules, Module * n); // Returns false if not a DAG
+    void        SortModules();                               // Sort modules using topological sort
     
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     

@@ -1037,12 +1037,14 @@ WebUI::HandleHTTPRequest()
         }
         else // possibly a data request - send requested data - very temporary version without thread or real-time support
         {
-            [[maybe_unused]] char * var = strsep(&args, "=");
+            //C++17 [[maybe_unused]] char * var =
+            strsep(&args, "=");
             
             // Build data package
 
             char * root = strsep(&args, "#");
-            [[maybe_unused]] char * view_name = strsep(&args, "#");
+            //C++17 [[maybe_unused]] char * view_name =
+            strsep(&args, "#");
             
             // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
             
