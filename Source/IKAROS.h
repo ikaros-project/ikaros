@@ -287,7 +287,7 @@ protected:
     float           GetFloatValue(const char * n, float d=0);            // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValue(const char * n, int d=0);                // Search through XML for parameter and return its value as a float or default value d if not found
     bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
-    int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not foun
+    int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not found
     float *         GetArray(const char * n, int & size, bool fixed_size=false);		// Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
     float **        GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size=false);	// Search through XML for parameter and return its value as a matrix; fixed_size=true uses supplied size rathrer than data size
     int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
@@ -382,9 +382,9 @@ class ThreadGroup
 {
 public:
     Kernel *        kernel;
-    ThreadGroup *   next;               // FIXME: remove
-    Module *        modules;            // FIXME: remove
-    Module *        last_module;        // Last module in list FIXME: remove
+//    ThreadGroup *   next;               // FIXME: remove
+//    Module *        modules;            // FIXME: remove
+//    Module *        last_module;        // Last module in list FIXME: remove
     std::vector<Module *> _modules;
     
     int            period;              // How often should the thread be started
@@ -510,13 +510,11 @@ private:
     long                 session_id;     // 2.0 temporary
     
     std::map<std::string, Module *>     module_map; // 2.0
-    std::vector <Module *>  _modules;               // 2.0
+    std::vector <Module *>              _modules;   // 2.0
 
-    Module          *    modules;        // List of modules
     Connection      *    connections;    // List of connections
     bool                 useThreads;
     
-    ThreadGroup     *    threadGroups;   // List of ThreadGroups
     std::vector<ThreadGroup *>  _threadGroups;
     
     bool                nan_checks;      // Look for NANs in all outputs efter every tick - slow; use only for debugging
@@ -536,9 +534,6 @@ private:
     void        CheckInputs();                                // Check that memory for all connected inputs have been allocated
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
-//    bool        Precedes(Module * a, Module * b);
-//    void        SortModules();                                // Sort modules in precedence order
-
     void        MarkSubgraph(Module * m);
     void        CreateThreadGroups(std::deque<Module *> & sorted_modules);
 

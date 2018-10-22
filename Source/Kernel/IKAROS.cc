@@ -1661,9 +1661,6 @@ Connection::Propagate(long tick)
 ThreadGroup::ThreadGroup(Kernel * k)
 {
     kernel = k;
-    next = NULL;
-    modules = NULL;
-    last_module = NULL;
     period = 1;
     phase = 0;
     thread = new Thread();
@@ -1673,9 +1670,6 @@ ThreadGroup::ThreadGroup(Kernel * k)
 ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
 {
     kernel = k;
-    next = NULL;
-    modules = NULL;
-    last_module = NULL;
     period = period_;
     phase = phase_;
     thread = new Thread();
@@ -1685,7 +1679,7 @@ ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
 ThreadGroup::~ThreadGroup()
 {
     delete thread;
-    delete next;
+//    delete next;  // FIXME: do this correctly
 }
 
 static void *
@@ -1746,7 +1740,7 @@ Kernel::Kernel()
     tick                = 0;
     xmlDoc              = NULL;
     classes             = NULL;
-    modules             = NULL;
+//    modules             = NULL;
     connections         = NULL;
     module_count        = 0;
     period_count        = 0;
@@ -1755,7 +1749,7 @@ Kernel::Kernel()
     fatal_error_occurred	= false;
     terminate			= false;
     sizeChangeFlag      = false;
-    threadGroups        = NULL;
+//    threadGroups        = NULL;
     
     logfile     = NULL;
     timer		= new Timer();
@@ -1829,7 +1823,7 @@ Kernel::Kernel(Options * opt)
     tick                = 0;
     xmlDoc              = NULL;
     classes             = NULL;
-    modules             = NULL;
+//    modules             = NULL;
     connections         = NULL;
     module_count        = 0;
     period_count        = 0;
@@ -1838,7 +1832,7 @@ Kernel::Kernel(Options * opt)
     fatal_error_occurred	= false;
     terminate			= false;
     sizeChangeFlag      = false;
-    threadGroups        = NULL;
+//    threadGroups        = NULL;
     
     logfile     = NULL;
     timer		= new Timer();
@@ -1870,9 +1864,9 @@ Kernel::~Kernel()
     Notify(msg_debug, "  Deleting Connections.\n");
     delete connections;
     Notify(msg_debug, "  Deleting Modules.\n");
-    delete modules;
+//    delete modules; // FIXME: delete
     Notify(msg_debug, "  Deleting Thread Groups.\n");
-    delete threadGroups;
+//    delete threadGroups;  // FIXME: delete
     Notify(msg_debug, "  Deleting Classes.\n");
     delete classes;
     
@@ -2017,7 +2011,7 @@ Kernel::Propagate()
 void
 Kernel::CheckNAN()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
         {
@@ -2037,7 +2031,7 @@ Kernel::CheckNAN()
 void
 Kernel::CheckInputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
             if (i->size == unknown_size)
@@ -2060,7 +2054,7 @@ Kernel::CheckInputs()
 void
 Kernel::CheckOutputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
             if (i->size == unknown_size)
@@ -2199,7 +2193,7 @@ Kernel::InitOutputs()
     do
     {
         sizeChangeFlag = false;
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (Module * & m : _modules)
             m->SetSizes();
         if (sizeChangeFlag)
             Notify(msg_debug, "InitOutput: Iteration with changes\n");
@@ -2212,14 +2206,14 @@ Kernel::InitOutputs()
 void
 Kernel::AllocateOutputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         m->AllocateOutputs();
 }
 
 void
 Kernel::InitModules()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         m->Bind(m->log_level, "log_level");
         m->Init();
@@ -2245,8 +2239,9 @@ Kernel::Init()
 
     // Fill data structures
  
-    for (Module * m = modules; m != NULL; m = m->next)
-        module_map.insert({ m->GetFullName(), m });
+//    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
+       module_map.insert({ m->GetFullName(), m });
 
     for (Connection * c = connections; c != NULL; c = c->next)
     {
@@ -2352,7 +2347,7 @@ Kernel::Store()
     else if(p[0] != '/') // not absolute path
         s = create_formatted_string("%s%s", ikc_dir, p);
 
-    for(Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
         m->Store(sp);
@@ -2376,7 +2371,7 @@ Kernel::Load()
     else if(p[0] != '/') // not absolute path
         s = create_formatted_string("%s%s", ikc_dir, p);
     
-    for(Module * m = modules; m != NULL; m = m->next)
+    for(Module * & m : _modules)
     {
         char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
         m->Load(sp);
@@ -2390,7 +2385,7 @@ Kernel::Load()
 void
 Kernel::DelayOutputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         m->DelayOutputs();
 }
 
@@ -2400,8 +2395,8 @@ void
 Kernel::AddModule(Module * m)
 {
     if (!m) return;
-    m->next = modules;
-    modules = m;
+//    m->next = modules;
+//    modules = m;
     m->kernel = this;
 
     // 2.0
@@ -2414,7 +2409,7 @@ Kernel::AddModule(Module * m)
 Module *
 Kernel::GetModule(const char * n)
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         if (equal_strings(n, m->instance_name))
             return m;
     return NULL;
@@ -2425,7 +2420,7 @@ Kernel::GetModule(const char * n)
 Module *
 Kernel::GetModuleFromFullName(const char * n)
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         if (equal_strings(n, m->full_instance_name))
             return m;
     return NULL;
@@ -3003,7 +2998,7 @@ Kernel::ListModulesAndConnections()
 {
     if (!options->GetOption('m') && !options->GetOption('a')) return;
     
-    if(!modules)
+    if(_modules.empty())
     {
         Notify(msg_print, "\n");
         Notify(msg_print, "No Modules.\n");
@@ -3014,7 +3009,7 @@ Kernel::ListModulesAndConnections()
     Notify(msg_print, "\n");
     Notify(msg_print, "Modules:\n");
     Notify(msg_print, "\n");
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         //		Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
         Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
@@ -3088,7 +3083,7 @@ Kernel::ListScheduling()
 {
     if (!options->GetOption('l') && !options->GetOption('a')) return;
 
-    if(!modules)
+    if(_modules.empty())
         return;
     
     Notify(msg_print, "Scheduling:\n");
@@ -3096,7 +3091,7 @@ Kernel::ListScheduling()
     for (int t=0; t<period_count; t++)
     {
         int tm = 0;
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (Module * & m : _modules)
             if (t % m->period == m->phase)
                 Notify(msg_print,"  %02d.%02d: %s (%s)\n", t, tm++, m->GetName(), m->GetClassName());
     }
@@ -3126,7 +3121,7 @@ Kernel::ListProfiling()
     if (!options->GetOption('p')) return;
     // Calculate Total Time
     float total_module_time = 0;
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         total_module_time += m->time;
     Notify(msg_print, "\n");
     Notify(msg_print, "Time (ms):\n");
@@ -3142,7 +3137,7 @@ Kernel::ListProfiling()
     Notify(msg_print, "\n");
     Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
     Notify(msg_print, "----------------------------------------------------------------------\n");
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         if (m->ticks > 0)
             Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
         else
