@@ -201,7 +201,7 @@ public:
             return "";
     };
 
-    std::string GetValue(std::string a) // FIXME: parameter renaming and inheritsnce is missing
+    std::string GetValue(std::string a) // FIXME: parameter renaming and inheritsnce is missing - partially
     {
         if(a.empty())
             return "";
@@ -2988,6 +2988,7 @@ Kernel::CalculateDelays()
 }
 
 
+// FIXME: move all list functions to end
 
 void
 Kernel::ListInfo()
@@ -3357,6 +3358,34 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
 
 
 
+void
+Kernel::Connect(std::string g, std::string s, std::string t,  std::string d, bool a, int so, int to, int size)
+{
+    // Get source module/group
+    
+    // 1. no "."; use g
+    // 2. try g+s[last part removed]
+    // 3. try s[last part removed]
+    
+    // Get output
+    
+    // get module/group->s[last part]
+    
+    // Get target module and input
+    
+    // 1. no "."; use g
+    // 2. try g+s[last part removed]
+    // 3. try s[last part removed]
+
+    // Get input
+    
+    // get module/group->s[last part]
+
+    // MAKE THE CONNECTIONS
+}
+
+
+
 // Check if class file exists and return path if valid
 
 static const char *
@@ -3519,7 +3548,9 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
 
     // Create connections in group
-
+    // FIXME: Do this in a second pass to make sure that all modules exist
+    // FIXME: Traverse groups and make connections
+    
     for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
     {
         const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
@@ -3589,9 +3620,11 @@ Kernel::ReadXML()
     
     // Set default parameters
     
-    xml->SetAttribute("log_level", create_formatted_string("%d", log_level));
+    xml->SetAttribute("log_level", create_formatted_string("%d", log_level)); // FIXME: period???
     
     // Build The Main Group
+    // FIXME: what is this?
+
 /*
     if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute // TODO: SHOULD PROBABLY BE REMOVED
     {
@@ -3607,6 +3640,7 @@ Kernel::ReadXML()
             xml->SetAttribute("title", title);
     }
 */
+
     // 2.0 create top group
     
     main_group = new GroupElement();
@@ -3618,6 +3652,9 @@ Kernel::ReadXML()
     session_id = result; // temporary, get from top level group
     
     BuildGroup(main_group, xml);
+    // FIXME: make connections here
+    // MakeConnections(main_group)
+
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
     

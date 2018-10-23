@@ -42,6 +42,7 @@ bool    equal_strings(const char * a, const char * b);
 bool	strstart(const char * s1, const char *s2); // does s1 start with s2
 bool	strend(const char * s1, const char * s2); // does 1s end with s2
 const std::vector<std::string> split_string(const std::string &c, const char &d);
+
 // File path operations
 
 bool    is_path(const char * p);
@@ -144,6 +145,7 @@ public:
 char *  base64_encode(const unsigned char * data, size_t size_in, size_t *size_out);
 
 // Options
+// FIXME: do not use fixed sizes anywhere
 
 class Options
 {
@@ -183,6 +185,7 @@ private:
 
 
 // Dictionary
+// FIXME: don't use lists
 
 class Dictionary
 	{
@@ -242,6 +245,7 @@ class Dictionary
 
 
     // mark - TAT additions
+
     void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
     void        get_submatrix(float *S, int mrows, int mcols, float *A, int ncols, int row, int col);
 	 void 		repeat(float *r, float *a, int repeats);

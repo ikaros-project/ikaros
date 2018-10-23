@@ -40,7 +40,6 @@
 #include "Kernel/IKAROS_Utils.h"
 #include "Kernel/IKAROS_Math.h"
 #include "Kernel/IKAROS_Serial.h"
-//#include "Kernel/IKAROS_Threads.h"
 #include "Kernel/IKAROS_XML.h"
 
 // Messages to use with Notify
@@ -298,6 +297,7 @@ protected:
     int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
 
     // Bind values to names and get values from XML tree if possible
+    // FIXME: bind with read-only flag to replace all the getter functions
     
     void            Bind(float & v, const char * n);                        // Bind a floating point value to a name
     void            Bind(int & v, const char * n);                          // Bind int OR list value to name
@@ -435,9 +435,9 @@ public:
     void        AddModule(Module * m);                      // Add a module to the simulation
     Module *    GetModule(const char * n);                  // Find a module based on its name
     Module *    GetModuleFromFullName(const char * n);
-    
+
 	const char *    GetBatchValue(const char * n);          // Get a value from a batch element with the target n and the current batch rank
-    
+
     const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
@@ -449,10 +449,12 @@ public:
     int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     
+    void         Connect(std::string group, std::string source, std::string target, std::string delay, bool active, int sourceoffset=0, int targetoffset=0, int size=-1);
+
     XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			ReadXML();
-    
+
     std::string JSONString();
 
     long        GetTick()
