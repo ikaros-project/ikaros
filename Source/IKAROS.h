@@ -30,6 +30,7 @@
 #include <map>
 #include <set>
 #include <deque>
+#include <thread>
 
 #define VERSION "2.0"
 
@@ -39,7 +40,7 @@
 #include "Kernel/IKAROS_Utils.h"
 #include "Kernel/IKAROS_Math.h"
 #include "Kernel/IKAROS_Serial.h"
-#include "Kernel/IKAROS_Threads.h"
+//#include "Kernel/IKAROS_Threads.h"
 #include "Kernel/IKAROS_XML.h"
 
 // Messages to use with Notify
@@ -240,6 +241,10 @@ public:
     int        GetOutputSizeX(const char * name);                   // Get the horizontal size of an output array
     int        GetOutputSizeY(const char * name);                   // Get the vertical size of an output array (1 if one-dimensional)
 
+    void            io(float * & a, const char * name);   // When size is known
+    void            io(float * & a, int & size, const char * name);   // Replaces all array functions above; will support resizeable arrays in the future
+    void            io(float ** & m, int & size_x, int & size_y, const char * name);   // Replaces all matrix functions above; will support resizeable matrices in the future
+
     void            StoreArray(const char * path, const char * name, float * a, int size);
     void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
 
@@ -304,37 +309,34 @@ protected:
     void            SetParameter(const char * parameter_name, int x, int y, float value);
     virtual void    Command(std::string s, int x=0, int y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
 
-    XMLElement *    xml;
+    XMLElement *        xml;
 
 private:
-    Module     *        next;                   // Next module in list
-    Module     *        next_in_threadGroup;    // Next module in ThreadGroup
-
-    const char    *		class_name;
+    const char *		class_name;
     const char *		instance_name;
 	char *				full_instance_name;
 
-    Kernel    *         kernel;
+    Kernel *            kernel;
 
-    Module_IO    *    input_list;        // List of inputs
-    Module_IO    *    output_list;       // List of outputs
+    Module_IO    *      input_list;        // List of inputs
+    Module_IO    *      output_list;       // List of outputs
     Binding      *      bindings;
 
     // Exposed as parameters
 
-    int                period;           // How often should the module tick
-    int                phase;            // Phase when the module ticks
-    bool               active;           // If false, will not call Tick()
-    int                log_level;
+    int                 period;           // How often should the module tick
+    int                 phase;            // Phase when the module ticks
+    bool                active;           // If false, will not call Tick()
+    int                 log_level;
 
     Timer *             timer;            // Statistics variables
     float               time;
     float               ticks;
 
-    void            DelayOutputs();
+    void                DelayOutputs();
 
-    Module_IO *        GetModule_IO(Module_IO * list, const char * name);
-    void            AllocateOutputs();                                // Allocate memory for outputs
+    Module_IO *         GetModule_IO(Module_IO * list, const char * name);
+    void                AllocateOutputs(); // Allocate memory for outputs
 
     friend class Kernel;
     friend class Module_IO;
@@ -381,18 +383,11 @@ private:
 class ThreadGroup
 {
 public:
-    Kernel *        kernel;
-//    ThreadGroup *   next;               // FIXME: remove
-//    Module *        modules;            // FIXME: remove
-//    Module *        last_module;        // Last module in list FIXME: remove
     std::vector<Module *> _modules;
     
-    int            period;              // How often should the thread be started
-    int            phase;               // Phase when the thread should start
-    
-    Thread *        thread;
-    
-//    void        AddModule(Module * m);        // Try to add module to this or next thread; return false if it is necessary to create a new thread
+    int             period;              // How often should the thread be started
+    int             phase;               // Phase when the thread should start
+    std::thread *   thread;
     
     ThreadGroup(Kernel * k);
     ThreadGroup(Kernel * k, int period, int phase);

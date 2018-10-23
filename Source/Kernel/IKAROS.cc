@@ -613,7 +613,7 @@ Module::~Module()
     delete timer;
     delete input_list;
     delete output_list;
-    delete next;
+//    delete next;
 }
 
 void
@@ -1352,6 +1352,49 @@ Module::GetOutputSizeY(const char * name)
 }
 
 
+void
+Module::io(float * & a, const char * name)
+{
+    if((a = GetOutputArray(name, false)))
+        return;
+    else if((a = GetInputArray(name, false)))
+        return;
+}
+
+
+void
+Module::io(float * & a, int & size, const char * name)
+{
+    if((a = GetOutputArray(name, false)))
+        size = GetOutputSize(name);
+    else if((a = GetInputArray(name, false)))
+        size = GetInputSize(name);
+    else
+        size = 0;
+}
+
+
+void
+Module::io(float ** & m, int & size_x, int & size_y, const char * name)
+{
+    if((m = GetOutputMatrix(name, false)))
+    {
+        size_x = GetOutputSizeX(name);
+        size_y = GetOutputSizeY(name);
+    }
+    else if((m = GetInputMatrix(name, false)))
+    {
+        size_x = GetInputSizeX(name);
+        size_y = GetInputSizeY(name);
+   }
+    else
+    {
+        size_x = 0;
+        size_y = 0;
+    }
+}
+
+
 
 void
 Module::SetOutputSize(const char * name, int x, int y)
@@ -1368,8 +1411,6 @@ Module::SetOutputSize(const char * name, int x, int y)
 
 Module::Module(Parameter * p)
 {
-    next = NULL;
-    next_in_threadGroup = NULL;
     input_list = NULL;
     output_list = NULL;
     bindings = NULL;
@@ -1660,25 +1701,23 @@ Connection::Propagate(long tick)
 
 ThreadGroup::ThreadGroup(Kernel * k)
 {
-    kernel = k;
     period = 1;
     phase = 0;
-    thread = new Thread();
+    thread = NULL; // new Thread();
 }
 
 
 ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
 {
-    kernel = k;
     period = period_;
     phase = phase_;
-    thread = new Thread();
+    thread = NULL; // new Thread();
 }
 
 
 ThreadGroup::~ThreadGroup()
 {
-    delete thread;
+//    delete thread;
 //    delete next;  // FIXME: do this correctly
 }
 
@@ -1695,8 +1734,9 @@ ThreadGroup::Start(long tick)
     // Test if group should be started
     if (tick % period == phase)
     {
-        if (thread->Create(ThreadGroup_Tick, (void*)this))
-            printf("Thread Creation Failed!\n");
+//        if (thread->Create(ThreadGroup_Tick, (void*)this))
+//            printf("Thread Creation Failed!\n");
+        thread = new std::thread(ThreadGroup_Tick, (void*)this);
     }
 }
 
@@ -1706,7 +1746,9 @@ ThreadGroup::Stop(long tick)
     // Test if group should be joined
     if ((tick + 1) % period == phase)
     {
-        thread->Join();
+        thread->join();
+        delete thread;
+        thread = NULL;
     }
 }
 

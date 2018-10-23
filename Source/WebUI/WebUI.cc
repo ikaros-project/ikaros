@@ -644,8 +644,8 @@ WebUI::Run()
     k->timer->Restart();
     tick = 0;
 
-    httpThread = new Thread();
-    httpThread->Create(WebUI::StartHTTPThread, this);
+    httpThread = new std::thread(WebUI::StartHTTPThread, this);
+//    httpThread->Create(WebUI::StartHTTPThread, this);
 
     while (!k->Terminate())
     {
@@ -670,9 +670,10 @@ WebUI::Run()
         }
     }
 
-    if(k->max_ticks != -1)
-        httpThread->Kill(); // FIXME: This is a really ugly solution; but this code will soon be replaced anyway
-    httpThread->Join();
+//    if(k->max_ticks != -1)
+//        httpThread->Kill(); // FIXME: This is a really ugly solution; but this code will soon be replaced anyway
+    httpThread->join();
+    delete httpThread;
 //    chdir(k->ikc_dir);
 }
 
