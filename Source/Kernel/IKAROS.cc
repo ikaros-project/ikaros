@@ -251,6 +251,43 @@ public:
     };
 };
 
+class InputElement: public Element
+{
+public:
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
+        PrintAttributes(d);
+    };
+    
+    std::string JSONString(int d=0)
+    {
+        std::string s = std::string(d, '\t')+"{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
+class OutputElement: public Element
+{
+public:
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
+        PrintAttributes(d);
+    };
+    
+    std::string JSONString(int d=0)
+    {
+        std::string s = std::string(d, '\t')+"{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
+
 class ConnectionElement: public Element
 {
 public:
@@ -330,18 +367,22 @@ public:
     };
 };
 
-class GroupElement: public Element
+class GroupElement: public Element              // FIXME: add inputs and outputs as well
 {
 public:
-//    GroupElement * parent;
     std::unordered_map<std::string, GroupElement *> groups;
     std::unordered_map<std::string, ParameterElement *> parameters;
+    std::unordered_map<std::string, InputElement *> inputs;
+    std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement *> connections;
     std::vector<ViewElement *> views;
+    Module * module; // if this group is a 'class'
     
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"GROUP:"+GetAttribute("name")).c_str());
+        if(module)
+            printf("%s\n", (std::string(d, '\t')+"MODULE:"+std::string(module->GetFullName())).c_str());
 
         printf("%s\n", (std::string(d, '\t')+"\tATTRIBUTES:").c_str());
         PrintAttributes(d+1);
@@ -456,19 +497,12 @@ public:
 };
 
 
-class InputElement: public Element
+// TODO: this class will be used later for 'class' groups
+class ClassElement: public GroupElement
 {
 public:
+    Module * module;
 };
-
-
-class OutputElement: public Element
-{
-public:
-};
-
-
-
 
 
 
@@ -2470,7 +2504,7 @@ Kernel::GetModuleFromFullName(const char * n)
 
 
 
-bool
+bool // TO BE REMOVED
 Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
@@ -2531,6 +2565,45 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
             // NEW END
             
 		}
+    }
+    
+    return false;
+}
+
+
+
+bool // NEW VERSION - do not get input here; but do somewhere else // TODO: distinguish between class and group later
+Kernel::GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
+{
+    for (auto & g : group->groups)
+    {
+        if(g.second->module && (equal_strings(g.first.c_str(), source_module_name) || equal_strings(source_module_name, "*")))
+        {
+            m = g.second->module;
+            io = m->GetModule_IO(m->output_list, source_name);
+            if (m != NULL && io != NULL)
+                return true;
+            return false;
+        }
+        else if (equal_strings(g.second->GetValue("name").c_str(), source_module_name)) // Translate output name - should not be tested again
+        {
+            for (auto & output : group->outputs)
+            {
+                const char * n = output.first.c_str();
+                if (n == NULL)
+                    return false;
+                if (equal_strings(n, source_name) || equal_strings(n, "*"))
+                {
+                    const char * new_module = output.second->GetValue("sourcemodule").c_str();
+                    const char * new_source = output.second->GetValue("source").c_str();
+                    if (new_module == NULL)
+                        new_module = source_module_name;    // retain name
+                    if (new_source == NULL)
+                        new_source = source_name;    // retain name
+                    return GetSource(g.second, m, io, new_module, new_source);
+                }
+            }
+        }
     }
     
     return false;
@@ -3247,7 +3320,6 @@ Kernel::Notify(int msg, const char * format, ...)
 // Create one or several connections with different delays between two ModuleIOs
 
 int
-//Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay, bool is_active)
 Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const char * delay, int extra_delay, bool is_active)
 {
     int c = 0;
@@ -3292,7 +3364,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
 {
     int c = 0; // no of generated connections
     
-    // iterate over all modules
+    // iterate over all modules in this group
     
     for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
         if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should; change first test to *?
@@ -3310,6 +3382,8 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
             }
         }
     
+    // iterate over all groups in this group
+
     bool connection_made = false;
     for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
         if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
@@ -3331,7 +3405,9 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
                 }
         }
     
-    if(!connection_made) // look of wildcard connections
+    // look of wildcard connections
+    
+    if(!connection_made)
     {
         for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
             if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
@@ -3356,6 +3432,80 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
     return c;
 }
 
+
+
+int // NEW VERSION
+Kernel::Connect(GroupElement * group, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size, const char * delay, int extra_delay, bool is_active)
+{
+    int c = 0; // no of generated connections
+    
+    // iterate over all modules in this group
+    
+    for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
+        if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should; change first test to *?
+        {
+            Module * tm = (Module *)(xml_module->aux);
+            if (tm)
+            {
+                Module_IO * tio = tm->GetModule_IO(tm->input_list, t_name);
+                if(sio == NULL)
+                    Notify(msg_fatal_error, "Could not make connection. Source missing\n.");
+                else if(tio == NULL)
+                    Notify(msg_fatal_error, "Could not make connection. Target \"%s\" of module \"%s\" missing.\n", t_name, tm_name);
+                else
+                    c += Connect(sio, s_offset, tio, t_offset, size, delay, extra_delay, is_active);
+            }
+        }
+    
+    // iterate over all groups in this group
+
+    bool connection_made = false;
+    for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
+        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
+        {
+            // iterate over all input elements
+            for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
+                if(equal_strings(t_name, GetXMLAttribute(xml_input, "name"))) // Found input with target
+                {
+                    connection_made = true;
+                    const char * tm = GetXMLAttribute(xml_input, "targetmodule");
+                    const char * t = GetXMLAttribute(xml_input, "target");
+                    int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
+                    bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+
+                    if(!equal_strings(t,""))
+                        c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
+                    else
+                        c++; // ignore connections if both are nil
+                }
+        }
+    
+    // look of wildcard connections
+    
+    if(!connection_made)
+    {
+        for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
+            if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
+            {
+                // iterate over all input elements
+                for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
+                    if(equal_strings("*", GetXMLAttribute(xml_input, "name"))) // Found input with target
+                    {
+                        const char * tm = GetXMLAttribute(xml_input, "targetmodule");
+                        const char * t = GetXMLAttribute(xml_input, "target");
+                        int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
+                        bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+
+                        if(!equal_strings(t,""))
+                            c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
+                        else
+                            c++; // ignore connections if both are nil
+                    }
+            }
+    }
+    
+    return c;
+}
 
 
 void
@@ -3503,6 +3653,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
 				else if (useThreads && m->phase != 0)
 					Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
 				xml_node->aux = (void *)m;
+                group->module = m;  // FIXME: test if correct
 				AddModule(m);
 			}
             else  // TODO: could add check for command line values here
@@ -3519,10 +3670,25 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
         else if (xml_node->IsElement("parameter"))
         {
-            ParameterElement * p = new ParameterElement();
+            InputElement * p = new InputElement();
             for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
                 p->attributes.insert({ attr->name, attr->value });
-            group->parameters.insert( { p->GetAttribute("name"), p });
+            group->inputs.insert( { p->GetAttribute("name"), p });
+        }
+        else if (xml_node->IsElement("input"))
+        {
+            InputElement * p = new InputElement();
+            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+                p->attributes.insert({ attr->name, attr->value });
+            group->inputs.insert( { p->GetAttribute("name"), p });
+        }
+        else if (xml_node->IsElement("output"))
+        {
+            OutputElement * p = new OutputElement();
+            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+                p->attributes.insert({ attr->name, attr->value });
+            group->outputs.insert( { p->GetAttribute("name"), p });
+
         }
         else if (xml_node->IsElement("connection"))
         {
@@ -3550,7 +3716,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     // Create connections in group
     // FIXME: Do this in a second pass to make sure that all modules exist
     // FIXME: Traverse groups and make connections
-    
+/*
     for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
     {
         const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
@@ -3583,6 +3749,63 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         
         if(c == 0)
             Notify(msg_fatal_error, "Connection target %s.%s not found.\n", tm_name, t_name);
+    }
+*/
+}
+
+
+
+void
+Kernel::ConnectModules(GroupElement * group, std::string indent)
+{
+    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
+
+    // Connect in this group
+    
+    for(auto & c : group->connections)
+    {
+        printf("%sConnecting: %s -> %s\n ", indent.c_str(), c->GetAttribute("sourcemodule").c_str(), c->GetAttribute("targetmodule").c_str());
+        
+        // OLD CODE
+        
+        std::string sm_name    = c->GetAttribute("sourcemodule");
+        std::string s_name     = c->GetAttribute("source");
+        std::string tm_name    = c->GetAttribute("targetmodule");
+        std::string t_name     = c->GetAttribute("target");
+        std::string delay      = c->GetAttribute("delay");
+        const bool a           = tobool(c->GetAttribute("active").c_str(), true);   // FIXME: what happens with NULL?
+/*
+        if(!sm_name)
+            Notify(msg_fatal_error, "Incomplete connection: sourcemodule not set.");
+        if(!s_name)
+            Notify(msg_fatal_error, "Incomplete connection: source not set.");
+        if(!tm_name)
+            Notify(msg_fatal_error, "Incomplete connection: targetmodule not set.");
+        if(!t_name)
+            Notify(msg_fatal_error, "Incomplete connection: target not set.");
+ */
+        int so = string_to_int(c->GetAttribute("sourceoffset").c_str());
+        int to = string_to_int(c->GetAttribute("targetoffset").c_str());
+        int sz = string_to_int(c->GetAttribute("size").c_str(), unknown_size);
+
+        Module * sm;
+        Module_IO * sio;
+        int cnt = 0;
+        if (GetSource(group, sm, sio, sm_name.c_str(), s_name.c_str())) // FIXME: make symmetrical in source and target
+            cnt = Connect(group, sm, sio, so, tm_name.c_str(), t_name.c_str(), to, sz, delay, 0, a);
+        else
+            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name.c_str(), s_name.c_str());   // TODO: Should check for indirect connections here
+        
+        if(cnt == 0)
+            Notify(msg_fatal_error, "Connection target %s.%s not found.\n", tm_name.c_str(), t_name.c_str());
+    }
+
+    // Connect in subgroups
+
+    for(auto & g : group->groups)
+    {
+//        printf("%sConnecting in %s (%s)\n", indent.c_str(), g.first.c_str(), g.second->GetAttribute("name").c_str());
+        ConnectModules(g.second, indent+"\t");
     }
 }
 
@@ -3653,14 +3876,15 @@ Kernel::ReadXML()
     
     BuildGroup(main_group, xml);
     // FIXME: make connections here
-    // MakeConnections(main_group)
+
+    ConnectModules(main_group);
 
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
     
     main_group->Print();
 
-//        printf("%s\n", main_group->JSONString().c_str());
+// printf("%s\n", main_group->JSONString().c_str());
 }
 
 

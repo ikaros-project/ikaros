@@ -440,6 +440,7 @@ public:
 
     const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
+    bool        GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
@@ -447,12 +448,15 @@ public:
 
 
     int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
-    int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
-    
+
+    int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true); // OLD
+    int         Connect(GroupElement * group, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true); // NEW
+
     void         Connect(std::string group, std::string source, std::string target, std::string delay, bool active, int sourceoffset=0, int targetoffset=0, int size=-1);
 
     XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    void            ConnectModules(GroupElement * group, std::string indent="");
     void			ReadXML();
 
     std::string JSONString();
