@@ -1021,6 +1021,7 @@ controller = {
     load_count: 0,
     load_count_timeout: null,
     g_data: null,
+    send_stamp: 0,
 
 /*
     updateProgress: function (oEvent)
@@ -1052,6 +1053,7 @@ controller = {
 */
     get: function (url, callback)
     {
+        controller.send_stamp = Date.now();
         var last_request = url;
         
         xhr = new XMLHttpRequest();
@@ -1162,7 +1164,7 @@ controller = {
             catch(err)
             {}
     },
-    
+
     clear_wait()
     {
         controller.load_count = 0;
@@ -1205,10 +1207,12 @@ controller = {
             //        alert("Exception");
         }
     },
-    
+
 
     update(response, session_id)
     {
+        controller.ping = Date.now() - controller.send_stamp;
+
         // Check if this is a new session
         
         if(controller.session_id != session_id) // new session
@@ -1235,6 +1239,13 @@ controller = {
                 document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
                 document.querySelector("#lag").innerText = response.lag+" ms";
                 document.querySelector("#cpu_cores").innerText = response.cpu_cores;
+
+                document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1);
+                document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
+                document.querySelector("#webui_ping").innerText = controller.ping+" ms";
+                document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
+
+                console.log(response.timestamp, Date.now());
             }
             catch(err)
             {
@@ -1246,6 +1257,9 @@ controller = {
 
     requestUpdate: function()
     {
+        controller.webui_interval = Date.now() - controller.last_request_time;
+        controller.last_request_time = Date.now();
+
         if(!interaction.currentView) // no view selected
         {
             controller.get("update.json", controller.update);

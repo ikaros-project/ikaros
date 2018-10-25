@@ -92,4 +92,15 @@ void Timer::Sleep(float time)
     usleep(useconds_t(1000*time));
 }
 
+
+
+long Timer::GetRealTime()
+{
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    long sec = time.tv_sec;
+    long usec = time.tv_usec;
+    return  1E3*float(sec) + float(usec)/1E3; // difference in milliseconds
+}
+
 #endif
