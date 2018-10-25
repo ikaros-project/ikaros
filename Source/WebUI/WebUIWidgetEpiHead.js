@@ -29,6 +29,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             
             {'name':'visibleModule', 'default':"", 'type':'module', 'control': 'textedit'},
             {'name':'visibleSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'visibleFace', 'default':true, 'type':'bool', 'control': 'checkbox'},
             
             {'name': "STYLE", 'control':'header'},
 
@@ -143,66 +144,68 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
         
         this.canvas.translate(offset[0], offset[1]);
 
-        // ears
+        if(this.parameters.visibleFace)
+        {
+            // ears
         
-        this.setColor(0);
-        this.canvas.fillStyle = this.parameters.earColor;
- 
-        this.canvas.beginPath();
-        this.canvas.rect(5, 60, 10, 65);
-        this.canvas.rect(145, 60, 10, 65);
-        this.canvas.fill();
-        this.canvas.stroke();
+            this.setColor(0);
+            this.canvas.fillStyle = this.parameters.earColor;
+     
+            this.canvas.beginPath();
+            this.canvas.rect(5, 60, 10, 65);
+            this.canvas.rect(145, 60, 10, 65);
+            this.canvas.fill();
+            this.canvas.stroke();
         
-        // head
+            // head
 
-        this.setColor(0);
-        this.canvas.beginPath();
+            this.setColor(0);
+            this.canvas.beginPath();
 
-        this.canvas.moveTo(50, 0);
-        this.canvas.lineTo(110, 0);
-        this.canvas.quadraticCurveTo(145, 0, 145, 50);
-        this.canvas.lineTo(145, 126);
-        this.canvas.quadraticCurveTo(145, 165, 110, 165);
-        this.canvas.lineTo(50, 165);
-        this.canvas.quadraticCurveTo(15, 165, 15, 125);
-        this.canvas.lineTo(15, 40);
-        this.canvas.quadraticCurveTo(15, 0, 50, 0);
-        this.canvas.closePath();
+            this.canvas.moveTo(50, 0);
+            this.canvas.lineTo(110, 0);
+            this.canvas.quadraticCurveTo(145, 0, 145, 50);
+            this.canvas.lineTo(145, 126);
+            this.canvas.quadraticCurveTo(145, 165, 110, 165);
+            this.canvas.lineTo(50, 165);
+            this.canvas.quadraticCurveTo(15, 165, 15, 125);
+            this.canvas.lineTo(15, 40);
+            this.canvas.quadraticCurveTo(15, 0, 50, 0);
+            this.canvas.closePath();
         
-        this.canvas.moveTo(5, 62.5);
-        this.canvas.lineTo(0, 67.5);
-        this.canvas.lineTo(0, 117.5);
-        this.canvas.lineTo(5, 122.5);
-        this.canvas.closePath();
+            this.canvas.moveTo(5, 62.5);
+            this.canvas.lineTo(0, 67.5);
+            this.canvas.lineTo(0, 117.5);
+            this.canvas.lineTo(5, 122.5);
+            this.canvas.closePath();
 
-        this.canvas.moveTo(5, 62.5);
-        this.canvas.lineTo(0, 67.5);
-        this.canvas.lineTo(0, 117.5);
-        this.canvas.lineTo(5, 122.5);
-        this.canvas.closePath();
+            this.canvas.moveTo(5, 62.5);
+            this.canvas.lineTo(0, 67.5);
+            this.canvas.lineTo(0, 117.5);
+            this.canvas.lineTo(5, 122.5);
+            this.canvas.closePath();
         
-        this.canvas.moveTo(155, 62.5);
-        this.canvas.lineTo(160, 67.5);
-        this.canvas.lineTo(160, 117.5);
-        this.canvas.lineTo(155, 122.5);
-        this.canvas.closePath();
+            this.canvas.moveTo(155, 62.5);
+            this.canvas.lineTo(160, 67.5);
+            this.canvas.lineTo(160, 117.5);
+            this.canvas.lineTo(155, 122.5);
+            this.canvas.closePath();
         
-        this.canvas.fill();
-        this.canvas.stroke();
+            this.canvas.fill();
+            this.canvas.stroke();
 
-        // Mouth
+            // Mouth
         
-        this.canvas.fillStyle = this.parameters.mouthColor;
-        for(let c=0; c<2; c++)
-            for(let i=0; i<6; i++)
-            {
-                this.canvas.beginPath();
-                this.canvas.arc(80-2.5*6.5+i*6.5, 135+c*10, 2, 0, 2*Math.PI);
-                this.canvas.fill();
-                this.canvas.stroke();
-            }
-        
+            this.canvas.fillStyle = this.parameters.mouthColor;
+            for(let c=0; c<2; c++)
+                for(let i=0; i<6; i++)
+                {
+                    this.canvas.beginPath();
+                    this.canvas.arc(80-2.5*6.5+i*6.5, 135+c*10, 2, 0, 2*Math.PI);
+                    this.canvas.fill();
+                    this.canvas.stroke();
+                }
+        }
          // left eye
         
         let g0 = gaze ? gaze[0] : parseFloat(this.parameters.gaze)+parseFloat(this.parameters.vergence);
