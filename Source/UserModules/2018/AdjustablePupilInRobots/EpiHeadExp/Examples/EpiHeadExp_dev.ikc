@@ -12,7 +12,7 @@
 
 	<!-- Pupil -->
     <module
-        class = "DynamixelSimulate"
+        class = "Dynamixel"
         name = "Pupil"
     	device  = "/dev/cu.usbserial-A7005Lxn"
         index_mode = "indirect"
@@ -22,8 +22,9 @@
     	angle_unit = "degrees"
     	start_up_delay 	= "20"
     />
-	<connection sourcemodule = "EpiHeadExp"  source = "ROBOT_PUPLIS" targetmodule = "Pupil"  target = "GOAL_POSITION" />
-
+	<connection sourcemodule = "EpiHeadExp"  source = "ROBOT_PUPIL_LEFT" targetmodule = "Pupil"  target = "GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "1"  />
+	<connection sourcemodule = "EpiHeadExp"  source = "ROBOT_PUPIL_RIGHT" targetmodule = "Pupil"  target = "GOAL_POSITION" sourceoffset = "0" targetoffset = "1" size = "1"  />
+	
 	<module class = "Constant" name = "P_TorqueEnable" outputsize = "2" data = "1 1" />
 	<connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
     
@@ -106,8 +107,8 @@
 		<connection sourcemodule = "EpiHeadExp" source = "LOG_SCREEN_PUPIL" 		targetmodule = "LOG" target = "SCREEN_PUPIL" />
 		<connection sourcemodule = "EpiHeadExp" source = "LOG_ROBOT_PUPIL" 			targetmodule = "LOG" target = "ROBOT_PUPIL" />
 		
-		<connection sourcemodule = "EpiHeadExp" source = "SCREEN_PUPLIS" 	 		targetmodule = "LOG" target = "RAW_SCREEN_PUPIL" />
-		<connection sourcemodule = "EpiHeadExp" source = "ROBOT_PUPLIS" 			targetmodule = "LOG" target = "RAW_ROBOT_PUPIL" />
+		<connection sourcemodule = "EpiHeadExp" source = "SCREEN_PUPIL_LEFT" 	 		targetmodule = "LOG" target = "RAW_SCREEN_PUPIL" />
+		<connection sourcemodule = "EpiHeadExp" source = "ROBOT_PUPIL_LEFT" 			targetmodule = "LOG" target = "RAW_ROBOT_PUPIL" />
 		
 	
 		<module class = "Constant" name = "ZERO" outputsize = "3" data = "0 0" />
@@ -125,27 +126,293 @@
 		<connection sourcemodule = "D"  source = "OUTPUT" targetmodule = "Pupil"  target = "D_GAIN" />
 
 		
+		<view name="Phases">
+			
+			<bar-graph
+			w = "2"
+			y = "20"
+			x = "820"
+			source = "EpiHeadExp.LOG_EXPERIMENT_PHASE"
+			class = "bar-graph"
+			direction = "vertical"
+			title = "Phases"
+			lineWidth = "1"
+			width = "581"
+			show_title = "true"
+			max = "50"
+			height = "701"
+			module = "*"
+			show_frame = "true"
+			/>
+			
+		</view>
 		
 		<view name="Epi the Robot">
+			
+			<image
+			x = "940"
+			y = "280"
+			width = "781"
+			height = "741"
+			scales = "no"
+			max_y = "1"
+			index = "EpiHeadExp.IMAGE_ID"
+			format = "gray"
+			flipXCanvas = "no"
+			flipYAxis = "no"
+			max_x = "1"
+			file = "
+			Images/png/nothing.png,
+			Images/png/green.png,
+			Images/png/blue.png,
+			Images/png/red.png,
+			Images/png/yellow.png,
+			Images/jpeg/1/Image1.jpg,
+			Images/jpeg/1/Image2.jpg,
+			Images/jpeg/1/Image3.jpg,
+			Images/jpeg/1/Image4.jpg,
+			Images/jpeg/1/Image5.jpg,
+			Images/jpeg/1/Image6.jpg,
+			Images/jpeg/1/Image7.jpg,
+			Images/jpeg/1/Image8.jpg,
+			Images/jpeg/1/Image9.jpg,
+			Images/jpeg/1/Image10.jpg,
+			Images/jpeg/1/Image11.jpg,
+			Images/jpeg/1/Image12.jpg,
+			Images/jpeg/1/Image13.jpg,
+			Images/jpeg/1/Image14.jpg,
+			Images/jpeg/1/Image15.jpg,
+			Images/jpeg/1/Image16.jpg,
+			Images/jpeg/1/Image17.jpg,
+			Images/jpeg/1/Image18.jpg,
+			Images/jpeg/1/Image19.jpg,
+			Images/jpeg/1/Image20.jpg,
+			Images/jpeg/1/Image21.jpg,
+			Images/jpeg/1/Image22.jpg,
+			Images/jpeg/1/Image23.jpg,
+			Images/jpeg/1/Image24.jpg,
+			Images/jpeg/1/Image25.jpg,
+			Images/jpeg/1/Image26.jpg,
+			Images/jpeg/1/Image27.jpg,
+			Images/jpeg/1/Image28.jpg,
+			Images/jpeg/1/Image29.jpg,
+			Images/jpeg/1/Image30.jpg,
+			Images/jpeg/1/Image31.jpg,
+			Images/jpeg/1/Image32.jpg,
+			Images/jpeg/1/Image33.jpg,
+			Images/jpeg/1/Image34.jpg,
+			Images/jpeg/1/Image35.jpg,
+			Images/jpeg/1/Image36.jpg,
+			Images/jpeg/1/Image37.jpg,
+			Images/jpeg/1/Image38.jpg,
+			Images/jpeg/1/Image39.jpg,
+			Images/jpeg/1/Image40.jpg,
+			Images/jpeg/1/Image41.jpg,
+			Images/jpeg/1/Image42.jpg,
+			Images/jpeg/1/Image43.jpg,
+			Images/jpeg/1/Image44.jpg,
+			Images/jpeg/1/Image45.jpg,
+			Images/jpeg/1/Image46.jpg,
+			Images/jpeg/1/Image47.jpg,
+			Images/jpeg/1/Image48.jpg,
+			Images/jpeg/1/Image49.jpg,
+			Images/jpeg/1/Image50.jpg,
+			Images/jpeg/1/Image51.jpg,
+			Images/jpeg/1/Image52.jpg,
+			Images/jpeg/1/Image53.jpg,
+			Images/jpeg/1/Image54.jpg,
+			Images/jpeg/1/Image55.jpg,
+			Images/jpeg/1/Image56.jpg,
+			Images/jpeg/1/Image57.jpg,
+			Images/jpeg/1/Image58.jpg,
+			Images/jpeg/1/Image59.jpg,
+			Images/jpeg/1/Image60.jpg,
+			Images/jpeg/1/Image61.jpg,
+			Images/jpeg/1/Image62.jpg,
+			Images/jpeg/1/Image63.jpg,
+			Images/jpeg/1/Image64.jpg,
+			Images/jpeg/1/Image65.jpg,
+			Images/jpeg/1/Image66.jpg,
+			Images/jpeg/1/Image67.jpg,
+			Images/jpeg/1/Image68.jpg,
+			Images/jpeg/1/Image69.jpg,
+			Images/jpeg/1/Image70.jpg,
+			Images/jpeg/1/Image71.jpg,
+			Images/jpeg/1/Image72.jpg,
+			Images/jpeg/1/Image73.jpg,
+			Images/jpeg/1/Image74.jpg,
+			Images/jpeg/1/Image75.jpg,
+			Images/jpeg/1/Image76.jpg,
+			Images/jpeg/1/Image77.jpg,
+			Images/jpeg/1/Image78.jpg,
+			Images/jpeg/1/Image79.jpg,
+			Images/jpeg/1/Image80.jpg,
+			Images/jpeg/1/Image81.jpg,
+			Images/jpeg/1/Image82.jpg,
+			Images/jpeg/1/Image83.jpg,
+			Images/jpeg/1/Image84.jpg,
+			Images/jpeg/1/Image85.jpg,
+			Images/jpeg/1/Image86.jpg,
+			Images/jpeg/1/Image87.jpg,
+			Images/jpeg/1/Image88.jpg,
+			Images/jpeg/1/Image89.jpg,
+			Images/jpeg/1/Image90.jpg,
+			Images/jpeg/1/Image91.jpg,
+			Images/jpeg/1/Image92.jpg,
+			Images/jpeg/1/Image93.jpg,
+			Images/jpeg/1/Image94.jpg,
+			Images/jpeg/1/Image95.jpg,
+			Images/jpeg/1/Image96.jpg,
+			Images/jpeg/1/Image97.jpg,
+			Images/jpeg/1/Image98.jpg,
+			Images/jpeg/1/Image99.jpg,
+			Images/jpeg/1/Image100.jpg,
+			Images/jpeg/1/Image101.jpg,
+			Images/jpeg/1/Image102.jpg,
+			Images/jpeg/1/Image103.jpg,
+			Images/jpeg/1/Image104.jpg,
+			Images/jpeg/1/Image105.jpg,
+			Images/jpeg/1/Image106.jpg,
+			Images/jpeg/1/Image107.jpg,
+			Images/jpeg/1/Image108.jpg,
+			Images/jpeg/1/Image109.jpg,
+			Images/jpeg/1/Image110.jpg,
+			Images/jpeg/1/Image111.jpg,
+			Images/jpeg/1/Image112.jpg,
+			Images/jpeg/1/Image113.jpg,
+			Images/jpeg/1/Image114.jpg,
+			Images/jpeg/1/Image115.jpg,
+			Images/jpeg/1/Image116.jpg,
+			Images/jpeg/1/Image117.jpg,
+			Images/jpeg/1/Image118.jpg,
+			Images/jpeg/1/Image119.jpg,
+			Images/jpeg/1/Image120.jpg,
+			Images/jpeg/1/Image121.jpg,
+			Images/jpeg/1/Image122.jpg,
+			Images/jpeg/1/Image123.jpg,
+			Images/jpeg/1/Image124.jpg,
+			Images/jpeg/1/Image125.jpg,
+			Images/jpeg/1/Image126.jpg,
+			Images/jpeg/1/Image127.jpg,
+			Images/jpeg/1/Image128.jpg,
+			Images/jpeg/1/Image129.jpg,
+			Images/jpeg/1/Image130.jpg,
+			Images/jpeg/1/Image131.jpg,
+			Images/jpeg/1/Image132.jpg,
+			Images/jpeg/1/Image133.jpg,
+			Images/jpeg/1/Image134.jpg,
+			Images/jpeg/1/Image135.jpg,
+			Images/jpeg/1/Image136.jpg,
+			Images/jpeg/1/Image137.jpg,
+			Images/jpeg/1/Image138.jpg,
+			Images/jpeg/1/Image139.jpg,
+			Images/jpeg/1/Image140.jpg,
+			Images/jpeg/1/Image141.jpg,
+			Images/jpeg/1/Image142.jpg,
+			Images/jpeg/1/Image143.jpg,
+			Images/jpeg/1/Image144.jpg,
+			Images/jpeg/1/Image145.jpg,
+			Images/jpeg/1/Image146.jpg,
+			Images/jpeg/1/Image147.jpg,
+			Images/jpeg/1/Image148.jpg,
+			Images/jpeg/1/Image149.jpg,
+			Images/jpeg/1/Image150.jpg,
+			Images/jpeg/1/Image151.jpg,
+			Images/jpeg/1/Image152.jpg,
+			Images/jpeg/1/Image153.jpg,
+			Images/jpeg/1/Image154.jpg,
+			Images/jpeg/1/Image155.jpg,
+			Images/jpeg/1/Image156.jpg,
+			Images/jpeg/1/Image157.jpg,
+			Images/jpeg/1/Image158.jpg,
+			Images/jpeg/1/Image159.jpg,
+			Images/jpeg/1/Image160.jpg,
+			Images/jpeg/1/Image161.jpg,
+			Images/jpeg/1/Image162.jpg,
+			Images/jpeg/1/Image163.jpg,
+			Images/jpeg/1/Image164.jpg,
+			Images/jpeg/1/Image165.jpg,
+			Images/jpeg/1/Image166.jpg,
+			Images/jpeg/1/Image167.jpg,
+			Images/jpeg/1/Image168.jpg,
+			Images/jpeg/1/Image169.jpg,
+			Images/jpeg/1/Image170.jpg,
+			Images/jpeg/1/Image171.jpg,
+			Images/jpeg/1/Image172.jpg,
+			Images/jpeg/1/Image173.jpg,
+			Images/jpeg/1/Image174.jpg,
+			Images/jpeg/1/Image175.jpg,
+			Images/jpeg/1/Image176.jpg,
+			Images/jpeg/1/Image177.jpg,
+			Images/jpeg/1/Image178.jpg,
+			Images/jpeg/1/Image179.jpg,
+			Images/jpeg/1/Image180.jpg,
+			Images/jpeg/1/Image181.jpg,
+			Images/jpeg/1/Image182.jpg,
+			Images/jpeg/1/Image183.jpg,
+			Images/jpeg/1/Image184.jpg,
+			Images/jpeg/1/Image185.jpg,
+			Images/jpeg/1/Image186.jpg,
+			Images/jpeg/1/Image187.jpg,
+			Images/jpeg/1/Image188.jpg,
+			Images/jpeg/1/Image189.jpg,
+			Images/jpeg/1/Image190.jpg,
+			Images/jpeg/1/Image191.jpg,
+			Images/jpeg/1/Image192.jpg,
+			Images/jpeg/1/Image193.jpg,
+			Images/jpeg/1/Image194.jpg,
+			Images/jpeg/1/Image195.jpg,
+			Images/jpeg/1/Image196.jpg,
+			Images/jpeg/1/Image197.jpg,
+			Images/jpeg/1/Image198.jpg,
+			Images/jpeg/1/Image199.jpg,
+			Images/jpeg/1/Image200.jpg,
+			Images/jpeg/1/Image201.jpg,
+			Images/jpeg/1/Image202.jpg,
+			Images/jpeg/1/Image203.jpg,
+			Images/jpeg/1/Image204.jpg,
+			Images/jpeg/1/Image205.jpg,
+			Images/jpeg/1/Image206.jpg,
+			Images/jpeg/1/Image207.jpg,
+			Images/jpeg/1/Image208.jpg,
+			Images/jpeg/1/Image209.jpg,
+			Images/jpeg/1/Image210.jpg,
+			Images/jpeg/1/Image211.jpg,
+			Images/jpeg/1/Image212.jpg,
+			Images/jpeg/1/Image213.jpg,
+			Images/jpeg/1/Image214.jpg,
+			Images/jpeg/1/Image215.jpg,
+			Images/jpeg/1/Image216.jpg,
+			Images/jpeg/1/Image217.jpg,
+			Images/jpeg/1/Image218.jpg,
+			Images/jpeg/1/Image219.jpg,
+			Images/jpeg/1/Image220.jpg
+			"
+			title = "Image Sequence"
+			flipYCanvas = "no"
+			scale = "both"
+			flipXAxis = "no"
+			class = "image"
+			/>
 			
 			<epi-head
 			fill = "white"
 			color = "black"
 			x = "940"
-			gazeModule = "ZERO"
+			y = "280"
+			width = "781"
+			height = "741"
+			_gazeModule = "ZERO"
 			pupil = "0.5"
 			earColor = "#0088ff"
 			label = "Epi"
 			visibleModule = "EpiHeadExp"
 			mouthColor = "#000000"
-			gazeSource = "OUTPUT"
+			gazeSource = "ZERO.OUTPUT"
 			visibleSource = ""
-			pupilSource = "SCREEN_PUPLIS"
-			width = "781"
-			pupilModule = "EpiHeadExp"
-			y = "280"
+			pupilSource = "EpiHeadExp.SCREEN_PUPLIS"
+			_pupilModule = "EpiHeadExp"
 			eyeColor = "gray"
-			height = "741"
 			class = "epi-head"
 			/>
 			
@@ -262,7 +529,7 @@
 			
 			<text
 			module = "EpiHeadExp"
-			parameter = "INFO_TEXT"
+			parameter = "info_text"
 			x = "500"
 			y = "40"
 			title = "Default Title"
@@ -275,219 +542,392 @@
 		
 		<view name="Epi och admin">
 			
-			<epi-head
+			<image
+			scales = "no"
 			height = "301"
-			eyeColor = "gray"
-			y = "420"
-			pupilModule = "EpiHeadExp"
-			width = "361"
-			pupilSource = "SCREEN_PUPLIS"
-			gazeSource = "OUTPUT"
-			mouthColor = "#000000"
-			visibleModule = "EpiHeadExp"
-			label = "Epi"
-			earColor = "#0088ff"
-			pupil = "0.5"
-			color = "black"
-			fill = "white"
-			gazeModule = "ZERO"
+			max_y = "1"
+			index = "EpiHeadExp.IMAGE_ID"
 			x = "1040"
+			format = "gray"
+			y = "420"
+			flipXCanvas = "no"
+			flipYAxis = "no"
+			max_x = "1"
+			file = "
+			Images/png/nothing.png,
+			Images/png/green.png,
+			Images/png/blue.png,
+			Images/png/red.png,
+			Images/png/yellow.png,
+			Images/jpeg/1/Image1.jpg,
+			Images/jpeg/1/Image2.jpg,
+			Images/jpeg/1/Image3.jpg,
+			Images/jpeg/1/Image4.jpg,
+			Images/jpeg/1/Image5.jpg,
+			Images/jpeg/1/Image6.jpg,
+			Images/jpeg/1/Image7.jpg,
+			Images/jpeg/1/Image8.jpg,
+			Images/jpeg/1/Image9.jpg,
+			Images/jpeg/1/Image10.jpg,
+			Images/jpeg/1/Image11.jpg,
+			Images/jpeg/1/Image12.jpg,
+			Images/jpeg/1/Image13.jpg,
+			Images/jpeg/1/Image14.jpg,
+			Images/jpeg/1/Image15.jpg,
+			Images/jpeg/1/Image16.jpg,
+			Images/jpeg/1/Image17.jpg,
+			Images/jpeg/1/Image18.jpg,
+			Images/jpeg/1/Image19.jpg,
+			Images/jpeg/1/Image20.jpg,
+			Images/jpeg/1/Image21.jpg,
+			Images/jpeg/1/Image22.jpg,
+			Images/jpeg/1/Image23.jpg,
+			Images/jpeg/1/Image24.jpg,
+			Images/jpeg/1/Image25.jpg,
+			Images/jpeg/1/Image26.jpg,
+			Images/jpeg/1/Image27.jpg,
+			Images/jpeg/1/Image28.jpg,
+			Images/jpeg/1/Image29.jpg,
+			Images/jpeg/1/Image30.jpg,
+			Images/jpeg/1/Image31.jpg,
+			Images/jpeg/1/Image32.jpg,
+			Images/jpeg/1/Image33.jpg,
+			Images/jpeg/1/Image34.jpg,
+			Images/jpeg/1/Image35.jpg,
+			Images/jpeg/1/Image36.jpg,
+			Images/jpeg/1/Image37.jpg,
+			Images/jpeg/1/Image38.jpg,
+			Images/jpeg/1/Image39.jpg,
+			Images/jpeg/1/Image40.jpg,
+			Images/jpeg/1/Image41.jpg,
+			Images/jpeg/1/Image42.jpg,
+			Images/jpeg/1/Image43.jpg,
+			Images/jpeg/1/Image44.jpg,
+			Images/jpeg/1/Image45.jpg,
+			Images/jpeg/1/Image46.jpg,
+			Images/jpeg/1/Image47.jpg,
+			Images/jpeg/1/Image48.jpg,
+			Images/jpeg/1/Image49.jpg,
+			Images/jpeg/1/Image50.jpg,
+			Images/jpeg/1/Image51.jpg,
+			Images/jpeg/1/Image52.jpg,
+			Images/jpeg/1/Image53.jpg,
+			Images/jpeg/1/Image54.jpg,
+			Images/jpeg/1/Image55.jpg,
+			Images/jpeg/1/Image56.jpg,
+			Images/jpeg/1/Image57.jpg,
+			Images/jpeg/1/Image58.jpg,
+			Images/jpeg/1/Image59.jpg,
+			Images/jpeg/1/Image60.jpg,
+			Images/jpeg/1/Image61.jpg,
+			Images/jpeg/1/Image62.jpg,
+			Images/jpeg/1/Image63.jpg,
+			Images/jpeg/1/Image64.jpg,
+			Images/jpeg/1/Image65.jpg,
+			Images/jpeg/1/Image66.jpg,
+			Images/jpeg/1/Image67.jpg,
+			Images/jpeg/1/Image68.jpg,
+			Images/jpeg/1/Image69.jpg,
+			Images/jpeg/1/Image70.jpg,
+			Images/jpeg/1/Image71.jpg,
+			Images/jpeg/1/Image72.jpg,
+			Images/jpeg/1/Image73.jpg,
+			Images/jpeg/1/Image74.jpg,
+			Images/jpeg/1/Image75.jpg,
+			Images/jpeg/1/Image76.jpg,
+			Images/jpeg/1/Image77.jpg,
+			Images/jpeg/1/Image78.jpg,
+			Images/jpeg/1/Image79.jpg,
+			Images/jpeg/1/Image80.jpg,
+			Images/jpeg/1/Image81.jpg,
+			Images/jpeg/1/Image82.jpg,
+			Images/jpeg/1/Image83.jpg,
+			Images/jpeg/1/Image84.jpg,
+			Images/jpeg/1/Image85.jpg,
+			Images/jpeg/1/Image86.jpg,
+			Images/jpeg/1/Image87.jpg,
+			Images/jpeg/1/Image88.jpg,
+			Images/jpeg/1/Image89.jpg,
+			Images/jpeg/1/Image90.jpg,
+			Images/jpeg/1/Image91.jpg,
+			Images/jpeg/1/Image92.jpg,
+			Images/jpeg/1/Image93.jpg,
+			Images/jpeg/1/Image94.jpg,
+			Images/jpeg/1/Image95.jpg,
+			Images/jpeg/1/Image96.jpg,
+			Images/jpeg/1/Image97.jpg,
+			Images/jpeg/1/Image98.jpg,
+			Images/jpeg/1/Image99.jpg,
+			Images/jpeg/1/Image100.jpg,
+			Images/jpeg/1/Image101.jpg,
+			Images/jpeg/1/Image102.jpg,
+			Images/jpeg/1/Image103.jpg,
+			Images/jpeg/1/Image104.jpg,
+			Images/jpeg/1/Image105.jpg,
+			Images/jpeg/1/Image106.jpg,
+			Images/jpeg/1/Image107.jpg,
+			Images/jpeg/1/Image108.jpg,
+			Images/jpeg/1/Image109.jpg,
+			Images/jpeg/1/Image110.jpg,
+			Images/jpeg/1/Image111.jpg,
+			Images/jpeg/1/Image112.jpg,
+			Images/jpeg/1/Image113.jpg,
+			Images/jpeg/1/Image114.jpg,
+			Images/jpeg/1/Image115.jpg,
+			Images/jpeg/1/Image116.jpg,
+			Images/jpeg/1/Image117.jpg,
+			Images/jpeg/1/Image118.jpg,
+			Images/jpeg/1/Image119.jpg,
+			Images/jpeg/1/Image120.jpg,
+			Images/jpeg/1/Image121.jpg,
+			Images/jpeg/1/Image122.jpg,
+			Images/jpeg/1/Image123.jpg,
+			Images/jpeg/1/Image124.jpg,
+			Images/jpeg/1/Image125.jpg,
+			Images/jpeg/1/Image126.jpg,
+			Images/jpeg/1/Image127.jpg,
+			Images/jpeg/1/Image128.jpg,
+			Images/jpeg/1/Image129.jpg,
+			Images/jpeg/1/Image130.jpg,
+			Images/jpeg/1/Image131.jpg,
+			Images/jpeg/1/Image132.jpg,
+			Images/jpeg/1/Image133.jpg,
+			Images/jpeg/1/Image134.jpg,
+			Images/jpeg/1/Image135.jpg,
+			Images/jpeg/1/Image136.jpg,
+			Images/jpeg/1/Image137.jpg,
+			Images/jpeg/1/Image138.jpg,
+			Images/jpeg/1/Image139.jpg,
+			Images/jpeg/1/Image140.jpg,
+			Images/jpeg/1/Image141.jpg,
+			Images/jpeg/1/Image142.jpg,
+			Images/jpeg/1/Image143.jpg,
+			Images/jpeg/1/Image144.jpg,
+			Images/jpeg/1/Image145.jpg,
+			Images/jpeg/1/Image146.jpg,
+			Images/jpeg/1/Image147.jpg,
+			Images/jpeg/1/Image148.jpg,
+			Images/jpeg/1/Image149.jpg,
+			Images/jpeg/1/Image150.jpg,
+			Images/jpeg/1/Image151.jpg,
+			Images/jpeg/1/Image152.jpg,
+			Images/jpeg/1/Image153.jpg,
+			Images/jpeg/1/Image154.jpg,
+			Images/jpeg/1/Image155.jpg,
+			Images/jpeg/1/Image156.jpg,
+			Images/jpeg/1/Image157.jpg,
+			Images/jpeg/1/Image158.jpg,
+			Images/jpeg/1/Image159.jpg,
+			Images/jpeg/1/Image160.jpg,
+			Images/jpeg/1/Image161.jpg,
+			Images/jpeg/1/Image162.jpg,
+			Images/jpeg/1/Image163.jpg,
+			Images/jpeg/1/Image164.jpg,
+			Images/jpeg/1/Image165.jpg,
+			Images/jpeg/1/Image166.jpg,
+			Images/jpeg/1/Image167.jpg,
+			Images/jpeg/1/Image168.jpg,
+			Images/jpeg/1/Image169.jpg,
+			Images/jpeg/1/Image170.jpg,
+			Images/jpeg/1/Image171.jpg,
+			Images/jpeg/1/Image172.jpg,
+			Images/jpeg/1/Image173.jpg,
+			Images/jpeg/1/Image174.jpg,
+			Images/jpeg/1/Image175.jpg,
+			Images/jpeg/1/Image176.jpg,
+			Images/jpeg/1/Image177.jpg,
+			Images/jpeg/1/Image178.jpg,
+			Images/jpeg/1/Image179.jpg,
+			Images/jpeg/1/Image180.jpg,
+			Images/jpeg/1/Image181.jpg,
+			Images/jpeg/1/Image182.jpg,
+			Images/jpeg/1/Image183.jpg,
+			Images/jpeg/1/Image184.jpg,
+			Images/jpeg/1/Image185.jpg,
+			Images/jpeg/1/Image186.jpg,
+			Images/jpeg/1/Image187.jpg,
+			Images/jpeg/1/Image188.jpg,
+			Images/jpeg/1/Image189.jpg,
+			Images/jpeg/1/Image190.jpg,
+			Images/jpeg/1/Image191.jpg,
+			Images/jpeg/1/Image192.jpg,
+			Images/jpeg/1/Image193.jpg,
+			Images/jpeg/1/Image194.jpg,
+			Images/jpeg/1/Image195.jpg,
+			Images/jpeg/1/Image196.jpg,
+			Images/jpeg/1/Image197.jpg,
+			Images/jpeg/1/Image198.jpg,
+			Images/jpeg/1/Image199.jpg,
+			Images/jpeg/1/Image200.jpg,
+			Images/jpeg/1/Image201.jpg,
+			Images/jpeg/1/Image202.jpg,
+			Images/jpeg/1/Image203.jpg,
+			Images/jpeg/1/Image204.jpg,
+			Images/jpeg/1/Image205.jpg,
+			Images/jpeg/1/Image206.jpg,
+			Images/jpeg/1/Image207.jpg,
+			Images/jpeg/1/Image208.jpg,
+			Images/jpeg/1/Image209.jpg,
+			Images/jpeg/1/Image210.jpg,
+			Images/jpeg/1/Image211.jpg,
+			Images/jpeg/1/Image212.jpg,
+			Images/jpeg/1/Image213.jpg,
+			Images/jpeg/1/Image214.jpg,
+			Images/jpeg/1/Image215.jpg,
+			Images/jpeg/1/Image216.jpg,
+			Images/jpeg/1/Image217.jpg,
+			Images/jpeg/1/Image218.jpg,
+			Images/jpeg/1/Image219.jpg,
+			Images/jpeg/1/Image220.jpg
+			"
+			title = "Image Sequence"
+			width = "361"
+			flipYCanvas = "no"
+			scale = "both"
+			flipXAxis = "no"
+			class = "image"
+			/>
+			
+			<epi-head
+			x = "420"
+			gazeModule = "ZERO"
+			fill = "white"
+			color = "black"
+			pupil = "0.5"
+			earColor = "#0088ff"
+			pupilLeftSource = "EpiHeadExp.SCREEN_PUPIL_LEFT"
+			label = "Epi"
+			visibleModule = "EpiHeadExp"
+			mouthColor = "#000000"
+			width = "361"
+			pupilModule = "EpiHeadExp"
+			y = "420"
+			eyeColor = "gray"
+			height = "301"
+			pupilSource = "SCREEN_PUPLIS"
+			visibleFace = "EpiHeadExp.visibleFace"
+			pupilRightSource = "EpiHeadExp.SCREEN_PUPIL_RIGHT"
+			irisColor = "#88aaff"
 			class = "epi-head"
 			/>
 			
 			<slider-horizontal
-			max = "40"
-			title = "Sliders"
-			width = "1061"
-			height = "61"
-			show_frame = "true"
-			x = "80"
-			count = "1"
-			parameter = "subject_id"
-			show_values = "true"
-			y = "100"
-			step = "1"
-			module = "EpiHeadExp"
 			min = "0"
+			module = "EpiHeadExp"
+			step = "1"
+			y = "100"
+			show_values = "true"
+			parameter = "subject_id"
+			count = "1"
+			x = "80"
+			show_frame = "true"
+			height = "61"
+			width = "1061"
+			title = "Sliders"
+			max = "40"
 			class = "slider-horizontal"
 			/>
 			
 			<button
-			height = "101"
-			width = "221"
-			enableSource = "S1Enable"
-			label = "Press"
-			enableModule = "EpiHeadExp"
-			w = "6"
-			h = "3"
-			y = "180"
-			x = "480"
-			value = "1"
-			title = "New subject"
-			show_title = "true"
+			module = "EpiHeadExp"
 			parameter = "s1"
-			module = "EpiHeadExp"
+			show_title = "true"
+			title = "New subject"
+			value = "1"
+			x = "480"
+			y = "180"
+			h = "3"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			label = "Press"
+			enableSource = "S1Enable"
+			width = "221"
+			height = "101"
 			class = "button"
 			/>
 			
 			<button
-			enableSource = "C1Enable"
-			label = "Start"
-			w = "6"
-			enableModule = "EpiHeadExp"
-			h = "3"
-			y = "300"
-			parameter = "c1"
-			module = "EpiHeadExp"
-			x = "60"
-			value = "1"
+			height = "101"
+			width = "221"
+			show_title = "true"
 			title = "Screen eyes"
-			show_title = "true"
-			width = "221"
-			height = "101"
+			value = "1"
+			x = "60"
+			module = "EpiHeadExp"
+			parameter = "c1"
+			y = "300"
+			h = "3"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			label = "Start"
+			enableSource = "C1Enable"
 			class = "button"
 			/>
 			
 			<button
-			height = "101"
-			width = "221"
-			enableSource = "C2Enable"
-			label = "Start"
-			enableModule = "EpiHeadExp"
-			w = "6"
-			h = "3"
-			y = "300"
-			x = "320"
-			value = "1"
-			title = "Screen Head"
-			show_title = "true"
+			module = "EpiHeadExp"
 			parameter = "c2"
-			module = "EpiHeadExp"
+			show_title = "true"
+			title = "Screen Head"
+			value = "1"
+			x = "320"
+			y = "300"
+			h = "3"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			label = "Start"
+			enableSource = "C2Enable"
+			width = "221"
+			height = "101"
 			class = "button"
 			/>
 			
 			<button
-			height = "101"
-			width = "221"
-			enableSource = "C3Enable"
-			label = "Start"
-			enableModule = "EpiHeadExp"
-			w = "6"
-			h = "3"
-			y = "300"
-			x = "580"
-			value = "1"
-			title = "Screen Movie"
-			show_title = "true"
+			module = "EpiHeadExp"
 			parameter = "c3"
-			module = "EpiHeadExp"
+			show_title = "true"
+			title = "Screen Movie"
+			value = "1"
+			x = "580"
+			y = "300"
+			h = "3"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			label = "Start"
+			enableSource = "C3Enable"
+			width = "221"
+			height = "101"
 			class = "button"
 			/>
 			
 			<button
-			height = "101"
-			width = "221"
-			enableSource = "C4Enable"
-			label = "Start"
+			module = "EpiHeadExp"
+			parameter = "c4"
+			show_title = "true"
+			title = "Robot"
+			value = "1"
+			x = "840"
+			y = "300"
+			h = "3"
 			enableModule = "EpiHeadExp"
 			w = "6"
-			h = "3"
-			y = "300"
-			x = "840"
-			value = "1"
-			title = "Robot"
-			show_title = "true"
-			parameter = "c4"
-			module = "EpiHeadExp"
+			label = "Start"
+			enableSource = "C4Enable"
+			width = "221"
+			height = "101"
 			class = "button"
 			/>
 			
 			<text
-			module = "EpiHeadExp"
-			parameter = "INFO_TEXT"
-			x = "500"
-			y = "40"
-			title = "Default Title"
-			width = "181"
 			height = "41"
+			width = "181"
+			title = "Default Title"
+			y = "40"
+			x = "500"
+			parameter = "info_text"
+			module = "EpiHeadExp"
 			class = "text"
 			/>
-			
-			<plot
-			buffer_size = "100"
-			min = "220"
-			module = "Pupil"
-			height = "341"
-			max = "270"
-			show_title = "true"
-			width = "1001"
-			lineWidth = "1"
-			title = "Present position"
-			x = "60"
-			y = "400"
-			source = "FEEDBACK_PRESENT_POSITION"
-			decimals = "4"
-			w = "2"
-			direction = "vertical"
-			class = "plot"
-			/>
-			
-			<slider-horizontal
-			min = "0"
-			module = "P"
-			step = "1"
-			y = "740"
-			show_values = "true"
-			parameter = "data"
-			count = "1"
-			x = "40"
-			show_frame = "true"
-			height = "61"
-			title = "P"
-			width = "1061"
-			show_title = "true"
-			max = "250"
-			class = "slider-horizontal"
-			/>
-			
-			<slider-horizontal
-			min = "0"
-			module = "I"
-			step = "1"
-			y = "820"
-			show_values = "true"
-			parameter = "data"
-			count = "1"
-			x = "40"
-			show_frame = "true"
-			height = "61"
-			title = "Sliders"
-			width = "1061"
-			show_title = "true"
-			max = "250"
-			class = "slider-horizontal"
-			/>
-			
-			<slider-horizontal
-			min = "0"
-			module = "D"
-			step = "1"
-			y = "900"
-			show_values = "true"
-			parameter = "data"
-			count = "1"
-			x = "40"
-			show_frame = "true"
-			height = "61"
-			title = "D"
-			width = "1061"
-			show_title = "true"
-			max = "250"
-			class = "slider-horizontal"
-			/>
-			
 		</view>
-		
-	
 </group>
  

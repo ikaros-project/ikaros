@@ -52,8 +52,12 @@ public:
 	// Outputs
 	float *     expID;
 	float *     motorNeckEyes;
-    float *     screenPupil;
-	float *     robotPupil;
+	float *     screenPupilL;
+	float *     screenPupilR;
+	float *     robotPupilL;
+	float *     robotPupilR;
+
+	float *		imageID;
 	
 	// Text to WebUI
 	std::string infoText;
@@ -66,6 +70,7 @@ public:
 	int c2;
 	int c3;
 	int c4;
+	bool visibleFace;
 	
 	float * s1Enable;
 	float * c1Enable;
@@ -153,7 +158,7 @@ public:
 	// Current (index)
 	int curSubjectIndex = -1;
 	int curExperimentIndex = -1;
-	int curExperimentID = -1;
+	int curExperimentCount = -1;
 	
 	
 	int curExpPhase = WAIT_ON_NEW_SUBJECT;

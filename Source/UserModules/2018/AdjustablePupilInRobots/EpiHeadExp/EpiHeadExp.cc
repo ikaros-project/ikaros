@@ -35,9 +35,9 @@
 #define EXPERIMENT_ENDED 40
 
 // INDEX For looing
-//#define SCREEN_EYE_INDEX 0
+#define SCREEN_EYE_ID 0
 //#define SCREEN_HEAD_INDEX 1
-//#define SCREEN_MOVIE_INDEX 2
+#define SCREEN_MOVIE_ID 2
 #define ROBOT_ID 3
 
 // EXPERIMENT
@@ -66,7 +66,7 @@
 #define RETURN_PHASE 4
 
 // TIME
-#define TICK_BASE 10 // 20
+#define TICK_BASE 20 // 20
 #define WAIT_TIME (6*TICK_BASE) // Make it even with wait. (Float to int)
 #define CHANGE_TIME (1.5*TICK_BASE)
 #define HOLD_TIME (1*TICK_BASE)
@@ -75,6 +75,7 @@
 #define TOTAL_TIME (WAIT_TIME+CHANGE_TIME+HOLD_TIME+RETURN_TIME )
 #define EXPERIMENT_TIME (TOTAL_TIME*NUMBER_OF_TRIALS)
 
+#define MOVIE_FPS 25
 // PUPIL SIZES
 // 0.5 == 16.8
 //
@@ -236,9 +237,9 @@ EpiHeadExp::Init()
 	Bind(c2, "c2");
 	Bind(c3, "c3");
 	Bind(c4, "c4");
-	
+	Bind(visibleFace, "visibleFace");
 	Bind(subjectID, "subject_id");
-	Bind(infoText,"INFO_TEXT");
+	Bind(infoText,"info_text");
 	infoText = "";
 	
 	// Button enable output
@@ -249,12 +250,16 @@ EpiHeadExp::Init()
 	c4Enable = GetOutputArray("C4Enable");
 	
 	// Outputs (Motor)
-	screenPupil = GetOutputArray("SCREEN_PUPLIS");
-	robotPupil = GetOutputArray("ROBOT_PUPLIS");
-	//screenDistractor = GetOutputArray("SCREEN_DIS");
-	//robotDistractor = GetOutputArray("ROBOT_DIS");
+	screenPupilL = GetOutputArray("SCREEN_PUPIL_LEFT");
+	screenPupilR = GetOutputArray("SCREEN_PUPIL_RIGHT");
+	robotPupilL = GetOutputArray("ROBOT_PUPIL_LEFT");
+	robotPupilR = GetOutputArray("ROBOT_PUPIL_RIGHT");
+	
 	motorNeckEyes = GetOutputArray("NECKEYES");
 	
+	// Image choser
+	imageID = GetOutputArray("IMAGE_ID");
+
 	// LOG
 	logWrite = GetOutputArray("LOG_WRITE");
 	logNewFile = GetOutputArray("LOG_NEW_FILE");
@@ -304,7 +309,6 @@ EpiHeadExp::Init()
 	
 	// Not randomize Experiment order for each subject
 	// Randomize Trail
-	
 	
 	int tick = 0;
 	int sTick = 0;
@@ -530,7 +534,7 @@ EpiHeadExp::Tick()
 			if (!waitngOnInput)
 			{
 				curExperimentIndex = -1;
-				curExperimentID = -1;
+				curExperimentCount = -1;
 				infoText = "Pick one experiment";
 				
 				// Figure out the next experiment
@@ -553,10 +557,10 @@ EpiHeadExp::Tick()
 				else
 				{
 					randomExperimentsAvailable[curSubjectIndex][curExperimentIndex] = false; // Disable this experiment from list
-					curExperimentID = nextExperiment; // Overrite index to id
+					curExperimentCount = nextExperiment; // Number of experiments for subject
 					
 					waitngOnInput = true;
-					printf("Subject %i: Next experiment %i ID %i\n",curSubjectIndex, curExperimentIndex, curExperimentID);
+					printf("Subject %i: Next experiment %i count %i\n",curSubjectIndex, curExperimentIndex, curExperimentCount);
 				}
 			}
 			
@@ -577,7 +581,6 @@ EpiHeadExp::Tick()
 				default:
 					break;
 			}
-			
 			
 			if (c1 == 1 or c2 == 1 or c3 == 1 or c4 == 1 )
 			{
@@ -616,14 +619,15 @@ EpiHeadExp::Tick()
 	// Send Normal
 	if (!nextStep)
 	{
-		motorNeckEyes[0]   = TILT_SUBJECT;
-		motorNeckEyes[1]   = PAN_SUBJECT;
-		motorNeckEyes[2]   = EYE_SUBJECT;
-		motorNeckEyes[3]   = EYE_SUBJECT;
-		screenPupil[0]     = PUPIL_SIZE_SCREEN_NORMAL;
-		screenPupil[1]     = PUPIL_SIZE_SCREEN_NORMAL + PUPIL_SIZE_SCREEN_ADJUSTER;
-		robotPupil[0]      = PUPIL_SIZE_ROBOT_NORMAL;
-		robotPupil[1]      = PUPIL_SIZE_ROBOT_NORMAL + PUPIL_SIZE_ROBOT_ADJUSTER;
+		motorNeckEyes[0]   	= TILT_SUBJECT;
+		motorNeckEyes[1]   	= PAN_SUBJECT;
+		motorNeckEyes[2]   	= EYE_SUBJECT;
+		motorNeckEyes[3]   	= EYE_SUBJECT;
+		*screenPupilL 	    = PUPIL_SIZE_SCREEN_NORMAL;
+		*screenPupilR 	   	= PUPIL_SIZE_SCREEN_NORMAL + PUPIL_SIZE_SCREEN_ADJUSTER;
+		*robotPupilL      	= PUPIL_SIZE_ROBOT_NORMAL;
+		*robotPupilR    	= PUPIL_SIZE_ROBOT_NORMAL + PUPIL_SIZE_ROBOT_ADJUSTER;
+		*imageID			 = 0;
 	}
 	else
 	{
@@ -632,22 +636,41 @@ EpiHeadExp::Tick()
 		motorNeckEyes[2]   = EYE_SUBJECT;
 		motorNeckEyes[3]   = EYE_SUBJECT;
 		
+		// Override
+		
+		curExperimentIndex = ROBOT_ID;
 		if (curExperimentIndex != ROBOT_ID) // Which output should we send on?
 		{
-			screenPupil[0]     = nextStep[PUPIL_INDEX];
-			screenPupil[1]     = nextStep[PUPIL_INDEX] + PUPIL_SIZE_SCREEN_ADJUSTER;
-			robotPupil[0]      = PUPIL_SIZE_ROBOT_NORMAL;
-			robotPupil[1]      = PUPIL_SIZE_ROBOT_NORMAL + PUPIL_SIZE_ROBOT_ADJUSTER;
+			*screenPupilL    = nextStep[PUPIL_INDEX];
+			*screenPupilR    = nextStep[PUPIL_INDEX] + PUPIL_SIZE_SCREEN_ADJUSTER;
+			*robotPupilL     = PUPIL_SIZE_ROBOT_NORMAL;
+			*robotPupilR     = PUPIL_SIZE_ROBOT_NORMAL + PUPIL_SIZE_ROBOT_ADJUSTER;
 		}
 		else
 		{
-			screenPupil[0]     = PUPIL_SIZE_SCREEN_NORMAL;
-			screenPupil[1]     = PUPIL_SIZE_SCREEN_NORMAL + PUPIL_SIZE_SCREEN_ADJUSTER;
-			robotPupil[0]      = nextStep[PUPIL_INDEX];
-			robotPupil[1]      = nextStep[PUPIL_INDEX] + PUPIL_SIZE_ROBOT_ADJUSTER;
+			*screenPupilL    = PUPIL_SIZE_SCREEN_NORMAL;
+			*screenPupilR    = PUPIL_SIZE_SCREEN_NORMAL + PUPIL_SIZE_SCREEN_ADJUSTER;
+			*robotPupilL     = nextStep[PUPIL_INDEX];
+			*robotPupilR     = nextStep[PUPIL_INDEX] + PUPIL_SIZE_ROBOT_ADJUSTER;
 		}
+		
+		// Image output
+		if (curExperimentIndex == SCREEN_MOVIE_ID) // Which output should we send on?
+			*imageID	= int(((curExperimentCount*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/2); // Divade this with something good
+		else
+			*imageID 	= 0;
+		
+		*imageID 	= GetTick()%220;
+		
+		// Eye/head paramter
+		if (curExperimentIndex == SCREEN_EYE_ID) // Which output should we send on?
+			visibleFace = true;
+		else
+			visibleFace = false;
+
+		visibleFace = false;
+
 	}
-	
 	*logWrite = 1;
 	// Log
 	if (!nextStep)
@@ -687,16 +710,16 @@ EpiHeadExp::Tick()
 		*logExperimentPhase = curExpPhase;				// Logging phases // Will get an end signal. Maybe usefull.
 		*logTrialPhase = nextStep[TRIAL_PHASE_INDEX]; 	// Logging phases
 		
-		// Format output.
+		// Format output. Uses only left eye
 		if (curExperimentIndex != ROBOT_ID)
 		{
-			*logScreenPupil = *screenPupil*32.0f;
+			*logScreenPupil = *screenPupilL*32.0f;
 			*logRobotPupil = -1;
 		}
 		else
 		{
 			*logScreenPupil = -1;
-			*logRobotPupil = *screenPupil*32.0f; // inverting Assuming both robot and screen is identical
+			*logRobotPupil = *screenPupilL*32.0f; // inverting Assuming both robot and screen is identical
 		}
 	}
 }

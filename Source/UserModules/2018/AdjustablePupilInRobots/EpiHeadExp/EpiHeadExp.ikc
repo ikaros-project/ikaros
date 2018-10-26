@@ -19,15 +19,23 @@
 	<parameter name="c2" type="int" default="0" description="Start Condition" />
 	<parameter name="c3" type="int" default="0" description="Start Condition" />
 	<parameter name="c4" type="int" default="0" description="Start Condition" />
+	
+	
+	<parameter name="eyes_only" type="bool" default="false" description="Start Condition" />
 
 	<parameter name="subject_id" type="int" default="0" description="Subject ID" />
 	
-	<parameter name="INFO_TEXT" type="String" default="0" description="Start Condition" />
+	<parameter name="info_text" type="String" default="0" description="Start Condition" />
 
-	<output name="ROBOT_PUPLIS" description="The first output" size="2" />
-	<output name="SCREEN_PUPLIS" description="The first output" size="2" />
-    <output name="NECKEYES" description="The first output" size="4" />
+	<output name="ROBOT_PUPIL_LEFT" description="The first output" size="1" />
+	<output name="ROBOT_PUPIL_RIGHT" description="The first output" size="1" />
+	<output name="SCREEN_PUPIL_LEFT" description="The first output" size="1" />
+	<output name="SCREEN_PUPIL_RIGHT" description="The first output" size="1" />
 	
+    <output name="NECKEYES" description="The first output" size="4" />
+
+	<output name="IMAGE_ID" description="The first output" size="1" />
+
 	<output name="S1Enable" description="Subject Button enable" size="1" />
 	<output name="C1Enable" description="Condition Button enable" size="1" />
 	<output name="C2Enable" description="Condition Button enable" size="1" />
