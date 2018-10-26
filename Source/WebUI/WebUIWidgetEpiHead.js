@@ -30,7 +30,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             {'name':'visibleModule', 'default':"", 'type':'module', 'control': 'textedit'},
             {'name':'visibleSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'visibleFace', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            
+            {'name':'visibleFaceParameter', 'default':"", 'type':'source', 'control': 'textedit'},
+                
             {'name': "STYLE", 'control':'header'},
 
             {'name':'color', 'default':"black", 'type':'string', 'control': 'textedit'},
@@ -144,7 +145,11 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
         
         this.canvas.translate(offset[0], offset[1]);
 
-        if(this.parameters.visibleFace)
+        let drawFace = this.parameters.visibleFace;
+        if(this.parameters.visibleFaceParameter)
+            drawFace = !!parseFloat(this.getSource("visibleFaceParameter"));
+        
+        if(drawFace)
         {
             // ears
         

@@ -41,10 +41,12 @@ private:
     char *      dirname;                    // Used internally
     char *      directory;
     FILE	*	file;
+    int         format;
     long		time;						// Used to generate the time column in the output file
     int         index;
     
     int         no_of_columns;
+    int         total_no_of_columns;
     int         no_of_decimals;				// No of decimals in output file
     bool        timestamp;
     
@@ -61,6 +63,8 @@ private:
 
     void	WriteHeader();						// Iterates over the input_list and writes the single line header to the file
     void	WriteData();						// Iterates over the input_list and writes data to the file
+    void    WriteBinaryData();                  // Iterates over the input_list and writes data to the file in binary format
 };
 
 #endif
+
