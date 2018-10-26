@@ -245,11 +245,11 @@ void
 OutputFile::WriteBinaryData()
 {
     float data[total_no_of_columns];
-    int i=0;
+    int j=0;
     for (int col=0; col<no_of_columns; col++)
         for (int i=0; i<column_size[col]; i++)
-            data[i++] = column_data[col][i];
-    fwrite(data, total_no_of_columns, 1, file);
+            data[j++] = column_data[col][i];
+    fwrite(data, sizeof(data), 1, file);
     fwrite("\n", 1, 1, file); // write new line
 }
 
