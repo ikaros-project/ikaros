@@ -64,7 +64,8 @@
   
 
 
-    <view title="Face View" object_size="40">
+    <view name="Face View" object_size="40">
+
         <object
             class="EpiFace"
             left_module="FullModel"

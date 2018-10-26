@@ -6,7 +6,6 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name': "DATA", 'control':'header'},
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'red', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'green', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -18,8 +17,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
             {'name': "CONTROL", 'control':'header'},
             
-            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'valueLow', 'default':0, 'type':'float', 'control': 'textedit'},
             
@@ -96,7 +96,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             }
         }
     }
-
+/*
     requestData(data_set)
     {
         if(this.parameters.fill == "rgb")
@@ -108,7 +108,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         else
             data_set.add(this.parameters['module']+"."+this.parameters['source']);
     }
-
+*/
     drawPlotHorizontal(width, height, index, transform)
     {
         let d = this.data;
@@ -219,40 +219,24 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
     }
 
-    update(d) // default for Graph - should not be needed here
+    update()
     {
-        if(!d)
-            return;
-        
-        try {
+        if(this.data = this.getSource('source'))
+        {
+            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+        }
+/*
             if(this.parameters.fill == "rgb")
             {
-                let m = this.parameters['module'];
                 let r = this.parameters['red'];
                 let g = this.parameters['green'];
                 let b = this.parameters['blue'];
                 this.data = [d[m][r], d[m][g], d[m][b]];
             }
-            
-            else
-            {
-                let m = this.parameters['module'];
-                let s = this.parameters['source'];
-                this.data = d[m][s];
-            }
-
-            if(!this.data)
-                return;
-
-            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
-
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
-        }
-        catch(err)
-        {
-        }
+*/
     }
 };
 

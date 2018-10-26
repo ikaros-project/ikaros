@@ -55,6 +55,7 @@ MotionRecorder::Init()
     timestamp_data = create_matrix(size, position_data_max);
 
     file_name = GetValue("filename");
+    json_file_name = GetValue("json_filename");
     directory = GetValue("directory");
 
     motion_name = new std::string [max_motions];
@@ -235,43 +236,107 @@ MotionRecorder::Play()
 }
 
 
+
+void
+MotionRecorder::SaveAsJSON()
+{
+    char fname[1024];
+    snprintf(fname, 1023, json_file_name, current_motion);
+    fname[1023] = 0;
+
+    FILE * f = fopen(fname, "w");
+    if(!f)
+    {
+        printf("ERROR could save to motion JSON file \"%s\"\n", fname);
+        return;
+    }
+
+    fprintf(f, "[\n\t{\n");
+
+    fprintf(f, "\t\t\"channels\": %d\n", size);
+    fprintf(f, "\t\t\"timebase\": %ld\n", GetTickLength());
+    fprintf(f, "\t\t\"inerpolation\": \"linear\"\n");
+    fprintf(f, "\t\t\"units\": \"ms\"\n");
+    fprintf(f, "\t\t\"loop\": \"no\"\n");
+    fprintf(f, "\t\t\"start\": 0\n");
+    fprintf(f, "\t\t\"stop\": %ld\n", position_data_count[current_motion]*GetTickLength());
+    fprintf(f, "\t\t\"motion\":\n\t\t[\n");
+
+    char c0[] = "\t\t\t";
+    char c1[] = ",\n\t\t\t";
+    char * start_chars = c0;
+
+    for(int j=0; j<position_data_count[current_motion]; j++)
+    {
+        fprintf(f, "%s", start_chars);
+        long t = j*GetTickLength();
+        fprintf(f, "{\"t\" : %ld\t\"p\" : [", t);
+
+        for(int i=0; i<size; i++)
+        {
+            if(i!=0) fprintf(f, ", ");
+            fprintf(f, "%.4f", position_data[current_motion][j][i]);
+        }
+
+        fprintf(f, "]}");
+        start_chars = c1;
+    }
+
+    fprintf(f, "\n\t\t]\n");
+    fprintf(f, "\t}\n]\n");
+    fclose(f);
+
+    printf("Saved: %d\n", current_motion);
+}
+
+
+
 void
 MotionRecorder::Save()
 {
     *state = state_stop;
     mode_string = "Stop";
-    
-    char fname[1024];
-    snprintf(fname, 1023, file_name, current_motion);
-    fname[1023] = 0;
 
-    FILE * f = fopen(fname, "w");
-
-    if(!f)
+    if(file_name)
     {
-        printf("ERROR could not open motion file \"%s\"\n", fname);
-        return;
-    }
+        char fname[1024];
+        snprintf(fname, 1023, file_name, current_motion);
+        fname[1023] = 0;
 
-    fprintf(f, "TIME/1  POSITION/%d\n", size);
+        FILE * f = fopen(fname, "w");
 
-    for(int j=0; j<position_data_count[current_motion]; j++)
-    {
-        long t = j*GetTickLength();
-        fprintf(f, "%ld\n", t);
-        
-        for(int i=0; i<size; i++)
+        if(!f)
         {
-            if(i!=0) fprintf(f, "\t");
-            fprintf(f, "%.4f", position_data[current_motion][j][i]);
+            printf("ERROR could not save to motion file \"%s\"\n", fname);
+            return;
         }
 
-        fprintf(f, "\n");
+        fprintf(f, "TIME/1  POSITION/%d\n", size);
+
+        for(int j=0; j<position_data_count[current_motion]; j++)
+        {
+            long t = j*GetTickLength();
+            fprintf(f, "%ld\n", t);
+
+            for(int i=0; i<size; i++)
+            {
+                if(i!=0) fprintf(f, "\t");
+                fprintf(f, "%.4f", position_data[current_motion][j][i]);
+            }
+
+            fprintf(f, "\n");
+        }
+
+        fclose(f);
+
+        printf("Saved: %d\n", current_motion);
     }
 
-    fclose(f);
+    // Also save in new JSON format
 
-    printf("Saved: %d\n", current_motion);
+    if(json_file_name)
+        SaveAsJSON();
+
     *time = 0;
 }
 

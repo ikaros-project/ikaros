@@ -825,7 +825,7 @@ Epuck::SetCameraSettings()
     if (r != 3)
         Notify(msg_fatal_error, "Epuck - failed to upload camera settings.\n");
     else
-        Notify(msg_verbose, "Epuck - uploaded camera settings.\n");
+        Notify(msg_debug, "Epuck - uploaded camera settings.\n");
 }
 
 
@@ -1008,7 +1008,7 @@ Epuck::GetImage()
         type = (int)rcvmsg[0];
         w = (int)rcvmsg[1];
         h = (int)rcvmsg[2];
-        Notify(msg_verbose, "Epuck - image type=%i, width=%i, height=%i\n", type, w, h);
+        Notify(msg_debug, "Epuck - image type=%i, width=%i, height=%i\n", type, w, h);
 
         // does the header info match the sizes that we think the image should have?
         if (type == (camera-1) && w == width && h == height){
@@ -1068,7 +1068,7 @@ Epuck::GetImage()
         type = (int)rcvmsg[0];
         w = (int)rcvmsg[1];
         h = (int)rcvmsg[2];
-        Notify(msg_verbose, "Epuck - image type=%i, width=%i, height=%i\n", type, w, h);
+        Notify(msg_debug, "Epuck - image type=%i, width=%i, height=%i\n", type, w, h);
 
         // does the header info match the sizes that we think the image should have?
         if (type == (camera-1) && w == width && h == height){

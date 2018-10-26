@@ -76,6 +76,25 @@
 			</script>
 		</aside>
 
+        <aside id="module_inspector" style="baackground-color: yellow">
+            <div id="inspector">
+                <!--
+                <button>To Front</button>
+                <button>To Back</button>
+                <button>Duplicate</button>
+                <button>Delete</button>
+                -->
+                <div id="mi_header"></div>
+                <table id="mi_table">
+                <!--    <tr><th>Attr</th><th>Value</th></tr> -->
+                </table>
+            </div>
+            
+            <script>
+            module_inspector.init();
+            </script>
+        </aside>
+
 		<aside id="edit_inspector" >
  
             <table id="i_table">
@@ -157,13 +176,16 @@
                     </tr>
                      <tr><td colspan="2" class="header">WEB UI</td></tr>
                     <tr>
-                        <td>updates/s</td><td id="updates_per_se">0</td>
+                        <td>updates/s</td><td id="webui_updates_per_s">0</td>
                     </tr>
                    <tr>
-                        <td>interval</td><td id="interval">0 ms</td>
+                        <td>interval</td><td id="webui_interval">0 ms</td>
                     </tr>
-                    <tr>
-                        <td>ping</td><td id="ping">0 ms</td>
+                     <tr>
+                        <td>lag ?</td><td id="webui_lag">0 ms</td>
+                    </tr>
+                   <tr>
+                        <td>ping</td><td id="webui_ping">0 ms</td>
                     </tr>
                      <tr><td colspan="2" class="header">CPU</td></tr>
                     <tr>

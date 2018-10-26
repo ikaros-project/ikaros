@@ -206,7 +206,7 @@ InputFile::InputFile(Parameter * p):
 
 InputFile::~InputFile()
 {
-    Notify(msg_verbose, "    Deleting InputFile \"%s\".\n", GetName());
+    Notify(msg_debug, "    Deleting InputFile \"%s\".\n", GetName());
     fclose(file);
 
     /* THESE WILL BE DELETED BY ~MODULE
@@ -364,7 +364,7 @@ InputFile::Tick()
     if (feof(file))
     {
         if (print_iteration)
-            Notify(msg_verbose, "End of iteration (%d/%d)\n", iteration, iterations);
+            Notify(msg_debug, "End of iteration (%d/%d)\n", iteration, iterations);
 
         if (iteration++ < iterations)
         {

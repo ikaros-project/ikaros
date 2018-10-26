@@ -14,7 +14,8 @@
             mask = "1 1"
             torque = "0.25 0.25"
             filename = "motions/motion.%d.mot"
-            smoothing_time = "0"
+            json_filename = "motions/motion.%d.json"
+           smoothing_time = "0"
             max_motions="20"
             _auto_save="yes"
             _record_on_trig = "true"
@@ -57,7 +58,7 @@
 			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
 -->
 			<!-- key-points module="MotionRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" / -->
-            <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="130" y="0" width="800" height="301" />
+            <plot source="MotionRecorder.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="130" y="0" width="800" height="301" />
 
             <grid module="MotionRecorder" source="MODE" labels="off, stop, play, record" shape="circle" size="0.75" fill="custom" colorTable="white,green" command="toggle" x="130" y="350" width="800" height="101" />
 			<grid module="MotionRecorder" source="ENABLE" labels="torque" shape="circle" size="1" fill="custom" colorTable="white,red" x="130" y="451" width="800" height="41" />
@@ -77,7 +78,7 @@
             <switch label=" Rec on trig" module="MotionRecorder" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
 
             <slider-horizontal title = "Joints" module="Joints" parameter="data" count="2" min="-360" max="360" x="130" y="510" height="100" width="200" />
-            <plot module="Joints" source="OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="430" y="510" width="400" height="301" />
+            <plot source="Joints.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="430" y="510" width="400" height="301" />
 
 		</view>
 

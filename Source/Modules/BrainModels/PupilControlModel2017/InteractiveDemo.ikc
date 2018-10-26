@@ -6,8 +6,7 @@
         class="FullModel"
         name="FullModel"
         
-        LC_alpha = "0.5"
-        
+        LCa_alpha = "0.5"
     />
     
     <module
@@ -20,8 +19,8 @@
         class="FunctionGenerator"
         name="Stimulus"
         type="ticksquare"
-        basetime="600"
-        tickduty="24"
+        basetime="80"
+        tickduty="20"
     />
 
     <module
@@ -34,35 +33,21 @@
 
     <connection sourcemodule="Input" source="OUTPUT" targetmodule="FullModel" target="PTA_Left" />
     <connection sourcemodule="Input" source="OUTPUT" targetmodule="FullModel" target="PTA_Right" />
-<!--
-    <module
-        class="OutputFile"
-        name="Output"
-        filename = "data.txt"
-    >
-        <column name = "Light" />
-        <column name = "Pupil" />
-    </module>
 
-    <connection sourcemodule="FullModel" source="Eye_Right" targetmodule="Output" target="Pupil"/>
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Output" target="Light" />
--->
-    <view title="Face View" object_size="40">
-        <object
-            class="EpiFace"
-            left_module="FullModel"
-            left_source="Eye_Left"
-            right_module="FullModel"
-            right_source="Eye_Right"
-            x="0" y="0"
-            h="8" w="8"
+    <view name="Face View" object_size="40">
+
+       <epi-head label="Epi"
+            pupilLeftSource="FullModel.Pupil_Left"
+            pupilRightSource="FullModel.Pupil_Right"
+            x="20" y="20"
+            width="300" height="300"
         />
-        
+
         <slider-horizontal
             module="FullModel"
             title="LC"
-            parameter="LC_alpha"
-            labels = "LC alpha"
+            parameter="LCa_alpha"
+            labels = "LCa alpha"
             x="20" y="500"
             height="40" width="200"
         />
@@ -88,23 +73,27 @@
         />
 
         <plot
-            module="FullModel"
             title="Pupil"
-            source="Eye_Left"
-            select="2"
-            max="4"
-            x="20" y="20"
+            source="FullModel.Pupil_Left"
+            max="1"
+            x="320" y="20"
             height="200" width="600"
         />
 
         <plot
-            module="Input"
-            title="Stimulus"
-            source="OUTPUT"
+            title="Pupil"
+            source="FullModel.Pupil_Right"
+            max="1"
+            x="320" y="20"
+            height="200" width="600"
+        />
+        <plot
+            source="Input.OUTPUT"
             select="0"
-            color="lightblue"
+            color="blue"
+            lineWidth = "3"
             max="2"
-            x="20" y="240"
+            x="320" y="240"
             height="200" width="600"
         />
 

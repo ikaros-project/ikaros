@@ -4,7 +4,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     {
         return [
             {'name': "PARAMETERS", 'control':'header'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
@@ -29,11 +29,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
         this.onclick = function () { alert(this.data) }; // last matrix
    }
-
-    requestData(data_set)
-    {
-        data_set.add(this.parameters['module']+"."+this.parameters['source']);
-    }
 
     getBufferSize()
     {
@@ -121,36 +116,19 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         }
     }
 
-    update(d)
+    update()
     {
-        if(!d)
-            return;
-        
-        try {
-            let m = this.parameters['module'];
-            let s = this.parameters['source'];
-            this.data = d[m][s];
-
-            if(!this.data)
-                return;
-
-            let size_y = this.data.length;
-            let size_x = this.data[0].length;
-
+        if(this.data = this.getSource('source'))
+        {
             if(this.buffer.length < this.getBufferSize())
                 this.buffer.push(this.data);
             else
                 this.buffer[this.ix] = this.data;
 
-            this.ix++;
-            if(this.ix >= this.getBufferSize())
+            if(this.ix++ >= this.getBufferSize())
                 this.ix = 0;
 
-            this.draw(size_y, size_y);
-        }
-        catch(err)
-        {
-//            console.log(err);
+            this.draw(this.data[0].length, this.data.length);
         }
     }
 };

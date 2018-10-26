@@ -1,0 +1,278 @@
+<?xml version="1.0"?>
+
+<group title="Damped oscillator Example using expression module">
+	<!--Constants-->
+		<module
+			class = "Constant"
+			name = "K"
+            description="Constant vals for:k, damp, dt, mass"
+			outputsize  = "1"
+			data  = "2000"
+		/>
+        <module
+			class = "Constant"
+			name = "Damp"
+            description="Constant vals for:k, damp, dt, mass"
+			outputsize  = "1"
+			data  = "50"
+		/>
+        <module
+			class = "Constant"
+			name = "dt"
+            description="Constant vals for:k, damp, dt, mass"
+			outputsize  = "1"
+			data  = "0.01"
+		/>
+        <module
+			class = "Constant"
+			name = "Mass"
+            description="Constant vals for:k, damp, dt, mass"
+			outputsize  = "1"
+			data  = "50"
+		/>
+
+
+    <!--Init vals-->
+		<module
+			class = "InitialValue"
+			name = "InitPos"
+            description="initial vals for:pos, vel"
+			outputsize  = "1"
+			data  = "2"
+			wait = "1"
+			debug = "false"
+		/>
+        <module
+			class = "InitialValue"
+			name = "InitVel"
+            description="initial vals for:pos, vel"
+			outputsize  = "1"
+			data  = "0"
+			wait = "1"
+			debug = "false"
+		/>
+    <!--Expressions-->
+        <module
+			class = "Expression"
+			name = "OscExp"
+			expression  = "dt*(-pos*k-vel*d)/m"
+			inputs  = "dt,pos,k,vel,d,m"
+			debug="false"
+		/>
+        <module
+			class = "Expression"
+			name = "Pos_Delta"
+			expression  = "dt*vel"
+			inputs  = "vel,dt"
+			debug="false"
+		/>
+
+		<module
+			class = "Add"
+			name = "Add_Vel"
+		/>
+        
+        
+        <!--Connections-->
+            <!--To OscExp-->
+                <connection sourcemodule = "K" 
+                    source = "OUTPUT" 
+                    targetmodule = "OscExp" 
+                    target = "k"
+                    
+                    _delay="0" />
+                <connection sourcemodule = "Damp" 
+                    source = "OUTPUT" 
+                    targetmodule = "OscExp" 
+                    target = "d"
+                    _delay="0" />
+                <connection sourcemodule = "dt" 
+                    source = "OUTPUT" 
+                    targetmodule = "OscExp" 
+                    target = "dt"
+                    _delay="0" />
+                <connection sourcemodule = "Mass" 
+                    source = "OUTPUT" 
+                    targetmodule = "OscExp" 
+                    target = "m"
+                    _delay="0" />
+                <connection sourcemodule = "InitPos" 
+                    source = "OUTPUT" 
+                    targetmodule = "OscExp" 
+                    target = "pos"
+                    _delay="0" />
+                <connection sourcemodule = "InitVel" 
+                    source = "OUTPUT" 
+                    targetmodule = "OscExp" 
+                    target = "vel"
+                    _delay="0" />
+            <!--To"Pos_Delta-->
+                <_connection sourcemodule = "InitPos" 
+                    source = "OUTPUT" 
+                    targetmodule = "Pos_Delta" 
+                    target = "pos"
+                    delay="0"/>
+                <connection sourcemodule = "Add_Vel" 
+                    source = "OUTPUT" 
+                    targetmodule = "Pos_Delta" 
+                    target = "vel"
+                    delay="0"/>
+                <connection sourcemodule = "dt" 
+                    source = "OUTPUT" 
+                    targetmodule = "Pos_Delta" 
+                    target = "dt"
+                    delay="0"/>
+            <!--To Add_Vel-->
+                <connection sourcemodule = "InitVel" 
+                    source = "OUTPUT" 
+                    targetmodule = "Add_Vel" 
+                    target = "INPUT1"
+                    delay="0"/>
+                <connection sourcemodule = "OscExp" 
+                    source = "OUTPUT" 
+                    targetmodule = "Add_Vel" 
+                    target = "INPUT2" 
+                    delay="0" />
+            <!--To InitVals-->
+                <connection sourcemodule = "Pos_Delta" 
+                    source = "OUTPUT" 
+                    targetmodule = "InitPos" 
+                    target = "INPUT"
+                    delay="1"
+                     />
+                <connection sourcemodule = "OscExp" 
+                    source = "OUTPUT" 
+                    targetmodule = "InitVel" 
+                    target = "INPUT"
+                    delay="1"
+                     />
+
+    <!--View-->        
+
+    <view name="View">
+
+	<text
+		text = "Position plot"
+		height = "20"
+		width = "100"
+		y = "40"
+		x = "80"
+		class = "text"
+		title = "Default Title"
+	/>
+
+	<plot
+		max = "2"
+		labels = "A"
+		source = "OUTPUT"
+		min = "-2"
+		module = "Pos_Delta"
+		height = "301"
+		title = "Position"
+		width = "301"
+		y = "40"
+		x = "40"
+		class = "plot"
+		buffer_size = "50"
+		direction = "vertical"
+	/>
+
+	<text
+		text = "Velocity plot"
+		height = "20"
+		width = "100"
+		y = "340"
+		x = "80"
+		class = "text"
+		title = "Default Title"
+	/>
+
+	<plot
+		max = "20"
+		labels = "B"
+		source = "OUTPUT"
+		min = "-20"
+		module = "Add_Vel"
+		height = "301"
+		title = "Velocity"
+		width = "301"
+		y = "340"
+		x = "40"
+		class = "plot"
+		buffer_size = "50"
+		direction = "vertical"
+	/>
+
+    <text
+		text = "K"
+		height = "20"
+		width = "100"
+		y = "30"
+		x = "320"
+		class = "text"
+		title = "Default Title"
+	/>
+	<slider-horizontal
+		height = "30"
+		width = "100"
+		count = "1"
+		parameter = "data"
+		y = "60"
+		x = "320"
+		label = "K"
+		module = "K"
+		class = "slider-horizontal"
+		title = "Sliders"
+		max = "3000"
+		step = "100"
+	/>
+    <text
+		text = "Damping"
+		height = "20"
+		width = "100"
+		y = "90"
+		x = "320"
+		class = "text"
+		title = "Default Title"
+	/>
+	<slider-horizontal
+		height = "30"
+		width = "100"
+		count = "1"
+		parameter = "data"
+		y = "120"
+		x = "320"
+		label = "Damp"
+		module = "Damp"
+		class = "slider-horizontal"
+		title = "Sliders"
+		max = "100"
+		step = "2"
+	/>
+    <text
+		text = "Mass"
+		height = "20"
+		width = "100"
+		y = "150"
+		x = "320"
+		class = "text"
+		title = "Default Title"
+	/>
+	<slider-horizontal
+		height = "30"
+		width = "100"
+		count = "1"
+		parameter = "data"
+		y = "180"
+		x = "320"
+		label = "Mass"
+		module = "Mass"
+		class = "slider-horizontal"
+		title = "Sliders"
+		max = "100"
+		step = "2"
+	/>
+
+</view>
+</group>
+ 

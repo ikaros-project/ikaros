@@ -38,6 +38,7 @@ public:
     ~Timer();
 
     static void Sleep(float time);			// Sleep this many milliseconds
+    static long GetRealTime();
 };
 
 #endif

@@ -58,7 +58,7 @@ int         global_warning_count = 0;
 
 #ifndef USE_MALLOC_DEBUG
 
-void* operator new (std::size_t size) throw (std::bad_alloc)
+void* operator new (std::size_t size) noexcept(false)
 {
     void *p=calloc(size, sizeof(char)); 
     if (p==0) // did calloc succeed?
@@ -90,7 +90,7 @@ size_t        mem_size[mem_max_blocks];
 bool          mem_block_deleted[mem_max_blocks];
 
 void *
-operator new (std::size_t size) throw (std::bad_alloc)
+operator new (std::size_t size) noexcept(false)
 {
     void *p=calloc(size, sizeof(char)); 
     if (p==0) // did calloc succeed?
@@ -111,7 +111,7 @@ operator new (std::size_t size) throw (std::bad_alloc)
 }
 
 void *
-operator new [] (std::size_t size) throw (std::bad_alloc)
+operator new [] (std::size_t size) noexcept(false)
 {
     return operator new(size);
 }
@@ -135,7 +135,7 @@ operator delete (void *p) throw()
             
             else
             {
-                mem_block[i] == NULL;
+                mem_block[i] = NULL;
                 mem_block_deleted[i] = true;
                 mem_block_deleted_count++;
                 mem_allocated -= malloc_size(p);
@@ -515,7 +515,7 @@ Module_IO::Allocate()
             module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
         return;
     }
-    if (module != NULL) module->Notify(msg_verbose, "Allocating data of size %d.\n", size);
+    if (module != NULL) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
     data	=   new float * [max_delay];
     matrix  =   new float ** [max_delay];
     for (int d=0; d<max_delay; d++)
@@ -546,11 +546,11 @@ Module_IO::~Module_IO()
     // Cannot print in destructor
     if (name != NULL)
     {
-        if (module != NULL) module->Notify(msg_verbose, "      Deleting Module_IO \"%s\".\n", name);
+        if (module != NULL) module->Notify(msg_debug, "      Deleting Module_IO \"%s\".\n", name);
     }
     else
     {
-        if (module != NULL) module->Notify(msg_verbose, "      Deleting Module_IO\n");
+        if (module != NULL) module->Notify(msg_debug, "      Deleting Module_IO\n");
     }
 */
     if (matrix)
@@ -578,7 +578,7 @@ Module_IO::SetSize(int x, int y)
     if (s == 0)
         return;
     if (module != NULL)
-        module->Notify(msg_verbose, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name.c_str(), module->instance_name, module->GetClassName(), s, max_delay);
+        module->Notify(msg_debug, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name.c_str(), module->instance_name, module->GetClassName(), s, max_delay);
     sizex = x;
     sizey = y;
     size = x*y;
@@ -595,7 +595,7 @@ Module_IO::DelayOutputs()
 
 Module::~Module()
 {
-    Notify(msg_verbose, "    Deleting Module \"%s\".\n", instance_name);
+    Notify(msg_debug, "    Deleting Module \"%s\".\n", instance_name);
 	destroy_string(full_instance_name);
     delete timer;
     delete input_list;
@@ -612,7 +612,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
         return;
     }
     input_list = new Module_IO(input_list, this, name, unknown_size, 1, optional, allow_multiple_connections);
-    Notify(msg_verbose, "  Adding input \"%s\".\n", name);
+    Notify(msg_debug, "  Adding input \"%s\".\n", name);
 }
 
 void
@@ -624,7 +624,7 @@ Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
         return;
     }
     output_list = new Module_IO(output_list, this, name, sizeX, sizeY, optional);
-    Notify(msg_verbose, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
+    Notify(msg_debug, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
 }
 
 const char *
@@ -1568,8 +1568,6 @@ Module::SetSizes()
 	}
 }
 
-
-
 void
 Module::Notify(int msg)
 {
@@ -1589,6 +1587,8 @@ Module::Notify(int msg)
 void
 Module::Notify(int msg, const char *format, ...)
 {
+    if(msg>log_level)
+        return;
     char 	message[512];
     sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
@@ -1596,9 +1596,9 @@ Module::Notify(int msg, const char *format, ...)
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
-    if (kernel != NULL)
+    if (kernel != NULL && msg>=log_level)
     {
-        kernel->Notify(msg, message);
+        kernel->Notify(-msg, message);
     }
     else if (msg == msg_fatal_error)
     {
@@ -1632,7 +1632,7 @@ Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio,
 Connection::~Connection()
 {
     if (source_io != NULL && source_io->module != NULL)
-        source_io->module->Notify(msg_verbose, "    Deleting Connection.\n");
+        source_io->module->Notify(msg_debug, "    Deleting Connection.\n");
     delete next;
 }
 
@@ -1649,7 +1649,7 @@ Connection::Propagate(long tick)
     if (tick % target_io->module->period != target_io->module->phase)
         return;
     if (source_io != NULL && source_io->module != NULL)
-        source_io->module->Notify(msg_verbose, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
+        source_io->module->Notify(msg_debug, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
     for (int i=0; i<size; i++)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
 }
@@ -1660,7 +1660,7 @@ ThreadGroup::AddModule(Module * m)
     // Add module if thread is empty
     if (modules == NULL)
     {
-        kernel->Notify(msg_verbose, "Adding module %s to new thread group\n", m->GetName());
+        kernel->Notify(msg_debug, "Adding module %s to new thread group\n", m->GetName());
         modules = m;
         last_module = m;
         period = m->period;
@@ -1694,7 +1694,7 @@ ThreadGroup::AddModule(Module * m)
             return;
         }
         
-        kernel->Notify(msg_verbose, "Adding module %s to thread groups after %s\n", m->GetName(), last_module->GetName());
+        kernel->Notify(msg_debug, "Adding module %s to thread groups after %s\n", m->GetName(), last_module->GetName());
         last_module->next_in_threadGroup = m;
         last_module = m;
         return;
@@ -1777,7 +1777,7 @@ Kernel::Kernel()
     tick_length         = 0;
     nan_checks          = false;
     
-    print_mode          = print_normal;
+    log_level           = log_level_info;
     ikaros_dir          = NULL;
     ikc_dir             = NULL;
     ikc_file_name       = NULL;
@@ -1811,11 +1811,10 @@ Kernel::SetOptions(Options * opt)
     tick_length         = string_to_int(options->GetArgument('r'), 0);
     nan_checks          = options->GetOption('n');
     
-    print_mode		= print_normal;
     if (options->GetOption('q'))
-        print_mode = print_silent;
+        log_level = log_level_off;
         if (options->GetOption('v'))
-            print_mode = print_verbose;
+            log_level = log_level_trace;
 
     
     // Compute ikaros root path
@@ -1860,11 +1859,11 @@ Kernel::Kernel(Options * opt)
     tick_length         = string_to_int(options->GetArgument('r'), 0);
     nan_checks          = options->GetOption('n');
     
-    print_mode		= print_normal;
+    log_level		= log_level_info;
     if (options->GetOption('q'))
-        print_mode = print_silent;
+        log_level = log_level_off;
     if (options->GetOption('v'))
-        print_mode = print_verbose;
+        log_level = log_level_trace;
     
     tick                = 0;
     xmlDoc              = NULL;
@@ -1906,21 +1905,21 @@ Kernel::Kernel(Options * opt)
 
 Kernel::~Kernel()
 {
-    Notify(msg_verbose, "Deleting Kernel.\n");
-    Notify(msg_verbose, "  Deleting Connections.\n");
+    Notify(msg_debug, "Deleting Kernel.\n");
+    Notify(msg_debug, "  Deleting Connections.\n");
     delete connections;
-    Notify(msg_verbose, "  Deleting Modules.\n");
+    Notify(msg_debug, "  Deleting Modules.\n");
     delete modules;
-    Notify(msg_verbose, "  Deleting Thread Groups.\n");
+    Notify(msg_debug, "  Deleting Thread Groups.\n");
     delete threadGroups;
-    Notify(msg_verbose, "  Deleting Classes.\n");
+    Notify(msg_debug, "  Deleting Classes.\n");
     delete classes;
     
     delete timer;
     delete xmlDoc;
     delete ikaros_dir;
     
-    Notify(msg_verbose, "Deleting Kernel Complete.\n");
+    Notify(msg_debug, "Deleting Kernel Complete.\n");
     if (logfile) fclose(logfile);
     
 #ifdef USE_MALLOC_DEBUG
@@ -1989,7 +1988,7 @@ Kernel::Terminate()
     
     if (max_ticks != -1 && tick >= max_ticks)
     {
-        Notify(msg_verbose, "Max ticks reached.\n");
+        Notify(msg_debug, "Max ticks reached.\n");
         return true;
     }
     return end_of_file_reached || fatal_error_occurred  || global_fatal_error || terminate || global_terminate;
@@ -2133,7 +2132,7 @@ Kernel::InitInputs()
         }
         else if (c->delay == 0)
         {
-            Notify(msg_verbose, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
+            Notify(msg_debug, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             // already connected to 0 or longer delay?
             if (c->target_io->data != NULL)
             {
@@ -2166,20 +2165,20 @@ Kernel::InitInputs()
             // Target not used previously: ok to connect anything
             if (c->target_io->sizex == unknown_size)
             {
-                Notify(msg_verbose, "New connection.\n");
+                Notify(msg_debug, "New connection.\n");
                 c->target_io->sizex = c->source_io->sizex;
                 c->target_io->sizey = c->source_io->sizey;
             }
             // Connect one dimensional output
             else if (c->target_io->sizey == 1 && c->source_io->sizey == 1)
             {
-                Notify(msg_verbose, "Adding additional connection.\n");
+                Notify(msg_debug, "Adding additional connection.\n");
                 c->target_io->sizex = c->target_io->size;
             }
             // Collapse matrix to array
             else
             {
-                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
+                Notify(msg_debug, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
                 c->target_io->sizex = c->target_io->size;
                 c->target_io->sizey = 1;
             }
@@ -2187,13 +2186,13 @@ Kernel::InitInputs()
             c->target_offset = target_offset;
             c->size = c->source_io->size;
             // Allocate input memory and reset
-            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
+            Notify(msg_debug, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
             c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
             c->target_io->Allocate();
         }
         else if(c->target_io) // fixed offset connection
         {
-            Notify(msg_verbose, "Adding fixed offset connection.\n");
+            Notify(msg_debug, "Adding fixed offset connection.\n");
             // Check that this connection does not interfere with zero-delay connection
             if (c->target_io->max_delay == 0)
             {
@@ -2206,27 +2205,27 @@ Kernel::InitInputs()
             // Target not used previously: ok to connect anything
             if (c->target_io->sizex == unknown_size)
             {
-                Notify(msg_verbose, "New connection.\n");
+                Notify(msg_debug, "New connection.\n");
                 c->target_io->sizex = c->target_io->size;
                 c->target_io->sizey = 1;
             }
             // Connect one dimensional output
             else if (c->target_io->sizey == 1 && c->source_io->sizey == 1)
             {
-                Notify(msg_verbose, "Adding additional connection.\n");
+                Notify(msg_debug, "Adding additional connection.\n");
                 c->target_io->sizex = max(c->target_io->sizex, c->target_offset+c->size);
                 c->target_io->size = c->target_io->sizex; // FIXME: Test if this breaks something
             }
             // Collapse matrix to array
             else
             {
-                Notify(msg_verbose, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
+                Notify(msg_debug, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
                 c->target_io->sizex = c->target_io->size;
                 c->target_io->sizey = 1;
             }
             // Set connection variables
             // Allocate input memory and reset
-            Notify(msg_verbose, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
+            Notify(msg_debug, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
             c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
             c->target_io->Allocate();
         }
@@ -2242,9 +2241,9 @@ Kernel::InitOutputs()
         for (Module * m = modules; m != NULL; m = m->next)
             m->SetSizes();
         if (sizeChangeFlag)
-            Notify(msg_verbose, "InitOutput: Iteration with changes\n");
+            Notify(msg_debug, "InitOutput: Iteration with changes\n");
         else
-            Notify(msg_verbose, "InitOutput: Iteration with no changes\n");
+            Notify(msg_debug, "InitOutput: Iteration with no changes\n");
     }
     while (sizeChangeFlag);
 }
@@ -2260,7 +2259,10 @@ void
 Kernel::InitModules()
 {
     for (Module * m = modules; m != NULL; m = m->next)
+    {
+        m->Bind(m->log_level, "log_level");
         m->Init();
+    }
 }
 
 void
@@ -2298,7 +2300,7 @@ Kernel::Init()
 void
 Kernel::Tick()
 {
-    Notify(msg_verbose, "Kernel::Tick()\n");
+    Notify(msg_debug, "Kernel::Tick()\n");
     Propagate();
     DelayOutputs();
     if (useThreads)
@@ -2308,7 +2310,7 @@ Kernel::Tick()
         for (ThreadGroup * g = threadGroups; g != NULL; g = g->next)
             g->Stop(tick);
     }
-    else if (print_mode < msg_verbose)
+    else if (log_level < log_level_debug)
     {
         for (Module * m = modules; m != NULL; m = m->next)
             if (tick % m->period == m->phase)
@@ -2328,9 +2330,9 @@ Kernel::Tick()
                 m->timer->Restart();
                 if(m->active)
                 {
-                    Notify(msg_verbose, "%s::Tick (%s) Start\n", m->GetName(), m->GetClassName());
+                    Notify(msg_debug, "%s::Tick (%s) Start\n", m->GetName(), m->GetClassName());
                     m->Tick();
-                    Notify(msg_verbose, "%s::Tick (%s) End\n", m->GetName(), m->GetClassName());
+                    Notify(msg_debug, "%s::Tick (%s) End\n", m->GetName(), m->GetClassName());
                 }
                 m->time += m->timer->GetTime();
                 m->ticks += 1;
@@ -3148,25 +3150,25 @@ Kernel::ListProfiling()
 void
 Kernel::Notify(int msg, const char * format, ...)
 {
-    switch (msg)
+    switch (ikaros::abs(msg))
     {
         case msg_fatal_error:
-            fatal_error_occurred	= true;
+            fatal_error_occurred = true;
             break;
         case msg_end_of_file:
-            end_of_file_reached	= true;
+            end_of_file_reached = true;
             break;
         case msg_terminate:
-            terminate			= true;
+            terminate = true;
             break;
         default:
             break;
     }
-    if (msg > print_mode)
+    if(msg > log_level)
         return;
     char 	message[512];
     int n = 0;
-    switch (msg)
+    switch (ikaros::abs(msg))
     {
         case msg_fatal_error:
             n = snprintf(message, 512, "ERROR: ");
@@ -3187,7 +3189,7 @@ Kernel::Notify(int msg, const char * format, ...)
     }
     va_list 	args;
     va_start(args, format);
-    vsnprintf(&message[n], 512-n, format, args); // Fix #22 (public)
+    vsnprintf(&message[n], 512-n, format, args);
     va_end(args);
     printf("IKAROS: %s", message);
     if(message[strlen(message)-1] != '\n')
@@ -3541,6 +3543,11 @@ Kernel::ReadXML()
         Notify(msg_fatal_error, "Did not find <group> element in IKC/XML file \"%s\".\n", ikc_file_name);
         return;
     }
+    
+    // Set default parameters - TODO: could handle batch arguments here as well in the future
+    
+    xml->SetAttribute("log_level", create_formatted_string("%d", log_level));
+    
     // Build The Main Group
     
     if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute

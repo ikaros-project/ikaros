@@ -78,14 +78,14 @@ OutputRawImage::Tick()
 
     if (supress > cur_image)
     {
-        Notify(msg_verbose, "Supressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
+        Notify(msg_debug, "Supressing write of \"%s\" (%dx%d)\n", fn, size_x, size_y);
         cur_image++;
         return;
     }
 
     file = fopen(fn, "wb");
 
-    Notify(msg_verbose, "Writing \"%s\" (%dx%d)\n", fn, size_x, size_y);
+    Notify(msg_debug, "Writing \"%s\" (%dx%d)\n", fn, size_x, size_y);
 
     if (file == NULL)
     {
