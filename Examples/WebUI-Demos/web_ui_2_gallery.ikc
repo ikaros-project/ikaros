@@ -1107,11 +1107,11 @@
 
     <module
         class = "FunctionGenerator"
-        name = "Imdex"
+        name = "Index"
         type = "sin"
         frequency = "0.01"
-        offset = "1"
-        amplitude = "4"
+        offset = "2"
+        amplitude = "2"
     />
 
 </group>

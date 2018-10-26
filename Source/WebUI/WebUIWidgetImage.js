@@ -39,6 +39,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         if(!this.parameters.file)
             data_set.add(this.parameters.module+"."+this.parameters.source+":"+this.parameters.format);
+        if(this.parameters.index)
+            data_set.add(this.parameters.index);
     }
 
     updateFrame()
@@ -112,7 +114,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
                 else if(ix >= this.imageCount)
                     ix = this.imageCount-1;
             }
-            this.canvas.drawImage(this.imageObjects[0], 0, 0, w, h);
+            this.canvas.drawImage(this.imageObjects[ix], 0, 0, w, h);
         }
         else
             this.canvas.drawImage(this.imageObj, 0, 0, w, h);
