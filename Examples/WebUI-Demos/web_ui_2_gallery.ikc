@@ -755,7 +755,16 @@
             format = "fire"
             scales = "yes"
         />
-        
+
+       <image
+            x="20" y="1000"
+            width="201"
+            height="201"
+            title = "Image Sequence"
+            file = "a.png,b.png,c.png,d.png,e.png"
+            index = "Index.OUTPUT"
+        />
+
     </view>
 
     <view name="Bar Graphs">
@@ -1094,6 +1103,15 @@
         type = "ticksquare"
         basetime = "50"
         tickduty = "25"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "Imdex"
+        type = "sin"
+        frequency = "0.01"
+        offset = "1"
+        amplitude = "4"
     />
 
 </group>

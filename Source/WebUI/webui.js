@@ -1244,8 +1244,6 @@ controller = {
                 document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
                 document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
-
-                console.log(response.timestamp, Date.now());
             }
             catch(err)
             {
