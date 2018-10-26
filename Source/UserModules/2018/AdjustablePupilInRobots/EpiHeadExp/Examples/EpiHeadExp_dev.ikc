@@ -1,0 +1,493 @@
+<?xml version="1.0"?>
+
+<group title="Epi the robot">
+	
+
+		<module
+			class = "EpiHeadExp"
+			name = "EpiHeadExp"
+		/>
+		
+	<!-- HEAD -->
+
+	<!-- Pupil -->
+    <module
+        class = "DynamixelSimulate"
+        name = "Pupil"
+    	device  = "/dev/cu.usbserial-A7005Lxn"
+        index_mode = "indirect"
+        print_info ="full"
+        feedback ="true"
+    	baud_rate = "1000000"
+    	angle_unit = "degrees"
+    	start_up_delay 	= "20"
+    />
+	<connection sourcemodule = "EpiHeadExp"  source = "ROBOT_PUPLIS" targetmodule = "Pupil"  target = "GOAL_POSITION" />
+
+	<module class = "Constant" name = "P_TorqueEnable" outputsize = "2" data = "1 1" />
+	<connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
+    
+    <module class = "Constant" name = "P_MovingSpeed" outputsize = "2" data = "1 1" />
+	<connection sourcemodule = "P_MovingSpeed"  source = "OUTPUT" targetmodule = "Pupil"  target = "MOVING_SPEED" />
+
+	<module class = "Constant" name = "P_TorqueLimit" outputsize = "2" data = "1 1"  />
+	<connection sourcemodule = "P_TorqueLimit"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_LIMIT" />
+
+	<!-- NeckEyes -->
+
+    <module
+        class = "DynamixelSimulate"
+        name = "NeckEyes"
+    	device  = "/dev/cu.usbserial-FTX1OQJC"
+        index_mode = "indirect"
+        print_info ="full"
+        feedback ="false"
+    	baud_rate = "1000000"
+    	angle_unit = "degrees"
+    	start_up_delay = "20"
+
+    />
+
+	<connection sourcemodule = "EpiHeadExp"  source = "NECKEYES" targetmodule = "NeckEyes"  target = "GOAL_POSITION" />
+
+
+	<module class = "Constant" name = "NE_TorqueEnable" outputsize = "4" data = "1 1 1 1" />
+	<connection sourcemodule = "NE_TorqueEnable"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "TORQUE_ENABLE" />
+    
+    <module class = "Constant" name = "NE_MovingSpeed" outputsize = "4" data = "0.04 0.04 0.1 0.1" />
+	<connection sourcemodule = "NE_MovingSpeed"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "MOVING_SPEED" />
+
+	<module class = "Constant" name = "NE_TorqueLimit" outputsize = "4" data = "0.4 0.2 0.5 0.5" />
+	<connection sourcemodule = "NE_TorqueLimit"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "TORQUE_LIMIT" />
+
+<!-- Loging -->
+		<module
+			class = "OutputFile"
+			name = "LOG"
+			filename = "datafile%0d.txt"
+			directory = "Folder"
+		>
+        	<column name = "SUBJECT" />
+			<column name = "EXP_TICK" />
+			<column name = "EXP_COUNT" />
+			<column name = "EXP_ID" />
+			<column name = "TRIAL_TICK" />
+			<column name = "TRIAL_COUNT" />
+			<column name = "TRIAL_ID" />
+			
+			<column name = "EXP_PHASE" />
+			<column name = "TRIAL_PHASE" />
+			
+			<column name = "SCREEN_PUPIL" />
+			<column name = "ROBOT_PUPIL" />
+			
+			<column name = "RAW_SCREEN_PUPIL" />
+			<column name = "RAW_ROBOT_PUPIL" />
+
+		</module>
+		
+		
+        <connection sourcemodule = "EpiHeadExp" source = "LOG_WRITE"            	targetmodule = "LOG" target = "WRITE" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_NEW_FILE"         	targetmodule = "LOG" target = "NEWFILE" />
+
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_SUBJECT"          	targetmodule = "LOG" target = "SUBJECT" />
+		
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_TICK"		targetmodule = "LOG" target = "EXP_TICK" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_COUNT"		targetmodule = "LOG" target = "EXP_COUNT" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_ID"		targetmodule = "LOG" target = "EXP_ID" />
+		
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_TICK"			targetmodule = "LOG" target = "TRIAL_TICK" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_COUNT"			targetmodule = "LOG" target = "TRIAL_COUNT" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_ID"				targetmodule = "LOG" target = "TRIAL_ID" />
+		
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_PHASE" 	targetmodule = "LOG" target = "EXP_PHASE" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_PHASE" 			targetmodule = "LOG" target = "TRIAL_PHASE" />
+
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_SCREEN_PUPIL" 		targetmodule = "LOG" target = "SCREEN_PUPIL" />
+		<connection sourcemodule = "EpiHeadExp" source = "LOG_ROBOT_PUPIL" 			targetmodule = "LOG" target = "ROBOT_PUPIL" />
+		
+		<connection sourcemodule = "EpiHeadExp" source = "SCREEN_PUPLIS" 	 		targetmodule = "LOG" target = "RAW_SCREEN_PUPIL" />
+		<connection sourcemodule = "EpiHeadExp" source = "ROBOT_PUPLIS" 			targetmodule = "LOG" target = "RAW_ROBOT_PUPIL" />
+		
+	
+		<module class = "Constant" name = "ZERO" outputsize = "3" data = "0 0" />
+		
+		<module class = "Constant" name = "P" data = "100" />
+		<module class = "Constant" name = "I" data = "120" />
+		<module class = "Constant" name = "D" data = "30" />
+		
+		<connection sourcemodule = "P"  source = "OUTPUT" targetmodule = "Pupil"  target = "P_GAIN" />
+		<connection sourcemodule = "I"  source = "OUTPUT" targetmodule = "Pupil"  target = "I_GAIN" />
+		<connection sourcemodule = "D"  source = "OUTPUT" targetmodule = "Pupil"  target = "D_GAIN" />
+		
+		<connection sourcemodule = "P"  source = "OUTPUT" targetmodule = "Pupil"  target = "P_GAIN" />
+		<connection sourcemodule = "I"  source = "OUTPUT" targetmodule = "Pupil"  target = "I_GAIN" />
+		<connection sourcemodule = "D"  source = "OUTPUT" targetmodule = "Pupil"  target = "D_GAIN" />
+
+		
+		
+		<view name="Epi the Robot">
+			
+			<epi-head
+			fill = "white"
+			color = "black"
+			x = "940"
+			gazeModule = "ZERO"
+			pupil = "0.5"
+			earColor = "#0088ff"
+			label = "Epi"
+			visibleModule = "EpiHeadExp"
+			mouthColor = "#000000"
+			gazeSource = "OUTPUT"
+			visibleSource = ""
+			pupilSource = "SCREEN_PUPLIS"
+			width = "781"
+			pupilModule = "EpiHeadExp"
+			y = "280"
+			eyeColor = "gray"
+			height = "741"
+			class = "epi-head"
+			/>
+			
+		</view>
+		
+		<view name="Admin">
+			
+			<slider-horizontal
+			max = "40"
+			title = "Sliders"
+			width = "1061"
+			height = "61"
+			show_frame = "true"
+			x = "80"
+			count = "1"
+			parameter = "subject_id"
+			show_values = "true"
+			y = "100"
+			step = "1"
+			module = "EpiHeadExp"
+			min = "0"
+			class = "slider-horizontal"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "S1Enable"
+			label = "Press"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "180"
+			x = "480"
+			value = "1"
+			title = "New subject"
+			show_title = "true"
+			parameter = "s1"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<button
+			enableSource = "C1Enable"
+			label = "Start"
+			w = "6"
+			enableModule = "EpiHeadExp"
+			h = "3"
+			y = "300"
+			parameter = "c1"
+			module = "EpiHeadExp"
+			x = "60"
+			value = "1"
+			title = "Screen eyes"
+			show_title = "true"
+			width = "221"
+			height = "101"
+			class = "button"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "C2Enable"
+			label = "Start"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "300"
+			x = "320"
+			value = "1"
+			title = "Screen head"
+			show_title = "true"
+			parameter = "c2"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "C3Enable"
+			label = "Start"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "300"
+			x = "580"
+			value = "1"
+			title = "Screen movie"
+			show_title = "true"
+			parameter = "c3"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "C4Enable"
+			label = "Start"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "300"
+			x = "840"
+			value = "1"
+			title = "Robot"
+			show_title = "true"
+			parameter = "c4"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<text
+			module = "EpiHeadExp"
+			parameter = "INFO_TEXT"
+			x = "500"
+			y = "40"
+			title = "Default Title"
+			width = "181"
+			height = "41"
+			class = "text"
+			/>
+			
+		</view>
+		
+		<view name="Epi och admin">
+			
+			<epi-head
+			height = "301"
+			eyeColor = "gray"
+			y = "420"
+			pupilModule = "EpiHeadExp"
+			width = "361"
+			pupilSource = "SCREEN_PUPLIS"
+			gazeSource = "OUTPUT"
+			mouthColor = "#000000"
+			visibleModule = "EpiHeadExp"
+			label = "Epi"
+			earColor = "#0088ff"
+			pupil = "0.5"
+			color = "black"
+			fill = "white"
+			gazeModule = "ZERO"
+			x = "1040"
+			class = "epi-head"
+			/>
+			
+			<slider-horizontal
+			max = "40"
+			title = "Sliders"
+			width = "1061"
+			height = "61"
+			show_frame = "true"
+			x = "80"
+			count = "1"
+			parameter = "subject_id"
+			show_values = "true"
+			y = "100"
+			step = "1"
+			module = "EpiHeadExp"
+			min = "0"
+			class = "slider-horizontal"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "S1Enable"
+			label = "Press"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "180"
+			x = "480"
+			value = "1"
+			title = "New subject"
+			show_title = "true"
+			parameter = "s1"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<button
+			enableSource = "C1Enable"
+			label = "Start"
+			w = "6"
+			enableModule = "EpiHeadExp"
+			h = "3"
+			y = "300"
+			parameter = "c1"
+			module = "EpiHeadExp"
+			x = "60"
+			value = "1"
+			title = "Screen eyes"
+			show_title = "true"
+			width = "221"
+			height = "101"
+			class = "button"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "C2Enable"
+			label = "Start"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "300"
+			x = "320"
+			value = "1"
+			title = "Screen Head"
+			show_title = "true"
+			parameter = "c2"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "C3Enable"
+			label = "Start"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "300"
+			x = "580"
+			value = "1"
+			title = "Screen Movie"
+			show_title = "true"
+			parameter = "c3"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<button
+			height = "101"
+			width = "221"
+			enableSource = "C4Enable"
+			label = "Start"
+			enableModule = "EpiHeadExp"
+			w = "6"
+			h = "3"
+			y = "300"
+			x = "840"
+			value = "1"
+			title = "Robot"
+			show_title = "true"
+			parameter = "c4"
+			module = "EpiHeadExp"
+			class = "button"
+			/>
+			
+			<text
+			module = "EpiHeadExp"
+			parameter = "INFO_TEXT"
+			x = "500"
+			y = "40"
+			title = "Default Title"
+			width = "181"
+			height = "41"
+			class = "text"
+			/>
+			
+			<plot
+			buffer_size = "100"
+			min = "220"
+			module = "Pupil"
+			height = "341"
+			max = "270"
+			show_title = "true"
+			width = "1001"
+			lineWidth = "1"
+			title = "Present position"
+			x = "60"
+			y = "400"
+			source = "FEEDBACK_PRESENT_POSITION"
+			decimals = "4"
+			w = "2"
+			direction = "vertical"
+			class = "plot"
+			/>
+			
+			<slider-horizontal
+			min = "0"
+			module = "P"
+			step = "1"
+			y = "740"
+			show_values = "true"
+			parameter = "data"
+			count = "1"
+			x = "40"
+			show_frame = "true"
+			height = "61"
+			title = "P"
+			width = "1061"
+			show_title = "true"
+			max = "250"
+			class = "slider-horizontal"
+			/>
+			
+			<slider-horizontal
+			min = "0"
+			module = "I"
+			step = "1"
+			y = "820"
+			show_values = "true"
+			parameter = "data"
+			count = "1"
+			x = "40"
+			show_frame = "true"
+			height = "61"
+			title = "Sliders"
+			width = "1061"
+			show_title = "true"
+			max = "250"
+			class = "slider-horizontal"
+			/>
+			
+			<slider-horizontal
+			min = "0"
+			module = "D"
+			step = "1"
+			y = "900"
+			show_values = "true"
+			parameter = "data"
+			count = "1"
+			x = "40"
+			show_frame = "true"
+			height = "61"
+			title = "D"
+			width = "1061"
+			show_title = "true"
+			max = "250"
+			class = "slider-horizontal"
+			/>
+			
+		</view>
+		
+	
+</group>
+ 

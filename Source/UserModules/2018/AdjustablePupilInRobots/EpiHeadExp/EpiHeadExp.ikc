@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<group name="EpiHeadExp" description="experiment module 2018">
+
+	<description type="Experiment module used for studie pupillary contagions between robot and human">
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="EpiHeadExp"
+			name="EpiHeadExp"
+		/>
+	</example>
+	
+
+    <parameter name="s1" type="int" default="0" description="New Subject" />
+	<parameter name="c1" type="int" default="0" description="Start Condition" />
+	<parameter name="c2" type="int" default="0" description="Start Condition" />
+	<parameter name="c3" type="int" default="0" description="Start Condition" />
+	<parameter name="c4" type="int" default="0" description="Start Condition" />
+
+	<parameter name="subject_id" type="int" default="0" description="Subject ID" />
+	
+	<parameter name="INFO_TEXT" type="String" default="0" description="Start Condition" />
+
+	<output name="ROBOT_PUPLIS" description="The first output" size="2" />
+	<output name="SCREEN_PUPLIS" description="The first output" size="2" />
+    <output name="NECKEYES" description="The first output" size="4" />
+	
+	<output name="S1Enable" description="Subject Button enable" size="1" />
+	<output name="C1Enable" description="Condition Button enable" size="1" />
+	<output name="C2Enable" description="Condition Button enable" size="1" />
+	<output name="C3Enable" description="Condition Button enable" size="1" />
+	<output name="C4Enable" description="Condition Button enable" size="1" />
+	
+    <output name="LOG_WRITE" description="The first output" size="1" />
+    <output name="LOG_NEW_FILE" description="The first output" size="1" />
+	
+    <output name="LOG_SUBJECT" description="The first output" size="1" />
+	<output name="LOG_EXPERIMENT_TICK" description="The first output" size="1" />
+	<output name="LOG_EXPERIMENT_COUNT" description="The first output" size="1" />
+	<output name="LOG_EXPERIMENT_ID" description="The first output" size="1" />
+	
+	<output name="LOG_TRIAL_TICK" description="The first output" size="1" />
+	<output name="LOG_TRIAL_COUNT" description="The first output" size="1" />
+	<output name="LOG_TRIAL_ID" description="The first output" size="1" />
+
+	<output name="LOG_EXPERIMENT_PHASE" description="The first output" size="1" />
+	<output name="LOG_TRIAL_PHASE" description="The first output" size="1" />
+
+	<output name="LOG_SCREEN_PUPIL" description="The first output" size="1" />
+	<output name="LOG_ROBOT_PUPIL" description="The first output" size="1" />
+	
+	<module class="EpiHeadExp" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.birgerjohansson.com</homepage>
+	</author>
+
+   <files>
+   		<file>EpiHeadExp.h</file>
+   		<file>EpiHeadExp.cc</file>
+   		<file>EpiHeadExp.ikc</file>
+   </files>
+
+</group>
+
