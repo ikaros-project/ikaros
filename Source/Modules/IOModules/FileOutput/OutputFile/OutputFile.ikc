@@ -76,7 +76,8 @@
 	<parameter name="decimals" type="int" default="4" description="Number of decimals for all columns" />
 	<parameter name="timestamp" type="bool" default="yes" description="Include time stamp column (T) in file" />
     <parameter name="directory" type="string" default="" description="Create a new directory for the files each time Ikaros is started using this directory name with a number is added." />
-    <parameter name="single_trig" type="bool" default="no" description="Only write on transition form 0 to 1" />
+    <parameter name="single_trig" type="bool" default="no" description="Only write on transition form 0 to 1." />
+    <parameter name="format" type="list" list="binary/text" description="Ouput format." />
 
 	<parameter name="column" type="element" description="Definition of a column in the output file; name attribute sets the name of the column; decimals sets the number decimals of this column" />
 

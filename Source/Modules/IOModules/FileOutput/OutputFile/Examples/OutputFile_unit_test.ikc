@@ -8,21 +8,30 @@
 
 <group>
         <module
-            class = "Constant"
+            class = "Randomizer"
             name = "Data"
             outputsize = "2000"
-            data = "0"
         />
 
 		<module
 			class = "OutputFile"
 			name = "OUT"
 			filename = "hugefile.txt"
+            format = "text"
 		>
             <column name = "VALUE" />
         </module>
 
-		<connection sourcemodule = "Data" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
+        <module
+            class = "OutputFile"
+            name = "OUT"
+            filename = "hugefile.bin"
+            format = "binary"
+            >
+            <column name = "VALUE" />
+        </module>
+
+        <connection sourcemodule = "Data" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
     <module class = "Logger" name = "Logger" />
 </group>
 
