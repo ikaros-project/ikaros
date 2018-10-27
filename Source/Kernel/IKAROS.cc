@@ -367,16 +367,19 @@ public:
     };
 };
 
+class ModuleElement;
+
 class GroupElement: public Element              // FIXME: add inputs and outputs as well
 {
 public:
     std::unordered_map<std::string, GroupElement *> groups;
+    std::unordered_map<std::string, ModuleElement *> modules;
     std::unordered_map<std::string, ParameterElement *> parameters;
     std::unordered_map<std::string, InputElement *> inputs;
     std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement *> connections;
     std::vector<ViewElement *> views;
-    Module * module; // if this group is a 'class'
+    Module * module; // if this group is a 'class' // FIXME: remove ******
     
     void Print(int d=0)
     {
@@ -497,8 +500,10 @@ public:
 };
 
 
-// TODO: this class will be used later for 'class' groups
-class ClassElement: public GroupElement
+
+// TODO: this class will be used later for 'class' groups; i.e. actual modules
+
+class ModuleElement: public GroupElement
 {
 public:
     Module * module;
@@ -562,6 +567,13 @@ Module_IO::Allocate()
             module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
         return;
     }
+    if(sizex*sizey <= 0)
+    {
+        if (module != NULL)
+            module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
+        return;
+    }
+    
     if (module != NULL) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
     data	=   new float * [max_delay];
     matrix  =   new float ** [max_delay];
@@ -963,26 +975,6 @@ Module::GetIntValue(const char * n, int d)
         return string_to_int(GetValue(n), d);
 }
 
-static bool
-tobool(const char * v, bool d = false)
-{
-    if (!v) return d;
-    if (!strcmp(v, "true")) return true;
-    if (!strcmp(v, "True")) return true;
-    if (!strcmp(v, "TRUE")) return true;
-    if (!strcmp(v, "yes")) return true;
-    if (!strcmp(v, "Yes")) return true;
-    if (!strcmp(v, "YES")) return true;
-    if (!strcmp(v, "1")) return true;
-    if (!strcmp(v, "false")) return false;
-    if (!strcmp(v, "False")) return false;
-    if (!strcmp(v, "FALSE")) return false;
-    if (!strcmp(v, "no")) return false;
-    if (!strcmp(v, "No")) return false;
-    if (!strcmp(v, "NO")) return false;
-    if (!strcmp(v, "0")) return false;
-    return d;
-}
 
 bool
 Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
@@ -991,7 +983,7 @@ Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
     if (v == NULL)
         return d;
     else
-        return tobool(v);
+        return string_to_bool(v);
 }
 
 static int
@@ -1320,7 +1312,7 @@ Module::GetInputSize(const char * input_name)
 }
 
 int
-Module::GetInputSizeX(const char * input_name)
+Module::GetInputSizeX(const char * input_name) // TODO: also used internally so cannot be removed
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
@@ -1338,7 +1330,7 @@ Module::GetInputSizeX(const char * input_name)
 }
 
 int
-Module::GetInputSizeY(const char * input_name)
+Module::GetInputSizeY(const char * input_name) // TODO: also used internally so cannot be removed
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
@@ -1484,12 +1476,24 @@ Module::AddIOFromIKC()
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != NULL; e = e->GetNextElement("input"))
     {
         const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
-        bool multiple = (amc ? tobool(amc) : true); // True is defaut value
-        AddInput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")), multiple);
+        bool multiple = (amc ? string_to_bool(amc) : true); // True is defaut value
+//        AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(kernel->GetXMLAttribute(e, "optional")), multiple);
+
+        const char * opt = kernel->GetXMLAttribute(e, "optional");
+        if(!opt)
+            AddInput(kernel->GetXMLAttribute(e, "name"), false, multiple);
+        else
+            AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt), multiple);
     }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
-        AddOutput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")));
+    {
+        const char * opt = kernel->GetXMLAttribute(e, "optional");
+        if(!opt)
+            AddOutput(kernel->GetXMLAttribute(e, "name"), false);
+        else
+            AddOutput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt));
+    }
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
@@ -1657,7 +1661,7 @@ Module::Notify(int msg)
     }
     else if(msg == msg_warning)
     {
-        global_warning_count++;
+//        global_warning_count++;
     }
 }
 
@@ -1687,7 +1691,7 @@ Module::Notify(int msg, const char *format, ...)
     }
     else if(msg == msg_warning)
     {
-         global_warning_count++;
+ //        global_warning_count++;
    }
 }
 
@@ -2345,7 +2349,6 @@ Kernel::Init()
     if(fatal_error_occurred)
         return;
 
-//    SortModules();
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
     AllocateOutputs();
@@ -2577,7 +2580,7 @@ Kernel::GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char
 {
     for (auto & g : group->groups)
     {
-        if(g.second->module && (equal_strings(g.first.c_str(), source_module_name) || equal_strings(source_module_name, "*")))
+        if(g.second->module && ((g.first==source_module_name) || equal_strings(source_module_name, "*")))
         {
             m = g.second->module;
             io = m->GetModule_IO(m->output_list, source_name);
@@ -2585,9 +2588,9 @@ Kernel::GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char
                 return true;
             return false;
         }
-        else if (equal_strings(g.second->GetValue("name").c_str(), source_module_name)) // Translate output name - should not be tested again
+        else if(g.first == source_module_name) // Translate output name - should not be tested again
         {
-            for (auto & output : group->outputs)
+            for (auto & output : g.second->outputs)
             {
                 const char * n = output.first.c_str();
                 if (n == NULL)
@@ -3396,7 +3399,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
                     const char * tm = GetXMLAttribute(xml_input, "targetmodule");
                     const char * t = GetXMLAttribute(xml_input, "target");
                     int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
-                    bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+                    bool a = string_to_bool(GetXMLAttribute(xml_input, "active"), is_active);
 
                     if(!equal_strings(t,""))
                         c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
@@ -3419,7 +3422,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offs
                         const char * tm = GetXMLAttribute(xml_input, "targetmodule");
                         const char * t = GetXMLAttribute(xml_input, "target");
                         int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
-                        bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+                        bool a = string_to_bool(GetXMLAttribute(xml_input, "active"), is_active);
 
                         if(!equal_strings(t,""))
                             c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
@@ -3441,69 +3444,75 @@ Kernel::Connect(GroupElement * group, Module * sm, Module_IO * sio, int s_offset
     
     // iterate over all modules in this group
     
-    for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
-        if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should; change first test to *?
-        {
-            Module * tm = (Module *)(xml_module->aux);
-            if (tm)
+//    for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
+    for (auto & g : group->groups)
+        if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, g.first.c_str())) // also matches anonymous module as it should; change first test to *?
+            if(g.second->module != NULL) // this is a module
             {
-                Module_IO * tio = tm->GetModule_IO(tm->input_list, t_name);
-                if(sio == NULL)
-                    Notify(msg_fatal_error, "Could not make connection. Source missing\n.");
-                else if(tio == NULL)
-                    Notify(msg_fatal_error, "Could not make connection. Target \"%s\" of module \"%s\" missing.\n", t_name, tm_name);
-                else
-                    c += Connect(sio, s_offset, tio, t_offset, size, delay, extra_delay, is_active);
+                Module * tm = g.second->module;
+                if (tm)
+                {
+                    Module_IO * tio = tm->GetModule_IO(tm->input_list, t_name);
+                    if(sio == NULL)
+                        Notify(msg_fatal_error, "Could not make connection. Source missing\n.");
+                    else if(tio == NULL)
+                        Notify(msg_fatal_error, "Could not make connection. Target \"%s\" of module \"%s\" missing.\n", t_name, tm_name);
+                    else
+                        c += Connect(sio, s_offset, tio, t_offset, size, delay, extra_delay, is_active);
+                }
             }
-        }
     
     // iterate over all groups in this group
 
     bool connection_made = false;
-    for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
-        {
-            // iterate over all input elements
-            for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                if(equal_strings(t_name, GetXMLAttribute(xml_input, "name"))) // Found input with target
-                {
-                    connection_made = true;
-                    const char * tm = GetXMLAttribute(xml_input, "targetmodule");
-                    const char * t = GetXMLAttribute(xml_input, "target");
-                    int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
-                    bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
-
-                    if(!equal_strings(t,""))
-                        c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
-                    else
-                        c++; // ignore connections if both are nil
-                }
-        }
-    
-    // look of wildcard connections
-    
-    if(!connection_made)
-    {
-        for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-            if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
+//    for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
+    for (auto & g : group->groups)
+        if(equal_strings(tm_name, "*") || equal_strings(tm_name, g.first.c_str())) // Found group
+            if(g.second->module == NULL) // this is a group
             {
                 // iterate over all input elements
-                for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                    if(equal_strings("*", GetXMLAttribute(xml_input, "name"))) // Found input with target
+                //for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
+                for (auto & input : g.second->inputs)
+                    if(equal_strings(t_name, input.first.c_str())) // Found input with target
                     {
-                        const char * tm = GetXMLAttribute(xml_input, "targetmodule");
-                        const char * t = GetXMLAttribute(xml_input, "target");
-                        int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
-                        bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
+                        connection_made = true;
+                        const char * tm = input.second->GetValue("targetmodule").c_str();
+                        const char * t = input.second->GetValue("target").c_str();
+                        int d = string_to_int(input.second->GetValue("delay")); // TODO: We should merge d with the range in d instead
+                        bool a = string_to_bool(input.second->GetValue("active"), is_active);
 
                         if(!equal_strings(t,""))
-                            c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
+                            c += Connect(g.second, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
                         else
                             c++; // ignore connections if both are nil
                     }
             }
-    }
     
+    // look of wildcard connections
+
+    if(!connection_made)
+    {
+    for (auto & g : group->groups)
+            if(equal_strings(tm_name, "*") || equal_strings(tm_name, g.first.c_str())) // Found group
+                if(g.second->module == NULL) // this is a group
+                {
+                    // iterate over all input elements
+                    for (auto & input : g.second->inputs)
+                        if(equal_strings("*", input.first.c_str()))
+                        {
+                        const char * tm = input.second->GetValue("targetmodule").c_str();
+                        const char * t = input.second->GetValue("target").c_str();
+                        int d = string_to_int(input.second->GetValue("delay")); // TODO: We should merge d with the range in d instead
+                        bool a = string_to_bool(input.second->GetValue("active"), is_active);
+
+                            if(!equal_strings(t,""))
+                                c += Connect(g.second, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
+                            else
+                                c++; // ignore connections if both are nil
+                        }
+                }
+    }
+
     return c;
 }
 
@@ -3764,16 +3773,14 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
     
     for(auto & c : group->connections)
     {
-        printf("%sConnecting: %s -> %s\n ", indent.c_str(), c->GetAttribute("sourcemodule").c_str(), c->GetAttribute("targetmodule").c_str());
-        
-        // OLD CODE
+        printf("%sConnecting: %s -> %s\n", indent.c_str(), c->GetAttribute("sourcemodule").c_str(), c->GetAttribute("targetmodule").c_str());
         
         std::string sm_name    = c->GetAttribute("sourcemodule");
         std::string s_name     = c->GetAttribute("source");
         std::string tm_name    = c->GetAttribute("targetmodule");
         std::string t_name     = c->GetAttribute("target");
         std::string delay      = c->GetAttribute("delay");
-        const bool a           = tobool(c->GetAttribute("active").c_str(), true);   // FIXME: what happens with NULL?
+        const bool a           = string_to_bool(c->GetAttribute("active"), true);   // FIXME: what happens with NULL? Cannot happen
 /*
         if(!sm_name)
             Notify(msg_fatal_error, "Incomplete connection: sourcemodule not set.");
@@ -3784,15 +3791,15 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
         if(!t_name)
             Notify(msg_fatal_error, "Incomplete connection: target not set.");
  */
-        int so = string_to_int(c->GetAttribute("sourceoffset").c_str());
-        int to = string_to_int(c->GetAttribute("targetoffset").c_str());
-        int sz = string_to_int(c->GetAttribute("size").c_str(), unknown_size);
+        int so = string_to_int(c->GetAttribute("sourceoffset"));
+        int to = string_to_int(c->GetAttribute("targetoffset"));
+        int sz = string_to_int(c->GetAttribute("size"), unknown_size);
 
         Module * sm;
         Module_IO * sio;
         int cnt = 0;
         if (GetSource(group, sm, sio, sm_name.c_str(), s_name.c_str())) // FIXME: make symmetrical in source and target
-            cnt = Connect(group, sm, sio, so, tm_name.c_str(), t_name.c_str(), to, sz, delay, 0, a);
+            cnt = Connect(group, sm, sio, so, tm_name.c_str(), t_name.c_str(), to, sz, delay.c_str(), 0, a);
         else
             Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name.c_str(), s_name.c_str());   // TODO: Should check for indirect connections here
         
@@ -3803,10 +3810,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
     // Connect in subgroups
 
     for(auto & g : group->groups)
-    {
-//        printf("%sConnecting in %s (%s)\n", indent.c_str(), g.first.c_str(), g.second->GetAttribute("name").c_str());
         ConnectModules(g.second, indent+"\t");
-    }
 }
 
 
@@ -3882,7 +3886,7 @@ Kernel::ReadXML()
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
     
-    main_group->Print();
+//    main_group->Print();
 
 // printf("%s\n", main_group->JSONString().c_str());
 }
