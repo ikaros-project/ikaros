@@ -14,18 +14,18 @@
 	</example>
 	
 
-    <parameter name="s1" type="int" default="0" description="New Subject" />
-	<parameter name="c1" type="int" default="0" description="Start Condition" />
-	<parameter name="c2" type="int" default="0" description="Start Condition" />
-	<parameter name="c3" type="int" default="0" description="Start Condition" />
-	<parameter name="c4" type="int" default="0" description="Start Condition" />
+	<parameter name="new_subject" type="int" default="0" description="New Subject" />
+	<parameter name="start_experiment" type="int" default="0" description="Start experiment" />
+	<parameter name="sync_signal" type="bool" default="false" description="Send sync signal" />
 	
-	
-	<parameter name="eyes_only" type="bool" default="false" description="Start Condition" />
+	<parameter name="VisibleFace" type="bool" default="false" description="Start Condition" />
 
 	<parameter name="subject_id" type="int" default="0" description="Subject ID" />
 	
 	<parameter name="info_text" type="String" default="0" description="Start Condition" />
+
+	<parameter name="exp_progress" type="String" default="0" description="Start Condition" />
+	<parameter name="sub_progress" type="String" default="0" description="Start Condition" />
 
 	<output name="ROBOT_PUPIL_LEFT" description="The first output" size="1" />
 	<output name="ROBOT_PUPIL_RIGHT" description="The first output" size="1" />
@@ -36,18 +36,17 @@
 
 	<output name="IMAGE_ID" description="The first output" size="1" />
 
-	<output name="S1Enable" description="Subject Button enable" size="1" />
-	<output name="C1Enable" description="Condition Button enable" size="1" />
-	<output name="C2Enable" description="Condition Button enable" size="1" />
-	<output name="C3Enable" description="Condition Button enable" size="1" />
-	<output name="C4Enable" description="Condition Button enable" size="1" />
+	<output name="SUBJECT_BTN_ENABLE" description="Subject Button enable" size="1" />
+	<output name="EXPERIMENT_BTN_ENABLE" description="Experiment Button enable" size="1" />
+	<output name="ENABLE_FACE" description="Condition Button enable" size="1" />
+
 	
     <output name="LOG_WRITE" description="The first output" size="1" />
     <output name="LOG_NEW_FILE" description="The first output" size="1" />
 	
     <output name="LOG_SUBJECT" description="The first output" size="1" />
 	<output name="LOG_EXPERIMENT_TICK" description="The first output" size="1" />
-	<output name="LOG_EXPERIMENT_COUNT" description="The first output" size="1" />
+	<output name="LOG_EXPERIMENT_RANDOM_ID" description="The first output" size="1" />
 	<output name="LOG_EXPERIMENT_ID" description="The first output" size="1" />
 	
 	<output name="LOG_TRIAL_TICK" description="The first output" size="1" />
@@ -59,7 +58,9 @@
 
 	<output name="LOG_SCREEN_PUPIL" description="The first output" size="1" />
 	<output name="LOG_ROBOT_PUPIL" description="The first output" size="1" />
-	
+
+	<output name="LOG_SYNC_SIGNAL" description="The first output" size="1" />
+
 	<module class="EpiHeadExp" />
 
 	<author>

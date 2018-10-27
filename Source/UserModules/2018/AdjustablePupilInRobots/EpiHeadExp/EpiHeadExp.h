@@ -63,20 +63,19 @@ public:
 	std::string infoText;
 	
     // New Subject
-    int s1;
+    int newSubject;
 	
 	// Start Conditions
-	int c1;
-	int c2;
-	int c3;
-	int c4;
+	int startExperiment;
+	bool syncSingal;
 	bool visibleFace;
 	
-	float * s1Enable;
-	float * c1Enable;
-	float * c2Enable;
-	float * c3Enable;
-	float * c4Enable;
+	float * subjectBtnEnable;
+	float * expBtnEnable;
+	float * syncSingalEnable;
+
+	float * enableFace;
+	
 	
 	// Subject ID
 	int subjectID = 0;
@@ -87,7 +86,7 @@ public:
 //		{3,2,1,0},
 //		{0,1,3,2}
 //	};
-//
+
 //	int randomTrails[NUMBER_OF_RANDOM_SCHEMAS][NUMBER_OF_TRIALS] =
 //	{
 //		{0,0},
@@ -140,7 +139,7 @@ public:
 			{1,0,3,2},
 			{2,3,0,1}
 		};
-	
+
 		int randomTrails[NUMBER_OF_RANDOM_SCHEMAS][NUMBER_OF_TRIALS] =
 		{
 			{0,0,1,1,0,1,0,1,1,0,1,0,1,0,1,0,0,1,0,1,1,0,1,0},
@@ -159,7 +158,8 @@ public:
 	int curSubjectIndex = -1;
 	int curExperimentIndex = -1;
 	int curExperimentCount = -1;
-	
+	int curExperimentID = -1;
+
 	
 	int curExpPhase = WAIT_ON_NEW_SUBJECT;
 	
@@ -168,11 +168,12 @@ public:
 	
 	// Trials
 	int curConditionTrial = -1; 	// Subject's condition trials so far
-	int curExperimentTrial = -1; 	// Subject's experiment trail so far (all conditions)
 
 	// Total
 	int curTotalTrial = -1; 		// Experiment current
 
+	// Random schema
+	int curExperimentRandomID = -1;
 
 	
     // Animations
@@ -188,7 +189,7 @@ public:
 	float *logSubjectCount;
 	// Experiment
 	float *logExperimentTickIndex;
-	float *logExperimentCountIndex;
+	float *logExperimentRandomizeIndex;
 	float *logExperimentIdIndex;
 
 	// Trial
@@ -202,6 +203,17 @@ public:
 	// Data
 	float * logScreenPupil;
 	float * logRobotPupil;
+	
+	
+	// Syncing
+	bool syncing = false;
+	int syncTick = 0;
+	float *logSyncSignal;
+	
+	
+	// Progress
+	int expProgress = 0;
+	int subjectProgress = 0;
 	
     void writeToLogFile();
     void writeToNewLogFile();

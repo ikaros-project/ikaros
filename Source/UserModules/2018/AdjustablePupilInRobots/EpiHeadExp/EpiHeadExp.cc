@@ -24,19 +24,27 @@
 //  If you prefer to start with a clean example, use he module MinimalModule instead.
 //
 
+// TODO:
+// 2. Record Movie
+// 4. Split movie and make seqence
+// Frame Epi
+
+
 #include "EpiHeadExp.h"
 
-#define EXP_DEBUG
+//#define EXP_DEBUG
+
+// #define OVERRIDE_MOVIE_RECORD
+// Remever order of recording
 
 // PHASES
 #define WAIT_ON_EXPERIMENT 10
-#define STATIC_ON_SCREEN 20
-#define ONGOING_EXPERIMENT 30
-#define EXPERIMENT_ENDED 40
+#define ONGOING_EXPERIMENT 20
+#define EXPERIMENT_ENDED 30
 
 // INDEX For looing
 #define SCREEN_EYE_ID 0
-//#define SCREEN_HEAD_INDEX 1
+#define SCREEN_HEAD_ID 1
 #define SCREEN_MOVIE_ID 2
 #define ROBOT_ID 3
 
@@ -46,11 +54,11 @@
 #define SUBJECT_COUNT_INDEX 1 		// Subject_Count. Number of subject = subject id. [0,1,2,3,3,4 -> NUMBER_OF_SUBJECT]
 // Experiment
 #define EXPERIMENT_TICK_INDEX 2 	// Experiment_Tick. Tick of the experiment. [1->EXPERIMENT_TIME]
-#define EXPERIMENT_COUNT_INDEX 3 	// Number of experiments done. Same as EXPERIMENT_ID As the order is set and the index of experiment_id 0-3
+#define EXPERIMENT_RANDOMIZE_SCHEMA 3 	// Randomize scheama
 #define EXPERIMENT_ID_INDEX 4		// Experiment id 0-3
 // Trial
-#define TRIAL_TICK_INDEX 5			// Trial_Tick. Tick of each trial. One experiments = NUMBER_OR_TRAILS [1,2,3,4 -> TOTAL_TIME]
-#define TRIAL_COUNT_INDEX 6			// Trial_Count Counting each trail [000, 111,222,333 -> NUMBER_OR_TRAILS]
+#define TRIAL_TICK_INDEX 5			// Trial_Tick. Tick of each trial. One experiments = NUMBER_OR_TRIALS [1,2,3,4 -> TOTAL_TIME]
+#define TRIAL_COUNT_INDEX 6			// Trial_Count Counting each trail [000, 111,222,333 -> NUMBER_OR_TRIALS]
 #define TRIAL_ID_INDEX 7			// Trial_id	Condition of the trial. 0 = Small 1. Large
 // Data
 #define PUPIL_INDEX 8 				// Uses the same channel for both robot and animation.
@@ -75,7 +83,9 @@
 #define TOTAL_TIME (WAIT_TIME+CHANGE_TIME+HOLD_TIME+RETURN_TIME )
 #define EXPERIMENT_TIME (TOTAL_TIME*NUMBER_OF_TRIALS)
 
-#define MOVIE_FPS 25
+#define SYNC_TIME 20 // NUMBER OF TICK TO SEND SYNC SIGNAL
+
+#define MOVIE_TIME_BASE 40 // 1/25
 // PUPIL SIZES
 // 0.5 == 16.8
 //
@@ -184,7 +194,12 @@ void Movement::printData()
 
 float * Movement::GetNextStep()
 {
-	this->started = false; // if we are in next step we are not in start any more.
+
+	if (this->started) // Just started? Return first step.
+	{
+		this->started = false; // if we are in next step we are not in start any more.
+		return this->data[0];
+	}
 	
 	if (this->paused || (this->finnished && !this->looping))
 		return this->data[this->step]; // return previous step
@@ -232,22 +247,22 @@ void
 EpiHeadExp::Init()
 {
 	// Buttons
-	Bind(s1, "s1");
-	Bind(c1, "c1");
-	Bind(c2, "c2");
-	Bind(c3, "c3");
-	Bind(c4, "c4");
-	Bind(visibleFace, "visibleFace");
+	Bind(newSubject, "new_subject");
+	Bind(startExperiment, "start_experiment");
+	Bind(syncSingal, "sync_signal");
+	Bind(visibleFace, "VisibleFace");
 	Bind(subjectID, "subject_id");
 	Bind(infoText,"info_text");
 	infoText = "";
-	
+	Bind(expProgress,"exp_progress");
+	Bind(subjectProgress,"sub_progress");
+
+	enableFace = GetOutputArray("ENABLE_FACE");
+
 	// Button enable output
-	s1Enable = GetOutputArray("S1Enable");
-	c1Enable = GetOutputArray("C1Enable");
-	c2Enable = GetOutputArray("C2Enable");
-	c3Enable = GetOutputArray("C3Enable");
-	c4Enable = GetOutputArray("C4Enable");
+	subjectBtnEnable = GetOutputArray("SUBJECT_BTN_ENABLE");
+	expBtnEnable = GetOutputArray("EXPERIMENT_BTN_ENABLE");
+
 	
 	// Outputs (Motor)
 	screenPupilL = GetOutputArray("SCREEN_PUPIL_LEFT");
@@ -267,7 +282,7 @@ EpiHeadExp::Init()
 	logSubjectCount = GetOutputArray("LOG_SUBJECT");
 	// Experiment
 	logExperimentTickIndex = GetOutputArray("LOG_EXPERIMENT_TICK");
-	logExperimentCountIndex = GetOutputArray("LOG_EXPERIMENT_COUNT");
+	logExperimentRandomizeIndex = GetOutputArray("LOG_EXPERIMENT_RANDOM_ID");
 	logExperimentIdIndex = GetOutputArray("LOG_EXPERIMENT_ID");
 	// Trial
 	logTrialTickIndex = GetOutputArray("LOG_TRIAL_TICK");
@@ -279,7 +294,8 @@ EpiHeadExp::Init()
 	// Data (Pupil converted to mm)
 	logScreenPupil = GetOutputArray("LOG_SCREEN_PUPIL");
 	logRobotPupil = GetOutputArray("LOG_ROBOT_PUPIL");
-	
+	logSyncSignal = GetOutputArray("LOG_SYNC_SIGNAL");
+
 	// Reset
 	*logScreenPupil = 0;
 	*logRobotPupil = 0;
@@ -358,10 +374,14 @@ EpiHeadExp::Init()
 					motionData[sIndex][eIndex][eTick][SUBJECT_COUNT_INDEX] 		= sIndex;
 					
 					motionData[sIndex][eIndex][eTick][EXPERIMENT_TICK_INDEX] 	= eTick;
-					//motionData[sIndex][eIndex][eTick][EXPERIMENT_COUNT_INDEX] 	= randomExperiments[sIndex][eIndex]; // Same as id. See define note
-					//motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= randomExperiments[sIndex][eIndex];
-					motionData[sIndex][eIndex][eTick][EXPERIMENT_COUNT_INDEX] 	= -1; // We do not know the order
-					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= eIndex;
+					motionData[sIndex][eIndex][eTick][EXPERIMENT_RANDOMIZE_SCHEMA] 	= ((eIndex+sIndex)%NUMBER_OF_RANDOM_SCHEMAS);
+					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= randomExperiments[sIndex][eIndex];
+					
+#ifdef OVERRIDE_MOVIE_RECORD
+					// OVERRIDE
+					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= ROBOT_ID;
+					//motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= SCREEN_MOVIE_ID;
+#endif
 
 					
 					motionData[sIndex][eIndex][eTick][TRIAL_TICK_INDEX] 		= tTick;
@@ -472,11 +492,11 @@ EpiHeadExp::Init()
 	}
 	
 	//Print all motion for all subject
-	//	for (int sIndex = 0; sIndex<NUMBER_OF_SUBJECTS; sIndex++) {
-	//		printf("Subject %i:\n", sIndex);
-	//		for (int eIndex = 0; eIndex<NUMBER_OF_EXPERIMENTS; eIndex++)
-	//			print_matrix("Exp Data", motionData[sIndex][eIndex], MOTOR_DATA_SIZE, EXPERIMENT_TIME,0);
-	//	}
+//		for (int sIndex = 0; sIndex<NUMBER_OF_SUBJECTS; sIndex++) {
+//			printf("Subject %i:\n", sIndex);
+//			for (int eIndex = 0; eIndex<NUMBER_OF_EXPERIMENTS; eIndex++)
+//				print_matrix("Exp Data", motionData[sIndex][eIndex], MOTOR_DATA_SIZE, EXPERIMENT_TIME,1);
+//		}
 	
 	// Adding motions
 	for (int sIndex = 0; sIndex<NUMBER_OF_SUBJECTS; sIndex++) {
@@ -484,10 +504,10 @@ EpiHeadExp::Init()
 		animation[sIndex][1] = new Movement(motionData[sIndex][1], MOTOR_DATA_SIZE, EXPERIMENT_TIME);
 		animation[sIndex][2] = new Movement(motionData[sIndex][2], MOTOR_DATA_SIZE, EXPERIMENT_TIME);
 		animation[sIndex][3] = new Movement(motionData[sIndex][3], MOTOR_DATA_SIZE, EXPERIMENT_TIME);
-		//		animation[sIndex][0]->printData();
-		//		animation[sIndex][1]->printData();
-		//		animation[sIndex][2]->printData();
-		//		animation[sIndex][3]->printData();
+//		animation[sIndex][0]->printData();
+//		animation[sIndex][1]->printData();
+//		animation[sIndex][2]->printData();
+//		animation[sIndex][3]->printData();
 	}
 }
 
@@ -504,20 +524,20 @@ EpiHeadExp::Tick()
 		{
 			infoText = "Waiting on new subject";
 			nextStep = NULL; // No movement and no output
-			
 			// Buttons
-			*c1Enable = *c2Enable = *c3Enable = *c4Enable = 0;
-			*s1Enable = 1;
+			*expBtnEnable = 0;
+			*subjectBtnEnable = 1;
 			
-			if (s1 == 1)
+			if (newSubject == 1)
 			{
 				curExpPhase = WAIT_ON_EXPERIMENT;
 				curSubjectIndex = subjectID;  		// The subject ID chosen from webUI
+				//printf("\n\nSubject %i\n", curSubjectIndex);
 			}
 			
 			if (curSubjectIndex > NUMBER_OF_SUBJECTS-1)
 			{
-				*c1Enable = *c2Enable = *c3Enable = *c4Enable = *s1Enable = 0;
+				*expBtnEnable = *subjectBtnEnable = 0;
 				infoText = "All subjects done!";
 				Notify(msg_terminate,"All subjects done!");
 			}
@@ -528,81 +548,68 @@ EpiHeadExp::Tick()
 		case WAIT_ON_EXPERIMENT:
 		{
 			// Disable buttons
-			*c1Enable = *c1Enable = *c2Enable = *c3Enable = *c4Enable = 0;
+			*expBtnEnable = *expBtnEnable = 1;
 			nextStep = NULL; // No movement and no output
 
+			// Sync signal
+			if (syncSingal and !syncing) // Only trigger sync signal once during a sync period
+				syncing = true;
+			if (syncing)
+			{
+				syncTick++;
+				if (syncTick > SYNC_TIME) // Time to syncSingal
+				{
+					syncTick = 0;
+					syncing = false;
+				}
+			}
+			
+			
 			if (!waitngOnInput)
 			{
-				curExperimentIndex = -1;
-				curExperimentCount = -1;
-				infoText = "Pick one experiment";
-				
-				// Figure out the next experiment
-				for (int i = 0; i < NUMBER_OF_EXPERIMENTS; i++)
+				infoText = "Start next experiment";
+
+				if (startExperiment == 1) // Start next experiment
 				{
-					if (randomExperimentsAvailable[curSubjectIndex][i] and randomExperiments[curSubjectIndex][i] < nextExperiment)
-					{
-						nextExperiment = randomExperiments[curSubjectIndex][i];
-						curExperimentIndex = i;
-					}
-				}
-				
-				// No more experiments
-				if (nextExperiment == 100)
-				{
-					curExpPhase = EXPERIMENT_ENDED;
+					curExperimentIndex++;
+					curExpPhase = ONGOING_EXPERIMENT;
 					waitngOnInput = false;
-					printf("Subject %i: No more experiments\n",curSubjectIndex);
 				}
-				else
-				{
-					randomExperimentsAvailable[curSubjectIndex][curExperimentIndex] = false; // Disable this experiment from list
-					curExperimentCount = nextExperiment; // Number of experiments for subject
-					
-					waitngOnInput = true;
-					printf("Subject %i: Next experiment %i count %i\n",curSubjectIndex, curExperimentIndex, curExperimentCount);
-				}
-			}
-			
-			// Only enable right Condition
-			switch (curExperimentIndex) {
-				case 0:
-					*c1Enable = 1;
-					break;
-				case 1:
-					*c2Enable = 1;
-					break;
-				case 2:
-					*c3Enable = 1;
-					break;
-				case 3:
-					*c4Enable = 1;
-					break;
-				default:
-					break;
-			}
-			
-			if (c1 == 1 or c2 == 1 or c3 == 1 or c4 == 1 )
-			{
-				curExpPhase = ONGOING_EXPERIMENT;
-				waitngOnInput = false;
-				nextExperiment = 100;
-				curExperimentTrial++;
 			}
 			break;
 		}
 		case ONGOING_EXPERIMENT:
 		{
 			// MARK: ONGOING_EXPERIMENT
-			infoText = "Running experiment";
-			nextStep = animation[curSubjectIndex][curSubjectIndex]->GetNextStep();
+			if (curExperimentID == SCREEN_EYE_ID)
+				infoText = "Running experiment (EYES)";
+			if (curExperimentID == SCREEN_HEAD_ID)
+				infoText = "Running experiment (HEAD)";
+			if (curExperimentID == SCREEN_MOVIE_ID)
+				infoText = "Running experiment (MOVIE)";
+			if (curExperimentID == ROBOT_ID)
+				infoText = "Running experiment (ROBOT)";
 			
+			nextStep = animation[curSubjectIndex][curExperimentIndex]->GetNextStep();
+			curExperimentID = nextStep[EXPERIMENT_ID_INDEX];
+			curExperimentRandomID = nextStep[EXPERIMENT_RANDOMIZE_SCHEMA];
 			// Check if phase is done
-			if (animation[curSubjectIndex][curSubjectIndex]->finnished)
+			if (animation[curSubjectIndex][curExperimentIndex]->finnished)
 			{
-				curExpPhase = WAIT_ON_EXPERIMENT;
-				animation[curSubjectIndex][curSubjectIndex]->start();
-				waitngOnInput = false;
+				if (curExperimentIndex == NUMBER_OF_EXPERIMENTS-1)
+				{
+					//printf("Exp %i (%i) END\n", curExperimentID, curExperimentIndex);
+					curExpPhase = EXPERIMENT_ENDED;
+					animation[curSubjectIndex][curExperimentIndex]->start();
+					waitngOnInput = false;
+				}
+				else
+				{
+					//printf("Exp %i (%i)\n", curExperimentID, curExperimentIndex);
+					curExpPhase = WAIT_ON_EXPERIMENT;
+					animation[curSubjectIndex][curExperimentIndex]->start();
+					waitngOnInput = false;
+				}
 			}
 			break;
 		}
@@ -611,11 +618,13 @@ EpiHeadExp::Tick()
 			// MARK: EXPERIMENT_ENDED
 			infoText = "Experiment Done";
 			curExpPhase = WAIT_ON_NEW_SUBJECT;
+			curExperimentIndex = -1; // Same as number of experiments done
 			break;
 		}
 		default:
 			break;
 	}
+	
 	// Send Normal
 	if (!nextStep)
 	{
@@ -627,7 +636,16 @@ EpiHeadExp::Tick()
 		*screenPupilR 	   	= PUPIL_SIZE_SCREEN_NORMAL + PUPIL_SIZE_SCREEN_ADJUSTER;
 		*robotPupilL      	= PUPIL_SIZE_ROBOT_NORMAL;
 		*robotPupilR    	= PUPIL_SIZE_ROBOT_NORMAL + PUPIL_SIZE_ROBOT_ADJUSTER;
-		*imageID			 = 0;
+		
+		
+		// Nothing should be seen (if not syncing)
+		*enableFace 		= 0;
+		*imageID			= 0;
+
+		// Syncing
+		if (syncing)
+			*imageID = 1;
+		
 	}
 	else
 	{
@@ -636,10 +654,7 @@ EpiHeadExp::Tick()
 		motorNeckEyes[2]   = EYE_SUBJECT;
 		motorNeckEyes[3]   = EYE_SUBJECT;
 		
-		// Override
-		
-		curExperimentIndex = ROBOT_ID;
-		if (curExperimentIndex != ROBOT_ID) // Which output should we send on?
+		if (curExperimentID != ROBOT_ID) // Which output should we send on?
 		{
 			*screenPupilL    = nextStep[PUPIL_INDEX];
 			*screenPupilR    = nextStep[PUPIL_INDEX] + PUPIL_SIZE_SCREEN_ADJUSTER;
@@ -654,24 +669,51 @@ EpiHeadExp::Tick()
 			*robotPupilR     = nextStep[PUPIL_INDEX] + PUPIL_SIZE_ROBOT_ADJUSTER;
 		}
 		
-		// Image output
-		if (curExperimentIndex == SCREEN_MOVIE_ID) // Which output should we send on?
-			*imageID	= int(((curExperimentCount*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/2); // Divade this with something good
-		else
-			*imageID 	= 0;
 		
-		*imageID 	= GetTick()%220;
-		
-		// Eye/head paramter
-		if (curExperimentIndex == SCREEN_EYE_ID) // Which output should we send on?
-			visibleFace = true;
-		else
+
+		// Default
+		*enableFace 		= 0;
+		*imageID			= 0;
+		visibleFace 		= true;
+		*imageID 			= 0;
+
+		// Eyes
+		if (curExperimentID == SCREEN_EYE_ID)
+		{
 			visibleFace = false;
+			*enableFace = 1;
+		}
+		// Head
+		if (curExperimentID == SCREEN_HEAD_ID)
+		{
+			visibleFace = true;
+			*enableFace = 1;
+		}
+		// Movie
+		if (curExperimentID == SCREEN_MOVIE_ID)
+		{
+			*enableFace = 0;
+			*imageID	= int(((curExperimentRandomID*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/(MOVIE_TIME_BASE/TICK_BASE));
+			*imageID = 10;
+		}
 
-		visibleFace = false;
+		// Progress
+		float tExp = nextStep[EXPERIMENT_TICK_INDEX];
+		float tExpTotal = EXPERIMENT_TIME-1;
+		float tSub = tExp+ (curExperimentIndex*EXPERIMENT_TIME);
+		float tSubTotal = ((EXPERIMENT_TIME*NUMBER_OF_EXPERIMENTS)-1);
 
+		if (curExperimentIndex != -1) // Last tick will be -1
+		{
+			expProgress = int(tExp/tExpTotal*100+0.5);
+			subjectProgress = int(tSub/tSubTotal*100+0.5);
+			//printf("%i (%i)\n", subjectProgress, expProgress);
+		}
 	}
+	
+	
 	*logWrite = 1;
+	
 	// Log
 	if (!nextStep)
 	{
@@ -680,7 +722,7 @@ EpiHeadExp::Tick()
 		*logSubjectCount = -1.0;
 		// Experiment
 		*logExperimentTickIndex = -1.0;
-		*logExperimentCountIndex = -1.0;
+		*logExperimentRandomizeIndex = -1.0;
 		*logExperimentIdIndex = -1.0;
 		// Trial
 		*logTrialTickIndex = -1.0;
@@ -692,6 +734,11 @@ EpiHeadExp::Tick()
 		
 		*logScreenPupil = -1;				// Formated output instead of RAW
 		*logRobotPupil = -1;
+		
+		// Hide both movie and head between experiments
+		
+		// Sync signal
+		*logSyncSignal = syncing;
 	}
 	else
 	{
@@ -700,7 +747,7 @@ EpiHeadExp::Tick()
 		*logSubjectCount = nextStep[SUBJECT_COUNT_INDEX];
 		// Experiment
 		*logExperimentTickIndex  = nextStep[EXPERIMENT_TICK_INDEX];
-		*logExperimentCountIndex  = nextStep[EXPERIMENT_COUNT_INDEX];
+		*logExperimentRandomizeIndex  = nextStep[EXPERIMENT_RANDOMIZE_SCHEMA];
 		*logExperimentIdIndex  = nextStep[EXPERIMENT_ID_INDEX];
 		// Trial
 		*logTrialTickIndex  = nextStep[TRIAL_TICK_INDEX];
@@ -721,6 +768,9 @@ EpiHeadExp::Tick()
 			*logScreenPupil = -1;
 			*logRobotPupil = *screenPupilL*32.0f; // inverting Assuming both robot and screen is identical
 		}
+		
+		// Sync signal
+		*logSyncSignal = syncing;
 	}
 }
 
