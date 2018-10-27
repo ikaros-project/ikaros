@@ -28,6 +28,8 @@
 // the sizes nearly always goes last of the arguments
 // unless there are optional arguments
 
+#include <string>
+
 namespace ikaros
 {
 	
@@ -344,6 +346,11 @@ namespace ikaros
 	int         string_to_int(const char * s, int d=0);  // convert to int; use d if char is NULL
 	float		string_to_float(const char * s, float d=0.0); // convert to float; use d if char is NULL
 
+    int         string_to_int(const std::string & s, int d = 0);
+    long        string_to_long(const std::string & s, long d = 0);
+    float       string_to_float(const std::string & s, float d = 0.0); // convert to float; use d if char is NULL
+    bool        string_to_bool(const std::string & s, bool d = false);
+    
 	char *      int_to_string(char * s, int n, int i);	// put the string representation of the value i into s using a maximum of n characters
 	char *      float_to_string(char * s, float v, int decimals, int n);
 

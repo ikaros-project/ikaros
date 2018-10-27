@@ -2687,10 +2687,48 @@ namespace ikaros
 			r[i] = ((max-min)/255.0) * float(a[i]) + min;
 	}
 	
+
+    int
+    string_to_int(const std::string & s, int d)
+    {
+        if (s == "")
+            return d;
+        else
+            return stoi(s, NULL, 0);    // 0 allows hex and octal formats as well as decimal
+    }
+
+    long
+    string_to_long(const std::string & s, long d) // FIXME: could use exceptions to set default
+    {
+        if (s == "")
+            return d;
+        else
+            return stol(s, NULL, 0);    // 0 allows hex and octal formats as well as decimal
+    }
+
+    float
+    string_to_float(const std::string & s, float d) // FIXME: could use exceptions to set default
+    {
+        if (s == "")
+            return d;
+        else
+            return stof(s);
+    }
+
+    bool
+    string_to_bool(const std::string & s, bool d)
+    {
+        if (s == "")
+            return d;
+        static std::string str = "trueTrueTRUEyesYesYES1"; // values like "rueTE" will also evaluate to true but that is ok
+        return str.find(s) != std::string::npos;
+    }
+
+
 	int
 	string_to_int(const char * s, int d)
 	{
-		if (s == NULL)
+		if (s == NULL || s[0] == 0) // FIXME: check that this does not destreoy something
 			return d;
 		else
 			return int(strtol(s, NULL, 0));	// allows hex and octal formats as well as decimal
