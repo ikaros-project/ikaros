@@ -189,12 +189,21 @@ dump_memory()
 // Group (2.0)
 //
 
-class Element   // TODO: initialize with XMLAttribute * to simplify code below            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next) p->attributes.insert({ attr->name, attr->value });
+class Element // FIXME: change to const std::sting & in most cases
 {
 public:
     GroupElement * parent;
     std::unordered_map<std::string, std::string> attributes;
 
+    Element(XMLElement * xml_node=NULL)
+    {
+        if(!xml_node)
+            return;
+        
+        for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+            attributes.insert({ attr->name, attr->value });
+    }
+    
     std::string GetAttribute(std::string a) // get attribute verbatim
     {
         if(attributes.count(a))
@@ -213,6 +222,11 @@ public:
             return attributes[a];
         else
             return empty_string;
+    };
+
+    const std::string & operator[](std::string a) // get attribute verbatim
+    {
+        return GetValue(a);
     };
 
     void PrintAttributes(int d=0)
@@ -240,6 +254,8 @@ public:
 class ParameterElement: public Element
 {
 public:
+    ParameterElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tPARAMETER: "+GetAttribute("name")).c_str());
@@ -258,6 +274,8 @@ public:
 class InputElement: public Element
 {
 public:
+    InputElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
@@ -276,6 +294,8 @@ public:
 class OutputElement: public Element
 {
 public:
+    OutputElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
@@ -291,10 +311,11 @@ public:
     };
 };
 
-
 class ConnectionElement: public Element
 {
 public:
+    ConnectionElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tCONNECTION: ").c_str());
@@ -313,6 +334,8 @@ public:
 class ViewObjectElement: public Element
 {
 public:
+    ViewObjectElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tOBJECT: ").c_str());
@@ -332,7 +355,8 @@ public:
 class ViewElement: public Element
 {
 public:
-    std::vector<ViewObjectElement *> objects;
+    ViewElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    std::vector<ViewObjectElement> objects;
 
     void Print(int d=0)
     {
@@ -340,7 +364,7 @@ public:
         PrintAttributes(d);
         printf("%s\n", (std::string(d, '\t')+"\tOBJECTS: ").c_str());
         for(auto o : objects)
-            o->Print(d+1);
+            o.Print(d+1);
     }
 
     std::string JSONString(int d=0)
@@ -357,7 +381,7 @@ public:
             s += tab2 + "\"objects\":\n" + tab2 + "[\n";
             for(auto o : objects)
             {
-                s += b + o->JSONString(d+2);
+                s += b + o.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -371,26 +395,25 @@ public:
     };
 };
 
-class ModuleElement;
-
 class GroupElement: public Element
 {
 public:
-    std::unordered_map<std::string, GroupElement *> groups;
-//    std::unordered_map<std::string, ModuleElement *> modules;
-    std::unordered_map<std::string, ParameterElement *> parameters;
-    std::vector<InputElement *> inputs;
-    std::unordered_map<std::string, OutputElement *> outputs;
-    std::vector<ConnectionElement *> connections;
-    std::vector<ViewElement *> views;
+    std::unordered_map<std::string, GroupElement> groups;
+    std::unordered_map<std::string, ParameterElement> parameters;
+    std::vector<InputElement> inputs;
+    std::unordered_map<std::string, OutputElement> outputs;
+    std::vector<ConnectionElement> connections;
+    std::vector<ViewElement> views;
     Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove ******
 
-    GroupElement *  // FIXME: use const? GroupElement & instead later
+    GroupElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+
+    GroupElement *
     GetGroup(const std::string & name)
     {
         if(name == "*" || name == "") // FIXME: remove later when stars are no longer needed
             return this;
-        return groups[name]; // FIXME: use different paths here
+        return &groups[name]; // FIXME: use different paths here
     }
 
     Module *
@@ -410,8 +433,8 @@ public:
                 return g->module->GetModule_IO(g->module->output_list, source_name.c_str());
 
             auto & output = g->outputs[source_name];
-            auto new_module = output->GetValue("sourcemodule");
-            auto new_source = output->GetValue("source");
+            auto new_module = output["sourcemodule"];
+            auto new_source = output["source"];
             return g->GetSource(new_module!="" ? new_module : source_module_name, new_source!="" ? new_source : source_name);
         }
         return NULL;
@@ -432,10 +455,10 @@ public:
         }
         
         for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the sama name for multiple connections
-            if ((input->GetAttribute("name") == target_name) || (input->GetAttribute("name") == "*"))
+            if ((input["name"] == target_name) || (input["name"] == "*"))
             {
-                const std::string & new_module = input->GetValue("targetmodule");
-                const std::string & new_target = input->GetValue("target");
+                auto new_module = input["targetmodule"];
+                auto new_target = input["target"];
                 auto targets = g->GetTargets(new_module!="" ? new_module : target_module_name, new_target!="" ? new_target : target_name);
                 tios.insert(tios.end(), targets.begin(), targets.end());
             }
@@ -454,18 +477,18 @@ public:
 
         printf("%s\n", (std::string(d, '\t')+"\tPARAMETERS:").c_str());
         for(auto p : parameters)
-            p.second->Print(d+1);
+            p.second.Print(d+1);
 
         printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
         for(auto c : connections)
-            c->Print(d+1);
+            c.Print(d+1);
 /* TEMPORARY
         printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
         for(auto v : views)
             v->Print(d+1);
 */
         for(auto g : groups)
-            g.second->Print(d+1);
+            g.second.Print(d+1);
         
         printf("\n");
     };
@@ -486,7 +509,7 @@ public:
             s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
             for(auto p : parameters)
             {
-                s += b + p.second->JSONString(d+2);
+                s += b + p.second.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -504,7 +527,7 @@ public:
             s += tab2 + "\"connections\":\n" + tab2 + "[\n";
             for(auto c : connections)
             {
-                s += b + c->JSONString(d+2);
+                s += b + c.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -521,7 +544,7 @@ public:
             s += tab2 + "\"views\":\n" + tab2 + "[\n";
             for(auto v : views)
             {
-                s += b + v->JSONString(d+2);
+                s += b + v.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -544,13 +567,10 @@ public:
             s += tab2 + "\"groups\":\n" + tab2 + "[\n";
             b = "";
             for(auto g : groups)
-                if(g.second)
-                {
-                    s += b + g.second->JSONString(d+2);
-                    b = ",\n";
-                }
-                else
-                    printf("INTERNAL ERROR: %s in %s\n", g.first.c_str(), this->GetAttribute("name").c_str());
+            {
+                s += b + g.second.JSONString(d+2);
+                b = ",\n";
+            }
             s += "\n";
             s += tab2 + "]\n";
         }
@@ -562,16 +582,6 @@ public:
         return s;
     };
 
-};
-
-
-
-// TODO: this class will be used later for 'class' groups; i.e. actual modules
-
-class ModuleElement: public GroupElement
-{
-public:
-    Module * module;
 };
 
 
@@ -2641,13 +2651,13 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
 
 
 bool // NEW VERSION - do not get input here; but do somewhere else // TODO: distinguish between class and group later
-Kernel::GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
+Kernel::GetSource(GroupElement & group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
-    for (auto & g : group->groups)
+    for (auto & g : group.groups)
     {
-        if(g.second->module && ((g.first==source_module_name) || equal_strings(source_module_name, "*")))
+        if(g.second.module && ((g.first==source_module_name) || equal_strings(source_module_name, "*")))
         {
-            m = g.second->module;
+            m = g.second.module;
             io = m->GetModule_IO(m->output_list, source_name);
             if (m != NULL && io != NULL)
                 return true;
@@ -2655,15 +2665,15 @@ Kernel::GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char
         }
         else if(g.first == source_module_name) // Translate output name - should not be tested again
         {
-            for (auto & output : g.second->outputs)
+            for (auto & output : g.second.outputs)
             {
                 const char * n = output.first.c_str();
                 if (n == NULL)
                     return false;
                 if (equal_strings(n, source_name) || equal_strings(n, "*"))
                 {
-                    const char * new_module = output.second->GetValue("sourcemodule").c_str();
-                    const char * new_source = output.second->GetValue("source").c_str();
+                    const char * new_module = output.second["sourcemodule"].c_str();
+                    const char * new_source = output.second["source"].c_str();
                     if (new_module == NULL)
                         new_module = source_module_name;    // retain name
                     if (new_source == NULL)
@@ -3521,7 +3531,7 @@ file_exists(const char * path)
 // Read class file (or included file) and merge with the current XML-tree
 
 XMLElement * 
-Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name)
+Kernel::BuildClassGroup(GroupElement & group, XMLElement * xml_node, const char * class_name)
 {
 	char include_file[PATH_MAX] ="";
 	const char * filename = file_exists(append_string(copy_string(include_file, class_name, PATH_MAX), ".ikc", PATH_MAX));
@@ -3584,8 +3594,8 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 
 static int group_number = 0;
 
-void
-Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class)
+GroupElement *
+Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * current_class)
 {
     const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
@@ -3594,23 +3604,18 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     // 2.0 add attributes to group element
     
     for(XMLAttribute * attr=group_xml->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-        group->attributes.insert({ attr->name, attr->value });
+        group.attributes.insert({ attr->name, attr->value });
     
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
         if (xml_node->IsElement("module"))	// Add module
         {
             char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
             
-            if(std::string(class_name) == "Sum")
-            {
-                printf("");
-            }
-            
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
                 GroupElement * subgroup = new GroupElement();
-				xml_node = BuildClassGroup(subgroup, xml_node, class_name);
-                group->groups.insert( { subgroup->GetAttribute("name"), subgroup });
+				xml_node = BuildClassGroup(*subgroup, xml_node, class_name);
+                group.groups.insert( { subgroup->GetAttribute("name"), *subgroup });    // FIXME: perfect place to use emplace instead
             }
             
 			else if (class_name != NULL)	// Create the module using standard class
@@ -3623,7 +3628,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
 				else if (useThreads && m->phase != 0)
 					Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
 				xml_node->aux = (void *)m;
-                group->module = m;  // FIXME: test if correct
+                group.module = m;  // FIXME: test if correct
 				AddModule(m);
 			}
             else  // TODO: could add check for command line values here
@@ -3634,94 +3639,74 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
         else if (xml_node->IsElement("group"))	// Add group
         {
-            GroupElement * subgroup = new GroupElement();
-            BuildGroup(subgroup, xml_node);
-            group->groups.insert( { subgroup->GetAttribute("name"), subgroup });
+            GroupElement g;
+            group.groups.insert( { xml_node->GetAttribute("name"), *BuildGroup(g, xml_node) });  // FIXME: really ugly
         }
+    
         else if (xml_node->IsElement("parameter"))
-        {
-            ParameterElement * p = new ParameterElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                p->attributes.insert({ attr->name, attr->value });
-            group->parameters.insert( { p->GetAttribute("name"), p });
-        }
+            group.parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(xml_node) });
+    
         else if (xml_node->IsElement("input"))
-        {
-            InputElement * p = new InputElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                p->attributes.insert({ attr->name, attr->value });
-            group->inputs.push_back(p);
-        }
+            group.inputs.push_back(InputElement(xml_node));
+            
         else if (xml_node->IsElement("output"))
-        {
-            OutputElement * p = new OutputElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                p->attributes.insert({ attr->name, attr->value });
-            group->outputs.insert( { p->GetAttribute("name"), p });
+            group.outputs.insert( { xml_node->GetAttribute("name"), OutputElement(xml_node) });
 
-        }
         else if (xml_node->IsElement("connection"))
-        {
-            ConnectionElement * c = new ConnectionElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                c->attributes.insert({ attr->name, attr->value });
-            group->connections.push_back(c);
-        }
+            group.connections.push_back(ConnectionElement(xml_node));
+
         else if (xml_node->IsElement("view"))
         {
-            ViewElement * v = new ViewElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                v->attributes.insert({ attr->name, attr->value });
+            ViewElement v(xml_node);
             for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement())     // WAS "object"
             {
-                ViewObjectElement * o = new ViewObjectElement();
-                o->attributes.insert({ "class", xml_obj->name }); // FIXME: WHY???
-                for(XMLAttribute * attr=xml_obj->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                    o->attributes.insert({ attr->name, attr->value });
-                v->objects.push_back(o);
+                ViewObjectElement o(xml_obj);
+                o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason
+                v.objects.push_back(o);
             }
-            group->views.push_back(v);
+            group.views.push_back(v);
         }
+    
+        return &group;
 }
 
 
 
 void
-Kernel::ConnectModules(GroupElement * group, std::string indent)
+Kernel::ConnectModules(GroupElement & group, std::string indent)
 {
-    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
+    printf("%sConnecting in %s\n", indent.c_str(), group.GetAttribute("name").c_str());
 
     // Connect in this group
     
-    for(auto & c : group->connections)
+    for(auto & c : group.connections)
     {
-        printf("%sConnecting: %s -> %s\n", indent.c_str(), c->GetAttribute("sourcemodule").c_str(), c->GetAttribute("targetmodule").c_str());
+        printf("%sConnecting: %s -> %s\n", indent.c_str(), c.GetAttribute("sourcemodule").c_str(), c.GetAttribute("targetmodule").c_str());
         
-        std::string delay      = c->GetAttribute("delay");
-        const bool a           = string_to_bool(c->GetAttribute("active"), true);   // FIXME: what happens with NULL? Cannot happen
+        std::string delay      = c.GetAttribute("delay");
+        const bool a           = string_to_bool(c.GetAttribute("active"), true);   // FIXME: what happens with NULL? Cannot happen
 
-        Module_IO * sio = group->GetSource(c->GetAttribute("sourcemodule"), c->GetAttribute("source"));
+        Module_IO * sio = group.GetSource(c.GetAttribute("sourcemodule"), c.GetAttribute("source"));
         if(!sio)
-            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", c->GetAttribute("sourcemodule").c_str(), c->GetAttribute("source").c_str());
+            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", c.GetAttribute("sourcemodule").c_str(), c.GetAttribute("source").c_str());
 
         int cnt = 0;
-        for(auto tio : group->GetTargets(c->GetAttribute("targetmodule"), c->GetAttribute("target")))    // FIXME: will be changed to (auto target : group.connections['target'])
+        for(auto tio : group.GetTargets(c.GetAttribute("targetmodule"), c.GetAttribute("target")))    // FIXME: will be changed to (auto target : group.connections['target'])
         {
-                int so = string_to_int(c->GetAttribute("sourceoffset"));
-                int to = string_to_int(c->GetAttribute("targetoffset"));
-                int sz = string_to_int(c->GetAttribute("size"), unknown_size);
-                cnt = Connect(sio, so, tio, to, sz, c->GetAttribute("delay"), 0, a);
+                int so = string_to_int(c.GetAttribute("sourceoffset"));
+                int to = string_to_int(c.GetAttribute("targetoffset"));
+                int sz = string_to_int(c.GetAttribute("size"), unknown_size);
+                cnt = Connect(sio, so, tio, to, sz, c.GetAttribute("delay"), 0, a);
         }
         
         if(cnt == 0)
-            Notify(msg_fatal_error, "Connection target %s.%s not found.\n", c->GetAttribute("targetmodule").c_str(), c->GetAttribute("target").c_str());
+            Notify(msg_fatal_error, "Connection target %s.%s not found.\n", c.GetAttribute("targetmodule").c_str(), c.GetAttribute("target").c_str());
     }
 
     // Connect in subgroups
 
-    for(auto & g : group->groups)
-        if(g.second) // is mot a module // FIXME: will be removeed when only groups are in goups
-            ConnectModules(g.second, indent+"\t");
+    for(auto & g : group.groups)
+        ConnectModules(g.second, indent+"\t");
 }
 
 
@@ -3788,10 +3773,10 @@ Kernel::ReadXML()
     main_group->attributes.insert({ "session-id", std::to_string(result) });
     session_id = result; // temporary, get from top level group
     
-    BuildGroup(main_group, xml);
+    BuildGroup(*main_group, xml);
     // FIXME: make connections here
 
-    ConnectModules(main_group);
+    ConnectModules(*main_group);
 
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
