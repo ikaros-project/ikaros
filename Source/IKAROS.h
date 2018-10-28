@@ -154,9 +154,9 @@ typedef Module * (*ModuleCreator)(Parameter *);
 
 class ModuleClass
 {
-private:
-    ModuleCreator    module_creator;
 public:
+    ModuleCreator    module_creator;
+
     const char *      name;
     const char *      path;
     ModuleClass *     next;
@@ -185,7 +185,7 @@ public:
     float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes for delays
     bool                optional;
     bool                allow_multiple;
-private:
+//private:
     Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt=false, bool multiple=true);      // Create output from module m with name n and size x and y (default x=unkwon_size, y=1)
     ~Module_IO();                                                                                                   // Deletes the data
     
@@ -270,7 +270,7 @@ public:
 
     int             mark;
 
-protected:
+//protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
     void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
     void            AddIOFromIKC();
@@ -311,7 +311,7 @@ protected:
 
     XMLElement *        xml;
 
-private:
+//private:
     const char *		class_name;
     const char *		instance_name;
 	char *				full_instance_name;
@@ -355,7 +355,7 @@ private:
 
 class Connection
 {                            // Connection contains info about data flow between modules
-private:
+public:
     Connection        *    next;                // Next connection in list
     Module_IO         *    source_io;
     int                    source_offset;
@@ -441,20 +441,17 @@ public:
     const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
     bool        GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
+
+//    Module *    GetModule(GroupElement * group, const std::string & module_name); // Get module from full or partial name relative to a group
+//    Module_IO * GetSource(GroupElement * group, const std::string & source_module_name, const std::string & source_name); // FIXME: add version for module in addition to group
+//    Module_IO * GetTarget(GroupElement * group, const std::string & target_module_name, const std::string & target_name);
+
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
     void        SendCommand(XMLElement * group, const char * group_name, const char * command_name, int x, int y, std::string value);
 
-
-    int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
-
-    int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true); // OLD
-    int         Connect(GroupElement * group, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size, const char * delay, int extra_delay, bool is_active);
-
-
-    void         Connect(std::string group, std::string source, std::string target, std::string delay, bool active, int sourceoffset=0, int targetoffset=0, int size=-1);
-
+    int             Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const std::string & delay = "", int extra_delay = 0, bool is_active = true);
     XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void			BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
     void            ConnectModules(GroupElement * group, std::string indent="");
@@ -466,12 +463,12 @@ public:
     {
         return tick;
     }
-    
+
     long        GetTickLength()
     {
         return tick_length;
     }
-    
+
     const char *	GetClassPath(const char * class_name)
     {
         return classes->GetClassPath(class_name);
@@ -501,7 +498,7 @@ public:
     int                 cpu_cores;
     
     
-private:
+//private:
     ModuleClass     *    classes;        // List of module classes
     
     int                  log_level;        // Global log level
