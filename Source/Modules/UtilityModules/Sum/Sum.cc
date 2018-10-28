@@ -29,7 +29,6 @@ Sum::Init()
 {
     input		=	GetInputArray("INPUT");
     size		=	GetInputSize("INPUT");
-
     output		=	GetOutputArray("OUTPUT");
 }
 
