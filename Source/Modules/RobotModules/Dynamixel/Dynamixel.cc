@@ -355,7 +355,7 @@ Dynamixel::Init()
 	errors						= GetOutputMatrix("ERRORS");
 	errorsSizeY					= GetOutputSizeY("ERRORS");
 	
-	reset_matrix(errors, nrOfServos, errorsSizeY);
+	//reset_matrix(errors, nrOfServos, errorsSizeY);
 	
 	// Print to console
 	if (infoLevel == 1)

@@ -32,7 +32,7 @@ class WebUIWidget extends HTMLElement
             return parseFloat(x);
         
         if(t == 'bool')
-            return ['on','yes','true'].includes(x); // .toLowerCase()
+            return ['on','yes','true'].includes(x.toString().toLowerCase());
         
         return x;
     }

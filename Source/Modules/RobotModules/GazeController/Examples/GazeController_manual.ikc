@@ -46,7 +46,7 @@
         name = "Dynamixel"
         device  = "/dev/cu.usbserial-A900fDcI"
         index_mode = "indirect"
-        printf_info ="minimal"
+        print_info ="minimal"
         use_feedback ="false"
         baud_rate = "1000000"
         angle_unit = "tau"

@@ -46,7 +46,7 @@ bool DynamixelComm::AddDataBulkWrite2(int ID, int adress, unsigned char * data, 
 	memcpy(&bulkWriteBuffer[++bulkWriteBufferLength], data, dSize * sizeof(unsigned char));
 	bulkWriteBufferLength+=dSize;
 	
-	// PrintDataBulkWrite2();
+	//PrintDataBulkWrite2();
 	return true;
 }
 void DynamixelComm::PrintDataBulkWrite2()
@@ -70,7 +70,7 @@ bool DynamixelComm::SendBulkWrite2()
 	
 	if (lengthPackage > DYNAMIXEL_MAX_BUFFER)
 	{
-		printf("DynamixelComm: Message size is over 143 bytes. Please reduce the number of servos of data sent to the servos.\n");
+		printf("DynamixelComm: Message size is over 143 bytes. Please reduce the number of servos or data sent to the servos.\n");
 		bulkWriteBufferLength = -1;
 		return false;
 	}

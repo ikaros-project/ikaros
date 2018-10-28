@@ -34,7 +34,6 @@ OutputFile::OutputFile(Parameter * p):
     file = NULL;
     time = 0; 
     no_of_columns = 0;
-
     no_of_decimals = GetIntValue("decimals");
 
     // Count columns *** parnent_group->appended_ekements
@@ -91,11 +90,13 @@ OutputFile::Init()
     Bind(single_trig, "single_trig");
     
     last_trig = false;
+    total_no_of_columns = 0;
 
     for (int i=0; i<no_of_columns; i++)
     {
         column_data[i] = GetInputArray(column_name[i]);
         column_size[i] = GetInputSize(column_name[i]);
+        total_no_of_columns += column_size[i];
     }
     
     newfile = GetInputArray("NEWFILE");
@@ -103,6 +104,10 @@ OutputFile::Init()
     index = 0;
     dirname = NULL;
     timestamp = GetBoolValue("timestamp");
+    
+    const char * f =GetValue("format");
+    if(f && f[0] =='b')
+        format = 1;
 
     const char * n = GetValue("directory");
 
@@ -192,7 +197,10 @@ OutputFile::Tick()
     if(!write || (single_trig && !last_trig && *write > 0) || (!single_trig && *write > 0))
     {
         last_trig = true;
-        WriteData();
+        if(format==0)
+            WriteData();
+        else
+            WriteBinaryData();
     }
 
     if(write && *write == 0)
@@ -229,6 +237,20 @@ OutputFile::WriteData()
         for (int i=0; i<column_size[col]; i++)
             fprintf(file, "%.*f\t", column_decimals[col], column_data[col][i]);
     fprintf(file, "\n");
+}
+
+
+
+void
+OutputFile::WriteBinaryData()
+{
+    float data[total_no_of_columns];
+    int j=0;
+    for (int col=0; col<no_of_columns; col++)
+        for (int i=0; i<column_size[col]; i++)
+            data[j++] = column_data[col][i];
+    fwrite(data, sizeof(data), 1, file);
+    fwrite("\n", 1, 1, file); // write new line
 }
 
 

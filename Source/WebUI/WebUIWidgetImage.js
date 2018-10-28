@@ -8,6 +8,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
 
@@ -38,14 +39,28 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         if(!this.parameters.file)
             data_set.add(this.parameters.module+"."+this.parameters.source+":"+this.parameters.format);
+        if(this.parameters.index)
+            data_set.add(this.parameters.index);
     }
 
     updateFrame()
     {
         this.oversampling = 1; //(this.parameters.file ? 4 : 1);
         this.imageObj = new Image();
-        if(this.parameters.file)
-            this.imageObj.src = "/"+this.parameters.file;
+        this.imageCount = 0;
+        if(this.parameters.file) //  && this.parameters.file.indexOf(",")!=-1
+        {
+            this.imageObjects = [];
+            let img_names = this.parameters.file.split(',');
+            this.imageCount = img_names.length;
+            let i = 0;
+            for(let img_name of img_names)
+            {
+                this.imageObjects[i] = new Image();
+                this.imageObjects[i].src = "/"+img_name.trim();
+                i++;
+            }
+        }
         else
         {
             this.canvas.fillStyle="black";
@@ -86,7 +101,23 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             w = this.imageObj.width;
             h = this.imageObj.height;
         }
-        this.canvas.drawImage(this.imageObj, 0, 0, w, h);
+        
+        if(this.imageCount)
+        {
+            let ix = 0;
+            let index = this.getSource("index");
+            if(index)
+            {
+                ix = Math.floor(index[0][0]);
+                if(ix < 0)
+                    ix = 0;
+                else if(ix >= this.imageCount)
+                    ix = this.imageCount-1;
+            }
+            this.canvas.drawImage(this.imageObjects[ix], 0, 0, w, h);
+        }
+        else
+            this.canvas.drawImage(this.imageObj, 0, 0, w, h);
     }
     
     update(d)
