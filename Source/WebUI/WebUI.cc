@@ -319,7 +319,7 @@ WebUI::AddDataSource(const char * module, const char * source)
         return;
     }
 	
-    if (k->GetSource(group, m, io, module, source))
+    if (k->GetSource(group, m, io, module, source)) // FIXME: Allow inputs here as well
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
