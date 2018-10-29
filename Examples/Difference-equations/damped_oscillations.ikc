@@ -162,7 +162,7 @@
     <connection delay ="0" sourcemodule = "Sel_Pos" source = "OUTPUT" targetmodule = "Add_Pos" target = "INPUT1" />
     <connection delay ="0" sourcemodule = "Mult_Vel_Dt" source = "OUTPUT" targetmodule = "Add_Pos" target = "INPUT2" />
 <!-- View -->
-<view>
+<view name="View">
     <text
         x="80" y="40"
         width="100"
@@ -174,7 +174,7 @@
         width="301"
         height="301"
         module="Add_Pos"
-        source="OUTPUT"
+        source="Add_Pos.OUTPUT"
         title = "Position"
         labels = "A"
         max = "2"
@@ -192,7 +192,7 @@
         width="301"
         height="301"
         module="Add_Vel"
-        source="OUTPUT"
+        source="Add_Vel.OUTPUT"
         title = "Velocity"
         labels = "B"
         max = "20"
@@ -209,7 +209,7 @@
     <table
         title="Mult pos"
         module="Mult_K_NegPos"
-        source="OUTPUT"
+        source="Mult_K_NegPos.OUTPUT"
         x="340"
         y="40"
         width="100"
@@ -224,7 +224,7 @@
     <table
         title="Mult vel"
         module="Mult_K_NegPos"
-        source="OUTPUT"
+        source="Mult_K_NegPos.OUTPUT"
         x="340"
         y="100"
         width="100"
@@ -239,7 +239,7 @@
     <table
         title="Add pos vel"
         module="Add_Pos_Vel"
-        source="OUTPUT"
+        source="Add_Pos_Vel.OUTPUT"
         x="340"
         y="150"
         width="100"
@@ -254,7 +254,7 @@
     <table
         title="Div_Mass"
         module="Div_Mass"
-        source="OUTPUT"
+        source="Div_Mass.OUTPUT"
         x="340"
         y="200"
         width="100"
@@ -269,7 +269,7 @@
     <table
         title="Add_Pos"
         module="Add_Pos"
-        source="OUTPUT"
+        source="Add_Pos.OUTPUT"
         x="340"
         y="250"
         width="100"
@@ -284,7 +284,7 @@
     <table
         title="Add_Vel"
         module="Add_Vel"
-        source="OUTPUT"
+        source="Add_Vel.OUTPUT"
         x="340"
         y="300"
         width="100"

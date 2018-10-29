@@ -152,125 +152,132 @@
     <view name="View">
 
 	<text
-		text = "Position plot"
-		height = "20"
-		width = "100"
-		y = "40"
 		x = "80"
-		class = "text"
+		y = "40"
+		text = "Position plot"
 		title = "Default Title"
+		class = "text"
+		width = "100"
+		height = "20"
 	/>
 
 	<plot
+		direction = "vertical"
+		buffer_size = "50"
+		source = "Pos_Delta.OUTPUT"
+		class = "plot"
 		max = "2"
-		labels = "A"
-		source = "OUTPUT"
-		min = "-2"
-		module = "Pos_Delta"
-		height = "301"
 		title = "Position"
 		width = "301"
+		min = "-2"
+		labels = "A"
+		height = "301"
 		y = "40"
 		x = "40"
-		class = "plot"
-		buffer_size = "50"
-		direction = "vertical"
+		show_title = "true"
+		show_frame = "true"
 	/>
 
 	<text
-		text = "Velocity plot"
-		height = "20"
-		width = "100"
-		y = "340"
 		x = "80"
-		class = "text"
+		y = "340"
+		text = "Velocity plot"
 		title = "Default Title"
+		class = "text"
+		width = "100"
+		height = "20"
 	/>
 
 	<plot
+		direction = "vertical"
+		buffer_size = "50"
+		source = "Add_Vel.OUTPUT"
+		class = "plot"
 		max = "20"
-		labels = "B"
-		source = "OUTPUT"
-		min = "-20"
-		module = "Add_Vel"
-		height = "301"
 		title = "Velocity"
 		width = "301"
+		min = "-20"
+		labels = "B"
+		height = "301"
 		y = "340"
 		x = "40"
-		class = "plot"
-		buffer_size = "50"
-		direction = "vertical"
+		show_title = "true"
+		show_frame = "true"
 	/>
 
-    <text
+	<text
+		x = "360"
+		y = "40"
 		text = "K"
-		height = "20"
-		width = "100"
-		y = "30"
-		x = "320"
-		class = "text"
 		title = "Default Title"
-	/>
-	<slider-horizontal
-		height = "30"
+		class = "text"
 		width = "100"
-		count = "1"
-		parameter = "data"
-		y = "60"
-		x = "320"
-		label = "K"
-		module = "K"
-		class = "slider-horizontal"
-		title = "Sliders"
-		max = "3000"
+		height = "20"
+	/>
+
+	<slider-horizontal
 		step = "100"
+		count = "1"
+		width = "100"
+		class = "slider-horizontal"
+		max = "3000"
+		title = "Sliders"
+		height = "30"
+		parameter = "data"
+		module = "K"
+		y = "60"
+		x = "360"
+		label = "K"
 	/>
-    <text
+
+	<text
+		x = "360"
+		y = "100"
 		text = "Damping"
-		height = "20"
-		width = "100"
-		y = "90"
-		x = "320"
-		class = "text"
 		title = "Default Title"
-	/>
-	<slider-horizontal
-		height = "30"
+		class = "text"
 		width = "100"
+		height = "20"
+	/>
+
+	<slider-horizontal
+		step = "2"
 		count = "1"
+		width = "100"
+		class = "slider-horizontal"
+		max = "100"
+		title = "Sliders"
+		height = "30"
 		parameter = "data"
-		y = "120"
-		x = "320"
-		label = "Damp"
 		module = "Damp"
-		class = "slider-horizontal"
-		title = "Sliders"
-		max = "100"
-		step = "2"
+		y = "120"
+		x = "360"
+		label = "Damp"
 	/>
-    <text
+
+	<text
+		x = "360"
+		y = "160"
 		text = "Mass"
-		height = "20"
-		width = "100"
-		y = "150"
-		x = "320"
-		class = "text"
 		title = "Default Title"
-	/>
-	<slider-horizontal
-		height = "30"
+		class = "text"
 		width = "100"
-		count = "1"
-		parameter = "data"
-		y = "180"
-		x = "320"
-		label = "Mass"
-		module = "Mass"
-		class = "slider-horizontal"
-		title = "Sliders"
-		max = "100"
+		height = "20"
+	/>
+
+	<slider-horizontal
 		step = "2"
+		count = "1"
+		width = "100"
+		class = "slider-horizontal"
+		max = "100"
+		title = "Sliders"
+		height = "30"
+		parameter = "data"
+		module = "Mass"
+		y = "180"
+		x = "360"
+		label = "Mass"
 	/>
 
 </view>
