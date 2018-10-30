@@ -27,7 +27,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h> // memset
-
+#include <algorithm> // find
 // includes for image processing (JPEG)
 
 #include <stdio.h>
@@ -263,13 +263,45 @@ namespace ikaros
 		return r;
 	}
 	
-	
-    
 	int
     random(int high)
     {
 		return int(::random() % high);
     }
+
+        int
+    random_int(int low, int high)
+    {
+        return low + random(high-low);
+    }
+
+    int *
+    random_int(int *r, int low, int high, int size)
+    {
+        for (int i=0; i<size; i++)
+            r[i] = random(low, high);
+        return r;
+    }
+
+    int *
+    random_unique(int *r, int low, int high, int size)
+    {
+        if (high-low < size)
+        {
+            printf("IKAROS_Math:random_unique: ERROR value range is less than size.\n");
+            return NULL;
+        }
+        for (int i=0; i<size; i++)
+        {
+            int tmp;
+            do {tmp = random(low, high+1);}
+            while(std::find(r, r+size, tmp) != r+size);
+            r[i] = tmp;
+        }
+        return r;
+
+    }
+    
     
     
 	// gaussian_noise() uses the Box-Muller transformation to generate random numbers with gaussian distribution
@@ -1093,6 +1125,20 @@ namespace ikaros
 	{
 		return sum(*a, sizex*sizey);
 	}
+    
+    // sum by row, i.e. in y direction
+    // r(sizex) = sum(a(sizey, sizex))
+    float *
+    sum(float *r, float **a, int sizex, int sizey )
+    {
+
+        float ** tmp = create_matrix(sizey, 1);
+        set_array(tmp[0], 1, sizey);
+        multiply(&r, tmp, a, sizex, 1, sizey);
+        destroy_matrix(tmp);
+        return r;        
+        
+    }  
 	
 	float *
 	add(float * r, float alpha, int size)	// r = r + alpha
