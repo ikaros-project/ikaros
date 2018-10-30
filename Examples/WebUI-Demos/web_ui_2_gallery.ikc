@@ -19,6 +19,8 @@
             irisRightRed="WaveR.OUTPUT"
             irisRightGreen="WaveG.OUTPUT"
             irisRightBlue="WaveB.OUTPUT"
+            show_title = "no"
+            show_frame = "yes"
         />
 
         <bar-graph
@@ -26,6 +28,8 @@
             width="301"
             height="301"
             source="P.OUTPUT"
+            show_title = "no"
+            show_frame = "no"
         />
 
         <bar-graph

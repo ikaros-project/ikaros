@@ -188,14 +188,19 @@ class WebUIWidget extends HTMLElement
         }
     }
 
+    toBool(x)
+    {
+        return ['on','yes','true','1'].includes(x.toString().toLowerCase());
+    }
+
     getBool(attribute, index)
     {
         try
         {
             if(index)
-                return ['yes','true'].includes(this.getProp(attribute).split(",")[index].toLowerCase());
+                return ['yes','true','on','1'].includes(this.getProp(attribute).split(",")[index].toLowerCase());
             else
-                return ['yes','true'].includes(this.getProp(attribute).toLowerCase());
+                return ['yes','true','on','1'].includes(this.getProp(attribute).toLowerCase());
         }
         catch(err)
         {
@@ -391,8 +396,8 @@ class WebUIWidget extends HTMLElement
     updateFrame()
     {
         this.parentElement.className = this.parentElement.className.replace(/visible/,'');
-        this.parentElement.className += this.parameters.show_frame ? ' visible' : '';
-        this.parentElement.firstChild.style.display = this.parameters.show_title ? 'block' : 'none';
+        this.parentElement.className += this.toBool(this.parameters.show_frame) ? ' visible' : '';
+        this.parentElement.firstChild.style.display = this.toBool(this.parameters.show_title) ? 'block' : 'none';
         this.parentElement.firstChild.innerText = this.parameters.title;
         this.setCSSClass();
         this.readCSSvariables();
