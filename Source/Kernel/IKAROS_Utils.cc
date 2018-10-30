@@ -316,6 +316,12 @@ rsplit(const std::string & str, const std::string & sep, int maxsplit)
 }
 
 
+bool
+starts_with(const std::string & s, const std::string & start)
+{
+    return start.length() <= s.length() && equal(start.begin(), start.end(), s.begin()); // more efficient than find
+}
+
 
 bool
 is_path(const char * p)

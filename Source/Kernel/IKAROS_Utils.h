@@ -46,7 +46,7 @@ const std::vector<std::string> split_string(const std::string &c, const char &d)
 
 const std::vector<std::string> split(const std::string & str, const std::string & sep = "", int maxsplit = -1);     // Python-like split
 const std::vector<std::string> rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);    // Python-like rsplit
-
+bool starts_with(const std::string & s, const std::string & start);
 
 // File path operations
 
