@@ -189,7 +189,7 @@ dump_memory()
 // Group (2.0)
 //
 
-class Element // FIXME: change to const std::sting & in most cases
+class Element
 {
 public:
     GroupElement * parent;
@@ -413,7 +413,12 @@ public:
     {
         if(name == "*" || name == "") // FIXME: remove later when stars are no longer needed
             return this;
-        return &groups[name]; // FIXME: use different paths here
+        if(groups.count(name))
+            return &groups[name];
+        auto & path = split(name, ".", 1);
+        if(path.size() > 1 && groups.count(path[0]))
+            return groups[path[0]].GetGroup(path[1]);
+        return NULL;
     }
 
     Module *
@@ -435,6 +440,10 @@ public:
             auto & output = g->outputs[source_name];
             auto new_module = output["sourcemodule"];
             auto new_source = output["source"];
+            
+            if(source_module_name == new_module && source_module_name == new_source)
+                return NULL;
+            
             return g->GetSource(new_module!="" ? new_module : source_module_name, new_source!="" ? new_source : source_name);
         }
         return NULL;
@@ -2391,10 +2400,12 @@ Kernel::Init()
         ReadXML();
     else
         Notify(msg_warning, "No IKC file supplied.\n");
+    
+    if(fatal_error_occurred)
+        return;
 
     // Fill data structures
  
-//    for (Module * m = modules; m != NULL; m = m->next)
     for (Module * & m : _modules)
        module_map.insert({ m->GetFullName(), m });
 
@@ -2582,7 +2593,7 @@ Kernel::GetModuleFromFullName(const char * n)
 
 
 
-bool // TO BE REMOVED
+bool // TO BE REMOVED - Used by WebUI
 Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
@@ -2649,7 +2660,7 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
 }
 
 
-
+/*
 bool // NEW VERSION - do not get input here; but do somewhere else // TODO: distinguish between class and group later
 Kernel::GetSource(GroupElement & group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
@@ -2689,7 +2700,7 @@ Kernel::GetSource(GroupElement & group, Module * &m, Module_IO * &io, const char
 
 
 
-/*
+
 Module_IO *
 Kernel::GetSource(GroupElement * group, const std::string & source_module_name, const  std::string & source_name)
 {
@@ -2723,9 +2734,9 @@ Kernel::GetSource(GroupElement * group, const std::string & source_module_name, 
     }
     return NULL;
 }
-*/
 
-/*
+
+
 Module_IO *
 Kernel::GetTarget(GroupElement * group, const std::string & target_module_name, const  std::string & target_name)   // GetInputIO = GetModule + GetInputIO
 {
@@ -3483,7 +3494,7 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
         c++;
     }
     
-    else // parse delay string for multiple delays               Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a);
+    else // parse delay string for multiple delays
     {
 		char * d = create_string(dstring);
         char * p = strtok(d, ",");
@@ -3675,32 +3686,47 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
 void
 Kernel::ConnectModules(GroupElement & group, std::string indent)
 {
-    printf("%sConnecting in %s\n", indent.c_str(), group.GetAttribute("name").c_str());
+//    printf("%sConnecting in %s\n", indent.c_str(), group.GetAttribute("name").c_str());
 
     // Connect in this group
     
     for(auto & c : group.connections)
     {
-        printf("%sConnecting: %s -> %s\n", indent.c_str(), c.GetAttribute("sourcemodule").c_str(), c.GetAttribute("targetmodule").c_str());
+        std::string sm = c["sourcemodule"];
+        std::string tm = c["targetmodule"];
+        if(sm != "")
+            sm += ".";
+        if(tm != "")
+            tm += ".";
+        auto & source = rsplit(sm+c["source"], ".", 1);  // Merge then split again
+        auto & target = rsplit(tm+c["target"], ".", 1);
+        std::string source_group = source.size() == 1 ? "" : source[0];
+        std::string source_output = source.size() == 1 ? source[0] : source[1]; // tail?
+        std::string target_group = target.size() == 1 ? "" : target[0];
+        std::string target_input = target.size() == 1 ? target[0] : target[1]; // tail?
         
-        std::string delay      = c.GetAttribute("delay");
-        const bool a           = string_to_bool(c.GetAttribute("active"), true);   // FIXME: what happens with NULL? Cannot happen
-
-        Module_IO * sio = group.GetSource(c.GetAttribute("sourcemodule"), c.GetAttribute("source"));
-        if(!sio)
-            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", c.GetAttribute("sourcemodule").c_str(), c.GetAttribute("source").c_str());
+//        printf("%sConnecting: %s -> %s\n", indent.c_str(), sm.c_str(), tm.c_str());
+        
+        Module_IO * source_io = NULL;
+        if(starts_with(source_group, "."))
+            source_io = main_group->GetSource(split(source_group, ".", 1)[1], source_output);
+        else
+            source_io = group.GetSource(source_group, source_output);
+        
+        if(!source_io)
+            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+":"+c["source"]).c_str());
 
         int cnt = 0;
-        for(auto tio : group.GetTargets(c.GetAttribute("targetmodule"), c.GetAttribute("target")))    // FIXME: will be changed to (auto target : group.connections['target'])
-        {
-                int so = string_to_int(c.GetAttribute("sourceoffset"));
-                int to = string_to_int(c.GetAttribute("targetoffset"));
-                int sz = string_to_int(c.GetAttribute("size"), unknown_size);
-                cnt = Connect(sio, so, tio, to, sz, c.GetAttribute("delay"), 0, a);
-        }
+
+        if(starts_with(target_group, "."))
+            for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
+                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+        else
+            for(auto target_io : group.GetTargets(target_group, target_input))
+                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
         
         if(cnt == 0)
-            Notify(msg_fatal_error, "Connection target %s.%s not found.\n", c.GetAttribute("targetmodule").c_str(), c.GetAttribute("target").c_str());
+            Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+":"+c["target"]).c_str());
     }
 
     // Connect in subgroups

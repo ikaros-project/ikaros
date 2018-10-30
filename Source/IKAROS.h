@@ -496,8 +496,7 @@ public:
     float              lag;                // Lag of a tick in real-time mode
     
     int                 cpu_cores;
-    
-    
+
 //private:
     ModuleClass     *    classes;        // List of module classes
     
