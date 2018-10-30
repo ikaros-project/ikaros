@@ -418,7 +418,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 1)
+								if (trailCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;
