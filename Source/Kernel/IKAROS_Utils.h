@@ -93,6 +93,7 @@ float **    set_col(float ** m, float * a, int col, int sizey);
 float *     get_row(float * a, float ** m, int row, int sizex);
 float *     get_col(float * a, float ** m, int col, int sizey);
 
+
 // Reshape functions
 
 float *     put(float *target, const int *indices, const float *source, const int len);
@@ -108,6 +109,11 @@ bool        store_matrix(const char * path, const char * name, float ** m, int s
 
 bool        load_array(const char * path, const char * name, float * a, int size);                      // will return false if size of data is not correct
 bool        load_matrix(const char * path, const char * name, float ** m, int size_x, int size_y);      // will return false if size of data is not correct
+// legacy load and store tensors
+void                Serialize2d(FILE *afile, float **adata, int si, int sj);
+void                Serialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
+void                Deserialize2d(FILE *afile, float **adata, int si, int sj);
+void                Deserialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
 
 
 
