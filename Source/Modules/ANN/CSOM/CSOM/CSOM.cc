@@ -127,7 +127,7 @@ CSOM::CSOM(Parameter * p):
         //PrintIONames();
         // delete ss;
     }
-    AddOutput("WEIGHTS", rf_size_x*som_size_x, rf_size_y*som_size_y);
+    AddOutput("WEIGHTS", true, rf_size_x*som_size_x, rf_size_y*som_size_y);
 
     
     AddOutput("ERROR");
@@ -498,7 +498,10 @@ CSOM::GenerateWeightOutput()
         for(int i=0; i<som_size_x; i++)
             for(int l=0; l<rf_size_y; l++)
                 for(int k=0; k<rf_size_x; k++)
-                    weights[j*rf_size_y+l][i*rf_size_x+k] = w[j][i][l][k];
+                {
+                    float tmp = w[j][i][l][k];
+                    weights[j*rf_size_y+l][i*rf_size_x+k] = tmp;
+                }
   
     normalize_max(weights, rf_size_x*som_size_x, rf_size_y*som_size_y); // TODO: Check that this is ok
 }
