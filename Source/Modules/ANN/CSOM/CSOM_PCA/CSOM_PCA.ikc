@@ -20,9 +20,19 @@
 	<parameter name="rf_inc_x" type="int" default="1" description="Receptive field increment" />
 	<parameter name="rf_inc_y" type="int" default="1" description="Receptive field increment" />
 
+	<parameter name="activity_inc_x" type="int" default="1" description="Activity field increment" />
+	<parameter name="activity_inc_y" type="int" default="1" description="Activity field increment" />
+
 	<parameter name="som_size_x" type="int" default="3" description="SOM size" />
 	<parameter name="som_size_y" type="int" default="3" description="SOM size" />
 
+	<parameter name="block_size_x" type="int" default="-1" description="partition size for receptive fields" />
+	<parameter name="block_size_y" type="int" default="-1" description="partition size for receptive fields" />
+
+	<parameter name="span_size_x" type="int" default="0" description="spacing between blocks" />
+	<parameter name="span_size_y" type="int" default="0" description="spacing between blocks" />
+	<parameter name="learning_buffer_size" type="int" default="-1" description="Rows in learning buffer. Default is -1 which makes it same size as mapsizex*mapsizey" />
+	
 	<parameter name="output_type" type="list" values="combined/separate" default="combined" description="How to combine the output maps" />
 	<parameter name="topology" type="list" values="plane/torus" default="plane" description="Topology of the map" />
 
@@ -31,20 +41,25 @@
 	<parameter name="alpha_max" type="float" default="0.1" description="RF Learning rate maximum" />
 	<parameter name="alpha_decay" type="float" default="0.9999" description="RF Learning rate decay" />
 
-	<parameter name="use_arbor" type="bool" default="yes" description="Should (quadratic) arbor function be used for receptive fields?" />
+	<parameter name="use_arbor" type="bool" default="no" description="Should (quadratic) arbor function be used for receptive fields?" />
+	<parameter name="update_algo" type="int" default="0" description="0=iterative; 1=matrix mult" />
 
-    <input name="INPUT" description="The input" />
-    <input name="TOP_DOWN" description="The top-down input" />
+	<parameter name="upstreams" type="int" default="1" description="Number of parallel upwards streams" />
+	<parameter name="downstreams" type="int" default="1" description="Number of parallel downwards streams" />
 
-    <output name="OUTPUT" description="The merged output" />
+	<parameter name="border_multiplier" type="int" default="1" description="Multiplier for internal border to compensate for spans. Border size will be border_multiplier*span" />
+
+    <input name="*" description="The input" />
+    <output name="*" description="The merged output" />
+    <!--input name="INPUT" description="The input" /-->
+    <!--input name="TOP_DOWN" description="The top-down input" /-->
+    <!--output name="OUTPUT" description="The merged output" /-->
+    <!--output name="RECONSTRUCTION" description="The reconstructed input based on the top-down input" /-->
+    <!--output name="OUTPUT_RED" description="The color coded output" /-->
+    <!--output name="OUTPUT_GREEN" description="The color coded output" /-->
+    <!--output name="OUTPUT_BLUE" description="The color coded output" /-->
+
     <output name="WEIGHTS" description="The merged weights" />
-
-    <output name="RECONSTRUCTION" description="The reconstructed input based on the top-down input" />
-
-    <output name="OUTPUT_RED" description="The color coded output" />
-    <output name="OUTPUT_GREEN" description="The color coded output" />
-    <output name="OUTPUT_BLUE" description="The color coded output" />
-
     <output name="ERROR" description="The error for the best natching node" />
     <output name="PROGRESS" description="Change in errror" />
 
@@ -54,6 +69,15 @@
     
 	<module class="CSOM_PCA" />
 
+	<!-- View -->
+	<view name="CSOM_PCA">
+		<object class= "Image" type="gray" module="*" source="OUTPUT"
+							x="0" y="0" h="2" w="2" />
+		<object class= "Image" type="gray" module="*" source="WEIGHTS"
+							x="0" y="2" h="2" w="2" />
+		<object class= "Image" type="gray" module="*" source="RECONSTRUCTION"
+							x="0" y="4" h="2" w="2" />
+	</view>
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>

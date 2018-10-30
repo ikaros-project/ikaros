@@ -885,6 +885,38 @@ load_matrix(const char * path, const char * name, float ** m, int size_x, int si
     return true;
 }
 
+// legacy
+void 
+Serialize2d(FILE *afile, float **adata, int si, int sj)
+{
+    for (int i=0; i<si; i++)
+        for (int j=0; j<sj; j++)
+            fprintf(afile, "%.*f\t", 4, adata[i][j]);
+}
+
+void 
+Serialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl)
+{
+    for (int i=0; i<si; i++)
+        for (int j=0; j<sj; j++)
+            Serialize2d(afile, adata[i][j], sk, sl);
+}
+
+void 
+Deserialize2d(FILE *afile, float **adata, int si, int sj)
+{
+    for (int i=0; i<si; i++)
+        for (int j=0; j<sj; j++)
+            fscanf(afile, "%f", &adata[i][j]);
+}
+
+void 
+Deserialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl)
+{
+    for (int i=0; i<si; i++)
+        for (int j=0; j<sj; j++)
+            Deserialize2d(afile, adata[i][j], sk, sl);
+}
 
 
 void

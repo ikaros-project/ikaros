@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(CSOM)
 #add_subdirectory(CSOM_L)
-#add_subdirectory(CSOM_PCA)
+add_subdirectory(CSOM_PCA)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

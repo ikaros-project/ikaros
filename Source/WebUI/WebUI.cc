@@ -872,7 +872,8 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     // Timing information
     
     float total_time = k->timer->GetTime()/1000.0; // in seconds
-
+    
+    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
     socket->Send("\t\"total_time\": %.2f,\n", total_time);
     socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
     socket->Send("\t\"timebase\": %d,\n", k->tick_length);

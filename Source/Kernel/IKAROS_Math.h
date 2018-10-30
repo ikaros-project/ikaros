@@ -90,6 +90,9 @@ namespace ikaros
 	float **	random(float ** r, float low, float high, int sizex, int sizey);
     
 	int         random(int high);   // 0 <= int < high
+	int			random_int(int low, int high);
+	int *		random_int(int * r, int low, int high, int size);
+	int *		random_unique(int *r, int low, int high, int size);
     
 	float		gaussian_noise(float mean, float sigma);
 	
@@ -201,6 +204,7 @@ namespace ikaros
 	
 	float		sum(float * a, int size);	// sum a
 	float		sum(float ** a, int sizex, int sizey);	// sum a
+	float *	sum(float *r, float **a, int sizex, int sizey );
 	
 	float *		add(float * r, float alpha, int size);	// r = r + alpha
 	float **	add(float ** r, float alpha, int sizex, int sizey);	// r = r + alpha
