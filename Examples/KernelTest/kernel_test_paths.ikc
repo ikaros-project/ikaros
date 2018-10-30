@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Kernel Test - Path to modules
+ 
+-->
+
+<group name="Main">
+    <group name="G1" >
+        <group name="G2" >
+            <module
+                class = "Gate"
+                name = "Gate1"
+            />
+            <module
+                class = "Gate"
+                name = "Gate3"
+            />
+            <group name="G3" >
+                <module
+                    class="Constant"
+                    name="C"
+                    data="1"
+                />
+                <module
+                    class = "Gate"
+                    name = "Gate2"
+                />
+                <connection source="C.OUTPUT" target="Gate2.INPUT" description="connection in local scope" />
+                <connection source=".G1.G2.G3.C.OUTPUT" target=".G1.G2.Gate1.INPUT" description="connection in the global scope" />
+            </group>
+            <connection sourcemodule="G3.C" source="OUTPUT" targetmodule="Gate1" target="INPUT" description="connection into group G3" />
+        </group>
+    </group>
+    <connection source="G1.G2.G3.C.OUTPUT" target="G1.G2.Gate3.INPUT" description="connection between included groups" />
+</group>
+
+
