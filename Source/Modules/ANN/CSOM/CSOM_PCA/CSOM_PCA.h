@@ -39,8 +39,34 @@ public:
 
     CSOM_PCA(Parameter * p);
     virtual ~CSOM_PCA();
+    virtual void Init();
     
     void 		UpdateWeights();    
+    void 		UpdateWeights_mmlt();    
+    void        UpdateWeights_mmlt_blnc();
+    void        UpdateWeights_mmlt_blnc_b();
+    void 		UpdateWeights_4d();
+    void 		MapFrom4d(float **target, float ****source, 
+    	int sx, int sy, int kx, int ky);
+    void			MapTo4d(float ****target, float **source,
+    	int sx, int sy, int kx, int ky);
+
+    float **	mapped_act;
+    float **	mapped_weights;
+    float **inh_prev;
+    float ***inh_buffer;
+	 float **tmp_outer;
+	 float **delta_buf;
+	 float **delta_buf_t;
+	 float *tmp_act;
+	 float **mapped_dw;
+
+
+	 int numkernels;
+	 int kernelsize;
+	 int inp_rows;
+     int update_algo;
+
 };
 
 #endif

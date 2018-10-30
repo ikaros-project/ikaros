@@ -22,31 +22,48 @@
 
 	<parameter name="som_size_x" type="int" default="3" description="SOM size" />
 	<parameter name="som_size_y" type="int" default="3" description="SOM size" />
+	
+	<parameter name="block_size_x" type="int" default="-1" description="partition size for receptive fields" />
+	<parameter name="block_size_y" type="int" default="-1" description="partition size for receptive fields" />
+
+	<parameter name="span_size_x" type="int" default="0" description="spacing between blocks" />
+	<parameter name="span_size_y" type="int" default="0" description="spacing between blocks" />
+	<parameter name="learning_buffer_size" type="int" default="-1" description="Rows in learning buffer. Default is -1 which makes it same size as mapsizex*mapsizey" />
+	<parameter name="upstreams" type="int" default="1" description="Number of parallel upwards streams" />
+	<parameter name="downstreams" type="int" default="1" description="Number of parallel downwards streams" />
+
+	<parameter name="border_multiplier" type="int" default="2" description="Multiplier for internal border to compensate for spans. Border size will be border_multiplier*span" />
 
 	<parameter name="output_type" type="list" values="combined/separate" default="combined" description="How to combine the output maps" />
 	<parameter name="topology" type="list" values="plane/torus" default="plane" description="Topology of the map" />
 
-	<parameter name="alpha" type="float" default="0.1" description="RF Learning rate" />
+	<parameter name="alpha" type="float" default="0.00001" description="RF Learning rate" />
 	<parameter name="alpha_min" type="float" default="0.0000001" description="RF Learning rate minimum" />
 	<parameter name="alpha_max" type="float" default="0.1" description="RF Learning rate maximum" />
 	<parameter name="alpha_decay" type="float" default="0.9999" description="RF Learning rate decay" />
 
 	<parameter name="use_arbor" type="bool" default="yes" description="Should (quadratic) arbor function be used for receptive fields?" />
+	<parameter name="save_state" type="bool" default="no" description="Should weights be saved on exit?" />
+	<parameter name="load_state" type="bool" default="no" description="Should weights be loaded on initiation?" />
+	<parameter name="save_weights_only" type="bool" default="no" description="Should only weights be saved on exit?" />
+	<parameter name="load_weights_only" type="bool" default="no" description="Should only weights be loaded on initiation?" />
+	<parameter name="update_weights" type="bool" default="yes" description="Should weights be udpated?" />
+	<parameter name="filename" type="list" default="CSOM.dat" description="Name of file to save to or load from if save/load state is set to true"
 
-    <input name="INPUT" description="The input" />
-    <input name="TOP_DOWN" description="The top-down input" />
-
-    <output name="OUTPUT" description="The merged output" />
+	<parameter name="device_id" type="int" default="0" description="Id of acceleration device, typically id of CUDA card if present" />
+	<input name="*" description="The input" />
+	<output name="*" description="The output" />
+    <!--input name="INPUT1" description="The input" /-->
+    <!--input name="TOP_DOWN1" description="The top-down input" /-->
+    <!--output name="OUTPUT1" description="The merged output" /-->
+    <!--output name="RECONSTRUCTION1" description="The reconstructed input based on the top-down input" /-->
+    <!--output name="OUTPUT_RED1" description="The color coded output" /-->
+    <!--output name="OUTPUT_GREEN1" description="The color coded output" /-->
+    <!--output name="OUTPUT_BLUE1" description="The color coded output" /-->
     <output name="WEIGHTS" description="The merged weights" />
 
-    <output name="RECONSTRUCTION" description="The reconstructed input based on the top-down input" />
-
-    <output name="OUTPUT_RED" description="The color coded output" />
-    <output name="OUTPUT_GREEN" description="The color coded output" />
-    <output name="OUTPUT_BLUE" description="The color coded output" />
-
-    <output name="ERROR" description="The error for the best natching node" />
-    <output name="PROGRESS" description="Change in errror" />
+    <output name="ERROR" description="The error for the best matching node" />
+    <output name="PROGRESS" description="Change in error" />
 
     <!-- STATISTICS -->
 
