@@ -42,6 +42,7 @@ class InputPNG: public Module {
 	float *	red;
 	float *	green;
 	float *	blue;
+	bool notify_repeat;
 
 	InputPNG(Parameter * p);
 	virtual ~InputPNG();
