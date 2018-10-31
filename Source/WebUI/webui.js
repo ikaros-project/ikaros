@@ -1301,7 +1301,7 @@ controller = {
                 let name = wgt.localName.replace("webui-widget-", "");
                 s += "\t<"+name+"\n"
                 for(let p in wgt.parameters)
-                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p]) 
+                    if(wgt.parameters[p])
                         s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
                 s += "\t/>\n\n"
             }
