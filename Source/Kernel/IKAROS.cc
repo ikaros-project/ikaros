@@ -399,7 +399,7 @@ class GroupElement: public Element
 public:
     std::string name; // FIXME: temporary for debugging
     GroupElement * parent;
-    std::unordered_map<std::string, GroupElement> groups;
+    std::unordered_map<std::string, GroupElement *> groups;
     std::unordered_map<std::string, ParameterElement> parameters;
     std::vector<InputElement> inputs;
     std::unordered_map<std::string, OutputElement> outputs;
@@ -426,12 +426,12 @@ public:
         if(name == "*" || name == "") // FIXME: remove later when stars are no longer needed
             return this;
         if(groups.count(name))
-            return &groups[name];
+            return groups[name];
         else if(parent && parent->GetAttribute("name") == name)
             return parent;
         auto & path = split(name, ".", 1);
         if(path.size() > 1 && groups.count(path[0]))
-            return groups[path[0]].GetGroup(path[1]);
+            return groups[path[0]]->GetGroup(path[1]);
         else if(parent && parent->GetAttribute("name") == path[0])
             return parent->GetGroup(path[1]);;
         return NULL;
@@ -513,7 +513,7 @@ public:
             v->Print(d+1);
 */
         for(auto g : groups)
-            g.second.Print(d+1);
+            g.second->Print(d+1);
         
         printf("\n");
     };
@@ -593,7 +593,7 @@ public:
             b = "";
             for(auto g : groups)
             {
-                s += b + g.second.JSONString(d+2);
+                s += b + g.second->JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -3561,7 +3561,7 @@ file_exists(const char * path)
 // Read class file (or included file) and merge with the current XML-tree
 
 XMLElement * 
-Kernel::BuildClassGroup(GroupElement & group, XMLElement * xml_node, const char * class_name)
+Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name)
 {
 	char include_file[PATH_MAX] ="";
 	const char * filename = file_exists(append_string(copy_string(include_file, class_name, PATH_MAX), ".ikc", PATH_MAX));
@@ -3625,7 +3625,7 @@ Kernel::BuildClassGroup(GroupElement & group, XMLElement * xml_node, const char 
 static int group_number = 0;
 
 GroupElement *
-Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * current_class)
+Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class)
 {
     const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
@@ -3634,7 +3634,7 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
     // 2.0 add attributes to group element
     
     for(XMLAttribute * attr=group_xml->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-        group.attributes.insert({ attr->name, attr->value });
+        group->attributes.insert({ attr->name, attr->value });
     
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
     {
@@ -3644,9 +3644,9 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
             
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
-                GroupElement * subgroup = new GroupElement(&group);
-				xml_node = BuildClassGroup(*subgroup, xml_node, class_name);
-                group.groups.insert( { subgroup->GetAttribute("name"), *subgroup });    // FIXME: perfect place to use emplace instead
+                GroupElement * subgroup = new GroupElement(group);
+				xml_node = BuildClassGroup(subgroup, xml_node, class_name);
+                group->groups.insert( { subgroup->GetAttribute("name"), subgroup });    // FIXME: perfect place to use emplace instead
             }
             
 			else if (class_name != NULL)	// Create the module using standard class
@@ -3659,7 +3659,7 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
 				else if (useThreads && m->phase != 0)
 					Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
 				xml_node->aux = (void *)m;
-                group.module = m;  // FIXME: test if correct
+                group->module = m;  // FIXME: test if correct
 				AddModule(m);
 			}
             else  // TODO: could add check for command line values here
@@ -3670,21 +3670,21 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
         }
         else if (xml_node->IsElement("group"))	// Add group
         {
-            GroupElement g = new GroupElement(&group);
-            group.groups.insert( { xml_node->GetAttribute("name"), *BuildGroup(g, xml_node) });  // FIXME: really ugly
+            GroupElement * g = new GroupElement(group);
+            group->groups.insert( { xml_node->GetAttribute("name"), BuildGroup(g, xml_node) });
         }
     
         else if (xml_node->IsElement("parameter"))
-            group.parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(xml_node) });
+            group->parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(xml_node) });
     
         else if (xml_node->IsElement("input"))
-            group.inputs.push_back(InputElement(xml_node));
+            group->inputs.push_back(InputElement(xml_node));
             
         else if (xml_node->IsElement("output"))
-            group.outputs.insert( { xml_node->GetAttribute("name"), OutputElement(xml_node) });
+            group->outputs.insert( { xml_node->GetAttribute("name"), OutputElement(xml_node) });
 
         else if (xml_node->IsElement("connection"))
-             group.connections.push_back(ConnectionElement(xml_node));
+             group->connections.push_back(ConnectionElement(xml_node));
      
         else if (xml_node->IsElement("view"))
         {
@@ -3695,22 +3695,22 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
                 o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason
                 v.objects.push_back(o);
             }
-            group.views.push_back(v);
+            group->views.push_back(v);
         }
     }
-    return &group;
+    return group;
 }
 
 
 
 void
-Kernel::ConnectModules(GroupElement & group, std::string indent)
+Kernel::ConnectModules(GroupElement * group, std::string indent)
 {
-    printf("%sConnecting in %s\n", indent.c_str(), group.GetAttribute("name").c_str());
+    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
 
     // Connect in this group
     
-    for(auto & c : group.connections)
+    for(auto & c : group->connections)
     {
         std::string sm = c["sourcemodule"];
         std::string tm = c["targetmodule"];
@@ -3731,7 +3731,7 @@ Kernel::ConnectModules(GroupElement & group, std::string indent)
         if(starts_with(source_group, "."))
             source_io = main_group->GetSource(split(source_group, ".", 1)[1], source_output);
         else
-            source_io = group.GetSource(source_group, source_output);
+            source_io = group->GetSource(source_group, source_output);
         
         if(!source_io)
             Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+":"+c["source"]).c_str());
@@ -3742,7 +3742,7 @@ Kernel::ConnectModules(GroupElement & group, std::string indent)
             for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
                 cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
         else
-            for(auto target_io : group.GetTargets(target_group, target_input))
+            for(auto target_io : group->GetTargets(target_group, target_input))
                 cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
         
         if(cnt == 0)
@@ -3751,7 +3751,7 @@ Kernel::ConnectModules(GroupElement & group, std::string indent)
 
     // Connect in subgroups
 
-    for(auto & g : group.groups)
+    for(auto & g : group->groups)
         ConnectModules(g.second, indent+"\t");
 }
 
@@ -3819,10 +3819,10 @@ Kernel::ReadXML()
     main_group->attributes.insert({ "session-id", std::to_string(result) });
     session_id = result; // temporary, get from top level group
     
-    BuildGroup(*main_group, xml);
+    BuildGroup(main_group, xml);
     // FIXME: make connections here
 
-    ConnectModules(*main_group);
+    ConnectModules(main_group);
 
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);

@@ -440,7 +440,7 @@ public:
 
     const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
-    bool        GetSource(GroupElement & group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
+    bool        GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
 
 //    Module *    GetModule(GroupElement * group, const std::string & module_name); // Get module from full or partial name relative to a group
 //    Module_IO * GetSource(GroupElement * group, const std::string & source_module_name, const std::string & source_name); // FIXME: add version for module in addition to group
@@ -452,9 +452,9 @@ public:
     void        SendCommand(XMLElement * group, const char * group_name, const char * command_name, int x, int y, std::string value);
 
     int             Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const std::string & delay = "", int extra_delay = 0, bool is_active = true);
-    XMLElement *	BuildClassGroup(GroupElement & group, XMLElement * xml, const char * current_class = NULL);
-    GroupElement *  BuildGroup(GroupElement & group, XMLElement * xml, const char * current_class = NULL);
-    void            ConnectModules(GroupElement & group, std::string indent="");
+    XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    GroupElement *  BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    void            ConnectModules(GroupElement * group, std::string indent="");
     void			ReadXML();
 
     std::string JSONString();
