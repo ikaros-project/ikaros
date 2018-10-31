@@ -7,6 +7,11 @@
 -->
 
 <group name="Main">
+    <module
+        class="Constant"
+        name="TopC"
+        data="1"
+    />
     <group name="G1" >
         <group name="G2" >
             <module
@@ -20,7 +25,8 @@
                     data="1"
                 />
                 <connection source="C.OUTPUT" target="G2.G.INPUT"/>
-            </group>
+                <connection source="G2.G1.Main.TopC.OUTPUT" target="G2.G.INPUT"/>
+           </group>
             <connection source="G3.C.OUTPUT" target="G.INPUT"/>
         </group>
     </group>
