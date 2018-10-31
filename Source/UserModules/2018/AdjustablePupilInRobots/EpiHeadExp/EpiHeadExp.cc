@@ -58,7 +58,7 @@
 #define EXPERIMENT_ID_INDEX 4		// Experiment id 0-3
 // Trial
 #define TRIAL_TICK_INDEX 5			// Trial_Tick. Tick of each trial. One experiments = NUMBER_OR_TRIALS [1,2,3,4 -> TOTAL_TIME]
-#define TRIAL_COUNT_INDEX 6			// Trial_Count Counting each trail [000, 111,222,333 -> NUMBER_OR_TRIALS]
+#define TRIAL_COUNT_INDEX 6			// Trial_Count Counting each trial [000, 111,222,333 -> NUMBER_OR_TRIALS]
 #define TRIAL_ID_INDEX 7			// Trial_id	Condition of the trial. 0 = Small 1. Large
 // Data
 #define PUPIL_INDEX 8 				// Uses the same channel for both robot and animation.
@@ -74,12 +74,13 @@
 #define RETURN_PHASE 4
 
 // TIME
-#define TICK_BASE 20 // 20
-#define WAIT_TIME (6*TICK_BASE) // Make it even with wait. (Float to int)
-#define CHANGE_TIME (1.5*TICK_BASE)
-#define HOLD_TIME (1*TICK_BASE)
-#define RETURN_TIME (1.5*TICK_BASE)
-#define ROBORT_DISTRACTOR_TIME (0.5*TICK_BASE)
+#define TICK_BASE 20				 	// 20
+#define HERTZ_BASE (1000/TICK_BASE) 	// 50Hz
+#define WAIT_TIME (6*HERTZ_BASE) 		// Make it even with wait. (Float to int)
+#define CHANGE_TIME (1.5*HERTZ_BASE)
+#define HOLD_TIME (1*HERTZ_BASE)
+#define RETURN_TIME (1.5*HERTZ_BASE)
+#define ROBORT_DISTRACTOR_TIME (0.5*HERTZ_BASE)
 #define TOTAL_TIME (WAIT_TIME+CHANGE_TIME+HOLD_TIME+RETURN_TIME )
 #define EXPERIMENT_TIME (TOTAL_TIME*NUMBER_OF_TRIALS)
 
@@ -324,7 +325,7 @@ EpiHeadExp::Init()
 	
 	
 	// Not randomize Experiment order for each subject
-	// Randomize Trail
+	// Randomize Trial
 	
 	int tick = 0;
 	int sTick = 0;
@@ -387,10 +388,10 @@ EpiHeadExp::Init()
 					motionData[sIndex][eIndex][eTick][TRIAL_TICK_INDEX] 		= tTick;
 					motionData[sIndex][eIndex][eTick][TRIAL_COUNT_INDEX] 		= tIndex;
 					// Chose a proper random trial schema. Just rotate the schame
-					motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX] 			= randomTrails[((eIndex+sIndex)%NUMBER_OF_RANDOM_SCHEMAS)][tIndex]; // All condition for the complete trial
+					motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX] 			= randomTrials[((eIndex+sIndex)%NUMBER_OF_RANDOM_SCHEMAS)][tIndex]; // All condition for the complete trial
 					
 					// Motion in phases
-					int trailCondition = motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX];
+					int trialCondition = motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX];
 					int experimentID = motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX]; // Robot or screen
 					
 					float dataPupilSize = -1;
@@ -410,7 +411,7 @@ EpiHeadExp::Init()
 							// Screen or Robot?
 							if (experimentID != ROBOT_ID)
 							{
-								if (trailCondition == 0)					// Smaller pupills
+								if (trialCondition == 0)					// Smaller pupills
 									dataPupilSize = PUPIL_SIZE_SCREEN_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_SCREEN_HIGH;
@@ -418,7 +419,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 1)
+								if (trialCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;
@@ -432,7 +433,7 @@ EpiHeadExp::Init()
 							// Screen or Robot?
 							if (experimentID != ROBOT_ID)
 							{
-								if (trailCondition == 0)					// Smaller pupills
+								if (trialCondition == 0)					// Smaller pupills
 									dataPupilSize = PUPIL_SIZE_SCREEN_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_SCREEN_HIGH;
@@ -440,7 +441,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 1)
+								if (trialCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;
@@ -454,7 +455,7 @@ EpiHeadExp::Init()
 							// Screen or Robot?
 							if (experimentID != ROBOT_ID)
 							{
-								if (trailCondition == 0)					// Smaller pupills
+								if (trialCondition == 0)					// Smaller pupills
 									dataPupilSize = PUPIL_SIZE_SCREEN_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_SCREEN_HIGH;
@@ -462,7 +463,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 1)
+								if (trialCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;

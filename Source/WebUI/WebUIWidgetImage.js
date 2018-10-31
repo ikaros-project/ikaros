@@ -92,18 +92,18 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         let w = this.oversampling*width;   // this could be done in updateFrame and stored
         let h = this.oversampling*height;
-        if(this.parameters.scale == "width")
-            h = this.imageObj.height;
-        else if(this.parameters.scale == "height")
-            w = this.imageObj.width;
-        else if(this.parameters.scale == "none")
-        {
-            w = this.imageObj.width;
-            h = this.imageObj.height;
-        }
         
         if(this.imageCount)
         {
+            if(this.parameters.scale == "width")
+                h = this.imageObjects[0].height;
+            else if(this.parameters.scale == "height")
+                w = this.imageObjects[0].width;
+            else if(this.parameters.scale == "none")
+            {
+                w = this.imageObjects[0].width;
+                h = this.imageObjects[0].height;
+            }
             let ix = 0;
             let index = this.getSource("index");
             if(index)
@@ -117,7 +117,19 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             this.canvas.drawImage(this.imageObjects[ix], 0, 0, w, h);
         }
         else
+        {
+            if(this.parameters.scale == "width")
+                h = this.imageObj.height;
+            else if(this.parameters.scale == "height")
+                w = this.imageObj.width;
+            else if(this.parameters.scale == "none")
+            {
+                w = this.imageObj.width;
+                h = this.iimageObj.height;
+            }
+
             this.canvas.drawImage(this.imageObj, 0, 0, w, h);
+        }
     }
     
     update(d)
