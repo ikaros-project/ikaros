@@ -189,13 +189,18 @@ dump_memory()
 // Group (2.0)
 //
 
+class GroupElement;
+
 class Element
 {
 public:
+    GroupElement * parent;
     std::unordered_map<std::string, std::string> attributes;
 
-    Element(XMLElement * xml_node=NULL)
+    Element(GroupElement * parent, XMLElement * xml_node=NULL)
     {
+        this->parent = parent;
+
         if(!xml_node)
             return;
         
@@ -211,19 +216,38 @@ public:
             return "";
     };
 
-    const std::string & GetValue(std::string a) // FIXME: parameter renaming and inheritance is missing - partially
+    const std::string ResolveVariable(std::string a)
+    {
+        auto b = a;
+        while(a[0] == '@')
+            a = GetValue(a.substr(1));
+        if(a=="")
+            return b;
+        else
+            return a;
+    };
+
+   const std::string & GetValue(std::string a) // FIXME: parameter renaming and inheritance is missing - partially
     {
         if(a.empty())
             return empty_string;
-        else if(a[0] == '@')
-            return GetValue(GetValue(a.substr(1)));
-        else if(attributes.count(a))
+        
+        a = ResolveVariable(a);
+        if(attributes.count(a))
             return attributes[a];
+        
+        // RENAMING IN THIS GROUP HERE
+        
+       // INHERITANCE HERE
+       
+        else if(parent)
+            return ((Element *)parent)->GetValue(a);
+       
         else
             return empty_string;
     };
 
-    const std::string & operator[](std::string a) // get attribute verbatim
+    const std::string & operator[](const std::string & a) // same as get value
     {
         return GetValue(a);
     };
@@ -253,7 +277,7 @@ public:
 class ParameterElement: public Element
 {
 public:
-    ParameterElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    ParameterElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
     
     void Print(int d=0)
     {
@@ -273,7 +297,7 @@ public:
 class InputElement: public Element
 {
 public:
-    InputElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    InputElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
 
     void Print(int d=0)
     {
@@ -293,7 +317,7 @@ public:
 class OutputElement: public Element
 {
 public:
-    OutputElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    OutputElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
 
     void Print(int d=0)
     {
@@ -313,7 +337,7 @@ public:
 class ConnectionElement: public Element
 {
 public:
-    ConnectionElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
     
     void Print(int d=0)
     {
@@ -333,7 +357,7 @@ public:
 class ViewObjectElement: public Element
 {
 public:
-    ViewObjectElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
 
     void Print(int d=0)
     {
@@ -354,7 +378,7 @@ public:
 class ViewElement: public Element
 {
 public:
-    ViewElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    ViewElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
     std::vector<ViewObjectElement> objects;
 
     void Print(int d=0)
@@ -397,27 +421,21 @@ public:
 class GroupElement: public Element
 {
 public:
-    std::string name; // FIXME: temporary for debugging
-    GroupElement * parent;
     std::unordered_map<std::string, GroupElement *> groups;
     std::unordered_map<std::string, ParameterElement> parameters;
     std::vector<InputElement> inputs;
-    std::unordered_map<std::string, OutputElement> outputs;
+    std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement> connections;
     std::vector<ViewElement> views;
     Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove ******
 
-    GroupElement(GroupElement * par=NULL, XMLElement * xml_node=NULL) : Element(xml_node)
+    GroupElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node)
     {
-        parent = par;
-        name = "";
-        if(xml_node)
-            xml_node->GetAttribute("name");
-    };
+     };
 
     ~GroupElement()
     {
-        printf("ERROR GROUP GOING OUT OF SCOPE\n");
+        printf("ERROR GROUP GOING OUT OF SCOPE - SHOULD BEVER HAPPEN!!!\n");
     }
 
     GroupElement *
@@ -425,15 +443,18 @@ public:
     {
         if(name == "*" || name == "") // FIXME: remove later when stars are no longer needed
             return this;
-        if(groups.count(name))
-            return groups[name];
-        else if(parent && parent->GetAttribute("name") == name)
-            return parent;
-        auto & path = split(name, ".", 1);
-        if(path.size() > 1 && groups.count(path[0]))
-            return groups[path[0]]->GetGroup(path[1]);
-        else if(parent && parent->GetAttribute("name") == path[0])
-            return parent->GetGroup(path[1]);;
+        auto n = ResolveVariable(name);
+        if(groups.count(n))
+            return groups[n];
+        else if(parent && parent->GetValue("name") == n)
+            return (GroupElement *)parent;
+        auto & path = split(n, ".", 1);
+        std::string p0 = ResolveVariable(path[0]);
+        std::string p1 = path[1];
+        if(path.size() > 1 && groups.count(p0))
+            return groups[p0]->GetGroup(p1);
+        else if(parent && parent->GetValue("name") == p0)
+            return ((GroupElement *)parent)->GetGroup(p1);
         return NULL;
     }
 
@@ -446,16 +467,16 @@ public:
     }
 
     Module_IO *
-    GetSource(const std::string & source_module_name, const std::string & source_name)
+    GetSource(const std::string & source_module_name, std::string source_name)
     {
         if(GroupElement * g = GetGroup(source_module_name))
         {
             if(g->module)
                 return g->module->GetModule_IO(g->module->output_list, source_name.c_str());
 
-            auto & output = g->outputs[source_name];
-            auto new_module = output["sourcemodule"];
-            auto new_source = output["source"];
+            auto output = g->outputs[source_name];
+            auto new_module = output->GetValue("sourcemodule");
+            auto new_source = output->GetValue("source");
             
             if(source_module_name == new_module && source_module_name == new_source)
                 return NULL;
@@ -475,7 +496,10 @@ public:
         
         if(g && g->module)
         {
-            tios.push_back(g->module->GetModule_IO(g->module->input_list, target_name.c_str()));
+            if(auto tio = g->module->GetModule_IO(g->module->input_list, target_name.c_str()))
+                tios.push_back(tio);
+            else
+                g->module->Notify(msg_fatal_error, "Module \"%s\" has no input named \"%s\".\n", g->module->GetFullName(), target_name.c_str());
             return tios;
         }
         
@@ -771,7 +795,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
         return;
     }
     input_list = new Module_IO(input_list, this, name, unknown_size, 1, optional, allow_multiple_connections);
-    Notify(msg_debug, "  Adding input \"%s\".\n", name);
+    Notify(msg_trace, "  Adding input \"%s\".\n", name);
 }
 
 void
@@ -783,7 +807,7 @@ Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
         return;
     }
     output_list = new Module_IO(output_list, this, name, sizeX, sizeY, optional);
-    Notify(msg_debug, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
+    Notify(msg_trace, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
 }
 
 const char *
@@ -1545,6 +1569,7 @@ Module::Module(Parameter * p)
     ticks = 0;
     kernel = p->kernel;
     xml = p->xml;
+    log_level = kernel->log_level;
     instance_name = kernel->GetXMLAttribute(xml, "name"); // GetValue("name");
     class_name = kernel->GetXMLAttribute(xml, "class");
     period = (GetValue("period") ? GetIntValue("period") : 1);
@@ -3675,23 +3700,23 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
     
         else if (xml_node->IsElement("parameter"))
-            group->parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(xml_node) });
+            group->parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(group, xml_node) });
     
         else if (xml_node->IsElement("input"))
-            group->inputs.push_back(InputElement(xml_node));
+            group->inputs.push_back(InputElement(group, xml_node));
             
         else if (xml_node->IsElement("output"))
-            group->outputs.insert( { xml_node->GetAttribute("name"), OutputElement(xml_node) });
+            group->outputs.insert( { xml_node->GetAttribute("name"), new OutputElement(group, xml_node) });
 
         else if (xml_node->IsElement("connection"))
-             group->connections.push_back(ConnectionElement(xml_node));
+             group->connections.push_back(ConnectionElement(group, xml_node));
      
         else if (xml_node->IsElement("view"))
         {
-            ViewElement v(xml_node);
+            ViewElement v(group, xml_node);
             for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement())     // WAS "object"
             {
-                ViewObjectElement o(xml_obj);
+                ViewObjectElement o((GroupElement *)&v, xml_obj); // FIXME: is this correct?
                 o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason
                 v.objects.push_back(o);
             }
@@ -3706,7 +3731,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
 void
 Kernel::ConnectModules(GroupElement * group, std::string indent)
 {
-    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
+//    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
 
     // Connect in this group
     
@@ -3720,21 +3745,27 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
             tm += ".";
         auto & source = rsplit(sm+c["source"], ".", 1);  // Merge then split again
         auto & target = rsplit(tm+c["target"], ".", 1);
-        std::string source_group = source.size() == 1 ? "" : source[0];
-        std::string source_output = source.size() == 1 ? source[0] : source[1]; // tail?
-        std::string target_group = target.size() == 1 ? "" : target[0];
-        std::string target_input = target.size() == 1 ? target[0] : target[1]; // tail?
+        std::string source_group = c.ResolveVariable(source.size() == 1 ? "" : source[0]);
+        std::string source_output = c.ResolveVariable(source.size() == 1 ? source[0] : source[1]); // tail?
+        std::string target_group = c.ResolveVariable(target.size() == 1 ? "" : target[0]);
+        std::string target_input = c.ResolveVariable(target.size() == 1 ? target[0] : target[1]); // tail?
+
+        if(source_output.empty())
+            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+"."+c["source"]).c_str());
+
+        if(target_input.empty())
+            Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+"."+c["target"]).c_str());
         
 //        printf("%sConnecting: %s -> %s\n", indent.c_str(), sm.c_str(), tm.c_str());
         
         Module_IO * source_io = NULL;
         if(starts_with(source_group, "."))
-            source_io = main_group->GetSource(split(source_group, ".", 1)[1], source_output);
+            source_io = main_group->GetSource(split(source_group, ".", 1)[1], source_output); // FIXME: use substr
         else
             source_io = group->GetSource(source_group, source_output);
         
         if(!source_io)
-            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+":"+c["source"]).c_str());
+            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+"."+c["source"]).c_str());
 
         int cnt = 0;
 
@@ -3811,7 +3842,7 @@ Kernel::ReadXML()
 
     // 2.0 create top group
     
-    main_group = new GroupElement();
+    main_group = new GroupElement(NULL);
     
     // set session id
     
