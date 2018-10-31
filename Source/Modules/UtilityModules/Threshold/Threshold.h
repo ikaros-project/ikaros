@@ -41,8 +41,9 @@ public:
 
     int			type;
     float		threshold;
+    bool        bypass;
 
-    float **	input;
+    float **input;
     float **	output;
 };
 
