@@ -15,6 +15,10 @@
             />
             <module
                 class = "Gate"
+                name = "Gate2"
+            />
+            <module
+                class = "Gate"
                 name = "Gate3"
             />
             <group name="G3" >
@@ -24,16 +28,21 @@
                     data="1"
                 />
                 <module
-                    class = "Gate"
-                    name = "Gate2"
+                    class="Constant"
+                    name="C2"
+                    data="1"
                 />
-                <connection source="C.OUTPUT" target="Gate2.INPUT" description="connection in local scope" />
+                <module
+                    class = "Gate"
+                    name = "Gate4"
+                />
+                <connection source="C.OUTPUT" target="Gate4.INPUT" description="connection in local scope" />
                 <connection source=".G1.G2.G3.C.OUTPUT" target=".G1.G2.Gate1.INPUT" description="connection in the global scope" />
             </group>
-            <connection sourcemodule="G3.C" source="OUTPUT" targetmodule="Gate1" target="INPUT" description="connection into group G3" />
+            <connection source="G3.C.OUTPUT" target="Gate3.INPUT" description="connection into group G3" />
         </group>
     </group>
-    <connection source="G1.G2.G3.C.OUTPUT" target="G1.G2.Gate3.INPUT" description="connection between included groups" />
+    <connection source="G1.G2.G3.C.OUTPUT" target="G1.G2.Gate2.INPUT" description="connection between included groups" />
 </group>
 
 

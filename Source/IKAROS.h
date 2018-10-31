@@ -264,7 +264,7 @@ public:
 
     // zero connections in both directions
 
-    std::set<std::string> outgoing_connection;
+    std::set<std::string> outgoing_connection;  // only one entry even if there are multiple connections
     std::vector<Module *> connects_to_with_zero_delay;
     std::vector<Module *> connects_from_with_zero_delay;
 

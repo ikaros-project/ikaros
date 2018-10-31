@@ -192,7 +192,6 @@ dump_memory()
 class Element
 {
 public:
-    GroupElement * parent;
     std::unordered_map<std::string, std::string> attributes;
 
     Element(XMLElement * xml_node=NULL)
@@ -398,6 +397,8 @@ public:
 class GroupElement: public Element
 {
 public:
+    std::string name; // FIXME: temporary for debugging
+    GroupElement * parent;
     std::unordered_map<std::string, GroupElement> groups;
     std::unordered_map<std::string, ParameterElement> parameters;
     std::vector<InputElement> inputs;
@@ -406,7 +407,18 @@ public:
     std::vector<ViewElement> views;
     Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove ******
 
-    GroupElement(XMLElement * xml_node=NULL) : Element(xml_node) {};
+    GroupElement(GroupElement * par=NULL, XMLElement * xml_node=NULL) : Element(xml_node)
+    {
+        parent = par;
+        name = "";
+        if(xml_node)
+            xml_node->GetAttribute("name");
+    };
+
+    ~GroupElement()
+    {
+        printf("ERROR GROUP GOING OUT OF SCOPE\n");
+    }
 
     GroupElement *
     GetGroup(const std::string & name)
@@ -415,9 +427,13 @@ public:
             return this;
         if(groups.count(name))
             return &groups[name];
+        else if(parent && parent->GetAttribute("name") == name)
+            return parent;
         auto & path = split(name, ".", 1);
         if(path.size() > 1 && groups.count(path[0]))
             return groups[path[0]].GetGroup(path[1]);
+        else if(parent && parent->GetAttribute("name") == path[0])
+            return parent->GetGroup(path[1]);;
         return NULL;
     }
 
@@ -2418,18 +2434,21 @@ Kernel::Init()
             module_map[c->target_io->module->GetFullName()]->connects_from_with_zero_delay.push_back(c->source_io->module);
         }
     }
-
+/*
     printf("MODULES:\n");
     for(const auto& pair : module_map)
+    {
         printf("%s\n", pair.first.c_str());
-
+        for(const auto& s : pair.second->outgoing_connection)
+            printf("%s -> %s\n", pair.first.c_str(), s.c_str());
+    }
     printf("CONNECTIONS:\n");
     for(const auto& pair : module_map)
         for(const auto& s : pair.second->outgoing_connection)
             printf("%s -> %s\n", pair.first.c_str(), s.c_str());
 
     printf("\n\n");
-
+*/
     SortModules();
 
     if(fatal_error_occurred)
@@ -3618,13 +3637,14 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
         group.attributes.insert({ attr->name, attr->value });
     
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
+    {
         if (xml_node->IsElement("module"))	// Add module
         {
             char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
             
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
-                GroupElement * subgroup = new GroupElement();
+                GroupElement * subgroup = new GroupElement(&group);
 				xml_node = BuildClassGroup(*subgroup, xml_node, class_name);
                 group.groups.insert( { subgroup->GetAttribute("name"), *subgroup });    // FIXME: perfect place to use emplace instead
             }
@@ -3650,7 +3670,7 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
         }
         else if (xml_node->IsElement("group"))	// Add group
         {
-            GroupElement g;
+            GroupElement g = new GroupElement(&group);
             group.groups.insert( { xml_node->GetAttribute("name"), *BuildGroup(g, xml_node) });  // FIXME: really ugly
         }
     
@@ -3664,8 +3684,8 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
             group.outputs.insert( { xml_node->GetAttribute("name"), OutputElement(xml_node) });
 
         else if (xml_node->IsElement("connection"))
-            group.connections.push_back(ConnectionElement(xml_node));
-
+             group.connections.push_back(ConnectionElement(xml_node));
+     
         else if (xml_node->IsElement("view"))
         {
             ViewElement v(xml_node);
@@ -3677,8 +3697,8 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
             }
             group.views.push_back(v);
         }
-    
-        return &group;
+    }
+    return &group;
 }
 
 
@@ -3686,7 +3706,7 @@ Kernel::BuildGroup(GroupElement & group, XMLElement * group_xml, const char * cu
 void
 Kernel::ConnectModules(GroupElement & group, std::string indent)
 {
-//    printf("%sConnecting in %s\n", indent.c_str(), group.GetAttribute("name").c_str());
+    printf("%sConnecting in %s\n", indent.c_str(), group.GetAttribute("name").c_str());
 
     // Connect in this group
     

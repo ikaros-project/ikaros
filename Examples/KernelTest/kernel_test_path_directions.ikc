@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Kernel Test - Path directions: going up and down
+ 
+-->
+
+<group name="Main">
+    <group name="G1" >
+        <group name="G2" >
+            <module
+                class = "Gate"
+                name = "G"
+            />
+            <group name="G3" >
+                <module
+                    class="Constant"
+                    name="C"
+                    data="1"
+                />
+                <connection source="C.OUTPUT" target="G2.G.INPUT"/>
+            </group>
+            <connection source="G3.C.OUTPUT" target="G.INPUT"/>
+        </group>
+    </group>
+</group>
+
+

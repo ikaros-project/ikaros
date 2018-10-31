@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Kernel Test - Multiple connections between the same modules
+ 
+-->
+
+<group name="Main">
+    <module
+        class="Constant"
+        name="C"
+        data="1 2 3"
+    />
+    <module
+        class = "Gate"
+        name = "Gate"
+    />
+    <connection source="C.OUTPUT" target="Gate.INPUT" />
+    <connection source="C.OUTPUT" target="Gate.INPUT" />
+    <connection source="C.OUTPUT" target="Gate.INPUT" />
+    <connection source="C.OUTPUT" target="Gate.INPUT" />
+</group>
+
