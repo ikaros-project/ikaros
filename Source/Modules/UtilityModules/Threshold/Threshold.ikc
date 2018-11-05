@@ -17,7 +17,7 @@
 			threshold = "0.5"
 		/>
 	</example>
-
+	<parameter name="bypass" type="bool" default="no" description="Whether to bypass" />
 	<parameter name="threshold" type="float" default="0.0" description="The threshold value" />
 	<parameter name="type" type="list" values="binary/linear" default="binary" description="The threshold value" />
 

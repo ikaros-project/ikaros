@@ -218,6 +218,7 @@ InputPNG::Init()
 	red	    = GetOutputArray("RED");
 	green	    = GetOutputArray("GREEN");
 	blue	    = GetOutputArray("BLUE");
+	Bind(notify_repeat, "notify_repeat");
 }
 
 
@@ -386,7 +387,7 @@ InputPNG::Tick()
 
 	cur_image++;
 
-	if(cur_image >= max_images)
+	if(cur_image >= max_images && notify_repeat)
 	{
 		cur_image = 0 ;
 		iteration++;
