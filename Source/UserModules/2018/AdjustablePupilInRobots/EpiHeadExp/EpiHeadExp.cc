@@ -710,6 +710,9 @@ EpiHeadExp::Tick()
 			subjectProgress = int(tSub/tSubTotal*100+0.5);
 			//printf("%i (%i)\n", subjectProgress, expProgress);
 		}
+#ifdef OVERRIDE_MOVIE_RECORD
+		expProgress = tExp;
+#endif
 	}
 	
 	
