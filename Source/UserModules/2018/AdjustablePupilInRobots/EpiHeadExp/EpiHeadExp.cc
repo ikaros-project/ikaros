@@ -380,8 +380,8 @@ EpiHeadExp::Init()
 					
 #ifdef OVERRIDE_MOVIE_RECORD
 					// OVERRIDE
-					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= ROBOT_ID;
-					//motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= SCREEN_MOVIE_ID;
+					//motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= ROBOT_ID;
+					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= SCREEN_MOVIE_ID;
 #endif
 
 					
@@ -694,8 +694,18 @@ EpiHeadExp::Tick()
 		if (curExperimentID == SCREEN_MOVIE_ID)
 		{
 			*enableFace = 0;
-			*imageID	= int(((curExperimentRandomID*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/(MOVIE_TIME_BASE/TICK_BASE));
-			*imageID = 10;
+			// Loop
+			int offsetConditionSmall = 5; // number of images before conditon in image array
+			int offsetConditionLarge = 255; // number of images before conditon in image array
+			int TrialTick = nextStep[TRIAL_TICK_INDEX];
+			int TrialCondition = nextStep[TRIAL_ID_INDEX];
+			if (TrialCondition == 0)  // Small
+				*imageID = offsetConditionSmall + (TrialTick/2);
+			else
+				*imageID = offsetConditionLarge + (TrialTick/2);
+
+
+			//*imageID	= int(((curExperimentRandomID*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/(MOVIE_TIME_BASE/TICK_BASE));
 		}
 
 		// Progress
