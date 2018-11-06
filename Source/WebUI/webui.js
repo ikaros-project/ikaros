@@ -1105,7 +1105,7 @@ controller = {
 
     init: function () {
         controller.get("update.json", controller.update);
-        startPeriodicTask(function() {controller.requestUpdate();}, 100); // FIXME: Use adaptive frequency later
+        startPeriodicTask(function() {controller.requestUpdate();}, 50); // FIXME: Use adaptive frequency later
     },
     
     stop: function () {
