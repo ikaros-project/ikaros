@@ -76,10 +76,12 @@
 // TIME
 #define TICK_BASE 20				 	// 20
 #define HERTZ_BASE (1000/TICK_BASE) 	// 50Hz
+
 #define WAIT_TIME (6*HERTZ_BASE) 		// Make it even with wait. (Float to int)
 #define CHANGE_TIME (1.5*HERTZ_BASE)
 #define HOLD_TIME (1*HERTZ_BASE)
 #define RETURN_TIME (1.5*HERTZ_BASE)
+
 #define ROBORT_DISTRACTOR_TIME (0.5*HERTZ_BASE)
 #define TOTAL_TIME (WAIT_TIME+CHANGE_TIME+HOLD_TIME+RETURN_TIME )
 #define EXPERIMENT_TIME (TOTAL_TIME*NUMBER_OF_TRIALS)
@@ -523,7 +525,7 @@ EpiHeadExp::Tick()
 			// MARK: WAIT_ON_NEW_SUBJECT
 		case WAIT_ON_NEW_SUBJECT:
 		{
-			infoText = "Waiting on new subject";
+			infoText = "Waiting to confirm subject";
 			nextStep = NULL; // No movement and no output
 			// Buttons
 			*expBtnEnable = 0;

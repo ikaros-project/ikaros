@@ -296,7 +296,7 @@
 			<button
 			height = "101"
 			h = "3"
-			label = "New subject"
+			label = "Confirm subject"
 			y = "40"
 			value = "1"
 			x = "900"
