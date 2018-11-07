@@ -135,10 +135,10 @@
 	
 		<view name="Epi the Robot">
 			<image
-			x = "940"
-			y = "280"
-			width = "781"
-			height = "741"
+		height = "621"
+		width = "581"
+		y = "140"
+		x = "700"
 			scales = "no"
 			index = "EpiHeadExp.IMAGE_ID"
 			max_y = "1"
@@ -161,10 +161,10 @@
 			/>
 			
 			<epi-head
-			x = "940"
-			y = "280"
-			width = "781"
-			height = "741"
+		x = "700"
+		y = "160"
+		height = "601"
+		width = "581"
 			gazeModule = "ZERO"
 			fill = "white"
 			color = "black"

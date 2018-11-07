@@ -648,7 +648,7 @@ EpiHeadExp::Tick()
 
 		// Syncing
 		if (syncing)
-			*imageID = 1;
+			*imageID = 3;
 		
 	}
 	else
