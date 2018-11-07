@@ -17,7 +17,7 @@
     	device  = "/dev/cu.usbserial-A7005Lxn"
         index_mode = "indirect"
         print_info ="full"
-        feedback ="true"
+        feedback = "true"
     	baud_rate = "1000000"
     	angle_unit = "degrees"
     	start_up_delay 	= "20"
@@ -327,20 +327,6 @@
 			height = "101"
 			/>
 			
-			<button
-			height = "101"
-			h = "3"
-			label = "Sync Signal"
-			w = "6"
-			y = "160"
-			x = "900"
-			value = "1"
-			parameter = "sync_signal"
-			width = "221"
-			title = "Button Title"
-			module = "EpiHeadExp"
-			class = "button"
-			/>
 			
 			<text
 			module = "EpiHeadExp"
@@ -356,7 +342,7 @@
 			
 			<text
 			module = "EpiHeadExp"
-			parameter = "exp_progress"
+			parameter = "exp_progres"
 			x = "200"
 			style = "font-size:50px"
 			y = "320"
@@ -368,7 +354,7 @@
 			
 			<text
 			module = "EpiHeadExp"
-			parameter = "sub_progress"
+			parameter = "sub_progres"
 			x = "380"
 			style = "font-size:50px"
 			y = "320"
@@ -385,7 +371,7 @@
 			title = "Default Title"
 			width = "581"
 			height = "61"
-			text = "Progress for each experiment and subject:"
+			text = "Progres for each experiment and subject:"
 			class = "text"
 			/>
 			

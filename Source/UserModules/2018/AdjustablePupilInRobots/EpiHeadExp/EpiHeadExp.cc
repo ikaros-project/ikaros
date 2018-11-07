@@ -105,7 +105,7 @@
 #define WHITE_PUPIL_SIZE_ADJUSTER   -0
 #define BLUE_PUPIL_SIZE_ADJUSTER     0
 #define PUPIL_SIZE_SCREEN_ADJUSTER    WHITE_PUPIL_SIZE_ADJUSTER
-#define PUPIL_SIZE_ROBOT_ADJUSTER     -6
+#define PUPIL_SIZE_ROBOT_ADJUSTER     0
 
 #define SCREEN_DISTRACTOR_ON 0
 #define SCREEN_DISTRACTOR_OFF 1
@@ -257,8 +257,8 @@ EpiHeadExp::Init()
 	Bind(subjectID, "subject_id");
 	Bind(infoText,"info_text");
 	infoText = "";
-	Bind(expProgress,"exp_progress");
-	Bind(subjectProgress,"sub_progress");
+	Bind(expProgres,"exp_progres");
+	Bind(subjectProgres,"sub_progres");
 
 	enableFace = GetOutputArray("ENABLE_FACE");
 
@@ -536,6 +536,7 @@ EpiHeadExp::Tick()
 				curExpPhase = WAIT_ON_EXPERIMENT;
 				curSubjectIndex = subjectID;  		// The subject ID chosen from webUI
 				//printf("\n\nSubject %i\n", curSubjectIndex);
+				syncing = true;
 			}
 			
 			if (curSubjectIndex > NUMBER_OF_SUBJECTS-1)
@@ -551,12 +552,12 @@ EpiHeadExp::Tick()
 		case WAIT_ON_EXPERIMENT:
 		{
 			// Disable buttons
-			*expBtnEnable = *expBtnEnable = 1;
+			*expBtnEnable = 1;
 			nextStep = NULL; // No movement and no output
 
 			// Sync signal
-			if (syncSingal and !syncing) // Only trigger sync signal once during a sync period
-				syncing = true;
+			//if (syncSingal and !syncing) // Only trigger sync signal once during a sync period
+			//	syncing = true;
 			if (syncing)
 			{
 				syncTick++;
@@ -705,12 +706,11 @@ EpiHeadExp::Tick()
 				*imageID = offsetConditionSmall + (TrialTick/2);
 			else
 				*imageID = offsetConditionLarge + (TrialTick/2);
-
-
+			
 			//*imageID	= int(((curExperimentRandomID*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/(MOVIE_TIME_BASE/TICK_BASE));
 		}
 
-		// Progress
+		// Progres
 		float tExp = nextStep[EXPERIMENT_TICK_INDEX];
 		float tExpTotal = EXPERIMENT_TIME-1;
 		float tSub = tExp+ (curExperimentIndex*EXPERIMENT_TIME);
@@ -718,8 +718,8 @@ EpiHeadExp::Tick()
 
 		if (curExperimentIndex != -1) // Last tick will be -1
 		{
-			expProgress = int(tExp/tExpTotal*100+0.5);
-			subjectProgress = int(tSub/tSubTotal*100+0.5);
+			expProgres = int(tExp/tExpTotal*100+0.5);
+			subjectProgres = int(tSub/tSubTotal*100+0.5);
 			//printf("%i (%i)\n", subjectProgress, expProgress);
 		}
 #ifdef OVERRIDE_MOVIE_RECORD

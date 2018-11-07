@@ -17,24 +17,20 @@
 	<parameter name="new_subject" type="int" default="0" description="New Subject" />
 	<parameter name="start_experiment" type="int" default="0" description="Start experiment" />
 	<parameter name="sync_signal" type="bool" default="false" description="Send sync signal" />
-	
-	<parameter name="VisibleFace" type="bool" default="false" description="Start Condition" />
-
+	<parameter name="VisibleFace" type="bool" default="false" description="Show webUI Face" />
 	<parameter name="subject_id" type="int" default="0" description="Subject ID" />
+	<parameter name="info_text" type="String" default="0" description="Info text" />
+	<parameter name="exp_progres" type="String" default="0" description="Experiement progres" />
+	<parameter name="sub_progres" type="String" default="0" description="Subject progress" />
+
+	<output name="ROBOT_PUPIL_LEFT" description="Robot output" size="1" />
+	<output name="ROBOT_PUPIL_RIGHT" description="Robot output" size="1" />
+	<output name="SCREEN_PUPIL_LEFT" description="Screen output" size="1" />
+	<output name="SCREEN_PUPIL_RIGHT" description="Screen output" size="1" />
 	
-	<parameter name="info_text" type="String" default="0" description="Start Condition" />
+    <output name="NECKEYES" description="Neck and eye motor output" size="4" />
 
-	<parameter name="exp_progress" type="String" default="0" description="Start Condition" />
-	<parameter name="sub_progress" type="String" default="0" description="Start Condition" />
-
-	<output name="ROBOT_PUPIL_LEFT" description="The first output" size="1" />
-	<output name="ROBOT_PUPIL_RIGHT" description="The first output" size="1" />
-	<output name="SCREEN_PUPIL_LEFT" description="The first output" size="1" />
-	<output name="SCREEN_PUPIL_RIGHT" description="The first output" size="1" />
-	
-    <output name="NECKEYES" description="The first output" size="4" />
-
-	<output name="IMAGE_ID" description="The first output" size="1" />
+	<output name="IMAGE_ID" description="Image vector for movie condition" size="1" />
 
 	<output name="SUBJECT_BTN_ENABLE" description="Subject Button enable" size="1" />
 	<output name="EXPERIMENT_BTN_ENABLE" description="Experiment Button enable" size="1" />

@@ -212,8 +212,8 @@ public:
 	
 	
 	// Progress
-	int expProgress = 0;
-	int subjectProgress = 0;
+	int expProgres = 0;
+	int subjectProgres = 0;
 	
     void writeToLogFile();
     void writeToNewLogFile();
