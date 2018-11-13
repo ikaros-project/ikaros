@@ -19,15 +19,38 @@
 
 	<module class="Sum" />
 
-    <view title="Sum">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            module="*"
-            source="OUTPUT"
-            title="Default view for Sum"
-        />
-    </view>
+	<view name="Default view">
+		
+		<bar-graph
+		show_title = "true"
+		source = "*.OUTPUT"
+		class = "bar-graph"
+		direction = "vertical"
+		height = "361"
+		lineWidth = "1"
+		width = "181"
+		title = "OUTPUT"
+		y = "20"
+		x = "40"
+		max = "10000"
+		module = "*"
+		/>
+		
+		<plot
+		show_title = "true"
+		source = "*.OUTPUT"
+		class = "plot"
+		direction = "vertical"
+		height = "361"
+		width = "561"
+		title = "OUTPUT"
+		y = "20"
+		x = "240"
+		max = "1000"
+		buffer_size = "200"
+		/>
+		
+	</view>
     
 	<author>
 		<name>Christian Balkenius</name>
