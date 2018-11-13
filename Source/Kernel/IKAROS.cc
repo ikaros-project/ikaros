@@ -3194,6 +3194,7 @@ Kernel::Notify(int msg, const char * format, ...)
     printf("IKAROS: %s", message);
     if(message[strlen(message)-1] != '\n')
         printf("\n");
+    fflush(stdout);
     if (logfile != NULL)
         fprintf(logfile, "%5ld: %s", tick, message);	// Print in both places
 }
