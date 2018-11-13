@@ -220,7 +220,7 @@ inspector = {
                             evt.preventDefault();
                         else if(p.type == 'float' && "-0123456789.".indexOf(evt.key) == -1)
                             evt.preventDefault();
-                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-_.0123456789".indexOf(evt.key) == -1)
+                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-_.0123456789*".indexOf(evt.key) == -1)
                             evt.preventDefault();
                     });
                     cell2.addEventListener("blur", function(evt) {
