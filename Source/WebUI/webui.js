@@ -134,7 +134,11 @@ nav = {
         {
             s +=  "<ul>"
             for(i in group.views)
+            {
+                if(!group.views[i].name)
+                    group.views[i].name = "View #"+i;
                 s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + group.views[i].name + "</li>";
+            }
             s += "</ul>";
         }
 
