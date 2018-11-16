@@ -1587,7 +1587,7 @@ Module::Notify(int msg)
 void
 Module::Notify(int msg, const char *format, ...)
 {
-    if(msg>log_level)
+    if(msg > GetIntValue("log_level"))
         return;
     char 	message[512];
     sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
@@ -3338,8 +3338,19 @@ file_exists(const char * path)
 XMLElement * 
 Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name)
 {
-	char include_file[PATH_MAX] ="";
-	const char * filename = file_exists(append_string(copy_string(include_file, class_name, PATH_MAX), ".ikc", PATH_MAX));
+//    printf("%s\n", xml_node->GetAttribute("name"));
+    
+    const char * path = xml_node->GetAttribute("path");
+    char include_file[PATH_MAX] ="";
+    if(path && path[0]=='/')
+    {
+        copy_string(include_file, ikaros_dir, PATH_MAX);
+        include_file[strlen(include_file)-1]=0;
+    }
+    append_string(include_file, path, PATH_MAX);
+	const char * filename = file_exists(append_string(append_string(include_file, class_name, PATH_MAX), ".ikc", PATH_MAX));
+//    printf("FILENAME: %s\n", filename);  // Uses inheritance
+
 	filename = (filename ? filename : file_exists(classes->GetClassPath(class_name)));
 	if(!filename)
 	{
@@ -3547,7 +3558,7 @@ Kernel::ReadXML()
     
     // Set default parameters - TODO: could handle batch arguments here as well in the future
     
-    xml->SetAttribute("log_level", create_formatted_string("%d", log_level));
+//    xml->SetAttribute("log_level", create_formatted_string("%d", log_level));   // we should use inheritence here instead
     
     // Build The Main Group
     

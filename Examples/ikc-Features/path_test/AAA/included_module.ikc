@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--
+
+        included_module.ikc
+
+        This is an advanced example of some features of the IKC file format
+
+        This file demonstrates inclusion of a module from
+        different locations. This is an included module.
+
+-->
+
+<group>
+    <parameter name="outputsize" target="outputsize" targetmodule="R" />    <!-- will use target="R.outputsize" later -->
+    <output name="X" sourcemodule="R" source="OUTPUT" />
+    <module class="Randomizer" name="R" outputsize="3" />
+</group>
+
