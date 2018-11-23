@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<group name="NeuralFIeld" description="NeuralFIelds inputs">
+
+	<description type="text">
+		Module that implements a generic brain NeuralFIeld. output = alpha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
+        
+        If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="NeuralFIeld"
+			name="NeuralFIeld"
+		/>
+	</example>
+    
+    <parameter name="alpha" type="float" default="0" description="bias term / offset level" />
+    <parameter name="beta" type="float" default="1" description="activity scaling" />
+
+    <parameter name="phi" type="float" default="1.0" description="excitation weight" />
+    <parameter name="chi" type="float" default="1.0" description="inhibition weight" />
+    <parameter name="psi" type="float" default="1.0" description="shunting weight" />
+
+    <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
+
+    <parameter name="epsilon" type="float" default="0.1" description="time constant" />
+
+	<input name="EXCITATION" description="The excitatory input" optional="yes" />
+	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
+	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
+
+	<output name="OUTPUT" description="The output from the NeuralFIeld" size="1" />
+
+	<module class="NeuralFIeld" />
+
+    <view name="View (Default)">
+        <plot
+            x="20" y="20" width="400" height="400"
+            module="*"
+            source="OUTPUT"
+            title="Default View for NeuralFIeld"
+        />
+    </view>
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>NeuralFIeld.h</file>
+   		<file>NeuralFIeld.cc</file>
+   		<file>NeuralFIeld.ikc</file>
+   </files>
+
+</group>
+
