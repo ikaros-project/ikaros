@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<group title="SpikingPopulation Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.1 0.2"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.01"
+		  offset      =   "0.0"
+		  amplitude   =   "5"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class="SpikingPopulation"
+			name="SpikingPopulationInstance"
+			model_type = "Izhikevich"
+			neuron_type = "pyramidal"
+			population_size = "1"
+			substeps = "2"
+			threshold = "30"
+			debug = "true"
+		/>
+		
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SpikingPopulationInstance" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SpikingPopulationInstance" target = "INHIBITION_IN" />
+        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "SpikingPopulationInstance" target = "DIRECT_IN" />
+
+		<view name="View">
+			<plot 
+				source="SquareGen.OUTPUT" 
+				x="0" y="0" width="400" height="400"
+				min="0"
+				max="10"
+			/>
+			<plot  
+				source="SpikingPopulationInstance.OUTPUT" 
+				x="0" y="400" width="400" height="400"
+				min="-100"
+				max="100"
+			/>
+			<plot  
+				source="SpikingPopulationInstance.ADENOSINE" 
+				x="0" y="800" width="400" height="400"
+				min="0"
+				max="10"
+			/>
+		</view>
+
+</group>
+ 
