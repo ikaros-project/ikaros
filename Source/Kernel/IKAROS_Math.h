@@ -202,7 +202,8 @@ namespace ikaros
 	
 	float		sum(float * a, int size);	// sum a
 	float		sum(float ** a, int sizex, int sizey);	// sum a
-	float *	sum(float *r, float **a, int sizex, int sizey );
+	float *	sum(float *r, float **a, int sizex, int sizey ); // by row
+	float * sum(float *r, float **a, int sizex, int sizey, int axis); 
 	
 	float *		add(float * r, float alpha, int size);	// r = r + alpha
 	float **	add(float ** r, float alpha, int sizex, int sizey);	// r = r + alpha
