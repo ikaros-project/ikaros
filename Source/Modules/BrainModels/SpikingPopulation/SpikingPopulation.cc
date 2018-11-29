@@ -33,7 +33,7 @@ using namespace ikaros;
 
 const float cMinRand = 0.001f;
 const float cMaxRand = 0.999f;
-const float cAPCost = 1; // arbitrary number representing million adenosine excuded per action potential
+const float cAPCost = 1; // arbitrary number representing adenosine excuded per action potential
 
 // void
 // SpikingPopulation::SetSizes()
@@ -76,27 +76,25 @@ SpikingPopulation::Init()
         inhibition_size, population_size);
     
     // set up neuron type params
-    Iz_Params pyramidcell;
+    // Iz_Params pyramidcell;
+    // pyramidcell.a[0] = 0.02f;
+    // pyramidcell.a[1] = 0.001f;
+    // pyramidcell.b[0] = 0.2f;
+    // pyramidcell.b[1] = 0.001f;
+    // pyramidcell.c[0] = -65.f;
+    // pyramidcell.c[1] = 5.f;
+    // pyramidcell.d[0] = 8.f;
+    // pyramidcell.d[1] =-6.f;
 
-    pyramidcell.a[0] = 0.02f;
-    pyramidcell.a[1] = 0.001f;
-    pyramidcell.b[0] = 0.2f;
-    pyramidcell.b[1] = 0.001f;
-    pyramidcell.c[0] = -65.f;
-    pyramidcell.c[1] = 5.f;
-    pyramidcell.d[0] = 8.f;
-    pyramidcell.d[1] =-6.f;
-
-    Iz_Params interneuron;
-
-    interneuron.a[0] = 0.02f;
-    interneuron.a[1] = 0.02f;
-    interneuron.b[0] = 0.25f;
-    interneuron.b[1] = -0.05f;
-    interneuron.c[0] = -65.f;
-    interneuron.c[1] = 0.5f;
-    interneuron.d[0] = 2.f;
-    interneuron.d[1] = 0.5f;
+    // Iz_Params interneuron;
+    // interneuron.a[0] = 0.02f;
+    // interneuron.a[1] = 0.02f;
+    // interneuron.b[0] = 0.25f;
+    // interneuron.b[1] = -0.05f;
+    // interneuron.c[0] = -65.f;
+    // interneuron.c[1] = 0.5f;
+    // interneuron.d[0] = 2.f;
+    // interneuron.d[1] = 0.5f;
 
     param_a = create_array(population_size);
     param_b = create_array(population_size);
@@ -117,18 +115,46 @@ SpikingPopulation::Init()
     {
         switch(neurontype)
         {
-            case eInter:
-                param_a[i] = interneuron.a[0] + interneuron.a[1]*rndfact[i];
-                param_b[i] = interneuron.b[0] + interneuron.b[1]*rndfact[i];
-                param_c[i] = interneuron.c[0] + interneuron.c[1]*rndfact[i]*rndfact[i];
-                param_d[i] = interneuron.d[0] + interneuron.d[1]*rndfact[i]*rndfact[i];
+            // values taken from Izhivich 2003
+            case eIntrinsically_bursting:
+                param_a[i] = 0.02f;
+                param_b[i] = 0.2f;
+                param_c[i] = -55;
+                param_d[i] = 4;
+                break;
+            case eChattering:
+                param_a[i] = 0.02f;
+                param_b[i] = 0.2f;
+                param_c[i] = -50;
+                param_d[i] = 2;
+                break;
+            case eFast_spiking:
+                param_a[i] = 0.1f;
+                param_b[i] = 0.2f;
+                param_c[i] = -65;
+                param_d[i] = 2;
+
+                break;
+            case eLow_threshold:
+                param_a[i] = 0.1f;
+                param_b[i] = 0.25f;
+                param_c[i] = -65.f;
+                param_d[i] = 2.f;
+
+                break;
+            case eResonator:
+                param_a[i] = 0.1f;
+                param_b[i] = 0.26f;
+                param_c[i] = 65;
+                param_d[i] = 2;
+
                 break;
             default:
-            case ePyramidal:
-                param_a[i] = pyramidcell.a[0] + pyramidcell.a[1]*rndfact[i];
-                param_b[i] = pyramidcell.b[0] + pyramidcell.b[1]*rndfact[i];
-                param_c[i] = pyramidcell.c[0] + pyramidcell.c[1]*rndfact[i]*rndfact[i];
-                param_d[i] = pyramidcell.d[0] + pyramidcell.d[1]*rndfact[i]*rndfact[i];
+            case eRegular_spiking:
+                param_a[i] = 0.02f;
+                param_b[i] = 0.2f;
+                param_c[i] = -65.f;
+                param_d[i] = 8;
                 break;
         }
         u[i] = param_b[i] * vlt[i];

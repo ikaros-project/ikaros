@@ -21,7 +21,10 @@
 	</example>
 
 	<parameter name="model_type" type="list" default="Izhikevich" values="Izhikevich" description="Spiking model to use" />
-	<parameter name="neuron_type" type="list" default="pyramidal" values="pyramidal/inter" description="Type of neuron to use" />
+	<parameter name="neuron_type" type="list" 
+		default="regular_spiking" 
+		values="regular_spiking/intrinsically_bursting/chattering/fast_spiking/low_threshold/resonator" 
+		description="Type of neuron to use" />
 	<parameter name="population_size" type="int" default="50" description="Number of neurons in population" />
 	<parameter name="substeps" type="int" default="2" description="Number of substeps per update for numerical stability" />
 	<parameter name="threshold" type="float" default="30" description="Firing threshold for neurons" />

@@ -31,13 +31,13 @@ class SpikingPopulation: public Module
 public:
     static Module * Create(Parameter * p) { return new SpikingPopulation(p); }
     enum ModelType {eIzhikevich=0};
-    enum NeuronType {ePyramidal=0, eInter};
-    typedef struct {
-        float a[2]; // time scale of recovery
-        float b[2]; // sensitivity of recovery to subthreshold oscillations
-        float c[2]; // after-spike reset value of v
-        float d[2]; // after-spike reset increment of u
-    } Iz_Params;
+    enum NeuronType {eRegular_spiking=0, eIntrinsically_bursting, eChattering, eFast_spiking, eLow_threshold, eResonator};
+    //typedef struct {
+    //    float a[2]; // time scale of recovery
+    //    float b[2]; // sensitivity of recovery to subthreshold oscillations
+    //    float c[2]; // after-spike reset value of v
+    //    float d[2]; // after-spike reset increment of u
+    //} Iz_Params;
 
     SpikingPopulation(Parameter * p) : Module(p) {}
     virtual ~SpikingPopulation();
