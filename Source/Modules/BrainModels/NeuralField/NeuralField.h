@@ -1,5 +1,5 @@
 //
-//		NeuralFIeld.h		This file is a part of the IKAROS project
+//		 NeuralField.h		This file is a part of the IKAROS project
 //
 //
 //    Copyright (C) 2018 Christian Balkenius
@@ -19,15 +19,15 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef NeuralFIeld_
-#define NeuralFIeld_
+#ifndef  NeuralField_
+#define  NeuralField_
 
 #include "IKAROS.h"
 
-class NeuralFIeld: public Module
+class  NeuralField: public Module
 {
 public:
-	static Module * Create(Parameter * p) { return new NeuralFIeld(p); }
+	static Module * Create(Parameter * p) { return new  NeuralField(p); }
 	
     float       alpha;
     float       beta;
@@ -38,9 +38,11 @@ public:
     float *     shunting_inhibition;
     float *     activity;
     float *     output;
+    
+    int         size;
 
-				NeuralFIeld(Parameter * p) : Module(p) {};
-    virtual		~NeuralFIeld() {};
+				 NeuralField(Parameter * p) : Module(p) {};
+    virtual		~NeuralField() {};
 
     void		Init();
     void		Tick();
