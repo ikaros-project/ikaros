@@ -1,8 +1,8 @@
 //
-//		NeuralFIeld.cc		This file is a part of the IKAROS project
+//		 NeuralField.cc		This file is a part of the IKAROS project
 //				
 //
-//    Copyright (C) 2016 Christian Balkenius
+//    Copyright (C) 2018 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,103 +20,32 @@
 //
 
 
-#include "NeuralFIeld.h"
+#include "NeuralField.h"
 
 using namespace ikaros;
 
 void
-NeuralFIeld::Init()
+NeuralField::Init()
 {
     Bind(alpha, "alpha");
     Bind(beta, "beta");
-
-    Bind(phi, "phi");
-    Bind(chi, "chi");
-    Bind(psi, "psi");
-    
-    Bind(scale, "scale");
-
-    Bind(epsilon, "epsilon");
-
-    x = 0;
     
     excitation	=	GetInputArray("EXCITATION");
     inhibition	=	GetInputArray("INHIBITION");
     shunting_inhibition	=	GetInputArray("SHUNTING_INHIBITION");
 
-    excitation_size =	GetInputSize("EXCITATION");
-    inhibition_size =	GetInputSize("INHIBITION");
-    shunting_inhibition_size =	GetInputSize("SHUNTING_INHIBITION");
+    output        =    GetOutputArray("OUTPUT");
 
-    output		=	GetOutputArray("OUTPUT");
+    size =	GetInputSize("EXCITATION");
 }
 
 
 
 void
-NeuralFIeld::Tick()
+NeuralField::Tick()
 {
-    
-    Notify(msg_trace, "Test from %s\n", GetFullName());
-    
-    if(scale)
-    {
-        if(excitation_size > 0)
-            phi_scale = 1.0/float(excitation_size);
-
-        if(inhibition_size > 0)
-            chi_scale = 1.0/float(excitation_size);
-
-        if(shunting_inhibition_size > 0)
-            psi_scale = 1.0/float(shunting_inhibition_size);
-    }
-    else
-    {
-        phi_scale = 1.0;
-        chi_scale = 1.0;
-        psi_scale = 1.0;
-    }
-
-    float a = 0;
-    float s = 1;
-    
-    if(shunting_inhibition)
-        s = 1/(1+psi*psi_scale*sum(shunting_inhibition, shunting_inhibition_size));
-
-    if(excitation)
-        a += phi * phi_scale * s * sum(excitation, excitation_size);
-
-     if(inhibition)
-        a -= psi * psi_scale * sum(inhibition, inhibition_size);
-
-     x += epsilon * (a - x);
-    
-    // Activation function with
-    // f(x) = 0 if x <= 0
-    // f(x) = 1 if x = 1
-    // f(x) -> 2 as x -> inf
-    // S-shaped from 0+
-    // derivative: 4x / (x^2+1)^2
-    
-    switch(1)
-    {
-        case 0:
-            if(x < 0)
-                *output = 0;
-            else
-                *output = 2*x*x/(1+x*x);
-            break;
-            
-        case 1:
-            if(x < 0)
-                *output = 0;
-            else
-                *output = alpha + beta * atan(x)/tan(1);
-            break;
-    }
-
 }
 
-static InitClass init("NeuralFIeld", &NeuralFIeld::Create, "Source/Modules/BrainModels/NeuralFIeld/");
+static InitClass init(" NeuralField", &NeuralField::Create, "Source/Modules/BrainModels/ NeuralField/");
 
 

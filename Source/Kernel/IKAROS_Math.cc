@@ -1139,6 +1139,24 @@ namespace ikaros
         return r;        
         
     }  
+
+    // sum by axis, i.e. either by row or column
+    float *
+    sum(float *r, float **a, int sizex, int sizey, int axis)
+    {
+        if(axis==0)
+            r = sum(r, a, sizex, sizey);
+        else // if(axis==1)
+        {
+            
+            for(int i = 0; i < sizey; i++)
+            {
+                r[i] = sum(a[i], sizex);
+            }
+            
+        }
+        return r;
+    }
 	
 	float *
 	add(float * r, float alpha, int size)	// r = r + alpha
