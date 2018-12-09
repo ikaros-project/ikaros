@@ -4635,5 +4635,20 @@ namespace ikaros
             / (hi_src - lo_src);
     }
 
+    // returns array containing only values >= threshold
+    float *		
+    threshold_gteq(float *r, float *a, float threshold, float size)
+    {
+        
+        for(int i = 0; i < size; i++)
+        {
+            if(a[i] >= threshold)
+                r[i] = a[i];
+            else
+                r[i] = 0.f;
+        }
+        
+    }
+
 }
 
