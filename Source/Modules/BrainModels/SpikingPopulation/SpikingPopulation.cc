@@ -33,7 +33,6 @@ using namespace ikaros;
 
 const float cMinRand = 0.001f;
 const float cMaxRand = 0.999f;
-const float cAPCost = 1; // arbitrary number representing adenosine excuded per action potential
 
 // void
 // SpikingPopulation::SetSizes()
@@ -53,6 +52,7 @@ SpikingPopulation::Init()
     population_size = GetIntValue("population_size");
     Bind(substeps, "substeps");
     Bind(threshold, "threshold");
+    Bind(adenosine_factor, "adenosine_factor");
 	Bind(debugmode, "debug");    
 
     excitation_array = GetInputArray("EXCITATION_IN");
@@ -192,10 +192,25 @@ SpikingPopulation::Tick()
     // update input synapses
     float **exc_syn_tmp = create_matrix(excitation_size, population_size);
     float **inh_syn_tmp = create_matrix(inhibition_size, population_size);
-    tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
-    tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
-    multiply(exc_syn_tmp, exc_syn, excitation_size, population_size);
-    multiply(inh_syn_tmp, inh_syn, inhibition_size, population_size);
+    float *dir_in_tmp = create_array(population_size);
+    if(excitation_array != NULL)
+    {
+        tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
+        multiply(exc_syn_tmp, exc_syn, excitation_size, population_size);
+    }
+    if(inhibition_array != NULL)
+    {
+        // NOTE: if input here is negative, get positive result! Need
+        // to weed out everything below threshold
+        threshold_gteq(inhibition_array, inhibition_array, threshold, inhibition_size);
+        tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
+        multiply(inh_syn_tmp, inh_syn, inhibition_size, population_size);
+    }
+    if(direct_input != NULL)
+    {
+        copy_array(dir_in_tmp, direct_input, population_size);
+    }
+    
     // compose complete synapse
     set_submatrix(synapse[0], excitation_size+inhibition_size, 
                     exc_syn_tmp[0], population_size, excitation_size, 0, 0);
@@ -213,7 +228,7 @@ SpikingPopulation::Tick()
                             param_c,
                             param_d,
                             synapse,
-                            direct_input,
+                            dir_in_tmp,
                             vlt,
                             u
                             
@@ -221,13 +236,26 @@ SpikingPopulation::Tick()
         }
     }
     // update adenosine
-    adenosine_out[0] = numfired * cAPCost;
+    adenosine_out[0] = numfired * adenosine_factor;
     copy_array(output_array, vlt, population_size);
 
 	if(debugmode)
 	{
 		// print out debug info
+        printf("\n\n---Module %s\n", GetName());
+        print_array("exc_in: ", excitation_array, excitation_size);
+        print_matrix("exc_syn: ", exc_syn_tmp, excitation_size, population_size);
+        print_array("inh_in: ", inhibition_array, inhibition_size);
+        print_matrix("inh_syn", inh_syn_tmp, inhibition_size, population_size);
+        print_array("direct_in: ", dir_in_tmp, population_size);
+        print_matrix("synapse", synapse, excitation_size+inhibition_size, population_size);
+    
+        
 	}
+
+    destroy_array(dir_in_tmp);
+    destroy_matrix(exc_syn_tmp);
+    destroy_matrix(inh_syn_tmp);
 }
 
 void
@@ -273,14 +301,14 @@ SpikingPopulation::TimeStep_Iz( float *a_a,
     float *tmp = create_array(population_size);
     sum(tmp, syn_fired, synsize_x, population_size, 1); // sum along x axis
     add(i1, tmp, a_i, population_size ); // get input current
-
-    // calculate output voltage
+  // calculate output voltage
     float stepfact = 1.f/substeps;
     for(int step = 0; step < substeps; step++)
     {
         for(int i = 0; i < population_size; i++)
         {
             // v1=v1+(1.0/substeps)*(0.04*(v1**2)+(5*v1)+140-u + i1) 
+            // 
             v1[i] += stepfact*(0.04f*pow(v1[i], 2) + 5*v1[i] + 
                         140-a_u[i] + i1[i]);
             // u1=u1+(1.0/substeps)*a*(b*v1-u1)               
@@ -293,6 +321,11 @@ SpikingPopulation::TimeStep_Iz( float *a_a,
     {
         if(v1[i] >= threshold)
             v1[i] = threshold;
+    }
+    if(debugmode)
+	{
+      print_matrix("syn_fired: ", syn_fired, synsize_x, population_size);
+      print_array("i1: ", i1, population_size);
     }
     
     copy_array(a_v, v1, population_size);

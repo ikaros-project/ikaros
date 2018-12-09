@@ -28,6 +28,7 @@
 	<parameter name="population_size" type="int" default="50" description="Number of neurons in population" />
 	<parameter name="substeps" type="int" default="2" description="Number of substeps per update for numerical stability" />
 	<parameter name="threshold" type="float" default="30" description="Firing threshold for neurons" />
+	<parameter name="adenosine_factor" type="float" default="1" description="Adenosine cost of action potentials per tick" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="DIRECT_IN" description="Direct current input" size_param="population_size" />

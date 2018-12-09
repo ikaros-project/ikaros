@@ -86,7 +86,7 @@ public:
     int population_size;
     int substeps;
     float threshold;
-    
+    float adenosine_factor;    
 	bool       	debugmode;
 };
 
