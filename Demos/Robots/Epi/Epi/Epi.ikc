@@ -46,8 +46,8 @@ nrServosTotal = "19"
         <connection sourcemodule = "ExoID"            source = "OUTPUT"       targetmodule = "Epi" target = "FRAME_ID_2"  delay = "0"/>
 
 
-    <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_6"/>
-    <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_6"/>
+    <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_5"/>
+    <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_5"/>
 
 
 <!-- 			Attention 				-->
@@ -100,7 +100,7 @@ nrServosTotal = "19"
 
     
     <!-- EXO -->
-    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "6"/>
+    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "5"/>
         <!-- ManualFocusPoint -->
         <connection sourcemodule = "ManFocusPoint"   	source = "OUTPUT"  		targetmodule = "HighLevelFocusArbiter"  target = "INPUT_1" />
         <connection sourcemodule = "ManFocusPointValue" source = "OUTPUT"  		targetmodule = "HighLevelFocusArbiter"  target = "VALUE_1" />
@@ -114,8 +114,8 @@ nrServosTotal = "19"
         <connection sourcemodule = "RandomFocus"   		source = "OUTPUT"       targetmodule = "HighLevelFocusArbiter"  target = "INPUT_4" />
         <connection sourcemodule = "RandomFocusPointValue"  source = "OUTPUT"   targetmodule = "HighLevelFocusArbiter"  target = "VALUE_4" />
        <!-- FaceDetector (Left) -->
-        <connection sourcemodule = "Detectors"   		source = "L_FACE_WORLD" targetmodule = "HighLevelFocusArbiter"  target = "INPUT_5" />
-        <connection sourcemodule = "Detectors"          source = "L_FACE_CONF"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_5" />
+        <_connection sourcemodule = "Detectors"   		source = "L_FACE_WORLD" targetmodule = "HighLevelFocusArbiter"  target = "INPUT_5" />
+        <_connection sourcemodule = "Detectors"          source = "L_FACE_CONF"  targetmodule = "HighLevelFocusArbiter"  target = "VALUE_5" />
    
      <view name="Focus Point">
         <table name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" min = "-1" max = "1"  x="0" y="0" decimals ="5"/>    
@@ -212,7 +212,7 @@ nrServosTotal = "19"
 
 <module class = "Constant" name = "RecordServo" data = "0   		0 0 3 3   				0 0 0 0 0 3   					0 0 0 0 0 3   					3 3" />
 
-<connection sourcemodule = "RecordServo"   	source = "OUTPUT"  targetmodule = "MotionRecorder"  target = "MODE" />
+<_connection sourcemodule = "RecordServo"   	source = "OUTPUT"  targetmodule = "MotionRecorder"  target = "MODE" />
 
 <module
     class = "MotionRecorder"
