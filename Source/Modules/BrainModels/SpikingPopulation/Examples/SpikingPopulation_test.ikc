@@ -82,7 +82,7 @@
 		<module
             class = "PopulationCoder"
             name = "PopulationCoder"
-            size = "10"
+            size = "@vPopSize"
             min = "-2"
             max = "7"
         />
