@@ -7,7 +7,8 @@
 -->
 
 <group>
-		<module class = "InputVideoFile" name = "Movie" filename = "fullstream.mp4" />
+		<module class = "InputVideoFile" name = "Movie" filename = "../ExperimentData/Data/FP3/segments/1/fullstream.mp4" size_x = "64" size_y="64"/>
+		
 		
 	 <module
             class = "ColorTransform"
@@ -40,13 +41,13 @@
 
 		<module class="Sum"	name="Sum" />
 
-		<module class = "Threshold" name = "BinaryThreshold" type  = "binary" threshold = "75000"/>
+		<module class = "Threshold" name = "BinaryThreshold" type  = "binary" threshold = "25"/>
 				<connection sourcemodule="Sum" source="OUTPUT" targetmodule="BinaryThreshold" target="INPUT" delay="0" />
 
 	<module
 		class = "OutputFile"
 		name = "out"
-		filename = "syncSingal.txt"
+		filename = "../ExperimentData/Data/FP3syncSingal.txt"
 		>
 			<column name = "SYNC_SIGNAL"/>
 	</module>
