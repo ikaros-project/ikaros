@@ -12,8 +12,8 @@
 
 
 	<module
-		class = "Perceptron"
-		name = "PERCEPTRON"
+		class = "BackProp"
+		name = "BackProp"
 		learning_rule = "mu_lms"
 		activation_type = "step"
 		normalize_target = "true"
@@ -37,39 +37,39 @@
 		>
 			<column name = "OUT"/>
 			<column name = "ERR"/>
-			<column name = "CORR"/>
+			<column name = "ERROR"/>
 	</module>
 
 
-	<connection sourcemodule = "MULTI_DATA"  source = "INPUT" targetmodule = "PERCEPTRON"  target = "INPUT" />
-	<connection sourcemodule = "MULTI_DATA"  source = "INPUT" targetmodule = "PERCEPTRON"  target = "T_INPUT" />
-	<connection sourcemodule = "MULTI_DATA"  source = "TARGET" targetmodule = "PERCEPTRON"  target = "T_TARGET" />
-	<connection sourcemodule = "MULTI_DATA"  source = "TRAIN" targetmodule = "PERCEPTRON"  target = "TRAIN" />
+	<connection sourcemodule = "MULTI_DATA"  source = "INPUT" targetmodule = "BackProp"  target = "INPUT" />
+	<connection sourcemodule = "MULTI_DATA"  source = "INPUT" targetmodule = "BackProp"  target = "T_INPUT" />
+	<connection sourcemodule = "MULTI_DATA"  source = "TARGET" targetmodule = "BackProp"  target = "T_TARGET" />
+	<!-- connection sourcemodule = "MULTI_DATA"  source = "TRAIN" targetmodule = "BackProp"  target = "TRAIN" / -->
 
 
-	<connection sourcemodule = "PERCEPTRON"  source = "OUTPUT" targetmodule = "RESULTS"  target = "OUT" />
-	<connection sourcemodule = "PERCEPTRON"  source = "ERROR" targetmodule = "RESULTS"  target = "ERR" />
-	<connection sourcemodule = "PERCEPTRON"  source = "CORRECT" targetmodule = "RESULTS"  target = "CORR" />
-	<connection sourcemodule = "PERCEPTRON"  source = "ERROR" targetmodule = "AVERAGE"  target = "INPUT" />
+	<connection sourcemodule = "BackProp"  source = "OUTPUT" targetmodule = "RESULTS"  target = "OUT" />
+	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "RESULTS"  target = "ERR" />
+	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "RESULTS"  target = "ERROR" />
+	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "AVERAGE"  target = "INPUT" />
 
-	<view name="Table Test">
+    <view name="BackProp View">
         <plot
-            source="AVERAGE.OUTPUT"
-            title="AVERAGE.OUTPUT"
-            x="20"
-            y="20"
-            width="600"
-            height="300"
-            max="5"
+        source="AVERAGE.OUTPUT"
+        title="AVERAGE ERROR"
+        x="20"
+        y="20"
+        width="600"
+        height="300"
+        max="2"
         />
         <plot
-            source="PERCEPTRON.CORRECT"
-            title="PERCEPTRON.CORRECT"
-            x="20"
-            y="340"
-            width="600"
-            height="300"
+        source="BackProp.ERROR"
+        title="ERROR"
+        x="20"
+        y="340"
+        width="600"
+        height="300"
         />
-	</view>
+    </view>
 
 </group>
