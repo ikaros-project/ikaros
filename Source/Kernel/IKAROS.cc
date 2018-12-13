@@ -2744,7 +2744,7 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
 
 
 void
-Kernel::SendCommand(XMLElement * group, const char * group_name, const char * command_name, int x, int y, std::string value)
+Kernel::SendCommand(XMLElement * group, const char * group_name, const char * command_name, float x, float y, std::string value)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
     {

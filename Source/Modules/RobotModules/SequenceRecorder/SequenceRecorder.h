@@ -53,7 +53,7 @@ public:
 
     // Commands
 
-    void        Command(std::string s, int x, int y, std::string value);
+    void        Command(std::string s, float x, float y, std::string value);
 
     void        ToggleMode(int x, int y);
     void        Off();

@@ -119,7 +119,7 @@ MotionRecorder::~MotionRecorder()
 
 
 void
-MotionRecorder::Command(std::string s, int x, int y, std::string value)
+MotionRecorder::Command(std::string s, float x, float y, std::string value)
 {
     printf("##%s\n", s.c_str());
     if(s == "off")

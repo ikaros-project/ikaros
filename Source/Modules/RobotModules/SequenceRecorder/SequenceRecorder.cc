@@ -96,7 +96,7 @@ SequenceRecorder::~SequenceRecorder()
 
 
 void
-SequenceRecorder::Command(std::string s, int x, int y, std::string value)
+SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
     if(s == "off")
         Off();
