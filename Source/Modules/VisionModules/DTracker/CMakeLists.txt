@@ -1,7 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # DLIB
-find_package(dlib)
+find_package(Dlib)
 
 # if all libraries found add source file, include dirs and libraries
 if(DLIB_LIB_FOUND)
