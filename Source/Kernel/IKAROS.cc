@@ -3832,12 +3832,8 @@ Kernel::ReadXML()
     
     // Set default parameters
     
-<<<<<<< HEAD
     xml->SetAttribute("log_level", create_formatted_string("%d", log_level)); // FIXME: period???
-=======
-//    xml->SetAttribute("log_level", create_formatted_string("%d", log_level));   // we should use inheritence here instead
->>>>>>> master
-    
+
     // Build The Main Group
     // FIXME: what is this?
 /*
