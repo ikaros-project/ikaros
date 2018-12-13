@@ -307,7 +307,7 @@ public:
     void            Bind(std::string & v, const char * n);                  // Bind string
 
     void            SetParameter(const char * parameter_name, int x, int y, float value);
-    virtual void    Command(std::string s, int x=0, int y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
+    virtual void    Command(std::string s, float x=0, float y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
 
     XMLElement *        xml;
 
