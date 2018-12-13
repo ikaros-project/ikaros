@@ -6,8 +6,6 @@ find_package(dlib)
 # if all libraries found add source file, include dirs and libraries
 #set(dlib_FOUND TRUE)
 if(DLIB_LIB_FOUND)
-	message(STATUS "Ikaros: FOUND DLIB" )
-
     set(SOURCE
 	${SOURCE}
 	${CMAKE_CURRENT_SOURCE_DIR}/DFaceDetector.cc
