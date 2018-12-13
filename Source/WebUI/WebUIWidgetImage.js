@@ -10,6 +10,11 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
 
+            {'name': "CONTROL", 'control':'header'},
+                
+            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
+
             {'name': "STYLE", 'control':'header'},
 
             {'name':'format', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,red,green,blue,rgb"},
@@ -34,6 +39,23 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
+
+    init()
+    {
+        super.init();
+        
+        this.onclick = function (evt)
+        {
+            let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+            let r = this.canvasElement.getBoundingClientRect();
+            let x = evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
+            let y = evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+            
+            if(this.parameters.command && this.parameters.module)
+                this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y);
+        }
+    }
+
 
     requestData(data_set)
     {
