@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+
+<group name="DFaceDetector" description="wraps dlib's DFaceDetector">
+
+<description type="xhtml">
+<p>
+DFaceDetector is a face detector for Ikaros that uses dlib's Face Detector (frontal_face_detector).
+</p>
+</description>
+
+<example description="A simple example">
+    <module
+        class="DFaceDetector"
+        name="DFaceDetector"
+    />
+</example>
+
+
+
+<!-- PARAMETERS -->
+
+<parameter name="max_faces" type="int" default="10" description="maximum number of faces" />
+
+<!-- INPUTS -->
+
+<input name="INPUT" description="The input image" />
+
+
+<!-- OUTPUTS -->
+
+<output name="FACE_POSITION" size_x="2" size_param_y="max_faces" description="Location of each face in the image" />
+<output name="FACE_SIZE" size_x="2" size_param_y="max_faces" description="Size of each face (width, height)" />
+<output name="FACE_BOUNDS" description="Face bounding boxes in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_faces" />
+
+<output name="FACE_COUNT" size="1" description="The number of detected faces in the image" />
+
+<!-- VISULAISATION OUTPUT -->
+
+
+<module class="DFaceDetector" />
+
+    <view name="Input" >
+         <object
+            class   = "Path"
+            title   = "Faces"
+            module  = "*"
+            source  = "FACE_BOUNDS"
+            length_source = "FACE_COUNT"
+            x="0" y="0"
+            w="4" h="3"
+            min = "0"
+            max = "1"
+            select = "0"
+            count = "4"
+            close = "yes"
+            color="red"
+            stroke_width="4"
+            fill = "rgba(255,0,0,0.45)"
+            line_join="round"
+        />
+   </view>
+
+
+<author>
+<name>Christian Balkenius</name>
+<email>christian.balkenius@lucs.lu.se</email>
+<affiliation>Lund Univeristy Cognitive Science</affiliation>
+<homepage>http://www.lucs.lu.se/Christian.Balkenius/</homepage>
+</author>
+
+<files>
+<file>DFaceDetector.h</file>
+<file>DFaceDetector.cc</file>
+<file>DFaceDetector.ikc</file>
+</files>
+
+</group>
+
+
