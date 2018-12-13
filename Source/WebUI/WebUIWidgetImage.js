@@ -5,7 +5,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -56,11 +56,10 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         }
     }
 
-
     requestData(data_set)
     {
         if(!this.parameters.file)
-            data_set.add(this.parameters.module+"."+this.parameters.source+":"+this.parameters.format);
+            data_set.add(this.parameters.source+":"+this.parameters.format);
         if(this.parameters.index)
             data_set.add(this.parameters.index);
     }
@@ -93,11 +92,12 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
     loadData(data)
     {
-        if(this.parameters.module)
+        if(this.parameters.source)
         {
-            var d = data[this.parameters.module];
+            let s = this.parameters.source.rsplit('.',1);
+            let d = data[s[0]];
             if(!d) return;
-            d = d[this.parameters.source+':'+this.parameters.format]
+            d = d[s[1]+":"+this.parameters.format];
             if(!d) return;
             this.imageObj.onload = function ()
             {
