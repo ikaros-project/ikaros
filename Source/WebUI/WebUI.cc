@@ -1154,7 +1154,6 @@ WebUI::HandleHTTPRequest()
                 group = group->GetParentElement();
             }
 
-            printf(">>>>>>>>> %f %f\n", x, y);
             k->SendCommand(group, module_name, command, x, y, value);
         }
 
