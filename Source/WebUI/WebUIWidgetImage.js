@@ -5,10 +5,15 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
+
+            {'name': "CONTROL", 'control':'header'},
+                
+            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
 
@@ -35,10 +40,26 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
+    init()
+    {
+        super.init();
+        
+        this.onclick = function (evt)
+        {
+            let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+            let r = this.canvasElement.getBoundingClientRect();
+            let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
+            let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+            
+            if(this.parameters.command && this.parameters.module)
+                this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/1");
+        }
+    }
+
     requestData(data_set)
     {
         if(!this.parameters.file)
-            data_set.add(this.parameters.module+"."+this.parameters.source+":"+this.parameters.format);
+            data_set.add(this.parameters.source+":"+this.parameters.format);
         if(this.parameters.index)
             data_set.add(this.parameters.index);
     }
@@ -71,11 +92,12 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
     loadData(data)
     {
-        if(this.parameters.module)
+        if(this.parameters.source)
         {
-            var d = data[this.parameters.module];
+            let s = this.parameters.source.rsplit('.',1);
+            let d = data[s[0]];
             if(!d) return;
-            d = d[this.parameters.source+':'+this.parameters.format]
+            d = d[s[1]+":"+this.parameters.format];
             if(!d) return;
             this.imageObj.onload = function ()
             {

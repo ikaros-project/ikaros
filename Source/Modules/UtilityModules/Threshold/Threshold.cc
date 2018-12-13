@@ -25,8 +25,10 @@
 void
 Threshold::Init()
 {
-    Bind(type, "type");
+    type		= GetIntValueFromList("type");
+    //threshold	= GetFloatValue("threshold");
     Bind(threshold, "threshold");
+    Bind(bypass, "bypass");
 
     size_x	= GetInputSizeX("INPUT");
     size_y	= GetInputSizeY("INPUT");
@@ -40,23 +42,26 @@ Threshold::Init()
 void
 Threshold::Tick()
 {
-    switch (type)
-    {
-    case 0: // Binary
-        for (int i=0; i<size_x; i++)
-            for (int j=0; j<size_y; j++)
-                output[j][i] = (input[j][i] > threshold ? 1.0 : 0.0);
-        break;
+    if(bypass)
+        copy_matrix(output, input, size_x, size_y);
+    else
+        switch (type)
+        {
+        case 0: // Binary
+            for (int i=0; i<size_x; i++)
+                for (int j=0; j<size_y; j++)
+                    output[j][i] = (input[j][i] > threshold ? 1.0 : 0.0);
+            break;
 
-    case 1: // Linear
-        for (int i=0; i<size_x; i++)
-            for (int j=0; j<size_y; j++)
-                output[j][i] = (input[j][i] > threshold ? input[j][i] - threshold : 0.0);
-        break;
+        case 1: // Linear
+            for (int i=0; i<size_x; i++)
+                for (int j=0; j<size_y; j++)
+                    output[j][i] = (input[j][i] > threshold ? input[j][i] - threshold : 0.0);
+            break;
 
-    default:
-        break;
-    }
+        default:
+            break;
+        }
 }
 
 

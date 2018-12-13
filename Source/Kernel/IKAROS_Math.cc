@@ -1139,6 +1139,24 @@ namespace ikaros
         return r;        
         
     }  
+
+    // sum by axis, i.e. either by row or column
+    float *
+    sum(float *r, float **a, int sizex, int sizey, int axis)
+    {
+        if(axis==0)
+            r = sum(r, a, sizex, sizey);
+        else // if(axis==1)
+        {
+            
+            for(int i = 0; i < sizey; i++)
+            {
+                r[i] = sum(a[i], sizex);
+            }
+            
+        }
+        return r;
+    }
 	
 	float *
 	add(float * r, float alpha, int size)	// r = r + alpha
@@ -4653,6 +4671,22 @@ namespace ikaros
         r[i] = lo_trg + 
             (hi_trg - lo_trg) * (a[i] - lo_src) 
             / (hi_src - lo_src);
+    }
+
+    // returns array containing only values >= threshold
+    float *		
+    threshold_gteq(float *r, float *a, float threshold, float size)
+    {
+        
+        for(int i = 0; i < size; i++)
+        {
+            if(a[i] >= threshold)
+                r[i] = a[i];
+            else
+                r[i] = 0.f;
+        }
+		return r;
+
     }
 
 }

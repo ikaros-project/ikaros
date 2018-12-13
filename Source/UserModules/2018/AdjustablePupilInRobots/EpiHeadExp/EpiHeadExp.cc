@@ -58,7 +58,7 @@
 #define EXPERIMENT_ID_INDEX 4		// Experiment id 0-3
 // Trial
 #define TRIAL_TICK_INDEX 5			// Trial_Tick. Tick of each trial. One experiments = NUMBER_OR_TRIALS [1,2,3,4 -> TOTAL_TIME]
-#define TRIAL_COUNT_INDEX 6			// Trial_Count Counting each trail [000, 111,222,333 -> NUMBER_OR_TRIALS]
+#define TRIAL_COUNT_INDEX 6			// Trial_Count Counting each trial [000, 111,222,333 -> NUMBER_OR_TRIALS]
 #define TRIAL_ID_INDEX 7			// Trial_id	Condition of the trial. 0 = Small 1. Large
 // Data
 #define PUPIL_INDEX 8 				// Uses the same channel for both robot and animation.
@@ -74,12 +74,15 @@
 #define RETURN_PHASE 4
 
 // TIME
-#define TICK_BASE 20 // 20
-#define WAIT_TIME (6*TICK_BASE) // Make it even with wait. (Float to int)
-#define CHANGE_TIME (1.5*TICK_BASE)
-#define HOLD_TIME (1*TICK_BASE)
-#define RETURN_TIME (1.5*TICK_BASE)
-#define ROBORT_DISTRACTOR_TIME (0.5*TICK_BASE)
+#define TICK_BASE 20				 	// 20
+#define HERTZ_BASE (1000/TICK_BASE) 	// 50Hz
+
+#define WAIT_TIME (6*HERTZ_BASE) 		// Make it even with wait. (Float to int)
+#define CHANGE_TIME (1.5*HERTZ_BASE)
+#define HOLD_TIME (1*HERTZ_BASE)
+#define RETURN_TIME (1.5*HERTZ_BASE)
+
+#define ROBORT_DISTRACTOR_TIME (0.5*HERTZ_BASE)
 #define TOTAL_TIME (WAIT_TIME+CHANGE_TIME+HOLD_TIME+RETURN_TIME )
 #define EXPERIMENT_TIME (TOTAL_TIME*NUMBER_OF_TRIALS)
 
@@ -102,7 +105,7 @@
 #define WHITE_PUPIL_SIZE_ADJUSTER   -0
 #define BLUE_PUPIL_SIZE_ADJUSTER     0
 #define PUPIL_SIZE_SCREEN_ADJUSTER    WHITE_PUPIL_SIZE_ADJUSTER
-#define PUPIL_SIZE_ROBOT_ADJUSTER     -6
+#define PUPIL_SIZE_ROBOT_ADJUSTER     0
 
 #define SCREEN_DISTRACTOR_ON 0
 #define SCREEN_DISTRACTOR_OFF 1
@@ -254,8 +257,8 @@ EpiHeadExp::Init()
 	Bind(subjectID, "subject_id");
 	Bind(infoText,"info_text");
 	infoText = "";
-	Bind(expProgress,"exp_progress");
-	Bind(subjectProgress,"sub_progress");
+	Bind(expProgres,"exp_progres");
+	Bind(subjectProgres,"sub_progres");
 
 	enableFace = GetOutputArray("ENABLE_FACE");
 
@@ -324,7 +327,7 @@ EpiHeadExp::Init()
 	
 	
 	// Not randomize Experiment order for each subject
-	// Randomize Trail
+	// Randomize Trial
 	
 	int tick = 0;
 	int sTick = 0;
@@ -379,18 +382,18 @@ EpiHeadExp::Init()
 					
 #ifdef OVERRIDE_MOVIE_RECORD
 					// OVERRIDE
-					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= ROBOT_ID;
-					//motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= SCREEN_MOVIE_ID;
+					//motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= ROBOT_ID;
+					motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX] 		= SCREEN_MOVIE_ID;
 #endif
 
 					
 					motionData[sIndex][eIndex][eTick][TRIAL_TICK_INDEX] 		= tTick;
 					motionData[sIndex][eIndex][eTick][TRIAL_COUNT_INDEX] 		= tIndex;
 					// Chose a proper random trial schema. Just rotate the schame
-					motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX] 			= randomTrails[((eIndex+sIndex)%NUMBER_OF_RANDOM_SCHEMAS)][tIndex]; // All condition for the complete trial
+					motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX] 			= randomTrials[((eIndex+sIndex)%NUMBER_OF_RANDOM_SCHEMAS)][tIndex]; // All condition for the complete trial
 					
 					// Motion in phases
-					int trailCondition = motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX];
+					int trialCondition = motionData[sIndex][eIndex][eTick][TRIAL_ID_INDEX];
 					int experimentID = motionData[sIndex][eIndex][eTick][EXPERIMENT_ID_INDEX]; // Robot or screen
 					
 					float dataPupilSize = -1;
@@ -410,7 +413,7 @@ EpiHeadExp::Init()
 							// Screen or Robot?
 							if (experimentID != ROBOT_ID)
 							{
-								if (trailCondition == 0)					// Smaller pupills
+								if (trialCondition == 0)					// Smaller pupills
 									dataPupilSize = PUPIL_SIZE_SCREEN_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_SCREEN_HIGH;
@@ -418,7 +421,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 0)
+								if (trialCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;
@@ -432,7 +435,7 @@ EpiHeadExp::Init()
 							// Screen or Robot?
 							if (experimentID != ROBOT_ID)
 							{
-								if (trailCondition == 0)					// Smaller pupills
+								if (trialCondition == 0)					// Smaller pupills
 									dataPupilSize = PUPIL_SIZE_SCREEN_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_SCREEN_HIGH;
@@ -440,7 +443,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 1)
+								if (trialCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;
@@ -454,7 +457,7 @@ EpiHeadExp::Init()
 							// Screen or Robot?
 							if (experimentID != ROBOT_ID)
 							{
-								if (trailCondition == 0)					// Smaller pupills
+								if (trialCondition == 0)					// Smaller pupills
 									dataPupilSize = PUPIL_SIZE_SCREEN_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_SCREEN_HIGH;
@@ -462,7 +465,7 @@ EpiHeadExp::Init()
 							}
 							else
 							{
-								if (trailCondition == 1)
+								if (trialCondition == 0)
 									dataPupilSize = PUPIL_SIZE_ROBOT_LOW;
 								else
 									dataPupilSize = PUPIL_SIZE_ROBOT_HIGH;
@@ -522,7 +525,7 @@ EpiHeadExp::Tick()
 			// MARK: WAIT_ON_NEW_SUBJECT
 		case WAIT_ON_NEW_SUBJECT:
 		{
-			infoText = "Waiting on new subject";
+			infoText = "Waiting to confirm subject";
 			nextStep = NULL; // No movement and no output
 			// Buttons
 			*expBtnEnable = 0;
@@ -533,6 +536,7 @@ EpiHeadExp::Tick()
 				curExpPhase = WAIT_ON_EXPERIMENT;
 				curSubjectIndex = subjectID;  		// The subject ID chosen from webUI
 				//printf("\n\nSubject %i\n", curSubjectIndex);
+				syncing = true;
 			}
 			
 			if (curSubjectIndex > NUMBER_OF_SUBJECTS-1)
@@ -548,12 +552,12 @@ EpiHeadExp::Tick()
 		case WAIT_ON_EXPERIMENT:
 		{
 			// Disable buttons
-			*expBtnEnable = *expBtnEnable = 1;
+			*expBtnEnable = 1;
 			nextStep = NULL; // No movement and no output
 
 			// Sync signal
-			if (syncSingal and !syncing) // Only trigger sync signal once during a sync period
-				syncing = true;
+			//if (syncSingal and !syncing) // Only trigger sync signal once during a sync period
+			//	syncing = true;
 			if (syncing)
 			{
 				syncTick++;
@@ -644,7 +648,7 @@ EpiHeadExp::Tick()
 
 		// Syncing
 		if (syncing)
-			*imageID = 1;
+			*imageID = 3;
 		
 	}
 	else
@@ -693,11 +697,20 @@ EpiHeadExp::Tick()
 		if (curExperimentID == SCREEN_MOVIE_ID)
 		{
 			*enableFace = 0;
-			*imageID	= int(((curExperimentRandomID*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/(MOVIE_TIME_BASE/TICK_BASE));
-			*imageID = 10;
+			// Loop
+			int offsetConditionSmall = 5; // number of images before conditon in image array
+			int offsetConditionLarge = 255; // number of images before conditon in image array
+			int TrialTick = nextStep[TRIAL_TICK_INDEX];
+			int TrialCondition = nextStep[TRIAL_ID_INDEX];
+			if (TrialCondition == 0)  // Small
+				*imageID = offsetConditionSmall + (TrialTick/2);
+			else
+				*imageID = offsetConditionLarge + (TrialTick/2);
+			
+			//*imageID	= int(((curExperimentRandomID*EXPERIMENT_TIME)+nextStep[EXPERIMENT_TICK_INDEX])/(MOVIE_TIME_BASE/TICK_BASE));
 		}
 
-		// Progress
+		// Progres
 		float tExp = nextStep[EXPERIMENT_TICK_INDEX];
 		float tExpTotal = EXPERIMENT_TIME-1;
 		float tSub = tExp+ (curExperimentIndex*EXPERIMENT_TIME);
@@ -705,10 +718,13 @@ EpiHeadExp::Tick()
 
 		if (curExperimentIndex != -1) // Last tick will be -1
 		{
-			expProgress = int(tExp/tExpTotal*100+0.5);
-			subjectProgress = int(tSub/tSubTotal*100+0.5);
+			expProgres = int(tExp/tExpTotal*100+0.5);
+			subjectProgres = int(tSub/tSubTotal*100+0.5);
 			//printf("%i (%i)\n", subjectProgress, expProgress);
 		}
+#ifdef OVERRIDE_MOVIE_RECORD
+		expProgress = tExp;
+#endif
 	}
 	
 	

@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+
+
+<group name="BackProp" description="basic multi-layer perceptron">
+
+
+<description type="text">
+	A basic old-school implementation of a backprop network with a single hidden layer.
+</description>
+
+
+<example description="A simple example">
+<module
+	class="BackProp"
+	name="BackProp"
+/>
+</example>
+
+
+<input name="INPUT" description="The inputs to the network to calculate the output from. An array of floats." />
+<input name="T_INPUT" description="The inputs to the network to learn from. An array of floats." />
+<input name="T_TARGET" description="The targets of the network (their desired output when training).
+	This array is expected to be filled with 0/1 or -1/1, depending on which activation_type
+	(step, sign, sigmoid or tanh) will be used. See the normalize_target parameter.
+	Determines the amount of network the layer will have." />
+<output name="OUTPUT" description="The output of the last input. This array will be the same size
+	as the TARGET input. It will contain 0/1's or -1/1's depending on which activation_type
+	is used." />
+<output name="ERROR" size="1" />
+
+<parameter name="lr"
+	description="Learning rate modifier How to modify (decrease) the learning rate over time.
+	sqrt has the formula 'learning_rate_now = learning_rate / (0.10 * sqrt(tick + 100));' and
+	log has the formula 'learning_rate_now = learning_rate / (0.42 * ikaros::log(tick + 10));'"
+	type="list"
+	values="none/sqrt/log"
+	default="0.2"/>
+<parameter name="momentum"
+	description="If momentum is used, this is the percentage of the learning taken from the previous tick."
+	type="float"
+	default="0.0"/>
+<parameter name="hidden_units"
+	description="Number of hidden units."
+	type="int"
+	default="10"/>
+
+
+
+<module class="BackProp" />
+
+
+<view title="BackProp">
+    <bar-graph
+        x="20" y="20"
+        width="300"
+        height="300"
+        source="*.OUTPUT"
+        title="OUTPUT"
+    />
+
+    <bar-graph
+        x="20" y="340"
+        width="300"
+        height="300"
+        source="*.ERROR"
+        title="ERROR"
+    />
+
+    <table
+        x="340" y="340"
+        width="300"
+        height="300"
+        source="*.CORRECT"
+        title="CORRECT"
+    />
+</view>
+
+<author>
+	<name>Stefan Winberg</name>
+    <name>Christian Balkenius</name>
+	<affiliation>LUCS</affiliation>
+</author>
+
+<files>
+	<file>BackProp.h</file>
+	<file>BackProp.cc</file>
+	<file>BackProp.ikc</file>
+</files>
+
+</group>

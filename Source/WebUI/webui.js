@@ -134,7 +134,11 @@ nav = {
         {
             s +=  "<ul>"
             for(i in group.views)
+            {
+                if(!group.views[i].name)
+                    group.views[i].name = "View #"+i;
                 s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + group.views[i].name + "</li>";
+            }
             s += "</ul>";
         }
 
@@ -220,7 +224,7 @@ inspector = {
                             evt.preventDefault();
                         else if(p.type == 'float' && "-0123456789.".indexOf(evt.key) == -1)
                             evt.preventDefault();
-                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-_.0123456789".indexOf(evt.key) == -1)
+                        else if(p.type == 'source' && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-_.0123456789*".indexOf(evt.key) == -1)
                             evt.preventDefault();
                     });
                     cell2.addEventListener("blur", function(evt) {
@@ -1105,7 +1109,7 @@ controller = {
 
     init: function () {
         controller.get("update.json", controller.update);
-        startPeriodicTask(function() {controller.requestUpdate();}, 100); // FIXME: Use adaptive frequency later
+        startPeriodicTask(function() {controller.requestUpdate();}, 50); // FIXME: Use adaptive frequency later
     },
     
     stop: function () {
@@ -1301,7 +1305,7 @@ controller = {
                 let name = wgt.localName.replace("webui-widget-", "");
                 s += "\t<"+name+"\n"
                 for(let p in wgt.parameters)
-                    if(wgt.parameters.hasOwnProperty(p) && wgt.parameters[p]) 
+                    if(wgt.parameters[p])
                         s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
                 s += "\t/>\n\n"
             }

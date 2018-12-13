@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+
+<group title="SpikingPopulation Example" 
+    vThreshold="20" ExPopSize="4" InhPopSize="2" >
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.0 0.0"
+		/>
+		<module
+		  class       =   "Constant"
+		  name        =   "InputSignal"
+		  outputsize="1"
+          data = "0"
+		/>
+
+		<module
+			class="SpikingPopulation"
+			name="RegularSpiking"
+			model_type = "Izhikevich"
+			neuron_type = "regular_spiking"
+			population_size = "@ExPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+		
+		<module
+			class="SpikingPopulation"
+			name="FastSpiking"
+			model_type = "Izhikevich"
+			neuron_type = "fast_spiking"
+			population_size = "@InhPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+		
+		<module
+            class = "PopulationCoder"
+            name = "PopulationCoder"
+            size = "@ExPopSize"
+            min = "-2"
+            max = "7"
+        />
+		<module
+			class = "Scale"
+			name = "Scale_Input"
+			_factor = "5"
+		/>
+        <module
+			class = "Scale"
+			name = "Scale_Excitation"
+			_factor = "5"
+		/>
+        <module
+			class = "Scale"
+			name = "Scale_Inhibition"
+			_factor = "5"
+		/>
+		
+        <connection sourcemodule = "FastSpiking" source = "OUTPUT" targetmodule = "Scale_Inhibition" target = "INPUT" />
+        <connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" targetmodule = "RegularSpiking" target = "INHIBITION_IN" />
+        
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RegularSpiking" target = "EXCITATION_IN" />
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "FastSpiking" target = "INHIBITION_IN" />
+
+		<connection sourcemodule = "InputSignal" source = "OUTPUT" targetmodule = "PopulationCoder" target = "INPUT" />
+        <connection sourcemodule = "PopulationCoder" source = "OUTPUT" targetmodule = "Scale_Input" target = "INPUT" />
+		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "RegularSpiking" target = "DIRECT_IN" />
+		
+        <connection sourcemodule = "RegularSpiking" source = "OUTPUT" targetmodule = "Scale_Excitation" target = "INPUT" />
+        <connection sourcemodule = "Scale_Excitation" source = "OUTPUT" targetmodule = "FastSpiking" target = "EXCITATION_IN" />
+		
+        
+        <view name="View">
+
+	<slider-horizontal
+		module = "Scale_Input"
+		xindex = "0"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "Scale Input"
+		max = "40"
+		parameter = "factor"
+		min = "0"
+		x = "200"
+		y = "0"
+		count = "1"
+		step = "0.01"
+	/>
+
+	<slider-horizontal
+		module = "InputSignal"
+		xindex = "0"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "InputSignal"
+		max = "5"
+		parameter = "data"
+		min = "0"
+		x = "200"
+		y = "100"
+		count = "1"
+		step = "0.01"
+	/>
+
+	<slider-horizontal
+		module = "Scale_Excitation"
+		xindex = "0"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "Scale Excitation"
+		max = "40"
+		parameter = "factor"
+		min = "0"
+		x = "200"
+		y = "200"
+		count = "1"
+		step = "0.01"
+	/>
+    <slider-horizontal
+		module = "Scale_Inhibition"
+		xindex = "0"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "Scale Inhibition"
+		max = "40"
+		parameter = "factor"
+		min = "0"
+		x = "200"
+		y = "300"
+		count = "1"
+		step = "0.01"
+	/>
+
+
+	<plot
+		buffer_size = "50"
+		y = "0"
+		x = "0"
+		min = "0"
+		height = "401"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "201"
+		source = "InputSignal.OUTPUT"
+		show_title = "true"
+		title = "InputSignal"
+		max = "10"
+	/>
+
+	<bar-graph
+		lineWidth = "1"
+		y = "400"
+		height = "200"
+		min = "-100"
+		show_frame = "true"
+		class = "bar-graph"
+		width = "200"
+		title = "Regular spiking"
+		max = "100"
+		direction = "horizontal"
+		show_title = "true"
+		source = "RegularSpiking.OUTPUT"
+	/>
+
+	<bar-graph
+		source = "Scale_Input.OUTPUT"
+		show_title = "true"
+		direction = "horizontal"
+		height = "200"
+		min = "0"
+		show_frame = "true"
+		class = "bar-graph"
+		width = "200"
+		title = "Scale Input"
+		max = "10"
+		lineWidth = "1"
+		y = "0"
+		x = "400"
+	/>
+
+	<bar-graph
+		lineWidth = "1"
+		y = "600"
+		height = "200"
+		min = "-100"
+		show_frame = "true"
+		class = "bar-graph"
+		width = "200"
+		title = "Fast spiking"
+		max = "100"
+		direction = "horizontal"
+		show_title = "true"
+		source = "FastSpiking.OUTPUT"
+	/>
+
+	<plot
+		buffer_size = "50"
+		y = "800"
+		height = "200"
+		min = "0"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		title = "Fastspiking adenosine"
+		max = "10"
+		show_title = "true"
+		source = "FastSpiking.ADENOSINE"
+		direction = "vertical"
+	/>
+
+	<plot
+		buffer_size = "50"
+		y = "400"
+		x = "200"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "RegularSpiking.OUTPUT"
+		show_title = "true"
+		title = "Regular spiking"
+		max = "100"
+	/>
+
+	<plot
+		buffer_size = "50"
+		y = "600"
+		x = "200"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "FastSpiking.OUTPUT"
+		show_title = "true"
+		title = "Fast spiking"
+		max = "100"
+	/>
+
+</view>
+
+</group>
+ 

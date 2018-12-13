@@ -8,7 +8,6 @@
 			class = "InputJPEG"
 			name = "Image"
 			filename = "../../../../../../Examples/Media/cannes.jpg"
-			iterations = "1000"
 		/>
 
 		<module class = "Downsample" name = "D1" />
@@ -21,20 +20,118 @@
 		<connection sourcemodule = "D2" source = "OUTPUT" targetmodule = "D3" target = "INPUT" delay="0" />
 		<connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "D4" target = "INPUT" delay="0" />
 
-		<view name="View 1">
-			<object
-				class ="Text" x="0" y="0" w="4"
-				name="Demonstration of the Downsample module"
-				text="This example demonstrates the module Downsample module. Four modules are/connected in series to produce different scales of the image." 
-			  />
-
-			<object class= "Image" name="Image" type="gray" module="Image" source="INTENSITY" x="0" y="1"  />
-
-			<object class= "Image" name="Image" type="gray" module="D1" source="OUTPUT" x="0" y="2"  />
-			<object class= "Image" name="Image" type="gray" module="D2" source="OUTPUT" x="1" y="2"  />
-			<object class= "Image" name="Image" type="gray" module="D3" source="OUTPUT" x="2" y="2"  />
-			<object class= "Image" name="Image" type="gray" module="D4" source="OUTPUT" x="3" y="2"  />
-		</view>
+		<view name="Downsample demo">
+				  
+				  <image
+				  w = "4"
+				  scales = "no"
+				  y = "300"
+				  flipXCanvas = "no"
+				  flipYAxis = "no"
+				  h = "4"
+				  format = "gray"
+				  source = "OUTPUT"
+				  x = "800"
+				  max_y = "1"
+				  height = "201"
+				  module = "D4"
+				  flipYCanvas = "no"
+				  width = "221"
+				  title = "Output"
+				  max_x = "1"
+				  scale = "both"
+				  flipXAxis = "no"
+				  class = "image"
+				  />
+				  
+				  <image
+				  w = "4"
+				  scales = "no"
+				  y = "80"
+				  flipXCanvas = "no"
+				  flipYAxis = "no"
+				  h = "4"
+				  format = "gray"
+				  source = "INTENSITY"
+				  x = "20"
+				  max_y = "1"
+				  height = "201"
+				  module = "Image"
+				  flipYCanvas = "no"
+				  width = "241"
+				  title = "Output"
+				  max_x = "1"
+				  scale = "both"
+				  flipXAxis = "no"
+				  class = "image"
+				  />
+				  
+				  <image
+				  w = "4"
+				  scales = "no"
+				  y = "300"
+				  flipXCanvas = "no"
+				  flipYAxis = "no"
+				  h = "4"
+				  format = "gray"
+				  source = "OUTPUT"
+				  x = "540"
+				  max_y = "1"
+				  height = "201"
+				  module = "D3"
+				  flipYCanvas = "no"
+				  width = "241"
+				  title = "Output"
+				  max_x = "1"
+				  scale = "both"
+				  flipXAxis = "no"
+				  class = "image"
+				  />
+				  
+				  <image
+				  w = "4"
+				  scales = "no"
+				  y = "300"
+				  flipXCanvas = "no"
+				  flipYAxis = "no"
+				  h = "4"
+				  format = "gray"
+				  source = "OUTPUT"
+				  x = "280"
+				  max_y = "1"
+				  height = "201"
+				  module = "D2"
+				  flipYCanvas = "no"
+				  width = "241"
+				  title = "Output"
+				  max_x = "1"
+				  scale = "both"
+				  flipXAxis = "no"
+				  class = "image"
+				  />
+				  
+				  <image
+				  w = "4"
+				  scales = "no"
+				  y = "300"
+				  flipXCanvas = "no"
+				  flipYAxis = "no"
+				  h = "4"
+				  format = "gray"
+				  source = "OUTPUT"
+				  x = "20"
+				  max_y = "1"
+				  height = "201"
+				  module = "D1"
+				  flipYCanvas = "no"
+				  width = "241"
+				  title = "Output"
+				  max_x = "1"
+				  scale = "both"
+				  flipXAxis = "no"
+				  class = "image"
+				  />
+			  </view>
 
     <module class = "Logger" name = "Logger" />
 </group>

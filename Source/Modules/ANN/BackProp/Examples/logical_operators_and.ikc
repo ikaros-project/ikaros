@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<group title= "BackProp Test">
+
+	<module
+		class = "InputFile"
+		name = "LOGOP_DATA"
+		filename = "logical_operators_and.data"
+		iterations = "10"
+	/>
+
+	<module
+		class = "BackProp"
+		name = "BackProp"
+	/>
+
+	<module
+		class = "OutputFile"
+		name = "RESULTS"
+		filename = "logical_operators_and.output"
+		>
+			<column name = "OUT"/>
+			<column name = "ERR"/>
+	</module>
+
+	<module
+		class = "Average"
+		name = "AVERAGE"
+	/>
+
+	<connection sourcemodule = "LOGOP_DATA"  source = "IN" targetmodule = "BackProp"  target = "INPUT" />
+	<connection sourcemodule = "LOGOP_DATA"  source = "IN" targetmodule = "BackProp"  target = "T_INPUT" />
+	<connection sourcemodule = "LOGOP_DATA"  source = "TA" targetmodule = "BackProp"  target = "T_TARGET" />
+	<!-- connection sourcemodule = "LOGOP_DATA"  source = "TR" targetmodule = "BackProp"  target = "TRAIN" / -->
+
+	<connection sourcemodule = "BackProp"  source = "OUTPUT" targetmodule = "RESULTS"  target = "OUT" />
+	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "RESULTS"  target = "ERR" />
+	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "AVERAGE"  target = "INPUT" />
+        
+        <view name="BackProp View">
+            <plot
+            source="AVERAGE.OUTPUT"
+            title="AVERAGE ERROR"
+            x="20"
+            y="20"
+            width="600"
+            height="300"
+            max="2"
+            />
+            <plot
+            source="BackProp.ERROR"
+            title="ERROR"
+            x="20"
+            y="340"
+            width="600"
+            height="300"
+            />
+        </view>
+
+</group>

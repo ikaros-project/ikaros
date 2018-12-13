@@ -55,30 +55,30 @@ Module(p)
 		int max_servo_id = 254;
 		
 		if (GetBoolValue("quick_scan"))
-			max_servo_id = 20;
+		max_servo_id = 20;
 		
 		// Testing all baudrates available
 		for (int i = 0; i < 254; i++)
 		{
 			switch (i) {
 				case 250:
-					baudRate = 2250000;
-					break;
+				baudRate = 2250000;
+				break;
 				case 251:
-					baudRate = 2500000;
-					break;
+				baudRate = 2500000;
+				break;
 				case 252:
-					baudRate = 3000000;
-					break;
+				baudRate = 3000000;
+				break;
 				case 253:
-					baudRate = 3500000;
-					//case 254:
-					//    baud_rate = 4000000; // guessing
-					break;
-					
+				baudRate = 3500000;
+				//case 254:
+				//    baud_rate = 4000000; // guessing
+				break;
+				
 				default:
-					baudRate = 2000000/(float(i)+1);
-					break;
+				baudRate = 2000000/(float(i)+1);
+				break;
 			}
 			printf("\n%-3i\tScannning baud rate \t %i\n",i, baudRate);
 			com = new DynamixelComm(device, baudRate);
@@ -93,7 +93,7 @@ Module(p)
 						size += 1;
 					}
 					else
-						printf(".");
+					printf(".");
 				}
 				delete com;
 			}
@@ -113,7 +113,7 @@ Module(p)
 	
 	servo = new DynamixelServo * [max_servo_id]; // maximum number of servos
 	for(int i=0; i<max_servo_id; i++)
-		servo[i] = NULL;
+	servo[i] = NULL;
 	
 	// Alt 2: scan for servos
 	printf("Scanning for servos. ID: ....");
@@ -137,15 +137,15 @@ Module(p)
 	
 	int j=0;
 	for(int i=0; i<size; i++)
-		if(servo[i])
-		{
-			servoId[j] = servo[i]->extraInfo.GetInt("ID");
-			servoIndex[j++] = i;
-		}
+	if(servo[i])
+	{
+		servoId[j] = servo[i]->extraInfo.GetInt("ID");
+		servoIndex[j++] = i;
+	}
 	
 	// If we did not find any servos kill ikaros.
 	if (size == 0)
-		Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
+	Notify(msg_fatal_error, "Did not find any Dynamixel servos.\n\n");
 	
 	changeAdress = GetIntValue("adress");
 	newValue = GetIntValue("value");
@@ -166,11 +166,11 @@ void DynamixelConfigure::Init()
 {
 	set	= GetInputArray("SET");
 	if (!set)
-		Notify(msg_fatal_error, "DynamixelConfigure: Input SET must be connected.");
+	Notify(msg_fatal_error, "DynamixelConfigure: Input SET must be connected.");
 	
 	active	= GetInputArray("ACTIVE");
 	if (!active)
-		Notify(msg_fatal_error, "DynamixelConfigure: Input ACTIVE must be connected.");
+	Notify(msg_fatal_error, "DynamixelConfigure: Input ACTIVE must be connected.");
 	
 	resetModeOut = GetOutputArray("RESET_MODE");
 	changeModeOut = GetOutputArray("CHANGE_MODE");
@@ -179,43 +179,43 @@ void DynamixelConfigure::Init()
 	// Create memory for binding map. These are specified in the csv file and correspond to where ikaros should look for IO in the dynamixel memory block
 	inAdress = new int * [nrOfServos];
 	for(int i=0; i<nrOfServos; i++)
-		inAdress[i] = new int [IK_INPUTS];
+	inAdress[i] = new int [IK_INPUTS];
 	
 	inAdressSize  = new int * [nrOfServos];
 	for(int i=0; i<nrOfServos; i++)
-		inAdressSize[i] = new int [IK_INPUTS];
+	inAdressSize[i] = new int [IK_INPUTS];
 	
 	
 	// Reset array
 	for (int i = 0; i < nrOfServos; i++)
-		for (int j = 0; j < IK_INPUTS; j++)
-			inAdress[i][j] = -1;
+	for (int j = 0; j < IK_INPUTS; j++)
+	inAdress[i][j] = -1;
 	
 	// Fill in where to look for data
 	for (int i = 0; i < nrOfServos; i++)
-		for (int j = 0; j < C_TABLE_SIZE; j++)
-		{
-			if (servo[servoIndex[i]]->controlTable[j].IkarosInputs >= 0)
-				inAdress[i][servo[servoIndex[i]]->controlTable[j].IkarosInputs] = servo[servoIndex[i]]->controlTable[j].Adress;
-		}
+	for (int j = 0; j < C_TABLE_SIZE; j++)
+	{
+		if (servo[servoIndex[i]]->controlTable[j].IkarosInputs >= 0)
+		inAdress[i][servo[servoIndex[i]]->controlTable[j].IkarosInputs] = servo[servoIndex[i]]->controlTable[j].Adress;
+	}
 	for(int i=0; i<nrOfServos; i++)
-		for(int j=0; j<IK_INPUTS; j++)
-			if(inAdress[i][j]!= -1)
-				inAdressSize[i][j] =  servo[servoIndex[i]]->controlTable[inAdress[i][j]].Size;
-			else
-				inAdressSize[i][j] =  -1;
+	for(int j=0; j<IK_INPUTS; j++)
+	if(inAdress[i][j]!= -1)
+	inAdressSize[i][j] =  servo[servoIndex[i]]->controlTable[inAdress[i][j]].Size;
+	else
+	inAdressSize[i][j] =  -1;
 	
 	// Do not allow mixed protocols
 	protocol = -1;
 	if (nrOfServos > 0)
-		for (int i = 0; i < nrOfServos; i++)
-		{
-			if (protocol == -1 && servo[servoIndex[i]]->protocol != 0)
-				protocol = servo[servoIndex[i]]->protocol; // Set protocol.
-			
-			if (protocol != servo[servoIndex[i]]->protocol)
-				Notify(msg_fatal_error, "Dynamixel uses different protocols. This is not allowed.\n\n");
-		}
+	for (int i = 0; i < nrOfServos; i++)
+	{
+		if (protocol == -1 && servo[servoIndex[i]]->protocol != 0)
+		protocol = servo[servoIndex[i]]->protocol; // Set protocol.
+		
+		if (protocol != servo[servoIndex[i]]->protocol)
+		Notify(msg_fatal_error, "Dynamixel uses different protocols. This is not allowed.\n\n");
+	}
 	
 	PrintAll();
 }
@@ -226,10 +226,10 @@ void DynamixelConfigure::Tick()
 	int selectedServo = int(active[0]);
 	
 	if (selectedServo < 0)
-		selectedServo = 0;
+	selectedServo = 0;
 	
 	if (selectedServo >= nrOfServos)
-		selectedServo = nrOfServos-1;
+	selectedServo = nrOfServos-1;
 	
 	if (resetMode)
 	{
@@ -263,10 +263,10 @@ void DynamixelConfigure::Tick()
 	}
 	
 	for(int i=0; i<nrOfServos; i++)
-		servo[i]->SetValueAtAdress(inAdress[i][IK_IN_LED], 0); // Lights off on all servos
+	servo[i]->SetValueAtAdress(inAdress[i][IK_IN_LED], 0); // Lights off on all servos
 	servo[selectedServo]->SetValueAtAdress(inAdress[selectedServo][IK_IN_LED], blink); // Lights on on selected servo
 	for(int i=0; i<nrOfServos; i++)
-		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+	com->WriteToServo(servoId[i], protocol, inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
 	blink = 1 - blink; // Blinking
 	timer.Sleep(100);
 	
@@ -275,9 +275,9 @@ DynamixelConfigure::~DynamixelConfigure()
 {
 	Timer timer;
 	for(int i=0; i<nrOfServos; i++)
-		servo[i]->SetValueAtAdress(inAdress[i][IK_IN_LED], 0); // Lights off on all servos
+	servo[i]->SetValueAtAdress(inAdress[i][IK_IN_LED], 0); // Lights off on all servos
 	for(int i=0; i<nrOfServos; i++)
-		com->WriteToServo(servoId[i], protocol, inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
+	com->WriteToServo(servoId[i], protocol, inAdress[i][IK_IN_LED], &servo[servoIndex[i]]->dynamixelMemory[inAdress[i][IK_IN_LED]], inAdressSize[i][IK_IN_LED]);
 	
 	timer.Sleep(200);
 	
@@ -293,19 +293,23 @@ DynamixelConfigure::PrintAll()
 {
 	printf("\nDYNAMIXEL\n");
 	printf("Number of servos: %d\n\n", nrOfServos);
-	printf("Control table:\n");
-	printf("%-8s %-32s|", "Adress", "Name");
-	for(int i=0; i<nrOfServos; i++)
-		printf(" %6s|",servo[servoIndex[i]]->extraInfo.Get("Servo Model String"));
-	printf("\n");
-	for (int j = 0; j < 100; j++)
+	if (nrOfServos != 0)
 	{
-		if (servo[servoIndex[0]]->controlTable[j].Visable) // Use the description from the first servo
+		printf("Control table:\n");
+		printf("%-8s %-32s|", "Adress", "Name");
+		
+		for(int i=0; i<nrOfServos; i++)
+		printf(" %6s|",servo[servoIndex[i]]->extraInfo.Get("Servo Model String"));
+		printf("\n");
+		for (int j = 0; j < 100; j++)
 		{
-			printf("%-8i %-32s|", j, servo[servoIndex[0]]->controlTable[j].Name.c_str());
-			for(int i=0; i<nrOfServos; i++)
+			if (servo[servoIndex[0]]->controlTable[j].Visable) // Use the description from the first servo
+			{
+				printf("%-8i %-32s|", j, servo[servoIndex[0]]->controlTable[j].Name.c_str());
+				for(int i=0; i<nrOfServos; i++)
 				printf(" %6i|",servo[servoIndex[i]]->GetValueAtAdress(j));
-			printf("\n");
+				printf("\n");
+			}
 		}
 	}
 }

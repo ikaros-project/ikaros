@@ -204,7 +204,8 @@ namespace ikaros
 	
 	float		sum(float * a, int size);	// sum a
 	float		sum(float ** a, int sizex, int sizey);	// sum a
-	float *	sum(float *r, float **a, int sizex, int sizey );
+	float *	sum(float *r, float **a, int sizex, int sizey ); // by row
+	float * sum(float *r, float **a, int sizex, int sizey, int axis); 
 	
 	float *		add(float * r, float alpha, int size);	// r = r + alpha
 	float **	add(float ** r, float alpha, int sizex, int sizey);	// r = r + alpha
@@ -453,6 +454,7 @@ namespace ikaros
     bool        equal(float *a, float b, int size, float tolerance);
     bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
 	 void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
+	float *		threshold_gteq(float *r, float *a, float threshold, float size);
 
 }	
 

@@ -1,0 +1,357 @@
+<?xml version="1.0"?>
+
+<group title="Cumulative inhibition Example" 
+    vThreshold="20" ExPopSize="4" InhPopSize="2" >
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.0 0.0"
+		/>
+		<module
+		  class       =   "Constant"
+		  name        =   "InputSignal"
+		  outputsize="1"
+          data = "0"
+		/>
+
+		<module
+			class="SpikingPopulation"
+			name="Pyramidal_1"
+			model_type = "Izhikevich"
+			neuron_type = "regular_spiking"
+			population_size = "@ExPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+        <module
+			class="SpikingPopulation"
+			name="Pyramidal_2"
+			model_type = "Izhikevich"
+			neuron_type = "regular_spiking"
+			population_size = "@ExPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+        <module
+			class="SpikingPopulation"
+			name="Pyramidal_3"
+			model_type = "Izhikevich"
+			neuron_type = "regular_spiking"
+			population_size = "@ExPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+		
+		<module
+			class="SpikingPopulation"
+			name="Interneuron_1"
+			model_type = "Izhikevich"
+			neuron_type = "fast_spiking"
+			population_size = "@InhPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+        <module
+			class="SpikingPopulation"
+			name="Interneuron_2"
+			model_type = "Izhikevich"
+			neuron_type = "fast_spiking"
+			population_size = "@InhPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "false"
+		/>
+		
+		<module
+            class = "PopulationCoder"
+            name = "PopulationCoder"
+            size = "@ExPopSize"
+            min = "-2"
+            max = "7"
+        />
+		<module
+			class = "Scale"
+			name = "Scale_Input"
+			_factor = "5"
+		/>
+        <module
+			class = "Scale"
+			name = "Scale_Excitation"
+			_factor = "5"
+		/>
+        <module
+			class = "Scale"
+			name = "Scale_Inhibition"
+			_factor = "5"
+		/>
+		
+        
+
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_1" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_1" target = "INHIBITION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_2" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_3" target = "EXCITATION_IN" />
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_1" target = "INHIBITION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_2" target = "INHIBITION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_1" target = "DIRECT_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_2" target = "DIRECT_IN" />
+
+		<connection sourcemodule = "InputSignal" source = "OUTPUT" targetmodule = "PopulationCoder" target = "INPUT" />
+        <connection sourcemodule = "PopulationCoder" source = "OUTPUT" targetmodule = "Scale_Input" target = "INPUT" />
+		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "Pyramidal_1" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "Pyramidal_2" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "Pyramidal_3" target = "DIRECT_IN" />
+		
+		<connection sourcemodule = "Pyramidal_1" source = "OUTPUT" targetmodule = "Scale_Excitation" target = "INPUT" />
+		<connection sourcemodule = "Scale_Excitation" source = "OUTPUT" size="@ExPopSize" targetmodule = "Interneuron_1" target = "EXCITATION_IN" />
+
+		<connection sourcemodule = "Interneuron_1" source = "OUTPUT" targetmodule = "Scale_Inhibition" target = "INPUT" />
+		<connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" size="@InhPopSize" targetmodule = "Pyramidal_2" target = "INHIBITION_IN" />
+
+		<connection sourcemodule = "Pyramidal_2" source = "OUTPUT" targetmodule = "Interneuron_2" target = "EXCITATION_IN" />
+		<connection sourcemodule = "Pyramidal_2" source = "OUTPUT" targetmodule = "Scale_Excitation" target = "INPUT" />
+		<connection sourcemodule = "Scale_Excitation" source = "OUTPUT" sourceoffset="@ExPopSize" size="@ExPopSize" targetmodule = "Interneuron_2" target = "EXCITATION_IN" />
+
+       
+	    <connection sourcemodule = "Interneuron_2" source = "OUTPUT" targetmodule = "Scale_Inhibition" target = "INPUT" />
+		<connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" sourceoffset="@InhPopSize" size="@InhPopSize" targetmodule = "Pyramidal_3" target = "INHIBITION_IN" />
+
+		<connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" size="@InhPopSize" targetmodule = "Pyramidal_3" target = "INHIBITION_IN" />
+
+        <view name="View">
+
+	<slider-horizontal
+		module = "Scale_Input"
+		xindex = "20"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "Scale Input"
+		max = "40"
+		parameter = "factor"
+		min = "0"
+		x = "200"
+		y = "0"
+		count = "1"
+		step = "0.01"
+		value="20"
+	/>
+
+	<slider-horizontal
+		module = "InputSignal"
+		xindex = "0"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "InputSignal"
+		max = "5"
+		parameter = "data"
+		min = "0"
+		x = "200"
+		y = "100"
+		count = "1"
+		step = "0.01"
+		value="20"
+	/>
+
+	<slider-horizontal
+		module = "Scale_Excitation"
+		xindex = "20"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "Scale Excitation"
+		max = "40"
+		parameter = "factor"
+		min = "0"
+		x = "200"
+		y = "200"
+		count = "1"
+		step = "0.01"
+	/>
+    <slider-horizontal
+		module = "Scale_Inhibition"
+		xindex = "20"
+		height = "100"
+		class = "slider-horizontal"
+		width = "200"
+		show_title = "true"
+		title = "Scale Inhibition"
+		max = "40"
+		parameter = "factor"
+		min = "0"
+		x = "200"
+		y = "300"
+		count = "1"
+		step = "0.01"
+	/>
+
+
+	<plot
+		buffer_size = "50"
+		y = "0"
+		x = "0"
+		min = "0"
+		height = "401"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "201"
+		source = "InputSignal.OUTPUT"
+		show_title = "true"
+		title = "InputSignal"
+		max = "10"
+	/>
+
+	<bar-graph
+		lineWidth = "1"
+		y = "400"
+		height = "200"
+		min = "-100"
+		show_frame = "true"
+		class = "bar-graph"
+		width = "200"
+		title = "Pyramidal_1"
+		max = "100"
+		direction = "horizontal"
+		show_title = "true"
+		source = "Pyramidal_1.OUTPUT"
+	/>
+
+	<bar-graph
+		source = "Scale_Input.OUTPUT"
+		show_title = "true"
+		direction = "horizontal"
+		height = "200"
+		min = "0"
+		show_frame = "true"
+		class = "bar-graph"
+		width = "200"
+		title = "Scale Input"
+		max = "10"
+		lineWidth = "1"
+		y = "0"
+		x = "400"
+	/>
+
+	<bar-graph
+		lineWidth = "1"
+		y = "600"
+		height = "200"
+		min = "-100"
+		show_frame = "true"
+		class = "bar-graph"
+		width = "200"
+		title = "Interneuron_1"
+		max = "100"
+		direction = "horizontal"
+		show_title = "true"
+		source = "Interneuron_1.OUTPUT"
+	/>
+
+	<plot
+		buffer_size = "50"
+		y = "800"
+		x="400"
+		height = "200"
+		min = "0"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		title = "Fastspiking adenosine"
+		max = "10"
+		show_title = "true"
+		source = "Interneuron_1.ADENOSINE"
+		direction = "vertical"
+	/>
+
+	<plot
+		buffer_size = "50"
+		y = "400"
+		x = "200"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "Pyramidal_1.OUTPUT"
+		show_title = "true"
+		title = "Pyramidal_1"
+		max = "100"
+	/>
+
+	<plot
+		buffer_size = "50"
+		y = "600"
+		x = "200"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "Interneuron_1.OUTPUT"
+		show_title = "true"
+		title = "Interneuron_1"
+		max = "100"
+	/>
+	<plot
+		buffer_size = "50"
+		y = "800"
+		x = "0"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "Pyramidal_2.OUTPUT"
+		show_title = "true"
+		title = "Pyramidal_2"
+		max = "100"
+	/>
+	<plot
+		buffer_size = "50"
+		y = "800"
+		x = "200"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "Interneuron_2.OUTPUT"
+		show_title = "true"
+		title = "Interneuron_2"
+		max = "100"
+	/>
+	<plot
+		buffer_size = "50"
+		y = "1000"
+		x = "0"
+		min = "-100"
+		height = "200"
+		direction = "vertical"
+		show_frame = "true"
+		class = "plot"
+		width = "200"
+		source = "Pyramidal_3.OUTPUT"
+		show_title = "true"
+		title = "Pyramidal_3"
+		max = "100"
+	/>
+
+</view>
+
+</group>
+ 

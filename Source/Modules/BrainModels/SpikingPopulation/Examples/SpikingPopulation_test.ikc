@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+
+<group title="SpikingPopulation Example" vThreshold="20" vPopSize="10" >
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.0 0.0"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "ticksquare"
+          tickduty   = "600"
+          basetime = "1000"
+		  offset      =   "0.0"
+		  amplitude   =   "5"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class="SpikingPopulation"
+			name="RegularSpiking"
+			model_type = "Izhikevich"
+			neuron_type = "regular_spiking"
+			population_size = "@vPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "true"
+		/>
+		<module
+			class="SpikingPopulation"
+			name="IntrBursting"
+			model_type = "Izhikevich"
+			neuron_type = "intrinsically_bursting"
+			population_size = "@vPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "true"
+		/>
+		<module
+			class="SpikingPopulation"
+			name="Chattering"
+			model_type = "Izhikevich"
+			neuron_type = "chattering"
+			population_size = "@vPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "true"
+		/>
+		<module
+			class="SpikingPopulation"
+			name="FastSpiking"
+			model_type = "Izhikevich"
+			neuron_type = "fast_spiking"
+			population_size = "@vPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "true"
+		/>
+		<module
+			class="SpikingPopulation"
+			name="LowThreshold"
+			model_type = "Izhikevich"
+			neuron_type = "low_threshold"
+			population_size = "@vPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "true"
+		/>
+		<module
+			class="SpikingPopulation"
+			name="Resonator"
+			model_type = "Izhikevich"
+			neuron_type = "resonator"
+			population_size = "@vPopSize"
+			substeps = "2"
+			threshold = "@vThreshold"
+			debug = "true"
+		/>
+		<module
+            class = "PopulationCoder"
+            name = "PopulationCoder"
+            size = "@vPopSize"
+            min = "-2"
+            max = "7"
+        />
+		<module
+			class = "Scale"
+			name = "Scale"
+			_factor = "5"
+		/>
+		
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RegularSpiking" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RegularSpiking" target = "INHIBITION_IN" />
+		
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "IntrBursting" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "IntrBursting" target = "INHIBITION_IN" />
+		
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Chattering" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Chattering" target = "INHIBITION_IN" />
+
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "FastSpiking" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "FastSpiking" target = "INHIBITION_IN" />
+        
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "LowThreshold" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "LowThreshold" target = "INHIBITION_IN" />
+        
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Resonator" target = "EXCITATION_IN" />
+		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Resonator" target = "INHIBITION_IN" />
+        
+		<connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "PopulationCoder" target = "INPUT" />
+        <connection sourcemodule = "PopulationCoder" source = "OUTPUT" targetmodule = "Scale" target = "INPUT" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "RegularSpiking" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "IntrBursting" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "Chattering" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "FastSpiking" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "LowThreshold" target = "DIRECT_IN" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "Resonator" target = "DIRECT_IN" />
+
+		<view name="View">
+			<slider-horizontal
+				xindex = "0"
+				height = "100"
+				width = "200"
+				module = "Scale"
+				parameter = "factor"
+				min = "0"
+				class = "slider-horizontal"
+				show_title = "true"
+				title = "Scale"
+				max = "20"
+				count = "1"
+				step = "0.01"
+				x = "200"
+				y = "0"
+			/>
+			<plot 
+				source="SquareGen.OUTPUT" 
+				x="0" y="0" width="200" height="200"
+				min="0"
+				max="10"
+				title="Squaregen"
+			/>
+			<bar-graph
+				direction="horizontal"  
+				source="RegularSpiking.OUTPUT" 
+				x="0" y="200" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Regular spiking"
+			/>
+			<bar-graph
+				direction="horizontal"  
+				source="IntrBursting.OUTPUT" 
+				x="0" y="400" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Bursting"
+			/>
+			<bar-graph
+				direction="horizontal"  
+				source="Chattering.OUTPUT" 
+				x="0" y="600" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Chattering"
+			/>
+			<bar-graph
+				direction="horizontal"  
+				source="FastSpiking.OUTPUT" 
+				x="0" y="800" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Fast spiking"
+			/>
+			<bar-graph
+				direction="horizontal"  
+				source="LowThreshold.OUTPUT" 
+				x="0" y="1000" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Low threshold"
+			/>
+			<bar-graph
+				direction="horizontal"  
+				source="Resonator.OUTPUT" 
+				x="0" y="1200" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Resonator"
+			/>
+			<plot  
+				source="LowThreshold.ADENOSINE" 
+				x="0" y="1400" width="200" height="200"
+				min="0"
+				max="10"
+				title="Resonator"
+			/>
+
+
+			<plot
+				  
+				source="RegularSpiking.OUTPUT" 
+				x="200" y="200" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Regular spiking"
+				color="LUT_Fire"
+			/>
+			<plot
+				  
+				source="IntrBursting.OUTPUT" 
+				x="200" y="400" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Bursting"
+			/>
+			<plot
+				  
+				source="Chattering.OUTPUT" 
+				x="200" y="600" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Chattering"
+			/>
+			<plot
+				  
+				source="FastSpiking.OUTPUT" 
+				x="200" y="800" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Fast spiking"
+			/>
+			<plot
+				  
+				source="LowThreshold.OUTPUT" 
+				x="200" y="1000" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Low threshold"
+			/>
+			<plot
+				  
+				source="Resonator.OUTPUT" 
+				x="200" y="1200" width="200" height="200"
+				min="-100"
+				max="100"
+				title="Resonator"
+			/>
+		</view>
+
+</group>
+ 

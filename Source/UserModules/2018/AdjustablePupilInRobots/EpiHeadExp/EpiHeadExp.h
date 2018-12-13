@@ -140,7 +140,7 @@ public:
 			{2,3,0,1}
 		};
 
-		int randomTrails[NUMBER_OF_RANDOM_SCHEMAS][NUMBER_OF_TRIALS] =
+		int randomTrials[NUMBER_OF_RANDOM_SCHEMAS][NUMBER_OF_TRIALS] =
 		{
 			{0,0,1,1,0,1,0,1,1,0,1,0,1,0,1,0,0,1,0,1,1,0,1,0},
 			{1,1,0,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,1},
@@ -212,8 +212,8 @@ public:
 	
 	
 	// Progress
-	int expProgress = 0;
-	int subjectProgress = 0;
+	int expProgres = 0;
+	int subjectProgres = 0;
 	
     void writeToLogFile();
     void writeToNewLogFile();

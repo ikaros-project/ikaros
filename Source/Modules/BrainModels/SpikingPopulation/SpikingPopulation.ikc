@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<group name="SpikingPopulation" description="minimal example module">
+
+	<description type="text">
+		Module that simulates a population of spiking neurons.
+		Equations are based on Izhikevich
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SpikingPopulation"
+			name="SpikingPopulation"
+			model_type = "Izhikevich"
+			neuron_type = "pyramidal"
+			population_size = "100"
+			substeps = "2"
+			threshold = "30"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="model_type" type="list" default="Izhikevich" values="Izhikevich" description="Spiking model to use" />
+	<parameter name="neuron_type" type="list" 
+		default="regular_spiking" 
+		values="regular_spiking/intrinsically_bursting/chattering/fast_spiking/low_threshold/resonator" 
+		description="Type of neuron to use" />
+	<parameter name="population_size" type="int" default="50" description="Number of neurons in population" />
+	<parameter name="substeps" type="int" default="2" description="Number of substeps per update for numerical stability" />
+	<parameter name="threshold" type="float" default="30" description="Firing threshold for neurons" />
+	<parameter name="adenosine_factor" type="float" default="1" description="Adenosine cost of action potentials per tick" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="DIRECT_IN" description="Direct current input" size_param="population_size" />
+	<input name="EXCITATION_IN" description="Synaptic exhitation input" />
+	<input name="INHIBITION_IN" description="Synaptic inhibition input" />
+
+	<output name="OUTPUT" description="The first output" size_param="population_size" />
+	<output name="ADENOSINE" size="1" description="Scalar indicating amount of adenosine produced every tick" />
+
+	<module class="SpikingPopulation" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>trond_arild.tjostheim@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>SpikingPopulation.h</file>
+   		<file>SpikingPopulation.cc</file>
+   		<file>SpikingPopulation.ikc</file>
+   </files>
+
+</group>
+

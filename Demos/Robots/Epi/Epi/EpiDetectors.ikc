@@ -174,7 +174,7 @@
     <!-- Confidance -->
     <!-- Marker -->
     <output name = "L_CHANGE_CONF"          sourcemodule = "SpatialClustering"    source = "CONFIDENCE" />
-    <output name = "L_FACE_CONF"            sourcemodule = "L_FaceDetector"    source = "FACE_COUNT" />
+    <_output name = "L_FACE_CONF"            sourcemodule = "L_FaceDetector"    source = "FACE_COUNT" />
 
     <!-- Trash module -->
     <module class = "Sink" name = "NotAvailable" />
@@ -182,21 +182,25 @@
     <!-- Detectors -->
 
     <!-- FACE -->
-    <_module
+    <module
         class = "MPIFaceDetector"
         name = "L_FaceDetector"
         min_size = "0.0"
         use_tracking = "yes"
-        period = "20"
+        period = "1"
+        active = "no"
+
     />
-    <_module
+    <module
     	class = "MPIFaceDetector"
         name = "R_FaceDetector"
         min_size = "0.0"
         use_tracking = "yes"
-        period = "20"
+        period = "1"
+        active = "no"
+
     />
-    <module
+    <_module
         class = "CIFaceDetector"
         name = "L_FaceDetector"
         min_size = "0.0"
@@ -206,7 +210,7 @@
 
 
     />
-    <module
+    <_module
     	class = "CIFaceDetector"
         name = "R_FaceDetector"
         min_size = "0.0"
