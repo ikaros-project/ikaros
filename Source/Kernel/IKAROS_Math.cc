@@ -4647,7 +4647,8 @@ namespace ikaros
             else
                 r[i] = 0.f;
         }
-        return r;
+		return r;
+
     }
 
 }
