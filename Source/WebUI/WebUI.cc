@@ -319,7 +319,7 @@ WebUI::AddDataSource(const char * module, const char * source)
         return;
     }
 	
-    if (k->GetSource(group, m, io, module, source))
+    if (k->GetSource(group, m, io, module, source)) // FIXME: Allow inputs here as well
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
@@ -644,8 +644,8 @@ WebUI::Run()
     k->timer->Restart();
     tick = 0;
 
-    httpThread = new Thread();
-    httpThread->Create(WebUI::StartHTTPThread, this);
+    httpThread = new std::thread(WebUI::StartHTTPThread, this);
+//    httpThread->Create(WebUI::StartHTTPThread, this);
 
     while (!k->Terminate())
     {
@@ -670,9 +670,10 @@ WebUI::Run()
         }
     }
 
-    if(k->max_ticks != -1)
-        httpThread->Kill(); // FIXME: This is a really ugly solution; but this code will soon be replaced anyway
-    httpThread->Join();
+//    if(k->max_ticks != -1)
+//        httpThread->Kill(); // FIXME: This is a really ugly solution; but this code will soon be replaced anyway
+    httpThread->join();
+    delete httpThread;
 //    chdir(k->ikc_dir);
 }
 
@@ -831,7 +832,6 @@ WebUI::CopyUIData()
     // Step 3: store in ui_data
 
     float * old_ui_data = atomic_exchange(&ui_data, local_ui_data);
-
     if(old_ui_data)
         destroy_array(old_ui_data);
     
@@ -852,10 +852,10 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     long int s = 0;
 
     // Send
-    
+
     Dictionary header;
 	
-    header.Set("Session-Id", std::to_string(k->session_id).c_str());
+    header.Set("Session-Id", std::to_string(k->session_id).c_str()); // FIXME: GetValue("session_id")
     header.Set("Content-Type", "application/json");
     header.Set("Cache-Control", "no-cache");
     header.Set("Cache-Control", "no-store");
@@ -1039,12 +1039,14 @@ WebUI::HandleHTTPRequest()
         }
         else // possibly a data request - send requested data - very temporary version without thread or real-time support
         {
-            [[maybe_unused]] char * var = strsep(&args, "=");
+            //C++17 [[maybe_unused]] char * var =
+            strsep(&args, "=");
             
             // Build data package
 
             char * root = strsep(&args, "#");
-            [[maybe_unused]] char * view_name = strsep(&args, "#");
+            //C++17 [[maybe_unused]] char * view_name =
+            strsep(&args, "#");
             
             // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
             

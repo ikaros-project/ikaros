@@ -41,7 +41,7 @@ Expression::Expression(Parameter * p):
     // split variables to get number of inputs
     // TODO input sanitation
     variables = split_string(inputs, ',');
-    int num_inp = variables.size();
+    long num_inp = variables.size();
     // iterate over variables and create inputs
     
     for(int i = 0; i < num_inp; i++)
@@ -92,7 +92,7 @@ Expression::Init()
     output_array = GetOutputArray("OUTPUT");
     output_array_size = GetOutputSize("OUTPUT");
 
-    internal_array = create_array(variables.size() + 1);
+    internal_array = create_array(static_cast<int>(variables.size() + 1));
     // set up parser
     
     for(int i = 0; i < variables.size(); i++)

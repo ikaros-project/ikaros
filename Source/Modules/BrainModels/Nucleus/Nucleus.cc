@@ -35,20 +35,14 @@ Nucleus::Init()
     Bind(psi, "psi");
     
     Bind(scale, "scale");
-
     Bind(epsilon, "epsilon");
 
+    io(excitation, excitation_size, "EXCITATION");
+    io(inhibition, inhibition_size, "INHIBITION");
+    io(shunting_inhibition, shunting_inhibition_size, "SHUNTING_INHIBITION");
+    io(output, "OUTPUT");
+
     x = 0;
-    
-    excitation	=	GetInputArray("EXCITATION");
-    inhibition	=	GetInputArray("INHIBITION");
-    shunting_inhibition	=	GetInputArray("SHUNTING_INHIBITION");
-
-    excitation_size =	GetInputSize("EXCITATION");
-    inhibition_size =	GetInputSize("INHIBITION");
-    shunting_inhibition_size =	GetInputSize("SHUNTING_INHIBITION");
-
-    output		=	GetOutputArray("OUTPUT");
 }
 
 

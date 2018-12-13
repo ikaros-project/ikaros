@@ -203,6 +203,126 @@ const std::vector<std::string> split_string(const std::string &s, const char &c)
     return v;
 }
 
+
+
+const std::vector<std::string>
+split(const std::string & s, const std::string & sep, int maxsplit)
+{
+    std::vector<std::string> r;
+    std::string::size_type i=0, j=0;
+    std::string::size_type len = s.size();
+    std::string::size_type n = sep.size();
+
+    if (n == 0)
+    {
+        while(i<len)
+        {
+            while (i < len && ::isspace(s[i]))
+                i++;
+            j = i;
+            while (i < len && !::isspace(s[i]))
+                i++;
+
+            if(j < i)
+            {
+                if(maxsplit != -1 && maxsplit-- <= 0)
+                    break;
+                r.push_back(s.substr(j, i-j));
+                while(i < len && ::isspace(s[i]))
+                    i++;
+                j = i;
+            }
+        }
+        if (j < len)
+            r.push_back(s.substr(j, len - j));
+
+        return r;
+    }
+
+    i = j = 0;
+    while (i+n <= len)
+    {
+        if (s[i] == sep[0] && s.substr(i, n) == sep)
+        {
+            if(maxsplit != -1 && maxsplit-- <= 0)
+                break;
+
+            r.push_back(s.substr(j, i - j));
+            i = j = i + n;
+        }
+        else
+            i++;
+    }
+
+    r.push_back(s.substr(j, len-j));
+    return r;
+}
+
+
+
+const std::vector<std::string>
+rsplit(const std::string & str, const std::string & sep, int maxsplit)
+{
+    if (maxsplit < 0)   // FIXME: Is this necessary?? WHY???
+        return split(str, sep, maxsplit);
+
+    std::vector<std::string> r;
+    std::string::size_type i=str.size();
+    std::string::size_type j=str.size();
+    std::string::size_type n=sep.size();
+
+    if(n == 0)
+    {
+        while(i > 0)
+        {
+            while(i > 0 && ::isspace(str[i-1]))
+                i--;
+            j = i;
+            while(i > 0 && !::isspace(str[i-1]))
+                i--;
+
+            if (j > i)
+            {
+                if(maxsplit != -1 && maxsplit-- <= 0)
+                    break;
+                r.push_back(str.substr(i, j-i));
+                while(i > 0 && ::isspace(str[i-1]))
+                    i--;
+                j = i;
+            }
+        }
+        if (j > 0)
+            r.push_back( str.substr(0, j));
+    }
+    else
+    {
+        while(i >= n)
+        {
+            if(str[i-1] == sep[n-1] && str.substr(i-n, n) == sep)
+            {
+                if(maxsplit != -1 && maxsplit-- <= 0)
+                    break;
+                r.push_back(str.substr(i, j-i));
+                i = j = i-n;
+            }
+            else
+                i--;
+        }
+        r.push_back(str.substr(0, j));
+    }
+    
+    std::reverse(r.begin(), r.end());
+    return r;
+}
+
+
+bool
+starts_with(const std::string & s, const std::string & start)
+{
+    return start.length() <= s.length() && equal(start.begin(), start.end(), s.begin()); // more efficient than find
+}
+
+
 bool
 is_path(const char * p)
 {

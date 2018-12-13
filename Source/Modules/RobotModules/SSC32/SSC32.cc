@@ -144,7 +144,7 @@ SSC32::Init()
     
     SendPositions(home);
     
-    generateOutput = GetBoolValue("generate_output") || OutputConnected("OUPUT");
+    generateOutput = GetBoolValue("generate_output");
 }
 
 

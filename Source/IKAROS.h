@@ -27,6 +27,10 @@
 #define IKAROS
 
 #include <string>
+#include <map>
+#include <set>
+#include <deque>
+#include <thread>
 
 #define VERSION "2.0"
 
@@ -36,7 +40,6 @@
 #include "Kernel/IKAROS_Utils.h"
 #include "Kernel/IKAROS_Math.h"
 #include "Kernel/IKAROS_Serial.h"
-#include "Kernel/IKAROS_Threads.h"
 #include "Kernel/IKAROS_XML.h"
 
 // Messages to use with Notify
@@ -60,19 +63,19 @@ const int    log_level_info		=    6;
 const int    log_level_debug	=    7;
 const int    log_level_trace	=    8;
 
-// Size constant
-
-const int    unknown_size		=    -1;
-
 // Binding constants - type constants
 
-const int bind_float    = 0;
-const int bind_int      = 1;
-const int bind_bool     = 2;
-const int bind_list     = 3;
-const int bind_array    = 4;
-const int bind_matrix   = 5;
-const int bind_string   = 6;
+const int   bind_float    = 0;
+const int   bind_int      = 1;
+const int   bind_bool     = 2;
+const int   bind_list     = 3;
+const int   bind_array    = 4;
+const int   bind_matrix   = 5;
+const int   bind_string   = 6;
+
+// Size constant
+
+const int    unknown_size   =    -1;
 
 // Forward declarations
 
@@ -151,9 +154,9 @@ typedef Module * (*ModuleCreator)(Parameter *);
 
 class ModuleClass
 {
-private:
-    ModuleCreator    module_creator;
 public:
+    ModuleCreator    module_creator;
+
     const char *      name;
     const char *      path;
     ModuleClass *     next;
@@ -171,16 +174,18 @@ public:
 //
 // Module_IO is used internally by Module and Kernel to represent the input and output connections of a module
 //
+// data: matrix[***], optional, allow_multiple, module, name, max_delay
+// methods: delay_output - could be a matrix function => no methods
 
 class Module_IO
 {
 public:
     int                 sizex;        // no of columns    *** made public for WebUI ***
     int                 sizey;        // no of rows
-    float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes in 0.8.0 for delays
+    float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes for delays
     bool                optional;
     bool                allow_multiple;
-private:
+//private:
     Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt=false, bool multiple=true);      // Create output from module m with name n and size x and y (default x=unkwon_size, y=1)
     ~Module_IO();                                                                                                   // Deletes the data
     
@@ -188,10 +193,8 @@ private:
     void                SetSize(int x, int y=1);
     void                DelayOutputs();
     
-    
     Module_IO   *   next;
     Module      *   module;
-    //const char  *   name;
     std::string     name;
     float       **  data;        // Array for delays
     int             size;        // should equal sizex*sizey
@@ -210,6 +213,7 @@ private:
 //
 // Module is the base class for all simulation modules
 //
+// Bind(io_matrix_or_variable, "name") should replace all GetValue and GetInput/Output and get_size
 
 class Module
 {
@@ -235,10 +239,11 @@ public:
     int        GetOutputSize(const char * name);                    // Get the size of an output array (size_x * size_y if two-dimensional)
     int        GetOutputSizeX(const char * name);                   // Get the horizontal size of an output array
     int        GetOutputSizeY(const char * name);                   // Get the vertical size of an output array (1 if one-dimensional)
-    
-    bool        InputConnected(const char * name);                // True if input receives at least one connection
-    bool        OutputConnected(const char * name);               // True if output is connected to at least one module
-    
+
+    void            io(float * & a, const char * name);   // When size is known
+    void            io(float * & a, int & size, const char * name);   // Replaces all array functions above; will support resizeable arrays in the future
+    void            io(float ** & m, int & size_x, int & size_y, const char * name);   // Replaces all matrix functions above; will support resizeable matrices in the future
+
     void            StoreArray(const char * path, const char * name, float * a, int size);
     void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
 
@@ -257,7 +262,15 @@ public:
     void            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
     void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
 
-protected:
+    // zero connections in both directions
+
+    std::set<std::string> outgoing_connection;  // only one entry even if there are multiple connections
+    std::vector<Module *> connects_to_with_zero_delay;
+    std::vector<Module *> connects_from_with_zero_delay;
+
+    int             mark;
+
+//protected:
     void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
     void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
     void            AddIOFromIKC();
@@ -278,12 +291,13 @@ protected:
     float           GetFloatValue(const char * n, float d=0);            // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValue(const char * n, int d=0);                // Search through XML for parameter and return its value as a float or default value d if not found
     bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
-    int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not foun
+    int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not found
     float *         GetArray(const char * n, int & size, bool fixed_size=false);		// Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
     float **        GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size=false);	// Search through XML for parameter and return its value as a matrix; fixed_size=true uses supplied size rathrer than data size
     int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
 
     // Bind values to names and get values from XML tree if possible
+    // FIXME: bind with read-only flag to replace all the getter functions
     
     void            Bind(float & v, const char * n);                        // Bind a floating point value to a name
     void            Bind(int & v, const char * n);                          // Bind int OR list value to name
@@ -295,35 +309,34 @@ protected:
     void            SetParameter(const char * parameter_name, int x, int y, float value);
     virtual void    Command(std::string s, float x=0, float y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
 
-    XMLElement *    xml;
+    XMLElement *        xml;
 
-private:
-    Module     *        next;                   // Next module in list
-    Module     *        next_in_threadGroup;    // Next module in ThreadGroup
-
-    const char    *		class_name;
+//private:
+    const char *		class_name;
     const char *		instance_name;
 	char *				full_instance_name;
 
-    Kernel    *         kernel;
-    int                 log_level;
+    Kernel *            kernel;
 
-    Module_IO    *    input_list;        // List of inputs
-    Module_IO    *    output_list;       // List of outputs
+    Module_IO    *      input_list;        // List of inputs
+    Module_IO    *      output_list;       // List of outputs
     Binding      *      bindings;
 
-    int                period;           // How often should the module tick
-    int                phase;            // Phase when the module ticks
-    bool               active;           // If false, will not call Tick()
+    // Exposed as parameters
 
-    Timer *            timer;            // Statistics variables
-    float            time;
-    float            ticks;
+    int                 period;           // How often should the module tick
+    int                 phase;            // Phase when the module ticks
+    bool                active;           // If false, will not call Tick()
+    int                 log_level;
 
-    void            DelayOutputs();
+    Timer *             timer;            // Statistics variables
+    float               time;
+    float               ticks;
 
-    Module_IO *        GetModule_IO(Module_IO * list, const char * name);
-    void            AllocateOutputs();                                // Allocate memory for outputs
+    void                DelayOutputs();
+
+    Module_IO *         GetModule_IO(Module_IO * list, const char * name);
+    void                AllocateOutputs(); // Allocate memory for outputs
 
     friend class Kernel;
     friend class Module_IO;
@@ -342,7 +355,7 @@ private:
 
 class Connection
 {                            // Connection contains info about data flow between modules
-private:
+public:
     Connection        *    next;                // Next connection in list
     Module_IO         *    source_io;
     int                    source_offset;
@@ -350,7 +363,7 @@ private:
     int                    target_offset;
     int                    size;                // The size of the data to be copied
     int                    delay;
-    bool                   active;              // When false, datat should not be propagated
+    bool                   active;              // When false, data should not be propagated
     
     Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a); // int d = 1, bool a = true
     ~Connection();
@@ -370,19 +383,14 @@ private:
 class ThreadGroup
 {
 public:
-    Kernel *        kernel;
-    ThreadGroup *    next;
-    Module *        modules;
-    Module *        last_module;        // Last module in list
+    std::vector<Module *> _modules;
     
-    int            period;              // How often should the thread be started
-    int            phase;               // Phase when the thread should start
-    
-    Thread *        thread;
-    
-    void        AddModule(Module * m);        // Try to add module to this or next thread; return false if it is necessary to create a new thread
+    int             period;              // How often should the thread be started
+    int             phase;               // Phase when the thread should start
+    std::thread *   thread;
     
     ThreadGroup(Kernel * k);
+    ThreadGroup(Kernel * k, int period, int phase);
     ~ThreadGroup();
     
     void        Start(long tick);
@@ -427,38 +435,46 @@ public:
     void        AddModule(Module * m);                      // Add a module to the simulation
     Module *    GetModule(const char * n);                  // Find a module based on its name
     Module *    GetModuleFromFullName(const char * n);
-    
+
 	const char *    GetBatchValue(const char * n);          // Get a value from a batch element with the target n and the current batch rank
-    
+
     const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
+    bool        GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
+
+//    Module *    GetModule(GroupElement * group, const std::string & module_name); // Get module from full or partial name relative to a group
+//    Module_IO * GetSource(GroupElement * group, const std::string & source_module_name, const std::string & source_name); // FIXME: add version for module in addition to group
+//    Module_IO * GetTarget(GroupElement * group, const std::string & target_module_name, const std::string & target_name);
+
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
     void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
+ 
+//    int             Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const std::string & delay = "", int extra_delay = 0, bool is_active = true);
+
     void        SendCommand(XMLElement * group, const char * group_name, const char * command_name, float x, float y, std::string value);
     
-    int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
+//    int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
+    int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const std::string & delay, int extra_delay, bool is_active);
     
     XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
-    void			BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    GroupElement *  BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    void            ConnectModules(GroupElement * group, std::string indent="");
     void			ReadXML();
-    
-    bool		InputConnected(Module * m, const char * input_name);
-    bool        OutputConnected(Module * m, const char * output_name);
-    
+
     std::string JSONString();
 
     long        GetTick()
     {
         return tick;
     }
-    
+
     long        GetTickLength()
     {
         return tick_length;
     }
-    
+
     const char *	GetClassPath(const char * class_name)
     {
         return classes->GetClassPath(class_name);
@@ -486,9 +502,8 @@ public:
     float              lag;                // Lag of a tick in real-time mode
     
     int                 cpu_cores;
-    
-    
-private:
+
+//private:
     ModuleClass     *    classes;        // List of module classes
     
     int                  log_level;        // Global log level
@@ -498,11 +513,13 @@ private:
     GroupElement    *    main_group;     // 2.0 main group
     long                 session_id;     // 2.0 temporary
     
-    Module          *    modules;        // List of modules
+    std::map<std::string, Module *>     module_map; // 2.0
+    std::vector <Module *>              _modules;   // 2.0
+
     Connection      *    connections;    // List of connections
     bool                 useThreads;
     
-    ThreadGroup     *    threadGroups;   // List of ThreadGroups
+    std::vector<ThreadGroup *>  _threadGroups;
     
     bool                nan_checks;      // Look for NANs in all outputs efter every tick - slow; use only for debugging
     
@@ -521,9 +538,12 @@ private:
     void        CheckInputs();                                // Check that memory for all connected inputs have been allocated
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
-    bool        Precedes(Module * a, Module * b);
-    void        DetectCycles();                                 // Find zero-delay loops in the connections
-    void        SortModules();                                // Sort modules in precedence order
+    void        MarkSubgraph(Module * m);
+    void        CreateThreadGroups(std::deque<Module *> & sorted_modules);
+
+    bool        Visit(std::deque<Module *> & sorted_modules, Module * n); // Returns false if not a DAG
+    void        SortModules();                               // Sort modules using topological sort
+    
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     
     void        InitInputs();                                 // Allocate memory for inputs in all modules
@@ -531,9 +551,9 @@ private:
     void        AllocateOutputs();                            // Allocate memory for outputs
     void        InitModules();                                // Init all modules; called by Init()
     
-    int         CalculateInputSize(Module_IO * i);             // Calculate the size of the input using connections to it
-    int         CalculateInputSizeX(Module_IO * i);            // Calculate the size of the input using connections to it
-    int         CalculateInputSizeY(Module_IO * i);            // Calculate the size of the input using connections to it
+    int         CalculateInputSize(Module_IO * i);            // Calculate the size of the input using connections to it
+    int         CalculateInputSizeX(Module_IO * i);           // Calculate the size of the input using connections to it
+    int         CalculateInputSizeY(Module_IO * i);           // Calculate the size of the input using connections to it
     
     void        NotifySizeChange();
     

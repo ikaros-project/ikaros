@@ -13,6 +13,8 @@
 	is that even though nothing is connected to them, you might still want to observe them
 	through the WebUI. Just observing the outputs through the WebUI does not make the OutputConnected()
 	function return true.
+
+    CHANGE 2018: the parameters xoutput_on now has to be used to get values at an output.
 </description>
 
 

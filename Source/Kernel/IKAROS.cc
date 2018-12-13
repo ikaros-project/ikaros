@@ -54,6 +54,8 @@ bool        global_terminate = false;	// Used to flag that CTRL-C has been recei
 int         global_error_count = 0;
 int         global_warning_count = 0;
 
+static std::string empty_string = "";
+
 //#define USE_MALLOC_DEBUG
 
 #ifndef USE_MALLOC_DEBUG
@@ -187,25 +189,75 @@ dump_memory()
 // Group (2.0)
 //
 
+class GroupElement;
+
 class Element
 {
 public:
+    GroupElement * parent;
     std::unordered_map<std::string, std::string> attributes;
 
-    std::string  GetAttribute(std::string a)  // implements the inheritance (1) directly and (2) with renaming through parameter elements // TODO: implement inheritance
+    Element(GroupElement * parent, XMLElement * xml_node=NULL)
+    {
+        this->parent = parent;
+
+        if(!xml_node)
+            return;
+        
+        for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+            attributes.insert({ attr->name, attr->value });
+    }
+    
+    std::string GetAttribute(std::string a) // get attribute verbatim
     {
         if(attributes.count(a))
             return attributes[a];
         else
             return "";
     };
-    
+
+    const std::string ResolveVariable(std::string a)
+    {
+        auto b = a;
+        while(a[0] == '@')
+            a = GetValue(a.substr(1));
+        if(a=="")
+            return b;
+        else
+            return a;
+    };
+
+   const std::string & GetValue(std::string a) // FIXME: parameter renaming and inheritance is missing - partially
+    {
+        if(a.empty())
+            return empty_string;
+        
+        a = ResolveVariable(a);
+        if(attributes.count(a))
+            return attributes[a];
+        
+        // RENAMING IN THIS GROUP HERE
+        
+       // INHERITANCE HERE
+       
+        else if(parent)
+            return ((Element *)parent)->GetValue(a);
+       
+        else
+            return empty_string;
+    };
+
+    const std::string & operator[](const std::string & a) // same as get value
+    {
+        return GetValue(a);
+    };
+
     void PrintAttributes(int d=0)
     {
         for(auto a : attributes)
             printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
     }
-    
+
     std::string JSONAttributeString(int d=0)
     {
         std::string b;
@@ -220,9 +272,13 @@ public:
     }
 };
 
+
+
 class ParameterElement: public Element
 {
 public:
+    ParameterElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tPARAMETER: "+GetAttribute("name")).c_str());
@@ -238,9 +294,51 @@ public:
     };
 };
 
+class InputElement: public Element
+{
+public:
+    InputElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
+        PrintAttributes(d);
+    };
+    
+    std::string JSONString(int d=0)
+    {
+        std::string s = std::string(d, '\t')+"{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
+class OutputElement: public Element
+{
+public:
+    OutputElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+
+    void Print(int d=0)
+    {
+        printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
+        PrintAttributes(d);
+    };
+    
+    std::string JSONString(int d=0)
+    {
+        std::string s = std::string(d, '\t')+"{\n";
+        s += JSONAttributeString(d+1);
+        s += "\n" + std::string(d, '\t')+"}";
+        return s;
+    };
+};
+
 class ConnectionElement: public Element
 {
 public:
+    ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tCONNECTION: ").c_str());
@@ -259,6 +357,8 @@ public:
 class ViewObjectElement: public Element
 {
 public:
+    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"\tOBJECT: ").c_str());
@@ -278,7 +378,8 @@ public:
 class ViewElement: public Element
 {
 public:
-    std::vector<ViewObjectElement *> objects;
+    ViewElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    std::vector<ViewObjectElement> objects;
 
     void Print(int d=0)
     {
@@ -286,7 +387,7 @@ public:
         PrintAttributes(d);
         printf("%s\n", (std::string(d, '\t')+"\tOBJECTS: ").c_str());
         for(auto o : objects)
-            o->Print(d+1);
+            o.Print(d+1);
     }
 
     std::string JSONString(int d=0)
@@ -303,7 +404,7 @@ public:
             s += tab2 + "\"objects\":\n" + tab2 + "[\n";
             for(auto o : objects)
             {
-                s += b + o->JSONString(d+2);
+                s += b + o.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -320,31 +421,121 @@ public:
 class GroupElement: public Element
 {
 public:
-    GroupElement * parent;
     std::unordered_map<std::string, GroupElement *> groups;
-    std::unordered_map<std::string, ParameterElement *> parameters;
-    std::vector<ConnectionElement *> connections;
-    std::vector<ViewElement *> views;
-    
+    std::unordered_map<std::string, ParameterElement> parameters;
+    std::vector<InputElement> inputs;
+    std::unordered_map<std::string, OutputElement *> outputs;
+    std::vector<ConnectionElement> connections;
+    std::vector<ViewElement> views;
+    Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove ******
+
+    GroupElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node)
+    {
+     };
+
+    ~GroupElement()
+    {
+        printf("ERROR GROUP GOING OUT OF SCOPE - SHOULD BEVER HAPPEN!!!\n");
+    }
+
+    GroupElement *
+    GetGroup(const std::string & name)
+    {
+        if(name == "*" || name == "") // FIXME: remove later when stars are no longer needed
+            return this;
+        auto n = ResolveVariable(name);
+        if(groups.count(n))
+            return groups[n];
+        else if(parent && parent->GetValue("name") == n)
+            return (GroupElement *)parent;
+        auto & path = split(n, ".", 1);
+        std::string p0 = ResolveVariable(path[0]);
+        std::string p1 = path[1];
+        if(path.size() > 1 && groups.count(p0))
+            return groups[p0]->GetGroup(p1);
+        else if(parent && parent->GetValue("name") == p0)
+            return ((GroupElement *)parent)->GetGroup(p1);
+        return NULL;
+    }
+
+    Module *
+    GetModule(const std::string & module_name) // Get module from full or partial name relative to this group
+    {
+        if(auto g = GetGroup(module_name))
+            return g->module;
+        return NULL;
+    }
+
+    Module_IO *
+    GetSource(const std::string & source_module_name, std::string source_name)
+    {
+        if(GroupElement * g = GetGroup(source_module_name))
+        {
+            if(g->module)
+                return g->module->GetModule_IO(g->module->output_list, source_name.c_str());
+
+            auto output = g->outputs[source_name];
+            auto new_module = output->GetValue("sourcemodule");
+            auto new_source = output->GetValue("source");
+            
+            if(source_module_name == new_module && source_module_name == new_source)
+                return NULL;
+            
+            return g->GetSource(new_module!="" ? new_module : source_module_name, new_source!="" ? new_source : source_name);
+        }
+        return NULL;
+    }
+
+    std::vector<Module_IO *>
+    GetTargets(const std::string & target_module_name, const std::string & target_name)   // GetInputIO = GetModule + GetInputIO; a single Connect can result in many connections
+    {
+        std::vector<Module_IO *> tios;
+        GroupElement * g = GetGroup(target_module_name);
+        if(!g)
+            return tios;
+        
+        if(g && g->module)
+        {
+            if(auto tio = g->module->GetModule_IO(g->module->input_list, target_name.c_str()))
+                tios.push_back(tio);
+            else
+                g->module->Notify(msg_fatal_error, "Module \"%s\" has no input named \"%s\".\n", g->module->GetFullName(), target_name.c_str());
+            return tios;
+        }
+        
+        for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the sama name for multiple connections
+            if ((input["name"] == target_name) || (input["name"] == "*"))
+            {
+                auto new_module = input["targetmodule"];
+                auto new_target = input["target"];
+                auto targets = g->GetTargets(new_module!="" ? new_module : target_module_name, new_target!="" ? new_target : target_name);
+                tios.insert(tios.end(), targets.begin(), targets.end());
+            }
+
+        return tios;
+    }
+
     void Print(int d=0)
     {
         printf("%s\n", (std::string(d, '\t')+"GROUP:"+GetAttribute("name")).c_str());
+        if(module)
+            printf("%s\n", (std::string(d, '\t')+"MODULE:"+std::string(module->GetFullName())).c_str());
 
         printf("%s\n", (std::string(d, '\t')+"\tATTRIBUTES:").c_str());
         PrintAttributes(d+1);
 
         printf("%s\n", (std::string(d, '\t')+"\tPARAMETERS:").c_str());
         for(auto p : parameters)
-            p.second->Print(d+1);
+            p.second.Print(d+1);
 
         printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
         for(auto c : connections)
-            c->Print(d+1);
-
+            c.Print(d+1);
+/* TEMPORARY
         printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
         for(auto v : views)
             v->Print(d+1);
-        
+*/
         for(auto g : groups)
             g.second->Print(d+1);
         
@@ -367,7 +558,7 @@ public:
             s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
             for(auto p : parameters)
             {
-                s += b + p.second->JSONString(d+2);
+                s += b + p.second.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -385,7 +576,7 @@ public:
             s += tab2 + "\"connections\":\n" + tab2 + "[\n";
             for(auto c : connections)
             {
-                s += b + c->JSONString(d+2);
+                s += b + c.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -402,7 +593,7 @@ public:
             s += tab2 + "\"views\":\n" + tab2 + "[\n";
             for(auto v : views)
             {
-                s += b + v->JSONString(d+2);
+                s += b + v.JSONString(d+2);
                 b = ",\n";
             }
             s += "\n";
@@ -441,21 +632,6 @@ public:
     };
 
 };
-
-
-class InputElement: public Element
-{
-public:
-};
-
-
-class OutputElement: public Element
-{
-public:
-};
-
-
-
 
 
 
@@ -515,6 +691,13 @@ Module_IO::Allocate()
             module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
         return;
     }
+    if(sizex*sizey <= 0)
+    {
+        if (module != NULL)
+            module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
+        return;
+    }
+    
     if (module != NULL) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
     data	=   new float * [max_delay];
     matrix  =   new float ** [max_delay];
@@ -600,7 +783,7 @@ Module::~Module()
     delete timer;
     delete input_list;
     delete output_list;
-    delete next;
+//    delete next;
 }
 
 void
@@ -612,7 +795,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
         return;
     }
     input_list = new Module_IO(input_list, this, name, unknown_size, 1, optional, allow_multiple_connections);
-    Notify(msg_debug, "  Adding input \"%s\".\n", name);
+    Notify(msg_trace, "  Adding input \"%s\".\n", name);
 }
 
 void
@@ -624,7 +807,7 @@ Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
         return;
     }
     output_list = new Module_IO(output_list, this, name, sizeX, sizeY, optional);
-    Notify(msg_debug, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
+    Notify(msg_trace, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
 }
 
 const char *
@@ -916,26 +1099,6 @@ Module::GetIntValue(const char * n, int d)
         return string_to_int(GetValue(n), d);
 }
 
-static bool
-tobool(const char * v, bool d = false)
-{
-    if (!v) return d;
-    if (!strcmp(v, "true")) return true;
-    if (!strcmp(v, "True")) return true;
-    if (!strcmp(v, "TRUE")) return true;
-    if (!strcmp(v, "yes")) return true;
-    if (!strcmp(v, "Yes")) return true;
-    if (!strcmp(v, "YES")) return true;
-    if (!strcmp(v, "1")) return true;
-    if (!strcmp(v, "false")) return false;
-    if (!strcmp(v, "False")) return false;
-    if (!strcmp(v, "FALSE")) return false;
-    if (!strcmp(v, "no")) return false;
-    if (!strcmp(v, "No")) return false;
-    if (!strcmp(v, "NO")) return false;
-    if (!strcmp(v, "0")) return false;
-    return d;
-}
 
 bool
 Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
@@ -944,7 +1107,7 @@ Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
     if (v == NULL)
         return d;
     else
-        return tobool(v);
+        return string_to_bool(v);
 }
 
 static int
@@ -1273,7 +1436,7 @@ Module::GetInputSize(const char * input_name)
 }
 
 int
-Module::GetInputSizeX(const char * input_name)
+Module::GetInputSizeX(const char * input_name) // TODO: also used internally so cannot be removed
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
@@ -1291,7 +1454,7 @@ Module::GetInputSizeX(const char * input_name)
 }
 
 int
-Module::GetInputSizeY(const char * input_name)
+Module::GetInputSizeY(const char * input_name) // TODO: also used internally so cannot be removed
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
@@ -1338,18 +1501,50 @@ Module::GetOutputSizeY(const char * name)
     return 0;
 }
 
-[[deprecated]] bool
-Module::InputConnected(const char * name)
+
+void
+Module::io(float * & a, const char * name)
 {
-    Notify(msg_warning, "InputConnected is deprecated and will be removed in future versions.\n");
-    return kernel->InputConnected(this, name);
+    if((a = GetOutputArray(name, false)))
+        return;
+    else if((a = GetInputArray(name, false)))
+        return;
 }
 
-[[deprecated]] bool
-Module::OutputConnected(const char * name)
+
+void
+Module::io(float * & a, int & size, const char * name)
 {
-    return kernel->OutputConnected(this, name);
+    if((a = GetOutputArray(name, false)))
+        size = GetOutputSize(name);
+    else if((a = GetInputArray(name, false)))
+        size = GetInputSize(name);
+    else
+        size = 0;
 }
+
+
+void
+Module::io(float ** & m, int & size_x, int & size_y, const char * name)
+{
+    if((m = GetOutputMatrix(name, false)))
+    {
+        size_x = GetOutputSizeX(name);
+        size_y = GetOutputSizeY(name);
+    }
+    else if((m = GetInputMatrix(name, false)))
+    {
+        size_x = GetInputSizeX(name);
+        size_y = GetInputSizeY(name);
+   }
+    else
+    {
+        size_x = 0;
+        size_y = 0;
+    }
+}
+
+
 
 void
 Module::SetOutputSize(const char * name, int x, int y)
@@ -1366,8 +1561,6 @@ Module::SetOutputSize(const char * name, int x, int y)
 
 Module::Module(Parameter * p)
 {
-    next = NULL;
-    next_in_threadGroup = NULL;
     input_list = NULL;
     output_list = NULL;
     bindings = NULL;
@@ -1376,6 +1569,7 @@ Module::Module(Parameter * p)
     ticks = 0;
     kernel = p->kernel;
     xml = p->xml;
+    log_level = kernel->log_level;
     instance_name = kernel->GetXMLAttribute(xml, "name"); // GetValue("name");
     class_name = kernel->GetXMLAttribute(xml, "class");
     period = (GetValue("period") ? GetIntValue("period") : 1);
@@ -1407,12 +1601,24 @@ Module::AddIOFromIKC()
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != NULL; e = e->GetNextElement("input"))
     {
         const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
-        bool multiple = (amc ? tobool(amc) : true); // True is defaut value
-        AddInput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")), multiple);
+        bool multiple = (amc ? string_to_bool(amc) : true); // True is defaut value
+//        AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(kernel->GetXMLAttribute(e, "optional")), multiple);
+
+        const char * opt = kernel->GetXMLAttribute(e, "optional");
+        if(!opt)
+            AddInput(kernel->GetXMLAttribute(e, "name"), false, multiple);
+        else
+            AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt), multiple);
     }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
-        AddOutput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")));
+    {
+        const char * opt = kernel->GetXMLAttribute(e, "optional");
+        if(!opt)
+            AddOutput(kernel->GetXMLAttribute(e, "name"), false);
+        else
+            AddOutput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt));
+    }
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
@@ -1580,7 +1786,7 @@ Module::Notify(int msg)
     }
     else if(msg == msg_warning)
     {
-        global_warning_count++;
+//        global_warning_count++;
     }
 }
 
@@ -1610,7 +1816,7 @@ Module::Notify(int msg, const char *format, ...)
     }
     else if(msg == msg_warning)
     {
-         global_warning_count++;
+ //        global_warning_count++;
    }
 }
 
@@ -1654,77 +1860,28 @@ Connection::Propagate(long tick)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
 }
 
-void
-ThreadGroup::AddModule(Module * m)
-{
-    // Add module if thread is empty
-    if (modules == NULL)
-    {
-        kernel->Notify(msg_debug, "Adding module %s to new thread group\n", m->GetName());
-        modules = m;
-        last_module = m;
-        period = m->period;
-        phase = m->phase;
-        return;
-    }
-	
-    // Check if any module already in the group preceedes the new one
-    
-    bool p = false;
-    for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
-        p = p | kernel->Precedes(pm, m);
-    
-    // Check for the case where this module preceedes a module that will be added to the group in the future
-	
-    if(!p)
-        for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
-            for(Module * nm = m->next; nm != NULL; nm = nm->next)
-                if(kernel->Precedes(pm, nm) && kernel->Precedes(m, nm))
-                {
-                    p = true;
-                    break;
-                }
-    
-    // Add module if this module should run in same thread as the other (and last) modules
-    if (p)
-    {
-        if(m->period != period)
-        {
-            kernel->Notify(msg_fatal_error, "Module %s do not have the correct period for thread group (Should be %d rather than %d)\n", m->GetName(), period, m->period);
-            return;
-        }
-        
-        kernel->Notify(msg_debug, "Adding module %s to thread groups after %s\n", m->GetName(), last_module->GetName());
-        last_module->next_in_threadGroup = m;
-        last_module = m;
-        return;
-    }
-    // Add to a new group if this was the last one
-    if (next == NULL)
-    {
-        next = new ThreadGroup(kernel);
-        next->AddModule(m);
-        return;
-    }
-    // Try to add the module to the next group
-    next->AddModule(m);
-}
+
 
 ThreadGroup::ThreadGroup(Kernel * k)
 {
-    kernel = k;
-    next = NULL;
-    modules = NULL;
-    last_module = NULL;
     period = 1;
     phase = 0;
-    thread = new Thread();
+    thread = NULL; // new Thread();
 }
+
+
+ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
+{
+    period = period_;
+    phase = phase_;
+    thread = NULL; // new Thread();
+}
+
 
 ThreadGroup::~ThreadGroup()
 {
-    delete thread;
-    delete next;
+//    delete thread;
+//    delete next;  // FIXME: do this correctly
 }
 
 static void *
@@ -1740,8 +1897,9 @@ ThreadGroup::Start(long tick)
     // Test if group should be started
     if (tick % period == phase)
     {
-        if (thread->Create(ThreadGroup_Tick, (void*)this))
-            printf("Thread Creation Failed!\n");
+//        if (thread->Create(ThreadGroup_Tick, (void*)this))
+//            printf("Thread Creation Failed!\n");
+        thread = new std::thread(ThreadGroup_Tick, (void*)this);
     }
 }
 
@@ -1751,14 +1909,16 @@ ThreadGroup::Stop(long tick)
     // Test if group should be joined
     if ((tick + 1) % period == phase)
     {
-        thread->Join();
+        thread->join();
+        delete thread;
+        thread = NULL;
     }
 }
 
 void
 ThreadGroup::Tick()
 {
-    for (Module * m = modules; m != NULL; m = m->next_in_threadGroup)
+    for (Module * m: _modules)
     {
         m->timer->Restart();
         if(m->active)
@@ -1785,7 +1945,7 @@ Kernel::Kernel()
     tick                = 0;
     xmlDoc              = NULL;
     classes             = NULL;
-    modules             = NULL;
+//    modules             = NULL;
     connections         = NULL;
     module_count        = 0;
     period_count        = 0;
@@ -1794,7 +1954,7 @@ Kernel::Kernel()
     fatal_error_occurred	= false;
     terminate			= false;
     sizeChangeFlag      = false;
-    threadGroups        = NULL;
+//    threadGroups        = NULL;
     
     logfile     = NULL;
     timer		= new Timer();
@@ -1868,7 +2028,7 @@ Kernel::Kernel(Options * opt)
     tick                = 0;
     xmlDoc              = NULL;
     classes             = NULL;
-    modules             = NULL;
+//    modules             = NULL;
     connections         = NULL;
     module_count        = 0;
     period_count        = 0;
@@ -1877,7 +2037,7 @@ Kernel::Kernel(Options * opt)
     fatal_error_occurred	= false;
     terminate			= false;
     sizeChangeFlag      = false;
-    threadGroups        = NULL;
+//    threadGroups        = NULL;
     
     logfile     = NULL;
     timer		= new Timer();
@@ -1909,9 +2069,9 @@ Kernel::~Kernel()
     Notify(msg_debug, "  Deleting Connections.\n");
     delete connections;
     Notify(msg_debug, "  Deleting Modules.\n");
-    delete modules;
+//    delete modules; // FIXME: delete
     Notify(msg_debug, "  Deleting Thread Groups.\n");
-    delete threadGroups;
+//    delete threadGroups;  // FIXME: delete
     Notify(msg_debug, "  Deleting Classes.\n");
     delete classes;
     
@@ -2056,7 +2216,7 @@ Kernel::Propagate()
 void
 Kernel::CheckNAN()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
         {
@@ -2076,7 +2236,7 @@ Kernel::CheckNAN()
 void
 Kernel::CheckInputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
             if (i->size == unknown_size)
@@ -2099,7 +2259,7 @@ Kernel::CheckInputs()
 void
 Kernel::CheckOutputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
             if (i->size == unknown_size)
@@ -2238,7 +2398,7 @@ Kernel::InitOutputs()
     do
     {
         sizeChangeFlag = false;
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (Module * & m : _modules)
             m->SetSizes();
         if (sizeChangeFlag)
             Notify(msg_debug, "InitOutput: Iteration with changes\n");
@@ -2251,14 +2411,14 @@ Kernel::InitOutputs()
 void
 Kernel::AllocateOutputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         m->AllocateOutputs();
 }
 
 void
 Kernel::InitModules()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         m->Bind(m->log_level, "log_level");
         m->Init();
@@ -2276,16 +2436,49 @@ Kernel::Init()
 {
     // Get system statistics // FIXME: move this to somewhere else
     cpu_cores = std::thread::hardware_concurrency();
-    
+
     if (options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_warning, "No IKC file supplied.\n"); // Maybe this should only be a warning - YES!
+        Notify(msg_warning, "No IKC file supplied.\n");
     
-    DetectCycles();
     if(fatal_error_occurred)
         return;
+
+    // Fill data structures
+ 
+    for (Module * & m : _modules)
+       module_map.insert({ m->GetFullName(), m });
+
+    for (Connection * c = connections; c != NULL; c = c->next)
+    {
+        module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
+        if(c->delay == 0)
+        {
+            module_map[c->source_io->module->GetFullName()]->connects_to_with_zero_delay.push_back(c->target_io->module);
+            module_map[c->target_io->module->GetFullName()]->connects_from_with_zero_delay.push_back(c->source_io->module);
+        }
+    }
+/*
+    printf("MODULES:\n");
+    for(const auto& pair : module_map)
+    {
+        printf("%s\n", pair.first.c_str());
+        for(const auto& s : pair.second->outgoing_connection)
+            printf("%s -> %s\n", pair.first.c_str(), s.c_str());
+    }
+    printf("CONNECTIONS:\n");
+    for(const auto& pair : module_map)
+        for(const auto& s : pair.second->outgoing_connection)
+            printf("%s -> %s\n", pair.first.c_str(), s.c_str());
+
+    printf("\n\n");
+*/
     SortModules();
+
+    if(fatal_error_occurred)
+        return;
+
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
     AllocateOutputs();
@@ -2303,16 +2496,17 @@ Kernel::Tick()
     Notify(msg_debug, "Kernel::Tick()\n");
     Propagate();
     DelayOutputs();
+  
     if (useThreads)
     {
-        for (ThreadGroup * g = threadGroups; g != NULL; g = g->next)
+        for (auto & g : _threadGroups)
             g->Start(tick);
-        for (ThreadGroup * g = threadGroups; g != NULL; g = g->next)
+        for (auto & g : _threadGroups)
             g->Stop(tick);
     }
     else if (log_level < log_level_debug)
     {
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (auto & m : _modules)
             if (tick % m->period == m->phase)
             {
                 m->timer->Restart();
@@ -2324,7 +2518,7 @@ Kernel::Tick()
     }
     else
     {
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (auto & m : _modules)
             if (tick % m->period == m->phase)
             {
                 m->timer->Restart();
@@ -2339,7 +2533,7 @@ Kernel::Tick()
             }
         
     }
-    
+ 
     if(nan_checks)
         CheckNAN();
     
@@ -2362,7 +2556,7 @@ Kernel::Store()
     else if(p[0] != '/') // not absolute path
         s = create_formatted_string("%s%s", ikc_dir, p);
 
-    for(Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
         m->Store(sp);
@@ -2386,7 +2580,7 @@ Kernel::Load()
     else if(p[0] != '/') // not absolute path
         s = create_formatted_string("%s%s", ikc_dir, p);
     
-    for(Module * m = modules; m != NULL; m = m->next)
+    for(Module * & m : _modules)
     {
         char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
         m->Load(sp);
@@ -2400,7 +2594,7 @@ Kernel::Load()
 void
 Kernel::DelayOutputs()
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         m->DelayOutputs();
 }
 
@@ -2410,9 +2604,13 @@ void
 Kernel::AddModule(Module * m)
 {
     if (!m) return;
-    m->next = modules;
-    modules = m;
+//    m->next = modules;
+//    modules = m;
     m->kernel = this;
+
+    // 2.0
+
+    _modules.push_back(m);
 }
 
 
@@ -2420,7 +2618,7 @@ Kernel::AddModule(Module * m)
 Module *
 Kernel::GetModule(const char * n)
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         if (equal_strings(n, m->instance_name))
             return m;
     return NULL;
@@ -2431,7 +2629,7 @@ Kernel::GetModule(const char * n)
 Module *
 Kernel::GetModuleFromFullName(const char * n)
 {
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         if (equal_strings(n, m->full_instance_name))
             return m;
     return NULL;
@@ -2439,7 +2637,7 @@ Kernel::GetModuleFromFullName(const char * n)
 
 
 
-bool
+bool // TO BE REMOVED - Used by WebUI
 Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
@@ -2505,6 +2703,118 @@ Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char *
     return false;
 }
 
+
+/*
+bool // NEW VERSION - do not get input here; but do somewhere else // TODO: distinguish between class and group later
+Kernel::GetSource(GroupElement & group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
+{
+    for (auto & g : group.groups)
+    {
+        if(g.second.module && ((g.first==source_module_name) || equal_strings(source_module_name, "*")))
+        {
+            m = g.second.module;
+            io = m->GetModule_IO(m->output_list, source_name);
+            if (m != NULL && io != NULL)
+                return true;
+            return false;
+        }
+        else if(g.first == source_module_name) // Translate output name - should not be tested again
+        {
+            for (auto & output : g.second.outputs)
+            {
+                const char * n = output.first.c_str();
+                if (n == NULL)
+                    return false;
+                if (equal_strings(n, source_name) || equal_strings(n, "*"))
+                {
+                    const char * new_module = output.second["sourcemodule"].c_str();
+                    const char * new_source = output.second["source"].c_str();
+                    if (new_module == NULL)
+                        new_module = source_module_name;    // retain name
+                    if (new_source == NULL)
+                        new_source = source_name;    // retain name
+                    return GetSource(g.second, m, io, new_module, new_source);
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+
+
+
+Module_IO *
+Kernel::GetSource(GroupElement * group, const std::string & source_module_name, const  std::string & source_name)
+{
+    Module_IO * io = NULL;
+    Module * m = NULL;
+    for (auto & g : group->groups)
+    {
+        if(g.second->module && ((g.first==source_module_name) || (source_module_name=="*")))
+        {
+            m = g.second->module;
+            io = m->GetModule_IO(m->output_list, source_name.c_str());
+            if (m != NULL && io != NULL)
+                return io;
+            return NULL;
+        }
+        else if(g.first == source_module_name) // Translate output name - should not be tested again
+        {
+            for (auto & output : g.second->outputs)
+            {
+                const std::string & n = output.first;
+                if (n == "")
+                    return NULL;
+                if ((n == source_name) || (n == "*"))
+                {
+                    const std::string & new_module = output.second->GetValue("sourcemodule");
+                    const std::string & new_source = output.second->GetValue("source");
+                    return GetSource(g.second, new_module!="" ? new_module : source_module_name, new_source!="" ? new_source : source_name );
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
+
+
+Module_IO *
+Kernel::GetTarget(GroupElement * group, const std::string & target_module_name, const  std::string & target_name)   // GetInputIO = GetModule + GetInputIO
+{
+    Module_IO * io = NULL;
+    Module * m = NULL;
+    for (auto & g : group->groups)
+    {
+        if(g.second->module && ((g.first==target_module_name) || (target_module_name=="*")))
+        {
+            m = g.second->module;
+            io = m->GetModule_IO(m->input_list, target_name.c_str());
+            if (m != NULL && io != NULL)
+                return io;
+            return NULL;
+        }
+        else if(g.first == target_module_name) // Translate output name - should not be tested again
+        {
+            for (auto & input : g.second->inputs)
+            {
+                const std::string & n = input.first;
+                if (n == "")
+                    return NULL;
+                if ((n == target_name) || (n == "*"))
+                {
+                    const std::string & new_module = input.second->GetValue("targetmodule");
+                    const std::string & new_source = input.second->GetValue("target");
+                    return GetTarget(g.second, new_module!="" ? new_module : target_module_name, new_source!="" ? new_source : target_name );
+                }
+            }
+        }
+    }
+    return NULL;
+}
+*/
 
 
 static const char *
@@ -2768,26 +3078,6 @@ Kernel::SendCommand(XMLElement * group, const char * group_name, const char * co
 }
 
 
-bool
-Kernel::Precedes(Module * a, Module * b)
-{
-    // Base case
-    
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0 && c->source_io->module == a && c->target_io->module == b)
-            return true;
-    
-    // Transitivity test (also checks for direct loop)
-    
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0 && c->source_io->module == a && Precedes(c->target_io->module,  b))
-            return true;
-    
-    return false;
-}
-
-
-
 int
 Kernel::CalculateInputSize(Module_IO * i)
 {
@@ -2859,12 +3149,96 @@ Kernel::CalculateInputSizeY(Module_IO * i)
 
 
 
+/*
+    Partition Graph:
+
+    For all unassigned modules:
+    1. Recursively mark all connected modules
+    2. Assign all marked modules to new group
+ 
+*/
+
 void
-Kernel::DetectCycles()
+Kernel::MarkSubgraph(Module * m)  // recursively mark all connected modules
 {
-    for (Module * m = modules; m != NULL; m = m->next)
-        if(Precedes(m, m))
-            Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself (directly or indirectly).\n", m->GetName(), m->GetClassName());
+    m->mark = 3;
+    for(auto & n : m->connects_to_with_zero_delay)
+        if(n->mark != 3)
+            MarkSubgraph(n);
+    for(auto & n : m->connects_from_with_zero_delay)
+        if(n->mark != 3)
+            MarkSubgraph(n);
+}
+
+
+
+void
+Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)   // FIXME: possibly change to use emplace and no new
+{
+    for(auto & m : sorted_modules)
+        if(m->mark < 3)
+        {
+            ThreadGroup * tg = new ThreadGroup(this, m->period, m->phase);
+            _threadGroups.push_back(tg);
+            MarkSubgraph(m);
+            for(auto & m :sorted_modules)
+                if(m->mark == 3)
+                {
+                    if(tg->period != m->period || tg->phase != m->phase)
+                    {
+                        Notify(msg_fatal_error, "Module period and phase does not match rest of subgraph (%s).", m->GetFullName());
+                        return;
+                    }
+                    tg->_modules.push_back(m);
+                    m->mark = 4;
+                }
+        }
+}
+
+
+
+/*
+
+Topological Sort:
+
+L ← Empty list that will contain the sorted nodes
+while there are unmarked nodes do
+    select an unmarked node n
+    visit(n)
+
+ function visit(node n)
+    if n has a permanent mark (2) then return
+    if n has a temporary mark (1) then stop   (not a DAG)
+    mark n temporarily
+    for each node m with an edge from n to m do
+        visit(m)
+    mark n permanently (2)
+    add n to head of L
+
+*/
+
+
+
+bool
+Kernel::Visit(std::deque<Module *> & sorted_modules, Module * n)
+{
+    if(n->mark == 2)
+        return true;
+
+    if(n->mark == 1)
+    {
+        Notify(msg_fatal_error, "Network contains zero-connection loop at %s", n->GetFullName());
+        return false;
+    }
+
+    n->mark = 1;
+    for(auto & m : n->connects_to_with_zero_delay)
+        if(!Visit(sorted_modules, m))
+            return false;
+    
+    n->mark = 2;
+    sorted_modules.push_front(n);
+    return true;
 }
 
 
@@ -2872,55 +3246,15 @@ Kernel::DetectCycles()
 void
 Kernel::SortModules()
 {
-    // For statistics only
-    for (Module * m = modules; m != NULL; m = m->next)
-    {
-        phase_count = (m->phase < phase_count ? phase_count : m->phase);
-        period_count = (m->period < period_count ? period_count : m->period);
-        module_count++;
-    }
-    if (phase_count > period_count)
-        period_count = phase_count;
-    // Build a new sorted list of modules (precedence order) using selection sort
-    Module * sorted_modules = NULL;
-    while (modules != NULL)
-    {
-        // Find smallest module
-        Module * sm = modules;
-        for (Module * m = modules; m != NULL; m = m->next)
-            if (Precedes(sm, m))
-                sm = m;
+    std::deque<Module *> sorted_modules;
+    for(auto & m : _modules)
+        if(!m->mark && !Visit(sorted_modules, m))
+            return; // fail
 
-        // Remove from list
-        if (sm == modules)  // First
-        {
-            modules = modules->next;
-            sm->next = sorted_modules;
-            sorted_modules = sm;
-        }
-        else
-        {
-            // Find prev (double linked list would have been better)
-            Module * psm = NULL;
-            for (psm = modules; psm->next != sm; psm = psm->next)
-                ;
-            psm->next = sm->next;
-            sm->next = sorted_modules;
-            sorted_modules = sm;
-        }
-    }
-    modules = sorted_modules;
-
-    // Check for loops
-    for (Module * m = modules; m != NULL; m = m->next)
-        if (Precedes(m, m))
-            Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself.\n", m->GetName(), m->GetClassName());
-
-    // Create Thread Groups
-    threadGroups = new ThreadGroup(this);
-    for (Module * m = modules; m != NULL; m = m->next)
-        threadGroups->AddModule(m);
+    CreateThreadGroups(sorted_modules);
 }
+
+
 
 void
 Kernel::CalculateDelays()
@@ -2932,22 +3266,8 @@ Kernel::CalculateDelays()
     }
 }
 
-bool
-Kernel::InputConnected(Module * m, const char * input_name)
-{
-    return m->GetInputArray(input_name, false) != NULL;
-}
 
-bool
-Kernel::OutputConnected(Module * m, const char * output_name)
-{
-    if (connections == NULL)
-        return false;
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->source_io->module == m && m->GetModule_IO(m->output_list, output_name) == c->source_io)
-            return true;
-    return false;
-}
+// FIXME: move all list functions to end
 
 void
 Kernel::ListInfo()
@@ -2993,12 +3313,14 @@ Kernel::ListInfo()
     Notify(msg_print, "ikaros root directory: %s\n", ikaros_dir);
 }
 
+
+
 void
 Kernel::ListModulesAndConnections()
 {
     if (!options->GetOption('m') && !options->GetOption('a')) return;
     
-    if(!modules)
+    if(_modules.empty())
     {
         Notify(msg_print, "\n");
         Notify(msg_print, "No Modules.\n");
@@ -3009,7 +3331,7 @@ Kernel::ListModulesAndConnections()
     Notify(msg_print, "\n");
     Notify(msg_print, "Modules:\n");
     Notify(msg_print, "\n");
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
     {
         //		Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
         Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
@@ -3053,12 +3375,13 @@ Kernel::ListThreads()
     Notify(msg_print, "\n");
     Notify(msg_print,"ThreadManagers:\n");
     Notify(msg_print, "\n");
-    int tt = 0;
-    for (ThreadGroup * t = threadGroups; t != NULL; t = t->next)
+    int i=0;
+    for(ThreadGroup * tg : _threadGroups)
     {
-        Notify(msg_print,"ThreadManager %d [Period:%d, Phase:%d]\n", tt++, t->period, t->phase);
-        for (Module * m = t->modules; m != NULL; m=m->next_in_threadGroup)
-            Notify(msg_print,"\tModule: %s\n", m->GetName());
+        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d]\n", i++, tg->period, tg->phase);
+        for(Module * m : tg->_modules)
+            Notify(msg_print, "\t Module: %s\n", m->GetFullName());
+        i++;
     }
     Notify(msg_print, "\n");
 }
@@ -3082,7 +3405,7 @@ Kernel::ListScheduling()
 {
     if (!options->GetOption('l') && !options->GetOption('a')) return;
 
-    if(!modules)
+    if(_modules.empty())
         return;
     
     Notify(msg_print, "Scheduling:\n");
@@ -3090,7 +3413,7 @@ Kernel::ListScheduling()
     for (int t=0; t<period_count; t++)
     {
         int tm = 0;
-        for (Module * m = modules; m != NULL; m = m->next)
+        for (Module * & m : _modules)
             if (t % m->period == m->phase)
                 Notify(msg_print,"  %02d.%02d: %s (%s)\n", t, tm++, m->GetName(), m->GetClassName());
     }
@@ -3120,7 +3443,7 @@ Kernel::ListProfiling()
     if (!options->GetOption('p')) return;
     // Calculate Total Time
     float total_module_time = 0;
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         total_module_time += m->time;
     Notify(msg_print, "\n");
     Notify(msg_print, "Time (ms):\n");
@@ -3136,7 +3459,7 @@ Kernel::ListProfiling()
     Notify(msg_print, "\n");
     Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
     Notify(msg_print, "----------------------------------------------------------------------\n");
-    for (Module * m = modules; m != NULL; m = m->next)
+    for (Module * & m : _modules)
         if (m->ticks > 0)
             Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
         else
@@ -3204,11 +3527,10 @@ Kernel::Notify(int msg, const char * format, ...)
 // Create one or several connections with different delays between two ModuleIOs
 
 int
-//Kernel::Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay, bool is_active)
-Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const char * delay, int extra_delay, bool is_active)
+Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const std::string & delay, int extra_delay, bool is_active)
 {
     int c = 0;
-    char * dstring = create_string(delay);
+    char * dstring = create_string(delay.c_str());
     
     if(!dstring || (!strchr(dstring, ':') && !strchr(dstring, ',')))
     {
@@ -3217,7 +3539,7 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
         c++;
     }
     
-    else // parse delay string for multiple delays               Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a);
+    else // parse delay string for multiple delays
     {
 		char * d = create_string(dstring);
         char * p = strtok(d, ",");
@@ -3239,77 +3561,6 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
     }
     
     destroy_string(dstring);
-    return c;
-}
-
-
-
-int
-Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size, const char * delay, int extra_delay, bool is_active)
-{
-    int c = 0; // no of generated connections
-    
-    // iterate over all modules
-    
-    for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
-        if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should; change first test to *?
-        {
-            Module * tm = (Module *)(xml_module->aux);
-            if (tm)
-            {
-                Module_IO * tio = tm->GetModule_IO(tm->input_list, t_name);
-                if(sio == NULL)
-                    Notify(msg_fatal_error, "Could not make connection. Source missing\n.");
-                else if(tio == NULL)
-                    Notify(msg_fatal_error, "Could not make connection. Target \"%s\" of module \"%s\" missing.\n", t_name, tm_name);
-                else
-                    c += Connect(sio, s_offset, tio, t_offset, size, delay, extra_delay, is_active);
-            }
-        }
-    
-    bool connection_made = false;
-    for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
-        {
-            // iterate over all input elements
-            for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                if(equal_strings(t_name, GetXMLAttribute(xml_input, "name"))) // Found input with target
-                {
-                    connection_made = true;
-                    const char * tm = GetXMLAttribute(xml_input, "targetmodule");
-                    const char * t = GetXMLAttribute(xml_input, "target");
-                    int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
-                    bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
-
-                    if(!equal_strings(t,""))
-                        c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
-                    else
-                        c++; // ignore connections if both are nil
-                }
-        }
-    
-    if(!connection_made) // look of wildcard connections
-    {
-        for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-            if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
-            {
-                // iterate over all input elements
-                for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                    if(equal_strings("*", GetXMLAttribute(xml_input, "name"))) // Found input with target
-                    {
-                        const char * tm = GetXMLAttribute(xml_input, "targetmodule");
-                        const char * t = GetXMLAttribute(xml_input, "target");
-                        int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
-                        bool a = tobool(GetXMLAttribute(xml_input, "active"), is_active);
-
-                        if(!equal_strings(t,""))
-                            c += Connect(xml_group, sm, sio, s_offset, tm, (t ? t : t_name), t_offset, size, delay, d+extra_delay, a);   // TODO: Extra delay should be replaced with a merge interval function
-                        else
-                            c++; // ignore connections if both are nil
-                    }
-            }
-    }
-    
     return c;
 }
 
@@ -3410,12 +3661,12 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 
 static int group_number = 0;
 
-void
+GroupElement *
 Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class)
 {
     const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
-        group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
+        group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));   // TODO: add this kind of thing to unnamed views as well
 
     // 2.0 add attributes to group element
     
@@ -3423,14 +3674,16 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         group->attributes.insert({ attr->name, attr->value });
     
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
+    {
         if (xml_node->IsElement("module"))	// Add module
         {
             char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
+            
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
-                GroupElement * subgroup = new GroupElement();
+                GroupElement * subgroup = new GroupElement(group);
 				xml_node = BuildClassGroup(subgroup, xml_node, class_name);
-                group->groups.insert( { subgroup->GetAttribute("name"), subgroup });
+                group->groups.insert( { subgroup->GetAttribute("name"), subgroup });    // FIXME: perfect place to use emplace instead
             }
             
 			else if (class_name != NULL)	// Create the module using standard class
@@ -3443,6 +3696,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
 				else if (useThreads && m->phase != 0)
 					Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
 				xml_node->aux = (void *)m;
+                group->module = m;  // FIXME: test if correct
 				AddModule(m);
 			}
             else  // TODO: could add check for command line values here
@@ -3453,75 +3707,95 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
         else if (xml_node->IsElement("group"))	// Add group
         {
-            GroupElement * subgroup = new GroupElement();
-            BuildGroup(subgroup, xml_node);
-            group->groups.insert( { subgroup->GetAttribute("name"), subgroup });
+            GroupElement * g = new GroupElement(group);
+            group->groups.insert( { xml_node->GetAttribute("name"), BuildGroup(g, xml_node) });
         }
+    
         else if (xml_node->IsElement("parameter"))
-        {
-            ParameterElement * p = new ParameterElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                p->attributes.insert({ attr->name, attr->value });
-            group->parameters.insert( { p->GetAttribute("name"), p });
-        }
+            group->parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(group, xml_node) });
+    
+        else if (xml_node->IsElement("input"))
+            group->inputs.push_back(InputElement(group, xml_node));
+            
+        else if (xml_node->IsElement("output"))
+            group->outputs.insert( { xml_node->GetAttribute("name"), new OutputElement(group, xml_node) });
+
         else if (xml_node->IsElement("connection"))
-        {
-            ConnectionElement * c = new ConnectionElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                c->attributes.insert({ attr->name, attr->value });
-            group->connections.push_back(c);
-        }
+             group->connections.push_back(ConnectionElement(group, xml_node));
+     
         else if (xml_node->IsElement("view"))
         {
-            ViewElement * v = new ViewElement();
-            for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                v->attributes.insert({ attr->name, attr->value });
+            ViewElement v(group, xml_node);
             for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement())     // WAS "object"
             {
-                ViewObjectElement * o = new ViewObjectElement();
-                o->attributes.insert({ "class", xml_obj->name });
-                for(XMLAttribute * attr=xml_obj->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-                    o->attributes.insert({ attr->name, attr->value });
-                v->objects.push_back(o);
+                ViewObjectElement o((GroupElement *)&v, xml_obj); // FIXME: is this correct?
+                o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason
+                v.objects.push_back(o);
             }
             group->views.push_back(v);
         }
-
-    // Create connections in group
-
-    for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
-    {
-        const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
-        const char * s_name     = GetXMLAttribute(xml_connection, "source");
-        const char * tm_name    = GetXMLAttribute(xml_connection, "targetmodule");
-        const char * t_name     = GetXMLAttribute(xml_connection, "target");
-        const char * delay      = GetXMLAttribute(xml_connection, "delay");
-        const bool a            = tobool(GetXMLAttribute(xml_connection, "active"), true);
-
-        if(!sm_name)
-            Notify(msg_fatal_error, "Incomplete connection: sourcemodule not set.");
-        if(!s_name)
-            Notify(msg_fatal_error, "Incomplete connection: source not set.");
-        if(!tm_name)
-            Notify(msg_fatal_error, "Incomplete connection: targetmodule not set.");
-        if(!t_name)
-            Notify(msg_fatal_error, "Incomplete connection: target not set.");
-        
-        int so = string_to_int(GetXMLAttribute(xml_connection, "sourceoffset"));
-        int to = string_to_int(GetXMLAttribute(xml_connection, "targetoffset"));
-        int sz = string_to_int(GetXMLAttribute(xml_connection, "size"), unknown_size);
-
-        Module * sm;
-        Module_IO * sio;
-        int c = 0;
-        if (GetSource(group_xml, sm, sio, sm_name, s_name))
-            c = Connect(group_xml, sm, sio, so, tm_name, t_name, to, sz, delay, 0, a);
-        else
-            Notify(msg_fatal_error, "Connection source %s.%s not found.\n", sm_name, s_name);   // TODO: Should check for indirect connections here
-        
-        if(c == 0)
-            Notify(msg_fatal_error, "Connection target %s.%s not found.\n", tm_name, t_name);
     }
+    return group;
+}
+
+
+
+void
+Kernel::ConnectModules(GroupElement * group, std::string indent)
+{
+//    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
+
+    // Connect in this group
+    
+    for(auto & c : group->connections)
+    {
+        std::string sm = c["sourcemodule"];
+        std::string tm = c["targetmodule"];
+        if(sm != "")
+            sm += ".";
+        if(tm != "")
+            tm += ".";
+        auto & source = rsplit(sm+c["source"], ".", 1);  // Merge then split again
+        auto & target = rsplit(tm+c["target"], ".", 1);
+        std::string source_group = c.ResolveVariable(source.size() == 1 ? "" : source[0]);
+        std::string source_output = c.ResolveVariable(source.size() == 1 ? source[0] : source[1]); // tail?
+        std::string target_group = c.ResolveVariable(target.size() == 1 ? "" : target[0]);
+        std::string target_input = c.ResolveVariable(target.size() == 1 ? target[0] : target[1]); // tail?
+
+        if(source_output.empty())
+            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+"."+c["source"]).c_str());
+
+        if(target_input.empty())
+            Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+"."+c["target"]).c_str());
+        
+//        printf("%sConnecting: %s -> %s\n", indent.c_str(), sm.c_str(), tm.c_str());
+        
+        Module_IO * source_io = NULL;
+        if(starts_with(source_group, "."))
+            source_io = main_group->GetSource(split(source_group, ".", 1)[1], source_output); // FIXME: use substr
+        else
+            source_io = group->GetSource(source_group, source_output);
+        
+        if(!source_io)
+            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+"."+c["source"]).c_str());
+
+        int cnt = 0;
+
+        if(starts_with(target_group, "."))
+            for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
+                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+        else
+            for(auto target_io : group->GetTargets(target_group, target_input))
+                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+        
+        if(cnt == 0)
+            Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+":"+c["target"]).c_str());
+    }
+
+    // Connect in subgroups
+
+    for(auto & g : group->groups)
+        ConnectModules(g.second, indent+"\t");
 }
 
 
@@ -3556,46 +3830,51 @@ Kernel::ReadXML()
         return;
     }
     
-    // Set default parameters - TODO: could handle batch arguments here as well in the future
+    // Set default parameters
     
-//    xml->SetAttribute("log_level", create_formatted_string("%d", log_level));   // we should use inheritence here instead
-    
+    xml->SetAttribute("log_level", create_formatted_string("%d", log_level)); // FIXME: period???
+
     // Build The Main Group
-    
-    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute
+    // FIXME: what is this?
+/*
+    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute // TODO: SHOULD PROBABLY BE REMOVED
     {
         const char * name = GetXMLAttribute(xml, "name"); // Instantiate name and title from command line options if not set in the file
         if(name)
             xml->SetAttribute("name", name);
     }
     
-    if(!xml->GetAttribute("title"))
+    if(!xml->GetAttribute("title")) // TODO: SHOULD PROBABLY BE REMOVED
     {
         const char * title = GetXMLAttribute(xml, "title");
         if(title)
             xml->SetAttribute("title", title);
     }
-    
+*/
+
     // 2.0 create top group
     
-    main_group = new GroupElement();
+    main_group = new GroupElement(NULL);
     
     // set session id
     
     std::time_t result = std::time(nullptr);
     main_group->attributes.insert({ "session-id", std::to_string(result) });
-    session_id = result; // temporary
+    session_id = result; // temporary, get from top level group
     
     BuildGroup(main_group, xml);
+    // FIXME: make connections here
+
+    ConnectModules(main_group);
+
     if (options->GetOption('x'))
         xmlDoc->Print(stdout);
     
 //    main_group->Print();
-
-//        printf("%s\n", main_group->JSONString().c_str());
 }
 
 
+// The following lines will create the kernel the first time it is accessed by on of the modules
 
 Kernel& kernel()
 {

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Nucleus" description="Nucleuss inputs">
+<group name="Nucleus" description="implements a nucleus">
 
 	<description type="text">
 		Module that implements a generic brain nucleus. output = alpha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).

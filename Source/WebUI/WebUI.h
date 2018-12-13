@@ -150,7 +150,7 @@ public:
     void			HandleHTTPRequest();
     void            HandleHTTPThread();
     
-    Thread *        httpThread;
+    std::thread *        httpThread;
     static void *   StartHTTPThread(void * webui);
 
     void			Run();

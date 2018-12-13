@@ -40,8 +40,12 @@ Subtract::Init()
 void
 Subtract::Tick()
 {
-    subtract(output, input1, input2, size);
+    if(input2)
+        subtract(output, input1, input2, size);
+    else
+        copy_array(output, input1, size);
 }
 
 
 static InitClass init("Subtract", &Subtract::Create, "Source/Modules/UtilityModules/Subtract/");
+

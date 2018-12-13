@@ -1340,14 +1340,16 @@ Epuck::CheckChannels(void)
 	body_is_connected = GetInputArray("BODY") != NULL;
 	sound_is_connected = GetInputArray("SOUND") != NULL;
 
-	proximity_is_connected = OutputConnected("PROXIMITY");
-	acceleration_plain_is_connected = OutputConnected("ACCELERATION_PLAIN");
-	acceleration_is_connected = OutputConnected("ACCELERATION");
-    orientation_is_connected = OutputConnected("ORIENTATION");
-    inclination_is_connected = OutputConnected("INCLINATION");
-    encoder_is_connected = OutputConnected("ENCODER");
-    microphone_volume_is_connected = OutputConnected("MICROPHONE_VOLUME");
-    microphone_buffer_is_connected = OutputConnected("MICROPHONE_BUFFER");
+    // FIXME: remove these variables completely
+    
+	proximity_is_connected = false;
+	acceleration_plain_is_connected = false;
+	acceleration_is_connected = false;
+    orientation_is_connected = false;
+    inclination_is_connected = false;
+    encoder_is_connected = false;
+    microphone_volume_is_connected = false;
+    microphone_buffer_is_connected = false;
 }
 
 

@@ -191,6 +191,9 @@ run_batch(Options * options)
             k.ListInfo();
 
             k.Init();
+            if(k.fatal_error_occurred)
+                return 1;
+
             k.ListClasses();
             k.ListModulesAndConnections();
             k.ListScheduling();
@@ -247,6 +250,8 @@ main(int argc, char *argv[])
         k.ListInfo();
 
         k.Init();
+        if(k.fatal_error_occurred)
+            return 1;
 
         k.ListClasses();
         k.ListModulesAndConnections();

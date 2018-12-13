@@ -15,7 +15,7 @@
 	</example>
 
 	<input name="INPUT1" description="The first input" />
-	<input name="INPUT2" description="The second input" />
+	<input name="INPUT2" description="The second input" optional="yes" />
 
 	<output name="OUTPUT" description="The output with the difference of the two inputs: INPUT1 - INPUT2" size_set="INPUT1,INPUT2"/>
 
