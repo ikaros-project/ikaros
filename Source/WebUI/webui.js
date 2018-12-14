@@ -14,7 +14,7 @@ String.prototype.rsplit = function(sep, maxsplit) {
  * Viewer scripts
  *
  */
-
+/*
 function startPeriodicTask(func, wait, times)
 {
     var interv = function(w, t)
@@ -36,7 +36,15 @@ function startPeriodicTask(func, wait, times)
 
     setTimeout(interv, wait);
 };
+*/
 
+function test_sleep(millis)
+{
+    var date = new Date();
+    var curDate = null;
+    do { curDate = new Date(); }
+    while(curDate-date < millis);
+}
 
 function copyToClipboard(text)
 {
@@ -1026,37 +1034,15 @@ controller = {
     load_count_timeout: null,
     g_data: null,
     send_stamp: 0,
+    webui_interval: 0,
+    webui_req_int: 55,
+    timeout: 1000,
 
-/*
-    updateProgress: function (oEvent)
-    {
-        if (oEvent.lengthComputable)
-        {
-            var percentComplete = oEvent.loaded / oEvent.total;
-            console.log("Progress: ", 100*percentComplete, "% complete");
-            document.querySelector("progress").setAttribute("value", 100*percentComplete);
-        }
-        else
-        {
-            // Unable to compute progress information since the total size is unknown
-             console.log("Progress: ", oEvent.loaded);
-       }
-    },
-
-    transferComplete: function (evt) {
-        console.log("The transfer is complete.");
-    },
-
-    transferFailed: function (evt) {
-        console.log("An error occurred while transferring the file.");
-    },
-
-    transferCanceled: function (evt) {
-        console.log("The transfer has been canceled by the user.");
-    },
-*/
     get: function (url, callback)
     {
+//        test_sleep(100);
+        console.log("get", url);
+        
         controller.send_stamp = Date.now();
         var last_request = url;
         
@@ -1089,52 +1075,61 @@ controller = {
        }
         xhr.ontimeout = function(evt)
         {
-            console.log("Timeout - resending request");
-//            controller.get(last_request, controller.update); // Resend request
+            console.log("Timeout - resending request", controller.timeout);
+            if(controller.timeout < 1000)
+                controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
+            controller.get(last_request, controller.update); // Resend request
         }
         xhr.onload = function(evt)
         {
             if(!xhr.response)   // empty response is ignored
+            {
+                console.log("onload - empty response - error")
+//                callback();
                 return;
+            }
 
+            console.log("onload",xhr.getResponseHeader("Session-Id"))
             callback(xhr.response, xhr.getResponseHeader("Session-Id"));
             if(controller.run_mode == 'play')
                 controller.play();
         }
         
         xhr.responseType = 'json';
-        xhr.timeout = 1000;
+//        xhr.timeout = controller.timeout;
         xhr.send();
     },
 
     init: function () {
         controller.get("update.json", controller.update);
-        startPeriodicTask(function() {controller.requestUpdate();}, 50); // FIXME: Use adaptive frequency later
+ //       startPeriodicTask(function() {controller.requestUpdate();}, controller.webui_req_int); // FIXME: Use adaptive frequency later
+        
     },
     
     stop: function () {
        controller.run_mode = 'stop';
-        controller.get("stop", controller.update);
+        controller.get("stop", controller.update); // do not request data
      },
     
     pause: function () {
         controller.run_mode = 'pause';
-        controller.get("pause", controller.update);
+        controller.requestUpdate();
     },
     
     step: function () {
-        controller.run_mode = 'pause';
-        controller.get("step", controller.update);
+        controller.run_mode = 'step';
+        controller.requestUpdate();
     },
     
     play: function () {
         controller.run_mode = 'play';
-        controller.get("play", controller.update);
+        controller.requestUpdate();
     },
     
     realtime: function () {
         controller.run_mode = 'realtime';
-        controller.get("realtime", controller.update);
+        controller.requestUpdate();
+//        controller.get("realtime", controller.update);
     },
 
     buildViewDictionary: function(group, name) {
@@ -1215,22 +1210,29 @@ controller = {
 
     update(response, session_id)
     {
+        console.log("update");
         controller.ping = Date.now() - controller.send_stamp;
 
         // Check if this is a new session
         
-        if(controller.session_id != session_id) // new session
+        if(!response)
+        {
+            // empty respone - a ping!
+            controller.requestUpdate();
+        }
+        else if(controller.session_id != session_id) // new session
         {
             console.log("NEW SESSION "+session_id);
             controller.session_id = session_id;
             nav.init(response);
             controller.buildViewDictionary(response, "");
             controller.selectView(Object.keys(controller.views)[0]);
-            controller.get("update.json", controller.update);
+ //           controller.get("update.json", controller.update);
+ //           controller.requestUpdate();  // TEST ***********
         }
         else // same session - proably new data package
         {
-//            console.log("SAME SESSION "+session_id);
+            console.log("SAME SESSION "+session_id);
             
             // Set system info from package
             
@@ -1246,6 +1248,7 @@ controller = {
 
                 document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1);
                 document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
+                document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
                 document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
             }
@@ -1253,12 +1256,21 @@ controller = {
             {
             }
             
+        
             controller.updateImages(response);
+            if(controller.run_mode == 'realtime')
+            {
+                setTimeout(controller.realtime, 20)
+            //    while(Date.now() - controller.send_stamp < 120)
+            //        ; // wait
+            //    controller.requestUpdate();
+            }
         }
     },
 
     requestUpdate: function()
     {
+        console.log("requestUpdate");
         controller.webui_interval = Date.now() - controller.last_request_time;
         controller.last_request_time = Date.now();
 
@@ -1269,7 +1281,6 @@ controller = {
         }
 
         // Request new data
-        
         let data_set = new Set();
         
         // Very fragile loop - maybe use class to mark widgets or something
@@ -1283,7 +1294,6 @@ controller = {
             {}
 
         let data_string = interaction.currentViewName+"#"; // should be added to names to support multiple clients
-        
         let sep = "";
         for(s of data_set)
         {
@@ -1291,7 +1301,7 @@ controller = {
             sep = "#"
          }
         
-        controller.get("update.json?data="+encodeURIComponent(data_string), controller.update);
+        controller.get(controller.run_mode+"?data="+encodeURIComponent(data_string), controller.update);
     },
 
     copyView: function() // TODO: Remove default parameters

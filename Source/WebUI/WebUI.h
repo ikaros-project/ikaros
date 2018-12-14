@@ -103,7 +103,7 @@ public:
 const int ui_state_stop = 0;
 const int ui_state_pause = 1;
 const int ui_state_step = 2;
-const int ui_state_run = 3;
+const int ui_state_play = 3;
 const int ui_state_realtime = 4;
 
 
@@ -147,6 +147,8 @@ public:
     void            CopyUIData();
     void            SendUIData();
     void            Pause();
+    
+    void            HandleCommand(char * uri, char * args);
     void			HandleHTTPRequest();
     void            HandleHTTPThread();
     

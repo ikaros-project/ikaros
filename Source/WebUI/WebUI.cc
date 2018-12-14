@@ -594,8 +594,8 @@ WebUI::WebUI(Kernel * kernel)
         }
         else
         {
-            ui_state = ui_state_run;
-            k->Notify(msg_debug, "Setting run mode.\n");
+            ui_state = ui_state_play;
+            k->Notify(msg_debug, "Setting play mode.\n");
         }
         isRunning = true;
     }
@@ -633,7 +633,7 @@ WebUI::~WebUI()
 void
 WebUI::Run()
 {
-    isRunning = true;   // FIXME: TEMPORARY START UP
+    isRunning = false;   // FIXME: TEMPORARY START UP
     first_request = true;
     
     if(socket == NULL)
@@ -645,7 +645,6 @@ WebUI::Run()
     tick = 0;
 
     httpThread = new std::thread(WebUI::StartHTTPThread, this);
-//    httpThread->Create(WebUI::StartHTTPThread, this);
 
     while (!k->Terminate())
     {
@@ -865,7 +864,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     socket->SendHTTPHeader(&header);
 
     socket->Send("{\n");
-    socket->Send("\t\"state\": %d,\n", ui_state);  // ui_state; ui_state_run
+    socket->Send("\t\"state\": %d,\n", ui_state);  // ui_state; ui_state_play
     socket->Send("\t\"iteration\": %d,\n", k->GetTick());
     socket->Send("\t\"progress\": %f,\n", (k->max_ticks > 0 ? float(k->tick)/float(k->max_ticks) : 0));
     
@@ -877,7 +876,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     socket->Send("\t\"total_time\": %.2f,\n", total_time);
     socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
     socket->Send("\t\"timebase\": %d,\n", k->tick_length);
-    socket->Send("\t\"timebase_actual\": %.0f,\n", 1000*float(total_time)/float(k->tick));
+    socket->Send("\t\"timebase_actual\": %.0f,\n", k->tick > 0 ? 1000*float(total_time)/float(k->tick) : 0);
     socket->Send("\t\"lag\": %.0f,\n", k->lag);
     socket->Send("\t\"cpu_cores\": %d", k->cpu_cores); // FIXME: send with initial package instead
 
@@ -995,7 +994,8 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     
     destroy_array(q);
     
-//    printf("SENT DATA PACKAGE\n");
+    if (debug_mode)
+        printf("SENT DATA PACKAGE\n");
 }
 
 
@@ -1007,6 +1007,108 @@ WebUI::Pause()
     while(is_running)
         ;
     dont_copy_data = false;
+}
+
+
+
+void
+WebUI::HandleCommand(char * uri, char * args)
+{
+    if(!args || first_request) // not a data request - send view data
+    {
+        first_request = false;
+        std::string s = k->JSONString();
+        Dictionary rtheader;
+        rtheader.Set("Session-Id", std::to_string(k->session_id).c_str());
+        rtheader.Set("Content-Type", "application/json");
+        rtheader.Set("Content-Length", int(s.size()));
+        socket->SendHTTPHeader(&rtheader);
+        socket->SendData(s.c_str(), int(s.size()));
+        printf("SENT DATA OF SIZE %d (id=%ld)\n", int(s.size()), k->session_id);
+    }
+    else // possibly a data request - send requested data - very temporary version without thread or real-time support
+    {
+        //C++17 [[maybe_unused]] char * var =
+        strsep(&args, "=");
+        // Build data package
+        char * root = strsep(&args, "#");
+        //C++17 [[maybe_unused]] char * view_name =
+        strsep(&args, "#");
+        // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
+        if(current_xml_root_path)
+            destroy_string(current_xml_root_path);
+        current_xml_root_path = create_string(root); // create_string(&uri[8]);
+        char * p = create_string(root);  // was uri
+        char * group_in_path;
+        XMLElement * group_xml = xml;
+        //           strsep(&p, "/");    // group_in_path =
+        //           strsep(&p, "/");
+        while((group_in_path = strsep(&p, "/")))
+        {
+            group_xml = group_xml->GetElement("group");
+            for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
+                if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
+                {
+                    group_xml = xml_module;
+                    break;
+                }
+        }
+        current_xml_root = group_xml;
+        destroy_string(p);
+
+        while(args)
+        {
+            char * ms = strsep(&args, "#");
+            char * module = strsep(&ms, ".");
+            char * source = strsep(&ms, ":");
+            char * format = ms;
+            
+            if(format)
+                AddImageDataSource(module, source, format);
+            else
+                AddDataSource(module, source);
+        }
+        
+        //            while(dont_copy_data) // Wait for data to become available
+        //                printf("waiting\n");
+        
+        if(!strcmp(uri, "/update.json"))
+        {
+              
+        }
+        else if(!strcmp(uri, "/pause"))
+        {
+            Pause();
+            CopyUIData();
+            ui_state = ui_state_pause;
+        }
+        else if(!strcmp(uri, "/step"))
+        {
+            Pause();
+            ui_state = ui_state_pause;
+            k->Tick();
+            CopyUIData();
+        }
+        else if(!strcmp(uri, "/play"))
+        {
+            Pause();
+            ui_state = ui_state_play;
+            k->Tick();
+            CopyUIData();
+        }
+        else if(!strcmp(uri, "/realtime"))
+        {
+            if(ui_state != ui_state_realtime)
+            {
+                ui_state = ui_state_realtime;
+                k->timer->Restart();
+                tick = 0;
+                isRunning = true;
+            }
+        }
+        
+        SendUIData();
+    }
 }
 
 
@@ -1024,73 +1126,25 @@ WebUI::HandleHTTPRequest()
     char * uri = strsep(&uri_p, "?");
     char * args = uri_p;
 
-    if(!strcmp(uri, "/update.json"))
+    if(!strcmp(uri, "/pause"))
     {
-        if(!args || first_request) // not a data request - send view data
-        {
-            first_request = false;
-            std::string s = k->JSONString();
-            Dictionary rtheader;
-            rtheader.Set("Session-Id", std::to_string(k->session_id).c_str());
-            rtheader.Set("Content-Type", "application/json");
-            rtheader.Set("Content-Length", int(s.size()));
-            socket->SendHTTPHeader(&rtheader);
-            socket->SendData(s.c_str(), int(s.size()));
-        }
-        else // possibly a data request - send requested data - very temporary version without thread or real-time support
-        {
-            //C++17 [[maybe_unused]] char * var =
-            strsep(&args, "=");
-            
-            // Build data package
-
-            char * root = strsep(&args, "#");
-            //C++17 [[maybe_unused]] char * view_name =
-            strsep(&args, "#");
-            
-            // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
-            
-            if(current_xml_root_path)
-                destroy_string(current_xml_root_path);
-            current_xml_root_path = create_string(root); // create_string(&uri[8]);
-            char * p = create_string(root);  // was uri
-            char * group_in_path;
-            XMLElement * group_xml = xml;
- //           strsep(&p, "/");    // group_in_path =
- //           strsep(&p, "/");
-            while((group_in_path = strsep(&p, "/")))
-            {
-                group_xml = group_xml->GetElement("group");
-                for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-                    if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
-                    {
-                        group_xml = xml_module;
-                        break;
-                    }
-            }
-            current_xml_root = group_xml;
-            destroy_string(p);
-
-            while(args)
-            {
-                char * ms = strsep(&args, "#");
-                char * module = strsep(&ms, ".");
-                char * source = strsep(&ms, ":");
-                char * format = ms;
-
-                if(format)
-                    AddImageDataSource(module, source, format);
-                else
-                    AddDataSource(module, source);
-            }
-            
-//            while(dont_copy_data) // Wait for data to become available
-//                printf("waiting\n");
-
-            CopyUIData();
-            SendUIData();
-            return;
-        }
+        HandleCommand(uri, args);
+    }
+    else if(!strcmp(uri, "/step"))
+    {
+        HandleCommand(uri, args);
+    }
+    else if(!strcmp(uri, "/play"))
+    {
+        HandleCommand(uri, args);
+    }
+    else if(!strcmp(uri, "/realtime"))
+    {
+        HandleCommand(uri, args);
+    }
+    else if(!strcmp(uri, "/update.json"))
+    {
+        HandleCommand(uri, args);
     }
     else if (!strcmp(uri, "/stop"))
     {
@@ -1099,46 +1153,6 @@ WebUI::HandleHTTPRequest()
         CopyUIData();
         SendUIData();
         k->Notify(msg_terminate, "Sent by WebUI.\n");
-    }
-    else if (!strcmp(uri, "/step"))
-    {
-        Pause();
-        ui_state = ui_state_pause;
-        k->Tick();
-        CopyUIData();
-        SendUIData();
-    }
-    else if (!strcmp(uri, "/play"))
-    {
-        Pause();
-        ui_state = ui_state_run;
-        
-        for(int i=0; i<iterations_per_runstep; i++)
-            k->Tick();
-        
-        CopyUIData();
-        SendUIData();
-    }
-    
-    else if (!strcmp(uri, "/pause"))
-    {
-        Pause();
-        ui_state = ui_state_pause;
-        CopyUIData();
-        SendUIData();
-    }
-    else if (!strcmp(uri, "/realtime"))
-    {
-        ui_state = ui_state_realtime;
-        
-        Dictionary rtheader;
-        rtheader.Set("Content-Type", "text/plain");
-        socket->SendHTTPHeader(&rtheader);
-        socket->Send("REALTIME\n");
-        
-        k->timer->Restart();
-        tick = 0;
-        isRunning = true;
     }
     else if (strstart(uri, "/command/"))
     {
@@ -1292,9 +1306,9 @@ WebUI::HandleHTTPThread()
                 while(copying_data)  // wait for copy operation to complete
                 //    printf("waiting\n")
                     ;
-//                dont_copy_data = true;
+                dont_copy_data = true;
                 HandleHTTPRequest();
-//                dont_copy_data = false;
+                dont_copy_data = false;
             }
             socket->Close();
         }
