@@ -120,7 +120,7 @@ class WebUIWidget extends HTMLElement
         }
         catch(err)
         {
-            console.log("ERROR", err);
+//            console.log("ERROR", err);
             return default_data;
         }
     }
