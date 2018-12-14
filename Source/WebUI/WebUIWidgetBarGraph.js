@@ -35,6 +35,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         this.data = [];
 
         this.onclick = function () {
+            if(!this.data)
+                return;
             let s = "";
             for(let r of this.data)
             {
