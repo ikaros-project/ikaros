@@ -29,7 +29,27 @@
 	<output name="INTENSITY" description="The intensity channel." />
 
 	<view name="View">
-		<image format="rgb" module = "*" source = "RED+GREEN+BLUE" x="0" y="0"  width = "800" height = "600"/>
+		<image
+		max_x = "1"
+		title = "Output"
+		width = "381"
+		flipYCanvas = "no"
+		x = "60"
+		source = "*.RED+GREEN+BLUE"
+		format = "rgb"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		h = "4"
+		height = "321"
+		max_y = "1"
+		y = "60"
+		flipXAxis = "no"
+		scale = "both"
+		class = "image"
+		scales = "no"
+		w = "4"
+		/>
+		
 	</view>
 
     <author>

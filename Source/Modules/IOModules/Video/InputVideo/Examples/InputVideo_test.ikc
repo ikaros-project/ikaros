@@ -2,10 +2,30 @@
 
 <group title="InputVideo Example">
 
-	<module class="InputVideo" name="InputVideo"/>
+	<module class="InputVideo" name="InputVideo" frame_rate="29.97" />
 
 	<view name="View">
-		<image format="rgb" module = "InputVideo" source = "RED+GREEN+BLUE" x="0" y="0"  width = "800" height = "600"/>
+		<image
+		max_x = "1"
+		title = "Output"
+		width = "381"
+		flipYCanvas = "no"
+		x = "60"
+		source = "InputVideo.RED+GREEN+BLUE"
+		format = "rgb"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		h = "4"
+		height = "321"
+		max_y = "1"
+		y = "60"
+		flipXAxis = "no"
+		scale = "both"
+		class = "image"
+		scales = "no"
+		w = "4"
+		/>
+		
 	</view>
 	<module class="Logger" name="Logger"/>
 </group>
