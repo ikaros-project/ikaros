@@ -14,9 +14,28 @@
 
     <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "OUT" target = "INPUT" />
 
-    <view name = "View 1">
-        <object class="Image" type ="gray" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
-    </view>	
+	<view name = "View">
+		<image
+			max_x = "1"
+			title = "Output"
+			width = "381"
+			flipYCanvas = "no"
+			x = "60"
+			source = "IN.RED+GREEN+BLUE"
+			format = "rgb"
+			flipYAxis = "no"
+			flipXCanvas = "no"
+			h = "4"
+			height = "321"
+			max_y = "1"
+			y = "60"
+			flipXAxis = "no"
+			scale = "both"
+			class = "image"
+			scales = "no"
+			w = "4"
+		/>
+	</view>	
 	
     <module class = "Logger" name = "Logger" />
 </group>

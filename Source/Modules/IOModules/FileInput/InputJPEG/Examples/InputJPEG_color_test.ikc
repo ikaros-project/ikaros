@@ -19,9 +19,48 @@
 	<connection sourcemodule = "IN" source = "GREEN" targetmodule = "GREENOUT" target = "INPUT" />
 	<connection sourcemodule = "IN" source = "BLUE" targetmodule = "BLUEOUT" target = "INPUT" />
 
-	<view name = "View 1">
-		<object class="Image" name="Color Image" type ="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0" h="1" w="1" />
-		<object class="Text" title="Description" text="This file demonstrates/the use of the module/InputJPEG" x="1" y="0" />
+	<view name = "View">
+	<image
+			max_x = "1"
+			title = "Intensity"
+			width = "381"
+			flipYCanvas = "no"
+			x = "460"
+			source = "IN.INTENSITY"
+			format = "gray"
+			flipYAxis = "no"
+			flipXCanvas = "no"
+			h = "4"
+			height = "321"
+			max_y = "1"
+			y = "60"
+			flipXAxis = "no"
+			scale = "both"
+			class = "image"
+			scales = "no"
+			w = "4"
+			/>
+		
+		<image
+			max_x = "1"
+			title = "Output"
+			width = "381"
+			flipYCanvas = "no"
+			x = "60"
+			source = "IN.RED+GREEN+BLUE"
+			format = "rgb"
+			flipYAxis = "no"
+			flipXCanvas = "no"
+			h = "4"
+			height = "321"
+			max_y = "1"
+			y = "60"
+			flipXAxis = "no"
+			scale = "both"
+			class = "image"
+			scales = "no"
+			w = "4"
+		/>
 	</view>	
 	
     <module class = "Logger" name = "Logger" />
