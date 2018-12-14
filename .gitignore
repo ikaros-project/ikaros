@@ -51,3 +51,6 @@ Thumbs.db
 *.suo
 *.vcxproj
 *.vcxproj.filters
+
+# Other
+.vscode
