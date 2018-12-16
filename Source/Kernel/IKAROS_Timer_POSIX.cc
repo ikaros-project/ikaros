@@ -32,6 +32,10 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include <chrono>
+
+using namespace std::chrono;
+
 class TimerData
 {
 public:
@@ -96,11 +100,19 @@ void Timer::Sleep(float time)
 
 long Timer::GetRealTime()
 {
+/*
     struct timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, NULL); // FIXME: Apparently obsolete, change to clock_gettime (POSIX) or timespec_get (C11)
     long sec = time.tv_sec;
     long usec = time.tv_usec;
     return  1E3*float(sec) + float(usec)/1E3; // difference in milliseconds
+*/
+
+    milliseconds ms = duration_cast< milliseconds >(
+        system_clock::now().time_since_epoch()
+    );
+    
+    return ms.count();
 }
 
 #endif
