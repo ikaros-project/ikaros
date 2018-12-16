@@ -1035,13 +1035,13 @@ controller = {
     g_data: null,
     send_stamp: 0,
     webui_interval: 0,
-    webui_req_int: 55,
+    webui_req_int: 100,
     timeout: 1000,
 
     get: function (url, callback)
     {
 //        test_sleep(100);
-        console.log("get", url);
+//        console.log("get", url);
         
         controller.send_stamp = Date.now();
         var last_request = url;
@@ -1089,10 +1089,9 @@ controller = {
                 return;
             }
 
-            console.log("onload",xhr.getResponseHeader("Session-Id"))
+//            console.log("onload",xhr.getResponseHeader("Session-Id"))
+            setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
             callback(xhr.response, xhr.getResponseHeader("Session-Id"));
-            if(controller.run_mode == 'play')
-                controller.play();
         }
         
         xhr.responseType = 'json';
@@ -1102,34 +1101,32 @@ controller = {
 
     init: function () {
         controller.get("update.json", controller.update);
- //       startPeriodicTask(function() {controller.requestUpdate();}, controller.webui_req_int); // FIXME: Use adaptive frequency later
-        
+//        controller.requestUpdate();
     },
     
     stop: function () {
-       controller.run_mode = 'stop';
+        controller.run_mode = 'stop';
         controller.get("stop", controller.update); // do not request data
      },
     
     pause: function () {
         controller.run_mode = 'pause';
-        controller.requestUpdate();
+//        controller.requestUpdate();
     },
     
     step: function () {
         controller.run_mode = 'step';
-        controller.requestUpdate();
+//        controller.requestUpdate();
     },
     
     play: function () {
         controller.run_mode = 'play';
-        controller.requestUpdate();
+//        controller.requestUpdate();
     },
     
     realtime: function () {
         controller.run_mode = 'realtime';
-        controller.requestUpdate();
-//        controller.get("realtime", controller.update);
+//        controller.requestUpdate();
     },
 
     buildViewDictionary: function(group, name) {
@@ -1167,6 +1164,7 @@ controller = {
     clear_wait()
     {
         controller.load_count = 0;
+        console.log("clear_wait - drawing or data load failed"); // FIXME: Remove
     },
 
     wait_for_load(data)
@@ -1210,35 +1208,31 @@ controller = {
 
     update(response, session_id)
     {
-        console.log("update");
         controller.ping = Date.now() - controller.send_stamp;
 
         // Check if this is a new session
         
         if(!response)
         {
-            // empty respone - a ping!
-            controller.requestUpdate();
+            controller.requestUpdate(); // empty respone - probably an error
         }
         else if(controller.session_id != session_id) // new session
         {
             console.log("NEW SESSION "+session_id);
+//            controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             controller.session_id = session_id;
             nav.init(response);
             controller.buildViewDictionary(response, "");
             controller.selectView(Object.keys(controller.views)[0]);
- //           controller.get("update.json", controller.update);
- //           controller.requestUpdate();  // TEST ***********
         }
         else // same session - proably new data package
         {
-            console.log("SAME SESSION "+session_id);
-            
             // Set system info from package
-            
+//            console.log("SAME SESSION "+session_id);
             try
             {
                 document.querySelector("#iteration").innerText = response.iteration;
+                document.querySelector("#state").innerText = response.state+" "+controller.run_mode;
                 document.querySelector("#progress").value = response.progress;
                 document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
                 document.querySelector("#timebase").innerText = response.timebase+" ms";
@@ -1251,26 +1245,21 @@ controller = {
                 document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
                 document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
+                
+                controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             }
             catch(err)
             {
+                console.log("incorrect package received form ikaros")
             }
             
-        
             controller.updateImages(response);
-            if(controller.run_mode == 'realtime')
-            {
-                setTimeout(controller.realtime, 20)
-            //    while(Date.now() - controller.send_stamp < 120)
-            //        ; // wait
-            //    controller.requestUpdate();
-            }
         }
     },
 
     requestUpdate: function()
     {
-        console.log("requestUpdate");
+//        console.log("requestUpdate:"+controller.run_mode);
         controller.webui_interval = Date.now() - controller.last_request_time;
         controller.last_request_time = Date.now();
 
@@ -1302,6 +1291,8 @@ controller = {
          }
         
         controller.get(controller.run_mode+"?data="+encodeURIComponent(data_string), controller.update);
+        if(controller.run_mode == 'step')   // should be done by kernel - here just in case
+            controller.run_mode = 'pause'
     },
 
     copyView: function() // TODO: Remove default parameters
