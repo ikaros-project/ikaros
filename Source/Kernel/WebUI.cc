@@ -589,12 +589,12 @@ WebUI::WebUI(Kernel * kernel)
         k->Notify(msg_debug, "Setting up WebUI port at %d\n", port);
         if(k->options->GetOption('r'))
         {
-            ui_state = ui_state_realtime;
+//            ui_state = ui_state_realtime;
             k->Notify(msg_debug, "Setting real-time mode.\n");
         }
         else
         {
-            ui_state = ui_state_play;
+//            ui_state = ui_state_play;
             k->Notify(msg_debug, "Setting play mode.\n");
         }
         isRunning = true;
@@ -837,6 +837,8 @@ WebUI::CopyUIData()
     copying_data = false;
 }
 
+static long last_timestamp = 0;
+static int ccc = 0;
 
 void
 WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
@@ -852,6 +854,15 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 
     // Send
 
+    long timestamp = Timer::GetRealTime();
+    ccc++;
+    
+//    if(timestamp - last_timestamp < 5 )
+//        printf("ERR\n");
+    
+    printf("SendUIData: %d %ld %d\n", ui_state, timestamp, ccc);
+    last_timestamp = timestamp;
+    
     Dictionary header;
 	
     header.Set("Session-Id", std::to_string(k->session_id).c_str()); // FIXME: GetValue("session_id")
@@ -872,7 +883,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     
     float total_time = k->timer->GetTime()/1000.0; // in seconds
     
-    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
+    socket->Send("\t\"timestamp\": %ld,\n", timestamp);
     socket->Send("\t\"total_time\": %.2f,\n", total_time);
     socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
     socket->Send("\t\"timebase\": %d,\n", k->tick_length);
@@ -1091,6 +1102,7 @@ WebUI::HandleCommand(char * uri, char * args)
         }
         else if(!strcmp(uri, "/play"))
         {
+//            printf("/play\n");
             Pause();
             ui_state = ui_state_play;
             k->Tick();
@@ -1098,6 +1110,7 @@ WebUI::HandleCommand(char * uri, char * args)
         }
         else if(!strcmp(uri, "/realtime"))
         {
+            printf("/realtime\n");
             if(ui_state != ui_state_realtime)
             {
                 ui_state = ui_state_realtime;
