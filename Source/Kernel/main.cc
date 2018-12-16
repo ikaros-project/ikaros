@@ -34,7 +34,7 @@
 // Kernel
 
 #include "IKAROS.h"
-#include "WebUI/WebUI.h"
+#include "WebUI.h"
 
 
 void PrintInfo();
