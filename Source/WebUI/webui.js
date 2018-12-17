@@ -1027,8 +1027,10 @@ interaction = {
 
 controller = {
     run_mode: 'pause',
+    command: 'update',
     tick: 0,
     session_id: 0,
+    client_id: Date.now(),
     views: {},
     load_count: 0,
     load_count_timeout: null,
@@ -1040,9 +1042,6 @@ controller = {
 
     get: function (url, callback)
     {
-//        test_sleep(100);
-//        console.log("get", url);
-        
         controller.send_stamp = Date.now();
         var last_request = url;
         
@@ -1070,15 +1069,13 @@ controller = {
                 console.log("Failed to load resource. No data.");
             else
                 console.log("Failed to load resource.");
-//            console.log("Resending request");
-//            controller.get(last_request, controller.update);
        }
         xhr.ontimeout = function(evt)
         {
             console.log("Timeout - resending request", controller.timeout);
             if(controller.timeout < 1000)
                 controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
-            controller.get(last_request, controller.update); // Resend request
+            controller.get(last_request, controller.update); // Resend request ******************* ERROR
         }
         xhr.onload = function(evt)
         {
@@ -1100,33 +1097,29 @@ controller = {
     },
 
     init: function () {
-        controller.get("update.json", controller.update);
+        controller.get("update.json", controller.update);   // FIXME: only "update" ************
 //        controller.requestUpdate();
     },
     
     stop: function () {
         controller.run_mode = 'stop';
-        controller.get("stop", controller.update); // do not request data
+        controller.get("stop", controller.update); // do not request data -  stop immediately
      },
     
     pause: function () {
-        controller.run_mode = 'pause';
-//        controller.requestUpdate();
+        controller.command = 'pause';
     },
     
     step: function () {
-        controller.run_mode = 'step';
-//        controller.requestUpdate();
+        controller.command = 'step';
     },
     
     play: function () {
-        controller.run_mode = 'play';
-//        controller.requestUpdate();
+        controller.command = 'play';
     },
     
     realtime: function () {
-        controller.run_mode = 'realtime';
-//        controller.requestUpdate();
+        controller.command = 'realtime';
     },
 
     buildViewDictionary: function(group, name) {
@@ -1156,9 +1149,12 @@ controller = {
             {
                 w[i].children[1].receivedData = data;
                 w[i].children[1].update(data); // include data for backward compatibility
+                console.log("updateWidgets update: "+i);
             }
             catch(err)
-            {}
+            {
+                console.log("updateWidgets failed: "+controller.client_id);
+            }
     },
 
     clear_wait()
@@ -1170,7 +1166,7 @@ controller = {
     wait_for_load(data)
     {
         if(controller.load_count > 0)
-            setTimeout("controller.wait_for_load()", 1);
+            setTimeout(controller.wait_for_load, 1);
         else
         {
             clearTimeout(controller.load_count_timeout);
@@ -1194,8 +1190,8 @@ controller = {
                 }
             }
      
-            controller.load_count_timeout = setTimeout("controller.clear_wait()", 200); // give up after 1/5 s and continue
-            setTimeout("controller.wait_for_load()", 1);
+            controller.load_count_timeout = setTimeout(controller.clear_wait, 200); // give up after 1/5 s and continue
+            setTimeout(controller.wait_for_load, 1);
         }
         catch(err)
         {
@@ -1218,8 +1214,11 @@ controller = {
         }
         else if(controller.session_id != session_id) // new session
         {
-            console.log("NEW SESSION "+session_id);
-//            controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
+            console.log("NEW SESSION "+session_id+" :"+['stop','pause','step','play','realtime'][response.state]);
+            if(response.state)
+                controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
+            else
+                controller.run_mode = 'pause'
             controller.session_id = session_id;
             nav.init(response);
             controller.buildViewDictionary(response, "");
@@ -1290,9 +1289,10 @@ controller = {
             sep = "#"
          }
         
-        controller.get(controller.run_mode+"?data="+encodeURIComponent(data_string), controller.update);
-        if(controller.run_mode == 'step')   // should be done by kernel - here just in case
-            controller.run_mode = 'pause'
+        controller.get(controller.command+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
+        controller.command = 'update';
+//        if(controller.run_mode == 'step')   // should be done by kernel - here just in case ************************
+//            controller.run_mode = 'pause'
     },
 
     copyView: function() // TODO: Remove default parameters

@@ -563,15 +563,14 @@ WebUI::WebUI(Kernel * kernel)
     current_xml_root = NULL;
     current_xml_root_path = create_string("");
     ui_state = ui_state_pause;
-    
+    master_id = 0;
     ui_data = NULL;
     copying_data = false;
     dont_copy_data = false;
     is_running = false;
-
     view_data = NULL;
     debug_mode = false;
-    isRunning = false;
+
 
 	iterations_per_runstep = 1;
     if(k->options->GetOption('u'))
@@ -860,7 +859,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 //    if(timestamp - last_timestamp < 5 )
 //        printf("ERR\n");
     
-    printf("SendUIData: %d %ld %d\n", ui_state, timestamp, ccc);
+//    printf("SendUIData: %d %ld %d\n", ui_state, timestamp, ccc);
     last_timestamp = timestamp;
     
     Dictionary header;
@@ -1025,6 +1024,13 @@ WebUI::Pause()
 void
 WebUI::HandleCommand(char * uri, char * args)
 {
+    // ad hoc parsing of arguments
+    char * client = strsep(&args, "&");
+    char * id = (client ? &client[3] : NULL);
+    long client_id = 0;
+    if(id)
+    client_id = atol(id);
+
     if(!args || first_request) // not a data request - send view data
     {
         first_request = false;
@@ -1037,7 +1043,7 @@ WebUI::HandleCommand(char * uri, char * args)
         socket->SendData(s.c_str(), int(s.size()));
         printf("SENT DATA OF SIZE %d (id=%ld)\n", int(s.size()), k->session_id);
     }
-    else // possibly a data request - send requested data - very temporary version without thread or real-time support
+    else // possibly a data request - send requested data
     {
         //C++17 [[maybe_unused]] char * var =
         strsep(&args, "=");
@@ -1087,39 +1093,51 @@ WebUI::HandleCommand(char * uri, char * args)
         {
               
         }
+        if(!strcmp(uri, "/update"))
+        {
+            printf("%ld\n", client_id);
+            if(ui_state == ui_state_play && master_id == client_id)
+            {
+                Pause();
+                k->Tick();
+                CopyUIData();
+            }
+        }
         else if(!strcmp(uri, "/pause"))
         {
             Pause();
             CopyUIData();
             ui_state = ui_state_pause;
+            master_id = client_id;
         }
         else if(!strcmp(uri, "/step"))
         {
             Pause();
             ui_state = ui_state_pause;
+            master_id = client_id;
             k->Tick();
             CopyUIData();
         }
         else if(!strcmp(uri, "/play"))
         {
-//            printf("/play\n");
             Pause();
             ui_state = ui_state_play;
+            master_id = client_id;
             k->Tick();
             CopyUIData();
         }
         else if(!strcmp(uri, "/realtime"))
         {
-            printf("/realtime\n");
             if(ui_state != ui_state_realtime)
             {
                 ui_state = ui_state_realtime;
+                master_id = client_id;
                 k->timer->Restart();
                 tick = 0;
                 isRunning = true;
             }
         }
-        
+
         SendUIData();
     }
 }
@@ -1139,7 +1157,11 @@ WebUI::HandleHTTPRequest()
     char * uri = strsep(&uri_p, "?");
     char * args = uri_p;
 
-    if(!strcmp(uri, "/pause"))
+    if(!strcmp(uri, "/update"))
+    {
+        HandleCommand(uri, args);
+    }
+    else if(!strcmp(uri, "/pause"))
     {
         HandleCommand(uri, args);
     }

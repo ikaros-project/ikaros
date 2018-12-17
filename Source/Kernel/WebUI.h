@@ -124,6 +124,7 @@ public:
     int             ui_state;
     int             iterations_per_runstep;
     bool            first_request;
+    long            master_id;
 
     std::atomic<float *> ui_data;
     std::atomic<bool> copying_data;
