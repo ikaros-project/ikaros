@@ -3283,9 +3283,6 @@ Kernel::ListInfo()
 #ifdef USE_BSD_SOCKET
     Notify(msg_print, "BSD-socket\n");
 #endif
-#ifdef USE_LIBJPEG
-    Notify(msg_print, "libjpeg\n");
-#endif
 #ifdef USE_THREADS
     Notify(msg_print, "threads\n");
 #endif
