@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+
+<group title = "Kinect">
+
+    <module
+        class = "Kinect"
+        name = "Kinect"
+        mode = "raw"
+     />
+
+     <module
+         class = "DepthHistogram"
+         name = "DepthHistogram"
+         filter = "yes"
+     />
+
+    <module
+        class	= "Constant"
+        name 	= "Tilt"
+        data  = "1"
+        outputsize = "1"
+    />
+
+    <module
+        class 			= "Constant"
+        name 			= "Color"
+        data            = "0.5"
+        outputsize      = "1"
+    />
+
+    <module
+        class = "Scale"
+        name = "Scale"
+        factor = "2048"
+        comment = "This module could be removed if Image-object allowed scaling."
+    />
+
+    <module
+         class = "HeadTracking"
+         name = "HeadTracking"
+         mask_left = "0.1"
+         mask_right = "0.9"
+     />
+
+    <!--Save Depth in raw images -->
+    <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
+    <connection sourcemodule="Color" source="OUTPUT" targetmodule="Kinect" target="LED" />
+
+    <!-- Scale Kinect data -->
+    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "Scale" target = "INPUT" />
+
+    <!-- Display DepthSegmentation -->
+    <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthHistogram" target = "INPUT" />
+    <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "HeadTracking" target = "OBJECT" />
+
+    <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "HeadTracking" target = "INPUT" />
+
+    <view name="Depth">
+        <image type="fire" name="Camera" module = "Kinect" source = "DEPTH" width="240" height="240" x="0" y="0" />
+        <image type="rgb" name="Camera2" module = "Kinect" source="RED" width="240" height="240" x="0" y="360"/>
+        <image type="green" name="Blob" module = "HeadTracking" source = "OUTPUT" x="360" y="0" width="256" height="256" />
+    </view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
