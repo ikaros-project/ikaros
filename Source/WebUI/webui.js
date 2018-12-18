@@ -1231,7 +1231,7 @@ controller = {
             try
             {
                 document.querySelector("#iteration").innerText = response.iteration;
-                document.querySelector("#state").innerText = response.state+" "+controller.run_mode;
+                document.querySelector("#state").innerText = response.state+" "+controller.run_mode+" "+response.has_data;
                 document.querySelector("#progress").value = response.progress;
                 document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
                 document.querySelector("#timebase").innerText = response.timebase+" ms";
@@ -1252,7 +1252,8 @@ controller = {
                 console.log("incorrect package received form ikaros")
             }
             
-            controller.updateImages(response);
+            if(response.has_data)
+                controller.updateImages(response);
         }
     },
 

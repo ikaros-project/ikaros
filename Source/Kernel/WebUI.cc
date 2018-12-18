@@ -656,9 +656,9 @@ WebUI::Run()
         {
             is_running = true; // Flag that state changes are not allowed
             k->Tick();
-            CopyUIData();
+            //           CopyUIData();     // FIXME: TEMPORARY *********
             is_running = false;
-            tick++; // FIXME: should not be separate from kernel; remove from WebUI class
+            tick++; // FIXME: should not be separate from kernel; remove from WebUI class; actually should, restart at stop/play etc
             
             if (k->tick_length > 0)
             {
@@ -683,9 +683,12 @@ WebUI::CopyUIData()
     if(!view_data)
         return;
     
-    if(dont_copy_data)
-        return;
+//    if(dont_copy_data)
+//        return;
 
+    while(is_running)
+        ; // Whait for tick to end
+    
     copying_data = true;
 
     // Step 1: calculate size
@@ -839,9 +842,13 @@ WebUI::CopyUIData()
 static long last_timestamp = 0;
 static int ccc = 0;
 
+
+
 void
 WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
 {
+    // TODO: Write to buffer befoer sending to allow cancel if corrupted data
+
     // Grab ui data
         
     float * p = atomic_exchange(&ui_data, (float *)(NULL));
@@ -892,7 +899,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 
     if(!p)
     {
-        socket->Send("\n}\n");
+        socket->Send(",\"has_data\": 0\n}\n");
 		if (debug_mode)
 			printf("SENT EMPTY PACKAGE\n");
 
@@ -1000,6 +1007,11 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
             socket->Send("\t}\n");
     }
 
+    if(is_running) // new tick has started during sending
+        socket->Send(",\"has_data\": 0\n"); // there may be data but it cannot be trusted
+    else
+        socket->Send(",\"has_data\": 1\n");
+
     socket->Send("}\n");
     
     destroy_array(q);
@@ -1100,13 +1112,13 @@ WebUI::HandleCommand(char * uri, char * args)
             {
                 Pause();
                 k->Tick();
-                CopyUIData();
+ //               CopyUIData();
             }
         }
         else if(!strcmp(uri, "/pause"))
         {
             Pause();
-            CopyUIData();
+//            CopyUIData();
             ui_state = ui_state_pause;
             master_id = client_id;
         }
@@ -1116,7 +1128,7 @@ WebUI::HandleCommand(char * uri, char * args)
             ui_state = ui_state_pause;
             master_id = client_id;
             k->Tick();
-            CopyUIData();
+ //           CopyUIData();
         }
         else if(!strcmp(uri, "/play"))
         {
@@ -1124,7 +1136,7 @@ WebUI::HandleCommand(char * uri, char * args)
             ui_state = ui_state_play;
             master_id = client_id;
             k->Tick();
-            CopyUIData();
+ //           CopyUIData();
         }
         else if(!strcmp(uri, "/realtime"))
         {
@@ -1138,6 +1150,8 @@ WebUI::HandleCommand(char * uri, char * args)
             }
         }
 
+        
+        CopyUIData();
         SendUIData();
     }
 }
