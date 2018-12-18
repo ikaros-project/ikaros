@@ -24,8 +24,6 @@
 
 #include "IKAROS.h"
 
-#ifdef USE_LIBJPEG
-
 class InputJPEG: public Module
 {
 public:
@@ -61,21 +59,4 @@ private:
 
 #endif
 
-#ifndef USE_LIBJPEG
-
-#include <stdio.h>
-
-class InputJPEG
-{
-public:
-    static Module * Create(char * name, Parameter * p)
-    {
-        printf("This version does not support JPEG files.\n");
-        return NULL;
-    }
-};
-
-#endif
-
-#endif
 
