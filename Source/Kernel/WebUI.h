@@ -31,8 +31,6 @@
 
 #include "IKAROS.h"
 
-#ifdef USE_SOCKET
-
 #ifndef     WEBUIPATH
 #define		WEBUIPATH	"Source/WebUI/"
 #endif
@@ -127,9 +125,8 @@ public:
     long            master_id;
 
     std::atomic<float *> ui_data;
-    std::atomic<bool> copying_data;
     std::atomic<bool> dont_copy_data;
-    std::atomic<bool> is_running;
+    std::atomic<bool> tick_is_running;
     
     ModuleData *	view_data;
     
@@ -139,26 +136,23 @@ public:
     void			AddDataSource(const char * module, const char * source);
     void			AddImageDataSource(const char * module, const char * source, const char * type);
     void			AddParameterSource(const char * module, const char * source);
-//    void			SendView(const char * view);
-//    void            SendModule(Module * m);
-//    void            SendGroups(XMLElement * xml);
-//    void            SendInspector();
+    
     void            SendXML();
     void			ReadXML(XMLDocument * xmlDoc);
     void            CopyUIData();
     void            SendUIData();
     void            Pause();
     
-    void            HandleCommand(char * uri, char * args);
+    void            HandleControlChange(char * uri, char * args);
     void			HandleHTTPRequest();
     void            HandleHTTPThread();
     
-    std::thread *        httpThread;
+    std::thread *   httpThread;
     static void *   StartHTTPThread(void * webui);
 
     void			Run();
 };
 
 #endif
-#endif
+
 
