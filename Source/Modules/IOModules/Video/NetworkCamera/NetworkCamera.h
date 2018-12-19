@@ -24,8 +24,6 @@
 
 #include "IKAROS.h"
 
-#if defined USE_SOCKET && defined USE_LIBJPEG
-
 #define INITIAL_BUFFER_SIZE 65536
 
 class NetworkCamera: public Module {
@@ -76,5 +74,5 @@ public:
 
 
 #endif
-#endif
+
 

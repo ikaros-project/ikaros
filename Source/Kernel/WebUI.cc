@@ -21,8 +21,6 @@
 //
 
 #include "WebUI.h"
-
-#ifdef USE_SOCKET
 #include "Kernel/IKAROS_ColorTables.h"
 
 #include <unistd.h>
@@ -32,8 +30,6 @@
 #include <string>
 
 using namespace ikaros;
-
-
 
 // TODO: Consolidate JPEG functions to a single one
 
@@ -565,12 +561,11 @@ WebUI::WebUI(Kernel * kernel)
     ui_state = ui_state_pause;
     master_id = 0;
     ui_data = NULL;
-    copying_data = false;
     dont_copy_data = false;
-    is_running = false;
+    tick_is_running = false;
     view_data = NULL;
     debug_mode = false;
-
+    isRunning = false;   // FIXME: unnless
 
 	iterations_per_runstep = 1;
     if(k->options->GetOption('u'))
@@ -632,13 +627,12 @@ WebUI::~WebUI()
 void
 WebUI::Run()
 {
-    isRunning = false;   // FIXME: TEMPORARY START UP
     first_request = true;
     
     if(socket == NULL)
         return;
 	
-    chdir(k->ikc_dir); // TODO: Check if already set
+    chdir(k->ikc_dir);
 
     k->timer->Restart();
     tick = 0;
@@ -654,11 +648,10 @@ WebUI::Run()
         
         if (isRunning)
         {
-            is_running = true; // Flag that state changes are not allowed
+            tick_is_running = true; // Flag that state changes are not allowed
             k->Tick();
-            CopyUIData();
-            is_running = false;
-            tick++; // FIXME: should not be separate from kernel; remove from WebUI class
+            tick_is_running = false;
+            tick++; // FIXME: should not be separate from kernel; remove from WebUI class; actually should, restart at stop/play etc
             
             if (k->tick_length > 0)
             {
@@ -668,11 +661,8 @@ WebUI::Run()
         }
     }
 
-//    if(k->max_ticks != -1)
-//        httpThread->Kill(); // FIXME: This is a really ugly solution; but this code will soon be replaced anyway
     httpThread->join();
     delete httpThread;
-//    chdir(k->ikc_dir);
 }
 
 
@@ -683,11 +673,9 @@ WebUI::CopyUIData()
     if(!view_data)
         return;
     
-    if(dont_copy_data)
-        return;
-
-    copying_data = true;
-
+    while(tick_is_running)
+        ; // Whait for tick to end
+    
     // Step 1: calculate size
     
     int size = 0;
@@ -737,8 +725,6 @@ WebUI::CopyUIData()
             }
         }
     }
-
-//    printf("CopyUIData: %ld: DATA SIZE: %d\n", tick, size);
 
     // Allocate memory
     
@@ -832,12 +818,8 @@ WebUI::CopyUIData()
     float * old_ui_data = atomic_exchange(&ui_data, local_ui_data);
     if(old_ui_data)
         destroy_array(old_ui_data);
-    
-    copying_data = false;
 }
 
-static long last_timestamp = 0;
-static int ccc = 0;
 
 void
 WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
@@ -847,21 +829,10 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     float * p = atomic_exchange(&ui_data, (float *)(NULL));
     float * q = p;
 
-//    printf("MEM: %lx\n", (unsigned long)p);
-
     long int s = 0;
 
     // Send
 
-    long timestamp = Timer::GetRealTime();
-    ccc++;
-    
-//    if(timestamp - last_timestamp < 5 )
-//        printf("ERR\n");
-    
-//    printf("SendUIData: %d %ld %d\n", ui_state, timestamp, ccc);
-    last_timestamp = timestamp;
-    
     Dictionary header;
 	
     header.Set("Session-Id", std::to_string(k->session_id).c_str()); // FIXME: GetValue("session_id")
@@ -874,7 +845,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     socket->SendHTTPHeader(&header);
 
     socket->Send("{\n");
-    socket->Send("\t\"state\": %d,\n", ui_state);  // ui_state; ui_state_play
+    socket->Send("\t\"state\": %d,\n", ui_state);
     socket->Send("\t\"iteration\": %d,\n", k->GetTick());
     socket->Send("\t\"progress\": %f,\n", (k->max_ticks > 0 ? float(k->tick)/float(k->max_ticks) : 0));
     
@@ -882,17 +853,17 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     
     float total_time = k->timer->GetTime()/1000.0; // in seconds
     
-    socket->Send("\t\"timestamp\": %ld,\n", timestamp);
+    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
     socket->Send("\t\"total_time\": %.2f,\n", total_time);
     socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
     socket->Send("\t\"timebase\": %d,\n", k->tick_length);
     socket->Send("\t\"timebase_actual\": %.0f,\n", k->tick > 0 ? 1000*float(total_time)/float(k->tick) : 0);
     socket->Send("\t\"lag\": %.0f,\n", k->lag);
-    socket->Send("\t\"cpu_cores\": %d", k->cpu_cores); // FIXME: send with initial package instead
+    socket->Send("\t\"cpu_cores\": %d", k->cpu_cores);
 
     if(!p)
     {
-        socket->Send("\n}\n");
+        socket->Send(",\"has_data\": 0\n}\n");
 		if (debug_mode)
 			printf("SENT EMPTY PACKAGE\n");
 
@@ -1000,6 +971,11 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
             socket->Send("\t}\n");
     }
 
+    if(tick_is_running) // new tick has started during sending
+        socket->Send(",\"has_data\": 0\n"); // there may be data but it cannot be trusted
+    else
+        socket->Send(",\"has_data\": 1\n");
+
     socket->Send("}\n");
     
     destroy_array(q);
@@ -1014,7 +990,7 @@ void
 WebUI::Pause()
 {
     isRunning = false;
-    while(is_running)
+    while(tick_is_running)
         ;
     dont_copy_data = false;
 }
@@ -1022,14 +998,14 @@ WebUI::Pause()
 
 
 void
-WebUI::HandleCommand(char * uri, char * args)
+WebUI::HandleControlChange(char * uri, char * args)
 {
     // ad hoc parsing of arguments
     char * client = strsep(&args, "&");
     char * id = (client ? &client[3] : NULL);
     long client_id = 0;
     if(id)
-    client_id = atol(id);
+        client_id = atol(id);
 
     if(!args || first_request) // not a data request - send view data
     {
@@ -1041,25 +1017,19 @@ WebUI::HandleCommand(char * uri, char * args)
         rtheader.Set("Content-Length", int(s.size()));
         socket->SendHTTPHeader(&rtheader);
         socket->SendData(s.c_str(), int(s.size()));
-        printf("SENT DATA OF SIZE %d (id=%ld)\n", int(s.size()), k->session_id);
     }
     else // possibly a data request - send requested data
     {
-        //C++17 [[maybe_unused]] char * var =
         strsep(&args, "=");
         // Build data package
         char * root = strsep(&args, "#");
-        //C++17 [[maybe_unused]] char * view_name =
         strsep(&args, "#");
-        // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
         if(current_xml_root_path)
             destroy_string(current_xml_root_path);
-        current_xml_root_path = create_string(root); // create_string(&uri[8]);
-        char * p = create_string(root);  // was uri
+        current_xml_root_path = create_string(root);
+        char * p = create_string(root);
         char * group_in_path;
         XMLElement * group_xml = xml;
-        //           strsep(&p, "/");    // group_in_path =
-        //           strsep(&p, "/");
         while((group_in_path = strsep(&p, "/")))
         {
             group_xml = group_xml->GetElement("group");
@@ -1085,28 +1055,14 @@ WebUI::HandleCommand(char * uri, char * args)
             else
                 AddDataSource(module, source);
         }
-        
-        //            while(dont_copy_data) // Wait for data to become available
-        //                printf("waiting\n");
-        
-        if(!strcmp(uri, "/update.json"))
+        if(!strcmp(uri, "/update") && ui_state == ui_state_play && master_id == client_id)
         {
-              
-        }
-        if(!strcmp(uri, "/update"))
-        {
-            printf("%ld\n", client_id);
-            if(ui_state == ui_state_play && master_id == client_id)
-            {
-                Pause();
-                k->Tick();
-                CopyUIData();
-            }
+            Pause();
+            k->Tick();
         }
         else if(!strcmp(uri, "/pause"))
         {
             Pause();
-            CopyUIData();
             ui_state = ui_state_pause;
             master_id = client_id;
         }
@@ -1116,7 +1072,6 @@ WebUI::HandleCommand(char * uri, char * args)
             ui_state = ui_state_pause;
             master_id = client_id;
             k->Tick();
-            CopyUIData();
         }
         else if(!strcmp(uri, "/play"))
         {
@@ -1124,20 +1079,16 @@ WebUI::HandleCommand(char * uri, char * args)
             ui_state = ui_state_play;
             master_id = client_id;
             k->Tick();
-            CopyUIData();
         }
-        else if(!strcmp(uri, "/realtime"))
+        else if(!strcmp(uri, "/realtime") && ui_state != ui_state_realtime)
         {
-            if(ui_state != ui_state_realtime)
-            {
-                ui_state = ui_state_realtime;
-                master_id = client_id;
-                k->timer->Restart();
-                tick = 0;
-                isRunning = true;
-            }
+            ui_state = ui_state_realtime;
+            master_id = client_id;
+            k->timer->Restart();
+            tick = 0;
+            isRunning = true;
         }
-
+        CopyUIData();
         SendUIData();
     }
 }
@@ -1152,36 +1103,23 @@ WebUI::HandleHTTPRequest()
     std::string s = socket->header.Get("URI");
     
     // Copy URI and remove index
-    
     char * uri_p = create_string(socket->header.Get("URI"));
     char * uri = strsep(&uri_p, "?");
     char * args = uri_p;
 
     if(!strcmp(uri, "/update"))
-    {
-        HandleCommand(uri, args);
-    }
+        HandleControlChange(uri, args);
     else if(!strcmp(uri, "/pause"))
-    {
-        HandleCommand(uri, args);
-    }
+        HandleControlChange(uri, args);
     else if(!strcmp(uri, "/step"))
-    {
-        HandleCommand(uri, args);
-    }
+        HandleControlChange(uri, args);
     else if(!strcmp(uri, "/play"))
-    {
-        HandleCommand(uri, args);
-    }
+        HandleControlChange(uri, args);
     else if(!strcmp(uri, "/realtime"))
-    {
-        HandleCommand(uri, args);
-    }
+        HandleControlChange(uri, args);
     else if(!strcmp(uri, "/update.json"))
-    {
-        HandleCommand(uri, args);
-    }
-    else if (!strcmp(uri, "/stop"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/stop"))
     {
         Pause();
         ui_state = ui_state_stop;
@@ -1204,7 +1142,6 @@ WebUI::HandleHTTPRequest()
                 strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
                 group = group->GetParentElement();
             }
-
             k->SendCommand(group, module_name, command, x, y, value);
         }
 
@@ -1231,10 +1168,8 @@ WebUI::HandleHTTPRequest()
                 strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
                 group = group->GetParentElement();
             }
-
             k->SetParameter(group, module_name, name, x, y, value);
         }
-
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
 		header.Set("Cache-Control", "no-cache");
@@ -1273,7 +1208,6 @@ WebUI::HandleHTTPRequest()
             destroy_string(uri);
             return;
         }
-        
         else
         {
             socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
@@ -1287,34 +1221,28 @@ WebUI::HandleHTTPRequest()
         socket->SendFile("index.html", webui_dir);
     }
     else if (
-			 strend(uri, ".xml") ||
-			 strend(uri, ".jpg") ||
-			 strend(uri, ".html") ||
-			 strend(uri, ".css") ||
-			 strend(uri, ".png") ||
-			 strend(uri, ".svg") ||
-			 strend(uri, ".js") ||
-			 strend(uri, ".gif") ||
-			 strend(uri, ".stl") ||
-			 strend(uri, ".gltf") ||
-			 strend(uri, ".glb") ||
-			 strend(uri, ".ico"))
+        strend(uri, ".xml") ||
+        strend(uri, ".jpg") ||
+        strend(uri, ".html") ||
+        strend(uri, ".css") ||
+        strend(uri, ".png") ||
+        strend(uri, ".svg") ||
+        strend(uri, ".js") ||
+        strend(uri, ".gif") ||
+        strend(uri, ".stl") ||
+        strend(uri, ".gltf") ||
+        strend(uri, ".glb") ||
+        strend(uri, ".ico"))
     {
         if(!socket->SendFile(&uri[1], k->ikc_dir))  // Check IKC-directory first to allow files to be overriden
         if(!socket->SendFile(&uri[1], webui_dir))   // Now look in WebUI directory
         {
 			if (strend(uri, ".gltf") || strend(uri, ".glb"))
-			{
 				socket->SendFile("/Models/glTF/Error.gltf", webui_dir);   // Send error model
-			}
 			else
-			{
-				// Send 404 if not file found
-				socket->SendFile("404.html", webui_dir);
-			}
+				socket->SendFile("404.html", webui_dir); // Send 404 if not file found
         }
     }
-	
     else 
     {
 		Dictionary header;
@@ -1333,18 +1261,10 @@ WebUI::HandleHTTPThread()
 {
     while(!k->Terminate())
     {
-//        printf("*\n");
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))
-            {
-                while(copying_data)  // wait for copy operation to complete
-                //    printf("waiting\n")
-                    ;
-                dont_copy_data = true;
                 HandleHTTPRequest();
-                dont_copy_data = false;
-            }
             socket->Close();
         }
     }
@@ -1365,9 +1285,7 @@ void
 WebUI::ReadXML(XMLDocument * xmlDoc) // TODO: should be integrated into kernel tree
 {
     if (xmlDoc == NULL)
-    {
         return;
-    }
 	
     if (xmlDoc->xml == NULL)
     {
@@ -1385,13 +1303,9 @@ WebUI::ReadXML(XMLDocument * xmlDoc) // TODO: should be integrated into kernel t
             xml = xml->GetElement("views");
     }
 	
-    // Catch exceptions here!!!
-	
     if (xml == NULL)
     {
         k->Notify(msg_warning, "WebUI: No views found\n"); // add exception based error handling later
         return;
     }
 }
-
-#endif

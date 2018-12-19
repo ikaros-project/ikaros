@@ -23,12 +23,10 @@
 
 #include "NetworkCamera.h"
 
-#ifdef USE_LIBJPEG
-#ifdef USE_SOCKET
-
 #define MAX_STR_LEN 512
 
-
+#ifndef NETWORKCAMERA
+#define NETWORKCAMERA
 
 extern "C" {
 #include "jpeglib.h"
@@ -234,5 +232,3 @@ NetworkCamera::Tick()
 static InitClass init("NetworkCamera", &NetworkCamera::Create, "Source/Modules/IOModules/Video/NetworkCamera/");
 
 #endif
-#endif
-

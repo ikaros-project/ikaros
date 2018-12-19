@@ -1,8 +1,7 @@
 //
-//	InputJPEG.h		This file is a part of the IKAROS project
-//					A module for reading from JPEG files
+//	MyModule.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2001-2002  Christian Balkenius
+//    Copyright (C) 2012 <Author Name>
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -18,45 +17,39 @@
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
+//    See http://www.ikaros-project.org/ for more information.
+//
 
-#ifndef INPUTJPEG
-#define INPUTJPEG
+#ifndef TrainHead_
+#define TrainHead_
 
 #include "IKAROS.h"
 
-class InputJPEG: public Module
+class TrainHead: public Module
 {
 public:
-    long	iterations;
-    long	iteration;
-    int	max_images;
-    int	cur_image;
+    static Module * Create(Parameter * p) { return new TrainHead(p); }
 
-    bool	read_once;
-    bool	first;
+    TrainHead(Parameter * p) : Module(p) {}
+    virtual ~TrainHead();
 
-    const char *	file_name;
+    void 		Init();
+    void 		Tick();
 
-    int	size_x;
-    int	size_y;
+    int     t;
+    int     segment_size;
+    int     iteration;
+    bool    first;
 
-    float *	intensity;
-    float *	red;
-    float *	green;
-    float *	blue;
+    float *    write;
+    float *    head1;
+    float *    head2;
+    float *    out_movement;
+    float *    past_movement;
+    float *    now_movement;
 
-    InputJPEG(Parameter * p);
-    virtual ~InputJPEG();
-
-    static Module * Create(Parameter * p);
-
-    bool		GetImageSize(int & x, int & y);
-    void		Init();
-    void		Tick();
-private:
-    FILE	*	file;
+    float *    mean_value;
+    float *    variance_value;
 };
 
 #endif
-
-
