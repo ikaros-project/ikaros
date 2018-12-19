@@ -1021,16 +1021,16 @@ controller = {
     
     reconnect: function ()
     {
-        console.log("try reconnect");
+//        console.log("try reconnect");
         controller.get("update", controller.update);
     
     },
     
     defer_reconnect: function ()
     {
-        console.log("defer_reconnect");
+//        console.log("defer_reconnect");
         clearInterval(controller.reconnect_timer);
-        reconnect_timer = setInterval(()=> {controller.reconnect;}, controller.reconnect_interval);
+        controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
 
     get: function (url, callback)
@@ -1054,7 +1054,7 @@ controller = {
                     document.querySelector("progress").setAttribute("value", 100*percentComplete);
                 }
             }
-
+/*
             xhr.onerror = function(evt)
             {
                  if(evt.lengthComputable && evt.loaded < evt.total)
@@ -1065,7 +1065,8 @@ controller = {
                     console.log("Failed to load resource.");
                 return false;
            }
-
+*/
+ /*
             xhr.ontimeout = function(evt)
             {
                 console.log("Timeout - resending request", controller.timeout);
@@ -1073,6 +1074,7 @@ controller = {
                     controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
                 controller.get(last_request, controller.update); // Resend request ******************* ERROR
             }
+ */
             xhr.onload = function(evt)
             {
                 if(!xhr.response)   // empty response is ignored
@@ -1086,7 +1088,7 @@ controller = {
             }
             
             xhr.responseType = 'json';
-            xhr.timeout = 1000;
+            xhr.timeout = 500;
             try {
                 xhr.send();
             }
@@ -1099,7 +1101,8 @@ controller = {
 
     init: function () {
         controller.get("update", controller.update);
-        controller.defer_reconnect(); // start heartbeat
+        //controller.defer_reconnect(); // start heartbeat
+        controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
     
     stop: function () {
@@ -1148,7 +1151,6 @@ controller = {
             {
                 w[i].children[1].receivedData = data;
                 w[i].children[1].update(data); // include data for backward compatibility
-                console.log("updateWidgets update: "+i);
             }
             catch(err)
             {
@@ -1228,7 +1230,7 @@ controller = {
             {
                 document.querySelector("#iteration").innerText = response.iteration;
                 document.querySelector("#state").innerText = response.state+" "+controller.run_mode+" "+response.has_data;
-                document.querySelector("#progress").value = response.progress;
+//                document.querySelector("#progress").value = response.progress;
                 document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
                 document.querySelector("#timebase").innerText = response.timebase+" ms";
                 document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
