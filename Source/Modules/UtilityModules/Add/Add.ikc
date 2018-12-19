@@ -22,14 +22,8 @@
 
 	<module class="Add" />
 
-    <view title="Add">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            module="*"
-            source="OUTPUT"
-            title="Default view for Add"
-        />
+	<view name="View">
+        <table title="Output" source="*.OUTPUT" x="40" y="20" width="300" height="300" />
     </view>
     
 	<author>
