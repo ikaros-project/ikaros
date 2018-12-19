@@ -13,7 +13,7 @@
 	BodyDynamixel = "DynamixelSimulate"
 	HeadDynamixel = "DynamixelSimulate"
 	LeftArmDynamixel = "DynamixelSimulate"
-	RightArmDynamixel = "Dynamixel"
+	RightArmDynamixel = "DynamixelSimulate"
 	PupilDynamixel = "DynamixelSimulate"
 
 	VisionInput = "InputVideoStream"

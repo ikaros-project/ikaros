@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Epi Eye" VisionInput = "InputVideo" >
+<group name="Epi Eye" >
 
     <description>
         Camera input and down scaling of the image
@@ -30,7 +30,7 @@
     <module
 		class = "@VisionInput"
 		name = "EYE"
-        url = "http://lefteye.local:8080/stream/video.h264"
+        url = "@VisionStream"
         uv4l = "true"
 		info = "false"
         active = "yes"
