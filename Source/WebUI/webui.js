@@ -14,29 +14,6 @@ String.prototype.rsplit = function(sep, maxsplit) {
  * Viewer scripts
  *
  */
-/*
-function startPeriodicTask(func, wait, times)
-{
-    var interv = function(w, t)
-    {
-        return function()
-        {
-            if(typeof t === "undefined" || t-- > 0){
-                setTimeout(interv, w);
-                try{
-                    func.call(null);
-                }
-                catch(e){
-                    t = 0;
-                    throw e.toString();
-                }
-            }
-        };
-    }(wait, times);
-
-    setTimeout(interv, wait);
-};
-*/
 
 function test_sleep(millis)
 {
@@ -1038,67 +1015,91 @@ controller = {
     send_stamp: 0,
     webui_interval: 0,
     webui_req_int: 100,
-    timeout: 1000,
+    timeout: 500,
+    reconnect_interval: 1000,
+    reconnect_timer: null,
+    
+    reconnect: function ()
+    {
+        console.log("try reconnect");
+        controller.get("update", controller.update);
+    
+    },
+    
+    defer_reconnect: function ()
+    {
+        console.log("defer_reconnect");
+        clearInterval(controller.reconnect_timer);
+        reconnect_timer = setInterval(()=> {controller.reconnect;}, controller.reconnect_interval);
+    },
 
     get: function (url, callback)
     {
-        controller.send_stamp = Date.now();
-        var last_request = url;
-        
-        xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
 
-        xhr.onloadstart = function(evt)
-        {
-            document.querySelector("progress").setAttribute("value", 0);
-        }
+            controller.send_stamp = Date.now();
+            var last_request = url;
+            xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
 
-        xhr.onprogress = function(evt)
-        {
-            if (evt.lengthComputable)
+            xhr.onloadstart = function(evt)
             {
-                var percentComplete = evt.loaded / evt.total;
-                document.querySelector("progress").setAttribute("value", 100*percentComplete);
-            }
-        }
-        xhr.onerror = function(evt)
-        {
-             if(evt.lengthComputable && evt.loaded < evt.total)
-                console.log("Failed to load resource. Incomplete.");
-            else if(evt.total == 0 )
-                console.log("Failed to load resource. No data.");
-            else
-                console.log("Failed to load resource.");
-       }
-        xhr.ontimeout = function(evt)
-        {
-            console.log("Timeout - resending request", controller.timeout);
-            if(controller.timeout < 1000)
-                controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
-            controller.get(last_request, controller.update); // Resend request ******************* ERROR
-        }
-        xhr.onload = function(evt)
-        {
-            if(!xhr.response)   // empty response is ignored
-            {
-                console.log("onload - empty response - error")
-//                callback();
-                return;
+                document.querySelector("progress").setAttribute("value", 0);
             }
 
-//            console.log("onload",xhr.getResponseHeader("Session-Id"))
-            setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
-            callback(xhr.response, xhr.getResponseHeader("Session-Id"));
-        }
-        
-        xhr.responseType = 'json';
-//        xhr.timeout = controller.timeout;
-        xhr.send();
+            xhr.onprogress = function(evt)
+            {
+                if (evt.lengthComputable)
+                {
+                    var percentComplete = evt.loaded / evt.total;
+                    document.querySelector("progress").setAttribute("value", 100*percentComplete);
+                }
+            }
+
+            xhr.onerror = function(evt)
+            {
+                 if(evt.lengthComputable && evt.loaded < evt.total)
+                    console.log("Failed to load resource. Incomplete.");
+                else if(evt.total == 0 )
+                    console.log("Failed to load resource. No data." + xhr.status);
+                else
+                    console.log("Failed to load resource.");
+                return false;
+           }
+
+            xhr.ontimeout = function(evt)
+            {
+                console.log("Timeout - resending request", controller.timeout);
+                if(controller.timeout < 1000)
+                    controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
+                controller.get(last_request, controller.update); // Resend request ******************* ERROR
+            }
+            xhr.onload = function(evt)
+            {
+                if(!xhr.response)   // empty response is ignored
+                {
+                    console.log("onload - empty response - error")
+                    return;
+                }
+                controller.defer_reconnect(); // we are still on line
+                setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
+                callback(xhr.response, xhr.getResponseHeader("Session-Id"));
+            }
+            
+            xhr.responseType = 'json';
+            xhr.timeout = 1000;
+            try {
+                xhr.send();
+            }
+            catch(error)
+            {
+                console.log(error);
+            }
+
     },
 
     init: function () {
-        controller.get("update.json", controller.update);   // FIXME: only "update" ************
-//        controller.requestUpdate();
+        controller.get("update", controller.update);
+        controller.defer_reconnect(); // start heartbeat
     },
     
     stop: function () {
@@ -1135,9 +1136,7 @@ controller = {
     },
 
     selectView: function(view) {
-        // Create new view if it does not exist
-        
-        interaction.addView(view);
+        interaction.addView(view);  // Create new view if it does not exist
     },
 
     updateWidgets(data)
@@ -1195,9 +1194,7 @@ controller = {
         }
         catch(err)
         {
-            //     view is being loaded - ignore!
-            //        if(console) console.log("Error: "+err.message);
-            //        alert("Exception");
+
         }
     },
 
@@ -1227,7 +1224,6 @@ controller = {
         else // same session - proably new data package
         {
             // Set system info from package
-//            console.log("SAME SESSION "+session_id);
             try
             {
                 document.querySelector("#iteration").innerText = response.iteration;
@@ -1259,13 +1255,12 @@ controller = {
 
     requestUpdate: function()
     {
-//        console.log("requestUpdate:"+controller.run_mode);
         controller.webui_interval = Date.now() - controller.last_request_time;
         controller.last_request_time = Date.now();
 
         if(!interaction.currentView) // no view selected
         {
-            controller.get("update.json", controller.update);
+            controller.get("update", controller.update);
             return;
         }
 
@@ -1292,8 +1287,6 @@ controller = {
         
         controller.get(controller.command+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
         controller.command = 'update';
-//        if(controller.run_mode == 'step')   // should be done by kernel - here just in case ************************
-//            controller.run_mode = 'pause'
     },
 
     copyView: function() // TODO: Remove default parameters

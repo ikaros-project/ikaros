@@ -21,8 +21,6 @@
 //
 
 #include "WebUI.h"
-
-
 #include "Kernel/IKAROS_ColorTables.h"
 
 #include <unistd.h>
@@ -32,8 +30,6 @@
 #include <string>
 
 using namespace ikaros;
-
-
 
 // TODO: Consolidate JPEG functions to a single one
 
@@ -1009,7 +1005,7 @@ WebUI::HandleControlChange(char * uri, char * args)
     char * id = (client ? &client[3] : NULL);
     long client_id = 0;
     if(id)
-    client_id = atol(id);
+        client_id = atol(id);
 
     if(!args || first_request) // not a data request - send view data
     {
@@ -1024,17 +1020,14 @@ WebUI::HandleControlChange(char * uri, char * args)
     }
     else // possibly a data request - send requested data
     {
-        //C++17 [[maybe_unused]] char * var =
         strsep(&args, "=");
         // Build data package
         char * root = strsep(&args, "#");
-        //C++17 [[maybe_unused]] char * view_name =
         strsep(&args, "#");
-        // set root (should be a separate function) // FIXME: include full name in all names to allow multiple clients
         if(current_xml_root_path)
             destroy_string(current_xml_root_path);
-        current_xml_root_path = create_string(root); // create_string(&uri[8]);
-        char * p = create_string(root);  // was uri
+        current_xml_root_path = create_string(root);
+        char * p = create_string(root);
         char * group_in_path;
         XMLElement * group_xml = xml;
         while((group_in_path = strsep(&p, "/")))
@@ -1062,15 +1055,10 @@ WebUI::HandleControlChange(char * uri, char * args)
             else
                 AddDataSource(module, source);
         }
-        
-        if(!strcmp(uri, "/update.json"))
-        {
-              
-        }
         if(!strcmp(uri, "/update") && ui_state == ui_state_play && master_id == client_id)
         {
-                Pause();
-                k->Tick();
+            Pause();
+            k->Tick();
         }
         else if(!strcmp(uri, "/pause"))
         {
@@ -1094,13 +1082,12 @@ WebUI::HandleControlChange(char * uri, char * args)
         }
         else if(!strcmp(uri, "/realtime") && ui_state != ui_state_realtime)
         {
-                ui_state = ui_state_realtime;
-                master_id = client_id;
-                k->timer->Restart();
-                tick = 0;
-                isRunning = true;
+            ui_state = ui_state_realtime;
+            master_id = client_id;
+            k->timer->Restart();
+            tick = 0;
+            isRunning = true;
         }
-
         CopyUIData();
         SendUIData();
     }
@@ -1116,36 +1103,23 @@ WebUI::HandleHTTPRequest()
     std::string s = socket->header.Get("URI");
     
     // Copy URI and remove index
-    
     char * uri_p = create_string(socket->header.Get("URI"));
     char * uri = strsep(&uri_p, "?");
     char * args = uri_p;
 
     if(!strcmp(uri, "/update"))
-    {
         HandleControlChange(uri, args);
-    }
     else if(!strcmp(uri, "/pause"))
-    {
         HandleControlChange(uri, args);
-    }
     else if(!strcmp(uri, "/step"))
-    {
         HandleControlChange(uri, args);
-    }
     else if(!strcmp(uri, "/play"))
-    {
         HandleControlChange(uri, args);
-    }
     else if(!strcmp(uri, "/realtime"))
-    {
         HandleControlChange(uri, args);
-    }
     else if(!strcmp(uri, "/update.json"))
-    {
         HandleControlChange(uri, args);
-    }
-    else if (!strcmp(uri, "/stop"))
+    else if(!strcmp(uri, "/stop"))
     {
         Pause();
         ui_state = ui_state_stop;
@@ -1168,7 +1142,6 @@ WebUI::HandleHTTPRequest()
                 strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
                 group = group->GetParentElement();
             }
-
             k->SendCommand(group, module_name, command, x, y, value);
         }
 
@@ -1195,10 +1168,8 @@ WebUI::HandleHTTPRequest()
                 strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
                 group = group->GetParentElement();
             }
-
             k->SetParameter(group, module_name, name, x, y, value);
         }
-
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
 		header.Set("Cache-Control", "no-cache");
@@ -1237,7 +1208,6 @@ WebUI::HandleHTTPRequest()
             destroy_string(uri);
             return;
         }
-        
         else
         {
             socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
@@ -1251,34 +1221,28 @@ WebUI::HandleHTTPRequest()
         socket->SendFile("index.html", webui_dir);
     }
     else if (
-			 strend(uri, ".xml") ||
-			 strend(uri, ".jpg") ||
-			 strend(uri, ".html") ||
-			 strend(uri, ".css") ||
-			 strend(uri, ".png") ||
-			 strend(uri, ".svg") ||
-			 strend(uri, ".js") ||
-			 strend(uri, ".gif") ||
-			 strend(uri, ".stl") ||
-			 strend(uri, ".gltf") ||
-			 strend(uri, ".glb") ||
-			 strend(uri, ".ico"))
+        strend(uri, ".xml") ||
+        strend(uri, ".jpg") ||
+        strend(uri, ".html") ||
+        strend(uri, ".css") ||
+        strend(uri, ".png") ||
+        strend(uri, ".svg") ||
+        strend(uri, ".js") ||
+        strend(uri, ".gif") ||
+        strend(uri, ".stl") ||
+        strend(uri, ".gltf") ||
+        strend(uri, ".glb") ||
+        strend(uri, ".ico"))
     {
         if(!socket->SendFile(&uri[1], k->ikc_dir))  // Check IKC-directory first to allow files to be overriden
         if(!socket->SendFile(&uri[1], webui_dir))   // Now look in WebUI directory
         {
 			if (strend(uri, ".gltf") || strend(uri, ".glb"))
-			{
 				socket->SendFile("/Models/glTF/Error.gltf", webui_dir);   // Send error model
-			}
 			else
-			{
-				// Send 404 if not file found
-				socket->SendFile("404.html", webui_dir);
-			}
+				socket->SendFile("404.html", webui_dir); // Send 404 if not file found
         }
     }
-	
     else 
     {
 		Dictionary header;
