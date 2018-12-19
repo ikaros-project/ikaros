@@ -475,6 +475,8 @@ public:
                 return g->module->GetModule_IO(g->module->output_list, source_name.c_str());
 
             auto output = g->outputs[source_name];
+            if(!output)
+                return NULL;
             auto new_module = output->GetValue("sourcemodule");
             auto new_source = output->GetValue("source");
             
@@ -3735,7 +3737,11 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     return group;
 }
 
-
+// Temporary - move to utilities later
+static bool has_only_digits(const std::string s)
+{
+  return s.find_first_not_of( "0123456789" ) == std::string::npos;
+}
 
 void
 Kernel::ConnectModules(GroupElement * group, std::string indent)
@@ -3783,6 +3789,24 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
         std::string size = c.ResolveVariable(c["size"]);
         std::string delay = c.ResolveVariable(c["delay"]);
         std::string active = c.ResolveVariable(c["active"]);
+        
+        if(sourceoffset!="" && !has_only_digits(sourceoffset))
+        {
+            Notify(msg_fatal_error, "Value \"%s\" for sourceoffset is not a number.", c.GetAttribute("sourceoffset").c_str());
+            sourceoffset = "";
+        }
+        
+        if(targetoffset!="" && !has_only_digits(targetoffset))
+        {
+            Notify(msg_fatal_error, "Value \"%s\" for targetoffset is not a number.", c.GetAttribute("targetoffset").c_str());
+            targetoffset = "";
+        }
+        
+        if(size!="" && !has_only_digits(size))
+        {
+            Notify(msg_fatal_error, "Value \"%s\" for size is not a number.", c.GetAttribute("size").c_str());
+            size = "";
+        }
         
         if(starts_with(target_group, "."))
             for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
