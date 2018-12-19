@@ -35,6 +35,7 @@ void
 MimicHead::Init()
 {
 
+  angles_out  = GetOutputArray("ANGLES");
   input_movement    = GetInputArray("MOVEMENT");
   mean_value       = GetInputArray("MEAN");
   variance_value		= GetInputArray("VARIANCE");
@@ -66,6 +67,8 @@ MimicHead::Init()
 
   Bind(baysian_threshold, "baysian_threshold");
   Bind(max_movements, "max_movements");
+  Bind(outlier_limit_rotation, "outlier_limit_rotation");
+  Bind(outlier_limit_angle, "outlier_limit_angle");
 
   t=0;
   row = 0;
@@ -84,15 +87,10 @@ static inline int naive_bayesian(float * buffer, float * means, float * variance
   float out_prop = 0;
   float cat = -1;
 
-  float sum = 0;
-  for(int y=0; y<length; y++){
-    sum = sum + sqr(buffer[y] - buffer_mean); //Calculate Variance
-  }
-  float buffer_variance = sum / length;
-
   for(int i=0; i < max_movements; i++){
     float m = means[i];
-    float prob = 1 / sqrt(2 * pi * buffer_variance) * exp(-sqr(buffer_mean-m) / (2 * buffer_variance));
+    float v = variances[i];
+    float prob = 1 / sqrt(2 * pi * v) * exp(-sqr(buffer_mean-m) / (2 * v));
 
     if(prob > out_prop){
       out_prop = prob;
@@ -155,14 +153,30 @@ MimicHead::Tick()
           }
           t=0;
       }
-      out_head_angle[0] = output_movements_angle[t];
-      out_head_rotation[0] = output_movements_rotation[t];
 
+      //Filter away outliers
+      if(output_movements_angle[t] < out_head_angle[0] + outlier_limit_angle && 
+      output_movements_angle[t] > out_head_angle[0]-outlier_limit_angle )
+      {
+            out_head_angle[0] = output_movements_angle[t];
+      }
+
+      if(output_movements_rotation[t] < out_head_rotation[0] + outlier_limit_rotation && 
+      output_movements_rotation[t] > out_head_rotation[0]-outlier_limit_rotation)
+      {
+            out_head_rotation[0] = output_movements_rotation[t];
+      } 
 //      printf("\n HEAD ANGLE OUT: %f \n",out_head_angle[0]);
 //      printf("\n HEAD ROTATION OUT: %f \n",out_head_rotation[0]);
    }
+
+  reset_array(angles_out, 19);
+  angles_out[1] = out_head_angle[0]; 
+  angles_out[2] = out_head_rotation[0];
+  //print_array("Angles", angles_out, 19);
 }
 
 
+
 // Install the module. This code is executed during start-up.
-static InitClass init("MimicHead", &MimicHead::Create, "Source/UserModules/MimicHead/");
+static InitClass init("MimicHead", &MimicHead::Create, "Source/UserModules/2018/RobotMimicry/MimicHead/");

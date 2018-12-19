@@ -13,12 +13,19 @@
 		/>
 	</example>
 
-	<input name="HEAD1" description="The input movements" />
-	<input name="HEAD2" description="The input movements" />
+	<input name="HEAD1_ANGLE" description="The input movements" />
+	<input name="HEAD1_ROTATION" description="The input movements" />
+	<input name="HEAD2_ANGLE" description="The input movements" />
+	<input name="HEAD2_ROTATION" description="The input movements" />
 
-	<output name="OUTPUT" description="The output movement" size="20"/>
-	<output name="MEAN" description="The mean value of the past movement" size="1"/>
-	<output name="VARIANCE" description="The variance value of the past movement" size="1"/>
+	<output name="OUTPUT_ANGLES" description="The output movement" size="20"/>
+	<output name="OUTPUT_ROTATIONS" description="The output movement" size="20"/>
+
+	<output name="MEAN_ANGLE" description="The mean value of the past movement" size="1"/>
+	<output name="MEAN_ROTATION" description="The mean value of the past movement" size="1"/>
+
+	<output name="VARIANCE_ANGLE" description="The variance value of the past movement" size="1"/>
+	<output name="VARIANCE_ROTATION" description="The variance value of the past movement" size="1"/>
 
 	<output name="WRITE" description="If the output schould be written to file" size="1"/>
 

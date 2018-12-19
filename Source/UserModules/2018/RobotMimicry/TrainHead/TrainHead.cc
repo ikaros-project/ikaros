@@ -35,18 +35,30 @@ using namespace ikaros;
 void
 TrainHead::Init()
 {
-  head1     = GetInputArray("HEAD1");
-  head2     = GetInputArray("HEAD2");
 
-  out_movement = GetOutputArray("OUTPUT");
+  head1_angle_in = GetInputArray("HEAD1_ANGLE");
+  head1_rotation_in = GetInputArray("HEAD1_ROTATION");
+  head2_angle_in = GetInputArray("HEAD2_ANGLE");
+  head2_rotation_in = GetInputArray("HEAD2_ROTATION");
+
+  out_movements_angle = GetOutputArray("OUTPUT_ANGLES");
+  out_movements_rotation = GetOutputArray("OUTPUT_ROTATIONS");
+
+  mean_value_angle = GetOutputArray("MEAN_ANGLE");
+  variance_value_angle = GetOutputArray("VARIANCE_ANGLE");
+
+  mean_value_rotation = GetOutputArray("MEAN_ANGLE");
+  variance_value_rotation = GetOutputArray("VARIANCE_ANGLE");
+
   write = GetOutputArray("WRITE");
-  mean_value = GetOutputArray("MEAN");
-  variance_value = GetOutputArray("VARIANCE");
 
   segment_size = GetOutputSize("OUTPUT");
 
-  now_movement = create_array(segment_size);
-  past_movement = create_array(segment_size);
+  now_movement_angle = create_array(segment_size);
+  now_movement_rotation = create_array(segment_size);
+
+  past_movement_angle = create_array(segment_size);
+  past_movement_rotation = create_array(segment_size);
 
   t=0;
   iteration=0;
@@ -66,8 +78,11 @@ TrainHead::Tick()
 
   if(t < segment_size){
     write[0] = 0;
-    out_movement[t] = head1[0];
-    now_movement[t] = head2[0];
+    out_movements_angle[t] = head1_angle_in[0];
+    out_movements_rotation[t] = head1_rotation_in[0];
+
+    now_movement_angle[t] = head2_angle_in[0];
+    now_movement_rotation[t] = head2_rotation_in[0];
     t++;
 
   }else{
@@ -75,23 +90,24 @@ TrainHead::Tick()
       first = false;
     }else{
       //Calculate average for past movement
-      mean_value[0] = mean(past_movement,segment_size);
-      printf("MEAN VALUE: %f \n",mean_value[0]);
+      mean_value_angle[0] = mean(past_movement_angle,segment_size);
+      mean_value_rotation[0] = mean(past_movement_rotation,segment_size);
 
-      float sum = 0;
+      float sum1 = 0;
+      float sum2 = 0;
       for(int y=0; y<segment_size; y++){
-        sum = sum + sqr(past_movement[y] - mean_value[0]); //Calculate Variance
+        sum1 = sum1 + sqr(past_movement_angle[y] - mean_value_angle[0]); //Calculate Variance
+        sum2 = sum2 + sqr(past_movement_rotation[y] - mean_value_rotation[0]);
       }
-      variance_value[0] = sum / segment_size;
-      printf("Variance: %f \n",variance_value[0]);
+      variance_value_angle[0] = sum1 / segment_size;
+      variance_value_rotation[0] = sum2 / segment_size;
 
       write[0] = 1;
-      print_array("Movement old: ", past_movement, segment_size,2);
-      print_array("Movement out: ", out_movement, segment_size,2);
     }
 
     for(int i=0; i<segment_size; i++){
-      past_movement[i] = now_movement[i];
+      past_movement_angle[i] = now_movement_angle[i];
+      past_movement_rotation[i] = now_movement_rotation[i];
     }
 
     printf("Movement %i \n",iteration);

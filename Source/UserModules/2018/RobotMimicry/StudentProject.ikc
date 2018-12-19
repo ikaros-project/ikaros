@@ -1,0 +1,395 @@
+<?xml version="1.0"?>
+
+<group name="Student" 
+	BodySerialDevice= "/dev/cu.usbserial-FTU7EL2U"
+	HeadSerialDevice= "/dev/ttyHEAD"
+	LeftArmSerialDevice= "/dev/cu.usbserial-FTX14P4R"
+	RightArmSerialDevice= "/dev/ttyRIGHT_ARM"
+	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
+
+	BodyDynamixel = "DynamixelSimulate"
+	HeadDynamixel = "Dynamixel"
+	LeftArmDynamixel = "DynamixelSimulate"
+	RightArmDynamixel = "DynamixelSimulate"
+	PupilDynamixel = "DynamixelSimulate"
+
+    servosIndexBody = "0"
+    servosIndexHead = "1"
+    servosIndexLeftArm = "5"
+    servosIndexRightArm = "11"
+    servosIndexPupil = "17"
+
+    nrServosBody = "1"
+    nrServosHead = "4"
+    nrServosLeftArm = "6"
+    nrServosRightArm = "6"
+    nrServosPupil = "2"
+    nrServosTotal = "19"
+
+>
+
+
+<!-- Add modules here 
+
+
+-->
+    <connection sourcemodule = "MimicHead" 	source = "ANGLES"  	    targetmodule = "filter"  target = "INPUT"/>
+    <connection sourcemodule = "filter" 	source = "OUTPUT"  	    targetmodule = "MotionGuard"  target = "INPUT"/>
+
+<module
+    class="Average"
+    name="filter"
+    alpha="0.15"
+    type="EMA">
+  </module>
+  
+  <module
+    class = "InputFile"
+    name = "TrainData"
+    filename = "./data.txt"
+    send_end_of_file="no">
+      <column name = "Mean" />
+      <column name = "Variance" />
+      <column name = "Movement" />
+  </module>
+
+  <module
+      class = "Kinect"
+      name = "Kinect"
+      mode = "raw"
+   />
+
+   <module
+       class = "DepthHistogram"
+       name = "DepthHistogram"
+       filter = "yes"
+   />
+
+  <module
+      class	= "Constant"
+      name 	= "Tilt"
+      data  = "1"
+      outputsize = "1"
+  />
+
+  <module
+      class 			= "Constant"
+      name 			    = "Color"
+      data              = "0.5"
+      outputsize        = "1"
+  />
+
+  <module
+      class = "Scale"
+      name = "Scale"
+      factor = "2048"
+      comment = "This module could be removed if Image-object allowed scaling."
+  />
+
+  <module
+       class = "HeadTracking"
+       name = "HeadTracking"
+       mask_left = "0.1"
+       mask_right = "0.9"
+   />
+
+  <module
+    class = "MimicHead"
+    name = "MimicHead"
+    max_movements = "70"
+    baysian_threshold = "0.60"
+    outlier_limit_angle = "50"
+    outlier_limit_rotation ="50"
+    rotation_factor="4"
+    angle_factor="2">
+  </module>
+
+  <!--LOAD TRAINING DATA -->
+  <connection sourcemodule = "TrainData" source = "Movement" targetmodule = "MimicHead" target = "MOVEMENT" />
+  <connection sourcemodule = "TrainData" source = "Mean" targetmodule = "MimicHead" target = "MEAN" />
+  <connection sourcemodule = "TrainData" source = "Variance" targetmodule = "MimicHead" target = "VARIANCE" />
+
+  <!--Save Depth in raw images -->
+  <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
+  <connection sourcemodule="Color" source="OUTPUT" targetmodule="Kinect" target="LED" />
+
+  <!-- Scale Kinect data -->
+  <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "Scale" target = "INPUT" />
+
+  <!-- Display DepthSegmentation -->
+  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthHistogram" target = "INPUT" />
+  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "HeadTracking" target = "OBJECT" />
+
+  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "HeadTracking" target = "INPUT" />
+
+  <connection sourcemodule = "HeadTracking" source = "HEAD_ANGLE" targetmodule = "MimicHead" target = "HEAD_ANGLE_IN" />
+  <connection sourcemodule = "HeadTracking" source = "HEAD_ROTATION" targetmodule = "MimicHead" target = "HEAD_ROTATION_IN" />
+
+
+  
+<view name="Depth">
+
+	<image
+		height = "512"
+		name = "Blob"
+		format = "green"
+		width = "512"
+		source = "HeadTracking.OUTPUT"
+		class = "image"
+		x = "0"
+		y = "0"
+		title = "Image"
+		scale = "both"
+		scales = "no"
+		max_x = "1"
+		max_y = "1"
+		flipXAxis = "no"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		flipYCanvas = "no"
+	/>
+
+	<plot
+		decimals = "1"
+		source = "MimicHead.HEAD_ANGLE"
+		title = "MimicHead"
+		class = "plot"
+		x = "20"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		y = "640"
+		width = "421"
+		height = "141"
+		colorize = "true"
+		show_title = "true"
+		show_frame = "true"
+	/>
+
+	<plot
+		decimals = "1"
+		source = "MimicHead.HEAD_ROTATION"
+		title = "MimicHead"
+		class = "plot"
+		x = "20"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		y = "520"
+		width = "421"
+		height = "121"
+		colorize = "true"
+		show_title = "true"
+		show_frame = "true"
+	/>
+
+</view>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <module class = "Constant" name = "GOAL_POSITION" 		data = "0 	0 0 0 0  	           0 0 0 0 0 0 0 	      0 0 0 0 0 0 0     0.5 0.5" />
+	    <_connection sourcemodule = "GOAL_POSITION" 	source = "OUTPUT"  	targetmodule = "MotionGuard"  target = "INPUT" sourceoffset = "0"	targetoffset="0" size = "1"/>
+	    <_connection sourcemodule = "GOAL_POSITION" 	source = "OUTPUT"  	targetmodule = "MotionGuard"  target = "INPUT" sourceoffset = "5"	targetoffset="5" size = "14"/>
+        <!-- Crashes ikaros way? -->
+
+
+
+
+
+
+    <module
+        class = "LinearSplines"
+        name = "DegreesTomm"
+        points = "
+            0	16.33	0	16.22;
+            10	14.59	10	14.96;
+            20	12.7	20	12.94;
+            30	11.09	30	11.12;
+            40	9.6	    40	9.6;
+            50	8.35	50	8.33;
+            60	7.15	60	7.05;
+            70	5.73	70	5.87;
+            80	4.84	80	4.88"
+    />     
+    
+   <module class = "Sink" name = "NotAvailable" />
+
+    <module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
+    <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
+    <module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   0  	   1    1    1    1   	    0    0    0    0    0    0     0    0    0    0    0   0      0    0" />
+
+        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	    target = "MOVING_SPEED"  delay = "1"/>
+        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	    target = "MOVING_SPEED"  delay = "1"/>
+        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"  	target = "MOVING_SPEED"  delay = "1"/>
+        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	target = "MOVING_SPEED"  delay = "1"/>
+        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     targetmodule = "Pupil"  	target = "MOVING_SPEED"  delay = "1"/>
+    
+        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	    target = "TORQUE_LIMIT"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	    target = "TORQUE_LIMIT"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"  	target = "TORQUE_LIMIT"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	target = "TORQUE_LIMIT"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     targetmodule = "Pupil"  	target = "TORQUE_LIMIT"  delay = "1"/>
+
+        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	    target = "TORQUE_ENABLE"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	    target = "TORQUE_ENABLE"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"  	target = "TORQUE_ENABLE"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	target = "TORQUE_ENABLE"  delay = "1"/>
+        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"     targetmodule = "Pupil"  	target = "TORQUE_ENABLE"  delay = "1"/>
+
+    <!-- Add dynamixel outputs here Temperature Speed. Some of them must be transformed. Speed, force must go through a SC -->
+
+
+    <!-- General -->
+    <module class = "MotionGuard" name = "MotionGuard"  
+        max_speed = "100"
+        input_limit_min = "-180    -60 -75  -12    -29 -125 -110 -125 -125 -125 -180    -125 -110 -125  -50 -125 -180    -10  -10"
+        input_limit_max = "180     65  75   30     11  126  110  126   50  126  180     126  110  126  126  126  180     70   70"
+        start_up_time   = "10"
+    />
+        <connection sourcemodule = "SC_FeedBackPosition" source = "OUTPUT" targetmodule = "MotionGuard" target = "REFERENCE" delay = "1"/>
+
+
+
+  <module class="ServoConnector" name="SC_Angle"
+		connector       = "   1        2    3    4    5      6    7    8    9   10   11     12   13   14   15   16   17      18   19"
+        pre_inverted    = "   1        0    0    0    0      0    0    0    0    0    0      0    1    0    0    0    0       0    0" 
+        post_inverted   = "   0        0    0    0    0      0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
+        offset          = " 170      180  180  180  180    180  180  180  180  225  180    180  180  180  180  135  180     210  210" 
+        output_size     = "@nrServosTotal"
+	/>
+        <connection sourcemodule = "MotionGuard" source = "OUTPUT" targetmodule = "SC_Angle" target = "INPUT" delay = "1"/>
+
+
+    <!-- Split -->
+    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	        target = "GOAL_POSITION"  delay = "1"/>
+    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	        target = "GOAL_POSITION"  delay = "1"/>
+    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"     	target = "GOAL_POSITION"  delay = "1"/>
+    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	    target = "GOAL_POSITION"  delay = "1"/>
+    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     targetmodule = "Pupil"  	    target = "GOAL_POSITION"  delay = "1"/>
+
+
+    <!-- Dynamxiels -->
+    <module 
+        class           = "@BodyDynamixel" 
+        name            = "Body" 
+        device          = "@BodySerialDevice" 
+        index_mode 		= "indirect"
+        print_info 		= "full"
+        baud_rate 		= "3000000"
+        angle_unit 		= "degrees"
+        max_servo_id 	= "3"
+        start_up_delay 	= "20"
+        servo_id 		= "2"
+        strict_servo_id = "no"
+        />
+    <module 
+        class           = "@HeadDynamixel" 
+        name            = "Head" 
+        device          = "@HeadSerialDevice" 
+        index_mode 		= "indirect"
+        print_info 		= "minimal"
+        baud_rate 		= "1000000"
+        angle_unit 		= "degrees"
+        max_servo_id 	= "7"
+        start_up_delay 	= "20"
+        servo_id 		= "2, 3, 4, 5"
+        strict_servo_id = "yes"
+        />
+    <module 
+        class           = "@LeftArmDynamixel" 
+        name            = "LeftArm" 
+        device          = "@LeftArmSerialDevice" 
+        index_mode      = "indirect"
+        print_info 		= "minimal"
+        baud_rate       = "3000000"
+        angle_unit      = "degrees"
+        max_servo_id    = "9"
+        start_up_delay 	= "20"
+        servo_id        = "2, 3, 4, 5, 6, 7"
+        strict_servo_id = "yes"
+        />
+  
+    <module 
+        class           = "@RightArmDynamixel" 
+        name            = "RightArm" 
+        device          = "@RightArmSerialDevice" 
+        index_mode      = "indirect"
+        print_info 		= "full"
+        baud_rate       = "3000000"
+        angle_unit      = "degrees"
+        max_servo_id    = "9"
+        start_up_delay 	= "20"
+        servo_id        = "2, 3, 4, 5, 6, 7"
+        strict_servo_id = "yes"
+        />
+    <module 
+        class           = "@PupilDynamixel" 
+        name            = "Pupil" 
+        device          = "@PupilSerialDevice" 
+        index_mode      = "indirect"
+        print_info      ="full"
+        feedback        ="true"
+        baud_rate       = "1000000"
+        angle_unit      = "degrees"
+        start_up_delay 	= "20"
+        max_servo_id    = "4"
+        servo_id        = "2, 3"
+        strict_servo_id = "yes"
+        />
+
+    <!-- Feedback -->
+    <module
+		class="ServoConnector"
+		name="SC_FeedBackPosition"
+		connector       = "   1        2    3    4    5        6    7    8    9   10   11     12   13   14   15   16   17      18   19"
+        pre_inverted    = "   0        0    0    0    0        0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
+        post_inverted   = "   1        0    0    0    0        0    0    0    0    0    0      0    1    0    0    0    0       0    0" 
+        offset          = "   -170     -180 -180 -180 -180  -180 -180 -180 -180 -225 -180   -180 -180 -180 -180 -135 -180    -210 -210" 
+        output_size     = "@nrServosTotal"
+	/>
+        <connection sourcemodule = "Body"       source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection sourcemodule = "Head"       source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection sourcemodule = "LeftArm"    source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection sourcemodule = "RightArm"   source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection sourcemodule = "Pupil"      source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+
+
+    <!-- Dummy module -->
+    <!-- Can this be done some other way? -->
+    <module class = "Gate" name = "POSITION_FEEDBACK"/>
+        <!-- Order is important -->
+	    <connection sourcemodule = "DegreesTomm" 	        source = "OUTPUT"  	targetmodule = "POSITION_FEEDBACK"  target = "INPUT" sourceoffset = "0" targetoffset="@servosIndexPupil" size = "@nrServosPupil"/>
+	    <connection sourcemodule = "SC_FeedBackPosition" 	source = "OUTPUT"  	targetmodule = "POSITION_FEEDBACK"  target = "INPUT" sourceoffset = "0"	targetoffset="0" size = "@servosIndexPupil"/>
+        <!-- Pupil mm to Degrees> -->
+	    <connection sourcemodule = "SC_FeedBackPosition" 	source = "OUTPUT"  	targetmodule = "DegreesTomm"  target = "INPUT" sourceoffset = "@servosIndexPupil"	targetoffset="0" size = "@nrServosPupil"/>
+
+
+<view name="Manual Control"   color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink">
+    <slider-horizontal title="Internal Amplitude" label="Servo Angles" module="GOAL_POSITION" parameter="data" count="20" x="10" y="50" width="150" height="450" show_title = "true" show_value = "true"/>
+    <slider-horizontal title="Internal Angles" label="Servo Angles" module="GOAL_POSITION" parameter="data" count="20" x="180" y="50" width="300" height="450" show_title = "true" min = "-180" max ="180" step ="5" labels = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" show_value = "true"/>
+	
+	<slider-horizontal title="Internal Angles" label="Servo Angles" module="HEAD_POSITION" parameter="data" count="4" x="180" y="50" width="300" height="450" show_title = "true" min = "-180" max ="180" step ="5" labels = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" show_value = "true"/>
+	
+    <text text="Feedback from servos" x="0" y="500" width="300" height="50"/>
+	<table title="Feedback" source="POSITION_FEEDBACK.OUTPUT" x="0" y="550" width="1200" height="300"decimals="1" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" />
+
+</view>
+
+
+</group>
+

@@ -41,6 +41,8 @@ public:
 
     float       mask_left;
     float       mask_right;
+    float       rotation_factor;
+    float       angle_factor;
 
     int         size_x;
     int         size_y;

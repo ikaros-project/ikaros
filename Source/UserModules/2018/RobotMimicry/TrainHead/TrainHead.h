@@ -42,14 +42,24 @@ public:
     bool    first;
 
     float *    write;
-    float *    head1;
-    float *    head2;
-    float *    out_movement;
-    float *    past_movement;
-    float *    now_movement;
 
-    float *    mean_value;
-    float *    variance_value;
+    float *    head1_angle_in;
+    float *    head1_rotation_in;
+    float *    head2_angle_in;
+    float *    head2_rotation_in;
+
+    float *    out_movements_angle;
+    float *    out_movements_rotation;
+
+    float *     now_movement_angle;
+    float *     now_movement_rotation;
+    float *     past_movement_angle;
+    float *     past_movement_rotation;
+
+    float *    mean_value_angle;
+    float *    variance_value_angle;
+    float *    mean_value_rotation;
+    float *    variance_value_rotation;
 };
 
 #endif
