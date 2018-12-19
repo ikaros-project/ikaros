@@ -231,14 +231,14 @@ public:
     {
         if(a.empty())
             return empty_string;
-        
+
         a = ResolveVariable(a);
         if(attributes.count(a))
             return attributes[a];
         
-        // RENAMING IN THIS GROUP HERE
+        // FIXME: RENAMING IN THIS GROUP HERE
         
-       // INHERITANCE HERE
+        // INHERITANCE HERE
        
         else if(parent)
             return ((Element *)parent)->GetValue(a);
@@ -3778,12 +3778,18 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
 
         int cnt = 0;
 
+        std::string sourceoffset = c.ResolveVariable(c["sourceoffset"]);    // FIXME: ResolveVariable should be done in operator[]
+        std::string targetoffset = c.ResolveVariable(c["targetoffset"]);
+        std::string size = c.ResolveVariable(c["size"]);
+        std::string delay = c.ResolveVariable(c["delay"]);
+        std::string active = c.ResolveVariable(c["active"]);
+        
         if(starts_with(target_group, "."))
             for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
-                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+                cnt += Connect(source_io, string_to_int(sourceoffset), target_io, string_to_int(targetoffset), string_to_int(size, unknown_size), delay, 0, string_to_bool(active, true));
         else
             for(auto target_io : group->GetTargets(target_group, target_input))
-                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+                cnt += Connect(source_io, string_to_int(sourceoffset), target_io, string_to_int(targetoffset), string_to_int(size, unknown_size), delay, 0, string_to_bool(active, true));
         
         if(cnt == 0)
             Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+":"+c["target"]).c_str());

@@ -6,7 +6,7 @@
 
 -->
 
-<group title="Outer" a="12" b="23" c="34" zzz="@a">
+<group title="Outer" a="12" b="23" c="34" zzz="@a" so="2" to="4" sz="3" del="12" >
 
     <group name="Inner"  a="45" b="56" yyy="@zzz">
     
@@ -40,6 +40,13 @@
             outputsize = "@xxx"
         />
 
+        <module
+            class = "Gate"
+            name = "Gate"
+        />
+        
+        <connection source="R2.OUTPUT" target="Gate.INPUT" sourceoffset="@so" size="@sz" targetoffset="@to" delay="@del" />
+        
     </group>
 </group>
 
