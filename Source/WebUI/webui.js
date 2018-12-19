@@ -1016,14 +1016,18 @@ controller = {
     webui_interval: 0,
     webui_req_int: 100,
     timeout: 500,
-    reconnect_interval: 1000,
+    reconnect_interval: 1200,
     reconnect_timer: null,
     
     reconnect: function ()
     {
 //        console.log("try reconnect");
         controller.get("update", controller.update);
-    
+        let s = document.querySelector("#state");
+        if(s.innerText == "waiting")
+            document.querySelector("#state").innerText = "waiting •";
+        else
+            document.querySelector("#state").innerText = "waiting";
     },
     
     defer_reconnect: function ()
@@ -1040,7 +1044,7 @@ controller = {
             var last_request = url;
             xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
-
+/*
             xhr.onloadstart = function(evt)
             {
                 document.querySelector("progress").setAttribute("value", 0);
@@ -1054,6 +1058,7 @@ controller = {
                     document.querySelector("progress").setAttribute("value", 100*percentComplete);
                 }
             }
+*/
 /*
             xhr.onerror = function(evt)
             {
@@ -1088,7 +1093,7 @@ controller = {
             }
             
             xhr.responseType = 'json';
-            xhr.timeout = 500;
+            xhr.timeout = 1000;
             try {
                 xhr.send();
             }
@@ -1229,7 +1234,7 @@ controller = {
             try
             {
                 document.querySelector("#iteration").innerText = response.iteration;
-                document.querySelector("#state").innerText = response.state+" "+controller.run_mode+" "+response.has_data;
+                document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
 //                document.querySelector("#progress").value = response.progress;
                 document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
                 document.querySelector("#timebase").innerText = response.timebase+" ms";
