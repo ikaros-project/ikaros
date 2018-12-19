@@ -36,6 +36,8 @@ HeadTracking::Init()
 {
   Bind(mask_left, "mask_left");
   Bind(mask_right, "mask_right");
+  Bind(rotation_factor, "rotation_factor");
+  Bind(angle_factor, "angle_factor");
 
   size_x	 = GetInputSizeX("INPUT");
   size_y	 = GetInputSizeY("INPUT");
@@ -166,10 +168,10 @@ HeadTracking::Tick()
   //  printf("Rotation: %f \n", lr_rotation);
   }
 
-  out_head_angle[0] = up_down_angle;
-  out_head_rotation[0] = lr_rotation;
+  out_head_angle[0] = -up_down_angle * angle_factor;
+  out_head_rotation[0] = lr_rotation * rotation_factor;
 }
 
 
 // Install the module. This code is executed during start-up.
-static InitClass init("HeadTracking", &HeadTracking::Create, "Source/UserModules/HeadTracking/");
+static InitClass init("HeadTracking", &HeadTracking::Create, "Source/UserModules/2018/RobotMimicry/HeadTracking/");

@@ -21,6 +21,9 @@
 
 	<parameter name="mask_left" type="float" default="0" description="mask region to the left" />
 	<parameter name="mask_right" type="float" default="1" description="mask region to the right" />
+	<parameter name="rotation_factor" type="float" default="3" description="" />
+	<parameter name="angle_factor" type="float" default="1.5" description="" />
+
 
 	<input name="INPUT" description="The input image" />
 	<input name="OBJECT" description="The depth range to segment (min, max, mean)" />

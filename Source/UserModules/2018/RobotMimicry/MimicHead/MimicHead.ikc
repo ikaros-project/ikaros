@@ -19,6 +19,9 @@
 
 	<parameter name="baysian_threshold" type="float" default="0.05" description="Will filter out everything below threshold" />
 	<parameter name="max_movements" type="int" default="50" description="Maximum number of movements" />
+	<parameter name="outlier_limit_angle" type="float" default="20" description="Filter away outliers" />
+	<parameter name="outlier_limit_rotation" type="float" default="20" description="Filter away outliers" />
+
 
 	<input name="MOVEMENT" description="The trained movement" size="20" />
 	<input name="MEAN" description="The mean value" />
@@ -28,6 +31,7 @@
 
 	<output name="HEAD_ANGLE" description="The output degrees" size="1" />
 	<output name="HEAD_ROTATION" description="The output degrees" size="1" />
+	<output name="ANGLES" description="The output degrees" size="19" />
 
 	<module class="MimicHead" />
 

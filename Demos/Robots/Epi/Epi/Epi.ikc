@@ -448,17 +448,19 @@ nrServosTotal = "19"
 <!-- ********************************* 	-->
 
 <!-- Sensors -->
-<module class = "EpiVision" 	name = "Vision" 		/>
+<module class = "EpiVision" 	name = "LeftEye" 	VisionInput = "InputJPEG"	VisionStream = "http://lefteye.local:8080/stream/video.h264" filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" 	name = "RightEye" 	VisionInput = "InputJPEG"	VisionStream = "http://Righteye.local:8080/stream/video.h264" filename = "../../../../Examples/Media/colorrobot.jpg"/>
+
 <!-- Detectors -->
 <module class = "EpiDetectors" name = "Detectors" 		/>
-    <connection sourcemodule = "Vision"   		source = "LEFT_RED"         targetmodule = "Detectors"  target = "LEFT_RED" />
-    <connection sourcemodule = "Vision"   		source = "LEFT_GREEN"       targetmodule = "Detectors"  target = "LEFT_GREEN" />
-    <connection sourcemodule = "Vision"   		source = "LEFT_BLUE"        targetmodule = "Detectors"  target = "LEFT_BLUE" />
-    <connection sourcemodule = "Vision"   		source = "LEFT_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
-    <connection sourcemodule = "Vision"   		source = "RIGHT_RED"        targetmodule = "Detectors"  target = "RIGHT_RED" />
-    <connection sourcemodule = "Vision"   		source = "RIGHT_GREEN"      targetmodule = "Detectors"  target = "RIGHT_GREEN" />
-    <connection sourcemodule = "Vision"   		source = "RIGHT_BLUE"       targetmodule = "Detectors"  target = "RIGHT_BLUE" />
-    <connection sourcemodule = "Vision"   		source = "RIGHT_INTENSITY"  targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
+    <connection sourcemodule = "LeftEye"   		source = "HIGH_RES_RED"         targetmodule = "Detectors"  target = "LEFT_RED" />
+    <connection sourcemodule = "LeftEye"   		source = "HIGH_RES_GREEN"       targetmodule = "Detectors"  target = "LEFT_GREEN" />
+    <connection sourcemodule = "LeftEye"   		source = "HIGH_RES_BLUE"        targetmodule = "Detectors"  target = "LEFT_BLUE" />
+    <connection sourcemodule = "LeftEye"   		source = "HIGH_RES_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
+    <connection sourcemodule = "RightEye"   	source = "HIGH_RES_RED"         targetmodule = "Detectors"  target = "RIGHT_RED" />
+    <connection sourcemodule = "RightEye"   	source = "HIGH_RES_GREEN"       targetmodule = "Detectors"  target = "RIGHT_GREEN" />
+    <connection sourcemodule = "RightEye"   	source = "HIGH_RES_BLUE"        targetmodule = "Detectors"  target = "RIGHT_BLUE" />
+    <connection sourcemodule = "RightEye"   	source = "HIGH_RES_INTENSITY"   targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
 
     <connection sourcemodule = "EgoID"          source = "OUTPUT"         	targetmodule = "Detectors"  target = "EGO_ID" />
     <connection sourcemodule = "EgoFrameID"     source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_FRAME_ID" />
@@ -490,10 +492,10 @@ nrServosTotal = "19"
     <!-- Behaviors -->
     <!-- Light reflex etc -->
     <module class="PupilControl" name="PupilControl"/>
-        <connection sourcemodule="Vision" source="LEFT_INTENSITY" targetmodule="PupilControl" target="PTA" />
+        <connection sourcemodule="LeftEye" source="LOW_INTENSITY" targetmodule="PupilControl" target="PTA" />
 
     <view name="Pupil">
-        <image title="Input"                     module="Vision"       source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
+        <image title="Input"                     module="LeftEye"       source="LOW_INTENSITY"   x="4" y="0" w="4" h="4" />
         <plot title="Response Light"             source="PupilControl.PTA_OUTPUT"   x="0" y="0" w="4" />
         <plot title="Response CG (Constriction)" source="PupilControl.CG_OUTPUT"    x="0" y="1" w="4" min = "5" max="17" />
         <plot title="Response SCG (Dilation)"    source="PupilControl.SCG_OUTPUT"   x="0" y="2" w="4" min = "5" max="17" />
@@ -608,14 +610,14 @@ data = "
         <connection sourcemodule = "ModelIDTab"         source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" />  -->
 
 
-<!-- Sound -->
-	<module
+    <!-- Sound -->
+	<!--
+    <module
 	    class = "SoundOutput"
 		name = "SoundOutput"
 		sounds  = "Sounds/ok2.mp3"
         command = "mpg123"
 	/>
-        <!-- Connected to a button -->
 		<connection sourcemodule = "SoundTrigger" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
 
     <module class = "Constant" name = "SoundTrigger" data = "0" />
@@ -623,10 +625,10 @@ data = "
     <view name="Sound">
         <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    
     </view>
+-->
 
 
-
-    <?include file="EpiLed.ikc" ?>
+    <!--<?include file="EpiLed.ikc" ?>-->
 
 
     <!-- 			Misc     				-->
