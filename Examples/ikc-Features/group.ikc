@@ -36,8 +36,8 @@
 		<module class = "Randomizer" name = "R2" outputsize = "5" min="0" />
 		
         <view name="SubView">
-            <object class="BarGraph" name="X" module="R1" source="OUTPUT" x="0" y="0" max="10"/>
-            <object class="BarGraph" name="Y" module="R2" source="OUTPUT" x="1" y="0" max="10" />
+            <bar-graph class="BarGraph" name="X" module="R1" source="OUTPUT" x="0" y="0" max="10"/>
+            <bar-graph class="BarGraph" name="Y" module="R2" source="OUTPUT" x="1" y="0" max="10" />
         </view>
 
 	</group>
@@ -51,15 +51,15 @@
 	
 	<!-- The connections from the group are automatically mapped to the outputs of R1 and R2 -->
 	
-	<connection sourcemodule="DoubleRandomizer" source="X" targetmodule="Add" target="INPUT1" />
-	<connection sourcemodule="DoubleRandomizer" source="Y" targetmodule="Add" target="INPUT2" />
+	<connection source="DoubleRandomizer.X" target="Add.INPUT1" />
+	<connection source="DoubleRandomizer.Y" target="Add.INPUT2" />
 
 	<!-- The views can only refer to the outputs at the outer level (not directly to R1.OUTPUT) -->
 
 	<view name="Main View">
-		<object class="BarGraph" name="X" module="DoubleRandomizer" source="X" x="0" y="0" max="10"/>
-		<object class="BarGraph" name="Y" module="DoubleRandomizer" source="Y" x="1" y="0" max="10" />
-		<object class="BarGraph" name="Sum" module="Add" source="OUTPUT" x="0" y="1" max="10" />
+		<bar-graph class="BarGraph" name="X" module="DoubleRandomizer" source="X" x="0" y="0" max="10"/>
+		<bar-graph class="BarGraph" name="Y" module="DoubleRandomizer" source="Y" x="1" y="0" max="10" />
+		<bar-graph class="BarGraph" name="Sum" module="Add" source="OUTPUT" x="0" y="1" max="10" />
 	</view>
 </group>
 
