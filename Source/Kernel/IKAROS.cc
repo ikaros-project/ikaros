@@ -3534,10 +3534,15 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
     if(!dstring || (!strchr(dstring, ':') && !strchr(dstring, ',')))
     {
         int d = string_to_int(dstring, 1);
+        if(d == 0 && (s_offset > 0 || t_offset > 0 || size >= 0))
+        {
+            Notify(msg_fatal_error, "delay=\"0\" cannot be combined with range attributes in connections."); // TODO: print module and connection names as well
+            return 0;
+        }
         connections = new Connection(connections, sio, s_offset, tio, t_offset, size, d+extra_delay, is_active);
         c++;
     }
-    
+
     else // parse delay string for multiple delays
     {
 		char * d = create_string(dstring);
@@ -3807,14 +3812,14 @@ Kernel::ConnectModules(GroupElement * group, std::string indent)
             Notify(msg_fatal_error, "Value \"%s\" for size is not a number.", c.GetAttribute("size").c_str());
             size = "";
         }
-        
+
         if(starts_with(target_group, "."))
             for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
                 cnt += Connect(source_io, string_to_int(sourceoffset), target_io, string_to_int(targetoffset), string_to_int(size, unknown_size), delay, 0, string_to_bool(active, true));
         else
             for(auto target_io : group->GetTargets(target_group, target_input))
                 cnt += Connect(source_io, string_to_int(sourceoffset), target_io, string_to_int(targetoffset), string_to_int(size, unknown_size), delay, 0, string_to_bool(active, true));
-        
+
         if(cnt == 0)
             Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+":"+c["target"]).c_str());
     }
