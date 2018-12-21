@@ -1025,9 +1025,9 @@ controller = {
         controller.get("update", controller.update);
         let s = document.querySelector("#state");
         if(s.innerText == "waiting")
-            document.querySelector("#state").innerText = "waiting •";
+            document.querySelector("#state").innerHTML = "waiting &bull;";
         else
-            document.querySelector("#state").innerText = "waiting";
+            document.querySelector("#state").innerHTML = "waiting";
     },
     
     defer_reconnect: function ()
@@ -1235,18 +1235,30 @@ controller = {
             {
                 document.querySelector("#iteration").innerText = response.iteration;
                 document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
-//                document.querySelector("#progress").value = response.progress;
                 document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
                 document.querySelector("#timebase").innerText = response.timebase+" ms";
                 document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
                 document.querySelector("#lag").innerText = response.lag+" ms";
                 document.querySelector("#cpu_cores").innerText = response.cpu_cores;
+                document.querySelector("#idle_time").value = response.idle_time;
+                document.querySelector("#usage").value = response.cpu_usage;
 
                 document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1);
                 document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
                 document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
                 document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
+                
+                if(response.progress > 0)
+                {
+                    let p = document.querySelector("#progress");
+                    p.value = response.progress;
+                    p.style.display = "table-row";
+                }
+                else
+                {
+                    p.style.display = "none";
+                }
                 
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             }

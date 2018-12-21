@@ -46,6 +46,12 @@
 #include <regex>
 #include <thread>
 
+#include <sys/resource.h>
+#include <sys/times.h>
+
+
+
+
 
 using namespace ikaros;
 
@@ -2127,6 +2133,7 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 bool
 Kernel::Terminate()
 {
+/*
     if (max_ticks > 0)
     {
         const int segments = 50;
@@ -2147,7 +2154,7 @@ Kernel::Terminate()
                 printf("\n");
         }
     }
-    
+*/
     if (max_ticks != -1 && tick >= max_ticks)
     {
         Notify(msg_debug, "Max ticks reached.\n");
@@ -2492,6 +2499,27 @@ Kernel::Init()
     InitModules();
 }
 
+
+// This function may need to be linked with 'librt' on Linux
+// Calculates CPU usage for this process
+
+void
+Kernel::CalculateCPUUsage()
+{
+    double cpu = 0;
+    struct rusage rusage;
+    if (getrusage(RUSAGE_SELF, &rusage) != -1)
+        cpu = (double)(1000.0*rusage.ru_utime.tv_sec) + (double)rusage.ru_utime.tv_usec / 1000.0;
+    float time = timer->GetTime();
+    float tdiff = time - last_cpu_time;
+    if(tdiff > 0)
+        cpu_usage = (cpu-last_cpu)/(float(cpu_cores)*tdiff);
+
+    last_cpu_time = time;
+    last_cpu = cpu;
+}
+
+
 void
 Kernel::Tick()
 {
@@ -2540,6 +2568,7 @@ Kernel::Tick()
         CheckNAN();
     
     tick++;
+    CalculateCPUUsage();
 }
 
 
@@ -3672,7 +3701,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     if(name == NULL)
         group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));   // TODO: add this kind of thing to unnamed views as well
 
-    // 2.0 add attributes to group element
+    // Add attributes to group element
     
     for(XMLAttribute * attr=group_xml->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
         group->attributes.insert({ attr->name, attr->value });
@@ -3730,7 +3759,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         else if (xml_node->IsElement("view"))
         {
             ViewElement v(group, xml_node);
-            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement())     // WAS "object"
+            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement()) // WAS "object"
             {
                 ViewObjectElement o((GroupElement *)&v, xml_obj); // FIXME: is this correct?
                 o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason

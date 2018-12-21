@@ -566,6 +566,7 @@ WebUI::WebUI(Kernel * kernel)
     view_data = NULL;
     debug_mode = false;
     isRunning = false;   // FIXME: unnless
+    idle_time = 0;
 
 	iterations_per_runstep = 1;
     if(k->options->GetOption('u'))
@@ -583,7 +584,7 @@ WebUI::WebUI(Kernel * kernel)
         k->Notify(msg_debug, "Setting up WebUI port at %d\n", port);
         if(k->options->GetOption('r'))
         {
-//            ui_state = ui_state_realtime;
+            ui_state = ui_state_realtime;
             k->Notify(msg_debug, "Setting real-time mode.\n");
         }
         else
@@ -652,6 +653,11 @@ WebUI::Run()
             k->Tick();
             tick_is_running = false;
             tick++; // FIXME: should not be separate from kernel; remove from WebUI class; actually should, restart at stop/play etc
+            
+            // Calculate idle_time
+            
+            if(k->tick_length > 0)
+                idle_time = (float(tick*k->tick_length) - k->timer->GetTime()) / float(k->tick_length);
             
             if (k->tick_length > 0)
             {
@@ -846,9 +852,18 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 
     socket->Send("{\n");
     socket->Send("\t\"state\": %d,\n", ui_state);
-    socket->Send("\t\"iteration\": %d,\n", k->GetTick());
-    socket->Send("\t\"progress\": %f,\n", (k->max_ticks > 0 ? float(k->tick)/float(k->max_ticks) : 0));
     
+    if(k->max_ticks > 0)
+    {
+        socket->Send("\t\"iteration\": \"%d / %d\",\n", k->GetTick(), k->max_ticks);
+        socket->Send("\t\"progress\": %f,\n", float(k->tick)/float(k->max_ticks));
+    }
+    else
+    {
+        socket->Send("\t\"iteration\": %d,\n", k->GetTick());
+        socket->Send("\t\"progress\": 0\n");
+    }
+
     // Timing information
     
     float total_time = k->timer->GetTime()/1000.0; // in seconds
@@ -859,8 +874,10 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
     socket->Send("\t\"timebase\": %d,\n", k->tick_length);
     socket->Send("\t\"timebase_actual\": %.0f,\n", k->tick > 0 ? 1000*float(total_time)/float(k->tick) : 0);
     socket->Send("\t\"lag\": %.0f,\n", k->lag);
-    socket->Send("\t\"cpu_cores\": %d", k->cpu_cores);
-
+    socket->Send("\t\"cpu_cores\": %d,\n", k->cpu_cores);
+    socket->Send("\t\"idle_time\": %.3f,\n", idle_time);  // TODO: move to kernel from WebUI
+    socket->Send("\t\"cpu_usage\": %.3f", k->cpu_usage);
+    
     if(!p)
     {
         socket->Send(",\"has_data\": 0\n}\n");
@@ -874,7 +891,7 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
         socket->Send(",\n");
     else
         socket->Send("\n");
-	
+
     for (ModuleData * md=view_data; md != NULL; md=md->next)
     {
         if(equal_strings(md->name, k->GetXMLAttribute(current_xml_root, "name")))

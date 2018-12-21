@@ -502,7 +502,13 @@ public:
     float              lag;                // Lag of a tick in real-time mode
     
     int                 cpu_cores;
+    double              cpu_usage;
+    double              last_cpu;
+    float               last_cpu_time;
+    
 
+    void                CalculateCPUUsage();
+    
 //private:
     ModuleClass     *    classes;        // List of module classes
     

@@ -121,6 +121,7 @@ public:
     long			tick;
     int             ui_state;
     int             iterations_per_runstep;
+    float           idle_time;
     bool            first_request;
     long            master_id;
 
