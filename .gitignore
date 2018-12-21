@@ -46,6 +46,7 @@ ehthumbs.db
 Thumbs.db
 /Debug/
 /Release/
+/Build/
 
 # Windows #
 ######################
