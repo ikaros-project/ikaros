@@ -26,6 +26,7 @@
 #define DEFAULT_MAX_FAILED_READS 100
 
 #include "IKAROS.h"
+using namespace ikaros;
 
 #include <cstdlib>
 #include <cstdio>
