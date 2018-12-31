@@ -24,10 +24,11 @@
 #include "IKAROS_Math.h"
 #include "IKAROS_Utils.h"
 
-#include <math.h>
 #include <stdlib.h>
 #include <string.h> // memset
 #include <algorithm> // find
+
+
 // includes for image processing (JPEG)
 
 #include <stdio.h>
@@ -69,7 +70,7 @@ namespace ikaros
     
     // MARK: -
     // MARK: functions
-    
+/*
 	float trunc(float x)
 	{
 		return ::truncf((int)x);
@@ -118,6 +119,7 @@ namespace ikaros
 	{
 		return ::atan2f(y, x);
 	}
+*/
 	float *
 	atan2(float * r, float * a, float * b, int size)
 	{
@@ -210,7 +212,7 @@ namespace ikaros
 		float center_y = y;
 		for (int j=0; j<sizey; j++)
 			for (int i=0; i<sizex; i++)
-				r[j][i] = gaussian(hypot(center_x-float(i), center_y-float(j)), sigma);
+				r[j][i] = gaussian(hypotf(center_x-float(i), center_y-float(j)), sigma);
 		return r;
 	}
 	
@@ -230,7 +232,7 @@ namespace ikaros
 		float center_y = y;
 		for (int j=0; j<sizey; j++)
 			for (int i=0; i<sizex; i++)
-				r[j][i] = gaussian1(hypot(center_x-float(i), center_y-float(j)), sigma);
+				r[j][i] = gaussian1(hypotf(center_x-float(i), center_y-float(j)), sigma);
 		return r;
 	}
 	
@@ -658,18 +660,19 @@ namespace ikaros
 	}
 	
 	// abs
+/*
 	int
 	abs(int x)
 	{
 		return (x < 0 ? -x : x);
 	}
-	
+
 	float
 	abs(float x)
 	{
 		return (x < 0 ? -x : x);
 	}
-	
+*/
 	float *
 	abs(float * a, int size)
 	{
@@ -1708,7 +1711,7 @@ namespace ikaros
         {
             p = j;
             for(i = j+1; i < sizey; i++)
-                if(abs(m[i][j]) > abs(m[p][j]))
+                if(::abs(m[i][j]) > ::abs(m[p][j]))
                     p = i;
             
             if(pivots)
@@ -2712,13 +2715,13 @@ namespace ikaros
     // conversion
     // MARK: -
     // MARK: conversion
-    
+/*
 	int
 	lround(float x)
 	{
 		return int(::lroundf(x));
 	}
-	
+*/
 	void
 	float_to_byte(unsigned char * r, float * a, float min, float max, long size)
 	{
@@ -2755,34 +2758,58 @@ namespace ikaros
     int
     string_to_int(const std::string & s, int d)
     {
-        if (s == "")
+        try
+        {
+            if (s.empty())
+                return d;
+            else
+                return stoi(s, NULL, 0);
+        }
+        catch(const std::invalid_argument& ia)
+        {
+            printf("Conversion error: %s cannot be converted to int.", s.c_str());
             return d;
-        else
-            return stoi(s, NULL, 0);    // 0 allows hex and octal formats as well as decimal
+        }
     }
 
     long
-    string_to_long(const std::string & s, long d) // FIXME: could use exceptions to set default
+    string_to_long(const std::string & s, long d)
     {
-        if (s == "")
+        try
+        {
+            if (s.empty())
+                return d;
+            else
+                return stol(s, NULL, 0);
+        }
+        catch(const std::invalid_argument& ia)
+        {
+            printf("Conversion error: %s cannot be converted to long.", s.c_str());
             return d;
-        else
-            return stol(s, NULL, 0);    // 0 allows hex and octal formats as well as decimal
+        }
     }
 
     float
-    string_to_float(const std::string & s, float d) // FIXME: could use exceptions to set default
+    string_to_float(const std::string & s, float d)
     {
-        if (s == "")
+        try
+        {
+            if (s.empty())
+                return d;
+            else
+                return stof(s);
+        }
+        catch(const std::invalid_argument& ia)
+        {
+            printf("Conversion error: %s cannot be converted to float.", s.c_str());
             return d;
-        else
-            return stof(s);
+        }
     }
 
     bool
     string_to_bool(const std::string & s, bool d)
     {
-        if (s == "")
+        if (s.empty())
             return d;
         static std::string str = "trueTrueTRUEyesYesYES1"; // values like "rueTE" will also evaluate to true but that is ok
         return str.find(s) != std::string::npos;
@@ -2844,7 +2871,7 @@ namespace ikaros
     float
     short_angle(float a1, float a2)
     {
-        return atan2(sin(a2-a1), cos(a2-a1));
+        return ::atan2(sin(a2-a1), cos(a2-a1));
     }
 
 
@@ -2971,20 +2998,20 @@ namespace ikaros
             if (m[8] > -1)
             {
                 y = asin(-m[8]);
-                z = atan2(m[4],m[0]);
-                x = atan2(m[9],m[10]);
+                z = ::atan2(m[4],m[0]);
+                x = ::atan2(m[9],m[10]);
             }
             else // m8 = -1
             {
                 y = +pi/2;
-                z = -atan2(-m[6],m[5]);
+                z = -::atan2(-m[6],m[5]);
                 x = 0;
             }
         }
         else // m8 = +1
         {
             y = -pi/2;
-            z = atan2(-m[6],m[5]);
+            z = ::atan2(-m[6],m[5]);
             x = 0;
         }
     }
@@ -2998,7 +3025,7 @@ namespace ikaros
         {
             case X:
                 if (-1 < m[8] && m[8] < +1)
-                    return atan2(m[9], m[10]);
+                    return ::atan2(m[9], m[10]);
                 else
                     return  0;
             
@@ -3012,11 +3039,11 @@ namespace ikaros
 
             case Z:
                 if(m[8] >= +1)
-                    return  atan2(-m[6], m[5]);
+                    return  ::atan2(-m[6], m[5]);
                 else if (m[8] > -1)
-                    return atan2(m[4], m[0]);
+                    return ::atan2(m[4], m[0]);
                 else
-                    return -atan2(-m[6], m[5]);
+                    return -::atan2(-m[6], m[5]);
         }
         
         return 0;
@@ -4227,7 +4254,7 @@ namespace ikaros
     void
     draw_line(float ** image, int sizex, int sizey, int x0, int y0, int x1, int y1, float color)
     {
-        bool steep = abs(y1 - y0) > abs(x1 - x0);
+        bool steep = ::abs(y1 - y0) > ::abs(x1 - x0);
         if(steep)
         {
             swap(x0, y0);
@@ -4241,7 +4268,7 @@ namespace ikaros
         }
         
         int deltax = x1 - x0;
-        int deltay = abs(y1 - y0);
+        int deltay = ::abs(y1 - y0);
         float error = 0;
         float deltaerr = float(deltay) / float(deltax);
         int ystep;
@@ -4624,7 +4651,7 @@ namespace ikaros
     bool 
     equal(float a, float b, float tolerance)
     { 
-        return abs((float)a-b) <= tolerance;
+        return ::abs((float)a-b) <= tolerance;
     }
     
     bool 

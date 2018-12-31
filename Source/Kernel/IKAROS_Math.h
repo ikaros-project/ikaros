@@ -29,10 +29,10 @@
 // unless there are optional arguments
 
 #include <string>
+#include <cmath>
 
 namespace ikaros
-{
-	
+{	
 	extern const float	pi;
 	extern const float	sqrt2pi;
 	extern const float	maxfloat;
@@ -42,7 +42,7 @@ namespace ikaros
 	float eps(float x);
     
 	// misc scalar
-	
+/*
 	float	exp(float x);
 	float	pow(float x, float y);
 	
@@ -56,9 +56,10 @@ namespace ikaros
 	float	asin(float x);
 	float	acos(float x);
 	float	atan(float x);
+*/
+
 	
-	
-	float		atan2(float y, float x);
+//	float		atan2(float y, float x);
 	float *		atan2(float * r, float * a, float * b, int size);
 	float **	atan2(float ** r, float ** a, float ** b, int sizex, int sizey);
     
@@ -117,14 +118,14 @@ namespace ikaros
 	
 	
 	float		sqrt(int x);
-	float		sqrt(float x);
+//	float		sqrt(float x);
 	float *		sqrt(float * a, int size);
 	float **	sqrt(float ** m, int sizex, int sizey);
 	float *		sqrt(float * r, float * a, int size);
 	float **	sqrt(float ** r, float ** a, int sizex, int sizey);
 	
 	
-	float		hypot(float x, float y);
+//	float		hypot(float x, float y);
 	float *		hypot(float * r, float * a, float * b, int size);
 	float **	hypot(float ** r, float ** a, float ** b, int sizex, int sizey);
 	
@@ -150,14 +151,14 @@ namespace ikaros
 	float *     normalize_max(float * a, int size);
 	float **    normalize_max(float ** m, int sizex, int sizey);
 	
-	int			abs(int x);
-	float		abs(float x);
+//	int			abs(int x);
+//	float		abs(float x);
 	float *		abs(float * a, int size);
 	float **	abs(float ** m, int sizex, int sizey);
 	float *		abs(float * r, float * a, int size);
 	float **	abs(float ** r, float ** m, int sizex, int sizey);
-	
-	
+
+
 	int			min(int x, int y);
 	float		min(float x, float y);
 	float		min(float * a, int size);
@@ -343,8 +344,8 @@ namespace ikaros
 
 	// conversion
 	
-	float		trunc(float x);
-	int         lround(float x);
+//	float		trunc(float x);
+//	int         lround(float x);
 	void		float_to_byte(unsigned char * r, float * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 	void		byte_to_float(float * r, unsigned char * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 
