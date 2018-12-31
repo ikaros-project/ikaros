@@ -11,9 +11,11 @@
  
  -->
 
-<group>
-    <parameter name="outputsize" target="outputsize" targetmodule="R" />    <!-- will use target="R.outputsize" later -->
+<group name="I">
+    <!--
+    <parameter name="outputsize" target="outputsize" targetmodule="R" />
     <output name="X" sourcemodule="R" source="OUTPUT" />
-    <module class="Randomizer" name="R" outputsize="3" />
+    -->
+    <module class="Randomizer" name="R" />
 </group>
 

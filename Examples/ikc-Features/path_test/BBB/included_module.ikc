@@ -12,8 +12,8 @@
  -->
 
 <group>
-    <parameter name="outputsize" target="outputsize" targetmodule="R" />    <!-- will use target="R.outputsize" later -->
-    <output name="X" sourcemodule="R" source="OUTPUT" />
-    <module class="Randomizer" name="R" outputsize="3" />
+    <parameter name="outputsize" target="outputsize" targetmodule="Z" />    <!-- will use target="R.outputsize" later -->
+    <output name="X" sourcemodule="Z" source="OUTPUT" />
+    <module class="Randomizer" name="Z" _outputsize="44" />
 </group>
 

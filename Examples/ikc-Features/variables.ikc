@@ -28,14 +28,14 @@
         <!-- Variable value is inherited from outer group -->
         <module
             class = "Randomizer"
-            name = "R2"
+            name = "R3"
             outputsize = "@c"
         />
 
-        <!-- Several levels of indircetion -->
+        <!-- Several levels of indirection -->
         <module
             class = "Randomizer"
-            name = "R2"
+            name = "R4"
             xxx = "@yyy"
             outputsize = "@xxx"
         />
