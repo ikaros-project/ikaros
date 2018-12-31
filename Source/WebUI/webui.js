@@ -699,14 +699,21 @@ interaction = {
         let cons = interaction.currentView.connections;
         for(let c of cons)
         {
-            context.strokeStyle="#999";
-            context.fillStyle = "#999";
-            context.lineWidth = 3;
-            context.beginPath();
-            p1 = interaction.module_pos[c.sourcemodule];
-            p2 = interaction.module_pos[c.targetmodule];
-            draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
-            draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            try
+            {
+                context.strokeStyle="#999";
+                context.fillStyle = "#999";
+                context.lineWidth = 3;
+                context.beginPath();
+                p1 = interaction.module_pos[c.source.split('.')[0]];
+                p2 = interaction.module_pos[c.target.split('.')[0]];
+                draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+                draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            }
+            catch(err)
+            {
+                console.log("draw connection "+c.sourcemodule+"->"+c.targetmodule+" failed.");
+            }
         }
     },
 
