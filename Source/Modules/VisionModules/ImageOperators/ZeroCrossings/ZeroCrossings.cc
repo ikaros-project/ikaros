@@ -22,9 +22,6 @@
 #include "ZeroCrossings.h"
 #include "ctype.h"
 
-using namespace ikaros;
-
-
 
 void
 ZeroCrossings::Init()

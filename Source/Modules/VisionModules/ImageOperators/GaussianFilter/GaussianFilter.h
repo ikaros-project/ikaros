@@ -24,7 +24,7 @@
 
 #include "IKAROS.h"
 
-
+using namespace ikaros;
 
 class GaussianFilter: public Module
 {

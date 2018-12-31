@@ -79,7 +79,7 @@ ColorMatch::Tick()
             float cs = input0[j][i]  + input1[j][i]  + input2[j][i] ;
             if (cs > threshold)
             {
-                float d = sqrt(sqr(input0[j][i]/cs - target0) + sqr(input1[j][i]/cs -  target1) + sqr(input2[j][i]/cs -  target2));
+                float d = ikaros::sqrt(sqr(input0[j][i]/cs - target0) + sqr(input1[j][i]/cs -  target1) + sqr(input2[j][i]/cs -  target2));
                 output[j][i] = gain*exp(-sigma*d);
             }
             else

@@ -959,13 +959,13 @@ Epuck::GetAcceleration()
 
     ori = ori*(2.0*pi/360.0);
 
-    orientation[0] = ikaros::cos(ori);
-    orientation[1] = ikaros::sin(ori);
+    orientation[0] = cos(ori);
+    orientation[1] = sin(ori);
 
     inc = inc*(2.0*pi/360.0);
 
-    inclination[0] = ikaros::cos(inc);
-    inclination[1] = ikaros::sin(inc);
+    inclination[0] = cos(inc);
+    inclination[1] = sin(inc);
 }
 
 
@@ -1030,7 +1030,7 @@ Epuck::GetImage()
                 for (j = height-1; j > -1; j--){
                     tmp = float(rcvmsg[msgidx++]);
                     if (tmp < 0)
-                        tmp = (ikaros::abs(tmp + 128)) + 128;
+                        tmp = (abs(tmp + 128)) + 128;
                     image[j][i] = tmp / 255;
                 }
             }
@@ -1180,7 +1180,7 @@ Epuck::GetEncoder()
     for (i = 0; i < 2; i++){
         // check rollover. the encoder should not be able to make such a big jump
         // as >32768 steps in one tick. the epuck just isnt THAT fast, unfortunately...
-        if (ikaros::abs(e[i] - prev_encoder[i]) > 32768)
+        if (abs(e[i] - prev_encoder[i]) > 32768)
         {
             if (e[i] < 32768)
                 prev_encoder[i] -= 65536;

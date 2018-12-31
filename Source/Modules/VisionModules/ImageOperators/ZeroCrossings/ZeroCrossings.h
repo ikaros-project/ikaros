@@ -24,7 +24,6 @@
 
 #include "IKAROS.h"
 
-
 class ZeroCrossings: public Module
 {
 public:
