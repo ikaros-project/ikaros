@@ -23,6 +23,8 @@
 #define Autoassociator_
 
 #include "IKAROS.h"
+using namespace ikaros;
+
 // #include "LearningModule.h"
 
 class Autoassociator : public Module

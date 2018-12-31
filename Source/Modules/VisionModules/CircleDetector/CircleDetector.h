@@ -23,6 +23,7 @@
 #define CircleDetector_
 
 #include "IKAROS.h"
+using namespace ikaros;
 
 
 class CircleDetector : public Module
