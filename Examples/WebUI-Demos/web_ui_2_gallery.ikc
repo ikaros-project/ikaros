@@ -115,8 +115,7 @@
         <marker
             x="20" y="20" width="200" height="200"
             title="Default Path"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             markerType = "circle"
             size = "0.05"
             show_frame = "yes"
@@ -125,8 +124,7 @@
         <marker
             x="240" y="20" width="200" height="200"
             title="Default Path"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             fill = "yellow"
             markerType = "cross"
             size = "0.1"
@@ -136,8 +134,7 @@
         <marker
             x="460" y="20" width="200" height="200"
             title="Default Path"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             fill = "yellow"
             markerType = "cross"
             lineWidth = "12"
@@ -150,8 +147,7 @@
         <marker
             x="20" y="240" width="200" height="200"
             title="Default Path"
-            module="R43"
-            source="OUTPUT"
+            source="R43.OUTPUT"
             order = "row"
             markerType = "circle"
             size = "0.05"
@@ -163,8 +159,7 @@
         <marker
             x="240" y="240" width="200" height="200"
             title="Default Path"
-            module="R43"
-            source="OUTPUT"
+            source="R43.OUTPUT"
             order = "col"
             markerType = "circle"
             size = "0.05"
@@ -176,8 +171,7 @@
         <marker
             x="460" y="240" width="200" height="200"
             title="Default Path"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             fill = "yellow"
             labelType = "numbered"
             markerType = "cross"
@@ -191,8 +185,7 @@
         <marker
             x="20" y="460" width="200" height="200"
             title="Labels"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             color = "red"
             fill = "black"
             markerType = "none"
@@ -204,8 +197,7 @@
         <marker
             x="240" y="460" width="200" height="200"
             title="Labels"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             markerType = "none"
             color = "red"
             fill = "black"
@@ -216,8 +208,7 @@
         <marker
             x="460" y="460" width="200" height="200"
             title="Labels"
-            module="R23"
-            source="OUTPUT"
+            source="R23.OUTPUT"
             markerType = "cross"
             lineWidth = "3"
             color = "blue"
@@ -1083,8 +1074,8 @@
         class = "Gate"
         name = "G"
     />
-    <connection sourcemodule="G1" source="OUTPUT" targetmodule="G" target="INPUT" />
-    <connection sourcemodule="G2" source="OUTPUT" targetmodule="G" target="INPUT" />
+    <connection source="G1.OUTPUT" target="G.INPUT" />
+    <connection source="G2.OUTPUT" target="G.INPUT" />
 
     <module
         class = "FunctionGenerator"
@@ -1113,6 +1104,7 @@
         amplitude = "2"
     />
 
+    <module class="Logger" name="Logger" />
 </group>
  
 
