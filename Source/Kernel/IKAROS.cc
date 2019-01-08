@@ -3501,7 +3501,7 @@ Kernel::ListProfiling()
 void
 Kernel::Notify(int msg, const char * format, ...)
 {
-    switch (ikaros::abs(msg))
+    switch (abs(msg))
     {
         case msg_fatal_error:
             fatal_error_occurred = true;
@@ -3519,7 +3519,7 @@ Kernel::Notify(int msg, const char * format, ...)
         return;
     char 	message[512];
     int n = 0;
-    switch (ikaros::abs(msg))
+    switch (abs(msg))
     {
         case msg_fatal_error:
             n = snprintf(message, 512, "ERROR: ");
