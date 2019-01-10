@@ -1,7 +1,7 @@
 //
 //	  IKAROS.cc		Kernel code for the IKAROS project
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2019  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -21,9 +21,7 @@
 //
 //	Created July 13, 2001
 //
-// Before 2.0: 3200 lines
-
-#include "IKAROS.h"
+// Before 2.0: 4500 lines
 
 #include <stdlib.h>
 #include <string>
@@ -49,9 +47,8 @@
 #include <sys/resource.h>
 #include <sys/times.h>
 
-
-
-
+#include "IKAROS.h"
+#include "Kernel/IKAROS_ColorTables.h"
 
 using namespace ikaros;
 
@@ -62,14 +59,12 @@ int         global_warning_count = 0;
 
 static std::string empty_string = "";
 
-//#define USE_MALLOC_DEBUG
-
-#ifndef USE_MALLOC_DEBUG
-
+//#include "IKAROS_Malloc_Debug.h"
+#ifndef USING_MALLOC_DEBUG
 void* operator new (std::size_t size) noexcept(false)
 {
     void *p=calloc(size, sizeof(char)); 
-    if (p==0) // did calloc succeed?
+    if(p==0) // did calloc succeed?
         throw std::bad_alloc();
     return p;
 }
@@ -78,117 +73,7 @@ void operator delete (void *p) throw()
 {
     free(p); 
 }
-
 #endif
-
-//
-// USE_MALLOC_DEBUG checks all memory allocations (Currently OS X only).
-//
-
-#ifdef USE_MALLOC_DEBUG
-
-#include <malloc/malloc.h>
-
-const int     mem_max_blocks = 100000;    // Ikaros will exit if storage is exhausted
-unsigned long mem_allocated = 0;
-int           mem_block_allocated_count = 0;
-int           mem_block_deleted_count = 0;
-void *        mem_block[mem_max_blocks];
-size_t        mem_size[mem_max_blocks];
-bool          mem_block_deleted[mem_max_blocks];
-
-void *
-operator new (std::size_t size) noexcept(false)
-{
-    void *p=calloc(size, sizeof(char)); 
-    if (p==0) // did calloc succeed?
-        throw std::bad_alloc();
-    
-    mem_block[mem_block_allocated_count] = p;
-    mem_size[mem_block_allocated_count] = size;
-    mem_block_deleted[mem_block_allocated_count] = false;
-    mem_block_allocated_count++;
-    
-    if(mem_block_allocated_count > mem_max_blocks)
-    {
-        printf("OUT OF MEMORY\n");
-        exit(1);
-    }
-    
-    return p;
-}
-
-void *
-operator new [] (std::size_t size) noexcept(false)
-{
-    return operator new(size);
-}
-
-void
-operator delete (void *p) throw()
-{
-    if(p == NULL) // this is ok
-        return;
-    
-    // Look for block (backwards to allow several allocation of the same memory)
-    
-    for(int i=mem_block_allocated_count; i>=0; i--)
-        if(mem_block[i] == p)
-        {
-            if(mem_block_deleted[i])
-            {
-                printf("Attempting to delete already deleted memory [%d]: %p\n", i, p);
-                return;
-            }
-            
-            else
-            {
-                mem_block[i] = NULL;
-                mem_block_deleted[i] = true;
-                mem_block_deleted_count++;
-                mem_allocated -= malloc_size(p);
-                
-                free(p);
-                return;
-            }
-        }
-    
-    printf("Attempting to delete memory not allocated with new: %p\n", p);
-}
-
-void
-operator delete [] (void *p) throw()
-{
-    operator delete (p);
-}
-
-void
-dump_memory()
-{
-    printf("Allocated Memory\n");
-    printf("=======================\n");
-    int cnt = 0;
-    for(int i=0; i<mem_block_allocated_count; i++)
-        if(!mem_block_deleted[i])
-        {
-            printf("%4d: %p\t[%lu->%lu]\t", i, mem_block[i], mem_size[i], malloc_size(mem_block[i]));
-            for(unsigned int j=0; j<mem_size[i]; j++)
-            {
-                char * p = (char *)(mem_block[i]);
-                char c = p[j];
-                if(' ' <= c && c < 'z')
-                    printf("%c", c);
-                else
-                    printf("#");
-            }
-            printf("\n");
-            cnt++;
-        }
-    printf("No of blocks: %d\n", cnt);
-}
-
-#endif
-
 
 
 //
@@ -202,511 +87,589 @@ class Element
 public:
     GroupElement * parent;
     std::unordered_map<std::string, std::string> attributes;
-
-    Element(GroupElement * parent, XMLElement * xml_node=NULL)
-    {
-        this->parent = parent;
-
-        if(!xml_node)
-            return;
-        
-        for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
-            attributes.insert({ attr->name, attr->value });
-    }
     
-    std::string GetAttribute(std::string a) // get attribute verbatim
-    {
-        if(attributes.count(a))
-            return attributes[a];
-        else
-            return "";
-    };
-
-    const std::string ResolveVariable(std::string a)
-    {
-        auto b = a;
-        while(a[0] == '@')
-            a = GetValue(a.substr(1));
-        if(a=="")
-            return b;
-        else
-            return a;
-    };
-
-   const std::string & GetValue(std::string a) // FIXME: parameter renaming and inheritance is missing - partially
-    {
-        if(a.empty())
-            return empty_string;
-
-        a = ResolveVariable(a);
-        if(attributes.count(a))
-            return attributes[a];
-        
-        // FIXME: RENAMING IN THIS GROUP HERE
-        
-        // INHERITANCE HERE
-       
-        else if(parent)
-            return ((Element *)parent)->GetValue(a);
-       
-        else
-            return empty_string;
-    };
-
-    const std::string & operator[](const std::string & a) // same as get value
-    {
-        return GetValue(a);
-    };
-
-    void PrintAttributes(int d=0)
-    {
-        for(auto a : attributes)
-            printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
-    }
-
-    std::string JSONAttributeString(int d=0)
-    {
-        std::string b;
-        std::string s;
-        for(auto a : attributes)
-        {
-            std::string value = std::regex_replace(a.second, std::regex("\\s+"), " "); // JSON does not allow line breaks in attribute values
-            s += b + std::string(d, '\t') + "\"" + a.first + "\": \"" + value + "\"";
-            b = ",\n";
-        }
-        return s;
-    }
+                                    Element(GroupElement * parent, XMLElement * xml_node=NULL);
+    const std::string &             GetAttribute(const std::string & a) const; // FIXME: Remove
+    virtual std::string             GetValue(const std::string & a) const;
+    std::string                     operator[](const std::string & a) const;
+    void                            PrintAttributes(int d=0); // const
+    std::string                     JSONAttributeString(int d=0); // const
 };
-
-
 
 class ParameterElement: public Element
 {
 public:
-    ParameterElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    ParameterElement(GroupElement * parent, XMLElement * xml_node=NULL);
     
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"\tPARAMETER: "+GetAttribute("name")).c_str());
-        PrintAttributes(d);
-    };
-    
-    std::string JSONString(int d=0)
-    {
-        std::string s = std::string(d, '\t')+"{\n";
-        s += JSONAttributeString(d+1);
-        s += "\n" + std::string(d, '\t')+"}";
-        return s;
-    };
+    void Print(int d=0);
+    std::string JSONString(int d=0);
 };
 
 class InputElement: public Element
 {
 public:
-    InputElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    InputElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    void Print(int d=0);
+    std::string JSONString(int d=0);
 
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
-        PrintAttributes(d);
-    };
-    
-    std::string JSONString(int d=0)
-    {
-        std::string s = std::string(d, '\t')+"{\n";
-        s += JSONAttributeString(d+1);
-        s += "\n" + std::string(d, '\t')+"}";
-        return s;
-    };
 };
 
 class OutputElement: public Element
 {
 public:
-    OutputElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    OutputElement(GroupElement * parent, XMLElement * xml_node=NULL);
 
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
-        PrintAttributes(d);
-    };
-    
-    std::string JSONString(int d=0)
-    {
-        std::string s = std::string(d, '\t')+"{\n";
-        s += JSONAttributeString(d+1);
-        s += "\n" + std::string(d, '\t')+"}";
-        return s;
-    };
+    void Print(int d=0);
+    std::string JSONString(int d=0);
 };
 
 class ConnectionElement: public Element
 {
 public:
-    ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL);
     
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"\tCONNECTION: ").c_str());
-        PrintAttributes(d);
-    }
-    
-    std::string JSONString(int d=0)
-    {
-        std::string s = std::string(d, '\t')+"{\n";
-        s += JSONAttributeString(d+1);
-        s += "\n" + std::string(d, '\t')+"}";
-        return s;
-    };
+    void Print(int d=0);
+    std::string JSONString(int d=0);
 };
 
 class ViewObjectElement: public Element
 {
 public:
-    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL);
 
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"\tOBJECT: ").c_str());
-        PrintAttributes(d);
-    }
+    void Print(int d=0);
+    std::string JSONString(int d=0);
 
-    std::string JSONString(int d=0)
-    {
-        std::string tab = std::string(d, '\t');
-        std::string s = tab + "{\n";
-        s += JSONAttributeString(d+1);
-        s += "\n" + tab+"}";
-        return s;
-    };
 };
 
 class ViewElement: public Element
 {
 public:
-    ViewElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node) {};
+    ViewElement(GroupElement * parent, XMLElement * xml_node=NULL);
     std::vector<ViewObjectElement> objects;
 
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"\tVIEW: ").c_str());
-        PrintAttributes(d);
-        printf("%s\n", (std::string(d, '\t')+"\tOBJECTS: ").c_str());
-        for(auto o : objects)
-            o.Print(d+1);
-    }
-
-    std::string JSONString(int d=0)
-    {
-        std::string tab = std::string(d, '\t');
-        std::string tab2 = std::string(d+1, '\t');
-        std::string b;
-        std::string s = tab+"{\n";
-        if(attributes.size())
-            s += JSONAttributeString(d+1) + ",\n";
-        
-        if(objects.size())
-        {
-            s += tab2 + "\"objects\":\n" + tab2 + "[\n";
-            for(auto o : objects)
-            {
-                s += b + o.JSONString(d+2);
-                b = ",\n";
-            }
-            s += "\n";
-            s += tab2 + "]";
-        }
-        else
-            s += tab2 + "\"objects\": []";
-        
-        s += "\n" + std::string(d, '\t')+"}";
-        return s;
-    };
+    void Print(int d=0);
+    std::string JSONString(int d=0);
 };
 
-class GroupElement: public Element
+class GroupElement : public Element
 {
 public:
     std::unordered_map<std::string, GroupElement *> groups;
-    std::unordered_map<std::string, ParameterElement> parameters;
+    std::unordered_map<std::string, ParameterElement *> parameters;
     std::vector<InputElement> inputs;
     std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement> connections;
     std::vector<ViewElement> views;
     Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove ******
 
-    GroupElement(GroupElement * parent, XMLElement * xml_node=NULL) : Element(parent, xml_node)
-    {
-     };
-
-    ~GroupElement()
-    {
-        printf("ERROR GROUP GOING OUT OF SCOPE - SHOULD BEVER HAPPEN!!!\n");
-    }
-
-    GroupElement *
-    GetGroup(const std::string & name)
-    {
-        if(name == "*" || name == "") // FIXME: remove later when stars are no longer needed
-            return this;
-        auto n = ResolveVariable(name);
-        if(groups.count(n))
-            return groups[n];
-        else if(parent && parent->GetValue("name") == n)
-            return (GroupElement *)parent;
-        auto & path = split(n, ".", 1);
-        std::string p0 = ResolveVariable(path[0]);
-        std::string p1 = path[1];
-        if(path.size() > 1 && groups.count(p0))
-            return groups[p0]->GetGroup(p1);
-        else if(parent && parent->GetValue("name") == p0)
-            return ((GroupElement *)parent)->GetGroup(p1);
-        return NULL;
-    }
-
-    Module *
-    GetModule(const std::string & module_name) // Get module from full or partial name relative to this group
-    {
-        if(auto g = GetGroup(module_name))
-            return g->module;
-        return NULL;
-    }
-
-    Module_IO *
-    GetSource(const std::string & source_module_name, std::string source_name)
-    {
-        if(GroupElement * g = GetGroup(source_module_name))
-        {
-            if(g->module)
-                return g->module->GetModule_IO(g->module->output_list, source_name.c_str());
-
-            auto output = g->outputs[source_name];
-            if(!output)
-                return NULL;
-            auto new_module = output->GetValue("sourcemodule");
-            auto new_source = output->GetValue("source");
-            
-            if(source_module_name == new_module && source_module_name == new_source)
-                return NULL;
-            
-            return g->GetSource(new_module!="" ? new_module : source_module_name, new_source!="" ? new_source : source_name);
-        }
-        return NULL;
-    }
-
-    std::vector<Module_IO *>
-    GetTargets(const std::string & target_module_name, const std::string & target_name)   // GetInputIO = GetModule + GetInputIO; a single Connect can result in many connections
-    {
-        std::vector<Module_IO *> tios;
-        GroupElement * g = GetGroup(target_module_name);
-        if(!g)
-            return tios;
-        
-        if(g && g->module)
-        {
-            if(auto tio = g->module->GetModule_IO(g->module->input_list, target_name.c_str()))
-                tios.push_back(tio);
-            else
-                g->module->Notify(msg_fatal_error, "Module \"%s\" has no input named \"%s\".\n", g->module->GetFullName(), target_name.c_str());
-            return tios;
-        }
-        
-        for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the sama name for multiple connections
-            if ((input["name"] == target_name) || (input["name"] == "*"))
-            {
-                auto new_module = input["targetmodule"];
-                auto new_target = input["target"];
-                auto targets = g->GetTargets(new_module!="" ? new_module : target_module_name, new_target!="" ? new_target : target_name);
-                tios.insert(tios.end(), targets.begin(), targets.end());
-            }
-
-        return tios;
-    }
-
-    void Print(int d=0)
-    {
-        printf("%s\n", (std::string(d, '\t')+"GROUP:"+GetAttribute("name")).c_str());
-        if(module)
-            printf("%s\n", (std::string(d, '\t')+"MODULE:"+std::string(module->GetFullName())).c_str());
-
-        printf("%s\n", (std::string(d, '\t')+"\tATTRIBUTES:").c_str());
-        PrintAttributes(d+1);
-
-        printf("%s\n", (std::string(d, '\t')+"\tPARAMETERS:").c_str());
-        for(auto p : parameters)
-            p.second.Print(d+1);
-
-        printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
-        for(auto c : connections)
-            c.Print(d+1);
-/* TEMPORARY
-        printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
-        for(auto v : views)
-            v->Print(d+1);
-*/
-        for(auto g : groups)
-            g.second->Print(d+1);
-        
-        printf("\n");
-    };
-
-    std::string JSONString(int d=0)
-    {
-        std::string b;
-        std::string tab = std::string(d, '\t');
-        std::string tab2 = std::string(d+1, '\t');
-        
-        std::string s = tab + "{\n";
-
-        s += JSONAttributeString(d+1);
-        s += ",\n";
-        
-        if(parameters.size())
-        {
-            s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
-            for(auto p : parameters)
-            {
-                s += b + p.second.JSONString(d+2);
-                b = ",\n";
-            }
-            s += "\n";
-            s += tab2 + "]";
-        }
-        else
-            s += tab2 + "\"parameters\": []";
-        
-        s += ",\n";
-  
-        
-        if(connections.size())
-        {
-            b = "";
-            s += tab2 + "\"connections\":\n" + tab2 + "[\n";
-            for(auto c : connections)
-            {
-                s += b + c.JSONString(d+2);
-                b = ",\n";
-            }
-            s += "\n";
-            s += tab2 + "]";
-        }
-        else
-            s += tab2 + "\"connections\": []";
-        
-        s += ",\n";
-
-        if(views.size())
-        {
-            b = "";
-            s += tab2 + "\"views\":\n" + tab2 + "[\n";
-            for(auto v : views)
-            {
-                s += b + v.JSONString(d+2);
-                b = ",\n";
-            }
-            s += "\n";
-            s += tab2 + "]";
-        }
-        else
-            s += tab2 + "\"views\": []";
-        
-        s += ",\n";
-      
-      
-/*
-        printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
-        for(auto v : views)
-            v->Print(d+1);
-*/
-
-        if(groups.size())
-        {
-            s += tab2 + "\"groups\":\n" + tab2 + "[\n";
-            b = "";
-            for(auto g : groups)
-            {
-                s += b + g.second->JSONString(d+2);
-                b = ",\n";
-            }
-            s += "\n";
-            s += tab2 + "]\n";
-        }
-        else
-            s += tab2 + "\"groups\": []\n";
-
-        s += tab + "}";
-        
-        return s;
-    };
-
+                                GroupElement(GroupElement * parent, XMLElement * xml_node=NULL);
+                                ~GroupElement();
+    virtual std::string         GetValue(const std::string & name) const;
+    GroupElement *              GetGroup(const std::string & name);
+    Module *                    GetModule(const std::string & name);
+    Module_IO *                 GetSource(const std::string & name);
+    std::vector<Module_IO *>    GetTargets(const std::string & name); // A single Connect can result in many connections
+    void                        Print(int d=0);
+    std::string                 JSONString(int d=0);
 };
 
+Element::Element(GroupElement * parent, XMLElement * xml_node)
+{
+    this->parent = parent;
+
+    if(!xml_node)
+        return;
+    
+    for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+        attributes.insert({ attr->name, attr->value });
+}
+
+const std::string &
+Element::GetAttribute(const std::string & a) const // get attribute verbatim // TODO: REMOVE so that it is not used by accident
+{
+    if(attributes.count(a))
+        return attributes.at(a);
+    else
+        return empty_string;
+};
+
+
+// GetValue or the equivalent [] should be used for all access to parameters
+// It takes care of variable substitutions, parameter substitution, and inheritance
+// Together with the corresponding function for GroupElement
+
+std::string
+Element::GetValue(const std::string & name) const
+{
+    if(name.empty())
+        return empty_string;
+
+    if(attributes.count(name))
+    {
+        std::string value;  // We need to substitute all variables in this scope relative to the current element
+        std::string sep;
+        for(auto s : split(attributes.at(name), "."))
+        {
+            if(s[0] == '@')
+                value += sep + GetValue(s.substr(1));
+            else
+                value += sep + s;
+            sep = ".";
+        }
+        return value;
+    }
+
+    if(parent)
+        return parent->GetValue(name);
+    else
+        return empty_string;
+}
+
+std::string
+Element::operator[](const std::string & a) const // same as get value
+{
+    return GetValue(a);
+};
+
+void
+Element::PrintAttributes(int d)
+{
+    for(auto a : attributes)
+        printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
+}
+
+std::string
+Element::JSONAttributeString(int d)
+{
+    std::string b;
+    std::string s;
+    for(auto a : attributes)
+    {
+        std::string value = std::regex_replace(a.second, std::regex("\\s+"), " "); // JSON does not allow line breaks in attribute values
+        s += b + std::string(d, '\t') + "\"" + a.first + "\": \"" + value + "\"";
+        b = ",\n";
+    }
+    return s;
+}
+
+
+
+ParameterElement::ParameterElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
+
+void ParameterElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"\tPARAMETER: "+GetAttribute("name")).c_str());
+    PrintAttributes(d);
+};
+
+std::string ParameterElement::JSONString(int d)
+{
+    std::string s = std::string(d, '\t')+"{\n";
+    s += JSONAttributeString(d+1);
+    s += "\n" + std::string(d, '\t')+"}";
+    return s;
+};
+
+
+InputElement::InputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
+
+void InputElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
+    PrintAttributes(d);
+};
+
+std::string InputElement::JSONString(int d)
+{
+    std::string s = std::string(d, '\t')+"{\n";
+    s += JSONAttributeString(d+1);
+    s += "\n" + std::string(d, '\t')+"}";
+    return s;
+};
+
+
+
+OutputElement::OutputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
+
+void OutputElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
+    PrintAttributes(d);
+};
+
+std::string OutputElement::JSONString(int d)
+{
+    std::string s = std::string(d, '\t')+"{\n";
+    s += JSONAttributeString(d+1);
+    s += "\n" + std::string(d, '\t')+"}";
+    return s;
+};
+
+
+
+ConnectionElement::ConnectionElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
+
+void ConnectionElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"\tCONNECTION: ").c_str());
+    PrintAttributes(d);
+}
+
+std::string ConnectionElement::JSONString(int d)
+{
+    std::string s = std::string(d, '\t')+"{\n";
+    s += JSONAttributeString(d+1);
+    s += "\n" + std::string(d, '\t')+"}";
+    return s;
+};
+
+
+
+ViewObjectElement::ViewObjectElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
+
+void ViewObjectElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"\tOBJECT: ").c_str());
+    PrintAttributes(d);
+}
+
+std::string ViewObjectElement::JSONString(int d)
+{
+    std::string tab = std::string(d, '\t');
+    std::string s = tab + "{\n";
+    s += JSONAttributeString(d+1);
+    s += "\n" + tab+"}";
+    return s;
+};
+
+
+
+ViewElement::ViewElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
+
+void ViewElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"\tVIEW: ").c_str());
+    PrintAttributes(d);
+    printf("%s\n", (std::string(d, '\t')+"\tOBJECTS: ").c_str());
+    for(auto o : objects)
+        o.Print(d+1);
+}
+
+std::string ViewElement::JSONString(int d)
+{
+    std::string tab = std::string(d, '\t');
+    std::string tab2 = std::string(d+1, '\t');
+    std::string b;
+    std::string s = tab+"{\n";
+    if(attributes.size())
+        s += JSONAttributeString(d+1) + ",\n";
+    
+    if(objects.size())
+    {
+        s += tab2 + "\"objects\":\n" + tab2 + "[\n";
+        for(auto o : objects)
+        {
+            s += b + o.JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]";
+    }
+    else
+        s += tab2 + "\"objects\": []";
+    
+    s += "\n" + std::string(d, '\t')+"}";
+    return s;
+};
+
+
+GroupElement::GroupElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node)
+{
+};
+
+
+GroupElement::~GroupElement()
+{
+    printf("ERROR GROUP GOING OUT OF SCOPE - SHOULD NEVER HAPPEN!!!\n");
+}
+
+std::string
+GroupElement::GetValue(const std::string & a) const
+{
+    if(parameters.count(a))
+    {
+        const auto & p = parameters.at(a);
+        if(p->attributes.count("name"))
+            return GetValue(p->attributes.at("name")); // Can be called multiple times in principle, but a bad idea
+    }
+
+    return Element::GetValue(a);
+}
+
+
+GroupElement *
+GroupElement::GetGroup(const std::string & name)
+{
+    if(name.empty())
+        return this;
+
+    // We need to substitute all variables in this scope relative to the current group element
+    std::string p;
+    std::string sep;
+    for(auto s : split(name, "."))
+    {
+        if(s[0] == '@')
+            p += sep + GetValue(s.substr(1));
+        else
+            p += sep + s;
+        sep = ".";
+    }
+    
+    auto n = split(p, ".", 1);
+    
+    if(groups.count(n[0]))
+    {
+        if(n.size() == 1)
+            return groups.at(n[0]);
+
+        return groups.at(n[0])->GetGroup(n[1]);
+    }
+    
+    if(parent && parent->GetValue("name") == n[0])
+        return parent->GetGroup(n[1]);
+    
+    return NULL;
+}
+
+
+Module *
+GroupElement::GetModule(const std::string & name) // Get module from full or partial name relative to this group
+{
+    if(auto g = GetGroup(name))
+        return g->module;
+    return NULL;
+}
+
+Module_IO *
+GroupElement::GetSource(const std::string & name)
+{
+    auto source = rsplit(name, ".", 1);
+    if(GroupElement * g = GetGroup(source[0]))
+    {
+        if(g->module)
+            return g->module->GetModule_IO(g->module->output_list, source[1].c_str());
+
+        auto output = g->outputs[source[1]];
+        if(!output)
+            return NULL;
+        auto new_module = output->GetValue("sourcemodule"); // TODO: add output.remapp_source() function
+        auto new_source = output->GetValue("source");
+        
+        if(source[0] == new_module && source[1] == new_source) // FIXME: this will not work with variables, maybe g.GetValue("name") instead of s[0]???
+            return NULL;
+        
+        return g->GetSource((new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1])); // FIXME: same problem here
+    }
+    return NULL;
+}
+
+std::vector<Module_IO *>
+GroupElement::GetTargets(const std::string & name)
+{
+    std::vector<Module_IO *> tios;
+    auto target = rsplit(name, ".", 1);
+
+    GroupElement * g = GetGroup(target[0]);
+    if(!g)
+        return tios;
+    
+    if(g && g->module)
+    {
+        if(auto tio = g->module->GetModule_IO(g->module->input_list, target[1].c_str()))
+            tios.push_back(tio);
+        else
+            g->module->Notify(msg_fatal_error, "Module \"%s\" has no input named \"%s\".\n", g->module->GetFullName(), target[1].c_str());
+        return tios;
+    }
+    
+    for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the same name for multiple connections
+        if(input["name"] == target[1]) // TODO: add input.remap_target() function
+        {
+            auto new_module = input["targetmodule"];
+            auto new_target = input["target"];
+            auto targets = g->GetTargets((new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]));
+            tios.insert(tios.end(), targets.begin(), targets.end());
+        }
+
+    return tios;
+}
+
+void
+GroupElement::Print(int d)
+{
+    printf("%s\n", (std::string(d, '\t')+"GROUP:"+GetAttribute("name")).c_str());
+    if(module)
+        printf("%s\n", (std::string(d, '\t')+"MODULE:"+std::string(module->GetFullName())).c_str());
+
+    printf("%s\n", (std::string(d, '\t')+"\tATTRIBUTES:").c_str());
+    PrintAttributes(d+1);
+
+    printf("%s\n", (std::string(d, '\t')+"\tPARAMETERS:").c_str());
+    for(auto p : parameters)
+        p.second->Print(d+1);
+
+    printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
+    for(auto c : connections)
+        c.Print(d+1);
+/* TEMPORARY
+    printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
+    for(auto v : views)
+        v->Print(d+1);
+*/
+    for(auto g : groups)
+        g.second->Print(d+1);
+    
+    printf("\n");
+};
+
+std::string GroupElement::JSONString(int d)
+{
+    std::string b;
+    std::string tab = std::string(d, '\t');
+    std::string tab2 = std::string(d+1, '\t');
+    
+    std::string s = tab + "{\n";
+
+    s += JSONAttributeString(d+1);
+    s += ",\n";
+    
+    if(parameters.size())
+    {
+        s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
+        for(auto p : parameters)
+        {
+            s += b + p.second->JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]";
+    }
+    else
+        s += tab2 + "\"parameters\": []";
+    
+    s += ",\n";
+    
+    if(connections.size())
+    {
+        b = "";
+        s += tab2 + "\"connections\":\n" + tab2 + "[\n";
+        for(auto c : connections)
+        {
+            s += b + c.JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]";
+    }
+    else
+        s += tab2 + "\"connections\": []";
+    
+    s += ",\n";
+
+    if(views.size())
+    {
+        b = "";
+        s += tab2 + "\"views\":\n" + tab2 + "[\n";
+        for(auto v : views)
+        {
+            s += b + v.JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]";
+    }
+    else
+        s += tab2 + "\"views\": []";
+    
+    s += ",\n";
+  
+  
+/*
+    printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
+    for(auto v : views)
+        v->Print(d+1);
+*/
+
+    if(groups.size())
+    {
+        s += tab2 + "\"groups\":\n" + tab2 + "[\n";
+        b = "";
+        for(auto g : groups)
+        {
+            s += b + g.second->JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]\n";
+    }
+    else
+        s += tab2 + "\"groups\": []\n";
+
+    s += tab + "}";
+    
+    return s;
+}
 
 
 //
 // ModuleClass
 //
 
-ModuleClass::ModuleClass(const char * n, ModuleCreator mc, const char * p, ModuleClass * nxt)
+ModuleClass::ModuleClass(const char * n, ModuleCreator mc, const char * p)
 {
     name = n;
     module_creator = mc;
     path = create_string(p);
-    next = nxt;
 }
 
 ModuleClass::~ModuleClass()
 {
     delete path;
-    delete next;
 }
 
 
 const char *
-ModuleClass::GetClassPath(const char * class_name)
+ModuleClass::GetClassPath()
 {
-    if (equal_strings(name, class_name))
-        return path;
-    else if (next != NULL)
-        return next->GetClassPath(class_name);
-    else
-        return NULL;
+    return path;
 }
 
 Module *
-CreateModule(ModuleClass * c, const char * class_name, const char * module_name, Parameter * p)
+ModuleClass::CreateModule(Parameter * p)
 {
-    if (c == NULL)
-        return NULL;
-    
-    else if (equal_strings(c->name, class_name))
-    {
-        Module * m = (*c->module_creator)(p);
-        if(!m->input_list && !m->output_list)
-            m->AddIOFromIKC();
-        return m;
-    }
-    else
-        return CreateModule(c->next, class_name, module_name, p);
+    Module * m = (*module_creator)(p);
+    if(!m->input_list && !m->output_list)
+        m->AddIOFromIKC();
+    return m;
 }
 
-void
+bool
 Module_IO::Allocate()
 {
-    if (sizex == unknown_size || sizey == unknown_size)
+    if(sizex == unknown_size || sizey == unknown_size)
     {
-        if (module != NULL && !optional)
-            module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
-        return;
+        if(module != NULL && !optional)
+            return module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
+
     }
     if(sizex*sizey <= 0)
     {
-        if (module != NULL)
-            module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
-        return;
+        if(module != NULL)
+            return module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
     }
     
-    if (module != NULL) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
+    if(module != NULL) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
     data	=   new float * [max_delay];
     matrix  =   new float ** [max_delay];
     for (int d=0; d<max_delay; d++)
@@ -714,6 +677,7 @@ Module_IO::Allocate()
         matrix[d] = create_matrix(sizex, sizey);
         data[d] = matrix[d][0];
     }
+    return true;
 }
 
 Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt, bool multiple)
@@ -733,18 +697,7 @@ Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, 
 
 Module_IO::~Module_IO()
 {
-/*
-    // Cannot print in destructor
-    if (name != NULL)
-    {
-        if (module != NULL) module->Notify(msg_debug, "      Deleting Module_IO \"%s\".\n", name);
-    }
-    else
-    {
-        if (module != NULL) module->Notify(msg_debug, "      Deleting Module_IO\n");
-    }
-*/
-    if (matrix)
+    if(matrix)
         for (int d=0; d<max_delay; d++)
             destroy_matrix(matrix[d]);
     delete [] data;
@@ -756,24 +709,24 @@ void
 Module_IO::SetSize(int x, int y)
 {
     int s = x*y;
-    if (x == unknown_size)
+    if(x == unknown_size)
         return;
-    if (size != unknown_size && s != size)
+    if(size != unknown_size && s != size)
     {
-        if (module != NULL)
+        if(module != NULL)
             module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name.c_str(), module->GetName(), module->GetClassName(), size, s);
         return;
     }
-    if (s == size)
+    if(s == size)
         return;
-    if (s == 0)
+    if(s == 0)
         return;
-    if (module != NULL)
+    if(module != NULL)
         module->Notify(msg_debug, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name.c_str(), module->instance_name, module->GetClassName(), s, max_delay);
     sizex = x;
     sizey = y;
     size = x*y;
-    if (module != NULL && module->kernel != NULL)
+    if(module != NULL && module->kernel != NULL)
         module->kernel->NotifySizeChange();
 }
 
@@ -797,7 +750,7 @@ Module::~Module()
 void
 Module::AddInput(const char * name, bool optional, bool allow_multiple_connections)
 {
-    if (GetModule_IO(input_list, name) != NULL)
+    if(GetModule_IO(input_list, name) != NULL)
     {
         Notify(msg_warning, "Input \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
@@ -809,7 +762,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
 void
 Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
 {
-    if (GetModule_IO(output_list, name) != NULL)
+    if(GetModule_IO(output_list, name) != NULL)
     {
         Notify(msg_warning, "Output \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
@@ -912,7 +865,7 @@ Module::Load(const char * path)
 
 
 
-const char *
+const char *// FIXME: ***********************
 Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
     const char * module_name = GetName();
@@ -931,12 +884,12 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
             }
             
             const char * t = kernel->GetXMLAttribute(parameter, "target");
-            if (equal_strings(t, n))
+            if(equal_strings(t, n))
             {                
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
                 const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if (tm == NULL || (equal_strings(tm, module_name)))
+                if(tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
                     const char * d = kernel->GetXMLAttribute(parameter, "values");
@@ -945,7 +898,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
                     
                     // the parameter element redefines our parameter name; get the new name
                     const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if (newname == NULL)
+                    if(newname == NULL)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
                         return NULL;
@@ -964,7 +917,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
 
 
 
-const char *
+const char * // FIXME: ***********************
 Module::GetDefault(const char * n)
 {
     const char * module_name = GetName();
@@ -983,12 +936,12 @@ Module::GetDefault(const char * n)
             }
             
             const char * t = kernel->GetXMLAttribute(parameter, "target");
-            if (equal_strings(t, n))
+            if(equal_strings(t, n))
             {                
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
                 const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if (tm == NULL || (equal_strings(tm, module_name)))
+                if(tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
                     const char * d = kernel->GetXMLAttribute(parameter, "default");
@@ -997,7 +950,7 @@ Module::GetDefault(const char * n)
                     
                     // the parameter element redefines our parameter name; get the new name
                     const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if (newname == NULL)
+                    if(newname == NULL)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
                         return NULL;
@@ -1020,68 +973,11 @@ Module::GetDefault(const char * n)
 const char *
 Module::GetValue(const char * n)	// This function implements attribute inheritance with renaming through the parameter element
 {
-    const char * module_name = GetName();
-    // Check for local value in this element
-    const char * value = kernel->GetXMLAttribute(xml, n);
-    if (value != NULL)
-    {
-        if(value[0] == '@')
-            return GetValue(&n[1]); // implements variables
-        else
-            return value;
-    }
-    // not found here, loop up the group hierarchy
-    for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
-    {
-        // Look for parameter element that redefines the attribute name
-        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
-        {
-            if (equal_strings(kernel->GetXMLAttribute(parameter, "target"), n))
-            {
-                // we have found our parameter
-                // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if (tm == NULL || (equal_strings(tm, module_name)))
-                {
-                    // the parameter element redefines our parameter name; get the new name
-                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if (newname == NULL)
-                    {
-                        // Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
-                        return GetDefault(n);
-                    }
-                    // we have the new name; set it and see if it is defined in the current group element
-                    n = newname;
-                }
-            }
-        }
-        value = kernel->GetXMLAttribute(parent, n);
-        if (value != NULL)
-        {
-            if(value[0] == '@')
-                return GetValue(&n[1]); // implements variables
-            else
-                return value;
-        }
-        // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = kernel->GetXMLAttribute(parent, "name");
-    }
-    
-    // No value was found, check if we are in batch mode and look for batch a value
-/*
-    value = kernel->GetBatchValue(n);
-    if (value != NULL)
-        return value;
-    
-    // Look in the values assigned at start up
-    
-    value = kernel->options->GetValue(n);
-    if(value != NULL)
-        return value;
-*/
-    // As a last step, look for default instead
-    
-    return GetDefault(n);
+    std::string r = group->GetValue(n);
+    if(!r.empty())
+        return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
+    else
+        return GetDefault(n);
 }
 
 
@@ -1112,7 +1008,7 @@ bool
 Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
 {
     const char * v = GetValue(n);
-    if (v == NULL)
+    if(v == NULL)
         return d;
     else
         return string_to_bool(v);
@@ -1133,14 +1029,14 @@ findindex(const char * name, const char * list)
             lp++;
         }
         // name matches, return index
-        if ((list[lp] == '/' || list[lp] == 0) && name[np] == 0)
+        if((list[lp] == '/' || list[lp] == 0) && name[np] == 0)
             return ix;
         // skip to next name
         ix++;
         while (list[lp] && list[lp] != '/')
             lp++;
         // no match
-        if (list[lp] == 0)
+        if(list[lp] == 0)
             return -1;
         // prepare for next match
         lp++;
@@ -1161,7 +1057,7 @@ Module::GetIntValueFromList(const char * n, const char * list)
         return 0;
     }
     const char * v = GetValue(n);
-    if (!v)
+    if(!v)
         return 0;
     else
     {
@@ -1194,7 +1090,7 @@ Module::GetIntArray(const char * n, int & size, bool fixed_size)
     int data_size = 0;
 
     const char * v = GetValue(n);
-    if (v == NULL)
+    if(v == NULL)
     {
         if(requested_size > 0)
         {
@@ -1219,7 +1115,7 @@ Module::GetIntArray(const char * n, int & size, bool fixed_size)
     {
         int x;
         for (; isspace(*v) && *v != '\0'; v++) ;
-        if (sscanf(v, "%d", &x)!=-1)
+        if(sscanf(v, "%d", &x)!=-1)
             data_size++;
         for (; !isspace(*v) && *v != '\0'; v++) ;
     }
@@ -1237,7 +1133,7 @@ Module::GetIntArray(const char * n, int & size, bool fixed_size)
     for (int i=0; i<requested_size;i++)
     {
         for (; isspace(*v) && *v != '\0'; v++) ;
-        if (i >= requested_size || (sscanf(v, "%d", &a[i])==-1))
+        if(i >= requested_size || (sscanf(v, "%d", &a[i])==-1))
             a[i] = d;
         d = a[i]; // save last as default value
         for (; !isspace(*v) && *v != '\0'; v++) ;
@@ -1261,7 +1157,7 @@ Module::Bind(float & v, const char * n)
 {
     // TODO: check type here
     v = GetFloatValue(n);
-    bindings = new Binding(this, n, bind_float, &v, 0, 0, bindings);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_float, &v, 0, 0));
 }
 
 
@@ -1271,7 +1167,7 @@ Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 {
     // TODO: check type here
     v = GetArray(n, size, fixed_size);
-    bindings = new Binding(this, n, bind_array, v, size, 1, bindings);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_array, v, size, 1));
 }
 
 
@@ -1281,7 +1177,7 @@ Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_
 {
     // TODO: check type here
     v = GetMatrix(n, sizex, sizey, fixed_size);
-    bindings = new Binding(this, n, bind_matrix, v, sizex, sizey, bindings);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_matrix, v, sizex, sizey));
 }
 
 
@@ -1293,12 +1189,12 @@ Module::Bind(int & v, const char * n)
     if(GetList(n))
     {
         v = GetIntValueFromList(n);
-        bindings = new Binding(this, n, bind_list, &v, 0, 0, bindings);
+        kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_list, &v, 0, 0));
     }
     else
     {
         v = GetIntValue(n);
-        bindings = new Binding(this, n, bind_int, &v, 0, 0, bindings);
+        kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_int, &v, 0, 0));
     }
 }
 
@@ -1309,7 +1205,7 @@ Module::Bind(bool & v, const char * n)
 {
     // TODO: check type here
     v = GetBoolValue(n);
-    bindings = new Binding(this, n, bind_bool, &v, 0, 0, bindings);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_bool, &v, 0, 0));
 }
 
 
@@ -1319,7 +1215,7 @@ Module::Bind(std::string & v, const char * n)
 {
     // TODO: check type here
     v = std::string(GetValue(n));
-    bindings = new Binding(this, n, bind_string, &v, 0, 0, bindings);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_string, &v, 0, 0));
 }
 
 
@@ -1328,7 +1224,7 @@ Module_IO *
 Module::GetModule_IO(Module_IO * list, const char * name)
 {
     for (Module_IO * i = list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
             return i;
     return NULL;
 }
@@ -1353,9 +1249,9 @@ float *
 Module::GetInputArray(const char * name, bool required)
 {
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
         {
-            if (i->data == NULL)
+            if(i->data == NULL)
             {
                 if(required && !i->optional)
                     Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
@@ -1372,9 +1268,9 @@ float *
 Module::GetOutputArray(const char * name, bool required)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
         {
-            if (i->data == NULL)
+            if(i->data == NULL)
             {
                 if(required && !i->optional)
                     Notify(msg_fatal_error, "Output array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
@@ -1391,9 +1287,9 @@ float **
 Module::GetInputMatrix(const char * name, bool required)
 {
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
         {
-            if (i->matrix == NULL)
+            if(i->matrix == NULL)
             {
                 if(required && !i->optional)
                     Notify(msg_fatal_error, "Input matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
@@ -1410,9 +1306,9 @@ float **
 Module::GetOutputMatrix(const char * name, bool required)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
         {
-            if (i->matrix == NULL)
+            if(i->matrix == NULL)
             {
                 if(required && !i->optional)
                     Notify(msg_fatal_error, "Output matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
@@ -1430,11 +1326,11 @@ Module::GetInputSize(const char * input_name)
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(input_name, i->name.c_str()))
+        if(equal_strings(input_name, i->name.c_str()))
         {
-            if (i->size != unknown_size)
+            if(i->size != unknown_size)
                 return i->size;
-            else if (kernel != NULL)
+            else if(kernel != NULL)
                 return kernel->CalculateInputSize(i);
             else
                 break;
@@ -1448,11 +1344,11 @@ Module::GetInputSizeX(const char * input_name) // TODO: also used internally so 
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(input_name, i->name.c_str()))
+        if(equal_strings(input_name, i->name.c_str()))
         {
-            if (i->sizex != unknown_size)
+            if(i->sizex != unknown_size)
                 return i->sizex;
-            else if (kernel != NULL)
+            else if(kernel != NULL)
                 return kernel->CalculateInputSizeX(i);
             else
                 break;
@@ -1466,11 +1362,11 @@ Module::GetInputSizeY(const char * input_name) // TODO: also used internally so 
 {
     // Find the Module_IO for this input
     for (Module_IO * i = input_list; i != NULL; i = i->next)
-        if (equal_strings(input_name, i->name.c_str()))
+        if(equal_strings(input_name, i->name.c_str()))
         {
-            if (i->sizex != unknown_size)	// Yes, sizeX is correct
+            if(i->sizex != unknown_size)	// Yes, sizeX is correct
                 return i->sizey;
-            else if (kernel != NULL)
+            else if(kernel != NULL)
                 return kernel->CalculateInputSizeY(i);
             else
                 break;
@@ -1483,7 +1379,7 @@ int
 Module::GetOutputSize(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
             return i->size;
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
@@ -1493,7 +1389,7 @@ int
 Module::GetOutputSizeX(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
             return  i->sizex;
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
@@ -1503,7 +1399,7 @@ int
 Module::GetOutputSizeY(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
             return  i->sizey;
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
@@ -1557,13 +1453,13 @@ Module::io(float ** & m, int & size_x, int & size_y, const char * name)
 void
 Module::SetOutputSize(const char * name, int x, int y)
 {
-    if (x < -1 || y < -1)
+    if(x < -1 || y < -1)
     {
         Notify(msg_warning, "Attempting to set negative size of %s.%s \n", this->instance_name, name);
         return;
     }
     for (Module_IO * i = output_list; i != NULL; i = i->next)
-        if (equal_strings(name, i->name.c_str()))
+        if(equal_strings(name, i->name.c_str()))
             i->SetSize(x, y);
 }
 
@@ -1577,6 +1473,7 @@ Module::Module(Parameter * p)
     ticks = 0;
     kernel = p->kernel;
     xml = p->xml;
+    group = p->group;
     log_level = kernel->log_level;
     instance_name = kernel->GetXMLAttribute(xml, "name"); // GetValue("name");
     class_name = kernel->GetXMLAttribute(xml, "class");
@@ -1584,13 +1481,13 @@ Module::Module(Parameter * p)
     phase = (GetValue("phase") ? GetIntValue("phase") : 0);
 	active = GetBoolValue("active", true);
 
-	// Compute full name
+	// Compute full name - // FIXME: use new classes instead here
 	
 	char n[1024] = "";
     const char * group[128];
     int i=0;
     for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
-        if(kernel->GetXMLAttribute(parent,"name") && i<100)
+        if(kernel->GetXMLAttribute(parent,"name") && i<100 && parent->parent != NULL)
             group[i++] = kernel->GetXMLAttribute(parent, "name");
     for(int j=i-1; j>=0; j--)
     {
@@ -1610,7 +1507,6 @@ Module::AddIOFromIKC()
     {
         const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
         bool multiple = (amc ? string_to_bool(amc) : true); // True is defaut value
-//        AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(kernel->GetXMLAttribute(e, "optional")), multiple);
 
         const char * opt = kernel->GetXMLAttribute(e, "optional");
         if(!opt)
@@ -1719,7 +1615,7 @@ Module::GetSizeYFromList(const char * sizearg)
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
 
 void
-Module::SetSizes()
+Module::SetSizes()  // FIXME: remove xml access, use output elements
 {
 	if(xml->GetParentElement())
 	{
@@ -1782,12 +1678,12 @@ Module::SetSizes()
 	}
 }
 
-void
+bool
 Module::Notify(int msg)
 {
-    if (kernel != NULL)
+    if(kernel != NULL)
         kernel->Notify(msg, "\n");
-    else if (msg == msg_fatal_error)
+    else if(msg == msg_fatal_error)
     {
         global_fatal_error = true;
         global_error_count++;
@@ -1796,13 +1692,15 @@ Module::Notify(int msg)
     {
 //        global_warning_count++;
     }
+    return false;
 }
 
-void
+
+bool
 Module::Notify(int msg, const char *format, ...)
 {
     if(msg > GetIntValue("log_level"))
-        return;
+        return false;
     char 	message[512];
     sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
@@ -1810,11 +1708,9 @@ Module::Notify(int msg, const char *format, ...)
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
-    if (kernel != NULL && msg>=log_level)
-    {
-        kernel->Notify(-msg, message);
-    }
-    else if (msg == msg_fatal_error)
+    if(kernel != NULL && msg>=log_level)
+        return kernel->Notify(-msg, message);
+    else if(msg == msg_fatal_error)
     {
         global_fatal_error = true;
         if(message[strlen(message)-1] == '\n')
@@ -1822,10 +1718,7 @@ Module::Notify(int msg, const char *format, ...)
         printf("IKAROS: ERROR: %s\n", message);
         global_error_count++;
     }
-    else if(msg == msg_warning)
-    {
- //        global_warning_count++;
-   }
+    return false;
 }
 
 Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a)
@@ -1845,7 +1738,7 @@ Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio,
 
 Connection::~Connection()
 {
-    if (source_io != NULL && source_io->module != NULL)
+    if(source_io != NULL && source_io->module != NULL)
         source_io->module->Notify(msg_debug, "    Deleting Connection.\n");
     delete next;
 }
@@ -1855,14 +1748,14 @@ Connection::Propagate(long tick)
 {
     if(!active)
         return;
-    if (delay == 0)
+    if(delay == 0)
         return;
     // Return if both modules will not start in this tick - necessary when using threads
-    if (tick % source_io->module->period != source_io->module->phase)
+    if(tick % source_io->module->period != source_io->module->phase)
         return;
-    if (tick % target_io->module->period != target_io->module->phase)
+    if(tick % target_io->module->period != target_io->module->phase)
         return;
-    if (source_io != NULL && source_io->module != NULL)
+    if(source_io != NULL && source_io->module != NULL)
         source_io->module->Notify(msg_debug, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
     for (int i=0; i<size; i++)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
@@ -1903,9 +1796,9 @@ void
 ThreadGroup::Start(long tick)
 {
     // Test if group should be started
-    if (tick % period == phase)
+    if(tick % period == phase)
     {
-//        if (thread->Create(ThreadGroup_Tick, (void*)this))
+//        if(thread->Create(ThreadGroup_Tick, (void*)this))
 //            printf("Thread Creation Failed!\n");
         thread = new std::thread(ThreadGroup_Tick, (void*)this);
     }
@@ -1915,7 +1808,7 @@ void
 ThreadGroup::Stop(long tick)
 {
     // Test if group should be joined
-    if ((tick + 1) % period == phase)
+    if((tick + 1) % period == phase)
     {
         thread->join();
         delete thread;
@@ -1939,33 +1832,48 @@ ThreadGroup::Tick()
 
 Kernel::Kernel()
 {
-    options             = NULL;
-    useThreads          = false;
-    max_ticks           = -1;
-    tick_length         = 0;
-    nan_checks          = false;
+    options                 = NULL;
+    useThreads              = false;
+    max_ticks               = -1;
+    tick_length             = 0;
+    nan_checks              = false;
     
-    log_level           = log_level_info;
-    ikaros_dir          = NULL;
-    ikc_dir             = NULL;
-    ikc_file_name       = NULL;
+    log_level               = log_level_info;
+    ikaros_dir              = NULL;
+    ikc_dir                 = NULL;
+    ikc_file_name           = NULL;
 
-    tick                = 0;
-    xmlDoc              = NULL;
-    classes             = NULL;
-//    modules             = NULL;
-    connections         = NULL;
-    module_count        = 0;
-    period_count        = 0;
-    phase_count         = 0;
-    end_of_file_reached = false;
+    tick                    = 0;
+    xmlDoc                  = NULL;
+    connections             = NULL;
+    module_count            = 0;
+    period_count            = 0;
+    phase_count             = 0;
+    end_of_file_reached     = false;
     fatal_error_occurred	= false;
-    terminate			= false;
-    sizeChangeFlag      = false;
-//    threadGroups        = NULL;
+    terminate			    = false;
+    sizeChangeFlag          = false;
     
-    logfile     = NULL;
-    timer		= new Timer();
+    logfile                 = NULL;
+    timer		            = new Timer();
+    
+    // ------------ WebUI part --------------
+    
+    webui_dir = NULL;
+    xml = NULL;
+    current_xml_root = NULL;
+    current_xml_root_path = create_string("");
+    ui_state = ui_state_pause;
+    master_id = 0;
+//    ui_data = NULL;
+//    dont_copy_data = false;
+    tick_is_running = false;
+    debug_mode = false;
+    isRunning = false;
+    idle_time = 0;
+
+    iterations_per_runstep = 1;
+
 }
 
 
@@ -1978,12 +1886,11 @@ Kernel::SetOptions(Options * opt)
     max_ticks           = string_to_int(options->GetArgument('s'), -1);
     tick_length         = string_to_int(options->GetArgument('r'), 0);
     nan_checks          = options->GetOption('n');
-    
-    if (options->GetOption('q'))
-        log_level = log_level_off;
-        if (options->GetOption('v'))
-            log_level = log_level_trace;
 
+    if(options->GetOption('q'))
+        log_level = log_level_off;
+    if(options->GetOption('v'))
+        log_level = log_level_trace;
     
     // Compute ikaros root path
     
@@ -2005,74 +1912,57 @@ Kernel::SetOptions(Options * opt)
     if(options->GetOption('z'))
         srandom(string_to_int(options->GetArgument('z')));
 
-    
     // Fix module paths
-    
-    for(ModuleClass * c = classes; c != NULL; c = c->next)
-        if(c->path != NULL && c->path[0] != '/')
+    for(auto c : classes)
+        if(c.second->path != NULL && c.second->path[0] != '/')
         {
-            const char * t = c->path;
-            c->path = create_formatted_string("%s%s", ikaros_dir, c->path);
+            const char * t = c.second->path;
+            c.second->path = create_formatted_string("%s%s", ikaros_dir, c.second->path);
             destroy_string((char *)t);
         }
+    
+    // WebUI Part
+    
+    if(options->GetOption('u'))
+        iterations_per_runstep = string_to_int(options->GetArgument('u'));
+    
+    if (options->GetOption('w'))
+    {
+        port = string_to_int(options->GetArgument('w'), PORT);
+        Notify(msg_debug, "Setting up WebUI port at %d\n", port);
+    }
+    
+    if (options->GetOption('R'))
+    {
+        port = string_to_int(options->GetArgument('R'), PORT);
+        Notify(msg_debug, "Setting up WebUI port at %d\n", port);
+        if(options->GetOption('r'))
+        {
+            ui_state = ui_state_realtime;
+            Notify(msg_debug, "Setting real-time mode.\n");
+        }
+        else
+        {
+//            ui_state = ui_state_play;
+            Notify(msg_debug, "Setting play mode.\n");
+        }
+        isRunning = true;
+    }
+    
+    if (options->GetOption('W'))
+    {
+        port = string_to_int(options->GetArgument('W'), PORT);
+        Notify(msg_debug, "Setting up WebUI port at %d in debug mode\n", port);
+        debug_mode = true;
+    }
 }
 
 
-
-Kernel::Kernel(Options * opt)
-{
-    options             = opt;
-    useThreads          = options->GetOption('t') || options->GetOption('T');
-    max_ticks           = string_to_int(options->GetArgument('s'), -1);
-    tick_length         = string_to_int(options->GetArgument('r'), 0);
-    nan_checks          = options->GetOption('n');
-    
-    log_level		= log_level_info;
-    if (options->GetOption('q'))
-        log_level = log_level_off;
-    if (options->GetOption('v'))
-        log_level = log_level_trace;
-    
-    tick                = 0;
-    xmlDoc              = NULL;
-    classes             = NULL;
-//    modules             = NULL;
-    connections         = NULL;
-    module_count        = 0;
-    period_count        = 0;
-    phase_count         = 0;
-    end_of_file_reached = false;
-    fatal_error_occurred	= false;
-    terminate			= false;
-    sizeChangeFlag      = false;
-//    threadGroups        = NULL;
-    
-    logfile     = NULL;
-    timer		= new Timer();
-    
-    // Compute ikaros root path
-    
-    ikaros_dir = NULL;
-    if(is_absolute_path(IKAROSPATH))
-        ikaros_dir = create_string(IKAROSPATH);
-    else if(options->GetBinaryDirectory() != NULL)
-        ikaros_dir = create_formatted_string("%s%s", options->GetBinaryDirectory(), IKAROSPATH);
-    else
-        Notify(msg_fatal_error, "The Ikaros root directory could not be established. Please set an absolute IKAROSPATH in IKAROS_System.h\n");
-    
-    // Compute ikc path and name
-    
-    ikc_dir = options->GetFileDirectory();
-    ikc_file_name =  options->GetFileName();
-	
-	// Seed random number generator
-	
-	if(options->GetOption('z'))
-        srandom(string_to_int(options->GetArgument('z')));
-}
 
 Kernel::~Kernel()
 {
+    return; // TODO: fix this later
+/*
     Notify(msg_debug, "Deleting Kernel.\n");
     Notify(msg_debug, "  Deleting Connections.\n");
     delete connections;
@@ -2081,18 +1971,19 @@ Kernel::~Kernel()
     Notify(msg_debug, "  Deleting Thread Groups.\n");
 //    delete threadGroups;  // FIXME: delete
     Notify(msg_debug, "  Deleting Classes.\n");
-    delete classes;
+//    delete classes;
     
     delete timer;
     delete xmlDoc;
     delete ikaros_dir;
     
     Notify(msg_debug, "Deleting Kernel Complete.\n");
-    if (logfile) fclose(logfile);
+    if(logfile) fclose(logfile);
     
 #ifdef USE_MALLOC_DEBUG
     dump_memory();  // dump blocks that are still allocated
 #endif
+*/
 }
 
 
@@ -2107,15 +1998,11 @@ Kernel::JSONString()
 
 
 
-void
+bool
 Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 {
-    if (path == NULL)
-    {
-        Notify(msg_warning, "Path to ikc file is missing for class \"%s\".\n", name);
-        classes = new ModuleClass(name, mc, NULL, classes); // Add class anyway
-        return;
-    }
+    if(path == NULL)
+        return Notify(msg_fatal_error, "Path to ikc file is missing for class \"%s\".\n", name);
     
     char * path_to_ikc_file = NULL;
     
@@ -2126,15 +2013,17 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
     else
         path_to_ikc_file = create_formatted_string("%s%s.ikc", path, name); // relative path
 
-    classes = new ModuleClass(name, mc, path_to_ikc_file, classes);
+    classes.insert({ name, new ModuleClass(name, mc, path_to_ikc_file)} );
+    
     destroy_string(path_to_ikc_file);
+    return true;
 }
 
 bool
 Kernel::Terminate()
 {
 /*
-    if (max_ticks > 0)
+    if(max_ticks > 0)
     {
         const int segments = 50;
         int lp = int(100*float(tick-1)/float(max_ticks));
@@ -2155,30 +2044,33 @@ Kernel::Terminate()
         }
     }
 */
-    if (max_ticks != -1 && tick >= max_ticks)
-    {
-        Notify(msg_debug, "Max ticks reached.\n");
-        return true;
-    }
+    if(max_ticks != -1 && tick >= max_ticks)
+        return !Notify(msg_debug, "Max ticks reached.\n");
+
     return end_of_file_reached || fatal_error_occurred  || global_fatal_error || terminate || global_terminate;
 }
+
 
 void
 Kernel::Run()
 {
-    if (fatal_error_occurred || global_fatal_error)
-    {
-        Notify(msg_fatal_error, "Terminating because a fatal error occurred.\n");
-        throw 4;
-    }
-    if (max_ticks == 0)
+    first_request = true;
+
+    if(socket == NULL)
         return;
-    
-    Notify(msg_print, "Start\n");
-    
-	// Synchronize with master process if one is indicated in the IKC file
-	if(xmlDoc)
-	{
+
+    chdir(ikc_dir);
+
+    timer->Restart();
+    tick = 0;
+
+    httpThread = new std::thread(Kernel::StartHTTPThread, this);
+
+    // Synchronize with master process if one is indicated in the IKC file
+    // TODO: update
+/*
+    if(xmlDoc)
+    {
         const char * ip = GetXMLAttribute(xmlDoc->xml, "masterip");
         if(ip)
         {
@@ -2193,25 +2085,46 @@ Kernel::Run()
                 exit(-1); // No master
             }
         }
-	}
-    
-    timer->Restart();    
+    }
+*/
     while (!Terminate())
     {
-        Tick();
-        if (tick_length > 0)
+        if (!isRunning)
         {
-            float lag = timer->WaitUntil(float(tick*tick_length));
-            if (lag > 0.1) Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, tick);
+            Timer::Sleep(10); // Wait 10ms to avoid wasting cycles if there are no requests
+        }
+        
+        if (isRunning)
+        {
+            tick_is_running = true; // Flag that state changes are not allowed
+            Tick();
+            tick_is_running = false;
+            tick++;
+            
+            // Calculate idle_time
+            
+            if(tick_length > 0)
+                idle_time = (float(tick*tick_length) - timer->GetTime()) / float(tick_length);
+            
+            if (tick_length > 0)
+            {
+                lag = timer->WaitUntil(float(tick*tick_length));
+                if (lag > 0.1) Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, tick);
+            }
         }
     }
+
+    httpThread->join();
+    delete httpThread;
 }
+
+
 
 void
 Kernel::PrintTiming()
 {
     total_time = timer->GetTime()/1000; // in seconds
-    if (max_ticks != 0)
+    if(max_ticks != 0)
         Notify(msg_print, "Stop (%ld ticks, %.2f s, %.2f ticks/s, %.3f s/tick)\n", tick, total_time, float(tick)/total_time, total_time/float(tick));
 }
 
@@ -2248,14 +2161,14 @@ Kernel::CheckInputs()
     for (Module * & m : _modules)
     {
         for (Module_IO * i = m->input_list; i != NULL; i = i->next)
-            if (i->size == unknown_size)
+            if(i->size == unknown_size)
             {
                 // Check if connected
                 bool connected = false;
                 for (Connection * c = connections; c != NULL; c = c->next)
-                    if (c->target_io == i)
+                    if(c->target_io == i)
                         connected = true;
-                if (connected)
+                if(connected)
                 {
                     Notify(msg_fatal_error, "Size of input \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
                 }
@@ -2271,14 +2184,14 @@ Kernel::CheckOutputs()
     for (Module * & m : _modules)
     {
         for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-            if (i->size == unknown_size)
+            if(i->size == unknown_size)
             {
                 // Check if connected
                 bool connected = false;
                 for (Connection * c = connections; c != NULL; c = c->next)
-                    if (c->source_io == i)
+                    if(c->source_io == i)
                         connected = true;
-                if (connected)
+                if(connected)
                 {
                     Notify(msg_fatal_error, "Size of output \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
                 }
@@ -2291,7 +2204,7 @@ Kernel::InitInputs()
 {
     for (Connection * c = connections; c != NULL; c = c->next)
     {
-        if (c->source_io->size == unknown_size)
+        if(c->source_io->size == unknown_size)
         {
             Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
         }
@@ -2299,11 +2212,11 @@ Kernel::InitInputs()
         {
             Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->module->GetClassName());
         }
-        else if (c->delay == 0)
+        else if(c->delay == 0)
         {
             Notify(msg_debug, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             // already connected to 0 or longer delay?
-            if (c->target_io->data != NULL)
+            if(c->target_io->data != NULL)
             {
                 Notify(msg_fatal_error, "Failed to connect zero-delay connection from \"%s\" of module \"%s\" (%s) because target is already connected.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             }
@@ -2322,24 +2235,24 @@ Kernel::InitInputs()
         else if(c->target_io && c->size == unknown_size)
         {
             // Check that this connection does not interfere with zero-delay connection
-            if (c->target_io->max_delay == 0)
+            if(c->target_io->max_delay == 0)
             {
                 Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             }
             // First connection to this target: initialize
-            if (c->target_io->size == unknown_size)	// start calculation with size 0
+            if(c->target_io->size == unknown_size)	// start calculation with size 0
                 c->target_io->size = 0;
             int target_offset = c->target_io->size;
             c->target_io->size += c->source_io->size;
             // Target not used previously: ok to connect anything
-            if (c->target_io->sizex == unknown_size)
+            if(c->target_io->sizex == unknown_size)
             {
                 Notify(msg_debug, "New connection.\n");
                 c->target_io->sizex = c->source_io->sizex;
                 c->target_io->sizey = c->source_io->sizey;
             }
             // Connect one dimensional output
-            else if (c->target_io->sizey == 1 && c->source_io->sizey == 1)
+            else if(c->target_io->sizey == 1 && c->source_io->sizey == 1)
             {
                 Notify(msg_debug, "Adding additional connection.\n");
                 c->target_io->sizex = c->target_io->size;
@@ -2363,23 +2276,22 @@ Kernel::InitInputs()
         {
             Notify(msg_debug, "Adding fixed offset connection.\n");
             // Check that this connection does not interfere with zero-delay connection
-            if (c->target_io->max_delay == 0)
-            {
+            if(c->target_io->max_delay == 0)
                 Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
-            }
+
             // First connection to this target: initialize
-            if (c->target_io->size == unknown_size)    // start calculation with size 0
+            if(c->target_io->size == unknown_size)    // start calculation with size 0
                 c->target_io->size = max(c->target_io->size, c->target_offset+c->size);
 
             // Target not used previously: ok to connect anything
-            if (c->target_io->sizex == unknown_size)
+            if(c->target_io->sizex == unknown_size)
             {
                 Notify(msg_debug, "New connection.\n");
                 c->target_io->sizex = c->target_io->size;
                 c->target_io->sizey = 1;
             }
             // Connect one dimensional output
-            else if (c->target_io->sizey == 1 && c->source_io->sizey == 1)
+            else if(c->target_io->sizey == 1 && c->source_io->sizey == 1)
             {
                 Notify(msg_debug, "Adding additional connection.\n");
                 c->target_io->sizex = max(c->target_io->sizex, c->target_offset+c->size);
@@ -2409,7 +2321,7 @@ Kernel::InitOutputs()
         sizeChangeFlag = false;
         for (Module * & m : _modules)
             m->SetSizes();
-        if (sizeChangeFlag)
+        if(sizeChangeFlag)
             Notify(msg_debug, "InitOutput: Iteration with changes\n");
         else
             Notify(msg_debug, "InitOutput: Iteration with no changes\n");
@@ -2446,7 +2358,7 @@ Kernel::Init()
     // Get system statistics // FIXME: move this to somewhere else
     cpu_cores = std::thread::hardware_concurrency();
 
-    if (options->GetFilePath())
+    if(options->GetFilePath())
         ReadXML();
     else
         Notify(msg_warning, "No IKC file supplied.\n");
@@ -2468,35 +2380,23 @@ Kernel::Init()
             module_map[c->target_io->module->GetFullName()]->connects_from_with_zero_delay.push_back(c->source_io->module);
         }
     }
-/*
-    printf("MODULES:\n");
-    for(const auto& pair : module_map)
-    {
-        printf("%s\n", pair.first.c_str());
-        for(const auto& s : pair.second->outgoing_connection)
-            printf("%s -> %s\n", pair.first.c_str(), s.c_str());
-    }
-    printf("CONNECTIONS:\n");
-    for(const auto& pair : module_map)
-        for(const auto& s : pair.second->outgoing_connection)
-            printf("%s -> %s\n", pair.first.c_str(), s.c_str());
 
-    printf("\n\n");
-*/
+
     SortModules();
-
     if(fatal_error_occurred)
         return;
-
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
     AllocateOutputs();
     InitInputs();		// Calculate the input sizes and allocate memory for the inputs or connect 0-delays
     CheckOutputs();
     CheckInputs();
-    if (fatal_error_occurred)
+    if(fatal_error_occurred)
         return;
     InitModules();
+    
+    webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
+    socket =  new ServerSocket(port);
 }
 
 
@@ -2508,7 +2408,7 @@ Kernel::CalculateCPUUsage()
 {
     double cpu = 0;
     struct rusage rusage;
-    if (getrusage(RUSAGE_SELF, &rusage) != -1)
+    if(getrusage(RUSAGE_SELF, &rusage) != -1)
         cpu = (double)(1000.0*rusage.ru_utime.tv_sec) + (double)rusage.ru_utime.tv_usec / 1000.0;
     float time = timer->GetTime();
     float tdiff = time - last_cpu_time;
@@ -2527,17 +2427,17 @@ Kernel::Tick()
     Propagate();
     DelayOutputs();
   
-    if (useThreads)
+    if(useThreads)
     {
         for (auto & g : _threadGroups)
             g->Start(tick);
         for (auto & g : _threadGroups)
             g->Stop(tick);
     }
-    else if (log_level < log_level_debug)
+    else if(log_level < log_level_debug)
     {
         for (auto & m : _modules)
-            if (tick % m->period == m->phase)
+            if(tick % m->period == m->phase)
             {
                 m->timer->Restart();
                 if(m->active)
@@ -2549,7 +2449,7 @@ Kernel::Tick()
     else
     {
         for (auto & m : _modules)
-            if (tick % m->period == m->phase)
+            if(tick % m->period == m->phase)
             {
                 m->timer->Restart();
                 if(m->active)
@@ -2634,7 +2534,7 @@ Kernel::DelayOutputs()
 void
 Kernel::AddModule(Module * m)
 {
-    if (!m) return;
+    if(!m) return;
 //    m->next = modules;
 //    modules = m;
     m->kernel = this;
@@ -2650,7 +2550,7 @@ Module *
 Kernel::GetModule(const char * n)
 {
     for (Module * & m : _modules)
-        if (equal_strings(n, m->instance_name))
+        if(equal_strings(n, m->instance_name))
             return m;
     return NULL;
 }
@@ -2661,257 +2561,28 @@ Module *
 Kernel::GetModuleFromFullName(const char * n)
 {
     for (Module * & m : _modules)
-        if (equal_strings(n, m->full_instance_name))
+        if(equal_strings(n, m->full_instance_name))
             return m;
     return NULL;
 }
 
 
+// io, k->main_group, module, source
+// FIXME: maybe get inputs as well for WebUI
 
-bool // TO BE REMOVED - Used by WebUI
-Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
+bool // TODO: Rewrite
+Kernel::GetSource(Module_IO * &io, GroupElement * group, const char * source_module_name, const char * source_name)
 {
-    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-    {
-//        xml->Print(stdout, 0);
-        
-        if (xml->IsElement("module") && (equal_strings(GetXMLAttribute(xml, "name"), source_module_name) || equal_strings(source_module_name, "*")))
-		{
-			m = (Module *)(xml->aux);
-			if (m != NULL)
-				io = m->GetModule_IO(m->output_list, source_name);
-			if (m != NULL && io != NULL)
-				return true;
-            
-        // NEW: Get inputs as well
-			if (m != NULL)
-				io = m->GetModule_IO(m->input_list, source_name);
-			if (m != NULL && io != NULL)
-				return true;
-        // END NEW
-        
-			return false;
-		}
-		else if (xml->IsElement("group") && equal_strings(GetXMLAttribute(xml, "name"), source_module_name)) // Translate output name
-		{
-			for (XMLElement * output = xml->GetContentElement("output"); output != NULL; output = output->GetNextElement("output"))
-			{
-				const char * n = GetXMLAttribute(output, "name");
-				if (n == NULL)
-					return false;
-				if (equal_strings(n, source_name) || equal_strings(n, "*"))
-				{
-					const char * new_module = GetXMLAttribute(output, "sourcemodule");
-					const char * new_source = GetXMLAttribute(output, "source");
-					if (new_module == NULL)
-						new_module = source_module_name;	// retain name
-					if (new_source == NULL)
-						new_source = source_name;	// retain name
-					return GetSource(xml, m, io, new_module, new_source);
-				}
-			}
-            
-            // NEW: Get inputs as well
-            for (XMLElement * input = xml->GetContentElement("input"); input != NULL; input = input->GetNextElement("input"))
-			{
-				const char * n = GetXMLAttribute(input, "name");
-				if (n == NULL)
-					return false;
-				if (equal_strings(n, source_name) || equal_strings(n, "*"))
-				{
-					const char * new_module = GetXMLAttribute(input, "targetmodule");
-					const char * new_source = GetXMLAttribute(input, "target");
-					if (new_source == NULL)
-						new_source = source_name;	// retain name
-					return GetSource(xml, m, io, new_module, new_source);
-				}
-			}
-            // NEW END
-            
-		}
-    }
-    
-    return false;
-}
-
-
-/*
-bool // NEW VERSION - do not get input here; but do somewhere else // TODO: distinguish between class and group later
-Kernel::GetSource(GroupElement & group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
-{
-    for (auto & g : group.groups)
-    {
-        if(g.second.module && ((g.first==source_module_name) || equal_strings(source_module_name, "*")))
-        {
-            m = g.second.module;
-            io = m->GetModule_IO(m->output_list, source_name);
-            if (m != NULL && io != NULL)
-                return true;
-            return false;
-        }
-        else if(g.first == source_module_name) // Translate output name - should not be tested again
-        {
-            for (auto & output : g.second.outputs)
-            {
-                const char * n = output.first.c_str();
-                if (n == NULL)
-                    return false;
-                if (equal_strings(n, source_name) || equal_strings(n, "*"))
-                {
-                    const char * new_module = output.second["sourcemodule"].c_str();
-                    const char * new_source = output.second["source"].c_str();
-                    if (new_module == NULL)
-                        new_module = source_module_name;    // retain name
-                    if (new_source == NULL)
-                        new_source = source_name;    // retain name
-                    return GetSource(g.second, m, io, new_module, new_source);
-                }
-            }
-        }
-    }
-    
-    return false;
-}
-
-
-
-
-Module_IO *
-Kernel::GetSource(GroupElement * group, const std::string & source_module_name, const  std::string & source_name)
-{
-    Module_IO * io = NULL;
-    Module * m = NULL;
-    for (auto & g : group->groups)
-    {
-        if(g.second->module && ((g.first==source_module_name) || (source_module_name=="*")))
-        {
-            m = g.second->module;
-            io = m->GetModule_IO(m->output_list, source_name.c_str());
-            if (m != NULL && io != NULL)
-                return io;
-            return NULL;
-        }
-        else if(g.first == source_module_name) // Translate output name - should not be tested again
-        {
-            for (auto & output : g.second->outputs)
-            {
-                const std::string & n = output.first;
-                if (n == "")
-                    return NULL;
-                if ((n == source_name) || (n == "*"))
-                {
-                    const std::string & new_module = output.second->GetValue("sourcemodule");
-                    const std::string & new_source = output.second->GetValue("source");
-                    return GetSource(g.second, new_module!="" ? new_module : source_module_name, new_source!="" ? new_source : source_name );
-                }
-            }
-        }
-    }
-    return NULL;
-}
-
-
-
-Module_IO *
-Kernel::GetTarget(GroupElement * group, const std::string & target_module_name, const  std::string & target_name)   // GetInputIO = GetModule + GetInputIO
-{
-    Module_IO * io = NULL;
-    Module * m = NULL;
-    for (auto & g : group->groups)
-    {
-        if(g.second->module && ((g.first==target_module_name) || (target_module_name=="*")))
-        {
-            m = g.second->module;
-            io = m->GetModule_IO(m->input_list, target_name.c_str());
-            if (m != NULL && io != NULL)
-                return io;
-            return NULL;
-        }
-        else if(g.first == target_module_name) // Translate output name - should not be tested again
-        {
-            for (auto & input : g.second->inputs)
-            {
-                const std::string & n = input.first;
-                if (n == "")
-                    return NULL;
-                if ((n == target_name) || (n == "*"))
-                {
-                    const std::string & new_module = input.second->GetValue("targetmodule");
-                    const std::string & new_source = input.second->GetValue("target");
-                    return GetTarget(g.second, new_module!="" ? new_module : target_module_name, new_source!="" ? new_source : target_name );
-                }
-            }
-        }
-    }
-    return NULL;
-}
-*/
-
-
-static const char *
-find_nth_element(const char * s, int n)
-{
-    if(s==NULL)
-        return NULL;
-    
-    int l = int(strlen(s));
-    if(l==0)
-        return NULL;
-    
-    int i=0;
-    while(i < l && s[i] <= ' ')
-        i++;
-    
-    for(int c=1; c<=n; c++)
-    {
-        if(s[i] > ' ' && c==n)
-        {
-            int j=0;
-            while((i+j < l) && (s[i+j] > ' '))
-                j++;
-            return create_string_head(&s[i], j);
-        }
-        while(i < l && s[i] > ' ')
-            i++;
-        while(i < l && s[i] <= ' ')
-            i++;
-    }
-    
-    return NULL;
+    if((io = group->GetSource(source_name)))
+        return true;
+    else
+        return false;
 }
 
 
 
 const char *
-Kernel::GetBatchValue(const char * n)
-{
-    int rank = string_to_int(options->GetArgument('b'));
-    
-    XMLElement * xml = xmlDoc->xml->GetElement("group");
-    if (xml == NULL)
-        return NULL;
-    
-    for (XMLElement * xml_node = xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement("batch"))
-        if(equal_strings(xml_node->GetAttribute("target"), n))
-        {
-            if(rank == 0)
-                rank = string_to_int(GetXMLAttribute(xml_node, "rank"));
-                
-            if(rank == 0)
-                return NULL;
-            
-            const char * value = find_nth_element(GetXMLAttribute(xml_node, "values"), rank);
-            printf("IKAROS: %s = \"%s\"\n", GetXMLAttribute(xml_node, "target"), value);
-            return value;
-        }
-    
-    return NULL;
-}
-
-
-
-const char *
-Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
+Kernel::GetXMLAttribute(XMLElement * e, const char * attribute) // FIXME: DELETE
 {
     const char * value = NULL;
     
@@ -2921,9 +2592,6 @@ Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
         else
             e = (XMLElement *)(e->parent);
 
-    if((value = GetBatchValue(attribute)))
-        return value;
-    
     if((value = options->GetValue(attribute)))
         return value;
     
@@ -2931,122 +2599,75 @@ Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
 }
 
 
-
 bool
-Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name)
+Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name)    // FIXME: this function should probably be removed
 {
-    m = GetModule(source_module_name);
-    if(!m)
-    {
-        Notify(msg_warning, "Could not find binding. Module \"%s\" does not exist\n", source_module_name);
-        return false;
-    }
-    for(Binding * b = m->bindings; b != NULL; b = b->next)
-        if(equal_strings(source_name, b->name))
-        {
-            type = b->type;
-            value_ptr = b->value;
-            sx = b->size_x;
-            sy = b->size_y;
-            return true;
-        }
-    
-    Notify(msg_warning, "Could not find binding. Binding \"%s\" of module \"%s\" does not exist\n", source_name, source_module_name);
-    return false;
+    std::string name = std::string(source_module_name)+"."+std::string(source_name);
+    if(!bindings.count(name))
+        return Notify(msg_warning, "Could not find binding. \"%s\" does not exist\n", name.c_str());
+
+    Binding * b = bindings.at(name).at(0);  // FIXME: allow iteraction over vector
+    type = b->type;
+    value_ptr = b->value;
+    sx = b->size_x;
+    sy = b->size_y;
+    return true;
 }
 
 
-static char wildcard[2] = "*";
-
-
-// Find FIRST binding (ignore the rest)
-
 bool
-Kernel::GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * group_name, const char * parameter_name)
-{
-    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-        if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
-		{
-			m = (Module *)(xml->aux);
-            
-			if(m == NULL)
-                return false;
-            
-            for(Binding * b = m->bindings; b != NULL; b = b->next)
-                if(equal_strings(parameter_name, b->name))
-                {
-                    type = b->type;
-                    value_ptr = b->value;
-                    sx = b->size_x;
-                    sy = b->size_y;
-                    return true;
-                }
-            
-			return false;
-		}
-		else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
-		{
-            const char * new_module = wildcard;
-            const char * new_parameter = parameter_name;
-
-			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
-			{
-				const char * n =GetXMLAttribute(parameter, "name");
-                
-				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
-				{
- 					new_module = GetXMLAttribute(parameter, "targetmodule");
-					new_parameter = GetXMLAttribute(parameter, "target");
-                    
-					if (new_module == NULL)
-						new_module = wildcard;	// match all modules
-                    
-					if (new_parameter == NULL)
-						new_parameter = parameter_name;	// retain name
-				}
-                
-                if(equal_strings("interval", n))
-                {
-//                    printf("STOP\n");
-                }
-			}
-
-            return GetBinding(xml, m, type, value_ptr, sx, sy, new_module, new_parameter);
-		}
-
-    return false;
-}
-
-
-void
 Module::SetParameter(const char * parameter_name, int x, int y, float value)
 {
-     for(Binding * b = bindings; b != NULL; b = b->next)
-        if(equal_strings(parameter_name, b->name))
-        {
-            if(b->type == bind_float)
-                *((float *)(b->value)) = value;
-            else if(b->type == bind_int || b->type == bind_list)
-                *((int *)(b->value)) = (int)value;
-            else if(b->type == bind_bool)
-                *((bool *)(b->value)) = (value > 0);
-            else if(b->type == bind_array)
-                ((float *)(b->value))[x] = value;     // TODO: add range check!!!
-            else if(b->type == bind_matrix)
-               ((float **)(b->value))[y][x] = value;
-        }
+    std::string name = std::string(full_instance_name)+"."+std::string(parameter_name);
+    if(!kernel->bindings.count(name))
+        return Notify(msg_warning, "Could not find binding. \"%s\" does not exist\n", name.c_str());
+
+    Binding * b = kernel->bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
+
+    if(b->type == bind_float)
+        *((float *)(b->value)) = value;
+    else if(b->type == bind_int || b->type == bind_list)
+        *((int *)(b->value)) = (int)value;
+    else if(b->type == bind_bool)
+        *((bool *)(b->value)) = (value > 0);
+    else if(b->type == bind_array)
+        ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+    else if(b->type == bind_matrix)
+       ((float **)(b->value))[y][x] = value;
+    
+    return true;
 }
 
 
-
-void
-Kernel::SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value)
+void // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
+Kernel::SetParameter(const char * name, int x, int y, float value)
 {
+    // OLD with variable substitution
+    //auto * m = GetModule(group_name);
+    //m->SetParameter(parameter_name, select_x, select_y, value);
+
+    // New with bidnings, but without variable substitution - can't have both
+    
+    if(bindings.count(name))
+    {
+        Binding * b = bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
+        if(b->type == bind_float)
+            *((float *)(b->value)) = value;
+        else if(b->type == bind_int || b->type == bind_list)
+            *((int *)(b->value)) = (int)value;
+        else if(b->type == bind_bool)
+            *((bool *)(b->value)) = (value > 0);
+        else if(b->type == bind_array)
+            ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+        else if(b->type == bind_matrix)
+           ((float **)(b->value))[y][x] = value;
+    }
+/*
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
     {
         // Set parameters of modules in this group
     
-       if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+       if(xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
 		{
 			Module * m = (Module *)(xml->aux);
 			if(m != NULL)
@@ -3055,7 +2676,7 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
 
         // Set parameters in included groups
         
-		else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		else if(xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
 		{
             const char * new_module = wildcard;
             const char * new_parameter = parameter_name;
@@ -3064,15 +2685,15 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
 			{
 				const char * n = GetXMLAttribute(parameter, "name");
                 
-				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
+				if(n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
 				{
  					new_module = GetXMLAttribute(parameter, "targetmodule");
 					new_parameter = GetXMLAttribute(parameter, "target");
                     
-					if (new_module == NULL)
+					if(new_module == NULL)
 						new_module = wildcard;	// match all modules
                     
-					if (new_parameter == NULL)
+					if(new_parameter == NULL)
 						new_parameter = parameter_name;	// retain name
 				}
 			}
@@ -3080,18 +2701,21 @@ Kernel::SetParameter(XMLElement * group, const char * group_name, const char * p
             SetParameter(xml, new_module, new_parameter, select_x, select_y, value);
 		}
     }
+*/
 }
 
 
-
 void
-Kernel::SendCommand(XMLElement * group, const char * group_name, const char * command_name, float x, float y, std::string value)
+Kernel::SendCommand(const char * group, const char * command, float x, float y, std::string value)
 {
+    if(auto * g = main_group->GetGroup(group))
+        if(Module * m = g->module)
+            m->Command(command, x, y, value);
+/*
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
     {
         // Set parameters of modules in this group
-    
-       if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+       if(xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
         {
             Module * m = (Module *)(xml->aux);
             if(m != NULL)
@@ -3099,13 +2723,13 @@ Kernel::SendCommand(XMLElement * group, const char * group_name, const char * co
          }
 
         // Set parameters in included groups
-        
-        else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+        else if(xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
         {
             const char * new_module = wildcard;
             SendCommand(xml, new_module, command_name, x, y, value);
         }
     }
+*/
 }
 
 
@@ -3119,9 +2743,9 @@ Kernel::CalculateInputSize(Module_IO * i)
     int s = 0;
     for (Connection * c = connections; c != NULL; c = c->next)
     {
-        if (c->target_io == i)
+        if(c->target_io == i)
         {
-            if (c->source_io->size == unknown_size)
+            if(c->source_io->size == unknown_size)
                 return unknown_size;
             else
                 s += c->source_io->size;
@@ -3129,6 +2753,7 @@ Kernel::CalculateInputSize(Module_IO * i)
     }
     return s;
 }
+
 
 int
 Kernel::CalculateInputSizeX(Module_IO * i)
@@ -3140,13 +2765,13 @@ Kernel::CalculateInputSizeX(Module_IO * i)
     int s = 0;
     for (Connection * c = connections; c != NULL; c = c->next)
     {
-        if (c->target_io == i)
+        if(c->target_io == i)
         {
-            if (c->source_io->sizex == unknown_size)
+            if(c->source_io->sizex == unknown_size)
                 return unknown_size;
             else if(c->target_offset>0 && c->size>0) // offset connection
                 s = max(s, c->target_offset + c->size);
-            else if (s == 0)
+            else if(s == 0)
                 s =  c->source_io->sizex;
             else
                 return CalculateInputSize(i);
@@ -3165,11 +2790,11 @@ Kernel::CalculateInputSizeY(Module_IO * i)
     int s = 0;
     for (Connection * c = connections; c != NULL; c = c->next)
     {
-        if (c->target_io == i)
+        if(c->target_io == i)
         {
-            if (c->source_io->sizey == unknown_size)
+            if(c->source_io->sizey == unknown_size)
                 return unknown_size;
-            else if (s == 0)
+            else if(s == 0)
                 s =  c->source_io->sizey;
             else
                 return 1;
@@ -3186,7 +2811,6 @@ Kernel::CalculateInputSizeY(Module_IO * i)
     For all unassigned modules:
     1. Recursively mark all connected modules
     2. Assign all marked modules to new group
- 
 */
 
 void
@@ -3203,8 +2827,8 @@ Kernel::MarkSubgraph(Module * m)  // recursively mark all connected modules
 
 
 
-void
-Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)   // FIXME: possibly change to use emplace and no new
+bool
+Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)
 {
     for(auto & m : sorted_modules)
         if(m->mark < 3)
@@ -3216,20 +2840,18 @@ Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)   // FIXME: po
                 if(m->mark == 3)
                 {
                     if(tg->period != m->period || tg->phase != m->phase)
-                    {
                         Notify(msg_fatal_error, "Module period and phase does not match rest of subgraph (%s).", m->GetFullName());
-                        return;
-                    }
+
                     tg->_modules.push_back(m);
                     m->mark = 4;
                 }
         }
+    return true;
 }
 
 
 
 /*
-
 Topological Sort:
 
 L ← Empty list that will contain the sorted nodes
@@ -3245,10 +2867,7 @@ while there are unmarked nodes do
         visit(m)
     mark n permanently (2)
     add n to head of L
-
 */
-
-
 
 bool
 Kernel::Visit(std::deque<Module *> & sorted_modules, Module * n)
@@ -3257,11 +2876,8 @@ Kernel::Visit(std::deque<Module *> & sorted_modules, Module * n)
         return true;
 
     if(n->mark == 1)
-    {
-        Notify(msg_fatal_error, "Network contains zero-connection loop at %s", n->GetFullName());
-        return false;
-    }
-
+        return Notify(msg_fatal_error, "Network contains zero-connection loop at %s", n->GetFullName());
+ 
     n->mark = 1;
     for(auto & m : n->connects_to_with_zero_delay)
         if(!Visit(sorted_modules, m))
@@ -3271,7 +2887,6 @@ Kernel::Visit(std::deque<Module *> & sorted_modules, Module * n)
     sorted_modules.push_front(n);
     return true;
 }
-
 
 
 void
@@ -3292,216 +2907,16 @@ Kernel::CalculateDelays()
 {
     for (Connection * c = connections; c != NULL; c = c->next)
     {
-        if (c->delay > c->source_io->max_delay)
+        if(c->delay > c->source_io->max_delay)
             c->source_io->max_delay = c->delay;
     }
 }
 
 
-// FIXME: move all list functions to end
-
-void
-Kernel::ListInfo()
-{
-    if (!options->GetOption('i') && !options->GetOption('a')) return;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Ikaros version %s\n", VERSION);
-    Notify(msg_print, "\n");
-    Notify(msg_print, "%s\n", PLATFORM);
-#ifdef POSIX
-    Notify(msg_print, "POSIX\n");
-#endif
-#ifdef USE_BSD_SOCKET
-    Notify(msg_print, "BSD-socket\n");
-#endif
-#ifdef USE_THREADS
-    Notify(msg_print, "threads\n");
-#endif
-#ifdef USE_BLAS
-    Notify(msg_print, "BLAS\n");
-#endif
-#ifdef USE_QUICKTIME
-    Notify(msg_print, "Quicktime\n");
-#endif
-#ifdef USE_VIMAGE
-    Notify(msg_print, "vImage\n");
-#endif
-#ifdef USE_VFORCE
-    Notify(msg_print, "vForce\n");
-#endif
-#ifdef USE_VDSP
-    Notify(msg_print, "vDSP\n");
-#endif
-#ifdef USE_MPI
-    Notify(msg_print, "MPI\n");
-#endif
-    Notify(msg_print, "\n");
-    Notify(msg_print, "ikc file name: %s\n", ikc_file_name);
-    Notify(msg_print, "ikc file directory: %s\n", ikc_dir);
-    Notify(msg_print, "ikaros root directory: %s\n", ikaros_dir);
-}
-
-
-
-void
-Kernel::ListModulesAndConnections()
-{
-    if (!options->GetOption('m') && !options->GetOption('a')) return;
-    
-    if(_modules.empty())
-    {
-        Notify(msg_print, "\n");
-        Notify(msg_print, "No Modules.\n");
-        Notify(msg_print, "\n");
-        return;
-    }
-    
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Modules:\n");
-    Notify(msg_print, "\n");
-    for (Module * & m : _modules)
-    {
-        //		Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
-        Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
-        for (Module_IO * i = m->input_list; i != NULL; i = i->next)
-            if(i->data)
-                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
-            else
-                Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name.c_str());
-        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
-        Notify(msg_print, "\n");
-    }
-    Notify(msg_print, "Connections:\n");
-    Notify(msg_print, "\n");
-    for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0)
-            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name.c_str(), 0, c->source_io->size-1,
-                   c->target_io->module->instance_name, c->target_io->name.c_str(), 0, c->source_io->size-1,
-                   c->delay,
-                   c->active ? "" : "[inactive]");
-        else if (c->size > 1)
-            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset, c->source_offset+c->size-1,
-                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset, c->target_offset+c->size-1,
-                   c->delay,
-                   c->active ? "" : "[inactive]");
-        else
-            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset,
-                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset,
-                   c->delay,
-                   c->active ? "" : "[inactive]");
-    Notify(msg_print, "\n");
-}
-
-void
-Kernel::ListThreads()
-{
-    if (!options->GetOption('T') && !(options->GetOption('a') && options->GetOption('t'))) return;
-    Notify(msg_print, "\n");
-    Notify(msg_print,"ThreadManagers:\n");
-    Notify(msg_print, "\n");
-    int i=0;
-    for(ThreadGroup * tg : _threadGroups)
-    {
-        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d]\n", i++, tg->period, tg->phase);
-        for(Module * m : tg->_modules)
-            Notify(msg_print, "\t Module: %s\n", m->GetFullName());
-        i++;
-    }
-    Notify(msg_print, "\n");
-}
-
-void
-Kernel::ListWarningsAndErrors()
-{
-    if(global_warning_count > 1)
-        printf("IKAROS: %d WARNINGS.\n", global_warning_count);
-    else if(global_warning_count == 1)
-        printf("IKAROS: %d WARNING.\n", global_warning_count);
-    
-    if(global_error_count > 1)
-        printf("IKAROS: %d ERRORS.\n", global_error_count);
-    else if(global_error_count == 1)
-        printf("IKAROS: %d ERROR.\n", global_error_count);
-}
-
-void
-Kernel::ListScheduling()
-{
-    if (!options->GetOption('l') && !options->GetOption('a')) return;
-
-    if(_modules.empty())
-        return;
-    
-    Notify(msg_print, "Scheduling:\n");
-    Notify(msg_print, "\n");
-    for (int t=0; t<period_count; t++)
-    {
-        int tm = 0;
-        for (Module * & m : _modules)
-            if (t % m->period == m->phase)
-                Notify(msg_print,"  %02d.%02d: %s (%s)\n", t, tm++, m->GetName(), m->GetClassName());
-    }
-    
-    Notify(msg_print, "\n");
-    Notify(msg_print, "\n");
-}
-
-void
-Kernel::ListClasses()
-{
-    if (!options->GetOption('c') && !options->GetOption('a')) return;
-    int i = 0;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Classes:\n");
-    for (ModuleClass * c = classes; c != NULL; c = c->next)
-    {
-        Notify(msg_print, "\t%s\n", c->name);
-        i++;
-    }
-    Notify(msg_print, "No of classes: %d.\n", i);
-}
-
-void
-Kernel::ListProfiling()
-{
-    if (!options->GetOption('p')) return;
-    // Calculate Total Time
-    float total_module_time = 0;
-    for (Module * & m : _modules)
-        total_module_time += m->time;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Time (ms):\n");
-    Notify(msg_print, "-------------------\n");
-    Notify(msg_print, "Modules: %10.2f\n", total_module_time);
-    Notify(msg_print, "Other:   %10.2f\n", 1000*total_time-total_module_time);
-    Notify(msg_print, "-------------------\n");
-    Notify(msg_print, "Total:   %10.2f\n", 1000*total_time);
-    Notify(msg_print, "\n");
-    if (total_module_time == 0)
-        return;
-    Notify(msg_print, "Time in Each Module:\n");
-    Notify(msg_print, "\n");
-    Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
-    Notify(msg_print, "----------------------------------------------------------------------\n");
-    for (Module * & m : _modules)
-        if (m->ticks > 0)
-            Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
-        else
-            Notify(msg_print, "%-20s%-20s%       ---f\n", m->GetName(), m->GetClassName());
-    Notify(msg_print, "----------------------------------------------------------------------\n");
-    if (useThreads)
-        Notify(msg_print, "Note: Time is real-time, not time in thread.\n");
-    Notify(msg_print, "\n");
-}
-
-void
+bool
 Kernel::Notify(int msg, const char * format, ...)
 {
-    switch (ikaros::abs(msg))
+    switch (abs(msg))
     {
         case msg_fatal_error:
             fatal_error_occurred = true;
@@ -3516,10 +2931,10 @@ Kernel::Notify(int msg, const char * format, ...)
             break;
     }
     if(msg > log_level)
-        return;
+        return false;
     char 	message[512];
     int n = 0;
-    switch (ikaros::abs(msg))
+    switch (abs(msg))
     {
         case msg_fatal_error:
             n = snprintf(message, 512, "ERROR: ");
@@ -3546,8 +2961,9 @@ Kernel::Notify(int msg, const char * format, ...)
     if(message[strlen(message)-1] != '\n')
         printf("\n");
     fflush(stdout);
-    if (logfile != NULL)
+    if(logfile != NULL)
         fprintf(logfile, "%5ld: %s", tick, message);	// Print in both places
+    return false;
 }
 
 
@@ -3604,11 +3020,11 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
 static const char *
 file_exists(const char * path)
 {
-	if (path != NULL)
+	if(path != NULL)
 	{
 		FILE * t = fopen(path, "rb");
 		bool exists = (t != NULL);
-		if (t) fclose(t);
+		if(t) fclose(t);
 		return (exists ? path : NULL);
 	}
     
@@ -3620,27 +3036,45 @@ file_exists(const char * path)
 // Read class file (or included file) and merge with the current XML-tree
 
 XMLElement * 
-Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name)
+Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name, const char * current_filename)
 {
-//    printf("%s\n", xml_node->GetAttribute("name"));
+ //   char * name = create_string(GetXMLAttribute(xml_node, "name"));
+//    printf("BuildClassGroup: %s\n", name);
     
-    const char * path = xml_node->GetAttribute("path");
-    char include_file[PATH_MAX] ="";
-    if(path && path[0]=='/')
-    {
-        copy_string(include_file, ikaros_dir, PATH_MAX);
-        include_file[strlen(include_file)-1]=0;
-    }
-    append_string(include_file, path, PATH_MAX);
-	const char * filename = file_exists(append_string(append_string(include_file, class_name, PATH_MAX), ".ikc", PATH_MAX));
-//    printf("FILENAME: %s\n", filename);  // Uses inheritance
+    // THREE ALTERNATIVES:
+    //  Global path - starts with /
+    //  Local path  - does not start with /
+    //  No path     - path is NULL or equals ""
 
-	filename = (filename ? filename : file_exists(classes->GetClassPath(class_name)));
+    char include_file[PATH_MAX] ="";
+    const char * path = xml_node->GetAttribute("path"); // FIXME: use GetValue with variables, inheritance etc
+    if(path) //  && path[0]=='/'
+    {
+        if(path[0]=='/') // gloabl path
+            copy_string(include_file, ikaros_dir, PATH_MAX);
+        append_string(include_file, path, PATH_MAX);
+    }
+    if(path && include_file[strlen(include_file)-1] != '/')
+        append_string(include_file, "/", PATH_MAX);
+    
+    append_string(include_file, class_name, PATH_MAX);
+    append_string(include_file, ".ikc", PATH_MAX);
+
+	const char * filename = file_exists(include_file);
+
+    filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes
+
 	if(!filename)
 	{
 		Notify(msg_warning, "Class ikc for \"%s\" could not be found.\n", class_name);
 		return xml_node;
 	}
+
+    if(equal_strings(filename, current_filename))
+    {
+        Notify(msg_fatal_error, "Class ikc for \"%s\" can not include itself. Check that <link> is used to set the code class.\n", class_name);
+        return xml_node;
+    }
 
 	XMLDocument * cDoc = new XMLDocument(filename);
 	XMLElement * cgroup = cDoc->xml;
@@ -3650,7 +3084,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 	// 1. Replace the module element with the group element of the included file
 	
 	cgroup->next = xml_node->next;
-	if (xml_node->prev == NULL)
+	if(xml_node->prev == NULL)
 		xml_node->GetParentElement()->content = cgroup;
 	else
 		xml_node->prev->next = cgroup;
@@ -3666,7 +3100,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 	// 3. Copy elements
 	
 	XMLNode * last = cgroup->content;
-	if (last == NULL)
+	if(last == NULL)
 		cgroup->content = xml_node->content;
 	else
 	{
@@ -3678,7 +3112,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 	
 	// 4. Build the class group
 	
-	BuildGroup(group, cgroup, class_name);
+	BuildGroup(group, cgroup, class_name, filename);
 	
 	// 5. Delete original element and replace it with the newly merged group
 	
@@ -3695,11 +3129,11 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 static int group_number = 0;
 
 GroupElement *
-Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class)
+Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class, const char * current_filename)
 {
     const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
-        group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));   // TODO: add this kind of thing to unnamed views as well
+        group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
 
     // Add attributes to group element
     
@@ -3708,55 +3142,56 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
     {
-        if (xml_node->IsElement("module"))	// Add module
+        if(xml_node->IsElement("link"))    // Link to code
+        {
+            const char * class_name = GetXMLAttribute(group_xml, "class");
+            Parameter * parameter = new Parameter(this, xml_node, group);
+            Module * m = classes.at(class_name)->CreateModule(parameter);
+            delete parameter;
+            if(m == NULL)
+                Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
+            else if(useThreads && m->phase != 0)
+                Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
+            xml_node->aux = (void *)m;
+            group->module = m;  // FIXME: test if correct
+            AddModule(m);
+        }
+        
+        else if(xml_node->IsElement("module"))	// Add module
         {
             char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
-            
-            if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
-            {
-                GroupElement * subgroup = new GroupElement(group);
-				xml_node = BuildClassGroup(subgroup, xml_node, class_name);
-                group->groups.insert( { subgroup->GetAttribute("name"), subgroup });    // FIXME: perfect place to use emplace instead
-            }
-            
-			else if (class_name != NULL)	// Create the module using standard class
-			{
-				Parameter * parameter = new Parameter(this, xml_node);
-				Module * m = CreateModule(classes, class_name, GetXMLAttribute(xml_node, "name"), parameter);
-				delete parameter;
-				if (m == NULL)
-					Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
-				else if (useThreads && m->phase != 0)
-					Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
-				xml_node->aux = (void *)m;
-                group->module = m;  // FIXME: test if correct
-				AddModule(m);
-			}
-            else  // TODO: could add check for command line values here
-            {
-                Notify(msg_warning, "Could not create module: Class name is missing.\n");
-            }
+            GroupElement * subgroup = new GroupElement(group);
+            xml_node = BuildClassGroup(subgroup, xml_node, class_name, current_filename); // TODO: merge with line above
+            group->groups.insert({ subgroup->GetAttribute("name"), subgroup });
             destroy_string(class_name);
         }
-        else if (xml_node->IsElement("group"))	// Add group
+        else if(xml_node->IsElement("group"))	// Add group
         {
             GroupElement * g = new GroupElement(group);
             group->groups.insert( { xml_node->GetAttribute("name"), BuildGroup(g, xml_node) });
         }
     
-        else if (xml_node->IsElement("parameter"))
-            group->parameters.insert( { xml_node->GetAttribute("name"), ParameterElement(group, xml_node) });
-    
-        else if (xml_node->IsElement("input"))
+        else if(xml_node->IsElement("parameter"))
+        {
+            if(const char * target = xml_node->GetAttribute("target"))
+                group->parameters.insert( { target, new ParameterElement(group, xml_node) }); // parameter do not have targets in classes
+        }
+        
+        else if(xml_node->IsElement("input"))
             group->inputs.push_back(InputElement(group, xml_node));
             
-        else if (xml_node->IsElement("output"))
-            group->outputs.insert( { xml_node->GetAttribute("name"), new OutputElement(group, xml_node) });
+        else if(xml_node->IsElement("output"))
+        {
+            if(const char * name = xml_node->GetAttribute("name"))
+                group->outputs.insert( { name, new OutputElement(group, xml_node) });
+            else
+                Notify(msg_fatal_error, "Output element does not have a name.");
+        }
 
-        else if (xml_node->IsElement("connection"))
+        else if(xml_node->IsElement("connection"))
              group->connections.push_back(ConnectionElement(group, xml_node));
      
-        else if (xml_node->IsElement("view"))
+        else if(xml_node->IsElement("view"))
         {
             ViewElement v(group, xml_node);
             for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement()) // WAS "object"
@@ -3771,147 +3206,67 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     return group;
 }
 
-// Temporary - move to utilities later
-static bool has_only_digits(const std::string s)
-{
-  return s.find_first_not_of( "0123456789" ) == std::string::npos;
-}
+
 
 void
-Kernel::ConnectModules(GroupElement * group, std::string indent)
+Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remove indent
 {
-//    printf("%sConnecting in %s\n", indent.c_str(), group->GetAttribute("name").c_str());
-
-    // Connect in this group
-    
     for(auto & c : group->connections)
     {
-        std::string sm = c["sourcemodule"];
-        std::string tm = c["targetmodule"];
-        if(sm != "")
-            sm += ".";
-        if(tm != "")
-            tm += ".";
-        auto & source = rsplit(sm+c["source"], ".", 1);  // Merge then split again
-        auto & target = rsplit(tm+c["target"], ".", 1);
-        std::string source_group = c.ResolveVariable(source.size() == 1 ? "" : source[0]);
-        std::string source_output = c.ResolveVariable(source.size() == 1 ? source[0] : source[1]); // tail?
-        std::string target_group = c.ResolveVariable(target.size() == 1 ? "" : target[0]);
-        std::string target_input = c.ResolveVariable(target.size() == 1 ? target[0] : target[1]); // tail?
+        auto source = c["source"];
+        auto target = c["target"];
 
-        if(source_output.empty())
-            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+"."+c["source"]).c_str());
-
-        if(target_input.empty())
-            Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+"."+c["target"]).c_str());
-        
-//        printf("%sConnecting: %s -> %s\n", indent.c_str(), sm.c_str(), tm.c_str());
-        
         Module_IO * source_io = NULL;
-        if(starts_with(source_group, "."))
-            source_io = main_group->GetSource(split(source_group, ".", 1)[1], source_output); // FIXME: use substr
+        if(starts_with(source, "."))
+            source_io = main_group->GetSource(source.substr(1));
         else
-            source_io = group->GetSource(source_group, source_output);
-        
+            source_io = group->GetSource(source);
+
         if(!source_io)
-            Notify(msg_fatal_error, "Connection source %s not found.\n", (c["sourcemodule"]+"."+c["source"]).c_str());
+            Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
 
         int cnt = 0;
-
-        std::string sourceoffset = c.ResolveVariable(c["sourceoffset"]);    // FIXME: ResolveVariable should be done in operator[]
-        std::string targetoffset = c.ResolveVariable(c["targetoffset"]);
-        std::string size = c.ResolveVariable(c["size"]);
-        std::string delay = c.ResolveVariable(c["delay"]);
-        std::string active = c.ResolveVariable(c["active"]);
-        
-        if(sourceoffset!="" && !has_only_digits(sourceoffset))
-        {
-            Notify(msg_fatal_error, "Value \"%s\" for sourceoffset is not a number.", c.GetAttribute("sourceoffset").c_str());
-            sourceoffset = "";
-        }
-        
-        if(targetoffset!="" && !has_only_digits(targetoffset))
-        {
-            Notify(msg_fatal_error, "Value \"%s\" for targetoffset is not a number.", c.GetAttribute("targetoffset").c_str());
-            targetoffset = "";
-        }
-        
-        if(size!="" && !has_only_digits(size))
-        {
-            Notify(msg_fatal_error, "Value \"%s\" for size is not a number.", c.GetAttribute("size").c_str());
-            size = "";
-        }
-
-        if(starts_with(target_group, "."))
-            for(auto target_io : main_group->GetTargets(split(target_group, ".", 1)[1], target_input))
-                cnt += Connect(source_io, string_to_int(sourceoffset), target_io, string_to_int(targetoffset), string_to_int(size, unknown_size), delay, 0, string_to_bool(active, true));
+        if(starts_with(target, "."))
+            for(auto target_io : main_group->GetTargets(target.substr(1)))
+                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
         else
-            for(auto target_io : group->GetTargets(target_group, target_input))
-                cnt += Connect(source_io, string_to_int(sourceoffset), target_io, string_to_int(targetoffset), string_to_int(size, unknown_size), delay, 0, string_to_bool(active, true));
+            for(auto target_io : group->GetTargets(target))
+                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
 
         if(cnt == 0)
-            Notify(msg_fatal_error, "Connection target %s not found.\n", (c["targetmodule"]+":"+c["target"]).c_str());
+            Notify(msg_fatal_error, "Connection target %s not found.\n", target.c_str());
     }
 
-    // Connect in subgroups
-
-    for(auto & g : group->groups)
+    for(auto & g : group->groups) // Connect in subgroups
         ConnectModules(g.second, indent+"\t");
 }
 
 
 
-void
+bool
 Kernel::ReadXML()
 {
-    if (ikc_file_name[0] == 0)
-    {
-        Notify(msg_fatal_error, "Empty file name.\n");
-        return;
-    }
+    if(ikc_file_name[0] == 0)
+        return Notify(msg_fatal_error, "Empty file name.\n");
+
     char path[PATH_MAX];
     copy_string(path, ikc_dir, PATH_MAX);
     append_string(path, ikc_file_name, PATH_MAX);
     Notify(msg_print, "Reading XML file \"%s\".\n", ikc_file_name);
-    if (chdir(ikc_dir) < 0)
-    {
-        Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
-        return;
-    }
+    if(chdir(ikc_dir) < 0)
+        return Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
+
     xmlDoc = new XMLDocument(ikc_file_name, false, options->GetOption('X'));
-    if (xmlDoc->xml == NULL)
-    {
-        Notify(msg_fatal_error, "Could not read (or find) \"%s\".\n", ikc_file_name);
-        return;
-    }
+    if(xmlDoc->xml == NULL)
+        return Notify(msg_fatal_error, "Could not read (or find) \"%s\".\n", ikc_file_name);
+
     XMLElement * xml = xmlDoc->xml->GetElement("group");
-    if (xml == NULL)
-    {
-        Notify(msg_fatal_error, "Did not find <group> element in IKC/XML file \"%s\".\n", ikc_file_name);
-        return;
-    }
+    if(xml == NULL)
+        return Notify(msg_fatal_error, "Did not find <group> element in IKG/XML file \"%s\".\n", ikc_file_name);
     
     // Set default parameters
     
     xml->SetAttribute("log_level", create_formatted_string("%d", log_level)); // FIXME: period???
-
-    // Build The Main Group
-    // FIXME: what is this?
-/*
-    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute // TODO: SHOULD PROBABLY BE REMOVED
-    {
-        const char * name = GetXMLAttribute(xml, "name"); // Instantiate name and title from command line options if not set in the file
-        if(name)
-            xml->SetAttribute("name", name);
-    }
-    
-    if(!xml->GetAttribute("title")) // TODO: SHOULD PROBABLY BE REMOVED
-    {
-        const char * title = GetXMLAttribute(xml, "title");
-        if(title)
-            xml->SetAttribute("title", title);
-    }
-*/
 
     // 2.0 create top group
     
@@ -3924,14 +3279,231 @@ Kernel::ReadXML()
     session_id = result; // temporary, get from top level group
     
     BuildGroup(main_group, xml);
-    // FIXME: make connections here
-
+    if(fatal_error_occurred)
+        return false;
+    
     ConnectModules(main_group);
 
-    if (options->GetOption('x'))
+    if(options->GetOption('x'))
         xmlDoc->Print(stdout);
     
 //    main_group->Print();
+    return true;
+}
+
+
+
+void
+Kernel::ListInfo()
+{
+    if(!options->GetOption('i') && !options->GetOption('a')) return;
+    Notify(msg_print, "\n");
+    Notify(msg_print, "Ikaros version %s\n", VERSION);
+    Notify(msg_print, "\n");
+    Notify(msg_print, "%s\n", PLATFORM);
+#ifdef POSIX
+    Notify(msg_print, "POSIX\n");
+#endif
+#ifdef USE_BSD_SOCKET
+    Notify(msg_print, "BSD-socket\n");
+#endif
+#ifdef USE_THREADS
+    Notify(msg_print, "threads\n");
+#endif
+#ifdef USE_BLAS
+    Notify(msg_print, "BLAS\n");
+#endif
+#ifdef USE_QUICKTIME
+    Notify(msg_print, "Quicktime\n");
+#endif
+#ifdef USE_VIMAGE
+    Notify(msg_print, "vImage\n");
+#endif
+#ifdef USE_VFORCE
+    Notify(msg_print, "vForce\n");
+#endif
+#ifdef USE_VDSP
+    Notify(msg_print, "vDSP\n");
+#endif
+#ifdef USE_MPI
+    Notify(msg_print, "MPI\n");
+#endif
+    Notify(msg_print, "\n");
+    Notify(msg_print, "ikc file name: %s\n", ikc_file_name);
+    Notify(msg_print, "ikc file directory: %s\n", ikc_dir);
+    Notify(msg_print, "ikaros root directory: %s\n", ikaros_dir);
+}
+
+
+
+void
+Kernel::ListModulesAndConnections()
+{
+    if(!options->GetOption('m') && !options->GetOption('a')) return;
+    
+    if(_modules.empty())
+    {
+        Notify(msg_print, "\n");
+        Notify(msg_print, "No Modules.\n");
+        Notify(msg_print, "\n");
+        return;
+    }
+    
+    Notify(msg_print, "\n");
+    Notify(msg_print, "Modules:\n");
+    Notify(msg_print, "\n");
+    for (Module * & m : _modules)
+    {
+        //        Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
+        Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
+        for (Module_IO * i = m->input_list; i != NULL; i = i->next)
+            if(i->data)
+                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
+            else
+                Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name.c_str());
+        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
+            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
+        Notify(msg_print, "\n");
+    }
+    Notify(msg_print, "Connections:\n");
+    Notify(msg_print, "\n");
+    for (Connection * c = connections; c != NULL; c = c->next)
+        if(c->delay == 0)
+            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
+                   c->source_io->module->instance_name, c->source_io->name.c_str(), 0, c->source_io->size-1,
+                   c->target_io->module->instance_name, c->target_io->name.c_str(), 0, c->source_io->size-1,
+                   c->delay,
+                   c->active ? "" : "[inactive]");
+        else if(c->size > 1)
+            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d) %s\n",
+                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset, c->source_offset+c->size-1,
+                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset, c->target_offset+c->size-1,
+                   c->delay,
+                   c->active ? "" : "[inactive]");
+        else
+            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d) %s\n",
+                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset,
+                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset,
+                   c->delay,
+                   c->active ? "" : "[inactive]");
+    Notify(msg_print, "\n");
+}
+
+
+void
+Kernel::ListBindings()
+{
+    Notify(msg_print, "\n");
+    Notify(msg_print, "Bindings:\n");
+    Notify(msg_print, "\n");
+    for(auto b : bindings)
+        Notify(msg_print, "\t%s\n", b.first.c_str());
+}
+
+
+void
+Kernel::ListThreads()
+{
+    if(!options->GetOption('T') && !(options->GetOption('a') && options->GetOption('t'))) return;
+    Notify(msg_print, "\n");
+    Notify(msg_print,"ThreadManagers:\n");
+    Notify(msg_print, "\n");
+    int i=0;
+    for(ThreadGroup * tg : _threadGroups)
+    {
+        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d]\n", i++, tg->period, tg->phase);
+        for(Module * m : tg->_modules)
+            Notify(msg_print, "\t Module: %s\n", m->GetFullName());
+        i++;
+    }
+    Notify(msg_print, "\n");
+}
+
+void
+Kernel::ListWarningsAndErrors()
+{
+    if(global_warning_count > 1)
+        printf("IKAROS: %d WARNINGS.\n", global_warning_count);
+    else if(global_warning_count == 1)
+        printf("IKAROS: %d WARNING.\n", global_warning_count);
+    
+    if(global_error_count > 1)
+        printf("IKAROS: %d ERRORS.\n", global_error_count);
+    else if(global_error_count == 1)
+        printf("IKAROS: %d ERROR.\n", global_error_count);
+}
+
+void
+Kernel::ListScheduling()
+{
+    if(!options->GetOption('l') && !options->GetOption('a')) return;
+
+    if(_modules.empty())
+        return;
+    
+    Notify(msg_print, "Scheduling:\n");
+    Notify(msg_print, "\n");
+    for (int t=0; t<period_count; t++)
+    {
+        int tm = 0;
+        for (Module * & m : _modules)
+            if(t % m->period == m->phase)
+                Notify(msg_print,"  %02d.%02d: %s (%s)\n", t, tm++, m->GetName(), m->GetClassName());
+    }
+    
+    Notify(msg_print, "\n");
+    Notify(msg_print, "\n");
+}
+
+
+void
+Kernel::ListClasses()
+{
+    if(!options->GetOption('c') && !options->GetOption('a')) return;
+    int i = 0;
+    Notify(msg_print, "\n");
+    Notify(msg_print, "Classes:\n");
+    
+    for(auto & c: classes)
+    {
+        Notify(msg_print, "\t%s\n", c.first.c_str());
+        i++;
+    }
+    Notify(msg_print, "No of classes: %d.\n", i);
+}
+
+
+void
+Kernel::ListProfiling()
+{
+    if(!options->GetOption('p')) return;
+    // Calculate Total Time
+    float total_module_time = 0;
+    for (Module * & m : _modules)
+        total_module_time += m->time;
+    Notify(msg_print, "\n");
+    Notify(msg_print, "Time (ms):\n");
+    Notify(msg_print, "-------------------\n");
+    Notify(msg_print, "Modules: %10.2f\n", total_module_time);
+    Notify(msg_print, "Other:   %10.2f\n", 1000*total_time-total_module_time);
+    Notify(msg_print, "-------------------\n");
+    Notify(msg_print, "Total:   %10.2f\n", 1000*total_time);
+    Notify(msg_print, "\n");
+    if(total_module_time == 0)
+        return;
+    Notify(msg_print, "Time in Each Module:\n");
+    Notify(msg_print, "\n");
+    Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
+    Notify(msg_print, "----------------------------------------------------------------------\n");
+    for (Module * & m : _modules)
+        if(m->ticks > 0)
+            Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
+        else
+            Notify(msg_print, "%-20s%-20s%       ---f\n", m->GetName(), m->GetClassName());
+    Notify(msg_print, "----------------------------------------------------------------------\n");
+    if(useThreads)
+        Notify(msg_print, "Note: Time is real-time, not time in thread.\n");
+    Notify(msg_print, "\n");
 }
 
 
@@ -3943,4 +3515,834 @@ Kernel& kernel()
     return * kernelInstance;
 }
 
+
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
+// WenUI STARTS HERE
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+static bool
+SendColorJPEGbase64(ServerSocket * socket, float * r, float * g, float * b, int sizex, int sizey) // Compress image to jpg and send from memory after base64 encoding
+{
+    long  size;
+    unsigned char * jpeg = (unsigned char *)create_jpeg(size, r, g, b, sizex, sizey, 90);
+
+    size_t input_length = size;
+    size_t output_length;
+    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
+    
+    socket->Send("\"data:image/jpeg;base64,");
+    bool ok = socket->SendData(jpeg_base64, output_length);
+    socket->Send("\"");
+    
+    destroy_jpeg((char *)jpeg);
+    free(jpeg_base64);
+    return ok;
+}
+
+
+static bool
+SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey, std::string type)
+{
+    long  size;
+    unsigned char * jpeg = NULL;
+
+    if(type == "red")
+        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_red);
+
+    else if(type == "green")
+        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_green);
+
+    else if(type == "blue")
+        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_blue);
+
+    else if(type == "fire")
+        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_fire);
+
+    else if(type == "spectrum")
+        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_spectrum);
+
+    else
+        return false;
+    
+    size_t input_length = size;
+    size_t output_length;
+    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
+    
+    socket->Send("\"data:image/jpeg;base64,");
+    bool ok = socket->SendData(jpeg_base64, output_length);
+    socket->Send("\"");
+    
+    destroy_jpeg((char *)jpeg);
+    free(jpeg_base64);
+    return ok;
+}
+
+
+
+static bool
+SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int sizex, int sizey)
+{
+    Dictionary header;
+    header.Set("Content-Type", "text/html");
+    socket->SendHTTPHeader(&header);
+    
+    socket->Send("<html>\n");
+    socket->Send("<header>\n");
+    socket->Send("<title>%s</title>\n", title);
+    socket->Send("<style>td {font:10pt Arial,sans-serif;text-align:right}</style>");
+    socket->Send("</header>\n");
+    socket->Send("<body><div><table>\n");
+
+    for (int j=0; j<sizey; j++)
+    {
+        socket->Send("<tr>\n");
+        for(int i=0; i<sizex; i++)
+            socket->Send("<td>%.4f</td>", matrix[j][i]);
+        socket->Send("</tr>\n");
+    }
+
+    socket->Send("</table></div></body></html>\n");
+
+    return true;
+}
+
+
+
+static inline float
+checknan(float x)
+{
+    if(x == x && abs(x) > 0.00001) // Check NaN
+        return x;
+    else
+        return 0;
+}
+
+
+
+static bool
+SendJSONArrayData(ServerSocket * socket, char * source, float * array, int size)
+{
+    if (array == NULL)
+        return false;
+    
+    socket->Send("\t\"%s\":\n\t[\n", source);
+    socket->Send("\t\t[%.4E", checknan(array[0]));
+    for (int i=1; i<size; i++)
+        socket->Send(", %.4E", checknan(array[i]));
+    socket->Send("]\n\t]");
+    
+    return true;
+}
+
+
+
+static bool
+SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead
+{
+    if (matrix == NULL)
+        return false;
+    
+    int k = 0;
+
+    socket->Send("\t\t\"%s\":\n\t\t[\n", source);    // module
+    for (int j=0; j<sizey; j++)
+    {
+        socket->Send("\t\t\t[%.4E", checknan(matrix[k++]));
+        for (int i=1; i<sizex; i++)
+            socket->Send(", %.4E", checknan(matrix[k++]));
+        if (j<sizey-1)
+            socket->Send("\t],\n");
+        else
+            socket->Send("\t]\n\t\t]");
+    }
+    
+    return true;
+}
+
+
+
+/*
+void
+WebUI::CopyUIData()
+{
+    if(!view_data)
+        return;
+ 
+    while(tick_is_running)
+        ; // Whait for tick to end
+ 
+    // Step 1: calculate size
+ 
+    int size = 0;
+
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    {
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                 case data_source_array:
+                    size += sd->size_x;
+                    break;
+ 
+                case data_source_matrix:
+                case data_source_gray_image:
+                case data_source_red_image:
+                case data_source_green_image:
+                case data_source_blue_image:
+                case data_source_spectrum_image:
+                case data_source_fire_image:
+                    size += sd->size_x * sd->size_y;
+                    break;
+ 
+                case data_source_rgb_image:
+                case data_source_bmp_image:
+                    size += 3 * sd->size_x * sd->size_y;
+                    break;
+ 
+                case data_source_float:
+                case data_source_int:
+                case data_source_bool:
+                case data_source_list:
+                    size++; // int, list, bool, float
+                    break;
+
+                case data_source_string:
+                {
+                    const char * cs = ((std::string *)(sd->data))->c_str();
+                    size += strlen(cs)/sizeof(float)+1;
+                    break;
+                }
+ 
+                default:
+                    k->Notify(msg_warning, "WebUI: Unkown data type");
+                    break;
+            }
+        }
+    }
+
+    // Allocate memory
+ 
+    float * local_ui_data = create_array(size);
+ 
+    if(!local_ui_data)
+    {
+        k->Notify(msg_warning, "WebUI: Cannot allocate memory for data");
+        return;
+    }
+
+    float * p = local_ui_data;
+
+    // Step 2: copy the data
+
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    {
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                case data_source_int:
+                case data_source_list:
+                    *(p++) = *(int *)(sd->data);
+                    break;
+ 
+                case data_source_bool:
+                    *(p++) = (*(bool *)(sd->data) ? 1 : 0);
+                    break;
+ 
+                case data_source_float:
+                    *(p++) = *(float *)(sd->data);
+                    break;
+
+                case data_source_string:
+                {
+                    char *  cp = (char *)p;
+                    const char * cs = ((std::string *)(sd->data))->c_str();
+                    strcpy(cp, cs);
+                    p += strlen(cs)/sizeof(float)+1;
+                    break;
+                }
+
+                case data_source_array:
+                    copy_array(p, (float *)(sd->data), sd->size_x);
+                    p += sd->size_x;
+                    break;
+
+                case data_source_matrix:
+//                case data_source_gray_image:
+                case data_source_red_image:
+                case data_source_green_image:
+                case data_source_blue_image:
+                case data_source_spectrum_image:
+                case data_source_fire_image:
+                    copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    break;
+
+                case data_source_gray_image:
+                    {
+                        float * temp = copy_array(create_array(sd->size_x*sd->size_y), *(float **)(sd->data), sd->size_x*sd->size_y);
+                        float mn, mx;
+                        minmax(mn, mx, temp, sd->size_x*sd->size_y);
+                        if(mx-mn > 0)
+                        {
+                            subtract(temp, mn, sd->size_x*sd->size_y);
+                            multiply(temp, 1/(mx-mn), sd->size_x*sd->size_y);
+                        }
+                        copy_array(p, temp, sd->size_x*sd->size_y);
+                        p += sd->size_x*sd->size_y;
+                        destroy_array(temp);
+                    }
+                    break;
+
+                case data_source_rgb_image:
+                case data_source_bmp_image:
+                    copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    copy_array(p, *(float **)(sd->data2), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    copy_array(p, *(float **)(sd->data3), sd->size_x*sd->size_y);
+                    p += sd->size_x*sd->size_y;
+                    break;
+            }
+        }
+    }
+ 
+    // Step 3: store in ui_data
+
+    float * old_ui_data = atomic_exchange(&ui_data, local_ui_data);
+    if(old_ui_data)
+        destroy_array(old_ui_data);
+}
+*/
+/*
+void
+WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
+{
+    // Grab ui data
+ 
+    float * p = atomic_exchange(&ui_data, (float *)(NULL));
+    float * q = p;
+
+    long int s = 0;
+
+    // Send
+
+    Dictionary header;
+ 
+    header.Set("Session-Id", std::to_string(k->session_id).c_str()); // FIXME: GetValue("session_id")
+    header.Set("Content-Type", "application/json");
+    header.Set("Cache-Control", "no-cache");
+    header.Set("Cache-Control", "no-store");
+    header.Set("Pragma", "no-cache");
+    header.Set("Expires", "0");
+ 
+    socket->SendHTTPHeader(&header);
+
+    socket->Send("{\n");
+    socket->Send("\t\"state\": %d,\n", ui_state);
+ 
+    if(k->max_ticks > 0)
+    {
+        socket->Send("\t\"iteration\": \"%d / %d\",\n", k->GetTick(), k->max_ticks);
+        socket->Send("\t\"progress\": %f,\n", float(k->tick)/float(k->max_ticks));
+    }
+    else
+    {
+        socket->Send("\t\"iteration\": %d,\n", k->GetTick());
+        socket->Send("\t\"progress\": 0\n");
+    }
+
+    // Timing information
+ 
+    float total_time = k->timer->GetTime()/1000.0; // in seconds
+ 
+    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
+    socket->Send("\t\"total_time\": %.2f,\n", total_time);
+    socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
+    socket->Send("\t\"timebase\": %d,\n", k->tick_length);
+    socket->Send("\t\"timebase_actual\": %.0f,\n", k->tick > 0 ? 1000*float(total_time)/float(k->tick) : 0);
+    socket->Send("\t\"lag\": %.0f,\n", k->lag);
+    socket->Send("\t\"cpu_cores\": %d,\n", k->cpu_cores);
+    socket->Send("\t\"idle_time\": %.3f,\n", idle_time);  // TODO: move to kernel from WebUI
+    socket->Send("\t\"cpu_usage\": %.3f", k->cpu_usage);
+ 
+    if(!p)
+    {
+        socket->Send(",\"has_data\": 0\n}\n");
+        if (debug_mode)
+            printf("SENT EMPTY PACKAGE\n");
+
+        return;
+    }
+
+    if (view_data != NULL)
+        socket->Send(",\n");
+    else
+        socket->Send("\n");
+
+    for (ModuleData * md=view_data; md != NULL; md=md->next)
+    {
+        if(equal_strings(md->name, k->GetXMLAttribute(current_xml_root, "name")))
+            socket->Send("\t\"*\":\n\t{\n");
+        else
+            socket->Send("\t\"%s\":\n\t{\n", md->name);
+ 
+        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
+        {
+            switch(sd->type)
+            {
+                case data_source_int:
+                case data_source_list:
+                case data_source_bool:
+                case data_source_float:
+                    socket->Send("\t\t\"%s\": [[%f]]", sd->name, *p++);
+                    break;
+
+                case data_source_string:
+                    socket->Send("\t\t\"%s\": \"%s\"", sd->name, (char *)p);
+                    p += strlen((char *)p)/sizeof(float)+1;
+                    break;
+ 
+                case data_source_array:
+                    SendJSONArrayData(socket, md->name, sd->name, p, sd->size_x);
+                    p += sd->size_x;
+                    break;
+ 
+            }
+
+            if (sd->next != NULL)
+                socket->Send(",\n");
+            else
+                socket->Send("\n");
+        }
+ 
+        if (md->next != NULL)
+            socket->Send("\t},\n");
+        else
+            socket->Send("\t}\n");
+    }
+
+    if(tick_is_running) // new tick has started during sending
+        socket->Send(",\"has_data\": 0\n"); // there may be data but it cannot be trusted
+    else
+        socket->Send(",\"has_data\": 1\n");
+
+    socket->Send("}\n");
+ 
+    destroy_array(q);
+ 
+    if (debug_mode)
+        printf("SENT DATA PACKAGE\n");
+}
+*/
+
+
+void
+Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
+{
+    Dictionary header;
+    
+    header.Set("Session-Id", std::to_string(session_id).c_str()); // FIXME: GetValue("session_id")
+    header.Set("Package-Type", "data");
+    header.Set("Content-Type", "application/json");
+    header.Set("Cache-Control", "no-cache");
+    header.Set("Cache-Control", "no-store");
+    header.Set("Pragma", "no-cache");
+    header.Set("Expires", "0");
+    
+    socket->SendHTTPHeader(&header);
+
+    socket->Send("{\n");
+    socket->Send("\t\"state\": %d,\n", ui_state);
+    
+    if(max_ticks > 0)
+    {
+        socket->Send("\t\"iteration\": \"%d / %d\",\n", GetTick(), max_ticks);
+        socket->Send("\t\"progress\": %f,\n", float(tick)/float(max_ticks));
+    }
+    else
+    {
+        socket->Send("\t\"iteration\": %d,\n", GetTick());
+        socket->Send("\t\"progress\": 0,\n");
+    }
+
+    // Timing information
+    
+    float total_time = timer->GetTime()/1000.0; // in seconds
+    
+    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
+    socket->Send("\t\"total_time\": %.2f,\n", total_time);
+    socket->Send("\t\"ticks_per_s\": %.2f,\n", float(tick)/total_time);
+    socket->Send("\t\"timebase\": %d,\n", tick_length);
+    socket->Send("\t\"timebase_actual\": %.0f,\n", tick > 0 ? 1000*float(total_time)/float(tick) : 0);
+    socket->Send("\t\"lag\": %.0f,\n", lag);
+    socket->Send("\t\"cpu_cores\": %d,\n", cpu_cores);
+    socket->Send("\t\"idle_time\": %.3f,\n", idle_time);  // TODO: move to kernel from WebUI
+    socket->Send("\t\"cpu_usage\": %.3f", cpu_usage);
+
+    socket->Send(",\n\t\"data\":\n\t{\n");
+    std::string sep = "";
+    while(args)
+    {
+        char * ms = strsep(&args, "#");
+        char * source = strsep(&ms, ":");
+        auto format = ms ? std::string(ms) : std::string();
+        auto root_group = main_group->GetGroup(std::string(root));
+        if(root_group)
+        {
+            if(format == "") // as default, send a matrix
+            {
+                Module_IO * io = root_group->GetSource(source); // Also look for inputs here
+                if(io)
+                {
+                    socket->Send(sep.c_str());
+                    SendJSONMatrixData(socket, source, *io->matrix[0], io->sizex, io->sizey);
+                    sep = ",\n";
+                }
+                else if(bindings.count(source))
+                {
+                    socket->Send(sep.c_str());
+                    Binding * b = bindings.at(source).at(0);   // Use first binding
+                    switch(b->type)
+                    {
+                        case data_source_int:
+                        case data_source_list:
+                        case data_source_bool:
+                        case data_source_float:
+                            socket->Send("\t\t\"%s\": [[%f]]", source, *(float *)(b->value));
+                            break;
+
+                        case data_source_string:
+                            socket->Send("\t\t\"%s\": \"%s\"", source, ((std::string *)(b->value))->c_str());
+                            break;
+         
+                        case data_source_matrix:
+                            SendJSONMatrixData(socket, source, *(float **)(b->value), b->size_x, b->size_y);
+                            break;
+                            
+                        case data_source_array:
+                            SendJSONArrayData(socket, source, (float *)(b->value), b->size_x);
+                            break;
+                            
+                        default:
+                            socket->Send("\"ERRROR_type_is\": %d", b->type);
+                    }
+                    sep = ",\n";
+                }
+            }
+            else if(format == "gray")
+            {
+                Module_IO * io = root_group->GetSource(source);
+                if(io)
+                {
+                    socket->Send(sep.c_str());
+                    socket->Send("\t\t\"%s:gray\": ", source);
+                    SendColorJPEGbase64(socket, *io->matrix[0], *io->matrix[0], *io->matrix[0], io->sizex, io->sizey);
+                    sep = ",\n";
+                }
+            }
+            else if(format == "rgb")
+            {
+                auto a = rsplit(source, ".", 1); // separate out outputs
+                auto o = split(a[1], "+"); // split channel names
+                
+                auto c1 = a[0]+"."+o[0];
+                auto c2 = a[0]+"."+o[1];
+                auto c3 = a[0]+"."+o[2];
+
+                Module_IO * io1 = root_group->GetSource(c1);
+                Module_IO * io2 = root_group->GetSource(c2);
+                Module_IO * io3 = root_group->GetSource(c3);
+                
+                // TODO: check that all outputs have the same size
+
+                if(io2 && io2 && io3)
+                {
+                    socket->Send(sep.c_str());
+                    socket->Send("\t\t\"%s:rgb\": ", source);
+                    SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
+                    sep = ",\n";
+                }
+            }
+            else if(format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue")
+            {
+                Module_IO * io = root_group->GetSource(source);
+                if(io)
+                {
+                    socket->Send(sep.c_str());
+                    socket->Send("\t\t\"%s:%s\": ", source, format.c_str());
+                    SendPseudoColorJPEGbase64(socket, *io->matrix[0], io->sizex, io->sizey, format);
+                    sep = ",\n";
+                }
+            }
+        }
+    }
+    socket->Send("\n\t}");
+
+    if(tick_is_running) // new tick has started during sending
+        socket->Send(",\n\t\"has_data\": 0\n"); // there may be data but it cannot be trusted
+    else
+        socket->Send(",\n\t\"has_data\": 1\n");
+
+    socket->Send("}\n");
+}
+
+
+void
+Kernel::Pause()
+{
+    isRunning = false;
+    while(tick_is_running)
+        ;
+}
+
+
+void
+Kernel::HandleControlChange(char * uri, char * args)
+{
+    // ad hoc parsing of arguments
+    char * client = strsep(&args, "&");
+    char * id = (client ? &client[3] : NULL);
+    long client_id = 0;
+    if(id)
+        client_id = atol(id);
+    char * root = NULL;
+
+    if(!args || first_request) // not a data request - send view data
+    {
+        first_request = false;
+        std::string s = JSONString();
+        Dictionary rtheader;
+        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
+        rtheader.Set("Package-Type", "network");
+        rtheader.Set("Content-Type", "application/json");
+        rtheader.Set("Content-Length", int(s.size()));
+        socket->SendHTTPHeader(&rtheader);
+        socket->SendData(s.c_str(), int(s.size()));
+    }
+    else // possibly a data request - send requested data
+    {
+        strsep(&args, "=");
+        root = strsep(&args, "#");
+
+        if(!strcmp(uri, "/update") && ui_state == ui_state_play && master_id == client_id)
+        {
+            Pause();
+            Tick();
+        }
+        else if(!strcmp(uri, "/pause"))
+        {
+            Pause();
+            ui_state = ui_state_pause;
+            master_id = client_id;
+        }
+        else if(!strcmp(uri, "/step"))
+        {
+            Pause();
+            ui_state = ui_state_pause;
+            master_id = client_id;
+            Tick();
+        }
+        else if(!strcmp(uri, "/play"))
+        {
+            Pause();
+            ui_state = ui_state_play;
+            master_id = client_id;
+            Tick();
+        }
+        else if(!strcmp(uri, "/realtime") && ui_state != ui_state_realtime)
+        {
+            ui_state = ui_state_realtime;
+            master_id = client_id;
+            timer->Restart();
+            tick = 0;
+            isRunning = true;
+        }
+
+        SendUIData(root, args);
+    }
+}
+
+
+void
+Kernel::HandleHTTPRequest()
+{
+    if (debug_mode)
+        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+
+    std::string s = socket->header.Get("URI");
+    
+    // Copy URI and remove index
+    char * uri_p = create_string(socket->header.Get("URI"));
+    char * uri = strsep(&uri_p, "?");
+    char * args = uri_p;
+
+    if(!strcmp(uri, "/update"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/pause"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/step"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/play"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/realtime"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/update.json"))
+        HandleControlChange(uri, args);
+    else if(!strcmp(uri, "/stop"))
+    {
+        Pause();
+        ui_state = ui_state_stop;
+        SendUIData(NULL, NULL); // FIXME: must be corrected
+        Notify(msg_terminate, "Sent by WebUI.\n");
+    }
+    else if (strstart(uri, "/command/"))
+    {
+        char module_name[255];
+        float x, y;
+        char command[255];
+        char value[1024]; // FIXME: no range chacks
+        int c = sscanf(uri, "/command/%[^/]/%[^/]/%f/%f/%[^/]", module_name, command, &x, &y, value);
+        if(c == 5)
+            SendCommand(module_name, command, x, y, value);
+
+        Dictionary header;
+        header.Set("Content-Type", "text/plain");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        socket->Send("OK\n");
+        
+        // SHOULD: SendUIData(root, args);
+    }
+    else if (strstart(uri, "/control/"))
+    {
+        char module_name[255];
+        char parameter[255];
+        int x, y;
+        float value;
+        int c = sscanf(uri, "/control/%[^/]/%d/%d/%f", parameter, &x, &y, &value);
+        if(c == 4)
+        {
+            XMLElement * group = current_xml_root;
+            if(equal_strings(module_name, "*")) // FIXME: !!!
+            {
+                strcpy(module_name, GetXMLAttribute(current_xml_root, "name"));
+                group = group->GetParentElement();
+            }
+            SetParameter(parameter, x, y, value); // TODO: check if groups are handled correctly
+        }
+        Dictionary header;
+        header.Set("Content-Type", "text/plain");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        socket->Send("OK\n");
+
+        // SHOULD: SendUIData(root, args);
+    }
+    else if (!strcmp(uri, "/getlog"))
+    {
+        if (logfile)
+            socket->SendFile("logfile", webui_dir);
+        else
+            socket->Send("ERROR - No logfile found\n");
+    }
+    else if (strstart(uri, "/module/"))
+    {
+        char module[256], output[256], type[256];
+        int c = sscanf(uri, "/module/%[^/]/%[^/]/%[^/]", module, output, type);
+
+        if(c != 3)
+        {
+            socket->Send( "Incorrect data: %s/%s/%s\n", module, output, type);
+            destroy_string(uri);
+            return;
+        }
+
+        Module * m = GetModuleFromFullName(module);
+        if(m)
+        {
+            int sx = m->GetOutputSizeX(output);
+            int sy = m->GetOutputSizeY(output);
+            char * s = create_formatted_string("%s.%s [%dx%d]", module, output, sx, sy);
+            if (!SendHTMLData(socket, s, m->GetOutputMatrix(output), sx, sy))
+                Notify(msg_warning, "Could not send: data.txt\n");
+            destroy_string(uri);
+            return;
+        }
+        else
+        {
+            socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
+            socket->Send( "\"%s\" may be an unkown data type.\n", type);
+            destroy_string(uri);
+            return;
+        }
+    }
+    else if(equal_strings(uri, "/"))
+    {
+        socket->SendFile("index.html", webui_dir);
+    }
+    else if (
+        strend(uri, ".xml") ||
+        strend(uri, ".jpg") ||
+        strend(uri, ".html") ||
+        strend(uri, ".css") ||
+        strend(uri, ".png") ||
+        strend(uri, ".svg") ||
+        strend(uri, ".js") ||
+        strend(uri, ".gif") ||
+        strend(uri, ".stl") ||
+        strend(uri, ".gltf") ||
+        strend(uri, ".glb") ||
+        strend(uri, ".ico"))
+    {
+        if(!socket->SendFile(&uri[1], ikc_dir))  // Check IKC-directory first to allow files to be overriden
+        if(!socket->SendFile(&uri[1], webui_dir))   // Now look in WebUI directory
+        {
+            if (strend(uri, ".gltf") || strend(uri, ".glb"))
+                socket->SendFile("/Models/glTF/Error.gltf", webui_dir);   // Send error model
+            else
+                socket->SendFile("404.html", webui_dir); // Send 404 if not file found
+        }
+    }
+    else
+    {
+        Dictionary header;
+        header.Set("Content-Type", "text/plain");
+        socket->SendHTTPHeader(&header);
+        socket->Send("ERROR\n");
+    }
+    
+    destroy_string(uri);
+}
+
+
+
+void
+Kernel::HandleHTTPThread()
+{
+    while(!Terminate())
+    {
+        if (socket->GetRequest(true))
+        {
+            if (equal_strings(socket->header.Get("Method"), "GET"))
+                HandleHTTPRequest();
+            socket->Close();
+        }
+    }
+}
+
+
+
+void *
+Kernel::StartHTTPThread(Kernel * k)
+{
+    k->HandleHTTPThread();
+    return NULL;
+}
 
