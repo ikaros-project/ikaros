@@ -1925,11 +1925,16 @@ Kernel::SetOptions(Options * opt)
     
     if(options->GetOption('u'))
         iterations_per_runstep = string_to_int(options->GetArgument('u'));
-    
+
+    port = PORT;
     if (options->GetOption('w'))
-    {
         port = string_to_int(options->GetArgument('w'), PORT);
-        Notify(msg_debug, "Setting up WebUI port at %d\n", port);
+    
+    if (options->GetOption('W')) // TODO: Use log-level for this instead?
+    {
+        port = string_to_int(options->GetArgument('W'), PORT);
+        Notify(msg_debug, "Setting up WebUI port at %d in debug mode\n", port);
+        debug_mode = true;
     }
     
     if (options->GetOption('R'))
@@ -1948,15 +1953,7 @@ Kernel::SetOptions(Options * opt)
         }
         isRunning = true;
     }
-    
-    if (options->GetOption('W'))
-    {
-        port = string_to_int(options->GetArgument('W'), PORT);
-        Notify(msg_debug, "Setting up WebUI port at %d in debug mode\n", port);
-        debug_mode = true;
-    }
 }
-
 
 
 Kernel::~Kernel()
