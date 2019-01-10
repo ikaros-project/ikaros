@@ -42,15 +42,9 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
          return `<div class="hranger"></div>`;
     }
 
-    requestData(data_set)
+    slider_moved(value, index=0)
     {
-        data_set.add(this.parameters.parameter);
-    }
-
-    slider_moved(index, value)
-    {
-        if(this.parameters.parameter)
-            this.get("/control/"+this.parameters.parameter+"/"+index+"/0/"+value);   // FIXME: used dot notation
+        this.send_control_change(this.parameters.parameter, value, index);
     }
 
     updateAll()
@@ -125,7 +119,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
         {
             slider.index = i++;
             slider.oninput = function (){
-                this.parentElement.parentElement.parentElement.slider_moved(this.index, this.value);
+                this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
             }
         }
     }

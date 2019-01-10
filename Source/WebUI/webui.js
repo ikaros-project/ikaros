@@ -495,7 +495,7 @@ interaction = {
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
     },
-    initViewElement: function (element, data) {   // For object in view from IKC file - should be called add widget
+    initViewElement: function (element, data) {   // For object in view from IKC or IKG file - should be called add widget
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
         let constr = webui_widgets.constructors["webui-widget-"+data['class']];
@@ -503,12 +503,14 @@ interaction = {
         {
             console.log("Internal Error: No constructor found for "+"webui-widget-"+data['class']);
             element.widget = new webui_widgets.constructors['webui-widget-text'];
-            element.widget.element = element;
+            element.widget.element = element; // FIXME: wjy not also below??
+            element.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
             element.widget.parameters['text'] = "\""+"webui-widget-"+data['class']+"\" not found.";
         }
         else
         {
             element.widget = new webui_widgets.constructors["webui-widget-"+data['class']];
+            element.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
             
             // Add default parameters from CSS - possibly...
  
@@ -1306,7 +1308,7 @@ controller = {
             catch(err)
             {}
 
-        let group_path = interaction.currentViewName.substring(1).split("/").slice(1).join("."); // FIXME: use this format all the time
+        let group_path = interaction.currentViewName.split('#')[0].split('/').slice(2).join('.'); // OLD currentViewName.substring(1).split("/").slice(1).join("."); // FIXME: use this format all the time
         let data_string = group_path+"#"; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)

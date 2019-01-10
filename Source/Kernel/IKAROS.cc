@@ -3990,6 +3990,11 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
         char * source = strsep(&ms, ":");
         auto format = ms ? std::string(ms) : std::string();
         auto root_group = main_group->GetGroup(std::string(root));
+        
+        std::string src = std::string(source);
+        if(!std::string(root).empty())
+            src = std::string(root)+"."+src;
+        
         if(root_group)
         {
             if(format == "") // as default, send a matrix
@@ -4001,10 +4006,11 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     SendJSONMatrixData(socket, source, *io->matrix[0], io->sizex, io->sizey);
                     sep = ",\n";
                 }
-                else if(bindings.count(source))
+                else if(bindings.count(src))
                 {
                     socket->Send(sep.c_str());
-                    Binding * b = bindings.at(source).at(0);   // Use first binding
+                    auto bs = bindings.at(src);
+                    Binding * b = bs.at(0);   // Use first binding
                     switch(b->type)
                     {
                         case data_source_int:

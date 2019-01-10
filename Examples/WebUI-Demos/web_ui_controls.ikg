@@ -39,13 +39,36 @@
                 x="440" y="40"
                 width="301"
                 height="301"
-                source="C.OUTPUT"
+                source="D.OUTPUT"
                 title = "Bar Graph X"
                 labels = "X"
                 style = ""
             />
         </view>
         
+            <group name="G" data="0.5" >
+ 
+                 <module
+                    class = "Constant"
+                    name = "E"
+                />
+
+                <view name="Internal">
+                    <slider-horizontal label="X" parameter="E.data" x="140" y="40" width="100" height="100" />
+                    <slider-horizontal label="X" parameter="E.data" x="140" y="80" width="100" height="100" />
+                    
+                    <bar-graph
+                        x="440" y="40"
+                        width="301"
+                        height="301"
+                        source="E.OUTPUT"
+                        title = "Bar Graph X"
+                        labels = "X"
+                        style = ""
+                    />
+                </view>
+                
+            </group>
     </group>
 
     <module class="Logger" name="Logger" />

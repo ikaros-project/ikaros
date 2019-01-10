@@ -34,7 +34,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
         return "<button></button>";
     }
 
-    requestData(data_set)
+    requestData(data_set)   // TODO: can probably be removed
     {
         if(this.parameters.enableSource)
             data_set.add(this.parameters.enableSource);
@@ -44,20 +44,24 @@ class WebUIWidgetButton extends WebUIWidgetControl
     {
         let p = this.parentElement.parameters;
         if(p.command)
-            this.parentElement.get("/command/"+p.command+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
+            this.send_command(p.command, value, p.xindex, p.yindex);
+            //this.parentElement.get("/command/"+p.command+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
 
         else if(p.parameter)
-            this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
+            this.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
+            //this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
     }
 
     button_up(evt)
     {
         let p = this.parentElement.parameters;
         if(p.commandUp)
-            this.parentElement.get("/command/"+p.commandUp+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
+             this.parentElement.send_command(p.commandUp, p.value, p.xindex, p.yindex);
+//           this.parentElement.get("/command/"+p.commandUp+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
 
         else if(p.parameter)
-            this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
+            this.parentElement.send_control_change(p.parameter, p.valueUp, p.xindex, p.yindex);
+ //           this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
     }
 
     init()
