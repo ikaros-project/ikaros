@@ -20,7 +20,7 @@ nrServosTotal = "19"
 
 >
 	<!-- import frame and id for epi robots> -->
-    <?include file="EpiFrames.ikc" ?>
+    <?include file="EpiFrames.ikg" ?>
 
 
     <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
