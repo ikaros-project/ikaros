@@ -38,7 +38,7 @@
 	<output name="GREEN" description="The green channel of the image (or intensity for a gray image)" />
 	<output name="BLUE" description="The blue channel of the image (or intensity for a gray image)" />
 
-	<module class="InputJPEG" />
+	<link class="InputJPEG" />
     
 	<view name="View">
 		<image

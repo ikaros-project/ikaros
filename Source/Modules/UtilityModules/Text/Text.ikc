@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Text" description="tests a text parameter">
+<class name="Text" description="tests a text parameter">
 
 	<description type="text">
 		Module that tests widget parameters of type text. The module has no other function and should probablly never be used.
@@ -16,7 +16,7 @@
 
 	<parameter name="OUTPUT" type="Text" default="Alpha" description="parameter containing a string that is used as output from the module" />
 
-	<module class="Text" />
+	<link class="Text" />
 
     <view name="View (Deafult)">
          <text module="*" parameter="OUTPUT" x="20" y="20" width="301" height="301"/>
@@ -35,5 +35,5 @@
    		<file>Text.ikc</file>
    </files>
 
-</group>
+</class>
 

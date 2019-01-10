@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <group>
-	
 		<module class = "Constant" name = "Constant" outputsize = "5" data="-2 -1 0 1 2" />
 	
 		<module

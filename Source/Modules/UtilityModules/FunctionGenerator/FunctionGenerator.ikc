@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="FunctionGenerator" description="functions of times">
+<class name="FunctionGenerator" description="functions of times">
 
 	<description type="text">
 		Module that produces a function of time as its output.
@@ -32,7 +32,7 @@
     
 	<output name="OUTPUT" description="The time dependent output signal(s)" size_param="size" />
 
-	<module class="FunctionGenerator" />
+	<link class="FunctionGenerator" />
 
     <view name="View (Default)">
         <plot
@@ -57,5 +57,5 @@
    		<file>FunctionGenerator.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -39,7 +39,7 @@
 
 	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
 
-	<module class="Constant" />
+	<link class="Constant" />
 
     <view name="View (Default)">
         <bar-graph

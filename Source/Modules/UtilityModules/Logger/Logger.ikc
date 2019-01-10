@@ -13,7 +13,7 @@
 		/>
 	</example>
 
-	<module class="Logger" />
+	<link class="Logger" />
 
 	<author>
 		<name>Christian Balkenius</name>
