@@ -8,7 +8,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
  
             {'name': "CONTROL", 'control':'header'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -19,7 +19,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
  
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'enableModule', 'default':"", 'type':'source', 'control': 'textedit'},
+ //           {'name':'enableModule', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
                 
             {'name': "FRAME", 'control':'header'},
@@ -36,28 +36,28 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     requestData(data_set)
     {
-        if(this.parameters.enableModule && this.parameters.enableSource)
-            data_set.add(this.parameters.enableModule+"."+this.parameters.enableSource);
+        if(this.parameters.enableSource)
+            data_set.add(this.parameters.enableSource);
     }
 
     button_down(evt)
     {
         let p = this.parentElement.parameters;
-        if(p.command && p.module)
-            this.parentElement.get("/command/"+p.module+"/"+p.command+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
+        if(p.command)
+            this.parentElement.get("/command/"+p.command+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
 
-        else if(p.module && p.parameter)
-            this.parentElement.get("/control/"+p.module+"/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
+        else if(p.parameter)
+            this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
     }
 
     button_up(evt)
     {
         let p = this.parentElement.parameters;
-        if(p.commandUp && p.module)
-            this.parentElement.get("/command/"+p.module+"/"+p.commandUp+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
+        if(p.commandUp)
+            this.parentElement.get("/command/"+p.commandUp+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
 
-        else if(p.module && p.parameter)
-            this.parentElement.get("/control/"+p.module+"/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
+        else if(p.parameter)
+            this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
     }
 
     init()
@@ -73,8 +73,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
         this.firstChild.innerText = this.parameters.label;
 
         try {
-            if(this.parameters.enableModule && this.parameters.enableSource)
-                this.firstChild.disabled = (d[this.parameters.enableModule][this.parameters.enableSource][0][0] == 0 ? true : false);
+            if(this.parameters.enableSource)
+                this.firstChild.disabled = (this.getSource(enableSource)[0][0] == 0 ? true : false);
         }
         catch(err)
         {}

@@ -1096,7 +1096,7 @@ controller = {
                 }
                 controller.defer_reconnect(); // we are still on line
                 setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
-                callback(xhr.response, xhr.getResponseHeader("Session-Id"));
+                callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
             }
             
             xhr.responseType = 'json';
@@ -1108,7 +1108,6 @@ controller = {
             {
                 console.log(error);
             }
-
     },
 
     init: function () {
@@ -1213,12 +1212,12 @@ controller = {
     },
 
 
-    update(response, session_id)
+    update(response, session_id, package_type)
     {
         controller.ping = Date.now() - controller.send_stamp;
 
         // Check if this is a new session
-        
+
         if(!response)
         {
             controller.requestUpdate(); // empty respone - probably an error
@@ -1235,7 +1234,7 @@ controller = {
             controller.buildViewDictionary(response, "");
             controller.selectView(Object.keys(controller.views)[0]);
         }
-        else // same session - proably new data package
+        else if(package_type == "data") // same session - a new data package
         {
             // Set system info from package
             try
@@ -1256,9 +1255,9 @@ controller = {
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
                 document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
                 
+                let p = document.querySelector("#progress");
                 if(response.progress > 0)
                 {
-                    let p = document.querySelector("#progress");
                     p.value = response.progress;
                     p.style.display = "table-row";
                 }
@@ -1271,11 +1270,15 @@ controller = {
             }
             catch(err)
             {
-                console.log("incorrect package received form ikaros")
+                console.log("incorrect package received form ikaros (1)")
             }
             
             if(response.has_data)
-                controller.updateImages(response);
+                controller.updateImages(response.data);
+        }
+        else
+        {
+            console.log("incorrect package received form ikaros (2)")
         }
     },
 
@@ -1303,14 +1306,15 @@ controller = {
             catch(err)
             {}
 
-        let data_string = interaction.currentViewName+"#"; // should be added to names to support multiple clients
+        let group_path = interaction.currentViewName.substring(1).split("/").slice(1).join("."); // FIXME: use this format all the time
+        let data_string = group_path+"#"; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)
         {
             data_string += (sep + s);
             sep = "#"
          }
-        
+
         controller.get(controller.command+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
         controller.command = 'update';
     },

@@ -6,7 +6,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             {'name': "DATA", 'control':'header'},
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_module', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -77,14 +77,14 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             alert(s);
         };
     }
-
+/*
     requestData(data_set)
     {
         data_set.add(this.parameters['module']+"."+this.parameters['source']);
         if(this.parameters['length_module'])
             data_set.add(this.parameters['length_module']+"."+this.parameters['length_source']);
     }
-
+*/
     drawRows(width, height, index, transform)
     {
         let s = this.parameters.size*(width+height)/2
@@ -233,9 +233,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
         
         try {
-            let m = this.parameters['module'];
-            let s = this.parameters['source'];
-            this.data = d[m][s];
+            this.data = d[this.parameters['source']];
 
             if(!this.data)
                 return;

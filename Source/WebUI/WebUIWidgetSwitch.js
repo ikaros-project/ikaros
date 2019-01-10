@@ -8,7 +8,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'value', 'default':1, 'type':'int', 'control': 'textedit'},
@@ -29,19 +29,19 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
 
     requestData(data_set)
     {
-        data_set.add(this.parameters.module+"."+this.parameters.parameter);
+        data_set.add(this.parameters.parameter);
     }
 
     button_up()
     {
         let s = this.querySelector("input");
         let p = this.parameters;
-        if(p.module && p.parameter)
+        if(p.parameter)
         {
             if(s.checked)
-                this.get("/control/"+p.module+"/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/0");
+                this.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/0");
             else
-                this.get("/control/"+p.module+"/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/1");
+                this.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/1");
         }
     }
 
@@ -53,21 +53,18 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
         }
     }
 
-    update(d)
+    update()
     {
          try {
             this.querySelector('label').innerText = this.parameters.label;
 
-            let m = this.parameters.module;
-            let s = this.parameters.parameter;
-            this.data = d[m][s];
-
-            if(this.data)
+            let d = this.getSource("parameter");
+            if(d)
             {
-                let size_y = this.data.length;
-                let size_x = this.data[0].length;
+                let size_y = d.length;
+                let size_x = d[0].length;
                 let s = this.querySelector("input");
-                s.checked = (this.data[this.parameters.yindex][this.parameters.xindex] > 0);
+                s.checked = (d[this.parameters.yindex][this.parameters.xindex] > 0);
             }
         }
         catch(err)

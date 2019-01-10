@@ -5,10 +5,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'index', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'list_module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'list_module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'list', 'default':"", 'type':'string', 'control': 'textedit'},
 
@@ -35,17 +35,17 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
          return "<label></label><select></select>";
     }
 
-    requestData(data_set)
+    requestData(data_set)   // TODO: Remove - is automatic now
     {
-        data_set.add(this.parameters.module+"."+this.parameters.parameter);
-        if(this.parameters.list_module && this.parameters.list_parameter)
-            data_set.add(this.parameters.list_module+"."+this.parameters.list_parameter);
+        data_set.add(this.parameters.parameter);
+        if(this.parameters.list_parameter)
+            data_set.add(this.parameters.list_parameter);
     }
 
     option_selected(index, value)
     {
-        if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+index+"/0/"+value);
+        if(this.parameters.parameter)
+            this.get("/control/"+this.parameters.parameter+"/"+index+"/0/"+value);
     }
 
     changeOptions(options)
@@ -81,24 +81,24 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
          this.querySelector("label").innerText = this.parameters.label;
     }
 
-    update(d)
+    update()
     {
          try {
-            let m = this.parameters.module;
-            let s = this.parameters.parameter;
-            this.data = d[m][s];
-
-            if(this.data)
+            let d = this.getSource('parameter');
+            if(d)
             {
-                let size_y = this.data.length;
-                let size_x = this.data[0].length;
+                let size_y = d.length;
+                let size_x = d[0].length;
  
                 let selector = this.querySelector("select");
 
-                if(this.parameters.list_module && this.parameters.list_parameter)
-                    this.changeOptions(d[this.parameters.list_module][this.parameters.list_parameter])
+                if(this.parameters.list_parameter)
+                {
+                    let l = this.getSource('list_parameter');
+                    this.changeOptions(l)
+                }
  
-                selector.value = this.data[this.parameters.index][0];
+                selector.value = d[this.parameters.index][0];
             }
         }
         catch(err)

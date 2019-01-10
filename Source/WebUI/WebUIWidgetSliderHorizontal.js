@@ -18,7 +18,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'count', 'default':1, 'type':'int', 'control': 'textedit'},
@@ -44,13 +44,13 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
 
     requestData(data_set)
     {
-        data_set.add(this.parameters.module+"."+this.parameters.parameter);
+        data_set.add(this.parameters.parameter);
     }
 
     slider_moved(index, value)
     {
-        if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+index+"/0/"+value);
+        if(this.parameters.parameter)
+            this.get("/control/"+this.parameters.parameter+"/"+index+"/0/"+value);   // FIXME: used dot notation
     }
 
     updateAll()
@@ -130,21 +130,18 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
         }
     }
 
-    update(d)
+    update()
     {
          try {
-            let m = this.parameters.module;
-            let s = this.parameters.parameter;
-            this.data = d[m][s];
-
-            if(this.data)
+            let d = this.getSource("parameter");
+            if(d)
             {
-                let size_y = this.data.length;
-                let size_x = this.data[0].length;
+                let size_y = d.length;
+                let size_x = d[0].length;
                 
                 let i = 0;
                 for(let slider of this.querySelectorAll("input"))
-                    slider.value = this.data[0][i++];
+                    slider.value = d[0][i++];
             }
 
             if(this.parameters.show_values)

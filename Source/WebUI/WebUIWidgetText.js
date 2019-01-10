@@ -5,7 +5,7 @@ class WebUIWidgetText extends WebUIWidgetControl
         return [
             {'name': "DATA", 'control':'header'},
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
-            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+ //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'text', 'default':"", 'type':'string', 'control': 'textedit'},
             
@@ -20,12 +20,13 @@ class WebUIWidgetText extends WebUIWidgetControl
     {
         return "<div> </div>";
     }
-
+/*
     requestData(data_set)
     {
         if(!this.parameters.text)
-            data_set.add(this.parameters.module+"."+this.parameters.parameter);
+            data_set.add(this.parameters.parameter);
     }
+*/
 /*
     text_edited(index, value)
     {
@@ -39,7 +40,7 @@ class WebUIWidgetText extends WebUIWidgetControl
         this.innerText = this.text;
     }
     
-    update(d)
+    update()
     {
          try {
             if(this.parameters.text)
@@ -49,21 +50,8 @@ class WebUIWidgetText extends WebUIWidgetControl
                 return;
             }
          
-            let m = this.parameters.module;
-            let s = this.parameters.parameter;
-            this.data = d[m][s];
-
-            if(this.data)
-            {
-                this.text = this.data;
-                this.innerText = this.text;
-            }
-            else
-            {
-                this.text = this.parameters.text;
-                this.data = this.text;
-                this.innerText = this.text;
-            }
+            this.text = this.getSource('parameter');
+            this.innerText = this.text;
         }
         catch(err)
         {

@@ -94,10 +94,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         if(this.parameters.source)
         {
-            let s = this.parameters.source.rsplit('.',1);
-            let d = data[s[0]];
-            if(!d) return;
-            d = d[s[1]+":"+this.parameters.format];
+            let d = data[this.parameters.source+":"+this.parameters.format];
             if(!d) return;
             this.imageObj.onload = function ()
             {
