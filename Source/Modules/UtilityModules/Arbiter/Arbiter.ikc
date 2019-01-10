@@ -59,12 +59,12 @@
 
     <view name="Arbiter View">
         <drop-down-menu title="arbitration" list="WTA,hysteresis,softmax,hierarchy" module="Arbiter" parameter="arbitration" x="20" y="20" width="200" height="100"/>
-        <bar-graph title="Amplitudes" module="*" source="AMPLITUDES"     x="20" y="220" width="200" height="200" />
-        <bar-graph title="Arbitration" module="*" source="ARBITRATION"   x="20" y="440" width="200" height="200" />
-        <bar-graph title="Smoothed" module="*" source="SMOOTHED"         x="20" y="660" width="200" height="200" />
-        <bar-graph ctitle="Normalized" module="*" source="NORMALIZED"     x="20" y="880" width="200" height="200" />
-        <bar-graph title="Output" module="*" source="OUTPUT"             x="420" y="220" width="200" height="200" />
-        <bar-graph title="Value Output" module="*" source="VALUE"        x="420" y="440" width="200" height="200" />
+        <bar-graph title="Amplitudes" source=".AMPLITUDES"     x="20" y="220" width="200" height="200" />
+        <bar-graph title="Arbitration" source=".ARBITRATION"   x="20" y="440" width="200" height="200" />
+        <bar-graph title="Smoothed" source=".SMOOTHED"         x="20" y="660" width="200" height="200" />
+        <bar-graph ctitle="Normalized" source=".NORMALIZED"     x="20" y="880" width="200" height="200" />
+        <bar-graph title="Output" source=".OUTPUT"             x="420" y="220" width="200" height="200" />
+        <bar-graph title="Value Output" source=".VALUE"        x="420" y="440" width="200" height="200" />
     </view>
 
 	<author>
