@@ -2,5 +2,5 @@
 <!-- This file must be included in a proper XML document using <?include ?> -->
 
 <module class = "Randomizer" name = "module_in_file_1_A" />
-<?include file="included_file_2.ikg" ?>
+<?include file="included_file_2.ikc" ?>
 <module class = "Randomizer" name = "module_in_file_1_B" />

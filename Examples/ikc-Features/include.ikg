@@ -11,9 +11,9 @@
 
 <group name="outer">
     <module class = "Randomizer" name = "module_in_outer_file_A" />
-    <?include file="included_file_1.ikg" ?>
+    <?include file="included_file_1.ikc" ?>
     <module class = "Randomizer" name = "module_in_outer_file_B" />
-    <?include file="included_file_3.ikg" ?>
+    <?include file="included_file_3.ikc" ?>
     <module class = "Randomizer" name = "module_in_outer_file_C" />
 
 </group>
