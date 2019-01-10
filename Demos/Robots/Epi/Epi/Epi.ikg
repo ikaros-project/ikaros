@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+
+<group name="Epi"
+
+servosIndexBody = "0"
+servosIndexHead = "1"
+servosIndexLeftArm = "5"
+servosIndexRightArm = "11"
+servosIndexPupil = "17"
+
+nrServosBody = "1"
+nrServosHead = "4"
+nrServosLeftArm = "6"
+nrServosRightArm = "6"
+nrServosPupil = "2"
+nrServosTotal = "19"
+
+
+
+
+>
+	<!-- import frame and id for epi robots> -->
+    <?include file="EpiFrames.ikc" ?>
+
+
+    <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
+´   <module class = "Constant" name = "PositioExo" data = "
+        1 0 0 0.85
+        0 1 0 0.15
+        0 0 1 0.847
+        0 0 0 1;" />
+
+    <module class = "Constant" name = "RotationExo" data = "
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1;" />
+
+
+    <!-- Multiply position and rotation-->
+   <module class="Transform"   name="EpiPositionExo" />
+        <connection source = "PositioExo.OUTPUT"    target = "EpiPositionExo.MATRIX_1"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_1" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RotationExo.OUTPUT"   target = "EpiPositionExo.MATRIX_2"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_2" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_2"  delay = "0"/>
+
+
+
+ 
+
+<!-- 			Attention 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!--      FocusPoint          -->
+<!-- Where should Epi Look at -->
+
+    <!-- Set the coordinate where Epi should look at in egocentric coordinates -->
+    <module class = "Constant" name = "ManFocusPoint" data = "
+    1 0 0 1
+    0 1 0 -0.5 
+    0 0 1 2 
+    0 0 0 1"/>
+    
+    <!-- This should be moved to population code and use amplitude instead --> 	
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.00001"/>
+    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.00002"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.001"/>
+   
+    
+    <!-- In allocentric coordinate -->
+    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
+        <!-- ManualFocusPoint -->
+        <connection source = "ManFocusPoint.OUTPUT"                                     target = "HighLevelFocusArbiter.INPUT_1" />
+        <connection source = "ManFocusPointValue.OUTPUT"                                target = "HighLevelFocusArbiter.VALUE_1" />
+        <!-- External focus point-->
+        <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2"/>  <!-- targetmodule????? -->
+        <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2"/>
+
+
+<!-- 			END 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+
+
+
+<!-- 			Motor control 			-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- Servo paramters Format -->
+<!-- BodyAngle1 -->
+<!-- NeckTilt NeckPan LeftEye RightEye -->
+<!-- LeftArm1 LeftArm2 LeftArm3 LeftArm4 LeftArm5 LeftHand -->
+<!-- RightArm1 RightArm2 RightArm3 RightArm4 RightArm5 RightHand -->
+<!-- LeftPupil RightPupil -->
+
+<!-- External Motor control -->
+<input name = "SERVO_ANGLES"      		targetmodule = "EXT_SERVO_ANGLE"		target = "INPUT"/>
+<input name = "SERVO_ANGLES_AMPLITUDE"	targetmodule = "EXT_SERVO_ANGLE_A"		target = "INPUT"/>
+
+<module class = "Gate" name = "EXT_SERVO_ANGLE"/> <!-- Dummy module -->
+<module class = "Gate" name = "EXT_SERVO_ANGLE_A"/><!-- Dummy module -->
+
+<module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	<connection source = "EXT_SERVO_ANGLE.OUTPUT"       target = "ExtServoAngleCode.INPUT" />
+	<connection source = "EXT_SERVO_ANGLE_A.OUTPUT"     target = "ExtServoAngleCode.AMPLITUDE" />
+
+<!-- Internal Motor control -->
+<module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
+<module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+
+<module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	<connection source = "INT_SERVO_ANGLE.OUTPUT"   target = "IntServoAngleCode.INPUT" />
+	<connection source = "INT_SERVO_ANGLE_A.OUTPUT" target = "IntServoAngleCode.AMPLITUDE" />
+
+<view name="Manual Control"   color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink">
+    <slider-horizontal title="Internal Amplitude" label="Servo Angles" module="INT_SERVO_ANGLE_A" parameter="data" count="20" x="10" y="50" width="150" height="450" show_title = "true" show_value = "true"/>
+    <slider-horizontal title="Internal Angles" label="Servo Angles" module="INT_SERVO_ANGLE" parameter="data" count="20" x="180" y="50" width="300" height="450" show_title = "true" min = "-180" max ="180" step ="5" labels = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" show_value = "true"/>
+	
+
+	<text text="External Manual Control" x="500" y="50" width="300" height="100"/>
+	<table title="External Manual" module="EXT_SERVO_ANGLE" source="OUTPUT" x="500" y="100" width="1200" height="50" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" decimals="2"/>
+	<table title="Amplitude" module="EXT_SERVO_ANGLE_A" source="OUTPUT" x="500" y="150" width="1200" height="200" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"  decimals="2"/>
+
+	<text text="Internal Manual Control" x="500" y="200" width="300" height="100"/>
+	<table title="External Manual" module="INT_SERVO_ANGLE" source="OUTPUT" x="500" y="250" width="1200" height="50"  color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"  decimals="2"/>
+	<table title="Amplitude" module="INT_SERVO_ANGLE_A" source="OUTPUT" x="500" y="300" width="1200" height="200" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"  decimals="0"/>
+
+	<text text="Output to servos" x="500" y="400" width="300" height="50"/>
+	<table title="Low level motor arbiter" module="GOAL_POSITION" source="OUTPUT" x="500" y="450" width="1200" height="300" decimals="0" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" />
+
+	<text text="Feedback from servos" x="500" y="500" width="300" height="50"/>
+	<table title="Feedback" module="Servos" source="FEEDBACK_POSITION" x="500" y="550" width="1200" height="300"decimals="1" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" />
+
+</view>
+ 
+
+
+</group>
