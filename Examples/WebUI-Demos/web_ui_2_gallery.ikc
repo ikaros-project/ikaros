@@ -78,17 +78,17 @@
    </view>
     
     <view name="Controls">
-        <button label="Press Me" module="CCC" parameter="data" x="40" y="40" width="100" height="100" />
-        <button label="Me Too" module="CCC" parameter="data" x="40" y="140" width="100" height="100" />
-        <button label="Sometimes" module="CCC" parameter="data" x="40" y="240" width="100" height="100" enableModule="Enable" enableSource="OUTPUT" />
+        <button label="Press Me" parameter="CCC.data" x="40" y="40" width="100" height="100" />
+        <button label="Me Too" parameter="CCC.data" x="40" y="140" width="100" height="100" />
+        <button label="Sometimes" parameter="CCC.data" x="40" y="240" width="100" height="100" enableSource="Enable.OUTPUT" />
 
-        <switch label="Alarm" module="SwitchValue" parameter="data" x="40" y="360" width="100" height="100" />
+        <switch label="Alarm" parameter="SwitchValue.data" x="40" y="360" width="100" height="100" />
 
-        <drop-down-menu label="" list="X,Y,Z" module="Options" parameter="data" x="40" y="420" width="100" height="50" />
-        <drop-down-menu label="" module="Options2" parameter="data" list_module="OptionsForMenu" list_parameter="OUTPUT" x="40" y="520" width="100" height="50" />
+        <drop-down-menu label="" list="X,Y,Z" parameter="Options.data" x="40" y="420" width="100" height="50" />
+        <drop-down-menu label="" parameter="Options2.data" list_parameter="OptionsForMenu.OUTPUT" x="40" y="520" width="100" height="50" />
 
-        <slider-horizontal label="X" module="CCC" parameter="data" count="3" x="200" y="40" width="100" height="100" />
-        <slider-horizontal label="X" module="CCC" parameter="data" count="3" x="300" y="40" width="100" height="100" />
+        <slider-horizontal label="X" parameter="CCC.data" count="3" x="200" y="40" width="100" height="100" />
+        <slider-horizontal label="X" parameter="CCC.data" count="3" x="300" y="40" width="100" height="100" />
 
         <bar-graph
             x="440" y="40"
@@ -633,7 +633,7 @@
 
 
     <view name="Text">
-        <text module="String" parameter="OUTPUT" x="20" y="20" width="200" height="100"/>
+        <text parameter="String.OUTPUT" x="20" y="20" width="200" height="100"/>
         <text text="Static text" x="20" y="120" width="200" height="100"/>
     </view>
 
@@ -1106,5 +1106,6 @@
 
     <module class="Logger" name="Logger" />
 </group>
- 
+
+
 
