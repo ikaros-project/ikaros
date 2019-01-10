@@ -35,7 +35,7 @@
             arrow = "no"
             close = "yes"
             order = "row"
-            source = "*.TRACKER_BOUNDS"
+            source = ".TRACKER_BOUNDS"
             height = "600"
             color = "red, green, blue, yellow"
             lineJoin = "round"

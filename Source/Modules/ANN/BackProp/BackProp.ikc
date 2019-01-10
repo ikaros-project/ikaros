@@ -54,7 +54,7 @@
         x="20" y="20"
         width="300"
         height="300"
-        source="*.OUTPUT"
+        source=".OUTPUT"
         title="OUTPUT"
     />
 
@@ -62,7 +62,7 @@
         x="20" y="340"
         width="300"
         height="300"
-        source="*.ERROR"
+        source=".ERROR"
         title="ERROR"
     />
 
@@ -70,7 +70,7 @@
         x="340" y="340"
         width="300"
         height="300"
-        source="*.CORRECT"
+        source=".CORRECT"
         title="CORRECT"
     />
 </view>

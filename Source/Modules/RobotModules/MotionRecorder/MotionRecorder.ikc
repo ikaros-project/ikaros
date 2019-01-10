@@ -75,7 +75,7 @@
             module = "*"
         />
 
-        <plot source="*.OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+        <plot source=".OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
 
         <table title="time" module="*" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
 

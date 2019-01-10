@@ -54,7 +54,7 @@
 	<link class="Expression" />
 	<view name="Expression">
 			<plot 
-				source="*.OUTPUT"
+				source=".OUTPUT"
 				x="10" y="10" w="200" h="400"
 				min="0"
 				max="2"

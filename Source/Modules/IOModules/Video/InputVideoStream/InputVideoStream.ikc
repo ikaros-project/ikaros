@@ -36,7 +36,7 @@
 		width = "381"
 		flipYCanvas = "no"
 		x = "60"
-		source = "*.RED+GREEN+BLUE"
+		source = ".RED+GREEN+BLUE"
 		format = "rgb"
 		flipYAxis = "no"
 		flipXCanvas = "no"

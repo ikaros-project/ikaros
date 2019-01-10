@@ -37,7 +37,7 @@
     <view name="View (Default)">
         <plot
             x="20" y="20" width="400" height="300"
-            source="*.OUTPUT"
+            source=".OUTPUT"
             title="Default view for FunctionGenerator"
             min="-1"
             max="1"
