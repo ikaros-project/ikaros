@@ -34,15 +34,13 @@
         <object
         x="0" y="0" w="2"
         class="BarGraph"
-        module="*"
-        source="OUTPUT"
+        source=".OUTPUT"
         title="Default view for YARPPort"
         />
         <object
         x="2" y="0" w="2"
         class="BarGraph"
-        module="*"
-        source="ACTIVITY"
+        source=".ACTIVITY"
         title="Default view for YARPPort"
         />
     </view>

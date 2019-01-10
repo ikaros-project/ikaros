@@ -46,15 +46,13 @@
         <object
             x="0" y="0" w="1"
             class="BarGraph"
-            module="*"
-            source="COUNT"
+            source=".COUNT"
         />
 
         <object
             x="1" y="0" w="1"
             class="BarGraph"
-            module="*"
-            source="PERCENT"
+            source=".PERCENT"
         />
     </view>
     

@@ -22,7 +22,7 @@
 
 	<link class="TruncateArray" />
 		<view>
-			<object class ="BarGraph" title="Output" module="*" source="OUTPUT" x="0" y="0" w="2" />
+			<object class ="BarGraph" title="Output" source=".OUTPUT" x="0" y="0" w="2" />
 		</view>
 	<author>
 		<name>Birger Johansson</name>

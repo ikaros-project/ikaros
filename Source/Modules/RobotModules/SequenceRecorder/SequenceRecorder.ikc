@@ -52,7 +52,7 @@
             module = "*"
         />
 
-        <table title="time" module="*" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
+        <table title="time" source=".TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
         <button label = "Off" module="*" command="off" x="10" y="121" height="41" width="101" />
         <button label = "Stop" module="*" command="stop" x="10" y="161" height="41" width="101"  />
@@ -64,7 +64,7 @@
 
         <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="*" parameter="current_motion" x="10" y="311" width="121" height="41" />
 
-        <grid module="*" source="MODE" color="red,green" x="130" y="600" width="800" height="501" />
+        <grid source=".MODE" color="red,green" x="130" y="600" width="800" height="501" />
     </view>
 
 	<author>

@@ -192,7 +192,6 @@
 		<view name="Epi och admin">
 			
 			<bar-graph
-			module = "*"
 			show_frame = "true"
 			height = "381"
 			max = "1"
@@ -209,7 +208,6 @@
 			/>
 			
 			<bar-graph
-			module = "*"
 			show_frame = "true"
 			height = "381"
 			max = "290"

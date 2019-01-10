@@ -36,8 +36,7 @@
             x="40" y="40"
             width="301"
             height="301"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title = "InitialValue"
             
             style = ""

@@ -25,7 +25,7 @@
 	<link class="PopulationDecoder" />
 
     <view>
-        <object class="BarGraph" module="*" source="OUTPUT" x="0" y="0" w="4" />
+        <object class="BarGraph" source=".OUTPUT" x="0" y="0" w="4" />
     </view>
     
 	<created>2016</created>

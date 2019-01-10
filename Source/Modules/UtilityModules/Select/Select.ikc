@@ -36,16 +36,14 @@
         <object
             x="0" y="0" w="2"
             class="Table"
-            module="*"
-            source="INPUT"
+            source=".INPUT"
             title="Input"
         />
 
         <object
             x="0" y="1" w="2"
             class="Table"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Output"
         />
     </view>

@@ -36,8 +36,7 @@
         <object
             x="0" y="0" w="2"
             class="Plot"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Polynomial"
         />
     </view>

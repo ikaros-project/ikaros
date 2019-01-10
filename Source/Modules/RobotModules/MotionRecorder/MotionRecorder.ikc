@@ -53,8 +53,7 @@
             y = "10"
             width = "121"
             height = "41"
-            source = "STATE"
-            module = "*"
+            source = ".STATE"
             max = "7"
             labels = "state"
             labelWidth = "50"
@@ -91,7 +90,7 @@
 
         <switch label=" Rec on trig" module="*" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
 
-        <grid module="*" source="MODE" color="red,green" x="130" y="600" width="800" height="501" />
+        <grid source=".MODE" color="red,green" x="130" y="600" width="800" height="501" />
     </view>
 
 	<author>

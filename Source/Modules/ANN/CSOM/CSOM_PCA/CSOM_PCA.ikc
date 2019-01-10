@@ -71,11 +71,11 @@
 
 	<!-- View -->
 	<view name="CSOM_PCA">
-		<object class= "Image" type="gray" module="*" source="OUTPUT"
+		<object class= "Image" type="gray" source=".OUTPUT"
 							x="0" y="0" h="2" w="2" />
-		<object class= "Image" type="gray" module="*" source="WEIGHTS"
+		<object class= "Image" type="gray" source=".WEIGHTS"
 							x="0" y="2" h="2" w="2" />
-		<object class= "Image" type="gray" module="*" source="RECONSTRUCTION"
+		<object class= "Image" type="gray" source=".RECONSTRUCTION"
 							x="0" y="4" h="2" w="2" />
 	</view>
 	<author>
