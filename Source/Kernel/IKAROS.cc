@@ -3058,7 +3058,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
         append_string(include_file, "/", PATH_MAX);
     
     append_string(include_file, class_name, PATH_MAX);
-    append_string(include_file, ".ikc", PATH_MAX);
+    append_string(include_file, ".ikg", PATH_MAX);
 
 	const char * filename = file_exists(include_file);
 
