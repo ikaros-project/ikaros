@@ -1,7 +1,7 @@
 //
 //	IKAROS_System.h		Definition of the target system for which to compile
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2019  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
