@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Select" description="selects maximum element">
+<class name="Select" description="selects maximum element">
 
 	<description type="text">
 		A module that selects elements from an array or matrix according to an index table.
@@ -30,7 +30,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="Output with the selected elements of the input" />
 
-	<module class="Select" />
+	<link class="Select" />
 
     <view title="Select">
         <object
@@ -63,5 +63,5 @@
    		<file>Select.ikc</file>
    </files>
 
-</group>
+</class>
 

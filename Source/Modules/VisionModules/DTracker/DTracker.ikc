@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DTracker" description="wraps dlib's correlation tracker">
+<class name="DTracker" description="wraps dlib's correlation tracker">
 
 <description type="xhtml">
 <p> 
@@ -25,7 +25,7 @@
 <output name="TRACKER_POSITION" size="2" description="Tracked position" />
 
 <!-- VISULAISATION OUTPUT -->
-<module class="DTracker" />
+<link class="DTracker" />
 
     <view name="View" >
         <path
@@ -35,7 +35,7 @@
             arrow = "no"
             close = "yes"
             order = "row"
-            source = "*.TRACKER_BOUNDS"
+            source = ".TRACKER_BOUNDS"
             height = "600"
             color = "red, green, blue, yellow"
             lineJoin = "round"
@@ -68,6 +68,6 @@
 <file>DTracker.ikc</file>
 </files>
 
-</group>
+</class>
 
 

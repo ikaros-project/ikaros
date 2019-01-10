@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="RotationConverter" description="converts between rotation notations">
+<class name="RotationConverter" description="converts between rotation notations">
 
 	<description type="text">
 		Module that converts between different 3d point/angle notations.
@@ -22,7 +22,7 @@
 	<input name="INPUT" description="Input" />
     <output name="OUTPUT" description="Output"/>
 
-	<module class="RotationConverter" />
+	<link class="RotationConverter" />
     
     <view title="RotationConverter">
         <object
@@ -51,5 +51,5 @@
    		<file>RotationConverter.ikc</file>
    </files>
 
-</group>
+</class>
 

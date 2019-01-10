@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Counter" description="counts signals">
+<class name="Counter" description="counts signals">
 
 	<description type="text">
         Module used to calculate statistics from signals in a simulation.
@@ -40,7 +40,7 @@
         Only runs in "any" mode at the moment.
     </bug>
     
-	<module class="Counter" />
+	<link class="Counter" />
 
     <view title="Counter">
         <object
@@ -71,5 +71,5 @@
    		<file>Counter.ikc</file>
    </files>
 
-</group>
+</class>
 

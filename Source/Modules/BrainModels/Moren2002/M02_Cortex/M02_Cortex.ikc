@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="M02_Cortex" description="a cortex model">
+<class name="M02_Cortex" description="a cortex model">
 
 <description type="text">
 The module implements the cortex model described in the PhD thesis by Jan Morén 2002.
@@ -24,7 +24,7 @@ This model does absolutely nothing and is just a placeholder.
     description="The cortical output"
 />
 
-<module class="M02_Cortex" />
+<link class="M02_Cortex" />
 
 <author>
 <name>Jan Moren</name>
@@ -39,6 +39,6 @@ This model does absolutely nothing and is just a placeholder.
 <file>M02_Cortex.ikc</file>
 </files>
 
-</group>
+</class>
 
 

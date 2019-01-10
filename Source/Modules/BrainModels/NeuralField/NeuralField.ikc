@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="NeuralField" description="NeuralField">
+<class name="NeuralField" description="NeuralField">
 
 	<description type="text">
 		Module that implements a generic brain NeuralField. output = alpha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
@@ -32,7 +32,7 @@
 
 	<output name="OUTPUT" description="The output from the NeuralField" size="1" />
 
-	<module class="NeuralField" />
+	<link class="NeuralField" />
 
     <view name="View (Default)">
         <plot
@@ -56,5 +56,5 @@
    		<file> NeuralField.ikc</file>
    </files>
 
-</group>
+</class>
 

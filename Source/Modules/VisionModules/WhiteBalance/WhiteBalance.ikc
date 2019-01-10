@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="WhiteBalance" description="removes colorisation from an image">
+<class name="WhiteBalance" description="removes colorisation from an image">
 
 	<description type="text">
 		Module used for white balancing adaptation of a color image. Given a reference image
@@ -42,7 +42,7 @@
 	<output name="OUTPUT1" description="The output" size_set="INPUT0, INPUT1, INPUT2" />
 	<output name="OUTPUT2" description="The output" size_set="INPUT0, INPUT1, INPUT2" />
 
-	<module class="WhiteBalance" />
+	<link class="WhiteBalance" />
 
 	<limitation>
 		The reference region can only be set in the XML-file and can not change during execution.
@@ -75,4 +75,4 @@
    		<file>WhiteBalance.ikc</file>
    </files>
 
-</group>
+</class>

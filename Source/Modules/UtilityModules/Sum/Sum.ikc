@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Sum" description="sums inputs">
+<class name="Sum" description="sums inputs">
 
 	<description type="text">
 		Module that sums all elements in its input.
@@ -17,13 +17,13 @@
 
 	<output name="OUTPUT" description="The sum" size="1" />
 
-	<module class="Sum" />
+	<link class="Sum" />
 
 	<view name="Default view">
 		
 		<bar-graph
 		show_title = "true"
-		source = "*.OUTPUT"
+		source = ".OUTPUT"
 		class = "bar-graph"
 		direction = "vertical"
 		height = "361"
@@ -38,7 +38,7 @@
 		
 		<plot
 		show_title = "true"
-		source = "*.OUTPUT"
+		source = ".OUTPUT"
 		class = "plot"
 		direction = "vertical"
 		height = "361"
@@ -65,5 +65,5 @@
    		<file>Sum.ikc</file>
    </files>
 
-</group>
+</class>
 

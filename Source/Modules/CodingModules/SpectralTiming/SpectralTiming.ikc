@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SpectralTiming" description="encodes a signal in a set of temporal components">
+<class name="SpectralTiming" description="encodes a signal in a set of temporal components">
 
 	<description type="xhtml">
         <p>
@@ -34,7 +34,7 @@
 	<output name="OUTPUT" description="The spectral output" size_set_x="INPUT" size_param_y="no_of_taps" />
 	<output name="TRACE" description="The decaying stimulus trace output" size_set="INPUT" />
 
-	<module class="SpectralTiming" />
+	<link class="SpectralTiming" />
 
 	<created>2014</created>
 	
@@ -51,5 +51,5 @@
    		<file>SpectralTiming.ikc</file>
    </files>
 
-</group>
+</class>
 

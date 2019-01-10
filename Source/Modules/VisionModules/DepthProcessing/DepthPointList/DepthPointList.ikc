@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthPointList" description="converts an RGB-D image to a h_matrix list">
+<class name="DepthPointList" description="converts an RGB-D image to a h_matrix list">
 
 	<description type="text">
 		Generates a list of blobs in an image (right now only one blob).
@@ -20,7 +20,7 @@
 
 	<output name="OUTPUT" description="The output" size_x="19" size_y="307200" />
 
-	<module class="DepthPointList" />
+	<link class="DepthPointList" />
 
 	<created>2014</created>
 
@@ -37,4 +37,4 @@
 	<file>DepthPointList.ikc</file>
    </files>
 
-</group>
+</class>

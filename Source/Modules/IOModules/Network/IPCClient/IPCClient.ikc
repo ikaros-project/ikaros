@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="IPCInput" description="minimal example module">
+<class name="IPCInput" description="minimal example module">
 
 	<description type="text">
 
@@ -18,7 +18,7 @@
     <output name="OUTPUT" description="The first output" size="20" />
     <output name="TIME_OUT" description="Time out" size="1" />
 	
-	<module class="IPCClient" />
+	<link class="IPCClient" />
 
 	<author>
 		<name>Birger Johansson</name>
@@ -33,5 +33,5 @@
    		<file>IPCClient.ikc</file>
    </files>
 
-</group>
+</class>
 

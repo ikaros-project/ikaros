@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Recorder" description="Recorders inputs">
+<class name="Recorder" description="Recorders inputs">
 
 	<description type="text">
 		Module that records data. Currently only a single channel is recorded.
@@ -30,7 +30,7 @@
 	<output name="RECORDING" description="The data recorded" />
 	<output name="MEASUREMENTS" description="The array of measurements" size_param="count" />
 
-	<module class="Recorder" />
+	<link class="Recorder" />
 
     <view title="Recorder">
         <object
@@ -55,5 +55,5 @@
    		<file>Recorder.ikc</file>
    </files>
 
-</group>
+</class>
 

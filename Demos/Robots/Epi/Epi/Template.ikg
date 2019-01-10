@@ -21,9 +21,9 @@
 
 	<!-- Move EpiBlack -->
 	<module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
-		<connection sourcemodule = "ManualServo" source = "OUTPUT" targetmodule = "EpiBlack" target = "SERVO_ANGLES"/>
+		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES"/>
 	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
-		<connection sourcemodule = "ManualServo" source = "OUTPUT" targetmodule = "EpiBlack" target = "SERVO_ANGLES_AMPLITUDE"/>
+		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES_AMPLITUDE"/>
 
 	<!-- Set a manual focus point -->
 	<module class = "Constant" name = "ManualFocusPoint" data = "
@@ -31,10 +31,10 @@
 	0 1 0 0.6
 	0 0 1 0
 	0 0 0 1"/>
-		<connection sourcemodule = "ManualFocusPoint"	source = "OUTPUT" targetmodule = "EpiBlack" target = "EXT_FOCUS_POINT"/>
+		<connection source = "ManualFocusPoint.OUTPUT" target = "EpiBlack.EXT_FOCUS_POINT"/>
 
 	<module class = "Constant" name = "ManualFocusPointValue" data = "0" />
-		<connection sourcemodule = "ManualFocusPointValue"	source = "OUTPUT" targetmodule = "EpiBlack" target = "EXT_FOCUS_POINT_V"/>
+		<connection source = "ManualFocusPointValue.OUTPUT"  target = "EpiBlack.EXT_FOCUS_POINT_V"/>
 
 
 	<!-- Importing Epi Pink

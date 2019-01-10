@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Downsample" description="halves an image">
+<class name="Downsample" description="halves an image">
 
 	<description type="text">
 		Module that downsamples an image to half size. No interpolation is done.
@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The  input" />
 	<output name="OUTPUT" description="The downsampled image" />
 
-	<module class="Downsample" />
+	<link class="Downsample" />
 
 	<view name="View">
 		<image
@@ -55,4 +55,4 @@
    		<file>Downsample.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Softmax" description="calculates softmax">
+<class name="Softmax" description="calculates softmax">
 
 	<description type="text">
 		Module used to calculate the softmax over its input.
@@ -19,7 +19,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Softmax" />
+	<link class="Softmax" />
 
     <view title="Softmax">
         <object
@@ -44,4 +44,4 @@
    		<file>Softmax.ikc</file>
    </files>
 
-</group>
+</class>

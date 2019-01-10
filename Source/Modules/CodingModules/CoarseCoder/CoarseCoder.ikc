@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CoarseCoder" description="encodes a two-dimensional value in a vector">
+<class name="CoarseCoder" description="encodes a two-dimensional value in a vector">
 
 	<description type="text">
 		Module that generates a tile or gaussian code for a two-dimensional real-valued input.
@@ -24,7 +24,7 @@
 
 	<output name="OUTPUT" description="The tile coded output" size_param_x="output_size" size_param_y="output_size"/>
 
-	<module class="CoarseCoder" />
+	<link class="CoarseCoder" />
 
 	<created>2007</created>
 	
@@ -41,5 +41,5 @@
    		<file>CoarseCoder.ikc</file>
    </files>
 
-</group>
+</class>
 

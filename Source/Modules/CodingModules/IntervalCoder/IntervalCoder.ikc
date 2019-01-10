@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="IntervalCoder" description="encodes a value in a vector">
+<class name="IntervalCoder" description="encodes a value in a vector">
 
 	<description type="text">
 		Module that generates a simple interval code for a real-valued input.
@@ -22,7 +22,7 @@
 
 	<output name="OUTPUT" description="The interval coded output" size_param="outputsize" />
 
-	<module class="IntervalCoder" />
+	<link class="IntervalCoder" />
 
 	<created>2003</created>
 	
@@ -39,5 +39,5 @@
    		<file>IntervalCoder.ikc</file>
    </files>
 
-</group>
+</class>
 

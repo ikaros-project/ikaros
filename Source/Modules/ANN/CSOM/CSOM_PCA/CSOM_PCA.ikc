@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CSOM_PCA" description="self-organizing convolution map">
+<class name="CSOM_PCA" description="self-organizing convolution map">
 
 	<description type="text">
 		Self-organizing convolution map.
@@ -67,7 +67,7 @@
 
     <output name="STAT_DISTRIBUTION" description="The number of activations of each category" />
     
-	<module class="CSOM_PCA" />
+	<link class="CSOM_PCA" />
 
 	<!-- View -->
 	<view name="CSOM_PCA">
@@ -91,5 +91,5 @@
    		<file>CSOM_PCA.ikc</file>
    </files>
 
-</group>
+</class>
 

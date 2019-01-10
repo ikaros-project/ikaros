@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MimicHead" description="minimal example module">
+<class name="MimicHead" description="minimal example module">
 
 	<description type="text">
 		Module that can be used as a start for a new module.
@@ -33,7 +33,7 @@
 	<output name="HEAD_ROTATION" description="The output degrees" size="1" />
 	<output name="ANGLES" description="The output degrees" size="19" />
 
-	<module class="MimicHead" />
+	<link class="MimicHead" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -48,4 +48,4 @@
    		<file>MimicHead.ikc</file>
    </files>
 
-</group>
+</class>

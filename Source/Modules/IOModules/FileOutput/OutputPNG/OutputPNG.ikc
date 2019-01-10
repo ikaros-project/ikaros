@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputPNG" description="writes PNG files">
+<class name="OutputPNG" description="writes PNG files">
 
 	<description type="text">
         Module used for writing an image (or sequences of images) to file(s).
@@ -37,7 +37,7 @@
 	    value of the WRITE input is greter than 0. The file counter will
 	    still increase." optional="yes" />
 
-	<module class="OutputPNG" />
+	<link class="OutputPNG" />
     
     <limitation>
 	    We aren't using all of PNG:s strenghts - no 16 bit output, no
@@ -65,4 +65,4 @@
    		<file>OutputPNG.ikc</file>
    </files>
 
-</group>
+</class>

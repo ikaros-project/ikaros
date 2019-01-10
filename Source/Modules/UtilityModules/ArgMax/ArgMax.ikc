@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ArgMax" description="selects maximum element">
+<class name="ArgMax" description="selects maximum element">
 
 	<description type="text">
 		A module that finds the maximum element of an array or matrix.
@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="Output with the coordinate of the maximu element" size="2" />
 
-	<module class="ArgMax" />
+	<link class="ArgMax" />
 
     <view title="ArgMax">
         <object
@@ -41,5 +41,5 @@
    		<file>ArgMax.ikc</file>
    </files>
 
-</group>
+</class>
 

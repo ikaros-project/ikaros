@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Max" description="maximum of two inputs">
+<class name="Max" description="maximum of two inputs">
 
 	<description type="text">
 		Module that calculates the maximum of each elementy of
@@ -20,7 +20,7 @@
 
 	<output name="OUTPUT" description="The output with the maximum of each element of the two inputs" size_set="INPUT1,INPUT2"/>
 
-	<module class="Max" />
+	<link class="Max" />
 
     <view title="Max">
         <object
@@ -45,4 +45,4 @@
    		<file>Max.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Add" description="adds two inputs">
+<class name="Add" description="adds two inputs">
 
 	<description type="text">
 		Module that sums its two inputs element by element,
@@ -23,7 +23,7 @@
 	<link class="Add" />
 
 	<view name="View">
-        <table title="Output" source="*.OUTPUT" x="40" y="20" width="300" height="300" />
+        <table title="Output" source=".OUTPUT" x="40" y="20" width="300" height="300" />
     </view>
     
 	<author>
@@ -39,5 +39,5 @@
    		<file>Add.ikc</file>
    </files>
 
-</group>
+</class>
 

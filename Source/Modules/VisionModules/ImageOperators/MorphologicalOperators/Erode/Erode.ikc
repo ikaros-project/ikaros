@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Erode" description="erodes an image">
+<class name="Erode" description="erodes an image">
 
 	<description type="text">
 		Module that applies the 3x3 erode operator to an image (here generalized as
@@ -17,7 +17,7 @@
 	<input name="INPUT" description="The input image" />
 	<output name="OUTPUT" description="The output" />
 
-	<module class="Erode" />
+	<link class="Erode" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -32,4 +32,4 @@
    		<file>Erode.ikc</file>
    </files>
 
-</group>
+</class>

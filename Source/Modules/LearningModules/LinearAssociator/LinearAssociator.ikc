@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LinearAssociator" description="learns a linear mapping">
+<class name="LinearAssociator" description="learns a linear mapping">
 
 	<description type="xhtml">
     <p>
@@ -44,7 +44,7 @@
 	<output name="ERROR" description="The error for the last training sample." size="1" />
 	<output name="CONFIDENCE" description="1-ERROR" size="1" />
 
-	<module class="LinearAssociator" />
+	<link class="LinearAssociator" />
 
     <view name="View">
         <object x="0" y="0" class="BarGraph" title="Learned Output" module="*" source="OUTPUT" />
@@ -67,5 +67,5 @@
    		<file>LinearAssociator.ikc</file>
    </files>
 
-</group>
+</class>
 

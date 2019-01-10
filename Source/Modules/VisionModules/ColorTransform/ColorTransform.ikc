@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ColorTransform" description="transforms between color spaces">
+<class name="ColorTransform" description="transforms between color spaces">
 
 	<description type="text">
 		Module used for transformation of color coordinates.
@@ -28,7 +28,7 @@
 	<output name="OUTPUT1" description="The second output." size_set="INPUT0, INPUT1, INPUT2" />
 	<output name="OUTPUT2" description="The third output." size_set="INPUT0, INPUT1, INPUT2" />
 
-	<module class="ColorTransform" />
+	<link class="ColorTransform" />
 
 	<created>2003</created>
 
@@ -55,4 +55,4 @@
    		<file>ColorTransform.ikc</file>
 	</files>
 
-</group>
+</class>

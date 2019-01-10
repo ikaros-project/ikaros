@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MagicalController" description="Learning using the MagicalController rule">
+<class name="MagicalController" description="Learning using the MagicalController rule">
 
 	<description type="text">
         Module that triggers events based on received HTTP-requests: "/animation/n" triggers animation n, and "/sound/n" triggers sound n, "/target/x,y" sets the target output.
@@ -22,7 +22,7 @@
 	<output name="SOUND_ACTIVE" description="Output to trigger mouth animation" size="1" />
 	<output name="TARGET" description="Output to set visual target" size="2" />
 
-	<module class="MagicalController" />
+	<link class="MagicalController" />
 
     <view title="MagicalController"  name="Default view for MagicalController"
 >
@@ -48,5 +48,5 @@
    		<file>MagicalController.ikc</file>
    </files>
 
-</group>
+</class>
 

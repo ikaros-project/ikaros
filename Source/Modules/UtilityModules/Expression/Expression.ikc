@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Expression" description="Mathematical expression">
+<class name="Expression" description="Mathematical expression">
 
 	<description type="text">
 		Module that can take in an string that makes up a 
@@ -51,10 +51,10 @@
 
 	<output name="OUTPUT" description="The first output" />
 
-	<module class="Expression" />
+	<link class="Expression" />
 	<view name="Expression">
 			<plot 
-				source="*.OUTPUT"
+				source=".OUTPUT"
 				x="10" y="10" w="200" h="400"
 				min="0"
 				max="2"
@@ -73,5 +73,5 @@
    		<file>Expression.ikc</file>
    </files>
 
-</group>
+</class>
 

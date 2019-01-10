@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputJPEG" description="writes JPEG files">
+<class name="OutputJPEG" description="writes JPEG files">
 
 	<description type="text">
 		Module used for writing an image (or sequences of images) to file(s).
@@ -35,7 +35,7 @@
 	<input name="WRITE" description="Signal to write or suppress a given image. If connected, an image will only actually be written if the
 	    value of the WRITE input is greter than 0. The file counter will still increase unless increase_file_no_on_trig is set to yes." optional="yes" />
 
-	<module class="OutputJPEG" />
+	<link class="OutputJPEG" />
 
 	<bug>
 		If %d is not in the filename each new file will overwrite the
@@ -56,5 +56,5 @@
    		<file>OutputJPEG.ikc</file>
    </files>
 
-</group>
+</class>
 

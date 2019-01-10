@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MotionRecorder" description="minimal example module">
+<class name="MotionRecorder" description="minimal example module">
 
 	<description type="text">
 		Module that records a sequence of values and saves them into a file.
@@ -45,7 +45,7 @@
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />
 
-	<module class="MotionRecorder" />
+	<link class="MotionRecorder" />
 
     <view name="Default View">
         <grid
@@ -75,7 +75,7 @@
             module = "*"
         />
 
-        <plot source="*.OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+        <plot source=".OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
 
         <table title="time" module="*" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
@@ -107,5 +107,5 @@
    		<file>MotionRecorder.ikc</file>
    </files>
 
-</group>
+</class>
 

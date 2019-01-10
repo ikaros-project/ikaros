@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="IntegralImage" description="calculate integral image">
+<class name="IntegralImage" description="calculate integral image">
 
 	<description type="text">
 		Module used to calculate the integral image.
@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="IntegralImage" />
+	<link class="IntegralImage" />
 
 	<created>2013</created>
 
@@ -33,4 +33,4 @@
 	<file>IntegralImage.ikc</file>
    </files>
 
-</group>
+</class>

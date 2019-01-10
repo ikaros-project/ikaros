@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DFaceDetector" description="wraps dlib's DFaceDetector">
+<class name="DFaceDetector" description="wraps dlib's DFaceDetector">
 
 <description type="xhtml">
 <p>
@@ -37,7 +37,7 @@ DFaceDetector is a face detector for Ikaros that uses dlib's Face Detector (fron
 <!-- VISULAISATION OUTPUT -->
 
 
-<module class="DFaceDetector" />
+<link class="DFaceDetector" />
 
     <view name="Input" >
          <object
@@ -74,6 +74,6 @@ DFaceDetector is a face detector for Ikaros that uses dlib's Face Detector (fron
 <file>DFaceDetector.ikc</file>
 </files>
 
-</group>
+</class>
 
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Distance" description="calculates a distance">
+<class name="Distance" description="calculates a distance">
 
 	<description type="text">
 		Module that calculates the distance
@@ -21,7 +21,7 @@
 
 	<output name="OUTPUT" description="The output with the distance between the two inputs" size="1" />
 
-	<module class="Distance" />
+	<link class="Distance" />
 
     <view title="Distance">
         <object
@@ -46,4 +46,4 @@
    		<file>Distance.ikc</file>
    </files>
 
-</group>
+</class>

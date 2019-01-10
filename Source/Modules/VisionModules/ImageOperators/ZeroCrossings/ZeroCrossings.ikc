@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ZeroCrossings" description="finds zero crossings in an image">
+<class name="ZeroCrossings" description="finds zero crossings in an image">
 
 	<description type="text">
 		Module used to finds zero crossings in an image.
@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="ZeroCrossings" />
+	<link class="ZeroCrossings" />
 
 	<created>2013</created>
 
@@ -33,4 +33,4 @@
 	<file>ZeroCrossings.ikc</file>
    </files>
 
-</group>
+</class>

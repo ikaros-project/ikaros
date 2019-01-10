@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Maxima" description="selects maximum element">
+<class name="Maxima" description="selects maximum element">
 
 	<description type="text">
 		A module that marks the maxima in its input. It also produces a list of the maxima in a separate output called POINTS.
@@ -22,7 +22,7 @@
 	<output name="POINTS" description="List of maxima. Each line contains x, y, m, where m is the value at the corerspodning maximum" size_x="3" size_param_y="max_points" />
     <output name="POINT_COUNT" description="Number of maxima in the points list." size="1" />
 
-	<module class="Maxima" />
+	<link class="Maxima" />
 
     <view title="Maxima">
         <object
@@ -47,5 +47,5 @@
    		<file>Maxima.ikc</file>
    </files>
 
-</group>
+</class>
 

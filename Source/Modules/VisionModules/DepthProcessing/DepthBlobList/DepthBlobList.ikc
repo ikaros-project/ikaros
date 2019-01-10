@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthBlobList" description="segments into depth planes">
+<class name="DepthBlobList" description="segments into depth planes">
 
 	<description type="text">
 		Generates a list of blobs in an image (right now only one blob).
@@ -28,7 +28,7 @@
 	<output name="MAXIMA" description="The found blobs" size_x="2" size_y="10" />
 	<output name="OUTPUT" description="The found blobs in global coordinates in matrix form" size_x="17" size_y="10" />
 
-	<module class="DepthBlobList" />
+	<link class="DepthBlobList" />
 
 	<created>2014</created>
 
@@ -45,5 +45,5 @@
 	<file>DepthBlobList.ikc</file>
    </files>
 
-</group>
+</class>
 

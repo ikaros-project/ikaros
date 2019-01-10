@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Normalize" description="normalizes its input">
+<class name="Normalize" description="normalizes its input">
 
 	<description type="text">
 		Module that normalizes its input in various ways. With type 'range' it maps its input onto the interval [0..1] such that the minimal element becomes o and the maximal 1.
@@ -20,7 +20,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Normalize" />
+	<link class="Normalize" />
 
     <view title="Normalize">
         <object
@@ -45,4 +45,4 @@
    		<file>Normalize.ikc</file>
    </files>
 
-</group>
+</class>

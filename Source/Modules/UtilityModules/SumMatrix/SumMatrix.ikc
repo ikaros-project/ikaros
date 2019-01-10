@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SumMatrix" description="minimal example module">
+<class name="SumMatrix" description="minimal example module">
 
 	<description type="text">
 	Sums a matrix to one value
@@ -23,7 +23,7 @@
 
 	<output name="OUTPUT" description="The first output"  />
 
-	<module class="SumMatrix" />
+	<link class="SumMatrix" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>
@@ -38,5 +38,5 @@
    		<file>SumMatrix.ikc</file>
    </files>
 
-</group>
+</class>
 

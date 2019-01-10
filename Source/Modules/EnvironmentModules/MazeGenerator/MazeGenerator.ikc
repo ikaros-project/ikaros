@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MazeGenerator" description="generates a perfect maze">
+<class name="MazeGenerator" description="generates a perfect maze">
 
 	<description type="xhtml">
 		<p>
@@ -25,7 +25,7 @@
 
 	<output name="OUTPUT" description="The generated maze" />
 
-	<module class="MazeGenerator" />
+	<link class="MazeGenerator" />
 	
 	<created>2009</created>
 
@@ -42,5 +42,5 @@
    		<file>MazeGenerator.ikc</file>
    </files>
 
-</group>
+</class>
 

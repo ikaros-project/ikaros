@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="YARPPort" description="ikaros to YARP network communication">
+<class name="YARPPort" description="ikaros to YARP network communication">
 
 	<description type="xhtml">
         Module that can read and write to an YARP network using the YARP PortablePair.
@@ -47,7 +47,7 @@
         />
     </view>
     
-	<module class="YARPPort" />
+	<link class="YARPPort" />
 	<parameter name="type" type="list" values="sender/receiver" default="sender" description = "Defines if ikaros is sending or receiveing data to the YARP network." />
 	<parameter name="send_only_new_values" type="bool" default="true" description = "If set to false, the module will send for each tick. If true, it will send only if the input value is changed" />
 	<parameter name="send_strict" type="bool" default="false" description = "If set to true, the module will wait untill yarp is ready to send the message. If false, it will continue without knowing if the message will be sent." />
@@ -75,5 +75,5 @@
    		<file>YARPPort.ikc</file>
    </files>
 
-</group>
+</class>
 

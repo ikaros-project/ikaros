@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InitialValue" description="Initial value for difference equations">
+<class name="InitialValue" description="Initial value for difference equations">
 
 	<description type="text">
 		Module that can be used as an initial value for difference equations.
@@ -30,7 +30,7 @@
 
 	<output name="OUTPUT" description="The first output" size_param="outputsize" />
 
-	<module class="InitialValue" />
+	<link class="InitialValue" />
 	<view name="InitialValue">
 		<bar-graph
             x="40" y="40"
@@ -56,5 +56,5 @@
    		<file>InitialValue.ikc</file>
    </files>
 
-</group>
+</class>
 

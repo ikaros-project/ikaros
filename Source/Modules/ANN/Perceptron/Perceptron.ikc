@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="Perceptron" description="single layer of perceptrons">
+<class name="Perceptron" description="single layer of perceptrons">
 
 
 <description type="text">
@@ -133,7 +133,7 @@
 	default="false"/>
 
 
-<module class="Perceptron" />
+<link class="Perceptron" />
 
 
 <view title="Perceptron">
@@ -141,7 +141,7 @@
         x="20" y="20"
         width="300"
         height="300"
-        source="*.OUTPUT"
+        source=".OUTPUT"
         title="OUTPUT"
     />
 
@@ -149,7 +149,7 @@
         x="20" y="340"
         width="300"
         height="300"
-        source="*.ERROR"
+        source=".ERROR"
         title="ERROR"
     />
 
@@ -157,7 +157,7 @@
         x="340" y="340"
         width="300"
         height="300"
-        source="*.CORRECT"
+        source=".CORRECT"
         title="CORRECT"
     />
 </view>
@@ -179,4 +179,4 @@ Mohamad H. Hassoun (1995). Fundamentals of Artificial Neural Networks. MIT Press
 	<file>Perceptron.ikc</file>
 </files>
 
-</group>
+</class>

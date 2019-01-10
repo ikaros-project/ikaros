@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Subtract" description="subtracts two inputs">
+<class name="Subtract" description="subtracts two inputs">
 
 	<description type="text">
 		Module that subtracts the second input from the first input, element by element.
@@ -19,7 +19,7 @@
 
 	<output name="OUTPUT" description="The output with the difference of the two inputs: INPUT1 - INPUT2" size_set="INPUT1,INPUT2"/>
 
-	<module class="Subtract" />
+	<link class="Subtract" />
 
     <view title="Subtract">
         <object
@@ -44,4 +44,4 @@
    		<file>Subtract.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LinearSplines" description="computes linear spline functions">
+<class name="LinearSplines" description="computes linear spline functions">
 
 	<description type="xhtml">
     <p>
@@ -46,7 +46,7 @@
     <input name="INPUT" description="Input signal" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="LinearSplines" />
+	<link class="LinearSplines" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -61,5 +61,5 @@
    		<file>LinearSplines.ikc</file>
    </files>
 
-</group>
+</class>
 

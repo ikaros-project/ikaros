@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="HysteresisThresholding" description="adaptive edge threshold">
+<class name="HysteresisThresholding" description="adaptive edge threshold">
 
 	<description type="text">
 		This module implements iterative hysteresis thresholding of image. There are two threshold
@@ -33,7 +33,7 @@
 	<input name="INPUT" description="The  input" />
 	<output name="OUTPUT" description="The output" />
 
-	<module class="HysteresisThresholding" />
+	<link class="HysteresisThresholding" />
 
     <bug>
         This implementation is very slow and does not give very good results.
@@ -52,4 +52,4 @@
    		<file>HysteresisThresholding.ikc</file>
    </files>
 
-</group>
+</class>

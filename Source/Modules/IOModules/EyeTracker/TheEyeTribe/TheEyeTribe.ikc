@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TheEyeTribe" description="module that uses The Eye Tribe API">
+<class name="TheEyeTribe" description="module that uses The Eye Tribe API">
 
 	<description type="text">
 
@@ -29,7 +29,7 @@
 	<output name="RIGHT_PUPIL_SIZE" description="Pupil size" size="1" />
 	<output name="RIGHT_PUPIL_CENTER" description="Pupil coordinates normalized" size="2" />
 	
-	<module class="TheEyeTribe" />
+	<link class="TheEyeTribe" />
 
 	<view title="Eye Tracker">
         <object
@@ -99,5 +99,5 @@
    		<file>TheEyeTribe.ikc</file>
    </files>
 
-</group>
+</class>
 

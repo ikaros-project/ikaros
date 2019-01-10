@@ -2,7 +2,7 @@
 
 <!--- InputJPEG Class File -->
 
-<group name="InputJPEG" description="reads JPEG files">
+<class name="InputJPEG" description="reads JPEG files">
 
 	<description type="text">
 		Module used for reading an image (or sequences of images) from a JPEG
@@ -47,7 +47,7 @@
 		width = "381"
 		flipYCanvas = "no"
 		x = "460"
-		source = "*.INTENSITY"
+		source = ".INTENSITY"
 		format = "gray"
 		flipYAxis = "no"
 		flipXCanvas = "no"
@@ -68,7 +68,7 @@
 		width = "381"
 		flipYCanvas = "no"
 		x = "60"
-		source = "*.RED+GREEN+BLUE"
+		source = ".RED+GREEN+BLUE"
 		format = "rgb"
 		flipYAxis = "no"
 		flipXCanvas = "no"
@@ -108,5 +108,5 @@
    		<file>InputJPEG.ikc</file>
    </files>
 
-</group>
+</class>
 

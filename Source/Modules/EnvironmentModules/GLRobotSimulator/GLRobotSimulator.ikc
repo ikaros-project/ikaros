@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GLRobotSimulator" description="simulates a robot">
+<class name="GLRobotSimulator" description="simulates a robot">
 
 	<description type="text">
         This module simulates the robot developed within the EU-funded project Goal-Leaders.
@@ -89,7 +89,7 @@
 	<input name="DIRECT_CONTROL" description="Low level control of locomotion (dx, dy, dz, dr). Array of size 4. Units: mm/tick and degrees/tick. dz should always be 0." />
 
 
-    <module class="GLRobotSimulator" />
+    <link class="GLRobotSimulator" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -104,5 +104,5 @@
    		<file>GLRobotSimulator</file>
    </files>
 
-</group>
+</class>
 

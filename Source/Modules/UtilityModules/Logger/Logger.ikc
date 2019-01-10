@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Logger" description="sends a log message at start-up to the ikaros site">
+<class name="Logger" description="sends a log message at start-up to the ikaros site">
 
 	<description type="text">
 		This module notifies the ikaros site when ikaros is started to log the number of executions.
@@ -28,4 +28,4 @@
    		<file>Logger.ikc</file>
    </files>
 
-</group>
+</class>

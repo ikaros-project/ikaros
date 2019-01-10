@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CSOM_L" description="self-organizing convolution map">
+<class name="CSOM_L" description="self-organizing convolution map">
 
 	<description type="text">
 		Self-organizing convolution map.
@@ -62,7 +62,7 @@
 
     <output name="STAT_DISTRIBUTION" description="The number of activations of each category" />
     
-	<module class="CSOM_L" />
+	<link class="CSOM_L" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -77,5 +77,5 @@
    		<file>CSOM_L.ikc</file>
    </files>
 
-</group>
+</class>
 

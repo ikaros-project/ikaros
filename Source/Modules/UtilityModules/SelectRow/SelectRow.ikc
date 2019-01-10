@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SelectRow" description="SelectRows maximum element">
+<class name="SelectRow" description="SelectRows maximum element">
 
 	<description type="text">
 		A module that selects one row from its input as output
@@ -19,7 +19,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="Output with the selected row of the input" size_set_x="INPUT" size_y="1" />
 
-	<module class="SelectRow" />
+	<link class="SelectRow" />
 
     <view title="SelectRow">
         <object
@@ -52,5 +52,5 @@
    		<file>SelectRow.ikc</file>
    </files>
 
-</group>
+</class>
 

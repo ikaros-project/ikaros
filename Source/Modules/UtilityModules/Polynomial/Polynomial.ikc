@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Polynomial" description="calculates polynomial">
+<class name="Polynomial" description="calculates polynomial">
 
 	<description type="html">
 	<p>
@@ -30,7 +30,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The polynomial of the input" size_set="INPUT" />
 
-	<module class="Polynomial" />
+	<link class="Polynomial" />
 
     <view title="Polynomial">
         <object
@@ -55,4 +55,4 @@
    		<file>Polynomial.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ColorMatch" description="match a color">
+<class name="ColorMatch" description="match a color">
 
 	<description type="text">
 		Module used match colors in an image to a prototype color.
@@ -37,7 +37,7 @@
 
 	<output name="OUTPUT" description="The color map output" size_set="INPUT0, INPUT1, INPUT2" />
 
-	<module class="ColorMatch" />
+	<link class="ColorMatch" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -52,4 +52,4 @@
    		<file>ColorMatch.ikc</file>
    </files>
 
-</group>
+</class>

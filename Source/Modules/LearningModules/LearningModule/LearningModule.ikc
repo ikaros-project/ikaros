@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LearningModule" description="Template for general learming modules">
+<class name="LearningModule" description="Template for general learming modules">
 
 	<description type="text">
 		This module is a template for general learning modules. It defines all connections and minimal data structures
@@ -54,7 +54,7 @@
     <parameter name="learning_rate" type="float" default="0.1" description="Learning rate" />
 
 
-	<module class="LearningModule" />
+	<link class="LearningModule" />
 
     <view title="LearningModule">
         <object
@@ -79,5 +79,5 @@
    		<file>LearningModule.ikc</file>
    </files>
 
-</group>
+</class>
 

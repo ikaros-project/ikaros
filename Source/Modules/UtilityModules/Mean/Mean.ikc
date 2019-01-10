@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Mean" description="caluates mean of all inputs">
+<class name="Mean" description="caluates mean of all inputs">
 
 	<description type="text">
 		Module that calculates the means of all elements in its input.
@@ -17,7 +17,7 @@
 
 	<output name="OUTPUT" description="The Mean" size="1" />
 
-	<module class="Mean" />
+	<link class="Mean" />
 
     <view title="Mean">
         <object
@@ -42,5 +42,5 @@
    		<file>Mean.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Arbiter" description="selects between multiple inputs">
+<class name="Arbiter" description="selects between multiple inputs">
 
 	<description type="text">
 		Module that selects between its inputs based on the values in the value inputs or the amplitude of its inputs.
@@ -55,7 +55,7 @@
 	<output name="OUTPUT" description="The selected output" />
 	<output name="VALUE" size="1" description="The value of the current output; norm of the smoothed arbitration state (not implemented yet)"/>
 
-	<module class="Arbiter" />
+	<link class="Arbiter" />
 
     <view name="Arbiter View">
         <drop-down-menu title="arbitration" list="WTA,hysteresis,softmax,hierarchy" module="Arbiter" parameter="arbitration" x="20" y="20" width="200" height="100"/>
@@ -80,5 +80,5 @@
    		<file>Arbiter.ikc</file>
    </files>
 
-</group>
+</class>
 

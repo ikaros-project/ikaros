@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TrainHead" description="minimal example module">
+<class name="TrainHead" description="minimal example module">
 
 	<description type="text">
 
@@ -29,7 +29,7 @@
 
 	<output name="WRITE" description="If the output schould be written to file" size="1"/>
 
-	<module class="TrainHead" />
+	<link class="TrainHead" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -44,4 +44,4 @@
    		<file>TrainHead.ikc</file>
    </files>
 
-</group>
+</class>

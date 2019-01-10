@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthHistogram" description="segments into depth planes">
+<class name="DepthHistogram" description="segments into depth planes">
 
 	<description type="text">
 		Segments a depth image into depth planes.
@@ -23,7 +23,7 @@
 	<output name="OUTPUT" description="The output" size_param="size" />
 	<output name="OBJECT" description="The found object min, max, average" size="3" />
 
-	<module class="DepthHistogram" />
+	<link class="DepthHistogram" />
 
     <view>
         <object title="Histogram" class="BarGraph" module="*" source="OUTPUT" x="0" y="0" w="2" />
@@ -44,5 +44,5 @@
 	<file>DepthHistogram.ikc</file>
    </files>
 
-</group>
+</class>
 
