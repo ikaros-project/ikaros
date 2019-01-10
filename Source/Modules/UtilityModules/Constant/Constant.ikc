@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Constant" description="outputs a constant value">
+<class name="Constant" description="outputs a constant value">
 
 	<description type="text">
 		Module that outputs a constant array or matrix each time step.
@@ -62,4 +62,4 @@
    		<file>Constant.ikc</file>
    </files>
 
-</group>
+</class>

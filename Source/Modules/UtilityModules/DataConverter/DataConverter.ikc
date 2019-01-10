@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DataConverter" description="converts between rotation notations">
+<class name="DataConverter" description="converts between rotation notations">
 
 	<description type="text">
 		Module that converts between different 3d point/angle notations.
@@ -48,5 +48,5 @@
    		<file>DataConverter.ikc</file>
    </files>
 
-</group>
+</class>
 

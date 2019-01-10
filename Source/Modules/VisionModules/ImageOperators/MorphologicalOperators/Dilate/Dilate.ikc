@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Dilate" description="dilates an image">
+<class name="Dilate" description="dilates an image">
 
 	<description type="text">
 		Module that applies the 3x3 dilate operator to an image (here generalized as
@@ -32,4 +32,4 @@
    		<file>Dilate.ikc</file>
    </files>
 
-</group>
+</class>

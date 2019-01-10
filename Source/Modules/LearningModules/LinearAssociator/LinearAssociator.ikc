@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LinearAssociator" description="learns a linear mapping">
+<class name="LinearAssociator" description="learns a linear mapping">
 
 	<description type="xhtml">
     <p>
@@ -67,5 +67,5 @@
    		<file>LinearAssociator.ikc</file>
    </files>
 
-</group>
+</class>
 

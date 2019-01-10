@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="BlockMatching" description="calculates motion in an image">
+<class name="BlockMatching" description="calculates motion in an image">
 
 	<description type="text">
 		Calculates motion in an image using block matching.
@@ -44,4 +44,4 @@
    		<file>BlockMatching.ikc</file>
    </files>
 
-</group>
+</class>

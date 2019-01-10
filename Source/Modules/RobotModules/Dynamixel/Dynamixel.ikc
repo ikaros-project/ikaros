@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Dynamixel" description="interfaces Dynamixel servos">
+<class name="Dynamixel" description="interfaces Dynamixel servos">
 	
 	<description type="xhtml">
 		<p>
@@ -228,4 +228,4 @@
 		<file>DynamixelServo.cc</file>
 		<file>DynamixelServo.h</file>
 	</files>
-</group>
+</class>

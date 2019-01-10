@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Noise" description="adds noise">
+<class name="Noise" description="adds noise">
 
 	<description type="text">
 		Module used to add gaussian noise to a signal.
@@ -60,5 +60,5 @@
    		<file>Noise.ikc</file>
    </files>
 
-</group>
+</class>
 

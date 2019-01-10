@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SpectralTiming" description="encodes a signal in a set of temporal components">
+<class name="SpectralTiming" description="encodes a signal in a set of temporal components">
 
 	<description type="xhtml">
         <p>
@@ -51,5 +51,5 @@
    		<file>SpectralTiming.ikc</file>
    </files>
 
-</group>
+</class>
 

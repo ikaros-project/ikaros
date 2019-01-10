@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="M02_Hippocampus" description="a hippocampus model">
+<class name="M02_Hippocampus" description="a hippocampus model">
 
 <description type="text">
 The module implements the model of context processing described in the PhD thesis by Jan Morén 2002.
@@ -94,6 +94,6 @@ International Conference on the Simulation of Adaptive Behaviour, Cambridge, MA.
 <file>M02_Hippocampus.ikc</file>
 </files>
 
-</group>
+</class>
 
 

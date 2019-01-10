@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputSelector" description="minimal example module">
+<class name="InputSelector" description="minimal example module">
 
 	<description type="text">
 		Module that outputs one of two inputs based on an input index
@@ -38,5 +38,5 @@
    		<file>InputSelector.ikc</file>
    </files>
 
-</group>
+</class>
 

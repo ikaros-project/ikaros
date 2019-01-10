@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthBlobList" description="segments into depth planes">
+<class name="DepthBlobList" description="segments into depth planes">
 
 	<description type="text">
 		Generates a list of blobs in an image (right now only one blob).
@@ -45,5 +45,5 @@
 	<file>DepthBlobList.ikc</file>
    </files>
 
-</group>
+</class>
 

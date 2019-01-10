@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputFile" description="generates a text file">
+<class name="OutputFile" description="generates a text file">
 
 	<description type="xhtml">
 		<p>
@@ -102,4 +102,4 @@
    		<file>OutputFile.ikc</file>
    </files>
 
-</group>
+</class>

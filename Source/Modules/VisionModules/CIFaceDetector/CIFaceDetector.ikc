@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CIFaceDetector" description="wraps Apple's CIFaceDetector">
+<class name="CIFaceDetector" description="wraps Apple's CIFaceDetector">
 
 <description type="xhtml">
 <p>
@@ -166,6 +166,6 @@ OS X only.
 <file>CIFaceDetector.ikc</file>
 </files>
 
-</group>
+</class>
 
 

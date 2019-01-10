@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CSOM_PCA" description="self-organizing convolution map">
+<class name="CSOM_PCA" description="self-organizing convolution map">
 
 	<description type="text">
 		Self-organizing convolution map.
@@ -91,5 +91,5 @@
    		<file>CSOM_PCA.ikc</file>
    </files>
 
-</group>
+</class>
 

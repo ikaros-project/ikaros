@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Subtract" description="subtracts two inputs">
+<class name="Subtract" description="subtracts two inputs">
 
 	<description type="text">
 		Module that subtracts the second input from the first input, element by element.
@@ -44,4 +44,4 @@
    		<file>Subtract.ikc</file>
    </files>
 
-</group>
+</class>

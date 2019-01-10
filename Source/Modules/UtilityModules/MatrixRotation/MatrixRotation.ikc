@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MatrixRotation" description="minimal example module">
+<class name="MatrixRotation" description="minimal example module">
 
 	<description type="text">
         Rotates a matrix by given angle. Rotation is around the center
@@ -40,5 +40,5 @@
    		<file>MatrixRotation.ikc</file>
    </files>
 
-</group>
+</class>
 

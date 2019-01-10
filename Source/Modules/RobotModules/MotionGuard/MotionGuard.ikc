@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MotionGuard" description="module to prevent suddden and dangerous movements">
+<class name="MotionGuard" description="module to prevent suddden and dangerous movements">
 
 	<description type="text">
 		Module that tries to avoid suddden and dangerous movements. (1) guards agains too fast movements (2) guards agains positions outside range. The parameters are currently relative to a tick and need to be scaled if the frequency changes.
@@ -46,5 +46,5 @@
    		<file>MotionGuard.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EventTrigger" description="triggers events">
+<class name="EventTrigger" description="triggers events">
 
 	<description type="text">
         Module that sets one of its output to 1 at random times and keeps it on for the time given by 'duration'.
@@ -54,4 +54,4 @@
    		<file>EventTrigger.ikc</file>
    </files>
 
-</group>
+</class>

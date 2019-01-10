@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MatrixTranslation" description="minimal example module">
+<class name="MatrixTranslation" description="minimal example module">
 
 	<description type="text">
 		Translates content of a matrix.
@@ -39,5 +39,5 @@
    		<file>MatrixTranslation.ikc</file>
    </files>
 
-</group>
+</class>
 

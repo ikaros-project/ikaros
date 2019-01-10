@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MarkerTracker" description="finds markers in an image">
+<class name="MarkerTracker" description="finds markers in an image">
     
 	<description type="xhtml">
     <p>
@@ -153,4 +153,4 @@
         <file>libARToolKitPlus (from https://launchpad.net/artoolkitplus)</file>
     </files>
     
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SpikingPopulation" description="minimal example module">
+<class name="SpikingPopulation" description="minimal example module">
 
 	<description type="text">
 		Module that simulates a population of spiking neurons.
@@ -53,5 +53,5 @@
    		<file>SpikingPopulation.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Polynomial" description="calculates polynomial">
+<class name="Polynomial" description="calculates polynomial">
 
 	<description type="html">
 	<p>
@@ -55,4 +55,4 @@
    		<file>Polynomial.ikc</file>
    </files>
 
-</group>
+</class>

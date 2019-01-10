@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Product" description="multiplies all input">
+<class name="Product" description="multiplies all input">
 
 	<description type="text">
 		Module that multiplies all elements in its input.
@@ -42,5 +42,5 @@
    		<file>Product.ikc</file>
    </files>
 
-</group>
+</class>
 

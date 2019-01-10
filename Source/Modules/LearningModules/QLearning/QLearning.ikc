@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="QLearning" description="simple Q-learning">
+<class name="QLearning" description="simple Q-learning">
 
 	<description type="text">
 		Basic Q-learning.
@@ -46,5 +46,5 @@
    		<file>QLearning.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LoGFilter" description="applies a DoG filter">
+<class name="LoGFilter" description="applies a DoG filter">
 
 	<description type="text">
 		Module used to apply a Laplacian of Gaussian (LoG) filter to an image.
@@ -39,4 +39,4 @@
 	<file>LoGFilter.ikc</file>
    </files>
 
-</group>
+</class>

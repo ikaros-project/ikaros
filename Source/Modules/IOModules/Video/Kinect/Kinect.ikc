@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Kinect" description="grabs images from Kinect or Xtion">
+<class name="Kinect" description="grabs images from Kinect or Xtion">
 
 	<description type="text">
 		Uses libfreenect from Kinect to grab images from a Kinect or a Xtion (http://Kinect.org/).
@@ -52,5 +52,5 @@
    		<file>Kinect.ikc</file>
    </files>
 
-</group>
+</class>
 

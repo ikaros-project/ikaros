@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Tanh" description="minimal example module">
+<class name="Tanh" description="minimal example module">
 
 	<description type="text">
 		Module that applies the tanh function to the input
@@ -45,5 +45,5 @@
    		<file>Tanh.ikc</file>
    </files>
 
-</group>
+</class>
 

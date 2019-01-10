@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EyeModel" description="models an eye">
+<class name="EyeModel" description="models an eye">
 
 	<description type="text">
         Model of two eyes with pupil control. Does almost nothing but could include a dynamical model of eye motion in the future"
@@ -53,5 +53,5 @@
    		<file>EyeModel.ikc</file>
    </files>
 
-</group>
+</class>
 

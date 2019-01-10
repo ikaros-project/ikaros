@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SSC32" description="interfaces the SSC-32 RC servos">
+<class name="SSC32" description="interfaces the SSC-32 RC servos">
 
 	<description type="text">
 		Driver for the SSC-32 RC servo controller by Lynxmotion. 
@@ -38,5 +38,5 @@
    		<file>SSC32.ikc</file>
    </files>
 
-</group>
+</class>
 

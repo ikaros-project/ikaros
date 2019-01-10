@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputJPEG" description="writes JPEG files">
+<class name="OutputJPEG" description="writes JPEG files">
 
 	<description type="text">
 		Module used for writing an image (or sequences of images) to file(s).
@@ -56,5 +56,5 @@
    		<file>OutputJPEG.ikc</file>
    </files>
 
-</group>
+</class>
 

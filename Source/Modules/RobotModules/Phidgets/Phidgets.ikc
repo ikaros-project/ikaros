@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Phidgets" description="controlling a Phidgets IOBoard">
+<class name="Phidgets" description="controlling a Phidgets IOBoard">
 
 	<description type="text">
 		A module for comunication with a Phidgets IOBoard. It uses the Phidgets own library.
@@ -43,5 +43,5 @@
    		<file>Phidgets.ikc</file>
    </files>
 
-</group>
+</class>
 

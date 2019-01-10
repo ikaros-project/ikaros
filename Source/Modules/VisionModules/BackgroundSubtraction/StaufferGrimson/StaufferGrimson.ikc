@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="StaufferGrimson" description="forground/background segmentation">
+<class name="StaufferGrimson" description="forground/background segmentation">
 
 <description type="text">
 Implementation of the Stauffer-Grimson forground/background segmentation for grayscale images.
@@ -80,6 +80,6 @@ name="StaufferGrimson"
 <file>StaufferGrimson.ikc</file>
 </files>
 
-</group>
+</class>
 
 

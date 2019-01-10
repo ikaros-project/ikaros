@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LearningModule" description="Template for general learming modules">
+<class name="LearningModule" description="Template for general learming modules">
 
 	<description type="text">
 		This module is a template for general learning modules. It defines all connections and minimal data structures
@@ -79,5 +79,5 @@
    		<file>LearningModule.ikc</file>
    </files>
 
-</group>
+</class>
 

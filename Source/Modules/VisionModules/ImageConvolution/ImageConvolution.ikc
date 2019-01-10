@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ImageConvolution" description="filter an image">
+<class name="ImageConvolution" description="filter an image">
 
 	<description type="text">
 		Module used for basic image filtering with user-defined filter kernels.
@@ -44,5 +44,5 @@
 	<file>ImageConvolution.ikc</file>
    </files>
 
-</group>
+</class>
 

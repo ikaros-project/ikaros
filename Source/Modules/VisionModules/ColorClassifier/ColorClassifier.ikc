@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ColorClassifier" description="tracks colored objects">
+<class name="ColorClassifier" description="tracks colored objects">
 
 	<description type="text">
 		Module used to classify one or several objects of a particular color in a scene.
@@ -53,5 +53,5 @@
    		<file>ColorClassifier.ikc</file>
    </files>
 
-</group>
+</class>
 

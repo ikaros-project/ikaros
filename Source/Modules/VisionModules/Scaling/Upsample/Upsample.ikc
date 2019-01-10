@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Upsample" description="doubles an image">
+<class name="Upsample" description="doubles an image">
 
 	<description type="text">
 		Module that upsamples an image to double size. No interpolation is done.
@@ -55,4 +55,4 @@
    		<file>Upsample.ikc</file>
    </files>
 
-</group>
+</class>

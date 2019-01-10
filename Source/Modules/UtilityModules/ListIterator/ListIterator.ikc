@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ListIterator" description="minimal example module">
+<class name="ListIterator" description="minimal example module">
 
 	<description type="text">
 		Iterates through a list of numbers whenever SYNC_IN is 1, sets SYNC_OUT to 1 on beginning of every iteration.
@@ -45,5 +45,5 @@
    		<file>ListIterator.ikc</file>
    </files>
 
-</group>
+</class>
 

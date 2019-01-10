@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Threshold" description="applies a threshold">
+<class name="Threshold" description="applies a threshold">
 
 	<description type="text">
 		Module used to apply a threshold to each element of its input.
@@ -103,4 +103,4 @@
    		<file>Threshold.ikc</file>
    </files>
 
-</group>
+</class>

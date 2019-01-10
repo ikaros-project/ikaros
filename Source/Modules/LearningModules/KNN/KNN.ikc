@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="KNN" description="(K Nearest Neighbors) using a KD-tree">
+<class name="KNN" description="(K Nearest Neighbors) using a KD-tree">
 
 
 <description type="text">
@@ -93,4 +93,4 @@
 	<file>KD_Tree.h</file>
 </files>
 
-</group>
+</class>

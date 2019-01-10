@@ -2,7 +2,7 @@
 
 <!--- InputJPEG Class File -->
 
-<group name="InputJPEG" description="reads JPEG files">
+<class name="InputJPEG" description="reads JPEG files">
 
 	<description type="text">
 		Module used for reading an image (or sequences of images) from a JPEG
@@ -108,5 +108,5 @@
    		<file>InputJPEG.ikc</file>
    </files>
 
-</group>
+</class>
 

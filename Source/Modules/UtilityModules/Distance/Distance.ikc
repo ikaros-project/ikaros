@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Distance" description="calculates a distance">
+<class name="Distance" description="calculates a distance">
 
 	<description type="text">
 		Module that calculates the distance
@@ -46,4 +46,4 @@
    		<file>Distance.ikc</file>
    </files>
 
-</group>
+</class>

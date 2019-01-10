@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EdgeSegmentation" description="finds edges">
+<class name="EdgeSegmentation" description="finds edges">
 
 	<description type="text">
 		Module that selects edges from an edge image (optionally with orientation).
@@ -43,5 +43,5 @@
    		<file>EdgeSegmentation.ikc</file>
    </files>
 
-</group>
+</class>
 

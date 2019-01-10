@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthContourTrace" description="segments into depth planes">
+<class name="DepthContourTrace" description="segments into depth planes">
 
 	<description type="text">
         Finds a contour around an object indicated by pixels with 1 as foreground
@@ -40,5 +40,5 @@
 	<file>DepthContourTrace.ikc</file>
    </files>
 
-</group>
+</class>
 

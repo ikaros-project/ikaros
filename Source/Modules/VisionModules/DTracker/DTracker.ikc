@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DTracker" description="wraps dlib's correlation tracker">
+<class name="DTracker" description="wraps dlib's correlation tracker">
 
 <description type="xhtml">
 <p> 
@@ -68,6 +68,6 @@
 <file>DTracker.ikc</file>
 </files>
 
-</group>
+</class>
 
 

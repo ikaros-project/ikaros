@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DirectionDetector" description="calculates motion in an image">
+<class name="DirectionDetector" description="calculates motion in an image">
 
 	<description type="text">
 		Detect various visual motion
@@ -42,4 +42,4 @@
    		<file>DirectionDetector.ikc</file>
    </files>
 
-</group>
+</class>

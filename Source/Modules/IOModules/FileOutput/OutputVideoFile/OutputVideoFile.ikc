@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputVideoFile" description="save to a video file">
+<class name="OutputVideoFile" description="save to a video file">
 
   <description type="text">
     Module transcodes ikaros output to a mp4 file using the h264 codec.
@@ -39,4 +39,4 @@
        <file>OutputVideoFile.ikc</file>
    </files>
 
-</group>
+</class>

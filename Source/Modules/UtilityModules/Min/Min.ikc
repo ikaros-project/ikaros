@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Min" description="minimum of two inputs">
+<class name="Min" description="minimum of two inputs">
 
 	<description type="text">
 		Module that calculates the minimum of each elementy of
@@ -45,4 +45,4 @@
    		<file>Min.ikc</file>
    </files>
 
-</group>
+</class>

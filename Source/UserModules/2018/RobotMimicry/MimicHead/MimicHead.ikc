@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MimicHead" description="minimal example module">
+<class name="MimicHead" description="minimal example module">
 
 	<description type="text">
 		Module that can be used as a start for a new module.
@@ -48,4 +48,4 @@
    		<file>MimicHead.ikc</file>
    </files>
 
-</group>
+</class>

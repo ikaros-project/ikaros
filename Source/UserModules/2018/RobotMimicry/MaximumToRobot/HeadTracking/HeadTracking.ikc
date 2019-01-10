@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="HeadTracking" description="minimal example module">
+<class name="HeadTracking" description="minimal example module">
 
 	<description type="text">
 		Module that can be used as a start for a new module.
@@ -44,4 +44,4 @@
    		<file>HeadTracking.ikc</file>
    </files>
 
-</group>
+</class>

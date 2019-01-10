@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Ones" description="A matrix with a single value">
+<class name="Ones" description="A matrix with a single value">
 
 	<description type="text">
 		Simply a matrix filled with a given value, default=1.0
@@ -37,5 +37,5 @@
    		<file>Ones.ikc</file>
    </files>
 
-</group>
+</class>
 

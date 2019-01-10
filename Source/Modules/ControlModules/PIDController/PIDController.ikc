@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PIDController" description="standard PID controller">
+<class name="PIDController" description="standard PID controller">
 
 	<description type="text">
 		Module that applies PID control independently to each of its inputs.
@@ -65,5 +65,5 @@
    		<file>PIDController.ikc</file>
    </files>
 
-</group>
+</class>
 

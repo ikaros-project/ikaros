@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="M02_Amygdala" description="an amygdala model">
+<class name="M02_Amygdala" description="an amygdala model">
 
 <description type="text">
 The module implements the model of the amygdala cortex described in the PhD thesis by Jan Morén 2002.
@@ -73,6 +73,6 @@ Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lun
 <file>M02_Amygdala.ikc</file>
 </files>
 
-</group>
+</class>
 
 

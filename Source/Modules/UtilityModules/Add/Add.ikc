@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Add" description="adds two inputs">
+<class name="Add" description="adds two inputs">
 
 	<description type="text">
 		Module that sums its two inputs element by element,
@@ -39,5 +39,5 @@
    		<file>Add.ikc</file>
    </files>
 
-</group>
+</class>
 

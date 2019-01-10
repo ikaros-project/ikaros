@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Downsample" description="halves an image">
+<class name="Downsample" description="halves an image">
 
 	<description type="text">
 		Module that downsamples an image to half size. No interpolation is done.
@@ -55,4 +55,4 @@
    		<file>Downsample.ikc</file>
    </files>
 
-</group>
+</class>

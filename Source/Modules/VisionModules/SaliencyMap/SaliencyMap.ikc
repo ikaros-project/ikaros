@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SaliencyMap" description="a saliency map">
+<class name="SaliencyMap" description="a saliency map">
 
 	<description type="text">
 		A minimal saliency map implementation.
@@ -44,5 +44,5 @@
    		<file>SaliencyMap.ikc</file>
    </files>
 
-</group>
+</class>
 

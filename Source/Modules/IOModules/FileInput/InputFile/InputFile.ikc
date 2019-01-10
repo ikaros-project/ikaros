@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputFile" description="reads a text file">
+<class name="InputFile" description="reads a text file">
 
 	<description type="text">
 		<p>
@@ -77,4 +77,4 @@
    		<file>InputFile.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="HysteresisThresholding" description="adaptive edge threshold">
+<class name="HysteresisThresholding" description="adaptive edge threshold">
 
 	<description type="text">
 		This module implements iterative hysteresis thresholding of image. There are two threshold
@@ -52,4 +52,4 @@
    		<file>HysteresisThresholding.ikc</file>
    </files>
 
-</group>
+</class>

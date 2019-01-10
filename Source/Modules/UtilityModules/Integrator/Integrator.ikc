@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Integrator" description="sums input over time">
+<class name="Integrator" description="sums input over time">
 
 	<description type="text">
 		Module used to integrate its input over time.
@@ -55,5 +55,5 @@
    		<file>Integrator.ikc</file>
    </files>
 
-</group>
+</class>
 

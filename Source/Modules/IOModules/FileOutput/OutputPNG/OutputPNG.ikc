@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputPNG" description="writes PNG files">
+<class name="OutputPNG" description="writes PNG files">
 
 	<description type="text">
         Module used for writing an image (or sequences of images) to file(s).
@@ -65,4 +65,4 @@
    		<file>OutputPNG.ikc</file>
    </files>
 
-</group>
+</class>

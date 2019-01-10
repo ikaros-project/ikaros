@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ArrayToMatrix" description="split an input array and concatenate a output matrix">
+<class name="ArrayToMatrix" description="split an input array and concatenate a output matrix">
 
 	<description type="text">
         Module that converts one or several arrays into a matrix.
@@ -33,5 +33,5 @@
    		<file>ArrayToMatrix.cc</file>
    		<file>ArrayToMatrix.ikc</file>
    </files>
-</group>
+</class>
 

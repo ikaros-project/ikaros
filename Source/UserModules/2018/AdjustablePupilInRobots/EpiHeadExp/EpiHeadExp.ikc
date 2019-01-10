@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EpiHeadExp" description="experiment module 2018">
+<class name="EpiHeadExp" description="experiment module 2018">
 
 	<description type="Experiment module used for studie pupillary contagions between robot and human">
 
@@ -72,5 +72,5 @@
    		<file>EpiHeadExp.ikc</file>
    </files>
 
-</group>
+</class>
 

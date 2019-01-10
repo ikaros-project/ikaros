@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Flip" description="Flips a signal">
+<class name="Flip" description="Flips a signal">
 
 	<description type="text">
 		Module that flips a matrix upside down or left to right
@@ -43,4 +43,4 @@
    		<file>Flip.ikc</file>
    </files>
 
-</group>
+</class>

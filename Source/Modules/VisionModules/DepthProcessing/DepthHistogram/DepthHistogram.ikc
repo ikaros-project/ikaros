@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthHistogram" description="segments into depth planes">
+<class name="DepthHistogram" description="segments into depth planes">
 
 	<description type="text">
 		Segments a depth image into depth planes.
@@ -44,5 +44,5 @@
 	<file>DepthHistogram.ikc</file>
    </files>
 
-</group>
+</class>
 

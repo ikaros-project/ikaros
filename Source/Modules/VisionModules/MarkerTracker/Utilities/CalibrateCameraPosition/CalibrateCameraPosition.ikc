@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CalibrateCameraPosition" description="outputs the position and rotation of the camera using an artoolkit marker.">
+<class name="CalibrateCameraPosition" description="outputs the position and rotation of the camera using an artoolkit marker.">
 
 	<description type="text">
 	1. Set the Marker ID (CalibrateCameraPosition).
@@ -44,4 +44,4 @@
    		<file>CalibrateCameraPosition.ikc</file>
    </files>
 
-</group>
+</class>

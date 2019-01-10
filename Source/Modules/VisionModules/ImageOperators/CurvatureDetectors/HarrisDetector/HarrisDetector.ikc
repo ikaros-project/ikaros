@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="HarrisDetector" description="finds curvature points">
+<class name="HarrisDetector" description="finds curvature points">
 
 	<description type="text">
 		Module for curvature (corner) detection. Operates on
@@ -35,4 +35,4 @@
    		<file>HarrisDetector.ikc</file>
    </files>
 
-</group>
+</class>

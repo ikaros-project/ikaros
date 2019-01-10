@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Sum" description="sums inputs">
+<class name="Sum" description="sums inputs">
 
 	<description type="text">
 		Module that sums all elements in its input.
@@ -65,5 +65,5 @@
    		<file>Sum.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GaussianEdgeDetector" description="finds edges and orientations">
+<class name="GaussianEdgeDetector" description="finds edges and orientations">
 
 	<description type="text">
 		Module that applies a Gaussian edge filter to an image.
@@ -40,4 +40,4 @@
    		<file>GaussianEdgeDetector.ikc</file>
    </files>
 
-</group>
+</class>

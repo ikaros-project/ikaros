@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TheEyeTribe" description="module that uses The Eye Tribe API">
+<class name="TheEyeTribe" description="module that uses The Eye Tribe API">
 
 	<description type="text">
 
@@ -99,5 +99,5 @@
    		<file>TheEyeTribe.ikc</file>
    </files>
 
-</group>
+</class>
 

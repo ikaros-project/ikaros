@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CSOM_L" description="self-organizing convolution map">
+<class name="CSOM_L" description="self-organizing convolution map">
 
 	<description type="text">
 		Self-organizing convolution map.
@@ -77,5 +77,5 @@
    		<file>CSOM_L.ikc</file>
    </files>
 
-</group>
+</class>
 

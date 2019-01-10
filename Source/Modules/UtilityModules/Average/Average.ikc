@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Average" description="calculates average over time">
+<class name="Average" description="calculates average over time">
 
 	<description type="text">
 		Module used to calculate the average of its input over time. There are three different types of average
@@ -56,4 +56,4 @@
    		<file>Average.ikc</file>
    </files>
 
-</group>
+</class>

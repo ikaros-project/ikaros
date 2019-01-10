@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="RobertsEdgeDetector" description="finds edges">
+<class name="RobertsEdgeDetector" description="finds edges">
 
 	<description type="text">
 		Module that applies the Roberts edge filter to an image.
@@ -31,4 +31,4 @@
    		<file>RobertsEdgeDetector.ikc</file>
    </files>
 
-</group>
+</class>

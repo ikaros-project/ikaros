@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GridWorld" description="simple agent and world simulator">
+<class name="GridWorld" description="simple agent and world simulator">
 
 	<description type="xhtml">
 		<p>
@@ -75,4 +75,4 @@
    		<file>GridWorld.ikc</file>
    </files>
 
-</group>
+</class>

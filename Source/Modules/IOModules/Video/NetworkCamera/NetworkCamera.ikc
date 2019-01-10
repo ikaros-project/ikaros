@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="NetworkCamera" description="grabs images from network camera">
+<class name="NetworkCamera" description="grabs images from network camera">
 
 	<description type="text">
 		Module used for grabbing images from a network camera. The module has
@@ -55,4 +55,4 @@
    		<file>NetworkCamera.ikc</file>
    </files>
 
-</group>
+</class>

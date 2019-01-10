@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GaborFilter" description="filters an image">
+<class name="GaborFilter" description="filters an image">
 
 	<description type="text">
 		Module that constructs a Gabor filter and applies it to an image.
@@ -45,4 +45,4 @@
    		<file>GaborFilter.ikc</file>
    </files>
 
-</group>
+</class>

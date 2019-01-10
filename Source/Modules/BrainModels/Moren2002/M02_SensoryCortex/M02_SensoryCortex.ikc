@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="M02_SensoryCortex" description="a (naive) cortex model">
+<class name="M02_SensoryCortex" description="a (naive) cortex model">
 
 <description type="text">
 The module implements the cortex model described in the PhD thesis by Jan Morén 2002.
@@ -40,6 +40,6 @@ The module implements the cortex model described in the PhD thesis by Jan Morén
 <file>M02_SensoryCortex.ikc</file>
 </files>
 
-</group>
+</class>
 
 

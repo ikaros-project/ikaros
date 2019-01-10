@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TappedDelayLine" description="encodes a signal as a time series">
+<class name="TappedDelayLine" description="encodes a signal as a time series">
 
 	<description type="xhtml">
 		<p>
@@ -44,5 +44,5 @@
    		<file>TappedDelayLine.ikc</file>
    </files>
 
-</group>
+</class>
 

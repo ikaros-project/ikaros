@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthTransform" description="segments into depth planes">
+<class name="DepthTransform" description="segments into depth planes">
 
 	<description type="text">
 		Transforms a list of deoth coordinates from image coordinates (ImageX, ImageY, Depth) to world coordinates (X, Y, Z).
@@ -43,5 +43,5 @@
 	<file>DepthTransform.ikc</file>
    </files>
 
-</group>
+</class>
 

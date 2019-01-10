@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="M02_OFC" description="an model of orbitofrontal cortex">
+<class name="M02_OFC" description="an model of orbitofrontal cortex">
 
 <description type="text">
 The module implements the model of the orbitofrontal cortex described in the PhD thesis by Jan Morén 2002.
@@ -71,6 +71,6 @@ Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lun
 <file>M02_OFC.ikc</file>
 </files>
 
-</group>
+</class>
 
 

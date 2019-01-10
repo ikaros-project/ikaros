@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Expression" description="Mathematical expression">
+<class name="Expression" description="Mathematical expression">
 
 	<description type="text">
 		Module that can take in an string that makes up a 
@@ -73,5 +73,5 @@
    		<file>Expression.ikc</file>
    </files>
 
-</group>
+</class>
 

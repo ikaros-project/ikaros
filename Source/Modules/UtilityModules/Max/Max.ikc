@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Max" description="maximum of two inputs">
+<class name="Max" description="maximum of two inputs">
 
 	<description type="text">
 		Module that calculates the maximum of each elementy of
@@ -45,4 +45,4 @@
    		<file>Max.ikc</file>
    </files>
 
-</group>
+</class>

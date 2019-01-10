@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Sink" description="throws away a signal">
+<class name="Sink" description="throws away a signal">
 
 	<description type="text">
 		Module with a single input to which anything can be connected
@@ -31,4 +31,4 @@
    		<file>Sink.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TrainHead" description="minimal example module">
+<class name="TrainHead" description="minimal example module">
 
 	<description type="text">
 
@@ -44,4 +44,4 @@
    		<file>TrainHead.ikc</file>
    </files>
 
-</group>
+</class>

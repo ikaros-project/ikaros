@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OuterProduct" description="outer product of two inputs">
+<class name="OuterProduct" description="outer product of two inputs">
 
 	<description type="text">
 		Module that calculates the outer product of its two input vectors.
@@ -55,4 +55,4 @@
    		<file>OuterProduct.ikc</file>
    </files>
 
-</group>
+</class>

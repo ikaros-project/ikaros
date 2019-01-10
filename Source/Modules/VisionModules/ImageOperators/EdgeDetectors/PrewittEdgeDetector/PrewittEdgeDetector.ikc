@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PrewittEdgeDetector" description="finds edges">
+<class name="PrewittEdgeDetector" description="finds edges">
 
 	<description type="text">
 		Module that applies the Prewitt edge filter to an image.
@@ -31,4 +31,4 @@
    		<file>PrewittEdgeDetector.ikc</file>
    </files>
 
-</group>
+</class>

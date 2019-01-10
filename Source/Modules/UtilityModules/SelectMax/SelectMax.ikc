@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SelectMax" description="selects maximum element">
+<class name="SelectMax" description="selects maximum element">
 
 	<description type="text">
 		A module sets the output element corresponding to its
@@ -42,5 +42,5 @@
    		<file>SelectMax.ikc</file>
    </files>
 
-</group>
+</class>
 

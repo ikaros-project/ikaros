@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SequenceRecorder" description="records a sequence">
+<class name="SequenceRecorder" description="records a sequence">
 
 	<description type="text">
 		Module that records a sequence of values and saves them into a file.
@@ -80,5 +80,5 @@
    		<file>SequenceRecorder.ikc</file>
    </files>
 
-</group>
+</class>
 

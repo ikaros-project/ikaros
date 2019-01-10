@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Delay" description="delays a signal">
+<class name="Delay" description="delays a signal">
 
 	<description type="text">
 		Module used to delay its input a number of ticks. The delay is
@@ -38,4 +38,4 @@
    		<file>Delay.ikc</file>
    </files>
 
-</group>
+</class>

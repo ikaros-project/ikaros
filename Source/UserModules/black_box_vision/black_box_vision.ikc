@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="black_box_vision" description="minimal example module">
+<class name="black_box_vision" description="minimal example module">
 
 	<description type="text">
 		Minimal module that can be used as a start for a new module.
@@ -57,5 +57,5 @@
    		<file>black_box_vision.ikc</file>
    </files>
 
-</group>
+</class>
 

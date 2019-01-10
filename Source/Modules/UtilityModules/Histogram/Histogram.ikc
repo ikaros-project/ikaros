@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Histogram" description="generates a histogram">
+<class name="Histogram" description="generates a histogram">
 
 	<description type="text">
         Module that counts the number of values within each histogram bin.
@@ -51,5 +51,5 @@
    		<file>Gate.ikc</file>
    </files>
 
-</group>
+</class>
 

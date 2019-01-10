@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputPNG" description="reads PNG files">
+<class name="InputPNG" description="reads PNG files">
 
 	<description type="text">
 		Module used for reading an image (or sequences of
@@ -105,5 +105,5 @@
    		<file>InputPNG.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="KNN_Pick" description="chooses a class based on some elements (neighbors)">
+<class name="KNN_Pick" description="chooses a class based on some elements (neighbors)">
 
 
 <description type="text">
@@ -73,4 +73,4 @@
 	<file>KNN_Pick.ikc</file>
 </files>
 
-</group>
+</class>

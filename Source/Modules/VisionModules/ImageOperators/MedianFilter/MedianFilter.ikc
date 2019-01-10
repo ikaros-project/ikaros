@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MedianFilter" description="applies a median filter">
+<class name="MedianFilter" description="applies a median filter">
 
 	<description type="text">
 		Module used to apply median filtering to an image.
@@ -39,4 +39,4 @@
 	<file>MedianFilter.ikc</file>
    </files>
 
-</group>
+</class>

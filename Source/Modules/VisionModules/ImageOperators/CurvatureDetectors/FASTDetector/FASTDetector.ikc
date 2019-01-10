@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="FASTDetector" description="finds curvature points">
+<class name="FASTDetector" description="finds curvature points">
 
 	<description type="text">
 	</description>
@@ -37,4 +37,4 @@
    		<file>FASTDetector.ikc</file>
    </files>
 
-</group>
+</class>

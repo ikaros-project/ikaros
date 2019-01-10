@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ActionCompetition" description="maintains activation levels for a number iof actions">
+<class name="ActionCompetition" description="maintains activation levels for a number iof actions">
 
 	<description type="text">
         This module maintains an activation level for a number of actions that increase or decreas in urgency over time depending on internal and external factors.
@@ -57,4 +57,4 @@
    		<file>ActionCompetition.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="AttentionWindow" description="selects an object region">
+<class name="AttentionWindow" description="selects an object region">
 
 	<description type="xhtml">
     <p>
@@ -62,5 +62,5 @@
    		<file>AttentionWindow.ikc</file>
    </files>
 
-</group>
+</class>
 

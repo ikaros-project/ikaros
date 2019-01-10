@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Scale" description="scales a signal">
+<class name="Scale" description="scales a signal">
 
 	<description type="text">
 		Module that multiplies its input by a constant
@@ -45,4 +45,4 @@
    		<file>Scale.ikc</file>
    </files>
 
-</group>
+</class>

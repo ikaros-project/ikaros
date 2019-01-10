@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TruncateArray" description="split an input array and concatenate a output matrix">
+<class name="TruncateArray" description="split an input array and concatenate a output matrix">
 
 	<description type="text">
         Module that splits up a array to a matrix. This module will be removed when similar features will be provided directly in the ikaros connections.
@@ -36,5 +36,5 @@
    		<file>TruncateArray.cc</file>
    		<file>TruncateArray.ikc</file>
    </files>
-</group>
+</class>
 

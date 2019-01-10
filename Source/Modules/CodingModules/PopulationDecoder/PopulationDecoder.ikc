@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PopulationDecoder" description="encodes a two-dimensional value in a vector">
+<class name="PopulationDecoder" description="encodes a two-dimensional value in a vector">
 
 	<description type="text">
 		Module that generates an array of values from a gaussian population code.
@@ -43,5 +43,5 @@
    		<file>PopulationDecoder.ikc</file>
    </files>
 
-</group>
+</class>
 

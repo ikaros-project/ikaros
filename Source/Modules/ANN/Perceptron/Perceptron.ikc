@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="Perceptron" description="single layer of perceptrons">
+<class name="Perceptron" description="single layer of perceptrons">
 
 
 <description type="text">
@@ -179,4 +179,4 @@ Mohamad H. Hassoun (1995). Fundamentals of Artificial Neural Networks. MIT Press
 	<file>Perceptron.ikc</file>
 </files>
 
-</group>
+</class>

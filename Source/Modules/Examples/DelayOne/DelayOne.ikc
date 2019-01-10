@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DelayOne" description="delays its input one tick">
+<class name="DelayOne" description="delays its input one tick">
 
 	<description type="text">	
 		This programming example demonstrates how the output size can depend on the input size using the SetSizes function.
@@ -33,4 +33,4 @@
    		<file>DelayOne.ikc</file>
    </files>
 
-</group>
+</class>

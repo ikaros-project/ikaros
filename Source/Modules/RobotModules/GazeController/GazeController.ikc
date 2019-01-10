@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GazeController" description="controls a 4 DOF stereo head">
+<class name="GazeController" description="controls a 4 DOF stereo head">
 
 	<description type="text">
 		Module that controls the four servos of a stereo head with head pan and tilt movements and only pan movements for the eyes.
@@ -87,5 +87,5 @@
    		<file>GazeController.ikc</file>
    </files>
 
-</group>
+</class>
 

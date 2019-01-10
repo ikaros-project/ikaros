@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthSegmentation" description="segments into depth planes">
+<class name="DepthSegmentation" description="segments into depth planes">
 
 	<description type="text">
 		Segments a depth image to find a single object.
@@ -37,4 +37,4 @@
 	<file>DepthSegmentation.ikc</file>
    </files>
 
-</group>
+</class>

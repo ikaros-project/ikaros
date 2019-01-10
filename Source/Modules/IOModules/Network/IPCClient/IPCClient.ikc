@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="IPCInput" description="minimal example module">
+<class name="IPCInput" description="minimal example module">
 
 	<description type="text">
 
@@ -33,5 +33,5 @@
    		<file>IPCClient.ikc</file>
    </files>
 
-</group>
+</class>
 

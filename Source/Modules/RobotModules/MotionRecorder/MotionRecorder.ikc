@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MotionRecorder" description="minimal example module">
+<class name="MotionRecorder" description="minimal example module">
 
 	<description type="text">
 		Module that records a sequence of values and saves them into a file.
@@ -107,5 +107,5 @@
    		<file>MotionRecorder.ikc</file>
    </files>
 
-</group>
+</class>
 

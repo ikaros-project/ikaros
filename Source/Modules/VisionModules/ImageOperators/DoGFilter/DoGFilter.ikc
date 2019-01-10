@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DoGFilter" description="applies a DoG filter">
+<class name="DoGFilter" description="applies a DoG filter">
 
 	<description type="text">
 		Module used to apply a Difference of Gaussians (DoG) filter to an image.
@@ -40,4 +40,4 @@
 	<file>DoGFilter.ikc</file>
    </files>
 
-</group>
+</class>

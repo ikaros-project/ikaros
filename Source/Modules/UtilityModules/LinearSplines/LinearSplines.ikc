@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="LinearSplines" description="computes linear spline functions">
+<class name="LinearSplines" description="computes linear spline functions">
 
 	<description type="xhtml">
     <p>
@@ -61,5 +61,5 @@
    		<file>LinearSplines.ikc</file>
    </files>
 
-</group>
+</class>
 

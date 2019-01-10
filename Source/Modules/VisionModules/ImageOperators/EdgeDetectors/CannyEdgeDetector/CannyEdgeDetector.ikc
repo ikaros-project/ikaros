@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CannyEdgeDetector" description="finds edges">
+<class name="CannyEdgeDetector" description="finds edges">
 
 	<description type="text">
 		Module that applies the Canny edge detector to an image. This edge detector works in five steps:
@@ -48,4 +48,4 @@
    		<file>CannyEdgeDetector.ikc</file>
    </files>
 
-</group>
+</class>

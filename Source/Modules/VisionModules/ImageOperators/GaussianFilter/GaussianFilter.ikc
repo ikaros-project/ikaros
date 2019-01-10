@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GaussianFilter" description="applies a Gaussian filter">
+<class name="GaussianFilter" description="applies a Gaussian filter">
 
 	<description type="text">
 		Module used to apply Gaussian filtering to an image.
@@ -38,4 +38,4 @@
 	<file>GaussianFilter.ikc</file>
    </files>
 
-</group>
+</class>

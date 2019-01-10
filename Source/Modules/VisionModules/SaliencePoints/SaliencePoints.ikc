@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SaliencePoints" description="converts points to a saliency map">
+<class name="SaliencePoints" description="converts points to a saliency map">
 
 	<description type="text">
 		The module SaliencePoints takes a list of image coordinates and convert it into a saliency map that is suitable as input to the SaliencyMap module. The list must be coded as rows with (x,y)-values. The column with the coordinates can be set using the select parameter. A column with saliency values can optionally be selected using the select_salience parameter. If the COUNT input is connected it indicates the number of rows in the input to use.
@@ -49,5 +49,5 @@
    		<file>SaliencePoints.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GLRobotSimulator" description="simulates a robot">
+<class name="GLRobotSimulator" description="simulates a robot">
 
 	<description type="text">
         This module simulates the robot developed within the EU-funded project Goal-Leaders.
@@ -104,5 +104,5 @@
    		<file>GLRobotSimulator</file>
    </files>
 
-</group>
+</class>
 

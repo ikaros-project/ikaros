@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Divide" description="divides the first input with the second">
+<class name="Divide" description="divides the first input with the second">
 
 	<description type="text">
 		Module that divides its two inputs component by component.
@@ -45,4 +45,4 @@
    		<file>Divide.ikc</file>
    </files>
 
-</group>
+</class>

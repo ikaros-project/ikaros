@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Arbiter" description="selects between multiple inputs">
+<class name="Arbiter" description="selects between multiple inputs">
 
 	<description type="text">
 		Module that selects between its inputs based on the values in the value inputs or the amplitude of its inputs.
@@ -80,5 +80,5 @@
    		<file>Arbiter.ikc</file>
    </files>
 
-</group>
+</class>
 

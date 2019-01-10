@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PlanarArm" description="simulation of a simple arm and a target object">
+<class name="PlanarArm" description="simulation of a simple arm and a target object">
 
 	<description type="html">
 		<p>
@@ -54,5 +54,5 @@
    		<file>PlanarArm.ikc</file>
    </files>
 
-</group>
+</class>
 

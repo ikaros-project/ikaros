@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Sweep" description="produces a sequence of values">
+<class name="Sweep" description="produces a sequence of values">
 
 	<description type="text">
 		Module that sweeps the output from min to max in steps set by step.
@@ -56,4 +56,4 @@
    		<file>Sweep.ikc</file>
    </files>
 
-</group>
+</class>

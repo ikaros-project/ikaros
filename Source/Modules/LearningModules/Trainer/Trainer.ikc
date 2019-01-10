@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Trainer" description="trains a learning module">
+<class name="Trainer" description="trains a learning module">
 
 	<description type="text">
         The Trainer module reads one or two data sets and use them to train a learning module. The data can be used either sequentially or be read out in random order.
@@ -54,5 +54,5 @@
    		<file>Trainer.ikc</file>
    </files>
 
-</group>
+</class>
 

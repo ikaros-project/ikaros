@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SpatialClustering" description="finds clusters of pixels">
+<class name="SpatialClustering" description="finds clusters of pixels">
 
 	<description type="text">
 		Module used to find clusters in an image. Clusters are made up of pixels of value 1. The maximum number of clusters to be found as well as the minimu area 
@@ -44,5 +44,5 @@
    		<file>SpatialClustering.ikc</file>
    </files>
 
-</group>
+</class>
 

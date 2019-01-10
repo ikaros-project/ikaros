@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Map" description="minimal example module">
+<class name="Map" description="minimal example module">
 
 	<description type="text">
 		Maps from one interval to another
@@ -41,5 +41,5 @@
    		<file>Map.ikc</file>
    </files>
 
-</group>
+</class>
 

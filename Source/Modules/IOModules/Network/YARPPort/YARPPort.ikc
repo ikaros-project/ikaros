@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="YARPPort" description="ikaros to YARP network communication">
+<class name="YARPPort" description="ikaros to YARP network communication">
 
 	<description type="xhtml">
         Module that can read and write to an YARP network using the YARP PortablePair.
@@ -75,5 +75,5 @@
    		<file>YARPPort.ikc</file>
    </files>
 
-</group>
+</class>
 

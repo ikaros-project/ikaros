@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputVideoStream" description="grabs video using FFmpeg">
+<class name="InputVideoStream" description="grabs video using FFmpeg">
 	
 	<description type="text">
 		Get video from a stream using FFmpeg.
@@ -66,5 +66,5 @@
 		<file>InputVideo.ikc</file>
 	</files>
 	
-</group>
+</class>
 

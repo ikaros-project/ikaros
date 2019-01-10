@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Abs" description="rectifies a signal">
+<class name="Abs" description="rectifies a signal">
 
 	<description type="text">
 		Module used to rectify its input. The output is calculated as,
@@ -43,4 +43,4 @@
    		<file>Abs.ikc</file>
    </files>
 
-</group>
+</class>
