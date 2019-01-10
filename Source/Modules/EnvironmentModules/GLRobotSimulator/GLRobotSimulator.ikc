@@ -89,7 +89,7 @@
 	<input name="DIRECT_CONTROL" description="Low level control of locomotion (dx, dy, dz, dr). Array of size 4. Units: mm/tick and degrees/tick. dz should always be 0." />
 
 
-    <module class="GLRobotSimulator" />
+    <link class="GLRobotSimulator" />
 
 	<author>
 		<name>Christian Balkenius</name>

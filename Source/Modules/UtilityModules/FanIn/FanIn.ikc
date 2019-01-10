@@ -28,7 +28,7 @@
 
 	<output name="OUTPUT" description="The first output" />
 
-	<module class="FanIn" />
+	<link class="FanIn" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

@@ -38,7 +38,7 @@
 	<output name="COLORSPACE_G" description="Image with all pixels plotted in the rg color space. Green channel." size_x="256" size_y="256" />
 	<output name="COLORSPACE_B" description="Image with all pixels plotted in the rg color space. Blue channel." size_x="256" size_y="256" />
 
-	<module class="ColorClassifier" />
+	<link class="ColorClassifier" />
 
 	<author>
 		<name>Christian Balkenius</name>

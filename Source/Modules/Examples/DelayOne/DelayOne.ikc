@@ -18,7 +18,7 @@
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="DelayOne" />
+	<link class="DelayOne" />
 
 	<author>
 		<name>Christian Balkenius</name>

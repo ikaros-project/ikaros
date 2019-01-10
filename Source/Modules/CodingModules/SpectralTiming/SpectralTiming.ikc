@@ -34,7 +34,7 @@
 	<output name="OUTPUT" description="The spectral output" size_set_x="INPUT" size_param_y="no_of_taps" />
 	<output name="TRACE" description="The decaying stimulus trace output" size_set="INPUT" />
 
-	<module class="SpectralTiming" />
+	<link class="SpectralTiming" />
 
 	<created>2014</created>
 	

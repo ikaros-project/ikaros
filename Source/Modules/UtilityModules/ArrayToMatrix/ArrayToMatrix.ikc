@@ -19,7 +19,7 @@
     <input name="INPUT" description="Inputs consisting of one or several connected arrays" />
     <output name="OUTPUT" description="The matrix output"/>
 
-	<module class="ArrayToMatrix" />
+	<link class="ArrayToMatrix" />
 
 	<author>
 		<name>Birger Johansson</name>

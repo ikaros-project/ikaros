@@ -23,7 +23,7 @@
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="InputSelector" />
+	<link class="InputSelector" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

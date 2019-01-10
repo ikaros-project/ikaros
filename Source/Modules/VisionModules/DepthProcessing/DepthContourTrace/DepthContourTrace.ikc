@@ -23,7 +23,7 @@
 	<output name="LENGTH" description="The snake length" size="1"/>
 	<output name="DEBUG" description="The snake debug" size_x="640" size_y="480"/>
 
-	<module class="DepthContourTrace" />
+	<link class="DepthContourTrace" />
 
 	<created>2012</created>
 

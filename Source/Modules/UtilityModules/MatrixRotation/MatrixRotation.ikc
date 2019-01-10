@@ -25,7 +25,7 @@
 
 	<output name="OUTPUT" description="The first output" size_set="INPUT" />
 
-	<module class="MatrixRotation" />
+	<link class="MatrixRotation" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

@@ -21,7 +21,7 @@
 
 	<output name="OUTPUT" description="The first output" size_set="INPUT" />
 
-	<module class="Tanh" />
+	<link class="Tanh" />
 
 	<view>
 		<object

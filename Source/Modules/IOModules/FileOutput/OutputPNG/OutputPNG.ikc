@@ -37,7 +37,7 @@
 	    value of the WRITE input is greter than 0. The file counter will
 	    still increase." optional="yes" />
 
-	<module class="OutputPNG" />
+	<link class="OutputPNG" />
     
     <limitation>
 	    We aren't using all of PNG:s strenghts - no 16 bit output, no

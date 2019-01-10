@@ -33,7 +33,7 @@
 	<output name="DISTANCE" description="The distance from the hand to the target" size="1" />
 	<output name="CONTACT" description="The hand is in contact with the target" size="1" />
 
-	<module class="PlanarArm" />
+	<link class="PlanarArm" />
 	
 	<limitation>
 		Not yet fully implemented

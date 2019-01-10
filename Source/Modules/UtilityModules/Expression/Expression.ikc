@@ -51,7 +51,7 @@
 
 	<output name="OUTPUT" description="The first output" />
 
-	<module class="Expression" />
+	<link class="Expression" />
 	<view name="Expression">
 			<plot 
 				source="*.OUTPUT"

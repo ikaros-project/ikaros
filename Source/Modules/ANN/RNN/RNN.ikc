@@ -24,7 +24,7 @@
 	<input name="AUX"           optional="yes"      description="Input from external sources; like other RNNs" />
 	<input name="T-AUX"         optional="yes"      description="Training input from external sources like (inputs) to other RNNs" />
 
-	<module class="RNN" />
+	<link class="RNN" />
 
     <view title="RNN">
         <object

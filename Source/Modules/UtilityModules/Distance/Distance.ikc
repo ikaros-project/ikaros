@@ -21,7 +21,7 @@
 
 	<output name="OUTPUT" description="The output with the distance between the two inputs" size="1" />
 
-	<module class="Distance" />
+	<link class="Distance" />
 
     <view title="Distance">
         <object

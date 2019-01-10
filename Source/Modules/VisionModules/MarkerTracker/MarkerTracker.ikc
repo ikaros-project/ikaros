@@ -74,7 +74,7 @@
 	<output name="IMAGE_POSITION" description="Position of marker in image (x, y)" size_x="2" size_param_y="max_markers" />
 	<output name="EDGES" description="Marker edges in image (x0, y0,...x3, y3)" size_x="8" size_param_y="max_markers" />
 
-	<module class="MarkerTracker" />
+	<link class="MarkerTracker" />
     
     <view name="MarkerTracker" object_size="30">
         <_object

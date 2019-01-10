@@ -20,7 +20,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Noise" />
+	<link class="Noise" />
 
     <view title="Noise">
         <object

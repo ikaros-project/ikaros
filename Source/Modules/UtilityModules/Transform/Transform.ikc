@@ -30,7 +30,7 @@
 	<output name="OBJECT_ID" description="The id of the object for each of the rows in MATRIX" />
 	<output name="FRAME_ID" description="The id of the reference frame for each of the rows in MATRIX" />
 
-	<module class="Transform" />
+	<link class="Transform" />
 
 	<author>
 		<name>Christian Balkenius</name>

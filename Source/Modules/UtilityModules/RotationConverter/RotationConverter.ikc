@@ -22,7 +22,7 @@
 	<input name="INPUT" description="Input" />
     <output name="OUTPUT" description="Output"/>
 
-	<module class="RotationConverter" />
+	<link class="RotationConverter" />
     
     <view title="RotationConverter">
         <object

@@ -25,7 +25,7 @@ The module implements the cortex model described in the PhD thesis by Jan Morén
     description="The cortex output"
 />
 
-<module class="M02_SensoryCortex" />
+<link class="M02_SensoryCortex" />
 
 <author>
 <name>Jan Moren</name>

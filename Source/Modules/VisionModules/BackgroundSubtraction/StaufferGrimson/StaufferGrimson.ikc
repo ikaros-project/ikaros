@@ -65,7 +65,7 @@ name="StaufferGrimson"
     description="The processed image"
 />
 
-<module class="StaufferGrimson" />
+<link class="StaufferGrimson" />
 
 <author>
 <name>Christian Balkenius</name>

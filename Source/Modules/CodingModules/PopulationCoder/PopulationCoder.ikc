@@ -23,7 +23,7 @@
 
 	<output name="OUTPUT" description="The population coded output"/>
 
-	<module class="PopulationCoder" />
+	<link class="PopulationCoder" />
 
     <view>
         <object class="Grid" module="*" source="OUTPUT" x="0" y="0" w="4" />

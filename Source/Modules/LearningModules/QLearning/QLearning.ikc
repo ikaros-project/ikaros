@@ -25,7 +25,7 @@
 	<output name="ACTION" description="Selected action" size="4" />
 	<output name="VALUE" description="Global value" size_set="STATE" />
 
-	<module class="QLearning" />
+	<link class="QLearning" />
 	
 	<limitation>
 		It should be possible to turn off the automatic movement of the agent from goal to start locations.

@@ -46,7 +46,7 @@
 
 
 
-<module class="BackProp" />
+<link class="BackProp" />
 
 
 <view title="BackProp">

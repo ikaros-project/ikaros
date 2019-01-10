@@ -29,7 +29,7 @@
 	<output name="FOCUS" description="The focus of attention (x, y)." />
 	<output name="ESTIMATION" description="The estimated reinforcement at (x, y)." />
 
-	<module class="SaliencyMap" />
+	<link class="SaliencyMap" />
 
 	<author>
 		<name>Christian Balkenius</name>

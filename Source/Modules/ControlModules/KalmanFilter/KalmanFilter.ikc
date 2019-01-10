@@ -110,7 +110,7 @@ H = ""
     description="The Kalman gain [n x m]"
 />
 
-<module class="KalmanFilter" />
+<link class="KalmanFilter" />
 
 <author>
 <name>Christian Balkenius</name>

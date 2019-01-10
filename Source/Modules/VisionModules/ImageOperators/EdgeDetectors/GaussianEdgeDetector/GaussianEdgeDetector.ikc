@@ -25,7 +25,7 @@
 	<output name="dGx" description="Filter kernel" />
 	<output name="dGy" description="Filter kernel" />
 
-	<module class="GaussianEdgeDetector" />
+	<link class="GaussianEdgeDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>

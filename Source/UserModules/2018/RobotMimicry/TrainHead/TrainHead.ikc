@@ -29,7 +29,7 @@
 
 	<output name="WRITE" description="If the output schould be written to file" size="1"/>
 
-	<module class="TrainHead" />
+	<link class="TrainHead" />
 
 	<author>
 		<name>Christian Balkenius</name>

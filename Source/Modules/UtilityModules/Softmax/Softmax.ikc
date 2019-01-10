@@ -19,7 +19,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Softmax" />
+	<link class="Softmax" />
 
     <view title="Softmax">
         <object

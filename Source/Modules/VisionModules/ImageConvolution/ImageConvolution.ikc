@@ -27,7 +27,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" />
 
-	<module class="ImageConvolution" />
+	<link class="ImageConvolution" />
 
 	<created>2002</created>
 

@@ -45,7 +45,7 @@
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />
 
-	<module class="MotionRecorder" />
+	<link class="MotionRecorder" />
 
     <view name="Default View">
         <grid

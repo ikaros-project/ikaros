@@ -37,7 +37,7 @@
 
 	<output name="OUTPUT" description="The image." />
 
-	<module class="InputRawImage" />
+	<link class="InputRawImage" />
 
 	<author>
 		<name>Christian Balkenius</name>

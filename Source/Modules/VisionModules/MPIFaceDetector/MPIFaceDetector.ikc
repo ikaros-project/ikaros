@@ -73,7 +73,7 @@ name="MPIFaceDetector"
 />
 
 
-<module class="MPIFaceDetector" />
+<link class="MPIFaceDetector" />
 
 <bug>
 The face cut out and eyes should be scaled to a standard size and the position smoothed over time. It is fairly useless right now.

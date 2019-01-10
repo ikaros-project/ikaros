@@ -30,7 +30,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Integrator" />
+	<link class="Integrator" />
 
     <view title="Integrator">
         <object

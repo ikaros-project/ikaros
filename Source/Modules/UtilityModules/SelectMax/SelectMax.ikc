@@ -17,7 +17,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="Output with a single 1 at the maximum of the input" size_set="INPUT" />
 
-	<module class="SelectMax" />
+	<link class="SelectMax" />
 
     <view title="SelectMax">
         <object

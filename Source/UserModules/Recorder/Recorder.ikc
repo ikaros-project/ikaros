@@ -30,7 +30,7 @@
 	<output name="RECORDING" description="The data recorded" />
 	<output name="MEASUREMENTS" description="The array of measurements" size_param="count" />
 
-	<module class="Recorder" />
+	<link class="Recorder" />
 
     <view title="Recorder">
         <object

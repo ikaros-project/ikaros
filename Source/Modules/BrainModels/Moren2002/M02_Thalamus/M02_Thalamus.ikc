@@ -30,7 +30,7 @@ The module implements the thalamus model described in the PhD thesis by Jan MorÃ
     description="The thalamic output"
 />
 
-<module class="M02_Thalamus" />
+<link class="M02_Thalamus" />
 
 <author>
 <name>Jan Moren</name>

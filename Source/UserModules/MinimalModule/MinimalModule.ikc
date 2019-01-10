@@ -17,7 +17,7 @@
 		/>
 	</example>
 
-	<module class="MinimalModule" />
+	<link class="MinimalModule" />
 
 	<author>
 		<name>Christian Balkenius</name>

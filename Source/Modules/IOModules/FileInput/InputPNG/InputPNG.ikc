@@ -40,7 +40,7 @@
 	<output name="GREEN" description="The green channel image data read from the file" />
 	<output name="BLUE" description="The blue channel image data read from the file" />
 
-	<module class="InputPNG" />
+	<link class="InputPNG" />
     
 		<view name="View">
 		<image

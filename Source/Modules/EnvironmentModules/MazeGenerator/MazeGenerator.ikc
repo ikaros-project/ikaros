@@ -25,7 +25,7 @@
 
 	<output name="OUTPUT" description="The generated maze" />
 
-	<module class="MazeGenerator" />
+	<link class="MazeGenerator" />
 	
 	<created>2009</created>
 

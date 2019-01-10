@@ -28,7 +28,7 @@
 	<output name="OUTPUT1" description="The second output." size_set="INPUT0, INPUT1, INPUT2" />
 	<output name="OUTPUT2" description="The third output." size_set="INPUT0, INPUT1, INPUT2" />
 
-	<module class="ColorTransform" />
+	<link class="ColorTransform" />
 
 	<created>2003</created>
 

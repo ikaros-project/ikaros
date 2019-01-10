@@ -24,7 +24,7 @@ This model does absolutely nothing and is just a placeholder.
     description="The cortical output"
 />
 
-<module class="M02_Cortex" />
+<link class="M02_Cortex" />
 
 <author>
 <name>Jan Moren</name>

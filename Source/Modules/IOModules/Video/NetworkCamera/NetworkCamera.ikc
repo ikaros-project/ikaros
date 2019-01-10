@@ -30,7 +30,7 @@
 	<output name="GREEN" description="The green channel of the image" />
 	<output name="BLUE" description="The blue channel of the image" />
 
-	<module class="NetworkCamera" />
+	<link class="NetworkCamera" />
 
 	<bug>
 		The image sizes should be calculated automatically from the first image.

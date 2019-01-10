@@ -37,7 +37,7 @@
 
 	<output name="OUTPUT" description="The color map output" size_set="INPUT0, INPUT1, INPUT2" />
 
-	<module class="ColorMatch" />
+	<link class="ColorMatch" />
 
 	<author>
 		<name>Christian Balkenius</name>

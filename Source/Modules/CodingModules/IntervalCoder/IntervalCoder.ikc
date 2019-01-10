@@ -22,7 +22,7 @@
 
 	<output name="OUTPUT" description="The interval coded output" size_param="outputsize" />
 
-	<module class="IntervalCoder" />
+	<link class="IntervalCoder" />
 
 	<created>2003</created>
 	

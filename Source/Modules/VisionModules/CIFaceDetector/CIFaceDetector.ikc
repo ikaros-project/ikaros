@@ -56,7 +56,7 @@ Positions and sizes are given as fractions of the image size.
 <!-- VISULAISATION OUTPUT -->
 
 
-<module class="CIFaceDetector" />
+<link class="CIFaceDetector" />
 
 
     <view name="Input" >

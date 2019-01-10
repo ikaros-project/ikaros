@@ -19,7 +19,7 @@
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="Summation" />
+	<link class="Summation" />
 
 	<author>
 		<name>Christian Balkenius</name>

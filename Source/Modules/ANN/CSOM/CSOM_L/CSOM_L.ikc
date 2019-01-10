@@ -62,7 +62,7 @@
 
     <output name="STAT_DISTRIBUTION" description="The number of activations of each category" />
     
-	<module class="CSOM_L" />
+	<link class="CSOM_L" />
 
 	<author>
 		<name>Christian Balkenius</name>

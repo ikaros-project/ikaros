@@ -30,7 +30,7 @@
 
 	<output name="OUTPUT" description="The first output" size_param="outputsize" />
 
-	<module class="InitialValue" />
+	<link class="InitialValue" />
 	<view name="InitialValue">
 		<bar-graph
             x="40" y="40"

@@ -33,7 +33,7 @@
 	<output name="HEAD_ROTATION" description="The output degrees" size="1" />
 	<output name="ANGLES" description="The output degrees" size="19" />
 
-	<module class="MimicHead" />
+	<link class="MimicHead" />
 
 	<author>
 		<name>Christian Balkenius</name>

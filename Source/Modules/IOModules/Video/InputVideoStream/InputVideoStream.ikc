@@ -13,7 +13,7 @@
 		/>
 	</example>
 	
-	<module class="InputVideoStream" />
+	<link class="InputVideoStream" />
 	
 	<parameter name="size_x" type="int" default="640" description="Size of the image" />
 	<parameter name="size_y" type="int" default="480" description="Size of the image" />

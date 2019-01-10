@@ -31,7 +31,7 @@
 
 	<output name="OUTPUT" description="The output with value that sweeps between min and max" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
 
-	<module class="Sweep" />
+	<link class="Sweep" />
 
     <view title="Sweep">
         <object

@@ -26,7 +26,7 @@
 	<output name="GAUSSIAN" description="The gaussian window" />
 	<output name="GRATING" description="The sinusoidal grating" />
 
-	<module class="GaborFilter" />
+	<link class="GaborFilter" />
 
     <limitation>
         The current implementation is incredibly slow.

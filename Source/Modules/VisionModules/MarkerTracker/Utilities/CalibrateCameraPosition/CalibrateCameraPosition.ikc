@@ -29,7 +29,7 @@
 
 	<input name="INPUT" description="A table where the fist 16 elements of each row is a homogenous matrix" />
 	
-	<module class="CalibrateCameraPosition" />
+	<link class="CalibrateCameraPosition" />
 	
 	<author>
 		<name>Birger Johansson</name>

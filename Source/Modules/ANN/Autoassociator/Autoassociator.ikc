@@ -62,7 +62,7 @@
     <parameter name="activation_gain" type="float" default="1" description="Use together with input or on its onw if input not connected" />
     <parameter name="noise_level" type="float" default="0.01" description="activation noise" />
     
-	<module class="Autoassociator" />
+	<link class="Autoassociator" />
 
     <view title="Autoassociator">
         <object

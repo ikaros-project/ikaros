@@ -45,7 +45,7 @@
 
 	<output name="OUTPUT" description="The size of the output" size_param_x="output_size_x" size_param_y="output_size_y"/>
 
-	<module class="AttentionWindow" />
+	<link class="AttentionWindow" />
 
 	<created>2014</created>
 	

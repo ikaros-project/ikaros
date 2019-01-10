@@ -14,7 +14,7 @@
     />
   </example>
 
-  <module class="OutputVideoFile" />
+  <link class="OutputVideoFile" />
 
     <parameter name="filename" type="string" description="Video filename. Must end with .mp4" />
     <parameter name="quality" type="list" values="verylow/low/normal/high" default="normal" description="Setting encoder quality"/>

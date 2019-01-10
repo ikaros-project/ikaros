@@ -38,7 +38,7 @@
 	<output name="OUTPUT" description="The first output" size_param="population_size" />
 	<output name="ADENOSINE" size="1" description="Scalar indicating amount of adenosine produced every tick" />
 
-	<module class="SpikingPopulation" />
+	<link class="SpikingPopulation" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

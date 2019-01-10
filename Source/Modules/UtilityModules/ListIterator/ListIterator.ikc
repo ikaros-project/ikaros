@@ -30,7 +30,7 @@
 
 	<output name="SYNC OUT" description="Set to 1 at every beginning of iteration" size="1" />
 	<output name="OUTPUT" description="Outputs current list element at selected index" size="1" />
-	<module class="ListIterator" />
+	<link class="ListIterator" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

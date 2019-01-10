@@ -20,7 +20,7 @@
     <input name="INPUT" description="Input" />
     <output name="OUTPUT" description="Output"/>
 
-	<module class="TruncateArray" />
+	<link class="TruncateArray" />
 		<view>
 			<object class ="BarGraph" title="Output" module="*" source="OUTPUT" x="0" y="0" w="2" />
 		</view>

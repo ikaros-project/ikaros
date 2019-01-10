@@ -28,7 +28,7 @@
     <parameter name="select" type="int" default="0" description="Column with the x coordinate; the next is assumed to contain y" />
     <parameter name="select_salience" type="int" default="none" description="Column with saliency value. none produces same saliency for all points" />
 
-	<module class="SaliencePoints" />
+	<link class="SaliencePoints" />
 
     <view name="View" object_size="30">
         <object class="Image" title="Salience" type="fire" module="*" source="OUTPUT" x="0" y="0" w="8" h="6" />

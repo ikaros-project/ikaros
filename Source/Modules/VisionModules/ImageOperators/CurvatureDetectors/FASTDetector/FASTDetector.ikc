@@ -20,7 +20,7 @@
 	<output name="POINTS" description="Table with corners" size_x="2" size_y="5000" />
 	<output name="POINT_COUNT" description="Number of corners found" size="1" />
 
-	<module class="FASTDetector" />
+	<link class="FASTDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>

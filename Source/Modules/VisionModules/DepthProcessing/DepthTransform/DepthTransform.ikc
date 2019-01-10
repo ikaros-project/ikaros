@@ -22,7 +22,7 @@
 	<input name="INPUT" description="The list of coordinates to transform (h_matrix list)" />
 	<output name="OUTPUT" description="The transformed coordinates (h_matrix list)" size_set="INPUT" />
 
-	<module class="DepthTransform" />
+	<link class="DepthTransform" />
 
     <limitation>
         The module only works with list of h_matrices. It would be useful to also work with point list to reduce the amount of data that needs to be processed.

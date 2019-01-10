@@ -18,7 +18,7 @@
     
     <input name="INPUT" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
     
-	<module class="SoundOutput" />
+	<link class="SoundOutput" />
 
 	<author>
 		<name>Christian Balkenius</name>

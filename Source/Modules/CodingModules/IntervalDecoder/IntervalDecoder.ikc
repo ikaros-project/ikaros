@@ -21,7 +21,7 @@
 
 	<output name="OUTPUT" description="The output" size="1" />
 
-	<module class="IntervalDecoder" />
+	<link class="IntervalDecoder" />
 
 	<author>
 		<name>Christian Balkenius</name>

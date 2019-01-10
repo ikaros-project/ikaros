@@ -50,7 +50,7 @@
 
 	<output name="OUTPUT" description="The output with the submatrix"/>
 
-	<module class="Submatrix" />
+	<link class="Submatrix" />
 
     <view title="Submatrix">
         <object

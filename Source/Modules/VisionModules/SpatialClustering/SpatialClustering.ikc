@@ -29,7 +29,7 @@
 	<output name="OUTPUT" description="The positions of the found objects, (x, y) for each object." size_x="2" size_param_y="no_of_clusters" />
 	<output name="CONFIDENCE" description="The fraction of the circle area around the center of each cluster filled with pixels." size_param="no_of_clusters" />
 
-	<module class="SpatialClustering" />
+	<link class="SpatialClustering" />
 
 	<author>
 		<name>Christian Balkenius</name>

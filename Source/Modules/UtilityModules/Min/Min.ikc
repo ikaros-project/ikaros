@@ -20,7 +20,7 @@
 
 	<output name="OUTPUT" description="The output with the minimum of each element of the two inputs" size_set="INPUT1,INPUT2" />
 
-	<module class="Min" />
+	<link class="Min" />
 
     <view title="Min">
         <object

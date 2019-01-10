@@ -54,7 +54,7 @@ The module implements the model of the amygdala cortex described in the PhD thes
     description="The weight output for visualization"
 />
 
-<module class="M02_Amygdala" />
+<link class="M02_Amygdala" />
 
 <author>
 <name>Jan Moren</name>

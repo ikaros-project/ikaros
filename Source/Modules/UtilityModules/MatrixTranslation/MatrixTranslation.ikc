@@ -24,7 +24,7 @@
 
 	<output name="OUTPUT" description="The first output" size_set="INPUT" />
 
-	<module class="MatrixTranslation" />
+	<link class="MatrixTranslation" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

@@ -22,7 +22,7 @@
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="MatrixMultiply" />
+	<link class="MatrixMultiply" />
 
 	<author>
 		<name>Christian Balkenius</name>

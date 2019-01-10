@@ -20,7 +20,7 @@
 
 	<output name="OUTPUT" description="The output" size_x="19" size_y="307200" />
 
-	<module class="DepthPointList" />
+	<link class="DepthPointList" />
 
 	<created>2014</created>
 

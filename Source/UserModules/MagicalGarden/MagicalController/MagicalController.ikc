@@ -22,7 +22,7 @@
 	<output name="SOUND_ACTIVE" description="Output to trigger mouth animation" size="1" />
 	<output name="TARGET" description="Output to set visual target" size="2" />
 
-	<module class="MagicalController" />
+	<link class="MagicalController" />
 
     <view title="MagicalController"  name="Default view for MagicalController"
 >

@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The  input" />
 	<output name="OUTPUT" description="The downsampled image" />
 
-	<module class="Downsample" />
+	<link class="Downsample" />
 
 	<view name="View">
 		<image

@@ -16,7 +16,7 @@
 
 	<input name="INPUT" description="The input that will be ignored." />
 
-	<module class="Sink" />
+	<link class="Sink" />
 
 	<author>
 		<author>Christian Balkenius</author>

@@ -57,7 +57,7 @@
 
 	<output name="LOG_SYNC_SIGNAL" description="The first output" size="1" />
 
-	<module class="EpiHeadExp" />
+	<link class="EpiHeadExp" />
 
 	<author>
 		<name>Birger Johansson</name>

@@ -21,7 +21,7 @@
 	<input name="REFERENCE" description="Current position of the servos." />
 	<output name="OUTPUT" description="The less dangerous output." size_set="INPUT, REFERENCE" />
 
-	<module class="MotionGuard" />
+	<link class="MotionGuard" />
 
     <view title="MotionGuard">
         <object

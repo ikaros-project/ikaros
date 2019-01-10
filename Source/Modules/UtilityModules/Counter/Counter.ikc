@@ -40,7 +40,7 @@
         Only runs in "any" mode at the moment.
     </bug>
     
-	<module class="Counter" />
+	<link class="Counter" />
 
     <view title="Counter">
         <object

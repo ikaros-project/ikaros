@@ -33,7 +33,7 @@
 	default="linear_approximation"/>
 
 
-<module class="LocalApproximator" />
+<link class="LocalApproximator" />
 
 <limitation>
 This module is work in progress and is not yet ready to be used.

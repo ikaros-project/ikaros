@@ -23,7 +23,7 @@
 
 	<output name="OUTPUT" description="The matrix output" size_set="INPUT" />
 
-	<module class="MatrixScale" />
+	<link class="MatrixScale" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

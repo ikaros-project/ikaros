@@ -17,7 +17,7 @@
 
 	<output name="OUTPUT" description="The sum" size="1" />
 
-	<module class="Sum" />
+	<link class="Sum" />
 
 	<view name="Default view">
 		

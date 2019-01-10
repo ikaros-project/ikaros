@@ -58,7 +58,7 @@
 	default="1.0"/>
 
 
-<module class="KNN_Pick" />
+<link class="KNN_Pick" />
 
 
 <author>

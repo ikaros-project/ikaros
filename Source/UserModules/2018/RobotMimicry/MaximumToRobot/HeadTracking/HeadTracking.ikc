@@ -29,7 +29,7 @@
 	<output name="HEAD_ROTATION" description="The output degrees" size="1" />
 
 
-	<module class="HeadTracking" />
+	<link class="HeadTracking" />
 
 	<author>
 		<name>Christian Balkenius</name>

@@ -85,7 +85,7 @@
     <input name="WRITE" optional="yes" description="If connected, data will only be written to the file when this input is 1" />
 	<input name="*" description="The module can have any number of inputs; each will generate a column in the output" />
 
-	<module class="OutputFile" />
+	<link class="OutputFile" />
 
 	<created>2002</created>
 	

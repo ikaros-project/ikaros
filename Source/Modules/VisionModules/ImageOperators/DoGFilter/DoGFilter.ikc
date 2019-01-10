@@ -23,7 +23,7 @@
 	<output name="KERNEL" description="The DoG kernel" size_param_x="kernel_size" size_param_y="kernel_size" />
 	<output name="PROFILE" description="The profile of the DoG kernel" size_param_x="kernel_size" size_y="1" />
 
-	<module class="DoGFilter" />
+	<link class="DoGFilter" />
 
 	<created>2013</created>
 

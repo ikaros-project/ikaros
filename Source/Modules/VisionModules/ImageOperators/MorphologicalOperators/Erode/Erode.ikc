@@ -17,7 +17,7 @@
 	<input name="INPUT" description="The input image" />
 	<output name="OUTPUT" description="The output" />
 
-	<module class="Erode" />
+	<link class="Erode" />
 
 	<author>
 		<name>Christian Balkenius</name>

@@ -29,7 +29,7 @@
 
 	<output name="OUTPUT" description="The output" size_param="size" />
 
-	<module class="EventTrigger" />
+	<link class="EventTrigger" />
 
     <view title="EventTrigger">
         <object

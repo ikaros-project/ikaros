@@ -25,7 +25,7 @@
 	<output name="OBJECT_ID" description="A new table of object ids where each instance of every object has been Fused" />
 	<output name="FRAME_ID" description="A new table of frame ids where each instance of every object has been Fused" />
 
-	<module class="Fuse" />
+	<link class="Fuse" />
 
 	<author>
 		<name>Christian Balkenius</name>

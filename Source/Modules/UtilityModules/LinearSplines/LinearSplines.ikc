@@ -46,7 +46,7 @@
     <input name="INPUT" description="Input signal" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="LinearSplines" />
+	<link class="LinearSplines" />
 
 	<author>
 		<name>Christian Balkenius</name>

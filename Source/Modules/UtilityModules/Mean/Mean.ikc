@@ -17,7 +17,7 @@
 
 	<output name="OUTPUT" description="The Mean" size="1" />
 
-	<module class="Mean" />
+	<link class="Mean" />
 
     <view title="Mean">
         <object

@@ -62,7 +62,7 @@ The model was originally published by Balkenius and Morén in 2000.
     description="The reset output"
 />
 
-<module class="M02_Hippocampus" />
+<link class="M02_Hippocampus" />
 
 <author>
 <name>Christian Balkenius</name>

@@ -19,7 +19,7 @@
 
 	<output name="OUTPUT" description="The output" size_set="INPUT1, INPUT2" />
 
-	<module class="Multiply" />
+	<link class="Multiply" />
 
     <view title="Multiply">
         <object

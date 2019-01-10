@@ -20,7 +20,7 @@
     <parameter name="mask_left" type="float" default="0" description="mask region to the left" />
     <parameter name="mask_right" type="float" default="1" description="mask region to the right" />
 
-	<module class="DepthSegmentation" />
+	<link class="DepthSegmentation" />
 
 	<created>2012</created>
 

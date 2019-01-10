@@ -52,7 +52,7 @@ The module implements the model of the orbitofrontal cortex described in the PhD
     description="The weights"
 />
 
-<module class="M02_OFC" />
+<link class="M02_OFC" />
 
 <author>
 <name>Jan Moren</name>

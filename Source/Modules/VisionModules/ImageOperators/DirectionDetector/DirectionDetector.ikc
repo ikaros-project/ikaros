@@ -27,7 +27,7 @@
 
 	<output name="MOTION-VECTOR-DRAW" description="Main motion vector (for visulization, start at center of image)" size="4" />
 
-	<module class="DirectionDetector" />
+	<link class="DirectionDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>

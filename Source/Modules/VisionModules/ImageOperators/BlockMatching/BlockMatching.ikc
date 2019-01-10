@@ -29,7 +29,7 @@
 
 	<output name="DEBUG" description="The number of motion vectors" size_x="320" size_y="240" />
 
-	<module class="BlockMatching" />
+	<link class="BlockMatching" />
 
 	<author>
 		<name>Christian Balkenius</name>

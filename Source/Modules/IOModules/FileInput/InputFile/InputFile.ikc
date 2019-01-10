@@ -56,7 +56,7 @@
 
 	<output name="*" description="The outputs generated from columns in the file." />
 
-	<module class="InputFile" />
+	<link class="InputFile" />
 
 	<limitation>
 		It is not possible to loop the data file indefinitely.

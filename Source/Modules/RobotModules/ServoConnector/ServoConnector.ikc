@@ -36,7 +36,7 @@
 	</view>
 
 
-	<module class="ServoConnector" />
+	<link class="ServoConnector" />
 
 	<author>
 		<name>Birger Johansson</name>

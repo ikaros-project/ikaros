@@ -80,7 +80,7 @@
 	<output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" size_set="TORQUE_LIMIT" />
 	<output name="ERRORS" description="Errors" size_set_x="TORQUE_LIMIT" size_y = "19"/>
 	
-	<module class="Dynamixel" />
+	<link class="Dynamixel" />
 	<view name="Default view">
 		
 		<table

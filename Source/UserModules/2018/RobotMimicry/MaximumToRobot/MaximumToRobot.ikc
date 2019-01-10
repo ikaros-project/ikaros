@@ -28,7 +28,7 @@
 	<output name="HEAD" description="The output degrees" size="1" />
 	<output name="BODY" description="The output degrees" size="1" />
 
-	<module class="MaximumToRobot" />
+	<link class="MaximumToRobot" />
 
 	<author>
 		<name>Christian Balkenius</name>

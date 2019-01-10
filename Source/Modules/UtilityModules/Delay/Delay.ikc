@@ -23,7 +23,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The delayed output" size_set="INPUT" />
 
-	<module class="Delay" />
+	<link class="Delay" />
 
 	<author>
 		<author>Jan Morén</author>

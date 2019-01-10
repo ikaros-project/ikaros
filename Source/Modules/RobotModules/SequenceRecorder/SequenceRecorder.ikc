@@ -40,7 +40,7 @@
  
 	<output name="TIME" description="Current record or play position (ms)" size="1" />
 
-	<module class="SequenceRecorder" />
+	<link class="SequenceRecorder" />
 
     <view name="Default View">
          <text

@@ -22,7 +22,7 @@
 	<input name="TRIG" description="If this input is connected, the input values are only used when the trig is larger than zero." optional="yes" />
 	<output name="OUTPUT" description="The output" size_param="size" />
 
-	<module class="Histogram" />
+	<link class="Histogram" />
 
     <view title="Histogram">
         <object

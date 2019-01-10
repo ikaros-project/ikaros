@@ -27,7 +27,7 @@
 
 	<output name="OUTPUT" description="The tapped delay output" size_set_x="INPUT" size_param_y="no_of_taps" />
 
-	<module class="TappedDelayLine" />
+	<link class="TappedDelayLine" />
 
 	<created>2014</created>
 	

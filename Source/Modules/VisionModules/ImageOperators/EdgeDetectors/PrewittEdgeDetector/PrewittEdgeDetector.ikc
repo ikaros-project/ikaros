@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" />
 
-	<module class="PrewittEdgeDetector" />
+	<link class="PrewittEdgeDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>

@@ -18,7 +18,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The flipped output" size_set="INPUT" />
 
-	<module class="Flip" />
+	<link class="Flip" />
 
     <view title="Flip">
         <object

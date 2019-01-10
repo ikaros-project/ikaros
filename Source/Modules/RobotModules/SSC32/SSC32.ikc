@@ -23,7 +23,7 @@
 	<input name="INPUT" description="The desired servo positions (range 0-1)" />
 	<output name="OUTPUT" description="The current servo positions based on last pulses sent from the SSC32 (range 0-1)" />
 
-	<module class="SSC32" />
+	<link class="SSC32" />
 
 	<author>
 		<name>Christian Balkenius</name>

@@ -37,7 +37,7 @@
     
 	<output name="ERROR" description="The current validation error" size="1" />
 
-	<module class="Trainer" />
+	<link class="Trainer" />
 
 	<author>
 		<name>Christian Balkenius</name>

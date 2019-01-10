@@ -23,7 +23,7 @@
 
 	<output name="OUTPUT" description="The first output"  />
 
-	<module class="SumMatrix" />
+	<link class="SumMatrix" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

@@ -33,7 +33,7 @@
 	<output name="dGx" description="Filter kernel" />
 	<output name="dGy" description="Filter kernel" />
 
-	<module class="CannyEdgeDetector" />
+	<link class="CannyEdgeDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>

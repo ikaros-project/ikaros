@@ -36,7 +36,7 @@
 	<output name="CHANGE_MODE" description="One if the module is in CHANGE mode" size_x = "1" />
 	
 	
-	<module class="DynamixelConfigure" />
+	<link class="DynamixelConfigure" />
 	
 	<limitation>
 		Only tested with AX-12, MX-28, MX-106, XL-320.

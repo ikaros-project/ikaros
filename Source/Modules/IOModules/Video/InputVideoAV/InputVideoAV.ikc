@@ -37,7 +37,7 @@
 	<output name="GREEN" description="The green channel of the image" size_param_x="size_x" size_param_y="size_y" />
 	<output name="BLUE" description="The blue channel of the image" size_param_x="size_x" size_param_y="size_y" />
 
-	<module class="InputVideoAV" />
+	<link class="InputVideoAV" />
 
     <view name="Camera Image">
         <object

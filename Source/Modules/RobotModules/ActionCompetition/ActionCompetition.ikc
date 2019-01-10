@@ -33,7 +33,7 @@
 	<output name="OUTPUT" description="The output" size_param="size" />
 	<output name="TRIGGER" description="The behavior triggor for the most active behavior" size_param="size" />
 
-	<module class="ActionCompetition" />
+	<link class="ActionCompetition" />
 
     <view name="Default ActionCompetition View">
         <bar-graph

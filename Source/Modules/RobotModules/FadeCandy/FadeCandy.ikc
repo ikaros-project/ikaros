@@ -27,7 +27,7 @@
 
 	<input name="*" description="The channels can have arbitrary names" />
 
-	<module class="FadeCandy" />
+	<link class="FadeCandy" />
 
 	<author>
 		<name>Christian Balkenius</name>

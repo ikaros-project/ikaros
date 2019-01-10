@@ -25,7 +25,7 @@
 	<input name="US" description="The US input" optional="yes" />
 	<output name="CR" description="The output from the module" size="1" />
 
-	<module class="Delta" />
+	<link class="Delta" />
 
     <view title="Delta">
         <object

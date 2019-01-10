@@ -178,7 +178,7 @@
 	default="false"/>
 
 
-<module class="Epuck" />
+<link class="Epuck" />
 
 
 <author>

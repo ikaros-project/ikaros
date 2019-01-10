@@ -22,7 +22,7 @@
 
 	<output name="OUTPUT" description="The focus of attention output of size output_radius*2+1" />
 
-	<module class="AttentionFocus" />
+	<link class="AttentionFocus" />
 
 	<created>2003</created>
 	

@@ -36,7 +36,7 @@
     <output name="VIEW_SIDE" size_x="4" size_y="9" description="Side view of calculations" />
     <output name="VIEW_TOP" size_x="4" size_y="14" description="Top view of calculations" />
 
-	<module class="GazeController" />
+	<link class="GazeController" />
 
     <view title="Overview" object_size="25" >
     

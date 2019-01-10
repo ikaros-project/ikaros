@@ -20,7 +20,7 @@
 
 	<output name="OUTPUT" description="The output with the maximum of each element of the two inputs" size_set="INPUT1,INPUT2"/>
 
-	<module class="Max" />
+	<link class="Max" />
 
     <view title="Max">
         <object

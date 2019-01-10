@@ -22,7 +22,7 @@
 	<output name="OUTPUT" description="The array output"/>
 	<output name="AMPLITUDE" description="The amplitude output"/>
 
-	<module class="PopulationDecoder" />
+	<link class="PopulationDecoder" />
 
     <view>
         <object class="BarGraph" module="*" source="OUTPUT" x="0" y="0" w="4" />

@@ -133,7 +133,7 @@
 	default="false"/>
 
 
-<module class="Perceptron" />
+<link class="Perceptron" />
 
 
 <view title="Perceptron">

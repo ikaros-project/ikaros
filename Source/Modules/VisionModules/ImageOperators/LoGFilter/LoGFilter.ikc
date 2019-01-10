@@ -22,7 +22,7 @@
 	<output name="KERNEL" description="The LoG kernel" size_param_x="kernel_size" size_param_y="kernel_size" />
 	<output name="PROFILE" description="The profile of the LoG kernel" size_param_x="kernel_size" size_y="1" />
 
-	<module class="LoGFilter" />
+	<link class="LoGFilter" />
 
 	<created>2013</created>
 

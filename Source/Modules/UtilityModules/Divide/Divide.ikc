@@ -20,7 +20,7 @@
 
 	<output name="OUTPUT" description="The output is the quotient of each elements of the two inputs: INPUT1 / INPUT2" size_set="INPUT1, INPUT2" />
 
-	<module class="Divide" />
+	<link class="Divide" />
 
     <view title="Divide">
         <object
