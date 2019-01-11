@@ -278,7 +278,7 @@ CSOM::Init()
 	{
 		for(int y=0; y<rf_size_y; y++)
 			for(int x=0; x<rf_size_x; x++)
-				arbor[y][x] = max(0.0f, 1.0f-sqr(hypot(x-c, y-c))/sqr(r));
+				arbor[y][x] = max(0.0f, 1.0f-sqr(float(hypot(x-c, y-c)))/sqr(r));
 	}
     
     // Init weights to random values
