@@ -32,7 +32,7 @@
 <connection source = "EColor.OUTPUT"        target = "Eye.INPUT_1" />
 <connection source = "ColorValue.OUTPUT"    target = "Eye.VALUE_1" />
 <connection source = "LedOff.OUTPUT"        target = "Eye.INPUT_2" />
-<input name = "BLINK"           targetmodule = "EyeBlink"       target = "VALUE_2" />
+<input name = "BLINK"           targetmodule = "Eye"       target = "VALUE_2" />
 
 
 <!-- Send to fadecandy -->
