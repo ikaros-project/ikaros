@@ -353,6 +353,8 @@ VisionInput = "InputJPEG_not_workgin"
 
 	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
 	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+	<connection source = "Blink.OUTPUT"  target = "LED.SPEEKING" />
+
 
 	<module class = "EpiLed" name = "LED" />
 
