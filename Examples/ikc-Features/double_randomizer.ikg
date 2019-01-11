@@ -2,14 +2,14 @@
 
 <!--
 
-	double_randmizier.ikc
+	double_randomizer.ikg
     
     This is an advanced example of some features of the IKC file format
 	
 	This file demonstrates how a group can be used as a class
-    This file is included in the file including_file.ikc
+    This file is included in the file including_file.ikg
 
-    The result is analogous to using the single file group.ikc
+    The result is analogous to using the single file group.ikg
 	
 -->
 
@@ -18,7 +18,7 @@
 	<!-- The parameter "maximum" of the group is mapped to the parameter "max" of R1 and R2 -->
 	
 	<parameter name="max" target="max" />
-	
+
 	<!-- The outputs of R1 and R2 are renamed X and Y -->
 	
 	<output name="X" sourcemodule="R1" source="OUTPUT" />
