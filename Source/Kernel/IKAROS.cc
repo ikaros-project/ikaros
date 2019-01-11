@@ -35,7 +35,6 @@
 #include <unistd.h>
 #include <exception> // for std::bad_alloc
 #include <new>
-#include <atomic> 
 
 // Kernel 2.0
 

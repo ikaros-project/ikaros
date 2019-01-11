@@ -32,6 +32,7 @@
 #include <deque>
 #include <thread>
 #include <unordered_map>
+#include <atomic> 
 
 #define VERSION "2.0"
 
