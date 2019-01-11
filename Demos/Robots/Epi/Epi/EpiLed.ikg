@@ -174,5 +174,5 @@
 <connection source = "Mouth.OUTPUT"  sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE" />
 <connection source = "Mouth.OUTPUT"  sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE" />
 <connection source = "Mouth.OUTPUT"  sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE" />
-<!-- LED END MOUTH_BOTTOM
+<!-- LED END MOUTH_BOTTOM -->
 </group>
