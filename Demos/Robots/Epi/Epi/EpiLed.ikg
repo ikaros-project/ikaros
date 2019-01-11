@@ -48,7 +48,6 @@
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED" />
-
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN" />
@@ -61,7 +60,6 @@
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN" />
-
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE" />
@@ -74,7 +72,6 @@
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE" />
-
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED" />
@@ -87,7 +84,6 @@
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED" />
-
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN" />
@@ -100,7 +96,6 @@
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN" />
-
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE" />
 <connection source = "Eye.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE" />
@@ -179,5 +174,5 @@
 <connection source = "Mouth.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_MOUTH_BOTTOM_BLUE" />
 <connection source = "Mouth.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_MOUTH_BOTTOM_BLUE" />
 <connection source = "Mouth.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_MOUTH_BOTTOM_BLUE" />
-<!-- LED END MOUTH_BOTTOM
+<!-- LED END MOUTH_BOTTOM -->
 </group>
