@@ -25,9 +25,9 @@
 #include "IKAROS_Utils.h"
 
 #include <stdlib.h>
-#include <string.h> // memset
+#include <string.h>  // memset
 #include <algorithm> // find
-
+#include <stdexcept> // std::invalid_argument
 
 // includes for image processing (JPEG)
 
