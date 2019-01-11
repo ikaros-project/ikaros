@@ -1,60 +1,59 @@
 <?xml version = "1.0"?>
 
 <group>
-	
-    <description>
-	</description>
     
-    <input name="BODY_FEEDBACK_POSITION" 		targetmodule="Body" 	target="FEEDBACK_POSITION" />
-    <input name="HEAD_FEEDBACK_POSITION" 		targetmodule="Head" 	target="FEEDBACK_POSITION" />
-    <input name="LEFT_ARM_FEEDBACK_POSITION" 	targetmodule="LeftArm" 	target="FEEDBACK_POSITION" />
-    <input name="RIGHT_ARM_FEEDBACK_POSITION" 	targetmodule="RightArm" target="FEEDBACK_POSITION" />
-    <input name="PUPIL_FEEDBACK_POSITION"   	targetmodule="Head" 	target="PUPIL_FEEDBACK_POSITION" />
-
+    <input name = "BODY_FEEDBACK_POSITION" 		targetmodule = "Body" 	    target = "FEEDBACK_POSITION" />
+    <input name = "HEAD_FEEDBACK_POSITION" 		targetmodule = "Head" 	    target = "FEEDBACK_POSITION" />
+    <input name = "LEFT_ARM_FEEDBACK_POSITION" 	targetmodule = "LeftArm" 	target = "FEEDBACK_POSITION" />
+    <input name = "RIGHT_ARM_FEEDBACK_POSITION" targetmodule = "RightArm"   target = "FEEDBACK_POSITION" />
+    <input name = "PUPIL_FEEDBACK_POSITION"   	targetmodule = "Head" 	    target = "PUPIL_FEEDBACK_POSITION" />
 
 	<!-- MODEL_ID is a list of id that matches the id.stl in WebUI/Models -->
-    <output name="MODEL_ID"     	sourcemodule="JOIN_MODEL_ID" 	source="OUTPUT" />
-    <output name="MODEL_MATRIX" 	sourcemodule="JOIN_ARRAYS" 		source="OUTPUT" />
+    <output name = "MODEL_ID"     	sourcemodule = "JOIN_MODEL_ID" 	source = "OUTPUT" />
+    <output name = "MODEL_MATRIX" 	sourcemodule = "JOIN_ARRAYS" 	source = "OUTPUT" />
 
 	<!-- Points -->
 	<!-- Points good to know. Right now 3 points in each hand. -->
-    <output name="POINTS_MATRIX" 	sourcemodule="P_JOIN" source="OUTPUT" />
+    <output name = "POINTS_MATRIX" 	sourcemodule = "P_JOIN" source = "OUTPUT" />
 
 	<!-- Sensors -->
 	<!-- Left Eye 	-->
 	<!-- Right Eye 	-->
-    <output name="SENSOR_POS_EGO" 	sourcemodule="SensorBodyHead" source="MATRIX" />
+    <output name = "SENSOR_POS_EGO" 	sourcemodule = "SensorBodyHead" source = "MATRIX" />
 
    <!-- FrameID and ObjectID -->
-    <output name="OBJECT_ID" 	sourcemodule="ForwardModelObjectID" source="OUTPUT" />
-    <output name="FRAME_ID" 	sourcemodule="ForwardModelFrameID" source="OUTPUT" />
+    <output name = "OBJECT_ID" 	sourcemodule = "ForwardModelObjectID"   source = "OUTPUT" />
+    <output name = "FRAME_ID" 	sourcemodule = "ForwardModelFrameID"    source = "OUTPUT" />
 
     <module class = "Constant" name = "ForwardModelObjectID"    data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
     <module class = "Constant" name = "ForwardModelFrameID"     data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
 
 
-	<!-- MODEL -->
+
+
+	<!-- 3D MODELS -->
     <!-- Model IDs -->
 	<module class = "DataConverter" name = "JOIN_MODEL_ID" output_size_x = "21" output_size_y = "1"/>
-        <connection sourcemodule = "RightArm"       source = "MODEL_ID"   targetmodule = "JOIN_MODEL_ID" target = "INPUT" />
-        <connection sourcemodule = "LeftArm"        source = "MODEL_ID"   targetmodule = "JOIN_MODEL_ID" target = "INPUT" />
-        <connection sourcemodule = "Head"           source = "MODEL_ID"   targetmodule = "JOIN_MODEL_ID" target = "INPUT"  />
-        <connection sourcemodule = "Body"           source = "MODEL_ID"   targetmodule = "JOIN_MODEL_ID" target = "INPUT"  />
-        <connection sourcemodule = "Epi_pos_ID"     source = "OUTPUT"     targetmodule = "JOIN_MODEL_ID" target = "INPUT"  />
+        <connection source = "RightArm.MODEL_ID"    target = "JOIN_MODEL_ID.INPUT" />
+        <connection source = "LeftArm.MODEL_ID"     target = "JOIN_MODEL_ID.INPUT" />
+        <connection source = "Head.MODEL_ID"        target = "JOIN_MODEL_ID.INPUT"  />
+        <connection source = "Body.MODEL_ID"        target = "JOIN_MODEL_ID.INPUT"  />
+        <connection source = "Epi_pos_ID.OUTPUT"    target = "JOIN_MODEL_ID.INPUT"  />
 
     <!-- output not working in the same way as connects -->
 	<module class = "DataConverter" name = "JOIN_ARRAYS" output_size_x = "16" output_size_y = "21"/>
-        <connection sourcemodule = "BodyRightArm"   source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x6 -->
-        <connection sourcemodule = "BodyLeftArm"    source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x6 -->
-        <connection sourcemodule = "BodyHead"       source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x6 -->
-        <connection sourcemodule = "PosBody"        source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x2 --> <!-- 1: Same as Epi-pos but x up -->
-        <connection sourcemodule = "Epi_pos"        source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x1 -->
+        <connection source = "BodyRightArm.MATRIX"  target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x6 -->
+        <connection source = "BodyLeftArm.MATRIX"   target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x6 -->
+        <connection source = "BodyHead.MATRIX"      target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x6 -->
+        <connection source = "PosBody.MATRIX"       target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x2 --> <!-- 1: Same as Epi-pos but x up -->
+        <connection source = "Epi_pos.OUTPUT"       target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x1 -->
     
     <!-- Points -->
     <!-- output not working in the same way as connects -->
     <module class = "DataConverter" name = "P_JOIN" output_size_x = "16" output_size_y = "6"/>
-        <connection sourcemodule = "PointsBodyRightArm"        source = "MATRIX"   targetmodule = "P_JOIN" target = "INPUT" />
-        <connection sourcemodule = "PointsBodyLeftArm"         source = "MATRIX"   targetmodule = "P_JOIN" target = "INPUT" />
+        <connection source = "PointsBodyRightArm.MATRIX"    target = "P_JOIN.INPUT" />
+        <connection source = "PointsBodyLeftArm.MATRIX"     target = "P_JOIN.INPUT" />
+
 
 
 
@@ -100,65 +99,65 @@
     <module class = "Constant" name = "RightArmFrame"   data = "2; 2; 2; 2; 2; 2;" />
 
    <!-- Position -> Body  --> 
-    <module class="Transform"   name="PosBody" />
-        <connection sourcemodule = "Epi_pos"        source = "OUTPUT"       targetmodule = "PosBody" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PositionID"     source = "OUTPUT"       targetmodule = "PosBody" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PositionFrame"  source = "OUTPUT"       targetmodule = "PosBody" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Body"           source = "OUTPUT"       targetmodule = "PosBody" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "BodyID"         source = "OUTPUT"       targetmodule = "PosBody" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "BodyFrame"      source = "OUTPUT"       targetmodule = "PosBody" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "PosBody" />
+        <connection source = "Epi_pos.OUTPUT"       target = "PosBody.MATRIX_1"    delay = "0"/>
+        <connection source = "PositionID.OUTPUT"    target = "PosBody.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PositionFrame.OUTPUT" target = "PosBody.FRAME_ID_1"  delay = "0"/>
+        <connection source = "Body.OUTPUT"          target = "PosBody.MATRIX_2"    delay = "0"/>
+        <connection source = "BodyID.OUTPUT"        target = "PosBody.OBJECT_ID_2" delay = "0"/>
+        <connection source = "BodyFrame.OUTPUT"     target = "PosBody.FRAME_ID_2"  delay = "0"/>
     <!-- Body -> Head --> 
-    <module class="Transform"   name="BodyHead" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyHead" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyHead" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyHead" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Head"           source = "OUTPUT"       targetmodule = "BodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "BodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "BodyHead" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "BodyHead" />
+        <connection source = "PosBody.MATRIX"       target = "BodyHead.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "BodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "BodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection source = "Head.OUTPUT"          target = "BodyHead.MATRIX_2"    delay = "0"/>
+        <connection source = "HeadID.OUTPUT"        target = "BodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection source = "HeadFrame.OUTPUT"     target = "BodyHead.FRAME_ID_2"  delay = "0"/>
     <!-- Body -> Left Arm --> 
-    <module class="Transform"   name="BodyLeftArm" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyLeftArm" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyLeftArm" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyLeftArm" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "LeftArm"        source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "LeftArmID"      source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "LeftArmFrame"   source = "OUTPUT"       targetmodule = "BodyLeftArm" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "BodyLeftArm" />
+        <connection source = "PosBody.MATRIX"       target = "BodyLeftArm.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "BodyLeftArm.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "BodyLeftArm.FRAME_ID_1"  delay = "0"/>
+        <connection source = "LeftArm.OUTPUT"       target = "BodyLeftArm.MATRIX_2"    delay = "0"/>
+        <connection source = "LeftArmID.OUTPUT"     target = "BodyLeftArm.OBJECT_ID_2" delay = "0"/>
+        <connection source = "LeftArmFrame.OUTPUT"  target = "BodyLeftArm.FRAME_ID_2"  delay = "0"/>
     <!-- Body -> Right Arm --> 
-    <module class="Transform"   name="BodyRightArm" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyRightArm" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyRightArm" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyRightArm" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "RightArm"       source = "OUTPUT"       targetmodule = "BodyRightArm" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "BodyRightArm" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "BodyRightArm" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "BodyRightArm" />
+        <connection source = "PosBody.MATRIX"       target = "BodyRightArm.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "BodyRightArm.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "BodyRightArm.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RightArm.OUTPUT"      target = "BodyRightArm.MATRIX_2"    delay = "0"/>
+        <connection source = "RightArmID.OUTPUT"    target = "BodyRightArm.OBJECT_ID_2" delay = "0"/>
+        <connection source = "RightArmFrame.OUTPUT" target = "BodyRightArm.FRAME_ID_2"  delay = "0"/>
   
 	<!-- SENSORS -->
     <!-- Body -> Head --> 
-    <module class="Transform"   name="SensorBodyHead" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "SensorBodyHead" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorBodyHead" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorBodyHead" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "SensorBodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "SensorBodyHead" />
+        <connection source = "PosBody.MATRIX"       target = "SensorBodyHead.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "SensorBodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "SensorBodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection source = "Head.SENSORS"         target = "SensorBodyHead.MATRIX_2"    delay = "0"/>
+        <connection source = "HeadID.OUTPUT"        target = "SensorBodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection source = "HeadFrame.OUTPUT"     target = "SensorBodyHead.FRAME_ID_2"  delay = "0"/>
 
 	<!-- POINTS -->
 	<!-- Body -> Left Arm --> 
-    <module class="Transform"   name="PointsBodyLeftArm" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "PointsBodyLeftArm" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "PointsBodyLeftArm" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "PointsBodyLeftArm" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "LeftArm"        source = "POINTS"       targetmodule = "PointsBodyLeftArm" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "LeftArmID"      source = "OUTPUT"       targetmodule = "PointsBodyLeftArm" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "LeftArmFrame"   source = "OUTPUT"       targetmodule = "PointsBodyLeftArm" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "PointsBodyLeftArm" />
+        <connection source = "PosBody.MATRIX"       target = "PointsBodyLeftArm.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "PointsBodyLeftArm.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "PointsBodyLeftArm.FRAME_ID_1"  delay = "0"/>
+        <connection source = "LeftArm.POINTS"       target = "PointsBodyLeftArm.MATRIX_2"    delay = "0"/>
+        <connection source = "LeftArmID.OUTPUT"     target = "PointsBodyLeftArm.OBJECT_ID_2" delay = "0"/>
+        <connection source = "LeftArmFrame.OUTPUT"  target = "PointsBodyLeftArm.FRAME_ID_2"  delay = "0"/>
     <!-- Body -> Right Arm --> 
-    <module class="Transform"   name="PointsBodyRightArm" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "PointsBodyRightArm" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "PointsBodyRightArm" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "PointsBodyRightArm" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "RightArm"       source = "POINTS"       targetmodule = "PointsBodyRightArm" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "RightArmID"     source = "OUTPUT"       targetmodule = "PointsBodyRightArm" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "RightArmFrame"  source = "OUTPUT"       targetmodule = "PointsBodyRightArm" target = "FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "PointsBodyRightArm" />
+        <connection source = "PosBody.MATRIX"       target = "PointsBodyRightArm.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "PointsBodyRightArm.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "PointsBodyRightArm.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RightArm.POINTS"      target = "PointsBodyRightArm.MATRIX_2"    delay = "0"/>
+        <connection source = "RightArmID.OUTPUT"    target = "PointsBodyRightArm.OBJECT_ID_2" delay = "0"/>
+        <connection source = "RightArmFrame.OUTPUT" target = "PointsBodyRightArm.FRAME_ID_2"  delay = "0"/>
 
 </group>
  

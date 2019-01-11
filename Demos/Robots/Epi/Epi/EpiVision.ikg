@@ -43,10 +43,10 @@
 	<module class = "Downsample" name = "HIGH_BLUE" />
 	<module class = "Downsample" name = "HIGH_INTENSITY" />
 
-		<connection sourcemodule = "EYE" source = "RED"         targetmodule = "HIGH_RED"          target = "INPUT" delay="0" />
-		<connection sourcemodule = "EYE" source = "GREEN"       targetmodule = "HIGH_GREEN"        target = "INPUT" delay="0" />
-		<connection sourcemodule = "EYE" source = "BLUE"        targetmodule = "HIGH_BLUE"         target = "INPUT" delay="0" />
-		<connection sourcemodule = "EYE" source = "INTENSITY"   targetmodule = "HIGH_INTENSITY"    target = "INPUT" delay="0" />
+		<connection source = "EYE.RED"       target = "HIGH_RED.INPUT" 			delay="0" />
+		<connection source = "EYE.GREEN"     target = "HIGH_GREEN.INPUT" 		delay="0" />
+		<connection source = "EYE.BLUE"      target = "HIGH_BLUE.INPUT" 		delay="0" />
+		<connection source = "EYE.INTENSITY" target = "HIGH_INTENSITY.INPUT" 	delay="0" />
 
     <!-- MEDIUM -->
     <module class = "Downsample" name = "MEDIUM_RED" />
@@ -54,10 +54,10 @@
 	<module class = "Downsample" name = "MEDIUM_BLUE" />
 	<module class = "Downsample" name = "MEDIUM_INTENSITY" />
 
-		<connection sourcemodule = "HIGH_RED"          source = "OUTPUT"    targetmodule = "MEDIUM_RED"          target = "INPUT" delay="0" />
-		<connection sourcemodule = "HIGH_GREEN"        source = "OUTPUT"    targetmodule = "MEDIUM_GREEN"        target = "INPUT" delay="0" />
-		<connection sourcemodule = "HIGH_BLUE"         source = "OUTPUT"    targetmodule = "MEDIUM_BLUE"         target = "INPUT" delay="0" />
-		<connection sourcemodule = "HIGH_INTENSITY"    source = "OUTPUT"    targetmodule = "MEDIUM_INTENSITY"    target = "INPUT" delay="0" />
+		<connection	source = "HIGH_RED.OUTPUT"			target = "MEDIUM_RED.INPUT" 		delay="0" />
+		<connection source = "HIGH_GREEN.OUTPUT" 		target = "MEDIUM_GREEN.INPUT" 		delay="0" />
+		<connection source = "HIGH_BLUE.OUTPUT" 		target = "MEDIUM_BLUE.INPUT" 		delay="0" />
+		<connection source = "HIGH_INTENSITY.OUTPUT"	target = "MEDIUM_INTENSITY.INPUT" 	delay="0" />
         
     <!-- LOW -->
     <module class = "Downsample" name = "LOW_RED" />
@@ -65,10 +65,10 @@
 	<module class = "Downsample" name = "LOW_BLUE" />
 	<module class = "Downsample" name = "LOW_INTENSITY" />
 
-		<connection sourcemodule = "MEDIUM_RED"          source = "OUTPUT"  targetmodule = "LOW_RED"          target = "INPUT" delay="0" />
-		<connection sourcemodule = "MEDIUM_GREEN"        source = "OUTPUT"  targetmodule = "LOW_GREEN"        target = "INPUT" delay="0" />
-		<connection sourcemodule = "MEDIUM_BLUE"         source = "OUTPUT"  targetmodule = "LOW_BLUE"         target = "INPUT" delay="0" />
-		<connection sourcemodule = "MEDIUM_INTENSITY"    source = "OUTPUT"  targetmodule = "LOW_INTENSITY"    target = "INPUT" delay="0" />
+		<connection source = "MEDIUM_RED.OUTPUT"  		target = "LOW_RED.INPUT" 		delay="0" />
+		<connection source = "MEDIUM_GREEN.OUTPUT" 		target = "LOW_GREEN.INPUT" 		delay="0" />
+		<connection source = "MEDIUM_BLUE.OUTPUT" 		target = "LOW_BLUE.INPUT" 		delay="0" />
+		<connection source = "MEDIUM_INTENSITY.OUTPUT" 	target = "LOW_INTENSITY.INPUT" 	delay="0" />
 
     <!-- View -->
 <view name="Scaled">
@@ -82,10 +82,9 @@
 		flipXCanvas = "no"
 		y = "20"
 		format = "rgb"
-		source = "RED+GREEN+BLUE"
+		source = "EYE.RED+GREEN+BLUE"
 		x = "400"
 		flipYCanvas = "no"
-		module = "EYE"
 		height = "261"
 		max_y = "1"
 		max_x = "1"
@@ -104,11 +103,10 @@
 		flipYAxis = "no"
 		flipXCanvas = "no"
 		y = "20"
-		source = "INTENSITY"
+		source = "EYE.INTENSITY"
 		format = "gray"
 		x = "60"
 		flipYCanvas = "no"
-		module = "EYE"
 		height = "261"
 		max_y = "1"
 		max_x = "1"
@@ -128,10 +126,9 @@
 		flipXCanvas = "no"
 		y = "300"
 		format = "rgb"
-		source = "OUTPUT+OUTPUT+OUTPUT"
+		source = "HIGH_INTENSITY.OUTPUT+OUTPUT+OUTPUT"
 		x = "400"
 		flipYCanvas = "no"
-		module = "HIGH_INTENSITY"
 		height = "241"
 		max_y = "1"
 		max_x = "1"
@@ -150,11 +147,10 @@
 		flipYAxis = "no"
 		flipXCanvas = "no"
 		y = "300"
-		source = "OUTPUT"
+		source = "HIGH_INTENSITY.OUTPUT"
 		format = "gray"
 		x = "60"
 		flipYCanvas = "no"
-		module = "HIGH_INTENSITY"
 		height = "241"
 		max_y = "1"
 		max_x = "1"
@@ -174,10 +170,9 @@
 		flipXCanvas = "no"
 		y = "560"
 		format = "rgb"
-		source = "OUTPUT+OUTPUT+OUTPUT"
+		source = "MEDIUM_INTENSITY.OUTPUT+OUTPUT+OUTPUT"
 		x = "400"
 		flipYCanvas = "no"
-		module = "MEDIUM_INTENSITY"
 		height = "241"
 		max_y = "1"
 		max_x = "1"
@@ -196,11 +191,10 @@
 		flipYAxis = "no"
 		flipXCanvas = "no"
 		y = "560"
-		source = "OUTPUT"
+		source = "MEDIUM_INTENSITY.OUTPUT"
 		format = "gray"
 		x = "60"
 		flipYCanvas = "no"
-		module = "MEDIUM_INTENSITY"
 		height = "241"
 		max_y = "1"
 		max_x = "1"
@@ -220,10 +214,9 @@
 		flipXCanvas = "no"
 		y = "560"
 		format = "rgb"
-		source = "OUTPUT+OUTPUT+OUTPUT"
+		source = "LOW_INTENSITY.OUTPUT+OUTPUT+OUTPUT"
 		x = "400"
 		flipYCanvas = "no"
-		module = "LOW_INTENSITY"
 		height = "241"
 		max_y = "1"
 		max_x = "1"
@@ -242,11 +235,10 @@
 		flipYAxis = "no"
 		flipXCanvas = "no"
 		y = "560"
-		source = "OUTPUT"
+		source = "LOW_INTENSITY.OUTPUT"
 		format = "gray"
 		x = "60"
 		flipYCanvas = "no"
-		module = "LOW_INTENSITY"
 		height = "241"
 		max_y = "1"
 		max_x = "1"
