@@ -316,6 +316,45 @@ VisionInput = "InputJPEG_not_workgin"
 <module class = "PopulationDecoder" name = "GOAL_POSITION" min  = "-400" max  = "400" size = "@nrServosTotal"/>
 	<connection source = "LowLevelArbiter.OUTPUT"  target = "GOAL_POSITION.INPUT" />
 
+ <!-- Sound -->
+	<!--
+    <module
+	    class = "SoundOutput"
+		name = "SoundOutput"
+		sounds  = "Sounds/ok2.mp3"
+        command = "mpg123"
+	/>
+		<connection sourcemodule = "SoundTrigger" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
+    <module class = "Constant" name = "SoundTrigger" data = "0" />
+    <view name="Sound">
+        <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    
+    </view>
+-->
+
+	<!-- test led -->
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Blink"
+		type		=	"sin"
+		frequency	=	"0.1"
+		offset      =	"0.0"
+		amplitude	=	"1"
+	    shift		=	"0.1"
+    />
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Color"
+		type		=	"sin"
+		frequency	=	"0.1"
+		offset      =	"0.0"
+		amplitude	=	"1"
+	    shift		=	"0.1"
+    />
+
+	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
+	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+
+	<module class = "EpiLed" name = "LED" />
 
 
 <view name="3D View">
