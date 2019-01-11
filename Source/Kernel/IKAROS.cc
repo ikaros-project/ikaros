@@ -157,6 +157,7 @@ class GroupElement : public Element
 public:
     std::unordered_map<std::string, GroupElement *> groups;
     std::unordered_map<std::string, ParameterElement *> parameters;
+    std::vector<ParameterElement *> parameter_list;
     std::vector<InputElement> inputs;
     std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement> connections;
@@ -544,12 +545,12 @@ std::string GroupElement::JSONString(int d)
     s += JSONAttributeString(d+1);
     s += ",\n";
     
-    if(parameters.size())
+    if(parameter_list.size())
     {
         s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
-        for(auto p : parameters)
+        for(auto p : parameter_list)
         {
-            s += b + p.second->JSONString(d+2);
+            s += b + p->JSONString(d+2);
             b = ",\n";
         }
         s += "\n";
@@ -3170,8 +3171,10 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
     
         else if(xml_node->IsElement("parameter"))
         {
+            auto * p = new ParameterElement(group, xml_node);
+            group->parameter_list.push_back(p);
             if(const char * target = xml_node->GetAttribute("target"))
-                group->parameters.insert( { target, new ParameterElement(group, xml_node) }); // parameter do not have targets in classes
+                group->parameters.insert( { target, p }); // parameter do not have targets in classes
         }
         
         else if(xml_node->IsElement("input"))
