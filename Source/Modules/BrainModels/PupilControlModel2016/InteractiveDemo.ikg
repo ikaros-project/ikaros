@@ -30,11 +30,11 @@
     />
     
     
-    <connection sourcemodule="Light" source="OUTPUT" targetmodule="Input" target="INPUT" />
-    <connection sourcemodule="Stimulus" source="OUTPUT" targetmodule="Input" target="INPUT" />
+    <connection  source = "Light.OUTPUT"  target = "Input.INPUT" />
+    <connection  source = "Stimulus.OUTPUT"  target = "Input.INPUT" />
 
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="FullModel" target="PTA_Left" />
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="FullModel" target="PTA_Right" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Left" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Right" />
 
 
 
@@ -47,8 +47,8 @@
         <column name = "Pupil" />
     </module>
 
-    <connection sourcemodule="FullModel" source="Eye_Right" targetmodule="Output" target="Pupil"/>
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Output" target="Light" />
+    <connection  source = "FullModel.Eye_Right"  target = "Output.Pupil"/>
+    <connection  source = "Input.OUTPUT"  target = "Output.Light" />
   
 
 

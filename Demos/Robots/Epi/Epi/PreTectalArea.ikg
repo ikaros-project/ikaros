@@ -21,7 +21,7 @@
 
     <!-- default parameters or not??? -->
     
-    <connection sourcemodule="InputSummation" source="OUTPUT" targetmodule="LightResponse" target="INPUT" />
+    <connection  source = "InputSummation.OUTPUT"  target = "LightResponse.INPUT" />
 
 </group>
 

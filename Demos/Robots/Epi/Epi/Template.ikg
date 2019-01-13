@@ -54,9 +54,9 @@
 	-->
 	<!-- Move EpiPink -->
 	<!-- <module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
-		<connection sourcemodule = "ManualServo" source = "OUTPUT" targetmodule = "EpiPink" target = "SERVO_ANGLES"/>
+		<connection  source = "ManualServo.OUTPUT"  target = "EpiPink.SERVO_ANGLES"/>
 	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
-		<connection sourcemodule = "ManualServo" source = "OUTPUT" targetmodule = "EpiPink" target = "SERVO_ANGLES_AMPLITUDE"/> -->
+		<connection  source = "ManualServo.OUTPUT"  target = "EpiPink.SERVO_ANGLES_AMPLITUDE"/> -->
 
 	<!-- Set a manual focus point -->
 	<!-- <module class = "Constant" name = "ManualFocusPoint" data = "
@@ -64,7 +64,7 @@
 	0 1 0 0.6
 	0 0 1 0
 	0 0 0 1"/>
-		<connection sourcemodule = "ManualFocusPoint"	source = "OUTPUT" targetmodule = "EpiPink" target = "FOCUS_POINT"/> --> -->
+		<connection  source = "ManualFocusPoint.OUTPUT"  target = "EpiPink.FOCUS_POINT"/> --> -->
 
 
 </group>

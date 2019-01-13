@@ -12,9 +12,9 @@
 			array_length = "2"
 		/>
 				
-		<connection sourcemodule="Array3" source="OUTPUT" targetmodule="ArrayToMatrix" target="INPUT" />
-		<connection sourcemodule="Array2" source="OUTPUT" targetmodule="ArrayToMatrix" target="INPUT" />
-		<connection sourcemodule="Array1" source="OUTPUT" targetmodule="ArrayToMatrix" target="INPUT" />
+		<connection  source = "Array3.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<connection  source = "Array2.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<connection  source = "Array1.OUTPUT"  target = "ArrayToMatrix.INPUT" />
 
 
 		<view name="View">

@@ -47,8 +47,8 @@
         />
 
     
-		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "L1" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L1" target = "TOP_DOWN" delay="1" />
+		<connection  source = "Input.INTENSITY"  target = "L1.INPUT" delay="1" />
+        <connection  source = "L1.OUTPUT"  target = "L1.TOP_DOWN" delay="1" />
 
 
 		<view name="Map">

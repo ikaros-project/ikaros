@@ -52,23 +52,23 @@
         angle_unit = "tau"
     />
 
-	<connection sourcemodule = "LeftCam"   source = "INTENSITY" targetmodule = "SpotDetector"  target = "LEFT" />
-	<connection sourcemodule = "RightCam"  source = "INTENSITY" targetmodule = "SpotDetector"  target = "RIGHT" />
+	<connection  source = "LeftCam.INTENSITY"  target = "SpotDetector.LEFT" />
+	<connection  source = "RightCam.INTENSITY"  target = "SpotDetector.RIGHT" />
 
-	<connection sourcemodule = "GazeController"  source = "OUTPUT" targetmodule = "SpotDetector"  target = "POSITION" />
+	<connection  source = "GazeController.OUTPUT"  target = "SpotDetector.POSITION" />
 
-	<connection sourcemodule = "Target"  source = "OUTPUT" targetmodule = "GazeController"  target = "INPUT" />
+	<connection  source = "Target.OUTPUT"  target = "GazeController.INPUT" />
 
 	<_module class = "Constant" name = "TorqueEnable" outputsize = "12" data = "1 1 1 1" />
-	<_connection sourcemodule = "TorqueEnable"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_ENABLE" />
+	<_connection  source = "TorqueEnable.OUTPUT"  target = "Dynamixel.TORQUE_ENABLE" />
 
     <module class = "Constant" name = "MovingSpeed" outputsize = "12" data = "0.5 0.5 0.5 0.5" />
-	<connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
+	<connection  source = "MovingSpeed.OUTPUT"  target = "Dynamixel.MOVING_SPEED" />
 
 	<module class = "Constant" name = "TorqueLimit" outputsize = "12" data = "0.25 0.25 0.25 0.25" _data = "0 0 0 0" />
 
-	<connection sourcemodule = "TorqueLimit"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_LIMIT" />
-    <connection sourcemodule = "GazeController" source = "OUTPUT" targetmodule = "Dynamixel" target = "GOAL_POSITION" delay="0"  />
+	<connection  source = "TorqueLimit.OUTPUT"  target = "Dynamixel.TORQUE_LIMIT" />
+    <connection  source = "GazeController.OUTPUT"  target = "Dynamixel.GOAL_POSITION" delay="0"  />
 
     <view name="Target" object_size="25" >
         <object class="Switch" module="GazeController" parameter="target_override" x="0" y="12" h="2" w="3" min="0" max="2" />

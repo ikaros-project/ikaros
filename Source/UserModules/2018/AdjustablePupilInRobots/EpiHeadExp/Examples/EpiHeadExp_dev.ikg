@@ -22,17 +22,17 @@
     	angle_unit = "degrees"
     	start_up_delay 	= "20"
     />
-	<connection sourcemodule = "EpiHeadExp"  source = "ROBOT_PUPIL_LEFT" targetmodule = "Pupil"  target = "GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "1"  />
-	<connection sourcemodule = "EpiHeadExp"  source = "ROBOT_PUPIL_RIGHT" targetmodule = "Pupil"  target = "GOAL_POSITION" sourceoffset = "0" targetoffset = "1" size = "1"  />
+	<connection  source = "EpiHeadExp.ROBOT_PUPIL_LEFT"  target = "Pupil.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "1"  />
+	<connection  source = "EpiHeadExp.ROBOT_PUPIL_RIGHT"  target = "Pupil.GOAL_POSITION" sourceoffset = "0" targetoffset = "1" size = "1"  />
 	
 	<module class = "Constant" name = "P_TorqueEnable" outputsize = "2" data = "1 1" />
-	<connection sourcemodule = "P_TorqueEnable"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_ENABLE" />
+	<connection  source = "P_TorqueEnable.OUTPUT"  target = "Pupil.TORQUE_ENABLE" />
     
     <module class = "Constant" name = "P_MovingSpeed" outputsize = "2" data = "1 1" />
-	<connection sourcemodule = "P_MovingSpeed"  source = "OUTPUT" targetmodule = "Pupil"  target = "MOVING_SPEED" />
+	<connection  source = "P_MovingSpeed.OUTPUT"  target = "Pupil.MOVING_SPEED" />
 
 	<module class = "Constant" name = "P_TorqueLimit" outputsize = "2" data = "1 1"  />
-	<connection sourcemodule = "P_TorqueLimit"  source = "OUTPUT" targetmodule = "Pupil"  target = "TORQUE_LIMIT" />
+	<connection  source = "P_TorqueLimit.OUTPUT"  target = "Pupil.TORQUE_LIMIT" />
 
 	<!-- NeckEyes -->
 
@@ -49,17 +49,17 @@
 
     />
 
-	<connection sourcemodule = "EpiHeadExp"  source = "NECKEYES" targetmodule = "NeckEyes"  target = "GOAL_POSITION" />
+	<connection  source = "EpiHeadExp.NECKEYES"  target = "NeckEyes.GOAL_POSITION" />
 
 
 	<module class = "Constant" name = "NE_TorqueEnable" outputsize = "4" data = "1 1 1 1" />
-	<connection sourcemodule = "NE_TorqueEnable"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "TORQUE_ENABLE" />
+	<connection  source = "NE_TorqueEnable.OUTPUT"  target = "NeckEyes.TORQUE_ENABLE" />
     
     <module class = "Constant" name = "NE_MovingSpeed" outputsize = "4" data = "0.04 0.04 0.1 0.1" />
-	<connection sourcemodule = "NE_MovingSpeed"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "MOVING_SPEED" />
+	<connection  source = "NE_MovingSpeed.OUTPUT"  target = "NeckEyes.MOVING_SPEED" />
 
 	<module class = "Constant" name = "NE_TorqueLimit" outputsize = "4" data = "0.4 0.2 0.5 0.5" />
-	<connection sourcemodule = "NE_TorqueLimit"  source = "OUTPUT" targetmodule = "NeckEyes"  target = "TORQUE_LIMIT" />
+	<connection  source = "NE_TorqueLimit.OUTPUT"  target = "NeckEyes.TORQUE_LIMIT" />
 
 <!-- Loging -->
 		<module
@@ -92,28 +92,28 @@
 		</module>
 		
 		
-        <connection sourcemodule = "EpiHeadExp" source = "LOG_WRITE"            	targetmodule = "LOG" target = "WRITE" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_NEW_FILE"         	targetmodule = "LOG" target = "NEWFILE" />
+        <connection  source = "EpiHeadExp.LOG_WRITE"            	 target = "LOG.WRITE" />
+		<connection  source = "EpiHeadExp.LOG_NEW_FILE"         	 target = "LOG.NEWFILE" />
 
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_SUBJECT"          	targetmodule = "LOG" target = "SUBJECT" />
+		<connection  source = "EpiHeadExp.LOG_SUBJECT"          	 target = "LOG.SUBJECT" />
 		
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_TICK"		targetmodule = "LOG" target = "EXP_TICK" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_RANDOM_ID"		targetmodule = "LOG" target = "EXP_RANDOM_ID" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_ID"		targetmodule = "LOG" target = "EXP_ID" />
+		<connection  source = "EpiHeadExp.LOG_EXPERIMENT_TICK"		 target = "LOG.EXP_TICK" />
+		<connection  source = "EpiHeadExp.LOG_EXPERIMENT_RANDOM_ID"		 target = "LOG.EXP_RANDOM_ID" />
+		<connection  source = "EpiHeadExp.LOG_EXPERIMENT_ID"		 target = "LOG.EXP_ID" />
 		
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_TICK"			targetmodule = "LOG" target = "TRIAL_TICK" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_COUNT"			targetmodule = "LOG" target = "TRIAL_COUNT" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_ID"				targetmodule = "LOG" target = "TRIAL_ID" />
+		<connection  source = "EpiHeadExp.LOG_TRIAL_TICK"			 target = "LOG.TRIAL_TICK" />
+		<connection  source = "EpiHeadExp.LOG_TRIAL_COUNT"			 target = "LOG.TRIAL_COUNT" />
+		<connection  source = "EpiHeadExp.LOG_TRIAL_ID"				 target = "LOG.TRIAL_ID" />
 		
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_EXPERIMENT_PHASE" 	targetmodule = "LOG" target = "EXP_PHASE" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_TRIAL_PHASE" 			targetmodule = "LOG" target = "TRIAL_PHASE" />
+		<connection  source = "EpiHeadExp.LOG_EXPERIMENT_PHASE" 	 target = "LOG.EXP_PHASE" />
+		<connection  source = "EpiHeadExp.LOG_TRIAL_PHASE" 			 target = "LOG.TRIAL_PHASE" />
 
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_SCREEN_PUPIL" 		targetmodule = "LOG" target = "SCREEN_PUPIL" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_ROBOT_PUPIL" 			targetmodule = "LOG" target = "ROBOT_PUPIL" />
+		<connection  source = "EpiHeadExp.LOG_SCREEN_PUPIL" 		 target = "LOG.SCREEN_PUPIL" />
+		<connection  source = "EpiHeadExp.LOG_ROBOT_PUPIL" 			 target = "LOG.ROBOT_PUPIL" />
 		
-		<connection sourcemodule = "EpiHeadExp" source = "SCREEN_PUPIL_LEFT" 	 		targetmodule = "LOG" target = "RAW_SCREEN_PUPIL" />
-		<connection sourcemodule = "EpiHeadExp" source = "ROBOT_PUPIL_LEFT" 			targetmodule = "LOG" target = "RAW_ROBOT_PUPIL" />
-		<connection sourcemodule = "EpiHeadExp" source = "LOG_SYNC_SIGNAL" 			targetmodule = "LOG" target = "SYNC_SIGNAL" />
+		<connection  source = "EpiHeadExp.SCREEN_PUPIL_LEFT" 	 		 target = "LOG.RAW_SCREEN_PUPIL" />
+		<connection  source = "EpiHeadExp.ROBOT_PUPIL_LEFT" 			 target = "LOG.RAW_ROBOT_PUPIL" />
+		<connection  source = "EpiHeadExp.LOG_SYNC_SIGNAL" 			 target = "LOG.SYNC_SIGNAL" />
 		
 
 	
@@ -123,13 +123,13 @@
 		<module class = "Constant" name = "I" data = "120" />
 		<module class = "Constant" name = "D" data = "30" />
 		
-		<connection sourcemodule = "P"  source = "OUTPUT" targetmodule = "Pupil"  target = "P_GAIN" />
-		<connection sourcemodule = "I"  source = "OUTPUT" targetmodule = "Pupil"  target = "I_GAIN" />
-		<connection sourcemodule = "D"  source = "OUTPUT" targetmodule = "Pupil"  target = "D_GAIN" />
+		<connection  source = "P.OUTPUT"  target = "Pupil.P_GAIN" />
+		<connection  source = "I.OUTPUT"  target = "Pupil.I_GAIN" />
+		<connection  source = "D.OUTPUT"  target = "Pupil.D_GAIN" />
 		
-		<connection sourcemodule = "P"  source = "OUTPUT" targetmodule = "Pupil"  target = "P_GAIN" />
-		<connection sourcemodule = "I"  source = "OUTPUT" targetmodule = "Pupil"  target = "I_GAIN" />
-		<connection sourcemodule = "D"  source = "OUTPUT" targetmodule = "Pupil"  target = "D_GAIN" />
+		<connection  source = "P.OUTPUT"  target = "Pupil.P_GAIN" />
+		<connection  source = "I.OUTPUT"  target = "Pupil.I_GAIN" />
+		<connection  source = "D.OUTPUT"  target = "Pupil.D_GAIN" />
 
 		
 	

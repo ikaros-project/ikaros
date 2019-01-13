@@ -11,7 +11,7 @@
 
 		<module  class = "FASTDetector" name = "FAST" />
 
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "FAST" target = "INPUT" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "FAST.INPUT" delay="0" />
 
 		<view name = "Points">
 			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="4" w="4" />

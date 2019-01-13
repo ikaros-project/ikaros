@@ -19,9 +19,9 @@
 
 		<module  class = "HarrisDetector" name = "HarrisDetector" />
 
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian" target = "INPUT" delay="0" />
-		<connection sourcemodule = "Gaussian" source = "dx" targetmodule = "HarrisDetector" target = "DX" delay="0" />
-		<connection sourcemodule = "Gaussian" source = "dy" targetmodule = "HarrisDetector" target = "DY" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "Gaussian.INPUT" delay="0" />
+		<connection  source = "Gaussian.dx"  target = "HarrisDetector.DX" delay="0" />
+		<connection  source = "Gaussian.dy"  target = "HarrisDetector.DY" delay="0" />
 
 		<view name = "V1">
 			<_object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />

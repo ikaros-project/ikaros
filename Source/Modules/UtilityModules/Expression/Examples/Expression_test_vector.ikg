@@ -35,9 +35,9 @@
 			debug="false"
 		/>
 		
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "ExpressionInstance" target = "x" />
-        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "ExpressionInstance" target = "y" />
-        <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "ExpressionInstance" target = "y" />
+        <connection  source = "MyConstant.OUTPUT"  target = "ExpressionInstance.x" />
+        <connection  source = "SquareGen.OUTPUT"  target = "ExpressionInstance.y" />
+        <connection  source = "SinGen.OUTPUT"  target = "ExpressionInstance.y" />
 
 		
 

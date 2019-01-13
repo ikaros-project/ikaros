@@ -16,7 +16,7 @@
         name="PupilControl"
     />
     
-    <connection sourcemodule="LightInput" source="OUTPUT" targetmodule="PupilControl" target="PTA" />
+    <connection  source = "LightInput.OUTPUT"  target = "PupilControl.PTA" />
 
     <view name="Parasympathetic Circuit">
         <object class="Plot" title="Light" module="LightInput" source="OUTPUT" x="0" y="0" w="4" max="1" />

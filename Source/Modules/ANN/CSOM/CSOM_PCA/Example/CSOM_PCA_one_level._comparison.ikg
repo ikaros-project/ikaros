@@ -31,10 +31,10 @@
             name = "D4"
         />
         
-		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "D1" target = "INPUT" delay="0" />
-		<connection sourcemodule = "D1" source = "OUTPUT" targetmodule = "D2" target = "INPUT" delay="0" />
-		<connection sourcemodule = "D2" source = "OUTPUT" targetmodule = "D3" target = "INPUT" delay="0" />
-		<connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "D4" target = "INPUT" delay="0" />
+		<connection  source = "Input.INTENSITY"  target = "D1.INPUT" delay="0" />
+		<connection  source = "D1.OUTPUT"  target = "D2.INPUT" delay="0" />
+		<connection  source = "D2.OUTPUT"  target = "D3.INPUT" delay="0" />
+		<connection  source = "D3.OUTPUT"  target = "D4.INPUT" delay="0" />
         
 
 
@@ -80,14 +80,14 @@
             window_size = "1000"
         />
         
-		<connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "L1_a" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L1_a" source = "OUTPUT" targetmodule = "L1_a" target = "TOP_DOWN" delay="1" />
+		<connection  source = "D3.OUTPUT"  target = "L1_a.INPUT" delay="1" />
+        <connection  source = "L1_a.OUTPUT"  target = "L1_a.TOP_DOWN" delay="1" />
 
-        <connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "Innovation_a" target = "INPUT1" delay="3" />
-        <connection sourcemodule = "L1_a" source = "RECONSTRUCTION" targetmodule = "Innovation_a" target = "INPUT2" delay="1" />
+        <connection  source = "D3.OUTPUT"  target = "Innovation_a.INPUT1" delay="3" />
+        <connection  source = "L1_a.RECONSTRUCTION"  target = "Innovation_a.INPUT2" delay="1" />
 
-        <connection sourcemodule = "Innovation_a" source = "OUTPUT" targetmodule = "Sum_a" target = "INPUT" delay="1" />
-        <connection sourcemodule = "Sum_a" source = "OUTPUT" targetmodule = "Average_a" target = "INPUT" delay="1" />
+        <connection  source = "Innovation_a.OUTPUT"  target = "Sum_a.INPUT" delay="1" />
+        <connection  source = "Sum_a.OUTPUT"  target = "Average_a.INPUT" delay="1" />
 
 
 
@@ -132,14 +132,14 @@
             window_size = "1000"
         />
         
-		<connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "L1_b" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L1_b" source = "OUTPUT" targetmodule = "L1_b" target = "TOP_DOWN" delay="1" />
+		<connection  source = "D3.OUTPUT"  target = "L1_b.INPUT" delay="1" />
+        <connection  source = "L1_b.OUTPUT"  target = "L1_b.TOP_DOWN" delay="1" />
 
-        <connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "Innovation_b" target = "INPUT1" delay="3" />
-        <connection sourcemodule = "L1_b" source = "RECONSTRUCTION" targetmodule = "Innovation_b" target = "INPUT2" delay="1" />
+        <connection  source = "D3.OUTPUT"  target = "Innovation_b.INPUT1" delay="3" />
+        <connection  source = "L1_b.RECONSTRUCTION"  target = "Innovation_b.INPUT2" delay="1" />
 
-        <connection sourcemodule = "Innovation_b" source = "OUTPUT" targetmodule = "Sum_b" target = "INPUT" delay="1" />
-        <connection sourcemodule = "Sum_b" source = "OUTPUT" targetmodule = "Average_b" target = "INPUT" delay="1" />
+        <connection  source = "Innovation_b.OUTPUT"  target = "Sum_b.INPUT" delay="1" />
+        <connection  source = "Sum_b.OUTPUT"  target = "Average_b.INPUT" delay="1" />
 
 
 
@@ -185,14 +185,14 @@
             window_size = "1000"
         />
 
-		<connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "L1_c" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L1_c" source = "OUTPUT" targetmodule = "L1_c" target = "TOP_DOWN" delay="1" />
+		<connection  source = "D3.OUTPUT"  target = "L1_c.INPUT" delay="1" />
+        <connection  source = "L1_c.OUTPUT"  target = "L1_c.TOP_DOWN" delay="1" />
 
-        <connection sourcemodule = "D3" source = "OUTPUT" targetmodule = "Innovation_c" target = "INPUT1" delay="3" />
-        <connection sourcemodule = "L1_c" source = "RECONSTRUCTION" targetmodule = "Innovation_c" target = "INPUT2" delay="1" />
+        <connection  source = "D3.OUTPUT"  target = "Innovation_c.INPUT1" delay="3" />
+        <connection  source = "L1_c.RECONSTRUCTION"  target = "Innovation_c.INPUT2" delay="1" />
 
-        <connection sourcemodule = "Innovation_c" source = "OUTPUT" targetmodule = "Sum_c" target = "INPUT" delay="1" />
-        <connection sourcemodule = "Sum_c" source = "OUTPUT" targetmodule = "Average_c" target = "INPUT" delay="1" />
+        <connection  source = "Innovation_c.OUTPUT"  target = "Sum_c.INPUT" delay="1" />
+        <connection  source = "Sum_c.OUTPUT"  target = "Average_c.INPUT" delay="1" />
 
 
 

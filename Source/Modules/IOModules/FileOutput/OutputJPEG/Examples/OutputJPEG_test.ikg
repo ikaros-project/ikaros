@@ -20,7 +20,7 @@
 			filename = "red%0d.jpg"
 		/>
 
-		<connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "INTENSITY" />
+		<connection  source = "IN.RED"  target = "OUT.INTENSITY" />
 
 		<view name = "View 1">
 			<object class="Image" module="IN" source="RED" x="0" y="0" min="0" max="255" />

@@ -55,9 +55,9 @@
         outputsize = "4"
     />
 
-	<connection sourcemodule = "Environment" source = "OUTPUT" targetmodule = "GW" target = "OBSTACLES" delay="0" />
-	<connection sourcemodule = "Goals" source = "OUTPUT" targetmodule = "GW" target = "VALUES" delay="0" />
-	<connection sourcemodule = "R" source = "OUTPUT" targetmodule = "GW" target = "MOVE" />
+	<connection  source = "Environment.OUTPUT"  target = "GW.OBSTACLES" delay="0" />
+	<connection  source = "Goals.OUTPUT"  target = "GW.VALUES" delay="0" />
+	<connection  source = "R.OUTPUT"  target = "GW.MOVE" />
 
 	<view name="Full View">
 		<grid module="GW" source="IMAGE" x="20" y="20" fill="custom" colorTable="black,white,red,green" max="3" />

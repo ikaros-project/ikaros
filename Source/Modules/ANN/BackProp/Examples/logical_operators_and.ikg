@@ -28,14 +28,14 @@
 		name = "AVERAGE"
 	/>
 
-	<connection sourcemodule = "LOGOP_DATA"  source = "IN" targetmodule = "BackProp"  target = "INPUT" />
-	<connection sourcemodule = "LOGOP_DATA"  source = "IN" targetmodule = "BackProp"  target = "T_INPUT" />
-	<connection sourcemodule = "LOGOP_DATA"  source = "TA" targetmodule = "BackProp"  target = "T_TARGET" />
-	<!-- connection sourcemodule = "LOGOP_DATA"  source = "TR" targetmodule = "BackProp"  target = "TRAIN" / -->
+	<connection  source = "LOGOP_DATA.IN"  target = "BackProp.INPUT" />
+	<connection  source = "LOGOP_DATA.IN"  target = "BackProp.T_INPUT" />
+	<connection  source = "LOGOP_DATA.TA"  target = "BackProp.T_TARGET" />
+	<!-- connection  source = "LOGOP_DATA.TR"  target = "BackProp.TRAIN" / -->
 
-	<connection sourcemodule = "BackProp"  source = "OUTPUT" targetmodule = "RESULTS"  target = "OUT" />
-	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "RESULTS"  target = "ERR" />
-	<connection sourcemodule = "BackProp"  source = "ERROR" targetmodule = "AVERAGE"  target = "INPUT" />
+	<connection  source = "BackProp.OUTPUT"  target = "RESULTS.OUT" />
+	<connection  source = "BackProp.ERROR"  target = "RESULTS.ERR" />
+	<connection  source = "BackProp.ERROR"  target = "AVERAGE.INPUT" />
         
         <view name="BackProp View">
             <plot

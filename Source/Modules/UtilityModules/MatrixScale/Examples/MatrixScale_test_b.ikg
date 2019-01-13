@@ -39,11 +39,11 @@
 			debug = "no"
 		/>
 		
-        <_connection sourcemodule = "SinGenX" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "X" />
-        <_connection sourcemodule = "SinGenX" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "Y" />
-        <connection sourcemodule = "InputImg" source = "INTENSITY" targetmodule = "MatrixScaleInstance" target = "INPUT" />
-			<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "X" />
-			<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "Y" />
+        <_connection  source = "SinGenX.OUTPUT"  target = "MatrixScaleInstance.X" />
+        <_connection  source = "SinGenX.OUTPUT"  target = "MatrixScaleInstance.Y" />
+        <connection  source = "InputImg.INTENSITY"  target = "MatrixScaleInstance.INPUT" />
+			<connection  source = "Scale.OUTPUT"  target = "MatrixScaleInstance.X" />
+			<connection  source = "Scale.OUTPUT"  target = "MatrixScaleInstance.Y" />
 
 
 		<view name="View">

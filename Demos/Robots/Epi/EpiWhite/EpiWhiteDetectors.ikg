@@ -216,11 +216,11 @@
     <!-- Lookin at face ? -->
 	<module class = "Constant" name = "SubFaceCenter" outputsize = "2" data="0.5 0.5" />
     <module class = "Subtract" name = "SubtractFaceCenter" />
-	    <connection sourcemodule = "L_FaceDetector" source = "FACE_POSITION" targetmodule = "SubtractFaceCenter" target = "INPUT1" delay="0" />
-        <connection sourcemodule = "SubFaceCenter" source = "OUTPUT" targetmodule = "SubtractFaceCenter" target = "INPUT2" delay="0" />
+	    <connection  source = "L_FaceDetector.FACE_POSITION"  target = "SubtractFaceCenter.INPUT1" delay="0" />
+        <connection  source = "SubFaceCenter.OUTPUT"  target = "SubtractFaceCenter.INPUT2" delay="0" />
 
     <module class = "Mean" name = "MeanFaceCenter"/>
-        <connection sourcemodule = "SubtractFaceCenter" source = "OUTPUT" targetmodule = "MeanFaceCenter" target = "INPUT" delay="0" />
+        <connection  source = "SubtractFaceCenter.OUTPUT"  target = "MeanFaceCenter.INPUT" delay="0" />
 
 		<module
 			class="SaliencePoints"
@@ -230,9 +230,9 @@
             size_x = "640"
             size_y = "640"
 		/>
-		<connection sourcemodule = "L_FaceDetector" source = "FACE_POSITION" targetmodule = "SaliencePoints" target = "INPUT" delay="0" />
-        <_connection sourcemodule = "HALF" source = "OUTPUT" targetmodule = "SaliencePoints" target = "INPUT" delay="1" />   
-        <_connection sourcemodule = "FaceZ" source = "OUTPUT" targetmodule = "SaliencePoints" target = "INPUT" delay="1" />   
+		<connection  source = "L_FaceDetector.FACE_POSITION"  target = "SaliencePoints.INPUT" delay="0" />
+        <_connection  source = "HALF.OUTPUT"  target = "SaliencePoints.INPUT" delay="1" />   
+        <_connection  source = "FaceZ.OUTPUT"  target = "SaliencePoints.INPUT" delay="1" />   
 
   <module
         class = "SpatialClustering"
@@ -243,11 +243,11 @@
         no_of_clusters = "1"
         sorting = "true"
     />
-        <_connection sourcemodule="L_FaceDetector" source="FACE_POSITION" targetmodule="SpatialClusteringFace" target="INPUT" delay="0" />
+        <_connection  source = "L_FaceDetector.FACE_POSITION"  target = "SpatialClusteringFace.INPUT" delay="0" />
     
         
 
-        <connection sourcemodule="SaliencePoints" source="OUTPUT" targetmodule="SpatialClusteringFace" target="INPUT" delay="0" />
+        <connection  source = "SaliencePoints.OUTPUT"  target = "SpatialClusteringFace.INPUT" delay="0" />
 
     <module
 	    class="LinearSplines"
@@ -276,13 +276,13 @@
 		amplitude	=	"0.5"
 	    shift		=	"0.1"
     />
-	    <connection sourcemodule = "SpatialClusteringFace" source = "OUTPUT" targetmodule = "PixelToAngleYZFace" target = "INPUT" delay="1" />   
-	    <_connection sourcemodule = "HALF" source = "OUTPUT" targetmodule = "PixelToAngleYZFace" target = "INPUT" delay="1" />   
-        <_connection sourcemodule = "FaceZ" source = "OUTPUT" targetmodule = "PixelToAngleYZFace" target = "INPUT" delay="1" />   
+	    <connection  source = "SpatialClusteringFace.OUTPUT"  target = "PixelToAngleYZFace.INPUT" delay="1" />   
+	    <_connection  source = "HALF.OUTPUT"  target = "PixelToAngleYZFace.INPUT" delay="1" />   
+        <_connection  source = "FaceZ.OUTPUT"  target = "PixelToAngleYZFace.INPUT" delay="1" />   
 
     <!-- AttentionFocus is not used -->
     <module class="AttentionFocus" name="AttentionFocusFace" output_radius = "100" />
- 	    <connection sourcemodule = "SpatialClusteringFace" source = "OUTPUT" targetmodule = "AttentionFocusFace" target = "FOCUS" delay="1" />
+ 	    <connection  source = "SpatialClusteringFace.OUTPUT"  target = "AttentionFocusFace.FOCUS" delay="1" />
 
     <view name = "Face Detecton">
 	    <_object class="Image" name="Video" module="Vision" source="INTENSITY" x="0" y="0" w ="4" h="2"/>
@@ -329,41 +329,41 @@
 
     <!-- Face -->
     <module class="RotationConverter" name="L_FaceRotationRot" input_format = "axayaz" output_format = "matrix" />
-        <connection sourcemodule = "PixelToAngleYZFace"  source = "OUTPUT" targetmodule = "L_FaceRotationRot"  target = "INPUT" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_FaceRotationRot"  target = "INPUT" />
+        <connection  source = "PixelToAngleYZFace.OUTPUT"  target = "L_FaceRotationRot.INPUT" />
+        <connection  source = "ZERO.OUTPUT"  target = "L_FaceRotationRot.INPUT" />
  
     <!-- Rotation from image cordinates to ikaros cordinates -->
      <module class="Transform"   name="L_ImageToIkaros" />
-        <connection sourcemodule = "Xneg90Rotation"  source = "OUTPUT"       targetmodule = "L_ImageToIkaros" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "FaceID"           source = "OUTPUT"       targetmodule = "L_ImageToIkaros" target = "OBJECT_ID_1" delay = "0"/>   
-        <connection sourcemodule = "FaceID"           source = "OUTPUT"         targetmodule = "L_ImageToIkaros" target = "FRAME_ID_1" delay = "0"/>   
+        <connection  source = "Xneg90Rotation.OUTPUT"        target = "L_ImageToIkaros.MATRIX_1"    delay = "0"/>
+        <connection  source = "FaceID.OUTPUT"        target = "L_ImageToIkaros.OBJECT_ID_1" delay = "0"/>   
+        <connection  source = "FaceID.OUTPUT"          target = "L_ImageToIkaros.FRAME_ID_1" delay = "0"/>   
 
-        <connection sourcemodule = "L_FaceRotationRot" source = "OUTPUT"      targetmodule = "L_ImageToIkaros" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "FaceID"           source = "OUTPUT"           targetmodule = "L_ImageToIkaros" target = "OBJECT_ID_2" delay = "0"/>   
-        <connection sourcemodule = "FaceID"           source = "OUTPUT"           targetmodule = "L_ImageToIkaros" target = "FRAME_ID_2" delay = "0"/>   
+        <connection  source = "L_FaceRotationRot.OUTPUT"       target = "L_ImageToIkaros.MATRIX_2"    delay = "0"/>
+        <connection  source = "FaceID.OUTPUT"            target = "L_ImageToIkaros.OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "FaceID.OUTPUT"            target = "L_ImageToIkaros.FRAME_ID_2" delay = "0"/>   
 
 
 
     <module class="RotationConverter" name="L_FaceRotationTrans" input_format = "xyz" output_format = "matrix" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_FaceRotationTrans"  target = "INPUT" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_FaceRotationTrans"  target = "INPUT" />
-        <connection sourcemodule = "FaceX"    source = "OUTPUT" targetmodule = "L_FaceRotationTrans"  target = "INPUT" />
+        <connection  source = "ZERO.OUTPUT"  target = "L_FaceRotationTrans.INPUT" />
+        <connection  source = "ZERO.OUTPUT"  target = "L_FaceRotationTrans.INPUT" />
+        <connection  source = "FaceX.OUTPUT"  target = "L_FaceRotationTrans.INPUT" />
 
      <module class="Transform"   name="L_FaceRotation" />
-        <connection sourcemodule = "L_ImageToIkaros"  source = "MATRIX"       targetmodule = "L_FaceRotation" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_FaceRotationTrans" source = "OUTPUT"      targetmodule = "L_FaceRotation" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "FaceID"           source = "OUTPUT"           targetmodule = "L_FaceRotation" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "L_ImageToIkaros.MATRIX"        target = "L_FaceRotation.MATRIX_1"    delay = "0"/>
+        <connection  source = "L_FaceRotationTrans.OUTPUT"       target = "L_FaceRotation.MATRIX_2"    delay = "0"/>
+        <connection  source = "FaceID.OUTPUT"            target = "L_FaceRotation.OBJECT_ID_2" delay = "0"/>   
 
     <!-- EGO-->
     <module class="Transform"   name="L_FaceEgo" />
-        <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_FaceEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_FaceRotation"   source = "MATRIX"       targetmodule = "L_FaceEgo" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "FaceID"           source = "OUTPUT"       targetmodule = "L_FaceEgo" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "L_Camera_Sensor.OUTPUT"        target = "L_FaceEgo.MATRIX_1"    delay = "0"/>
+        <connection  source = "L_FaceRotation.MATRIX"        target = "L_FaceEgo.MATRIX_2"    delay = "0"/>
+        <connection  source = "FaceID.OUTPUT"        target = "L_FaceEgo.OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->
     <module class="Transform"   name="L_FaceWorld" />
-        <connection sourcemodule = "L_FaceEgo"        source = "MATRIX"       targetmodule = "L_FaceWorld" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "FaceID"    source = "OUTPUT"    targetmodule = "L_FaceWorld" target = "OBJECT_ID_2" delay = "0"/>
+        <connection  source = "L_FaceEgo.MATRIX"        target = "L_FaceWorld.MATRIX_2"    delay = "0"/>
+        <connection  source = "FaceID.OUTPUT"     target = "L_FaceWorld.OBJECT_ID_2" delay = "0"/>
 
     <view name = "Check outputs"> 
         <object class = "Table" x="0" y="0" h="1" w="6" module = "L_Camera_Sensor"  source = "OUTPUT" font_size = "20"/>
@@ -393,14 +393,14 @@
 
     <!-- EGO-->
     <module class="Transform"   name="L_MarkerEgo" />
-        <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_MarkerEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"       targetmodule = "L_MarkerEgo" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "L_MarkerEgo" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "L_Camera_Sensor.OUTPUT"        target = "L_MarkerEgo.MATRIX_1"    delay = "0"/>
+        <connection  source = "L_MarkerTracker.MATRIX"        target = "L_MarkerEgo.MATRIX_2"    delay = "0"/>
+        <connection  source = "L_MarkerTracker.OBJECT_ID"     target = "L_MarkerEgo.OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->
     <module class="Transform"   name="L_MarkerWorld" />
-        <connection sourcemodule = "L_MarkerEgo"        source = "MATRIX"       targetmodule = "L_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "L_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
+        <connection  source = "L_MarkerEgo.MATRIX"        target = "L_MarkerWorld.MATRIX_2"    delay = "0"/>
+        <connection  source = "L_MarkerTracker.OBJECT_ID"     target = "L_MarkerWorld.OBJECT_ID_2" delay = "0"/>
 
 
 	<module
@@ -417,30 +417,30 @@
 	/>
     <!-- EGO-->
     <module class="Transform"   name="R_MarkerEgo" />
-        <connection sourcemodule = "R_Camera_Sensor"    source = "OUTPUT"       targetmodule = "R_MarkerEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"       targetmodule = "R_MarkerEgo" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerEgo" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "R_Camera_Sensor.OUTPUT"        target = "R_MarkerEgo.MATRIX_1"    delay = "0"/>
+        <connection  source = "R_MarkerTracker.MATRIX"        target = "R_MarkerEgo.MATRIX_2"    delay = "0"/>
+        <connection  source = "R_MarkerTracker.OBJECT_ID"     target = "R_MarkerEgo.OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->
     <module class="Transform"   name="R_MarkerWorld" />
-        <connection sourcemodule = "R_MarkerEgo"        source = "MATRIX"       targetmodule = "R_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
+        <connection  source = "R_MarkerEgo.MATRIX"        target = "R_MarkerWorld.MATRIX_2"    delay = "0"/>
+        <connection  source = "R_MarkerTracker.OBJECT_ID"     target = "R_MarkerWorld.OBJECT_ID_2" delay = "0"/>
 
 
 	<module class = "DataConverter" name = "L_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"    targetmodule = "L_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "L_MarkerTracker.MATRIX"     target = "L_MarkerTracker_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "L_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_MarkerEgo"    source = "MATRIX"    targetmodule = "L_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "L_MarkerEgo.MATRIX"     target = "L_MarkerEgo_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "L_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_MarkerWorld"    source = "MATRIX"    targetmodule = "L_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "L_MarkerWorld.MATRIX"     target = "L_MarkerWorld_MAT.INPUT" delay = "0"/>
 	
 	
 	<module class = "DataConverter" name = "R_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"    targetmodule = "R_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "R_MarkerTracker.MATRIX"     target = "R_MarkerTracker_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "R_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "R_MarkerEgo"    source = "MATRIX"    targetmodule = "R_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "R_MarkerEgo.MATRIX"     target = "R_MarkerEgo_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "R_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "R_MarkerWorld"    source = "MATRIX"    targetmodule = "R_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "R_MarkerWorld.MATRIX"     target = "R_MarkerWorld_MAT.INPUT" delay = "0"/>
 	
 
     <view name = "Check outputs"> 
@@ -469,7 +469,7 @@
         no_of_clusters = "1"
         sorting = "true"
     />
-        <connection sourcemodule="Change" source="OUTPUT" targetmodule="SpatialClustering" target="INPUT" delay="0" />
+        <connection  source = "Change.OUTPUT"  target = "SpatialClustering.INPUT" delay="0" />
     
     <module
 	    class="LinearSplines"
@@ -480,11 +480,11 @@
         0.5 0 0.5 0; 
         1 26 1 26"
 	/>
-	    <connection sourcemodule = "SpatialClustering" source = "OUTPUT" targetmodule = "PixelToAngleYZ" target = "INPUT" delay="1" />   
+	    <connection  source = "SpatialClustering.OUTPUT"  target = "PixelToAngleYZ.INPUT" delay="1" />   
 
     <!-- AttentionFocus is not used -->
     <module class="AttentionFocus" name="AttentionFocus" output_radius = "100" />
- 	    <connection sourcemodule = "SpatialClustering" source = "OUTPUT" targetmodule = "AttentionFocus" target = "FOCUS" delay="1" />
+ 	    <connection  source = "SpatialClustering.OUTPUT"  target = "AttentionFocus.FOCUS" delay="1" />
 
     <view name = "Change Detecton">
 	    <_object class="Image" name="Video" module="Vision" source="INTENSITY" x="0" y="0" w ="4" h="2"/>
@@ -510,29 +510,29 @@
 
     <!-- Change -->
     <module class="RotationConverter" name="L_ChangeRotationRot" input_format = "axayaz" output_format = "matrix" />
-        <connection sourcemodule = "PixelToAngleYZ"  source = "OUTPUT" targetmodule = "L_ChangeRotationRot"  target = "INPUT" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotationRot"  target = "INPUT" />
+        <connection  source = "PixelToAngleYZ.OUTPUT"  target = "L_ChangeRotationRot.INPUT" />
+        <connection  source = "ZERO.OUTPUT"  target = "L_ChangeRotationRot.INPUT" />
  
     <module class="RotationConverter" name="L_ChangeRotationTrans" input_format = "xyz" output_format = "matrix" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotationTrans"  target = "INPUT" />
-        <connection sourcemodule = "ZERO"       source = "OUTPUT" targetmodule = "L_ChangeRotationTrans"  target = "INPUT" />
-        <connection sourcemodule = "ChangeX"    source = "OUTPUT" targetmodule = "L_ChangeRotationTrans"  target = "INPUT" />
+        <connection  source = "ZERO.OUTPUT"  target = "L_ChangeRotationTrans.INPUT" />
+        <connection  source = "ZERO.OUTPUT"  target = "L_ChangeRotationTrans.INPUT" />
+        <connection  source = "ChangeX.OUTPUT"  target = "L_ChangeRotationTrans.INPUT" />
 
      <module class="Transform"   name="L_ChangeRotation" />
-        <connection sourcemodule = "L_ChangeRotationRot"  source = "OUTPUT"       targetmodule = "L_ChangeRotation" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_ChangeRotationTrans" source = "OUTPUT"      targetmodule = "L_ChangeRotation" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "ChangeID"           source = "OUTPUT"           targetmodule = "L_ChangeRotation" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "L_ChangeRotationRot.OUTPUT"        target = "L_ChangeRotation.MATRIX_1"    delay = "0"/>
+        <connection  source = "L_ChangeRotationTrans.OUTPUT"       target = "L_ChangeRotation.MATRIX_2"    delay = "0"/>
+        <connection  source = "ChangeID.OUTPUT"            target = "L_ChangeRotation.OBJECT_ID_2" delay = "0"/>   
 
     <!-- EGO-->
     <module class="Transform"   name="L_ChangeEgo" />
-        <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_ChangeRotation"   source = "MATRIX"       targetmodule = "L_ChangeEgo" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "ChangeID"           source = "OUTPUT"       targetmodule = "L_ChangeEgo" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "L_Camera_Sensor.OUTPUT"        target = "L_ChangeEgo.MATRIX_1"    delay = "0"/>
+        <connection  source = "L_ChangeRotation.MATRIX"        target = "L_ChangeEgo.MATRIX_2"    delay = "0"/>
+        <connection  source = "ChangeID.OUTPUT"        target = "L_ChangeEgo.OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->
     <module class="Transform"   name="L_ChangeWorld" />
-        <connection sourcemodule = "L_ChangeEgo"        source = "MATRIX"       targetmodule = "L_ChangeWorld" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "ChangeID"    source = "OUTPUT"    targetmodule = "L_ChangeWorld" target = "OBJECT_ID_2" delay = "0"/>
+        <connection  source = "L_ChangeEgo.MATRIX"        target = "L_ChangeWorld.MATRIX_2"    delay = "0"/>
+        <connection  source = "ChangeID.OUTPUT"     target = "L_ChangeWorld.OBJECT_ID_2" delay = "0"/>
 
     <view name = "Check outputs"> 
         <object class = "Table" x="0" y="0" h="1" w="6" module = "L_Camera_Sensor"  source = "OUTPUT" font_size = "20"/>

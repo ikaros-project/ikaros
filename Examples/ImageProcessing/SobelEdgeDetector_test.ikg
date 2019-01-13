@@ -17,7 +17,7 @@
 		
     <module class = "SobelEdgeDetector" name = "Sobel" />
 
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Sobel" target = "INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Sobel.INPUT" delay="0" />
 
     <view name = "Demo view">
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />

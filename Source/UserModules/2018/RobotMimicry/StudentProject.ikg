@@ -8,7 +8,7 @@
 	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
 
 	BodyDynamixel = "DynamixelSimulate"
-	HeadDynamixel = "Dynamixel"
+	HeadDynamixel = "DynamixelSimulate"
 	LeftArmDynamixel = "DynamixelSimulate"
 	RightArmDynamixel = "DynamixelSimulate"
 	PupilDynamixel = "DynamixelSimulate"
@@ -33,8 +33,8 @@
 
 
 -->
-    <connection sourcemodule = "MimicHead" 	source = "ANGLES"  	    targetmodule = "filter"  target = "INPUT"/>
-    <connection sourcemodule = "filter" 	source = "OUTPUT"  	    targetmodule = "MotionGuard"  target = "INPUT"/>
+    <connection  source = "MimicHead.ANGLES"  	     target = "filter.INPUT"/>
+    <connection  source = "filter.OUTPUT"  	     target = "MotionGuard.INPUT"/>
 
 <module
     class="Average"
@@ -105,25 +105,25 @@
   </module>
 
   <!--LOAD TRAINING DATA -->
-  <connection sourcemodule = "TrainData" source = "Movement" targetmodule = "MimicHead" target = "MOVEMENT" />
-  <connection sourcemodule = "TrainData" source = "Mean" targetmodule = "MimicHead" target = "MEAN" />
-  <connection sourcemodule = "TrainData" source = "Variance" targetmodule = "MimicHead" target = "VARIANCE" />
+  <connection  source = "TrainData.Movement"  target = "MimicHead.MOVEMENT" />
+  <connection  source = "TrainData.Mean"  target = "MimicHead.MEAN" />
+  <connection  source = "TrainData.Variance"  target = "MimicHead.VARIANCE" />
 
   <!--Save Depth in raw images -->
-  <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
-  <connection sourcemodule="Color" source="OUTPUT" targetmodule="Kinect" target="LED" />
+  <connection  source = "Tilt.OUTPUT"  target = "Kinect.TILT" />
+  <connection  source = "Color.OUTPUT"  target = "Kinect.LED" />
 
   <!-- Scale Kinect data -->
-  <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "Scale" target = "INPUT" />
+  <connection  source = "Kinect.DEPTH"  target = "Scale.INPUT" />
 
   <!-- Display DepthSegmentation -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthHistogram" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "HeadTracking" target = "OBJECT" />
+  <connection  source = "Scale.OUTPUT"  target = "DepthHistogram.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "HeadTracking.OBJECT" />
 
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "HeadTracking" target = "INPUT" />
+  <connection  source = "Scale.OUTPUT"  target = "HeadTracking.INPUT" />
 
-  <connection sourcemodule = "HeadTracking" source = "HEAD_ANGLE" targetmodule = "MimicHead" target = "HEAD_ANGLE_IN" />
-  <connection sourcemodule = "HeadTracking" source = "HEAD_ROTATION" targetmodule = "MimicHead" target = "HEAD_ROTATION_IN" />
+  <connection  source = "HeadTracking.HEAD_ANGLE"  target = "MimicHead.HEAD_ANGLE_IN" />
+  <connection  source = "HeadTracking.HEAD_ROTATION"  target = "MimicHead.HEAD_ROTATION_IN" />
 
 
   
@@ -203,8 +203,8 @@
 
 
     <module class = "Constant" name = "GOAL_POSITION" 		data = "0 	0 0 0 0  	           0 0 0 0 0 0 0 	      0 0 0 0 0 0 0     0.5 0.5" />
-	    <_connection sourcemodule = "GOAL_POSITION" 	source = "OUTPUT"  	targetmodule = "MotionGuard"  target = "INPUT" sourceoffset = "0"	targetoffset="0" size = "1"/>
-	    <_connection sourcemodule = "GOAL_POSITION" 	source = "OUTPUT"  	targetmodule = "MotionGuard"  target = "INPUT" sourceoffset = "5"	targetoffset="5" size = "14"/>
+	    <_connection  source = "GOAL_POSITION.OUTPUT"  	 target = "MotionGuard.INPUT" sourceoffset = "0"	targetoffset="0" size = "1"/>
+	    <_connection  source = "GOAL_POSITION.OUTPUT"  	 target = "MotionGuard.INPUT" sourceoffset = "5"	targetoffset="5" size = "14"/>
         <!-- Crashes ikaros way? -->
 
 
@@ -233,23 +233,23 @@
     <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
     <module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   0  	   1    1    1    1   	    0    0    0    0    0    0     0    0    0    0    0   0      0    0" />
 
-        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	    target = "MOVING_SPEED"  delay = "1"/>
-        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	    target = "MOVING_SPEED"  delay = "1"/>
-        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"  	target = "MOVING_SPEED"  delay = "1"/>
-        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	target = "MOVING_SPEED"  delay = "1"/>
-        <connection sourcemodule = "SERVO_SPEED"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     targetmodule = "Pupil"  	target = "MOVING_SPEED"  delay = "1"/>
+        <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"       target = "Body.MOVING_SPEED"  delay = "1"/>
+        <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"       target = "Head.MOVING_SPEED"  delay = "1"/>
+        <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"    target = "LeftArm.MOVING_SPEED"  delay = "1"/>
+        <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"   target = "RightArm.MOVING_SPEED"  delay = "1"/>
+        <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"      target = "Pupil.MOVING_SPEED"  delay = "1"/>
     
-        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	    target = "TORQUE_LIMIT"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	    target = "TORQUE_LIMIT"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"  	target = "TORQUE_LIMIT"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	target = "TORQUE_LIMIT"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_LIMIT"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     targetmodule = "Pupil"  	target = "TORQUE_LIMIT"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_LIMIT.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"       target = "Body.TORQUE_LIMIT"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_LIMIT.OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"       target = "Head.TORQUE_LIMIT"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_LIMIT.OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"    target = "LeftArm.TORQUE_LIMIT"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_LIMIT.OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"   target = "RightArm.TORQUE_LIMIT"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_LIMIT.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"      target = "Pupil.TORQUE_LIMIT"  delay = "1"/>
 
-        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	    target = "TORQUE_ENABLE"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	    target = "TORQUE_ENABLE"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"  	target = "TORQUE_ENABLE"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	target = "TORQUE_ENABLE"  delay = "1"/>
-        <connection sourcemodule = "SERVO_TORQUE_ENABLE"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"     targetmodule = "Pupil"  	target = "TORQUE_ENABLE"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_ENABLE.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"       target = "Body.TORQUE_ENABLE"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_ENABLE.OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"       target = "Head.TORQUE_ENABLE"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_ENABLE.OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"    target = "LeftArm.TORQUE_ENABLE"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_ENABLE.OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"   target = "RightArm.TORQUE_ENABLE"  delay = "1"/>
+        <connection  source = "SERVO_TORQUE_ENABLE.OUTPUT" sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"      target = "Pupil.TORQUE_ENABLE"  delay = "1"/>
 
     <!-- Add dynamixel outputs here Temperature Speed. Some of them must be transformed. Speed, force must go through a SC -->
 
@@ -261,7 +261,7 @@
         input_limit_max = "180     65  75   30     11  126  110  126   50  126  180     126  110  126  126  126  180     70   70"
         start_up_time   = "10"
     />
-        <connection sourcemodule = "SC_FeedBackPosition" source = "OUTPUT" targetmodule = "MotionGuard" target = "REFERENCE" delay = "1"/>
+        <connection  source = "SC_FeedBackPosition.OUTPUT"  target = "MotionGuard.REFERENCE" delay = "1"/>
 
 
 
@@ -272,15 +272,15 @@
         offset          = " 170      180  180  180  180    180  180  180  180  225  180    180  180  180  180  135  180     210  210" 
         output_size     = "@nrServosTotal"
 	/>
-        <connection sourcemodule = "MotionGuard" source = "OUTPUT" targetmodule = "SC_Angle" target = "INPUT" delay = "1"/>
+        <connection  source = "MotionGuard.OUTPUT"  target = "SC_Angle.INPUT" delay = "1"/>
 
 
     <!-- Split -->
-    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      targetmodule = "Body"  	        target = "GOAL_POSITION"  delay = "1"/>
-    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      targetmodule = "Head"  	        target = "GOAL_POSITION"  delay = "1"/>
-    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   targetmodule = "LeftArm"     	target = "GOAL_POSITION"  delay = "1"/>
-    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"  targetmodule = "RightArm"  	    target = "GOAL_POSITION"  delay = "1"/>
-    <connection sourcemodule = "SC_Angle"  source = "OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     targetmodule = "Pupil"  	    target = "GOAL_POSITION"  delay = "1"/>
+    <connection  source = "SC_Angle.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"       target = "Body.GOAL_POSITION"  delay = "1"/>
+    <connection  source = "SC_Angle.OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"       target = "Head.GOAL_POSITION"  delay = "1"/>
+    <connection  source = "SC_Angle.OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"    target = "LeftArm.GOAL_POSITION"  delay = "1"/>
+    <connection  source = "SC_Angle.OUTPUT" sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"   target = "RightArm.GOAL_POSITION"  delay = "1"/>
+    <connection  source = "SC_Angle.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"      target = "Pupil.GOAL_POSITION"  delay = "1"/>
 
 
     <!-- Dynamxiels -->
@@ -362,21 +362,21 @@
         offset          = "   -170     -180 -180 -180 -180  -180 -180 -180 -180 -225 -180   -180 -180 -180 -180 -135 -180    -210 -210" 
         output_size     = "@nrServosTotal"
 	/>
-        <connection sourcemodule = "Body"       source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-        <connection sourcemodule = "Head"       source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection sourcemodule = "LeftArm"    source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-        <connection sourcemodule = "RightArm"   source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-        <connection sourcemodule = "Pupil"      source = "FEEDBACK_PRESENT_POSITION" targetmodule = "SC_FeedBackPosition"  target = "INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+        <connection  source = "Body.FEEDBACK_PRESENT_POSITION"  target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection  source = "Head.FEEDBACK_PRESENT_POSITION"  target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection  source = "LeftArm.FEEDBACK_PRESENT_POSITION"  target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection  source = "RightArm.FEEDBACK_PRESENT_POSITION"  target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection  source = "Pupil.FEEDBACK_PRESENT_POSITION"  target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
 
 
     <!-- Dummy module -->
     <!-- Can this be done some other way? -->
     <module class = "Gate" name = "POSITION_FEEDBACK"/>
         <!-- Order is important -->
-	    <connection sourcemodule = "DegreesTomm" 	        source = "OUTPUT"  	targetmodule = "POSITION_FEEDBACK"  target = "INPUT" sourceoffset = "0" targetoffset="@servosIndexPupil" size = "@nrServosPupil"/>
-	    <connection sourcemodule = "SC_FeedBackPosition" 	source = "OUTPUT"  	targetmodule = "POSITION_FEEDBACK"  target = "INPUT" sourceoffset = "0"	targetoffset="0" size = "@servosIndexPupil"/>
+	    <connection  source = "DegreesTomm.OUTPUT"  	 target = "POSITION_FEEDBACK.INPUT" sourceoffset = "0" targetoffset="@servosIndexPupil" size = "@nrServosPupil"/>
+	    <connection  source = "SC_FeedBackPosition.OUTPUT"  	 target = "POSITION_FEEDBACK.INPUT" sourceoffset = "0"	targetoffset="0" size = "@servosIndexPupil"/>
         <!-- Pupil mm to Degrees> -->
-	    <connection sourcemodule = "SC_FeedBackPosition" 	source = "OUTPUT"  	targetmodule = "DegreesTomm"  target = "INPUT" sourceoffset = "@servosIndexPupil"	targetoffset="0" size = "@nrServosPupil"/>
+	    <connection  source = "SC_FeedBackPosition.OUTPUT"  	 target = "DegreesTomm.INPUT" sourceoffset = "@servosIndexPupil"	targetoffset="0" size = "@nrServosPupil"/>
 
 
 <view name="Manual Control"   color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink">

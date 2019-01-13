@@ -80,13 +80,13 @@
         output_size = "8"
     />
 
-	<connection sourcemodule = "Environment" source = "OUTPUT" targetmodule = "GW" target = "OBSTACLES" delay="0" />
-	<connection sourcemodule = "Goals" source = "OUTPUT" targetmodule = "GW" target = "VALUES" delay="0" />
-	<connection sourcemodule = "R" source = "OUTPUT" targetmodule = "GW" target = "MOVE" />
+	<connection  source = "Environment.OUTPUT"  target = "GW.OBSTACLES" delay="0" />
+	<connection  source = "Goals.OUTPUT"  target = "GW.VALUES" delay="0" />
+	<connection  source = "R.OUTPUT"  target = "GW.MOVE" />
 
-	<connection sourcemodule = "GW" source = "COORDINATE" targetmodule = "CC1" target = "INPUT" delay="0" />
-	<connection sourcemodule = "GW" source = "COORDINATE" targetmodule = "CC2" target = "INPUT" delay="0" />
-	<connection sourcemodule = "GW" source = "COORDINATE" targetmodule = "CC3" target = "INPUT" delay="0" />
+	<connection  source = "GW.COORDINATE"  target = "CC1.INPUT" delay="0" />
+	<connection  source = "GW.COORDINATE"  target = "CC2.INPUT" delay="0" />
+	<connection  source = "GW.COORDINATE"  target = "CC3.INPUT" delay="0" />
 
 	<view name="Full View">
 		<object class="Grid" module="GW" source="IMAGE" x="0" y="0" color="black,white,red,green" max="3" colors="['black','white','red','green']"/>

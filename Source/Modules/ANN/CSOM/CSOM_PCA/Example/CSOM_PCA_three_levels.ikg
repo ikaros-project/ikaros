@@ -79,20 +79,20 @@
             use_arbor = "no"
         />
  -->
-		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "L1" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L1" target = "TOP_DOWN" delay="1" />
+		<connection  source = "Input.INTENSITY"  target = "L1.INPUT" delay="1" />
+        <connection  source = "L1.OUTPUT"  target = "L1.TOP_DOWN" delay="1" />
 
 <!--
-        <connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L2" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L2" source = "OUTPUT" targetmodule = "L3" target = "INPUT" delay="1" />
+        <connection  source = "L1.OUTPUT"  target = "L2.INPUT" delay="1" />
+        <connection  source = "L2.OUTPUT"  target = "L3.INPUT" delay="1" />
 
-        <_connection sourcemodule = "L3" source = "OUTPUT" targetmodule = "L3" target = "TOP_DOWN" delay="1" />
+        <_connection  source = "L3.OUTPUT"  target = "L3.TOP_DOWN" delay="1" />
 
-        <_connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L1" target = "TOP_DOWN" delay="1" />
+        <_connection  source = "L1.OUTPUT"  target = "L1.TOP_DOWN" delay="1" />
 
-        <connection sourcemodule = "L3" source = "OUTPUT" targetmodule = "L3" target = "TOP_DOWN" delay="1" />
-        <connection sourcemodule = "L3" source = "RECONSTRUCTION" targetmodule = "L2" target = "TOP_DOWN" delay="1" />
-        <connection sourcemodule = "L2" source = "RECONSTRUCTION" targetmodule = "L1" target = "TOP_DOWN" delay="1" />
+        <connection  source = "L3.OUTPUT"  target = "L3.TOP_DOWN" delay="1" />
+        <connection  source = "L3.RECONSTRUCTION"  target = "L2.TOP_DOWN" delay="1" />
+        <connection  source = "L2.RECONSTRUCTION"  target = "L1.TOP_DOWN" delay="1" />
 -->
 
 		<view name="Map">

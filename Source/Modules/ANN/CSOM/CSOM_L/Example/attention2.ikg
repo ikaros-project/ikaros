@@ -23,8 +23,8 @@
 			name = "Input256"
 		/>
 
-  		<connection sourcemodule = "Input1024" source = "INTENSITY" targetmodule = "Input512" target = "INPUT" delay="0" />
-  		<connection sourcemodule = "Input512" source = "OUTPUT" targetmodule = "Input256" target = "INPUT" delay="0" />
+  		<connection  source = "Input1024.INTENSITY"  target = "Input512.INPUT" delay="0" />
+  		<connection  source = "Input512.OUTPUT"  target = "Input256.INPUT" delay="0" />
 
 
         <module
@@ -74,11 +74,11 @@
             threshold = "0.0"
         />
         
-  		<connection sourcemodule = "Input256" source = "OUTPUT" targetmodule = "ON" target = "INPUT" delay="1" />
-		<connection sourcemodule = "Input256" source = "OUTPUT" targetmodule = "OFF" target = "INPUT" delay="1" />
-		<connection sourcemodule = "ON" source = "OUTPUT" targetmodule = "HP" target = "INPUT1" delay="1" />
-		<connection sourcemodule = "OFF" source = "OUTPUT" targetmodule = "HP" target = "INPUT2" delay="1" />
-		<connection sourcemodule = "HP" source = "OUTPUT" targetmodule = "T" target = "INPUT" delay="1" />
+  		<connection  source = "Input256.OUTPUT"  target = "ON.INPUT" delay="1" />
+		<connection  source = "Input256.OUTPUT"  target = "OFF.INPUT" delay="1" />
+		<connection  source = "ON.OUTPUT"  target = "HP.INPUT1" delay="1" />
+		<connection  source = "OFF.OUTPUT"  target = "HP.INPUT2" delay="1" />
+		<connection  source = "HP.OUTPUT"  target = "T.INPUT" delay="1" />
 
 
   		<module
@@ -110,8 +110,8 @@
 			_write_file = "/Volumes/HD_Ikaros/Subversion/Ikaros.1.2.a3.cba/Source/UserModules/CSOM_L/Example/data10000.txt"
         />
 
-		<connection sourcemodule = "T" source = "OUTPUT" targetmodule = "L1" target = "INPUT" delay="1" />
-		<_connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "L1" target = "INPUT" delay="1" />
+		<connection  source = "T.OUTPUT"  target = "L1.INPUT" delay="1" />
+		<_connection  source = "Input.INTENSITY"  target = "L1.INPUT" delay="1" />
 
   		<module
 			class = "CSOM_L"
@@ -142,13 +142,13 @@
 			_write_file = "/Volumes/HD_Ikaros/Subversion/Ikaros.1.2.a3.cba/Source/UserModules/CSOM_L/Example/data_L2.txt"
         />
 
-		<connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L2" target = "INPUT" delay="1" />
+		<connection  source = "L1.OUTPUT"  target = "L2.INPUT" delay="1" />
 
 		<module
 			class = "Gate"
 			name = "Delay"
 		/>
-		<connection sourcemodule = "Input1024" source = "INTENSITY" targetmodule = "Delay" target = "INPUT" delay="4" />
+		<connection  source = "Input1024.INTENSITY"  target = "Delay.INPUT" delay="4" />
 		
 		<view name="Map L1">
 			<object class= "Image" type="gray" module="Input256" source="OUTPUT" x="0" y="0" h="2" w="2" />

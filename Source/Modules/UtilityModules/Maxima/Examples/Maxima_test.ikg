@@ -17,7 +17,7 @@
             max_points ="2"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Maxima" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Maxima.INPUT" />
 
 		<view name="View">
 			<object class="Image" module="Constant" source="OUTPUT" max="10" x="0" y="0" />

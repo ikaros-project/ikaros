@@ -30,7 +30,7 @@
 
     </group>
 
-    <connection sourcemodule="R" source="OUTPUT" targetmodule="Inner" target="IN" />
+    <connection  source = "R.OUTPUT"  target = "Inner.IN" />
 
 </group>
  

@@ -18,7 +18,7 @@
 		
 		/>
 		
-        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "TanhInstance" target = "INPUT" />
+        <connection  source = "Randomizer.OUTPUT"  target = "TanhInstance.INPUT" />
         
 		<view name="View">
 			<object

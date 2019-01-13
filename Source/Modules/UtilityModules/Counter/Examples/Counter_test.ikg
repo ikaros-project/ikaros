@@ -18,7 +18,7 @@
 			threshold = "0.9"
 		/>
 		
-		<connection sourcemodule="Randomizer" source="OUTPUT" targetmodule="Counter" target="INPUT" />
+		<connection  source = "Randomizer.OUTPUT"  target = "Counter.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Randomizer" source="OUTPUT" x="0" y="0" />

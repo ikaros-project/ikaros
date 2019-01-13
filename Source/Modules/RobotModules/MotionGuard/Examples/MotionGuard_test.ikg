@@ -25,8 +25,8 @@
             
 		/>
 
-        <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionGuard" target = "INPUT" />
-        <connection sourcemodule = "JointsReference" source = "OUTPUT" targetmodule = "MotionGuard" target = "REFERENCE" />
+        <connection  source = "Joints.OUTPUT"  target = "MotionGuard.INPUT" />
+        <connection  source = "JointsReference.OUTPUT"  target = "MotionGuard.REFERENCE" />
 
 		<view name="View" object_size="50">
 			<object class="Table" module="MotionGuard" source="OUTPUT" x="0" y="0" w="8" h="4" />

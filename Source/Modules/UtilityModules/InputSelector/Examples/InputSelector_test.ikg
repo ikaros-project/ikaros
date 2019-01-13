@@ -39,10 +39,10 @@
 			
 		/>
 		
-        <connection sourcemodule = "Input1" source = "INTENSITY" targetmodule = "InputSelectorInstance" target = "INPUT1" />
-        <connection sourcemodule = "Input2" source = "INTENSITY" targetmodule = "InputSelectorInstance" target = "INPUT2" />
-		<connection sourcemodule = "Input3" source = "INTENSITY" targetmodule = "InputSelectorInstance" target = "INPUT3" />
-        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "InputSelectorInstance" target = "SELECT" />
+        <connection  source = "Input1.INTENSITY"  target = "InputSelectorInstance.INPUT1" />
+        <connection  source = "Input2.INTENSITY"  target = "InputSelectorInstance.INPUT2" />
+		<connection  source = "Input3.INTENSITY"  target = "InputSelectorInstance.INPUT3" />
+        <connection  source = "SquareGen.OUTPUT"  target = "InputSelectorInstance.SELECT" />
 
 		<view name="View">
 			<object class="Plot " 

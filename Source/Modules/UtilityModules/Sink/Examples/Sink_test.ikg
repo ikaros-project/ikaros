@@ -8,7 +8,7 @@
 			name = "Sink"
 		/>
 
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Sink" target="INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Sink.INPUT" />
     <module class = "Logger" name = "Logger" />
 </group>
  

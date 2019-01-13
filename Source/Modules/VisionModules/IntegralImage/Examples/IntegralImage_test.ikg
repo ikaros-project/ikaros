@@ -15,7 +15,7 @@
             name = "II"
         />
 
-		<connection sourcemodule = "C" source = "OUTPUT" targetmodule = "II" target = "INPUT" />
+		<connection  source = "C.OUTPUT"  target = "II.INPUT" />
 
 		<view name = "V1">
 			<object class="Image" type="fire" module="C" source="OUTPUT" x="0" y="0" />

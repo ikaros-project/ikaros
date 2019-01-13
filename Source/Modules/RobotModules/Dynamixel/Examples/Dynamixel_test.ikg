@@ -20,10 +20,10 @@
     />
 	
 	<_module class = "Constant" name = "TorqueEnable" outputsize = "1" data = "1" />
-		<_connection sourcemodule = "TorqueEnable"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_ENABLE" />
+		<_connection  source = "TorqueEnable.OUTPUT"  target = "Dynamixel.TORQUE_ENABLE" />
 	
     <_module class = "Constant" name = "LED" outputsize = "1" data = "1" />
-		<_connection sourcemodule = "LED"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "LED" />
+		<_connection  source = "LED.OUTPUT"  target = "Dynamixel.LED" />
 	
     <!-- Tau -->
     <module
@@ -36,13 +36,13 @@
 		shift		=	"0.0"
     />
     
-		<connection sourcemodule = "GoalPosition"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "GOAL_POSITION" />
+		<connection  source = "GoalPosition.OUTPUT"  target = "Dynamixel.GOAL_POSITION" />
     
     <module class = "Constant" name = "MovingSpeed" outputsize = "1" data = "1" />
-		<connection sourcemodule = "MovingSpeed"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "MOVING_SPEED" />
+		<connection  source = "MovingSpeed.OUTPUT"  target = "Dynamixel.MOVING_SPEED" />
 		
     <module class = "Constant" name = "TorqueLimit" outputsize = "1" data = "1" />
-		<connection sourcemodule = "TorqueLimit"  source = "OUTPUT" targetmodule = "Dynamixel"  target = "TORQUE_LIMIT" />
+		<connection  source = "TorqueLimit.OUTPUT"  target = "Dynamixel.TORQUE_LIMIT" />
 		
     <view name="Dynamixel Control" object_size="100" >
         <object

@@ -61,11 +61,11 @@
             threshold = "0.0"
         />
         
-  		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "ON" target = "INPUT" delay="1" />
-		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "OFF" target = "INPUT" delay="1" />
-		<connection sourcemodule = "ON" source = "OUTPUT" targetmodule = "HP" target = "INPUT1" delay="1" />
-		<connection sourcemodule = "OFF" source = "OUTPUT" targetmodule = "HP" target = "INPUT2" delay="1" />
-		<connection sourcemodule = "HP" source = "OUTPUT" targetmodule = "T" target = "INPUT" delay="1" />
+  		<connection  source = "Input.INTENSITY"  target = "ON.INPUT" delay="1" />
+		<connection  source = "Input.INTENSITY"  target = "OFF.INPUT" delay="1" />
+		<connection  source = "ON.OUTPUT"  target = "HP.INPUT1" delay="1" />
+		<connection  source = "OFF.OUTPUT"  target = "HP.INPUT2" delay="1" />
+		<connection  source = "HP.OUTPUT"  target = "T.INPUT" delay="1" />
 
 
   		<module
@@ -87,8 +87,8 @@
             alpha_decay = "1"
         />
 
-		<connection sourcemodule = "T" source = "OUTPUT" targetmodule = "L1" target = "INPUT" delay="1" />
-		<_connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "L1" target = "INPUT" delay="1" />
+		<connection  source = "T.OUTPUT"  target = "L1.INPUT" delay="1" />
+		<_connection  source = "Input.INTENSITY"  target = "L1.INPUT" delay="1" />
 
 		<view name="Map">
 			<object class= "Image" type="gray" module="Input" source="INTENSITY" x="0" y="0" h="2" w="2" />

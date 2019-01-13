@@ -20,7 +20,7 @@
         outputsize = "20"
     />
         
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="IntervalCoder" target="INPUT" delay = "0" />
+    <connection  source = "Signal.OUTPUT"  target = "IntervalCoder.INPUT" delay = "0" />
     
     <view name="View">
         <object class="BarGraph" module="IntervalCoder" source="OUTPUT" x="0" y="0" w="2"/>

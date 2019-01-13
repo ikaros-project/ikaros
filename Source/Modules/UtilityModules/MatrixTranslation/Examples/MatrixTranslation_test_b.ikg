@@ -39,9 +39,9 @@
 			debug = "no"
 		/>
 		
-        <connection sourcemodule = "Trans" source = "OUTPUT" targetmodule = "MatrixTranslationInstance" target = "X" />
-        <connection sourcemodule = "Trans" source = "OUTPUT" targetmodule = "MatrixTranslationInstance" target = "Y" />
-        <connection sourcemodule = "InputImg" source = "INTENSITY" targetmodule = "MatrixTranslationInstance" target = "INPUT" />
+        <connection  source = "Trans.OUTPUT"  target = "MatrixTranslationInstance.X" />
+        <connection  source = "Trans.OUTPUT"  target = "MatrixTranslationInstance.Y" />
+        <connection  source = "InputImg.INTENSITY"  target = "MatrixTranslationInstance.INPUT" />
 
 		<view name="View">
 			<object class="Plot " 

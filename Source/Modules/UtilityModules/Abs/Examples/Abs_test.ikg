@@ -8,7 +8,7 @@
 			name = "Abs"
 		/>
 		
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Abs" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Abs.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Constant" source="OUTPUT" min="-2" max="2" x="0" y="0" />

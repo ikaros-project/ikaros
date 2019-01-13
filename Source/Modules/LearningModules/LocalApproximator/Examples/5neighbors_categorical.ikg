@@ -24,11 +24,11 @@
 		weighed="false"
 	/>
 
-	<connection sourcemodule="INFILE"  source="OT" delay="0" targetmodule="LA"  target="OUTPUT_TABLE" />
+	<connection  source = "INFILE.OT" delay="0"  target = "LA.OUTPUT_TABLE" />
 
-	<connection sourcemodule="INFILE"  source="DT" delay="0" targetmodule="LA"  target="DISTANCE_TABLE" />
+	<connection  source = "INFILE.DT" delay="0"  target = "LA.DISTANCE_TABLE" />
 
-	<connection sourcemodule="LA"  source="CLASS_OUTPUT" delay="0" targetmodule="OUTFILE"  target="OUTCLASS" />
+	<connection  source = "LA.CLASS_OUTPUT" delay="0"  target = "OUTFILE.OUTCLASS" />
 
 
 </group>

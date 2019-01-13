@@ -23,7 +23,7 @@
 			filename = "copy.raw"
 		/>
 	
-		<connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "OUT" target = "INPUT" />
+		<connection  source = "IN.OUTPUT"  target = "OUT.INPUT" />
 
 		<view name="View">
 			<object class="Image" type ="gray" module="IN" source="OUTPUT" x="0" y="0"  h="4" w="4"/>

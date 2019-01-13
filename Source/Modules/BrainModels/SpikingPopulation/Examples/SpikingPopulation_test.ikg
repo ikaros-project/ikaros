@@ -92,32 +92,32 @@
 			_factor = "5"
 		/>
 		
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RegularSpiking" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RegularSpiking" target = "INHIBITION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.INHIBITION_IN" />
 		
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "IntrBursting" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "IntrBursting" target = "INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "IntrBursting.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "IntrBursting.INHIBITION_IN" />
 		
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Chattering" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Chattering" target = "INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Chattering.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Chattering.INHIBITION_IN" />
 
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "FastSpiking" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "FastSpiking" target = "INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.INHIBITION_IN" />
         
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "LowThreshold" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "LowThreshold" target = "INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "LowThreshold.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "LowThreshold.INHIBITION_IN" />
         
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Resonator" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Resonator" target = "INHIBITION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "Resonator.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Resonator.INHIBITION_IN" />
         
-		<connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "PopulationCoder" target = "INPUT" />
-        <connection sourcemodule = "PopulationCoder" source = "OUTPUT" targetmodule = "Scale" target = "INPUT" />
-		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "RegularSpiking" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "IntrBursting" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "Chattering" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "FastSpiking" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "LowThreshold" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "Resonator" target = "DIRECT_IN" />
+		<connection  source = "SquareGen.OUTPUT"  target = "PopulationCoder.INPUT" />
+        <connection  source = "PopulationCoder.OUTPUT"  target = "Scale.INPUT" />
+		<connection  source = "Scale.OUTPUT"  target = "RegularSpiking.DIRECT_IN" />
+		<connection  source = "Scale.OUTPUT"  target = "IntrBursting.DIRECT_IN" />
+		<connection  source = "Scale.OUTPUT"  target = "Chattering.DIRECT_IN" />
+		<connection  source = "Scale.OUTPUT"  target = "FastSpiking.DIRECT_IN" />
+		<connection  source = "Scale.OUTPUT"  target = "LowThreshold.DIRECT_IN" />
+		<connection  source = "Scale.OUTPUT"  target = "Resonator.DIRECT_IN" />
 
 		<view name="View">
 			<slider-horizontal

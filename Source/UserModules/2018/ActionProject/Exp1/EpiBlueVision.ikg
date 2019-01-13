@@ -44,36 +44,36 @@
 
     	
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_RED" 		type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "LEFT_EYE_FLIP_RED"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.RED"  target = "LEFT_EYE_FLIP_RED.INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_GREEN"	 	type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "GREEN" targetmodule = "LEFT_EYE_FLIP_GREEN"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.GREEN"  target = "LEFT_EYE_FLIP_GREEN.INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_BLUE" 		type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "BLUE" targetmodule = "LEFT_EYE_FLIP_BLUE"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.BLUE"  target = "LEFT_EYE_FLIP_BLUE.INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_INTENSITY" type = "rotate-180" />
-		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "LEFT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
+		<connection  source = "LEFT_EYE.INTENSITY"  target = "LEFT_EYE_FLIP_INTENSITY.INPUT"/>
 
 	<module	class = "Flip" name = "RIGHT_EYE_FLIP_RED" 		type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "RIGHT_EYE_FLIP_RED"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.RED"  target = "RIGHT_EYE_FLIP_RED.INPUT" />
 	<module	class = "Flip" name = "RIGHT_EYE_FLIP_GREEN"	 	type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "GREEN" targetmodule = "RIGHT_EYE_FLIP_GREEN"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.GREEN"  target = "RIGHT_EYE_FLIP_GREEN.INPUT" />
 	<module	class = "Flip" name = "RIGHT_EYE_FLIP_BLUE" 		type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "BLUE" targetmodule = "RIGHT_EYE_FLIP_BLUE"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.BLUE"  target = "RIGHT_EYE_FLIP_BLUE.INPUT" />
 	<module	class = "Flip" name = "RIGHT_EYE_FLIP_INTENSITY" type = "rotate-180" />
-		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "RIGHT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
+		<connection  source = "LEFT_EYE.INTENSITY"  target = "RIGHT_EYE_FLIP_INTENSITY.INPUT"/>
 
     <module
         class       = "Add"
         name        = "DOUBLE"
     />
-        <connection sourcemodule = "RIGHT_EYE_FLIP_INTENSITY" source = "OUTPUT" targetmodule = "DOUBLE"  target = "INPUT1"/>
-		<connection sourcemodule = "LEFT_EYE_FLIP_INTENSITY"  source = "OUTPUT" targetmodule = "DOUBLE"  target = "INPUT2"/>
+        <connection  source = "RIGHT_EYE_FLIP_INTENSITY.OUTPUT"  target = "DOUBLE.INPUT1"/>
+		<connection  source = "LEFT_EYE_FLIP_INTENSITY.OUTPUT"  target = "DOUBLE.INPUT2"/>
 
     <module
         class       = "Scale"
         name        = "DOUBLE_VISION"
         factor      = "0.5"
     />
-		<connection sourcemodule = "DOUBLE"  source = "OUTPUT" targetmodule = "DOUBLE_VISION"  target = "INPUT"/>
+		<connection  source = "DOUBLE.OUTPUT"  target = "DOUBLE_VISION.INPUT"/>
 
 
 	<view name="Camera View">

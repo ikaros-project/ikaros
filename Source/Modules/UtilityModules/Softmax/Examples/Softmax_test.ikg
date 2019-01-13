@@ -22,9 +22,9 @@
 			exponent  = "25"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Softmax" target="INPUT" />
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Softmax5" target="INPUT" />
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Softmax25" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Softmax.INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Softmax5.INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Softmax25.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Softmax" source="OUTPUT" x="0" y="0" />

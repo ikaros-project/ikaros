@@ -18,8 +18,8 @@
 			threshold = "3"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="BinaryThreshold" target="INPUT" />
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="LinearThreshold" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "BinaryThreshold.INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "LinearThreshold.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Constant" source="OUTPUT" max="5" x="0" y="0" />

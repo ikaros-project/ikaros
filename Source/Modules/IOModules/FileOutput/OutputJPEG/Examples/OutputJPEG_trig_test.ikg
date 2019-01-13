@@ -29,11 +29,11 @@
             data = "0"
         />
 
-        <connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "RED" />
-        <connection sourcemodule = "IN" source = "GREEN" targetmodule = "OUT" target = "GREEN" />
-        <connection sourcemodule = "IN" source = "BLUE" targetmodule = "OUT" target = "BLUE" />
+        <connection  source = "IN.RED"  target = "OUT.RED" />
+        <connection  source = "IN.GREEN"  target = "OUT.GREEN" />
+        <connection  source = "IN.BLUE"  target = "OUT.BLUE" />
 
-        <connection sourcemodule = "Trig" source = "OUTPUT" targetmodule = "OUT" target = "WRITE" />
+        <connection  source = "Trig.OUTPUT"  target = "OUT.WRITE" />
 
         <view name = "View 1">
             <object class="Image" type="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0" h="2" w="2" />

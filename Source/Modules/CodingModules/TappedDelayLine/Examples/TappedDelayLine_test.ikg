@@ -17,14 +17,14 @@
         no_of_taps = "50"
     />
         
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "8" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "8" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "8" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="TappedDelayLine" target="INPUT" delay = "8" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "8" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "8" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "8" />
+    <connection  source = "Signal.OUTPUT"  target = "TappedDelayLine.INPUT" delay = "8" />
     
     <view name="View">
         <object class="Plot" module="Signal" source="OUTPUT" max="1" colors="yellow"  x="0" y="0" w="2" />

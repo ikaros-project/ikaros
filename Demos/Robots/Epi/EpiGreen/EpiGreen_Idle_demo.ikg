@@ -55,9 +55,9 @@
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "ManPosPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="ManPPos" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
-        <connection sourcemodule="ManHPos" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
-        <connection sourcemodule="ManBPos" 	source="OUTPUT" 	targetmodule="ManPosPop" target="INPUT" />
+        <connection  source = "ManPPos.OUTPUT" 	 target = "ManPosPop.INPUT" />
+        <connection  source = "ManHPos.OUTPUT" 	 target = "ManPosPop.INPUT" />
+        <connection  source = "ManBPos.OUTPUT" 	 target = "ManPosPop.INPUT" />
 
     <!-- ********************************* 	-->
 
@@ -72,11 +72,11 @@
 
     <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "2"/>
         <!-- ManualFocusPoint -->
-        <connection sourcemodule = "ManFocusPoint"   	source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "INPUT_1" />
-        <connection sourcemodule = "ManFocusPointValue" source = "OUTPUT"  		targetmodule = "HLFocusArb"  target = "VALUE_1" />
+        <connection  source = "ManFocusPoint.OUTPUT"  		 target = "HLFocusArb.INPUT_1" />
+        <connection  source = "ManFocusPointValue.OUTPUT"  		 target = "HLFocusArb.VALUE_1" />
         <!-- MarkerTracker (Left) -->
-        <connection sourcemodule = "Detectors"   		source = "L_MARKER_EGO" targetmodule = "HLFocusArb"  target = "INPUT_2" />
-        <connection sourcemodule = "MarkerTrackerValue" source = "OUTPUT"       targetmodule = "HLFocusArb"  target = "VALUE_2" />
+        <connection  source = "Detectors.L_MARKER_EGO"  target = "HLFocusArb.INPUT_2" />
+        <connection  source = "MarkerTrackerValue.OUTPUT"        target = "HLFocusArb.VALUE_2" />
 
     <!-- This should be moved to population code and use amplitude instead --> 	
     <module class = "Constant" name = "ManFocusPointValue" 	data = "0.9"/>
@@ -105,8 +105,8 @@
 
     <module class = "SelectRow" name = "ModeSelector"/>
 
-    <connection sourcemodule = "Modes" source = "OUTPUT" targetmodule = "ModeSelector" target = "INPUT" />
-    <connection sourcemodule = "ModeSelector" source = "OUTPUT" targetmodule = "MotionRecorder" target = "MODE" />
+    <connection  source = "Modes.OUTPUT"  target = "ModeSelector.INPUT" />
+    <connection  source = "ModeSelector.OUTPUT"  target = "MotionRecorder.MODE" />
     <module
         class = "MotionRecorder"
         name = "MotionRecorder"
@@ -114,12 +114,12 @@
         torque = "0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
         filename = "motion.%d.mot"
     />
-    <connection sourcemodule = "Servos" source = "BODY_FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
-    <connection sourcemodule = "Servos" source = "HEAD_FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
-    <connection sourcemodule = "Servos" source = "PUPIL_FEEDBACK_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <connection  source = "Servos.BODY_FEEDBACK_POSITION"  target = "MotionRecorder.INPUT" />
+    <connection  source = "Servos.HEAD_FEEDBACK_POSITION"  target = "MotionRecorder.INPUT" />
+    <connection  source = "Servos.PUPIL_FEEDBACK_POSITION"  target = "MotionRecorder.INPUT" />
 
     <module class = "PopulationCoder" name = "MotionRecPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "MotionRecPop" target = "INPUT" />
+        <connection  source = "MotionRecorder.OUTPUT"  target = "MotionRecPop.INPUT" />
   
      <view name="View" object_size="50">
         <object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8" x="0" y="0" w="8" h="4" />
@@ -145,7 +145,7 @@
     <!-- ************************ -->
 
     <module class = "GazeController" name = "HLGazeCont" offset = "0 0 0 0" angle_unit = "degrees" A = "1.53"/>
-        <connection sourcemodule = "HLFocusArb" source = "OUTPUT" targetmodule = "HLGazeCont" target = "INPUT"/>
+        <connection  source = "HLFocusArb.OUTPUT"  target = "HLGazeCont.INPUT"/>
 
         
 
@@ -153,9 +153,9 @@
 
     <!-- Population coding -->
     <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="PZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="HLGazeCont"   source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
-        <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="GazePosPop" target="INPUT" />
+        <connection  source = "PZeros.OUTPUT" 	 target = "GazePosPop.INPUT" />
+        <connection  source = "HLGazeCont.OUTPUT" 	 target = "GazePosPop.INPUT" />
+        <connection  source = "BZeros.OUTPUT" 	 target = "GazePosPop.INPUT" />
     <!-- ************************ -->
 
 
@@ -164,12 +164,12 @@
     <!-- ************************ -->
 
     <module class = "Arbiter" name = "HLMotorArb" no_of_inputs = "3"/>
-        <connection sourcemodule = "ManPosPop"          source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_1"/>
-        <connection sourcemodule = "ManPosPopValue"     source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_1"/>
-        <connection sourcemodule = "GazePosPop"         source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_2"/>
-        <connection sourcemodule = "GazePosPopValue"    source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_2"/>
-        <connection sourcemodule = "MotionRecPop"       source = "OUTPUT" targetmodule = "HLMotorArb" target = "INPUT_3"/>
-        <connection sourcemodule = "MotionRecPopValue"  source = "OUTPUT" targetmodule = "HLMotorArb" target = "VALUE_3"/>
+        <connection  source = "ManPosPop.OUTPUT"  target = "HLMotorArb.INPUT_1"/>
+        <connection  source = "ManPosPopValue.OUTPUT"  target = "HLMotorArb.VALUE_1"/>
+        <connection  source = "GazePosPop.OUTPUT"  target = "HLMotorArb.INPUT_2"/>
+        <connection  source = "GazePosPopValue.OUTPUT"  target = "HLMotorArb.VALUE_2"/>
+        <connection  source = "MotionRecPop.OUTPUT"  target = "HLMotorArb.INPUT_3"/>
+        <connection  source = "MotionRecPopValue.OUTPUT"  target = "HLMotorArb.VALUE_3"/>
 
     <!-- Values -->
     <!-- These should be handle by the new coder module -->
@@ -190,47 +190,47 @@
     <module class = "EpiGreenVision" 	name = "Vision" 		/>
 
     <module class = "EpiGreenDetectors" name = "Detectors" 		/>
-        <connection sourcemodule = "Vision"   		source = "LEFT_RED"         targetmodule = "Detectors"  target = "LEFT_RED" />
-        <connection sourcemodule = "Vision"   		source = "LEFT_GREEN"       targetmodule = "Detectors"  target = "LEFT_GREEN" />
-        <connection sourcemodule = "Vision"   		source = "LEFT_BLUE"        targetmodule = "Detectors"  target = "LEFT_BLUE" />
-        <connection sourcemodule = "Vision"   		source = "LEFT_INTENSITY"   targetmodule = "Detectors"  target = "LEFT_INTENSITY" />
-        <connection sourcemodule = "Vision"   		source = "RIGHT_RED"        targetmodule = "Detectors"  target = "RIGHT_RED" />
-        <connection sourcemodule = "Vision"   		source = "RIGHT_GREEN"      targetmodule = "Detectors"  target = "RIGHT_GREEN" />
-        <connection sourcemodule = "Vision"   		source = "RIGHT_BLUE"       targetmodule = "Detectors"  target = "RIGHT_BLUE" />
-        <connection sourcemodule = "Vision"   		source = "RIGHT_INTENSITY"  targetmodule = "Detectors"  target = "RIGHT_INTENSITY" />
+        <connection  source = "Vision.LEFT_RED"          target = "Detectors.LEFT_RED" />
+        <connection  source = "Vision.LEFT_GREEN"        target = "Detectors.LEFT_GREEN" />
+        <connection  source = "Vision.LEFT_BLUE"         target = "Detectors.LEFT_BLUE" />
+        <connection  source = "Vision.LEFT_INTENSITY"    target = "Detectors.LEFT_INTENSITY" />
+        <connection  source = "Vision.RIGHT_RED"         target = "Detectors.RIGHT_RED" />
+        <connection  source = "Vision.RIGHT_GREEN"       target = "Detectors.RIGHT_GREEN" />
+        <connection  source = "Vision.RIGHT_BLUE"        target = "Detectors.RIGHT_BLUE" />
+        <connection  source = "Vision.RIGHT_INTENSITY"   target = "Detectors.RIGHT_INTENSITY" />
 
-        <connection sourcemodule = "EgoID"          source = "OUTPUT"         	targetmodule = "Detectors"  target = "EGO_ID" />
-        <connection sourcemodule = "EgoFrameID"     source = "OUTPUT"           targetmodule = "Detectors"  target = "EGO_FRAME_ID" />
-        <connection sourcemodule = "ExoID"        source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_ID" />
-        <connection sourcemodule = "ExoFrameID"   source = "OUTPUT"           targetmodule = "Detectors"  target = "WORLD_FRAME_ID" />
+        <connection  source = "EgoID.OUTPUT"         	 target = "Detectors.EGO_ID" />
+        <connection  source = "EgoFrameID.OUTPUT"            target = "Detectors.EGO_FRAME_ID" />
+        <connection  source = "ExoID.OUTPUT"            target = "Detectors.WORLD_ID" />
+        <connection  source = "ExoFrameID.OUTPUT"            target = "Detectors.WORLD_FRAME_ID" />
 
-        <connection sourcemodule = "ForwardModel"   source = "SENSOR_POS_EGO"   targetmodule = "Detectors"  target = "SENSORS_POS_EGO" />
-        <connection sourcemodule = "EpiPosition"    source = "OUTPUT"   		targetmodule = "Detectors"  target = "EPI_POS_WORLD" />
+        <connection  source = "ForwardModel.SENSOR_POS_EGO"    target = "Detectors.SENSORS_POS_EGO" />
+        <connection  source = "EpiPosition.OUTPUT"   		 target = "Detectors.EPI_POS_WORLD" />
 
 
     <!-- Actuators/Proprioception -->
     <module class = "EpiGreenServosFake" 	name = "Servos" 		/>
-        <connection sourcemodule = "ServoPos"               source = "OUTPUT"  targetmodule = "Servos"  target = "GOAL_POSITION" />
-        <connection sourcemodule = "DirectBSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_MOVING_SPEED" />
-        <connection sourcemodule = "DirectHSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_MOVING_SPEED" />
-        <connection sourcemodule = "DirectPSpeed"           source = "OUTPUT"  targetmodule = "Servos"  target = "PUPIL_MOVING_SPEED" />
-        <connection sourcemodule = "DirectBTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_LIMIT" />
-        <connection sourcemodule = "DirectHTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_LIMIT" />
-        <connection sourcemodule = "DirectPTorqueLimit"     source = "OUTPUT"  targetmodule = "Servos"  target = "PUPIL_TORQUE_LIMIT" />
-        <connection sourcemodule = "DirectBTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "BODY_TORQUE_ENABLE" />
-        <connection sourcemodule = "DirectHTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "HEAD_TORQUE_ENABLE" />
-        <connection sourcemodule = "DirectPTorqueEnable"    source = "OUTPUT"  targetmodule = "Servos"  target = "PUPIL_TORQUE_ENABLE" />
+        <connection  source = "ServoPos.OUTPUT"   target = "Servos.GOAL_POSITION" />
+        <connection  source = "DirectBSpeed.OUTPUT"   target = "Servos.BODY_MOVING_SPEED" />
+        <connection  source = "DirectHSpeed.OUTPUT"   target = "Servos.HEAD_MOVING_SPEED" />
+        <connection  source = "DirectPSpeed.OUTPUT"   target = "Servos.PUPIL_MOVING_SPEED" />
+        <connection  source = "DirectBTorqueLimit.OUTPUT"   target = "Servos.BODY_TORQUE_LIMIT" />
+        <connection  source = "DirectHTorqueLimit.OUTPUT"   target = "Servos.HEAD_TORQUE_LIMIT" />
+        <connection  source = "DirectPTorqueLimit.OUTPUT"   target = "Servos.PUPIL_TORQUE_LIMIT" />
+        <connection  source = "DirectBTorqueEnable.OUTPUT"   target = "Servos.BODY_TORQUE_ENABLE" />
+        <connection  source = "DirectHTorqueEnable.OUTPUT"   target = "Servos.HEAD_TORQUE_ENABLE" />
+        <connection  source = "DirectPTorqueEnable.OUTPUT"   target = "Servos.PUPIL_TORQUE_ENABLE" />
         
     <module class = "EpiGreenForwardModel" 	name = "ForwardModel" 	/>
-        <connection sourcemodule = "Servos"   	    source = "BODY_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "BODY_FEEDBACK_POSITION" />
-        <connection sourcemodule = "Servos"   	    source = "HEAD_FEEDBACK_POSITION"   targetmodule = "ForwardModel"  target = "HEAD_FEEDBACK_POSITION" />
-        <connection sourcemodule = "Servos"   	    source = "PUPIL_FEEDBACK_POSITION"  targetmodule = "ForwardModel"  target = "PUPIL_FEEDBACK_POSITION" />
+        <connection  source = "Servos.BODY_FEEDBACK_POSITION"    target = "ForwardModel.BODY_FEEDBACK_POSITION" />
+        <connection  source = "Servos.HEAD_FEEDBACK_POSITION"    target = "ForwardModel.HEAD_FEEDBACK_POSITION" />
+        <connection  source = "Servos.PUPIL_FEEDBACK_POSITION"   target = "ForwardModel.PUPIL_FEEDBACK_POSITION" />
 
     
     <!-- Behaviors -->
     <!-- Light reflex etc -->
     <module class="PupilControl" name="PupilControl"/>
-        <connection sourcemodule="Vision" source="LEFT_INTENSITY" targetmodule="PupilControl" target="PTA" />
+        <connection  source = "Vision.LEFT_INTENSITY"  target = "PupilControl.PTA" />
 
     <view name="Parasympathetic Circuit">
         <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="0" w="4" _min = "0" max="20" />
@@ -239,10 +239,10 @@
 
      <!-- Population coding -->
     <module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
-        <connection sourcemodule="PupilControl" source="CG_OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
-        <connection sourcemodule="HZeros"       source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
-        <connection sourcemodule="BZeros" 	    source="OUTPUT" 	targetmodule="PupilContPop" target="INPUT" />
+        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "HZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "BZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
 
 
 
@@ -252,10 +252,10 @@
     <!-- ************************ -->
 
     <module class = "Arbiter" name = "LLArb" no_of_inputs = "2"/>
-        <connection sourcemodule = "PupilContPop"   	source = "OUTPUT"  targetmodule = "LLArb"  target = "INPUT_1" />
-        <connection sourcemodule = "PupilContPopValue"  source = "OUTPUT"  targetmodule = "LLArb"  target = "VALUE_1" />
-        <connection sourcemodule = "HLMotorArb"   	    source = "OUTPUT"  targetmodule = "LLArb"  target = "INPUT_2" />
-        <connection sourcemodule = "HLMotorArbValue"    source = "OUTPUT"  targetmodule = "LLArb"  target = "VALUE_2" />
+        <connection  source = "PupilContPop.OUTPUT"   target = "LLArb.INPUT_1" />
+        <connection  source = "PupilContPopValue.OUTPUT"   target = "LLArb.VALUE_1" />
+        <connection  source = "HLMotorArb.OUTPUT"   target = "LLArb.INPUT_2" />
+        <connection  source = "HLMotorArbValue.OUTPUT"   target = "LLArb.VALUE_2" />
 
     <!-- Value Low Level -->
     <!-- These should be handle by the new coder module -->
@@ -263,7 +263,7 @@
     <module class = "Constant" name = "HLMotorArbValue" 	    data = "1"/>
 
     <module class = "PopulationDecoder" name = "ServoPos" min  = "-400" max  = "400" size = "20"/>
-        <connection sourcemodule = "LLArb"     source = "OUTPUT"  targetmodule = "ServoPos"  target = "INPUT" />
+        <connection  source = "LLArb.OUTPUT"   target = "ServoPos.INPUT" />
 
 
 
@@ -283,33 +283,33 @@
     <module class = "Constant" name = "TableID"        data = "10000"/>
 
     <module class = "DataConverter" name = "ModelMatrixTab" output_size_x = "16" output_size_y = "10"/>
-        <connection sourcemodule = "TablePos"       source = "OUTPUT"       targetmodule = "ModelMatrixTab"  target = "INPUT" />
-        <connection sourcemodule = "EGOToEXO"       source = "MATRIX"       targetmodule = "ModelMatrixTab"  target = "INPUT" />     
+        <connection  source = "TablePos.OUTPUT"        target = "ModelMatrixTab.INPUT" />
+        <connection  source = "EGOToEXO.MATRIX"        target = "ModelMatrixTab.INPUT" />     
     <module class = "DataConverter" name = "ModelIDTab" output_size_x = "10" output_size_y = "1"/>
-        <connection sourcemodule = "TableID"        source = "OUTPUT"       targetmodule = "ModelIDTab"  target = "INPUT" />
-        <connection sourcemodule = "ForwardModel"   source = "MODEL_ID"     targetmodule = "ModelIDTab"  target = "INPUT" /> 
+        <connection  source = "TableID.OUTPUT"        target = "ModelIDTab.INPUT" />
+        <connection  source = "ForwardModel.MODEL_ID"      target = "ModelIDTab.INPUT" /> 
 
 
     <module class = "Constant" name = "FocusPointID"        data = "50"/>
 
     <!-- Coordinate must be converted to exocentric coordinate system before adding to list -->
     <module class="Transform"   name="EGOToEXO"/>
-        <connection sourcemodule = "EpiPosition"    source = "OUTPUT"           targetmodule = "EGOToEXO" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "EgoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "ExoID"          source = "OUTPUT"           targetmodule = "EGOToEXO" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "ForwardModel"   source = "MODEL_MATRIX"     targetmodule = "EGOToEXO" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "ForwardModel"   source = "OBJECT_ID"        targetmodule = "EGOToEXO" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "ForwardModel"   source = "FRAME_ID"         targetmodule = "EGOToEXO" target = "FRAME_ID_2"  delay = "0"/>
+        <connection  source = "EpiPosition.OUTPUT"            target = "EGOToEXO.MATRIX_1"    delay = "0"/>
+        <connection  source = "EgoID.OUTPUT"            target = "EGOToEXO.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"            target = "EGOToEXO.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "ForwardModel.MODEL_MATRIX"      target = "EGOToEXO.MATRIX_2"    delay = "0"/>
+        <connection  source = "ForwardModel.OBJECT_ID"         target = "EGOToEXO.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "ForwardModel.FRAME_ID"          target = "EGOToEXO.FRAME_ID_2"  delay = "0"/>
 
 
 
     <!-- Adding FocusPoint to 3D view -->
    <module class = "DataConverter" name = "ModelMatrix" output_size_x = "16" output_size_y = "11"/>
-        <connection sourcemodule = "HLFocusArb"         source = "OUTPUT"       targetmodule = "ModelMatrix"  target = "INPUT" />
-        <connection sourcemodule = "ModelMatrixTab"     source = "OUTPUT"       targetmodule = "ModelMatrix"  target = "INPUT" />     
+        <connection  source = "HLFocusArb.OUTPUT"        target = "ModelMatrix.INPUT" />
+        <connection  source = "ModelMatrixTab.OUTPUT"        target = "ModelMatrix.INPUT" />     
     <module class = "DataConverter" name = "ModelID" output_size_x = "11" output_size_y = "1"/>
-        <connection sourcemodule = "FocusPointID"       source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" />
-        <connection sourcemodule = "ModelIDTab"         source = "OUTPUT"       targetmodule = "ModelID"  target = "INPUT" /> 
+        <connection  source = "FocusPointID.OUTPUT"        target = "ModelID.INPUT" />
+        <connection  source = "ModelIDTab.OUTPUT"        target = "ModelID.INPUT" /> 
 
 
 
@@ -328,7 +328,7 @@
         command = "mpg123"
 	/>
         <!-- Connected to a button -->
-		<connection sourcemodule = "SoundTrigger" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
+		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
 
     <module class = "Constant" name = "SoundTrigger" data = "0" />
 
@@ -362,21 +362,21 @@
     <module class = "Constant" name = "MOUTH_BOTTOM_GREEN" data = "0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "MOUTH_BOTTOM_BLUE" data = "0 0 0 0 0 0 0 0" />
 
-        <connection sourcemodule = "LEFT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_RED" />
-        <connection sourcemodule = "LEFT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_GREEN" />
-        <connection sourcemodule = "LEFT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "LEFT_EYE_BLUE" />
+        <connection  source = "LEFT_EYE_RED.OUTPUT"  target = "FadeCandy.LEFT_EYE_RED" />
+        <connection  source = "LEFT_EYE_GREEN.OUTPUT"  target = "FadeCandy.LEFT_EYE_GREEN" />
+        <connection  source = "LEFT_EYE_BLUE.OUTPUT"  target = "FadeCandy.LEFT_EYE_BLUE" />
 
-        <connection sourcemodule = "RIGHT_EYE_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_RED" />
-        <connection sourcemodule = "RIGHT_EYE_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_GREEN" />
-        <connection sourcemodule = "RIGHT_EYE_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "RIGHT_EYE_BLUE" />
+        <connection  source = "RIGHT_EYE_RED.OUTPUT"  target = "FadeCandy.RIGHT_EYE_RED" />
+        <connection  source = "RIGHT_EYE_GREEN.OUTPUT"  target = "FadeCandy.RIGHT_EYE_GREEN" />
+        <connection  source = "RIGHT_EYE_BLUE.OUTPUT"  target = "FadeCandy.RIGHT_EYE_BLUE" />
 
-        <connection sourcemodule = "MOUTH_TOP_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_RED" />
-        <connection sourcemodule = "MOUTH_TOP_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_GREEN" />
-        <connection sourcemodule = "MOUTH_TOP_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_TOP_BLUE" />
+        <connection  source = "MOUTH_TOP_RED.OUTPUT"  target = "FadeCandy.MOUTH_TOP_RED" />
+        <connection  source = "MOUTH_TOP_GREEN.OUTPUT"  target = "FadeCandy.MOUTH_TOP_GREEN" />
+        <connection  source = "MOUTH_TOP_BLUE.OUTPUT"  target = "FadeCandy.MOUTH_TOP_BLUE" />
 
-        <connection sourcemodule = "MOUTH_BOTTOM_RED" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_RED" />
-        <connection sourcemodule = "MOUTH_BOTTOM_GREEN" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_GREEN" />
-        <connection sourcemodule = "MOUTH_BOTTOM_BLUE" source = "OUTPUT" targetmodule = "FadeCandy" target = "MOUTH_BOTTOM_BLUE" />
+        <connection  source = "MOUTH_BOTTOM_RED.OUTPUT"  target = "FadeCandy.MOUTH_BOTTOM_RED" />
+        <connection  source = "MOUTH_BOTTOM_GREEN.OUTPUT"  target = "FadeCandy.MOUTH_BOTTOM_GREEN" />
+        <connection  source = "MOUTH_BOTTOM_BLUE.OUTPUT"  target = "FadeCandy.MOUTH_BOTTOM_BLUE" />
         
     <!-- LED END -->
 

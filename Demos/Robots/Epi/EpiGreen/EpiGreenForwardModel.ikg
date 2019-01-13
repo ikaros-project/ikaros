@@ -34,15 +34,15 @@
 	<!-- MODEL -->
     <!-- Model IDs -->
 	<module class = "DataConverter" name = "JOIN_MODEL_ID" output_size_x = "9" output_size_y = "1"/>
-        <connection sourcemodule = "Head"           source = "MODEL_ID"   targetmodule = "JOIN_MODEL_ID" target = "INPUT"  />
-        <connection sourcemodule = "Body"           source = "MODEL_ID"   targetmodule = "JOIN_MODEL_ID" target = "INPUT"  />
-        <connection sourcemodule = "Epi_pos_ID"     source = "OUTPUT"     targetmodule = "JOIN_MODEL_ID" target = "INPUT"  />
+        <connection  source = "Head.MODEL_ID"    target = "JOIN_MODEL_ID.INPUT"  />
+        <connection  source = "Body.MODEL_ID"    target = "JOIN_MODEL_ID.INPUT"  />
+        <connection  source = "Epi_pos_ID.OUTPUT"      target = "JOIN_MODEL_ID.INPUT"  />
 
     <!-- output not working in the same way as connects -->
 	<module class = "DataConverter" name = "JOIN_ARRAYS" output_size_x = "16" output_size_y = "9"/>
-        <connection sourcemodule = "BodyHead"       source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x6 -->
-        <connection sourcemodule = "PosBody"        source = "MATRIX"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x2 --> <!-- 1: Same as Epi-pos but x up -->
-        <connection sourcemodule = "Epi_pos"        source = "OUTPUT"   targetmodule = "JOIN_ARRAYS"    target = "INPUT" /> <!-- 4x4x1 -->
+        <connection  source = "BodyHead.MATRIX"    target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x6 -->
+        <connection  source = "PosBody.MATRIX"    target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x2 --> <!-- 1: Same as Epi-pos but x up -->
+        <connection  source = "Epi_pos.OUTPUT"    target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x1 -->
     
 
 
@@ -81,29 +81,29 @@
 
    <!-- Position -> Body  --> 
     <module class="Transform"   name="PosBody" />
-        <connection sourcemodule = "Epi_pos"        source = "OUTPUT"       targetmodule = "PosBody" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PositionID"     source = "OUTPUT"       targetmodule = "PosBody" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PositionFrame"  source = "OUTPUT"       targetmodule = "PosBody" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Body"           source = "OUTPUT"       targetmodule = "PosBody" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "BodyID"         source = "OUTPUT"       targetmodule = "PosBody" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "BodyFrame"      source = "OUTPUT"       targetmodule = "PosBody" target = "FRAME_ID_2"  delay = "0"/>
+        <connection  source = "Epi_pos.OUTPUT"        target = "PosBody.MATRIX_1"    delay = "0"/>
+        <connection  source = "PositionID.OUTPUT"        target = "PosBody.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "PositionFrame.OUTPUT"        target = "PosBody.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "Body.OUTPUT"        target = "PosBody.MATRIX_2"    delay = "0"/>
+        <connection  source = "BodyID.OUTPUT"        target = "PosBody.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "BodyFrame.OUTPUT"        target = "PosBody.FRAME_ID_2"  delay = "0"/>
     <!-- Body -> Head --> 
     <module class="Transform"   name="BodyHead" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "BodyHead" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "BodyHead" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "BodyHead" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Head"           source = "OUTPUT"       targetmodule = "BodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "BodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "BodyHead" target = "FRAME_ID_2"  delay = "0"/>
+        <connection  source = "PosBody.MATRIX"        target = "BodyHead.MATRIX_1"    delay = "0"/>
+        <connection  source = "PosBody.OBJECT_ID"     target = "BodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "PosBody.FRAME_ID"      target = "BodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "Head.OUTPUT"        target = "BodyHead.MATRIX_2"    delay = "0"/>
+        <connection  source = "HeadID.OUTPUT"        target = "BodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "HeadFrame.OUTPUT"        target = "BodyHead.FRAME_ID_2"  delay = "0"/>
 
 	<!-- SENSORS -->
     <!-- Body -> Head --> 
     <module class="Transform"   name="SensorBodyHead" />
-        <connection sourcemodule = "PosBody"        source = "MATRIX"       targetmodule = "SensorBodyHead" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "OBJECT_ID"    targetmodule = "SensorBodyHead" target = "OBJECT_ID_1" delay = "0"/>
-        <connection sourcemodule = "PosBody"        source = "FRAME_ID"     targetmodule = "SensorBodyHead" target = "FRAME_ID_1"  delay = "0"/>
-        <connection sourcemodule = "Head"           source = "SENSORS"      targetmodule = "SensorBodyHead" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "HeadID"         source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "OBJECT_ID_2" delay = "0"/>
-        <connection sourcemodule = "HeadFrame"      source = "OUTPUT"       targetmodule = "SensorBodyHead" target = "FRAME_ID_2"  delay = "0"/>
+        <connection  source = "PosBody.MATRIX"        target = "SensorBodyHead.MATRIX_1"    delay = "0"/>
+        <connection  source = "PosBody.OBJECT_ID"     target = "SensorBodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "PosBody.FRAME_ID"      target = "SensorBodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "Head.SENSORS"       target = "SensorBodyHead.MATRIX_2"    delay = "0"/>
+        <connection  source = "HeadID.OUTPUT"        target = "SensorBodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "HeadFrame.OUTPUT"        target = "SensorBodyHead.FRAME_ID_2"  delay = "0"/>
 
 </group>

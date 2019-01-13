@@ -33,10 +33,10 @@
         speed = "0.2"
     />
     
-    <connection sourcemodule="S0" source="OUTPUT" targetmodule="Eyes" target="GAZE" />
-    <connection sourcemodule="S1" source="OUTPUT" targetmodule="Eyes" target="GAZE" />
-    <connection sourcemodule="S2" source="OUTPUT" targetmodule="Eyes" target="PUPIL_DILATOR" />
-    <connection sourcemodule="S2" source="OUTPUT" targetmodule="Eyes" target="PUPIL_SPHINCTER" />
+    <connection  source = "S0.OUTPUT"  target = "Eyes.GAZE" />
+    <connection  source = "S1.OUTPUT"  target = "Eyes.GAZE" />
+    <connection  source = "S2.OUTPUT"  target = "Eyes.PUPIL_DILATOR" />
+    <connection  source = "S2.OUTPUT"  target = "Eyes.PUPIL_SPHINCTER" />
     
 </group>
 

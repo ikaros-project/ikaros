@@ -30,12 +30,12 @@
             gain="0.5 0.5"
         />
 
-		<connection sourcemodule = "R" source = "OUTPUT" targetmodule = "ATTN" target = "REINFORCEMENT" delay="0" />
+		<connection  source = "R.OUTPUT"  target = "ATTN.REINFORCEMENT" delay="0" />
 
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "SobelV" target = "INPUT" delay="0" />
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "SobelH" target = "INPUT" delay="0" />
-		<connection sourcemodule = "SobelV" source = "OUTPUT" targetmodule = "ATTN" target = "INPUT0" delay="0" />
-		<connection sourcemodule = "SobelH" source = "OUTPUT" targetmodule = "ATTN" target = "INPUT1" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "SobelV.INPUT" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "SobelH.INPUT" delay="0" />
+		<connection  source = "SobelV.OUTPUT"  target = "ATTN.INPUT0" delay="0" />
+		<connection  source = "SobelH.OUTPUT"  target = "ATTN.INPUT1" delay="0" />
 
 		<view name="Salience Map">
 			<object class= "Image" module="IN" type="gray" source="INTENSITY" x="0" y="0"

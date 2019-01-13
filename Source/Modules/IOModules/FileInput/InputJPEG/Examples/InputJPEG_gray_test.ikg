@@ -12,7 +12,7 @@
     <module class = "InputJPEG" name = "IN" filename = "../../../../../../Examples/Media/grayrobot.jpg" iterations = "1000" />
     <module  class = "OutputRawImage" name = "OUT" scale = "1.0" suppress = "1" offset = "0" filename = "copy.raw" />
 
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "OUT" target = "INPUT" />
+    <connection  source = "IN.INTENSITY"  target = "OUT.INPUT" />
 
 	<view name = "View">
 		<image

@@ -54,7 +54,7 @@
         filename = "data.txt"
     />
    
-    <connection sourcemodule="InputFile" source="OUTPUT" targetmodule="SSC32" target="INPUT" />
+    <connection  source = "InputFile.OUTPUT"  target = "SSC32.INPUT" />
 
 		<view name="Color Space">
 			<object

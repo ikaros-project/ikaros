@@ -56,18 +56,18 @@
 			name = "S"
 		/>
 
-		<connection sourcemodule="R1" source="OUTPUT" targetmodule="H" target="INPUT" />
+		<connection  source = "R1.OUTPUT"  target = "H.INPUT" />
 
-		<connection sourcemodule="R1" source="OUTPUT" targetmodule="M" target="INPUT1" />
-		<connection sourcemodule="R2" source="OUTPUT" targetmodule="M" target="INPUT2" />
-		<connection sourcemodule="M" source="OUTPUT" targetmodule="H2" target="INPUT" />
+		<connection  source = "R1.OUTPUT"  target = "M.INPUT1" />
+		<connection  source = "R2.OUTPUT"  target = "M.INPUT2" />
+		<connection  source = "M.OUTPUT"  target = "H2.INPUT" />
 
-		<connection sourcemodule="R1" source="OUTPUT" targetmodule="A" target="INPUT1" />
-		<connection sourcemodule="R2" source="OUTPUT" targetmodule="A" target="INPUT2" />
-		<connection sourcemodule="A" source="OUTPUT" targetmodule="H3" target="INPUT" />
+		<connection  source = "R1.OUTPUT"  target = "A.INPUT1" />
+		<connection  source = "R2.OUTPUT"  target = "A.INPUT2" />
+		<connection  source = "A.OUTPUT"  target = "H3.INPUT" />
 
-		<connection sourcemodule="R32" source="OUTPUT" targetmodule="S" target="INPUT" delay="0" />
-		<connection sourcemodule="S" source="OUTPUT" targetmodule="H32" target="INPUT" delay="0" />
+		<connection  source = "R32.OUTPUT"  target = "S.INPUT" delay="0" />
+		<connection  source = "S.OUTPUT"  target = "H32.INPUT" delay="0" />
 
 		<view name="View">
 			<object class="BarGraph" title="R1" module="H" source="OUTPUT"  x="0" y="0" />

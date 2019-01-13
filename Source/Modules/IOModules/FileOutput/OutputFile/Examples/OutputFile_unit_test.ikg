@@ -31,7 +31,7 @@
             <column name = "VALUE" />
         </module>
 
-        <connection sourcemodule = "Data" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
+        <connection  source = "Data.OUTPUT"  target = "OUT.VALUE" />
     <module class = "Logger" name = "Logger" />
 </group>
 

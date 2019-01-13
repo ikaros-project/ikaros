@@ -17,7 +17,7 @@
             tickduty = "1"
 		/>
 
-        <connection sourcemodule="Next" source="OUTPUT" targetmodule="Trigger" target="NEXT" />
+        <connection  source = "Next.OUTPUT"  target = "Trigger.NEXT" />
         
 		<view name="View">
 			<object class="BarGraph" module="Trigger" source="OUTPUT" min="-2" max="2" x="0" y="0" />

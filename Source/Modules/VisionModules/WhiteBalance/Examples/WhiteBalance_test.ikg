@@ -25,9 +25,9 @@
 			name = "VK"
 		/>
 
-		<connection sourcemodule = "IN" source = "RED" targetmodule = "VK" target = "INPUT0" />
-		<connection sourcemodule = "IN" source = "GREEN" targetmodule = "VK" target = "INPUT1" />
-		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "VK" target = "INPUT2" />
+		<connection  source = "IN.RED"  target = "VK.INPUT0" />
+		<connection  source = "IN.GREEN"  target = "VK.INPUT1" />
+		<connection  source = "IN.BLUE"  target = "VK.INPUT2" />
 
 		<view name = "View 1">
 			<object class="Image" module="IN" source="RED" x="0" y="0" min="0" max="255" />

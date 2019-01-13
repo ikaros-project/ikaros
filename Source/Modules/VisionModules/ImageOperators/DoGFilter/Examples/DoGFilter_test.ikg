@@ -10,7 +10,7 @@
             kernel_size = "51"
         />
 
-		<connection sourcemodule = "Image" source = "INTENSITY" targetmodule = "DoG" target = "INPUT" delay="0" />
+		<connection  source = "Image.INTENSITY"  target = "DoG.INPUT" delay="0" />
 
 		<view name = "View">
 			<object class="Image" type="gray" module="Image" source="INTENSITY" x="0" y="0" />

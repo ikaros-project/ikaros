@@ -34,9 +34,9 @@
     />
 
 
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian10" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian5" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian2" target = "INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gaussian10.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gaussian5.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gaussian2.INPUT" delay="0" />
 
     <view name = "Demo view">
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />

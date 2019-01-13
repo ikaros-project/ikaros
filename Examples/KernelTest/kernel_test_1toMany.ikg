@@ -22,6 +22,6 @@
         />
     </group>
 
-    <connection sourcemodule="C"  source="OUTPUT" targetmodule="Inner" target="IN" />
+    <connection  source = "C.OUTPUT"  target = "Inner.IN" />
  </group>
 

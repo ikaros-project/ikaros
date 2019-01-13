@@ -29,8 +29,8 @@
             <column name="B" />
     </module>
 
-    <connection sourcemodule = "IN" source = "Y" targetmodule = "OUT" target = "A" />
-    <connection sourcemodule = "IN" source = "Y" targetmodule = "OUT" target = "B" />
+    <connection  source = "IN.Y"  target = "OUT.A" />
+    <connection  source = "IN.Y"  target = "OUT.B" />
     
     <view>
         <object class="Table" module="IN" source="Y" x="0" y="0" max = "10" decimals="0" font_size="24" />

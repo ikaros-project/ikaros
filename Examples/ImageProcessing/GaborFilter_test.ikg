@@ -51,10 +51,10 @@
         sigma = "3"
     />
 
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor0" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor1" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor2" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gabor3" target = "INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gabor0.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gabor1.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gabor2.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gabor3.INPUT" delay="0" />
 
     <view name = "Demo view">
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2"  />

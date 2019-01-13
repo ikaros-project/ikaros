@@ -13,7 +13,7 @@
 			beta  = "0.1"
 		/>
 		
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Integrator" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Integrator.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Integrator" source="OUTPUT" x="0" y="0" max = "5" />

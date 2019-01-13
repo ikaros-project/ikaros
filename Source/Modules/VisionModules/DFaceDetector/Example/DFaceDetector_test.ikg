@@ -24,7 +24,7 @@
             min_size = "0.0"
         />
         
-        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" />
+        <connection  source = "CAMERA.INTENSITY"  target = "FaceDetector.INPUT" />
         
 		<view name="Input" >
 			<image format="rgb" module = "Tracker" command="click" source = "CAMERA.RED+GREEN+BLUE" x="0" y="0"  width = "800" height = "600"  />

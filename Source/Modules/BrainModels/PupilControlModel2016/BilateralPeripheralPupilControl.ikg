@@ -38,8 +38,8 @@
 
     <!-- Connections to contralateral EWpg -->
 
-    <connection sourcemodule="Left" source="PTA_OUTPUT" targetmodule="Right" target="EW_EXCITATION" />
-    <connection sourcemodule="Right" source="PTA_OUTPUT" targetmodule="Left" target="EW_EXCITATION" />
+    <connection  source = "Left.PTA_OUTPUT"  target = "Right.EW_EXCITATION" />
+    <connection  source = "Right.PTA_OUTPUT"  target = "Left.EW_EXCITATION" />
 
     <view name="Parasympathetic Circuit">
         <object class="Plot" title="Left CG (Constriction)" module="*" source="CG_OUTPUT_Left" x="0" y="0" w="4" max="1" />

@@ -34,9 +34,9 @@
         name = "Arm"
     />
 
-    <connection sourcemodule = "J3" source = "OUTPUT" targetmodule = "Arm" target = "DESIRED_ANGLES" />
-    <connection sourcemodule = "J2" source = "OUTPUT" targetmodule = "Arm" target = "DESIRED_ANGLES" />
-    <connection sourcemodule = "J1" source = "OUTPUT" targetmodule = "Arm" target = "DESIRED_ANGLES" />
+    <connection  source = "J3.OUTPUT"  target = "Arm.DESIRED_ANGLES" />
+    <connection  source = "J2.OUTPUT"  target = "Arm.DESIRED_ANGLES" />
+    <connection  source = "J1.OUTPUT"  target = "Arm.DESIRED_ANGLES" />
 		
 
 	<view name="Arm View" object_size="50">

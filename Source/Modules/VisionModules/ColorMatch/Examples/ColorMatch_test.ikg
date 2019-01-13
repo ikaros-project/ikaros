@@ -20,9 +20,9 @@
 			threshold = "0"
 		/>
 
-		<connection sourcemodule = "IN" source = "RED" targetmodule = "CM" target = "INPUT0" />
-		<connection sourcemodule = "IN" source = "GREEN" targetmodule = "CM" target = "INPUT1" />
-		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "CM" target = "INPUT2" />
+		<connection  source = "IN.RED"  target = "CM.INPUT0" />
+		<connection  source = "IN.GREEN"  target = "CM.INPUT1" />
+		<connection  source = "IN.BLUE"  target = "CM.INPUT2" />
 
 		<view name = "View 1">
 			<object class="Image" module="IN" type = "rgb" source="RED+GREEN+BLUE" x="1" y="0" />

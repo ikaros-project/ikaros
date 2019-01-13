@@ -39,9 +39,9 @@
     
     <!-- Internal Hypothamic Connections -->
     
-    <connection sourcemodule="SCN" source="OUTPUT" targetmodule="DMH" target="EXCITATION" />
-    <connection sourcemodule="DMH" source="OUTPUT" targetmodule="LH" target="EXCITATION" />
-    <connection sourcemodule="SCN" source="OUTPUT" targetmodule="PVN" target="INHIBITION" />
+    <connection  source = "SCN.OUTPUT"  target = "DMH.EXCITATION" />
+    <connection  source = "DMH.OUTPUT"  target = "LH.EXCITATION" />
+    <connection  source = "SCN.OUTPUT"  target = "PVN.INHIBITION" />
 
 </group>
 

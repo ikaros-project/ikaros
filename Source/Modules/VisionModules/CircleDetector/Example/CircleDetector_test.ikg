@@ -35,14 +35,14 @@
         max_radius = "40"
     />
 
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Gaussian" target = "INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Gaussian.INPUT" delay="0" />
     
-    <connection sourcemodule = "Gaussian" source = "OUTPUT" targetmodule = "Edges" target = "INPUT" delay="0" />
-    <connection sourcemodule = "Gaussian" source = "dx" targetmodule = "Edges" target = "DX" delay="0" />
-    <connection sourcemodule = "Gaussian" source = "dy" targetmodule = "Edges" target = "DY" delay="0" />
+    <connection  source = "Gaussian.OUTPUT"  target = "Edges.INPUT" delay="0" />
+    <connection  source = "Gaussian.dx"  target = "Edges.DX" delay="0" />
+    <connection  source = "Gaussian.dy"  target = "Edges.DY" delay="0" />
 
-    <connection sourcemodule = "Edges" source = "EDGE_LIST" targetmodule = "Circle" target = "EDGE_LIST" delay="0" />
-    <connection sourcemodule = "Edges" source = "EDGE_LIST_SIZE" targetmodule = "Circle" target = "EDGE_LIST_SIZE" delay="0" />
+    <connection  source = "Edges.EDGE_LIST"  target = "Circle.EDGE_LIST" delay="0" />
+    <connection  source = "Edges.EDGE_LIST_SIZE"  target = "Circle.EDGE_LIST_SIZE" delay="0" />
 
     <view name = "View">
         <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />

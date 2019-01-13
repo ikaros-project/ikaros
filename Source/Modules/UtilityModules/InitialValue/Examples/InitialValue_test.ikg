@@ -23,9 +23,9 @@
 			class = "Multiply"
 			name = "Multiply"
 		/>
-		<connection sourcemodule = "InitialValueInstance" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" delay="0"/>
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT2" delay="0"/>
-        <connection sourcemodule = "Multiply" source = "OUTPUT" targetmodule = "InitialValueInstance" target = "INPUT" delay="1"/>
+		<connection  source = "InitialValueInstance.OUTPUT"  target = "Multiply.INPUT1" delay="0"/>
+		<connection  source = "MyConstant.OUTPUT"  target = "Multiply.INPUT2" delay="0"/>
+        <connection  source = "Multiply.OUTPUT"  target = "InitialValueInstance.INPUT" delay="1"/>
         
 		<view name="View">
 			

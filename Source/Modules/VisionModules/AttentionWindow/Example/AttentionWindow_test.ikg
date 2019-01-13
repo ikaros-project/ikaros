@@ -34,16 +34,16 @@
             filename = "/Users/cba/Desktop/Test/%08d.jpg"
         />
         
-        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" delay = "0" />
+        <connection  source = "CAMERA.INTENSITY"  target = "FaceDetector.INPUT" delay = "0" />
         
-        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="AttentionWindow" target="INPUT" delay = "0" />
+        <connection  source = "CAMERA.INTENSITY"  target = "AttentionWindow.INPUT" delay = "0" />
 
-        <connection sourcemodule="FaceDetector" source="FACE_POSITION" targetmodule="AttentionWindow" target="BOTTOM_UP_POSITION" delay = "0" />
-        <connection sourcemodule="FaceDetector" source="FACE_BOUNDS" targetmodule="AttentionWindow" target="BOTTOM_UP_BOUNDS" delay = "0" />
-        <connection sourcemodule="FaceDetector" source="FACE_COUNT" targetmodule="AttentionWindow" target="BOTTOM_UP_COUNT" delay = "0" />
+        <connection  source = "FaceDetector.FACE_POSITION"  target = "AttentionWindow.BOTTOM_UP_POSITION" delay = "0" />
+        <connection  source = "FaceDetector.FACE_BOUNDS"  target = "AttentionWindow.BOTTOM_UP_BOUNDS" delay = "0" />
+        <connection  source = "FaceDetector.FACE_COUNT"  target = "AttentionWindow.BOTTOM_UP_COUNT" delay = "0" />
 
-        <connection sourcemodule="AttentionWindow" source="OUTPUT" targetmodule="OutputJPEG" target="INTENSITY" delay = "1" />
-        <connection sourcemodule="FaceDetector" source="FACE_COUNT" targetmodule="OutputJPEG" target="WRITE" delay = "1" />
+        <connection  source = "AttentionWindow.OUTPUT"  target = "OutputJPEG.INTENSITY" delay = "1" />
+        <connection  source = "FaceDetector.FACE_COUNT"  target = "OutputJPEG.WRITE" delay = "1" />
 
 		<view name="Input" >
 			<object

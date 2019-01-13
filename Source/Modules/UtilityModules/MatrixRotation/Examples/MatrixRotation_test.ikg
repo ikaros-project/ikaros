@@ -25,8 +25,8 @@
             debug = "no"
 		/>
 		
-        <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "MatrixRotationInstance" target = "ANGLE" />
-        <connection sourcemodule = "InputImg" source = "INTENSITY" targetmodule = "MatrixRotationInstance" target = "INPUT" />
+        <connection  source = "SinGen.OUTPUT"  target = "MatrixRotationInstance.ANGLE" />
+        <connection  source = "InputImg.INTENSITY"  target = "MatrixRotationInstance.INPUT" />
 		<view name="View">
 			<object class="Plot " 
 				module="SinGen"

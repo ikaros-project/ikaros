@@ -15,9 +15,9 @@
 	<module  class = "OutputRawImage" name = "GREENOUT" scale = "1.0" suppress = "1" offset = "0" filename = "G.raw" />
 	<module  class = "OutputRawImage" name = "BLUEOUT" scale = "1.0" suppress = "1" offset = "0" filename = "B.raw" />
 
-	<connection sourcemodule = "IN" source = "RED" targetmodule = "REDOUT" target = "INPUT" />
-	<connection sourcemodule = "IN" source = "GREEN" targetmodule = "GREENOUT" target = "INPUT" />
-	<connection sourcemodule = "IN" source = "BLUE" targetmodule = "BLUEOUT" target = "INPUT" />
+	<connection  source = "IN.RED"  target = "REDOUT.INPUT" />
+	<connection  source = "IN.GREEN"  target = "GREENOUT.INPUT" />
+	<connection  source = "IN.BLUE"  target = "BLUEOUT.INPUT" />
 
 	<view name = "View">
 	<image

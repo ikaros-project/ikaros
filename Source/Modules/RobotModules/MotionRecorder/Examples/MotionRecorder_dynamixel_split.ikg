@@ -24,8 +24,8 @@
         name = "ModeSelector"
     />
 
-    <connection sourcemodule = "Modes" source = "OUTPUT" targetmodule = "ModeSelector" target = "INPUT" />
-    <connection sourcemodule = "ModeSelector" source = "OUTPUT" targetmodule = "MotionRecorder" target = "MODE" />
+    <connection  source = "Modes.OUTPUT"  target = "ModeSelector.INPUT" />
+    <connection  source = "ModeSelector.OUTPUT"  target = "MotionRecorder.MODE" />
 
     <module
         class = "MotionRecorder"
@@ -71,21 +71,21 @@
     />
 
 
-    <_connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "INPUT" />
-    <_connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Joints" target = "INPUT" />
-    <_connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Joints" target = "INPUT" />
+    <_connection  source = "MotionRecorder.OUTPUT"  target = "Joints.INPUT" />
+    <_connection  source = "MotionRecorder.TORQUE"  target = "Joints.INPUT" />
+    <_connection  source = "MotionRecorder.ENABLE"  target = "Joints.INPUT" />
 
-    <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Split1_O" target = "INPUT" />
-    <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Split1_T" target = "INPUT" />
-    <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Split1_E" target = "INPUT" />
+    <connection  source = "MotionRecorder.OUTPUT"  target = "Split1_O.INPUT" />
+    <connection  source = "MotionRecorder.TORQUE"  target = "Split1_T.INPUT" />
+    <connection  source = "MotionRecorder.ENABLE"  target = "Split1_E.INPUT" />
 
-    <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Split2_O" target = "INPUT" />
-    <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Split2_T" target = "INPUT" />
-    <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Split2_E" target = "INPUT" />
+    <connection  source = "MotionRecorder.OUTPUT"  target = "Split2_O.INPUT" />
+    <connection  source = "MotionRecorder.TORQUE"  target = "Split2_T.INPUT" />
+    <connection  source = "MotionRecorder.ENABLE"  target = "Split2_E.INPUT" />
     
-    <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Split3_O" target = "INPUT" />
-    <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Split3_T" target = "INPUT" />
-    <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Split3_E" target = "INPUT" />
+    <connection  source = "MotionRecorder.OUTPUT"  target = "Split3_O.INPUT" />
+    <connection  source = "MotionRecorder.TORQUE"  target = "Split3_T.INPUT" />
+    <connection  source = "MotionRecorder.ENABLE"  target = "Split3_E.INPUT" />
     
     <module class = "TruncateArray" name = "Split1_O" array_length = "5" selection = "1 2 3 4 5 6" loop = "false"/>
     <module class = "TruncateArray" name = "Split1_T" array_length = "5" selection = "1 2 3 4 5 6" loop = "false"/>
@@ -101,31 +101,31 @@
 
 
     
-    <connection sourcemodule = "Split1_O" source = "OUTPUT" targetmodule = "Joints1" target = "GOAL_POSITION" />
-    <connection sourcemodule = "Split1_T" source = "OUTPUT" targetmodule = "Joints1" target = "TORQUE_LIMIT" />
-    <connection sourcemodule = "Split1_E" source = "OUTPUT" targetmodule = "Joints1" target = "TORQUE_ENABLE" />
+    <connection  source = "Split1_O.OUTPUT"  target = "Joints1.GOAL_POSITION" />
+    <connection  source = "Split1_T.OUTPUT"  target = "Joints1.TORQUE_LIMIT" />
+    <connection  source = "Split1_E.OUTPUT"  target = "Joints1.TORQUE_ENABLE" />
 
-    <connection sourcemodule = "Split2_O" source = "OUTPUT" targetmodule = "Joints2" target = "GOAL_POSITION" />
-    <connection sourcemodule = "Split2_T" source = "OUTPUT" targetmodule = "Joints2" target = "TORQUE_LIMIT" />
-    <connection sourcemodule = "Split2_E" source = "OUTPUT" targetmodule = "Joints2" target = "TORQUE_ENABLE" />
+    <connection  source = "Split2_O.OUTPUT"  target = "Joints2.GOAL_POSITION" />
+    <connection  source = "Split2_T.OUTPUT"  target = "Joints2.TORQUE_LIMIT" />
+    <connection  source = "Split2_E.OUTPUT"  target = "Joints2.TORQUE_ENABLE" />
     
-    <connection sourcemodule = "Split3_O" source = "OUTPUT" targetmodule = "Joints3" target = "GOAL_POSITION" />
-    <connection sourcemodule = "Split3_T" source = "OUTPUT" targetmodule = "Joints3" target = "TORQUE_LIMIT" />
-    <connection sourcemodule = "Split3_E" source = "OUTPUT" targetmodule = "Joints3" target = "TORQUE_ENABLE" />
+    <connection  source = "Split3_O.OUTPUT"  target = "Joints3.GOAL_POSITION" />
+    <connection  source = "Split3_T.OUTPUT"  target = "Joints3.TORQUE_LIMIT" />
+    <connection  source = "Split3_E.OUTPUT"  target = "Joints3.TORQUE_ENABLE" />
     
     <_module class = "Constant" name = "TorqueLimit5" outputsize = "5" data = "0 0 0 0 0" />
     <_module class = "Constant" name = "TorqueLimit4" outputsize = "4" data = "0 0 0 0" />
-    <_connection sourcemodule = "TorqueLimit5"  source = "OUTPUT" targetmodule = "Joints1"  target = "TORQUE_LIMIT" />
-    <_connection sourcemodule = "TorqueLimit4"  source = "OUTPUT" targetmodule = "Joints2"  target = "TORQUE_LIMIT" />
-    <_connection sourcemodule = "TorqueLimit5"  source = "OUTPUT" targetmodule = "Joints3"  target = "TORQUE_LIMIT" />
+    <_connection  source = "TorqueLimit5.OUTPUT"  target = "Joints1.TORQUE_LIMIT" />
+    <_connection  source = "TorqueLimit4.OUTPUT"  target = "Joints2.TORQUE_LIMIT" />
+    <_connection  source = "TorqueLimit5.OUTPUT"  target = "Joints3.TORQUE_LIMIT" />
 
 
     
-    <_connection sourcemodule = "Joints" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <_connection  source = "Joints.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
 
-    <connection sourcemodule = "Joints3" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
-    <connection sourcemodule = "Joints2" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
-    <connection sourcemodule = "Joints1" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+    <connection  source = "Joints3.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
+    <connection  source = "Joints2.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
+    <connection  source = "Joints1.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
 
 
 

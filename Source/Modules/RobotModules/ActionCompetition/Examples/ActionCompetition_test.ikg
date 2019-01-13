@@ -26,8 +26,8 @@
                 timeout = "100"
 		/>
 		
-        <connection sourcemodule="Trig" source="OUTPUT" targetmodule="Actions" target="INPUT" />
-        <connection sourcemodule="Complete" source="OUTPUT" targetmodule="Actions" target="COMPLETE" />
+        <connection  source = "Trig.OUTPUT"  target = "Actions.INPUT" />
+        <connection  source = "Complete.OUTPUT"  target = "Actions.COMPLETE" />
 
 		<view name="View">
 			<plot module="Actions" source="OUTPUT" color="red,green,blue,yellow,pink,brown,maroon,black,purple" min="0" max="1" x="10" y="10" width="400" height="400"/>

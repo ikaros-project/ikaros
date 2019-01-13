@@ -59,27 +59,27 @@
     </module>
 
   <!-- Scale Kinect data -->
-  <connection sourcemodule = "InputRaw" source = "OUTPUT" targetmodule = "Scale" target = "INPUT" />
+  <connection  source = "InputRaw.OUTPUT"  target = "Scale.INPUT" />
 
   <!-- Display DepthSegmentation -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthHistogram" target = "INPUT" />
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthSegmentation" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "DepthSegmentation" target = "OBJECT" />
+  <connection  source = "Scale.OUTPUT"  target = "DepthHistogram.INPUT" />
+  <connection  source = "Scale.OUTPUT"  target = "DepthSegmentation.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "DepthSegmentation.OBJECT" />
 
   <!-- MaximumToRobot1   -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "MaximumToRobot1" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "MaximumToRobot1" target = "OBJECT" />
-  <connection sourcemodule="MaximumToRobot1" source = "HEAD" targetmodule = "TrainHead" target="HEAD1" />
+  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot1.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot1.OBJECT" />
+  <connection  source = "MaximumToRobot1.HEAD"  target = "TrainHead.HEAD1" />
 
   <!-- MaximumToRobot2 -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "MaximumToRobot2" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "MaximumToRobot2" target = "OBJECT" />
-  <connection sourcemodule = "MaximumToRobot2"  source = "HEAD" targetmodule = "TrainHead" target="HEAD2" />
+  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot2.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot2.OBJECT" />
+  <connection  source = "MaximumToRobot2.HEAD"  target = "TrainHead.HEAD2" />
 
-  <connection sourcemodule = "TrainHead" source = "OUTPUT" targetmodule = "TrainData" target = "Movement" />
-  <connection sourcemodule = "TrainHead" source = "MEAN" targetmodule = "TrainData" target = "Mean" />
-  <connection sourcemodule = "TrainHead" source = "VARIANCE" targetmodule = "TrainData" target = "Variance" />
-  <connection sourcemodule = "TrainHead" source = "WRITE" targetmodule = "TrainData" target = "WRITE" />
+  <connection  source = "TrainHead.OUTPUT"  target = "TrainData.Movement" />
+  <connection  source = "TrainHead.MEAN"  target = "TrainData.Mean" />
+  <connection  source = "TrainHead.VARIANCE"  target = "TrainData.Variance" />
+  <connection  source = "TrainHead.WRITE"  target = "TrainData.WRITE" />
 
   <view name="Depth">
      <image type="fire" name="Camera" module = "InputRaw" source = "OUTPUT" width="720" height="720" x="0" y="0" />

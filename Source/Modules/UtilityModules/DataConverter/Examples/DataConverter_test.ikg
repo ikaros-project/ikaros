@@ -26,7 +26,7 @@
             output_size_x = "4"
             output_size_y = "4"
 		/>
-            <connection sourcemodule = "Array16" source = "OUTPUT" targetmodule = "Array16_to_4x4" target = "INPUT" />
+            <connection  source = "Array16.OUTPUT"  target = "Array16_to_4x4.INPUT" />
 
 		<module
 			class = "DataConverter"
@@ -34,7 +34,7 @@
             output_size_x = "16"
             output_size_y = "2"
 		/>
-            <connection sourcemodule = "Array32" source = "OUTPUT" targetmodule = "Array32_to_16x2" target = "INPUT" />
+            <connection  source = "Array32.OUTPUT"  target = "Array32_to_16x2.INPUT" />
 
 		<module
 			class = "DataConverter"
@@ -42,7 +42,7 @@
             output_size_x = "16"
             output_size_y = "1"
 		/>
-            <connection sourcemodule = "Matrix4x4" source = "OUTPUT" targetmodule = "Matrix4x4_to_16" target = "INPUT" />
+            <connection  source = "Matrix4x4.OUTPUT"  target = "Matrix4x4_to_16.INPUT" />
 
 
 		<view name="View">

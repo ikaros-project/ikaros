@@ -61,13 +61,13 @@
 	/>
 	
 	<!-- Order is important -->
-	<connection sourcemodule  = "GoalPosition3" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
-	<connection sourcemodule  = "GoalPosition2" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
-	<connection sourcemodule  = "GoalPosition1" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "GOAL_POSITION" />
+	<connection  source = "GoalPosition3.OUTPUT"  target = "Dynamixel.GOAL_POSITION" />
+	<connection  source = "GoalPosition2.OUTPUT"  target = "Dynamixel.GOAL_POSITION" />
+	<connection  source = "GoalPosition1.OUTPUT"  target = "Dynamixel.GOAL_POSITION" />
 
-	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
-	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
-	<connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel" target  = "MOVING_SPEED" />
+	<connection  source = "Speed.OUTPUT"  target = "Dynamixel.MOVING_SPEED" />
+	<connection  source = "Speed.OUTPUT"  target = "Dynamixel.MOVING_SPEED" />
+	<connection  source = "Speed.OUTPUT"  target = "Dynamixel.MOVING_SPEED" />
 	
 	
 	<!-- Kinect part -->	
@@ -78,7 +78,7 @@
 		name 	 = "KINECT"
 		mode     = "mm"
      />
-    <connection sourcemodule="KINECT" source="DEPTH" targetmodule="Scale" target="INPUT" />
+    <connection  source = "KINECT.DEPTH"  target = "Scale.INPUT" />
 
     <module
         class 			= "Scale"
@@ -96,7 +96,7 @@
 		period	 = "5"
     />
         
-    <connection sourcemodule  = "KINECT" source  = "INTENSITY" targetmodule  = "FaceDetector" target  = "INPUT" />
+    <connection  source = "KINECT.INTENSITY"  target = "FaceDetector.INPUT" />
 
 	<!-- Artoolkit -->
 	<!-- This module detects Artoolkit markers in a image -->
@@ -113,7 +113,7 @@
         threshold = "auto"
 	/>
 
-	<connection sourcemodule = "KINECT" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
+	<connection  source = "KINECT.INTENSITY"  target = "MarkerTracker.INPUT" delay="0" />
 
 	
         

@@ -324,7 +324,7 @@ VisionInput = "InputJPEG_not_workgin"
 		sounds  = "Sounds/ok2.mp3"
         command = "mpg123"
 	/>
-		<connection sourcemodule = "SoundTrigger" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
+		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
     <module class = "Constant" name = "SoundTrigger" data = "0" />
     <view name="Sound">
         <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    

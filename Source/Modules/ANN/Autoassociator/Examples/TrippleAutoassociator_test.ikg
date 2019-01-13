@@ -45,26 +45,26 @@
 
     <!-- Direct Input -->
 
-    <connection sourcemodule = "IN"  source = "WHAT" targetmodule = "WHAT"  target = "INPUT" />
-    <connection sourcemodule = "IN"  source = "WHERE" targetmodule = "WHERE"  target = "INPUT" />
+    <connection  source = "IN.WHAT"  target = "WHAT.INPUT" />
+    <connection  source = "IN.WHERE"  target = "WHERE.INPUT" />
 
-    <connection sourcemodule = "IN"  source = "RESET" targetmodule = "WHAT"  target = "RESET" />
-    <connection sourcemodule = "IN"  source = "RESET" targetmodule = "WHERE"  target = "RESET" />
+    <connection  source = "IN.RESET"  target = "WHAT.RESET" />
+    <connection  source = "IN.RESET"  target = "WHERE.RESET" />
 
     <!-- Training Input -->
 
-    <connection sourcemodule = "TRAIN"  source = "WHAT" targetmodule = "WHAT"  target = "T-INPUT" />
-    <connection sourcemodule = "TRAIN"  source = "WHERE" targetmodule = "WHERE"  target = "T-INPUT" />
+    <connection  source = "TRAIN.WHAT"  target = "WHAT.T-INPUT" />
+    <connection  source = "TRAIN.WHERE"  target = "WHERE.T-INPUT" />
 
 	<!-- Learning Cross Connections -->
 
-    <connection sourcemodule = "TRAIN"  source = "WHAT" targetmodule = "WHERE"  target = "AUX-T-INPUT" />
-    <connection sourcemodule = "TRAIN"  source = "WHERE" targetmodule = "WHAT"  target = "AUX-T-INPUT" />
+    <connection  source = "TRAIN.WHAT"  target = "WHERE.AUX-T-INPUT" />
+    <connection  source = "TRAIN.WHERE"  target = "WHAT.AUX-T-INPUT" />
 
     <!-- WHAT-WHERE Associations -->
 
-    <connection sourcemodule = "WHAT"  source = "OUTPUT" targetmodule = "WHERE"  target = "AUX-INPUT" />
-    <connection sourcemodule = "WHERE"  source = "OUTPUT" targetmodule = "WHAT"  target = "AUX-INPUT" />
+    <connection  source = "WHAT.OUTPUT"  target = "WHERE.AUX-INPUT" />
+    <connection  source = "WHERE.OUTPUT"  target = "WHAT.AUX-INPUT" />
 
 
     <view name="View 1">

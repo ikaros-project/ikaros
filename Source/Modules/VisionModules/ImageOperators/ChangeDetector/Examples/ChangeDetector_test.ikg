@@ -16,7 +16,7 @@
 			border = "0"
 		/>
 
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Change" target = "INPUT" />	
+		<connection  source = "IN.INTENSITY"  target = "Change.INPUT" />	
 
 		<view name = "View 1">
 			<object class="Image" name="Input" module="IN" source="INTENSITY" x="0" y="0" />

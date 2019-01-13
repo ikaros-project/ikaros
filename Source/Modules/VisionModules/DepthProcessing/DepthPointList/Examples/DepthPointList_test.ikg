@@ -19,12 +19,12 @@
         name    = "DepthPointList"
     />
 
-    <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
+    <connection  source = "Tilt.OUTPUT"  target = "Kinect.TILT" />
 
-    <connection sourcemodule="Kinect" source="RED" targetmodule="DepthPointList" target="RED" />
-    <connection sourcemodule="Kinect" source="GREEN" targetmodule="DepthPointList" target="GREEN" />
-    <connection sourcemodule="Kinect" source="BLUE" targetmodule="DepthPointList" target="BLUE" />
-    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="DepthPointList" target="DEPTH" />
+    <connection  source = "Kinect.RED"  target = "DepthPointList.RED" />
+    <connection  source = "Kinect.GREEN"  target = "DepthPointList.GREEN" />
+    <connection  source = "Kinect.BLUE"  target = "DepthPointList.BLUE" />
+    <connection  source = "Kinect.DEPTH"  target = "DepthPointList.DEPTH" />
     
     <view name="Depth">
         <object class="Image" type="spectrum" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />

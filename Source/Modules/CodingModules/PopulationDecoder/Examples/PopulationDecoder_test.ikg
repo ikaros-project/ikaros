@@ -48,14 +48,14 @@
         sqrt = "yes"
     />
 
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "0" />
-    <connection sourcemodule="Amplitude" source="OUTPUT" targetmodule="PopulationCoder" target="AMPLITUDE"  delay = "0" />
+    <connection  source = "Signal.OUTPUT"  target = "PopulationCoder.INPUT"  delay = "0" />
+    <connection  source = "Amplitude.OUTPUT"  target = "PopulationCoder.AMPLITUDE"  delay = "0" />
 
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="Diff" target="INPUT1"  delay = "0" />
-    <connection sourcemodule="PopulationDecoder" source="OUTPUT" targetmodule="Diff" target="INPUT2"  delay = "0" />
-    <connection sourcemodule="Diff" source="OUTPUT" targetmodule="Average" target="INPUT"  delay = "0" />
+    <connection  source = "Signal.OUTPUT"  target = "Diff.INPUT1"  delay = "0" />
+    <connection  source = "PopulationDecoder.OUTPUT"  target = "Diff.INPUT2"  delay = "0" />
+    <connection  source = "Diff.OUTPUT"  target = "Average.INPUT"  delay = "0" />
 
-    <connection sourcemodule="PopulationCoder" source="OUTPUT" targetmodule="PopulationDecoder" target="INPUT"  delay = "0" />
+    <connection  source = "PopulationCoder.OUTPUT"  target = "PopulationDecoder.INPUT"  delay = "0" />
 
     <view name="View">
         <object class="Grid" module="PopulationCoder" source="OUTPUT" x="0" y="0"/>

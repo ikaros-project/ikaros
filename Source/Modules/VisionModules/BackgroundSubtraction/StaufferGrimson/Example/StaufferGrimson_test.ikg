@@ -13,7 +13,7 @@
 		/>
 		
   
-        <connection sourcemodule="Image" source="INTENSITY" targetmodule="StaufferGrimson" target="INPUT" delay="0" />
+        <connection  source = "Image.INTENSITY"  target = "StaufferGrimson.INPUT" delay="0" />
         
 
 		<view name="Stauffer-Grimson">

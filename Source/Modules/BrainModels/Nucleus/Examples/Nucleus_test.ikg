@@ -30,9 +30,9 @@
         epsilon = "0.05"
 	/>
 	
-	<connection sourcemodule="L" source="OUTPUT" targetmodule="N1" target="EXCITATION" delay="10"/>
-	<connection sourcemodule="N1" source="OUTPUT" targetmodule="N2" target="EXCITATION" />
-	<connection sourcemodule="N2" source="OUTPUT" targetmodule="N3" target="EXCITATION" />
+	<connection  source = "L.OUTPUT"  target = "N1.EXCITATION" delay="10"/>
+	<connection  source = "N1.OUTPUT"  target = "N2.EXCITATION" />
+	<connection  source = "N2.OUTPUT"  target = "N3.EXCITATION" />
 
 	<view name="View">
         <_object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />

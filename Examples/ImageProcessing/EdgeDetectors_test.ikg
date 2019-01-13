@@ -23,13 +23,13 @@
     <module  class = "HysteresisThresholding" name = "HTPrewitt" T1 = "0.3" T2 = "0.6" />
     <module  class = "HysteresisThresholding" name = "HTRoberts" T1 = "0.1" T2 = "0.4" />
 
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Sobel" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Prewitt" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "Roberts" target = "INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Sobel.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Prewitt.INPUT" delay="0" />
+    <connection  source = "IN.INTENSITY"  target = "Roberts.INPUT" delay="0" />
 
-    <connection sourcemodule = "Sobel" source = "OUTPUT" targetmodule = "HTSobel" target = "INPUT" delay="0" />
-    <connection sourcemodule = "Prewitt" source = "OUTPUT" targetmodule = "HTPrewitt" target = "INPUT" delay="0" />
-    <connection sourcemodule = "Roberts" source = "OUTPUT" targetmodule = "HTRoberts" target = "INPUT" delay="0" />
+    <connection  source = "Sobel.OUTPUT"  target = "HTSobel.INPUT" delay="0" />
+    <connection  source = "Prewitt.OUTPUT"  target = "HTPrewitt.INPUT" delay="0" />
+    <connection  source = "Roberts.OUTPUT"  target = "HTRoberts.INPUT" delay="0" />
 
     <view name = "Demo view">
         <object class="Image" type="gray" module="IN" source="INTENSITY" x="0" y="0" />

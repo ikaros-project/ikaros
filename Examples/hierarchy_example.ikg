@@ -55,8 +55,8 @@
     
 	<!-- The connections from the group are automatically mapped to the outputs of R1 and R2 -->
 	
-	<connection sourcemodule="DoubleRandomizer" source="X" targetmodule="Add" target="INPUT1" />
-	<connection sourcemodule="DoubleRandomizer" source="Y" targetmodule="Add" target="INPUT2" />
+	<connection  source = "DoubleRandomizer.X"  target = "Add.INPUT1" />
+	<connection  source = "DoubleRandomizer.Y"  target = "Add.INPUT2" />
 
 	<!-- The views can only refer to the outputs at the outer level (not directly to R1.OUTPUT) -->
 

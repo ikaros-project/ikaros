@@ -20,8 +20,8 @@
         size = "20"
     />
 		
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="PopulationCoder" target="INPUT"  delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "PopulationCoder.INPUT"  delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "PopulationCoder.INPUT"  delay = "1" />
 
     <view name="View">
         <object class="Grid" module="PopulationCoder" source="OUTPUT" x="0" y="0"/>

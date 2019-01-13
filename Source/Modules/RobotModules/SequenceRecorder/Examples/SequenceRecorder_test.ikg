@@ -20,7 +20,7 @@
             _record_on_trig = "true"
 		/>
 
-        <connection sourcemodule = "Joints" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
+        <connection  source = "Joints.OUTPUT"  target = "MotionRecorder.INPUT" />
 
 		<view name="View">
         <grid

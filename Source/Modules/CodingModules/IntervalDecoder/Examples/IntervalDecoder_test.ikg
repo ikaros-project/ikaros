@@ -60,18 +60,18 @@
         name = "Difference2"
     />
 
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="IntervalCoder" target="INPUT" delay = "0" />
-    <connection sourcemodule="IntervalCoder" source="OUTPUT" targetmodule="IntervalDecoder1" target="INPUT" delay = "0" />
+    <connection  source = "Input.OUTPUT"  target = "IntervalCoder.INPUT" delay = "0" />
+    <connection  source = "IntervalCoder.OUTPUT"  target = "IntervalDecoder1.INPUT" delay = "0" />
 
-    <connection sourcemodule="IntervalCoder" source="OUTPUT" targetmodule="Sum" target="INPUT1" delay = "0" />
-    <connection sourcemodule="Noise" source="OUTPUT" targetmodule="Sum" target="INPUT2" delay = "0" />
-    <connection sourcemodule="Sum" source="OUTPUT" targetmodule="IntervalDecoder2" target="INPUT" delay = "0" />
+    <connection  source = "IntervalCoder.OUTPUT"  target = "Sum.INPUT1" delay = "0" />
+    <connection  source = "Noise.OUTPUT"  target = "Sum.INPUT2" delay = "0" />
+    <connection  source = "Sum.OUTPUT"  target = "IntervalDecoder2.INPUT" delay = "0" />
 
-    <connection sourcemodule="IntervalDecoder1" source="OUTPUT" targetmodule="Difference1" target="INPUT1" delay = "0" />
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Difference1" target="INPUT2" delay = "0" />
+    <connection  source = "IntervalDecoder1.OUTPUT"  target = "Difference1.INPUT1" delay = "0" />
+    <connection  source = "Input.OUTPUT"  target = "Difference1.INPUT2" delay = "0" />
 
-    <connection sourcemodule="IntervalDecoder2" source="OUTPUT" targetmodule="Difference2" target="INPUT1" delay = "0" />
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Difference2" target="INPUT2" delay = "0" />
+    <connection  source = "IntervalDecoder2.OUTPUT"  target = "Difference2.INPUT1" delay = "0" />
+    <connection  source = "Input.OUTPUT"  target = "Difference2.INPUT2" delay = "0" />
 
     <view name="View">
         <object class="BarGraph" module="Input" source="OUTPUT" x="0" y="0" max = "10"/>

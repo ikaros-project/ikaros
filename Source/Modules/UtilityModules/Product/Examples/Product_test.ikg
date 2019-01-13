@@ -9,7 +9,7 @@
 		name = "Product"
 	/>
 	
-	<connection sourcemodule="R" source="OUTPUT" targetmodule="Product" target="INPUT" />
+	<connection  source = "R.OUTPUT"  target = "Product.INPUT" />
 
 	<view name="View">
 		<object class="BarGraph" name="Random" module="R" source="OUTPUT" x="0" y="0" />

@@ -19,7 +19,7 @@
                         Sounds/r2d2.mp3"
 		/>
 		
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "SoundOutput" target = "INPUT" />
+        <connection  source = "MyConstant.OUTPUT"  target = "SoundOutput.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" title="Sound Triggers" module="MyConstant" source="OUTPUT" x="0" y="0" w="3" />

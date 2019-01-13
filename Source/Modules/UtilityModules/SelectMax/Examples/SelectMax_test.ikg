@@ -8,7 +8,7 @@
 			name = "SelectMax"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="SelectMax" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "SelectMax.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Constant" source="OUTPUT" max="5" x="0" y="0" />

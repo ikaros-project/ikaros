@@ -16,8 +16,8 @@
             select = "0 0; 1 1; 2 2"
 		/>
 
-		<connection sourcemodule="A" source="OUTPUT" targetmodule="Select1D" target="INPUT" />
-		<connection sourcemodule="M" source="OUTPUT" targetmodule="Select2D" target="INPUT" />
+		<connection  source = "A.OUTPUT"  target = "Select1D.INPUT" />
+		<connection  source = "M.OUTPUT"  target = "Select2D.INPUT" />
 
 		<view name="View">
 			<object class="Table" module="Select1D" source="OUTPUT" x="0" y="0" />

@@ -8,7 +8,7 @@
 			name = "Noise"
 		/>
 		
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Noise" target="INPUT" delay="1, 3, 5"/>
+		<connection  source = "Constant.OUTPUT"  target = "Noise.INPUT" delay="1, 3, 5"/>
 
 		<view name="View">
 			<object class="BarGraph" module="Constant" source="OUTPUT" x="0" y="0" min="-10" max="10" />

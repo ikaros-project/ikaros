@@ -23,7 +23,7 @@
         data = "0  0   0   0   0   0   0"
     />
 
-    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
+    <connection  source = "X.OUTPUT"  target = "Trainer.TRAINING_DATA_X" />
 
     <module
         class = "Trainer" 
@@ -41,9 +41,9 @@
 	/>
 
 
-	<connection sourcemodule="Trainer" source="TRAIN_X" targetmodule="A1" target="T-INPUT" />
-	<_connection sourcemodule="Trainer" source="TRAIN_X" targetmodule="A1" target="INPUT" />
-	<connection sourcemodule="In" source="OUTPUT" targetmodule="A1" target="INPUT" />
+	<connection  source = "Trainer.TRAIN_X"  target = "A1.T-INPUT" />
+	<_connection  source = "Trainer.TRAIN_X"  target = "A1.INPUT" />
+	<connection  source = "In.OUTPUT"  target = "A1.INPUT" />
 
 	<view name="View">
         <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />

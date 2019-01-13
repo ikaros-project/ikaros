@@ -13,9 +13,9 @@
     <module class="Gate" name="M3" />
     <module class="Gate" name="M4" />
 
-    <connection sourcemodule="C"  source="OUTPUT" targetmodule="M1" target="INPUT" delay="1" />
-    <connection sourcemodule="M1" source="OUTPUT" targetmodule="M2" target="INPUT" delay="0" />
-    <connection sourcemodule="M2" source="OUTPUT" targetmodule="M3" target="INPUT" delay="0" />
-    <connection sourcemodule="M3" source="OUTPUT" targetmodule="M4" target="INPUT" delay="0" />
+    <connection  source = "C.OUTPUT"  target = "M1.INPUT" delay="1" />
+    <connection  source = "M1.OUTPUT"  target = "M2.INPUT" delay="0" />
+    <connection  source = "M2.OUTPUT"  target = "M3.INPUT" delay="0" />
+    <connection  source = "M3.OUTPUT"  target = "M4.INPUT" delay="0" />
 </group>
 

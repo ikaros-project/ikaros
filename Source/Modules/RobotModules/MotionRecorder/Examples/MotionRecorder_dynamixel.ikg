@@ -22,11 +22,11 @@
             filename = "/Users/cba/Desktop/motion.%d.mot"
 		/>
 
-        <connection sourcemodule = "MotionRecorder" source = "OUTPUT" targetmodule = "Joints" target = "GOAL_POSITION" />
-        <connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "Joints" target = "TORQUE_LIMIT" />
-        <connection sourcemodule = "MotionRecorder" source = "ENABLE" targetmodule = "Joints" target = "TORQUE_ENABLE" />
+        <connection  source = "MotionRecorder.OUTPUT"  target = "Joints.GOAL_POSITION" />
+        <connection  source = "MotionRecorder.TORQUE"  target = "Joints.TORQUE_LIMIT" />
+        <connection  source = "MotionRecorder.ENABLE"  target = "Joints.TORQUE_ENABLE" />
 
-        <connection sourcemodule = "Joints" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "MotionRecorder" target = "INPUT" />
+        <connection  source = "Joints.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
 
 		<view name="View" object_size="50">
 			<object class="Plot" module="Joints" source="FEEDBACK_PRESENT_POSITION" select="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13" x="0" y="0" w="8" h="4" />

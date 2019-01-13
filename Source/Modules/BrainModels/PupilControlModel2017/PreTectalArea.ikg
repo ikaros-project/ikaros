@@ -21,7 +21,7 @@
 
     <!-- default parameters or not??? -->
     
-    <connection sourcemodule="InputSummation" source="OUTPUT" targetmodule="LightResponse" target="INPUT" />
+    <connection  source = "InputSummation.OUTPUT"  target = "LightResponse.INPUT" />
 
     <view name="PreTectalArea">
         <object class="Plot" title="Response PTA" module="*" source="OUTPUT" x="0" y="0" w="4" max="1" />

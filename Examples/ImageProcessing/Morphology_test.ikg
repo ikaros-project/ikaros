@@ -21,11 +21,11 @@
     <module class = "Dilate" name = "D2" />
     <module class = "Erode" name = "E2" />
 
-    <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "D" target = "INPUT" />
-    <connection sourcemodule = "IN" source = "OUTPUT" targetmodule = "E" target = "INPUT" />
+    <connection  source = "IN.OUTPUT"  target = "D.INPUT" />
+    <connection  source = "IN.OUTPUT"  target = "E.INPUT" />
 
-    <connection sourcemodule = "D" source = "OUTPUT" targetmodule = "D2" target = "INPUT" />
-    <connection sourcemodule = "E" source = "OUTPUT" targetmodule = "E2" target = "INPUT" />
+    <connection  source = "D.OUTPUT"  target = "D2.INPUT" />
+    <connection  source = "E.OUTPUT"  target = "E2.INPUT" />
 
     <view name = "Demo view">
         <object class="Image" module="IN" source="OUTPUT" x="0" y="0" />

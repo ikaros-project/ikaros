@@ -33,8 +33,8 @@
     <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="P_OPEN"                 	source="OUTPUT" />
 
     <module class = "Sink" name = "NotAvailable" />
-        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
-        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
+        <connection  source = "SplitBody.OUTPUT"  target = "NotAvailable.INPUT" delay = "1"/>
+        <connection  source = "SplitPupil.OUTPUT"  target = "NotAvailable.INPUT" delay = "1"/>
 
 
 	<!-- Splitting pos -->
@@ -59,8 +59,8 @@
         input_limit_max = "65 110 30 11"
         start_up_time   = "10"
     />
-        <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
-        <connection sourcemodule = "SplitHead"  			source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection  source = "H_SC_FeedBackPosition.OUTPUT" 	 target = "H_Guard.REFERENCE"  delay = "1"/>
+        <connection  source = "SplitHead.OUTPUT" 	 target = "H_Guard.INPUT"  delay = "1"/>
 
   <module
 		class="ServoConnector"
@@ -71,7 +71,7 @@
         offset          = "180 180 180 180" 
         output_size     = "4"
 	/>
-        <connection sourcemodule = "H_Guard"  source = "OUTPUT" targetmodule = "H_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+        <connection  source = "H_Guard.OUTPUT"  target = "H_SC_GoalPosition.INPUT" delay = "0"/>
 
 
 <!-- Overriding dynamixel -->
@@ -85,7 +85,7 @@
         offset          = "-180 -180 -180 -180" 
         output_size     = "4"
 	/>
-	    <connection sourcemodule = "H_SC_GoalPosition" source = "OUTPUT" targetmodule = "H_SC_FeedBackPosition" target = "INPUT" delay = "0"/>
+	    <connection  source = "H_SC_GoalPosition.OUTPUT"  target = "H_SC_FeedBackPosition.INPUT" delay = "0"/>
 
     <!-- LEFT_ARM -->
 
@@ -96,8 +96,8 @@
         input_limit_max = "126 110 126 50 126 180"
         start_up_time   = "10"
     />
-        <connection sourcemodule = "LA_SC_FeedBackPosition"  	source = "OUTPUT" targetmodule = "LA_Guard"  target = "REFERENCE" delay = "1"/>
-        <connection sourcemodule = "SplitLeftArm"  				source = "OUTPUT" 	targetmodule = "LA_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection  source = "LA_SC_FeedBackPosition.OUTPUT"  target = "LA_Guard.REFERENCE" delay = "1"/>
+        <connection  source = "SplitLeftArm.OUTPUT" 	 target = "LA_Guard.INPUT"  delay = "1"/>
 
     <module
 		class           = "ServoConnector"
@@ -110,7 +110,7 @@
         max_speed       = "100"
 
 	/>
-        <connection sourcemodule = "LA_Guard"  source = "OUTPUT" targetmodule = "LA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+        <connection  source = "LA_Guard.OUTPUT"  target = "LA_SC_GoalPosition.INPUT" delay = "0"/>
 
  <!-- Overriding dynamixel -->
 
@@ -124,7 +124,7 @@
         output_size     = "6"
 
 	/>
-        <connection sourcemodule = "LA_SC_GoalPosition"  source = "OUTPUT" targetmodule = "LA_SC_FeedBackPosition"  target = "INPUT" delay = "0"/>
+        <connection  source = "LA_SC_GoalPosition.OUTPUT"  target = "LA_SC_FeedBackPosition.INPUT" delay = "0"/>
 
    <!-- RIGHT_ARM -->
 
@@ -136,8 +136,8 @@
         start_up_time   = "10"
         max_speed       = "100"
     />
-        <connection sourcemodule = "RA_SC_FeedBackPosition"  source = "OUTPUT" targetmodule = "RA_Guard"  target = "REFERENCE" delay = "1"/>
-        <connection sourcemodule = "SplitRightArm"  source = "OUTPUT" 	targetmodule = "RA_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection  source = "RA_SC_FeedBackPosition.OUTPUT"  target = "RA_Guard.REFERENCE" delay = "1"/>
+        <connection  source = "SplitRightArm.OUTPUT" 	 target = "RA_Guard.INPUT"  delay = "1"/>
 
     <module
 		class           = "ServoConnector"
@@ -148,7 +148,7 @@
         offset          = "180 180 180 180 180 180" 
         output_size     = "6"
 	/>
-        <connection sourcemodule = "RA_Guard"  source = "OUTPUT" targetmodule = "RA_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+        <connection  source = "RA_Guard.OUTPUT"  target = "RA_SC_GoalPosition.INPUT" delay = "0"/>
 
 <!-- Overriding dynamixel -->
 
@@ -162,7 +162,7 @@
         offset      	= "-180 -180 -180 -180 -180 -180" 
         output_size 	= "6"
 	/>
-        <connection sourcemodule = "RA_SC_GoalPosition"  source = "OUTPUT" targetmodule = "RA_SC_FeedBackPosition"  target = "INPUT" delay = "0" />
+        <connection  source = "RA_SC_GoalPosition.OUTPUT"  target = "RA_SC_FeedBackPosition.INPUT" delay = "0" />
 
 
 	<!-- Pupil -->

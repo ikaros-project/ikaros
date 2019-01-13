@@ -11,8 +11,8 @@
 			name = "Subtract"
 		/>
 
-		<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="Subtract" target="INPUT1" />
-		<connection sourcemodule="Constant2" source="OUTPUT" targetmodule="Subtract" target="INPUT2" />
+		<connection  source = "Constant1.OUTPUT"  target = "Subtract.INPUT1" />
+		<connection  source = "Constant2.OUTPUT"  target = "Subtract.INPUT2" />
 
 		<view name="View">
 			<object class="BarGraph" module="Constant1" source="OUTPUT" x="0" y="0" min="-5" max="5"/>

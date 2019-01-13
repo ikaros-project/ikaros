@@ -36,14 +36,14 @@
 		name = "AVERAGE"
 	/>
 
-	<connection sourcemodule = "LOGOP_DATA"  source = "IN" targetmodule = "PERCEPTRON"  target = "INPUT" />
-	<connection sourcemodule = "LOGOP_DATA"  source = "IN" targetmodule = "PERCEPTRON"  target = "T_INPUT" />
-	<connection sourcemodule = "LOGOP_DATA"  source = "TA" targetmodule = "PERCEPTRON"  target = "T_TARGET" />
-	<connection sourcemodule = "LOGOP_DATA"  source = "TR" targetmodule = "PERCEPTRON"  target = "TRAIN" />
+	<connection  source = "LOGOP_DATA.IN"  target = "PERCEPTRON.INPUT" />
+	<connection  source = "LOGOP_DATA.IN"  target = "PERCEPTRON.T_INPUT" />
+	<connection  source = "LOGOP_DATA.TA"  target = "PERCEPTRON.T_TARGET" />
+	<connection  source = "LOGOP_DATA.TR"  target = "PERCEPTRON.TRAIN" />
 
-	<connection sourcemodule = "PERCEPTRON"  source = "OUTPUT" targetmodule = "RESULTS"  target = "OUT" />
-	<connection sourcemodule = "PERCEPTRON"  source = "ERROR" targetmodule = "RESULTS"  target = "ERR" />
-	<connection sourcemodule = "PERCEPTRON"  source = "ERROR" targetmodule = "AVERAGE"  target = "INPUT" />
+	<connection  source = "PERCEPTRON.OUTPUT"  target = "RESULTS.OUT" />
+	<connection  source = "PERCEPTRON.ERROR"  target = "RESULTS.ERR" />
+	<connection  source = "PERCEPTRON.ERROR"  target = "AVERAGE.INPUT" />
         
 	<view name="Table Test">
         <plot

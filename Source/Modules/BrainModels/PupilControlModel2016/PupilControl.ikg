@@ -28,7 +28,7 @@
 
     <!-- PTA => Edinger-Westphal nucleus -->
 
-    <connection sourcemodule="PTA" source="OUTPUT" targetmodule="EdingerWestphal_pg" target="EXCITATION" />
+    <connection  source = "PTA.OUTPUT"  target = "EdingerWestphal_pg.EXCITATION" />
 
     <module
         class="Nucleus"
@@ -37,7 +37,7 @@
 
     <!-- Edinger-Westphal nuclei ==> Ciliar Ganglion -->
 
-    <connection sourcemodule="EdingerWestphal_pg" source="OUTPUT" targetmodule="CG" target="EXCITATION" />
+    <connection  source = "EdingerWestphal_pg.OUTPUT"  target = "CG.EXCITATION" />
 
     <module
         class="Nucleus"
@@ -58,7 +58,7 @@
 
     <!-- IML => SCG -->
     
-    <connection sourcemodule="IML" source="OUTPUT" targetmodule="SCG" target="EXCITATION" />
+    <connection  source = "IML.OUTPUT"  target = "SCG.EXCITATION" />
 
     <module
         class="Nucleus"

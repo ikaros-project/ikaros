@@ -8,7 +8,7 @@
 			name = "Normalize"
 		/>
 
-		<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="Normalize" target="INPUT" />
+		<connection  source = "Constant1.OUTPUT"  target = "Normalize.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Constant1" source="OUTPUT" max="5" x="0" y="0" />

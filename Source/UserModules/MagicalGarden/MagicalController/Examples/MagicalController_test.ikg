@@ -52,7 +52,7 @@
         _command = "mpg123"
 	/>
 
-	<connection sourcemodule="MC" source="SOUND_TRIG" targetmodule="SoundOutput" target="INPUT" delay="10"/>
+	<connection  source = "MC.SOUND_TRIG"  target = "SoundOutput.INPUT" delay="10"/>
 
 	<view name="View">
         <object class="BarGraph" title="Animation" module="MC" source="ANIMATION_TRIG" x="0" y="0" w="6" max="1" />

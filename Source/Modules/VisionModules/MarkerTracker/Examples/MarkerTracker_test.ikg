@@ -35,7 +35,7 @@
 			threshold = "auto"
 		/>
 
-		<connection sourcemodule = "CAMERA" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
+		<connection  source = "CAMERA.INTENSITY"  target = "MarkerTracker.INPUT" delay="0" />
 
 		<view name="Inputs">
 			<object

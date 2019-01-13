@@ -11,7 +11,7 @@
     max = "5"
     />
 
-    <connection sourcemodule="DATA" source="OUTPUT" targetmodule="SENDER" target="INPUT" delay = "0"/>
+    <connection  source = "DATA.OUTPUT"  target = "SENDER.INPUT" delay = "0"/>
     
 	<module
         class = "YARPPort"

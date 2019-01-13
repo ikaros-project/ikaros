@@ -8,7 +8,7 @@
 			name = "ArgMax"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="ArgMax" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "ArgMax.INPUT" />
 
 		<view name="View">
 			<object class="Image" type="gray" module="Constant" source="OUTPUT" max="5" x="0" y="0" />

@@ -24,9 +24,9 @@ three numbered rgb PNG images from the input.
 	    filename = "Int%0d.png"
     />
         
-	<connection sourcemodule = "IN" source = "RED" targetmodule = "OUT" target = "RED" />
-	<connection sourcemodule = "IN" source = "GREEN" targetmodule = "OUT" target = "GREEN" />
-	<connection sourcemodule = "IN" source = "BLUE" targetmodule = "OUT" target = "BLUE" />
+	<connection  source = "IN.RED"  target = "OUT.RED" />
+	<connection  source = "IN.GREEN"  target = "OUT.GREEN" />
+	<connection  source = "IN.BLUE"  target = "OUT.BLUE" />
 
 
 	<view name = "View 1">

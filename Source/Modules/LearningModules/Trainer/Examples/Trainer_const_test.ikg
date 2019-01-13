@@ -36,17 +36,17 @@
 		batch_size = "10"
 	/>
 
-    <connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_X" />
-    <connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TRAINING_DATA_Y" />
+    <connection  source = "X.OUTPUT"  target = "Trainer.TRAINING_DATA_X" />
+    <connection  source = "Y.OUTPUT"  target = "Trainer.TRAINING_DATA_Y" />
 
-    <_connection sourcemodule = "X"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_X" />
-    <_connection sourcemodule = "Y"  source = "OUTPUT" targetmodule = "Trainer"  target = "TESTING_DATA_Y" />
+    <_connection  source = "X.OUTPUT"  target = "Trainer.TESTING_DATA_X" />
+    <_connection  source = "Y.OUTPUT"  target = "Trainer.TESTING_DATA_Y" />
 
-    <connection sourcemodule = "Trainer"  source = "TRAIN_X" targetmodule = "Perceptron"  target = "T_INPUT" />
-    <connection sourcemodule = "Trainer"  source = "TRAIN_Y" targetmodule = "Perceptron"  target = "T_TARGET" />
+    <connection  source = "Trainer.TRAIN_X"  target = "Perceptron.T_INPUT" />
+    <connection  source = "Trainer.TRAIN_Y"  target = "Perceptron.T_TARGET" />
 
-    <connection sourcemodule = "Trainer"  source = "TEST_X" targetmodule = "Perceptron"  target = "INPUT" />
-    <connection sourcemodule = "Perceptron"  source = "OUTPUT" targetmodule = "Trainer"  target = "TEST_Y" delay = "0" />
+    <connection  source = "Trainer.TEST_X"  target = "Perceptron.INPUT" />
+    <connection  source = "Perceptron.OUTPUT"  target = "Trainer.TEST_Y" delay = "0" />
 
     <view>
         <object class="Table" module="Trainer" source="TRAIN_X" x="0" y="0" max = "10"/>

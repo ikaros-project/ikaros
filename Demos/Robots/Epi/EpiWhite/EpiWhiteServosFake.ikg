@@ -24,7 +24,7 @@
     
 
     <module class = "Sink" name = "NotAvailable" />
-        <connection sourcemodule = "SplitBody"  source = "OUTPUT" targetmodule = "NotAvailable"  target = "INPUT" delay = "1"/>
+        <connection  source = "SplitBody.OUTPUT"  target = "NotAvailable.INPUT" delay = "1"/>
 
 
 	<!-- Splitting pos -->
@@ -47,8 +47,8 @@
         input_limit_max = "65 110 30 11"
         start_up_time   = "10"
     />
-        <connection sourcemodule = "H_SC_FeedBackPosition"  source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "REFERENCE"  delay = "1"/>
-        <connection sourcemodule = "SplitHead"  			source = "OUTPUT" 	targetmodule = "H_Guard"  	target = "INPUT"  delay = "1"/>
+        <connection  source = "H_SC_FeedBackPosition.OUTPUT" 	 target = "H_Guard.REFERENCE"  delay = "1"/>
+        <connection  source = "SplitHead.OUTPUT" 	 target = "H_Guard.INPUT"  delay = "1"/>
 
   <module
 		class="ServoConnector"
@@ -59,7 +59,7 @@
         offset          = "180 180 180 180" 
         output_size     = "4"
 	/>
-        <connection sourcemodule = "H_Guard"  source = "OUTPUT" targetmodule = "H_SC_GoalPosition"  target = "INPUT" delay = "0"/>
+        <connection  source = "H_Guard.OUTPUT"  target = "H_SC_GoalPosition.INPUT" delay = "0"/>
 
 
 <!-- Overriding dynamixel -->
@@ -73,7 +73,7 @@
         offset          = "-180 -180 -180 -180" 
         output_size     = "4"
 	/>
-	    <connection sourcemodule = "H_SC_GoalPosition" source = "OUTPUT" targetmodule = "H_SC_FeedBackPosition" target = "INPUT" delay = "0"/>
+	    <connection  source = "H_SC_GoalPosition.OUTPUT"  target = "H_SC_FeedBackPosition.INPUT" delay = "0"/>
 
 	<!-- Pupil -->
     <!-- No Pupil -->
@@ -95,7 +95,7 @@
             14.59	10	14.96	10;
             16.33	0	16.22	0"
     />
-        <connection sourcemodule = "SplitPupil"  source = "OUTPUT" targetmodule = "mmToDegrees"  target = "INPUT" />
+        <connection  source = "SplitPupil.OUTPUT"  target = "mmToDegrees.INPUT" />
 
 
     <module
@@ -106,8 +106,8 @@
         input_limit_min = "-10 -10"
         input_limit_max = "70 70"
     />
-        <connection sourcemodule = "mmToDegrees"  source = "OUTPUT" targetmodule = "GuardPupil"  target = "INPUT" />
-        <connection sourcemodule = "SC_FB_P_PresentPosition"  source = "OUTPUT" targetmodule = "GuardPupil"  target = "REFERENCE" />
+        <connection  source = "mmToDegrees.OUTPUT"  target = "GuardPupil.INPUT" />
+        <connection  source = "SC_FB_P_PresentPosition.OUTPUT"  target = "GuardPupil.REFERENCE" />
 
     <module
 		class="ServoConnector"
@@ -118,7 +118,7 @@
         offset      =   "210 210" 
         output_size =   "2"
 	/>
-        <connection sourcemodule = "GuardPupil"  source = "OUTPUT" targetmodule = "SC_P_GoalPosition"  target = "INPUT" />
+        <connection  source = "GuardPupil.OUTPUT"  target = "SC_P_GoalPosition.INPUT" />
 
     <module
 			class="ServoConnector"
@@ -129,7 +129,7 @@
             offset      =   "-210 -210" 
             output_size =   "2"
 	/>
-	    <connection sourcemodule = "SC_P_GoalPosition" source = "OUTPUT" targetmodule = "SC_FB_P_PresentPosition" target = "INPUT" delay = "0"/>
+	    <connection  source = "SC_P_GoalPosition.OUTPUT"  target = "SC_FB_P_PresentPosition.INPUT" delay = "0"/>
 
     <module
         class = "LinearSplines"
@@ -145,6 +145,6 @@
             70	5.73	70	5.87;
             80	4.84	80	4.88"
     />
-        <connection sourcemodule = "SC_FB_P_PresentPosition"  source = "OUTPUT" targetmodule = "DegreesTomm"  target = "INPUT" />
+        <connection  source = "SC_FB_P_PresentPosition.OUTPUT"  target = "DegreesTomm.INPUT" />
 
 </group>

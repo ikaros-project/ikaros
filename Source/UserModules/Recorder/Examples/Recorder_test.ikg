@@ -23,7 +23,7 @@
 	/>
 	
 	
-	<connection sourcemodule="F" source="OUTPUT" targetmodule="Recorder" target="INPUT" />
+	<connection  source = "F.OUTPUT"  target = "Recorder.INPUT" />
 
 	<view name="Recorder View">
         <object class="Path" order="col" title="Recorder" module="Recorder" source="OUTPUT" x="0" y="0" w="6" h="4" />

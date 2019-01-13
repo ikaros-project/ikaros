@@ -24,9 +24,9 @@
 			name = "SumMatrixRow"
 			direction = "row"
 		/>
-        <connection sourcemodule = "Matrix" source = "OUTPUT" targetmodule = "SumMatrixAll" target = "INPUT" />
-        <connection sourcemodule = "Matrix" source = "OUTPUT" targetmodule = "SumMatrixCol" target = "INPUT" />
-        <connection sourcemodule = "Matrix" source = "OUTPUT" targetmodule = "SumMatrixRow" target = "INPUT" />
+        <connection  source = "Matrix.OUTPUT"  target = "SumMatrixAll.INPUT" />
+        <connection  source = "Matrix.OUTPUT"  target = "SumMatrixCol.INPUT" />
+        <connection  source = "Matrix.OUTPUT"  target = "SumMatrixRow.INPUT" />
 
 		<view name="View">
 	 	<object

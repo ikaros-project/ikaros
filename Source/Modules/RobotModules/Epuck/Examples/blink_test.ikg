@@ -20,9 +20,9 @@
 		iterations = "10000"
 	/>
 
-	<connection sourcemodule="Data" source = "BODY" targetmodule="Epuck" target="BODY" />
-	<connection sourcemodule="Data" source = "LIGHT" targetmodule="Epuck" target="LIGHT" />
-	<connection sourcemodule="Data" source = "LED" targetmodule="Epuck" target="LED" />
+	<connection  source = "Data.BODY"  target = "Epuck.BODY" />
+	<connection  source = "Data.LIGHT"  target = "Epuck.LIGHT" />
+	<connection  source = "Data.LED"  target = "Epuck.LED" />
 
 	<view>
 		<object class="Image" module="Epuck" source="IMAGE" x="0" y="0" w="2" h="2"/>

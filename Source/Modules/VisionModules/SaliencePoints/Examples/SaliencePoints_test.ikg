@@ -38,9 +38,9 @@
         scale = "0.5"
     />
 		
-    <connection sourcemodule = "CAMERA" source = "INTENSITY" targetmodule = "MarkerTracker" target = "INPUT" delay="0" />
-    <connection sourcemodule = "MarkerTracker" source = "MARKERS" targetmodule = "SaliencePoints" target = "INPUT" delay = "0" />
-    <connection sourcemodule = "MarkerTracker" source = "MARKER_COUNT" targetmodule = "SaliencePoints" target = "COUNT" delay = "0" />
+    <connection  source = "CAMERA.INTENSITY"  target = "MarkerTracker.INPUT" delay="0" />
+    <connection  source = "MarkerTracker.MARKERS"  target = "SaliencePoints.INPUT" delay = "0" />
+    <connection  source = "MarkerTracker.MARKER_COUNT"  target = "SaliencePoints.COUNT" delay = "0" />
 
     <view name="View" object_size="30">
         <object class="Image" title="Input Image" type="gray" module="CAMERA" source="INTENSITY" x="0" y="0" w="8" h="6" />

@@ -197,21 +197,21 @@
 			name	= "SaccadeGenerator"			
 		/>
 -->
-		<connection sourcemodule = "AllObjects" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "OBJECTS_IN" delay="0" />        
-		<connection sourcemodule = "Goal" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "GOAL_LOCATION" delay="0" />        
-		<connection sourcemodule = "Speed" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "SPEED" delay="0" />        
-		<connection sourcemodule = "LocomotionTrigger" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "LOCOMOTION_TRIGGER" delay="0" />        
-		<connection sourcemodule = "PickObject" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "PICK_OBJECT_ID" delay="0" />     
-		<connection sourcemodule = "PickLocation" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "PICK_OBJECT_SPATIAL_ATTENTION" delay="0" />     
-		<connection sourcemodule = "PickTrigger" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "PICK_OBJECT_TRIGGER" delay="0" />        
-		<connection sourcemodule = "PlaceObject" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "PLACE_OBJECT_LOCATION" delay="0" />        
-		<connection sourcemodule = "PlaceTrigger" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "PLACE_OBJECT_TRIGGER" delay="0" />        
-		<connection sourcemodule = "ChargeTrigger" source = "OUTPUT" targetmodule = "GLRobotSimulator" target = "CHARGE_BATTERIES" delay="0" />        
+		<connection  source = "AllObjects.OUTPUT"  target = "GLRobotSimulator.OBJECTS_IN" delay="0" />        
+		<connection  source = "Goal.OUTPUT"  target = "GLRobotSimulator.GOAL_LOCATION" delay="0" />        
+		<connection  source = "Speed.OUTPUT"  target = "GLRobotSimulator.SPEED" delay="0" />        
+		<connection  source = "LocomotionTrigger.OUTPUT"  target = "GLRobotSimulator.LOCOMOTION_TRIGGER" delay="0" />        
+		<connection  source = "PickObject.OUTPUT"  target = "GLRobotSimulator.PICK_OBJECT_ID" delay="0" />     
+		<connection  source = "PickLocation.OUTPUT"  target = "GLRobotSimulator.PICK_OBJECT_SPATIAL_ATTENTION" delay="0" />     
+		<connection  source = "PickTrigger.OUTPUT"  target = "GLRobotSimulator.PICK_OBJECT_TRIGGER" delay="0" />        
+		<connection  source = "PlaceObject.OUTPUT"  target = "GLRobotSimulator.PLACE_OBJECT_LOCATION" delay="0" />        
+		<connection  source = "PlaceTrigger.OUTPUT"  target = "GLRobotSimulator.PLACE_OBJECT_TRIGGER" delay="0" />        
+		<connection  source = "ChargeTrigger.OUTPUT"  target = "GLRobotSimulator.CHARGE_BATTERIES" delay="0" />        
 
 <!--
-		<connection sourcemodule = "GLRobotSimulator" source = "BLOCKS_IN_VIEW" targetmodule = "SaccadeGenerator" target = "INPUT" delay="0" />
+		<connection  source = "GLRobotSimulator.BLOCKS_IN_VIEW"  target = "SaccadeGenerator.INPUT" delay="0" />
 
-		<connection sourcemodule = "SaccadeGenerator" source = "SACCADE_OUT" targetmodule = "SaccadeGenerator" target = "SACCADE_IN" delay="1" />
+		<connection  source = "SaccadeGenerator.SACCADE_OUT"  target = "SaccadeGenerator.SACCADE_IN" delay="1" />
 -->
 		<view name="Overview">
         

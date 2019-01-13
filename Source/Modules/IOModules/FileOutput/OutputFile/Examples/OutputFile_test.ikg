@@ -42,9 +42,9 @@
             <column name = "VALUE" />
         </module>
 
-		<connection sourcemodule = "F" source = "OUTPUT" targetmodule = "OUT" target = "VALUE" />
-		<connection sourcemodule = "WriteTrig" source = "OUTPUT" targetmodule = "OUT" target = "WRITE" delay="4" />
-		<connection sourcemodule = "NewFileTrig" source = "OUTPUT" targetmodule = "OUT" target = "NEWFILE" delay="10" />
+		<connection  source = "F.OUTPUT"  target = "OUT.VALUE" />
+		<connection  source = "WriteTrig.OUTPUT"  target = "OUT.WRITE" delay="4" />
+		<connection  source = "NewFileTrig.OUTPUT"  target = "OUT.NEWFILE" delay="10" />
 
     <module class = "Logger" name = "Logger" />
 </group>

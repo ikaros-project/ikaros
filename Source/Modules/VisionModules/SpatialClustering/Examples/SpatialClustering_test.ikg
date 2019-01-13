@@ -23,8 +23,8 @@
             no_of_clusters = "2"
         />
   
-		<connection sourcemodule="Movie" source="INTENSITY" targetmodule="Change" target="INPUT" delay="0" />
-		<connection sourcemodule="Change" source="OUTPUT" targetmodule="SpatialClustering" target="INPUT" delay="0" />
+		<connection  source = "Movie.INTENSITY"  target = "Change.INPUT" delay="0" />
+		<connection  source = "Change.OUTPUT"  target = "SpatialClustering.INPUT" delay="0" />
 
 		<view name="Detection">
 			<object class="Image" title="Input" type = "rgb"

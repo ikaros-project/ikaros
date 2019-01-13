@@ -60,9 +60,9 @@
             -1	2	-1"
     />	
 
-	<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C1" target = "INPUT" />
-	<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C2" target = "INPUT" />
-	<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "C3" target = "INPUT" />
+	<connection  source = "IN.INTENSITY"  target = "C1.INPUT" />
+	<connection  source = "IN.INTENSITY"  target = "C2.INPUT" />
+	<connection  source = "IN.INTENSITY"  target = "C3.INPUT" />
 
 	<view name = "Demo view">
 		<object class="Image" module="IN" source="INTENSITY" x="0" y="0" />

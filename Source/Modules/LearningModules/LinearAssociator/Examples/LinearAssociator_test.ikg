@@ -26,9 +26,9 @@
         memory_max = "32"
     />
 
-    <connection sourcemodule = "IN" source = "X" targetmodule = "A" target = "INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "X" targetmodule = "A" target = "T-INPUT" delay="0" />
-    <connection sourcemodule = "IN" source = "Y" targetmodule = "A" target = "T-OUTPUT" delay="0" />
+    <connection  source = "IN.X"  target = "A.INPUT" delay="0" />
+    <connection  source = "IN.X"  target = "A.T-INPUT" delay="0" />
+    <connection  source = "IN.Y"  target = "A.T-OUTPUT" delay="0" />
 
     <view name="View">
         <object x="0" y="0" class="BarGraph" title="X" module="IN" source="X" max="3" />

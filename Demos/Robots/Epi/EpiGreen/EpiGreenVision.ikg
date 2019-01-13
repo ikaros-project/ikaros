@@ -33,12 +33,12 @@
     
     	
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_RED" 		type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "RED" targetmodule = "LEFT_EYE_FLIP_RED"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.RED"  target = "LEFT_EYE_FLIP_RED.INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_GREEN"	 	type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "GREEN" targetmodule = "LEFT_EYE_FLIP_GREEN"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.GREEN"  target = "LEFT_EYE_FLIP_GREEN.INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_BLUE" 		type = "rotate-180"/>
-		<connection sourcemodule = "LEFT_EYE"  source = "BLUE" targetmodule = "LEFT_EYE_FLIP_BLUE"  target = "INPUT" />
+		<connection  source = "LEFT_EYE.BLUE"  target = "LEFT_EYE_FLIP_BLUE.INPUT" />
 	<module	class = "Flip" name = "LEFT_EYE_FLIP_INTENSITY" type = "rotate-180" />
-		<connection sourcemodule = "LEFT_EYE"  source = "INTENSITY" targetmodule = "LEFT_EYE_FLIP_INTENSITY"  target = "INPUT"/>
+		<connection  source = "LEFT_EYE.INTENSITY"  target = "LEFT_EYE_FLIP_INTENSITY.INPUT"/>
 
 </group>

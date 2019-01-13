@@ -30,14 +30,14 @@
     />
     
     
-    <connection sourcemodule="Light" source="OUTPUT" targetmodule="Input" target="INPUT" delay="1" />
-    <connection sourcemodule="TimeSeries" source="LIGHT" targetmodule="Input" target="INPUT" delay="1" />
+    <connection  source = "Light.OUTPUT"  target = "Input.INPUT" delay="1" />
+    <connection  source = "TimeSeries.LIGHT"  target = "Input.INPUT" delay="1" />
     
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="FullModel" target="PTA_Left" delay="0" />
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="FullModel" target="PTA_Right" delay="0" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Left" delay="0" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Right" delay="0" />
 
-    <_connection sourcemodule="TimeSeries" source="PUPIL" targetmodule="FullModel" target="Pupil_Stimulus" delay="1"  />
-    <connection sourcemodule="TimeSeries" source="PUPIL" targetmodule="FullModel" target="LC_Direct" delay="1"  />
+    <_connection  source = "TimeSeries.PUPIL"  target = "FullModel.Pupil_Stimulus" delay="1"  />
+    <connection  source = "TimeSeries.PUPIL"  target = "FullModel.LC_Direct" delay="1"  />
 
     <module
         class="OutputFile"
@@ -48,8 +48,8 @@
         <column name = "Pupil" />
     </module>
 
-    <connection sourcemodule="FullModel" source="Eye_Right" targetmodule="Output" target="Pupil"/>
-    <connection sourcemodule="Input" source="OUTPUT" targetmodule="Output" target="Light" />
+    <connection  source = "FullModel.Eye_Right"  target = "Output.Pupil"/>
+    <connection  source = "Input.OUTPUT"  target = "Output.Light" />
   
 
 

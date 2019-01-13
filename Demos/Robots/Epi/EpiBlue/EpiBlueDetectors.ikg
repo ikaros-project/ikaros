@@ -158,14 +158,14 @@
 
     <!-- EGO-->
     <module class="Transform"   name="L_MarkerEgo" />
-        <connection sourcemodule = "L_Camera_Sensor"    source = "OUTPUT"       targetmodule = "L_MarkerEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"       targetmodule = "L_MarkerEgo" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "L_MarkerEgo" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "L_Camera_Sensor.OUTPUT"        target = "L_MarkerEgo.MATRIX_1"    delay = "0"/>
+        <connection  source = "L_MarkerTracker.MATRIX"        target = "L_MarkerEgo.MATRIX_2"    delay = "0"/>
+        <connection  source = "L_MarkerTracker.OBJECT_ID"     target = "L_MarkerEgo.OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->
     <module class="Transform"   name="L_MarkerWorld" />
-        <connection sourcemodule = "L_MarkerEgo"        source = "MATRIX"       targetmodule = "L_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "L_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
+        <connection  source = "L_MarkerEgo.MATRIX"        target = "L_MarkerWorld.MATRIX_2"    delay = "0"/>
+        <connection  source = "L_MarkerTracker.OBJECT_ID"     target = "L_MarkerWorld.OBJECT_ID_2" delay = "0"/>
 
 
 	<module
@@ -182,30 +182,30 @@
 	/>
     <!-- EGO-->
     <module class="Transform"   name="R_MarkerEgo" />
-        <connection sourcemodule = "R_Camera_Sensor"    source = "OUTPUT"       targetmodule = "R_MarkerEgo" target = "MATRIX_1"    delay = "0"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"       targetmodule = "R_MarkerEgo" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerEgo" target = "OBJECT_ID_2" delay = "0"/>   
+        <connection  source = "R_Camera_Sensor.OUTPUT"        target = "R_MarkerEgo.MATRIX_1"    delay = "0"/>
+        <connection  source = "R_MarkerTracker.MATRIX"        target = "R_MarkerEgo.MATRIX_2"    delay = "0"/>
+        <connection  source = "R_MarkerTracker.OBJECT_ID"     target = "R_MarkerEgo.OBJECT_ID_2" delay = "0"/>   
     <!-- WORLD -->
     <!-- Robot Pos + Ego -->
     <module class="Transform"   name="R_MarkerWorld" />
-        <connection sourcemodule = "R_MarkerEgo"        source = "MATRIX"       targetmodule = "R_MarkerWorld" target = "MATRIX_2"    delay = "0"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "OBJECT_ID"    targetmodule = "R_MarkerWorld" target = "OBJECT_ID_2" delay = "0"/>
+        <connection  source = "R_MarkerEgo.MATRIX"        target = "R_MarkerWorld.MATRIX_2"    delay = "0"/>
+        <connection  source = "R_MarkerTracker.OBJECT_ID"     target = "R_MarkerWorld.OBJECT_ID_2" delay = "0"/>
 
 
 	<module class = "DataConverter" name = "L_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_MarkerTracker"    source = "MATRIX"    targetmodule = "L_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "L_MarkerTracker.MATRIX"     target = "L_MarkerTracker_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "L_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_MarkerEgo"    source = "MATRIX"    targetmodule = "L_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "L_MarkerEgo.MATRIX"     target = "L_MarkerEgo_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "L_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "L_MarkerWorld"    source = "MATRIX"    targetmodule = "L_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "L_MarkerWorld.MATRIX"     target = "L_MarkerWorld_MAT.INPUT" delay = "0"/>
 	
 	
 	<module class = "DataConverter" name = "R_MarkerTracker_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "R_MarkerTracker"    source = "MATRIX"    targetmodule = "R_MarkerTracker_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "R_MarkerTracker.MATRIX"     target = "R_MarkerTracker_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "R_MarkerEgo_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "R_MarkerEgo"    source = "MATRIX"    targetmodule = "R_MarkerEgo_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "R_MarkerEgo.MATRIX"     target = "R_MarkerEgo_MAT.INPUT" delay = "0"/>
 	<module class = "DataConverter" name = "R_MarkerWorld_MAT" output_size_x = "4" output_size_y = "4"/>
-        <connection sourcemodule = "R_MarkerWorld"    source = "MATRIX"    targetmodule = "R_MarkerWorld_MAT" target = "INPUT" delay = "0"/>
+        <connection  source = "R_MarkerWorld.MATRIX"     target = "R_MarkerWorld_MAT.INPUT" delay = "0"/>
 	
 
 

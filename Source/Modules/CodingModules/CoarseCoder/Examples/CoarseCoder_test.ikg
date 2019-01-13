@@ -20,8 +20,8 @@
         output_size = "20"
     />
 		
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="CoarseCoder" target="INPUT"  delay = "1" />
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="CoarseCoder" target="INPUT"  delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "CoarseCoder.INPUT"  delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "CoarseCoder.INPUT"  delay = "1" />
 
     <view name="View">
         <object class="Grid" module="CoarseCoder" source="OUTPUT" x="0" y="0"/>

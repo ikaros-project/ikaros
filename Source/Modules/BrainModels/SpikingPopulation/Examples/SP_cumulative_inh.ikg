@@ -93,36 +93,36 @@
 		
         
 
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_1" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_1" target = "INHIBITION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_2" target = "EXCITATION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Pyramidal_3" target = "EXCITATION_IN" />
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_1" target = "INHIBITION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_2" target = "INHIBITION_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_1" target = "DIRECT_IN" />
-		<connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "Interneuron_2" target = "DIRECT_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "Pyramidal_1.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Pyramidal_1.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Pyramidal_2.EXCITATION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Pyramidal_3.EXCITATION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "Interneuron_1.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Interneuron_2.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Interneuron_1.DIRECT_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Interneuron_2.DIRECT_IN" />
 
-		<connection sourcemodule = "InputSignal" source = "OUTPUT" targetmodule = "PopulationCoder" target = "INPUT" />
-        <connection sourcemodule = "PopulationCoder" source = "OUTPUT" targetmodule = "Scale_Input" target = "INPUT" />
-		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "Pyramidal_1" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "Pyramidal_2" target = "DIRECT_IN" />
-		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "Pyramidal_3" target = "DIRECT_IN" />
+		<connection  source = "InputSignal.OUTPUT"  target = "PopulationCoder.INPUT" />
+        <connection  source = "PopulationCoder.OUTPUT"  target = "Scale_Input.INPUT" />
+		<connection  source = "Scale_Input.OUTPUT"  target = "Pyramidal_1.DIRECT_IN" />
+		<connection  source = "Scale_Input.OUTPUT"  target = "Pyramidal_2.DIRECT_IN" />
+		<connection  source = "Scale_Input.OUTPUT"  target = "Pyramidal_3.DIRECT_IN" />
 		
-		<connection sourcemodule = "Pyramidal_1" source = "OUTPUT" targetmodule = "Scale_Excitation" target = "INPUT" />
-		<connection sourcemodule = "Scale_Excitation" source = "OUTPUT" size="@ExPopSize" targetmodule = "Interneuron_1" target = "EXCITATION_IN" />
+		<connection  source = "Pyramidal_1.OUTPUT"  target = "Scale_Excitation.INPUT" />
+		<connection  source = "Scale_Excitation.OUTPUT" size="@ExPopSize"  target = "Interneuron_1.EXCITATION_IN" />
 
-		<connection sourcemodule = "Interneuron_1" source = "OUTPUT" targetmodule = "Scale_Inhibition" target = "INPUT" />
-		<connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" size="@InhPopSize" targetmodule = "Pyramidal_2" target = "INHIBITION_IN" />
+		<connection  source = "Interneuron_1.OUTPUT"  target = "Scale_Inhibition.INPUT" />
+		<connection  source = "Scale_Inhibition.OUTPUT" size="@InhPopSize"  target = "Pyramidal_2.INHIBITION_IN" />
 
-		<connection sourcemodule = "Pyramidal_2" source = "OUTPUT" targetmodule = "Interneuron_2" target = "EXCITATION_IN" />
-		<connection sourcemodule = "Pyramidal_2" source = "OUTPUT" targetmodule = "Scale_Excitation" target = "INPUT" />
-		<connection sourcemodule = "Scale_Excitation" source = "OUTPUT" sourceoffset="@ExPopSize" size="@ExPopSize" targetmodule = "Interneuron_2" target = "EXCITATION_IN" />
+		<connection  source = "Pyramidal_2.OUTPUT"  target = "Interneuron_2.EXCITATION_IN" />
+		<connection  source = "Pyramidal_2.OUTPUT"  target = "Scale_Excitation.INPUT" />
+		<connection  source = "Scale_Excitation.OUTPUT" sourceoffset="@ExPopSize" size="@ExPopSize"  target = "Interneuron_2.EXCITATION_IN" />
 
        
-	    <connection sourcemodule = "Interneuron_2" source = "OUTPUT" targetmodule = "Scale_Inhibition" target = "INPUT" />
-		<connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" sourceoffset="@InhPopSize" size="@InhPopSize" targetmodule = "Pyramidal_3" target = "INHIBITION_IN" />
+	    <connection  source = "Interneuron_2.OUTPUT"  target = "Scale_Inhibition.INPUT" />
+		<connection  source = "Scale_Inhibition.OUTPUT" sourceoffset="@InhPopSize" size="@InhPopSize"  target = "Pyramidal_3.INHIBITION_IN" />
 
-		<connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" size="@InhPopSize" targetmodule = "Pyramidal_3" target = "INHIBITION_IN" />
+		<connection  source = "Scale_Inhibition.OUTPUT" size="@InhPopSize"  target = "Pyramidal_3.INHIBITION_IN" />
 
         <view name="View">
 

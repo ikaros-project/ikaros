@@ -15,10 +15,10 @@
 		<_module class = "Constant" name = "V1" data = "2" />
 		<_module class = "Constant" name = "V2" data = "1" />
 
-		<connection sourcemodule = "C1" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_1" delay="0" />
-		<connection sourcemodule = "C2" source = "OUTPUT" targetmodule = "Arbiter" target = "INPUT_2" delay="0" />
-		<_connection sourcemodule = "V1" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_1" delay="0" />
-		<_connection sourcemodule = "V2" source = "OUTPUT" targetmodule = "Arbiter" target = "VALUE_2" delay="0" />
+		<connection  source = "C1.OUTPUT"  target = "Arbiter.INPUT_1" delay="0" />
+		<connection  source = "C2.OUTPUT"  target = "Arbiter.INPUT_2" delay="0" />
+		<_connection  source = "V1.OUTPUT"  target = "Arbiter.VALUE_1" delay="0" />
+		<_connection  source = "V2.OUTPUT"  target = "Arbiter.VALUE_2" delay="0" />
 
 		<view>
 			<object

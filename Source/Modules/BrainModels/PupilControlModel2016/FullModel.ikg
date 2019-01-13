@@ -45,16 +45,16 @@
 
     <!-- LC => IML -->
     
-    <connection sourcemodule="LCa" source="OUTPUT" targetmodule="PeripheralPupilControl" target="IML_EXCITATION_Left" />
-    <connection sourcemodule="LCa" source="OUTPUT" targetmodule="PeripheralPupilControl" target="IML_EXCITATION_Right" />
+    <connection  source = "LCa.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection  source = "LCa.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
 
-    <connection sourcemodule="LCb" source="OUTPUT" targetmodule="PeripheralPupilControl" target="EW_SHUNTING_Left" />
-    <connection sourcemodule="LCb" source="OUTPUT" targetmodule="PeripheralPupilControl" target="EW_SHUNTING_Right" />
+    <connection  source = "LCb.OUTPUT"  target = "PeripheralPupilControl.EW_SHUNTING_Left" />
+    <connection  source = "LCb.OUTPUT"  target = "PeripheralPupilControl.EW_SHUNTING_Right" />
 
     <!-- ********************************* AMYGDALA ********************************* -->
     
-    <_connection sourcemodule="VisionBlackBock" source="OBJECT" targetmodule="Amygdala" target="CS" delay="105" />
-    <_connection sourcemodule="VisionBlackBock" source="EMOTION_NEG" targetmodule="Amygdala" target="US" />
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Amygdala.CS" delay="105" />
+    <_connection  source = "VisionBlackBock.EMOTION_NEG"  target = "Amygdala.US" />
 
     <module
         class="Amygdala"
@@ -62,15 +62,15 @@
         alpha = "0.05"
     />
 
-    <connection sourcemodule="Amygdala" source="CR" targetmodule="LCa" target="EXCITATION" />    <!-- CR OUTPUT -->
-    <connection sourcemodule="Amygdala" source="CR" targetmodule="LCb" target="EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* CERBELLUM ********************************* -->
     
-    <_connection sourcemodule="VisionBlackBock" source="OBJECT" targetmodule="Cerebellum" target="CS" />    <!-- CS INPUT -->
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Cerebellum.CS" />    <!-- CS INPUT -->
 
-    <connection sourcemodule="PeripheralPupilControl" source="EW_OUTPUT_Left" targetmodule="Cerebellum_Left" target="US" />    <!-- US INPUT (target) -->
-    <connection sourcemodule="PeripheralPupilControl" source="EW_OUTPUT_Right" targetmodule="Cerebellum_Right" target="US" />    <!-- US INPUT (target) -->
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Left"  target = "Cerebellum_Left.US" />    <!-- US INPUT (target) -->
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Right"  target = "Cerebellum_Right.US" />    <!-- US INPUT (target) -->
 
     <module
         class="Cerebellum"
@@ -84,18 +84,18 @@
         alpha = "0.1"
     />
 
-    <connection sourcemodule="Cerebellum_Left" source="CR" targetmodule="PeripheralPupilControl" target="EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
-    <connection sourcemodule="Cerebellum_Right" source="CR" targetmodule="PeripheralPupilControl" target="EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Right.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* EYES ********************************* -->
     
     <!-- delay = 12 gives a minumum 260 ms latency of pupilary response -->
 
-    <connection sourcemodule="PeripheralPupilControl" source="SCG_OUTPUT_Left" targetmodule="LeftEye" target="PUPIL_DILATOR" delay="12" />
-    <connection sourcemodule="PeripheralPupilControl" source="CG_OUTPUT_Left" targetmodule="LeftEye" target="PUPIL_SPHINCTER" delay="12" />
+    <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Left"  target = "LeftEye.PUPIL_DILATOR" delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Left"  target = "LeftEye.PUPIL_SPHINCTER" delay="12" />
 
-    <connection sourcemodule="PeripheralPupilControl" source="SCG_OUTPUT_Right" targetmodule="RightEye" target="PUPIL_DILATOR" delay="12" />
-    <connection sourcemodule="PeripheralPupilControl" source="CG_OUTPUT_Right" targetmodule="RightEye" target="PUPIL_SPHINCTER"delay="12" />
+    <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Right"  target = "RightEye.PUPIL_DILATOR" delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Right"  target = "RightEye.PUPIL_SPHINCTER"delay="12" />
 
     <module
         class="EyeModel"

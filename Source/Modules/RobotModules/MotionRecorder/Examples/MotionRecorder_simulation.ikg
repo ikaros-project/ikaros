@@ -28,8 +28,8 @@
             auto_save = "yes"
 		/>
 
-        <connection sourcemodule = "Input" source = "OUTPUT" targetmodule = "MotionRecorder" target = "INPUT" />
-        <_connection sourcemodule = "MotionRecorder" source = "TORQUE" targetmodule = "ActuatedPendulum" target = "INPUT" />
+        <connection  source = "Input.OUTPUT"  target = "MotionRecorder.INPUT" />
+        <_connection  source = "MotionRecorder.TORQUE"  target = "ActuatedPendulum.INPUT" />
 
 		<view name="View" object_size="50">
 			<object class="Plot" module="Input" source="OUTPUT" color="green" select="0" x="0" y="0" w="8" h="4" min="-2" max="2"/>

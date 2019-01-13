@@ -36,16 +36,16 @@
 			search_window_radius = "15"
 		/>
 
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "FAST" target = "INPUT" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "FAST.INPUT" delay="0" />
 
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "BlockMatching" target = "INPUT" delay="0" />
-		<connection sourcemodule = "IN" source = "INTENSITY" targetmodule = "BlockMatching" target = "INPUT-LAST" delay="1" />
+		<connection  source = "IN.INTENSITY"  target = "BlockMatching.INPUT" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "BlockMatching.INPUT-LAST" delay="1" />
 
-		<connection sourcemodule = "FAST" source = "POINTS" targetmodule = "BlockMatching" target = "POINTS" delay="0" />
-		<connection sourcemodule = "FAST" source = "POINT_COUNT" targetmodule = "BlockMatching" target = "NO-OF-POINTS" delay="0" />
+		<connection  source = "FAST.POINTS"  target = "BlockMatching.POINTS" delay="0" />
+		<connection  source = "FAST.POINT_COUNT"  target = "BlockMatching.NO-OF-POINTS" delay="0" />
 
-		<_connection sourcemodule = "P" source = "OUTPUT" targetmodule = "BlockMatching" target = "POINTS" delay="0" />
-		<_connection sourcemodule = "PC" source = "OUTPUT" targetmodule = "BlockMatching" target = "NO-OF-POINTS" delay="0" />
+		<_connection  source = "P.OUTPUT"  target = "BlockMatching.POINTS" delay="0" />
+		<_connection  source = "PC.OUTPUT"  target = "BlockMatching.NO-OF-POINTS" delay="0" />
 
     <module class = "Logger" name = "Logger" />
 

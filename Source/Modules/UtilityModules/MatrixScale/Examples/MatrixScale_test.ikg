@@ -33,9 +33,9 @@
 			debug = "no"
 		/>
 		
-        <connection sourcemodule = "SinGenX" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "X" />
-        <connection sourcemodule = "SinGenX" source = "OUTPUT" targetmodule = "MatrixScaleInstance" target = "Y" />
-        <connection sourcemodule = "InputImg" source = "INTENSITY" targetmodule = "MatrixScaleInstance" target = "INPUT" />
+        <connection  source = "SinGenX.OUTPUT"  target = "MatrixScaleInstance.X" />
+        <connection  source = "SinGenX.OUTPUT"  target = "MatrixScaleInstance.Y" />
+        <connection  source = "InputImg.INTENSITY"  target = "MatrixScaleInstance.INPUT" />
 
 		<view name="View">
 			<object class="Plot " 

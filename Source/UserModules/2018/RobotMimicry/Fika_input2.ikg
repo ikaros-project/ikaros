@@ -87,70 +87,70 @@ feedback = "false"
   <module class = "Add" name = "R2BodyOffsetAdd" outputsize = "1" />
 
   <!-- Robot 1 Head and body offset calculations  -->
-  <connection sourcemodule = "MaximumToRobot1"  source = "HEAD" targetmodule = "R1HeadOffsetAdd"  target = "INPUT1" />
-  <connection sourcemodule = "HeadOffset"  source = "OUTPUT" targetmodule = "R1HeadOffsetAdd"  target = "INPUT2" />
+  <connection  source = "MaximumToRobot1.HEAD"  target = "R1HeadOffsetAdd.INPUT1" />
+  <connection  source = "HeadOffset.OUTPUT"  target = "R1HeadOffsetAdd.INPUT2" />
 
-  <connection sourcemodule = "MaximumToRobot1"  source = "BODY" targetmodule = "R1BodyOffsetAdd"  target = "INPUT1" />
-  <connection sourcemodule = "BodyOffset"  source = "OUTPUT" targetmodule = "R1BodyOffsetAdd"  target = "INPUT2" />
+  <connection  source = "MaximumToRobot1.BODY"  target = "R1BodyOffsetAdd.INPUT1" />
+  <connection  source = "BodyOffset.OUTPUT"  target = "R1BodyOffsetAdd.INPUT2" />
 
   <!-- Robot 2 Head and body offset calculations -->
-  <connection sourcemodule = "MaximumToRobot2"  source = "HEAD" targetmodule = "R2HeadOffsetAdd"  target = "INPUT1" />
-  <connection sourcemodule = "HeadOffset"  source = "OUTPUT" targetmodule = "R2HeadOffsetAdd"  target = "INPUT2" />
+  <connection  source = "MaximumToRobot2.HEAD"  target = "R2HeadOffsetAdd.INPUT1" />
+  <connection  source = "HeadOffset.OUTPUT"  target = "R2HeadOffsetAdd.INPUT2" />
 
-  <connection sourcemodule = "MaximumToRobot2"  source = "BODY" targetmodule = "R2BodyOffsetAdd"  target = "INPUT1" />
-  <connection sourcemodule = "BodyOffset"  source = "OUTPUT" targetmodule = "R2BodyOffsetAdd"  target = "INPUT2" />
+  <connection  source = "MaximumToRobot2.BODY"  target = "R2BodyOffsetAdd.INPUT1" />
+  <connection  source = "BodyOffset.OUTPUT"  target = "R2BodyOffsetAdd.INPUT2" />
 
   <!-- ROBOT MODULES -->
   <module class = "Constant" name = "TorqueLimitHead" outputsize = "1" data = "0.3" />
   <module class = "Constant" name = "TorqueLimitBody" outputsize = "1" data = "0.1" />
 
   <!-- Torque for robot 1 -->
-  <connection sourcemodule = "TorqueLimitHead"  source = "OUTPUT" targetmodule = "Dynamixel1"  target = "TORQUE_LIMIT" />
-  <connection sourcemodule = "TorqueLimitBody"  source = "OUTPUT" targetmodule = "Dynamixel1"  target = "TORQUE_LIMIT" />
-  <connection sourcemodule = "TorqueLimitHead"  source = "OUTPUT" targetmodule = "Dynamixel1"  target = "TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel1.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitBody.OUTPUT"  target = "Dynamixel1.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel1.TORQUE_LIMIT" />
 
   <!-- Torque for robot 2 -->
-  <connection sourcemodule = "TorqueLimitHead"  source = "OUTPUT" targetmodule = "Dynamixel2"  target = "TORQUE_LIMIT" />
-  <connection sourcemodule = "TorqueLimitBody"  source = "OUTPUT" targetmodule = "Dynamixel2"  target = "TORQUE_LIMIT" />
-  <connection sourcemodule = "TorqueLimitHead"  source = "OUTPUT" targetmodule = "Dynamixel2"  target = "TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel2.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitBody.OUTPUT"  target = "Dynamixel2.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel2.TORQUE_LIMIT" />
 
   <module class = "Constant" name = "RobotStill" outputsize = "1" data = "180" />
 
   <!-- Map head and body for robot 1  -->
-  <connection sourcemodule  = "R1HeadOffsetAdd" source  = "OUTPUT" targetmodule	 = "Dynamixel1" target  = "GOAL_POSITION" />
-  <connection sourcemodule  = "R1BodyOffsetAdd" source  = "OUTPUT" targetmodule	 = "Dynamixel1" target  = "GOAL_POSITION" />
-  <connection sourcemodule  = "RobotStill" source  = "OUTPUT" targetmodule	 = "Dynamixel1" target  = "GOAL_POSITION" />
+  <connection  source = "R1HeadOffsetAdd.OUTPUT"  target = "Dynamixel1.GOAL_POSITION" />
+  <connection  source = "R1BodyOffsetAdd.OUTPUT"  target = "Dynamixel1.GOAL_POSITION" />
+  <connection  source = "RobotStill.OUTPUT"  target = "Dynamixel1.GOAL_POSITION" />
 
     <!-- Map head and body for robot 2 -->
-  <connection sourcemodule  = "R2HeadOffsetAdd" source  = "OUTPUT" targetmodule	 = "Dynamixel2" target  = "GOAL_POSITION" />
-  <connection sourcemodule  = "R2BodyOffsetAdd" source  = "OUTPUT" targetmodule	 = "Dynamixel2" target  = "GOAL_POSITION" />
-  <connection sourcemodule  = "RobotStill" source  = "OUTPUT" targetmodule	 = "Dynamixel2" target  = "GOAL_POSITION" />
+  <connection  source = "R2HeadOffsetAdd.OUTPUT"  target = "Dynamixel2.GOAL_POSITION" />
+  <connection  source = "R2BodyOffsetAdd.OUTPUT"  target = "Dynamixel2.GOAL_POSITION" />
+  <connection  source = "RobotStill.OUTPUT"  target = "Dynamixel2.GOAL_POSITION" />
 
   <!-- Speed for both robots-->
-  <connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel1" target  = "MOVING_SPEED" />
-  <connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel1" target  = "MOVING_SPEED" />
-  <connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel1" target  = "MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel1.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel1.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel1.MOVING_SPEED" />
 
-  <connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel2" target  = "MOVING_SPEED" />
-  <connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel2" target  = "MOVING_SPEED" />
-  <connection sourcemodule  = "Speed" source  = "OUTPUT" targetmodule	 = "Dynamixel2" target  = "MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel2.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel2.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel2.MOVING_SPEED" />
 
 
   <!-- Scale Kinect data -->
-  <connection sourcemodule = "InputRaw" source = "OUTPUT" targetmodule = "Scale" target = "INPUT" />
+  <connection  source = "InputRaw.OUTPUT"  target = "Scale.INPUT" />
 
   <!-- Display DepthSegmentation -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthHistogram" target = "INPUT" />
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "DepthSegmentation" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "DepthSegmentation" target = "OBJECT" />
+  <connection  source = "Scale.OUTPUT"  target = "DepthHistogram.INPUT" />
+  <connection  source = "Scale.OUTPUT"  target = "DepthSegmentation.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "DepthSegmentation.OBJECT" />
 
   <!-- MaximumToRobot1   -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "MaximumToRobot1" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "MaximumToRobot1" target = "OBJECT" />
+  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot1.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot1.OBJECT" />
 
   <!-- MaximumToRobot2 -->
-  <connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "MaximumToRobot2" target = "INPUT" />
-  <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "MaximumToRobot2" target = "OBJECT" />
+  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot2.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot2.OBJECT" />
 
   <view name="Depth">
         <!--

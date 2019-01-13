@@ -130,21 +130,21 @@
             integration_radius = "10"
         />
         
-		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "L1" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L2" target = "INPUT" delay="1" />
-        <connection sourcemodule = "L2" source = "OUTPUT" targetmodule = "L3" target = "INPUT" delay="1" />
+		<connection  source = "Input.INTENSITY"  target = "L1.INPUT" delay="1" />
+        <connection  source = "L1.OUTPUT"  target = "L2.INPUT" delay="1" />
+        <connection  source = "L2.OUTPUT"  target = "L3.INPUT" delay="1" />
     
     
-        <connection sourcemodule = "L3" source = "OUTPUT" targetmodule = "L3" target = "TOP_DOWN" delay="1" />
-        <connection sourcemodule = "L3" source = "RECONSTRUCTION" targetmodule = "L2" target = "TOP_DOWN" delay="1" />
-        <connection sourcemodule = "L2" source = "RECONSTRUCTION" targetmodule = "L1" target = "TOP_DOWN" delay="1" />
+        <connection  source = "L3.OUTPUT"  target = "L3.TOP_DOWN" delay="1" />
+        <connection  source = "L3.RECONSTRUCTION"  target = "L2.TOP_DOWN" delay="1" />
+        <connection  source = "L2.RECONSTRUCTION"  target = "L1.TOP_DOWN" delay="1" />
 
-        <connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "Innovation" target = "INPUT1" delay="1" />
-        <connection sourcemodule = "L1" source = "RECONSTRUCTION" targetmodule = "Innovation" target = "INPUT2" delay="1" />
+        <connection  source = "Input.INTENSITY"  target = "Innovation.INPUT1" delay="1" />
+      <connection  source = "L1.RECONSTRUCTION"  target = "Innovation.INPUT2" delay="1" />
 
-        <connection sourcemodule = "Innovation" source = "OUTPUT" targetmodule = "InnovationA" target = "INPUT" delay="0" />
+        <connection  source = "Innovation.OUTPUT"  target = "InnovationA.INPUT" delay="0" />
     
-        <connection sourcemodule = "InnovationA" source = "OUTPUT" targetmodule = "Salience" target = "INPUT0" delay="0" />
+        <connection  source = "InnovationA.OUTPUT"  target = "Salience.INPUT0" delay="0" />
 
 		<view name="Map">
 			<object class= "Image" type="gray" module="Input" source="INTENSITY"                                        x="0" y="0" h="2" w="2" />

@@ -19,7 +19,7 @@
 
 		/>
 		
-        <connection sourcemodule = "DATA" source = "OUTPUT" targetmodule = "ServoConnector" target = "INPUT" />
+        <connection  source = "DATA.OUTPUT"  target = "ServoConnector.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="ServoConnector" source="OUTPUT" x="0" y="0" />

@@ -7,11 +7,11 @@
   />
   <module class="OutputVideoFile" name="OutputVideoFile" filename="test.mp4"/>
 
-  <connection sourcemodule="IN" source="RED" targetmodule="OutputVideoFile" target="RED"/>
-  <connection sourcemodule="IN" source="GREEN" targetmodule="OutputVideoFile" target="GREEN"/>
-  <connection sourcemodule="IN" source="BLUE" targetmodule="OutputVideoFile" target="BLUE"/>
+  <connection  source = "IN.RED"  target = "OutputVideoFile.RED"/>
+  <connection  source = "IN.GREEN"  target = "OutputVideoFile.GREEN"/>
+  <connection  source = "IN.BLUE"  target = "OutputVideoFile.BLUE"/>
 
-  <_connection sourcemodule="IN" source="RED" targetmodule="OutputVideoFile" target="INTENSITY"/>
+  <_connection  source = "IN.RED"  target = "OutputVideoFile.INTENSITY"/>
 
   <view name="Movie View" object_size="500">
     <object class="Image" type="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0"/>

@@ -10,7 +10,7 @@
         list_devices = "no"
     />
     
-  	<connection sourcemodule = "Camera"    	source = "INTENSITY" 	targetmodule = "MarkerTracker"  	target="INPUT"   	delay="0"	/>
+  	<connection  source = "Camera.INTENSITY" 	 target = "MarkerTracker.INPUT"   	delay="0"	/>
 	
     <module
 		class       = "MarkerTracker"
@@ -24,7 +24,7 @@
         threshold 	= "auto"
 	/>
 	
-    <connection sourcemodule="MarkerTracker" source="MARKERS" targetmodule="CalibrateCameraPosition" target="INPUT" />
+    <connection  source = "MarkerTracker.MARKERS"  target = "CalibrateCameraPosition.INPUT" />
     
 	<module
         class	=	"CalibrateCameraPosition"

@@ -29,18 +29,18 @@
     />
     
     <module class = "Constant" name = "SET" outputsize = "1" data = "0" />
-    <connection sourcemodule = "SET"  source = "OUTPUT" targetmodule = "DynamixelConfigure"  target = "SET" />
+    <connection  source = "SET.OUTPUT"  target = "DynamixelConfigure.SET" />
     
     <!-- Modules to handle active ID -->
     <module class = "Constant" name = "ADD_ONE" outputsize = "1" data = "0" />
     <module class = "Constant" name = "SUBTRACT_ONE" outputsize = "1" data = "0" />
     <module	class = "Add" name = "Add"	/>
-    <connection sourcemodule = "ADD_ONE"  source = "OUTPUT" targetmodule = "Add"  target = "INPUT2" delay="0"/>
-    <connection sourcemodule = "Subtract"  source = "OUTPUT" targetmodule = "Add"  target = "INPUT1"  />
+    <connection  source = "ADD_ONE.OUTPUT"  target = "Add.INPUT2" delay="0"/>
+    <connection  source = "Subtract.OUTPUT"  target = "Add.INPUT1"  />
     <module	class = "Subtract" name = "Subtract"	/>
-    <connection sourcemodule = "SUBTRACT_ONE"  source = "OUTPUT" targetmodule = "Subtract"  target = "INPUT2" delay="0"/>
-    <connection sourcemodule = "Add"  source = "OUTPUT" targetmodule = "Subtract"  target = "INPUT1" delay="0"/>
-    <connection sourcemodule = "Subtract"  source = "OUTPUT" targetmodule = "DynamixelConfigure"  target = "ACTIVE" delay="0"/>
+    <connection  source = "SUBTRACT_ONE.OUTPUT"  target = "Subtract.INPUT2" delay="0"/>
+    <connection  source = "Add.OUTPUT"  target = "Subtract.INPUT1" delay="0"/>
+    <connection  source = "Subtract.OUTPUT"  target = "DynamixelConfigure.ACTIVE" delay="0"/>
     
     <view name="Configure servo">
 

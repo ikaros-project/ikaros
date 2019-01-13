@@ -117,50 +117,50 @@
             debug = "false"
 		/>
 <!--Connections-->	
-    <connection sourcemodule = "One" source = "OUTPUT" targetmodule = "ListIt" target = "SYNC IN" />
-    <connection sourcemodule = "Zero" source = "OUTPUT" targetmodule = "ListIt" target = "SELECT" />
+    <connection  source = "One.OUTPUT"  target = "ListIt.SYNC IN" />
+    <connection  source = "Zero.OUTPUT"  target = "ListIt.SELECT" />
     <!--Change from using initial condition after 1 tick-->
-    <connection sourcemodule = "Pos" source = "OUTPUT" targetmodule = "Sel_Pos" target = "INPUT1" />
-    <connection sourcemodule = "Add_Pos" source = "OUTPUT" targetmodule = "Sel_Pos" target = "INPUT2" />
-    <connection sourcemodule = "ListIt" source = "OUTPUT" targetmodule = "Sel_Pos" target = "SELECT" />
+    <connection  source = "Pos.OUTPUT"  target = "Sel_Pos.INPUT1" />
+    <connection  source = "Add_Pos.OUTPUT"  target = "Sel_Pos.INPUT2" />
+    <connection  source = "ListIt.OUTPUT"  target = "Sel_Pos.SELECT" />
 
-    <connection sourcemodule = "Vel" source = "OUTPUT" targetmodule = "Sel_Vel" target = "INPUT1" />
-    <connection sourcemodule = "Add_Vel" source = "OUTPUT" targetmodule = "Sel_Vel" target = "INPUT2" />
-    <connection sourcemodule = "ListIt" source = "OUTPUT" targetmodule = "Sel_Vel" target = "SELECT" />
+    <connection  source = "Vel.OUTPUT"  target = "Sel_Vel.INPUT1" />
+    <connection  source = "Add_Vel.OUTPUT"  target = "Sel_Vel.INPUT2" />
+    <connection  source = "ListIt.OUTPUT"  target = "Sel_Vel.SELECT" />
 
     <!--dT*(-position*k-velocity*damp)/mass-->
     <!--Note: use delay = 0 to make sure the whole difference equation  -->
     <!--        is calculated in one go; otherwise it diverges          -->
-    <connection delay ="0" sourcemodule = "Zero" source = "OUTPUT" targetmodule = "NegPos" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Sel_Pos" source = "OUTPUT" targetmodule = "NegPos" target = "INPUT2" />
+    <connection delay ="0"  source = "Zero.OUTPUT"  target = "NegPos.INPUT1" />
+    <connection delay ="0"  source = "Sel_Pos.OUTPUT"  target = "NegPos.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "K" source = "OUTPUT" targetmodule = "Mult_K_NegPos" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "NegPos" source = "OUTPUT" targetmodule = "Mult_K_NegPos" target = "INPUT2" />
+    <connection delay ="0"  source = "K.OUTPUT"  target = "Mult_K_NegPos.INPUT1" />
+    <connection delay ="0"  source = "NegPos.OUTPUT"  target = "Mult_K_NegPos.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "Zero" source = "OUTPUT" targetmodule = "NegVel" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Sel_Vel" source = "OUTPUT" targetmodule = "NegVel" target = "INPUT2" />
+    <connection delay ="0"  source = "Zero.OUTPUT"  target = "NegVel.INPUT1" />
+    <connection delay ="0"  source = "Sel_Vel.OUTPUT"  target = "NegVel.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "Damp" source = "OUTPUT" targetmodule = "Mult_D_NegVel" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "NegVel" source = "OUTPUT" targetmodule = "Mult_D_NegVel" target = "INPUT2" />
+    <connection delay ="0"  source = "Damp.OUTPUT"  target = "Mult_D_NegVel.INPUT1" />
+    <connection delay ="0"  source = "NegVel.OUTPUT"  target = "Mult_D_NegVel.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "Mult_K_NegPos" source = "OUTPUT" targetmodule = "Add_Pos_Vel" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Mult_D_NegVel" source = "OUTPUT" targetmodule = "Add_Pos_Vel" target = "INPUT2" />
+    <connection delay ="0"  source = "Mult_K_NegPos.OUTPUT"  target = "Add_Pos_Vel.INPUT1" />
+    <connection delay ="0"  source = "Mult_D_NegVel.OUTPUT"  target = "Add_Pos_Vel.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "dT" source = "OUTPUT" targetmodule = "Mult_Dt" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Add_Pos_Vel" source = "OUTPUT" targetmodule = "Mult_Dt" target = "INPUT2" />
+    <connection delay ="0"  source = "dT.OUTPUT"  target = "Mult_Dt.INPUT1" />
+    <connection delay ="0"  source = "Add_Pos_Vel.OUTPUT"  target = "Mult_Dt.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "Mult_Dt" source = "OUTPUT" targetmodule = "Div_Mass" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Mass" source = "OUTPUT" targetmodule = "Div_Mass" target = "INPUT2" />
+    <connection delay ="0"  source = "Mult_Dt.OUTPUT"  target = "Div_Mass.INPUT1" />
+    <connection delay ="0"  source = "Mass.OUTPUT"  target = "Div_Mass.INPUT2" />
 
     <!---->
-    <connection delay ="0" sourcemodule = "Div_Mass" source = "OUTPUT" targetmodule = "Add_Vel" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Sel_Vel" source = "OUTPUT" targetmodule = "Add_Vel" target = "INPUT2" />
+    <connection delay ="0"  source = "Div_Mass.OUTPUT"  target = "Add_Vel.INPUT1" />
+    <connection delay ="0"  source = "Sel_Vel.OUTPUT"  target = "Add_Vel.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "Sel_Vel" source = "OUTPUT" targetmodule = "Mult_Vel_Dt" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "dT" source = "OUTPUT" targetmodule = "Mult_Vel_Dt" target = "INPUT2" />
+    <connection delay ="0"  source = "Sel_Vel.OUTPUT"  target = "Mult_Vel_Dt.INPUT1" />
+    <connection delay ="0"  source = "dT.OUTPUT"  target = "Mult_Vel_Dt.INPUT2" />
 
-    <connection delay ="0" sourcemodule = "Sel_Pos" source = "OUTPUT" targetmodule = "Add_Pos" target = "INPUT1" />
-    <connection delay ="0" sourcemodule = "Mult_Vel_Dt" source = "OUTPUT" targetmodule = "Add_Pos" target = "INPUT2" />
+    <connection delay ="0"  source = "Sel_Pos.OUTPUT"  target = "Add_Pos.INPUT1" />
+    <connection delay ="0"  source = "Mult_Vel_Dt.OUTPUT"  target = "Add_Pos.INPUT2" />
 <!-- View -->
 <view name="View">
     <text

@@ -16,7 +16,7 @@
         no_of_taps = "6"
     />
         
-    <connection sourcemodule="Signal" source="OUTPUT" targetmodule="SpectralTiming" target="INPUT" delay = "1" />
+    <connection  source = "Signal.OUTPUT"  target = "SpectralTiming.INPUT" delay = "1" />
     
     <view name="View">
         <object class="Plot" module="Signal" source="OUTPUT" max="1" colors="yellow"  x="0" y="0" w="4" />

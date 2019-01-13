@@ -37,16 +37,16 @@
         segment_count = "250"
     />
     
-    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" delay="0" />
+    <connection  source = "Kinect.DEPTH"  target = "Scale.INPUT" delay="0" />
     
-    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthHistogram" target = "INPUT" />
-    <connection sourcemodule = "Kinect" source = "DEPTH" targetmodule = "DepthSegmentation" target = "INPUT" />
+    <connection  source = "Kinect.DEPTH"  target = "DepthHistogram.INPUT" />
+    <connection  source = "Kinect.DEPTH"  target = "DepthSegmentation.INPUT" />
     
-    <connection sourcemodule = "DepthHistogram" source = "OBJECT" targetmodule = "DepthSegmentation" target = "OBJECT" delay="0" />
-    <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "Multiply" target = "INPUT1" delay="0" />
-    <connection sourcemodule = "Kinect" source = "INTENSITY" targetmodule = "Multiply" target = "INPUT2" delay="0" />
+    <connection  source = "DepthHistogram.OBJECT"  target = "DepthSegmentation.OBJECT" delay="0" />
+    <connection  source = "DepthSegmentation.OUTPUT"  target = "Multiply.INPUT1" delay="0" />
+    <connection  source = "Kinect.INTENSITY"  target = "Multiply.INPUT2" delay="0" />
     
-    <connection sourcemodule = "DepthSegmentation" source = "OUTPUT" targetmodule = "DepthContourTrace" target = "INPUT" delay="0"  />
+    <connection  source = "DepthSegmentation.OUTPUT"  target = "DepthContourTrace.INPUT" delay="0"  />
 
     <view name="Overview">
         <object class="Image" type="gray" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />

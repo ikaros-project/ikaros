@@ -18,7 +18,7 @@
     />
     
 
-    <connection sourcemodule="Points" source="OUTPUT" targetmodule="DepthTransform" target="INPUT" />
+    <connection  source = "Points.OUTPUT"  target = "DepthTransform.INPUT" />
     
     <module class = "Logger" name = "Logger" />
 </group>

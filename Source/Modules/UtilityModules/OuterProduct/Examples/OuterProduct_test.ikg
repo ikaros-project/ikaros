@@ -10,8 +10,8 @@
 			name = "OuterProduct"
 		/>
 
-		<connection sourcemodule="Constant1" source="OUTPUT" targetmodule="OuterProduct" target="INPUT1" />
-		<connection sourcemodule="Constant2" source="OUTPUT" targetmodule="OuterProduct" target="INPUT2" />
+		<connection  source = "Constant1.OUTPUT"  target = "OuterProduct.INPUT1" />
+		<connection  source = "Constant2.OUTPUT"  target = "OuterProduct.INPUT2" />
 
 		<view name="View">
 			<object class="Image" module="OuterProduct" source="OUTPUT" x="0" y="0" />

@@ -13,7 +13,7 @@
             y1 = "2"
 		/>
 
-		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Submatrix" target="INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Submatrix.INPUT" />
 
 		<view name="View">
 			<object class="Image" type="gray" module="Submatrix" source="OUTPUT" x="0" y="0" />

@@ -72,20 +72,20 @@
 		/>
        
 		
-        <connection sourcemodule = "FastSpiking" source = "OUTPUT" targetmodule = "Scale_Inhibition" target = "INPUT" />
-        <connection sourcemodule = "Scale_Inhibition" source = "OUTPUT" targetmodule = "RegularSpiking" target = "INHIBITION_IN" />
+        <connection  source = "FastSpiking.OUTPUT"  target = "Scale_Inhibition.INPUT" />
+        <connection  source = "Scale_Inhibition.OUTPUT"  target = "RegularSpiking.INHIBITION_IN" />
         
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RegularSpiking" target = "EXCITATION_IN" />
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "FastSpiking" target = "INHIBITION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.EXCITATION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.INHIBITION_IN" />
 
-		<connection sourcemodule = "InputSignal" source = "OUTPUT" targetmodule = "PopulationCoder" target = "INPUT" />
-        <connection sourcemodule = "PopulationCoder" source = "OUTPUT" targetmodule = "Scale_Input" target = "INPUT" />
-		<connection sourcemodule = "Scale_Input" source = "OUTPUT" targetmodule = "RegularSpiking" target = "DIRECT_IN" />
+		<connection  source = "InputSignal.OUTPUT"  target = "PopulationCoder.INPUT" />
+        <connection  source = "PopulationCoder.OUTPUT"  target = "Scale_Input.INPUT" />
+		<connection  source = "Scale_Input.OUTPUT"  target = "RegularSpiking.DIRECT_IN" />
 		
-        <connection sourcemodule = "RegularSpiking" source = "OUTPUT" targetmodule = "Scale_Excitation" target = "INPUT" />
-        <connection sourcemodule = "Scale_Excitation" source = "OUTPUT" targetmodule = "FastSpiking" target = "EXCITATION_IN" />
+        <connection  source = "RegularSpiking.OUTPUT"  target = "Scale_Excitation.INPUT" />
+        <connection  source = "Scale_Excitation.OUTPUT"  target = "FastSpiking.EXCITATION_IN" />
 		
-        <connection sourcemodule = "FastSpiking" source = "ADENOSINE" targetmodule = "Adenosine_Stock" target = "INPUT" />
+        <connection  source = "FastSpiking.ADENOSINE"  target = "Adenosine_Stock.INPUT" />
         
         <view name="View">
 

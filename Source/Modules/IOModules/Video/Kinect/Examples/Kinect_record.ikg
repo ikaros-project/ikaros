@@ -46,10 +46,10 @@
         <column name="Kinect" />
     </module>
 
-    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="KinectRecorder" target="Kinect" />
-    <connection sourcemodule="Kinect" source="DEPTH" targetmodule="Scale" target="INPUT" />
-    <connection sourcemodule="Tilt" source="OUTPUT" targetmodule="Kinect" target="TILT" />
-    <connection sourcemodule="Color" source="OUTPUT" targetmodule="Kinect" target="LED" />
+    <connection  source = "Kinect.DEPTH"  target = "KinectRecorder.Kinect" />
+    <connection  source = "Kinect.DEPTH"  target = "Scale.INPUT" />
+    <connection  source = "Tilt.OUTPUT"  target = "Kinect.TILT" />
+    <connection  source = "Color.OUTPUT"  target = "Kinect.LED" />
 
      <view name="Main View">
         <image format="fire" name="Camera" module = "Scale" source = "OUTPUT" x="20" y="20" width="426" height="320" />

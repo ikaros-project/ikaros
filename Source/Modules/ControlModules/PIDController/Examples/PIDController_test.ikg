@@ -23,8 +23,8 @@
         Kd = "0"
     />
 
-    <connection sourcemodule = "IN" source = "X" targetmodule = "PID" target = "INPUT" />
-    <connection sourcemodule = "IN" source = "S" targetmodule = "PID" target = "SETPOINT" />
+    <connection  source = "IN.X"  target = "PID.INPUT" />
+    <connection  source = "IN.S"  target = "PID.SETPOINT" />
 	
 	<views>
 		<view name="V1">

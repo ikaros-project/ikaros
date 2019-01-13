@@ -40,12 +40,12 @@
 			type = "rotate-180"
 		/>
 
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip1" target="INPUT" />
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip2" target="INPUT" />
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip3" target="INPUT" />
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip4" target="INPUT" />
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip5" target="INPUT" />
-		<connection sourcemodule="C" source="OUTPUT" targetmodule="Flip6" target="INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Flip1.INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Flip2.INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Flip3.INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Flip4.INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Flip5.INPUT" />
+		<connection  source = "C.OUTPUT"  target = "Flip6.INPUT" />
 
 		<view name="View">
 			<object class="Grid" title="Input" module="C" source="OUTPUT" max="5" x="0" y="0" />

@@ -31,7 +31,7 @@
         <column name="X" />
     </module>
 
-	<connection sourcemodule="F" source="OUTPUT" targetmodule="OUT" target="X" />
+	<connection  source = "F.OUTPUT"  target = "OUT.X" />
 
 </group>
 

@@ -28,8 +28,8 @@
 			debug = "true"
 		/>
 		
-        <connection sourcemodule = "Index" source = "OUTPUT" targetmodule = "ListIterator" target = "SELECT" />
-        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "ListIterator" target = "SYNC IN" />
+        <connection  source = "Index.OUTPUT"  target = "ListIterator.SELECT" />
+        <connection  source = "SquareGen.OUTPUT"  target = "ListIterator.SYNC IN" />
 
         
 		<view name="View">

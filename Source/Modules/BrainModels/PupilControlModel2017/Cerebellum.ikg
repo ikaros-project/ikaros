@@ -22,7 +22,7 @@
 
     <!-- Internal Cerebellar Connections -->
     
-    <connection sourcemodule="CB" source="CR" targetmodule="Subtract" target="INPUT1" />
+    <connection  source = "CB.CR"  target = "Subtract.INPUT1" />
 
 </group>
 

@@ -18,7 +18,7 @@
 			high_target = "1"
 		/>
 		
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "MapInstance" target = "INPUT" />
+        <connection  source = "MyConstant.OUTPUT"  target = "MapInstance.INPUT" />
         
 		<view name="View">
 			<object class="BarGraph" module="MyConstant" min="-90" max="90" source="OUTPUT" x="0" y="0" />

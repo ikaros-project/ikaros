@@ -151,7 +151,7 @@ sun_data = "
 			name = "black_box_vision"
 		/>
 		
-        <connection sourcemodule = "Constant" source = "OUTPUT" targetmodule = "black_box_vision" target = "TOTAL_KNOWLEDGE_TABLE"  delay = "0"/>
+        <connection  source = "Constant.OUTPUT"  target = "black_box_vision.TOTAL_KNOWLEDGE_TABLE"  delay = "0"/>
  	
 		<view name="View" object_size = "200">
        <object class="Plot" title="TEST" module="black_box_vision" source="OBJECT" select="0, 1, 2, 3, 4, 5, 6, 7, 8" x="0" y="0" w="6" max="10" />

@@ -9,7 +9,7 @@
 		<module class = "Randomizer" name = "Random" outputsize = "5" />
 		<module class = "Polynomial" name = "Polynomial" order="5" coefficients="1 2 -5 3 -4" />
 
-		<connection sourcemodule = "Random" source = "OUTPUT" targetmodule = "Polynomial" target = "INPUT" />
+		<connection  source = "Random.OUTPUT"  target = "Polynomial.INPUT" />
 
 		<view name="View">
 			<object class="BarGraph" module="Random" source="OUTPUT" x="0" y="0" w="2" />

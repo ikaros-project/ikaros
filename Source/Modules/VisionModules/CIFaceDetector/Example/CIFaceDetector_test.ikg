@@ -25,7 +25,7 @@
             use_tracking = "yes"
         />
         
-        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="FaceDetector" target="INPUT" />
+        <connection  source = "CAMERA.INTENSITY"  target = "FaceDetector.INPUT" />
         
 		<view name="Input" >
 			<object

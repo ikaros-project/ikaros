@@ -20,7 +20,7 @@
             name = "Tracker"
         />
         
-        <connection sourcemodule="CAMERA" source="INTENSITY" targetmodule="Tracker" target="INPUT" />
+        <connection  source = "CAMERA.INTENSITY"  target = "Tracker.INPUT" />
         
     <module
 		class = "InputVideoStream"
@@ -35,7 +35,7 @@
             name = "Tracker2"
         />
         
-        <connection sourcemodule="CAMERA2" source="INTENSITY" targetmodule="Tracker2" target="INPUT" />
+        <connection  source = "CAMERA2.INTENSITY"  target = "Tracker2.INPUT" />
         
 
 <view name="Tracker">

@@ -16,8 +16,8 @@
 			parameter2  = "12"
 		/>
 		
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "MyModuleInstance" target = "INPUT1" />
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "MyModuleInstance" target = "INPUT2" />
+        <connection  source = "MyConstant.OUTPUT"  target = "MyModuleInstance.INPUT1" />
+        <connection  source = "MyConstant.OUTPUT"  target = "MyModuleInstance.INPUT2" />
 
 		<view name="View">
 			<object class="BarGraph" module="MyModuleInstance" source="OUTPUT1" x="0" y="0" />

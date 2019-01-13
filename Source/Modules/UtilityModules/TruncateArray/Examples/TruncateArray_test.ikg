@@ -21,10 +21,10 @@
 
     />
 	
-    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA1" target="INPUT" />
-    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA2" target="INPUT" />
-    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA2" target="INPUT" />
-    <connection sourcemodule="Array" source="OUTPUT" targetmodule="TA2" target="INPUT" />
+    <connection  source = "Array.OUTPUT"  target = "TA1.INPUT" />
+    <connection  source = "Array.OUTPUT"  target = "TA2.INPUT" />
+    <connection  source = "Array.OUTPUT"  target = "TA2.INPUT" />
+    <connection  source = "Array.OUTPUT"  target = "TA2.INPUT" />
 
 
 

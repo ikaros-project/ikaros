@@ -28,21 +28,21 @@
             statistics      = "yes"
 		/>
         
-		<connection sourcemodule="Movie" source="RED" targetmodule="ColorTransform" target="INPUT0" delay="0" />
-		<connection sourcemodule="Movie" source="GREEN" targetmodule="ColorTransform" target="INPUT1" delay="0" />
-		<connection sourcemodule="Movie" source="BLUE" targetmodule="ColorTransform" target="INPUT2" delay="0" />
+		<connection  source = "Movie.RED"  target = "ColorTransform.INPUT0" delay="0" />
+		<connection  source = "Movie.GREEN"  target = "ColorTransform.INPUT1" delay="0" />
+		<connection  source = "Movie.BLUE"  target = "ColorTransform.INPUT2" delay="0" />
 
-		<connection sourcemodule="ColorTransform" source="OUTPUT0" targetmodule="ColorClassifier" target="R" delay="0" />
-		<connection sourcemodule="ColorTransform" source="OUTPUT1" targetmodule="ColorClassifier" target="G" delay="0" />
-		<connection sourcemodule="ColorTransform" source="OUTPUT2" targetmodule="ColorClassifier" target="I" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT0"  target = "ColorClassifier.R" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT1"  target = "ColorClassifier.G" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT2"  target = "ColorClassifier.I" delay="0" />
 
 
-		<connection sourcemodule="ColorClassifier" source="OUTPUT" targetmodule="Sum" target="INPUT" delay="0" />
+		<connection  source = "ColorClassifier.OUTPUT"  target = "Sum.INPUT" delay="0" />
 
 		<module class="Sum"	name="Sum" />
 
 		<module class = "Threshold" name = "BinaryThreshold" type  = "binary" threshold = "25"/>
-				<connection sourcemodule="Sum" source="OUTPUT" targetmodule="BinaryThreshold" target="INPUT" delay="0" />
+				<connection  source = "Sum.OUTPUT"  target = "BinaryThreshold.INPUT" delay="0" />
 
 	<module
 		class = "OutputFile"
@@ -51,7 +51,7 @@
 		>
 			<column name = "SYNC_SIGNAL"/>
 	</module>
-				<connection sourcemodule="BinaryThreshold" source="OUTPUT" targetmodule="out" target="SYNC_SIGNAL" delay="0" />
+				<connection  source = "BinaryThreshold.OUTPUT"  target = "out.SYNC_SIGNAL" delay="0" />
 
 
 	<view name="Detection">

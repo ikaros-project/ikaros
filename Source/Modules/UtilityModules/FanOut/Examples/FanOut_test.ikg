@@ -27,11 +27,11 @@
 			cell_size_y = "2"
 		/>
 		
-       <connection sourcemodule = "Input" source = "RED" targetmodule = "FanInInstance" target = "INPUT1" />
-		<connection sourcemodule = "Input" source = "GREEN" targetmodule = "FanInInstance" target = "INPUT2" />
-		<connection sourcemodule = "Input" source = "BLUE" targetmodule = "FanInInstance" target = "INPUT3" />
-		<connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "FanInInstance" target = "INPUT4" />
-        <connection sourcemodule = "FanInInstance" source = "OUTPUT" targetmodule = "FanOutInstance" target = "INPUT" />
+       <connection  source = "Input.RED"  target = "FanInInstance.INPUT1" />
+		<connection  source = "Input.GREEN"  target = "FanInInstance.INPUT2" />
+		<connection  source = "Input.BLUE"  target = "FanInInstance.INPUT3" />
+		<connection  source = "Input.INTENSITY"  target = "FanInInstance.INPUT4" />
+        <connection  source = "FanInInstance.OUTPUT"  target = "FanOutInstance.INPUT" />
 		
 		<view name="View">
 			<object class= "Image" type="rgb" module="Input" source="RED+GREEN+BLUE"

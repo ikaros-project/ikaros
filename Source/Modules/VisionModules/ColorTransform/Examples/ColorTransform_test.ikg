@@ -12,13 +12,13 @@
 		<module  class = "ColorTransform" name = "XYZ" transform = "RGB->XYZ" />
 		<module  class = "ColorTransform" name = "LAB" transform = "RGB->Lab" />
 
-		<connection sourcemodule = "IN" source = "RED" targetmodule = "XYZ" target = "INPUT0" />
-		<connection sourcemodule = "IN" source = "GREEN" targetmodule = "XYZ" target = "INPUT1" />
-		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "XYZ" target = "INPUT2" />
+		<connection  source = "IN.RED"  target = "XYZ.INPUT0" />
+		<connection  source = "IN.GREEN"  target = "XYZ.INPUT1" />
+		<connection  source = "IN.BLUE"  target = "XYZ.INPUT2" />
 
-		<connection sourcemodule = "IN" source = "RED" targetmodule = "LAB" target = "INPUT0" />
-		<connection sourcemodule = "IN" source = "GREEN" targetmodule = "LAB" target = "INPUT1" />
-		<connection sourcemodule = "IN" source = "BLUE" targetmodule = "LAB" target = "INPUT2" />
+		<connection  source = "IN.RED"  target = "LAB.INPUT0" />
+		<connection  source = "IN.GREEN"  target = "LAB.INPUT1" />
+		<connection  source = "IN.BLUE"  target = "LAB.INPUT2" />
 
 		<view name = "View 1">
 			<object class="Image" module="IN" source="RED" x="0" y="0" />

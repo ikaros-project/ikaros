@@ -28,9 +28,9 @@
         statistics      = "yes"
     />
 
-    <connection sourcemodule="ColorTransform" source="OUTPUT0" targetmodule="ColorClassifier" target="R" delay="0" />
-    <connection sourcemodule="ColorTransform" source="OUTPUT1" targetmodule="ColorClassifier" target="G" delay="0" />
-    <connection sourcemodule="ColorTransform" source="OUTPUT2" targetmodule="ColorClassifier" target="I" delay="0" />
+    <connection  source = "ColorTransform.OUTPUT0"  target = "ColorClassifier.R" delay="0" />
+    <connection  source = "ColorTransform.OUTPUT1"  target = "ColorClassifier.G" delay="0" />
+    <connection  source = "ColorTransform.OUTPUT2"  target = "ColorClassifier.I" delay="0" />
 
     <module
         class = "SpatialClustering"
@@ -41,7 +41,7 @@
         no_of_clusters = "2"
     />
 
-    <connection sourcemodule="ColorClassifier" source="OUTPUT" targetmodule="SpatialClustering" target="INPUT" delay="0" />
+    <connection  source = "ColorClassifier.OUTPUT"  target = "SpatialClustering.INPUT" delay="0" />
 
     <view name="BlobDetector">
         <object

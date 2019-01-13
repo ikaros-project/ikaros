@@ -51,12 +51,12 @@
         epsilon = "0.0"
     />
 
-    <connection sourcemodule = "Environment" source = "OUTPUT" targetmodule = "GW" target = "OBSTACLES" delay="0" />
-	<connection sourcemodule = "Goals" source = "OUTPUT" targetmodule = "GW" target = "VALUES" delay="0" />
+    <connection  source = "Environment.OUTPUT"  target = "GW.OBSTACLES" delay="0" />
+	<connection  source = "Goals.OUTPUT"  target = "GW.VALUES" delay="0" />
 
-    <connection sourcemodule = "Q" source = "ACTION" targetmodule = "GW" target = "MOVE" />
-    <connection sourcemodule = "GW" source = "LOCATION" targetmodule = "Q" target = "STATE" delay="0" />
-    <connection sourcemodule = "GW" source = "REWARD" targetmodule = "Q" target = "REINFORCEMENT" delay="0" />	
+    <connection  source = "Q.ACTION"  target = "GW.MOVE" />
+    <connection  source = "GW.LOCATION"  target = "Q.STATE" delay="0" />
+    <connection  source = "GW.REWARD"  target = "Q.REINFORCEMENT" delay="0" />	
 
     <view name="Default">
         <object class="Grid" module="GW" source="IMAGE" color="black, gray, red, green" max="3" x="0" y="0" />

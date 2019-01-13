@@ -24,8 +24,8 @@
 			offset_y  = "2"
 		/>
 		
-        <connection sourcemodule = "Source" source = "OUTPUT" targetmodule = "SetSubmatrixInstance" target = "SOURCE" />
-        <connection sourcemodule = "Destination" source = "OUTPUT" targetmodule = "SetSubmatrixInstance" target = "DESTINATION" />
+        <connection  source = "Source.OUTPUT"  target = "SetSubmatrixInstance.SOURCE" />
+        <connection  source = "Destination.OUTPUT"  target = "SetSubmatrixInstance.DESTINATION" />
 
 		<view name="View">
 			<object class="Grid" 
