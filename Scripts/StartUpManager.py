@@ -7,17 +7,17 @@ import os
 import subprocess
 
 # Files that will not work with the script
-excludeFiles = ["NetworkCamera_test.ikc"]
-searchPattern = "_test.ikc"
+excludeFiles = ["NetworkCamera_test.ikg"]
+searchPattern = "_test.ikg"
 
 key = ""
 
-ikcFiles = []
-descIkcFiles = [] # Not used
+ikgFiles = []
+descIkgFiles = [] # Not used
 log = []
 runningIkaros = False
 # Test mode
-cmd = ["../Bin/ikaros", "-s1"]
+cmd = ["../Bin/ikaros_d", "-s1"]
 # Code from https://gist.github.com/fxsjy/5465353
 class AuthHandler(SimpleHTTPRequestHandler):
     ''' Main class to present webpages and authentication. '''
@@ -27,7 +27,7 @@ class AuthHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        for val in make_html(ikcFiles):    
+        for val in make_html(ikgFiles):    
             self.wfile.write(val)
 
     def do_HEAD(self):
@@ -70,30 +70,41 @@ def test(HandlerClass = AuthHandler,
          ServerClass = BaseHTTPServer.HTTPServer):
     BaseHTTPServer.test(HandlerClass, ServerClass)
 
-def findIKCFiles():
-    print('Finding ikc files')
+def findIKGFiles():
+    print('Finding ikg files')
     print('Exluded files (edit script to change this):')
     for e in excludeFiles:
-        print(e);
+        print(e)
+    exlude = False
+
     for root, dirs, files in os.walk("../Demos"):
         for file in files:
-            if file.endswith(".ikc"):
+            if file.endswith(".ikg"):
+                exlude = False
                 for e in excludeFiles:
-                    if not file.endswith(e):
-                        ikcFiles.append(os.path.join(root, file))
+                    if file.endswith(e):
+                        exlude = True
+                if (not exlude):
+                    ikgFiles.append(os.path.join(root, file))
     for root, dirs, files in os.walk("../Examples"):
         for file in files:
-            if file.endswith(".ikc"):
+            if file.endswith(".ikg"):
+                exlude = False
                 for e in excludeFiles:
-                    if not file.endswith(e):
-                        ikcFiles.append(os.path.join(root, file))
+                    if file.endswith(e):
+                        exlude = True
+                if (not exlude):
+                    ikgFiles.append(os.path.join(root, file))
     for root, dirs, files in os.walk("../"):
         for file in files:
             if file.endswith(searchPattern):
+                exlude = False
                 for e in excludeFiles:
-                    if not file.endswith(e):
-                        ikcFiles.append(os.path.join(root, file))
-    return;
+                    if file.endswith(e):
+                        exlude = True
+                if (not exlude):
+                    ikgFiles.append(os.path.join(root, file))
+    return
 
    
 
@@ -102,7 +113,7 @@ def make_html(data):
     yield '<head>'
     yield '<style>'
     yield 'body {padding: 10px;}'
-    yield '.ikcs {}'
+    yield '.ikgs {}'
     yield 'code {font-family: monospace;font-size: 12px;}'
     yield '.coding {background-color: lightgray; padding:10px; margin-top: 2px;margin-bottom: 12px;}'
     yield '.buttonRed {background-color: #FE0000; border: none; color: white;padding: 4px 20px ;text-align: center; text-decoration: none; display: inline-block; font-size: 14px; margin-right:8px;}'
@@ -111,11 +122,11 @@ def make_html(data):
     yield '.buttonBlue {background-color: #87ABFF; border: none; color: white;padding: 4px 20px ;text-align: center; text-decoration: none; display: inline-block; font-size: 14px;margin-right:8px;}'
     yield '</style>'
     yield '<h1>Ikaros start up manager</h1>'
-    yield '<h3>Run all ikc found:</h3>'
+    yield '<h3>Run all ikg found:</h3>'
     yield '<a href= ALL>'
     yield '<button class="buttonBlue">Run All</button></a></br>'
-    yield '<h3>Run ikc manually:</h3>'
-    yield '<div class="ikcs">'
+    yield '<h3>Run ikg manually:</h3>'
+    yield '<div class="ikgs">'
     for link, element in enumerate(data):
         yield '<a href="%s">' % link
         if (len(log) > link):
@@ -152,7 +163,7 @@ def RunIkaros(arg):
     runningIkaros = True
     
     try:
-        t = subprocess.check_output(cmd + [ikcFiles[int(arg)],])
+        t = subprocess.check_output(cmd + [ikgFiles[int(arg)],])
     except subprocess.CalledProcessError as grepexc:
         error = True
     if (error == True): 
@@ -162,28 +173,28 @@ def RunIkaros(arg):
         log.insert(int(arg), t)
 
 def RunAll():
-    print('Running all ikc files:')
-    for index, element in enumerate(ikcFiles):
-        print(ikcFiles[index])
+    print('Running all ikg files:')
+    for index, element in enumerate(ikgFiles):
+        print(ikgFiles[index])
         RunIkaros(index)
 
-def ParseIKC():
-    print('Parsing ikc files')
+def ParseIKG():
+    print('Parsing ikg files')
     import xml.etree.ElementTree as ET
-    for val in ikcFiles:    
+    for val in ikgFiles:    
         parsed = True
         try:
             tree = ET.parse(val)
         except ET.ParseError:
-            print 'Can not parse ikc file:', val 
+            print 'Can not parse ikg file:', val 
             parsed = False
-            descIkcFiles.append("")
+            descIkgFiles.append("")
         if (parsed == True):
             root = tree.getroot()
             for desc in root.findall('description'):
-                descIkcFiles.append(desc.text)
+                descIkgFiles.append(desc.text)
         else:
-            descIkcFiles.append("")
+            descIkgFiles.append("")
     
 if __name__ == '__main__':
     if os.geteuid() != 0:
@@ -197,14 +208,14 @@ if __name__ == '__main__':
         print searchPattern
     # Check for compiled ikaros
     import os.path
-    if (os.path.isfile("../Bin/ikaros") == True):
+    if (os.path.isfile("../Bin/ikaros_d") == True):
         print "Found ikaros binary"
     else:
         print "No binary found. Run cmake script."
         exit(-1)
 
     key = base64.b64encode(sys.argv[2])
-    findIKCFiles()
-    log = [None]*len(ikcFiles)
-    ParseIKC()
+    findIKGFiles()
+    log = [None]*len(ikgFiles)
+    ParseIKG()
     test()
