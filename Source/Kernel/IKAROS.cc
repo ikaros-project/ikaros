@@ -4022,8 +4022,10 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
     socket->Send("\t\"cpu_usage\": %.3f", cpu_usage);
 
     socket->Send(",\n\t\"data\":\n\t{\n");
+
     std::string sep = "";
-    while(args)
+
+    while(args && args[0])
     {
         char * ms = strsep(&args, "#");
         char * source = strsep(&ms, ":");

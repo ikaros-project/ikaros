@@ -24,7 +24,6 @@
 	<parameter name="rotation_factor" type="float" default="3" description="" />
 	<parameter name="angle_factor" type="float" default="1.5" description="" />
 
-
 	<input name="INPUT" description="The input image" />
 	<input name="OBJECT" description="The depth range to segment (min, max, mean)" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />

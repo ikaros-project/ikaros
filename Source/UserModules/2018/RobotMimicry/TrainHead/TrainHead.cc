@@ -47,12 +47,12 @@ TrainHead::Init()
   mean_value_angle = GetOutputArray("MEAN_ANGLE");
   variance_value_angle = GetOutputArray("VARIANCE_ANGLE");
 
-  mean_value_rotation = GetOutputArray("MEAN_ANGLE");
-  variance_value_rotation = GetOutputArray("VARIANCE_ANGLE");
+  mean_value_rotation = GetOutputArray("MEAN_ROTATION");
+  variance_value_rotation = GetOutputArray("VARIANCE_ROTATION");
 
   write = GetOutputArray("WRITE");
 
-  segment_size = GetOutputSize("OUTPUT");
+  segment_size = GetOutputSize("OUTPUT_ANGLES");
 
   now_movement_angle = create_array(segment_size);
   now_movement_rotation = create_array(segment_size);
@@ -117,4 +117,4 @@ TrainHead::Tick()
 }
 
 // Install the module. This code is executed during start-up.
-static InitClass init("TrainHead", &TrainHead::Create, "Source/UserModules/TrainHead/");
+static InitClass init("TrainHead", &TrainHead::Create, "Source/UserModules/2018/RobotMimicry/TrainHead/");

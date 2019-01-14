@@ -145,10 +145,10 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
     data->sd = -1;
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
+    hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(hostname, "http", &hints, &servinfo)) != 0)
+    if ((rv = getaddrinfo(hostname, std::to_string(port).c_str(), &hints, &servinfo)) != 0)
         return false; //  gai_strerror(rv));
 
     // loop through all the results and connect to the first we can
