@@ -3,7 +3,7 @@
 <!--
 
 	Example file for Kinect
- 
+
 -->
 
 <group title = "Kinect">
@@ -87,4 +87,3 @@
     <connection  source = "Kinect2.DEPTH"  target = "KinectRecorder.K2" />
 
 </group>
-
