@@ -651,6 +651,13 @@ GroupElement::CreateDefaultView()
         o->attributes["height"] = std::to_string(h);
      
         v->objects.push_back(*o);
+        
+        x += w+margin;
+        if(x > 3*w)
+        {
+            x = 20;
+            y += h+margin;
+        }
     }
     
     views.push_back(*v);
