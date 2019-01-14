@@ -3,48 +3,64 @@
 <group title = "MapMovementToRobot">
 
   <module
+      class = "TrainHead"
+      name = "training"
+  />
+
+  <module
     class = "InputRawImage"
-    name = "InputRaw"
+    name = "Person1"
     size_x = "640"
     size_y = "480"
-    iterations = "20"
-    filename = "./recording2/depth%02d.raw"
-    filecount = "2672"
+    filename = "./Recordings/person1/image%02d.raw"
+    filecount = "725"
   />
 
   <module
-      class = "TrainHead"
-      name = "TrainHead"
+    class = "InputRawImage"
+    name = "Person2"
+    size_x = "640"
+    size_y = "480"
+    filename = "./Recordings/person2/image%02d.raw"
+    filecount = "725"
   />
 
   <module
-      class = "DepthSegmentation"
-      name = "DepthSegmentation"
-  />
+       class = "HeadTracking"
+       name = "HeadTracking1"
+       mask_left = "0.2"
+       mask_right = "0.8"
+   />
+
+   <module
+        class = "HeadTracking"
+        name = "HeadTracking2"
+        mask_left = "0.2"
+        mask_right = "0.8"
+    />
 
   <module
       class = "DepthHistogram"
-      name = "DepthHistogram"
+      name = "DepthHistogram1"
       filter = "yes"
   />
 
   <module
-       class = "MaximumToRobot"
-       name = "MaximumToRobot1"
-       mask_left = "0"
-       mask_right = "0.4"
-   />
-
-   <module
-        class = "MaximumToRobot"
-        name = "MaximumToRobot2"
-        mask_left = "0.7"
-        mask_right = "1"
-    />
+      class = "DepthHistogram"
+      name = "DepthHistogram2"
+      filter = "yes"
+  />
 
   <module
       class = "Scale"
-      name = "Scale"
+      name = "Scale1"
+      factor = "2048"
+      comment = "This module could be removed if Image-object allowed scaling."
+  />
+
+  <module
+      class = "Scale"
+      name = "Scale2"
       factor = "2048"
       comment = "This module could be removed if Image-object allowed scaling."
   />
@@ -53,37 +69,49 @@
     class = "OutputFile"
     name = "TrainData"
     filename = "./data.txt">
-      <column name = "Mean" />
-      <column name = "Variance" />
-      <column name = "Movement" />
+      <column name = "MEAN_ANGLE" />
+      <column name = "VARIANCE_ANGLE" />
+      <column name = "MOVEMENT_ANGLE" />
+      <column name = "MEAN_ROTATION" />
+      <column name = "VARIANCE_ROTATION" />
+      <column name = "MOVEMENT_ROTATION" />
     </module>
 
   <!-- Scale Kinect data -->
-  <connection  source = "InputRaw.OUTPUT"  target = "Scale.INPUT" />
+  <connection  source = "Person1.OUTPUT"  target = "Scale1.INPUT" />
+  <connection  source = "Person2.OUTPUT"  target = "Scale2.INPUT" />
 
-  <!-- Display DepthSegmentation -->
-  <connection  source = "Scale.OUTPUT"  target = "DepthHistogram.INPUT" />
-  <connection  source = "Scale.OUTPUT"  target = "DepthSegmentation.INPUT" />
-  <connection  source = "DepthHistogram.OBJECT"  target = "DepthSegmentation.OBJECT" />
+  <!-- DepthHistogram -->
+  <connection  source = "Scale1.OUTPUT"  target = "DepthHistogram1.INPUT" />
+  <connection  source = "Scale2.OUTPUT"  target = "DepthHistogram2.INPUT" />
 
-  <!-- MaximumToRobot1   -->
-  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot1.INPUT" />
-  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot1.OBJECT" />
-  <connection  source = "MaximumToRobot1.HEAD"  target = "TrainHead.HEAD1" />
+  <!-- Person1  -->
+  <connection  source = "Scale1.OUTPUT"  target = "HeadTracking1.INPUT" />
+  <connection  source = "DepthHistogram1.OBJECT"  target = "HeadTracking1.OBJECT" />
+  <connection  source = "HeadTracking1.HEAD_ANGLE"  target = "training.HEAD1_ANGLE" />
+  <connection  source = "HeadTracking1.HEAD_ROTATION"  target = "training.HEAD1_ROTATION" />
 
-  <!-- MaximumToRobot2 -->
-  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot2.INPUT" />
-  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot2.OBJECT" />
-  <connection  source = "MaximumToRobot2.HEAD"  target = "TrainHead.HEAD2" />
+  <!-- Person2-->
+  <connection  source = "Scale2.OUTPUT"  target = "HeadTracking2.INPUT" />
+  <connection  source = "DepthHistogram2.OBJECT"  target = "HeadTracking2.OBJECT" />
+  <connection  source = "HeadTracking2.HEAD_ANGLE"  target = "training.HEAD2_ANGLE" />
+  <connection  source = "HeadTracking2.HEAD_ROTATION" target = "training.HEAD2_ROTATION" />
 
-  <connection  source = "TrainHead.OUTPUT"  target = "TrainData.Movement" />
-  <connection  source = "TrainHead.MEAN"  target = "TrainData.Mean" />
-  <connection  source = "TrainHead.VARIANCE"  target = "TrainData.Variance" />
-  <connection  source = "TrainHead.WRITE"  target = "TrainData.WRITE" />
+  <!-- Training Output head up down angles-->
+  <connection source = "training.OUTPUT_ANGLES"  target = "TrainData.MOVEMENT_ANGLE" />
+  <connection source = "training.MEAN_ANGLE"  target = "TrainData.MEAN_ANGLE" />
+  <connection source = "training.VARIANCE_ANGLE"  target = "TrainData.VARIANCE_ANGLE" />
 
-  <view name="Depth">
-     <image type="fire" name="Camera" module = "InputRaw" source = "OUTPUT" width="720" height="720" x="0" y="0" />
+  <!-- Training Output Head rotation-->
+  <connection  source = "training.OUTPUT_ROTATIONS"  target = "TrainData.MOVEMENT_ROTATION" />
+  <connection  source = "training.MEAN_ROTATION"  target = "TrainData.MEAN_ROTATION" />
+  <connection  source = "training.VARIANCE_ROTATION"  target = "TrainData.VARIANCE_ROTATION" />
+
+  <connection  source = "training.WRITE"  target = "TrainData.WRITE" />
+
+  <view name="Main View">
+     <image type="green" name="Camera1" source = "Person1.OUTPUT" width="360" height="360" x="0" y="0" />
+     <image type="green" name="Camera2" source = "Person2.OUTPUT" width="360" height="360" x="420" y="0" />
   </view>
 
-    <module class = "Logger" name = "Logger" />
 </group>

@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+
+<group title = "Kinect">
+
+    <module
+        class = "Kinect"
+        name = "Kinect1"
+        mode = "raw"
+        index = "0"
+     />
+
+     <module
+         class = "Kinect"
+         name = "Kinect2"
+         mode = "raw"
+         index = "1"
+      />
+
+     <module
+         class = "DepthHistogram"
+         name = "DepthHistogram1"
+         filter = "yes"
+     />
+
+     <module
+         class = "DepthHistogram"
+         name = "DepthHistogram2"
+         filter = "yes"
+     />
+
+    <module
+        class	= "Constant"
+        name 	= "Tilt"
+        data  = "1"
+        outputsize = "1"
+    />
+
+    <module
+        class 			= "Constant"
+        name 			= "Color"
+        data            = "0.5"
+        outputsize      = "1"
+    />
+
+    <module
+        class = "Scale"
+        name = "Scale1"
+        factor = "2048"
+        comment = "This module could be removed if Image-object allowed scaling."
+    />
+
+    <module
+        class = "Scale"
+        name = "Scale2"
+        factor = "2048"
+        comment = "This module could be removed if Image-object allowed scaling."
+    />
+
+    <module
+         class = "HeadTracking"
+         name = "HeadTracking1"
+         mask_left = "0.2"
+         mask_right = "0.8"
+     />
+
+     <module
+          class = "HeadTracking"
+          name = "HeadTracking2"
+          mask_left = "0.2"
+          mask_right = "0.8"
+      />
+
+      <module
+           class = "OutputRawImage"
+           name = "OutputRawImage1"
+           filename = "Recordings/person1/image%02d.raw"
+       />
+
+       <module
+            class = "OutputRawImage"
+            name = "OutputRawImage2"
+            filename = "Recordings/person2/image%02d.raw"
+        />
+
+    <connection source="Tilt.OUTPUT" target="Kinect1.TILT" />
+    <connection source="Tilt.OUTPUT" target="Kinect2.TILT"/>
+    <connection source="Color.OUTPUT" target="Kinect1.LED"/>
+    <connection source="Color.OUTPUT" target="Kinect2.LED"/>
+
+    <!--Save Depth in raw images  -->
+    <connection source = "Kinect1.DEPTH" target = "OutputRawImage1.INPUT" />
+    <connection source = "Kinect2.DEPTH" target = "OutputRawImage2.INPUT" />
+
+    <!-- Scale Kinect data -->
+    <connection source = "Kinect1.DEPTH" target = "Scale1.INPUT" />
+    <connection source = "Kinect2.DEPTH" target = "Scale2.INPUT" />
+
+    <!-- Display DepthSegmentation -->
+    <connection source = "Scale1.OUTPUT" target = "DepthHistogram1.INPUT" />
+    <connection source = "Scale2.OUTPUT" target = "DepthHistogram2.INPUT" />
+
+    <connection source = "DepthHistogram1.OBJECT" target = "HeadTracking1.OBJECT" />
+    <connection source = "DepthHistogram2.OBJECT" target = "HeadTracking2.OBJECT" />
+
+    <connection source = "Scale1.OUTPUT" target = "HeadTracking1.INPUT" />
+    <connection source = "Scale2.OUTPUT" target = "HeadTracking2.INPUT" />
+
+    <view name="Main View">
+        <image format="fire" name="KinectView1" source = "HeadTracking1.OUTPUT" x="360" y="0" width="256" height="256" />
+        <image format="fire" name="KinectView2" source = "HeadTracking2.OUTPUT" x="0" y="0" width="256" height="256" />
+    </view>
+
+</group>

@@ -163,9 +163,6 @@ HeadTracking::Tick()
 
     up_down_angle = (atan(z_diff_up_down / y_diff) * 180) / 3.14;
     lr_rotation = (atan(z_diff_lr / x_diff) * 180) / 3.14;
-
-  //  printf("Degrees: %f \n", up_down_angle);
-  //  printf("Rotation: %f \n", lr_rotation);
   }
 
   out_head_angle[0] = -up_down_angle * angle_factor;
