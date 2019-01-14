@@ -16,11 +16,11 @@
         class = "SpotDetector"
         name = "SpotDetector"
     />
-    
+
 	<module
 		class       = "MarkerTracker"
 		name        = "MarkerTracker"
-		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"	
+		calibration = "640 480 351.87977 249.88640 621.54895 621.65284 -0.13228   -0.02552   0.00099   -0.00169  0.00000 0 10"
 		max_markers	="2"
 		sort    = "no"
        	marker_size = "0 57 60; 1000 2000 25"
@@ -47,9 +47,9 @@
         feedback ="true"
     	baud_rate = "1000000"
     	angle_unit = "degrees"
-    	start_up_delay = "20" 	
+    	start_up_delay = "20"
     	max_servo_id = "5"
-    /> 
+    />
 
 	<_connection sourcemodule = "LeftCam"   source = "INTENSITY" targetmodule = "SpotDetector"  target = "LEFT" />
 	<_connection sourcemodule = "RightCam"  source = "INTENSITY" targetmodule = "SpotDetector"  target = "RIGHT" />
@@ -124,4 +124,3 @@
 
     <module class = "Logger" name = "Logger" />
 </group>
-
