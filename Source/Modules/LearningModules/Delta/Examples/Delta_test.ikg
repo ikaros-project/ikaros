@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group title = "Delta Demo">
+
+    <module
+        class = "Constant"
+        name = "X"
+        data = "1 2; 3 4; 5 6; 6 7"
+        outputsize_x = "2"
+        outputsize_y = "4"
+    />
+
+    <module
+        class = "Constant"
+        name = "Y"
+        data = "1; 1; 0; 0"
+        outputsize_x = "1"
+        outputsize_y = "4"
+    />
+
+    <module
+        class = "Trainer"
+        name = "Trainer"
+        crossvalidation = "odd"
+    />
+
+    <module
+        class = "Delta"
+        name = "Delta"
+    />
+
+    <connection  source = "X.OUTPUT"  target = "Trainer.TRAINING_DATA_X" />
+    <connection  source = "Y.OUTPUT"  target = "Trainer.TRAINING_DATA_Y" />
+
+    <connection  source = "Trainer.TRAIN_X"  target = "Delta.CS" />
+    <connection  source = "Trainer.TRAIN_Y"  target = "Delta.US" />
+
+    <connection  source = "Trainer.TEST_X"  target = "Delta.CS" />
+    <connection  source = "Delta.CR"  target = "Trainer.TEST_Y" delay = "0" />
+
+    <view>
+        <object class="Table" module="Trainer" source="TRAIN_X" x="0" y="0" max = "10"/>
+        <object class="Table" module="Trainer" source="TRAIN_Y" x="1" y="0" max = "10"/>
+        <object class="Table" module="Delta" source="CR" x="2" y="0" max = "10"/>
+    </view>
+    
+    <module class = "Logger" name = "Logger" />
+</group>
+
+

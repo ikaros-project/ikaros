@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Constant" description="outputs a constant value">
+<class name="Constant" description="outputs a constant value">
 
 	<description type="text">
 		Module that outputs a constant array or matrix each time step.
@@ -39,12 +39,12 @@
 
 	<output name="OUTPUT" description="The output" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
 
-	<module class="Constant" />
+	<link class="Constant" />
 
     <view name="View (Default)">
         <bar-graph
             x="20" y="20" width="300" height="300"
-            source="*.OUTPUT"
+            source=".OUTPUT"
             title="Default view for Constant"
         />
     </view>
@@ -62,4 +62,4 @@
    		<file>Constant.ikc</file>
    </files>
 
-</group>
+</class>

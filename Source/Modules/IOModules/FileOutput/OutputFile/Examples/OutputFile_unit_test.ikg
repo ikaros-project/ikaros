@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Test with huge input
+	
+-->
+
+<group>
+        <module
+            class = "Randomizer"
+            name = "Data"
+            outputsize = "2000"
+        />
+
+		<module
+			class = "OutputFile"
+			name = "OUT"
+			filename = "hugefile.txt"
+            format = "text"
+		>
+            <column name = "VALUE" />
+        </module>
+
+        <module
+            class = "OutputFile"
+            name = "OUT"
+            filename = "hugefile.bin"
+            format = "binary"
+            >
+            <column name = "VALUE" />
+        </module>
+
+        <connection  source = "Data.OUTPUT"  target = "OUT.VALUE" />
+    <module class = "Logger" name = "Logger" />
+</group>
+
+

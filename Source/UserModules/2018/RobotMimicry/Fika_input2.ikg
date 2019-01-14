@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+
+<group title = "MapMovementToRobot">
+
+  <module
+    class = "InputRawImage"
+    name = "InputRaw"
+    size_x = "640"
+    size_y = "480"
+    iterations = "20"
+    filename = "./recording2/depth%02d.raw"
+    filecount = "2672"
+  />
+
+  <module
+      class = "DepthSegmentation"
+      name = "DepthSegmentation"
+  />
+
+  <module
+      class = "DepthHistogram"
+      name = "DepthHistogram"
+      filter = "yes"
+  />
+
+  <module
+       class = "MaximumToRobot"
+       name = "MaximumToRobot1"
+       mask_left = "0"
+       mask_right = "0.4"
+   />
+
+   <module
+        class = "MaximumToRobot"
+        name = "MaximumToRobot2"
+        mask_left = "0.7"
+        mask_right = "1"
+    />
+
+  <module
+      class = "Scale"
+      name = "Scale"
+      factor = "2048"
+      comment = "This module could be removed if Image-object allowed scaling."
+  />
+
+  <module
+    class		 = "Dynamixel"
+  name		 = "Dynamixel1"
+      device   	 = "/dev/cu.usbserial-A8006BK7"
+  _device		 = "/dev/ttyUSB0"
+  index_mode 	 = "indirect"
+  servo_id	 = "1 2 3"
+  angle_unit 	 = "degrees"
+  feedback = "false"
+/>
+
+<module
+class		 = "Dynamixel"
+name		 = "Dynamixel2"
+device   	 = "/dev/tty.usbserial-A400gav9"
+_device		 = "/dev/ttyUSB0"
+index_mode 	 = "indirect"
+servo_id	 = "1 2 3"
+angle_unit 	 = "degrees"
+feedback = "false"
+/>
+
+<module
+  class		=	"FunctionGenerator"
+  name		=	"Speed"
+  type		=	"sin"
+  frequency	=	"0.0314"
+  offset      =	"1"
+  amplitude	=	"0.0"
+  shift		=	"150"
+/>
+
+<module class = "Constant" name = "HeadOffset" outputsize = "1" data = "180" />
+<module class = "Constant" name = "BodyOffset" outputsize = "1" data = "180" />
+
+
+  <module class = "Add" name = "R1HeadOffsetAdd" outputsize = "1" />
+  <module class = "Add" name = "R1BodyOffsetAdd" outputsize = "1" />
+
+  <module class = "Add" name = "R2HeadOffsetAdd" outputsize = "1" />
+  <module class = "Add" name = "R2BodyOffsetAdd" outputsize = "1" />
+
+  <!-- Robot 1 Head and body offset calculations  -->
+  <connection  source = "MaximumToRobot1.HEAD"  target = "R1HeadOffsetAdd.INPUT1" />
+  <connection  source = "HeadOffset.OUTPUT"  target = "R1HeadOffsetAdd.INPUT2" />
+
+  <connection  source = "MaximumToRobot1.BODY"  target = "R1BodyOffsetAdd.INPUT1" />
+  <connection  source = "BodyOffset.OUTPUT"  target = "R1BodyOffsetAdd.INPUT2" />
+
+  <!-- Robot 2 Head and body offset calculations -->
+  <connection  source = "MaximumToRobot2.HEAD"  target = "R2HeadOffsetAdd.INPUT1" />
+  <connection  source = "HeadOffset.OUTPUT"  target = "R2HeadOffsetAdd.INPUT2" />
+
+  <connection  source = "MaximumToRobot2.BODY"  target = "R2BodyOffsetAdd.INPUT1" />
+  <connection  source = "BodyOffset.OUTPUT"  target = "R2BodyOffsetAdd.INPUT2" />
+
+  <!-- ROBOT MODULES -->
+  <module class = "Constant" name = "TorqueLimitHead" outputsize = "1" data = "0.3" />
+  <module class = "Constant" name = "TorqueLimitBody" outputsize = "1" data = "0.1" />
+
+  <!-- Torque for robot 1 -->
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel1.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitBody.OUTPUT"  target = "Dynamixel1.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel1.TORQUE_LIMIT" />
+
+  <!-- Torque for robot 2 -->
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel2.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitBody.OUTPUT"  target = "Dynamixel2.TORQUE_LIMIT" />
+  <connection  source = "TorqueLimitHead.OUTPUT"  target = "Dynamixel2.TORQUE_LIMIT" />
+
+  <module class = "Constant" name = "RobotStill" outputsize = "1" data = "180" />
+
+  <!-- Map head and body for robot 1  -->
+  <connection  source = "R1HeadOffsetAdd.OUTPUT"  target = "Dynamixel1.GOAL_POSITION" />
+  <connection  source = "R1BodyOffsetAdd.OUTPUT"  target = "Dynamixel1.GOAL_POSITION" />
+  <connection  source = "RobotStill.OUTPUT"  target = "Dynamixel1.GOAL_POSITION" />
+
+    <!-- Map head and body for robot 2 -->
+  <connection  source = "R2HeadOffsetAdd.OUTPUT"  target = "Dynamixel2.GOAL_POSITION" />
+  <connection  source = "R2BodyOffsetAdd.OUTPUT"  target = "Dynamixel2.GOAL_POSITION" />
+  <connection  source = "RobotStill.OUTPUT"  target = "Dynamixel2.GOAL_POSITION" />
+
+  <!-- Speed for both robots-->
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel1.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel1.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel1.MOVING_SPEED" />
+
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel2.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel2.MOVING_SPEED" />
+  <connection  source = "Speed.OUTPUT"  target = "Dynamixel2.MOVING_SPEED" />
+
+
+  <!-- Scale Kinect data -->
+  <connection  source = "InputRaw.OUTPUT"  target = "Scale.INPUT" />
+
+  <!-- Display DepthSegmentation -->
+  <connection  source = "Scale.OUTPUT"  target = "DepthHistogram.INPUT" />
+  <connection  source = "Scale.OUTPUT"  target = "DepthSegmentation.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "DepthSegmentation.OBJECT" />
+
+  <!-- MaximumToRobot1   -->
+  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot1.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot1.OBJECT" />
+
+  <!-- MaximumToRobot2 -->
+  <connection  source = "Scale.OUTPUT"  target = "MaximumToRobot2.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "MaximumToRobot2.OBJECT" />
+
+  <view name="Depth">
+        <!--
+        <image type="green" name="Segmentation" module = "DepthSegmentation" source = "OUTPUT" x="380" y="0" width="256" height="256" />
+    <image type="green" name="RobotData1" module = "MaximumToRobot1" source = "OUTPUT" x="0" y="0" width="540" height="540" />
+     <image type="green" name="RobotData2" module = "MaximumToRobot2" source = "OUTPUT" x="540" y="0" width="540" height="540" /> -->
+     <image type="fire" name="Camera" module = "InputRaw" source = "OUTPUT" width="720" height="720" x="0" y="0" />
+
+      <!-- <bar-graph module = "DepthHistogram" source = "OUTPUT" x="0" y="0" width="520" height="520" /> -->
+    </view>
+
+    <module class = "Logger" name = "Logger" />
+</group>

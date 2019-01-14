@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MatrixScale" description="minimal example module">
+<class name="MatrixScale" description="minimal example module">
 
 	<description type="text">
 		Scales content of matrix. Typically used for images.
@@ -23,7 +23,7 @@
 
 	<output name="OUTPUT" description="The matrix output" size_set="INPUT" />
 
-	<module class="MatrixScale" />
+	<link class="MatrixScale" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>
@@ -38,5 +38,5 @@
    		<file>MatrixScale.ikc</file>
    </files>
 
-</group>
+</class>
 

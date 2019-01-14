@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+
+<group>
+	
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+    
+    <input name="BODY_FEEDBACK_POSITION" 		targetmodule="Body" 	target="FEEDBACK_POSITION" />
+    <input name="HEAD_FEEDBACK_POSITION" 		targetmodule="Head" 	target="FEEDBACK_POSITION" />
+    <input name="PUPIL_FEEDBACK_POSITION"   	targetmodule="Head" 	target="PUPIL_FEEDBACK_POSITION" />
+
+	<!-- MODEL_ID is a list of id that matches the id.stl in WebUI/Models -->
+    <output name="MODEL_ID"     	sourcemodule="JOIN_MODEL_ID" 	source="OUTPUT" />
+    <output name="MODEL_MATRIX" 	sourcemodule="JOIN_ARRAYS" 		source="OUTPUT" />
+  
+	<!-- Points -->
+	<!-- Points good to know. Right now 3 points in each hand. -->
+    <output name="POINTS_MATRIX" 	sourcemodule="P_JOIN" source="OUTPUT" />
+
+	<!-- Sensors -->
+	<!-- Left Eye 	-->
+	<!-- Right Eye 	-->
+    <output name="SENSOR_POS_EGO" 	sourcemodule="SensorBodyHead" source="MATRIX" />
+
+    <!-- FrameID and ObjectID -->
+    <output name="OBJECT_ID" 	sourcemodule="ForwardModelObjectID" source="OUTPUT" />
+    <output name="FRAME_ID" 	sourcemodule="ForwardModelFrameID" source="OUTPUT" />
+
+
+    <module class = "Constant" name = "ForwardModelObjectID"    data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
+    <module class = "Constant" name = "ForwardModelFrameID"     data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
+
+
+	<!-- MODEL -->
+    <!-- Model IDs -->
+	<module class = "DataConverter" name = "JOIN_MODEL_ID" output_size_x = "9" output_size_y = "1"/>
+        <connection  source = "Head.MODEL_ID"    target = "JOIN_MODEL_ID.INPUT"  />
+        <connection  source = "Body.MODEL_ID"    target = "JOIN_MODEL_ID.INPUT"  />
+        <connection  source = "Epi_pos_ID.OUTPUT"      target = "JOIN_MODEL_ID.INPUT"  />
+
+    <!-- output not working in the same way as connects -->
+	<module class = "DataConverter" name = "JOIN_ARRAYS" output_size_x = "16" output_size_y = "9"/>
+        <connection  source = "BodyHead.MATRIX"    target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x6 -->
+        <connection  source = "PosBody.MATRIX"    target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x2 --> <!-- 1: Same as Epi-pos but x up -->
+        <connection  source = "Epi_pos.OUTPUT"    target = "JOIN_ARRAYS.INPUT" /> <!-- 4x4x1 -->
+    
+
+
+    <!-- Forward models -->
+    <!-- Unit is m -->
+    <!-- Z 90 -->
+    <_module class = "Constant" name = "Epi_pos" data = "
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1;" />
+    <module class = "Constant" name = "Epi_pos" data = "
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1;" />
+
+    <module class = "Constant" name = "Epi_pos_ID" data = "10" />
+
+    <!-- Body -->
+    <module class = "EpiWhiteBodyForwardModel"       name = "Body" />
+
+    <!-- Head --> <!-- Pupil -->
+    <module class = "EpiWhiteHeadForwardModel"       name = "Head" />
+
+    <!-- LeftArm -->
+    <!-- RightArm -->
+    
+
+    <!-- Put the matrices togather -->
+    <!-- Tansform -->
+    <module class = "Constant" name = "PositionID"      data = "1;" /> 
+    <module class = "Constant" name = "PositionFrame"   data = "1" />
+
+    <module class = "Constant" name = "BodyID"          data = "20; 2;" />
+    <module class = "Constant" name = "BodyFrame"       data = "1; 1;" />
+
+    <module class = "Constant" name = "HeadID"          data = "10; 11; 12; 13; 14; 15;" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "HeadFrame"       data = "2; 2; 2; 2; 2; 2;" />
+
+    <module class = "Constant" name = "SensorID"        data = "10; 11;" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "SensorFrame"     data = "2; 2;" />
+
+
+   <!-- Position -> Body  --> 
+    <module class="Transform"   name="PosBody" />
+        <connection  source = "Epi_pos.OUTPUT"        target = "PosBody.MATRIX_1"    delay = "0"/>
+        <connection  source = "PositionID.OUTPUT"        target = "PosBody.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "PositionFrame.OUTPUT"        target = "PosBody.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "Body.OUTPUT"        target = "PosBody.MATRIX_2"    delay = "0"/>
+        <connection  source = "BodyID.OUTPUT"        target = "PosBody.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "BodyFrame.OUTPUT"        target = "PosBody.FRAME_ID_2"  delay = "0"/>
+    <!-- Body -> Head --> 
+    <module class="Transform"   name="BodyHead" />
+        <connection  source = "PosBody.MATRIX"        target = "BodyHead.MATRIX_1"    delay = "0"/>
+        <connection  source = "PosBody.OBJECT_ID"     target = "BodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "PosBody.FRAME_ID"      target = "BodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "Head.OUTPUT"        target = "BodyHead.MATRIX_2"    delay = "0"/>
+        <connection  source = "HeadID.OUTPUT"        target = "BodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "HeadFrame.OUTPUT"        target = "BodyHead.FRAME_ID_2"  delay = "0"/>
+	<!-- SENSORS -->
+    <!-- Body -> Head --> 
+    <module class="Transform"   name="SensorBodyHead" />
+        <connection  source = "PosBody.MATRIX"        target = "SensorBodyHead.MATRIX_1"    delay = "0"/>
+        <connection  source = "PosBody.OBJECT_ID"     target = "SensorBodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "PosBody.FRAME_ID"      target = "SensorBodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "Head.SENSORS"       target = "SensorBodyHead.MATRIX_2"    delay = "0"/>
+        <connection  source = "SensorID.OUTPUT"        target = "SensorBodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "SensorFrame.OUTPUT"        target = "SensorBodyHead.FRAME_ID_2"  delay = "0"/>
+
+</group>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EventTrigger" description="triggers events">
+<class name="EventTrigger" description="triggers events">
 
 	<description type="text">
         Module that sets one of its output to 1 at random times and keeps it on for the time given by 'duration'.
@@ -29,14 +29,13 @@
 
 	<output name="OUTPUT" description="The output" size_param="size" />
 
-	<module class="EventTrigger" />
+	<link class="EventTrigger" />
 
     <view title="EventTrigger">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for EventTrigger"
         />
     </view>
@@ -54,4 +53,4 @@
    		<file>EventTrigger.ikc</file>
    </files>
 
-</group>
+</class>

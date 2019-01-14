@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Dynamixel" description="interfaces Dynamixel servos">
+<class name="Dynamixel" description="interfaces Dynamixel servos">
 	
 	<description type="xhtml">
 		<p>
@@ -80,14 +80,14 @@
 	<output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" size_set="TORQUE_LIMIT" />
 	<output name="ERRORS" description="Errors" size_set_x="TORQUE_LIMIT" size_y = "19"/>
 	
-	<module class="Dynamixel" />
+	<link class="Dynamixel" />
 	<view name="Default view">
 		
 		<table
 		w = "2"
 		y = "480"
 		x = "580"
-		source = "*.FEEDBACK_TORQUE_ENABLE"
+		source = ".FEEDBACK_TORQUE_ENABLE"
 		class = "bar-graph"
 		direction = "vertical"
 		title = "Torque Enable"
@@ -96,7 +96,6 @@
 		show_title = "true"
 		max = "1"
 		height = "201"
-		module = "*"
 		show_frame = "true"
 		/>
 		
@@ -104,7 +103,7 @@
 		w = "2"
 		y = "160"
 		x = "40"
-		source = "*.FEEDBACK_TORQUE_LIMIT"
+		source = ".FEEDBACK_TORQUE_LIMIT"
 		class = "bar-graph"
 		direction = "vertical"
 		title = "Torque Limit"
@@ -113,7 +112,6 @@
 		show_title = "true"
 		max = "1"
 		height = "241"
-		module = "*"
 		show_frame = "true"
 		/>
 		
@@ -122,7 +120,7 @@
 		w = "2"
 		y = "80"
 		x = "40"
-		source = "*.FEEDBACK_PRESENT_POSITION"
+		source = ".FEEDBACK_PRESENT_POSITION"
 		class = "table"
 		direction = "vertical"
 		title = "Present position"
@@ -131,7 +129,6 @@
 		show_title = "true"
 		max = "360"
 		height = "61"
-		module = "*"
 		colorize = "true"
 		show_frame = "true"
 		/>
@@ -141,7 +138,7 @@
 		w = "2"
 		y = "20"
 		x = "40"
-		source = "*.FEEDBACK_GOAL_POSITION"
+		source = ".FEEDBACK_GOAL_POSITION"
 		class = "table"
 		direction = "vertical"
 		title = "Set position"
@@ -150,7 +147,6 @@
 		show_title = "true"
 		max = "360"
 		height = "61"
-		module = "*"
 		colorize = "true"
 		show_frame = "true"
 		/>
@@ -159,7 +155,7 @@
 		w = "2"
 		y = "420"
 		x = "40"
-		source = "*.FEEDBACK_PRESENT_SPEED"
+		source = ".FEEDBACK_PRESENT_SPEED"
 		class = "bar-graph"
 		direction = "vertical"
 		title = "Speed"
@@ -168,7 +164,6 @@
 		show_title = "true"
 		max = "5"
 		height = "261"
-		module = "*"
 		show_frame = "true"
 		/>
 		
@@ -176,7 +171,7 @@
 		w = "2"
 		y = "20"
 		x = "580"
-		source = "*.FEEDBACK_PRESENT_LOAD"
+		source = ".FEEDBACK_PRESENT_LOAD"
 		class = "bar-graph"
 		direction = "vertical"
 		title = "Load"
@@ -185,7 +180,6 @@
 		show_title = "true"
 		max = "1"
 		height = "201"
-		module = "*"
 		show_frame = "true"
 		/>
 		
@@ -193,7 +187,7 @@
 		w = "2"
 		y = "240"
 		x = "580"
-		source = "*.FEEDBACK_PRESENT_TEMPERATURE"
+		source = ".FEEDBACK_PRESENT_TEMPERATURE"
 		class = "bar-graph"
 		direction = "vertical"
 		title = "Temperature"
@@ -202,7 +196,6 @@
 		show_title = "true"
 		max = "100"
 		height = "221"
-		module = "*"
 		show_frame = "true"
 		/>
 		
@@ -228,4 +221,4 @@
 		<file>DynamixelServo.cc</file>
 		<file>DynamixelServo.h</file>
 	</files>
-</group>
+</class>

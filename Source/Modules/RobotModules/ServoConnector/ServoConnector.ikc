@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ServoConnector" description="organize servos">
+<class name="ServoConnector" description="organize servos">
 
 	<description type="text">
 
@@ -29,14 +29,13 @@
 	<view title="ServoConnector">
 		<table
 		x="0" y="0" w="2"
-		module="*"
-		source="OUTPUT"
+		source=".OUTPUT"
 		title="Default view for ServoConnector"
 		/>
 	</view>
 
 
-	<module class="ServoConnector" />
+	<link class="ServoConnector" />
 
 	<author>
 		<name>Birger Johansson</name>
@@ -51,5 +50,5 @@
    		<file>ServoConnector.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
- <group description="Simple list iterator that iterates number in list as often as given by period">
+ <class description="Simple list iterator that iterates number in list as often as given by period">
  	<!--Parameters-->
  		<parameter name="list" module="ListIterator" target="list" default="1" />
  		<parameter name="list_length" module="ListIterator" target="list_length" default="1" />
@@ -70,4 +70,4 @@
     		<file>SimpleListIterator.ikc</file> <!--Use name="Default_Speed" in calling file-->
     </files>
  
- </group>
+ </class>

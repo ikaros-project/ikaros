@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CannyEdgeDetector" description="finds edges">
+<class name="CannyEdgeDetector" description="finds edges">
 
 	<description type="text">
 		Module that applies the Canny edge detector to an image. This edge detector works in five steps:
@@ -33,7 +33,7 @@
 	<output name="dGx" description="Filter kernel" />
 	<output name="dGy" description="Filter kernel" />
 
-	<module class="CannyEdgeDetector" />
+	<link class="CannyEdgeDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -48,4 +48,4 @@
    		<file>CannyEdgeDetector.ikc</file>
    </files>
 
-</group>
+</class>

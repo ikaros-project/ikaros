@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="AttentionWindow" description="selects an object region">
+<class name="AttentionWindow" description="selects an object region">
 
 	<description type="xhtml">
     <p>
@@ -45,7 +45,7 @@
 
 	<output name="OUTPUT" description="The size of the output" size_param_x="output_size_x" size_param_y="output_size_y"/>
 
-	<module class="AttentionWindow" />
+	<link class="AttentionWindow" />
 
 	<created>2014</created>
 	
@@ -62,5 +62,5 @@
    		<file>AttentionWindow.ikc</file>
    </files>
 
-</group>
+</class>
 

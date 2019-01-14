@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<group title="CSOM-L1">
+
+		<_module
+            class = "InputQTMovie"
+            name = "Input"
+            filename = "KP.mp4"
+            _filename = "Casablanca.mov"
+            _filename = "rotation.mov"
+            _filename = "candyman.m4v"
+            _size_x = "60"
+            _size_y = "45"
+            size_x = "64"
+            size_y = "64"
+            _size_x = "120"
+            _size_y = "90"
+            loop = "yes"
+        />
+
+
+        <module
+            class = "InputJPEG"
+            name = "Input"
+            filename = "/Users/cba/Desktop/kp/frame-00%04d.jpg"
+            filecount = "1500"
+            iterations = "10"
+        />
+        
+  		<module
+			class = "CSOM"
+			name = "L1"
+			
+            rf_size_x = "45"
+            rf_size_y = "45"
+            rf_inc_x = "15"
+            rf_inc_y = "15"
+            som_size_x = "5"
+            som_size_y = "5"
+            
+            output_type = "combined"
+            
+            alpha = "0.001"
+            alpha_min = "0.001"
+            alpha_max = "0.001"
+            alpha_decay = "0.001"
+        />
+
+    
+		<connection  source = "Input.INTENSITY"  target = "L1.INPUT" delay="1" />
+        <connection  source = "L1.OUTPUT"  target = "L1.TOP_DOWN" delay="1" />
+
+
+		<view name="Map">
+			<object class= "Image" type="gray" module="Input" source="INTENSITY"                                        x="0" y="0" h="2" w="2" />
+ 			<object class= "Image" type="gray" module="L1" source="RECONSTRUCTION"                                      x="2" y="0" h="2" w="2" />
+            <object class= "Image" type="gray" title="RF1" module="L1" source="WEIGHTS"                                 x="4" y="0" h="2" w="2" />
+			<object class= "Image" type="rgb" title="Output" module="L1" source="OUTPUT_RED+OUTPUT_GREEN+OUTPUT_BLUE"   x="6" y="0" h="2" w="2" />
+        </view>
+
+        <view name="Fast">
+			<object class= "Image" type="gray" module="L1" source="WEIGHTS" x="0" y="0" h="2" w="2" />
+		</view>
+
+</group>
+

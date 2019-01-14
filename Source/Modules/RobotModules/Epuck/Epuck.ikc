@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="Epuck" description="interfaces the e-puck robot">
+<class name="Epuck" description="interfaces the e-puck robot">
 
 
 <description type="text">
@@ -178,7 +178,7 @@
 	default="false"/>
 
 
-<module class="Epuck" />
+<link class="Epuck" />
 
 
 <author>
@@ -193,4 +193,4 @@
 	<file>Epuck.ikc</file>
 </files>
 
-</group>
+</class>

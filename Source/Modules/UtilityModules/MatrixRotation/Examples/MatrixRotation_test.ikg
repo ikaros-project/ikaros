@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group title="MatrixRotation Example">
+	
+        <module
+        class = "InputJPEG"
+        name = "InputImg"
+        filename = "uppercase00_rz.jpg"
+        
+        />
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen"
+		  type        =   "sin"
+		  frequency  =  "0.005"
+		  offset      =   "0.0"
+		  amplitude   =   "90"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "MatrixRotation"
+			name = "MatrixRotationInstance"
+			angle_format  = "deg"
+            debug = "no"
+		/>
+		
+        <connection  source = "SinGen.OUTPUT"  target = "MatrixRotationInstance.ANGLE" />
+        <connection  source = "InputImg.INTENSITY"  target = "MatrixRotationInstance.INPUT" />
+		<view name="View">
+			<object class="Plot " 
+				module="SinGen"
+				source="OUTPUT" 
+				x="0" y="0" w="2" h="2"
+				min="-90"
+				max="90"
+			/>
+			<object class= "Image" type="gray" module="InputImg" source="INTENSITY"
+                x="2" y="0" h="2" w="2" />
+            <object class= "Image" type="gray" module="MatrixRotationInstance" source="OUTPUT"
+                x="0" y="2" h="2" w="2" />
+		</view>
+
+</group>
+ 

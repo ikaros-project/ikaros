@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Multiply" description="multiplies two inputs">
+<class name="Multiply" description="multiplies two inputs">
 
 	<description type="text">
 		Module that multiplies its two inputs component
@@ -19,14 +19,13 @@
 
 	<output name="OUTPUT" description="The output" size_set="INPUT1, INPUT2" />
 
-	<module class="Multiply" />
+	<link class="Multiply" />
 
     <view title="Multiply">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Multiply"
         />
     </view>
@@ -44,4 +43,4 @@
    		<file>Multiply.ikc</file>
    </files>
 
-</group>
+</class>

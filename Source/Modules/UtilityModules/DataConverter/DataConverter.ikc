@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DataConverter" description="converts between rotation notations">
+<class name="DataConverter" description="converts between rotation notations">
 
 	<description type="text">
 		Module that converts between different 3d point/angle notations.
@@ -19,14 +19,13 @@
 	<input name="INPUT" description="Input" />
     <output name="OUTPUT" description="Output" size_param_x = "output_size_x" size_param_y = "output_size_y"/>
 
-	<module class="DataConverter" />
+	<link class="DataConverter" />
     
     <view title="DataConverter">
         <object
             x="0" y="0" w="2"
             class="Table"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for DataConverter"
         />
     </view>
@@ -48,5 +47,5 @@
    		<file>DataConverter.ikc</file>
    </files>
 
-</group>
+</class>
 

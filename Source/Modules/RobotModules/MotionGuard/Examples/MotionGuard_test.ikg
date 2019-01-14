@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<group name="MotionRecorder">
+    
+        <module
+            class = "Constant"
+            name = "JointsReference"
+            data = "0.5 0.5"
+        />
+        
+        <module
+            class = "Randomizer"
+            name = "Joints"
+            outputsize_x = "2"
+            outputsize_y = "1"
+            minimum     = "0"
+            maximum = "1"
+        />
+        
+ 		<module
+			class = "MotionGuard"
+			name = "MotionGuard"
+            input_limit_min = "0.1 0.1"
+            input_limit_max = "0.9 0.9"
+            
+		/>
+
+        <connection  source = "Joints.OUTPUT"  target = "MotionGuard.INPUT" />
+        <connection  source = "JointsReference.OUTPUT"  target = "MotionGuard.REFERENCE" />
+
+		<view name="View" object_size="50">
+			<object class="Table" module="MotionGuard" source="OUTPUT" x="0" y="0" w="8" h="4" />
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
+

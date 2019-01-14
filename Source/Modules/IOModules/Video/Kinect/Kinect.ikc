@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Kinect" description="grabs images from Kinect or Xtion">
+<class name="Kinect" description="grabs images from Kinect or Xtion">
 
 	<description type="text">
 		Uses libfreenect from Kinect to grab images from a Kinect or a Xtion (http://Kinect.org/).
@@ -31,7 +31,7 @@
     <parameter name="xtion" type="bool" default="false"  description="Is the device an Xtion?" />
     <parameter name="index" type="int" default="0"  description="The index of the device (0, 1, 2...)" />
 
-	<module class="Kinect" />
+	<link class="Kinect" />
 
     <limitation>
         The module is not thread safe beacuase of limitations in the libfreenect-libraries. If several Kinect modules are used in thread-mode they have to run in the same thread. This an be done by connecting them to a single module using zero-delay connections.
@@ -52,5 +52,5 @@
    		<file>Kinect.ikc</file>
    </files>
 
-</group>
+</class>
 

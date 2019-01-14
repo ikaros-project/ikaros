@@ -1,7 +1,7 @@
 //
 //	IKAROS_System.h		Definition of the target system for which to compile
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2019  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -57,13 +57,8 @@
 #define PLATFORM  "LINUX"
 #define POSIX
 #define USE_BSD_SOCKET
-//#define USE_QUICKTIME
-#define USE_LIBJPEG
-//#define USE_V4L2
-//#define USE_KEEPON
 #define USE_BLAS
 #define USE_LIBPNG
-//#define USE_MPI
 #endif
 
 
@@ -77,10 +72,7 @@
 #define POSIX
 #define USE_BSD_SOCKET
 #define USE_QUICKTIME
-//#define USE_QUICKTIME_OLD
-#define USE_LIBJPEG
 #define USE_LIBPNG
-//#define USE_VDSP
 #define USE_VIMAGE
 #define USE_VFORCE
 #define USE_BLAS
@@ -99,13 +91,6 @@
 
 #ifdef MAC_OS_X
 #include <limits.h>
-#endif
-
-
-// Include the socket header file if some socket library is used
-
-#ifdef USE_BSD_SOCKET
-#define USE_SOCKET
 #endif
 
 // Fix for missing MSG_NOSIGNAL in OS X to pass compilation

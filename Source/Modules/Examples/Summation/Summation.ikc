@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Summation" description="adds two inputs">
+<class name="Summation" description="adds two inputs">
 
 	<description type="text">
 		Module that sums its two inputs element by element.
@@ -19,7 +19,7 @@
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="Summation" />
+	<link class="Summation" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -34,4 +34,4 @@
    		<file>Summation.ikc</file>
    </files>
 
-</group>
+</class>

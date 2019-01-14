@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SobelEdgeDetector" description="finds edges">
+<class name="SobelEdgeDetector" description="finds edges">
 
 	<description type="text">
 		Module that applies the Sobel edge filter to an image.
@@ -18,7 +18,7 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" />
 
-	<module class="SobelEdgeDetector" />
+	<link class="SobelEdgeDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -33,4 +33,4 @@
    		<file>SobelEdgeDetector.ikc</file>
    </files>
 
-</group>
+</class>

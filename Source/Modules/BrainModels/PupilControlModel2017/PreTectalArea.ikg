@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group name="PreTectalArea" description="model of the pretectal area that sums its inputs and puts it through a sline funcion">
+    
+    <parameter name="light_response" module="LightResponse" target="points" />
+
+    <input name="INPUT" targetmodule="InputSummation" target="EXCITATION" />
+    <output name="OUTPUT" sourcemodule="LightResponse" source="OUTPUT" />
+    
+    <module
+        class="Nucleus"
+        name="InputSummation"
+        epsilon = "0.05"
+    />
+
+    <module
+        class="LinearSplines"
+        name="LightResponse"
+        points = "0 0; 1 1"
+    />
+
+    <!-- default parameters or not??? -->
+    
+    <connection  source = "InputSummation.OUTPUT"  target = "LightResponse.INPUT" />
+
+    <view name="PreTectalArea">
+        <object class="Plot" title="Response PTA" module="*" source="OUTPUT" x="0" y="0" w="4" max="1" />
+    </view>
+
+</group>
+

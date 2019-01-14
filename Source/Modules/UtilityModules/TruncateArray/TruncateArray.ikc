@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TruncateArray" description="split an input array and concatenate a output matrix">
+<class name="TruncateArray" description="split an input array and concatenate a output matrix">
 
 	<description type="text">
         Module that splits up a array to a matrix. This module will be removed when similar features will be provided directly in the ikaros connections.
@@ -20,9 +20,9 @@
     <input name="INPUT" description="Input" />
     <output name="OUTPUT" description="Output"/>
 
-	<module class="TruncateArray" />
+	<link class="TruncateArray" />
 		<view>
-			<object class ="BarGraph" title="Output" module="*" source="OUTPUT" x="0" y="0" w="2" />
+			<object class ="BarGraph" title="Output" source=".OUTPUT" x="0" y="0" w="2" />
 		</view>
 	<author>
 		<name>Birger Johansson</name>
@@ -36,5 +36,5 @@
    		<file>TruncateArray.cc</file>
    		<file>TruncateArray.ikc</file>
    </files>
-</group>
+</class>
 

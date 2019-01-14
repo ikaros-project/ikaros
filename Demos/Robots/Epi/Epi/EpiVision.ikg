@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+
+<group name="Epi Eye" >
+
+    <description>
+        Camera input and down scaling of the image
+	</description>
+
+    <output name="FULL_RES_RED"      	sourcemodule="EYE"              source="RED" />
+    <output name="FULL_RES_GREEN"    	sourcemodule="EYE"              source="GREEN" />
+    <output name="FULL_RES_BLUE"     	sourcemodule="EYE"              source="BLUE" />
+    <output name="FULL_RES_INTENSITY"   sourcemodule="EYE"	            source="INTENSITY" />
+
+    <output name="HIGH_RES_RED"      	sourcemodule="HIGH_RED"         source="OUTPUT" />
+    <output name="HIGH_RES_GREEN"    	sourcemodule="HIGH_GREEN"       source="OUTPUT" />
+    <output name="HIGH_RES_BLUE"     	sourcemodule="HIGH_BLUE"        source="OUTPUT" />
+    <output name="HIGH_RES_INTENSITY"   sourcemodule="HIGH_INTENSITY"   source="OUTPUT" />
+
+    <output name="MEDIUM_RES_RED"      	sourcemodule="MEDIUM_RED"       source="OUTPUT" />
+    <output name="MEDIUM_RES_GREEN"    	sourcemodule="MEDIUM_GREEN"     source="OUTPUT" />
+    <output name="MEDIUM_RES_BLUE"     	sourcemodule="MEDIUM_BLUE"      source="OUTPUT" />
+    <output name="MEDIUM_RES_INTENSITY" sourcemodule="MEDIUM_INTENSITY" source="OUTPUT" />
+
+    <output name="LOW_RES_RED"      	sourcemodule="LOW_RED"          source="OUTPUT" />
+    <output name="LOW_RES_GREEN"    	sourcemodule="LOW_GREEN"        source="OUTPUT" />
+    <output name="LOW_RES_BLUE"     	sourcemodule="LOW_BLUE"         source="OUTPUT" />
+    <output name="LOW_RES_INTENSITY"    sourcemodule="LOW_INTENSITY"    source="OUTPUT" />
+
+    <!-- Input -->
+    <module
+		class = "@VisionInput"
+		name = "EYE"
+        url = "@VisionStream"
+        uv4l = "true"
+		info = "false"
+        active = "yes"
+	/>
+
+    <!-- Down sample -->
+    <!-- LARGE -->
+    <module class = "Downsample" name = "HIGH_RED" />
+	<module class = "Downsample" name = "HIGH_GREEN" />
+	<module class = "Downsample" name = "HIGH_BLUE" />
+	<module class = "Downsample" name = "HIGH_INTENSITY" />
+
+		<connection source = "EYE.RED"       target = "HIGH_RED.INPUT" 			delay="0" />
+		<connection source = "EYE.GREEN"     target = "HIGH_GREEN.INPUT" 		delay="0" />
+		<connection source = "EYE.BLUE"      target = "HIGH_BLUE.INPUT" 		delay="0" />
+		<connection source = "EYE.INTENSITY" target = "HIGH_INTENSITY.INPUT" 	delay="0" />
+
+    <!-- MEDIUM -->
+    <module class = "Downsample" name = "MEDIUM_RED" />
+	<module class = "Downsample" name = "MEDIUM_GREEN" />
+	<module class = "Downsample" name = "MEDIUM_BLUE" />
+	<module class = "Downsample" name = "MEDIUM_INTENSITY" />
+
+		<connection	source = "HIGH_RED.OUTPUT"			target = "MEDIUM_RED.INPUT" 		delay="0" />
+		<connection source = "HIGH_GREEN.OUTPUT" 		target = "MEDIUM_GREEN.INPUT" 		delay="0" />
+		<connection source = "HIGH_BLUE.OUTPUT" 		target = "MEDIUM_BLUE.INPUT" 		delay="0" />
+		<connection source = "HIGH_INTENSITY.OUTPUT"	target = "MEDIUM_INTENSITY.INPUT" 	delay="0" />
+        
+    <!-- LOW -->
+    <module class = "Downsample" name = "LOW_RED" />
+	<module class = "Downsample" name = "LOW_GREEN" />
+	<module class = "Downsample" name = "LOW_BLUE" />
+	<module class = "Downsample" name = "LOW_INTENSITY" />
+
+		<connection source = "MEDIUM_RED.OUTPUT"  		target = "LOW_RED.INPUT" 		delay="0" />
+		<connection source = "MEDIUM_GREEN.OUTPUT" 		target = "LOW_GREEN.INPUT" 		delay="0" />
+		<connection source = "MEDIUM_BLUE.OUTPUT" 		target = "LOW_BLUE.INPUT" 		delay="0" />
+		<connection source = "MEDIUM_INTENSITY.OUTPUT" 	target = "LOW_INTENSITY.INPUT" 	delay="0" />
+
+    <!-- View -->
+<view name="Scaled">
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "20"
+		format = "rgb"
+		source = "EYE.RED+GREEN+BLUE"
+		x = "400"
+		flipYCanvas = "no"
+		height = "261"
+		max_y = "1"
+		max_x = "1"
+		title = "Full"
+		width = "301"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "20"
+		source = "EYE.INTENSITY"
+		format = "gray"
+		x = "60"
+		flipYCanvas = "no"
+		height = "261"
+		max_y = "1"
+		max_x = "1"
+		title = "Full"
+		width = "321"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "300"
+		format = "rgb"
+		source = "HIGH_INTENSITY.OUTPUT+OUTPUT+OUTPUT"
+		x = "400"
+		flipYCanvas = "no"
+		height = "241"
+		max_y = "1"
+		max_x = "1"
+		title = "High"
+		width = "301"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "300"
+		source = "HIGH_INTENSITY.OUTPUT"
+		format = "gray"
+		x = "60"
+		flipYCanvas = "no"
+		height = "241"
+		max_y = "1"
+		max_x = "1"
+		title = "High"
+		width = "321"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "560"
+		format = "rgb"
+		source = "MEDIUM_INTENSITY.OUTPUT+OUTPUT+OUTPUT"
+		x = "400"
+		flipYCanvas = "no"
+		height = "241"
+		max_y = "1"
+		max_x = "1"
+		title = "Medium"
+		width = "301"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "560"
+		source = "MEDIUM_INTENSITY.OUTPUT"
+		format = "gray"
+		x = "60"
+		flipYCanvas = "no"
+		height = "241"
+		max_y = "1"
+		max_x = "1"
+		title = "Medium"
+		width = "321"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+    	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "560"
+		format = "rgb"
+		source = "LOW_INTENSITY.OUTPUT+OUTPUT+OUTPUT"
+		x = "400"
+		flipYCanvas = "no"
+		height = "241"
+		max_y = "1"
+		max_x = "1"
+		title = "Low"
+		width = "301"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+	<image
+		show_title = "true"
+		scales = "no"
+		w = "4"
+		h = "4"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		y = "560"
+		source = "LOW_INTENSITY.OUTPUT"
+		format = "gray"
+		x = "60"
+		flipYCanvas = "no"
+		height = "241"
+		max_y = "1"
+		max_x = "1"
+		title = "Low"
+		width = "321"
+		scale = "both"
+		flipXAxis = "no"
+		class = "image"
+	/>
+
+</view>
+
+</group>
+

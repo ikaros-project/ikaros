@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ActionCompetition" description="maintains activation levels for a number iof actions">
+<class name="ActionCompetition" description="maintains activation levels for a number iof actions">
 
 	<description type="text">
         This module maintains an activation level for a number of actions that increase or decreas in urgency over time depending on internal and external factors.
@@ -33,13 +33,12 @@
 	<output name="OUTPUT" description="The output" size_param="size" />
 	<output name="TRIGGER" description="The behavior triggor for the most active behavior" size_param="size" />
 
-	<module class="ActionCompetition" />
+	<link class="ActionCompetition" />
 
     <view name="Default ActionCompetition View">
         <bar-graph
             x="10" y="10" height="200" width="200"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for ActionCompetition"
         />
     </view>
@@ -57,4 +56,4 @@
    		<file>ActionCompetition.ikc</file>
    </files>
 
-</group>
+</class>

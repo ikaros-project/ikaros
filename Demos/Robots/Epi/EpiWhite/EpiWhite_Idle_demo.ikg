@@ -1,0 +1,662 @@
+<?xml version="1.0"?>
+
+<group title="EpiWhite Demo">
+    
+    <description>
+        WARNING. These modules is under development and can be change anytime!
+	 </description>
+
+
+    <!-- 			HIGH LEVEL 				-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+
+    <!-- Where is Epi in global coordinate system And what is the rotation  -->
+    <module class = "Constant" name = "EpiPosition" data = "
+        1 0 0 0.85
+        0 1 0 0.15
+        0 0 1 0.847
+        0 0 0 1;" />
+
+    <module class = "Constant" name = "EpiRotation" data = "
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1;" />
+
+    <!-- Multiply -->
+   <module class="Transform"   name="Epi" />
+        <connection  source = "EpiPosition.OUTPUT"        target = "Epi.MATRIX_1"    delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "Epi.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "Epi.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "EpiRotation.OUTPUT"        target = "Epi.MATRIX_2"    delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "Epi.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "Epi.FRAME_ID_2"  delay = "0"/>
+
+
+    <!--      Manual controll of Epi        -->
+    <!-- ********************************* 	-->
+
+    <!-- Set the coordinate where Epi should look at in egocentric coordinates -->
+    <module class = "Constant" name = "ManFocusPoint" data = "
+    1 0 0 1
+    0 1 0 -0.5 
+    0 0 1 2 
+    0 0 0 1"/>
+    
+	<_module
+		class		=	"FunctionGenerator"
+		name		=	"ManualX"
+		type		=	"sin"
+		frequency	=	"0.1"
+		offset      =	"0.5"
+		amplitude	=	"0.4"
+	    shift		=	"0.1"
+    />
+
+    <_module class="Constant" name="ManualX" data = "2" />
+    <_module class="Constant" name="ManualY" data = "2" />
+    <_module class="Constant" name="ManualZ" data = "1" />
+    
+    <!-- Drifts away -->
+
+    <module class="Constant" name="ChangeID" data = "500" /> <!-- All change has the same ID -->
+
+
+    <!-- Change -->
+    <_module class="RotationConverter" name="ManFocusPoint" input_format = "xyz" output_format = "matrix" />
+        <_connection  source = "ManualZ.OUTPUT"  target = "ManFocusPoint.INPUT" />
+        <_connection  source = "ManualY.OUTPUT"  target = "ManFocusPoint.INPUT" />
+        <_connection  source = "ManualX.OUTPUT"  target = "ManFocusPoint.INPUT" />
+
+    
+    <!-- Set positions of servos -->
+    <module class = "Constant" name = "ManBPos" data = "0 0" />
+    <module class = "Constant" name = "ManHPos" data = "0 0 0 0" />
+    <module class = "Constant" name = "ManPPos" data = "12 12" />
+
+
+    <!-- TORQUE_LIMIT, TORQUE_ENABLE and TORQUE_SPEED. Connected directed -->
+    <!-- Speed -->
+    <module class = "Constant" name = "DirectBSpeed" data = "0.2 0.2" />
+    <module class = "Constant" name = "DirectHSpeed" data = "0.01 0.01 0.02 0.02" />
+    <module class = "Constant" name = "DirectPSpeed" data = "0.2 0.2" />
+
+    <!-- Torque limit -->
+    <module class = "Constant" name = "DirectBTorqueLimit" data = "0.2 0.2" />
+    <module class = "Constant" name = "DirectHTorqueLimit" data = "0.3 0.3 0.1 0.1" />
+    <module class = "Constant" name = "DirectPTorqueLimit" data = "0.5 0.5" />
+
+    <!-- Torque enable -->
+    <module class = "Constant" name = "DirectBTorqueEnable" data = "0 0" />
+    <module class = "Constant" name = "DirectHTorqueEnable" data = "1 1 1 1" />
+    <module class = "Constant" name = "DirectPTorqueEnable" data = "1 1" />
+
+    <!-- Population coding -->
+    <module class = "PopulationCoder" name = "ManPosPop" min  = "-400" max  = "400" size = "20"/>
+        <connection  source = "ManPPos.OUTPUT" 	 target = "ManPosPop.INPUT" />
+        <connection  source = "ManHPos.OUTPUT" 	 target = "ManPosPop.INPUT" />
+        <connection  source = "ManBPos.OUTPUT" 	 target = "ManPosPop.INPUT" />
+
+    <!-- ********************************* 	-->
+
+    <!-- Random movements -->
+    <module class = "Randomizer" name = "RandomFocusX" outputsize = "1" min = "-2" max = "2" interval = "80"/>
+    <module class = "Randomizer" name = "RandomFocusY" outputsize = "1" min = "1.5" max = "6" interval = "80"/>
+    <module class = "Randomizer" name = "RandomFocusZ" outputsize = "1" min = "1.5" max = "2" interval = "80"/>
+
+    <!-- Change -->
+    <module class="RotationConverter" name="RandomFocus" input_format = "xyz" output_format = "matrix" />
+        <connection  source = "RandomFocusZ.OUTPUT"  target = "RandomFocus.INPUT" />
+        <connection  source = "RandomFocusY.OUTPUT"  target = "RandomFocus.INPUT" />
+        <connection  source = "RandomFocusX.OUTPUT"  target = "RandomFocus.INPUT" />
+
+
+
+
+    <!--      FocusPoint          -->
+    <!-- Where should Epi Look at -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+    
+    <!-- EXO -->
+    <module class = "Arbiter" name = "HLFocusArb" no_of_inputs = "5"/>
+        <!-- ManualFocusPoint -->
+        <connection  source = "ManFocusPoint.OUTPUT"  		 target = "HLFocusArb.INPUT_1" />
+        <connection  source = "ManFocusPointValue.OUTPUT"  		 target = "HLFocusArb.VALUE_1" />
+        <!-- MarkerTracker (Left) -->
+        <connection  source = "Detectors.L_MARKER_EGO"  target = "HLFocusArb.INPUT_2" /> <!-- Should be EXO -->
+        <connection  source = "MarkerTrackerValue.OUTPUT"        target = "HLFocusArb.VALUE_2" />
+        <!-- ChangeDetector (Left) -->
+        <connection  source = "Detectors.L_CHANGE_WORLD"  target = "HLFocusArb.INPUT_3" />
+        <connection  source = "ChangeSubtractV.OUTPUT"        target = "HLFocusArb.VALUE_3" />
+        <!-- Random Focus points -->
+        <connection  source = "RandomFocus.OUTPUT"        target = "HLFocusArb.INPUT_4" />
+        <connection  source = "RandomFocusPointValue.OUTPUT"    target = "HLFocusArb.VALUE_4" />
+       <!-- FaceDetector (Left) -->
+        <connection  source = "Detectors.L_FACE_WORLD"  target = "HLFocusArb.INPUT_5" />
+        <connection  source = "Detectors.L_FACE_CONF"   target = "HLFocusArb.VALUE_5" />
+   
+     <view name="Focus Point">
+        <object class="Table" name = "ManFocusPoint" module="ManFocusPointValue" source = "OUTPUT" min = "-1" max = "1"  x="0" y="0" decimals ="5"/>    
+        <object class="Table" name = "Marker" module="MarkerTrackerValue" source = "OUTPUT" min = "-1" max = "1" x="1" y="0" decimals ="5"/>    
+        <object class="Table" name = "Change" module="ChangeSubtractV" source = "OUTPUT" min = "-1" max = "1" x="2" y="0" decimals ="5"/>    
+        <object class="Table" name = "Random" module="RandomFocusPointValue" source = "OUTPUT" min = "-1" max = "1" x="3" y="0" decimals ="5"/>    
+        <object class="Table" name = "Face" module="Detectors" source = "L_FACE_CONF" min = "-1" max = "1" x="4" y="0" decimals ="5"/>    
+    </view>
+
+
+    <!-- This should be moved to population code and use amplitude instead --> 	
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.00001"/>
+    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.00002"/>
+    <_module class = "Constant" name = "ChangeDetectorValue"  data = "0.9"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.001"/>
+    <_module class = "Constant" name = "FaceDetectionValue"  data = "0.2"/>
+
+    <!-- If the robot is moving. Disable Change detector -->
+    <module class="Mean" name="MotorSpeed"/>
+        <connection  source = "Servos.BODY_FEEDBACK_POSITION"  target = "MotorSpeed.INPUT" />
+        <connection  source = "Servos.HEAD_FEEDBACK_POSITION"  target = "MotorSpeed.INPUT" />
+        <connection  source = "Servos.PUPIL_FEEDBACK_POSITION"  target = "MotorSpeed.INPUT" />
+	<module class = "Threshold" name = "MotorSpeedT" type  = "binary" threshold = "0.1" /> 
+        <connection  source = "MotorSpeed.OUTPUT"  target = "MotorSpeedT.INPUT" />
+    <module class = "Subtract" name = "ChangeSubtractV"/>
+        <connection  source = "Detectors.L_CHANGE_CONF"  target = "ChangeSubtractV.INPUT1" />
+        <connection  source = "MotorSpeedT.OUTPUT"  target = "ChangeSubtractV.INPUT2" />
+
+    <!-- ************************ -->
+
+
+    <!--       Motor Control      -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+
+    <!--  Motion recorder -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+    <module
+        class = "Constant"
+        name = "Modes"
+        data = "0 0   0 0 0 0   0 0;
+                1 1   1 1 1 1   0 0;
+                0 0   1 1 1 1   1 1;
+                1 1   0 0 0 0   1 1"
+    />
+
+    <module class = "SelectRow" name = "ModeSelector"/>
+
+    <connection  source = "Modes.OUTPUT"  target = "ModeSelector.INPUT" />
+    <connection  source = "ModeSelector.OUTPUT"  target = "MotionRecorder.MODE" />
+    <module
+        class = "MotionRecorder"
+        name = "MotionRecorder"
+        mask = "1 1   1 1 1 1   1 1 "
+        torque = "0.5 0.5  0.5 0.5 0.5 0.5   0.5 0.5"
+        filename = "motion.%d.mot"
+    />
+    <connection  source = "Servos.BODY_FEEDBACK_POSITION"  target = "MotionRecorder.INPUT" />
+    <connection  source = "Servos.HEAD_FEEDBACK_POSITION"  target = "MotionRecorder.INPUT" />
+    <connection  source = "Servos.PUPIL_FEEDBACK_POSITION"  target = "MotionRecorder.INPUT" />
+
+    <module class = "PopulationCoder" name = "MotionRecPop" min  = "-400" max  = "400" size = "20"/>
+        <connection  source = "MotionRecorder.OUTPUT"  target = "MotionRecPop.INPUT" />
+  
+     <view name="View" object_size="50">
+        <object class="Plot" module="MotionRecorder" source="OUTPUT" color="red" select="0, 1, 2, 3, 4, 5, 6, 7, 8" x="0" y="0" w="8" h="4" />
+        <object class ="DropDownMenu" title="record mode" list="all/left/right/head" module="ModeSelector" parameter="row" x="0" y="4" w="1" h="2" />
+        <object class="Table" module="ModeSelector" source="row" min="0" max="3" x="1" y="4" w="2" h="2" />
+
+        <object class="BarGraph" title="record" module="MotionRecorder" source="STATE" x="8" y="0" w="2" h="2" max="2" />
+        <object class="Table" title="time" module="MotionRecorder" source="TIME" decimals="0" x="8" y="2" w="2" h="2" />
+
+        <object class="Button" title = "Off" module="MotionRecorder" parameter="off" x="10" y="0" h="1" w="2" />
+        <object class="Button" title = "Stop" module="MotionRecorder" parameter="stop" x="10" y="1" h="1" w="2" />
+        <object class="Button" title = "Record" module="MotionRecorder" parameter="record" x="10" y="2" h="1" w="2" />
+        <object class="Button" title = "Play"  module="MotionRecorder" parameter="play" x="10" y="3" h="1" w="2" />
+        <object class="Button" title = "Train"  module="MotionRecorder" parameter="train" x="10" y="4" h="1" w="2" />
+        <object class="Button" title = "Save" module="MotionRecorder" parameter="save" x="10" y="5" h="1" w="2" />
+        <object class="Button" title = "Load" module="MotionRecorder" parameter="load" x="10" y="6" h="1" w="2" />
+        <object class="Button" title = "SQ Play" module="MotionRecorder" parameter="sqplay" x="10" y="7" h="1" w="2" />
+    </view>
+
+
+
+
+    <!--  Head/Eyes to FocusPoint -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+
+    <module class = "GazeController" name = "HLGazeCont" offset = "0 0 0 0" angle_unit = "degrees" A = "0.09" B = "0.011" C = "0.03" E ="0.04"/>
+    <!-- Focus point in -->
+        <_connection  source = "HLFocusArb.OUTPUT"  target = "HLGazeCont.INPUT"/>
+        <connection  source = "GazeControllFocusPoint.MATRIX"  target = "HLGazeCont.INPUT"/>
+    
+    <!-- Only one focus point -->
+    <!-- Multiply -->
+    <!-- Using trasform (inverse) -->
+    <module class="Transform"   name="GazeControllFocusPoint" invert_1 ="true"/>
+        <connection  source = "HLFocusArb.OUTPUT"        target = "GazeControllFocusPoint.MATRIX_2"    delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "GazeControllFocusPoint.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "GazeControllFocusPoint.FRAME_ID_2"  delay = "0"/>
+        <connection  source = "Epi.MATRIX"        target = "GazeControllFocusPoint.MATRIX_1"    delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "GazeControllFocusPoint.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"        target = "GazeControllFocusPoint.FRAME_ID_1"  delay = "0"/>
+
+
+    <view name="Check position">
+        <object class="Table" title = "HLFocusArb"              module="HLFocusArb" source = "OUTPUT" w = "4" h="1" x="0" y="0" />    
+        <object class="Table" title = "Epi"                     module="Epi" source = "MATRIX" w = "4" h="1" x="0" y="1" />    
+        <object class="Table" title = "GazeControllFocusPoint"  module="GazeControllFocusPoint" source = "MATRIX" w = "4" h="1" x="0" y="2" />    
+    </view>
+
+    <!-- Population coding -->
+    <module class = "PopulationCoder" name = "GazePosPop" min  = "-400" max  = "400" size = "20"/>
+        <!-- This will be handle in LLArbiter with mixing is enable -->
+        <connection  source = "AddP.OUTPUT" 	 target = "GazePosPop.INPUT" />
+        <connection  source = "AddP.OUTPUT" 	 target = "GazePosPop.INPUT" />
+        <_connection  source = "ManPPos.OUTPUT" 	 target = "GazePosPop.INPUT" />
+
+        <connection  source = "HLGazeCont.OUTPUT" 	 target = "GazePosPop.INPUT" />
+        <connection  source = "BZeros.OUTPUT" 	 target = "GazePosPop.INPUT" />
+    <!-- ************************ -->
+
+
+    <!--  High Level Motion mixer -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+
+    <module class = "Arbiter" name = "HLMotorArb" no_of_inputs = "3"/>
+        <connection  source = "ManPosPop.OUTPUT"  target = "HLMotorArb.INPUT_1"/>
+        <connection  source = "ManPosPopValue.OUTPUT"  target = "HLMotorArb.VALUE_1"/>
+        <connection  source = "GazePosPop.OUTPUT"  target = "HLMotorArb.INPUT_2"/>
+        <connection  source = "GazePosPopValue.OUTPUT"  target = "HLMotorArb.VALUE_2"/>
+        <connection  source = "MotionRecPop.OUTPUT"  target = "HLMotorArb.INPUT_3"/>
+        <connection  source = "MotionRecPopValue.OUTPUT"  target = "HLMotorArb.VALUE_3"/>
+
+    <!-- Values -->
+    <!-- These should be handle by the new coder module -->
+    <module class = "Constant" name = "ManPosPopValue" 	    data = "0.2"/>
+    <module class = "Constant" name = "GazePosPopValue"     data = "0.9"/>
+    <module class = "Constant" name = "MotionRecPopValue"   data = "0.1"/>
+
+
+
+
+
+    <!-- 			LOW LEVEL 				-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+
+    <!-- Sensors -->
+    <module class = "EpiWhiteVision" 	name = "Vision" 		/>
+
+    <module class = "EpiWhiteDetectors" name = "Detectors" 		/>
+        <connection  source = "Vision.LEFT_RED"          target = "Detectors.LEFT_RED" />
+        <connection  source = "Vision.LEFT_GREEN"        target = "Detectors.LEFT_GREEN" />
+        <connection  source = "Vision.LEFT_BLUE"         target = "Detectors.LEFT_BLUE" />
+        <connection  source = "Vision.LEFT_INTENSITY"    target = "Detectors.LEFT_INTENSITY" />
+        <connection  source = "Vision.RIGHT_RED"         target = "Detectors.RIGHT_RED" />
+        <connection  source = "Vision.RIGHT_GREEN"       target = "Detectors.RIGHT_GREEN" />
+        <connection  source = "Vision.RIGHT_BLUE"        target = "Detectors.RIGHT_BLUE" />
+        <connection  source = "Vision.RIGHT_INTENSITY"   target = "Detectors.RIGHT_INTENSITY" />
+
+        <connection  source = "EgoID.OUTPUT"         	 target = "Detectors.EGO_ID" />
+        <connection  source = "EgoFrameID.OUTPUT"            target = "Detectors.EGO_FRAME_ID" />
+        <connection  source = "ExoID.OUTPUT"            target = "Detectors.WORLD_ID" />
+        <connection  source = "ExoFrameID.OUTPUT"            target = "Detectors.WORLD_FRAME_ID" />
+
+        <connection  source = "ForwardModel.SENSOR_POS_EGO"    target = "Detectors.SENSORS_POS_EGO" />
+        <connection  source = "Epi.MATRIX"   		 target = "Detectors.EPI_POS_WORLD" />
+
+
+    <!-- Actuators/Proprioception -->
+    <module class = "EpiWhiteServos" 	name = "Servos" 		/>
+        <connection  source = "ServoPos.OUTPUT"   target = "Servos.GOAL_POSITION" />
+        <connection  source = "DirectBSpeed.OUTPUT"   target = "Servos.BODY_MOVING_SPEED" />
+        <connection  source = "DirectHSpeed.OUTPUT"   target = "Servos.HEAD_MOVING_SPEED" />
+        <connection  source = "DirectPSpeed.OUTPUT"   target = "Servos.PUPIL_MOVING_SPEED" />
+        <connection  source = "DirectBTorqueLimit.OUTPUT"   target = "Servos.BODY_TORQUE_LIMIT" />
+        <connection  source = "DirectHTorqueLimit.OUTPUT"   target = "Servos.HEAD_TORQUE_LIMIT" />
+        <connection  source = "DirectPTorqueLimit.OUTPUT"   target = "Servos.PUPIL_TORQUE_LIMIT" />
+        <connection  source = "DirectBTorqueEnable.OUTPUT"   target = "Servos.BODY_TORQUE_ENABLE" />
+        <connection  source = "DirectHTorqueEnable.OUTPUT"   target = "Servos.HEAD_TORQUE_ENABLE" />
+        <connection  source = "DirectPTorqueEnable.OUTPUT"   target = "Servos.PUPIL_TORQUE_ENABLE" />
+        
+    <module class = "EpiWhiteForwardModel" 	name = "ForwardModel" 	/>
+        <connection  source = "Servos.BODY_FEEDBACK_POSITION"    target = "ForwardModel.BODY_FEEDBACK_POSITION" />
+        <connection  source = "Servos.HEAD_FEEDBACK_POSITION"    target = "ForwardModel.HEAD_FEEDBACK_POSITION" />
+        <connection  source = "Servos.PUPIL_FEEDBACK_POSITION"   target = "ForwardModel.PUPIL_FEEDBACK_POSITION" />
+
+
+
+    
+    <!-- Behaviors -->
+    <!-- Light reflex etc -->
+    <module class="PupilControl" name="PupilControl"/>
+        <connection  source = "Vision.LEFT_INTENSITY"  target = "PupilControl.PTA" />
+
+    <view name="Pupil">
+        <object class="Image" title="Input"                     module="Vision" source="LEFT_INTENSITY"   x="4" y="0" w="4" h="4" />
+        <object class="Plot" title="Response Light"             module="PupilControl" source="PTA_OUTPUT"   x="0" y="0" w="4" />
+        <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="1" w="4" min = "5" max="17" />
+        <object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="2" w="4" min = "5" max="17" />
+    </view>
+
+     <!-- Population coding -->
+    <module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "20"/>
+        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "HZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "BZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
+
+    <!-- Special pupil behavior -->
+    <!-- Large pupil when looking at a face -->
+
+
+	<module class = "Threshold" name = "FaceDetected" type  = "binary" threshold = "0.005" /> 
+        <connection  source = "Detectors.L_FACE_IN_CENTER" 	 target = "FaceDetected.INPUT" />
+
+	<module class = "Constant" name = "ConstantPInv" outputsize = "1" data="1" />
+    <module class = "Subtract" name = "SubInv"/>
+		<connection  source = "ConstantPInv.OUTPUT"  target = "SubInv.INPUT1" />
+		<connection  source = "FaceDetected.OUTPUT"  target = "SubInv.INPUT2" />
+
+    <module
+        class = "SpectralTiming"
+        name = "SpectralTiming"
+        no_of_taps = "6"
+		decay ="0.9"
+    />
+        <connection  source = "FaceDetected.OUTPUT" 	 target = "SpectralTiming.INPUT" />
+
+		<module class = "Constant" name = "ConstantP" outputsize = "1" data="6" />
+		<module
+			class = "Multiply"
+			name = "MultiplyP"
+		/>
+		
+		<connection  source = "SpectralTiming.TRACE"  target = "MultiplyP.INPUT1" />
+		<connection  source = "ConstantP.OUTPUT"  target = "MultiplyP.INPUT2" />
+
+		<module class = "Constant" name = "ConstantPOffset" outputsize = "1" data="12" />
+        <module class = "Add" name = "AddP"/>
+	        <connection  source = "MultiplyP.OUTPUT"  target = "AddP.INPUT1" />
+	        <connection  source = "ConstantPOffset.OUTPUT"  target = "AddP.INPUT2" />
+
+
+    <view name="View">
+        <object class="Plot" module="FaceDetected" source="OUTPUT" max="1" colors="yellow"  x="0" y="0" w="4" />
+        <object class="Plot" module="SpectralTiming" source="TRACE" max="1" colors="yellow"  x="0" y="1" w="4" />
+        <object class="Plot" module="MultiplyP" source="OUTPUT" max="20" colors="yellow"  x="0" y="2" w="4" />
+        <object class="Plot" module="AddP" source="OUTPUT" max="20" colors="yellow"  x="0" y="3" w="4" />
+
+    </view>
+
+
+
+
+
+
+    <!--  Low Level Motion mixer  -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+
+    <module class = "Arbiter" name = "LLArb" no_of_inputs = "2"/>
+        <connection  source = "PupilContPop.OUTPUT"   target = "LLArb.INPUT_1" />
+        <connection  source = "PupilContPopValue.OUTPUT"   target = "LLArb.VALUE_1" />
+        <connection  source = "HLMotorArb.OUTPUT"   target = "LLArb.INPUT_2" />
+        <connection  source = "HLMotorArbValue.OUTPUT"   target = "LLArb.VALUE_2" />
+
+    <!-- Value Low Level -->
+    <!-- These should be handle by the new coder module -->
+    <module class = "Constant" name = "PupilContPopValue" 		data = "0"/> <!-- Waiting on arbiter mixing -->
+    <module class = "Constant" name = "HLMotorArbValue" 	    data = "0.1"/>
+
+    <module class = "PopulationDecoder" name = "ServoPos" min  = "-400" max  = "400" size = "20"/>
+        <connection  source = "LLArb.OUTPUT"   target = "ServoPos.INPUT" />
+
+
+
+
+
+    <!--         LAB              -->
+    <!-- ************************ -->
+    <!-- ************************ -->
+
+    <!-- Table -->
+    <module class = "Constant" name = "TablePos"
+    data = "
+    1 0 0 0.85; 
+    0 1 0 0.6; 
+    0 0 1 0; 
+    0 0 0 1;"/>
+    <module class = "Constant" name = "TableID"        data = "10000"/>
+
+    <module class = "DataConverter" name = "ModelMatrixTab" output_size_x = "16" output_size_y = "10"/>
+        <connection  source = "TablePos.OUTPUT"        target = "ModelMatrixTab.INPUT" />
+        <connection  source = "EGOToEXO.MATRIX"        target = "ModelMatrixTab.INPUT" />     
+    <module class = "DataConverter" name = "ModelIDTab" output_size_x = "10" output_size_y = "1"/>
+        <connection  source = "TableID.OUTPUT"        target = "ModelIDTab.INPUT" />
+        <connection  source = "ForwardModel.MODEL_ID"      target = "ModelIDTab.INPUT" /> 
+
+
+    <module class = "Constant" name = "FocusPointID"        data = "203"/>
+
+    <!-- Coordinate must be converted to exocentric coordinate system before adding to list -->
+    <module class="Transform"   name="EGOToEXO"/>
+        <connection  source = "Epi.MATRIX"            target = "EGOToEXO.MATRIX_1"    delay = "0"/>
+        <connection  source = "EgoID.OUTPUT"            target = "EGOToEXO.OBJECT_ID_1" delay = "0"/>
+        <connection  source = "ExoID.OUTPUT"            target = "EGOToEXO.FRAME_ID_1"  delay = "0"/>
+        <connection  source = "ForwardModel.MODEL_MATRIX"      target = "EGOToEXO.MATRIX_2"    delay = "0"/>
+        <connection  source = "ForwardModel.OBJECT_ID"         target = "EGOToEXO.OBJECT_ID_2" delay = "0"/>
+        <connection  source = "ForwardModel.FRAME_ID"          target = "EGOToEXO.FRAME_ID_2"  delay = "0"/>
+
+
+
+    <!-- Adding FocusPoint to 3D view -->
+   <module class = "DataConverter" name = "ModelMatrix" output_size_x = "16" output_size_y = "11"/>
+        <connection  source = "HLFocusArb.OUTPUT"        target = "ModelMatrix.INPUT" />
+        <connection  source = "ModelMatrixTab.OUTPUT"        target = "ModelMatrix.INPUT" />     
+    <module class = "DataConverter" name = "ModelID" output_size_x = "11" output_size_y = "1"/>
+        <connection  source = "FocusPointID.OUTPUT"        target = "ModelID.INPUT" />
+        <connection  source = "ModelIDTab.OUTPUT"        target = "ModelID.INPUT" /> 
+
+
+
+
+    <!--        Join Models and IDs         -->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+
+
+    <!-- Sound -->
+	<module
+	    class = "SoundOutput"
+		name = "SoundOutput"
+		sounds  = "Sounds/ok2.mp3"
+        command = "mpg123"
+	/>
+        <!-- Connected to a button -->
+		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
+
+    <module class = "Constant" name = "SoundTrigger" data = "0" />
+
+    <view name="Sound">
+        <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    
+    </view>
+
+ <!-- LED -->
+	<module class = "FadeCandy" name = "FadeCandy" start_server = "true">
+        <channel name="MOUTH_TOP"  channel="0" size="8" />
+        <channel name="MOUTH_BOTTOM" channel="1" size="8" />
+        <channel name="LEFT_EYE"  channel="2" size="12" />
+        <channel name="RIGHT_EYE" channel="3" size="12" />
+    </module>
+
+    <module class = "Constant" name = "LedBlueV"  data = "0.01" /> 
+    <_module class = "Constant" name = "LedGreenV" data = "0.5" />
+
+    <module class = "Threshold" name = "LedGreenV" type  = "binary" threshold = "0.1"/>    
+        <connection  source = "ChangeSubtractV.OUTPUT"   target = "LedGreenV.INPUT" />
+
+
+    <!-- Eyes -->
+    <!-- Blue -->
+    <module class = "Constant" name = "LedRBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedGBlue" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedBBlue" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
+
+    <!-- Green -->
+    <module class = "Constant" name = "LedRGreen" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedGGreen" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
+    <module class = "Constant" name = "LedBGreen" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
+
+
+
+    <module class = "Arbiter" name = "EyeColorR" no_of_inputs = "2" switch_time = "5"/>
+        <connection  source = "LedRBlue.OUTPUT"   target = "EyeColorR.INPUT_1" />
+        <connection  source = "LedBlueV.OUTPUT"   target = "EyeColorR.VALUE_1" />
+        <connection  source = "LedRGreen.OUTPUT"   target = "EyeColorR.INPUT_2" />
+        <connection  source = "Detectors.L_FACE_CONF"   target = "EyeColorR.VALUE_2" />
+
+    <module class = "Arbiter" name = "EyeColorG" no_of_inputs = "2" switch_time = "5"/>
+        <connection  source = "LedGBlue.OUTPUT"   target = "EyeColorG.INPUT_1" />
+        <connection  source = "LedBlueV.OUTPUT"   target = "EyeColorG.VALUE_1" />
+        <connection  source = "LedGGreen.OUTPUT"   target = "EyeColorG.INPUT_2" />
+        <connection  source = "Detectors.L_FACE_CONF"   target = "EyeColorG.VALUE_2" />
+
+    <module class = "Arbiter" name = "EyeColorB" no_of_inputs = "2" switch_time = "5"/>
+        <connection  source = "LedBBlue.OUTPUT"   target = "EyeColorB.INPUT_1" />
+        <connection  source = "LedBlueV.OUTPUT"   target = "EyeColorB.VALUE_1" />
+        <connection  source = "LedBGreen.OUTPUT"   target = "EyeColorB.INPUT_2" />
+        <connection  source = "Detectors.L_FACE_CONF"   target = "EyeColorB.VALUE_2" />
+
+
+    <!-- Blink -->
+    <module class = "Constant" name = "LedsOnV" data = "0.9" />
+
+    <!-- Off -->
+    <module class = "Constant" name = "LedROff" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedGOff" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedBOff" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+
+
+    <module class = "Randomizer" name = "R" outputsize = "1" minimum = "0" maximum = "1" />
+	<module class="Threshold" name="LedsOffV" type = "binary" threshold = "0.95" />
+        <connection  source = "R.OUTPUT"   target = "LedsOffV.INPUT" />
+
+    <module class = "Arbiter" name = "EyeColorRBlink" no_of_inputs = "2" />
+        <connection  source = "EyeColorR.OUTPUT"   target = "EyeColorRBlink.INPUT_1" />
+        <connection  source = "LedsOnV.OUTPUT"   target = "EyeColorRBlink.VALUE_1" />
+        <connection  source = "LedROff.OUTPUT"   target = "EyeColorRBlink.INPUT_2" />
+        <connection  source = "LedsOffV.OUTPUT"   target = "EyeColorRBlink.VALUE_2" />
+
+    <module class = "Arbiter" name = "EyeColorGBlink" no_of_inputs = "2" />
+        <connection  source = "EyeColorG.OUTPUT"   target = "EyeColorGBlink.INPUT_1" />
+        <connection  source = "LedsOnV.OUTPUT"   target = "EyeColorGBlink.VALUE_1" />
+        <connection  source = "LedGOff.OUTPUT"   target = "EyeColorGBlink.INPUT_2" />
+        <connection  source = "LedsOffV.OUTPUT"   target = "EyeColorGBlink.VALUE_2" />
+
+    <module class = "Arbiter" name = "EyeColorBBlink" no_of_inputs = "2"/>
+        <connection  source = "EyeColorB.OUTPUT"   target = "EyeColorBBlink.INPUT_1" />
+        <connection  source = "LedsOnV.OUTPUT"   target = "EyeColorBBlink.VALUE_1" />
+        <connection  source = "LedBOff.OUTPUT"   target = "EyeColorBBlink.INPUT_2" />
+        <connection  source = "LedsOffV.OUTPUT"   target = "EyeColorBBlink.VALUE_2" />
+
+    <!-- Mouth -->
+    <module class = "Constant" name = "MOUTH_TOP_RED" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
+    <module class = "Constant" name = "MOUTH_TOP_GREEN" data = "0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "MOUTH_TOP_BLUE" data = "0 0 0 0 0 0 0 0" />
+
+    <module class = "Constant" name = "MOUTH_BOTTOM_RED" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
+    <module class = "Constant" name = "MOUTH_BOTTOM_GREEN" data = "0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "MOUTH_BOTTOM_BLUE" data = "0 0 0 0 0 0 0 0" />
+
+
+    <view name="FadeCandy">
+        <object class="Table" title = "EventTrigger"    module="LedBlueV"   source = "OUTPUT" w = "2" x="0" y="0" />    
+        <object class="Table" title = "EyeColorROut"    module="EyeColorRBlink" source = "OUTPUT" w = "2" x="0" y="1" />    
+        <object class="Table" title = "EyeColorGOut"    module="EyeColorGBlink" source = "OUTPUT" w = "2" x="0" y="2" />    
+        <object class="Table" title = "EyeColorBOut"    module="EyeColorBBlink" source = "OUTPUT" w = "2" x="0" y="3" />    
+        <object class="Button" module="LedBlueV"       parameter="data" x="2" y="0" min = "0" max = "1" />
+    </view>
+
+    <connection  source = "EyeColorRBlink.OUTPUT"  target = "FadeCandy.LEFT_EYE_RED" />
+    <connection  source = "EyeColorGBlink.OUTPUT"  target = "FadeCandy.LEFT_EYE_GREEN" />
+    <connection  source = "EyeColorBBlink.OUTPUT"  target = "FadeCandy.LEFT_EYE_BLUE" />
+
+    <connection  source = "EyeColorRBlink.OUTPUT"  target = "FadeCandy.RIGHT_EYE_RED" />
+    <connection  source = "EyeColorGBlink.OUTPUT"  target = "FadeCandy.RIGHT_EYE_GREEN" />
+    <connection  source = "EyeColorBBlink.OUTPUT"  target = "FadeCandy.RIGHT_EYE_BLUE" />
+
+    <connection  source = "MOUTH_TOP_RED.OUTPUT"  target = "FadeCandy.MOUTH_TOP_RED" />
+    <connection  source = "MOUTH_TOP_GREEN.OUTPUT"  target = "FadeCandy.MOUTH_TOP_GREEN" />
+    <connection  source = "MOUTH_TOP_BLUE.OUTPUT"  target = "FadeCandy.MOUTH_TOP_BLUE" />
+
+    <connection  source = "MOUTH_BOTTOM_RED.OUTPUT"  target = "FadeCandy.MOUTH_BOTTOM_RED" />
+    <connection  source = "MOUTH_BOTTOM_GREEN.OUTPUT"  target = "FadeCandy.MOUTH_BOTTOM_GREEN" />
+    <connection  source = "MOUTH_BOTTOM_BLUE.OUTPUT"  target = "FadeCandy.MOUTH_BOTTOM_BLUE" />
+    
+    <!-- LED END -->
+    <!-- 			Misc     				-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+    <!-- ********************************* 	-->
+
+
+    <!-- EXO:       100 -->
+    <!-- EPI/EGO:   200 -->
+    <!-- SENSOR:    300 -->
+
+    <!-- Id and frames used by transfromers modules -->
+    <module class = "Constant" name = "ExoID"       data = "100"/>
+    <module class = "Constant" name = "ExoFrameID"  data = "100"/>
+    <module class = "Constant" name = "EgoID"       data = "200"/>
+    <module class = "Constant" name = "EgoFrameID"  data = "200"/>
+
+
+    <!-- Used when adding different parts. See GazeController -->
+    <module class = "Constant" name = "BZeros" 	data = "0 0"/>
+    <module class = "Constant" name = "HZeros" 	data = "0 0 0 0"/>
+    <module class = "Constant" name = "PZeros" 	data = "0 0"/>
+
+
+
+    <view name="3D View">
+        <object
+            class   	= "Ikaros3D"
+            title   	= "EpiWhite"
+            model_mat_module  	= "ModelMatrix"
+            model_mat_source  	= "OUTPUT"
+            model_id_module  	= "ModelID"
+            model_id_source     = "OUTPUT"
+            x="0" y="0"
+            w="4" h="4"
+        />
+        <object class="Image" title="Input"                     module="Vision" source="LEFT_INTENSITY"   x="0" y="4" w="2" h="2" />
+
+
+        <object class="Slider" title = "ManualFocusPoint (Exo) X" module="ManFocusPoint" parameter="data" x="4" y="0" select = "3" min = "-2" max = "2"/>
+        <object class="Slider" title = "ManualFocusPoint (Exo) Y" module="ManFocusPoint" parameter="data" x="5" y="0" select = "7" min = "-2" max = "2"/>
+        <object class="Slider" title = "ManualFocusPoint (Exo) Z" module="ManFocusPoint" parameter="data" x="6" y="0" select = "11" min = "0" max = "2"/>    
+
+        <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="4" y="1" select = "0" min = "-60" max = "65"/>
+        <object class="Slider" title = "Head (Neck)"        module="ManHPos" parameter="data" x="5" y="1" select = "1" min = "-115" max = "110"/>
+        <object class="Slider" title = "Head (Left Eye)"    module="ManHPos" parameter="data" x="6" y="1" select = "2" min = "-12" max = "30"/>
+        <object class="Slider" title = "Head (Right Eye)"   module="ManHPos" parameter="data" x="7" y="1" select = "3" min = "-29" max = "11"/>
+
+        <object class="Slider" title = "Pupil (Left Eye)"   module="ManPPos" parameter="data" x="4" y="2" select = "0" min = "6" max = "12"/>
+        <object class="Slider" title = "Pupil (Right Eye)"  module="ManPPos" parameter="data" x="5" y="2" select = "1" min = "6" max = "12"/>
+        <object class="Table" title = "Feedback Pupil"      module="Servos" source = "PUPIL_FEEDBACK_POSITION" w = "2" x="6" y="2" />    
+
+
+        <object class="Table" module="HLFocusArb" source  	= "OUTPUT" w = "4" x="4" y="3" />    
+        <object class="Table" module="GazeControllFocusPoint" source  	= "MATRIX" w = "4" x="4" y="4" />    
+        <_object class="Button" module="GazeControllFocusPoint" parameter="invert_1" x="5" y="3"/>    
+        <_object class="Button" module="GazeControllFocusPoint" parameter="invert_2" x="6" y="3"/>    
+    </view>
+</group>

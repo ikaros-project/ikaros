@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<group title = "MapMovementToRobot">
+
+  <module
+    class = "InputFile"
+    name = "TrainData"
+    filename = "./data.txt"
+    send_end_of_file="no">
+      <column name = "Mean" />
+      <column name = "Variance" />
+      <column name = "Movement" />
+  </module>
+
+  <module
+      class = "Kinect"
+      name = "Kinect"
+      mode = "raw"
+   />
+
+   <module
+       class = "DepthHistogram"
+       name = "DepthHistogram"
+       filter = "yes"
+   />
+
+  <module
+      class	= "Constant"
+      name 	= "Tilt"
+      data  = "1"
+      outputsize = "1"
+  />
+
+  <module
+      class 			= "Constant"
+      name 			= "Color"
+      data            = "0.5"
+      outputsize      = "1"
+  />
+
+  <module
+      class = "Scale"
+      name = "Scale"
+      factor = "2048"
+      comment = "This module could be removed if Image-object allowed scaling."
+  />
+
+  <module
+       class = "HeadTracking"
+       name = "HeadTracking"
+       mask_left = "0.1"
+       mask_right = "0.9"
+   />
+
+  <module
+    class = "MimicHead"
+    name = "MimicHead"
+    max_movements = "70"
+    baysian_threshold = "0.03">
+  </module>
+
+  <!--LOAD TRAINING DATA -->
+  <connection  source = "TrainData.Movement"  target = "MimicHead.MOVEMENT" />
+  <connection  source = "TrainData.Mean"  target = "MimicHead.MEAN" />
+  <connection  source = "TrainData.Variance"  target = "MimicHead.VARIANCE" />
+
+  <!--Save Depth in raw images -->
+  <connection  source = "Tilt.OUTPUT"  target = "Kinect.TILT" />
+  <connection  source = "Color.OUTPUT"  target = "Kinect.LED" />
+
+  <!-- Scale Kinect data -->
+  <connection  source = "Kinect.DEPTH"  target = "Scale.INPUT" />
+
+  <!-- Display DepthSegmentation -->
+  <connection  source = "Scale.OUTPUT"  target = "DepthHistogram.INPUT" />
+  <connection  source = "DepthHistogram.OBJECT"  target = "HeadTracking.OBJECT" />
+
+  <connection  source = "Scale.OUTPUT"  target = "HeadTracking.INPUT" />
+
+  <connection  source = "HeadTracking.HEAD_ANGLE"  target = "MimicHead.HEAD_ANGLE_IN" />
+  <connection  source = "HeadTracking.HEAD_ROTATION"  target = "MimicHead.HEAD_ROTATION_IN" />
+
+  <view name="Depth">
+      <image type="green" name="Blob" module = "HeadTracking" source = "OUTPUT" x="0" y="0" width="512" height="512" />
+  </view>
+    <module class = "Logger" name = "Logger" />
+</group>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Phidgets" description="controlling a Phidgets IOBoard">
+<class name="Phidgets" description="controlling a Phidgets IOBoard">
 
 	<description type="text">
 		A module for comunication with a Phidgets IOBoard. It uses the Phidgets own library.
@@ -28,7 +28,7 @@
     <output name="ANALOG_OUTPUTS" description="Analog inputs of the board is forwarded to analog output of this module" optional="yes" />
 	<output name="DIGITAL_OUTPUTS" description="Digital inputs of the board is forwarded to digital output of this module" optional="yes" />
     
-	<module class="Phidgets" />
+	<link class="Phidgets" />
 
 	<author>
 		<name>Birger Johansson</name>
@@ -43,5 +43,5 @@
    		<file>Phidgets.ikc</file>
    </files>
 
-</group>
+</class>
 

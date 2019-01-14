@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group title="SOM Example">
+	
+		<module
+			class = "InputVideo"
+			name = "Image"
+		/>
+
+		<module
+			class = "StaufferGrimson"
+			name = "StaufferGrimson"
+		/>
+		
+  
+        <connection  source = "Image.INTENSITY"  target = "StaufferGrimson.INPUT" delay="0" />
+        
+
+		<view name="Stauffer-Grimson">
+			<object class="Image" type="gray" module="StaufferGrimson" source="OUTPUT" x="0" y="0" w="3" h="2" />
+			<_object class="Image" type="gray" title="Cleaned" module="Dilate" source="OUTPUT" x="3" y="0" w="3" h="2" />
+
+            <object
+				x="0" y="2" 
+				class="Slider"
+				title="Alpha"
+				module="StaufferGrimson" parameter="alpha" min="0" max="0.01"
+			/>
+            <object
+				x="1" y="2" 
+				class="Slider"
+				title="Background %"
+				module="StaufferGrimson" parameter="T" min="0" max="1"
+			/>
+            <object
+				x="2" y="2" 
+				class="Slider"
+				title="Threshold"
+				module="StaufferGrimson" parameter="threshold" min="0" max="10"
+			/>
+		</view>
+
+</group>
+ 

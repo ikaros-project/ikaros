@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="LocalApproximator" description="chooses a class based on some elements (neighbors)">
+<class name="LocalApproximator" description="chooses a class based on some elements (neighbors)">
 
 
 <description type="text">
@@ -33,7 +33,7 @@
 	default="linear_approximation"/>
 
 
-<module class="LocalApproximator" />
+<link class="LocalApproximator" />
 
 <limitation>
 This module is work in progress and is not yet ready to be used.
@@ -58,5 +58,5 @@ This module is work in progress and is not yet ready to be used.
 	<file>LocalApproximator.ikc</file>
 </files>
 
-</group>
+</class>
 

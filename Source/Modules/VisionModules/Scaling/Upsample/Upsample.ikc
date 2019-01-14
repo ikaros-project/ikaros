@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Upsample" description="doubles an image">
+<class name="Upsample" description="doubles an image">
 
 	<description type="text">
 		Module that upsamples an image to double size. No interpolation is done.
@@ -16,7 +16,7 @@
 	<input name="INPUT" description="The  input" />
 	<output name="OUTPUT" description="The upsampled image" />
 
-	<module class="Upsample" />
+	<link class="Upsample" />
 
 	<view name="View">
 		<image
@@ -25,10 +25,9 @@
 		max_x = "1"
 		max_y = "1"
 		height = "381"
-		module = "*"
 		flipYCanvas = "no"
 		x = "20"
-		source = "OUTPUT"
+		source = ".OUTPUT"
 		format = "gray"
 		h = "4"
 		flipYAxis = "no"
@@ -55,4 +54,4 @@
    		<file>Upsample.ikc</file>
    </files>
 
-</group>
+</class>

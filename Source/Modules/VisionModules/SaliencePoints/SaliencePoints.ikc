@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SaliencePoints" description="converts points to a saliency map">
+<class name="SaliencePoints" description="converts points to a saliency map">
 
 	<description type="text">
 		The module SaliencePoints takes a list of image coordinates and convert it into a saliency map that is suitable as input to the SaliencyMap module. The list must be coded as rows with (x,y)-values. The column with the coordinates can be set using the select parameter. A column with saliency values can optionally be selected using the select_salience parameter. If the COUNT input is connected it indicates the number of rows in the input to use.
@@ -28,10 +28,10 @@
     <parameter name="select" type="int" default="0" description="Column with the x coordinate; the next is assumed to contain y" />
     <parameter name="select_salience" type="int" default="none" description="Column with saliency value. none produces same saliency for all points" />
 
-	<module class="SaliencePoints" />
+	<link class="SaliencePoints" />
 
     <view name="View" object_size="30">
-        <object class="Image" title="Salience" type="fire" module="*" source="OUTPUT" x="0" y="0" w="8" h="6" />
+        <object class="Image" title="Salience" type="fire" source=".OUTPUT" x="0" y="0" w="8" h="6" />
         <object class="Slider" module="*" title="scale" parameter="scale" max="2" x="8" y="0" w="1" h="6" />
         <object class="Slider" module="*" parameter="sigma" title="sigma" max="30" x="9" y="0" w="1" h="6" />
     </view>
@@ -49,5 +49,5 @@
    		<file>SaliencePoints.ikc</file>
    </files>
 
-</group>
+</class>
 

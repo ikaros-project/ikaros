@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+		<module
+			class = "InputVideoFile"
+			name = "IN"
+			filename = "../../../../../../Examples/Media/ikaros.mp4"
+			loop = "yes"
+		/>
+
+		<module 
+			class = "ChangeDetector"
+			name = "Change"
+			border = "0"
+		/>
+
+		<connection  source = "IN.INTENSITY"  target = "Change.INPUT" />	
+
+		<view name = "View 1">
+			<object class="Image" name="Input" module="IN" source="INTENSITY" x="0" y="0" />
+			<object class="Image" name="Changes" module="Change" source="OUTPUT" x="1" y="0" />
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Nucleus" description="implements a nucleus">
+<class name="Nucleus" description="implements a nucleus">
 
 	<description type="text">
 		Module that implements a generic brain nucleus. output = alpha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
@@ -32,13 +32,12 @@
 
 	<output name="OUTPUT" description="The output from the nucleus" size="1" />
 
-	<module class="Nucleus" />
+	<link class="Nucleus" />
 
     <view name="View (Default)">
         <plot
             x="20" y="20" width="400" height="400"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default View for Nucleus"
         />
     </view>
@@ -56,5 +55,5 @@
    		<file>Nucleus.ikc</file>
    </files>
 
-</group>
+</class>
 

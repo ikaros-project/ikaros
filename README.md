@@ -5,6 +5,12 @@ This is the public distribution of the Ikaros kernel together with a number of f
 
 Installation instructions and other documentation can be found on the web site: http://www.ikaros-project.org/installing/
 
+For important changes in Ikaros 2.0 see the link below:
+
+[Changes in Ikaros 2.0](https://github.com/ikaros-project/ikaros/wiki/New-features-in-Ikaros-2.0 "Ikaros 2.0")
+
+
+
 
 The Ikaros Project
 ------------------

@@ -2,7 +2,7 @@
 //  IKAROS.h        Kernel code for the IKAROS project
 //
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2019  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
 #include <set>
 #include <deque>
 #include <thread>
+#include <unordered_map>
+#include <atomic> 
 
 #define VERSION "2.0"
 
@@ -73,6 +75,38 @@ const int   bind_array    = 4;
 const int   bind_matrix   = 5;
 const int   bind_string   = 6;
 
+// WebUI constants
+
+#ifndef     WEBUIPATH
+#define     WEBUIPATH    "Source/WebUI/"
+#endif
+
+#define        PORT 8000
+
+const int ui_state_stop = 0;
+const int ui_state_pause = 1;
+const int ui_state_step = 2;
+const int ui_state_play = 3;
+const int ui_state_realtime = 4;
+
+const int data_source_float = bind_float;
+const int data_source_int = bind_int;
+const int data_source_bool = bind_bool;
+const int data_source_list = bind_list;
+const int data_source_array = bind_array;
+const int data_source_matrix = bind_matrix;
+const int data_source_string = bind_string;
+
+const int data_source_gray_image = data_source_string + 1;
+const int data_source_red_image = data_source_string + 2;
+const int data_source_green_image = data_source_string + 3;
+const int data_source_blue_image = data_source_string + 4;
+const int data_source_fire_image = data_source_string + 5;
+const int data_source_spectrum_image = data_source_string + 6; // not used
+const int data_source_rgb_image = data_source_string + 7;
+const int data_source_bmp_image = data_source_string + 8;
+
+
 // Size constant
 
 const int    unknown_size   =    -1;
@@ -90,17 +124,18 @@ class GroupElement;
 // Parameter is used during the creation of a module to set internal values
 //
 
-
 class Parameter
 {
 public:
     Kernel * kernel;
-    XMLElement * xml;
+    XMLElement * xml;   // TODO: remove this and all dependencies
+    GroupElement * group;
     
-    Parameter(Kernel * k, XMLElement * x)
+    Parameter(Kernel * k, XMLElement * x, GroupElement * g)
     {
         kernel = k;
         xml = x;
+        group = g;
     }
     
     ~Parameter()
@@ -132,10 +167,10 @@ public:
     int             size_x; // size for scalar [float, int, bool] = (0, 0) for array = (n, 1), for matrix = (n, m)
     int             size_y;
     int             type;
-    Binding *       next;
+//    Binding *       next;
     
-    Binding(Module * m, const char * n, int t, void * v, int sx, int sy, Binding * nxt) :
-    module(m), name(n), value(v), size_x(sx), size_y(sy), type(t), next(nxt)
+    Binding(Module * m, const char * n, int t, void * v, int sx, int sy) :
+        module(m), name(n), value(v), size_x(sx), size_y(sy), type(t)
     { }
     
     ~Binding()
@@ -155,18 +190,17 @@ typedef Module * (*ModuleCreator)(Parameter *);
 class ModuleClass
 {
 public:
-    ModuleCreator    module_creator;
-
-    const char *      name;
-    const char *      path;
-    ModuleClass *     next;
+    ModuleCreator   module_creator;
+    const char *    name;
+    const char *    path;
     
-    ModuleClass(const char * n, ModuleCreator mc, const char * p, ModuleClass * nxt = NULL);
+    ModuleClass(const char * n, ModuleCreator mc, const char * p);
     ~ModuleClass();
     
     void            SetClassPath(const char * class_name);
-    const char *	GetClassPath(const char * class_name);
-    friend Module *	CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);	// Return a module of class class_name initialized with parameters in p and attributes in a
+    const char *	GetClassPath();
+//    friend Module *	CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);	// Return a module of class class_name initialized with parameters in p and attributes in a
+    Module *    CreateModule(Parameter * p);
 };
 
 
@@ -189,7 +223,7 @@ public:
     Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt=false, bool multiple=true);      // Create output from module m with name n and size x and y (default x=unkwon_size, y=1)
     ~Module_IO();                                                                                                   // Deletes the data
     
-    void                Allocate();
+    bool                Allocate();
     void                SetSize(int x, int y=1);
     void                DelayOutputs();
     
@@ -214,6 +248,8 @@ public:
 // Module is the base class for all simulation modules
 //
 // Bind(io_matrix_or_variable, "name") should replace all GetValue and GetInput/Output and get_size
+
+class GroupElement;
 
 class Module
 {
@@ -259,8 +295,8 @@ public:
     virtual void    Tick()
     {}            // Update state of the module                            (OVERRIDE IN SUBCLASSES)
     
-    void            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
-    void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
+    bool            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
+    bool            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
 
     // zero connections in both directions
 
@@ -296,6 +332,15 @@ public:
     float **        GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size=false);	// Search through XML for parameter and return its value as a matrix; fixed_size=true uses supplied size rathrer than data size
     int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
 
+    // New way to get inputs and outputs
+
+    void            Bind(float *, const char * n, int & size) {}                        // output
+    void            Bind(float **, const char * n, int & sizex, int & sizey) {}         // output
+    void            Bind(const float *, const char * n, int & size) {}                  // input
+    void            Bind(const float **, const char * n, int & sizex, int & sizey) {}   // input
+    
+//     void           Bind(matrix & m, std:string name) {};
+    
     // Bind values to names and get values from XML tree if possible
     // FIXME: bind with read-only flag to replace all the getter functions
     
@@ -306,10 +351,11 @@ public:
     void            Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size = false); // Creates and binds matrix; also gets the matrix size; uses the supplied size instead if fixed_size = true.
     void            Bind(std::string & v, const char * n);                  // Bind string
 
-    void            SetParameter(const char * parameter_name, int x, int y, float value);
+    bool            SetParameter(const char * parameter_name, int x, int y, float value);
     virtual void    Command(std::string s, float x=0, float y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
 
     XMLElement *        xml;
+    GroupElement *      group;
 
 //private:
     const char *		class_name;
@@ -320,7 +366,7 @@ public:
 
     Module_IO    *      input_list;        // List of inputs
     Module_IO    *      output_list;       // List of outputs
-    Binding      *      bindings;
+    Binding      *      bindings;          // FIXME: remove
 
     // Exposed as parameters
 
@@ -407,6 +453,40 @@ public:
 class Kernel
 {
 public:
+    // --------------- WebUI Part ---------------
+    
+    char *          webui_dir;
+    int             port;
+    ServerSocket *  socket;
+    XMLElement *    xml;
+    XMLElement *    current_xml_root;       // FIXME: remove
+    char *          current_xml_root_path;  // FIXME: remove
+    bool            debug_mode;
+    bool            isRunning;
+    int             ui_state;
+    int             iterations_per_runstep;
+    float           idle_time;
+    bool            first_request;
+    long            master_id;
+
+//    std::atomic<float *> ui_data;       
+//    std::atomic<bool> dont_copy_data;
+    std::atomic<bool> tick_is_running;
+    
+    void            SendXML();
+    void            ReadXML(XMLDocument * xmlDoc);
+    void            SendUIData(char * root, char * args);
+    void            Pause();
+    
+    void            HandleControlChange(char * uri, char * args);
+    void            HandleHTTPRequest();
+    void            HandleHTTPThread();
+    
+    std::thread *   httpThread;
+    static void *   StartHTTPThread(Kernel * k);
+
+    // --------------- Kernel Part ---------------
+    
     FILE *          logfile;
     const char *    ikaros_dir;
     char *          ikc_dir;
@@ -415,13 +495,12 @@ public:
     Options *       options;
     
     Kernel();
-    Kernel(Options * opt);
     ~Kernel();
     
     void        SetOptions(Options * opt);
-    void        AddClass(const char * name, ModuleCreator mcc, const char * path = NULL);    // Add a new class of modules to the kernel
+    bool        AddClass(const char * name, ModuleCreator mcc, const char * path = NULL);    // Add a new class of modules to the kernel
     
-    void        Notify(int msg, const char * format, ...);
+    bool        Notify(int msg, const char * format, ...);  // Always returns false
     
     bool        Terminate();                                // True if the simulation should end
     void        Run();                                      // Run the simulation until kernel receives notification; for example end-of-file from a module
@@ -436,32 +515,22 @@ public:
     Module *    GetModule(const char * n);                  // Find a module based on its name
     Module *    GetModuleFromFullName(const char * n);
 
-	const char *    GetBatchValue(const char * n);          // Get a value from a batch element with the target n and the current batch rank
-
     const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
-    bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
-    bool        GetSource(GroupElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
 
-//    Module *    GetModule(GroupElement * group, const std::string & module_name); // Get module from full or partial name relative to a group
-//    Module_IO * GetSource(GroupElement * group, const std::string & source_module_name, const std::string & source_name); // FIXME: add version for module in addition to group
-//    Module_IO * GetTarget(GroupElement * group, const std::string & target_module_name, const std::string & target_name);
-
+    bool        GetSource(Module_IO * &io, GroupElement * group, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-    bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-    void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
- 
-//    int             Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const std::string & delay = "", int extra_delay = 0, bool is_active = true);
-
-    void        SendCommand(XMLElement * group, const char * group_name, const char * command_name, float x, float y, std::string value);
+//    bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
+//    void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
+    void        SetParameter(const char * name, int x, int y, float value);
+    void        SendCommand(const char * group, const char * command, float x, float y, std::string value);
     
-//    int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
     int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const std::string & delay, int extra_delay, bool is_active);
     
-    XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
-    GroupElement *  BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL);
+    XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL, const char * current_filename = NULL);
+    GroupElement *  BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL, const char * current_filename = NULL);
     void            ConnectModules(GroupElement * group, std::string indent="");
-    void			ReadXML();
+    bool			ReadXML();
 
     std::string JSONString();
 
@@ -477,11 +546,12 @@ public:
 
     const char *	GetClassPath(const char * class_name)
     {
-        return classes->GetClassPath(class_name);
+        return classes.at(class_name)->path;
     }
 
     void        ListInfo();
     void        ListModulesAndConnections();
+    void        ListBindings();
     void        ListScheduling();
     void        ListThreads();
     void        ListClasses();
@@ -491,20 +561,24 @@ public:
     
     // FIXME: make following variables private again when WebUI-code has been merged with kernel
 
-    long               tick;             // Updated every iteration
-    long               max_ticks;        // Max iterations, stop after these many ticks
+    long                tick;             // Updated every iteration
+    long                max_ticks;        // Max iterations, stop after these many ticks
     
-    long               tick_length;      // Desired length (in ms) of each tick
-    Timer *            timer;            // Global timer
-    float              total_time;       // Total execution time at termination
+    long                tick_length;      // Desired length (in ms) of each tick
+    Timer *             timer;            // Global timer
+    float               total_time;       // Total execution time at termination
 
-    float              actual_tick_length; // Actual lengt of a tick in real-time mode
-    float              lag;                // Lag of a tick in real-time mode
+    float               actual_tick_length; // Actual lengt of a tick in real-time mode
+    float               lag;                // Lag of a tick in real-time mode
     
     int                 cpu_cores;
-
-//private:
-    ModuleClass     *    classes;        // List of module classes
+    double              cpu_usage;
+    double              last_cpu;
+    float               last_cpu_time;
+    
+    void                CalculateCPUUsage();
+    
+    std::unordered_map<std::string, ModuleClass *> classes;
     
     int                  log_level;        // Global log level
     
@@ -513,16 +587,17 @@ public:
     GroupElement    *    main_group;     // 2.0 main group
     long                 session_id;     // 2.0 temporary
     
+    std::map<std::string, std::vector<Binding *>>  bindings;   // 2.0
     std::map<std::string, Module *>     module_map; // 2.0
     std::vector <Module *>              _modules;   // 2.0
 
     Connection      *    connections;    // List of connections
     bool                 useThreads;
-    
+
     std::vector<ThreadGroup *>  _threadGroups;
-    
-    bool                nan_checks;      // Look for NANs in all outputs efter every tick - slow; use only for debugging
-    
+
+    bool                 nan_checks;      // Look for NANs in all outputs efter every tick - slow; use only for debugging
+
     // Execution Control
     
     int         module_count;
@@ -539,7 +614,7 @@ public:
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
     void        MarkSubgraph(Module * m);
-    void        CreateThreadGroups(std::deque<Module *> & sorted_modules);
+    bool        CreateThreadGroups(std::deque<Module *> & sorted_modules);
 
     bool        Visit(std::deque<Module *> & sorted_modules, Module * n); // Returns false if not a DAG
     void        SortModules();                               // Sort modules using topological sort
@@ -583,7 +658,6 @@ public:
         kernel().AddClass(name, mcc, path);
     }
 };
-
 
 #endif
 

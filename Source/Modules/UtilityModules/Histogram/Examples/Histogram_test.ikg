@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<group title="Histograms">
+	
+		<module
+            class = "Randomizer"
+            name = "R1"
+        />
+	
+		<module
+            class = "Randomizer"
+            name = "R2"
+        />
+	
+		<module
+            class = "Randomizer"
+            name = "R32"
+            outputsize="32"
+        />
+	
+		<module
+			class = "Histogram"
+			name = "H"
+		/>
+		
+		<module
+			class = "Multiply"
+			name = "M"
+		/>
+
+		<module
+			class = "Histogram"
+			name = "H2"
+		/>
+
+		<module
+			class = "Add"
+			name = "A"
+		/>
+
+		<module
+			class = "Histogram"
+			name = "H3"
+            max = "2"
+		/>
+
+		<module
+			class = "Histogram"
+			name = "H32"
+            max = "32"
+            size = "128"
+		/>
+
+		<module
+			class = "Sum"
+			name = "S"
+		/>
+
+		<connection  source = "R1.OUTPUT"  target = "H.INPUT" />
+
+		<connection  source = "R1.OUTPUT"  target = "M.INPUT1" />
+		<connection  source = "R2.OUTPUT"  target = "M.INPUT2" />
+		<connection  source = "M.OUTPUT"  target = "H2.INPUT" />
+
+		<connection  source = "R1.OUTPUT"  target = "A.INPUT1" />
+		<connection  source = "R2.OUTPUT"  target = "A.INPUT2" />
+		<connection  source = "A.OUTPUT"  target = "H3.INPUT" />
+
+		<connection  source = "R32.OUTPUT"  target = "S.INPUT" delay="0" />
+		<connection  source = "S.OUTPUT"  target = "H32.INPUT" delay="0" />
+
+		<view name="View">
+			<object class="BarGraph" title="R1" module="H" source="OUTPUT"  x="0" y="0" />
+			<object class="BarGraph" title="R1*R2" module="H2" source="OUTPUT" x="1" y="0" />
+			<object class="BarGraph" title="R1+R2" module="H3" source="OUTPUT" x="2" y="0" />
+
+			<object class="BarGraph" title="R32" module="R32" source="OUTPUT" x="0" y="1" />
+			<object class="BarGraph" title="Sum of 32 random values" module="H32" source="OUTPUT" x="1" y="1" w="2"/>
+		</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

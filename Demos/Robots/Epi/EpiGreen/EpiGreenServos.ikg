@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+
+<group name="EpiGreen Servos">
+	
+    <input name="GOAL_POSITION"       			targetmodule="SplitBody"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitHead"             	target="INPUT" /> 
+    <input name="GOAL_POSITION"       			targetmodule="SplitPupil"             	target="INPUT" /> 
+
+    <input name="BODY_MOVING_SPEED"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_MOVING_SPEED"       		targetmodule="Head"                 	target="MOVING_SPEED" />
+    <input name="PUPIL_MOVING_SPEED"        	targetmodule="Pupil"                    target="MOVING_SPEED" /> 
+
+    <input name="BODY_TORQUE_LIMIT"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_TORQUE_LIMIT"       		targetmodule="Head"                 	target="TORQUE_LIMIT" />
+    <input name="PUPIL_TORQUE_LIMIT"       	    targetmodule="Pupil"                    target="TORQUE_LIMIT" /> 
+    
+    <input name="BODY_TORQUE_ENABLE"       		targetmodule="NotAvailable"             target="INPUT" /> 
+    <input name="HEAD_TORQUE_ENABLE"       		targetmodule="Head"                 	target="TORQUE_ENABLE" />
+    <input name="PUPIL_TORQUE_ENABLE"           targetmodule="Pupil"                    target="TORQUE_ENABLE" /> 
+    
+    <output name="BODY_FEEDBACK_POSITION"       sourcemodule="BODY_FEEBACK"             source="OUTPUT" />
+    <output name="HEAD_FEEDBACK_POSITION"       sourcemodule="H_SC_FeedBackPosition"    source="OUTPUT" />
+    <output name="PUPIL_FEEDBACK_POSITION"      sourcemodule="DegreesTomm"              source="OUTPUT" />
+
+
+    <module class = "Sink" name = "NotAvailable" />
+        <connection  source = "SplitBody.OUTPUT"  target = "NotAvailable.INPUT" delay = "1"/>
+        <connection  source = "SplitPupil.OUTPUT"  target = "NotAvailable.INPUT" delay = "1"/>
+
+
+	<!-- Splitting pos -->
+	<module class = "TruncateArray" 	name = "SplitBody" array_length = "2" selection = "1 2" 				loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitHead" array_length = "4" selection = "3 4 5 6" 			loop = "false"/>
+    <module class = "TruncateArray" 	name = "SplitPupil" array_length = "2" selection = "7 8" 				loop = "false"/>
+
+    
+    <!-- Body -->
+    <!-- No servoes in body -->
+    <module class = "Constant" name = "BODY_FEEBACK" data = "0 0"/> 
+
+    <!-- Head -->
+    
+	<module
+        class           = "MotionGuard"
+        name            = "H_Guard"
+        max_speed       = "100"
+        input_limit_min = "-60 -115 -12 -29"
+        input_limit_max = "65 110 30 11"
+        start_up_time   = "10"
+    />
+        <connection  source = "H_SC_FeedBackPosition.OUTPUT" 	 target = "H_Guard.REFERENCE"  delay = "1"/>
+        <connection  source = "SplitHead.OUTPUT" 	 target = "H_Guard.INPUT"  delay = "1"/>
+
+  <module
+		class="ServoConnector"
+		name="H_SC_GoalPosition"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 0 0 0" 
+        post_inverted   = "0 0 0 0" 
+        offset          = "180 180 180 180" 
+        output_size     = "4"
+	/>
+        <connection  source = "H_Guard.OUTPUT"  target = "H_SC_GoalPosition.INPUT" delay = "0"/>
+
+
+    <module
+  		class 			= "Dynamixel"
+   		name 			= "Head"
+    	device  		= "/dev/ttyUSB0"
+    	index_mode 		= "indirect"
+   	 	print_info 		= "full"
+    	baud_rate 		= "1000000"
+    	angle_unit 		= "degrees"
+    	max_servo_id 	= "7"
+    	start_up_delay 	= "20"
+    	servo_id 		= "2, 3, 4, 5"
+    	strict_servo_id = "yes"
+    />
+	    <connection  source = "H_SC_GoalPosition.OUTPUT"  target = "Head.GOAL_POSITION" delay = "0"/>
+
+
+
+    <module
+		class="ServoConnector"
+		name="H_SC_FeedBackPosition"
+		connector       = "1 2 3 4"
+        pre_inverted    = "0 0 0 0" 
+        post_inverted   = "0 0 0 0" 
+        offset          = "-180 -180 -180 -180" 
+        output_size     = "4"
+	/>
+        <connection  source = "Head.FEEDBACK_PRESENT_POSITION"  target = "H_SC_FeedBackPosition.INPUT" delay = "0"/>
+
+  
+	<!-- Pupil -->
+
+    <module
+        class = "LinearSplines"
+        name = "mmToDegrees"
+        points = "
+            4.84	80	4.88	80; 
+            5.73	70	5.87	70;
+            7.15	60	7.05	60;
+            8.35	50	8.33	50;
+            9.6	    40	9.6	    40;
+            11.09	30	11.12	30;
+            12.7	20	12.94	20;
+            14.59	10	14.96	10;
+            16.33	0	16.22	0"
+    />
+        <connection  source = "SplitPupil.OUTPUT"  target = "mmToDegrees.INPUT" />
+
+
+    <module
+        class = "MotionGuard"
+        name = "GuardPupil"
+        max_speed = "20"
+        _input_limit_min = "190 190"
+        _input_limit_max = "250 250"
+        start_up_time = "1"
+        input_limit_min = "-10 -10"
+        input_limit_max = "70 70"
+    />
+        <connection  source = "mmToDegrees.OUTPUT"  target = "GuardPupil.INPUT" />
+        <connection  source = "SC_FB_P_PresentPosition.OUTPUT"  target = "GuardPupil.REFERENCE" />
+
+    <module
+		class="ServoConnector"
+		name="SC_P_GoalPosition"
+		connector   =   "1 2"
+        pre_inverted    =   "0 0" 
+        post_inverted    =   "0 0" 
+        offset      =   "210 210" 
+        output_size =   "2"
+	/>
+        <connection  source = "GuardPupil.OUTPUT"  target = "SC_P_GoalPosition.INPUT" />
+
+
+     <module
+        class = "Dynamixel"
+        name = "Pupil"
+    	device  = "/dev/ttyUSB1"
+        index_mode = "indirect"
+        print_info ="full"
+        feedback ="false"
+    	baud_rate = "1000000"
+    	angle_unit = "degrees"
+    	start_up_delay 	= "20"
+    	max_servo_id = "4"
+    	servo_id  = "2, 3"
+    	strict_servo_id = "yes"
+    />
+        <connection  source = "SC_P_GoalPosition.OUTPUT"  target = "Pupil.GOAL_POSITION" />
+
+
+    <module
+        class="ServoConnector"
+		name="SC_FB_P_PresentPosition"
+		connector   =   "1 2"
+        pre_inverted    =   "0 0" 
+        post_inverted    =   "0 0" 
+        offset      =   "-210 -210" 
+        output_size =   "2"
+	/>
+        <connection  source = "Pupil.FEEDBACK_PRESENT_POSITION"  target = "SC_FB_P_PresentPosition.INPUT" />
+
+    <module
+        class = "LinearSplines"
+        name = "DegreesTomm"
+        points = "
+            0	16.33	0	16.22;
+            10	14.59	10	14.96;
+            20	12.7	20	12.94;
+            30	11.09	30	11.12;
+            40	9.6	    40	9.6;
+            50	8.35	50	8.33;
+            60	7.15	60	7.05;
+            70	5.73	70	5.87;
+            80	4.84	80	4.88"
+    />
+        <connection  source = "SC_FB_P_PresentPosition.OUTPUT"  target = "DegreesTomm.INPUT" />
+
+
+
+
+</group>
+

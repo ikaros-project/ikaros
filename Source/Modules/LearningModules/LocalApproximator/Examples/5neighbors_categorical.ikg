@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+
+<group>
+
+	<module
+		class="InputFile"
+		name="INFILE"
+		filename="5neighbors_categorical.data"
+		iterations="1"
+	/>
+
+	<module
+		class="OutputFile"
+		name="OUTFILE"
+		filename="5neighbors_categorical.output">
+		<column name="OUTCLASS" />
+	</module>
+
+	<module
+		class="LocalApproximator"
+		name="LA"
+		categorical="false"
+		weighed="false"
+	/>
+
+	<connection  source = "INFILE.OT" delay="0"  target = "LA.OUTPUT_TABLE" />
+
+	<connection  source = "INFILE.DT" delay="0"  target = "LA.DISTANCE_TABLE" />
+
+	<connection  source = "LA.CLASS_OUTPUT" delay="0"  target = "OUTFILE.OUTCLASS" />
+
+
+</group>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MPIFaceDetector" description="a face detector from MPT">
+<class name="MPIFaceDetector" description="a face detector from MPT">
 
 <description type="text">
 MPIFaceDetector is the Ikaros port of the MPISearch face detector in the Machine Perception Toolbox.
@@ -73,7 +73,7 @@ name="MPIFaceDetector"
 />
 
 
-<module class="MPIFaceDetector" />
+<link class="MPIFaceDetector" />
 
 <bug>
 The face cut out and eyes should be scaled to a standard size and the position smoothed over time. It is fairly useless right now.
@@ -104,6 +104,6 @@ The face cut out and eyes should be scaled to a standard size and the position s
 <file>MPIFaceDetector.ikc</file>
 </files>
 
-</group>
+</class>
 
 

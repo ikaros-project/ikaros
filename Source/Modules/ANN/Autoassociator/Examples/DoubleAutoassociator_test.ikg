@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+   <module
+        class = "Constant"
+        name = "X"
+        outputsize_x = "6"
+        outputsize_y = "10"
+        data = "
+        	1	0	1	0	1	0;
+        	1	0	1	0	1	0;
+        	1	0	1	0	1	0;
+        	1	0	1	0	1	0;
+        	1	0	1	0	1	0;
+
+        	0	1	0	1	0	1;
+        	0	1	0	1	0	1;
+        	0	1	0	1	0	1;
+        	0	1	0	1	0	1;
+        	0	1	0	1	0	1
+        "
+    />
+
+   <module
+        class = "Constant"
+        name = "Y"
+        outputsize_x = "4"
+        outputsize_y = "10"
+        data = "
+        	1	1	0	0;
+        	1	1	0	0;
+        	1	1	0	0;
+        	1	1	0	0;
+        	1	1	0	0;
+
+        	0	0	1	1;
+        	0	0	1	1;
+        	0	0	1	1;
+        	0	0	1	1;
+        	0	0	1	1
+        "
+    />
+
+    <connection  source = "X.OUTPUT"  target = "Trainer.TRAINING_DATA_X" />
+    <connection  source = "Y.OUTPUT"  target = "Trainer.TRAINING_DATA_Y" />
+
+    <module
+        class = "Trainer" 
+        name = "Trainer"
+        order = "sequential"
+    />
+
+
+	<module
+		class = "Autoassociator"
+		name = "A"
+        epsilon = "0.05"
+	/>
+	
+	
+	<module
+		class = "Autoassociator"
+		name = "B"
+        epsilon = "0.05"
+	/>
+	
+	
+	<connection  source = "Trainer.TRAIN_X"  target = "A.T-INPUT" />
+	<connection  source = "Trainer.TRAIN_X"  target = "A.INPUT" />
+
+	<connection  source = "Trainer.TRAIN_X"  target = "B.T-INPUT" />
+	<connection  source = "Trainer.TRAIN_X"  target = "B.INPUT" />
+
+	<view name="View">
+        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />
+        <object class="BarGraph" title="A" module="A" source="OUTPUT" x="0" y="1" w="3" min="0.0" max="1" />
+        <object class="Grid" title="W" module="A" source="W" x="0" y="2" w="3" h="3" min="0.0" max="100" />
+
+        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="3" y="0" w="3" max="1" />
+        <object class="BarGraph" title="B" module="B" source="OUTPUT" x="3" y="1" w="3" min="0.0" max="1" />
+        <object class="Grid" title="W" module="B" source="W" x="3" y="2" w="3" h="3" min="0.0" max="100" />
+ 	</view>
+</group>
+ 

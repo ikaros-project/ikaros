@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<group title="OutputVideoFile Example">
+
+  <module class="InputVideo" name="IN"/>
+
+  />
+  <module class="OutputVideoFile" name="OutputVideoFile" filename="test.mp4"/>
+
+  <connection  source = "IN.RED"  target = "OutputVideoFile.RED"/>
+  <connection  source = "IN.GREEN"  target = "OutputVideoFile.GREEN"/>
+  <connection  source = "IN.BLUE"  target = "OutputVideoFile.BLUE"/>
+
+  <_connection  source = "IN.RED"  target = "OutputVideoFile.INTENSITY"/>
+
+  <view name="Movie View" object_size="500">
+    <object class="Image" type="rgb" module="IN" source="RED+GREEN+BLUE" x="0" y="0"/>
+  </view>
+
+  <module class="Logger" name="Logger"/>
+</group>

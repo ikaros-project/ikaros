@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+
+<group title="Dynamixel Example">
+    
+    <description>
+        This example scans the bus of a single Dynamixel servo that can be controlled through the WebUI.
+        The device name will have to be changed to fit your USB2Dynamixel. The name can be found by looking
+        in the /dev directory for something similar to the device name in the example below.
+    </description>
+    
+    <module
+		class = "Dynamixel"
+		name = "Dynamixel"
+		device  = "/dev/cu.usbserial-A900fDcI"
+		index_mode = "indirect"
+		print_info ="full"
+		feedback ="true"
+		baud_rate = "3000000"
+		angle_unit = "degrees"
+    />
+	
+	<_module class = "Constant" name = "TorqueEnable" outputsize = "1" data = "1" />
+		<_connection  source = "TorqueEnable.OUTPUT"  target = "Dynamixel.TORQUE_ENABLE" />
+	
+    <_module class = "Constant" name = "LED" outputsize = "1" data = "1" />
+		<_connection  source = "LED.OUTPUT"  target = "Dynamixel.LED" />
+	
+    <!-- Tau -->
+    <module
+		class		=	"FunctionGenerator"
+		name		=	"GoalPosition"
+		type		=	"sin"
+		frequency	=	"0.0025"
+		offset      =	"180"
+		amplitude	=	"180"
+		shift		=	"0.0"
+    />
+    
+		<connection  source = "GoalPosition.OUTPUT"  target = "Dynamixel.GOAL_POSITION" />
+    
+    <module class = "Constant" name = "MovingSpeed" outputsize = "1" data = "1" />
+		<connection  source = "MovingSpeed.OUTPUT"  target = "Dynamixel.MOVING_SPEED" />
+		
+    <module class = "Constant" name = "TorqueLimit" outputsize = "1" data = "1" />
+		<connection  source = "TorqueLimit.OUTPUT"  target = "Dynamixel.TORQUE_LIMIT" />
+		
+    <view name="Dynamixel Control" object_size="100" >
+        <object
+        class="BarGraph"
+        module = "Dynamixel"
+        source = "FEEDBACK_TORQUE_ENABLE"
+        title = "Torque Enable"
+        x="0" y="0"
+        w="1" h="2"
+        />
+        <object
+        class="Switch"
+        module = "TorqueEnable"
+        parameter = "data"
+        title="Torque Enable"
+        xindex = "0"
+        x="0" y="2" w = "1" h="1"
+        max="1"
+        />
+        <object
+        class="BarGraph"
+        module = "Dynamixel"
+        source = "FEEDBACK_LED"
+        title="LED"
+        x="1" y="0"
+        w="1" h="2"
+        />
+        <object
+        class="Switch"
+        title="LED"
+        module = "LED"
+        parameter = "data"
+        xindex = "0"
+        x="1" y="2" h="1"
+        max="1"
+        />
+        <object
+        class="BarGraph"
+        module = "Dynamixel"
+        source = "FEEDBACK_PRESENT_POSITION"
+        x="0" y="3"
+        w="2" h="2"
+        />
+        
+        <object
+        class="Table"
+        module = "Dynamixel"
+        source = "FEEDBACK_PRESENT_SPEED"
+        x="2" y="3"
+        w="2" h="2"
+        font_size = "40"
+        />
+        
+        <object
+        class="Table"
+        module = "Dynamixel"
+        source = "FEEDBACK_PRESENT_LOAD"
+        x="4" y="3"
+        w="2" h="2"
+        font_size = "40"
+        />
+        
+        <object
+        class="Table"
+        module = "Dynamixel"
+        source = "FEEDBACK_PRESENT_VOLTAGE"
+        x="6" y="3"
+        w="2" h="2"
+        font_size = "40"
+        />
+        
+        <object
+        class="Table"
+        module = "Dynamixel"
+        source = "FEEDBACK_PRESENT_TEMPERATURE"
+        x="8" y="3"
+        w="2" h="2"
+        font_size = "40"
+        />
+        
+        <object
+        class="Table"
+        module = "Dynamixel"
+        source = "FEEDBACK_PRESENT_CURRENT"
+        x="10" y="3"
+        w="2" h="2"
+        font_size = "40"
+        />
+        <object
+        class="Plot"
+        module = "GoalPosition"
+        source = "OUTPUT"
+        x="12" y="3"
+        w="2" h="2"
+        />
+        
+        
+    </view>
+    
+    
+    
+    
+    
+    <view name="Dynamixel Control" object_size="50" >
+        <object
+        class="BarGraph"
+        title="Desired Positions"
+        module = "Positions"
+        source = "OUTPUT"
+        x="0" y="0"
+        w="2" h="2"
+        max="360"
+        />
+        
+        <object
+        class="BarGraph"
+        title="Actual Positions"
+        module = "Dynamixel"
+        source = "OUTPUT"
+        x="2" y="0"
+        w="2" h="2"
+        max="360"
+        />
+        
+        <object
+        class="BarGraph"
+        title="Speed"
+        module = "Speed"
+        source = "OUTPUT"
+        x="4" y="0"
+        w="2" h="2"
+        max="1"
+        />
+        
+        <object
+        class="Slider"
+        title="Pos"
+        module = "Positions"
+        parameter = "data"
+        select = "0"
+        x="0" y="4" h="3"
+        max="360"
+        />
+        
+        <object
+        class="Slider"
+        title="Pos Speed"
+        module = "Dynamixel"
+        parameter = "position_speed"
+        xindex = "0"
+        x="1" y="4" h="3"
+        max="1"
+        />
+        
+        <object
+        class="Slider"
+        title="Torque"
+        module = "Torque"
+        parameter = "data"
+        xindex = "0"
+        x="2" y="4" h="3"
+        max="1"
+        />
+        
+        <object
+        class="Slider"
+        title="Speed"
+        module = "Speed"
+        parameter = "data"
+        xindex = "0"
+        x="3" y="4" h="3"
+        max="1"
+        />
+        
+        <object
+        class="Plot"
+        title="Load"
+        module = "Dynamixel"
+        source = "LOAD"
+        x="0" y="2"
+        w="2" h="2"
+        min="-1"
+        max="1"
+        />
+        <object
+        class="BarGraph"
+        title="Voltage (V)"
+        module = "Dynamixel"
+        source = "VOLTAGE"
+        x="2" y="2"
+        w="2" h="2"
+        max="20"
+        />
+        
+        <object
+        class="BarGraph"
+        title="Temperature (°C)"
+        module = "Dynamixel"
+        source = "TEMPERATURE"
+        x="4" y="2"
+        w="2" h="2"
+        max="100"
+        />
+        
+        <object
+        class="Text"
+        text="The first three sliders control the position, speed and torque of a servo in position control mode while the last slider controls the speed of a servo in continuous (wheel) mode."
+        x="4" y="4"
+        w="4" h="2"
+        />
+        
+    </view>
+    <view>
+        <object
+        class="Slider"
+        title="Serial latency"
+        module = "Dynamixel"
+        parameter = "serial_latency"
+        x="0" y="0" h="3"
+        min ="1"
+        max="1000"
+        />
+    </view>
+    <view>
+        <object
+        class="Table"
+        title="Errors"
+        module = "Dynamixel"
+        source = "ERRORS"
+        x="0" y="0"
+        w="6" h="3"
+        />
+    </view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+

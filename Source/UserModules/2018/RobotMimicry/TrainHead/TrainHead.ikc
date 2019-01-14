@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="TrainHead" description="minimal example module">
+<class name="TrainHead" description="minimal example module">
 
 	<description type="text">
 
@@ -13,6 +13,7 @@
 		/>
 	</example>
 
+<<<<<<< HEAD
 	<input name="HEAD1_UD" description="Up down movements for head 1" />
 	<input name="HEAD1_LR" description="Left right movements for head 1" />
 	<input name="HEAD2_UD" description="Up down movements for head 2" />
@@ -26,10 +27,25 @@
 
 	<output name="MEAN_HEAD2" description="The mean value of the past movement" size="1"/>
 	<output name="VARIANCE_HEAD2" description="The variance value of the past movement" size="1"/>
+=======
+	<input name="HEAD1_ANGLE" description="The input movements" />
+	<input name="HEAD1_ROTATION" description="The input movements" />
+	<input name="HEAD2_ANGLE" description="The input movements" />
+	<input name="HEAD2_ROTATION" description="The input movements" />
+
+	<output name="OUTPUT_ANGLES" description="The output movement" size="20"/>
+	<output name="OUTPUT_ROTATIONS" description="The output movement" size="20"/>
+
+	<output name="MEAN_ANGLE" description="The mean value of the past movement" size="1"/>
+	<output name="MEAN_ROTATION" description="The mean value of the past movement" size="1"/>
+
+	<output name="VARIANCE_ANGLE" description="The variance value of the past movement" size="1"/>
+	<output name="VARIANCE_ROTATION" description="The variance value of the past movement" size="1"/>
+>>>>>>> 918025082271b41fb16fae05ae157b5945e5c864
 
 	<output name="WRITE" description="If the output schould be written to file" size="1"/>
 
-	<module class="TrainHead" />
+	<link class="TrainHead" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -44,4 +60,4 @@
    		<file>TrainHead.ikc</file>
    </files>
 
-</group>
+</class>

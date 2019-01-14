@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthContourTrace" description="segments into depth planes">
+<class name="DepthContourTrace" description="segments into depth planes">
 
 	<description type="text">
         Finds a contour around an object indicated by pixels with 1 as foreground
@@ -23,7 +23,7 @@
 	<output name="LENGTH" description="The snake length" size="1"/>
 	<output name="DEBUG" description="The snake debug" size_x="640" size_y="480"/>
 
-	<module class="DepthContourTrace" />
+	<link class="DepthContourTrace" />
 
 	<created>2012</created>
 
@@ -40,5 +40,5 @@
 	<file>DepthContourTrace.ikc</file>
    </files>
 
-</group>
+</class>
 

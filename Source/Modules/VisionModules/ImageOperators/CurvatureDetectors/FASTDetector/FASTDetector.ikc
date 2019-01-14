@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="FASTDetector" description="finds curvature points">
+<class name="FASTDetector" description="finds curvature points">
 
 	<description type="text">
 	</description>
@@ -20,7 +20,7 @@
 	<output name="POINTS" description="Table with corners" size_x="2" size_y="5000" />
 	<output name="POINT_COUNT" description="Number of corners found" size="1" />
 
-	<module class="FASTDetector" />
+	<link class="FASTDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -37,4 +37,4 @@
    		<file>FASTDetector.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Divide" description="divides the first input with the second">
+<class name="Divide" description="divides the first input with the second">
 
 	<description type="text">
 		Module that divides its two inputs component by component.
@@ -20,14 +20,13 @@
 
 	<output name="OUTPUT" description="The output is the quotient of each elements of the two inputs: INPUT1 / INPUT2" size_set="INPUT1, INPUT2" />
 
-	<module class="Divide" />
+	<link class="Divide" />
 
     <view title="Divide">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Divide"
         />
     </view>
@@ -45,4 +44,4 @@
    		<file>Divide.ikc</file>
    </files>
 
-</group>
+</class>

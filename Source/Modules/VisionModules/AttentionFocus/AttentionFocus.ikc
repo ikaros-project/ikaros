@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="AttentionFocus" description="selects an image region">
+<class name="AttentionFocus" description="selects an image region">
 
 	<description type="text">
 		Module that extracts a region of an image around the
@@ -22,7 +22,7 @@
 
 	<output name="OUTPUT" description="The focus of attention output of size output_radius*2+1" />
 
-	<module class="AttentionFocus" />
+	<link class="AttentionFocus" />
 
 	<created>2003</created>
 	
@@ -39,4 +39,4 @@
    		<file>AttentionFocus.ikc</file>
    </files>
 
-</group>
+</class>

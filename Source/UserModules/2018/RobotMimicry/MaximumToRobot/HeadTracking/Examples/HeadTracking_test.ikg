@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<group title="HeadTracking Example">
+
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "1 2"
+		/>
+
+		<module
+			class = "HeadTracking"
+			name = "HeadTracking"
+			parameter1  = "0"
+			parameter2  = "1"
+		/>
+
+        <connection  source = "MyConstant.OUTPUT"  target = "HeadTracking.INPUT1" />
+        <connection  source = "MyConstant.OUTPUT"  target = "HeadTracking.INPUT2" />
+
+		<view name="View">
+			<object class="BarGraph" module="HeadTracking" source="OUTPUT1" x="0" y="0" />
+			<object class="BarGraph" module="HeadTracking" source="OUTPUT2" x="1" y="0" />
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>

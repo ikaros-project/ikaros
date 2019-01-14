@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module class = "Constant" name = "Array1" data="-2 -1"/>
+		<module class = "Constant" name = "Array2" data="0 1" />
+		<module class = "Constant" name = "Array3" data="2 2" />
+	
+		<module
+			class = "ArrayToMatrix"
+			name = "ArrayToMatrix"
+			array_length = "2"
+		/>
+				
+		<connection  source = "Array3.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<connection  source = "Array2.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<connection  source = "Array1.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+
+
+		<view name="View">
+			<object class="Table" module="Array1" source="OUTPUT" x="0" y="0" w="3"/>
+			<object class="Table" module="Array2" source="OUTPUT" x="0" y="1" w="3"/>
+			<object class="Table" module="Array3" source="OUTPUT" x="0" y="2" w="3"/>
+			<object class="Table" module="ArrayToMatrix" source="OUTPUT" x="3" y="0" w="3" h="3" />
+		</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

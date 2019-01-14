@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<group title="Block Matching Test 2">
+
+        
+		<module
+			class = "InputVideo"
+			name = "IN"
+		/>
+
+		<module
+        	class = "FASTDetector"
+            name = "FAST"
+            threshold = "100"
+        />
+        
+        <module
+        	class ="Constant"
+            name = "P"
+            data = "0.25 0.25;
+            		0.25 0.75;
+            		0.75 0.25;
+            		0.75 0.75"
+        />
+
+        <module
+        	class ="Constant"
+            name = "PC"
+            data = "4"
+        />
+
+		<module
+			class = "BlockMatching"
+			name = "BlockMatching"
+			block_radius = "15"
+			search_window_radius = "15"
+		/>
+
+		<connection  source = "IN.INTENSITY"  target = "FAST.INPUT" delay="0" />
+
+		<connection  source = "IN.INTENSITY"  target = "BlockMatching.INPUT" delay="0" />
+		<connection  source = "IN.INTENSITY"  target = "BlockMatching.INPUT-LAST" delay="1" />
+
+		<connection  source = "FAST.POINTS"  target = "BlockMatching.POINTS" delay="0" />
+		<connection  source = "FAST.POINT_COUNT"  target = "BlockMatching.NO-OF-POINTS" delay="0" />
+
+		<_connection  source = "P.OUTPUT"  target = "BlockMatching.POINTS" delay="0" />
+		<_connection  source = "PC.OUTPUT"  target = "BlockMatching.NO-OF-POINTS" delay="0" />
+
+    <module class = "Logger" name = "Logger" />
+
+    <view name = "Points">
+        <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+        <_object class="Image" module="FAST" source="OUTPUT" x="4" y="0" h="2" w="2"  />
+            
+        <object class="Cross"  module="FAST" source="POINTS" x="0" y="0" h="2" w="2"  size="0.005" color="red"/>
+        <object class="Path"  module="BlockMatching" source="FLOW" line_width="3" color="yellow" x="0" y="0" h="2" w="2"/>
+
+       	<_object class="Grid" module="BlockMatching" source="DEBUG" x="2" y="0" h="2" w="2" max="1" />
+    </view>
+    
+    <view name = "Tracking Points">
+        <object class="Image" name="Input" module="IN" source="INTENSITY" x="0" y="0" />
+        <object class="Image" name="Changes" module="Change" source="OUTPUT" x="1" y="0" />
+    </view>
+
+
+</group>
+
+

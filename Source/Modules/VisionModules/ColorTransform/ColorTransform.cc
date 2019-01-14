@@ -76,7 +76,7 @@ static float
 f(float t)
 {
     if (t > T)
-        return ikaros::pow((t), 1.0/3.0);
+        return pow((t), 1.0/3.0);
     else
         return 7.787*(t) + 16.0/116.0;
 }
@@ -101,7 +101,7 @@ transform_rgb2lab(float red, float green, float blue, float & L, float & a, floa
     Z 	/= 1.088754;
 
     if (Y > T)
-        L = 116.0*ikaros::pow(Y, 1.0/3.0)-16.0;
+        L = 116.0*pow(Y, 1.0/3.0)-16.0;
     else
         L = 903.3*Y;
 
@@ -123,7 +123,7 @@ transform_lab2rgb(float L, float a, float b, float & red, float & green, float &
 
     // Compute Y
 
-    float	fY = ikaros::pow(((L + 16) / 116), 3.0);
+    float	fY = pow(((L + 16) / 116), 3.0);
     bool YT = fY > T1;
 
     if (!YT)
@@ -132,7 +132,7 @@ transform_lab2rgb(float L, float a, float b, float & red, float & green, float &
     float Y = fY;
 
     if (YT)
-        fY = ikaros::pow(fY, 1.0/3.0);
+        fY = pow(fY, 1.0/3.0);
     else
         fY = (7.787 * fY + 16/116);
 
@@ -143,7 +143,7 @@ transform_lab2rgb(float L, float a, float b, float & red, float & green, float &
     float X;
 
     if (XT)
-        X = ikaros::pow(fX, 3.0);
+        X = pow(fX, 3.0);
     else
         X =(fX - 16/116) / 7.787;
 
@@ -154,7 +154,7 @@ transform_lab2rgb(float L, float a, float b, float & red, float & green, float &
 
     float Z;
     if (ZT)
-        Z = ikaros::pow(fZ, 3.0);
+        Z = pow(fZ, 3.0);
     else
         Z =  (fZ - 16/116) / 7.787;
 

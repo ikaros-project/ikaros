@@ -417,7 +417,7 @@ Perceptron::ActivateSigmoid()
     correct_now = 1;
     for (pi = 0; pi < target_size; pi++){
         tmp = dot(input_with_bias, perceptron_layer[pi], input_size + 1);
-        output[pi] = 1 / (1 + ikaros::pow(2.71828183, -tmp));
+        output[pi] = 1 / (1 + pow(2.71828183, -tmp));
         if (((tmp<=0.5) && (t_target[pi]==1))  ||  ((tmp>0.5) && (t_target[pi]==0)))
             correct_now = 0;
     }
@@ -443,10 +443,10 @@ Perceptron::ModifyLearningRate()
 {
     switch (learning_rate_mod){
         case SQRT:
-            learning_rate_now = learning_rate / (0.10 * ikaros::sqrt(train_tick + 100));
+            learning_rate_now = learning_rate / (0.10 * sqrt(train_tick + 100));
             break;
         case LOG:
-            learning_rate_now = learning_rate / (0.42 * ikaros::log(train_tick + 10));
+            learning_rate_now = learning_rate / (0.42 * log(train_tick + 10));
             break;
     }
 }

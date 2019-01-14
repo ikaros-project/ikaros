@@ -28,7 +28,7 @@ void
 Logger::Init()
 {
     Socket socket;
-    char b[2014];
+    char b[2048];
     socket.Get("www.ikaros-project.org", 80, "GET /start/ HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n", b, 1024);
     socket.Close();
 }

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example file for Kinect; to be used with two sensors
+ 
+-->
+
+<group title = "Kinect">
+
+    <module
+        class 			= "Kinect"
+        name 			= "Kinect1"
+        mode            = "mm"
+        xtion           = "false"
+        index           = "0"
+     />
+
+    <module
+        class 			= "Kinect"
+        name 			= "Kinect2"
+        mode            = "mm"
+        xtion           = "false"
+        index           = "1"
+     />
+
+    <module
+        class 			= "Constant"
+        name 			= "Tilt"
+        data            = "0.5"
+        outputsize      = "1"
+    />
+
+    <module
+        class 			= "Constant"
+        name 			= "Color"
+        data            = "0.0"
+        outputsize      = "1"
+    />
+    
+    <module
+        class 			= "Scale"
+        name 			= "Scale1"
+        _factor          = "0.00048851978505"
+        factor          = "0.0002"
+        comment         = "This module could be removed if Image-object allowed scaling."
+    />
+    
+    <module
+        class 			= "Scale"
+        name 			= "Scale2"
+        _factor          = "0.00048851978505"
+        factor          = "0.0002"
+        comment         = "This module could be removed if Image-object allowed scaling."
+    />
+    
+    <connection  source = "Kinect1.DEPTH"  target = "Scale1.INPUT" />
+    <connection  source = "Tilt.OUTPUT"  target = "Kinect1.TILT" />
+    <connection  source = "Color.OUTPUT"  target = "Kinect1.LED" />
+
+    <connection  source = "Kinect2.DEPTH"  target = "Scale2.INPUT" />
+    <connection  source = "Tilt.OUTPUT"  target = "Kinect2.TILT" />
+    <connection  source = "Color.OUTPUT"  target = "Kinect2.LED" />
+
+    <view name="Main View">
+        <image format="fire" name="Camera" module = "Scale1" source = "OUTPUT" x="20" y="20" width="640" height="480" />
+        <image format="fire" name="Camera" module = "Scale2" source = "OUTPUT" x="650" y="20" width="640" height="480" />
+
+        <slider-horizontal labels="Tilt" module = "Tilt" parameter = "data" x="20" y="500" width="200" height="20" />
+        <slider-horizontal labels="LED" module = "Color" parameter = "data" x="20" y="530" width="200" height="20" />
+    </view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="IntervalDecoder" description="decodes an interval coded vector">
+<class name="IntervalDecoder" description="decodes an interval coded vector">
 
 	<description type="text">
 		Module used to decode an interval coded vector.
@@ -21,7 +21,7 @@
 
 	<output name="OUTPUT" description="The output" size="1" />
 
-	<module class="IntervalDecoder" />
+	<link class="IntervalDecoder" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -36,4 +36,4 @@
    		<file>IntervalDecoder.ikc</file>
    </files>
 
-</group>
+</class>

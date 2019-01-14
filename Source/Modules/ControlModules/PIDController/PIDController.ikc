@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PIDController" description="standard PID controller">
+<class name="PIDController" description="standard PID controller">
 
 	<description type="text">
 		Module that applies PID control independently to each of its inputs.
@@ -50,7 +50,7 @@
 	<output name="FILTERED_ERROR_D" description="Error term used for derivate control filtered by exponentially moving average" size_set="INPUT, SETPOINT"/>
 	<output name="INTEGRAL" description="The current integrated error." size_set="INPUT, SETPOINT"/>
 
-	<module class="PIDController" />
+	<link class="PIDController" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -65,5 +65,5 @@
    		<file>PIDController.ikc</file>
    </files>
 
-</group>
+</class>
 

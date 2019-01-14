@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!--
+
+	Example file for Kinect
+ 
+-->
+
+<group title = "Kinect">
+
+    <module
+        class 			= "Kinect"
+        name 			= "Kinect"
+        mode            = "mm"
+        xtion           = "false"
+     />
+
+    <module
+        class 			= "Constant"
+        name 			= "Tilt"
+        data            = "0.5"
+        outputsize      = "1"
+    />
+
+    <module
+        class 			= "Constant"
+        name 			= "Color"
+        data            = "0.0"
+        outputsize      = "1"
+    />
+    
+    <module
+        class 			= "Scale"
+        name 			= "Scale"
+        _factor          = "0.00048851978505"
+        factor          = "0.0002"
+        comment         = "This module could be removed if Image-object allowed scaling."
+    />
+    
+    <connection  source = "Kinect.DEPTH"  target = "Scale.INPUT" />
+    <connection  source = "Tilt.OUTPUT"  target = "Kinect.TILT" />
+    <connection  source = "Color.OUTPUT"  target = "Kinect.LED" />
+
+    <view name="Depth">
+        <image format="fire" name="Camera" module = "Scale" source = "OUTPUT" x="20" y="20" width="300" height="200" />
+        <image format="rgb" name="Camera" module = "Kinect" source = "RED+GREEN+BLUE" x="320" y="20" width="300" height="200" />
+
+        <slider-horizontal label="Tilt" module = "Tilt" parameter = "data" x="20" y="320" width="200" height="20" />
+        <slider-horizontal label="LED" module = "Color" parameter = "data" x="20" y="350" width="200" height="20" />
+    </view>
+    
+    <module class = "Logger" name = "Logger" />
+</group>
+

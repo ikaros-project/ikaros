@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+    <module
+        class="FunctionGenerator"
+        name="L"
+        type = "ticksquare"
+        basetime = "200"
+        tickduty = "50"
+        amplitude = "1.0"
+    />
+
+
+	<module
+		class = "NeuralFIeld"
+		name = "N1"
+        epsilon = "0.05"
+	/>
+	
+	<module
+		class = "NeuralFIeld"
+		name = "N2"
+        epsilon = "0.05"
+	/>
+	
+	<module
+		class = "NeuralFIeld"
+		name = "N3"
+        epsilon = "0.05"
+	/>
+	
+	<connection  source = "L.OUTPUT"  target = "N1.EXCITATION" delay="10"/>
+	<connection  source = "N1.OUTPUT"  target = "N2.EXCITATION" />
+	<connection  source = "N2.OUTPUT"  target = "N3.EXCITATION" />
+
+	<view name="View">
+        <_object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />
+        <_object class="Plot" title="N1" module="N1" source="OUTPUT" x="0" y="1" w="6" min="0.0" max="1" />
+        <_object class="Plot" title="N2" module="N2" source="OUTPUT" x="0" y="2" w="6" min="0.0" max="1" />
+        <_object class="Plot" title="N3" module="N3" source="OUTPUT" x="0" y="3" w="6" min="0.0" max="1" />
+		<plot
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="L"
+            source="OUTPUT"
+            title = "L"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="340"
+            width="301"
+            height="301"
+            module="N1"
+            source="OUTPUT"
+            title = "N1"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="640"
+            width="301"
+            height="301"
+            module="N2"
+            source="OUTPUT"
+            title = "N2"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="940"
+            width="301"
+            height="301"
+            module="N3"
+            source="OUTPUT"
+            title = "N3"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+	</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

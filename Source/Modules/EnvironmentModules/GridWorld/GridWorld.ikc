@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GridWorld" description="simple agent and world simulator">
+<class name="GridWorld" description="simple agent and world simulator">
 
 	<description type="xhtml">
 		<p>
@@ -54,7 +54,7 @@
 	<output name="COLLISION" description="The action makes the agent collide with a wall" />
 	<output name="IMAGE" description="An image of the world with agent. Can be used by a viewer to visualize the world" />
 
-	<module class="GridWorld" />
+	<link class="GridWorld" />
 	
 	<limitation>
 		It should be possible to turn off the automatic movement of the agent from goal to start locations.
@@ -75,4 +75,4 @@
    		<file>GridWorld.ikc</file>
    </files>
 
-</group>
+</class>

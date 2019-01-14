@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GazeController" description="controls a 4 DOF stereo head">
+<class name="GazeController" description="controls a 4 DOF stereo head">
 
 	<description type="text">
 		Module that controls the four servos of a stereo head with head pan and tilt movements and only pan movements for the eyes.
@@ -36,7 +36,7 @@
     <output name="VIEW_SIDE" size_x="4" size_y="9" description="Side view of calculations" />
     <output name="VIEW_TOP" size_x="4" size_y="14" description="Top view of calculations" />
 
-	<module class="GazeController" />
+	<link class="GazeController" />
 
     <view title="Overview" object_size="25" >
     
@@ -55,7 +55,7 @@
         <object class="Slider" title="R" module="*" parameter="offset" select="3" x="11" y="8" h="4" min="-0.1" max="0.1" />
         
 
-        <object class="Path" title="Side" module="*" source="VIEW_SIDE" flip_y_axis="yes" x="0" y="0" w="8" h="8"
+        <object class="Path" title="Side" source=".VIEW_SIDE" flip_y_axis="yes" x="0" y="0" w="8" h="8"
                     color="gray, gray, gray, gray, gray, yellow, yellow, yellow, red"
                     line_width = "1, 1, 1, 1, 1, 3, 3, 3, 1"
                     arrow = "no, no, no, no, no, no, no, no, yes"
@@ -64,7 +64,7 @@
                     max ="2"
                     />
 
-        <object class="Path" title="Top" module="*" source="VIEW_TOP" flip_y_axis="yes" x="8" y="0" w="8" h="8"
+        <object class="Path" title="Top" source=".VIEW_TOP" flip_y_axis="yes" x="8" y="0" w="8" h="8"
                     color ="gray, gray, gray, gray, gray, yellow, yellow, yellow, yellow, red, red"
                     line_width = "1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1"
                     arrow = "no, no, no, no, no, no, no, no, no, no, no"
@@ -87,5 +87,5 @@
    		<file>GazeController.ikc</file>
    </files>
 
-</group>
+</class>
 

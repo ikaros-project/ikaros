@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="EpiHeadExp" description="experiment module 2018">
+<class name="EpiHeadExp" description="experiment module 2018">
 
 	<description type="Experiment module used for studie pupillary contagions between robot and human">
 
@@ -57,7 +57,7 @@
 
 	<output name="LOG_SYNC_SIGNAL" description="The first output" size="1" />
 
-	<module class="EpiHeadExp" />
+	<link class="EpiHeadExp" />
 
 	<author>
 		<name>Birger Johansson</name>
@@ -72,5 +72,5 @@
    		<file>EpiHeadExp.ikc</file>
    </files>
 
-</group>
+</class>
 

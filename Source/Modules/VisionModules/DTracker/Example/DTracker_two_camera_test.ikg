@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+
+<!--
+	Example file for the DTracker
+-->
+
+<group title="Tracker">
+
+    <!-- Input -->
+    <module
+		class = "InputVideoStream"
+		name = "CAMERA"
+        url = "http://lefteye.local:8080/stream/video.h264"
+        uv4l = "true"
+		info = "false"
+        active = "yes"
+	/>
+        <module
+            class = "DTracker"
+            name = "Tracker"
+        />
+        
+        <connection  source = "CAMERA.INTENSITY"  target = "Tracker.INPUT" />
+        
+    <module
+		class = "InputVideoStream"
+		name = "CAMERA2"
+        url = "http://Righteye.local:8080/stream/video.h264"
+        uv4l = "true"
+		info = "false"
+        active = "yes"
+	/>
+        <module
+            class = "DTracker"
+            name = "Tracker2"
+        />
+        
+        <connection  source = "CAMERA2.INTENSITY"  target = "Tracker2.INPUT" />
+        
+
+<view name="Tracker">
+
+	<image
+		y = "0"
+		class = "image"
+		scale = "both"
+		flipXAxis = "no"
+		height = "281"
+		max_y = "1"
+		format = "rgb"
+		source = "CAMERA.RED+GREEN+BLUE"
+		width = "421"
+		command = "click"
+		title = "Image"
+		module = "Tracker"
+		flipYCanvas = "no"
+		scales = "no"
+		flipXCanvas = "no"
+		flipYAxis = "no"
+		max_x = "1"
+	/>
+
+	<image
+		class = "image"
+		scale = "both"
+		flipXAxis = "no"
+		height = "281"
+		max_y = "1"
+		x = "420"
+		format = "rgb"
+		source = "CAMERA.RED+GREEN+BLUE"
+		width = "381"
+		command = "click"
+		title = "Image"
+		module = "Tracker"
+		flipYCanvas = "no"
+		scales = "no"
+		flipXCanvas = "no"
+		flipYAxis = "no"
+		max_x = "1"
+		y = "0"
+	/>
+
+	<path
+		class = "path"
+		arrow = "no"
+		flipXAxis = "no"
+		lineCap = "round"
+		flipYCanvas = "no"
+		fill = "#ff000088, #00ff0088, #0000ff88, #ffff0088"
+		close = "yes"
+		order = "row"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		source = "Tracker.TRACKER_BOUNDS"
+		height = "281"
+		max_y = "1"
+		color = "red, green, blue, yellow"
+		scale_x = "1"
+		lineJoin = "round"
+		lineWidth = "3"
+		width = "381"
+		max_x = "1"
+		scale_y = "1"
+		x = "420"
+		scales = "no"
+		y = "0"
+
+	/>
+
+	<marker
+		y = "0"
+		fill = "yellow"
+		source = "TRACKER_POSITION"
+		class = "marker"
+		size = "0.1"
+		module = "Tracker"
+		lineCap = "butt"
+		flipYCanvas = "no"
+		height = "281"
+		max_y = "1"
+		labelBaseline = "middle"
+		lineWidth = "1"
+		x = "420"
+		markerType = "cross"
+		flipYAxis = "no"
+		width = "381"
+		lineJoin = "miter"
+		flipXCanvas = "no"
+		order = "col"
+		labelType = "none"
+		labelAlign = "center"
+		scale_x = "1"
+		flipXAxis = "no"
+		scales = "no"
+		max_x = "1"
+		labelFont = "18px sans-serif"
+		labelDecimals = "2"
+		scale_y = "1"
+
+	/>
+
+	<image
+		y = "300"
+		class = "image"
+		scale = "both"
+		flipXAxis = "no"
+		height = "281"
+		max_y = "1"
+		format = "rgb"
+		source = "CAMERA2.RED+GREEN+BLUE"
+		width = "421"
+		command = "click"
+		title = "Image"
+		module = "Tracker2"
+		flipYCanvas = "no"
+		scales = "no"
+		flipXCanvas = "no"
+		flipYAxis = "no"
+		max_x = "1"
+	/>
+
+	<image
+		class = "image"
+		scale = "both"
+		flipXAxis = "no"
+		height = "281"
+		max_y = "1"
+		x = "420"
+		format = "rgb"
+		source = "CAMERA2.RED+GREEN+BLUE"
+		width = "381"
+		command = "click"
+		title = "Image"
+		module = "Tracker2"
+		flipYCanvas = "no"
+		scales = "no"
+		flipXCanvas = "no"
+		flipYAxis = "no"
+		max_x = "1"
+		y = "300"
+	/>
+
+	<path
+		class = "path"
+		arrow = "no"
+		flipXAxis = "no"
+		lineCap = "round"
+		flipYCanvas = "no"
+		fill = "#ff000088, #00ff0088, #0000ff88, #ffff0088"
+		close = "yes"
+		order = "row"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		source = "Tracker2.TRACKER_BOUNDS"
+		height = "281"
+		max_y = "1"
+		color = "red, green, blue, yellow"
+		scale_x = "1"
+		lineJoin = "round"
+		lineWidth = "3"
+		width = "381"
+		max_x = "1"
+		scale_y = "1"
+		x = "420"
+		scales = "no"
+		y = "300"
+
+	/>
+
+	<marker
+		y = "300"
+		fill = "yellow"
+		source = "TRACKER_POSITION"
+		class = "marker"
+		size = "0.1"
+		module = "Tracker2"
+		lineCap = "butt"
+		flipYCanvas = "no"
+		height = "281"
+		max_y = "1"
+		labelBaseline = "middle"
+		lineWidth = "1"
+		x = "420"
+		markerType = "cross"
+		flipYAxis = "no"
+		width = "381"
+		lineJoin = "miter"
+		flipXCanvas = "no"
+		order = "col"
+		labelType = "none"
+		labelAlign = "center"
+		scale_x = "1"
+		flipXAxis = "no"
+		scales = "no"
+		max_x = "1"
+		labelFont = "18px sans-serif"
+		labelDecimals = "2"
+		scale_y = "1"
+
+	/>
+</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="IPCServer" description="Module to send data using sockets">
+<class name="IPCServer" description="Module to send data using sockets">
 
 	<description type="text">
 
@@ -16,7 +16,7 @@
 
 	<input name="INPUT" description="The first output" size="2" />
 
-	<module class="IPCServer" />
+	<link class="IPCServer" />
 
 	<author>
 		<name>Birger Johansson</name>
@@ -31,5 +31,5 @@
    		<file>IPCServer.ikc</file>
    </files>
 
-</group>
+</class>
 

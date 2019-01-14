@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="Eye Model Test" description="minimal example module">
+    
+    <module
+        class="FunctionGenerator"
+        name="S0"
+        type = "sin"
+        frequency = "0.00314"
+        offset = "0.15"
+        amplitude = "0.1"
+    />
+        
+    <module
+        class="FunctionGenerator"
+        name="S1"
+        type = "sin"
+        frequency = "0.0314"
+        offset = "0.0"
+        amplitude = "0.3"
+    />
+        
+    <module
+        class="Randomizer"
+        name="S2"
+        period = "50"
+        min="0.5"
+    />
+        
+    <module
+        class="EyeModel"
+        name="Eyes"
+        speed = "0.2"
+    />
+    
+    <connection  source = "S0.OUTPUT"  target = "Eyes.GAZE" />
+    <connection  source = "S1.OUTPUT"  target = "Eyes.GAZE" />
+    <connection  source = "S2.OUTPUT"  target = "Eyes.PUPIL_DILATOR" />
+    <connection  source = "S2.OUTPUT"  target = "Eyes.PUPIL_SPHINCTER" />
+    
+</group>
+

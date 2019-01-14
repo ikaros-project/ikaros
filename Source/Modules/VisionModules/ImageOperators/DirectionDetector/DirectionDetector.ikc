@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DirectionDetector" description="calculates motion in an image">
+<class name="DirectionDetector" description="calculates motion in an image">
 
 	<description type="text">
 		Detect various visual motion
@@ -27,7 +27,7 @@
 
 	<output name="MOTION-VECTOR-DRAW" description="Main motion vector (for visulization, start at center of image)" size="4" />
 
-	<module class="DirectionDetector" />
+	<link class="DirectionDetector" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -42,4 +42,4 @@
    		<file>DirectionDetector.ikc</file>
    </files>
 
-</group>
+</class>

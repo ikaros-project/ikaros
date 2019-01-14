@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<group name="Set Servos EpiBlack">
+
+	<!-- Importing Epi Black -->
+	<module class = "Epi" name = "EpiBlack" 
+	BodySerialDevice= "/dev/cu.usbserial-FTU7EL2U"
+	HeadSerialDevice= "/dev/cu.usbserial-FTU7LTO5"
+	LeftArmSerialDevice= "/dev/cu.usbserial-FTX14P4R"
+	RightArmSerialDevice= "/dev/ttyRIGHT_ARM"
+	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
+
+	BodyDynamixel = "DynamixelSimulate"
+	HeadDynamixel = "DynamixelSimulate"
+	LeftArmDynamixel = "DynamixelSimulate"
+	RightArmDynamixel = "DynamixelSimulate"
+	PupilDynamixel = "DynamixelSimulate"
+
+	VisionInput = "InputVideoStream"
+	/>
+
+	<!-- Move EpiBlack -->
+	<module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
+		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES"/>
+	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
+		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES_AMPLITUDE"/>
+
+	<!-- Set a manual focus point -->
+	<module class = "Constant" name = "ManualFocusPoint" data = "
+	1 0 0 0.85
+	0 1 0 0.6
+	0 0 1 0
+	0 0 0 1"/>
+		<connection source = "ManualFocusPoint.OUTPUT" target = "EpiBlack.EXT_FOCUS_POINT"/>
+
+	<module class = "Constant" name = "ManualFocusPointValue" data = "0" />
+		<connection source = "ManualFocusPointValue.OUTPUT"  target = "EpiBlack.EXT_FOCUS_POINT_V"/>
+
+
+	<!-- Importing Epi Pink
+	<module class = "Epi" name = "EpiPink" 
+	BodySerialDevice= "/dev/BODY"
+	HeadSerialDevice= "/dev/cu.usbserial-FTU7EL4B"
+	LeftArmSerialDevice= "/dev/cu.usbserial-FTU7NAO7"
+	RightArmSerialDevice= "/dev/RightArm"
+	PupilSerialDevice= "/dev/PUPIL"
+
+	BodyDynamixel = "DynamixelSimulate"
+	HeadDynamixel = "DynamixelSimulate"
+	LeftArmDynamixel = "DynamixelSimulate"
+	RightArmDynamixel = "DynamixelSimulate"
+	PupilDynamixel = "DynamixelSimulate"
+	/>
+	-->
+	<!-- Move EpiPink -->
+	<!-- <module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
+		<connection  source = "ManualServo.OUTPUT"  target = "EpiPink.SERVO_ANGLES"/>
+	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
+		<connection  source = "ManualServo.OUTPUT"  target = "EpiPink.SERVO_ANGLES_AMPLITUDE"/> -->
+
+	<!-- Set a manual focus point -->
+	<!-- <module class = "Constant" name = "ManualFocusPoint" data = "
+	1 0 0 0.85
+	0 1 0 0.6
+	0 0 1 0
+	0 0 0 1"/>
+		<connection  source = "ManualFocusPoint.OUTPUT"  target = "EpiPink.FOCUS_POINT"/> --> -->
+
+
+</group>

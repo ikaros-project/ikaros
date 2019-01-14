@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="CircleDetector" description="find circles in an image">
+<class name="CircleDetector" description="find circles in an image">
 
 	<description type="text">
         Module that finds circles.
@@ -27,7 +27,7 @@
 	<output name="POSITION" description="The position of the found circle" size="3" />
 	<output name="DIAMETER" description="The diameter of the circle" size="1" />
 
-	<module class="CircleDetector" />
+	<link class="CircleDetector" />
 
 	<created>2003</created>
 	
@@ -44,6 +44,6 @@
    		<file>AttentionFocus.ikc</file>
    </files>
 
-</group>
+</class>
 
  

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="RNN" description="Recurrent Neural Network - Template Module">
+<class name="RNN" description="Recurrent Neural Network - Template Module">
 
 	<description type="text">
         This is a template for a recurrent neural network. On its own, this module only copies the input to the output.
@@ -24,14 +24,13 @@
 	<input name="AUX"           optional="yes"      description="Input from external sources; like other RNNs" />
 	<input name="T-AUX"         optional="yes"      description="Training input from external sources like (inputs) to other RNNs" />
 
-	<module class="RNN" />
+	<link class="RNN" />
 
     <view title="RNN">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for RNN"
         />
     </view>
@@ -53,5 +52,5 @@
    		<file>RNN.ikc</file>
     </files>
 
-</group>
+</class>
 

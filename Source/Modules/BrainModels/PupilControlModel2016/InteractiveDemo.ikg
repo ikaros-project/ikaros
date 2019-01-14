@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+
+<group name="Demo" description="demo of full pupil control model">
+
+    <module
+        class="FullModel"
+        name="FullModel"
+        
+        LC_alpha = "0.5"
+        
+    />
+    
+    <module
+        class="Constant"
+        name="Light"
+        data = "0.5"
+    />
+    
+    <module
+        class="FunctionGenerator"
+        name="Stimulus"
+        type="ticksquare"
+        basetime="600"
+        tickduty="24"
+    />
+
+    <module
+        class="Sum"
+        name="Input"
+    />
+    
+    
+    <connection  source = "Light.OUTPUT"  target = "Input.INPUT" />
+    <connection  source = "Stimulus.OUTPUT"  target = "Input.INPUT" />
+
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Left" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Right" />
+
+
+
+    <module
+        class="OutputFile"
+        name="Output"
+        filename = "data.txt"
+    >
+        <column name = "Light" />
+        <column name = "Pupil" />
+    </module>
+
+    <connection  source = "FullModel.Eye_Right"  target = "Output.Pupil"/>
+    <connection  source = "Input.OUTPUT"  target = "Output.Light" />
+  
+
+
+    <view title="Face View" object_size="40">
+        <object
+            class="EpiFace"
+            left_module="FullModel"
+            left_source="Eye_Left"
+            right_module="FullModel"
+            right_source="Eye_Right"
+            x="0" y="0"
+            h="8" w="8"
+        />
+        
+        <object
+            class="Slider"
+            module="FullModel"
+            title="LC"
+            parameter="LC_alpha"
+            x="8" y="0"
+            h="4" w="1"
+        />
+
+        <object
+            class="Slider"
+            module="Light"
+            title="Light"
+            parameter="data"
+            x="9" y="0"
+            h="4" w="1"
+        />
+
+        <object
+            class="Slider"
+            module="Stimulus"
+            title="Stimulus"
+            parameter="amplitude"
+            x="10" y="0"
+            h="4" w="1"
+        />
+
+        <object
+            class="Plot"
+            module="FullModel"
+            title="Pupil"
+            source="Eye_Left"
+            select="2"
+            x="0" y="8"
+            h="8" w="16"
+        />
+
+        <object
+            class="Plot"
+            module="Input"
+            title="Stimulus"
+            source="OUTPUT"
+            select="0"
+            color="lightblue"
+            x="0" y="8"
+            h="8" w="16"
+        />
+
+    </view>
+    
+</group>
+

@@ -44,6 +44,8 @@ public:
     //Parameters
     float       baysian_threshold;
     int         max_movements;
+    float        outlier_limit_angle;
+    float         outlier_limit_rotation;
 
     bool        load_data;
     bool        movement_in_progress;
@@ -67,6 +69,9 @@ public:
     float * 	  mean_array;
     float * 	  variance_array;
     float **	  movement_matrix;
+
+    float *     angles_out;
+
 };
 
 #endif

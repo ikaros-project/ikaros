@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Gate" description="gates a signal">
+<class name="Gate" description="gates a signal">
 
 	<description type="text">
         Module that lets its input through to the output when the attribute
@@ -23,20 +23,20 @@
         Should have an input that opens and closes the gate.
     </limitation>
     
-	<module class="Gate" />
+	<link class="Gate" />
 
-<view name="View (Default)">
-    <bar-graph
-        x="10"
-        y="10"
-        width="301"
-        height="301"
-        source="*.OUTPUT"
-        title = "Default View for Gate"
-        show_title = "yes"
-        show_frame = "yes"
-    />
-</view>
+    <view name="View (Default)">
+        <bar-graph
+            x="10"
+            y="10"
+            width="301"
+            height="301"
+            source=".OUTPUT"
+            title = "Default View for Gate"
+            show_title = "yes"
+            show_frame = "yes"
+        />
+    </view>
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -51,4 +51,4 @@
    		<file>Gate.ikc</file>
    </files>
 
-</group>
+</class>

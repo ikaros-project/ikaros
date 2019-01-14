@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Ones" description="A matrix with a single value">
+<class name="Ones" description="A matrix with a single value">
 
 	<description type="text">
 		Simply a matrix filled with a given value, default=1.0
@@ -22,7 +22,7 @@
 	<parameter name="size_y" type="int" default="1" description="Height of matrix" />
 	<parameter name="value" type="float" default="1.0" description="Value to fill with" />
 
-	<module class="Ones" />
+	<link class="Ones" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>
@@ -37,5 +37,5 @@
    		<file>Ones.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OutputRawImage" description="writes images in RAW format">
+<class name="OutputRawImage" description="writes images in RAW format">
 
 	<description type="text">
 		Module used for writing an image (or sequences of images) to file(s).
@@ -26,7 +26,7 @@
 
 	<input name="INPUT" description="The image data to be written to the file" />
 
-	<module class="OutputRawImage" />
+	<link class="OutputRawImage" />
 
 	<bug>
 		If %d is not in the filename each new file will overwrite the previous.
@@ -46,4 +46,4 @@
    		<file>OutputRawImage.ikc</file>
    </files>
 
-</group>
+</class>

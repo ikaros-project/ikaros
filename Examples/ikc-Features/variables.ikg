@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<!--
+
+    This file demonstrates how to use variables in groups and modules
+
+-->
+
+<group title="Outer" a="12" b="23" c="34" zzz="@a" so="2" to="4" sz="3" del="12" >
+
+    <group name="Inner"  a="45" b="56" yyy="@zzz">
+    
+        <!-- Get value from attribute in surrounding group -->
+        <module
+            class = "Randomizer"
+            name = "R1"
+            outputsize = "@a"
+        />
+    
+        <!-- Rename variable locally for this module and value from attribute in surrounding group: outputsize -> x -> b -> 56 -->
+        <module
+            class = "Randomizer"
+            name = "R2"
+            x = "@b"
+            outputsize = "@x"
+        />
+
+        <!-- Variable value is inherited from outer group -->
+        <module
+            class = "Randomizer"
+            name = "R3"
+            outputsize = "@c"
+        />
+
+        <!-- Several levels of indirection -->
+        <module
+            class = "Randomizer"
+            name = "R4"
+            xxx = "@yyy"
+            outputsize = "@xxx"
+        />
+
+        <module
+            class = "Gate"
+            name = "Gate"
+        />
+        
+        <connection source="R2.OUTPUT" target="Gate.INPUT" sourceoffset="@so" size="@sz" targetoffset="@to" delay="@del" />
+        
+    </group>
+</group>
+

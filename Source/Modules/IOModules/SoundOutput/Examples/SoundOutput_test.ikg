@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<group title="SoundOutput Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			data  = "0 0 0 0 0 0"
+		/>
+
+		<module
+			class = "SoundOutput"
+			name = "SoundOutput"
+			sounds  = " Sounds/clang.mp3,
+                        Sounds/entity.mp3,
+                        Sounds/shot.mp3,
+                        Sounds/soda.mp3,
+                        Sounds/wreee.mp3,
+                        Sounds/r2d2.mp3"
+		/>
+		
+        <connection  source = "MyConstant.OUTPUT"  target = "SoundOutput.INPUT" />
+
+		<view name="View">
+			<object class="BarGraph" title="Sound Triggers" module="MyConstant" source="OUTPUT" x="0" y="0" w="3" />
+            
+            <object title = "clang" class="Button" module="MyConstant" parameter="data" select="0" x="0" y="1" />
+            <object title = "entity" class="Button" module="MyConstant" parameter="data" select="1" x="1" y="1" />
+            <object title = "shot" class="Button" module="MyConstant" parameter="data" select="2" x="2" y="1" />
+            <object title = "soda" class="Button" module="MyConstant" parameter="data" select="3" x="0" y="2" />
+            <object title = "wree" class="Button" module="MyConstant" parameter="data" select="4" x="1" y="2" />
+            <object title = "R2D2" class="Button" module="MyConstant" parameter="data" select="5" x="2" y="2" />
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

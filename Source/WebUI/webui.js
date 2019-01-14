@@ -14,29 +14,6 @@ String.prototype.rsplit = function(sep, maxsplit) {
  * Viewer scripts
  *
  */
-/*
-function startPeriodicTask(func, wait, times)
-{
-    var interv = function(w, t)
-    {
-        return function()
-        {
-            if(typeof t === "undefined" || t-- > 0){
-                setTimeout(interv, w);
-                try{
-                    func.call(null);
-                }
-                catch(e){
-                    t = 0;
-                    throw e.toString();
-                }
-            }
-        };
-    }(wait, times);
-
-    setTimeout(interv, wait);
-};
-*/
 
 function test_sleep(millis)
 {
@@ -518,7 +495,7 @@ interaction = {
         element.handle.onmousedown = interaction.startResize;
         element.appendChild(element.handle);
     },
-    initViewElement: function (element, data) {   // For object in view from IKC file - should be called add widget
+    initViewElement: function (element, data) {   // For object in view from IKC or IKG file - should be called add widget
         element.addEventListener('mousedown', interaction.startDrag, true); // capture
 
         let constr = webui_widgets.constructors["webui-widget-"+data['class']];
@@ -526,12 +503,14 @@ interaction = {
         {
             console.log("Internal Error: No constructor found for "+"webui-widget-"+data['class']);
             element.widget = new webui_widgets.constructors['webui-widget-text'];
-            element.widget.element = element;
+            element.widget.element = element; // FIXME: wjy not also below??
+            element.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
             element.widget.parameters['text'] = "\""+"webui-widget-"+data['class']+"\" not found.";
         }
         else
         {
             element.widget = new webui_widgets.constructors["webui-widget-"+data['class']];
+            element.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
             
             // Add default parameters from CSS - possibly...
  
@@ -722,14 +701,21 @@ interaction = {
         let cons = interaction.currentView.connections;
         for(let c of cons)
         {
-            context.strokeStyle="#999";
-            context.fillStyle = "#999";
-            context.lineWidth = 3;
-            context.beginPath();
-            p1 = interaction.module_pos[c.sourcemodule];
-            p2 = interaction.module_pos[c.targetmodule];
-            draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
-            draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            try
+            {
+                context.strokeStyle="#999";
+                context.fillStyle = "#999";
+                context.lineWidth = 3;
+                context.beginPath();
+                p1 = interaction.module_pos[c.source.split('.')[0]];
+                p2 = interaction.module_pos[c.target.split('.')[0]];
+                draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+                draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            }
+            catch(err)
+            {
+                console.log("draw connection "+c.sourcemodule+"->"+c.targetmodule+" failed.");
+            }
         }
     },
 
@@ -1038,67 +1024,98 @@ controller = {
     send_stamp: 0,
     webui_interval: 0,
     webui_req_int: 100,
-    timeout: 1000,
+    timeout: 500,
+    reconnect_interval: 1200,
+    reconnect_timer: null,
+    
+    reconnect: function ()
+    {
+//        console.log("try reconnect");
+        controller.get("update", controller.update);
+        let s = document.querySelector("#state");
+        if(s.innerText == "waiting")
+            document.querySelector("#state").innerHTML = "waiting &bull;";
+        else
+            document.querySelector("#state").innerHTML = "waiting";
+    },
+    
+    defer_reconnect: function ()
+    {
+//        console.log("defer_reconnect");
+        clearInterval(controller.reconnect_timer);
+        controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
+    },
 
     get: function (url, callback)
     {
-        controller.send_stamp = Date.now();
-        var last_request = url;
-        
-        xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
 
-        xhr.onloadstart = function(evt)
-        {
-            document.querySelector("progress").setAttribute("value", 0);
-        }
-
-        xhr.onprogress = function(evt)
-        {
-            if (evt.lengthComputable)
+            controller.send_stamp = Date.now();
+            var last_request = url;
+            xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+/*
+            xhr.onloadstart = function(evt)
             {
-                var percentComplete = evt.loaded / evt.total;
-                document.querySelector("progress").setAttribute("value", 100*percentComplete);
-            }
-        }
-        xhr.onerror = function(evt)
-        {
-             if(evt.lengthComputable && evt.loaded < evt.total)
-                console.log("Failed to load resource. Incomplete.");
-            else if(evt.total == 0 )
-                console.log("Failed to load resource. No data.");
-            else
-                console.log("Failed to load resource.");
-       }
-        xhr.ontimeout = function(evt)
-        {
-            console.log("Timeout - resending request", controller.timeout);
-            if(controller.timeout < 1000)
-                controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
-            controller.get(last_request, controller.update); // Resend request ******************* ERROR
-        }
-        xhr.onload = function(evt)
-        {
-            if(!xhr.response)   // empty response is ignored
-            {
-                console.log("onload - empty response - error")
-//                callback();
-                return;
+                document.querySelector("progress").setAttribute("value", 0);
             }
 
-//            console.log("onload",xhr.getResponseHeader("Session-Id"))
-            setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
-            callback(xhr.response, xhr.getResponseHeader("Session-Id"));
-        }
-        
-        xhr.responseType = 'json';
-//        xhr.timeout = controller.timeout;
-        xhr.send();
+            xhr.onprogress = function(evt)
+            {
+                if (evt.lengthComputable)
+                {
+                    var percentComplete = evt.loaded / evt.total;
+                    document.querySelector("progress").setAttribute("value", 100*percentComplete);
+                }
+            }
+*/
+/*
+            xhr.onerror = function(evt)
+            {
+                 if(evt.lengthComputable && evt.loaded < evt.total)
+                    console.log("Failed to load resource. Incomplete.");
+                else if(evt.total == 0 )
+                    console.log("Failed to load resource. No data." + xhr.status);
+                else
+                    console.log("Failed to load resource.");
+                return false;
+           }
+*/
+ /*
+            xhr.ontimeout = function(evt)
+            {
+                console.log("Timeout - resending request", controller.timeout);
+                if(controller.timeout < 1000)
+                    controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
+                controller.get(last_request, controller.update); // Resend request ******************* ERROR
+            }
+ */
+            xhr.onload = function(evt)
+            {
+                if(!xhr.response)   // empty response is ignored
+                {
+                    console.log("onload - empty response - error")
+                    return;
+                }
+                controller.defer_reconnect(); // we are still on line
+                setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
+                callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
+            }
+            
+            xhr.responseType = 'json';
+            xhr.timeout = 1000;
+            try {
+                xhr.send();
+            }
+            catch(error)
+            {
+                console.log(error);
+            }
     },
 
     init: function () {
-        controller.get("update.json", controller.update);   // FIXME: only "update" ************
-//        controller.requestUpdate();
+        controller.get("update", controller.update);
+        //controller.defer_reconnect(); // start heartbeat
+        controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
     
     stop: function () {
@@ -1135,9 +1152,7 @@ controller = {
     },
 
     selectView: function(view) {
-        // Create new view if it does not exist
-        
-        interaction.addView(view);
+        interaction.addView(view);  // Create new view if it does not exist
     },
 
     updateWidgets(data)
@@ -1149,7 +1164,6 @@ controller = {
             {
                 w[i].children[1].receivedData = data;
                 w[i].children[1].update(data); // include data for backward compatibility
-                console.log("updateWidgets update: "+i);
             }
             catch(err)
             {
@@ -1195,19 +1209,17 @@ controller = {
         }
         catch(err)
         {
-            //     view is being loaded - ignore!
-            //        if(console) console.log("Error: "+err.message);
-            //        alert("Exception");
+
         }
     },
 
 
-    update(response, session_id)
+    update(response, session_id, package_type)
     {
         controller.ping = Date.now() - controller.send_stamp;
 
         // Check if this is a new session
-        
+
         if(!response)
         {
             controller.requestUpdate(); // empty respone - probably an error
@@ -1224,20 +1236,20 @@ controller = {
             controller.buildViewDictionary(response, "");
             controller.selectView(Object.keys(controller.views)[0]);
         }
-        else // same session - proably new data package
+        else if(package_type == "data") // same session - a new data package
         {
             // Set system info from package
-//            console.log("SAME SESSION "+session_id);
             try
             {
                 document.querySelector("#iteration").innerText = response.iteration;
-                document.querySelector("#state").innerText = response.state+" "+controller.run_mode;
-                document.querySelector("#progress").value = response.progress;
+                document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
                 document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
                 document.querySelector("#timebase").innerText = response.timebase+" ms";
                 document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
                 document.querySelector("#lag").innerText = response.lag+" ms";
                 document.querySelector("#cpu_cores").innerText = response.cpu_cores;
+                document.querySelector("#idle_time").value = response.idle_time;
+                document.querySelector("#usage").value = response.cpu_usage;
 
                 document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1);
                 document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
@@ -1245,26 +1257,41 @@ controller = {
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
                 document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
                 
+                let p = document.querySelector("#progress");
+                if(response.progress > 0)
+                {
+                    p.value = response.progress;
+                    p.style.display = "table-row";
+                }
+                else
+                {
+                    p.style.display = "none";
+                }
+                
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             }
             catch(err)
             {
-                console.log("incorrect package received form ikaros")
+                console.log("incorrect package received form ikaros (1)")
             }
             
-            controller.updateImages(response);
+            if(response.has_data)
+                controller.updateImages(response.data);
+        }
+        else
+        {
+            console.log("incorrect package received form ikaros (2)")
         }
     },
 
     requestUpdate: function()
     {
-//        console.log("requestUpdate:"+controller.run_mode);
         controller.webui_interval = Date.now() - controller.last_request_time;
         controller.last_request_time = Date.now();
 
         if(!interaction.currentView) // no view selected
         {
-            controller.get("update.json", controller.update);
+            controller.get("update", controller.update);
             return;
         }
 
@@ -1281,18 +1308,17 @@ controller = {
             catch(err)
             {}
 
-        let data_string = interaction.currentViewName+"#"; // should be added to names to support multiple clients
+        let group_path = interaction.currentViewName.split('#')[0].split('/').slice(2).join('.'); // OLD currentViewName.substring(1).split("/").slice(1).join("."); // FIXME: use this format all the time
+        let data_string = group_path+"#"; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)
         {
             data_string += (sep + s);
             sep = "#"
          }
-        
+
         controller.get(controller.command+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
         controller.command = 'update';
-//        if(controller.run_mode == 'step')   // should be done by kernel - here just in case ************************
-//            controller.run_mode = 'pause'
     },
 
     copyView: function() // TODO: Remove default parameters

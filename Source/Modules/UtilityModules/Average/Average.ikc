@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Average" description="calculates average over time">
+<class name="Average" description="calculates average over time">
 
 	<description type="text">
 		Module used to calculate the average of its input over time. There are three different types of average
@@ -26,14 +26,13 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Average" />
+	<link class="Average" />
 
     <view title="Average">
         <object
             x="0" y="0" w="2"
             class="Plot"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Average"
         />
     </view>
@@ -56,4 +55,4 @@
    		<file>Average.ikc</file>
    </files>
 
-</group>
+</class>

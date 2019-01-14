@@ -29,8 +29,6 @@
 #include "IKAROS_System.h"
 #include "IKAROS_Utils.h"
 
-#ifdef USE_SOCKET
-
 #define PORTNO		8000 	// the default port users will be connecting to
 
 
@@ -107,4 +105,4 @@ class ServerSocket
 
 
 #endif
-#endif
+

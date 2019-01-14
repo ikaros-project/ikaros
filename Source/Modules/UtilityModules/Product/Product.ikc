@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Product" description="multiplies all input">
+<class name="Product" description="multiplies all input">
 
 	<description type="text">
 		Module that multiplies all elements in its input.
@@ -17,14 +17,13 @@
 
 	<output name="OUTPUT" description="The Product" size="1" />
 
-	<module class="Product" />
+	<link class="Product" />
 
     <view title="Product">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Product"
         />
     </view>
@@ -42,5 +41,5 @@
    		<file>Product.ikc</file>
    </files>
 
-</group>
+</class>
 

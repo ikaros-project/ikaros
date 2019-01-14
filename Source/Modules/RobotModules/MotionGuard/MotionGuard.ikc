@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MotionGuard" description="module to prevent suddden and dangerous movements">
+<class name="MotionGuard" description="module to prevent suddden and dangerous movements">
 
 	<description type="text">
 		Module that tries to avoid suddden and dangerous movements. (1) guards agains too fast movements (2) guards agains positions outside range. The parameters are currently relative to a tick and need to be scaled if the frequency changes.
@@ -21,14 +21,13 @@
 	<input name="REFERENCE" description="Current position of the servos." />
 	<output name="OUTPUT" description="The less dangerous output." size_set="INPUT, REFERENCE" />
 
-	<module class="MotionGuard" />
+	<link class="MotionGuard" />
 
     <view title="MotionGuard">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for MotionGuard"
             />
     </view>
@@ -46,5 +45,5 @@
    		<file>MotionGuard.ikc</file>
    </files>
 
-</group>
+</class>
 

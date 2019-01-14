@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="OuterProduct" description="outer product of two inputs">
+<class name="OuterProduct" description="outer product of two inputs">
 
 	<description type="text">
 		Module that calculates the outer product of its two input vectors.
@@ -30,14 +30,13 @@
 
 	<output name="OUTPUT" description="The output is the outer product of the two inputs in matrix form" />
 
-	<module class="OuterProduct" />
+	<link class="OuterProduct" />
 
     <view title="OuterProduct">
         <object
             x="0" y="0" w="2" h="2"
             class="Grid"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for OuterProduct"
         />
     </view>
@@ -55,4 +54,4 @@
    		<file>OuterProduct.ikc</file>
    </files>
 
-</group>
+</class>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PopulationDecoder" description="encodes a two-dimensional value in a vector">
+<class name="PopulationDecoder" description="encodes a two-dimensional value in a vector">
 
 	<description type="text">
 		Module that generates an array of values from a gaussian population code.
@@ -22,10 +22,10 @@
 	<output name="OUTPUT" description="The array output"/>
 	<output name="AMPLITUDE" description="The amplitude output"/>
 
-	<module class="PopulationDecoder" />
+	<link class="PopulationDecoder" />
 
     <view>
-        <object class="BarGraph" module="*" source="OUTPUT" x="0" y="0" w="4" />
+        <object class="BarGraph" source=".OUTPUT" x="0" y="0" w="4" />
     </view>
     
 	<created>2016</created>
@@ -43,5 +43,5 @@
    		<file>PopulationDecoder.ikc</file>
    </files>
 
-</group>
+</class>
 

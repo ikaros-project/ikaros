@@ -1,0 +1,1111 @@
+<?xml version="1.0"?>
+
+<!-- Example of the different WebUI 2.0 objects filled with random values. -->
+
+<group name="WebUI Demo">
+
+    <view name="Epi the Robot">
+        <epi-head label="Epi"
+            gazeSource="G.OUTPUT"
+            pupilLeftSource="P.OUTPUT"
+            pupilRightSource="P.OUTPUT"
+            x="20" y="20"
+            width="300" height="300"
+            _visibleSource="Enable.OUTPUT"
+            offsetSource="Wave.OUTPUT"
+            irisLeftRed="WaveR.OUTPUT"
+            irisLeftGreen="WaveG.OUTPUT"
+            irisLeftBlue="WaveB.OUTPUT"
+            irisRightRed="WaveR.OUTPUT"
+            irisRightGreen="WaveG.OUTPUT"
+            irisRightBlue="WaveB.OUTPUT"
+            show_title = "no"
+            show_frame = "yes"
+        />
+
+        <bar-graph
+            x="20" y="400"
+            width="301"
+            height="301"
+            source="P.OUTPUT"
+            show_title = "no"
+            show_frame = "no"
+        />
+
+        <bar-graph
+            x="320" y="400"
+            width="301"
+            height="301"
+            source="G.OUTPUT"
+            min = "-1"
+        />
+
+         <plot
+            x="620" y="400"
+            width="301"
+            height="301"
+            source="Wave.OUTPUT"
+            min = "-10"
+            max = "10"
+            decimals = "0"
+        />
+
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            source="WaveR.OUTPUT"
+            min = "0"
+            color = "red"
+        />
+
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            source="WaveG.OUTPUT"
+            min = "0"
+            color = "green"
+        />
+        <plot
+            x="920" y="400"
+            width="301"
+            height="301"
+            source="WaveB.OUTPUT"
+            color = "blue"
+            min = "0"
+        />
+    </view>
+    
+    <view name="Controls">
+        <button label="Press Me" parameter="CCC.data" x="40" y="40" width="100" height="100" />
+        <button label="Me Too" parameter="CCC.data" x="40" y="140" width="100" height="100" />
+        <button label="Sometimes" parameter="CCC.data" x="40" y="240" width="100" height="100" enableSource="Enable.OUTPUT" />
+
+        <switch label="Alarm" parameter="SwitchValue.data" x="40" y="360" width="100" height="100" />
+
+        <drop-down-menu label="" list="X,Y,Z" parameter="Options.data" x="40" y="420" width="100" height="50" />
+        <drop-down-menu label="" parameter="Options2.data" list_parameter="OptionsForMenu.OUTPUT" x="40" y="520" width="100" height="50" />
+
+        <slider-horizontal label="X" parameter="CCC.data" count="3" x="200" y="40" width="100" height="100" />
+        <slider-horizontal label="X" parameter="CCC.data" count="3" x="300" y="40" width="100" height="100" />
+
+        <bar-graph
+            x="440" y="40"
+            width="301"
+            height="301"
+            source="CCC.OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <plot
+            x="440" y="440"
+            width="301"
+            height="301"
+            source="CCC.OUTPUT"
+            title = "Plot"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+    </view>
+
+    <view name="Markers">
+        <marker
+            x="20" y="20" width="200" height="200"
+            title="Default Path"
+            source="R23.OUTPUT"
+            markerType = "circle"
+            size = "0.05"
+            show_frame = "yes"
+        />
+
+        <marker
+            x="240" y="20" width="200" height="200"
+            title="Default Path"
+            source="R23.OUTPUT"
+            fill = "yellow"
+            markerType = "cross"
+            size = "0.1"
+            show_frame = "yes"
+        />
+
+        <marker
+            x="460" y="20" width="200" height="200"
+            title="Default Path"
+            source="R23.OUTPUT"
+            fill = "yellow"
+            markerType = "cross"
+            lineWidth = "12"
+            lineCap = "round"
+            color = "red"
+            size = "0.3"
+            show_frame = "yes"
+        />
+
+        <marker
+            x="20" y="240" width="200" height="200"
+            title="Default Path"
+            source="R43.OUTPUT"
+            order = "row"
+            markerType = "circle"
+            size = "0.05"
+            scales = "yes"
+            color = "red, green, blue"
+            fill = "red, green, blue"
+        />
+
+        <marker
+            x="240" y="240" width="200" height="200"
+            title="Default Path"
+            source="R43.OUTPUT"
+            order = "col"
+            markerType = "circle"
+            size = "0.05"
+            scales = "yes"
+            color = "red, green, blue"
+            fill = "red, green, blue"
+        />
+
+        <marker
+            x="460" y="240" width="200" height="200"
+            title="Default Path"
+            source="R23.OUTPUT"
+            fill = "yellow"
+            labelType = "numbered"
+            markerType = "cross"
+            lineWidth = "12"
+            lineCap = "round"
+            color = "red"
+            size = "0.3"
+            scales = "yes"
+        />
+
+        <marker
+            x="20" y="460" width="200" height="200"
+            title="Labels"
+            source="R23.OUTPUT"
+            color = "red"
+            fill = "black"
+            markerType = "none"
+            labelType = "labels"
+            labels="Alpha,Bravo,Charlie,Delta"
+            show_frame = "yes"
+        />
+
+        <marker
+            x="240" y="460" width="200" height="200"
+            title="Labels"
+            source="R23.OUTPUT"
+            markerType = "none"
+            color = "red"
+            fill = "black"
+            labelType = "alphabetical"
+            show_frame = "yes"
+        />
+
+        <marker
+            x="460" y="460" width="200" height="200"
+            title="Labels"
+            source="R23.OUTPUT"
+            markerType = "cross"
+            lineWidth = "3"
+            color = "blue"
+            fill = "black"
+            size = "0.2"
+            labelType = "xy_value"
+            labelDecimals = "1"
+            labelPrefix = "("
+            labelPostfix = ")"
+            labelFont = "12px sans-serif"
+            show_frame = "yes"
+            labelAlign = "left"
+            labelBaseline = "top"
+            labelOffsetX = "10"
+            labelOffsetY = "10"
+            style = "background-image:linear-gradient(yellow,red)"
+        />
+    </view>
+
+    <view name="Grid">
+        <grid
+            x="20" y="20"
+            width="200"
+            height="200"
+            title="Gray Grid"
+            source="RGrayGrid.OUTPUT"
+        />
+
+        <grid
+            x="240" y="20"
+            width="200"
+            height="200"
+            title="Fire Grid"
+            source="RGrayGrid.OUTPUT"
+            fill = "fire"
+        />
+
+        <grid
+            x="460" y="20"
+            width="200"
+            height="200"
+            title="Spectrum Grid"
+            source="RGrayGrid.OUTPUT"
+            fill = "spectrum"
+        />
+
+         <grid
+            x="680" y="20"
+            width="200"
+            height="200"
+            title="Custom Grid"
+            source="RGrayGrid.OUTPUT"
+            colorTable = "black, red"
+        />
+
+       <grid
+            x="20" y="240"
+            width="200"
+            height="200"
+            title="Default Grid"
+            source="RGrayGrid.OUTPUT"
+            shape = "circle"
+            size = "0.5"
+            fill = "custom"
+            colorTable = "black, red"
+        />
+
+       <grid
+            x="240" y="240"
+            width="200"
+            height="200"
+            title="Default Grid"
+            source="RGrayGrid.OUTPUT"
+            shape = "square"
+            size = "0.5"
+            fill = "custom"
+            colorTable = "gray, white, yellow, red"
+        />
+
+       <grid
+            x="460" y="240"
+            width="400"
+            height="200"
+            title="Default Grid"
+            source="RGrayGrid.OUTPUT"
+            fill = "custom"
+            colorTable = "purple, white, green, maroon"
+            shape = "square"
+        />
+
+      <grid
+            x="20" y="470"
+            width="300"
+            height="200"
+            title="Default Grid"
+            source="RGrayGrid.OUTPUT"
+            shape = "circle"
+            size = "0.5"
+            fill = "custom"
+            colorTable = "white, white, red, red, red, yellow"
+            labels = "Alpha, Bravo, Charlie, Delta, Echo, Foxtrot"
+            labelWidth = "50"
+        />
+
+      <grid
+            x="340" y="470"
+            width="200"
+            height="200"
+            title="Default Grid"
+            source="RGrayGrid.OUTPUT"
+            shape = "rectangle"
+            fill = "fire"
+            labelWidth = "50"
+            scales = "yes"
+        />
+        
+        <grid
+            x="20" y="690"
+            width="200"
+            height="200"
+            title="Gray Grid"
+            source="GridConst.OUTPUT"
+            module="GridConst"
+            parameter="data"
+        />
+
+        <grid
+            x="240" y="690"
+            width="200"
+            height="200"
+            title="Gray Grid"
+            red="GridConst.OUTPUT"
+            green="GridConst.OUTPUT"
+            blue="GridConst.OUTPUT"
+            fill="rgb"
+        />
+    </view>
+
+    <view name="Paths">
+        <path
+            x="20" y="20"
+            width="200"
+            height="200"
+            title="Default Path"
+            source="Lines.OUTPUT"
+            fill = "transparent"
+        />
+        <text
+            x="20" y="230"
+            width="200"
+            height="60"
+            text="Default path"
+        />
+        
+        <path
+            x="240" y="20"
+            width="200"
+            height="200"
+            title="Arrow"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+        />
+        <text
+            x="240" y="230"
+            width="200"
+            height="60"
+            text="Thicker green line with arrow"
+        />
+        
+       <path
+            x="460" y="20"
+            width="200"
+            height="200"
+            title="Line caps and joins"
+            source="Lines.OUTPUT"
+            lineWidth = "18"
+            lineCap = "round"
+            lineJoin = "round"
+            _arrow = "yes"
+            fill = "transparent"
+            color = "orange"
+        />
+        <text
+            x="460" y="230"
+            width="200"
+            height="60"
+            text="Thicker orange line with round lineCap and lineJoin"
+        />
+        
+       <path
+            x="680" y="20"
+            width="200"
+            height="200"
+            title="Filled closed path"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "no"
+            fill = "yellow"
+            color = "red"
+            close = "yes"
+        />
+        <text
+            x="680" y="230"
+            width="200"
+            height="60"
+            text="Filled closed path"
+        />
+        
+        <table
+            title="Path data"
+            source="Lines.OUTPUT"
+            x="900"
+            y="20"
+            width="200"
+            height="200"
+        />
+        <text
+            x="900" y="130"
+            width="200"
+            height="60"
+            text="The data used to draw the paths in column order"
+        />
+
+
+
+        <path
+            x="20" y="300"
+            width="200"
+            height="200"
+            title="Default Path"
+            source="Lines.OUTPUT"
+            fill = "transparent"
+            scales = "yes"
+        />
+        <text
+            x="20" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+        
+        <path
+            x="240" y="300"
+            width="200"
+            height="200"
+            title="Arrow"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+        />
+        <text
+            x="240" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+        
+       <path
+            x="460" y="300"
+            width="200"
+            height="200"
+            title="Line caps and joins"
+            source="Lines.OUTPUT"
+            lineWidth = "18"
+            lineCap = "round"
+            lineJoin = "round"
+            _arrow = "yes"
+            fill = "transparent"
+            color = "orange"
+            scales = "yes"
+        />
+        <text
+            x="460" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+        
+       <path
+            x="680" y="300"
+            width="200"
+            height="200"
+            title="Filled closed path"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "no"
+            fill = "yellow"
+            color = "red"
+            close = "yes"
+            scales = "yes"
+        />
+        <text
+            x="680" y="510"
+            width="200"
+            height="60"
+            text="With scales"
+        />
+
+
+        <path
+            x="20" y="580"
+            width="200"
+            height="200"
+            title="Triangles"
+            source="R.OUTPUT"
+            order="row"
+            lineWidth = "3"
+            arrow="no"
+            close="yes"
+            color = "red, green, blue, yellow"
+            fill = "#ff000088, #00ff0088, #0000ff88, #ffff0088"
+            lineCap = "round"
+            lineJoin = "round"
+        />
+
+        <table
+            title="Path Data"
+            source="R.OUTPUT"
+            x="240"
+            y="620"
+            width="500"
+            height="200"
+        />
+       <text
+            x="240" y="710"
+            width="500"
+            height="60"
+            text="The random data used to draw the three triangles to the left using row order"
+        />
+
+
+        <path
+            x="20" y="800"
+            width="200"
+            height="200"
+            title="Normal"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+        />
+        <text
+            x="20" y="1030"
+            width="200"
+            height="60"
+            text="Normal"
+        />
+
+
+        <path
+            x="240" y="800"
+            width="200"
+            height="200"
+            title="Flip x-axis"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+            flipXAxis = "yes"
+        />
+        <text
+            x="240" y="1030"
+            width="200"
+            height="60"
+            text="Flip x-axis"
+        />
+
+
+        <path
+            x="460" y="800"
+            width="200"
+            height="200"
+            title="Flip y-axis"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+            flipYAxis = "yes"
+        />
+        <text
+            x="460" y="1030"
+            width="200"
+            height="60"
+            text="Flip y-axis"
+        />
+
+
+        <path
+            x="680" y="800"
+            width="200"
+            height="200"
+            title="Flip both axes"
+            source="Lines.OUTPUT"
+            lineWidth = "4"
+            arrow = "yes"
+            fill = "transparent"
+            color = "green"
+            scales = "yes"
+            flipXAxis = "yes"
+            flipYAxis = "yes"
+        />
+        <text
+            x="680" y="1030"
+            width="200"
+            height="60"
+            text="Flip both axes"
+        />
+
+    </view>
+
+
+    <view name="Text">
+        <text parameter="String.OUTPUT" x="20" y="20" width="200" height="100"/>
+        <text text="Static text" x="20" y="120" width="200" height="100"/>
+    </view>
+
+
+    <view name="Images">
+
+        <image
+            x="20" y="20"
+            width="201"
+            height="201"
+            module=""
+            source="InputVideoFile.INTENSITY"
+            title = "Moving Image"
+        />
+ 
+        <image
+            x="240" y="20"
+            width="201"
+            height="201"
+            source="InputVideoFile.INTENSITY"
+            title = "Moving Image"
+            format = "fire"
+        />
+ 
+        <image
+            x="460" y="20"
+            width="201"
+            height="201"
+            source="InputVideoFile.INTENSITY"
+            title = "Moving Image"
+            format = "spectrum"
+        />
+ 
+        <image
+            x="680" y="20"
+            width="201"
+            height="201"
+            source="InputVideoFile.INTENSITY"
+            title = "Moving Image"
+            _format = "green"
+        />
+ 
+        <image
+            x="10" y="240"
+            _width="1280"
+            _height="720"
+            width="640"
+            height="360"
+            source="InputVideoFile.RED+GREEN+BLUE"
+            title = "Moving Colors"
+            format = "rgb"
+            file = ""
+            style = ""
+        />
+
+       <image
+            x="20" y="600"
+            width="201"
+            height="201"
+            title = "Fixed Image"
+            file = "bike.png"
+        />
+        
+       <image
+            x="240" y="600"
+            width="201"
+            height="201"
+            title = "Fixed Image"
+            file = "bike.png"
+            flipXCanvas = "yes"
+        />
+        
+       <image
+            x="480" y="600"
+            width="201"
+            height="201"
+            title = "Fixed Image"
+            file = "bike.png"
+            flipYCanvas = "yes"
+        />
+        
+       <image
+            x="700" y="600"
+            width="201"
+            height="201"
+            title = "Fixed Image"
+            file = "bike.png"
+            flipXCanvas = "yes"
+            flipYCanvas = "yes"
+        />
+        
+
+       <image
+            x="20" y="820"
+            width="201"
+            height="201"
+            title = "Fixed Image"
+            file = "bike.png"
+            scales = "yes"
+        />
+        
+
+       <image
+            x="240" y="820"
+            width="201"
+            height="201"
+            source="InputVideoFile.INTENSITY"
+            title = "Moving image with scales"
+            format = "fire"
+            scales = "yes"
+        />
+
+       <image
+            x="20" y="1000"
+            width="201"
+            height="201"
+            title = "Image Sequence"
+            file = "a.png,b.png,c.png,d.png,e.png"
+            index = "Index.OUTPUT"
+        />
+
+    </view>
+
+    <view name="Bar Graphs">
+        <bar-graph
+            x="40" y="40"
+            width="301"
+            height="301"
+            source="R3x7.OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B"
+            _labels_x = "X, Y, Z"
+            labels_y = "A, B, C"
+            style = ""
+        />
+
+        <bar-graph
+            x="340" y="40"
+            width="301"
+            height="301"
+            source="R3x7.OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B"
+            style = ""
+            direction="horizontal"
+        />
+
+        <bar-graph
+            x="40" y="400"
+            width="300"
+            height="300"
+            source="R23.OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <bar-graph
+            x="340" y="400"
+            width="300"
+            height="300"
+            source="R23.OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+    </view>
+    
+    <view name="Plots">
+        <plot
+            x="40" y="40"
+            width="301"
+            height="301"
+            source="R3x7.OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <plot
+            x="340" y="40"
+            width="301"
+            height="301"
+            source="R3x7.OUTPUT"
+            title = "Bar Graph X"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+
+        <plot
+            x="40" y="400"
+            width="300"
+            height="300"
+            source="R23.OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+
+        <plot
+            x="340" y="400"
+            width="300"
+            height="300"
+            source="R23.OUTPUT"
+            title = "Bar Graph 2"
+            labels = "A, B, C, D, E, F, G"
+            style = ""
+            direction="horizontal"
+        />
+    </view>
+
+    <view name="Tables">
+        <table title="Default Table" source="R23T.OUTPUT" x="40" y="20" width="300" height="300" />
+        <table title="Colored Table" source="R23T.OUTPUT" x="40" y="320" width="300" height="300"  color="red, green, blue" />
+        <table title="Color by Sign" source="R23T.OUTPUT" x="40" y="640" width="300" height="300"  positive_color="blue" negative_color="red" font_size="24px" />
+    </view>
+
+
+
+    <view name="Graph">
+        <graph x="40" y="40" width="400" height="400" labels_x = "A, B, C, D" labels_y="X, Y, Z, T" />
+    </view>
+
+
+
+
+    <group name="Group Inner">
+         <module
+            class = "Randomizer"
+            name = "Randomic"
+            outputsize = "10"
+        />
+
+        <view name="Plots">
+            <plot
+                x="40" y="40"
+                width="301"
+                height="301"
+                source="Randomic.OUTPUT"
+                title = "Plot"
+            />
+        </view>
+    </group>
+
+
+    <module
+        class = "Constant"
+        name = "GridConst"
+        data = "0 0 0 0 0; 0 0 1 0 0; 0 0 1 0 0; 0 0 1 1 0; 0 0 0 0 0"
+    />
+    
+    <module
+        class = "Text"
+        name = "String"
+        OUTPUT = "Parameter text from module"
+    />
+
+    <module
+        class = "Text"
+        name = "OptionsForMenu"
+        OUTPUT = "Alpha,Bravo,Charlie,Delta,Echo"
+    />
+
+    <module
+        class="InputJPEG"
+        name="Image"
+        filename="../Media/colorrobot.jpg"
+        size_x="256"
+        size_y="256"
+    />
+    <module
+        class = "Randomizer"
+        name = "R3x7"
+        outputsize_x = "2"
+        outputsize_y = "1"
+    />
+
+     <module
+        class = "Randomizer"
+        name = "R23"
+        outputsize_x = "2"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R43"
+        outputsize_x = "4"
+        outputsize_y = "3"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "R23T"
+        outputsize_x = "2"
+        outputsize_y = "3"
+        min="-1"
+        max="1"
+    />
+
+    <module
+        class = "Randomizer"
+        name = "RGrayGrid"
+        outputsize_x = "5"
+        outputsize_y = "5"
+        max = "1"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "Wave"
+        type = "sin"
+        frequency = "0.01"
+        amplitude = "10"
+    />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "WaveR"
+        type = "sin"
+        frequency = "0.01"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "WaveG"
+        type = "sin"
+        frequency = "0.017"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "WaveB"
+        type = "sin"
+        frequency = "0.013"
+        amplitude = "0.5"
+        offset = "0.5"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "FG"
+        type = "sin"
+        frequency = "0.1"
+    />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "FG2"
+        type = "sin"
+        frequency = "0.04"
+        offset = "0.2"
+        amplitude = "0.2"
+    />
+    
+    <module
+        class="InputJPEG"
+        name="SmallImage"
+        filename="../Media/SmallSequence/img%d.jpg"
+        filecount = "32"
+    />
+
+    <module
+        class="InputJPEG"
+        name="ColorImage"
+        filename="../Media/cannes.jpg"
+    />
+
+    <module
+        class = "Constant"
+        name = "Lines"
+        _outputsize_x = "2"
+        _outputsize_y = "4"
+        data= "
+        0.0 0.0;
+        0.0 1.0;
+        1.0 1.0;
+        0.5 0.5"
+    />
+
+    <module
+        class = "Constant"
+        name = "CCC"
+        data = "0 0.5 1"
+    />
+
+    <module
+        class = "Constant"
+        name = "SwitchValue"
+        data = "0"
+    />
+
+    <module
+        class = "Constant"
+        name = "Options"
+        data = "0"
+    />
+
+    <module
+        class = "Constant"
+        name = "Options2"
+        data = "0"
+    />
+
+    <module
+        class = "InputVideoFile"
+        name = "InputVideoFile"
+        filename = "../Media/ikaros.mp4"
+        loop = "yes"
+    />
+
+   <module
+        class = "Randomizer"
+        name = "R"
+        outputsize_x = "6"
+        outputsize_y = "3"
+        min = "0.1"
+        max = "0.9"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "G1"
+        type = "sin"
+        frequency = "0.1"
+    />
+    <module
+        class = "FunctionGenerator"
+        name = "G2"
+        type = "sin"
+        frequency = "0.1"
+    />
+    <module
+        class = "Gate"
+        name = "G"
+    />
+    <connection source="G1.OUTPUT" target="G.INPUT" />
+    <connection source="G2.OUTPUT" target="G.INPUT" />
+
+    <module
+        class = "FunctionGenerator"
+        name = "P"
+        type = "sin"
+        frequency = "0.01"
+        offset = "0.5"
+        amplitude = "0.2"
+        size = "2"
+    />
+    
+    <module
+        class = "FunctionGenerator"
+        name = "Enable"
+        type = "ticksquare"
+        basetime = "50"
+        tickduty = "25"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "Index"
+        type = "sin"
+        frequency = "0.01"
+        offset = "2"
+        amplitude = "2"
+    />
+
+    <module class="Logger" name="Logger" />
+</group>
+
+
+

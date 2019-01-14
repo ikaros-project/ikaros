@@ -1,0 +1,610 @@
+<?xml version="1.0"?>
+
+<group title="Robot Simulator">
+
+		<module
+			class   = "Constant"
+			name	= "AllObjects"
+            outputsize_x = "53"
+            outputsize_y = "87"
+            
+            note   =    "0 = camera, 1 = robot, 2 = world, 3 = marker, 4 = cube"
+            
+            header =    "obj_type obj_id  marker_id size conf obj_coord     cam_coord                                       world_coord"
+            
+            data =      "
+            0 0  0  20  0   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0    0  0 0 0   0  0 0 0 0  0 0 0 1;
+            1 0  0 200  0   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              1 0 0  800  0 1 0   600  0 0 1 0  0 0 0 1;
+    
+            2 2	11 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 100 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            2 2 12 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 350 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            2 2 13 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 600 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            2 2 14 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 850 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            2 2 15 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1100 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            2 2 16 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1350 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            2 2 17 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1600 	0 -1 0 100 	0 0 1 0 	0 0 0 1;
+            
+            2 2 21 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 100 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            2 2 22 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 350 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            2 2 23 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 600 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            2 2 24 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 850 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            2 2 25 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1100 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            2 2 26 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1350 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            2 2 27 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1600 	0 -1 0 350 	0 0 1 0 	0 0 0 1;
+            
+            2 2 31 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 100 	0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            2 2 32 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 350 	0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            2 2 33 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 600   0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            2 2 34 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 850 	0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            2 2 35 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1100 	0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            2 2 36 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1350 	0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            2 2 37 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1600 	0 -1 0 600 	0 0 1 0 	0 0 0 1;
+            
+            2 2 41 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 100 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            2 2 42 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 350 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            2 2 43 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 600 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            2 2 44 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 850 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            2 2 45 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1100 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            2 2 46 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1350 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            2 2 47 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1600 	0 -1 0 850 	0 0 1 0 	0 0 0 1;
+            
+            2 2 51 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 100 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+            2 2 52 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 350 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+            2 2 53 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 600 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+            2 2 54 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 850 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+            2 2 55 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1100 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+            2 2 56 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1350 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+            2 2 57 	60 	0	1 0 0 0	 0 1 0 0 	0 0 1 0 	0 0 0 1 		0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 1 	1 0 0 1600 	0 -1 0 1100 	0 0 1 0 	0 0 0 1;
+                                    
+            4  1 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0   50  0 0 0 600  0 0 0 0  0 0 0 1;
+            4  2 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  150  0 0 0 600  0 0 0 0  0 0 0 1;
+            4  3 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  250  0 0 0 600  0 0 0 0  0 0 0 1;
+            4  4 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  350  0 0 0 600  0 0 0 0  0 0 0 1;
+            4  5 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  450  0 0 0 600  0 0 0 0  0 0 0 1;
+            4  6 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  550  0 0 0 400  0 0 0 0  0 0 0 1;
+            4  7 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  550  0 0 0 500  0 0 0 0  0 0 0 1;
+            4  8 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  550  0 0 0 600  0 0 0 0  0 0 0 1;
+            4  9 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  550  0 0 0 700  0 0 0 0  0 0 0 1;
+            4 10 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  550  0 0 0 800  0 0 0 0  0 0 0 1;
+
+            4 11 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1000  0 0 0 800  0 0 0 0  0 0 0 1;
+            4 12 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1150  0 0 0 800  0 0 0 0  0 0 0 1;
+            4 13 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1300  0 0 0 800  0 0 0 0  0 0 0 1;
+            4 14 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1450  0 0 0 800  0 0 0 0  0 0 0 1;
+            4 15 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1600  0 0 0 800  0 0 0 0  0 0 0 1;
+            4 16 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1000  0 0 0 400  0 0 0 0  0 0 0 1;
+            4 17 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1150  0 0 0 400  0 0 0 0  0 0 0 1;
+            4 18 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1300  0 0 0 400  0 0 0 0  0 0 0 1;
+            4 19 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1450  0 0 0 400  0 0 0 0  0 0 0 1;
+            4 20 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 1600  0 0 0 400  0 0 0 0  0 0 0 1;
+
+            4 21 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  100  0 0 0 500  0 0 0 0  0 0 0 1;
+            4 22 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  200  0 0 0 300  0 0 0 0  0 0 0 1;
+            4 23 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  150  0 0 0 450  0 0 0 0  0 0 0 1;
+            4 24 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  300  0 0 0 500  0 0 0 0  0 0 0 1;
+            4 25 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  400  0 0 0 500  0 0 0 0  0 0 0 1;
+            4 26 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  110  0 0 0 320  0 0 0 0  0 0 0 1;
+            4 27 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  220  0 0 0 470  0 0 0 0  0 0 0 1;
+            4 28 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  290  0 0 0 390  0 0 0 0  0 0 0 1;
+            4 29 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  320  0 0 0 310  0 0 0 0  0 0 0 1;
+            4 30 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  410  0 0 0 200  0 0 0 0  0 0 0 1;
+
+            4 31 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  100  0 0 0 700  0 0 0 0  0 0 0 1;
+            4 32 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  200  0 0 0 750  0 0 0 0  0 0 0 1;
+            4 33 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  150  0 0 0 760  0 0 0 0  0 0 0 1;
+            4 34 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  300  0 0 0 880  0 0 0 0  0 0 0 1;
+            4 35 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  340  0 0 0 790  0 0 0 0  0 0 0 1;
+            4 36 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  110  0 0 0 830  0 0 0 0  0 0 0 1;
+            4 37 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  190  0 0 0 870  0 0 0 0  0 0 0 1;
+            4 38 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  250  0 0 0 695  0 0 0 0  0 0 0 1;
+            4 39 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  390  0 0 0 930  0 0 0 0  0 0 0 1;
+            4 40 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  420  0 0 0 666  0 0 0 0  0 0 0 1;
+
+            4 41 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1300  0 0 0 900  0 0 0 0  0 0 0 1;
+            4 42 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1230  0 0 0 950  0 0 0 0  0 0 0 1;
+            4 43 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1200  0 0 0 1000  0 0 0 0  0 0 0 1;
+            4 44 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1350  0 0 0 980  0 0 0 0  0 0 0 1;
+            4 45 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1400  0 0 0 990  0 0 0 0  0 0 0 1;
+            4 46 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1470  0 0 0 930  0 0 0 0  0 0 0 1;
+            4 47 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1400  0 0 0 1070  0 0 0 0  0 0 0 1;
+            4 48 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1550  0 0 0 1095  0 0 0 0  0 0 0 1;
+            4 49 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1500  0 0 0 1000  0 0 0 0  0 0 0 1;
+            4 50 0 36  1   0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1              0 0 0  1600  0 0 0 1066  0 0 0 0  0 0 0 1"
+        />
+
+        <!-- to add green objects, set the fifth column to one above for objects 41-50 and set the locations using the values to the right -->
+
+		<module
+			class   = "Constant"
+			name	= "Goal"
+            outputsize_x = "4"
+            outputsize_y = "1"
+            data =      "0 0 0 0"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "PickLocation"
+            outputsize_x = "4"
+            outputsize_y = "1"
+            data =      "0 0 0 0"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "PlaceObject"
+            outputsize_x = "4"
+            outputsize_y = "1"
+            data =      "0 0 0 0"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "PickObject"
+            outputsize_x = "1"
+            outputsize_y = "1"
+            data =      "2"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "Speed"
+            outputsize_x = "1"
+            outputsize_y = "1"
+            data =      "1"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "LocomotionTrigger"
+            outputsize_x = "1"
+            outputsize_y = "1"
+            data =      "0"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "PickTrigger"
+            outputsize_x = "1"
+            outputsize_y = "1"
+            data =      "0"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "PlaceTrigger"
+            outputsize_x = "1"
+            outputsize_y = "1"
+            data =      "0"
+        />
+
+		<module
+			class   = "Constant"
+			name	= "ChargeTrigger"
+            outputsize_x = "1"
+            outputsize_y = "1"
+            data =      "0"
+        />
+
+		<module
+			class   = "GLRobotSimulator"
+			name	= "GLRobotSimulator"
+            auto_stack = "true"
+		/>
+<!--
+		<module
+			class   = "SaccadeGenerator"
+			name	= "SaccadeGenerator"			
+		/>
+-->
+		<connection  source = "AllObjects.OUTPUT"  target = "GLRobotSimulator.OBJECTS_IN" delay="0" />        
+		<connection  source = "Goal.OUTPUT"  target = "GLRobotSimulator.GOAL_LOCATION" delay="0" />        
+		<connection  source = "Speed.OUTPUT"  target = "GLRobotSimulator.SPEED" delay="0" />        
+		<connection  source = "LocomotionTrigger.OUTPUT"  target = "GLRobotSimulator.LOCOMOTION_TRIGGER" delay="0" />        
+		<connection  source = "PickObject.OUTPUT"  target = "GLRobotSimulator.PICK_OBJECT_ID" delay="0" />     
+		<connection  source = "PickLocation.OUTPUT"  target = "GLRobotSimulator.PICK_OBJECT_SPATIAL_ATTENTION" delay="0" />     
+		<connection  source = "PickTrigger.OUTPUT"  target = "GLRobotSimulator.PICK_OBJECT_TRIGGER" delay="0" />        
+		<connection  source = "PlaceObject.OUTPUT"  target = "GLRobotSimulator.PLACE_OBJECT_LOCATION" delay="0" />        
+		<connection  source = "PlaceTrigger.OUTPUT"  target = "GLRobotSimulator.PLACE_OBJECT_TRIGGER" delay="0" />        
+		<connection  source = "ChargeTrigger.OUTPUT"  target = "GLRobotSimulator.CHARGE_BATTERIES" delay="0" />        
+
+<!--
+		<connection  source = "GLRobotSimulator.BLOCKS_IN_VIEW"  target = "SaccadeGenerator.INPUT" delay="0" />
+
+		<connection  source = "SaccadeGenerator.SACCADE_OUT"  target = "SaccadeGenerator.SACCADE_IN" delay="1" />
+-->
+		<view name="Overview">
+        
+			<object
+                class   = "GL3D"
+                title   = "3D-View"
+                cam_type = "1"
+                module  = "GLRobotSimulator"
+                source  = "BLOCKS"
+                robot_module = "GLRobotSimulator"
+                robot_location = "ROBOT_LOCATION"
+                hilite_module = "GLRobotSimulator"
+                hilite_source = "TARGET"
+
+                x="8" y="0"
+                w="4" h="3"
+			/>
+            
+			<object
+                class   = "HUDDirection"
+                module  = "GLRobotSimulator"
+                source  = "ROBOT_LOCATION"
+
+                x="8" y="0"
+                w="4" h="3"
+			/>
+            
+			<object
+                class   = "Rectangle"
+                title   = "World Model Top-View"
+                module  = "GLRobotSimulator"
+                source  = "LANDMARKS"
+                color   = "#555555"
+                stroke_width="1"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.0135"
+                flip_y_axis="yes"
+			/>
+
+			<object
+				class   = "Circle"
+				module  = "GLRobotSimulator"
+				source  = "CHARGING_STATION"
+                color   = "#060"
+                stroke_width = "1"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.05"
+                flip_y_axis="yes"
+			/>
+
+			<object
+				class   = "Circle"
+                title   = "View Field"
+				module  = "GLRobotSimulator"
+				source  = "VIEW_FIELD"
+                color   = "#444444"
+                stroke_width = "1"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.14"
+                flip_y_axis="yes"
+			/>
+
+			<object
+				class   = "Rectangle"
+                title   = "Objects"
+				module  = "GLRobotSimulator"
+				source  = "ROBOT_LOCATION"
+                color   = "yellow"
+                stroke_width = "2"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.045"
+                flip_y_axis="yes"
+			/>
+
+			<_object
+				class   = "Lines"
+                arrow   = "yes"
+                polar   = "yes"
+                title   = "Objects"
+				module  = "GLRobotSimulator"
+				source  = "ROBOT_LOCATION"
+                color   = "yellow"
+                stroke_width = "2"
+                length = "50"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.045"
+                flip_y_axis="yes"
+			/>
+
+			<object
+				class   = "Label"
+				module  = "GLRobotSimulator"
+				source  = "ROBOT_LOCATION"
+                type    = "xy_value"
+                color   = "yellow"
+                text_anchor = "middle"
+                decimals = "0"
+                size = "10"
+                offset_x = "0.00"
+                offset_y = "-0.08"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                flip_y_axis="yes"
+			/>
+
+			<object
+				class   = "Rectangle"
+                title   = "Objects"
+				module  = "GLRobotSimulator"
+				source  = "BLOCKS"
+                color   = "gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, gray, blue, blue, blue, blue, blue, blue, blue, blue, blue, blue, red, red, red, red, red, red, red, red, red, red, green, green, green, green, green, green, green, green, green, green"
+                stroke_width = "2"
+                zscale = "yes"
+                x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.0082"
+                flip_y_axis="yes"
+			/>
+            
+			<object
+				class   = "Label"
+				module  = "GLRobotSimulator"
+				source  = "BLOCKS"
+                type    = "value"
+                select  = "4"
+                text_anchor = "middle"
+                decimals = "0"
+                size = "11"
+                offset_y = "-0.02"
+                color = "#555"
+				x="0" y="0"
+				w="4" h="4"
+                min = "-200"
+                max = "1900"
+                flip_y_axis="yes"
+			/>
+
+            <object
+                class   = "BarGraph"
+                title   = "Locomotion Phase"
+                module  = "GLRobotSimulator"
+				source  = "LOCOMOTION_PHASE"
+				x="4" y="0"
+            />
+
+            <object
+                class   = "BarGraph"
+                title   = "Locomotion Error"
+                module  = "GLRobotSimulator"
+				source  = "LOCOMOTION_ERROR"
+				x="5" y="0"
+            />
+
+           <object
+                class   = "Slider"
+                title   = "Speed"
+                module  = "Speed"
+				parameter  = "data"
+				x="6" y="0"
+            />
+
+           <object
+                class   = "Button"
+                title   = "Move"
+                module  = "LocomotionTrigger"
+				parameter  = "data"
+				x="7" y="0"
+            />
+
+
+
+           <object
+                class   = "BarGraph"
+                title   = "Pick Phase"
+                module  = "GLRobotSimulator"
+				source  = "LOCOMOTION_PHASE"
+				x="4" y="0"
+            />
+
+
+
+
+           <object
+                class   = "BarGraph"
+                title   = "Pick Phase"
+                module  = "GLRobotSimulator"
+				source  = "PICK_PHASE"
+				x="4" y="1"
+            />
+
+           <object
+                class   = "BarGraph"
+                title   = "Pick Error"
+                module  = "GLRobotSimulator"
+				source  = "PICK_ERROR"
+				x="5" y="1"
+            />
+
+           <object
+                class   = "Button"
+                title   = "Pick"
+                module  = "PickTrigger"
+				parameter  = "data"
+				x="7" y="1"
+            />
+
+
+
+
+           <object
+                class   = "BarGraph"
+                title   = "Place Phase"
+                module  = "GLRobotSimulator"
+				source  = "PLACE_PHASE"
+				x="4" y="2"
+            />
+
+           <object
+                class   = "BarGraph"
+                title   = "Place Error"
+                module  = "GLRobotSimulator"
+				source  = "PLACE_ERROR"
+				x="5" y="2"
+            />
+
+           <object
+                class   = "Button"
+                title   = "Place"
+                module  = "PlaceTrigger"
+				parameter  = "data"
+				x="7" y="2"
+            />
+
+
+
+
+
+           <object
+                class   = "BarGraph"
+                title   = "Place Phase"
+                module  = "GLRobotSimulator"
+				source  = "LOCOMOTION_PHASE"
+				x="4" y="0"
+            />
+
+           <object
+                class   = "BarGraph"
+                title   = "Charge Phase"
+                module  = "GLRobotSimulator"
+				source  = "CHARGE_PHASE"
+				x="4" y="3"
+            />
+
+           <object
+                class   = "BarGraph"
+                title   = "Charge Error"
+                module  = "GLRobotSimulator"
+				source  = "CHARGE_ERROR"
+				x="5" y="3"
+            />
+
+           <object
+                class   = "BarGraph"
+                title   = "Battery Level"
+                module  = "GLRobotSimulator"
+				source  = "BATTERY_LEVEL"
+				x="6" y="3"
+            />
+
+           <object
+                class   = "Button"
+                title   = "Charge"
+                module  = "ChargeTrigger"
+				parameter  = "data"
+				x="7" y="3"
+            />
+
+			<object
+                class   = "Mouse"
+
+                module  = "Goal"
+                parameter  = "data"
+
+                module2  = "PickLocation"
+                parameter2  = "data"
+
+                module3  = "PlaceObject"
+                parameter3  = "data"
+
+                x="0" y="0"
+                w="4" h="4"
+                min = "-200"
+                max = "1900"
+                size = "0.005"
+                _color = "green"
+                flip_y_axis="yes"
+			/>
+            
+            
+            <object
+                class   = "PolarPlot"
+                title   = "Range Map"
+                module  = "GLRobotSimulator"
+				source  = "RANGE_MAP"
+                max     = "800"
+                offset  = "0"
+                grid_color = "gray"
+                margin = "0"
+				x="8" y="3"
+            />
+
+            <object
+                class   = "PolarPlot"
+                title   = "Color Map"
+                module  = "GLRobotSimulator"
+				source  = "RANGE_COLOR"
+                max     = "4"
+                offset  = "0"
+                grid_color = "gray"
+                margin = "0"
+				x="9" y="3"
+            />
+<!--
+            <object
+                class   = "Grid"
+                title   = "Saccade"
+                module  = "SaccadeGenerator"
+				source  = "SACCADE"
+				x="10" y="3"
+            />
+
+            <object
+                class   = "Grid"
+                title   = "Focus"
+                module  = "SaccadeGenerator"
+				source  = "FOCUS"
+				x="11" y="3"
+            />
+-->
+          <object
+                class   = "Text"
+                title   = ""
+                text    = "CLICK: select goal location for locomotion; SHIFT-CLICK: select object to pick; ALT-CLICK: select location for place operation"
+
+				x="0" y="4" h="4" w="4"
+            />
+
+           <_object
+                class   = "Table"
+                title   = "Visible Blocks"
+                module  = "GLRobotSimulator"
+				source  = "BLOCKS_IN_VIEW"
+				x="0" y="4" h="4" w="10"
+            />
+
+            
+        </view>
+    
+        <view name="3D View">
+        
+			<object
+                class   = "GL3D"
+                title   = "3D-View"
+                module  = "GLRobotSimulator"
+                source  = "BLOCKS"
+                robot_module = "GLRobotSimulator"
+                robot_location = "ROBOT_LOCATION"
+                hilite_module = "GLRobotSimulator"
+                hilite_source = "TARGET"
+                x="0" y="0"
+                w="8" h="6"
+			/>
+            
+        </view>
+    <module class = "Logger" name = "Logger" />
+</group>
+  

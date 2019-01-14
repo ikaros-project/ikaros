@@ -1,3 +1,6 @@
+# Folders
+
+/build/
 # Compiled source #
 ###################
 *.com
@@ -43,6 +46,7 @@ ehthumbs.db
 Thumbs.db
 /Debug/
 /Release/
+/Build/
 
 # Windows #
 ######################

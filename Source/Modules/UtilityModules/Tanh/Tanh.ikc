@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Tanh" description="minimal example module">
+<class name="Tanh" description="minimal example module">
 
 	<description type="text">
 		Module that applies the tanh function to the input
@@ -21,14 +21,13 @@
 
 	<output name="OUTPUT" description="The first output" size_set="INPUT" />
 
-	<module class="Tanh" />
+	<link class="Tanh" />
 
 	<view>
 		<object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for tanh"
         />
 	</view>
@@ -45,5 +44,5 @@
    		<file>Tanh.ikc</file>
    </files>
 
-</group>
+</class>
 

@@ -89,6 +89,8 @@ Socket::~Socket()
 
 
 
+/*
+
 bool
 Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
@@ -96,7 +98,7 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
     struct sockaddr_in localAddr, servAddr;
     struct hostent *h;
 	
-    if ((h = gethostbyname(hostname)) == NULL)
+    if ((h = gethostbyname(hostname)) == NULL)  // FIXME: use getaddrinfo instead
         return false;  // unkown host
 	
     servAddr.sin_family = h->h_addrtype;
@@ -121,6 +123,64 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
         if (write(data->sd, request, strlen(request)) <0)
             return false; // cannot send data
 	}
+    else
+    {
+        if (write(data->sd, request, size) <0)
+            return false; // cannot send data
+    }
+
+    return data->sd != -1;
+}
+
+*/
+
+bool
+Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
+{
+    // Freely after https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html
+    
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+
+    data->sd = -1;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
+    hints.ai_socktype = SOCK_STREAM;
+
+    if ((rv = getaddrinfo(hostname, "http", &hints, &servinfo)) != 0)
+        return false; //  gai_strerror(rv));
+
+    // loop through all the results and connect to the first we can
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+        if ((data->sd = socket(p->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
+            // perror("socket");
+            continue;
+        }
+
+        if (connect(data->sd, p->ai_addr, p->ai_addrlen) == -1) {
+            // perror("connect");
+            close(data->sd);
+            continue;
+        }
+
+        break; // if we get here, we must have connected successfully
+    }
+
+    if (p == NULL) {
+        // looped off the end of the list with no connection
+        // fprintf(stderr, "failed to connect\n");
+        return false;
+    }
+
+    freeaddrinfo(servinfo); // all done with this structure
+
+    if(size == -1) // default to use size of string
+    {
+        if (write(data->sd, request, strlen(request)) <0)
+            return false; // cannot send data
+    }
     else
     {
         if (write(data->sd, request, size) <0)

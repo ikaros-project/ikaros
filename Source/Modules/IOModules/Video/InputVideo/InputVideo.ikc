@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputVideo" description="grabs video using FFmpeg">
+<class name="InputVideo" description="grabs video using FFmpeg">
 
 	<description type="text">
         Grabs the video from a camera using FFmpeg.
@@ -13,7 +13,7 @@
 		/>
 	</example>
 
-	<module class="InputVideo" />
+	<link class="InputVideo" />
     
 	<parameter name="size_x" type="int" default="640" description="Size of the image" />
 	<parameter name="size_y" type="int" default="480" description="Size of the image" />
@@ -35,7 +35,7 @@
 		width = "381"
 		flipYCanvas = "no"
 		x = "60"
-		source = "*.RED+GREEN+BLUE"
+		source = ".RED+GREEN+BLUE"
 		format = "rgb"
 		flipYAxis = "no"
 		flipXCanvas = "no"
@@ -65,5 +65,5 @@
    		<file>InputVideo.ikc</file>
    </files>
 
-</group>
+</class>
 

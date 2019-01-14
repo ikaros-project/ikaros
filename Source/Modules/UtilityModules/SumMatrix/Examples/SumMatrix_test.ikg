@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+
+<group title="SumMatrix Example">
+	
+		<module
+			class = "Constant"
+			name = "Matrix"
+			data  = "1 2; 3 4"
+		/>
+
+		<module
+			class = "SumMatrix"
+			name = "SumMatrixAll"
+			direction = "all"
+		/>
+		
+		<module
+			class = "SumMatrix"
+			name = "SumMatrixCol"
+			direction = "column"
+		/>
+		<module
+			class = "SumMatrix"
+			name = "SumMatrixRow"
+			direction = "row"
+		/>
+        <connection  source = "Matrix.OUTPUT"  target = "SumMatrixAll.INPUT" />
+        <connection  source = "Matrix.OUTPUT"  target = "SumMatrixCol.INPUT" />
+        <connection  source = "Matrix.OUTPUT"  target = "SumMatrixRow.INPUT" />
+
+		<view name="View">
+	 	<object
+	    class="Table" 
+	    module="SumMatrixAll"
+	    source="OUTPUT"
+	    x="0"
+	    y="0" 
+		/>
+
+	 	<object
+	    class="Table" 
+	    module="SumMatrixCol"
+	    source="OUTPUT"
+	    x="0"
+	    y="1" 
+		/>
+	 	<object
+	    class="Table" 
+	    module="SumMatrixRow"
+	    source="OUTPUT"
+	    x="0"
+	    y="2" 
+		/>
+		<object
+	    class="Table" 
+	    module="Matrix"
+	    source="OUTPUT"
+	    x="1"
+	    y="0" 
+		/>
+	</view>
+
+</group>
+ 

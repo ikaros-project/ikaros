@@ -20,9 +20,6 @@
 
 #include "CircleDetector.h"
 
-using namespace ikaros;
-
-
 void
 CircleDetector ::Init()
 {

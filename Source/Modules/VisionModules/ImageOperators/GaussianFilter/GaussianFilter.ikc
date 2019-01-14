@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="GaussianFilter" description="applies a Gaussian filter">
+<class name="GaussianFilter" description="applies a Gaussian filter">
 
 	<description type="text">
 		Module used to apply Gaussian filtering to an image.
@@ -21,7 +21,7 @@
 	<output name="KERNEL" description="The gaussian kernel" size_param_x="kernel_size" size_param_y="kernel_size" />
 	<output name="PROFILE" description="The profile of the gaussian kernel" size_param_x="kernel_size" size_y="1" />
 
-	<module class="GaussianFilter" />
+	<link class="GaussianFilter" />
 
 	<created>2013</created>
 
@@ -38,4 +38,4 @@
 	<file>GaussianFilter.ikc</file>
    </files>
 
-</group>
+</class>

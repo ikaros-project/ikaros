@@ -47,8 +47,11 @@ class WebUIWidget extends HTMLElement
         this.parameter_template = pt;        
      }
 
-   get(url, callback)
+   get(url, callback) // FIXME: This function should instead call the get funciton in webui.js to maintain update
     {
+        controller.get(url, controller.update);
+        return;
+        
         var last_request = url;
 
         xhr = new XMLHttpRequest();
@@ -104,19 +107,13 @@ class WebUIWidget extends HTMLElement
         xhr.send();
     }
 
-/*
-    requestData(data_set)
-    {
-        if(this.parameters['module'] && this.parameters['source'])
-            data_set.add(this.parameters['module']+"."+this.parameters['source']);
-    }
-*/
 
     getSource(source, default_data=undefined)
     {
         try {
-            let s = this.parameters[source].rsplit('.',1);
-            return this.receivedData[s[0]][s[1]];
+//            let s = this.parameters[source].rsplit('.',1);
+//            return this.receivedData[s[0]][s[1]];
+            return this.receivedData[this.parameters[source]];
         }
         catch(err)
         {
@@ -132,7 +129,7 @@ class WebUIWidget extends HTMLElement
     }
 
 
-    requestData(data_set) // this will be default function for all widgets later
+    requestData(data_set) // this is the default function for all widgets
     {
         this.parameter_template.filter(p => p.type == "source").forEach(p => { this.addSource(data_set, this.parameters[p.name]) });
     }

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<!--
+
+	This system reads the jpeg image "rgb.jpeg" and applies a number of different edge detection algorithms to it. 
+	No output is generated.
+	
+-->
+
+<group>
+		<module
+            class = "InputJPEG"
+            name = "IN"
+            filename = "../../../../../Examples/Media/cannes.jpg"
+            iterations = "2000"
+        />
+		
+		<module
+            class = "ImageConvolution" 
+            name = "C1" 
+            offset = "0.0" 
+            scale = "1"  
+            rectify="yes"
+			kernel=
+               "1   0  -1;
+				2   0  -2;
+				1   0  -1"
+        />	
+
+		<module 
+            class = "ImageConvolution" 
+            name = "C2" 
+            offset = "0.0" 
+            scale = "1"  
+            rectify="yes"
+            kernel =
+               "1   2	1;
+				0   0	0;
+			   -1  -2  -1"
+        />	
+
+		<module
+            class = "ImageConvolution" 
+            name = "C3" 
+            offset = "0.0" 
+            scale = "1"  
+            rectify="yes"
+			kernel = 
+               "-1	2	-1;
+				-1	2	-1;
+				-1	2	-1;
+				-1	2	-1;
+				-1	2	-1;
+				-1	2	-1"
+        />	
+
+		<connection  source = "IN.INTENSITY"  target = "C1.INPUT" />
+		<connection  source = "IN.INTENSITY"  target = "C2.INPUT" />
+		<connection  source = "IN.INTENSITY"  target = "C3.INPUT" />
+
+		<view name = "V1">
+			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" />
+			<object class="Image" type="fire" module="C1" source="OUTPUT" x="0" y="1" />
+			<object class="Image" type="fire" module="C2" source="OUTPUT" x="1" y="1" />
+			<object class="Image" type="fire" module="C3" source="OUTPUT" x="1" y="0" />
+		</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+

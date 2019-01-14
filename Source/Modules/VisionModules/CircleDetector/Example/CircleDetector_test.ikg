@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<group name="Circle Detector Test">
+
+    <_module
+        class = "InputJPEG"
+        name = "IN"
+        filename = "image%d.jpg"
+        filecount = "5"
+        repeats = "2"
+    /> 
+
+    <module
+        class = "InputPNG"
+        name = "IN"
+        filename = "eye.png"
+        filecount = "1"
+    />
+
+    <module
+        class = "GaussianEdgeDetector"
+        name = "Gaussian"
+        scale = "3"
+    />
+
+    <module 
+        class = "EdgeSegmentation"
+        name = "Edges"
+        threshold = "0.1"
+    />
+
+     <module 
+        class = "CircleDetector"
+        name = "Circle"
+        min_radius = "20"
+        max_radius = "40"
+    />
+
+    <connection  source = "IN.INTENSITY"  target = "Gaussian.INPUT" delay="0" />
+    
+    <connection  source = "Gaussian.OUTPUT"  target = "Edges.INPUT" delay="0" />
+    <connection  source = "Gaussian.dx"  target = "Edges.DX" delay="0" />
+    <connection  source = "Gaussian.dy"  target = "Edges.DY" delay="0" />
+
+    <connection  source = "Edges.EDGE_LIST"  target = "Circle.EDGE_LIST" delay="0" />
+    <connection  source = "Edges.EDGE_LIST_SIZE"  target = "Circle.EDGE_LIST_SIZE" delay="0" />
+
+    <view name = "View">
+        <object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="2" w="2" />
+        <object class="Path" module="Edges" source="EDGE_ELEMENTS" color="yellow" x="0" y="0" h="2" w="2" />
+        <object class="Cross" module="Circle" source="POSITION" color="red" line_width="3" x="0" y="0" h="2" w="2" />
+        <object class="CCircle" module="Circle" source="POSITION" select_size="2" color="red" line_width="3" x="0" y="0" h="2" w="2" />
+
+        <object class="Image" module="Gaussian" source="OUTPUT" x="2" y="0"  h="2" w="2" />
+        <object class="Image" module="Edges" source="OUTPUT" x="4" y="0"  h="2" w="2" />
+
+        <object class="Slider" module="Edges" parameter="threshold" min="0" max="0.2" x="4" y="2"  h="1" w="1" />
+        <object class="Slider" module="Edges" parameter="grid" max="10" x="5" y="2"  h="1" w="1" />
+    </view>
+    <module class = "Logger" name = "Logger" />
+</group>
+

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="M02_Thalamus" description="a thalamus model">
+<class name="M02_Thalamus" description="a thalamus model">
 
 <description type="text">
 The module implements the thalamus model described in the PhD thesis by Jan Morén 2002.
@@ -30,7 +30,7 @@ The module implements the thalamus model described in the PhD thesis by Jan Mor�
     description="The thalamic output"
 />
 
-<module class="M02_Thalamus" />
+<link class="M02_Thalamus" />
 
 <author>
 <name>Jan Moren</name>
@@ -49,6 +49,6 @@ Morén, J. (2002) Emotional Learning: A Computational Model of the Amygdala. Lun
 <file>M02_Amygdala.ikc</file>
 </files>
 
-</group>
+</class>
 
 

@@ -21,8 +21,6 @@
 
 #include "InputJPEG.h"
 
-#ifdef USE_LIBJPEG
-
 #include <string.h>
 
 extern "C"
@@ -269,4 +267,4 @@ InputJPEG::Tick()
 
 static InitClass init("InputJPEG", &InputJPEG::Create, "Source/Modules/IOModules/FileInput/InputJPEG/");
 
-#endif
+

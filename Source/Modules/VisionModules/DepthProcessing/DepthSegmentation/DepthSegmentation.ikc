@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="DepthSegmentation" description="segments into depth planes">
+<class name="DepthSegmentation" description="segments into depth planes">
 
 	<description type="text">
 		Segments a depth image to find a single object.
@@ -20,7 +20,7 @@
     <parameter name="mask_left" type="float" default="0" description="mask region to the left" />
     <parameter name="mask_right" type="float" default="1" description="mask region to the right" />
 
-	<module class="DepthSegmentation" />
+	<link class="DepthSegmentation" />
 
 	<created>2012</created>
 
@@ -37,4 +37,4 @@
 	<file>DepthSegmentation.ikc</file>
    </files>
 
-</group>
+</class>

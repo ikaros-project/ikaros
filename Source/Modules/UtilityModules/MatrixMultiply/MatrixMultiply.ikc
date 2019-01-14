@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="MatrixMultiply" description="multiplies two matrices">
+<class name="MatrixMultiply" description="multiplies two matrices">
 
 	<description type="text">
 		Module that calculates the matrix product of its two inputs.
@@ -22,7 +22,7 @@
 
 	<output name="OUTPUT" description="The output" />
 
-	<module class="MatrixMultiply" />
+	<link class="MatrixMultiply" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -37,4 +37,4 @@
    		<file>MatrixMultiply.ikc</file>
    </files>
 
-</group>
+</class>

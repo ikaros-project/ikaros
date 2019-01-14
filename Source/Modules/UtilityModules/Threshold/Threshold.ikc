@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Threshold" description="applies a threshold">
+<class name="Threshold" description="applies a threshold">
 
 	<description type="text">
 		Module used to apply a threshold to each element of its input.
@@ -24,13 +24,13 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Threshold" />
+	<link class="Threshold" />
 
 	<view name="Default view">
 		
 		<bar-graph
 		show_title = "true"
-		source = "*.OUTPUT"
+		source = ".OUTPUT"
 		class = "bar-graph"
 		direction = "vertical"
 		show_frame = "true"
@@ -41,12 +41,11 @@
 		y = "20"
 		x = "40"
 		max = "1"
-		module = "*"
 		/>
 		
 		<plot
 		show_title = "true"
-		source = "*.OUTPUT"
+		source = ".OUTPUT"
 		class = "plot"
 		direction = "vertical"
 		show_frame = "true"
@@ -103,4 +102,4 @@
    		<file>Threshold.ikc</file>
    </files>
 
-</group>
+</class>

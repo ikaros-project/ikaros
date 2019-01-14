@@ -44,8 +44,10 @@ bool	strend(const char * s1, const char * s2); // does 1s end with s2
 
 const std::vector<std::string> split_string(const std::string &c, const char &d);
 
-const std::vector<std::string> split(const std::string & str, const std::string & sep = "", int maxsplit = -1);     // Python-like split
-const std::vector<std::string> rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);    // Python-like rsplit
+const std::vector<std::string>  split(const std::string & str, const std::string & sep = "", int maxsplit = -1);     // Python-like split
+const std::vector<std::string>  rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);    // Python-like rsplit
+std::string                     join(const std::string & separator, const std::vector<std::string> & v);             // Pyhon-like join
+
 bool starts_with(const std::string & s, const std::string & start);
 
 // File path operations
@@ -116,11 +118,47 @@ bool        store_matrix(const char * path, const char * name, float ** m, int s
 bool        load_array(const char * path, const char * name, float * a, int size);                      // will return false if size of data is not correct
 bool        load_matrix(const char * path, const char * name, float ** m, int size_x, int size_y);      // will return false if size of data is not correct
 // legacy load and store tensors
-void                Serialize2d(FILE *afile, float **adata, int si, int sj);
-void                Serialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
-void                Deserialize2d(FILE *afile, float **adata, int si, int sj);
-void                Deserialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
+void        Serialize2d(FILE *afile, float **adata, int si, int sj);
+void        Serialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
+void        Deserialize2d(FILE *afile, float **adata, int si, int sj);
+void        Deserialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
 
+
+
+// Matrix
+
+class matrix {
+    public:
+        float ** data;
+        int dim;
+        int size_x;
+        int size_y;
+        int max_size_x; // = stride
+        int max_size_y;
+
+        matrix(int sizex):
+            size_x(sizex), size_y(1), max_size_x(sizex), max_size_y(1), data(create_matrix(sizex, 1))
+        {
+            dim = 1;
+        }
+    
+        matrix(int sizex, int sizey):
+            size_x(sizex), size_y(sizey), max_size_x(sizex), max_size_y(sizey), data(create_matrix(sizex, sizey))
+        {
+            dim = 2;
+        }
+    
+        bool resize(int sx, int sy)
+        {
+        
+            return true;
+        }
+    
+        float * operator[](int y)
+        {
+            return data[y];
+        }
+};
 
 
 // Delay Line

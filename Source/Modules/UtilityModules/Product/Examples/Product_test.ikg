@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+	<module class = "Randomizer" name = "R" outputsize = "5" max="4" />
+
+	<module
+		class = "Product"
+		name = "Product"
+	/>
+	
+	<connection  source = "R.OUTPUT"  target = "Product.INPUT" />
+
+	<view name="View">
+		<object class="BarGraph" name="Random" module="R" source="OUTPUT" x="0" y="0" />
+		<object class="BarGraph" name="Product" module="Product" source="OUTPUT" x="1" y="0" />
+	</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

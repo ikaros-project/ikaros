@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Histogram" description="generates a histogram">
+<class name="Histogram" description="generates a histogram">
 
 	<description type="text">
         Module that counts the number of values within each histogram bin.
@@ -22,14 +22,13 @@
 	<input name="TRIG" description="If this input is connected, the input values are only used when the trig is larger than zero." optional="yes" />
 	<output name="OUTPUT" description="The output" size_param="size" />
 
-	<module class="Histogram" />
+	<link class="Histogram" />
 
     <view title="Histogram">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Histogram"
         />
     </view>
@@ -51,5 +50,5 @@
    		<file>Gate.ikc</file>
    </files>
 
-</group>
+</class>
 

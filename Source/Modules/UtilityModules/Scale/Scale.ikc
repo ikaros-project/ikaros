@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Scale" description="scales a signal">
+<class name="Scale" description="scales a signal">
 
 	<description type="text">
 		Module that multiplies its input by a constant
@@ -20,14 +20,13 @@
     <input name="SCALE" description="The scaling value. Used in addition to factor if connected." optional="yes" />
 	<output name="OUTPUT" description="The scaled output" size_set="INPUT" />
 
-	<module class="Scale" />
+	<link class="Scale" />
 
     <view title="Scale">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Scale"
         />
     </view>
@@ -45,4 +44,4 @@
    		<file>Scale.ikc</file>
    </files>
 
-</group>
+</class>

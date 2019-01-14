@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="SetSubmatrix" description="minimal example module">
+<class name="SetSubmatrix" description="minimal example module">
 
 	<description type="text">
 		Module that can set one matrix as a submatrix of another.
@@ -26,7 +26,7 @@
 
 	<output name="OUTPUT" description="The output" size_set="DESTINATION" />
 
-	<module class="SetSubmatrix" />
+	<link class="SetSubmatrix" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>
@@ -41,5 +41,5 @@
    		<file>SetSubmatrix.ikc</file>
    </files>
 
-</group>
+</class>
 

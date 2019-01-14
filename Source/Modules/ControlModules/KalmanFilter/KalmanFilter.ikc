@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="KalmanFilter" description="a standard Kalman filter">
+<class name="KalmanFilter" description="a standard Kalman filter">
 
 <description type="xhtml">
 The module implements a standard Kalman filter. The process is described by the equation <i>x</i>(<i>t</i>+1) = <i>Ax</i>(<i>t</i>)+<i>Bu</i>(<i>t</i>),
@@ -110,7 +110,7 @@ H = ""
     description="The Kalman gain [n x m]"
 />
 
-<module class="KalmanFilter" />
+<link class="KalmanFilter" />
 
 <author>
 <name>Christian Balkenius</name>
@@ -125,6 +125,6 @@ H = ""
 <file>KalmanFilter.ikc</file>
 </files>
 
-</group>
+</class>
 
 

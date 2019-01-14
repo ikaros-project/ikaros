@@ -34,7 +34,7 @@
 // Kernel
 
 #include "IKAROS.h"
-#include "WebUI.h"
+using namespace ikaros;
 
 
 void PrintInfo();
@@ -103,7 +103,7 @@ count_elements(const char * s)
 }
 
 
-
+/*
 int run_batch(Options * options);
 
 int
@@ -216,7 +216,7 @@ run_batch(Options * options)
 
     return 0;
 }
-
+*/
 
 
 int
@@ -232,15 +232,14 @@ main(int argc, char *argv[])
 
     if (options->GetOption('v'))
         options->Print();
-
+/*
     if (options->GetOption('B'))
     {
         return run_batch(options);
     }
-    
-    // Create and Init kernel
+*/
 
-//    Kernel	k(options);
+    // Create and Init kernel
 
     Kernel & k = kernel();    // Get global kernel
     k.SetOptions(options);
@@ -258,25 +257,16 @@ main(int argc, char *argv[])
         k.ListScheduling();
         k.ListThreads();
         k.ListWarningsAndErrors();
+        k.ListBindings();
+        
+        k.Notify(msg_print, "Starting Ikaros WebUI server.\n");
+        k.Notify(msg_print, "Connect from a browser on this computer with the URL \"http://localhost:%d/\".\n", k.port);
+        k.Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", k.port);
+
         k.Load();
-
-        // Select UI
-
-        if (!k.Terminate() && (options->GetOption('w') || options->GetOption('W') || options->GetOption('R')))
-        {
-#ifdef USE_SOCKET
-            WebUI webUI(&k);
-            webUI.Run();
-#else
-            printf("IKAROS was compiled without support for sockets and WebUI\n");
-#endif
-        }
-        else
-        {
-            k.Run();
-        }
-
+        k.Run();
         k.Store();
+        
         k.PrintTiming();
         k.ListProfiling();
 
@@ -290,36 +280,23 @@ main(int argc, char *argv[])
         k.Notify(msg_exception, "Could not allocate memory. Program terminates.\n");
         return 1;	// MEMORY ERROR
     }
-    /*
-    	catch(XMLError ex)
-    	{
-    		k.Notify(msg_exception, "%s at line %d. Program terminates (%d).\n", ex.string, ex.line, ex.internal_reference);
-    		return 2;	// XML ERROR
-    	}
-    */
-    
+
     catch (SerialException se)
     {
         k.Notify(msg_exception, "Serial Exception: %s (%s, %d). Program terminates.\n", se.device, se.string, se.internal_reference);
     }
-#ifdef USE_SOCKET
+
     catch (SocketException ex)
     {
         k.Notify(msg_exception, "Socket(%d): %s\n", ex.internal_reference, ex.string);
         return 3;	// SOCKET ERROR
     }
-#endif
+
     catch (int i)
     {
         //	k.Init();
         k.Notify(msg_exception, "%d. Program terminates.\n", i);
         return i;	// OTHER ERROR
-    }
-    catch (...)
-    {
-//        k.Init();
-        k.Notify(msg_exception, "Undefined exception. Program terminates.\n");
-        return -1;	// UNDEFINED ERROR
     }
 
     delete &k;

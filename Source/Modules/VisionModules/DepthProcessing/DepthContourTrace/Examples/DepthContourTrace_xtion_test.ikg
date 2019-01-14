@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+
+<group tile="Depth Segmentation">
+
+    <module
+        class   = "Kinect"
+        name	= "Kinect"
+        mode    = "mm"
+        xtion   = "true"
+    />
+    
+    <module
+        class = "DepthHistogram"
+        name = "DepthHistogram"
+        threshold = "5000"
+        filter = "yes"
+        max = "10"
+    />
+    
+    <module
+        class = "Scale"
+        name = "Scale"
+        _comment_factor = "0.00048851978505"
+        factor = "0.1"
+        comment = "This module could be removed if Image-object allowed scaling."
+    />
+    
+    <module
+        class = "Multiply"
+        name = "Multiply"
+    />
+
+    <module
+        class = "DepthSegmentation"
+        name = "DepthSegmentation"
+        mask_left = "0.0"
+        mask_right = "1.0"
+    />
+    
+    <module
+        class = "DepthContourTrace"
+        name = "DepthContourTrace"
+        segment_count = "250"
+    />
+    
+    <connection  source = "Kinect.DEPTH"  target = "Scale.INPUT" delay="0" />
+    
+    <connection  source = "Kinect.DEPTH"  target = "DepthHistogram.INPUT" />
+    <connection  source = "Kinect.DEPTH"  target = "DepthSegmentation.INPUT" />
+    
+    <connection  source = "DepthHistogram.OBJECT"  target = "DepthSegmentation.OBJECT" delay="0" />
+    <connection  source = "DepthSegmentation.OUTPUT"  target = "Multiply.INPUT1" delay="0" />
+    <connection  source = "Kinect.INTENSITY"  target = "Multiply.INPUT2" delay="0" />
+    
+    <connection  source = "DepthSegmentation.OUTPUT"  target = "DepthContourTrace.INPUT" delay="0"  />
+
+    <view name="Overview">
+        <object class="Image" type="spectrum" name="Camera" module = "Scale" source = "OUTPUT" x="0" y="0" w="3" h="2" />
+        <object class="BarGraph" name="Segment" module = "DepthHistogram" source = "OUTPUT" x="3" y="0" w="3" h="2" />
+        <object class="Image" type="gray" name="DepthSegmentation" module = "DepthSegmentation" source = "OUTPUT" x="0" y="2" w="3" h="2" />
+
+        <_object
+            class="Circle"
+            module = "DepthHistogram"
+            source = "OBJECT"
+            stroke_width = "5"
+            color = "yellow"
+            x="0" y="2"
+            w="3" h="2"
+        />
+
+        <object
+            class="Path"
+            module = "DepthContourTrace"
+            source = "OUTPUT"
+            length_source = "LENGTH"
+            stroke_width = "5"
+            color = "yellow"
+            order = "column"
+            x="0" y="0"
+            w="3" h="2"
+        />
+
+        <object
+            class="Path"
+            module = "DepthContourTrace"
+            source = "BOX"
+            _length_source = "LENGTH"
+            stroke_width = "5"
+            color = "blue"
+            order = "column"
+            _close = "yes"
+            x="0" y="0"
+            w="3" h="2"
+        />
+
+        <object
+            class="Path"
+            module = "DepthContourTrace"
+            source = "OUTPUT"
+            length_source = "LENGTH"
+            stroke_width = "5"
+            color = "#00FFEE"
+            order = "column"
+            x="3" y="2"
+            w="3" h="2"
+        />
+        
+        <object
+            class="Path"
+            module = "DepthContourTrace"
+            source = "OUTPUT"
+            length_source = "LENGTH"
+            stroke_width = "2"
+            color = "red"
+            order = "column"
+            miter = "round"
+            butt = "round"
+            x="0" y="2"
+            w="3" h="2"
+        />
+    </view>
+
+
+    <view name="Segmentation">
+ 
+        <object class="Image" type="gray" name="Segment" module = "DepthContourTrace" source = "DEBUG" x="0" y="0" w="8" h="6" />
+        
+        <object
+            class="Path"
+            module = "DepthContourTrace"
+            source = "OUTPUT"
+            length_source = "LENGTH"
+            stroke_width = "2"
+            color="red"
+            fill = "rgba(255,0,0,0.25)"
+            order = "column"
+            miter = "round"
+            butt = "round"
+            x="0" y="0"
+            w="8" h="6"
+        />
+
+        <object class="Slider" title="Seg. Length" module="DepthContourTrace" parameter="segment_length" x="8" y="0" h="4" min="5" max="100" />
+    </view>
+
+
+    <view name="Edges over Image">
+    
+        <object class="Image" type="gray" name="Edges" module = "Kinect" source = "INTENSITY" x="0" y="0" w="8" h="6" />
+        
+        <object
+            class="Path"
+            module = "DepthContourTrace"
+            source = "OUTPUT"
+            length_source = "LENGTH"
+            stroke_width = "2"
+            color="red"
+            fill = "rgba(255,0,0,0.25)"
+            order = "column"
+            miter = "round"
+            butt = "round"
+            x="0" y="0"
+            w="8" h="6"
+        />
+        
+        <object class="Slider" title="Seg. Length" module="DepthContourTrace" parameter="segment_length" x="8" y="0" h="4" min="5" max="100" />
+    </view>
+    
+    
+    <module class = "Logger" name = "Logger" />
+</group>
+

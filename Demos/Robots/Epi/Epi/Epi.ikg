@@ -1,0 +1,382 @@
+<?xml version="1.0"?>
+
+<group name="Epi"
+
+servosIndexBody = "0"
+servosIndexHead = "1"
+servosIndexLeftArm = "5"
+servosIndexRightArm = "11"
+servosIndexPupil = "17"
+
+nrServosBody = "1"
+nrServosHead = "4"
+nrServosLeftArm = "6"
+nrServosRightArm = "6"
+nrServosPupil = "2"
+nrServosTotal = "19"
+
+VisionInput = "InputJPEG_not_workgin"
+
+
+>
+	<!-- import frame and id for epi robots> -->
+    <?include file="EpiFrames.ikg" ?>
+
+
+    <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
+´   <module class = "Constant" name = "PositioExo" data = "
+        1 0 0 0.85
+        0 1 0 0.15
+        0 0 1 0.847
+        0 0 0 1;" />
+
+    <module class = "Constant" name = "RotationExo" data = "
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1;" />
+
+
+    <!-- Multiply position and rotation-->
+   <module class="Transform"   name="EpiPositionExo" />
+        <connection source = "PositioExo.OUTPUT"    target = "EpiPositionExo.MATRIX_1"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_1" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RotationExo.OUTPUT"   target = "EpiPositionExo.MATRIX_2"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_2" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_2"  delay = "0"/>
+
+
+
+ 
+
+<!-- 			Attention 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!--      FocusPoint          -->
+<!-- Where should Epi Look at -->
+
+    <!-- Set the coordinate where Epi should look at in egocentric coordinates -->
+    <module class = "Constant" name = "ManFocusPoint" data = "
+    1 0 0 1
+    0 1 0 -0.5 
+    0 0 1 2 
+    0 0 0 1"/>
+    
+    <!-- This should be moved to population code and use amplitude instead --> 	
+    <module class = "Constant" name = "ManFocusPointValue" 	data = "0.00001"/>
+    <module class = "Constant" name = "MarkerTrackerValue"  data = "0.00002"/>
+    <module class = "Constant" name = "RandomFocusPointValue"  data = "0.001"/>
+   
+    
+    <!-- In allocentric coordinate -->
+    <module class = "Arbiter" name = "HighLevelFocusArbiter" no_of_inputs = "2"/>
+        <!-- ManualFocusPoint -->
+        <connection source = "ManFocusPoint.OUTPUT"                                     target = "HighLevelFocusArbiter.INPUT_1" />
+        <connection source = "ManFocusPointValue.OUTPUT"                                target = "HighLevelFocusArbiter.VALUE_1" />
+        <!-- External focus point-->
+        <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2"/>  <!-- targetmodule????? -->
+        <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2"/>
+
+
+<!-- 			END 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+
+
+
+<!-- 			Motor control 			-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- Servo paramters Format -->
+<!-- BodyAngle1 -->
+<!-- NeckTilt NeckPan LeftEye RightEye -->
+<!-- LeftArm1 LeftArm2 LeftArm3 LeftArm4 LeftArm5 LeftHand -->
+<!-- RightArm1 RightArm2 RightArm3 RightArm4 RightArm5 RightHand -->
+<!-- LeftPupil RightPupil -->
+
+<!-- This needs to be taken cared of sometime -->
+<module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	   1    1    1    1   	    1    1    1    1    1    1     1    1    1    1    1    1      1    1" />
+
+
+
+
+<!-- External Motor control -->
+<input name = "SERVO_ANGLES"      		targetmodule = "EXT_SERVO_ANGLE"		target = "INPUT"/>
+<input name = "SERVO_ANGLES_AMPLITUDE"	targetmodule = "EXT_SERVO_ANGLE_A"		target = "INPUT"/>
+
+<module class = "Gate" name = "EXT_SERVO_ANGLE"/> <!-- Dummy module -->
+<module class = "Gate" name = "EXT_SERVO_ANGLE_A"/><!-- Dummy module -->
+
+<module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	<connection source = "EXT_SERVO_ANGLE.OUTPUT"       target = "ExtServoAngleCode.INPUT" />
+	<connection source = "EXT_SERVO_ANGLE_A.OUTPUT"     target = "ExtServoAngleCode.AMPLITUDE" />
+
+<!-- Internal Motor control -->
+<module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
+<module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+
+<module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	<connection source = "INT_SERVO_ANGLE.OUTPUT"   target = "IntServoAngleCode.INPUT" />
+	<connection source = "INT_SERVO_ANGLE_A.OUTPUT" target = "IntServoAngleCode.AMPLITUDE" />
+
+<view name="Manual Control">
+
+	<slider-horizontal
+		max = "1"
+		title = "Internal Amplitude"
+		label = "Servo Angles"
+		module = "INT_SERVO_ANGLE_A"
+		step = "0.01"
+		parameter = "INT_SERVO_ANGLE_A.data"
+		count = "20"
+		x = "20"
+		width = "150"
+		show_title = "true"
+		show_value = "true"
+		y = "40"
+		height = "450"
+		class = "slider-horizontal"
+	/>
+
+	<slider-horizontal
+		title = "Internal Angles"
+		width = "300"
+		label = "Servo Angles"
+		show_value = "true"
+		show_title = "true"
+		step = "5"
+		module = "INT_SERVO_ANGLE"
+		min = "-180"
+		parameter = "INT_SERVO_ANGLE.data"
+		count = "20"
+		x = "180"
+		y = "40"
+		height = "450"
+		max = "180"
+		labels = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil"
+		class = "slider-horizontal"
+	/>
+
+	<table
+		colorize = "true"
+		width = "1021"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		title = "External Manual"
+		show_title = "true"
+		y = "80"
+		show_frame = "true"
+		height = "41"
+		source = "EXT_SERVO_ANGLE.OUTPUT"
+		decimals = "2"
+		x = "500"
+		module = "EXT_SERVO_ANGLE"
+		class = "table"
+	/>
+
+	<table
+		colorize = "true"
+		width = "1021"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		title = "Amplitude"
+		show_title = "true"
+		y = "120"
+		show_frame = "true"
+		height = "41"
+		source = "EXT_SERVO_ANGLE_A.OUTPUT"
+		decimals = "2"
+		x = "500"
+		module = "EXT_SERVO_ANGLE_A"
+		class = "table"
+	/>
+
+	<table
+		colorize = "true"
+		width = "1021"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		title = "Internal Manual"
+		show_title = "true"
+		y = "220"
+		show_frame = "true"
+		height = "41"
+		source = "INT_SERVO_ANGLE.OUTPUT"
+		decimals = "2"
+		x = "500"
+		module = "INT_SERVO_ANGLE"
+		class = "table"
+	/>
+
+	<table
+		colorize = "true"
+		width = "1021"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		title = "Internal Manual Amplitude"
+		show_title = "true"
+		y = "260"
+		show_frame = "true"
+		height = "41"
+		source = "INT_SERVO_ANGLE_A.OUTPUT"
+		decimals = "0"
+		x = "500"
+		module = "INT_SERVO_ANGLE_A"
+		class = "table"
+	/>
+
+	<table
+		colorize = "true"
+		width = "1021"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		title = "High level motor arbiter"
+		show_title = "true"
+		y = "320"
+		show_frame = "true"
+		height = "461"
+		source = "HighLevelMotorArbiter.OUTPUT"
+		decimals = "3"
+		x = "500"
+		module = "GOAL_POSITION"
+		class = "table"
+	/>
+
+	<table
+		colorize = "true"
+		width = "1021"
+		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
+		title = "Feedback"
+		show_title = "true"
+		y = "800"
+		show_frame = "true"
+		height = "41"
+		source = "FEEDBACK_POSITION"
+		decimals = "1"
+		x = "500"
+		module = "Servos"
+		class = "table"
+	/>
+
+</view>
+ 
+
+<!-- 			HIGH LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<module class = "Arbiter" name = "HighLevelMotorArbiter" no_of_inputs = "2" by_row = "true"/>
+	<connection source = "ExtServoAngleCode.OUTPUT" target = "HighLevelMotorArbiter.INPUT_1"/>
+	<connection source = "IntServoAngleCode.OUTPUT" target = "HighLevelMotorArbiter.INPUT_2"/>
+
+
+<!-- 			LOW LEVEL 				-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+<!-- ********************************* 	-->
+
+<!-- Sensors -->
+<module class = "EpiVision" 	VisionInput = "InputJPEG" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" 	VisionInput = "InputJPEG" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
+
+
+
+<!-- Actuators/Proprioception -->
+<module class = "EpiServos" 	name = "Servos" 		/>
+	<connection	source = "GOAL_POSITION.OUTPUT" 		target = "Servos.GOAL_POSITION" />
+	<connection	source = "SERVO_SPEED.OUTPUT" 			target = "Servos.MOVING_SPEED" />
+	<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
+    <!--  Done by motion recorder -->
+    <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
+    <!-- Pupil override -->
+    <connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
+
+<!-- This can be cleaned up now when we have include and variables -->
+<module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
+	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.BODY_FEEDBACK_POSITION" 			targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.HEAD_FEEDBACK_POSITION" 			targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.LEFT_ARM_FEEDBACK_POSITION" 		targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.RIGHT_ARM_FEEDBACK_POSITION" 	targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.PUPIL_FEEDBACK_POSITION" 		targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
+
+
+<!--  Low Level Motion mixer  -->
+<!-- ************************ -->
+<!-- ************************ -->
+
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1" by_row = "true"/>
+	<connection source = "HighLevelMotorArbiter.OUTPUT"  	target = "LowLevelArbiter.INPUT_1" />
+   
+
+<!-- Popalation decoder -->
+<module class = "PopulationDecoder" name = "GOAL_POSITION" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	<connection source = "LowLevelArbiter.OUTPUT"  target = "GOAL_POSITION.INPUT" />
+
+ <!-- Sound -->
+	<!--
+    <module
+	    class = "SoundOutput"
+		name = "SoundOutput"
+		sounds  = "Sounds/ok2.mp3"
+        command = "mpg123"
+	/>
+		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
+    <module class = "Constant" name = "SoundTrigger" data = "0" />
+    <view name="Sound">
+        <object class="Button" module="SoundTrigger" parameter="data" x="0" y="0" />    
+    </view>
+-->
+
+	<!-- test led -->
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Blink"
+		type		=	"sin"
+		frequency	=	"0.1"
+		offset      =	"0.0"
+		amplitude	=	"1"
+	    shift		=	"0.1"
+    />
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"Color"
+		type		=	"sin"
+		frequency	=	"0.1"
+		offset      =	"0.0"
+		amplitude	=	"1"
+	    shift		=	"0.1"
+    />
+
+	<module class = "Constant" name = "debug" data = "0´" />
+
+	<connection source = "debug.OUTPUT"  target = "LED.EYE_INTENSE" />
+	<connection source = "debug.OUTPUT"  target = "LED.MOUTH_INTENSE" />
+
+	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
+	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
+	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+	<connection source = "Blink.OUTPUT"  target = "LED.SPEEKING" />
+
+
+	<module class = "EpiLed" name = "LED" />
+
+
+<view name="3D View">
+        <canvas3d
+            x="10" y="10"
+            width="1000"
+            height="600"
+            title="Triangles"
+        	model_mat_module  	= "MODEL_MATRIX"
+        	model_mat_source  	= "OUTPUT"
+       	 	model_id_module  	= "MODEL_ID"
+        	model_id_source     = "OUTPUT"
+        />
+</view>
+
+
+</group>

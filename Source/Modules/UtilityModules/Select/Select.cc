@@ -22,9 +22,6 @@
 
 #include "Select.h"
 
-using namespace ikaros;
-
-
 void
 Select::SetSizes()
 {

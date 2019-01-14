@@ -52,7 +52,7 @@ section {
 
 main {
     flex: 1;
-    overflow: hidden;
+    overflow: scroll;   /* allow main area to scroll */
     position: relative;
  }
 

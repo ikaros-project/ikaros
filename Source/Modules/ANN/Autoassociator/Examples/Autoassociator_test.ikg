@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+
+   <module
+        class = "Constant"
+        name = "X"
+        outputsize_x = "5"
+        outputsize_y = "3"
+        data = "
+        	1	0	1	0	1;
+            0	1	0	1	1;
+            0   0   0   0   0
+        "
+    />
+
+   <module
+        class = "Randomizer"
+        name = "RAND"
+        max="0"
+        outputsize_x = "5"
+        outputsize_y = "1"
+    />
+
+    <connection  source = "X.OUTPUT"  target = "Trainer.TRAINING_DATA_X" />
+
+    <module
+        class = "Trainer" 
+        name = "Trainer"
+        order = "sequential"
+        repetitions = "20"
+    />
+
+	<module
+		class = "Autoassociator"
+		name = "A1"
+        epsilon = "1"
+        learning_rate = "1"
+	/>
+
+
+	<connection  source = "Trainer.TRAIN_X"  target = "A1.T-INPUT" />
+	<_connection  source = "Trainer.TRAIN_X"  target = "A1.INPUT" />
+	<connection  source = "RAND.OUTPUT"  target = "A1.INPUT" />
+
+	<view name="View">
+        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />
+        <object class="BarGraph" title="net" module="A1" source="NET" x="0" y="1" w="3" min="-5" max="5" />
+        <object class="BarGraph" title="A1" module="A1" source="OUTPUT" x="0" y="2" w="3" min="0" max="1" />
+        <object class="Grid" title="W" module="A1" source="W"  x="0" y="3" w="3" h="3" min="-1" max="1" />
+        <object class="Grid" title="depression" module="A1" source="SYNAPTIC_DEPRESSION"  x="3" y="3" w="3" h="3" min="0" max="0.1" />
+        <object class="Plot" title="f(x)" module="A1" source="OUTPUT" select="0, 1, 2, 3, 4, 5"  color="red, green, blue, yellow, white, pink" x="0" y="6" w="6" h="1" min="0" max="1" />
+        <object class="Plot" title="E" module="A1" source="ENERGY" color="red" x="0" y="7" w="6" h="1" min="-3" max="1" />
+ 	</view>
+</group>
+ 

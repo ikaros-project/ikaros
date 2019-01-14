@@ -133,7 +133,7 @@ KNN_Pick::GetWeightFactor(float distance)
 {
     if (weighed)
         //return weight_divisor / distance; // beware of dividing by zero!
-        return weight_divisor / ikaros::log(1.0001 + distance);
+        return weight_divisor / log(1.0001 + distance);
     else
         return 1.0;
 }

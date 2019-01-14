@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group title="YARPPort Example">
+    
+    <module
+    class = "Randomizer"
+    name = "DATA"
+    outputsize_x = "1024"
+    outputsize_y = "1024"
+    min = "0"
+    max = "5"
+    />
+
+    <connection  source = "DATA.OUTPUT"  target = "SENDER.INPUT" delay = "0"/>
+    
+	<module
+        class = "YARPPort"
+        name = "SENDER"
+        yarp_name  = "/IkarosOUT"
+        type = "sender"
+        outputsize_x =  "1024"
+        outputsize_y =  "1024"
+    />
+    
+    <module
+        class = "YARPPort"
+        name = "RECEIVER"
+        yarp_name  = "/IkarosIN"
+        type = "receiver"
+        outputsize_x =  "1024"
+        outputsize_y =  "1024"   
+    />
+    
+    <view name="Random Data">
+        <object class="Image" module="DATA" title ="Sending" source="OUTPUT" max="5" x="0" y="0" w="4" h="4"/>
+        <object class="Image" module="RECEIVER" title ="Receiving" source="OUTPUT" max="5" x="4" y="0" w="4" h="4"/>
+    </view>
+
+</group>
+

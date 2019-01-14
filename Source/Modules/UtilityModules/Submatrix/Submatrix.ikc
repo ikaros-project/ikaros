@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Submatrix" description="Submatrixs matrix elements">
+<class name="Submatrix" description="Submatrixs matrix elements">
 
 	<description type="xhtml">
     <p>
@@ -50,15 +50,14 @@
 
 	<output name="OUTPUT" description="The output with the submatrix"/>
 
-	<module class="Submatrix" />
+	<link class="Submatrix" />
 
     <view title="Submatrix">
         <object
             x="0" y="0" w="2"
             class="Image"
             type="gray"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Submatrix"
         />
     </view>
@@ -76,5 +75,5 @@
    		<file>Submatrix.ikc</file>
    </files>
 
-</group>
+</class>
 

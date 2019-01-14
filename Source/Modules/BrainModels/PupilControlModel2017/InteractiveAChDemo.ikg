@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+
+<group name="Demo" description="demo of full pupil control model with alpha-7 upregulation">
+
+    <module
+        class="FullModel"
+        name="FullModel"
+        _LCa_alpha = "0.8"
+        _LCb_alpha = "0.8"
+    />
+    
+    <module
+        class="FullModel"
+        name="FullUpregulatedModel"
+        _LCa_alpha = "0.2"
+        _LCb_alpha = "0.2"
+        CG_alpha7 = "1.5"
+        Eye_m3 = "1.5"
+    />
+    
+    <module
+        class="Constant"
+        name="Light"
+        data = "0.0"
+    />
+    
+    <module
+        class="FunctionGenerator"
+        name="Stimulus"
+        type="ticksquare"
+        basetime="300"
+        tickduty="6"
+    />
+
+    <module
+        class="Sum"
+        name="Input"
+    />
+
+
+    <connection  source = "Light.OUTPUT"  target = "Input.INPUT" />
+    <connection  source = "Stimulus.OUTPUT"  target = "Input.INPUT" />
+
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Left" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Right" />
+
+    <connection  source = "Input.OUTPUT"  target = "FullUpregulatedModel.PTA_Left" />
+    <connection  source = "Input.OUTPUT"  target = "FullUpregulatedModel.PTA_Right" />
+
+
+    <module
+        class="OutputFile"
+        name="Output"
+        filename = "data.txt"
+    >
+        <column name = "Light" />
+        <column name = "Pupil" />
+        <column name = "PupilUpregulated" />
+    </module>
+
+    <connection  source = "FullModel.Eye_Right"  target = "Output.Pupil"/>
+    <connection  source = "FullUpregulatedModel.Eye_Right"  target = "Output.PupilUpregulated"/>
+    <connection  source = "Input.OUTPUT"  target = "Output.Light" />
+  
+
+
+    <view name="Face View" object_size="40">
+
+        <object
+            class="EpiFace"
+            left_module="FullModel"
+            left_source="Eye_Left"
+            right_module="FullModel"
+            right_source="Eye_Right"
+            x="0" y="0"
+            h="8" w="8"
+        />
+        
+        <_object
+            class="Slider"
+            module="FullModel"
+            title="LC"
+            parameter="LC_alpha"
+            x="8" y="0"
+            h="4" w="1"
+        />
+
+        <_object
+            class="Slider"
+            module="FullUpregulatedModel"
+            title="LC (u)"
+            parameter="LC_alpha"
+            x="12" y="0"
+            h="4" w="1"
+        />
+
+        <object
+            class="Slider"
+            module="Light"
+            title="Light"
+            parameter="data"
+            x="9" y="0"
+            h="4" w="1"
+        />
+
+        <object
+            class="Slider"
+            module="Stimulus"
+            title="Stimulus"
+            parameter="amplitude"
+            x="10" y="0"
+            h="4" w="1"
+        />
+
+        <object
+            class="Slider"
+            module="FullUpregulatedModel"
+            title="alpha7"
+            parameter="CG_alpha7"
+            x="11" y="0"
+            h="4" w="1"
+            min="0"
+            max="2"
+        />
+
+        <object
+            class="Slider"
+            module="FullUpregulatedModel"
+            title="m3"
+            parameter="Eye_m3"
+            x="12" y="0"
+            h="4" w="1"
+            min="0"
+            max="2"
+        />
+
+        <object
+            class="Plot"
+            module="FullModel"
+            title="Pupil"
+            source="Eye_Left"
+            select="2"
+            x="0" y="8"
+            h="16" w="16"
+        />
+
+        <object
+            class="Plot"
+            module="FullUpregulatedModel"
+            title="Pupil"
+            source="Eye_Left"
+            select="2"
+            color="green"
+            x="0" y="8"
+            h="16" w="16"
+        />
+
+        <object
+            class="Plot"
+            module="Input"
+            title="Stimulus"
+            source="OUTPUT"
+            select="0"
+            color="lightblue"
+            x="0" y="8"
+            h="16" w="16"
+        />
+
+    </view>
+    
+</group>
+

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="InputRawImage" description="reads images RAW format">
+<class name="InputRawImage" description="reads images RAW format">
 
 	<description type="text">
 		Module that reads images in Raw format. The pixel values are scaled from 0-255 in the image to 0-1 in the output.
@@ -37,7 +37,7 @@
 
 	<output name="OUTPUT" description="The image." />
 
-	<module class="InputRawImage" />
+	<link class="InputRawImage" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -52,5 +52,5 @@
    		<file>InputRawImage.ikc</file>
    </files>
 
-</group>
+</class>
 

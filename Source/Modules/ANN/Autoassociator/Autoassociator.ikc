@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Autoassociator" description="Template for general learming modules">
+<class name="Autoassociator" description="Template for general learming modules">
 
 	<description type="text">
 		Autoassociator
@@ -62,14 +62,13 @@
     <parameter name="activation_gain" type="float" default="1" description="Use together with input or on its onw if input not connected" />
     <parameter name="noise_level" type="float" default="0.01" description="activation noise" />
     
-	<module class="Autoassociator" />
+	<link class="Autoassociator" />
 
     <view title="Autoassociator">
         <object
             x="0" y="0" w="2"
             class="BarGraph"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Autoassociator"
         />
     </view>
@@ -87,5 +86,5 @@
    		<file>Autoassociator.ikc</file>
    </files>
 
-</group>
+</class>
 

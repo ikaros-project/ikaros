@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Flip" description="Flips a signal">
+<class name="Flip" description="Flips a signal">
 
 	<description type="text">
 		Module that flips a matrix upside down or left to right
@@ -18,14 +18,13 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The flipped output" size_set="INPUT" />
 
-	<module class="Flip" />
+	<link class="Flip" />
 
     <view title="Flip">
         <object
             x="0" y="0" w="2"
             class="Image"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Flip"
         />
     </view>
@@ -43,4 +42,4 @@
    		<file>Flip.ikc</file>
    </files>
 
-</group>
+</class>

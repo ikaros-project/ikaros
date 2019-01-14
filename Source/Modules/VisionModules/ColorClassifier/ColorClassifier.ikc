@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="ColorClassifier" description="tracks colored objects">
+<class name="ColorClassifier" description="tracks colored objects">
 
 	<description type="text">
 		Module used to classify one or several objects of a particular color in a scene.
@@ -38,7 +38,7 @@
 	<output name="COLORSPACE_G" description="Image with all pixels plotted in the rg color space. Green channel." size_x="256" size_y="256" />
 	<output name="COLORSPACE_B" description="Image with all pixels plotted in the rg color space. Blue channel." size_x="256" size_y="256" />
 
-	<module class="ColorClassifier" />
+	<link class="ColorClassifier" />
 
 	<author>
 		<name>Christian Balkenius</name>
@@ -53,5 +53,5 @@
    		<file>ColorClassifier.ikc</file>
    </files>
 
-</group>
+</class>
 

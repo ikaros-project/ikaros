@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group title="Expression Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "1"
+			data  = "0.5"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.01"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "Expression"
+			name = "ExpressionInstance"
+			expression  = "x+y"
+			inputs  = "x,y"
+			debug="false"
+		/>
+		
+        <connection  source = "MyConstant.OUTPUT"  target = "ExpressionInstance.x" />
+        <connection  source = "SquareGen.OUTPUT"  target = "ExpressionInstance.y" />
+
+		<view name="View">
+			<plot 
+				source="SquareGen.OUTPUT"
+				x="10" y="10" w="200" h="400"
+				min="0"
+				max="2"
+			/>
+			<plot
+				source="ExpressionInstance.OUTPUT"
+				x="10" y="400" w="200" h="400"
+				min="0"
+				max="2"
+			/>
+		</view>
+
+</group>
+ 

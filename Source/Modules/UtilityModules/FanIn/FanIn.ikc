@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="FanIn" description="minimal example module">
+<class name="FanIn" description="minimal example module">
 
 	<description type="text">
 		Module that can be used as a start for a new module.
@@ -28,7 +28,7 @@
 
 	<output name="OUTPUT" description="The first output" />
 
-	<module class="FanIn" />
+	<link class="FanIn" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>
@@ -43,5 +43,5 @@
    		<file>FanIn.ikc</file>
    </files>
 
-</group>
+</class>
 

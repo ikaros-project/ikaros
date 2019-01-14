@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Integrator" description="sums input over time">
+<class name="Integrator" description="sums input over time">
 
 	<description type="text">
 		Module used to integrate its input over time.
@@ -30,14 +30,13 @@
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
-	<module class="Integrator" />
+	<link class="Integrator" />
 
     <view title="Integrator">
         <object
             x="0" y="0" w="2"
             class="Plot"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Integrator"
         />
     </view>
@@ -55,5 +54,5 @@
    		<file>Integrator.ikc</file>
    </files>
 
-</group>
+</class>
 

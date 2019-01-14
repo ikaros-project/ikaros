@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="Sweep" description="produces a sequence of values">
+<class name="Sweep" description="produces a sequence of values">
 
 	<description type="text">
 		Module that sweeps the output from min to max in steps set by step.
@@ -31,14 +31,13 @@
 
 	<output name="OUTPUT" description="The output with value that sweeps between min and max" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y" />
 
-	<module class="Sweep" />
+	<link class="Sweep" />
 
     <view title="Sweep">
         <object
             x="0" y="0" w="2"
             class="Plot"
-            module="*"
-            source="OUTPUT"
+            source=".OUTPUT"
             title="Default view for Sweep"
         />
     </view>
@@ -56,4 +55,4 @@
    		<file>Sweep.ikc</file>
    </files>
 
-</group>
+</class>
