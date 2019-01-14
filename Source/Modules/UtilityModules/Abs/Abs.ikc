@@ -20,17 +20,6 @@
 
 	<link class="Abs" />
 
-    <no-view name="Abs">
-        <bar-graph
-            y = "20"
-            x = "20"
-            source = ".OUTPUT"
-            width = "201"
-            height = "201"
-            title = ".OUTPUT"
-        />
-    </no-view>
-    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
