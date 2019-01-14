@@ -20,14 +20,16 @@
 
 	<link class="Abs" />
 
-    <view title="Abs">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Abs"
+    <no-view name="Abs">
+        <bar-graph
+            y = "20"
+            x = "20"
+            source = ".OUTPUT"
+            width = "201"
+            height = "201"
+            title = ".OUTPUT"
         />
-    </view>
+    </no-view>
     
 	<author>
 		<name>Christian Balkenius</name>

@@ -162,7 +162,7 @@ public:
     std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement> connections;
     std::vector<ViewElement> views;
-    Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove ******
+    Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove and use ClassElement ******
 
                                 GroupElement(GroupElement * parent, XMLElement * xml_node=NULL);
                                 ~GroupElement();
@@ -173,6 +173,7 @@ public:
     std::vector<Module_IO *>    GetTargets(const std::string & name); // A single Connect can result in many connections
     void                        Print(int d=0);
     std::string                 JSONString(int d=0);
+    void                        CreateDefaultView();
 };
 
 Element::Element(GroupElement * parent, XMLElement * xml_node)
@@ -452,6 +453,7 @@ GroupElement::GetModule(const std::string & name) // Get module from full or par
     return NULL;
 }
 
+
 Module_IO *
 GroupElement::GetSource(const std::string & name)
 {
@@ -621,6 +623,39 @@ std::string GroupElement::JSONString(int d)
     
     return s;
 }
+
+
+void
+GroupElement::CreateDefaultView()
+{
+    auto * v = new ViewElement(this);
+
+    int margin = 20;
+    int x = 20;
+    int y = 20;
+    int w = 201;
+    int h = 201;
+
+    for(auto output : outputs)
+    {
+        auto * o = new ViewObjectElement((GroupElement *)v);    // FIXME: parent should be ViewElement not GroupElement
+
+        v->attributes["name"] = "Default View";
+        
+        o->attributes["class"] = "plot";
+        o->attributes["source"] = "."+output.first;
+        o->attributes["title"] = "."+output.first;
+        o->attributes["x"] = std::to_string(x);
+        o->attributes["y"] = std::to_string(y);
+        o->attributes["width"] = std::to_string(w);
+        o->attributes["height"] = std::to_string(h);
+     
+        v->objects.push_back(*o);
+    }
+    
+    views.push_back(*v);
+}
+
 
 
 //
@@ -3203,6 +3238,10 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
             group->views.push_back(v);
         }
     }
+    
+    if(group->views.empty())
+        group->CreateDefaultView();
+    
     return group;
 }
 

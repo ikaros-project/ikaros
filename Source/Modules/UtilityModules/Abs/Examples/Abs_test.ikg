@@ -10,10 +10,32 @@
 		
 		<connection  source = "Constant.OUTPUT"  target = "Abs.INPUT" />
 
-		<view name="View">
-			<object class="BarGraph" module="Constant" source="OUTPUT" min="-2" max="2" x="0" y="0" />
-			<object class="BarGraph" module="Abs" source="OUTPUT" min="-2" max="2" x="1" y="0" />
-		</view>
+´        <view name="View">
+    
+            <bar-graph
+                y = "20"
+                x = "20"
+                max = "2"
+                min = "-2"
+                source = "Constant.OUTPUT"
+                width = "201"
+                height = "201"
+                title = "Constant.OUTPUT"
+            />
+
+            <bar-graph
+                y = "20"
+                x = "240"
+                max = "2"
+                min = "-2"
+                source = "Abs.OUTPUT"
+                title = "Abs.OUTPUT"
+                width = "201"
+                height = "201"
+            />
+            
+        </view>
+
     <module class = "Logger" name = "Logger" />
 </group>
  
