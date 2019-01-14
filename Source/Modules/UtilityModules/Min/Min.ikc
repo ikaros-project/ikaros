@@ -22,14 +22,7 @@
 
 	<link class="Min" />
 
-    <view title="Min">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Min"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

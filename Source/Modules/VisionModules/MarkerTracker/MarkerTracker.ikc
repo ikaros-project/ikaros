@@ -76,64 +76,7 @@
 
 	<link class="MarkerTracker" />
     
-    <view name="MarkerTracker" object_size="30">
-        <_object
-        class   ="Image"
-        title   = "CAMERA"
-        type	= "rgb"
-        module  = "CAMERA"
-        source  = "RED+GREEN+BLUE"
-        x="0" y="0"
-        w="8" h="6"
-        min = "0"
-        max = "1"
-        />
-        
-        <object
-        class   = "Path"
-        module  = "*"
-        title = "Found markers"
-        source  = "MARKERS"
-        length_source = "MARKER_COUNT"
-        x="0" y="0"
-        w="8" h="6"
-        min = "0"
-        max = "1"
-        select = "20"
-        count = "4"
-        close = "yes"
-        color="red"
-        stroke_width="3"
-        fill = "rgba(255,0,0,0.45)"
-        line_join="round"
-        />
-        
-        <object
-        class   = "Label"
-        type    = "value"
-        select  = "16"
-        decimals = "0"
-        offset_x = "0"
-        offset_y = "0.01"
-        size = "14"
-        color = "white"
-        module  = "*"
-        source  = "MARKERS"
-        x="0" y="0"
-        w="8" h="6"
-        />
-        
-        <object
-        class   = "Table"
-        module  = "*"
-        source  = "MARKER_COUNT"
-        title = "No of found markers"
-        x="0" y="6"
-        w="8" h="2"
-        font_size = "36"
-        decimals = "0"
-        />
-    </view>
+    
     
     <limitation>
         The edges should be projected back into the input image to allow the markers to be drawn at the correct location in the image.

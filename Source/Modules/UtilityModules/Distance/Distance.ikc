@@ -23,14 +23,7 @@
 
 	<link class="Distance" />
 
-    <view title="Distance">
-        <object
-            x="0" y="0" w="1"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Distance"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

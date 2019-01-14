@@ -25,9 +25,7 @@
 
 	<link class="DepthHistogram" />
 
-    <view>
-        <object title="Histogram" class="BarGraph" source=".OUTPUT" x="0" y="0" w="2" />
-    </view>
+    
     
 	<created>2012</created>
 
@@ -45,4 +43,3 @@
    </files>
 
 </class>
-

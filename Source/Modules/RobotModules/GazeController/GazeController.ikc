@@ -38,42 +38,6 @@
 
 	<link class="GazeController" />
 
-    <view title="Overview" object_size="25" >
-    
-        <object class="Switch" module="*" parameter="target_override" x="0" y="12" h="2" w="3" min="0" max="2" />
-        <object class="Slider" title="X" module="*" parameter="target" select="0" x="0" y="8" h="4" min="0.2" max="2"  />
-        <object class="Slider" title="Y" module="*" parameter="target" select="1" x="1" y="8" h="4" min="-2" max="2" />
-        <object class="Slider" title="Z" module="*" parameter="target" select="2" x="2" y="8" h="4" min="0" max="2" />
-        
-        
-        <_object class="Slider" title="g" module="*" parameter="gamma" x="0" y="4" h="4" min="-2" max="3" />
-        
-        <object class="Switch" title="pos" module="*" parameter="center_override" x="8" y="12" h="2" w="4" min="0" max="2" />
-        <object class="Slider" title="T" module="*" parameter="offset" select="0" x="8" y="8" h="4" min="-0.1" max="0.1" />
-        <object class="Slider" title="P" module="*" parameter="offset" select="1" x="9" y="8" h="4" min="-0.1" max="0.1" />
-        <object class="Slider" title="L" module="*" parameter="offset" select="2" x="10" y="8" h="4" min="-0.1" max="0.1" />
-        <object class="Slider" title="R" module="*" parameter="offset" select="3" x="11" y="8" h="4" min="-0.1" max="0.1" />
-        
-
-        <object class="Path" title="Side" source=".VIEW_SIDE" flip_y_axis="yes" x="0" y="0" w="8" h="8"
-                    color="gray, gray, gray, gray, gray, yellow, yellow, yellow, red"
-                    line_width = "1, 1, 1, 1, 1, 3, 3, 3, 1"
-                    arrow = "no, no, no, no, no, no, no, no, yes"
-                    line_dash = "[1], [1], [1], [1], [1], [], [], [], [4]"
-                    line_cap = "round"
-                    max ="2"
-                    />
-
-        <object class="Path" title="Top" source=".VIEW_TOP" flip_y_axis="yes" x="8" y="0" w="8" h="8"
-                    color ="gray, gray, gray, gray, gray, yellow, yellow, yellow, yellow, red, red"
-                    line_width = "1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1"
-                    arrow = "no, no, no, no, no, no, no, no, no, no, no"
-                    line_dash = "[1], [1], [1], [1], [1], [], [], [], [], [4], [4]"
-                    line_cap = "round"
-         />
-
-    </view>
-
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -88,4 +52,3 @@
    </files>
 
 </class>
-

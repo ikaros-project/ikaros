@@ -24,14 +24,7 @@
 
 	<link class="Maxima" />
 
-    <view title="Maxima">
-        <object
-            x="0" y="0" w="2"
-            class="Image"
-            source=".OUTPUT"
-            title="Default view for Maxima"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -47,4 +40,3 @@
    </files>
 
 </class>
-

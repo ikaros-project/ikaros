@@ -27,14 +27,7 @@
 
 	<link class="Delta" />
 
-    <view title="Delta">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Delta"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -50,4 +43,3 @@
    </files>
 
 </class>
-

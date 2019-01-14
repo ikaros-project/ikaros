@@ -33,14 +33,7 @@
 
 	<link class="Sweep" />
 
-    <view title="Sweep">
-        <object
-            x="0" y="0" w="2"
-            class="Plot"
-            source=".OUTPUT"
-            title="Default view for Sweep"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

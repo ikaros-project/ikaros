@@ -30,20 +30,7 @@
         />
 	</example>
 
-    <view title="YARPPort">
-        <object
-        x="0" y="0" w="2"
-        class="BarGraph"
-        source=".OUTPUT"
-        title="Default view for YARPPort"
-        />
-        <object
-        x="2" y="0" w="2"
-        class="BarGraph"
-        source=".ACTIVITY"
-        title="Default view for YARPPort"
-        />
-    </view>
+    
     
 	<link class="YARPPort" />
 	<parameter name="type" type="list" values="sender/receiver" default="sender" description = "Defines if ikaros is sending or receiveing data to the YARP network." />
@@ -74,4 +61,3 @@
    </files>
 
 </class>
-

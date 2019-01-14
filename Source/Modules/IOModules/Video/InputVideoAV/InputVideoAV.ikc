@@ -39,17 +39,7 @@
 
 	<link class="InputVideoAV" />
 
-    <view name="Camera Image">
-        <object
-            class   ="Image"
-            title   = "RGB"
-            type	= "rgb"
-            source  = "RED+GREEN+BLUE"
-            module  = "*"
-            x="0" y="0"
-            w="2" h="2"
-        />
-    </view>
+    
 
 	<limitation>
 		It should be possible to run the module also in synchronous mode, where the
@@ -74,4 +64,3 @@
    </files>
 
 </class>
-

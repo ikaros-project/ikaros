@@ -21,14 +21,7 @@
 
 	<link class="Multiply" />
 
-    <view title="Multiply">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Multiply"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

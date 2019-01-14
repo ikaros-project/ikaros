@@ -70,14 +70,7 @@
 	<link class="CSOM_PCA" />
 
 	<!-- View -->
-	<view name="CSOM_PCA">
-		<object class= "Image" type="gray" source=".OUTPUT"
-							x="0" y="0" h="2" w="2" />
-		<object class= "Image" type="gray" source=".WEIGHTS"
-							x="0" y="2" h="2" w="2" />
-		<object class= "Image" type="gray" source=".RECONSTRUCTION"
-							x="0" y="4" h="2" w="2" />
-	</view>
+	
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -92,4 +85,3 @@
    </files>
 
 </class>
-

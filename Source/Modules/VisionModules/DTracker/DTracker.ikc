@@ -27,32 +27,7 @@
 <!-- VISULAISATION OUTPUT -->
 <link class="DTracker" />
 
-    <view name="View" >
-        <path
-            lineCap = "round"
-            fill = "#ff000088, #00ff0088, #0000ff88, #ffff0088"
-            class = "path"
-            arrow = "no"
-            close = "yes"
-            order = "row"
-            source = ".TRACKER_BOUNDS"
-            height = "600"
-            color = "red, green, blue, yellow"
-            lineJoin = "round"
-            lineWidth = "3"
-            width = "800"
-            x = "600"
-            scales = "no"
-            max_x = "1"
-            max_y = "1"
-            flipXAxis = "no"
-            flipYAxis = "no"
-            flipXCanvas = "no"
-            flipYCanvas = "no"
-            scale_x = "1"
-            scale_y = "1"
-	    />
-   </view>
+    
 
 
 <author>
@@ -69,5 +44,3 @@
 </files>
 
 </class>
-
-

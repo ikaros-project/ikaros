@@ -21,9 +21,7 @@
     <output name="OUTPUT" description="Output"/>
 
 	<link class="TruncateArray" />
-		<view>
-			<object class ="BarGraph" title="Output" source=".OUTPUT" x="0" y="0" w="2" />
-		</view>
+		
 	<author>
 		<name>Birger Johansson</name>
 		<email>birger.johansson@lucs.lu.se</email>
@@ -37,4 +35,3 @@
    		<file>TruncateArray.ikc</file>
    </files>
 </class>
-

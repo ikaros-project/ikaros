@@ -21,14 +21,7 @@
 
 	<link class="Subtract" />
 
-    <view title="Subtract">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Subtract"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

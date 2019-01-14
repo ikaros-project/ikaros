@@ -18,28 +18,7 @@
 
 	<link class="Upsample" />
 
-	<view name="View">
-		<image
-		width = "541"
-		title = "Output"
-		max_x = "1"
-		max_y = "1"
-		height = "381"
-		flipYCanvas = "no"
-		x = "20"
-		source = ".OUTPUT"
-		format = "gray"
-		h = "4"
-		flipYAxis = "no"
-		flipXCanvas = "no"
-		y = "20"
-		flipXAxis = "no"
-		scale = "both"
-		class = "image"
-		scales = "no"
-		w = "4"
-		/>
-	</view>
+	
 	
 	<author>
 		<name>Christian Balkenius</name>

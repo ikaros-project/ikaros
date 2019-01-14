@@ -34,16 +34,6 @@
 
 	<link class="FunctionGenerator" />
 
-    <view name="View (Default)">
-        <plot
-            x="20" y="20" width="400" height="300"
-            source=".OUTPUT"
-            title="Default view for FunctionGenerator"
-            min="-1"
-            max="1"
-        />
-    </view>
-
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -58,4 +48,3 @@
    </files>
 
 </class>
-

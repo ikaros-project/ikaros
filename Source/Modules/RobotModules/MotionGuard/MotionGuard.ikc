@@ -23,15 +23,6 @@
 
 	<link class="MotionGuard" />
 
-    <view title="MotionGuard">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for MotionGuard"
-            />
-    </view>
-
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -46,4 +37,3 @@
    </files>
 
 </class>
-

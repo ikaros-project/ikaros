@@ -59,86 +59,7 @@ Positions and sizes are given as fractions of the image size.
 <link class="CIFaceDetector" />
 
 
-    <view name="Input" >
-         <object
-            class   = "Path"
-            title   = "Faces"
-            source  = ".FACE_BOUNDS"
-            length_source = "FACE_COUNT"
-            x="0" y="0"
-            w="4" h="3"
-            min = "0"
-            max = "1"
-            select = "0"
-            count = "4"
-            close = "yes"
-            color="red"
-            stroke_width="4"
-            fill = "rgba(255,0,0,0.45)"
-            line_join="round"
-        />
-        
-        <object
-            class   = "Circle"
-            color = "red"
-            size    = "0.025"
-            source  = ".EYE_LEFT_POSITION"
-            x="0" y="0"
-            w="4" h="3"
-        />
-
-        <object
-            class   = "Circle"
-            color = "green"
-            size    = "0.025"
-            source  = ".EYE_RIGHT_POSITION"
-            x="0" y="0"
-            w="4" h="3"
-        />
-
-        <object
-            class   = "Circle"
-            color = "blue"
-            size    = "0.03"
-            source  = ".MOUTH_POSITION"
-            x="0" y="0"
-            w="4" h="3"
-        />
-
-        <object
-            class = "Plot"
-            x="0" y="3"
-            source = ".ROTATION"
-            min = "-25"
-            max = "25"
-        />
-
-        <object
-            class = "Plot"
-            x="1" y="3"
-            source = ".NOVELTY"
-        />
-
-         <object
-            class = "Plot"
-            x="2" y="3"
-            source = ".SMILE"
-        />
-
-         <object
-            class = "Plot"
-            x="3" y="3"
-            source = ".BLINK_LEFT"
-        />
-
-
-         <object
-            class = "Plot"
-            x="4" y="3"
-            source = ".BLINK_RIGHT"
-        />
-
-   </view>
+    
 
 <limitation>
 OS X only.
@@ -158,5 +79,3 @@ OS X only.
 </files>
 
 </class>
-
-

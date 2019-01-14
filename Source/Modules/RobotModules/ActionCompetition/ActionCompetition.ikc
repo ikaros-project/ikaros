@@ -35,13 +35,7 @@
 
 	<link class="ActionCompetition" />
 
-    <view name="Default ActionCompetition View">
-        <bar-graph
-            x="10" y="10" height="200" width="200"
-            source=".OUTPUT"
-            title="Default view for ActionCompetition"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

@@ -26,14 +26,7 @@
 
 	<link class="RNN" />
 
-    <view title="RNN">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for RNN"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -53,4 +46,3 @@
     </files>
 
 </class>
-
