@@ -351,15 +351,25 @@ VisionInput = "InputJPEG_not_workgin"
 	    shift		=	"0.1"
     />
 
-	<module class = "Constant" name = "debug" data = "0´" />
+	<module class = "Constant" name = "debug" data = "1´" />
 
 	<connection source = "debug.OUTPUT"  target = "LED.EYE_INTENSE" />
 	<connection source = "debug.OUTPUT"  target = "LED.MOUTH_INTENSE" />
 
 	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
+	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
+	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
+
 	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
+	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
+	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
+
 	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
-	<connection source = "Blink.OUTPUT"  target = "LED.SPEEKING" />
+	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+	<connection source = "debug.OUTPUT"  target = "LED.SPEEKING" />
+	<connection source = "debug.OUTPUT"  target = "LED.SPEEKING" />
+	<connection source = "debug.OUTPUT"  target = "LED.SPEEKING" />
 
 
 	<module class = "EpiLed" name = "LED" />
