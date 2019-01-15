@@ -70,6 +70,9 @@ MimicHead::Init()
   Bind(outlier_limit_rotation, "outlier_limit_rotation");
   Bind(outlier_limit_angle, "outlier_limit_angle");
 
+  Bind(limit_rotation, "limit_rotation");
+  Bind(limit_angle, "limit_angle");
+
   t=0;
   row = 0;
 }
@@ -156,23 +159,29 @@ MimicHead::Tick()
 
       //Filter away outliers
       if(output_movements_angle[t] < out_head_angle[0] + outlier_limit_angle && 
-      output_movements_angle[t] > out_head_angle[0]-outlier_limit_angle )
+      output_movements_angle[t] > out_head_angle[0]-outlier_limit_angle &&
+      (out_head_angle[0] - output_movements_angle[t] < -limit_angle ||
+      out_head_angle[0] - output_movements_angle[t] > limit_angle))
       {
             out_head_angle[0] = output_movements_angle[t];
       }
 
       if(output_movements_rotation[t] < out_head_rotation[0] + outlier_limit_rotation && 
-      output_movements_rotation[t] > out_head_rotation[0]-outlier_limit_rotation)
+      output_movements_rotation[t] > out_head_rotation[0]-outlier_limit_rotation &&
+      (out_head_rotation[0] - output_movements_rotation[t] < -limit_rotation ||
+      out_head_rotation[0] - output_movements_rotation[t] > limit_rotation))
       {
             out_head_rotation[0] = output_movements_rotation[t];
       } 
+
 //      printf("\n HEAD ANGLE OUT: %f \n",out_head_angle[0]);
 //      printf("\n HEAD ROTATION OUT: %f \n",out_head_rotation[0]);
    }
 
-  reset_array(angles_out, 19);
-  angles_out[1] = out_head_angle[0]; 
-  angles_out[2] = out_head_rotation[0];
+    reset_array(angles_out, 19);
+    angles_out[1] = out_head_angle[0]; 
+    angles_out[2] = out_head_rotation[0];
+  
   //print_array("Angles", angles_out, 19);
 }
 

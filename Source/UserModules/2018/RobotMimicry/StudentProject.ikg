@@ -8,7 +8,7 @@
 	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
 
 	BodyDynamixel = "DynamixelSimulate"
-	HeadDynamixel = "DynamixelSimulate"
+	HeadDynamixel = "Dynamixel"
 	LeftArmDynamixel = "DynamixelSimulate"
 	RightArmDynamixel = "DynamixelSimulate"
 	PupilDynamixel = "DynamixelSimulate"
@@ -33,24 +33,23 @@
 
 
 -->
-    <connection  source = "MimicHead.ANGLES"  	     target = "filter.INPUT"/>
-    <connection  source = "filter.OUTPUT"  	     target = "MotionGuard.INPUT"/>
-
 <module
     class="Average"
     name="filter"
     alpha="0.15"
     type="EMA">
   </module>
-  
+    <connection  source = "filter.OUTPUT"  	     target = "MotionGuard.INPUT"/>
+    <connection  source = "MimicHead.ANGLES" target = "filter.INPUT"/>
+
   <module
     class = "InputFile"
     name = "TrainData"
     filename = "./data.txt"
     send_end_of_file="no">
-      <column name = "Mean" />
-      <column name = "Variance" />
-      <column name = "Movement" />
+      <column name = "MEAN_ANGLE" />
+      <column name = "VARIANCE_ANGLE" />
+      <column name = "MOVEMENT_ANGLE" />
   </module>
 
   <module
@@ -68,14 +67,14 @@
   <module
       class	= "Constant"
       name 	= "Tilt"
-      data  = "1"
+      data  = "0.4"
       outputsize = "1"
   />
 
   <module
       class 			= "Constant"
       name 			    = "Color"
-      data              = "0.5"
+      data              = "0.4"
       outputsize        = "1"
   />
 
@@ -89,25 +88,27 @@
   <module
        class = "HeadTracking"
        name = "HeadTracking"
-       mask_left = "0.1"
-       mask_right = "0.9"
+       mask_left = "0.2"
+       mask_right = "0.8"
    />
 
   <module
     class = "MimicHead"
     name = "MimicHead"
-    max_movements = "70"
-    baysian_threshold = "0.60"
-    outlier_limit_angle = "50"
-    outlier_limit_rotation ="50"
-    rotation_factor="4"
-    angle_factor="2">
+    max_movements = "55"
+    baysian_threshold = "0.2"
+    outlier_limit_angle = "30"
+    outlier_limit_rotation ="20"
+    limit_rotation = "50"
+    limit_angle = "50"
+    rotation_factor="2"
+    angle_factor="3">
   </module>
 
   <!--LOAD TRAINING DATA -->
-  <connection  source = "TrainData.Movement"  target = "MimicHead.MOVEMENT" />
-  <connection  source = "TrainData.Mean"  target = "MimicHead.MEAN" />
-  <connection  source = "TrainData.Variance"  target = "MimicHead.VARIANCE" />
+  <connection  source = "TrainData.MOVEMENT_ANGLE"  target = "MimicHead.MOVEMENT" />
+  <connection  source = "TrainData.MEAN_ANGLE"  target = "MimicHead.MEAN" />
+  <connection  source = "TrainData.VARIANCE_ANGLE"  target = "MimicHead.VARIANCE" />
 
   <!--Save Depth in raw images -->
   <connection  source = "Tilt.OUTPUT"  target = "Kinect.TILT" />
@@ -124,8 +125,6 @@
 
   <connection  source = "HeadTracking.HEAD_ANGLE"  target = "MimicHead.HEAD_ANGLE_IN" />
   <connection  source = "HeadTracking.HEAD_ROTATION"  target = "MimicHead.HEAD_ROTATION_IN" />
-
-
   
 <view name="Depth">
 
@@ -230,7 +229,7 @@
    <module class = "Sink" name = "NotAvailable" />
 
     <module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
-    <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
+    <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.3  0.3  0.3  0.3 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
     <module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   0  	   1    1    1    1   	    0    0    0    0    0    0     0    0    0    0    0   0      0    0" />
 
         <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"       target = "Body.MOVING_SPEED"  delay = "1"/>
@@ -389,6 +388,41 @@
 	<table title="Feedback" source="POSITION_FEEDBACK.OUTPUT" x="0" y="550" width="1200" height="300"decimals="1" color="red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink" />
 
 </view>
+
+<!-- LED -->
+<module class = "FadeCandy" name = "FadeCandy" start_server = "false">
+    <channel name="MOUTH_TOP"       channel="0" size="8" />
+    <channel name="MOUTH_BOTTOM"    channel="1" size="8" />
+    <channel name="LEFT_EYE"        channel="2" size="12" />
+    <channel name="RIGHT_EYE"       channel="3" size="12" />
+</module>
+
+    <!-- Eye -->
+    <module class = "Constant" name = "LedR" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
+    <module class = "Constant" name = "LedG" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedB" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+
+    <connection source = "LedR.OUTPUT" target = "FadeCandy.LEFT_EYE_RED" />
+    <connection source = "LedG.OUTPUT" target = "FadeCandy.LEFT_EYE_GREEN" />
+    <connection source = "LedB.OUTPUT" target = "FadeCandy.LEFT_EYE_BLUE" />
+    <connection source = "LedR.OUTPUT" target = "FadeCandy.RIGHT_EYE_RED" />
+    <connection source = "LedG.OUTPUT" target = "FadeCandy.RIGHT_EYE_GREEN" />
+    <connection source = "LedB.OUTPUT" target = "FadeCandy.RIGHT_EYE_BLUE" />
+
+
+    <!-- Mouth -->
+    <module class = "Constant" name = "MOUTH_RED" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
+    <module class = "Constant" name = "MOUTH_GREEN" data = "0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "MOUTH_BLUE" data = "0 0 0 0 0 0 0 0" />
+
+    <connection source = "MOUTH_RED.OUTPUT"     target = "FadeCandy.MOUTH_TOP_RED" />
+    <connection source = "MOUTH_GREEN.OUTPUT"   target = "FadeCandy.MOUTH_TOP_GREEN" />
+    <connection source = "MOUTH_BLUE.OUTPUT"    target = "FadeCandy.MOUTH_TOP_BLUE" />
+    <connection source = "MOUTH_RED.OUTPUT"     target = "FadeCandy.MOUTH_BOTTOM_RED" />
+    <connection source = "MOUTH_GREEN.OUTPUT"   target = "FadeCandy.MOUTH_BOTTOM_GREEN" />
+    <connection source = "MOUTH_BLUE.OUTPUT"    target = "FadeCandy.MOUTH_BOTTOM_BLUE" />
+
+    
 
 
 </group>
