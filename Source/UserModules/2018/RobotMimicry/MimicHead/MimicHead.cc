@@ -25,7 +25,9 @@
 //
 
 #include "MimicHead.h"
-
+#include <iostream>
+#include <cstdio>
+#include <ctime>
 // use the ikaros namespace to access the math library
 // this is preferred to using <cmath>
 
@@ -74,6 +76,9 @@ MimicHead::Init()
   Bind(limit_angle, "limit_angle");
 
   t=0;
+  movement_timer = 0;
+  std::clock_t start_time = std::clock();
+  movement_type = rand()%(4-1 + 1) + 1;
   row = 0;
 }
 
@@ -179,8 +184,68 @@ MimicHead::Tick()
    }
 
     reset_array(angles_out, 19);
-    angles_out[1] = out_head_angle[0]; 
+    angles_out[1] = out_head_angle[0]-10; 
     angles_out[2] = out_head_rotation[0];
+
+    movement_timer = ( std::clock() - start_time ) / (double) CLOCKS_PER_SEC;
+    
+    if(movement_type == 1){
+      
+     //hand out
+    angles_out[5] = 74;
+    angles_out[6] = -83;
+    angles_out[7] = 11;
+    angles_out[8] = -53;
+    angles_out[9] = -160;
+    } else if (movement_type == 2){
+    if (movement_timer < 0.5 || 
+    (movement_timer < 1.5 && movement_timer > 1.0) ||
+    (movement_timer < 2.5 && movement_timer > 2.0) ||
+    (movement_timer < 3.5 && movement_timer > 3.0) ||
+    (movement_timer < 4.5 && movement_timer > 4.0)){
+        //default
+      angles_out[5] = 89;
+      angles_out[6] = -86;
+      angles_out[7] = 34;
+      angles_out[8] = -9;
+      angles_out[9] = -119;
+      } else{
+        //fippla
+      angles_out[5] = 89;
+      angles_out[6] = -76;
+      angles_out[7] = 34;
+      angles_out[8] = -9;
+      angles_out[9] = -119;
+      }
+    } else if (movement_type == 3){
+      if (movement_timer < 1){
+        //intermediate
+        angles_out[5] = 70;
+        angles_out[6] = -45;
+        angles_out[7] = -4;
+        angles_out[8] = -80;
+        angles_out[9] = -80;
+      } else{
+        //Hand ansikte
+         angles_out[5] = 51;
+         angles_out[6] = -66;
+         angles_out[7] = 46;
+         angles_out[8] = -122;
+         angles_out[9] = -89;
+      }
+    } else if (movement_type == 4){
+      //default
+      angles_out[5] = 89;
+      angles_out[6] = -86;
+      angles_out[7] = 34;
+      angles_out[8] = -9;
+      angles_out[9] = -119;
+    }
+
+    if (movement_timer > 5){
+      movement_type = rand()%(4-1 + 1) + 1;
+      start_time = std::clock();
+    }    
   
   //print_array("Angles", angles_out, 19);
 }

@@ -38,7 +38,8 @@ HeadTracking::Init()
   Bind(mask_right, "mask_right");
   Bind(rotation_factor, "rotation_factor");
   Bind(angle_factor, "angle_factor");
-
+  Bind(head_limit, "head_limit");
+  
   size_x	 = GetInputSizeX("INPUT");
   size_y	 = GetInputSizeY("INPUT");
 
@@ -86,7 +87,7 @@ HeadTracking::Tick()
    for(int j=0; j<size_y; j++){
       for(int i=a; i<b; i++){
         if(object[0] <= input[j][i] && input[j][i] <= object[1]){
-                head_cut = j + 150;
+                head_cut = j + head_limit;
                 goto foundHead;
           }
       }

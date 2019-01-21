@@ -24,6 +24,9 @@
 #define MimicHead_
 
 #include "IKAROS.h"
+#include <iostream>
+#include <cstdio>
+#include <ctime>
 
 class MimicHead: public Module
 {
@@ -37,6 +40,10 @@ public:
     void 		Tick();
 
     int     t;
+    double   movement_timer;
+    std::clock_t start_time;
+    double fipplaTimer;
+    int     movement_type;
     int     row;
     int     max_rows;
     int     input_length;

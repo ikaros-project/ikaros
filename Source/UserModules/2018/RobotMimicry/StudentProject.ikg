@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 
 <group name="Student" 
-	BodySerialDevice= "/dev/cu.usbserial-FTU7EL2U"
+	BodySerialDevice= "/dev/ttyBODY"
 	HeadSerialDevice= "/dev/ttyHEAD"
-	LeftArmSerialDevice= "/dev/cu.usbserial-FTX14P4R"
+	LeftArmSerialDevice= "/dev/ttyLEFT_ARM"
 	RightArmSerialDevice= "/dev/ttyRIGHT_ARM"
 	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
 
-	BodyDynamixel = "DynamixelSimulate"
+	BodyDynamixel = "Dynamixel"
 	HeadDynamixel = "Dynamixel"
-	LeftArmDynamixel = "DynamixelSimulate"
+	LeftArmDynamixel = "Dynamixel"
 	RightArmDynamixel = "DynamixelSimulate"
 	PupilDynamixel = "DynamixelSimulate"
 
@@ -39,7 +39,7 @@
     alpha="0.15"
     type="EMA">
   </module>
-    <connection  source = "filter.OUTPUT"  	     target = "MotionGuard.INPUT"/>
+    <connection  source = "filter.OUTPUT"  	     target = "MotionGuard.INPUT" />
     <connection  source = "MimicHead.ANGLES" target = "filter.INPUT"/>
 
   <module
@@ -67,7 +67,7 @@
   <module
       class	= "Constant"
       name 	= "Tilt"
-      data  = "0.4"
+      data  = "0.6"
       outputsize = "1"
   />
 
@@ -90,17 +90,18 @@
        name = "HeadTracking"
        mask_left = "0.2"
        mask_right = "0.8"
+       head_limit= "120"
    />
 
   <module
     class = "MimicHead"
     name = "MimicHead"
     max_movements = "55"
-    baysian_threshold = "0.2"
+    baysian_threshold = "0.15"
     outlier_limit_angle = "30"
-    outlier_limit_rotation ="20"
-    limit_rotation = "50"
-    limit_angle = "50"
+    outlier_limit_rotation ="39"
+    limit_rotation = "8"
+    limit_angle = "8"
     rotation_factor="2"
     angle_factor="3">
   </module>
@@ -201,9 +202,9 @@
 
 
 
-    <module class = "Constant" name = "GOAL_POSITION" 		data = "0 	0 0 0 0  	           0 0 0 0 0 0 0 	      0 0 0 0 0 0 0     0.5 0.5" />
-	    <_connection  source = "GOAL_POSITION.OUTPUT"  	 target = "MotionGuard.INPUT" sourceoffset = "0"	targetoffset="0" size = "1"/>
-	    <_connection  source = "GOAL_POSITION.OUTPUT"  	 target = "MotionGuard.INPUT" sourceoffset = "5"	targetoffset="5" size = "14"/>
+    <module class = "Constant" name = "GOAL_POSITION" 		data = "0 	0 0 0 0  	           0 0 15 0 0 0 0 	      0 0 0 0 0 0 0     0.5 0.5" />
+	    <_connection  source = "GOAL_POSITION.OUTPUT"  	 target = "MotionGuard.INPUT" sourceoffset = "0" targetoffset = "0" size = "1"/>
+	    <_connection  source = "GOAL_POSITION.OUTPUT"  	 target = "MotionGuard.INPUT" sourceoffset = "5" targetoffset = "5" size = "14"/>
         <!-- Crashes ikaros way? -->
 
 
@@ -228,9 +229,9 @@
     
    <module class = "Sink" name = "NotAvailable" />
 
-    <module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
-    <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.3  0.3  0.3  0.3 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
-    <module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   0  	   1    1    1    1   	    0    0    0    0    0    0     0    0    0    0    0   0      0    0" />
+    <module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	    0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
+    <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	    0.3  0.3  0.3  0.3 	           0.2  0.2  0.2  0.2  0.2  0.2 	      0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
+    <module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	    1    1    1    1   	        1   1    1    1    1   0    1    1    1    1    1   0      0    0" />
 
         <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"       target = "Body.MOVING_SPEED"  delay = "1"/>
         <connection  source = "SERVO_SPEED.OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"       target = "Head.MOVING_SPEED"  delay = "1"/>
@@ -398,8 +399,8 @@
 </module>
 
     <!-- Eye -->
-    <module class = "Constant" name = "LedR" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
-    <module class = "Constant" name = "LedG" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "LedG" data = "0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3" />
+    <module class = "Constant" name = "LedR" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
     <module class = "Constant" name = "LedB" data = "0 0 0 0 0 0 0 0 0 0 0 0" />
 
     <connection source = "LedR.OUTPUT" target = "FadeCandy.LEFT_EYE_RED" />
@@ -411,9 +412,9 @@
 
 
     <!-- Mouth -->
-    <module class = "Constant" name = "MOUTH_RED" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
+    <module class = "Constant" name = "MOUTH_BLUE" data = "0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" />
     <module class = "Constant" name = "MOUTH_GREEN" data = "0 0 0 0 0 0 0 0" />
-    <module class = "Constant" name = "MOUTH_BLUE" data = "0 0 0 0 0 0 0 0" />
+    <module class = "Constant" name = "MOUTH_RED" data = "0 0 0 0 0 0 0 0" />
 
     <connection source = "MOUTH_RED.OUTPUT"     target = "FadeCandy.MOUTH_TOP_RED" />
     <connection source = "MOUTH_GREEN.OUTPUT"   target = "FadeCandy.MOUTH_TOP_GREEN" />

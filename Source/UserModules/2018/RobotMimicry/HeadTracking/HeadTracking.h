@@ -43,6 +43,7 @@ public:
     float       mask_right;
     float       rotation_factor;
     float       angle_factor;
+    float       head_limit;
 
     int         size_x;
     int         size_y;
@@ -55,7 +56,7 @@ public:
     float       t;
     float       sum_head;
 
-    float *		  out_head_angle;
+    float *		 out_head_angle;
     float *     out_head_rotation;
 
     float *    object;
