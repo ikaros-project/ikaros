@@ -332,6 +332,23 @@ VisionInput = "InputJPEG_not_workgin"
 -->
 
 	<!-- test led -->
+
+
+	<!-- Eye Color -->
+	<module class = "Constant" name = "EColor" data = "0.5 0.5 1´" />
+		<connection source = "EColor.OUTPUT"  target = "LED.EYE_COLOR" />
+	<!-- Mouth Color -->
+	<module class = "Constant" name = "MColor" data = "0.5 0.5 1´" />
+	<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
+
+
+	<!-- Intense -->
+	<module class = "Constant" name = "EIntense" data = "1´" />
+		<connection source = "EIntense.OUTPUT"  target = "LED.EYE_INTENSE" />
+	<module class = "Constant" name = "MIntense" data = "1´" />
+		<connection source = "MIntense.OUTPUT"  target = "LED.MOUTH_INTENSE" />
+
+	<!-- Blink -->
 	<module
 		class		=	"FunctionGenerator"
 		name		=	"Blink"
@@ -341,35 +358,19 @@ VisionInput = "InputJPEG_not_workgin"
 		amplitude	=	"1"
 	    shift		=	"0.1"
     />
-	<module
+	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+
+	<!-- Speeking -->
+		<module
 		class		=	"FunctionGenerator"
-		name		=	"Color"
+		name		=	"Speek"
 		type		=	"sin"
-		frequency	=	"0.1"
+		frequency	=	"10"
 		offset      =	"0.0"
 		amplitude	=	"1"
 	    shift		=	"0.1"
     />
-
-	<module class = "Constant" name = "debug" data = "1´" />
-
-	<connection source = "debug.OUTPUT"  target = "LED.EYE_INTENSE" />
-	<connection source = "debug.OUTPUT"  target = "LED.MOUTH_INTENSE" />
-
-	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
-	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
-	<connection source = "Color.OUTPUT"  target = "LED.EYE_COLOR" />
-
-	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
-	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
-	<connection source = "Color.OUTPUT"  target = "LED.MOUTH_COLOR" />
-
-	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
-	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
-	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
-	<connection source = "debug.OUTPUT"  target = "LED.SPEEKING" />
-	<connection source = "debug.OUTPUT"  target = "LED.SPEEKING" />
-	<connection source = "debug.OUTPUT"  target = "LED.SPEEKING" />
+	<connection source = "Speek.OUTPUT"  target = "LED.SPEEKING" />
 
 
 	<module class = "EpiLed" name = "LED" />
