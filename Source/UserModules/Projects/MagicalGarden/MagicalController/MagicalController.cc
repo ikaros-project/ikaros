@@ -212,6 +212,4 @@ MagicalController::Tick() // absolutely no error handling!!!
 
 
 
-static InitClass init("MagicalController", &MagicalController::Create, "Source/UserModules/MagicalGarden/MagicalController/");
-
-
+static InitClass init("MagicalController", &MagicalController::Create, "Source/UserModules/Projects/MagicalGarden/MagicalController/");

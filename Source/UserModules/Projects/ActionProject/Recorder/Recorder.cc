@@ -154,5 +154,4 @@ Recorder::Tick()
 
 
 
-static InitClass init("Recorder", &Recorder::Create, "Source/UserModules/Recorder/");
-
+static InitClass init("Recorder", &Recorder::Create, "Source/UserModules/Projects/ActionProject/Recorder/");

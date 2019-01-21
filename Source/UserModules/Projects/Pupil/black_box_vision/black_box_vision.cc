@@ -203,6 +203,4 @@ black_box_vision::~black_box_vision()
     delete stimuliCounter;
 }
 
-static InitClass init("black_box_vision", &black_box_vision::Create, "Source/UserModules/black_box_vision/");
-
-
+static InitClass init("black_box_vision", &black_box_vision::Create, "Source/UserModules/Projects/Pupil/black_box_vision/");

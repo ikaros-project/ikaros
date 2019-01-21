@@ -172,4 +172,4 @@ HeadTracking::Tick()
 
 
 // Install the module. This code is executed during start-up.
-static InitClass init("HeadTracking", &HeadTracking::Create, "Source/UserModules/2018/RobotMimicry/HeadTracking/");
+static InitClass init("HeadTracking", &HeadTracking::Create, "Source/UserModules/Projects/StudentProjects/RobotMimicry/HeadTracking/");

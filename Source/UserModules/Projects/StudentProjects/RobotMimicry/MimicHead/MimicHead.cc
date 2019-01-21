@@ -253,4 +253,4 @@ MimicHead::Tick()
 
 
 // Install the module. This code is executed during start-up.
-static InitClass init("MimicHead", &MimicHead::Create, "Source/UserModules/2018/RobotMimicry/MimicHead/");
+static InitClass init("MimicHead", &MimicHead::Create, "Source/UserModules/Projects/StudentProjects/RobotMimicry/MimicHead/");

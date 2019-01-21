@@ -261,4 +261,4 @@ MaximumToRobot::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("MaximumToRobot", &MaximumToRobot::Create, "Source/UserModules/MaximumToRobot/");
+static InitClass init("MaximumToRobot", &MaximumToRobot::Create, "Source/UserModules/Projects/StudentProjects/RobotMimicry/MaximumToRobot/");

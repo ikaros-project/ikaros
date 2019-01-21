@@ -816,4 +816,4 @@ void EpiHeadExp::resetWriteToLogFile()
 }
 
 // Install the module. This code is executed during start-up.
-static InitClass init("EpiHeadExp", &EpiHeadExp::Create, "Source/UserModules/2018/AdjustablePupilInRobots/EpiHeadExp/");
+static InitClass init("EpiHeadExp", &EpiHeadExp::Create, "Source/UserModules/Projects/Pupil/AdjustablePupilInRobots/EpiHeadExp/");
