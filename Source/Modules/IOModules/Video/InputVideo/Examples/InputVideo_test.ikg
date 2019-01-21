@@ -2,7 +2,7 @@
 
 <group title="InputVideo Example">
 
-	<module class="InputVideo" name="InputVideo" frame_rate="29.97" />
+	<module class="InputVideo" name="InputVideo" _frame_rate="29.97" frame_rate="30" />
 
 	<view name="View">
 		<image

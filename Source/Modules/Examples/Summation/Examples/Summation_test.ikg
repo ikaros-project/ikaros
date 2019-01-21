@@ -8,13 +8,8 @@
 	
 	<module class = "Summation" name = "Summation" />
 
-	<connection sourcemodule = "DATA"   source = "A"
-		    targetmodule = "Summation"    target = "INPUT1"/>
-	
-	<connection sourcemodule = "DATA"   source = "B"
-		    targetmodule = "Summation"    target = "INPUT2"/>
-	
-	<connection sourcemodule = "Summation"    source = "OUTPUT"
-		    targetmodule = "OUT"    target = "OUT"/>
+	<connection source = "DATA.B" target = "Summation.INPUT2"/>
+	<connection source = "DATA.A" target = "Summation.INPUT1"/>
+	<connection source = "Summation.OUTPUT" target = "OUT.OUT"/>
     <module class = "Logger" name = "Logger" />
 </group>
