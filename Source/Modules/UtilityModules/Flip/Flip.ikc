@@ -20,14 +20,7 @@
 
 	<link class="Flip" />
 
-    <view title="Flip">
-        <object
-            x="0" y="0" w="2"
-            class="Image"
-            source=".OUTPUT"
-            title="Default view for Flip"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>

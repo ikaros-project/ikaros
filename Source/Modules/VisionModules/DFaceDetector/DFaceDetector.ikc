@@ -39,26 +39,7 @@ DFaceDetector is a face detector for Ikaros that uses dlib's Face Detector (fron
 
 <link class="DFaceDetector" />
 
-    <view name="Input" >
-         <object
-            class   = "Path"
-            title   = "Faces"
-            module  = "*"
-            source  = "FACE_BOUNDS"
-            length_source = "FACE_COUNT"
-            x="0" y="0"
-            w="4" h="3"
-            min = "0"
-            max = "1"
-            select = "0"
-            count = "4"
-            close = "yes"
-            color="red"
-            stroke_width="4"
-            fill = "rgba(255,0,0,0.45)"
-            line_join="round"
-        />
-   </view>
+    
 
 
 <author>
@@ -75,5 +56,3 @@ DFaceDetector is a face detector for Ikaros that uses dlib's Face Detector (fron
 </files>
 
 </class>
-
-

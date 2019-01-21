@@ -21,14 +21,7 @@
 
 	<link class="DataConverter" />
     
-    <view title="DataConverter">
-        <object
-            x="0" y="0" w="2"
-            class="Table"
-            source=".OUTPUT"
-            title="Default view for DataConverter"
-        />
-    </view>
+    
     
     <limitation>
         Quaternions not implemented yet.
@@ -48,4 +41,3 @@
    </files>
 
 </class>
-

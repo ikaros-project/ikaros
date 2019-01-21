@@ -19,14 +19,7 @@
 
 	<link class="SelectMax" />
 
-    <view title="SelectMax">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for SelectMax"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -42,4 +35,3 @@
    </files>
 
 </class>
-

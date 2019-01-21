@@ -46,12 +46,7 @@
 
 	<link class="LinearAssociator" />
 
-    <view name="View">
-        <object x="0" y="0" class="BarGraph" title="Learned Output" source=".OUTPUT" />
-        <object x="1" y="0" class="Table" title="MATRIX" source=".MATRIX" />
-
-        <object x="0" y="1" w="2" class="Plot" title="ERROR" source=".ERROR" min="0" max="5" colors="yellow" />
-    </view>
+    
 
 
 	<author>
@@ -68,4 +63,3 @@
    </files>
 
 </class>
-

@@ -32,14 +32,7 @@
 
 	<link class="Recorder" />
 
-    <view title="Recorder">
-        <object
-            x="0" y="0" w="2"
-            class="Path"
-            source=".OUTPUT"
-            title="Default view for Recorder"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -55,4 +48,3 @@
    </files>
 
 </class>
-

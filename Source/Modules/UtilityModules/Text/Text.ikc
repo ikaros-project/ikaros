@@ -18,9 +18,7 @@
 
 	<link class="Text" />
 
-    <view name="View (Deafult)">
-         <text module="*" parameter="OUTPUT" x="20" y="20" width="301" height="301"/>
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -36,4 +34,3 @@
    </files>
 
 </class>
-

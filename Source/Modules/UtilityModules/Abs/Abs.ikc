@@ -20,15 +20,6 @@
 
 	<link class="Abs" />
 
-    <view title="Abs">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Abs"
-        />
-    </view>
-    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>

@@ -28,14 +28,7 @@
 
 	<link class="Average" />
 
-    <view title="Average">
-        <object
-            x="0" y="0" w="2"
-            class="Plot"
-            source=".OUTPUT"
-            title="Default view for Average"
-        />
-    </view>
+    
     
     <limitation>
         If run for very long numerical problems are likely to occur when

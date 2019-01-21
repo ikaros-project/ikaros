@@ -47,52 +47,6 @@
 
 	<link class="MotionRecorder" />
 
-    <view name="Default View">
-        <grid
-            x = "10"
-            y = "10"
-            width = "121"
-            height = "41"
-            source = ".STATE"
-            max = "7"
-            labels = "state"
-            labelWidth = "50"
-            fill = "custom"
-            colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
-            lineWidth = "1"
-            shape = "circle"
-            size = "1"
-            scales = "no"
-        />
-
-        <text
-            width = "121"
-            height = "41"
-            x="10"
-            y = "40"
-            parameter = "mode_string"
-            module = "*"
-        />
-
-        <plot source=".OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
-
-        <table title="time" module="*" source="TIME" decimals="0" x="10" y="81" width="101" height="41" />
-
-        <button label = "Off" module="*" command="off" x="10" y="121" height="41" width="101" />
-        <button label = "Stop" module="*" command="stop" x="10" y="161" height="41" width="101"  />
-        <button label = "Record" module="*" command="record" x="10" y="201" height="41" width="101"  />
-        <button label = "Play"  module="*" command="play" x="10" y="241" height="41" width="101"  />
-
-        <button label = "Load" module="*" command="load" x="10" y="361" height="41" width="101"  />
-        <button label = "Save" module="*" command="save" x="10" y="401" height="41" width="101"  />
-
-        <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" module="*" parameter="current_motion" x="10" y="311" width="121" height="41" />
-
-        <switch label=" Rec on trig" module="*" parameter="record_on_trig" x="10" y="461" width="101" height="41" />
-
-        <grid source=".MODE" color="red,green" x="130" y="600" width="800" height="501" />
-    </view>
-
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -107,4 +61,3 @@
    </files>
 
 </class>
-

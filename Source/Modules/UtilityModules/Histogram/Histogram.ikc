@@ -24,15 +24,6 @@
 
 	<link class="Histogram" />
 
-    <view title="Histogram">
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for Histogram"
-        />
-    </view>
-
     <limitation>
         Only works on one-dimensional inputs.
     </limitation>
@@ -51,4 +42,3 @@
    </files>
 
 </class>
-

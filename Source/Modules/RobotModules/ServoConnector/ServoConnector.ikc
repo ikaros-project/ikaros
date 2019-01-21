@@ -26,13 +26,7 @@
 	<input name="INPUT" description="Input" />
 	<output name="OUTPUT" description="Output" size_param="output_size" />
 
-	<view title="ServoConnector">
-		<table
-		x="0" y="0" w="2"
-		source=".OUTPUT"
-		title="Default view for ServoConnector"
-		/>
-	</view>
+	
 
 
 	<link class="ServoConnector" />
@@ -51,4 +45,3 @@
    </files>
 
 </class>
-

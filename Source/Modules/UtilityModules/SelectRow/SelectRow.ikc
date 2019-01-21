@@ -21,21 +21,7 @@
 
 	<link class="SelectRow" />
 
-    <view title="SelectRow">
-        <object
-            x="0" y="0" w="2"
-            class="Table"
-            source=".INPUT"
-            title="Input"
-        />
-
-        <object
-            x="0" y="1" w="2"
-            class="Table"
-            source=".OUTPUT"
-            title="Output"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -51,4 +37,3 @@
    </files>
 
 </class>
-

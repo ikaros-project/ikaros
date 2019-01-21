@@ -33,17 +33,13 @@
     />
         
     <connection
-        sourcemodule = "F1"
-        source = "OUTPUT"
-        targetmodule = "LinearSplines"
-        target = "INPUT"
+        source = "F1.OUTPUT"
+        target = "LinearSplines.INPUT"
     />
 
     <connection
-        sourcemodule = "F2"
-        source = "OUTPUT"
-        targetmodule = "LinearSplines"
-        target = "INPUT"
+        source = "F2.OUTPUT"
+        target = "LinearSplines.INPUT"
     />
 
     <view name="Plot">

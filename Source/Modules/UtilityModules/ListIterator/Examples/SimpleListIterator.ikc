@@ -41,30 +41,7 @@
  		<connection sourcemodule = "Select" source = "OUTPUT" targetmodule = "ListIterator" target = "SELECT" />
  		<connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "ListIterator" target = "SYNC IN" />		
 
- 	<view title="SimpleListIterator">
-	    <object
-	        x="0" y="0" w="2"
-	        class="Plot"
-	        module="SquareGen"
-	        source="OUTPUT"
-	        title="Tick"
-	    />
-
-	    <object
-	        x="0" y="2" w="2"
-	        class="Plot"
-	        module="ListIterator"
-	        source="OUTPUT"
-	        title="Iterator Output"
-	    />
-	    <object
-	        x="0" y="4" w="2"
-	        class="Plot"
-	        module="ListIterator"
-	        source="SYNC OUT"
-	        title="Iterator Sync out"
-	    />
-	</view>
+ 	
  
     <files>
     		<file>SimpleListIterator.ikc</file> <!--Use name="Default_Speed" in calling file-->

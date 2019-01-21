@@ -32,14 +32,7 @@
 
 	<link class="Integrator" />
 
-    <view title="Integrator">
-        <object
-            x="0" y="0" w="2"
-            class="Plot"
-            source=".OUTPUT"
-            title="Default view for Integrator"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -55,4 +48,3 @@
    </files>
 
 </class>
-

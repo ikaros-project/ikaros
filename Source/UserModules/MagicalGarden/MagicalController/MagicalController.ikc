@@ -24,15 +24,7 @@
 
 	<link class="MagicalController" />
 
-    <view title="MagicalController"  name="Default view for MagicalController"
->
-        <object
-            x="0" y="0" w="2"
-            class="BarGraph"
-            source=".OUTPUT"
-            title="Default view for MagicalController"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -48,4 +40,3 @@
    </files>
 
 </class>
-

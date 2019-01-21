@@ -25,19 +25,6 @@
     
 	<link class="Gate" />
 
-    <view name="View (Default)">
-        <bar-graph
-            x="10"
-            y="10"
-            width="301"
-            height="301"
-            source=".OUTPUT"
-            title = "Default View for Gate"
-            show_title = "yes"
-            show_frame = "yes"
-        />
-    </view>
-
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>

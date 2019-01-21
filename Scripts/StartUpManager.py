@@ -7,7 +7,7 @@ import os
 import subprocess
 
 # Files that will not work with the script
-excludeFiles = ["NetworkCamera_test.ikg"]
+excludeFiles = ["NetworkCamera_test.ikg", "FadeCandy_test.ikg", "Phidgets_test.ikg","IPCServer_test.ikg","IPCClient_test.ikg"]
 searchPattern = "_test.ikg"
 
 key = ""
@@ -17,7 +17,7 @@ descIkgFiles = [] # Not used
 log = []
 runningIkaros = False
 # Test mode
-cmd = ["../Bin/ikaros_d", "-s1"]
+cmd = ["../Bin/ikaros", "-s1", "-R"]
 # Code from https://gist.github.com/fxsjy/5465353
 class AuthHandler(SimpleHTTPRequestHandler):
     ''' Main class to present webpages and authentication. '''
@@ -77,29 +77,31 @@ def findIKGFiles():
         print(e)
     exlude = False
 
-    for root, dirs, files in os.walk("../Demos"):
-        for file in files:
-            if file.endswith(".ikg"):
-                exlude = False
-                for e in excludeFiles:
-                    if file.endswith(e):
-                        exlude = True
-                if (not exlude):
-                    ikgFiles.append(os.path.join(root, file))
-    for root, dirs, files in os.walk("../Examples"):
-        for file in files:
-            if file.endswith(".ikg"):
-                exlude = False
-                for e in excludeFiles:
-                    if file.endswith(e):
-                        exlude = True
-                if (not exlude):
-                    ikgFiles.append(os.path.join(root, file))
+    # for root, dirs, files in os.walk("../Demos"):
+    #     for file in files:
+    #         if file.endswith(".ikg"):
+    #             exlude = False
+    #             for e in excludeFiles:
+    #                 if file.endswith(e):
+    #                     exlude = True
+    #             if (not exlude):
+    #                 ikgFiles.append(os.path.join(root, file))
+    # for root, dirs, files in os.walk("../Examples"):
+    #     for file in files:
+    #         if file.endswith(".ikg"):
+    #             exlude = False
+    #             for e in excludeFiles:
+    #                 if file.endswith(e):
+    #                     exlude = True
+    #             if (not exlude):
+    #                 ikgFiles.append(os.path.join(root, file))
     for root, dirs, files in os.walk("../"):
         for file in files:
             if file.endswith(searchPattern):
                 exlude = False
                 for e in excludeFiles:
+                    print e  + " matches " + file
+
                     if file.endswith(e):
                         exlude = True
                 if (not exlude):
@@ -208,10 +210,10 @@ if __name__ == '__main__':
         print searchPattern
     # Check for compiled ikaros
     import os.path
-    if (os.path.isfile("../Bin/ikaros_d") == True):
+    if (os.path.isfile(cmd[0]) == True):
         print "Found ikaros binary"
     else:
-        print "No binary found. Run cmake script."
+        print cmd[0] + " not found. Compile ikaros."
         exit(-1)
 
     key = base64.b64encode(sys.argv[2])

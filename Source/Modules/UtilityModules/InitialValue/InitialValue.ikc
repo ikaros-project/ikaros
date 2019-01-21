@@ -31,17 +31,7 @@
 	<output name="OUTPUT" description="The first output" size_param="outputsize" />
 
 	<link class="InitialValue" />
-	<view name="InitialValue">
-		<bar-graph
-            x="40" y="40"
-            width="301"
-            height="301"
-            source=".OUTPUT"
-            title = "InitialValue"
-            
-            style = ""
-        />
-	</view>
+	
 	<author>
 		<name>Trond Arild Tjöstheim</name>
 		<email>trond_arild.tjostheim@lucs.lu.se</email>
@@ -56,4 +46,3 @@
    </files>
 
 </class>
-

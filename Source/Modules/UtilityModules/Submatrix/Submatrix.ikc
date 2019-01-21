@@ -52,15 +52,7 @@
 
 	<link class="Submatrix" />
 
-    <view title="Submatrix">
-        <object
-            x="0" y="0" w="2"
-            class="Image"
-            type="gray"
-            source=".OUTPUT"
-            title="Default view for Submatrix"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -76,4 +68,3 @@
    </files>
 
 </class>
-

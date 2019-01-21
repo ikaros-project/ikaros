@@ -42,19 +42,7 @@
     
 	<link class="Counter" />
 
-    <view title="Counter">
-        <object
-            x="0" y="0" w="1"
-            class="BarGraph"
-            source=".COUNT"
-        />
-
-        <object
-            x="1" y="0" w="1"
-            class="BarGraph"
-            source=".PERCENT"
-        />
-    </view>
+    
     
 	<author>
 		<name>Christian Balkenius</name>
@@ -70,4 +58,3 @@
    </files>
 
 </class>
-
