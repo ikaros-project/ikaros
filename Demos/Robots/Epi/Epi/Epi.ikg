@@ -280,7 +280,7 @@ VisionInput = "InputJPEG_not_workgin"
 <!-- ********************************* 	-->
 
 <!-- Sensors -->
-<module class = "EpiVision" 	VisionInput = "InputJPEG" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" 	VisionInput = "InputVideo" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
 <module class = "EpiVision" 	VisionInput = "InputJPEG" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
 
 
@@ -385,6 +385,86 @@ VisionInput = "InputJPEG_not_workgin"
 
 
 	<module class = "EpiLed" name = "LED" />
+
+	<!-- Pupil model -->
+	<!-- Behaviors -->
+    <!-- Light reflex etc -->
+    <module class="PupilControl" name="PupilControl"/>
+    	<connection  source = "LeftEye.LOW_RES_INTENSITY"  target = "PupilControl.PTA" />
+
+<view name="PupilControll">
+
+	<image
+		class = "image"
+		flipXAxis = "no"
+		scale = "both"
+		width = "321"
+		title = "Low"
+		max_x = "1"
+		max_y = "1"
+		height = "241"
+		x = "60"
+		format = "gray"
+		source = "LeftEye.LOW_RES_INTENSITY"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		h = "4"
+		y = "0"
+		w = "4"
+		show_title = "true"
+		scales = "no"
+		flipYCanvas = "no"
+	/>
+
+	<plot
+		class = "plot"
+		max = "20"
+		labels = "B"
+		source = "PupilControl.CG_OUTPUT"
+		min = "0"
+		module = "CG_OUTPUT"
+		height = "301"
+		title = "CG_OUTPUT"
+		width = "301"
+		y = "260"
+		x = "60"
+		buffer_size = "50"
+		direction = "vertical"
+		show_title = "true"
+		show_frame = "true"
+	/>
+
+	<plot
+		class = "plot"
+		max = "20"
+		labels = "B"
+		source = "PupilControl.SCG_OUTPUT"
+		min = "0"
+		module = "SCG_OUTPUT"
+		height = "301"
+		title = "SCG_OUTPUT"
+		width = "301"
+		y = "260"
+		x = "400"
+		buffer_size = "50"
+		direction = "vertical"
+		show_title = "true"
+		show_frame = "true"
+	/>
+
+</view>
+
+    <!-- Population coding -->
+  <!--
+  <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="0" w="4" _min = "0" max="20" />
+    	<object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="1" w="4" _min = "0" max="20" />
+	
+   	<module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "20"/>
+        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "HZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
+        <connection  source = "BZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
+-->
 
 
 <view name="3D View">
