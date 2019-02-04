@@ -103,121 +103,6 @@ count_elements(const char * s)
 }
 
 
-/*
-int run_batch(Options * options);
-
-int
-run_batch(Options * options)
-{
-    printf("IKAROS: Running in batch mode.\n");
-    
-    // Set up path to load IKC file
-    
-    char * ikc_dir = options->GetFileDirectory();
-    char * ikc_file_name = options->GetFileName();
-
-    if (ikc_file_name[0] == 0)
-    {
-        printf( "Empty file name.\n");
-        return -1;
-    }
-    
-    char path[PATH_MAX];
-    copy_string(path, ikc_dir, PATH_MAX);
-    append_string(path, ikc_file_name, PATH_MAX);
-        printf("IKAROS: Reading XML file \"%s\".\n", ikc_file_name);
-
-    if (chdir(ikc_dir) < 0)
-    {
-        printf("IKAROS: The directory \"%s\" could not be found.\n", ikc_dir);
-        return -1;
-    }
-    
-    XMLDocument * xmlDoc = new XMLDocument(ikc_file_name, false, options->GetOption('X'));
-
-    if (xmlDoc->xml == NULL)
-    {
-        printf("IKAROS: Could not read (or find) \"%s\".\n", ikc_file_name);
-        return -1;
-    }
-
-    XMLElement * xml = xmlDoc->xml->GetElement("group");
-    if (xml == NULL)
-    {
-        printf("IKAROS: Did not find <group> element in IKC file \"%s\".\n", ikc_file_name);
-        return -1;
-    }
-
-    // Get max batch index
-
-
-    printf("IKAROS: BATCH: targets: ");
-    int batch_count = 0;
-    bool first = true;
-    for (XMLElement * xml_node = xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement("batch"))
-    {
-        if(xml_node->GetAttribute("target") != NULL)
-        {
-            if(first)
-                first = false;
-            else
-                printf(", ");
-            printf("%s", xml_node->GetAttribute("target"));
-        }
-        int c = count_elements(xml_node->GetAttribute("values"));
-        if(c > batch_count)
-            batch_count = c;
-    }
-    printf("\n");
-    printf("IKAROS: BATCH: count: %d\n", batch_count);
-    
-    // Change options
-    
-    options->ResetOption('B');
-    // Loop over each execution
-    
-    for(int i=1; i<=batch_count; i++)
-    {
-        char n[6];
-        snprintf(n, 5, "%d", i);
-        options->SetOption('b', n);
-        
-        printf("\nIKAROS: BATCH: #%d\n", i);
-        
-        try
-        {
-            Kernel	k(options);
-
-            k.ListInfo();
-
-            k.Init();
-            if(k.fatal_error_occurred)
-                return 1;
-
-            k.ListClasses();
-            k.ListModulesAndConnections();
-            k.ListScheduling();
-            k.ListThreads();
-            k.ListWarningsAndErrors();
-            k.Load();
-            k.Run();
-            k.Store();
-            k.PrintTiming();
-            k.ListProfiling();
-        }
-        catch(...)
-        {
-            printf("IKAROS: BATCH: An error occurred\n");
-        }
-    }
-
-    // delete xml tree ***
-    // delete options tree ***
-
-    return 0;
-}
-*/
-
 
 int
 main(int argc, char *argv[])
@@ -232,12 +117,6 @@ main(int argc, char *argv[])
 
     if (options->GetOption('v'))
         options->Print();
-/*
-    if (options->GetOption('B'))
-    {
-        return run_batch(options);
-    }
-*/
 
     // Create and Init kernel
 

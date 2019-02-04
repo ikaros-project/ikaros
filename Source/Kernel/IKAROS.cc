@@ -2109,7 +2109,6 @@ Kernel::Run()
             tick_is_running = true; // Flag that state changes are not allowed
             Tick();
             tick_is_running = false;
-            tick++;
             
             // Calculate idle_time
             

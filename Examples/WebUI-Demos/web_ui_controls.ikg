@@ -1,75 +1,41 @@
 <?xml version="1.0"?>
 
-<!-- Example of the different WebUI 2.0 objects filled with random values. -->
+<!-- Control test
+ 
+    M.x, M.E.data and M.D.data should always be the same value
+ 
+ -->
 
-<group name="WebUI Controls">
-    <view name="Controls">
-        <slider-horizontal label="X" parameter="C.data" x="20" y="40" width="100" height="100" />
-        <slider-horizontal label="X" parameter="C.data" x="20" y="80" width="100" height="100" />
+<group name="G" x="0.25" >
+
+    <group name="M">
+        <parameter name="x" target="data" />
+        
+        <module
+            class = "Constant"
+            name = "D"
+        />
+
+        <module
+            class = "Constant"
+            name = "E"
+        />
+    </group>
+    
+    <view name="Internal">
+        <slider-horizontal label="X" parameter="M.D.data" x="140" y="40" width="100" height="50" />
+        <slider-horizontal label="X" parameter="M.E.data" x="140" y="120" width="100" height="50" />
 
         <bar-graph
             x="440" y="40"
             width="301"
             height="301"
-            source="C.OUTPUT"
+            source="M.D.OUTPUT"
             title = "Bar Graph X"
             labels = "X"
             style = ""
         />
     </view>
-
-    <module
-        class = "Constant"
-        name = "C"
-        data = "0.5"
-    />
-
-    <group name="G" data="0.5" >
- 
-         <module
-            class = "Constant"
-            name = "D"
-        />
-
-        <view name="Internal">
-            <slider-horizontal label="X" parameter="D.data" x="140" y="40" width="100" height="100" />
-            <slider-horizontal label="X" parameter="D.data" x="140" y="80" width="100" height="100" />
-            
-            <bar-graph
-                x="440" y="40"
-                width="301"
-                height="301"
-                source="D.OUTPUT"
-                title = "Bar Graph X"
-                labels = "X"
-                style = ""
-            />
-        </view>
-        
-            <group name="G" data="0.5" >
- 
-                 <module
-                    class = "Constant"
-                    name = "E"
-                />
-
-                <view name="Internal">
-                    <slider-horizontal label="X" parameter="E.data" x="140" y="40" width="100" height="100" />
-                    <slider-horizontal label="X" parameter="E.data" x="140" y="80" width="100" height="100" />
-                    
-                    <bar-graph
-                        x="440" y="40"
-                        width="301"
-                        height="301"
-                        source="E.OUTPUT"
-                        title = "Bar Graph X"
-                        labels = "X"
-                        style = ""
-                    />
-                </view>
-                
-            </group>
-    </group>
 
     <module class="Logger" name="Logger" />
 </group>
