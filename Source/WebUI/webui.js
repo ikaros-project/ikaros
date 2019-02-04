@@ -331,14 +331,43 @@ module_inspector = {
 
     let m = module_inspector.module;
     
-    if(m.parameters.groups.length > 0)
+    if(m.parameters.groups.length > 0) // add group
     {
         let row = module_inspector.table.insertRow(-1);
+        let cell = row.insertCell(0);
+        cell.innerText = "GROUP";
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+        
+        row = module_inspector.table.insertRow(-1);
         let cell1 = row.insertCell(0);
         let cell2 = row.insertCell(1);
-        cell1.innerText = "GROUP";
+        cell1.innerText = "name";
         cell2.innerHTML = m.parameters["name"];
 
+        for(let p in m.parameters)
+        {
+            if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p!= "x" && p!= "y")
+            {
+                let row = module_inspector.table.insertRow(-1);
+                let value = m.parameters[p];
+                if(value)
+                    value = value.toString();
+                else
+                    value = p["default"]; // should never happen since all parameters should be sent to WebUI
+                cell1 = row.insertCell(0);
+                cell2 = row.insertCell(1);
+                cell1.innerText = p;
+                cell2.innerHTML = value;
+            }
+        }
+
+        row = module_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = "SUBGROUPS";
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+        
         row = module_inspector.table.insertRow(-1);
         cell1 = row.insertCell(0);
         cell2 = row.insertCell(1);
@@ -351,11 +380,18 @@ module_inspector = {
         cell1.innerText = "connections";
         cell2.innerHTML = m.parameters.connections.length;
 
+
     }
     
     else // add module
     {
         let row = module_inspector.table.insertRow(-1);
+        let cell = row.insertCell(0);
+        cell.innerText = "MODULE";
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+        
+        row = module_inspector.table.insertRow(-1);
         let cell1 = row.insertCell(0);
         let cell2 = row.insertCell(1);
         cell1.innerText = "name";
