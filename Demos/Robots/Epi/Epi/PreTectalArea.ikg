@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group name="PreTectalArea" description="model of the pretectal area that sums its inputs and puts it through a sline funcion">
+<group name="PreTectalArea" description="model of the pretectal area that sums its inputs and puts it through a spline funcion">
     
     <parameter name="light_response" module="LightResponse" target="points" />
 
