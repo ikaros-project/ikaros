@@ -17,7 +17,6 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
             {'name': "CONTROL", 'control':'header'},
             
-            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
@@ -84,15 +83,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             if(x < 0 || x >= this.data[0].length || y < 0 || y >= this.data.length)
                 return;
 
-            if(this.parameters.command && this.parameters.module)
-                this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+            if(this.parameters.command)
+                this.get("/command/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
             
-            else if(this.parameters.parameter && this.parameters.module)
+            else if(this.parameters.parameter)
             {
                 if(this.data[y][x] < this.parameters.valueHigh)
-                    this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+                    this.get("/control/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
                 else
-                    this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueLow);
+                    this.get("/control/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueLow);
             }
         }
     }

@@ -331,8 +331,7 @@
             height="200"
             title="Gray Grid"
             source="GridConst.OUTPUT"
-            module="GridConst"
-            parameter="data"
+            parameter="GridConst.data"
         />
 
         <grid
