@@ -1902,21 +1902,16 @@ Kernel::Kernel()
     
     // ------------ WebUI part --------------
     
-    webui_dir = NULL;
-    xml = NULL;
-    current_xml_root = NULL;
-    current_xml_root_path = create_string("");
-    ui_state = ui_state_pause;
-    master_id = 0;
-//    ui_data = NULL;
-//    dont_copy_data = false;
-    tick_is_running = false;
-    debug_mode = false;
-    isRunning = false;
-    idle_time = 0;
-
-    iterations_per_runstep = 1;
-
+    webui_dir               = NULL;
+    xml                     = NULL;
+    current_xml_root        = NULL;
+    current_xml_root_path   = create_string("");
+    ui_state                = ui_state_pause;
+    master_id               = 0;
+    tick_is_running         = false;
+    debug_mode              = false;
+    isRunning               = false;
+    idle_time               = 0;
 }
 
 
@@ -1966,9 +1961,6 @@ Kernel::SetOptions(Options * opt)
     
     // WebUI Part
     
-    if(options->GetOption('u'))
-        iterations_per_runstep = string_to_int(options->GetArgument('u'));
-
     port = PORT;
     if (options->GetOption('w'))
         port = string_to_int(options->GetArgument('w'), PORT);
@@ -2062,28 +2054,6 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 bool
 Kernel::Terminate()
 {
-/*
-    if(max_ticks > 0)
-    {
-        const int segments = 50;
-        int lp = int(100*float(tick-1)/float(max_ticks));
-        int percent = int(100*float(tick)/float(max_ticks));
-         if(tick > 0 && percent != lp)
-        {
-            int p = (segments*percent)/100;
-            printf("  Progress: [");
-            for(int i=0; i<segments; i++)
-                if(i < p)
-                    printf("=");
-                else
-                    printf(" ");
-            printf("] %3d%%\r", percent);
-            fflush(stdout);
-            if(tick == max_ticks)
-                printf("\n");
-        }
-    }
-*/
     if(max_ticks != -1 && tick >= max_ticks)
         return !Notify(msg_debug, "Max ticks reached.\n");
 
@@ -2751,25 +2721,6 @@ Kernel::SendCommand(const char * group, const char * command, float x, float y, 
     if(auto * g = main_group->GetGroup(group))
         if(Module * m = g->module)
             m->Command(command, x, y, value);
-/*
-    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-    {
-        // Set parameters of modules in this group
-       if(xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
-        {
-            Module * m = (Module *)(xml->aux);
-            if(m != NULL)
-                m->Command(command_name, x, y, value);
-         }
-
-        // Set parameters in included groups
-        else if(xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
-        {
-            const char * new_module = wildcard;
-            SendCommand(xml, new_module, command_name, x, y, value);
-        }
-    }
-*/
 }
 
 
@@ -3525,6 +3476,7 @@ Kernel::ListProfiling()
     if(!options->GetOption('p')) return;
     // Calculate Total Time
     float total_module_time = 0;
+    float non_listed_modules = 0;
     for (Module * & m : _modules)
         total_module_time += m->time;
     Notify(msg_print, "\n");
@@ -3542,13 +3494,15 @@ Kernel::ListProfiling()
     Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
     Notify(msg_print, "----------------------------------------------------------------------\n");
     for (Module * & m : _modules)
-        if(m->ticks > 0)
+        if(m->ticks > 0 && m->time/m->ticks > 1.0)
             Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
         else
-            Notify(msg_print, "%-20s%-20s%       ---f\n", m->GetName(), m->GetClassName());
+            non_listed_modules += (m->time/m->ticks);
+//            Notify(msg_print, "%-20s%-20s%       ---f\n", m->GetName(), m->GetClassName());
     Notify(msg_print, "----------------------------------------------------------------------\n");
     if(useThreads)
         Notify(msg_print, "Note: Time is real-time, not time in thread.\n");
+    Notify(msg_print, "Additional modules used on average %0.2f ms together per tick\n", non_listed_modules);
     Notify(msg_print, "\n");
 }
 
@@ -3706,283 +3660,6 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
     return true;
 }
 
-
-
-/*
-void
-WebUI::CopyUIData()
-{
-    if(!view_data)
-        return;
- 
-    while(tick_is_running)
-        ; // Whait for tick to end
- 
-    // Step 1: calculate size
- 
-    int size = 0;
-
-    for (ModuleData * md=view_data; md != NULL; md=md->next)
-    {
-        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
-        {
-            switch(sd->type)
-            {
-                 case data_source_array:
-                    size += sd->size_x;
-                    break;
- 
-                case data_source_matrix:
-                case data_source_gray_image:
-                case data_source_red_image:
-                case data_source_green_image:
-                case data_source_blue_image:
-                case data_source_spectrum_image:
-                case data_source_fire_image:
-                    size += sd->size_x * sd->size_y;
-                    break;
- 
-                case data_source_rgb_image:
-                case data_source_bmp_image:
-                    size += 3 * sd->size_x * sd->size_y;
-                    break;
- 
-                case data_source_float:
-                case data_source_int:
-                case data_source_bool:
-                case data_source_list:
-                    size++; // int, list, bool, float
-                    break;
-
-                case data_source_string:
-                {
-                    const char * cs = ((std::string *)(sd->data))->c_str();
-                    size += strlen(cs)/sizeof(float)+1;
-                    break;
-                }
- 
-                default:
-                    k->Notify(msg_warning, "WebUI: Unkown data type");
-                    break;
-            }
-        }
-    }
-
-    // Allocate memory
- 
-    float * local_ui_data = create_array(size);
- 
-    if(!local_ui_data)
-    {
-        k->Notify(msg_warning, "WebUI: Cannot allocate memory for data");
-        return;
-    }
-
-    float * p = local_ui_data;
-
-    // Step 2: copy the data
-
-    for (ModuleData * md=view_data; md != NULL; md=md->next)
-    {
-        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
-        {
-            switch(sd->type)
-            {
-                case data_source_int:
-                case data_source_list:
-                    *(p++) = *(int *)(sd->data);
-                    break;
- 
-                case data_source_bool:
-                    *(p++) = (*(bool *)(sd->data) ? 1 : 0);
-                    break;
- 
-                case data_source_float:
-                    *(p++) = *(float *)(sd->data);
-                    break;
-
-                case data_source_string:
-                {
-                    char *  cp = (char *)p;
-                    const char * cs = ((std::string *)(sd->data))->c_str();
-                    strcpy(cp, cs);
-                    p += strlen(cs)/sizeof(float)+1;
-                    break;
-                }
-
-                case data_source_array:
-                    copy_array(p, (float *)(sd->data), sd->size_x);
-                    p += sd->size_x;
-                    break;
-
-                case data_source_matrix:
-//                case data_source_gray_image:
-                case data_source_red_image:
-                case data_source_green_image:
-                case data_source_blue_image:
-                case data_source_spectrum_image:
-                case data_source_fire_image:
-                    copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
-                    p += sd->size_x*sd->size_y;
-                    break;
-
-                case data_source_gray_image:
-                    {
-                        float * temp = copy_array(create_array(sd->size_x*sd->size_y), *(float **)(sd->data), sd->size_x*sd->size_y);
-                        float mn, mx;
-                        minmax(mn, mx, temp, sd->size_x*sd->size_y);
-                        if(mx-mn > 0)
-                        {
-                            subtract(temp, mn, sd->size_x*sd->size_y);
-                            multiply(temp, 1/(mx-mn), sd->size_x*sd->size_y);
-                        }
-                        copy_array(p, temp, sd->size_x*sd->size_y);
-                        p += sd->size_x*sd->size_y;
-                        destroy_array(temp);
-                    }
-                    break;
-
-                case data_source_rgb_image:
-                case data_source_bmp_image:
-                    copy_array(p, *(float **)(sd->data), sd->size_x*sd->size_y);
-                    p += sd->size_x*sd->size_y;
-                    copy_array(p, *(float **)(sd->data2), sd->size_x*sd->size_y);
-                    p += sd->size_x*sd->size_y;
-                    copy_array(p, *(float **)(sd->data3), sd->size_x*sd->size_y);
-                    p += sd->size_x*sd->size_y;
-                    break;
-            }
-        }
-    }
- 
-    // Step 3: store in ui_data
-
-    float * old_ui_data = atomic_exchange(&ui_data, local_ui_data);
-    if(old_ui_data)
-        destroy_array(old_ui_data);
-}
-*/
-/*
-void
-WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-format
-{
-    // Grab ui data
- 
-    float * p = atomic_exchange(&ui_data, (float *)(NULL));
-    float * q = p;
-
-    long int s = 0;
-
-    // Send
-
-    Dictionary header;
- 
-    header.Set("Session-Id", std::to_string(k->session_id).c_str()); // FIXME: GetValue("session_id")
-    header.Set("Content-Type", "application/json");
-    header.Set("Cache-Control", "no-cache");
-    header.Set("Cache-Control", "no-store");
-    header.Set("Pragma", "no-cache");
-    header.Set("Expires", "0");
- 
-    socket->SendHTTPHeader(&header);
-
-    socket->Send("{\n");
-    socket->Send("\t\"state\": %d,\n", ui_state);
- 
-    if(k->max_ticks > 0)
-    {
-        socket->Send("\t\"iteration\": \"%d / %d\",\n", k->GetTick(), k->max_ticks);
-        socket->Send("\t\"progress\": %f,\n", float(k->tick)/float(k->max_ticks));
-    }
-    else
-    {
-        socket->Send("\t\"iteration\": %d,\n", k->GetTick());
-        socket->Send("\t\"progress\": 0\n");
-    }
-
-    // Timing information
- 
-    float total_time = k->timer->GetTime()/1000.0; // in seconds
- 
-    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
-    socket->Send("\t\"total_time\": %.2f,\n", total_time);
-    socket->Send("\t\"ticks_per_s\": %.2f,\n", float(k->tick)/total_time);
-    socket->Send("\t\"timebase\": %d,\n", k->tick_length);
-    socket->Send("\t\"timebase_actual\": %.0f,\n", k->tick > 0 ? 1000*float(total_time)/float(k->tick) : 0);
-    socket->Send("\t\"lag\": %.0f,\n", k->lag);
-    socket->Send("\t\"cpu_cores\": %d,\n", k->cpu_cores);
-    socket->Send("\t\"idle_time\": %.3f,\n", idle_time);  // TODO: move to kernel from WebUI
-    socket->Send("\t\"cpu_usage\": %.3f", k->cpu_usage);
- 
-    if(!p)
-    {
-        socket->Send(",\"has_data\": 0\n}\n");
-        if (debug_mode)
-            printf("SENT EMPTY PACKAGE\n");
-
-        return;
-    }
-
-    if (view_data != NULL)
-        socket->Send(",\n");
-    else
-        socket->Send("\n");
-
-    for (ModuleData * md=view_data; md != NULL; md=md->next)
-    {
-        if(equal_strings(md->name, k->GetXMLAttribute(current_xml_root, "name")))
-            socket->Send("\t\"*\":\n\t{\n");
-        else
-            socket->Send("\t\"%s\":\n\t{\n", md->name);
- 
-        for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
-        {
-            switch(sd->type)
-            {
-                case data_source_int:
-                case data_source_list:
-                case data_source_bool:
-                case data_source_float:
-                    socket->Send("\t\t\"%s\": [[%f]]", sd->name, *p++);
-                    break;
-
-                case data_source_string:
-                    socket->Send("\t\t\"%s\": \"%s\"", sd->name, (char *)p);
-                    p += strlen((char *)p)/sizeof(float)+1;
-                    break;
- 
-                case data_source_array:
-                    SendJSONArrayData(socket, md->name, sd->name, p, sd->size_x);
-                    p += sd->size_x;
-                    break;
- 
-            }
-
-            if (sd->next != NULL)
-                socket->Send(",\n");
-            else
-                socket->Send("\n");
-        }
- 
-        if (md->next != NULL)
-            socket->Send("\t},\n");
-        else
-            socket->Send("\t}\n");
-    }
-
-    if(tick_is_running) // new tick has started during sending
-        socket->Send(",\"has_data\": 0\n"); // there may be data but it cannot be trusted
-    else
-        socket->Send(",\"has_data\": 1\n");
-
-    socket->Send("}\n");
- 
-    destroy_array(q);
- 
-    if (debug_mode)
-        printf("SENT DATA PACKAGE\n");
-}
-*/
 
 
 void
