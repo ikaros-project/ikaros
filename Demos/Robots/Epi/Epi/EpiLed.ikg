@@ -14,7 +14,7 @@
 </module>
 
 <!-- Eye Color -->
-<module class = "Constant" name = "ColorValue"  data = "0.5" />
+<module class = "Constant" name = "ColorValue"  data = "1.5" />
 
 <!-- Blink -->
 <!-- Off -->

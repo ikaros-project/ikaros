@@ -344,7 +344,7 @@ VisionInput = "InputJPEG_not_workgin"
 
 	<!-- Intense -->
 	<module class = "Constant" name = "EIntense" data = "1´" />
-		<connection source = "EIntense.OUTPUT"  target = "LED.EYE_INTENSE" />
+		<connection source = "INT.OUTPUT"  target = "LED.EYE_INTENSE" />
 	<module class = "Constant" name = "MIntense" data = "1´" />
 		<connection source = "MIntense.OUTPUT"  target = "LED.MOUTH_INTENSE" />
 
@@ -370,6 +370,17 @@ VisionInput = "InputJPEG_not_workgin"
 		amplitude	=	"1"
 	    shift		=	"0.1"
     />
+		<!-- Speeking -->
+		<module
+		class		=	"FunctionGenerator"
+		name		=	"INT"
+		type		=	"sin"
+		frequency	=	"0.2"
+		offset      =	"0.5"
+		amplitude	=	"0.3"
+	    shift		=	"0.1"
+    />
+
 	<connection source = "Speek.OUTPUT"  target = "LED.SPEEKING" />
 
 
