@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!--
+
+    Example of parameter renaming using the parameters element
+
+-->
+
+<group>
+	
+	<group name="G1" maximum="5" max="7">
+	
+		<!-- The parameter "maximum" of the group is mapped to the parameter "max" of R1 and R2 -->
+		
+		<parameter name="maximum" target="max" />
+		
+		<!-- Here we declare the two Randomizer modules as usual, but without the max attribute -->
+		
+		<module class = "Randomizer" name = "R1" outputsize = "5" min="0" max="@maximum" />
+		<module class = "Randomizer" name = "R2" outputsize = "5" min="0" />
+        
+	</group>
+
+</group>
+
