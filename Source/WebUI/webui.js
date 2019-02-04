@@ -380,7 +380,25 @@ module_inspector = {
         cell1.innerText = "connections";
         cell2.innerHTML = m.parameters.connections.length;
 
-
+        // POSITION
+        
+        row = module_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = "POSITION";
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+        
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "x";
+        cell2.innerHTML = m.parameters['x'];
+        
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "y";
+        cell2.innerHTML = m.parameters['y'];
     }
     
     else // add module
@@ -425,6 +443,26 @@ module_inspector = {
         cell2 = row.insertCell(1);
         cell1.innerText = "description";
         cell2.innerHTML = m.parameters["description"];
+
+        // POSITION
+        
+        row = module_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = "POSITION";
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+        
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "x";
+        cell2.innerHTML = m.parameters['x'];
+        
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "y";
+        cell2.innerHTML = m.parameters['y'];
     }
     },
     select: function (obj)
@@ -609,17 +647,19 @@ interaction = {
         grid = document.getElementById('grid');
         for(let i=1; i<250; i++)
         {
-            grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px"></div>'
-            grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px"></div>'
+            if(i*interaction.grid_spacing > 2000) // should check main canvas size instead
+                break;
+            grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px; height: 2000px"></div>'
+            grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px; width: 2000px"></div>'
         }
     },
     changeGrid: function(spacing) {
         interaction.grid_spacing = spacing;
         vgrids = document.querySelectorAll('.vgrid');
-        for(let i = 0; i <    vgrids.length; i++)
+        for(let i = 0; i < vgrids.length; i++)
             vgrids[i].style.left = ""+(i+1)*spacing+"px";
         hgrids = document.querySelectorAll('.hgrid');
-        for(let i = 0; i <    hgrids.length; i++)
+        for(let i = 0; i < hgrids.length; i++)
             hgrids[i].style.top = ""+(i+1)*spacing+"px";
     },
     increaseGrid() {
@@ -820,11 +860,16 @@ interaction = {
                 interaction.main.appendChild(newObject);
 
                 newObject.parameters = v[i];
-                newObject.parameters.x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                newObject.parameters.y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
-
+                
+                if(!newObject.parameters.x)
+                {
+                    newObject.parameters.x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    newObject.parameters.y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                }
+                
                 interaction.module_pos[v[i].name] = {'x':newObject.parameters.x, 'y': newObject.parameters.y};
 
+            
                 newObject.style.top = (newObject.parameters.y-m_radius_x)+"px";
                 newObject.style.left = (newObject.parameters.x-m_radius_y)+"px";
                 newObject.style.width = m_width+"px";
@@ -1005,6 +1050,12 @@ interaction = {
         return false;
     },
     setModulePosition: function (dx, dy, constrain) {
+        let m_width = 100;  // should not be repeated here
+        let m_height = 100;
+        let m_corner = 50;
+        let m_radius_x = m_width/2;
+        let m_radius_y = m_height/2;
+        
         let newLeft = interaction.startX + dx;
         let newTop = interaction.startY + dy;
 
@@ -1018,8 +1069,8 @@ interaction = {
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters['x'] = newLeft;
-        interaction.selectedObject.parameters['y'] = newTop;
+        interaction.selectedObject.parameters['x'] = newLeft + m_radius_x;
+        interaction.selectedObject.parameters['y'] = newTop + m_radius_y;
         interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
     },
     selectModule: function(obj) {
