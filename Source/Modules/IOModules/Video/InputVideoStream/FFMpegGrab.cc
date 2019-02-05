@@ -28,14 +28,13 @@
 // And enormous amount of googleing...
 
 #include "FFMpegGrab.h"
-
+#include "IKAROS.h"
 using namespace ikaros;
 
 FFMpegGrab::FFMpegGrab()
-{
-#ifdef FFMPEGLOG
-	printf("FFMpegGrab Create()\n");
-#endif
+{	
+	kernel().Notify(msg_debug, "FFMpegGrab Create()\n");
+
 	//av_register_all();
 	avformat_network_init();
 	av_log_set_level(AV_LOG_INFO);
@@ -43,10 +42,10 @@ FFMpegGrab::FFMpegGrab()
 
 bool FFMpegGrab::Init()
 {
-#ifdef FFMPEGLOG
-	printf("FFMpegGrab Init()\n");
-#endif
-	
+	kernel().Notify(msg_debug, "FFMpegGrab Init()\n");
+
+	//Notify(msg_debug,"test");
+
 	AVInputFormat *file_iformat = NULL;
 	// uv4l uses raw h264
 	if (uv4l)
@@ -60,7 +59,7 @@ bool FFMpegGrab::Init()
 	/// Open video file
 	if(avformat_open_input(&input_format_context, url, file_iformat, &options) != 0) // Allocating input_format_context
 	{
-		printf("FFMpegGrab: Could not open file %s\n",url);
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Could not open file %s\n",url);
 		return false;
 	}
 	av_dict_free(&options);
@@ -69,7 +68,7 @@ bool FFMpegGrab::Init()
 	//if(avformat_find_stream_info(input_format_context, NULL) < 0)
 	if(av_find_best_stream(input_format_context, AVMEDIA_TYPE_VIDEO,0,0,NULL,0))
 	{
-		printf("FFMpegGrab: Couldn't find stream information\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Couldn't find stream information\n");
 		return false;
 	}
 	
@@ -89,7 +88,7 @@ bool FFMpegGrab::Init()
 	}
 	if(videoStreamId==-1)
 	{
-		printf("FFMpegGrab: Didn't find a video stream\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Didn't find a video stream\n");
 		return false;
 	}
 	
@@ -98,7 +97,7 @@ bool FFMpegGrab::Init()
 	{
 		input_codec = avcodec_find_decoder_by_name ("h264_mmal");
 		if (input_codec)
-			printf("FFMpegGrab:Using HW decoding (mmal)\n");
+			kernel().Notify(msg_debug, "FFMpegGrab:Using HW decoding (mmal)\n");
 		else
 			input_codec = avcodec_find_decoder(AV_CODEC_ID_H264);
 	}
@@ -107,7 +106,7 @@ bool FFMpegGrab::Init()
 	
 	if(input_codec==NULL)
 	{
-		printf("FFMpegGrab: Unsupported codec!\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Unsupported codec!\n");
 		return false;
 	}
 	
@@ -115,7 +114,7 @@ bool FFMpegGrab::Init()
 	avctx = avcodec_alloc_context3(input_codec);
 	if (!avctx)
 	{
-		printf("FFMpegGrab: Could not allocate a decoding context\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Could not allocate a decoding context\n");
 		avformat_close_input(&input_format_context);
 		return false;
 	}
@@ -126,26 +125,31 @@ bool FFMpegGrab::Init()
 	{
 		avformat_close_input(&input_format_context);
 		avcodec_free_context(&avctx);
-		printf("FFMpegGrab: Could not set paramters to context\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Could not set paramters to context\n");
 		return false;
 		
 	}
 	/// Open codec
 	if( avcodec_open2(avctx, input_codec, NULL) < 0 )
 	{
-		printf("FFMpegGrab: Could not open codec\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Could not open codec\n");
 		return false;
 	}
 	
 	inputFrame = av_frame_alloc();    // Input
 	if(inputFrame == NULL)
 	{
-		printf("FFMpegGrab: Could not allocate AVFrame\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Could not allocate AVFrame\n");
 		return false;
 	}
 	
+	// This is not always working.
 	inputSizeX = int(avctx->width);
 	inputSizeY = int(avctx->height);
+	
+	if(inputSizeX == 0 and inputSizeY == 0)
+		kernel().Notify(msg_warning, "FFMpegGrab: Could not figure out resolution of stream at init. Will scale output to size_x size_y parameters. \n");
+
 	
 	// Outputframe
 	outputFrame = av_frame_alloc();   		// Output (after resize and convertions)
@@ -157,7 +161,7 @@ bool FFMpegGrab::Init()
 	
 	if(outputFrame==NULL)
 	{
-		printf("FFMpegGrab: Could not allocate AVFrame\n");
+		kernel().Notify(msg_fatal_error, "FFMpegGrab: Could not allocate AVFrame\n");
 		return false;
 	}
 	
@@ -177,8 +181,7 @@ FFMpegGrab::~FFMpegGrab()
 	while (!shutdownComplete) {
 		sleep(1);
 	}
-	if (printInfo)
-		printf("FFMpegGrab: Shuting down complete\n");
+	kernel().Notify(msg_debug, "FFMpegGrab: Shuting down complete\n");
 	delete ikarosFrame;
 	av_freep(&inputFrame->data[0]);
 	av_free(inputFrame);
@@ -215,6 +218,8 @@ void FFMpegGrab::loop()
 				decode(avctx, inputFrame, &gotFrame, &packet);
 				if (gotFrame)                                   // Decoder gave us a video frame
 				{
+						
+
 #ifdef FFMPEGTIMER
 					printf("FFMpegGrab: Decoded Time %f\n",timerSub.GetTime());
 					timerSub.Restart();
@@ -222,7 +227,7 @@ void FFMpegGrab::loop()
 
 					//	Convert the frame to AV_PIX_FMT_RGB24 format
 					static struct SwsContext *img_convert_ctx;
-					img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
+					img_convert_ctx = sws_getCachedContext(NULL,avctx->width, avctx->height,
 														   avctx->pix_fmt,
 														   outputSizeX, outputSizeY, AV_PIX_FMT_RGB24,
 														   SWS_BICUBIC, NULL, NULL, NULL);
@@ -265,12 +270,13 @@ void FFMpegGrab::loop()
 					{
 						FPS = FPS + (1.0/timer.GetTime()*1000.0-FPS)*0.02; // Moving avarage mean FPS
 						timer.Restart();
-						printf("FFMpegGrab: FPS %.0f\n",FPS);
+						kernel().Notify(msg_debug, "FFMpegGrab %s: FPS %.0f\n",url, FPS);
+
 					}
 					if (shutdown)
 					{
 						if (printInfo)
-							printf("FFMpegGrab: Shuting down\n");
+							kernel().Notify(msg_debug, "FFMpegGrab: Shuting down\n");
 						break;
 					}
 				}
