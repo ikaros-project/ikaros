@@ -3886,8 +3886,6 @@ Kernel::HandleControlChange(char * uri, char * args)
         {
             ui_state = ui_state_realtime;
             master_id = client_id;
-            timer->Restart();
-            tick = 0;
             isRunning = true;
         }
 
