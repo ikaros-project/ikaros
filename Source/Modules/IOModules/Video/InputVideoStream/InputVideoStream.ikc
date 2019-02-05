@@ -29,7 +29,28 @@
 	<output name="BLUE" description="The blue channel." />
 	<output name="INTENSITY" description="The intensity channel." />
 	
-	
+	<view name = "Default View">
+		<image
+		max_x = "1"
+		title = "Output"
+		width = "381"
+		flipYCanvas = "no"
+		x = "60"
+		source = ".RED+GREEN+BLUE"
+		format = "rgb"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		h = "4"
+		height = "321"
+		max_y = "1"
+		y = "60"
+		flipXAxis = "no"
+		scale = "both"
+		class = "image"
+		scales = "no"
+		w = "4"
+		/>	
+	</view>
 	
 	<author>
 		<name>Birger Johansson</name>
