@@ -1909,6 +1909,7 @@ Kernel::Kernel()
     ui_state                = ui_state_pause;
     master_id               = 0;
     tick_is_running         = false;
+    sending_ui_data         = false;
     debug_mode              = false;
     isRunning               = false;
     idle_time               = 0;
@@ -2073,6 +2074,9 @@ Kernel::Run()
 
     timer->Restart();
     tick = 0;
+    
+//    Timer * idle_timer = new Timer();
+//    idle_timer->Restart();
 
     httpThread = new std::thread(Kernel::StartHTTPThread, this);
 
@@ -2120,11 +2124,17 @@ Kernel::Run()
                 lag = timer->WaitUntil(float(tick*tick_length));
                 if (lag > 0.1) Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, tick);
             }
+            else if (ui_state == ui_state_realtime)
+            {
+                while(sending_ui_data)
+                    {}
+            }
         }
     }
 
     httpThread->join();
     delete httpThread;
+//    delete idle_timer;
 }
 
 
@@ -3664,6 +3674,10 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
 void
 Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
 {
+    sending_ui_data = true; // must be set while main thread is still running
+    while(tick_is_running)
+        {}
+    
     Dictionary header;
     
     header.Set("Session-Id", std::to_string(session_id).c_str()); // FIXME: GetValue("session_id")
@@ -3817,6 +3831,8 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
         socket->Send(",\n\t\"has_data\": 1\n");
 
     socket->Send("}\n");
+    
+    sending_ui_data = false;
 }
 
 
