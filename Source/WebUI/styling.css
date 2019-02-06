@@ -163,6 +163,17 @@ li {
     color: black;
 }
 
+li.group-open::before {
+    content: "▽ ";
+}
+
+li.group-closed::before {
+    content: "▷ ";
+}
+
+li.group-closed > ul {
+    display: none;
+}
 
 main {
     padding: 0px;

@@ -112,8 +112,15 @@ nav = {
         nav.populate(nav.navigator);
         nav.navigator.addEventListener("click", nav.navClick, false);
     },
+    toggleGroup(e) {
+        if(e.target.getAttribute("class") == "group-open")
+            e.target.setAttribute("class", "group-closed");
+        else if(e.target.getAttribute("class") == "group-closed")
+            e.target.setAttribute("class", "group-open");
+        nav.navClick(e);
+    },
     buildList: function(group, name) {
-        var s = "<li data-name='"+name+"/"+group.name+"'>" + group.name; // or title
+        var s = "<li data-name='"+name+"/"+group.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'>" + group.name; // FIXME: or title
 
         if(group.views)
         {
