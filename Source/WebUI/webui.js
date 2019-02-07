@@ -107,21 +107,26 @@ function toggleSystem()
 nav = {
 
     init: function (g) {
+        if(!g)
+            alert("ERR");
         nav.group = g;
         nav.navigator = document.getElementById('navigator');
         nav.populate(nav.navigator);
-        nav.navigator.addEventListener("click", nav.navClick, false);
+//        nav.navigator.addEventListener("click", nav.navClick, false);
     },
     toggleGroup(e) {
         if(e.target.getAttribute("class") == "group-open")
             e.target.setAttribute("class", "group-closed");
         else if(e.target.getAttribute("class") == "group-closed")
             e.target.setAttribute("class", "group-open");
-        nav.navClick(e);
+        e.stopPropagation();
+    },
+    navClick: function(e) {
+        interaction.addView(e.target.parentElement.dataset.name);
+        e.stopPropagation();
     },
     buildList: function(group, name) {
-        var s = "<li data-name='"+name+"/"+group.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'>" + group.name; // FIXME: or title
-
+        var s = "<li data-name='"+name+"/"+group.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.name + "</span>"; // FIXME: or title
         if(group.views)
         {
             s +=  "<ul>"
@@ -129,11 +134,10 @@ nav = {
             {
                 if(!group.views[i].name)
                     group.views[i].name = "View #"+i;
-                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + group.views[i].name + "</li>";
+                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.views[i].name + "</span></li>";
             }
             s += "</ul>";
         }
-
         if(group.groups)
         {
             s +=  "<ul>"
@@ -141,20 +145,11 @@ nav = {
                 s += nav.buildList(group.groups[i], name+"/"+group.name);
             s += "</ul>";
         }
-
         s += "</li>";
-
         return s;
     },
     populate: function (element) {
         element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
-    },
-    navClick: function(e) {
-        if (e.target !== e.currentTarget)
-        {
-            interaction.addView(e.target.getAttribute("data-name"));
-        }
-        e.stopPropagation();
     }
 }
 
@@ -304,7 +299,6 @@ inspector = {
         // Send changed value to server
     }
 }
-
 
 
 
@@ -1313,20 +1307,20 @@ controller = {
         controller.ping = Date.now() - controller.send_stamp;
 
         // Check if this is a new session
-
         if(!response)
         {
             controller.requestUpdate(); // empty respone - probably an error
         }
         else if(controller.session_id != session_id) // new session
         {
-            console.log("NEW SESSION "+session_id+" :"+['stop','pause','step','play','realtime'][response.state]);
+//            console.log("NEW SESSION "+session_id+" :"+['stop','pause','step','play','realtime'][response.state]);
             if(response.state)
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             else
                 controller.run_mode = 'pause'
             controller.session_id = session_id;
             nav.init(response);
+            controller.views = {};
             controller.buildViewDictionary(response, "");
             controller.selectView(Object.keys(controller.views)[0]);
         }
@@ -1345,7 +1339,7 @@ controller = {
                 document.querySelector("#idle_time").value = response.idle_time;
                 document.querySelector("#usage").value = response.cpu_usage;
 
-                document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1);
+                document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1) + (response.has_data ? "": " (no data)");
                 document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
                 document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";

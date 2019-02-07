@@ -164,11 +164,11 @@ li {
 }
 
 li.group-open::before {
-    content: "▽ ";
+    content: "\0025BD\0020";
 }
 
 li.group-closed::before {
-    content: "▷ ";
+    content: "\0025B7\0020";
 }
 
 li.group-closed > ul {
