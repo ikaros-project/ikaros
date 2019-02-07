@@ -44,8 +44,6 @@ bool FFMpegGrab::Init()
 {
 	kernel().Notify(msg_debug, "FFMpegGrab Init()\n");
 
-	//Notify(msg_debug,"test");
-
 	AVInputFormat *file_iformat = NULL;
 	// uv4l uses raw h264
 	if (uv4l)
@@ -248,6 +246,8 @@ void FFMpegGrab::loop()
 					mtx.lock();
 					freshData = true;
 					memcpy(ikarosFrame, outputFrame->data[0], outputSizeX*outputSizeY*3*sizeof(uint8_t));
+					//printf("FFMpegGrab: new framme\n");
+
 					mtx.unlock();
 #ifdef FFMPEGTIMER
 					printf("FFMpegGrab: memcpy Time %f\n",timerSub.GetTime());
@@ -270,7 +270,7 @@ void FFMpegGrab::loop()
 					{
 						FPS = FPS + (1.0/timer.GetTime()*1000.0-FPS)*0.02; // Moving avarage mean FPS
 						timer.Restart();
-						kernel().Notify(msg_debug, "FFMpegGrab %s: FPS %.0f\n",url, FPS);
+						kernel().Notify(msg_print, "FFMpegGrab %s: FPS %.0f\n",url, FPS);
 
 					}
 					if (shutdown)
