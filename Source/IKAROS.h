@@ -472,6 +472,7 @@ public:
 //    std::atomic<float *> ui_data;       
 //    std::atomic<bool> dont_copy_data;
     std::atomic<bool> tick_is_running;
+    std::atomic<bool> sending_ui_data;
     
     void            SendXML();
     void            ReadXML(XMLDocument * xmlDoc);
