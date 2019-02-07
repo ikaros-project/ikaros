@@ -8,6 +8,9 @@ servosIndexLeftArm = "5"
 servosIndexRightArm = "11"
 servosIndexPupil = "17"
 
+servosIndexPupilLeft = "17"
+servosIndexPupilRight = "18"
+
 nrServosBody = "1"
 nrServosHead = "4"
 nrServosLeftArm = "6"
@@ -15,8 +18,9 @@ nrServosRightArm = "6"
 nrServosPupil = "2"
 nrServosTotal = "19"
 
-VisionInput = "InputJPEG_not_workgin"
+VisionInput = "InputVideoStream"
 
+PupilModelA = "100"
 
 >
 	<!-- import frame and id for epi robots> -->
@@ -280,8 +284,8 @@ VisionInput = "InputJPEG_not_workgin"
 <!-- ********************************* 	-->
 
 <!-- Sensors -->
-<module class = "EpiVision" 	VisionInput = "InputVideo" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
-<module class = "EpiVision" 	VisionInput = "InputJPEG" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" active = "yes" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" active = "yes"	name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
 
 
 
@@ -308,13 +312,15 @@ VisionInput = "InputJPEG_not_workgin"
 <!-- ************************ -->
 <!-- ************************ -->
 
-<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "1" by_row = "true"/>
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2" by_row = "true"/>
 	<connection source = "HighLevelMotorArbiter.OUTPUT"  	target = "LowLevelArbiter.INPUT_1" />
+	<connection source = "PupilContPop.OUTPUT"  			target = "LowLevelArbiter.INPUT_2" />
    
 
 <!-- Popalation decoder -->
 <module class = "PopulationDecoder" name = "GOAL_POSITION" min  = "-400" max  = "400" size = "@nrServosTotal"/>
 	<connection source = "LowLevelArbiter.OUTPUT"  target = "GOAL_POSITION.INPUT" />
+
 
  <!-- Sound -->
 	<!--
@@ -390,81 +396,107 @@ VisionInput = "InputJPEG_not_workgin"
 	<!-- Behaviors -->
     <!-- Light reflex etc -->
     <module class="PupilControl" name="PupilControl"/>
-    	<connection  source = "LeftEye.LOW_RES_INTENSITY"  target = "PupilControl.PTA" />
+    	<connection  source = "LeftEye.LOW_RES_INTENSITY"  	target = "PupilControl.PTA" />	
+    	<connection  source = "IML_EXCITATION.OUTPUT"  		target = "PupilControl.IML_EXCITATION" />	
 
-<view name="PupilControll">
+	<module class = "Constant" name = "IML_EXCITATION" data = "0.5" />
+
+<view name="PupilControl">
 
 	<image
-		class = "image"
-		flipXAxis = "no"
-		scale = "both"
-		width = "321"
-		title = "Low"
-		max_x = "1"
+		flipYCanvas = "no"
 		max_y = "1"
-		height = "241"
-		x = "60"
-		format = "gray"
+		title = "Low"
 		source = "LeftEye.LOW_RES_INTENSITY"
+		max_x = "1"
+		scale = "both"
+		scales = "no"
+		x = "60"
+		flipXAxis = "no"
+		width = "321"
+		format = "gray"
+		height = "241"
+		class = "image"
 		flipYAxis = "no"
 		flipXCanvas = "no"
+		show_title = "true"
 		h = "4"
-		y = "0"
 		w = "4"
-		show_title = "true"
-		scales = "no"
-		flipYCanvas = "no"
+		y = "0"
 	/>
 
 	<plot
-		class = "plot"
-		max = "20"
-		labels = "B"
-		source = "PupilControl.CG_OUTPUT"
-		min = "0"
-		module = "CG_OUTPUT"
-		height = "301"
-		title = "CG_OUTPUT"
-		width = "301"
+		show_title = "true"
+		direction = "vertical"
 		y = "260"
+		height = "301"
+		show_frame = "true"
+		buffer_size = "50"
+		max = "1"
 		x = "60"
-		buffer_size = "50"
-		direction = "vertical"
-		show_title = "true"
-		show_frame = "true"
+		class = "plot"
+		width = "301"
+		labels = "B"
+		title = "CG_OUTPUT"
+		source = "PupilControl.CG_OUTPUT"
+		module = "CG_OUTPUT"
+		min = "0"
 	/>
 
 	<plot
-		class = "plot"
-		max = "20"
-		labels = "B"
-		source = "PupilControl.SCG_OUTPUT"
-		min = "0"
-		module = "SCG_OUTPUT"
-		height = "301"
-		title = "SCG_OUTPUT"
-		width = "301"
-		y = "260"
-		x = "400"
-		buffer_size = "50"
-		direction = "vertical"
 		show_title = "true"
+		direction = "vertical"
+		y = "260"
+		height = "301"
 		show_frame = "true"
+		buffer_size = "50"
+		max = "1"
+		x = "400"
+		class = "plot"
+		width = "301"
+		labels = "B"
+		title = "SCG_OUTPUT"
+		source = "PupilControl.SCG_OUTPUT"
+		module = "SCG_OUTPUT"
+		min = "0"
 	/>
 
 </view>
+    <module
+        class="EyeModel"
+        name="Eyes"
+        speed = "0.2"
+		pupil_min = "8"
+		pupil_max = "20"
+		scale = "4"
+
+    />
+    
+    <connection  source = "PupilControl.CG_OUTPUT"  	target = "Eyes.PUPIL_DILATOR" />
+    <connection  source = "PupilControl.SCG_OUTPUT"  	target = "Eyes.PUPIL_SPHINCTER" />
 
     <!-- Population coding -->
   <!--
   <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="0" w="4" _min = "0" max="20" />
     	<object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="1" w="4" _min = "0" max="20" />
-	
-   	<module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "20"/>
-        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
-        <connection  source = "PupilControl.CG_OUTPUT" 	 target = "PupilContPop.INPUT" />
-        <connection  source = "HZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
-        <connection  source = "BZeros.OUTPUT" 	 target = "PupilContPop.INPUT" />
--->
+-->	
+	<module class = "Constant" name = "ZERO1" data = "0" />
+	<module class = "Constant" name = "ZERO2" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0      0    0" />
+
+	<module class = "Constant" name = "PupilContPopA" data = "@PupilModelA" />
+
+   	<module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+        <connection  source = "ZERO1.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "18" 	size ="1"/>
+        <_connection  source = "ZERO2.OUTPUT" 	 			target = "PupilContPop.INPUT"/>
+        
+		
+		<_connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
+        <_connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
+
+		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft"		size ="1"/>
+		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
+
+
 
 
 <view name="3D View">

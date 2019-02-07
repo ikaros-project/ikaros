@@ -8,13 +8,13 @@
 	HeadSerialDevice= "/dev/cu.usbserial-FTU7LTO5"
 	LeftArmSerialDevice= "/dev/cu.usbserial-FTX14P4R"
 	RightArmSerialDevice= "/dev/ttyRIGHT_ARM"
-	PupilSerialDevice= "/dev/cu.usbserial-A501EKIZ"
+	PupilSerialDevice= "/dev/ttyUSB4"
 
 	BodyDynamixel = "DynamixelSimulate"
 	HeadDynamixel = "DynamixelSimulate"
 	LeftArmDynamixel = "DynamixelSimulate"
 	RightArmDynamixel = "DynamixelSimulate"
-	PupilDynamixel = "DynamixelSimulate"
+	PupilDynamixel = "Dynamixel"
 
 	VisionInput = "InputVideoStream"
 	/>
