@@ -21,6 +21,8 @@
     <parameter name="m3" type="float" default="1.0" description="Muscarine receptor sensitivity/upregulation"/>
     <parameter name="alpha1a" type="float" default="1.0" description="alpha 1a receptor sensitivity/upregulation"/>
 
+    <parameter name="amplifier" type="float" default="1.0" description="Amplify the output signal"/>
+
     <input name="GAZE" description="The horizontal and vertical eye direction (-1..1)" optional="yes" />
     <input name="PUPIL_SPHINCTER" description="The constriction input to the pupil" />
     <input name="PUPIL_DILATOR" description="The dilation input to the puptil" />

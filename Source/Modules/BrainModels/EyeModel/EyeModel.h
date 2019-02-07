@@ -43,7 +43,8 @@ public:
     float       epsilon;
     float       m3;
     float       alpha1a;
-
+    float       amplifier;
+    
     float *     gaze;
 
     float *     pupil_sphincter;
