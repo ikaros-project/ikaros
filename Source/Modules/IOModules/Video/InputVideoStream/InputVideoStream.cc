@@ -128,7 +128,8 @@ InputVideoStream::Tick()
 
 	if (!gotNewData) // No need to int->float convert again. Use last output.
 		return;
-	
+	//printf("InputVideoStream:We got an new image Time %f\n", timer.GetTime());
+
 	mtx.lock();
 	memcpy(newFrame, framegrabber->ikarosFrame, size_x*size_y*3*sizeof(uint8_t));
 	framegrabber->freshData = 0;
@@ -145,13 +146,16 @@ InputVideoStream::Tick()
 	float * inte = intensity;
 	int t = 0;
 	
+	const float c13 = 1.0/3.0;
+
 	// Singel core
 	while(t++ < size_x*size_y)
 	{
 		*r       = convertIntToFloat[*data++];
 		*g       = convertIntToFloat[*data++];
 		*b       = convertIntToFloat[*data++];
-		*inte++ = *r++ + *g++ + *b++;
+		*inte++ = (*r++ + *g++ + *b++)*c13;
+
 	}
 
 //		const int nrOfCores = 3;//thread::hardware_concurrency();
