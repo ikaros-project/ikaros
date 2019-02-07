@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 
-<group name="Set Servos EpiBlack">
+<group name="EpiBlack">
 
 	<!-- Importing Epi Black -->
 	<module class = "Epi" name = "EpiBlack" 
-	BodySerialDevice= "/dev/cu.usbserial-FTU7EL2U"
-	HeadSerialDevice= "/dev/cu.usbserial-FTU7LTO5"
-	LeftArmSerialDevice= "/dev/cu.usbserial-FTX14P4R"
+	BodySerialDevice= "/dev/ttyBODY"
+	HeadSerialDevice= "/dev/ttyHEAD"
+	LeftArmSerialDevice= "/dev/ttyLEFT_ARM"
 	RightArmSerialDevice= "/dev/ttyRIGHT_ARM"
-	PupilSerialDevice= "/dev/ttyUSB4"
+	PupilSerialDevice= "/dev/ttyPUPIL"
 
 	BodyDynamixel = "DynamixelSimulate"
 	HeadDynamixel = "DynamixelSimulate"
