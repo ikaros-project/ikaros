@@ -9,6 +9,43 @@ String.prototype.rsplit = function(sep, maxsplit) {
     return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
 }
 
+
+// COOKIES FOR PERSISTENT STATE
+
+function setCookie(name,value,days=100)
+{
+    var date = new Date();
+    date.setTime(date.getTime()+(days?days:1)*86400000);
+    var expires = "; expires="+date.toGMTString();
+    document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function getCookie(name)
+{
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
+function eraseCookie(name)
+{
+    createCookie(name,"",-1);
+}
+
+function resetCookies()
+{
+    setCookie('current_view', "");
+//    setCookie('root', ""); // or /
+//    setCookie('inspector',"closed");
+}
+
+
+
 /*
  *
  * Viewer scripts
@@ -107,8 +144,6 @@ function toggleSystem()
 nav = {
 
     init: function (g) {
-        if(!g)
-            alert("ERR");
         nav.group = g;
         nav.navigator = document.getElementById('navigator');
         nav.populate(nav.navigator);
@@ -121,8 +156,19 @@ nav = {
             e.target.setAttribute("class", "group-open");
         e.stopPropagation();
     },
+    openGroup(item) {
+        let g = nav.navigator.querySelector("[data-name='"+item+"']");
+        while(g)
+        {
+            g.setAttribute("class", "group-open");
+            g = g.parentElement;
+        }
+    },
+    selectItem(item) {
+        interaction.addView(item)
+    },
     navClick: function(e) {
-        interaction.addView(e.target.parentElement.dataset.name);
+        nav.selectItem(e.target.parentElement.dataset.name);
         e.stopPropagation();
     },
     buildList: function(group, name) {
@@ -798,6 +844,9 @@ interaction = {
 
     addView(viewName)
     {
+        setCookie('current_view', viewName);
+        nav.openGroup(viewName);
+        
         interaction.deselectObject();
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
@@ -1322,7 +1371,12 @@ controller = {
             nav.init(response);
             controller.views = {};
             controller.buildViewDictionary(response, "");
-            controller.selectView(Object.keys(controller.views)[0]);
+            
+            let v = getCookie('current_view');
+            if(Object.keys(controller.views).includes(v))
+                 controller.selectView(v);
+            else
+                controller.selectView(Object.keys(controller.views)[0]);
         }
         else if(package_type == "data") // same session - a new data package
         {
