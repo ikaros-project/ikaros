@@ -158,6 +158,7 @@ nav = {
     },
     openGroup(item) {
         let g = nav.navigator.querySelector("[data-name='"+item+"']");
+        g = g.parentElement;
         while(g)
         {
             g.setAttribute("class", "group-open");
