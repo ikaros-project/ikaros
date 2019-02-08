@@ -628,6 +628,9 @@ std::string GroupElement::JSONString(int d)
 void
 GroupElement::CreateDefaultView()
 {
+    if(!outputs.size())
+        return;
+    
     auto * v = new ViewElement(this);
 
     int margin = 20;
