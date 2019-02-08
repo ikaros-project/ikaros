@@ -395,52 +395,19 @@ module_inspector = {
     
     if(m.parameters.groups.length > 0) // add group
     {
-        let row = module_inspector.table.insertRow(-1);
-        let cell = row.insertCell(0);
-        cell.innerText = "GROUP";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        let cell1 = row.insertCell(0);
-        let cell2 = row.insertCell(1);
-        cell1.innerText = "name";
-        cell2.innerHTML = m.parameters["name"];
-
+        module_inspector.addHeader("GROUP");
+        module_inspector.addRow("name", m.parameters.name);
         for(let p in m.parameters)
-        {
-            if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p!= "x" && p!= "y")
+            if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
             {
                 let row = module_inspector.table.insertRow(-1);
                 let value = m.parameters[p];
-                if(value)
-                    value = value.toString();
-                else
-                    value = p["default"]; // should never happen since all parameters should be sent to WebUI
-                cell1 = row.insertCell(0);
-                cell2 = row.insertCell(1);
-                cell1.innerText = p;
-                cell2.innerHTML = value;
+                module_inspector.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["default"]);
             }
-        }
 
-        row = module_inspector.table.insertRow(-1);
-        cell = row.insertCell(0);
-        cell.innerText = "SUBGROUPS";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "modules";
-        cell2.innerHTML = m.parameters.groups.length;
- 
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "connections";
-        cell2.innerHTML = m.parameters.connections.length;
+        module_inspector.addHeader("SUBGROUPS");
+        module_inspector.addRow("modules", m.parameters.groups.length);
+        module_inspector.addRow("connections", m.parameters.connections.length);
 
         module_inspector.addHeader("APPEARANCE");
         module_inspector.addRow("x", m.parameters._x);
@@ -452,45 +419,14 @@ module_inspector = {
     
     else // add module
     {
-        let row = module_inspector.table.insertRow(-1);
-        let cell = row.insertCell(0);
-        cell.innerText = "MODULE";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        let cell1 = row.insertCell(0);
-        let cell2 = row.insertCell(1);
-        cell1.innerText = "name";
-        cell2.innerHTML = m.parameters["name"];
-
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "class";
-        cell2.innerHTML = m.parameters["class"];
+        module_inspector.addHeader("MODULE");
+        module_inspector.addRow("name", m.parameters.name);
+        module_inspector.addRow("class", m.parameters.class);
 
         for(let p of m.parameters.parameters)
-        {
-            let row = module_inspector.table.insertRow(-1);
-            let value = m.parameters[p.name];
-            if(value)
-                value = value.toString();
-            else
-                value = p["default"]; // should never happen since all parameters should be sent to WebUI
-            cell1 = row.insertCell(0);
-            cell2 = row.insertCell(1);
-            cell1.innerText = p.name;
-            cell2.innerHTML = value;
-        }
+            module_inspector.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["default"]);
 
-        // Add descirption last
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "description";
-        cell2.innerHTML = m.parameters["description"];
+        module_inspector.addRow("description", m.parameters.description);
 
         module_inspector.addHeader("APPEARANCE");
         module_inspector.addRow("x", m.parameters._x);
