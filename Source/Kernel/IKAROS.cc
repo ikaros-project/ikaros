@@ -2407,11 +2407,20 @@ Kernel::Init()
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
     AllocateOutputs();
+    
+    ListModulesAndConnections(); // TEMPORARY
+    
     InitInputs();		// Calculate the input sizes and allocate memory for the inputs or connect 0-delays
+ 
+    ListModulesAndConnections(); // TEMPORARY
+    
     CheckOutputs();
     CheckInputs();
     if(fatal_error_occurred)
         return;
+    
+
+    
     InitModules();
     
     webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
@@ -2747,6 +2756,8 @@ Kernel::CalculateInputSize(Module_IO * i)
         {
             if(c->source_io->size == unknown_size)
                 return unknown_size;
+            else if(c->target_offset>0 && c->size>0) // offset connection
+                s = max(s, c->target_offset + c->size);
             else
                 s += c->source_io->size;
         }
