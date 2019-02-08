@@ -367,6 +367,21 @@ module_inspector = {
         while(module_inspector.table.rows.length)
             module_inspector.table.deleteRow(-1);
     },
+    addHeader(title) {
+        row = module_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = title;
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+    },
+    addRow(attribute, value) {
+        value = value ? value : "";
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = attribute;
+        cell2.innerHTML = value;
+    },
     add: function (module) {
     //    let widget = webui_object.widget;
     //    let parameters = widget.parameters;
@@ -427,25 +442,12 @@ module_inspector = {
         cell1.innerText = "connections";
         cell2.innerHTML = m.parameters.connections.length;
 
-        // POSITION
-        
-        row = module_inspector.table.insertRow(-1);
-        cell = row.insertCell(0);
-        cell.innerText = "POSITION";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "x";
-        cell2.innerHTML = m.parameters['x'];
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "y";
-        cell2.innerHTML = m.parameters['y'];
+        module_inspector.addHeader("APPEARANCE");
+        module_inspector.addRow("x", m.parameters._x);
+        module_inspector.addRow("y", m.parameters._y);
+        module_inspector.addRow("color", m.parameters._color);
+        module_inspector.addRow("text_color", m.parameters._text_color);
+        module_inspector.addRow("shape", m.parameters._shape);
     }
     
     else // add module
@@ -468,7 +470,6 @@ module_inspector = {
         cell1.innerText = "class";
         cell2.innerHTML = m.parameters["class"];
 
-
         for(let p of m.parameters.parameters)
         {
             let row = module_inspector.table.insertRow(-1);
@@ -483,7 +484,7 @@ module_inspector = {
             cell2.innerHTML = value;
         }
 
-        // Add decsirption last
+        // Add descirption last
         
         row = module_inspector.table.insertRow(-1);
         cell1 = row.insertCell(0);
@@ -491,25 +492,12 @@ module_inspector = {
         cell1.innerText = "description";
         cell2.innerHTML = m.parameters["description"];
 
-        // POSITION
-        
-        row = module_inspector.table.insertRow(-1);
-        cell = row.insertCell(0);
-        cell.innerText = "POSITION";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "x";
-        cell2.innerHTML = m.parameters['x'];
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "y";
-        cell2.innerHTML = m.parameters['y'];
+        module_inspector.addHeader("APPEARANCE");
+        module_inspector.addRow("x", m.parameters._x);
+        module_inspector.addRow("y", m.parameters._y);
+        module_inspector.addRow("color", m.parameters._color);
+        module_inspector.addRow("text_color", m.parameters._text_color);
+        module_inspector.addRow("shape", m.parameters._shape);
     }
     },
     select: function (obj)
@@ -911,22 +899,36 @@ interaction = {
 
                 newObject.parameters = v[i];
                 
-                if(!newObject.parameters.x)
+                if(!newObject.parameters._x)
                 {
-                    newObject.parameters.x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                    newObject.parameters.y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                    newObject.parameters._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    newObject.parameters._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
                 }
                 
-                interaction.module_pos[v[i].name] = {'x':newObject.parameters.x, 'y': newObject.parameters.y};
+                interaction.module_pos[v[i].name] = {'x':newObject.parameters._x, 'y': newObject.parameters._y};
 
-            
-                newObject.style.top = (newObject.parameters.y-m_radius_x)+"px";
-                newObject.style.left = (newObject.parameters.x-m_radius_y)+"px";
+                newObject.style.top = (newObject.parameters._y-m_radius_x)+"px";
+                newObject.style.left = (newObject.parameters._x-m_radius_y)+"px";
+ 
+                if(newObject.parameters._text_color)
+                    newObject.style.color = newObject.parameters._text_color;
+
+                if(newObject.parameters._shape == 'rect')
+                {
+                
+                }
+                else
+                {
+                    newObject.style.borderRadius = m_corner+"px";
+                }
+                
+                newObject.style.lineHeight = m_height+"px";
                 newObject.style.width = m_width+"px";
                 newObject.style.height = m_height+"px";
-                newObject.style.borderRadius = m_corner+"px";
-                newObject.style.lineHeight = m_height+"px";
 
+                if(newObject.parameters._color)
+                    newObject.style.backgroundColor = newObject.parameters._color;
+                
                 newObject.addEventListener('mousedown', interaction.startDragModule, true);
             }
             interaction.drawConnections();
@@ -1119,8 +1121,8 @@ interaction = {
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters['x'] = newLeft + m_radius_x;
-        interaction.selectedObject.parameters['y'] = newTop + m_radius_y;
+        interaction.selectedObject.parameters['_x'] = newLeft + m_radius_x;
+        interaction.selectedObject.parameters['_y'] = newTop + m_radius_y;
         interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
     },
     selectModule: function(obj) {
@@ -1374,7 +1376,7 @@ controller = {
             
             let v = getCookie('current_view');
             if(Object.keys(controller.views).includes(v))
-                 controller.selectView(v);
+                controller.selectView(v);
             else
                 controller.selectView(Object.keys(controller.views)[0]);
         }
