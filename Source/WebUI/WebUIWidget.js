@@ -43,7 +43,8 @@ class WebUIWidget extends HTMLElement
         let pt = this.constructor.template();
         this.parameters = {};
         for(let i in pt)
-            this.parameters[pt[i].name] = this.setType(pt[i]['default'], pt[i]['type']);
+            if(pt[i].control != 'header')
+                this.parameters[pt[i].name] = this.setType(pt[i]['default'], pt[i]['type']);
         this.parameter_template = pt;        
      }
 
