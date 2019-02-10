@@ -384,7 +384,7 @@ module_inspector = {
         cell.setAttribute("class", "header");
     },
     addRow(attribute, value) {
-        value = value ? value : "";
+        value = value!=undefined ? value : "";
         row = module_inspector.table.insertRow(-1);
         cell1 = row.insertCell(0);
         cell2 = row.insertCell(1);
@@ -398,52 +398,52 @@ module_inspector = {
         module_inspector.module = module;
    //     module_inspector.parameter_template = widget.parameter_template;
 
-    // Add header info
+        // Add header info
 
-    let m = module_inspector.module;
-    
-    if(m.parameters.groups.length > 0) // add group
-    {
-        module_inspector.addHeader("GROUP");
-        module_inspector.addRow("name", m.parameters.name);
-        for(let p in m.parameters)
-            if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
-            {
-                let row = module_inspector.table.insertRow(-1);
-                let value = m.parameters[p];
-                module_inspector.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["default"]);
-            }
+        let m = module_inspector.module;
+        
+        if(m.parameters.groups.length > 0) // add group
+        {
+            module_inspector.addHeader("GROUP");
+            module_inspector.addRow("name", m.parameters.attributes.name);
+            for(let p in m.parameters.parameters)
+                if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
+                {
+                    let row = module_inspector.table.insertRow(-1);
+                    let value = m.parameters.attributes[p];
+                    module_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                }
 
-        module_inspector.addHeader("SUBGROUPS");
-        module_inspector.addRow("modules", m.parameters.groups.length);
-        module_inspector.addRow("connections", m.parameters.connections.length);
+            module_inspector.addHeader("SUBGROUPS");
+            module_inspector.addRow("modules", m.parameters.groups.length);
+            module_inspector.addRow("connections", m.parameters.connections.length);
 
-        module_inspector.addHeader("APPEARANCE");
-        module_inspector.addRow("x", m.parameters._x);
-        module_inspector.addRow("y", m.parameters._y);
-        module_inspector.addRow("color", m.parameters._color);
-        module_inspector.addRow("text_color", m.parameters._text_color);
-        module_inspector.addRow("shape", m.parameters._shape);
-    }
-    
-    else // add module
-    {
-        module_inspector.addHeader("MODULE");
-        module_inspector.addRow("name", m.parameters.name);
-        module_inspector.addRow("class", m.parameters.class);
+            module_inspector.addHeader("APPEARANCE");
+            module_inspector.addRow("x", m.parameters.attributes._x);
+            module_inspector.addRow("y", m.parameters.attributes._y);
+            module_inspector.addRow("color", m.parameters.attributes._color);
+            module_inspector.addRow("text_color", m.parameters.attributes._text_color);
+            module_inspector.addRow("shape", m.parameters.attributes._shape);
+        }
+        
+        else // add module
+        {
+            module_inspector.addHeader("MODULE");
+            module_inspector.addRow("name", m.parameters.attributes.name);
+            module_inspector.addRow("class", m.parameters.attributes.class);
 
-        for(let p of m.parameters.parameters)
-            module_inspector.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["default"]);
+            for(let p of m.parameters.parameters)
+                module_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
 
-        module_inspector.addRow("description", m.parameters.description);
+            module_inspector.addRow("description", m.parameters.attributes.description);
 
-        module_inspector.addHeader("APPEARANCE");
-        module_inspector.addRow("x", m.parameters._x);
-        module_inspector.addRow("y", m.parameters._y);
-        module_inspector.addRow("color", m.parameters._color);
-        module_inspector.addRow("text_color", m.parameters._text_color);
-        module_inspector.addRow("shape", m.parameters._shape);
-    }
+            module_inspector.addHeader("APPEARANCE");
+            module_inspector.addRow("x", m.parameters.attributes._x);
+            module_inspector.addRow("y", m.parameters.attributes._y);
+            module_inspector.addRow("color", m.parameters.attributes._color);
+            module_inspector.addRow("text_color", m.parameters.attributes._text_color);
+            module_inspector.addRow("shape", m.parameters.attributes._shape);
+        }
     },
     select: function (obj)
     {
