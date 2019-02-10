@@ -544,8 +544,14 @@ std::string GroupElement::JSONString(int d)
     
     std::string s = tab + "{\n";
 
-    s += JSONAttributeString(d+1);
-    s += ",\n";
+    if(module)
+        s += tab2 + "\"is_group\": false,\n";
+    else
+        s += tab2 + "\"is_group\": true,\n";
+
+    s += tab2 + "\"attributes\":\n" + tab2 + "{\n"; // FIXME: make nicer!
+    s += JSONAttributeString(d+2);
+    s += "\n" + tab2 + "},\n";
     
     if(parameter_list.size())
     {
