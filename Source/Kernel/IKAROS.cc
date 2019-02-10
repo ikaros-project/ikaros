@@ -3419,6 +3419,7 @@ Kernel::ListModulesAndConnections()
 void
 Kernel::ListBindings()
 {
+    return;
     Notify(msg_print, "\n");
     Notify(msg_print, "Bindings:\n");
     Notify(msg_print, "\n");
