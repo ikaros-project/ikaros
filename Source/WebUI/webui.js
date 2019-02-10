@@ -168,12 +168,20 @@ nav = {
     selectItem(item) {
         interaction.addView(item)
     },
+    selectModule(evt)
+    {
+    
+    },
     navClick: function(e) {
         nav.selectItem(e.target.parentElement.dataset.name);
         e.stopPropagation();
     },
     buildList: function(group, name) {
-        var s = "<li data-name='"+name+"/"+group.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.name + "</span>"; // FIXME: or title
+        let s = "";
+//        if(group.groups.length + group.views.length == 0)
+//            s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='XXX'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
+//        else
+            s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
         if(group.views)
         {
             s +=  "<ul>"
@@ -181,7 +189,7 @@ nav = {
             {
                 if(!group.views[i].name)
                     group.views[i].name = "View #"+i;
-                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.views[i].name + "</span></li>";
+                s += "<li data-name='"+name+"/"+group.attributes.name+"#"+group.views[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.views[i].name + "</span></li>";
             }
             s += "</ul>";
         }
@@ -189,7 +197,7 @@ nav = {
         {
             s +=  "<ul>"
             for(i in group.groups)
-                s += nav.buildList(group.groups[i], name+"/"+group.name);
+                s += nav.buildList(group.groups[i], name+"/"+group.attributes.name);
             s += "</ul>";
         }
         s += "</li>";
@@ -746,8 +754,7 @@ interaction = {
         context.arc(interaction.main_center, interaction.main_center, interaction.main_radius, 0, 2*Math.PI);
         context.stroke();
 
-        let cons = interaction.currentView.connections;
-        for(let c of cons)
+        for(let c of interaction.currentView.connections)
         {
             try
             {
@@ -826,31 +833,31 @@ interaction = {
             for(let i=0; i<v.length; i++)
             {
                 let newObject = document.createElement("div");
-                if(v[i].groups.length == 0)
-                    newObject.setAttribute("class", "module");
-                else
+                if(v[i].is_group)
                     newObject.setAttribute("class", "module group");
+                else
+                    newObject.setAttribute("class", "module");
 
-                newObject.innerHTML = v[i].name;
+                newObject.innerHTML = v[i].attributes.name;
                 interaction.main.appendChild(newObject);
 
                 newObject.parameters = v[i];
                 
-                if(!newObject.parameters._x)
+                if(!newObject.parameters.attributes._x)
                 {
-                    newObject.parameters._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                    newObject.parameters._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                    newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
                 }
                 
-                interaction.module_pos[v[i].name] = {'x':newObject.parameters._x, 'y': newObject.parameters._y};
+                interaction.module_pos[v[i].attributes.name] = {'x':newObject.parameters.attributes._x, 'y': newObject.parameters.attributes._y};
 
-                newObject.style.top = (newObject.parameters._y-m_radius_x)+"px";
-                newObject.style.left = (newObject.parameters._x-m_radius_y)+"px";
+                newObject.style.top = (newObject.parameters.attributes._y-m_radius_x)+"px";
+                newObject.style.left = (newObject.parameters.attributes._x-m_radius_y)+"px";
  
-                if(newObject.parameters._text_color)
-                    newObject.style.color = newObject.parameters._text_color;
+                if(newObject.parameters.attributes._text_color)
+                    newObject.style.color = newObject.parameters.attributes._text_color;
 
-                if(newObject.parameters._shape == 'rect')
+                if(newObject.parameters.attributes._shape == 'rect')
                 {
                 
                 }
@@ -863,8 +870,8 @@ interaction = {
                 newObject.style.width = m_width+"px";
                 newObject.style.height = m_height+"px";
 
-                if(newObject.parameters._color)
-                    newObject.style.backgroundColor = newObject.parameters._color;
+                if(newObject.parameters.attributes._color)
+                    newObject.style.backgroundColor = newObject.parameters.attributes._color;
                 
                 newObject.addEventListener('mousedown', interaction.startDragModule, true);
             }
@@ -1058,8 +1065,8 @@ interaction = {
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters['_x'] = newLeft + m_radius_x;
-        interaction.selectedObject.parameters['_y'] = newTop + m_radius_y;
+        interaction.selectedObject.parameters.attributes['_x'] = newLeft + m_radius_x;
+        interaction.selectedObject.parameters.attributes['_y'] = newTop + m_radius_y;
         interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
     },
     selectModule: function(obj) {
@@ -1093,6 +1100,7 @@ controller = {
     tick: 0,
     session_id: 0,
     client_id: Date.now(),
+    network: null,
     views: {},
     load_count: 0,
     load_count_timeout: null,
@@ -1106,7 +1114,6 @@ controller = {
     
     reconnect: function ()
     {
-//        console.log("try reconnect");
         controller.get("update", controller.update);
         let s = document.querySelector("#state");
         if(s.innerText == "waiting")
@@ -1117,75 +1124,38 @@ controller = {
     
     defer_reconnect: function ()
     {
-//        console.log("defer_reconnect");
         clearInterval(controller.reconnect_timer);
         controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
 
     get: function (url, callback)
     {
+        controller.send_stamp = Date.now();
+        var last_request = url;
+        xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
 
-            controller.send_stamp = Date.now();
-            var last_request = url;
-            xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-/*
-            xhr.onloadstart = function(evt)
+        xhr.onload = function(evt)
+        {
+            if(!xhr.response)   // empty response is ignored
             {
-                document.querySelector("progress").setAttribute("value", 0);
+                console.log("onload - empty response - error")
+                return;
             }
-
-            xhr.onprogress = function(evt)
-            {
-                if (evt.lengthComputable)
-                {
-                    var percentComplete = evt.loaded / evt.total;
-                    document.querySelector("progress").setAttribute("value", 100*percentComplete);
-                }
-            }
-*/
-/*
-            xhr.onerror = function(evt)
-            {
-                 if(evt.lengthComputable && evt.loaded < evt.total)
-                    console.log("Failed to load resource. Incomplete.");
-                else if(evt.total == 0 )
-                    console.log("Failed to load resource. No data." + xhr.status);
-                else
-                    console.log("Failed to load resource.");
-                return false;
-           }
-*/
- /*
-            xhr.ontimeout = function(evt)
-            {
-                console.log("Timeout - resending request", controller.timeout);
-                if(controller.timeout < 1000)
-                    controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
-                controller.get(last_request, controller.update); // Resend request ******************* ERROR
-            }
- */
-            xhr.onload = function(evt)
-            {
-                if(!xhr.response)   // empty response is ignored
-                {
-                    console.log("onload - empty response - error")
-                    return;
-                }
-                controller.defer_reconnect(); // we are still on line
-                setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
-                callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
-            }
-            
-            xhr.responseType = 'json';
-            xhr.timeout = 1000;
-            try {
-                xhr.send();
-            }
-            catch(error)
-            {
-                console.log(error);
-            }
+            controller.defer_reconnect(); // we are still on line
+            setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
+            callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
+        }
+        
+        xhr.responseType = 'json';
+        xhr.timeout = 1000;
+        try {
+            xhr.send();
+        }
+        catch(error)
+        {
+            console.log(error);
+        }
     },
 
     init: function () {
@@ -1216,15 +1186,15 @@ controller = {
     },
 
     buildViewDictionary: function(group, name) {
-        controller.views[name+"/"+group.name] = group;
+        controller.views[name+"/"+group.attributes.name] = group;
 
         if(group.views)
             for(i in group.views)
-                controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
+                controller.views[name+"/"+group.attributes.name+"#"+group.views[i].name] = group.views[i];
 
         if(group.groups)
             for(i in group.groups)
-                controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
+                controller.buildViewDictionary(group.groups[i], name+"/"+group.attributes.name);
     },
 
     selectView: function(view) {
@@ -1308,6 +1278,7 @@ controller = {
                 controller.run_mode = 'pause'
             controller.session_id = session_id;
             nav.init(response);
+            controller.network = response;
             controller.views = {};
             controller.buildViewDictionary(response, "");
             
@@ -1423,6 +1394,87 @@ controller = {
             }
         s += "</view>"
         copyToClipboard(s);
+    },
+
+    connectionToXML: function(connection, indent="")
+    {
+        let text = indent+"<connection "
+        for(let p in connection)
+            text += p+' = "'+connection[p]+'" ';
+        text += "/>\n";
+        return text;
+    },
+
+    viewToXML: function(view, indent="")
+    {
+        let text = indent + '<view name="'+view.name+'"';
+        for(let a in view)
+            if(!['name', 'objects'].includes(a))
+                text += ' ' + a + ' = "'+view[a]+'"';
+        text += ' >\n';
+        
+        for(let w in view.objects)
+        {
+            text += '\t'+indent + '<'+view.objects[w].class+' ';
+
+            for(let a in view.objects[w])
+                if(!['class'].includes(a))
+                    text += ' '+ a + ' = "'+view.objects[w][a]+'"';
+
+            text += '/>\n';
+        }
+        text += indent + '</view>\n';
+        return text;
+    },
+
+    moduleToXML: function(module, indent="")
+    {
+        let text = indent + '<module\n';
+        for(let a in module.attributes)
+            text += indent + '\t' + a + ' = "'+module.attributes[a]+'"\n';
+        text += indent+'>\n';
+
+         for(let v in module.views)
+            text += controller.viewToXML(module.views[v], indent+"\t");
+
+        text += indent + '</module>\n';
+        return text;
+    },
+
+    groupToXML: function(group, indent="")
+    {
+        let text = indent + '<group\n';
+        for(let a in group.attributes)
+            text += indent + '\t' + a + ' = "'+group.attributes[a]+'"\n';
+        text += indent+'>\n';
+
+        for(let g in group.groups)
+            if(group.groups[g].is_group)
+                text += controller.groupToXML(group.groups[g], indent+"\t");
+            else
+                text += controller.moduleToXML(group.groups[g], indent+"\t");
+
+        for(let c in group.connections)
+            text += controller.connectionToXML(group.connections[c], indent+"\t");
+         for(let v in group.views)
+            text += controller.viewToXML(group.views[v], indent+"\t");
+        text += indent + '</group>\n';
+        return text;
+    },
+
+    saveNetwork: function()
+    {
+        function download(filename, text) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        download("network.ikg", '<?xml version="1.0" encoding="UTF-8"?>\n'+controller.groupToXML(controller.network));
     }
 }
 
