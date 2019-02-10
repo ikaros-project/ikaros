@@ -40,8 +40,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
             {'name': "FRAME", 'control':'header'},
 
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
