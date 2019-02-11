@@ -105,9 +105,9 @@ PupilModelA = "100"
 <!-- LeftPupil RightPupil -->
 
 <!-- This needs to be taken cared of sometime -->
-<module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 0.5 0.5  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     0.5 0.5" />
-<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  0.5  0.5 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 0.5  0.5" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	   1    1    1    1   	    1    1    1    1    1    1     1    1    1    1    1    1      1    1" />
+<module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 1 1  	           0.5 0.5 0.5 0.5 0.5 0.5 	      0.5 0.5 0.5 0.5 0.5 0.5     1 1" />
+<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = " 0.5	 0.5  0.5  1  1 	  0.5  0.5  0.5  0.5  0.5  0.5 	 0.5  0.5  0.5  0.5  0.5  0.5	 1  1" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "   1  	   0    0    0    1   	    1    1    1    1    1    1     1    1    1    1    1    1      1    1" />
 
 
 
@@ -295,9 +295,9 @@ PupilModelA = "100"
 	<connection	source = "SERVO_SPEED.OUTPUT" 			target = "Servos.MOVING_SPEED" />
 	<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
     <!--  Done by motion recorder -->
-    <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
+    <connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
     <!-- Pupil override -->
-    <connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
+    <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
 
 <!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
@@ -466,12 +466,23 @@ PupilModelA = "100"
         class="EyeModel"
         name="Eyes"
         speed = "0.2"
-		pupil_min = "8"
-		pupil_max = "20"
-		scale = "4"
+		pupil_min = "4"
+		pupil_max = "16"
+		amplifier = "6"
 
     />
     
+			<!-- Speeking -->
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"GYMPA"
+		type		=	"sin"
+		frequency	=	"0.2"
+		offset      =	"12"
+		amplitude	=	"5"
+	    shift		=	"0"
+    />
+
     <connection  source = "PupilControl.CG_OUTPUT"  	target = "Eyes.PUPIL_DILATOR" />
     <connection  source = "PupilControl.SCG_OUTPUT"  	target = "Eyes.PUPIL_SPHINCTER" />
 
@@ -480,22 +491,31 @@ PupilModelA = "100"
   <object class="Plot" title="Response CG (Constriction)" module="PupilControl" source="CG_OUTPUT"    x="0" y="0" w="4" _min = "0" max="20" />
     	<object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="1" w="4" _min = "0" max="20" />
 -->	
+
 	<module class = "Constant" name = "ZERO1" data = "0" />
-	<module class = "Constant" name = "ZERO2" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0      0    0" />
+	<module class = "Constant" name = "ZERO2" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0      10    10" />
+	<module class = "Constant" name = "ZERO3" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0      " />
+
 
 	<module class = "Constant" name = "PupilContPopA" data = "@PupilModelA" />
 
    	<module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
-        <connection  source = "ZERO1.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "18" 	size ="1"/>
+        <_connection  source = "ZERO1.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "18" 	size ="1"/>
         <_connection  source = "ZERO2.OUTPUT" 	 			target = "PupilContPop.INPUT"/>
+        <_connection  source = "ZERO3.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "0" 	size ="17"/>
+    	<_connection  source = "GYMPA.OUTPUT" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
+        <_connection  source = "GYMPA.OUTPUT" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
         
+
 		
-		<_connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
-        <_connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
+		<connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
+        <connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
+        <connection  source = "ZERO3.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "0" 	size ="19"/>
+
+
 
 		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft"		size ="1"/>
 		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
-
 
 
 
