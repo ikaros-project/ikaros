@@ -7,14 +7,50 @@
 		<module
 			class = "Scale"
 			name = "Scale"
-			factor = "0.1"
+			_factor = "0.1"
 		/>
 
 		<connection  source = "Constant1.OUTPUT"  target = "Scale.INPUT" />
 
 		<view name="View">
-			<object class="BarGraph" module="Constant1" source="OUTPUT" max="5" x="0" y="0" />
-			<object class="BarGraph" module="Scale" source="OUTPUT" max="5" x="0" y="1" />
+			
+			<bar-graph
+				show_title = "true"
+				direction="horizontal"  
+				source="Constant1.OUTPUT" 
+				x="0" y="0" width="200" height="200"
+				min="0"
+				max="10"
+				title="Constant output"
+				show_title="true"
+			/>
+			<bar-graph
+				show_title = "true"
+				direction="horizontal"  
+				source="Scale.OUTPUT" 
+				x="200" y="0" width="200" height="200"
+				min="0"
+				max="10"
+				title="Scale output"
+				show_title="true"
+			/>
+			<slider-horizontal
+				xindex = "0"
+				height = "100"
+				width = "200"
+				_module = "Scale"
+				parameter = "Group-0.Scale.factor"
+				min = "0"
+				class = "slider-horizontal"
+				show_title = "true"
+				title = "Scale"
+				max = "2"
+				count = "1"
+				step = "0.01"
+				x = "0"
+				y = "200"
+				show_values="true"
+			/>
 		</view>
     <module class = "Logger" name = "Logger" />
 </group>
