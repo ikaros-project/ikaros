@@ -35,16 +35,12 @@
 	<connection  source = "N2.OUTPUT"  target = "N3.EXCITATION" />
 
 	<view name="View">
-        <_object class="Plot" title="L" module="L" source="OUTPUT" x="0" y="0" w="6" max="1" />
-        <_object class="Plot" title="N1" module="N1" source="OUTPUT" x="0" y="1" w="6" min="0.0" max="1" />
-        <_object class="Plot" title="N2" module="N2" source="OUTPUT" x="0" y="2" w="6" min="0.0" max="1" />
-        <_object class="Plot" title="N3" module="N3" source="OUTPUT" x="0" y="3" w="6" min="0.0" max="1" />
-		<plot
+        <plot
             x="40" y="40"
             width="301"
             height="301"
             module="L"
-            source="OUTPUT"
+            source="L.OUTPUT"
             title = "L"
             _labels = "A, B, C, D, E, F, G"
             style = ""
@@ -54,7 +50,7 @@
             width="301"
             height="301"
             module="N1"
-            source="OUTPUT"
+            source="N1.OUTPUT"
             title = "N1"
             _labels = "A, B, C, D, E, F, G"
             style = ""
@@ -64,7 +60,7 @@
             width="301"
             height="301"
             module="N2"
-            source="OUTPUT"
+            source="N2.OUTPUT"
             title = "N2"
             _labels = "A, B, C, D, E, F, G"
             style = ""
@@ -74,7 +70,7 @@
             width="301"
             height="301"
             module="N3"
-            source="OUTPUT"
+            source="N3.OUTPUT"
             title = "N3"
             _labels = "A, B, C, D, E, F, G"
             style = ""
