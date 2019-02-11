@@ -44,12 +44,10 @@ class WebUIWidgetButton extends WebUIWidgetControl
     {
         let p = this.parentElement.parameters;
         if(p.command)
-            this.send_command(p.command, value, p.xindex, p.yindex);
-            //this.parentElement.get("/command/"+p.command+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
+            this.parentElement.send_command(p.command, value, p.xindex, p.yindex);
 
         else if(p.parameter)
-            this.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
-            //this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.value);
+            this.parentElement.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
     }
 
     button_up(evt)
@@ -57,11 +55,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
         let p = this.parentElement.parameters;
         if(p.commandUp)
              this.parentElement.send_command(p.commandUp, p.value, p.xindex, p.yindex);
-//           this.parentElement.get("/command/"+p.commandUp+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
 
         else if(p.parameter)
             this.parentElement.send_control_change(p.parameter, p.valueUp, p.xindex, p.yindex);
- //           this.parentElement.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/"+p.valueUp);
     }
 
     init()

@@ -43,6 +43,7 @@
         <button onclick="toggleFooter()">Messages</button>
         <button onclick="toggleSystem()">System</button>
         <button onclick="interaction.toggleEditMode()">Edit</button>
+        <button onclick="controller.saveNetwork()">Save</button>
 <!--        <button onclick="toggleInspector()">Inspector</button>    -->
 
 <!--
@@ -95,7 +96,7 @@
             </script>
         </aside>
 
-		<aside id="edit_inspector" >
+		<aside id="edit_inspector" > <!-- FOR WIDGET VIEW -->
  
             <table id="i_table">
                  <tbody>
@@ -109,7 +110,7 @@
                             <button onclick="interaction.increaseGrid()">Grid +</button>
                         </td>
                     </tr>
-                    <tr>
+                   <tr>
                         <td>
                             Widget
                         </td>
@@ -145,6 +146,63 @@
             </table>
 		</aside>
 
+
+        <aside id="network_inspector">
+ 
+            <table id="in_table">
+                 <tbody>
+                     <tr>
+                       <td>
+                            Align
+                        </td>
+                        <td>
+                            <select id="align_select">
+                                <option value="align-circle">Circle</option>
+                                <option value="align-grid">Grid</option>
+                            </select>
+                            <button onclick="interaction.autoPlaceObjects()">Auto</button>
+                        </td>
+                    </tr>
+                    <tr>
+                       <td>
+                            Grid
+                        </td>
+                        <td>
+                            <button onclick="interaction.decreaseGrid()">Grid -</button>
+                            <button onclick="interaction.increaseGrid()">Grid +</button>
+                        </td>
+                    </tr>
+                   <tr>
+                        <td>
+                            Module
+                        </td>
+                        <td>
+                            <button onclick="interaction.addObject()">Add</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Stylesheet
+                         </td>
+                        <td>
+                            <select id="stylesheet_select" onclick="interaction.changeStylesheet()">
+                                <option value="default.css">default</option>
+                                <option value="demo.css">demo</option>
+                                <option value="classic.css">classic</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Network
+                        </td>
+                        <td>
+                            <button onclick="controller.copyView()">Copy as XML</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </aside>
 
 		<aside id="system_inspector">
             <button onmousedown="controller.stop()">Stop</button>
@@ -216,7 +274,6 @@
     interaction.init();
     interaction.generateGrid(20);
     interaction.initDraggables();
-//    interaction.setMode('run');
     controller.init();
     
 //    setInterval(function (){ console.log("NOW"); f = document.querySelector('footer'); f.innerHTML += "<p>Hej! ("+Date.now()+")</p>"; f.scrollTop = f.scrollHeight; }, 1000);

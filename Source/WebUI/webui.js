@@ -9,6 +9,43 @@ String.prototype.rsplit = function(sep, maxsplit) {
     return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
 }
 
+
+// COOKIES FOR PERSISTENT STATE
+
+function setCookie(name,value,days=100)
+{
+    var date = new Date();
+    date.setTime(date.getTime()+(days?days:1)*86400000);
+    var expires = "; expires="+date.toGMTString();
+    document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function getCookie(name)
+{
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
+function eraseCookie(name)
+{
+    createCookie(name,"",-1);
+}
+
+function resetCookies()
+{
+    setCookie('current_view', "");
+//    setCookie('root', ""); // or /
+//    setCookie('inspector',"closed");
+}
+
+
+
 /*
  *
  * Viewer scripts
@@ -110,18 +147,41 @@ nav = {
         nav.group = g;
         nav.navigator = document.getElementById('navigator');
         nav.populate(nav.navigator);
-        nav.navigator.addEventListener("click", nav.navClick, false);
+//        nav.navigator.addEventListener("click", nav.navClick, false);
     },
     toggleGroup(e) {
         if(e.target.getAttribute("class") == "group-open")
             e.target.setAttribute("class", "group-closed");
         else if(e.target.getAttribute("class") == "group-closed")
             e.target.setAttribute("class", "group-open");
-        nav.navClick(e);
+        e.stopPropagation();
+    },
+    openGroup(item) {
+        let g = nav.navigator.querySelector("[data-name='"+item+"']");
+        g = g.parentElement;
+        while(g)
+        {
+            g.setAttribute("class", "group-open");
+            g = g.parentElement;
+        }
+    },
+    selectItem(item) {
+        interaction.addView(item)
+    },
+    selectModule(evt)
+    {
+    
+    },
+    navClick: function(e) {
+        nav.selectItem(e.target.parentElement.dataset.name);
+        e.stopPropagation();
     },
     buildList: function(group, name) {
-        var s = "<li data-name='"+name+"/"+group.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'>" + group.name; // FIXME: or title
-
+        let s = "";
+//        if(group.groups.length + group.views.length == 0)
+//            s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='XXX'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
+//        else
+            s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
         if(group.views)
         {
             s +=  "<ul>"
@@ -129,32 +189,22 @@ nav = {
             {
                 if(!group.views[i].name)
                     group.views[i].name = "View #"+i;
-                s += "<li data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + group.views[i].name + "</li>";
+                s += "<li data-name='"+name+"/"+group.attributes.name+"#"+group.views[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.views[i].name + "</span></li>";
             }
             s += "</ul>";
         }
-
         if(group.groups)
         {
             s +=  "<ul>"
             for(i in group.groups)
-                s += nav.buildList(group.groups[i], name+"/"+group.name);
+                s += nav.buildList(group.groups[i], name+"/"+group.attributes.name);
             s += "</ul>";
         }
-
         s += "</li>";
-
         return s;
     },
     populate: function (element) {
         element.innerHTML = "<ul>"+nav.buildList(nav.group, "")+"</ul>";
-    },
-    navClick: function(e) {
-        if (e.target !== e.currentTarget)
-        {
-            interaction.addView(e.target.getAttribute("data-name"));
-        }
-        e.stopPropagation();
     }
 }
 
@@ -307,7 +357,6 @@ inspector = {
 
 
 
-
 /*
  *
  * Module inspector scripts
@@ -327,6 +376,21 @@ module_inspector = {
         while(module_inspector.table.rows.length)
             module_inspector.table.deleteRow(-1);
     },
+    addHeader(title) {
+        row = module_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = title;
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+    },
+    addRow(attribute, value) {
+        value = value!=undefined ? value : "";
+        row = module_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = attribute;
+        cell2.innerHTML = value;
+    },
     add: function (module) {
     //    let widget = webui_object.widget;
     //    let parameters = widget.parameters;
@@ -334,143 +398,52 @@ module_inspector = {
         module_inspector.module = module;
    //     module_inspector.parameter_template = widget.parameter_template;
 
-    // Add header info
+        // Add header info
 
-    let m = module_inspector.module;
-    
-    if(m.parameters.groups.length > 0) // add group
-    {
-        let row = module_inspector.table.insertRow(-1);
-        let cell = row.insertCell(0);
-        cell.innerText = "GROUP";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
+        let m = module_inspector.module;
         
-        row = module_inspector.table.insertRow(-1);
-        let cell1 = row.insertCell(0);
-        let cell2 = row.insertCell(1);
-        cell1.innerText = "name";
-        cell2.innerHTML = m.parameters["name"];
-
-        for(let p in m.parameters)
+        if(m.parameters.groups.length > 0) // add group
         {
-            if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p!= "x" && p!= "y")
-            {
-                let row = module_inspector.table.insertRow(-1);
-                let value = m.parameters[p];
-                if(value)
-                    value = value.toString();
-                else
-                    value = p["default"]; // should never happen since all parameters should be sent to WebUI
-                cell1 = row.insertCell(0);
-                cell2 = row.insertCell(1);
-                cell1.innerText = p;
-                cell2.innerHTML = value;
-            }
+            module_inspector.addHeader("GROUP");
+            module_inspector.addRow("name", m.parameters.attributes.name);
+            for(let p in m.parameters.parameters)
+                if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
+                {
+                    let row = module_inspector.table.insertRow(-1);
+                    let value = m.parameters.attributes[p];
+                    module_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                }
+
+            module_inspector.addHeader("SUBGROUPS");
+            module_inspector.addRow("modules", m.parameters.groups.length);
+            module_inspector.addRow("connections", m.parameters.connections.length);
+
+            module_inspector.addHeader("APPEARANCE");
+            module_inspector.addRow("x", m.parameters.attributes._x);
+            module_inspector.addRow("y", m.parameters.attributes._y);
+            module_inspector.addRow("color", m.parameters.attributes._color);
+            module_inspector.addRow("text_color", m.parameters.attributes._text_color);
+            module_inspector.addRow("shape", m.parameters.attributes._shape);
         }
-
-        row = module_inspector.table.insertRow(-1);
-        cell = row.insertCell(0);
-        cell.innerText = "SUBGROUPS";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
         
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "modules";
-        cell2.innerHTML = m.parameters.groups.length;
- 
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "connections";
-        cell2.innerHTML = m.parameters.connections.length;
-
-        // POSITION
-        
-        row = module_inspector.table.insertRow(-1);
-        cell = row.insertCell(0);
-        cell.innerText = "POSITION";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "x";
-        cell2.innerHTML = m.parameters['x'];
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "y";
-        cell2.innerHTML = m.parameters['y'];
-    }
-    
-    else // add module
-    {
-        let row = module_inspector.table.insertRow(-1);
-        let cell = row.insertCell(0);
-        cell.innerText = "MODULE";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        let cell1 = row.insertCell(0);
-        let cell2 = row.insertCell(1);
-        cell1.innerText = "name";
-        cell2.innerHTML = m.parameters["name"];
-
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "class";
-        cell2.innerHTML = m.parameters["class"];
-
-
-        for(let p of m.parameters.parameters)
+        else // add module
         {
-            let row = module_inspector.table.insertRow(-1);
-            let value = m.parameters[p.name];
-            if(value)
-                value = value.toString();
-            else
-                value = p["default"]; // should never happen since all parameters should be sent to WebUI
-            cell1 = row.insertCell(0);
-            cell2 = row.insertCell(1);
-            cell1.innerText = p.name;
-            cell2.innerHTML = value;
+            module_inspector.addHeader("MODULE");
+            module_inspector.addRow("name", m.parameters.attributes.name);
+            module_inspector.addRow("class", m.parameters.attributes.class);
+
+            for(let p of m.parameters.parameters)
+                module_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+
+            module_inspector.addRow("description", m.parameters.attributes.description);
+
+            module_inspector.addHeader("APPEARANCE");
+            module_inspector.addRow("x", m.parameters.attributes._x);
+            module_inspector.addRow("y", m.parameters.attributes._y);
+            module_inspector.addRow("color", m.parameters.attributes._color);
+            module_inspector.addRow("text_color", m.parameters.attributes._text_color);
+            module_inspector.addRow("shape", m.parameters.attributes._shape);
         }
-
-        // Add decsirption last
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "description";
-        cell2.innerHTML = m.parameters["description"];
-
-        // POSITION
-        
-        row = module_inspector.table.insertRow(-1);
-        cell = row.insertCell(0);
-        cell.innerText = "POSITION";
-        cell.setAttribute("colspan", 2);
-        cell.setAttribute("class", "header");
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "x";
-        cell2.innerHTML = m.parameters['x'];
-        
-        row = module_inspector.table.insertRow(-1);
-        cell1 = row.insertCell(0);
-        cell2 = row.insertCell(1);
-        cell1.innerText = "y";
-        cell2.innerHTML = m.parameters['y'];
-    }
     },
     select: function (obj)
     {
@@ -519,6 +492,7 @@ interaction = {
     system_inspector: undefined,
     edit_inspector: undefined,
     module_inspector: undefined,
+    network_inspector: undefined,
 
     init: function () {
         interaction.main = document.querySelector('main');
@@ -527,7 +501,8 @@ interaction = {
         interaction.system_inspector = document.querySelector('#system_inspector');
         interaction.edit_inspector = document.querySelector('#edit_inspector');
         interaction.module_inspector = document.querySelector('#module_inspector');
-
+        interaction.network_inspector = document.querySelector('#network_inspector');
+        
         interaction.setMode('run');
     },
     stopEvents: function (e) {
@@ -781,8 +756,7 @@ interaction = {
         context.arc(interaction.main_center, interaction.main_center, interaction.main_radius, 0, 2*Math.PI);
         context.stroke();
 
-        let cons = interaction.currentView.connections;
-        for(let c of cons)
+        for(let c of interaction.currentView.connections)
         {
             try
             {
@@ -804,6 +778,9 @@ interaction = {
 
     addView(viewName)
     {
+        setCookie('current_view', viewName);
+        nav.openGroup(viewName);
+        
         interaction.deselectObject();
         interaction.currentViewName = viewName;
         interaction.currentView = controller.views[viewName];
@@ -858,32 +835,46 @@ interaction = {
             for(let i=0; i<v.length; i++)
             {
                 let newObject = document.createElement("div");
-                if(v[i].groups.length == 0)
-                    newObject.setAttribute("class", "module");
-                else
+                if(v[i].is_group)
                     newObject.setAttribute("class", "module group");
+                else
+                    newObject.setAttribute("class", "module");
 
-                newObject.innerHTML = v[i].name;
+                newObject.innerHTML = v[i].attributes.name;
                 interaction.main.appendChild(newObject);
 
                 newObject.parameters = v[i];
                 
-                if(!newObject.parameters.x)
+                if(!newObject.parameters.attributes._x)
                 {
-                    newObject.parameters.x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                    newObject.parameters.y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                    newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
                 }
                 
-                interaction.module_pos[v[i].name] = {'x':newObject.parameters.x, 'y': newObject.parameters.y};
+                interaction.module_pos[v[i].attributes.name] = {'x':newObject.parameters.attributes._x, 'y': newObject.parameters.attributes._y};
 
-            
-                newObject.style.top = (newObject.parameters.y-m_radius_x)+"px";
-                newObject.style.left = (newObject.parameters.x-m_radius_y)+"px";
+                newObject.style.top = (newObject.parameters.attributes._y-m_radius_x)+"px";
+                newObject.style.left = (newObject.parameters.attributes._x-m_radius_y)+"px";
+ 
+                if(newObject.parameters.attributes._text_color)
+                    newObject.style.color = newObject.parameters.attributes._text_color;
+
+                if(newObject.parameters.attributes._shape == 'rect')
+                {
+                
+                }
+                else
+                {
+                    newObject.style.borderRadius = m_corner+"px";
+                }
+                
+                newObject.style.lineHeight = m_height+"px";
                 newObject.style.width = m_width+"px";
                 newObject.style.height = m_height+"px";
-                newObject.style.borderRadius = m_corner+"px";
-                newObject.style.lineHeight = m_height+"px";
 
+                if(newObject.parameters.attributes._color)
+                    newObject.style.backgroundColor = newObject.parameters.attributes._color;
+                
                 newObject.addEventListener('mousedown', interaction.startDragModule, true);
             }
             interaction.drawConnections();
@@ -901,6 +892,7 @@ interaction = {
             interaction.widget_inspector.style.display = "none";
             interaction.module_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
+            interaction.network_inspector.style.display = "none";
         }
     },
     releaseElement: function(evt) {
@@ -925,6 +917,7 @@ interaction = {
         interaction.widget_inspector.style.display = "block";
         interaction.edit_inspector.style.display = "none";
         interaction.module_inspector.style.display = "none";
+        interaction.network_inspector.style.display = "none";
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -1006,6 +999,7 @@ interaction = {
             interaction.widget_inspector.style.display = "none";
             interaction.module_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "block";
+            interaction.network_inspector.style.display = "none";
             interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
@@ -1016,6 +1010,7 @@ interaction = {
             interaction.widget_inspector.style.display = "none";
             interaction.edit_inspector.style.display = "none";
             interaction.module_inspector.style.display = "none";
+            interaction.network_inspector.style.display = "none";
             interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
@@ -1076,8 +1071,8 @@ interaction = {
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters['x'] = newLeft + m_radius_x;
-        interaction.selectedObject.parameters['y'] = newTop + m_radius_y;
+        interaction.selectedObject.parameters.attributes['_x'] = newLeft + m_radius_x;
+        interaction.selectedObject.parameters.attributes['_y'] = newTop + m_radius_y;
         interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
     },
     selectModule: function(obj) {
@@ -1089,6 +1084,7 @@ interaction = {
         interaction.module_inspector.style.display = "block";
         interaction.widget_inspector.style.display = "none";
         interaction.edit_inspector.style.display = "none";
+        interaction.network_inspector.style.display = "none";
     },
     releaseModule: function(evt) {
         interaction.main.removeEventListener('mousemove',interaction.moveModule,true);
@@ -1111,6 +1107,7 @@ controller = {
     tick: 0,
     session_id: 0,
     client_id: Date.now(),
+    network: null,
     views: {},
     load_count: 0,
     load_count_timeout: null,
@@ -1124,7 +1121,6 @@ controller = {
     
     reconnect: function ()
     {
-//        console.log("try reconnect");
         controller.get("update", controller.update);
         let s = document.querySelector("#state");
         if(s.innerText == "waiting")
@@ -1135,75 +1131,38 @@ controller = {
     
     defer_reconnect: function ()
     {
-//        console.log("defer_reconnect");
         clearInterval(controller.reconnect_timer);
         controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
 
     get: function (url, callback)
     {
+        controller.send_stamp = Date.now();
+        var last_request = url;
+        xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
 
-            controller.send_stamp = Date.now();
-            var last_request = url;
-            xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-/*
-            xhr.onloadstart = function(evt)
+        xhr.onload = function(evt)
+        {
+            if(!xhr.response)   // empty response is ignored
             {
-                document.querySelector("progress").setAttribute("value", 0);
+                console.log("onload - empty response - error")
+                return;
             }
-
-            xhr.onprogress = function(evt)
-            {
-                if (evt.lengthComputable)
-                {
-                    var percentComplete = evt.loaded / evt.total;
-                    document.querySelector("progress").setAttribute("value", 100*percentComplete);
-                }
-            }
-*/
-/*
-            xhr.onerror = function(evt)
-            {
-                 if(evt.lengthComputable && evt.loaded < evt.total)
-                    console.log("Failed to load resource. Incomplete.");
-                else if(evt.total == 0 )
-                    console.log("Failed to load resource. No data." + xhr.status);
-                else
-                    console.log("Failed to load resource.");
-                return false;
-           }
-*/
- /*
-            xhr.ontimeout = function(evt)
-            {
-                console.log("Timeout - resending request", controller.timeout);
-                if(controller.timeout < 1000)
-                    controller.timeout = 2 * controller.timeout; // double waiting time and try again; max 10 s
-                controller.get(last_request, controller.update); // Resend request ******************* ERROR
-            }
- */
-            xhr.onload = function(evt)
-            {
-                if(!xhr.response)   // empty response is ignored
-                {
-                    console.log("onload - empty response - error")
-                    return;
-                }
-                controller.defer_reconnect(); // we are still on line
-                setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
-                callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
-            }
-            
-            xhr.responseType = 'json';
-            xhr.timeout = 1000;
-            try {
-                xhr.send();
-            }
-            catch(error)
-            {
-                console.log(error);
-            }
+            controller.defer_reconnect(); // we are still on line
+            setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
+            callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
+        }
+        
+        xhr.responseType = 'json';
+        xhr.timeout = 1000;
+        try {
+            xhr.send();
+        }
+        catch(error)
+        {
+            console.log(error);
+        }
     },
 
     init: function () {
@@ -1234,15 +1193,15 @@ controller = {
     },
 
     buildViewDictionary: function(group, name) {
-        controller.views[name+"/"+group.name] = group;
+        controller.views[name+"/"+group.attributes.name] = group;
 
         if(group.views)
             for(i in group.views)
-                controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
+                controller.views[name+"/"+group.attributes.name+"#"+group.views[i].name] = group.views[i];
 
         if(group.groups)
             for(i in group.groups)
-                controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
+                controller.buildViewDictionary(group.groups[i], name+"/"+group.attributes.name);
     },
 
     selectView: function(view) {
@@ -1313,22 +1272,28 @@ controller = {
         controller.ping = Date.now() - controller.send_stamp;
 
         // Check if this is a new session
-
         if(!response)
         {
             controller.requestUpdate(); // empty respone - probably an error
         }
         else if(controller.session_id != session_id) // new session
         {
-            console.log("NEW SESSION "+session_id+" :"+['stop','pause','step','play','realtime'][response.state]);
+//            console.log("NEW SESSION "+session_id+" :"+['stop','pause','step','play','realtime'][response.state]);
             if(response.state)
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             else
                 controller.run_mode = 'pause'
             controller.session_id = session_id;
             nav.init(response);
+            controller.network = response;
+            controller.views = {};
             controller.buildViewDictionary(response, "");
-            controller.selectView(Object.keys(controller.views)[0]);
+            
+            let v = getCookie('current_view');
+            if(Object.keys(controller.views).includes(v))
+                controller.selectView(v);
+            else
+                controller.selectView(Object.keys(controller.views)[0]);
         }
         else if(package_type == "data") // same session - a new data package
         {
@@ -1345,7 +1310,7 @@ controller = {
                 document.querySelector("#idle_time").value = response.idle_time;
                 document.querySelector("#usage").value = response.cpu_usage;
 
-                document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1);
+                document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1) + (response.has_data ? "": " (no data)");
                 document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
                 document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
                 document.querySelector("#webui_ping").innerText = controller.ping+" ms";
@@ -1436,6 +1401,87 @@ controller = {
             }
         s += "</view>"
         copyToClipboard(s);
+    },
+
+    connectionToXML: function(connection, indent="")
+    {
+        let text = indent+"<connection "
+        for(let p in connection)
+            text += p+' = "'+connection[p]+'" ';
+        text += "/>\n";
+        return text;
+    },
+
+    viewToXML: function(view, indent="")
+    {
+        let text = indent + '<view name="'+view.name+'"';
+        for(let a in view)
+            if(!['name', 'objects'].includes(a))
+                text += ' ' + a + ' = "'+view[a]+'"';
+        text += ' >\n';
+        
+        for(let w in view.objects)
+        {
+            text += '\t'+indent + '<'+view.objects[w].class+' ';
+
+            for(let a in view.objects[w])
+                if(!['class'].includes(a))
+                    text += ' '+ a + ' = "'+view.objects[w][a]+'"';
+
+            text += '/>\n';
+        }
+        text += indent + '</view>\n';
+        return text;
+    },
+
+    moduleToXML: function(module, indent="")
+    {
+        let text = indent + '<module\n';
+        for(let a in module.attributes)
+            text += indent + '\t' + a + ' = "'+module.attributes[a]+'"\n';
+        text += indent+'>\n';
+
+         for(let v in module.views)
+            text += controller.viewToXML(module.views[v], indent+"\t");
+
+        text += indent + '</module>\n';
+        return text;
+    },
+
+    groupToXML: function(group, indent="")
+    {
+        let text = indent + '<group\n';
+        for(let a in group.attributes)
+            text += indent + '\t' + a + ' = "'+group.attributes[a]+'"\n';
+        text += indent+'>\n';
+
+        for(let g in group.groups)
+            if(group.groups[g].is_group)
+                text += controller.groupToXML(group.groups[g], indent+"\t");
+            else
+                text += controller.moduleToXML(group.groups[g], indent+"\t");
+
+        for(let c in group.connections)
+            text += controller.connectionToXML(group.connections[c], indent+"\t");
+         for(let v in group.views)
+            text += controller.viewToXML(group.views[v], indent+"\t");
+        text += indent + '</group>\n';
+        return text;
+    },
+
+    saveNetwork: function()
+    {
+        function download(filename, text) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        download("network.ikg", '<?xml version="1.0" encoding="UTF-8"?>\n'+controller.groupToXML(controller.network));
     }
 }
 

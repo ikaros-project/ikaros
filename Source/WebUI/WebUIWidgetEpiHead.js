@@ -39,8 +39,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             {'name':'earColor', 'default':"#0088ff", 'type':'string', 'control': 'textedit'},
             {'name':'irisColor', 'default':"#88aaff", 'type':'string', 'control': 'textedit'},
             {'name':'mouthColor', 'default':"#000000", 'type':'string', 'control': 'textedit'},
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
@@ -53,7 +53,6 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
 
         this.onclick = function () { alert(this.data) }; // last matrix
     }
-
 
 
     drawEye(x, y, gaze, pupil, red, green, blue)

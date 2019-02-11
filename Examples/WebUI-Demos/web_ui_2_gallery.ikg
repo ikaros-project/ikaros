@@ -861,7 +861,7 @@
 
 
 
-    <group name="Group Inner">
+    <group name="Group Inner" _x="435" _y="600">
          <module
             class = "Randomizer"
             name = "Randomic"
@@ -904,6 +904,8 @@
         filename="../Media/colorrobot.jpg"
         size_x="256"
         size_y="256"
+        _color = "red"
+        _text_color =" white"
     />
     <module
         class = "Randomizer"
@@ -1062,16 +1064,26 @@
         name = "G1"
         type = "sin"
         frequency = "0.1"
+        _x = "236"
+        _y = "456"
+        _style = "border-radius:0;color:red"
     />
     <module
         class = "FunctionGenerator"
         name = "G2"
         type = "sin"
         frequency = "0.1"
+        _x = "673"
+        _y = "641"
+        _color = "#AAFFAA"
+        _shape = "rect"
     />
     <module
         class = "Gate"
         name = "G"
+        _x = "542"
+        _y = "311"
+        _color = "#AAAAFF"
     />
     <connection source="G1.OUTPUT" target="G.INPUT" />
     <connection source="G2.OUTPUT" target="G.INPUT" />
@@ -1092,6 +1104,8 @@
         type = "ticksquare"
         basetime = "50"
         tickduty = "25"
+        _color = "black"
+        _text_color =" white"
     />
 
     <module

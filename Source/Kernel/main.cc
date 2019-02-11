@@ -137,7 +137,7 @@ main(int argc, char *argv[])
         k.ListThreads();
         k.ListWarningsAndErrors();
         k.ListBindings();
-        
+
         k.Notify(msg_print, "Starting Ikaros WebUI server.\n");
         k.Notify(msg_print, "Connect from a browser on this computer with the URL \"http://localhost:%d/\".\n", k.port);
         k.Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", k.port);
