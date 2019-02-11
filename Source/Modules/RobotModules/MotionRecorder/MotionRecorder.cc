@@ -146,6 +146,14 @@ MotionRecorder::ToggleMode(int x, int y)
     for(int i=0; i<4; i++) // reset row
         mode[i][x] = 0;
     mode[y][x] = 1;
+    
+    // Check if we should store servo position if stop is selected
+    
+    if(y==1) // STOP
+    {
+        start_position[x] = input[x];
+        enable[x] = 1;
+    }
 }
 
 
@@ -155,10 +163,12 @@ MotionRecorder::Off()
 {
     mode_string = "Off";
     *state = state_off;
-    *state = state_off;
     copy_array(output, input, size); // Immediate no torque response even before the button is released
-    set_array(enable, 0, size);
+    for(int i=0; i<size; i++)
+        if(mode[i][1] == 0)
+            enable[i] = 0;
 }
+
 
 
 void
@@ -512,9 +522,10 @@ MotionRecorder::Tick()
     else if(*state == state_off)
     {
         *time = 0;
-        set_array(enable, 0, size);
         copy_array(output, input, size);
-    }
+        for(int i=0; i<size; i++)
+            if(mode[i][1] == 0)
+                enable[i] = 0;    }
 
     else if(*state == state_record)
     {
