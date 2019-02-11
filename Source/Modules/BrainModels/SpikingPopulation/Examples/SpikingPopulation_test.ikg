@@ -125,7 +125,7 @@
 				height = "100"
 				width = "200"
 				module = "Scale"
-				parameter = "factor"
+				parameter = "Scale.factor"
 				min = "0"
 				class = "slider-horizontal"
 				show_title = "true"
@@ -142,8 +142,10 @@
 				min="0"
 				max="10"
 				title="Squaregen"
+				show_title = "true"
 			/>
 			<bar-graph
+				show_title = "true"
 				direction="horizontal"  
 				source="RegularSpiking.OUTPUT" 
 				x="0" y="200" width="200" height="200"
@@ -158,6 +160,7 @@
 				min="-100"
 				max="100"
 				title="Bursting"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -166,6 +169,7 @@
 				min="-100"
 				max="100"
 				title="Chattering"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -174,6 +178,7 @@
 				min="-100"
 				max="100"
 				title="Fast spiking"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -182,6 +187,7 @@
 				min="-100"
 				max="100"
 				title="Low threshold"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -190,6 +196,7 @@
 				min="-100"
 				max="100"
 				title="Resonator"
+				show_title = "true"
 			/>
 			<plot  
 				source="LowThreshold.ADENOSINE" 
@@ -197,6 +204,7 @@
 				min="0"
 				max="10"
 				title="Resonator"
+				show_title = "true"
 			/>
 
 
@@ -208,6 +216,7 @@
 				max="100"
 				title="Regular spiking"
 				color="LUT_Fire"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -216,6 +225,7 @@
 				min="-100"
 				max="100"
 				title="Bursting"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -224,6 +234,7 @@
 				min="-100"
 				max="100"
 				title="Chattering"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -232,6 +243,7 @@
 				min="-100"
 				max="100"
 				title="Fast spiking"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -240,6 +252,7 @@
 				min="-100"
 				max="100"
 				title="Low threshold"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -248,6 +261,7 @@
 				min="-100"
 				max="100"
 				title="Resonator"
+				show_title = "true"
 			/>
 		</view>
 
