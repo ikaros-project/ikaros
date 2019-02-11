@@ -44,7 +44,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     {
         let p = this.parentElement.parameters;
         if(p.command)
-            this.parentElement.send_command(p.command, value, p.xindex, p.yindex);
+            this.parentElement.send_command(p.command, p.value, p.xindex, p.yindex);
 
         else if(p.parameter)
             this.parentElement.send_control_change(p.parameter, p.value, p.xindex, p.yindex);

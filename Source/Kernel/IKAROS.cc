@@ -2743,11 +2743,13 @@ Kernel::SetParameter(const char * name, int x, int y, float value)
 
 
 void
-Kernel::SendCommand(const char * group, const char * command, float x, float y, std::string value)
+Kernel::SendCommand(const char * command, float x, float y, std::string value)
 {
-    if(auto * g = main_group->GetGroup(group))
+    std::string c = command;
+    auto s = rsplit(c, ".", 1);
+    if(auto * g = main_group->GetGroup(s[0]))
         if(Module * m = g->module)
-            m->Command(command, x, y, value);
+            m->Command(s[1], x, y, value);
 }
 
 
@@ -3969,9 +3971,9 @@ Kernel::HandleHTTPRequest()
         float x, y;
         char command[255];
         char value[1024]; // FIXME: no range chacks
-        int c = sscanf(uri, "/command/%[^/]/%[^/]/%f/%f/%[^/]", module_name, command, &x, &y, value);
-        if(c == 5)
-            SendCommand(module_name, command, x, y, value);
+        int c = sscanf(uri, "/command/%[^/]/%f/%f/%[^/]", command, &x, &y, value);
+        if(c == 4)
+            SendCommand(command, x, y, value);
 
         Dictionary header;
         header.Set("Content-Type", "text/plain");

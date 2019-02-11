@@ -10,7 +10,7 @@ class WebUIWidgetControl extends WebUIWidget
             this.get("/control/"+parameter+"/"+index_x+"/"+index_y+"/"+value);
     }
 
-    send_xcommand(command, value=0, index_x=0, index_y=0)
+    send_command(command, value=0, index_x=0, index_y=0)
     {
         if(this.groupName)
             this.get("/command/"+this.groupName+"."+command+"/"+index_x+"/"+index_y+"/"+value);
