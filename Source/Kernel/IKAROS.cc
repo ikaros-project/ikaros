@@ -1982,6 +1982,13 @@ Kernel::SetOptions(Options * opt)
         debug_mode = true;
     }
     
+    if(options->GetOption('r'))
+    {
+        ui_state = ui_state_realtime;
+        isRunning = true;
+        Notify(msg_debug, "Setting real-time mode.\n");
+    }
+    
     if (options->GetOption('R'))
     {
         port = string_to_int(options->GetArgument('R'), PORT);
