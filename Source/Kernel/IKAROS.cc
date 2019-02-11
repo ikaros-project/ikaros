@@ -3421,7 +3421,7 @@ Kernel::ListModulesAndConnections()
 void
 Kernel::ListBindings()
 {
-    return;
+//    return;
     Notify(msg_print, "\n");
     Notify(msg_print, "Bindings:\n");
     Notify(msg_print, "\n");
@@ -3778,8 +3778,12 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                         case data_source_list:
                         case data_source_bool:
                         case data_source_float:
-                            socket->Send("\t\t\"%s\": [[%f]]", source, *(float *)(b->value));
+                        {
+                            int xxx = *(int *)(b->value);
+                            float fff = *(float *)(b->value);
+                            socket->Send("\t\t\"%s\": [[%f]]", source, *(int *)(b->value));
                             break;
+                        }
 
                         case data_source_string:
                             socket->Send("\t\t\"%s\": \"%s\"", source, ((std::string *)(b->value))->c_str());

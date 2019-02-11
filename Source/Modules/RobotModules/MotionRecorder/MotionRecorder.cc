@@ -121,7 +121,7 @@ MotionRecorder::~MotionRecorder()
 void
 MotionRecorder::Command(std::string s, float x, float y, std::string value)
 {
-    printf("##%s\n", s.c_str());
+//    printf("##%s\n", s.c_str());
     if(s == "off")
         Off();
     else if (s == "stop")
@@ -255,7 +255,7 @@ MotionRecorder::SaveAsJSON()
 
     fprintf(f, "\t\t\"channels\": %d\n", size);
     fprintf(f, "\t\t\"timebase\": %ld\n", GetTickLength());
-    fprintf(f, "\t\t\"inerpolation\": \"linear\"\n");
+    fprintf(f, "\t\t\"interpolation\": \"linear\"\n");
     fprintf(f, "\t\t\"units\": \"ms\"\n");
     fprintf(f, "\t\t\"loop\": \"no\"\n");
     fprintf(f, "\t\t\"start\": 0\n");
@@ -313,10 +313,10 @@ MotionRecorder::Save()
 
         fprintf(f, "TIME/1  POSITION/%d\n", size);
 
-        for(int j=0; j<position_data_count[current_motion]; j++)
+        for(int j=0; j<position_data_count[current_motion]-1; j++) // FIXME: should 1 be subtracted or not???
         {
             long t = j*GetTickLength();
-            fprintf(f, "%ld\n", t);
+            fprintf(f, "%ld\t", t);
 
             for(int i=0; i<size; i++)
             {
@@ -406,6 +406,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 void
 MotionRecorder::Tick()
 {
+    printf("CURRENT MOTION %d\n", current_motion);
     // TEST: Copy current data to webui output
     
     for(int c=0; c<2; c++)
