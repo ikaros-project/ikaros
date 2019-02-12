@@ -152,6 +152,7 @@ MotionRecorder::ToggleMode(int x, int y)
     if(y==1) // STOP
     {
         start_position[x] = input[x];
+        stop_position[x] = input[x];
         enable[x] = 1;
     }
 }
@@ -165,7 +166,7 @@ MotionRecorder::Off()
     *state = state_off;
     copy_array(output, input, size); // Immediate no torque response even before the button is released
     for(int i=0; i<size; i++)
-        if(mode[i][1] == 0)
+        if(mode[mode_stop][i] == 0)
             enable[i] = 0;
 }
 
@@ -176,7 +177,15 @@ MotionRecorder::Stop()
 {
     mode_string = "Stop";
     *state = state_stop;
-    copy_array(stop_position, input, size);
+    
+    for(int i=0; i<size; i++)
+        if(mode[mode_stop][i] == 1)
+            stop_position[i] = start_position[i]; // Never set new position for stoppped channel
+        else
+            stop_position[i] = input[i];
+        
+//    copy_array(stop_position, input, size);
+
     print_array("stop_position", stop_position, size);
 
     // If we record - copy position for all recorded channels to the rest of the track
@@ -241,7 +250,7 @@ MotionRecorder::Play()
         for(int i=0; i<size; i++)
             if(mode[mode_off][i]) // disable some channels
                 enable[i] = 0;
-     }
+    }
     *time = 0;
 }
 
@@ -353,7 +362,7 @@ MotionRecorder::Save()
 
 
 void
-MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT
+MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT;  // FIXME: causes output to change somehow!!!
 {
     *state = state_stop;
     mode_string = "Stop";
@@ -416,7 +425,6 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 void
 MotionRecorder::Tick()
 {
-    printf("CURRENT MOTION %d\n", current_motion);
     // TEST: Copy current data to webui output
     
     for(int c=0; c<2; c++)
@@ -428,15 +436,16 @@ MotionRecorder::Tick()
     
     if(GetTick() < 20) // wait for valid data
     {
+        copy_array(start_position, input, size);
         copy_array(stop_position, input, size);
-        copy_array(output, stop_position, size);
+        copy_array(output, input, size);
         reset_array(enable, size);
         return;
     }
 
     reset_array(completed, max_motions);
 
-    if(trig)
+    if(trig) // FIXME: call rectord or play functions instead after setting current_motion
     {
         if(record_on_trig)
         {
@@ -516,20 +525,30 @@ MotionRecorder::Tick()
                     enable[i] = 0;
          }
 
-        copy_array(output, stop_position, size);
+            for(int i=0; i<size; i++)
+                if(mode[mode_play][i]) // disable some channels
+                    output[i] = stop_position[i];
      }
 
     else if(*state == state_off)
     {
         *time = 0;
-        copy_array(output, input, size);
         for(int i=0; i<size; i++)
-            if(mode[i][1] == 0)
-                enable[i] = 0;    }
+        {
+            if(mode[mode_stop][i] == 0)
+            {
+                output[i] = input[i];
+                enable[i] = 0; 
+            }
+        }
+    }
 
     else if(*state == state_record)
     {
-        copy_array(output, input, size);
+        for(int i=0; i<size; i++)
+            if(mode[mode_stop][i] == 0)
+                output[i] = input[i];
+
         if(position_data_count[current_motion] < position_data_max && norm1(input, size) > 0)
         {
             // copy_array(position_data[position_data_count], input, size);
@@ -557,12 +576,18 @@ MotionRecorder::Tick()
             float a = float(f)/float(smoothing_time);
             for(int i=0; i< size; i++)
             {
-                if(position_data[current_motion][f] != 0)
-                    output[i] = (1-a) * start_position[i] + a * position_data[current_motion][f][i];
+                if(mode[mode_play][i] == 1 || mode[mode_record][i] == 1)
+                    if(position_data[current_motion][f] != 0)
+                        output[i] = (1-a) * start_position[i] + a * position_data[current_motion][f][i];
             }
         }
         else
-            copy_array(output, position_data[current_motion][f], size);
+        {
+            for(int i=0; i< size; i++)
+                if(mode[mode_play][i] == 1 || mode[mode_record][i] == 1)
+                    output[i] = position_data[current_motion][f][i];
+        }
+//           copy_array(output, position_data[current_motion][f], size);
 
         if(f < position_data_count[current_motion]-1)
             *time += timebase;
@@ -570,8 +595,16 @@ MotionRecorder::Tick()
         {
             completed[current_motion] = 1;
             *state = state_stop;
-            copy_array(stop_position, input, size);
-            copy_array(output, stop_position, size); // Just in case this is not run later
+            mode_string = "Stop";
+//            copy_array(stop_position, input, size);
+            for(int i=0; i< size; i++)
+            {
+                if(mode[mode_play][i] == 1)
+                {
+                    stop_position[i] = input[i];
+                    output[i] = stop_position[i];
+                }
+            }
             set_array(enable, 1, size);
             if(mode)
             {
