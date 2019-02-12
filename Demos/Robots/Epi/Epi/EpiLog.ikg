@@ -1,0 +1,72 @@
+<!-- LOG-->
+<!-- Here we can log everything yay! -->
+
+<!-- Logging Video -->
+	<module
+        class = "OutputJPEG"
+        name = "LOG_LEFT_EYE_FULL_RES"
+        filename = "Log/LeftEye%02d.jpg"
+    />
+
+	<connection  source = "LeftEye.FULL_RES_RED"  	target = "LOG_LEFT_EYE_FULL_RES.RED" />
+	<connection  source = "LeftEye.FULL_RES_GREEN"  target = "LOG_LEFT_EYE_FULL_RES.GREEN" />
+	<connection  source = "LeftEye.FULL_RES_BLUE"  	target = "LOG_LEFT_EYE_FULL_RES.BLUE" />
+
+	<module
+        class = "OutputJPEG"
+        name = "LOG_RIGHT_EYE_FULL_RES"
+        filename = "Log/RightEye%02d.jpg"
+    />
+
+	<connection  source = "RightEye.FULL_RES_RED"  	target = "LOG_RIGHT_EYE_FULL_RES.RED" />
+	<connection  source = "RightEye.FULL_RES_GREEN"  target = "LOG_RIGHT_EYE_FULL_RES.GREEN" />
+	<connection  source = "RightEye.FULL_RES_BLUE"  	target = "LOG_RIGHT_EYE_FULL_RES.BLUE" />
+
+	<!-- Servos -->
+		<module
+			class = "OutputFile"
+			name = "Log"
+			filename = "Log/ServoFeedback.txt"
+		>
+            <column name = "ServoTorqueEnable" />
+            <column name = "ServoLed" />
+            <column name = "ServoDGain" />
+            <column name = "ServoIGain" />
+            <column name = "ServoPGain" />
+            <column name = "ServoGoalPosition" />
+            <column name = "ServoMovingSpeed" />
+            <column name = "ServoTorqueLimit" />
+            <column name = "ServoPresentPosition" />
+            <column name = "ServoPresentSpeed" />
+            <column name = "ServoPreserntLoad" />
+            <column name = "ServoPresentVoltage" />
+            <column name = "ServoPresentTemperature" />
+            <column name = "ServoPresentCurrent" />
+            <column name = "ServoGoalTorque" />
+            <column name = "ServoGoalAcceleration" />
+            <column name = "ServoError" />
+            <column name = "Triggers" />
+        </module>
+
+		<connection  source = "Servos.FEEDBACK_TORQUE_ENABLE.OUTPUT"  		target = "Log.ServoTorqueEnable"/>
+		<connection  source = "Servos.FEEDBACK_LED.OUTPUT"  				target = "Log.ServoLed"/>
+		<connection  source = "Servos.FEEDBACK_D_GAIN.OUTPUT"  				target = "Log.ServoDGain"/>
+		<connection  source = "Servos.FEEDBACK_I_GAIN.OUTPUT"  				target = "Log.ServoIGain"/>
+		<connection  source = "Servos.FEEDBACK_P_GAIN.OUTPUT"  				target = "Log.ServoGGain"/>
+		<connection  source = "Servos.FEEDBACK_GOAL_POSITION.OUTPUT"  		target = "Log.ServoGoalPosition"/>
+		<connection  source = "Servos.FEEDBACK_MOVING_SPEED.OUTPUT"  		target = "Log.ServoMovingSpeed"/>
+		<connection  source = "Servos.FEEDBACK_TORQUE_LIMIT.OUTPUT"  		target = "Log.ServoTorqueLimit"/>
+		<connection  source = "Servos.FEEDBACK_PRESENT_POSITION.OUTPUT"  	target = "Log.ServoPresentPosition"/>
+		<connection  source = "Servos.FEEDBACK_PRESENT_SPEED.OUTPUT"  		target = "Log.ServoPresentSpeed"/>
+		<connection  source = "Servos.FEEDBACK_PRESENT_LOAD.OUTPUT"  		target = "Log.ServoPreserntLoad"/>
+		<connection  source = "Servos.FEEDBACK_PRESENT_VOLTAGE.OUTPUT"  	target = "Log.ServoPresentVoltage"/>
+		<connection  source = "Servos.FEEDBACK_PRESENT_TEMPERATURE.OUTPUT"  target = "Log.ServoPresentTemperature"/>
+		<connection  source = "Servos.FEEDBACK_PRESENT_CURRENT.OUTPUT"  	target = "Log.ServoPresentCurrent"/>
+		<connection  source = "Servos.FEEDBACK_GOAL_TORQUE.OUTPUT"  		target = "Log.ServoGoalTorque"/>
+		<connection  source = "Servos.FEEDBACK_GOAL_ACCELERATION.OUTPUT"  	target = "Log.ServoGoalAcceleration"/>
+		<connection  source = "Servos.ERRORS.OUTPUT"  						target = "Log.ServoError"/>
+
+		<!-- Triggers array size 10 -->
+		<module class = "Constant" name = "LogTrigger" data = "0 0 0 0 0 0 0 0 0 0" />
+			<connection  source = "LogTrigger.OUTPUT"  						target = "Log.Triggers"/>
+		
