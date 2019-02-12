@@ -39,7 +39,7 @@
 				height = "100"
 				width = "200"
 				_module = "Scale"
-				parameter = "Group-0.Scale.factor"
+				parameter = "Scale.factor"
 				min = "0"
 				class = "slider-horizontal"
 				show_title = "true"
