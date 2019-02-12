@@ -257,16 +257,39 @@ XMLElement::GetAttribute(const char * attribute_name)       // Implement variabl
                     return v;
             }
         }
-/*
+
     // Inhertiance
     if(parent != NULL && parent->IsElement())
     {
         return ((XMLElement *)(parent))->GetAttribute(attribute_name);
     }
-*/
+
     return NULL;
 }
 
+
+
+
+const char *
+XMLElement::GetActualAttribute(const char * attribute_name)
+{
+    for (XMLAttribute * a = attributes; a != NULL; a = (XMLAttribute *)(a->next))
+        if (!strcmp(a->name, attribute_name))
+        {
+            if(a->value[0] != '@')
+            {
+                return a->value;
+            }
+            else // Variables
+            {
+                const char * v = GetAttribute(&a->value[1]);
+                if(v)
+                    return v;
+            }
+        }
+
+    return NULL;
+}
 
 
 void

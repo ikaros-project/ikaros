@@ -126,7 +126,8 @@ public:
 	
     virtual void SetPrev(XMLNode * p);
     
-    const char *	GetAttribute(const char *);			
+    const char *	GetAttribute(const char *);
+    const char *    GetActualAttribute(const char *);    // without inheritence but with variables - temporary
 	void			SetAttribute(const char * a, const char * v);
 
     virtual XMLElement * GetElement(const char * element_name=NULL); // NULL indicates any element

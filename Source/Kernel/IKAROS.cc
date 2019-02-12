@@ -3156,13 +3156,14 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 
 
 // Parse XML for a group
-
-
+//
+// FIXME: names of should never be inherited!!!
+//
 
 GroupElement *
 Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class, const char * current_filename)
 {
-    if(!group_xml->GetAttribute("name"))
+    if(!group_xml->GetActualAttribute("name"))
         group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
 
     // Add attributes to group element
@@ -3197,10 +3198,10 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
         else if(xml_node->IsElement("group"))	// Add group
         {
-            if(!xml_node->GetAttribute("name"))
+            if(!xml_node->GetActualAttribute("name"))
                 xml_node->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
             GroupElement * g = new GroupElement(group);
-            group->groups.insert( { xml_node->GetAttribute("name"), BuildGroup(g, xml_node) });
+            group->groups.insert( { xml_node->GetActualAttribute("name"), BuildGroup(g, xml_node) });
         }
     
         else if(xml_node->IsElement("parameter"))
