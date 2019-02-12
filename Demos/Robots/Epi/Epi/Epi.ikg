@@ -301,11 +301,11 @@ PupilModelA = "100"
 
 <!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
-	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.BODY_FEEDBACK_POSITION" 			targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.HEAD_FEEDBACK_POSITION" 			targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.LEFT_ARM_FEEDBACK_POSITION" 		targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.RIGHT_ARM_FEEDBACK_POSITION" 	targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-	<connection source = "Servos.FEEDBACK_POSITION" 	target = "ForwardModel.PUPIL_FEEDBACK_POSITION" 		targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.BODY_FEEDBACK_POSITION" 			targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.HEAD_FEEDBACK_POSITION" 			targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.LEFT_ARM_FEEDBACK_POSITION" 		targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.RIGHT_ARM_FEEDBACK_POSITION" 	targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.PUPIL_FEEDBACK_POSITION" 		targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
 
 
 <!--  Low Level Motion mixer  -->
@@ -615,29 +615,7 @@ PupilModelA = "100"
 		</view>
 
 
+	<!-- Log -->
+    <module class="EpiLog" name="EpiLog" active = "no"/>
 
-<!-- LOG -->
-<!-- Here we can log everything yay! -->
-
-<!-- Logging Video -->
-        <module
-            class = "OutputJPEG"
-            name = "LOG_LEFT_EYE_FULL_RES"
-            filename = "Log/1/LeftEye%02d.jpg"
-        />
-
-        <connection  source = "LeftEye.FULL_RES_RED"  	target = "LOG_LEFT_EYE_FULL_RES.RED" />
-        <connection  source = "LeftEye.FULL_RES_GREEN"  target = "LOG_LEFT_EYE_FULL_RES.GREEN" />
-        <connection  source = "LeftEye.FULL_RES_BLUE"  	target = "LOG_LEFT_EYE_FULL_RES.BLUE" />
-
-<!-- Dynamixel -->
-		<module
-			class = "OutputFile"
-			name = "LOG_SERVO_FEEDBACK"
-			filename = "Log/1/ServoFeedback.txt"
-		>
-            <column name = "FeedbackPosition" />
-        </module>
-
-		<connection  source = "Servos.SC_FeedBackPosition.OUTPUT"  target = "LOG_SERVO_FEEDBACK.FeedbackPosition"/>
 </group>

@@ -191,16 +191,154 @@
         <connection source = "RightArm.FEEDBACK_PRESENT_POSITION"   target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
         <connection source = "Pupil.FEEDBACK_PRESENT_POSITION"      target = "SC_FeedBackPosition.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
 
+    <!-- Create modules that join server data -->
+ 
+    <module class = "Gate" name = "FEEDBACK_TORQUE_ENABLE_G"/>
+        <connection source = "Body.FEEDBACK_TORQUE_ENABLE"       target = "FEEDBACK_TORQUE_ENABLE_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_TORQUE_ENABLE"       target = "FEEDBACK_TORQUE_ENABLE_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_TORQUE_ENABLE"    target = "FEEDBACK_TORQUE_ENABLE_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_TORQUE_ENABLE"   target = "FEEDBACK_TORQUE_ENABLE_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_TORQUE_ENABLE"      target = "FEEDBACK_TORQUE_ENABLE_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_TORQUE_ENABLE"                     source = "FEEDBACK_TORQUE_ENABLE_G.UTPUT" />
 
-    <!-- Dummy module -->
-    <!-- Can this be done some other way? -->
+    <module class = "Gate" name = "FEEDBACK_LED_G"/>
+        <connection source = "Body.FEEDBACK_LED"       target = "FEEDBACK_LED_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_LED"       target = "FEEDBACK_LED_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_LED"    target = "FEEDBACK_LED_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_LED"   target = "FEEDBACK_LED_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_LED"      target = "FEEDBACK_LED_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_LED"                       source = "FEEDBACK_LED_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_D_GAIN_G"/>
+        <connection source = "Body.FEEDBACK_D_GAIN"       target = "FEEDBACK_D_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_D_GAIN"       target = "FEEDBACK_D_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_D_GAIN"    target = "FEEDBACK_D_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_D_GAIN"   target = "FEEDBACK_D_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_D_GAIN"      target = "FEEDBACK_D_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_D_GAIN"                        source = "FEEDBACK_D_GAIN_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_I_GAIN_G"/>
+        <connection source = "Body.FEEDBACK_I_GAIN"       target = "FEEDBACK_I_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_I_GAIN"       target = "FEEDBACK_I_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_I_GAIN"    target = "FEEDBACK_I_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_I_GAIN"   target = "FEEDBACK_I_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_D_GAIN"      target = "FEEDBACK_I_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_I_GAIN"                        source = "FEEDBACK_I_GAIN_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_P_GAIN_G"/>
+        <connection source = "Body.FEEDBACK_P_GAIN"       target = "FEEDBACK_P_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_P_GAIN"       target = "FEEDBACK_P_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_P_GAIN"    target = "FEEDBACK_P_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_P_GAIN"   target = "FEEDBACK_P_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_P_GAIN"      target = "FEEDBACK_P_GAIN_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_P_GAIN"                        source = "FEEDBACK_P_GAIN_G.OUTPUT" />
+
     <module class = "Gate" name = "POSITION_FEEDBACK_G"/>
         <!-- Order is important -->
-	    <connection source = "DegreesTomm.OUTPUT"  	        target = "POSITION_FEEDBACK_G.INPUT"  sourceoffset = "0"                  targetoffset = "@servosIndexPupil"    size = "@nrServosPupil"/>
-	    <connection source = "SC_FeedBackPosition.OUTPUT"  	target = "POSITION_FEEDBACK_G.INPUT"  sourceoffset = "0"	                targetoffset = "0"                    size = "@servosIndexPupil"/>
+	    <connection source = "DegreesTomm.OUTPUT"  	        target = "POSITION_FEEDBACK_G.INPUT"  sourceoffset = "0"                targetoffset = "@servosIndexPupil"    size = "@nrServosPupil"/>
+	    <connection source = "SC_FeedBackPosition.OUTPUT"  	target = "POSITION_FEEDBACK_G.INPUT"  sourceoffset = "0"	            targetoffset = "0"                    size = "@servosIndexPupil"/>
         <!-- Pupil mm to Degrees> -->
 	    <connection source = "SC_FeedBackPosition.OUTPUT"  	target = "DegreesTomm.INPUT"        sourceoffset = "@servosIndexPupil"	targetoffset = "0"                    size = "@nrServosPupil"/>
+    <output name = "FEEDBACK_GOAL_POSITION"                     source = "FEEDBACK_FEEDBACK_GOAL_POSITION_G.OUTPUT" />
 
-    <output name = "FEEDBACK_POSITION"          sourcemodule = "POSITION_FEEDBACK_G" source = "OUTPUT" />
+    <module class = "Gate" name = "FEEDBACK_MOVING_SPEED_G"/>
+        <connection source = "Body.FEEDBACK_MOVING_SPEED"       target = "FEEDBACK_MOVING_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_MOVING_SPEED"       target = "FEEDBACK_MOVING_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_MOVING_SPEED"    target = "FEEDBACK_MOVING_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_MOVING_SPEED"   target = "FEEDBACK_MOVING_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_MOVING_SPEED"      target = "FEEDBACK_MOVING_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_MOVING_SPEED"                     source = "FEEDBACK_MOVING_SPEED_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_TORQUE_LIMIT_G"/>
+        <connection source = "Body.FEEDBACK_TORQUE_LIMIT"       target = "FEEDBACK_TORQUE_LIMIT_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_TORQUE_LIMIT"       target = "FEEDBACK_TORQUE_LIMIT_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_TORQUE_LIMIT"    target = "FEEDBACK_TORQUE_LIMIT_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_TORQUE_LIMIT"   target = "FEEDBACK_TORQUE_LIMIT_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_TORQUE_LIMIT"      target = "FEEDBACK_TORQUE_LIMIT_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_TORQUE_LIMIT"                     source = "FEEDBACK_TORQUE_LIMIT_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_PRESENT_POSITION_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_POSITION"       target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_POSITION"       target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_POSITION"    target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_POSITION"   target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_POSITION"      target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_POSITION"                     source = "FEEDBACK_PRESENT_POSITION_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_PRESENT_SPEED_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_SPEED"       target = "FEEDBACK_PRESENT_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_SPEED"       target = "FEEDBACK_PRESENT_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_SPEED"    target = "FEEDBACK_PRESENT_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_SPEED"   target = "FEEDBACK_PRESENT_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_SPEED"      target = "FEEDBACK_PRESENT_SPEED_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_SPEED"                     source = "FEEDBACK_PRESENT_SPEED_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_PRESENT_LOAD_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_LOAD"       target = "FEEDBACK_PRESENT_LOAD_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_LOAD"       target = "FEEDBACK_PRESENT_LOAD_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_LOAD"    target = "FEEDBACK_PRESENT_LOAD_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_LOAD"   target = "FEEDBACK_PRESENT_LOAD_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_LOAD"      target = "FEEDBACK_PRESENT_LOAD_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_LOAD"                     source = "FEEDBACK_PRESENT_LOAD_G.OUTPUT" />
+
+   <module class = "Gate" name = "FEEDBACK_PRESENT_VOLTAGE_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_VOLTAGE"       target = "FEEDBACK_PRESENT_VOLTAGE_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_VOLTAGE"       target = "FEEDBACK_PRESENT_VOLTAGE_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_VOLTAGE"    target = "FEEDBACK_PRESENT_VOLTAGE_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_VOLTAGE"   target = "FEEDBACK_PRESENT_VOLTAGE_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_VOLTAGE"      target = "FEEDBACK_PRESENT_VOLTAGE_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_VOLTAGE"                     source = "FEEDBACK_PRESENT_VOLTAGE_G.OUTPUT" />
+
+   <module class = "Gate" name = "FEEDBACK_PRESENT_TEMPERATURE_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_TEMPERATURE"       target = "FEEDBACK_PRESENT_TEMPERATURE_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_TEMPERATURE"       target = "FEEDBACK_PRESENT_TEMPERATURE_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_TEMPERATURE"    target = "FEEDBACK_PRESENT_TEMPERATURE_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_TEMPERATURE"   target = "FEEDBACK_PRESENT_TEMPERATURE_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_TEMPERATURE"      target = "FEEDBACK_PRESENT_TEMPERATURE_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_TEMPERATURE"                     source = "FEEDBACK_PRESENT_TEMPERATURE_G.OUTPUT" />
+
+   <module class = "Gate" name = "FEEDBACK_PRESENT_CURRENT_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_CURRENT"       target = "FEEDBACK_PRESENT_CURRENT_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_CURRENT"       target = "FEEDBACK_PRESENT_CURRENT_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_CURRENT"    target = "FEEDBACK_PRESENT_CURRENT_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_CURRENT"   target = "FEEDBACK_PRESENT_CURRENT_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_CURRENT"      target = "FEEDBACK_PRESENT_CURRENT_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_CURRENT"                     source = "FEEDBACK_PRESENT_CURRENT_G.OUTPUT" />
+
+    <module class = "Gate" name = "FEEDBACK_PRESENT_POSITION_G"/>
+        <connection source = "Body.FEEDBACK_PRESENT_POSITION"       target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_POSITION"       target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_POSITION"    target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_POSITION"   target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_POSITION"      target = "FEEDBACK_PRESENT_POSITION_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_PRESENT_POSITION"                     source = "FEEDBACK_PRESENT_POSITION_G.OUTPUT" />
+
+   <module class = "Gate" name = "FEEDBACK_GOAL_TORQUE_G"/>
+        <connection source = "Body.FEEDBACK_GOAL_TORQUE"       target = "FEEDBACK_GOAL_TORQUE_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_GOAL_TORQUE"       target = "FEEDBACK_GOAL_TORQUE_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_GOAL_TORQUE"    target = "FEEDBACK_GOAL_TORQUE_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_GOAL_TORQUE"   target = "FEEDBACK_GOAL_TORQUE_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_GOAL_TORQUE"      target = "FEEDBACK_GOAL_TORQUE_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_GOAL_TORQUE"                     source = "FEEDBACK_GOAL_TORQUE_G.OUTPUT" />
+
+   <module class = "Gate" name = "FEEDBACK_GOAL_ACCELERATION_G"/>
+        <connection source = "Body.FEEDBACK_GOAL_ACCELERATION"       target = "FEEDBACK_GOAL_ACCELERATION_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_GOAL_ACCELERATION"       target = "FEEDBACK_GOAL_ACCELERATION_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_GOAL_ACCELERATION"    target = "FEEDBACK_GOAL_ACCELERATION_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_GOAL_ACCELERATION"   target = "FEEDBACK_GOAL_ACCELERATION_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_GOAL_ACCELERATION"      target = "FEEDBACK_GOAL_ACCELERATION_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "FEEDBACK_GOAL_ACCELERATION"                     source = "FEEDBACK_GOAL_ACCELERATION_G.OUTPUT" />
+
+     <module class = "Gate" name = "ERROR_G"/>
+        <connection source = "Body.ERROR"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.ERROR"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+        <connection source = "LeftArm.ERROR"    target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.ERROR"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.ERROR"      target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "ERROR"                     source = "ERROR_G.OUTPUT" />
+
+	
+
+
 
 </group>

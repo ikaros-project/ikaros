@@ -11,10 +11,10 @@
 	PupilSerialDevice		= "/dev/ttyPUPIL"
 
 	BodyDynamixel 			= "DynamixelSimulate"
-	HeadDynamixel 			= "Dynamixel"
-	LeftArmDynamixel 		= "Dynamixel"
+	HeadDynamixel 			= "DynamixelSimulate"
+	LeftArmDynamixel 		= "DynamixelSimulate"
 	RightArmDynamixel 		= "DynamixelSimulate"
-	PupilDynamixel 			= "Dynamixel"
+	PupilDynamixel 			= "DynamixelSimulate"
 
 	VisionInput = "InputVideoStream"
 	/>
