@@ -34,6 +34,9 @@
         uv4l = "true"
 		info = "false"
         active = "yes"
+		size_x = "640"
+		size_y = "640"
+		syncronized_tick = "false"
 	/>
 
     <!-- Down sample -->
