@@ -46,6 +46,8 @@ OutputFile::OutputFile(Parameter * p):
 
     column_name = new char * [no_of_columns];
     column_size = new int [no_of_columns];
+    column_size_x = new int [no_of_columns];
+    column_size_y = new int [no_of_columns];
     column_decimals = new int [no_of_columns];
     column_data = new float * [no_of_columns];
 
@@ -54,6 +56,8 @@ OutputFile::OutputFile(Parameter * p):
         column_name[i] = NULL;
         column_data[i] = NULL;
         column_size[i] = 0;
+        column_size_x[i] = 0;
+        column_size_y[i] = 0;
         column_decimals[i] = 0;
     }
 
@@ -88,6 +92,7 @@ void
 OutputFile::Init()
 {
     Bind(single_trig, "single_trig");
+    Bind(use_old_format, "use_old_format");
     
     last_trig = false;
     total_no_of_columns = 0;
@@ -96,6 +101,8 @@ OutputFile::Init()
     {
         column_data[i] = GetInputArray(column_name[i]);
         column_size[i] = GetInputSize(column_name[i]);
+        column_size_x[i] = GetInputSizeX(column_name[i]);
+        column_size_y[i] = GetInputSizeY(column_name[i]);
         total_no_of_columns += column_size[i];
     }
     
@@ -214,16 +221,40 @@ OutputFile::Tick()
 void
 OutputFile::WriteHeader()
 {
-    if(timestamp)
-        fprintf(file, "T/1\t");
-    for (int i=0; i<no_of_columns; i++)
-        if (column_size[i] != 0)
-        {
-            fprintf(file, "%s/%d", column_name[i], column_size[i]);
-            for (int j=0; j<column_size[i]; j++)
-                fprintf(file, "\t");
-        }
-    fprintf(file, "\n");
+    if(use_old_format) // OLD FORMAT
+    {
+        if(timestamp)
+            fprintf(file, "T/1\t");
+        for (int i=0; i<no_of_columns; i++)
+            if (column_size[i] != 0)
+            {
+                fprintf(file, "%s/%d", column_name[i], column_size[i]);
+                for (int j=0; j<column_size[i]; j++)
+                    fprintf(file, "\t");
+            }
+        fprintf(file, "\n");
+    }
+    else // NEW FORMAT
+    {
+        if(timestamp)
+            fprintf(file, "T/1\t");
+        for (int i=0; i<no_of_columns; i++)
+            if (column_size[i] != 0)
+            {
+                if(column_size_y[i] == 1)
+                {
+                    for(int x=0; x<column_size_x[i]; x++)
+                        fprintf(file, "%s:%d\t", column_name[i], x);
+                }
+                else
+                {
+                    for(int y=0; y<column_size_y[i]; y++)
+                        for(int x=0; x<column_size_x[i]; x++)
+                            fprintf(file, "%s:%d:%d\t", column_name[i], x, y);
+                }
+            }
+        fprintf(file, "\n");
+    }
 }
 
 

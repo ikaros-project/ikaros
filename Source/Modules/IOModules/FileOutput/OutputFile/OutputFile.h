@@ -48,11 +48,14 @@ private:
     int         no_of_columns;
     int         total_no_of_columns;
     int         no_of_decimals;				// No of decimals in output file
+    bool        use_old_format;
     bool        timestamp;
     
     char **     column_name;
     int	*       column_decimals;
     int *       column_size;
+    int *       column_size_x;
+    int *       column_size_y;
     float **	column_data;
 
     float *     newfile;
