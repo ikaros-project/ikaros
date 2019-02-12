@@ -27,7 +27,7 @@
 			population_size = "@vPopSize"
 			substeps = "2"
 			threshold = "@vThreshold"
-			debug = "true"
+			debug = "false"
 		/>
 		<module
 			class="SpikingPopulation"
@@ -37,7 +37,7 @@
 			population_size = "@vPopSize"
 			substeps = "2"
 			threshold = "@vThreshold"
-			debug = "true"
+			debug = "false"
 		/>
 		<module
 			class="SpikingPopulation"
@@ -47,7 +47,7 @@
 			population_size = "@vPopSize"
 			substeps = "2"
 			threshold = "@vThreshold"
-			debug = "true"
+			debug = "false"
 		/>
 		<module
 			class="SpikingPopulation"
@@ -57,7 +57,7 @@
 			population_size = "@vPopSize"
 			substeps = "2"
 			threshold = "@vThreshold"
-			debug = "true"
+			debug = "false"
 		/>
 		<module
 			class="SpikingPopulation"
@@ -67,7 +67,7 @@
 			population_size = "@vPopSize"
 			substeps = "2"
 			threshold = "@vThreshold"
-			debug = "true"
+			debug = "false"
 		/>
 		<module
 			class="SpikingPopulation"
@@ -77,7 +77,7 @@
 			population_size = "@vPopSize"
 			substeps = "2"
 			threshold = "@vThreshold"
-			debug = "true"
+			debug = "false"
 		/>
 		<module
             class = "PopulationCoder"
@@ -124,17 +124,28 @@
 				xindex = "0"
 				height = "100"
 				width = "200"
-				module = "Scale"
-				parameter = "factor"
+				_module = "Scale"
+				parameter = "Scale.factor"
 				min = "0"
 				class = "slider-horizontal"
 				show_title = "true"
 				title = "Scale"
-				max = "20"
+				max = "100"
 				count = "1"
 				step = "0.01"
 				x = "200"
 				y = "0"
+				show_values="true"
+			/>
+			<bar-graph
+				show_title = "true"
+				direction="horizontal"  
+				source="Scale.OUTPUT" 
+				x="400" y="0" width="200" height="200"
+				min="-1"
+				max="10"
+				title="Scale output"
+				show_title="true"
 			/>
 			<plot 
 				source="SquareGen.OUTPUT" 
@@ -142,8 +153,10 @@
 				min="0"
 				max="10"
 				title="Squaregen"
+				show_title = "true"
 			/>
 			<bar-graph
+				show_title = "true"
 				direction="horizontal"  
 				source="RegularSpiking.OUTPUT" 
 				x="0" y="200" width="200" height="200"
@@ -158,6 +171,7 @@
 				min="-100"
 				max="100"
 				title="Bursting"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -166,6 +180,7 @@
 				min="-100"
 				max="100"
 				title="Chattering"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -174,6 +189,7 @@
 				min="-100"
 				max="100"
 				title="Fast spiking"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -182,6 +198,7 @@
 				min="-100"
 				max="100"
 				title="Low threshold"
+				show_title = "true"
 			/>
 			<bar-graph
 				direction="horizontal"  
@@ -190,6 +207,7 @@
 				min="-100"
 				max="100"
 				title="Resonator"
+				show_title = "true"
 			/>
 			<plot  
 				source="LowThreshold.ADENOSINE" 
@@ -197,6 +215,7 @@
 				min="0"
 				max="10"
 				title="Resonator"
+				show_title = "true"
 			/>
 
 
@@ -208,6 +227,7 @@
 				max="100"
 				title="Regular spiking"
 				color="LUT_Fire"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -216,6 +236,7 @@
 				min="-100"
 				max="100"
 				title="Bursting"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -224,6 +245,7 @@
 				min="-100"
 				max="100"
 				title="Chattering"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -232,6 +254,7 @@
 				min="-100"
 				max="100"
 				title="Fast spiking"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -240,6 +263,7 @@
 				min="-100"
 				max="100"
 				title="Low threshold"
+				show_title = "true"
 			/>
 			<plot
 				  
@@ -248,6 +272,7 @@
 				min="-100"
 				max="100"
 				title="Resonator"
+				show_title = "true"
 			/>
 		</view>
 

@@ -257,13 +257,13 @@ XMLElement::GetAttribute(const char * attribute_name)       // Implement variabl
                     return v;
             }
         }
-  
+/*
     // Inhertiance
     if(parent != NULL && parent->IsElement())
     {
         return ((XMLElement *)(parent))->GetAttribute(attribute_name);
     }
-
+*/
     return NULL;
 }
 

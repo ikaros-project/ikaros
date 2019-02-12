@@ -80,6 +80,8 @@ void operator delete (void *p) throw()
 // Group (2.0)
 //
 
+static int group_number = 0;
+
 class GroupElement;
 
 class Element
@@ -3155,13 +3157,12 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 
 // Parse XML for a group
 
-static int group_number = 0;
+
 
 GroupElement *
 Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class, const char * current_filename)
 {
-    const char * name = GetXMLAttribute(group_xml, "name");
-    if(name == NULL)
+    if(!group_xml->GetAttribute("name"))
         group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
 
     // Add attributes to group element
@@ -3196,6 +3197,8 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         }
         else if(xml_node->IsElement("group"))	// Add group
         {
+            if(!xml_node->GetAttribute("name"))
+                xml_node->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
             GroupElement * g = new GroupElement(group);
             group->groups.insert( { xml_node->GetAttribute("name"), BuildGroup(g, xml_node) });
         }
@@ -3786,9 +3789,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                         case data_source_bool:
                         case data_source_float:
                         {
-                            int xxx = *(int *)(b->value);
-                            float fff = *(float *)(b->value);
-                            socket->Send("\t\t\"%s\": [[%f]]", source, *(int *)(b->value));
+                            socket->Send("\t\t\"%s\": [[%f]]", source, *(float *)(b->value));
                             break;
                         }
 
