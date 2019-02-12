@@ -52,7 +52,8 @@ public:
     float *     trig;
     float *     trig_last;
     int         trig_size;
-
+    float *     trig_out;
+    
     float *     state;
     float *     completed;
 
