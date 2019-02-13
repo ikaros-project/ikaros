@@ -62,10 +62,10 @@
 	
 		<aside id="widget_inspector">
 			<div id="inspector">
-                <button>To Front</button>
-                <button>To Back</button>
-                <button>Duplicate</button>
-                <button>Delete</button>
+                <button onclick="interaction.widgetToFront()">To Front</button>
+                <button onclick="interaction.widgetToBack()">To Back</button>
+                <button onclick="interaction.duplicateWidget()">Duplicate</button>
+                <button onclick="interaction.deleteWidget()">Delete</button>
 				<div id="i_header"></div>
 				<table id="i_table">
 				<!--	<tr><th>Attr</th><th>Value</th></tr> -->
@@ -116,10 +116,22 @@
                         </td>
                         <td>
                             <select id="widget_select">
-                                <option value="webui-widget-plot">Plot</option>
-                                <option value="webui-widget-bar-graph">BarGraph</option>
+                                <option value="bar-graph">BarGraph</option>
+                                <option value="plot">Plot</option>
+                                <option value="table">Table</option>
+                                <option value="marker">Marker</option>
+                                <option value="path">Path</option>
+                                <option value="grid">Grid</option>
+                                <option value="image">Image</option>
+                                <option value="text">Text</option>
+                                <option value="button">Button</option>
+                                <option value="slider-horizontal">Slider</option>
+                                <option value="switch">Check Box</option>
+                                <option value="drop-down-menu">Drop Down Menu</option>
+                                <option value="canvas3d">Canvas3D</option>
+                                <option value="epi-head">EpiHead</option>
                             </select>
-                            <button onclick="interaction.addObject()">Add</button>
+                            <button onclick="interaction.addNewWidget()">Add</button>
                         </td>
                     </tr>
                     <tr>

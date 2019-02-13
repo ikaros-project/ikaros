@@ -3,7 +3,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "GRID", 'control':'header'},
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},

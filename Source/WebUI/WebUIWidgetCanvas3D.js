@@ -1,7 +1,7 @@
 class WebUIWidgetCanvas3D extends WebUIWidget {
 	static template() {
 		return [
-			{ 'name': "PARAMETERS", 'control': 'header' },
+			{ 'name': "CANVAS 3D", 'control': 'header' },
 			{ 'name': 'module', 'default': "", 'type': 'source', 'control': 'textedit' },
 			{ 'name': 'source', 'default': "", 'type': 'source', 'control': 'textedit' },
 			{ 'name': 'title', 'default': "", 'type': 'string', 'control': 'textedit' },
