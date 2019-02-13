@@ -281,9 +281,9 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
         if(a_v[i] >= threshold)
         {
             fired[i] = 1.f;
-            numfired += 1;
+            //numfired += 1;
         }
-    //numfired = sum(fired, population_size); // used for adenosine calc
+    numfired = sum(fired, population_size); // used for adenosine calc
     
     float *v1 = create_array(population_size);
     copy_array(v1, a_v, population_size);
