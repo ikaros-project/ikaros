@@ -1402,7 +1402,7 @@ Module::GetInputSizeX(const char * input_name) // TODO: also used internally so 
         {
             if(i->sizex != unknown_size)
                 return i->sizex;
-            else if(kernel != NULL)
+            else if(kernel != NULL) // FIXME: remove thse conditions and use exception handling here instead
                 return kernel->CalculateInputSizeX(i);
             else
                 break;
@@ -2421,24 +2421,22 @@ Kernel::Init()
 
     SortModules();
     if(fatal_error_occurred)
+    {
+        ListModulesAndConnections(); // May cause crash but will be helpful if it works!
         return;
+    }
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
     AllocateOutputs();
-    
-    ListModulesAndConnections(); // TEMPORARY
-    
     InitInputs();		// Calculate the input sizes and allocate memory for the inputs or connect 0-delays
- 
-    ListModulesAndConnections(); // TEMPORARY
-    
     CheckOutputs();
     CheckInputs();
     if(fatal_error_occurred)
+    {
+        ListModulesAndConnections();
         return;
-    
+    }
 
-    
     InitModules();
     
     webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
@@ -2776,7 +2774,7 @@ Kernel::CalculateInputSize(Module_IO * i)
         {
             if(c->source_io->size == unknown_size)
                 return unknown_size;
-            else if(c->target_offset>0 && c->size>0) // offset connection
+            else if(c->target_offset>0 || c->size>0) // offset connection
                 s = max(s, c->target_offset + c->size);
             else
                 s += c->source_io->size;
@@ -2800,7 +2798,7 @@ Kernel::CalculateInputSizeX(Module_IO * i)
         {
             if(c->source_io->sizex == unknown_size)
                 return unknown_size;
-            else if(c->target_offset>0 && c->size>0) // offset connection
+            else if(c->target_offset>0 || c->size>0) // offset connection
                 s = max(s, c->target_offset + c->size);
             else if(s == 0)
                 s =  c->source_io->sizex;
