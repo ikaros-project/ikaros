@@ -29,58 +29,81 @@
 
 using namespace ikaros;
 
-enum { state_stop, state_off, state_record, state_play };
-enum { mode_off=0, mode_stop, mode_play, mode_record };
+enum { run_mode_stop, run_mode_off, run_mode_record, run_mode_play };
+enum { channel_mode_off=0, channel_mode_stop, channel_mode_play, channel_mode_record };
+
+
 
 void
 SequenceRecorder::Init()
 {
+    Bind(record_on_trig, "record_on_trig");
     Bind(smoothing_time, "smoothing_time");
-    Bind(nominal_torque, "torque");
+
     Bind(current_motion, "current_motion");
-    Bind(mode_string, "mode_string");
+    Bind(run_mode_string, "run_mode_string");
     
+    max_motions = GetIntValue("max_motions");
     current_motion = 0;
 
-    // Mode
+    input = GetInputArray("INPUT");
+    size = GetInputSize("INPUT");
     
-    mode = GetOutputMatrix("MODE");
-    for(int i=0; i<size; i++)
-        mode[mode_off][i] = 1;
+    stop_position = create_array(size);
+    start_position = create_array(size);
+    lock_position = create_array(size);
+    start_torque = create_array(size);
 
-    // Trig and completion
-    
-    completed = GetOutputArray("COMPLETED");
+    position_data_max = GetIntValue("position_data_max");
+    position_data_count = new int[max_motions];
+    position_data  = create_matrix(size, position_data_max, max_motions);
+    timestamp_data = create_matrix(size, position_data_max);
+
+    file_name = GetValue("filename");
+    json_file_name = GetValue("json_filename");
+    directory = GetValue("directory");
+
+    motion_name = new std::string [max_motions];
+
     trig = GetInputArray("TRIG");
     trig_size = GetInputSize("TRIG");
+    
+    trig_out = GetOutputArray("TRIG_OUT");
+
     if(trig_size > max_motions)
     {
         Notify(msg_warning, "TRIG input larger than max behaviors");
         trig_size = max_motions;
     }
+    
+    trig_last = create_array(max_motions);
 
-    // Input and outputs
+    completed = GetOutputArray("COMPLETED");
 
-    input = GetInputArray("INPUT");
     output = GetOutputArray("OUTPUT");
-    torque = GetOutputArray("TORQUE");
     enable = GetOutputArray("ENABLE");
-    size = GetInputSize("INPUT");
-    
-    // Load/Save
+    channel_mode = GetOutputMatrix("MODE");
+    for(int i=0; i<size; i++)
+        channel_mode[channel_mode_off][i] = 1;
 
-    file_name = GetValue("filename");
+    run_mode = GetOutputArray("STATE");
+    *run_mode = run_mode_stop;
 
-    // UI
-    
     time = GetOutputArray("TIME");
+    timebase = GetTickLength();
+    if(timebase == 0)
+        timebase = 1;
+
+    auto_save = GetBoolValue("auto_save"); // Cannot be called in destructor
+    if(GetBoolValue("auto_load"))
+    {
+        for(current_motion=0; current_motion<max_motions; current_motion++)
+            Load();
+        current_motion=0;
+    }
+    
     keypoints = GetOutputMatrix("KEYPOINTS");
-    
-    // Misc
-    
-    stop_position = create_array(size); // How are these used
-    start_position = create_array(size);
-    start_torque = create_array(size);
+    timestamps = GetOutputArray("TIMESTAMPS");
 }
 
 
@@ -89,15 +112,91 @@ SequenceRecorder::~SequenceRecorder()
 {
     if(auto_save)
     {
+        for(current_motion=0; current_motion<max_motions; current_motion++)
+            Save();
     }
 
+    destroy_array(start_torque);
+    destroy_array(start_position);
+    destroy_array(stop_position);
+    destroy_array(lock_position);
+    destroy_matrix(position_data);
+    destroy_array(trig_last);
+    delete [] position_data_count;
 }
 
+
+void
+SequenceRecorder::SetOutputs(float * position)
+{
+    for(int i=0; i<size; i++)
+    {
+        switch(arg_max_col(channel_mode, i, size, 4))
+        {
+            case channel_mode_off:
+                output[i] = input[i];
+                enable[i] = 0;
+                break;
+            
+            case channel_mode_stop:
+                output[i] = lock_position[i];
+                enable[i] = 1;
+                break;
+            
+            case channel_mode_play:
+
+                output[i] = position[i];
+                enable[i] = 1;
+                break;
+            
+            case channel_mode_record:
+                if(run_mode_record)
+                {
+                output[i] = input[i];
+                enable[i] = 0;
+                }
+                //else if
+                break;
+
+            default: ;
+        }
+    }
+
+
+        /*
+        if(channel_mode[channel_mode_off][i])
+        {
+            output[i] = input[i];
+            enable[i] = 0;
+        }
+        else if(channel_mode[channel_mode_stop][i])
+        {
+            output[i] = lock_position[i];
+            enable[i] = 1;
+        }
+        else if(channel_mode[channel_mode_play][i])
+        {
+            output[i] = position[i];
+            enable[i] = 1
+        }
+        else if(channel_mode[channel_mode_record][i] && run_mode == run_mode_record)
+        {
+            output[i] = input[i];
+            enable[i] = 0;
+        }
+        else if(channel_mode[channel_mode_record][i] && run_mode == run_mode_play)
+        {
+            output[i] = input[i];
+            enable[i] = 0;
+        }
+        */
+}
 
 
 void
 SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
+//    printf("##%s\n", s.c_str());
     if(s == "off")
         Off();
     else if (s == "stop")
@@ -117,11 +216,11 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 
 
 void
-SequenceRecorder::ToggleMode(int x, int y)
+SequenceRecorder::ToggleMode(int channel, int y)
 {
-    for(int i=0; i<4; i++) // reset row
-        mode[i][x] = 0;
-    mode[y][x] = 1;
+    set_one_col(channel_mode, channel, y, size, 4);
+    if(y==channel_mode_stop) // Store servo position if stop is selected
+        lock_position[channel] = input[channel];
 }
 
 
@@ -129,48 +228,48 @@ SequenceRecorder::ToggleMode(int x, int y)
 void
 SequenceRecorder::Off()
 {
-    mode_string = "Off";
-    copy_array(output, input, size);
-    reset_array(torque, size);
-    reset_array(enable, size);
+    run_mode_string = "Off";
+    *run_mode = run_mode_off;
+/*
+    copy_array(output, input, size); // Immediate no torque response even before the button is released
+    for(int i=0; i<size; i++)
+        if(channel_mode[channel_mode_stop][i] == 0)
+            enable[i] = 0;
+*/
 }
+
 
 
 void
 SequenceRecorder::Stop()
 {
-    mode_string = "Stop";
+    run_mode_string = "Stop";
+    *run_mode = run_mode_stop;
+    
+    copy_array(stop_position, input, size); // FIXME: where is this used???
 
-    copy_array(stop_position, input, size); // Save stop position - why?
-    copy_array(output, input, size); // Immediately freeze response
-    set_array(enable, 1, size);
 
-    for(int i=0; i<size; i++)
+    // If we record - copy position for all recorded channels to the rest of the track
+    // This is used if we have already recorded something longer on another channel
+    // Will not be needed when interpolation is used and we know the end of the recording on each channel
+    // Interpolation after last position should use last position (as interpolation before)
+
+    if(*run_mode == run_mode_record)
     {
-        enable[i] = mode[mode_off][i] ? 0 : 1;
-        torque[i] = mode[mode_off][i] ? 0 : nominal_torque;
+        for(int i=0; i<size; i++)
+            if(channel_mode[channel_mode_record][i])
+                for(int p=int(*time/float(timebase)); p<position_data_max; p++)
+                    position_data[current_motion][p][i] = input[i];
     }
+
 }
 
 
 void
 SequenceRecorder::Record()
 {
-    mode_string = "Rec";
-    set_array(enable, 0, size); // disable all
-
-    print_matrix("mode", mode, 2, 4);
-
-    for(int i=0; i<size; i++)
-        if(mode[mode_stop][i] || mode[mode_play][i]) // enabled channels with stop or play
-        {
-            enable[i] = 1;
-        }
-        else
-        {
-            enable[i] = 0;
-        }
-
+    run_mode_string = "Rec";
+    *run_mode = run_mode_record;
     position_data_count[current_motion] = 0;
     *time = 0;
 }
@@ -179,65 +278,123 @@ SequenceRecorder::Record()
 void
 SequenceRecorder::Play()
 {
-    mode_string = "Play";
-
-    copy_array(start_position, input, size);
-    set_array(enable, 1, size);
-    if(mode)
-    {
-        for(int i=0; i<size; i++)
-            if(mode[mode_off][i]) // disable some channels
-                enable[i] = 0;
-     }
+    run_mode_string = "Play";
+    *run_mode = run_mode_play;
+    *trig_out = 1; // FIXME: Should be set by sequenceer on tick 1 instead
     *time = 0;
 }
+
+
+void
+SequenceRecorder::SaveAsJSON()
+{
+    char fname[1024];
+    snprintf(fname, 1023, json_file_name, current_motion);
+    fname[1023] = 0;
+
+    FILE * f = fopen(fname, "w");
+    if(!f)
+    {
+        printf("ERROR could save to motion JSON file \"%s\"\n", fname);
+        return;
+    }
+
+    fprintf(f, "[\n\t{\n");
+
+    fprintf(f, "\t\t\"channels\": %d\n", size);
+    fprintf(f, "\t\t\"timebase\": %ld\n", GetTickLength());
+    fprintf(f, "\t\t\"interpolation\": \"linear\"\n");
+    fprintf(f, "\t\t\"units\": \"ms\"\n");
+    fprintf(f, "\t\t\"loop\": \"no\"\n");
+    fprintf(f, "\t\t\"start\": 0\n");
+    fprintf(f, "\t\t\"stop\": %ld\n", position_data_count[current_motion]*GetTickLength());
+    fprintf(f, "\t\t\"motion\":\n\t\t[\n");
+
+    char c0[] = "\t\t\t";
+    char c1[] = ",\n\t\t\t";
+    char * start_chars = c0;
+
+    for(int j=0; j<position_data_count[current_motion]; j++)
+    {
+        fprintf(f, "%s", start_chars);
+        long t = j*GetTickLength();
+        fprintf(f, "{\"t\" : %ld\t\"p\" : [", t);
+
+        for(int i=0; i<size; i++)
+        {
+            if(i!=0) fprintf(f, ", ");
+            fprintf(f, "%.4f", position_data[current_motion][j][i]);
+        }
+
+        fprintf(f, "]}");
+        start_chars = c1;
+    }
+
+    fprintf(f, "\n\t\t]\n");
+    fprintf(f, "\t}\n]\n");
+    fclose(f);
+
+    printf("Saved: %d\n", current_motion);
+}
+
 
 
 void
 SequenceRecorder::Save()
 {
-    mode_string = "Stop";
-    
-    char fname[1024];
-    snprintf(fname, 1023, file_name, current_motion);
-    fname[1023] = 0;
+    *run_mode = run_mode_stop;
+    run_mode_string = "Stop";
 
-    FILE * f = fopen(fname, "w");
-
-    if(!f)
+    if(file_name)
     {
-        printf("ERROR could not open motion file \"%s\"\n", fname);
-        return;
-    }
+        char fname[1024];
+        snprintf(fname, 1023, file_name, current_motion);
+        fname[1023] = 0;
 
-    fprintf(f, "TIME/1  POSITION/%d\n", size);
+        FILE * f = fopen(fname, "w");
 
-    for(int j=0; j<position_data_count[current_motion]; j++)
-    {
-        long t = j*GetTickLength();
-        fprintf(f, "%ld\n", t);
-        
-        for(int i=0; i<size; i++)
+        if(!f)
         {
-            if(i!=0) fprintf(f, "\t");
-            fprintf(f, "%.4f", position_data[current_motion][j][i]);
+            printf("ERROR could not save to motion file \"%s\"\n", fname);
+            return;
         }
 
-        fprintf(f, "\n");
+        fprintf(f, "TIME/1  POSITION/%d\n", size);
+
+        for(int j=0; j<position_data_count[current_motion]-1; j++) // FIXME: should 1 be subtracted or not???
+        {
+            long t = j*GetTickLength();
+            fprintf(f, "%ld\t", t);
+
+            for(int i=0; i<size; i++)
+            {
+                if(i!=0) fprintf(f, "\t");
+                fprintf(f, "%.4f", position_data[current_motion][j][i]);
+            }
+
+            fprintf(f, "\n");
+        }
+
+        fclose(f);
+
+        printf("Saved: %d\n", current_motion);
     }
 
-    fclose(f);
+    // Also save in new JSON format
 
-    printf("Saved: %d\n", current_motion);
+    if(json_file_name)
+        SaveAsJSON();
+
     *time = 0;
 }
 
 
 
 void
-SequenceRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT
+SequenceRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT;  // FIXME: causes output to change somehow!!!
 {
-    mode_string = "Stop";
+    *run_mode = run_mode_stop;
+    run_mode_string = "Stop";
     char fname[1024];
 
     snprintf(fname, 1023, file_name, current_motion);
@@ -297,64 +454,139 @@ SequenceRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS COR
 void
 SequenceRecorder::Tick()
 {
- /*
     // TEST: Copy current data to webui output
     
     for(int c=0; c<2; c++)
         for(int i=0; i<1000; i++)
         {
             keypoints[i][c] = position_data[current_motion][i][c]; // position_data_count[current_motion]
-//            timestamps[i] = float(i)*20;    // ms
+            timestamps[i] = float(i)*20;    // ms
         }
     
     if(GetTick() < 20) // wait for valid data
     {
+        copy_array(start_position, input, size);
         copy_array(stop_position, input, size);
-        copy_array(output, stop_position, size);
+        copy_array(output, input, size);
         reset_array(enable, size);
         return;
     }
 
     reset_array(completed, max_motions);
 
-    // Handle the different states
+    if(trig) // FIXME: call rectord or play functions instead after setting current_motion
+    {
+        if(record_on_trig)
+        {
+            for(int i=0; i<trig_size; i++)
+            {
+                if(trig[i] == 1 && trig_last[i] == 0)
+                {
+                    current_motion = i;
+
+                    *run_mode = run_mode_record;
+
+                    set_array(enable, 0, size); // disable all
+                    if(channel_mode)
+                    {
+                        for(int i=0; i<size; i++)
+                            if(channel_mode[channel_mode_stop][i] || channel_mode[channel_mode_play][i])
+                            {
+                                enable[i] = 1;
+                            }
+                            else
+                            {
+                                enable[i] = 0;
+                            }
+                    }
+
+                    position_data_count[current_motion] = 0;
+                    *time = 0;
+                    printf("record (trig)\n");
+                    break;
+                }
+            }
+        }
+        else // play on trig
+        {
+            for(int i=0; i<trig_size; i++)
+            {
+                if(trig[i] == 1 && trig_last[i] == 0)
+                {
+                    current_motion = i;
+                    *run_mode = run_mode_play;
+
+                    copy_array(start_position, input, size);
+
+                    set_array(enable, 1, size);
+                    if(channel_mode)
+                    {
+                        for(int i=0; i<size; i++)
+                            if(channel_mode[channel_mode_off][i]) // disable some channels
+                                enable[i] = 0;
+                     }
+
+                    *time = 0;
+
+                    printf("play (trig)\n");
+                    break;
+                }
+
+                if(trig[i] > 0)
+                    break;
+            }
+        }
+    }
+
+    // Handle the different run_modes
 
     int f = int(*time/float(timebase));
 
-    if(*state == state_stop)
+    if(*run_mode == run_mode_stop)
     {
         *time = 0;
 
         set_array(enable, 1, size);
-        if(mode)
+        if(channel_mode)
         {
             for(int i=0; i<size; i++)
-                if(mode[mode_off][i]) // disable some channels
+                if(channel_mode[channel_mode_off][i]) // disable some channels
                     enable[i] = 0;
          }
 
-        copy_array(output, stop_position, size);
+            for(int i=0; i<size; i++)
+                if(channel_mode[channel_mode_play][i]) // disable some channels
+                    output[i] = stop_position[i];
      }
 
-    else if(*state == state_off)
+    else if(*run_mode == run_mode_off)
     {
         *time = 0;
-        set_array(enable, 0, size);
-        copy_array(output, input, size);
+        for(int i=0; i<size; i++)
+        {
+            if(channel_mode[channel_mode_stop][i] == 0)
+            {
+                output[i] = input[i];
+                enable[i] = 0;
+            }
+        }
     }
 
-    else if(*state == state_record)
+    else if(*run_mode == run_mode_record)
     {
-        copy_array(output, input, size);
+        for(int i=0; i<size; i++)
+            if(channel_mode[channel_mode_stop][i] == 0)
+                output[i] = input[i];
+
         if(position_data_count[current_motion] < position_data_max && norm1(input, size) > 0)
         {
             // copy_array(position_data[position_data_count], input, size);
             
             for(int i=0; i<size; i++)
-                    if(mode[mode_record][i])
+                    if(channel_mode[channel_mode_record][i])
                         position_data[current_motion][position_data_count[current_motion]][i] = input[i];
-                        
-                    else if(mode[mode_play][i])
+            
+                    else if(channel_mode[channel_mode_play][i])
                         if(position_data[current_motion][f][i] != 0)
                             output[i] = position_data[current_motion][f][i];
 
@@ -366,56 +598,57 @@ SequenceRecorder::Tick()
         *time = float(position_data_count[current_motion]*timebase);
     }
 
-    else if(*state == state_play)
+    else if(*run_mode == run_mode_play)
     {
         if(f < smoothing_time)
         {
             float a = float(f)/float(smoothing_time);
             for(int i=0; i< size; i++)
             {
-                if(position_data[current_motion][f] != 0)
-                    output[i] = (1-a) * start_position[i] + a * position_data[current_motion][f][i];
+                if(channel_mode[channel_mode_play][i] == 1 || channel_mode[channel_mode_record][i] == 1)
+                    if(position_data[current_motion][f] != 0)
+                        output[i] = (1-a) * start_position[i] + a * position_data[current_motion][f][i];
             }
         }
         else
-            copy_array(output, position_data[current_motion][f], size);
+        {
+            for(int i=0; i< size; i++)
+                if(channel_mode[channel_mode_play][i] == 1 || channel_mode[channel_mode_record][i] == 1)
+                    output[i] = position_data[current_motion][f][i];
+        }
+//           copy_array(output, position_data[current_motion][f], size);
 
         if(f < position_data_count[current_motion]-1)
             *time += timebase;
         else
         {
             completed[current_motion] = 1;
-            *state = state_stop;
-            copy_array(stop_position, input, size);
-            copy_array(output, stop_position, size); // Just in case this is not run later
+            *run_mode = run_mode_stop;
+            run_mode_string = "Stop";
+//            copy_array(stop_position, input, size);
+            for(int i=0; i< size; i++)
+            {
+                if(channel_mode[channel_mode_play][i] == 1)
+                {
+                    stop_position[i] = input[i];
+                    output[i] = stop_position[i];
+                }
+            }
             set_array(enable, 1, size);
-            if(mode)
+            if(channel_mode)
             {
                 for(int i=0; i<size; i++)
-                    if(mode[mode_off][i]) // disable some channels
+                    if(channel_mode[channel_mode_off][i]) // disable some channels
                         enable[i] = 0;
              }
         }
     }
 
-    else if(*state == state_sq_play)
-    {
-        copy_array(output, position_data[current_motion][f], size);
-        if(f < position_data_count[current_motion]-1)
-            *time += timebase;
-        else
-        {
-            // Load();
-            current_motion ++;
-            if(current_motion >= max_motions)
-                current_motion = 0;
-            *time = 0;
-        }
-    }
+    if(*run_mode != run_mode_play || f > 1)
+        *trig_out = 0;
 
     if(trig)
         copy_array(trig_last, trig, trig_size);
-    */
 }
 
 

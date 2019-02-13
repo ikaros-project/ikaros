@@ -51,46 +51,50 @@ public:
     void 		Init();
     void 		Tick();
 
+    void        SetOutputs(float * position);
+
     // Commands
 
     void        Command(std::string s, float x, float y, std::string value);
 
-    void        ToggleMode(int x, int y);
+    void        ToggleMode(int channel, int y);
     void        Off();
     void        Stop();
     void        Record();
     void        Play();
-    void 		Save();
-    void 		Load();
-
-    std::string  mode_string;
-    float **    mode;
-
+    void        SaveAsJSON();
+    void        Save();
+    void        Load();
+    
     float *     trig;
+    float *     trig_last;
     int         trig_size;
+    float *     trig_out;
+    
+    float *     run_mode;
+    float **     channel_mode; // record, play, hold, free in matrix format
+    std::string  run_mode_string;
+    float *     completed;  // FIXME: brackets: start, ongoing, completed AND trigs?
 
-    float *     completed;
     float *     input;
     float *     output;
-    float *     torque;
-    float *     enable;
-
-    int         size; // of all of the above
 
     int         smoothing_time; // for torque and position
-    float       nominal_torque; // torque to record for active tracks - placehoder for the future
-    
     float *     stop_position;
     float *     start_position;
+    float *     lock_position;
     float *     start_torque;
 
-    
+    int          size;
+
+    long        timebase;
 
     std::string *   motion_name;
     float ***       position_data;
     float **        timestamp_data;
     
-    float **        keypoints;
+    float **        keypoints; // of currently selected motion
+    float *         timestamps; // of currently selected motion
 
     int         max_motions;
     int         current_motion;
@@ -100,10 +104,15 @@ public:
 
     float *     time; // in ms
 
+    float *     enable;
+
     const char * file_name;
- 
-    bool        auto_load;
+    const char * json_file_name;
+    const char * directory;
+
+    bool        record_on_trig;
     bool        auto_save;
+
 };
 
 #endif
