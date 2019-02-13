@@ -63,6 +63,8 @@ MotionRecorder::Init()
     trig = GetInputArray("TRIG");
     trig_size = GetInputSize("TRIG");
     
+    trig_out = GetOutputArray("TRIG_OUT");
+
     if(trig_size > max_motions)
     {
         Notify(msg_warning, "TRIG input larger than max behaviors");
@@ -242,6 +244,7 @@ MotionRecorder::Play()
 {
     mode_string = "Play";
     *state = state_play;
+    *trig_out = 1;
 
     copy_array(start_position, input, size);
     set_array(enable, 1, size);
@@ -614,6 +617,9 @@ MotionRecorder::Tick()
              }
         }
     }
+
+    if(*state != state_play || f > 1)
+        *trig_out = 0;
 
     if(trig)
         copy_array(trig_last, trig, trig_size);
