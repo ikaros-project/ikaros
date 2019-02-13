@@ -597,8 +597,6 @@ public:
 
     std::vector<ThreadGroup *>  _threadGroups;
 
-    bool                 nan_checks;      // Look for NANs in all outputs efter every tick - slow; use only for debugging
-
     // Execution Control
     
     int         module_count;
