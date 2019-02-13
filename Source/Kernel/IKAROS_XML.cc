@@ -393,9 +393,9 @@ XMLProcessingInstruction::Print(FILE * f, int d)
 
 
 
-XMLDocument::XMLDocument(const char * filename, bool included, bool debug)
+XMLDocument::XMLDocument(const char * filename, bool included)
 {
-    debug_mode = debug;
+    debug_mode = XML_DEBUG;
     action = "";
     action_line = 0;
 

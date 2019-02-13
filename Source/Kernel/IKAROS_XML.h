@@ -29,6 +29,8 @@
 #include <cstdio>
 #include <cstring>
 
+#define XML_DEBUG false
+
 class XMLElement;
 
 class XMLNode
@@ -178,7 +180,7 @@ public:
     XMLElement * xml;
     XMLNode * prolog;
 
-    XMLDocument(const char * filename, bool included = false, bool debug = false);
+    XMLDocument(const char * filename, bool included = false);
     ~XMLDocument();
 
     bool		Match(const char c, bool skip=true);
