@@ -31,8 +31,9 @@
 
 using namespace ikaros;
 
-const float cMinRand = 0.001f;
-const float cMaxRand = 0.999f;
+//const float minrand = 0.5001f;
+//const float maxrand = 1.499f;
+const float cDirectCurrentScale = 100.f;
 
 // void
 // SpikingPopulation::SetSizes()
@@ -54,6 +55,9 @@ SpikingPopulation::Init()
     Bind(threshold, "threshold");
     Bind(adenosine_factor, "adenosine_factor");
 	Bind(debugmode, "debug");    
+    Bind(minrand, "synapse_min");
+    Bind(maxrand, "synapse_max");
+
 
     excitation_array = GetInputArray("EXCITATION_IN");
     inhibition_array = GetInputArray("INHIBITION_IN");
@@ -70,9 +74,9 @@ SpikingPopulation::Init()
     synapse = create_matrix(excitation_size + inhibition_size, population_size);
     exc_syn = create_matrix(excitation_size, population_size);
     inh_syn = create_matrix(inhibition_size, population_size);
-    random(exc_syn, cMinRand, cMaxRand, 
+    random(exc_syn, minrand, maxrand, 
         excitation_size , population_size);
-    random(inh_syn, -cMaxRand, -cMinRand, 
+    random(inh_syn, -maxrand, -minrand, 
         inhibition_size, population_size);
     
     // set up neuron type params
@@ -102,11 +106,11 @@ SpikingPopulation::Init()
     param_d = create_array(population_size);
 
     vlt = create_array(population_size);
-    add(vlt, -65.f, population_size);
+    add(vlt, -65.f, population_size); 
     
 
     // TODO initialize population abcd values
-    float *rndfact = random(create_array(population_size), cMinRand, cMaxRand, 
+    float *rndfact = random(create_array(population_size), minrand, maxrand, 
         population_size);
     
     u = create_array(population_size);
@@ -195,13 +199,14 @@ SpikingPopulation::Tick()
     float *dir_in_tmp = create_array(population_size);
     if(excitation_array != NULL)
     {
+        // weed out nonspiking input and scale by synapse
+        threshold_gteq(excitation_array, excitation_array, threshold, excitation_size);
         tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
         multiply(exc_syn_tmp, exc_syn, excitation_size, population_size);
     }
     if(inhibition_array != NULL)
     {
-        // NOTE: if input here is negative, get positive result! Need
-        // to weed out everything below threshold
+        // weed out nonspiking input and scale by synapse
         threshold_gteq(inhibition_array, inhibition_array, threshold, inhibition_size);
         tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
         multiply(inh_syn_tmp, inh_syn, inhibition_size, population_size);
@@ -209,6 +214,8 @@ SpikingPopulation::Tick()
     if(direct_input != NULL)
     {
         copy_array(dir_in_tmp, direct_input, population_size);
+        multiply(dir_in_tmp, cDirectCurrentScale, population_size);
+
     }
     
     // compose complete synapse
@@ -227,9 +234,9 @@ SpikingPopulation::Tick()
                             param_b,
                             param_c,
                             param_d,
-                            synapse,
+                            synapse, // excitation and inh
                             dir_in_tmp,
-                            vlt,
+                            vlt, // in output
                             u
                             
                             );
@@ -259,29 +266,38 @@ SpikingPopulation::Tick()
 }
 
 void
-SpikingPopulation::TimeStep_Iz( float *a_a, 
-                                float *a_b, 
-                                float *a_c, 
-                                float *a_d, 
-                                float **a_syn,
-                                float *a_i, 
-                                float *a_v, 
-                                float *a_u 
+SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
+                                float *a_b, // coupling
+                                float *a_c, // reset voltage
+                                float *a_d, // reset recovery
+                                float **a_syn, // synapse - contains excitation and inh scaled by synaptic vals, or zero if not spiked
+                                float *a_i, // direct current
+                                float *a_v, // in out excitation
+                                float *a_u  // recovery
                                 )
 {
     float *fired = create_array(population_size);
-    for(int i=0; i < population_size; ++i)
+    for(int i=0; i < population_size; ++i) 
         if(a_v[i] >= threshold)
+        {
             fired[i] = 1.f;
+            //numfired += 1;
+        }
+    numfired = sum(fired, population_size); // used for adenosine calc
+    
     float *v1 = create_array(population_size);
     copy_array(v1, a_v, population_size);
+    
     float *u1 = create_array(population_size);
     copy_array(u1, a_u, population_size);
-    float *i1 = create_array(population_size);
-    numfired = sum(fired, population_size);
-    int synsize_x = excitation_size + inhibition_size;
-    float **syn_fired = create_matrix(synsize_x, population_size);
     
+    float *i1 = create_array(population_size);
+    int synsize_x = excitation_size + inhibition_size;
+    // float **syn_fired = create_matrix(synsize_x, population_size);
+
+    //float *tmp = create_array(population_size);
+    //sum(tmp, a_syn, synsize_x, population_size, 1); // sum along x axis
+
     for(int j = 0; j < population_size; j++)
     {
         if(fired[j] == 1.f)
@@ -289,18 +305,21 @@ SpikingPopulation::TimeStep_Iz( float *a_a,
             a_v[j] = threshold;
             v1[j] = a_c[j];
             u1[j] = a_u[j] + a_d[j];
-
         }
-        
-        for(size_t i = 0; i < excitation_size + inhibition_size; i++)
-        {
-            if(a_syn[j][i] >= threshold)
-                syn_fired[j][i] = a_syn[j][i];
-        }
+        // sum up 
+        // for(size_t i = 0; i < excitation_size + inhibition_size; i++)
+        // {
+        //     // TODO: change so inhibition is not removed
+        //     if(a_syn[j][i] >= threshold)
+        //         syn_fired[j][i] = a_syn[j][i];
+        //     
+        // }
     }
     float *tmp = create_array(population_size);
-    sum(tmp, syn_fired, synsize_x, population_size, 1); // sum along x axis
-    add(i1, tmp, a_i, population_size ); // get input current
+    //sum(tmp, syn_fired, synsize_x, population_size, 1); // sum along x axis
+    sum(tmp, a_syn, synsize_x, population_size, 1); // sum along x axis
+
+    add(i1, tmp, a_i, population_size ); // add direct current
   // calculate output voltage
     float stepfact = 1.f/substeps;
     for(int step = 0; step < substeps; step++)
@@ -315,7 +334,7 @@ SpikingPopulation::TimeStep_Iz( float *a_a,
             u1[i] += stepfact*(a_a[i]*(a_b[i]*v1[i] - u1[i]));
         }
     }
-
+    // multiply(v1, 100.f, population_size);
     // clip at threshold
     for(int i = 0; i < population_size; i++)
     {
@@ -324,18 +343,19 @@ SpikingPopulation::TimeStep_Iz( float *a_a,
     }
     if(debugmode)
 	{
-      print_matrix("syn_fired: ", syn_fired, synsize_x, population_size);
+      print_matrix("syn_fired: ", a_syn, synsize_x, population_size);
       print_array("i1: ", i1, population_size);
     }
     
-    copy_array(a_v, v1, population_size);
-    copy_array(a_u, u1, population_size);
+    copy_array(a_v, v1, population_size); // output voltage
+    copy_array(a_u, u1, population_size); // output recovery
 
     destroy_array(v1);
     destroy_array(u1);
     destroy_array(i1);
     destroy_array(tmp);
-    destroy_matrix(syn_fired);
+    destroy_array(fired);
+    // destroy_matrix(syn_fired);
         
 }
 

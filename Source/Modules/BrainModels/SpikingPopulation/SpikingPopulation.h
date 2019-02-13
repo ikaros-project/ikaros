@@ -87,6 +87,8 @@ public:
     int substeps;
     float threshold;
     float adenosine_factor;    
+    float minrand;
+    float maxrand;
 	bool       	debugmode;
 };
 
