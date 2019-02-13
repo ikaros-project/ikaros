@@ -95,12 +95,20 @@ float *     set_array(float * a, float v, int size);
 float **    set_matrix(float ** m, float v, int sizex, int sizey);
 float ***   set_matrix(float *** m, float v, int sizex, int sizey, int sizez);
 
-float **    set_row(float ** m, float * a, int row, int sizex);
-float **    set_col(float ** m, float * a, int col, int sizey);
+// row/col operartions
 
-float *     get_row(float * a, float ** m, int row, int sizex);
-float *     get_col(float * a, float ** m, int col, int sizey);
+float **    reset_row(float ** m, int row, int sizex, int sizey);
+float **    reset_col(float ** m, int col, int sizex, int sizey);
 
+float **    set_row(float ** m, float * a, int row, int sizex); // copy arraay to row
+float **    set_col(float ** m, float * a, int col, int sizey); // copy arraay to col
+
+float *     get_row(float * a, float ** m, int row, int sizex); // get row to array
+float *     get_col(float * a, float ** m, int col, int sizey); // get col to array
+
+float *     set_one(float * a, int x, int size);     // clear and set one element to one
+float **    set_one_row(float ** m, int x, int y, int sizex, int sizey); // clear row and set element x, y, to one
+float **    set_one_col(float ** m, int x, int y, int sizex, int sizey); // clear col and set element x, y to one
 
 // Reshape functions
 

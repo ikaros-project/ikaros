@@ -184,7 +184,9 @@ namespace ikaros
 	int			arg_max(float * a, int size);
 	void		arg_max(int & x, int & y, float ** a, int sizex, int sizey);
 	
-	
+    int         arg_max_col(float ** m, int select_col, int sizex, int sizey);  // arg_max along a selected column; returns y
+    int         arg_max_row(float ** m, int select_row, int sizex, int sizey);  // arg_max along a selected row; returns y
+
 	float *		minmax(float & min, float & max, float * a, int size);
 	float **	minmax(float & min, float & max, float ** a, int sizex, int sizey);
 	

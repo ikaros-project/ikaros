@@ -931,6 +931,29 @@ namespace ikaros
 				}
 	}
 	
+    int
+    arg_max_col(float ** m, int select_col, int sizex, int sizey)
+    {
+        if (sizex <= select_col)
+            return -1;
+        float mx = m[0][select_col];
+        float t;
+        int mi = 0;
+        for (int i=1; i<sizey; i++)
+            if ((t = m[i][select_col]) > mx)
+            {
+                mi = i;
+                mx = t;
+            }
+        return mi;
+    }
+
+    int
+    arg_max_row(float ** m, int select_row, int sizex, int sizey)
+    {
+        return arg_max(m[select_row], sizex);
+    }
+    
 	// minmax
 	float *
 	minmax(float & min, float & max, float * a, int size)

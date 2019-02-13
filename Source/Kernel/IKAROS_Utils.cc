@@ -699,6 +699,23 @@ set_matrix(float *** m, float v, int sizex, int sizey, int sizez)
     return m;
 }
 
+// row/col operations
+
+float **
+reset_row(float ** m, int row, int sizex, int sizey)
+{
+    reset_array(m[row], sizex);
+    return m;
+}
+
+float **
+reset_col(float ** m, int col, int sizex, int sizey)
+{
+    for(int i=0; i<sizey; i++)
+        m[i][col] = 0;
+    return m;
+}
+
 float **
 set_row(float ** m, float * a, int row, int sizex)
 {
@@ -734,6 +751,30 @@ get_col(float * a, float ** m, int col, int sizey)
     return a;
 }
 
+
+float *
+set_one(float * a, int index, int size)
+{
+    reset_array(a, size);
+    a[index] = 1;
+    return a;
+}
+
+float **
+set_one_row(float ** m, int x, int y, int sizex, int sizey)
+{
+    reset_row(m, y, sizex, sizey);
+    m[y][x] = 1;
+    return m;
+}
+
+float **
+set_one_col(float ** m, int x, int y, int sizex, int sizey)
+{
+    reset_col(m, x, sizex, sizey)[y][x] = 1;
+    m[y][x] = 1;
+    return m;
+}
 
 
 //
