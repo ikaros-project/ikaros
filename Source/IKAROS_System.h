@@ -98,3 +98,9 @@
 #ifdef MAC_OS_X
 #define MSG_NOSIGNAL 0
 #endif
+
+
+// EXTRA FUNCTION SWITCHES
+
+// #define NANCHECK
+// #define XML_PRINT

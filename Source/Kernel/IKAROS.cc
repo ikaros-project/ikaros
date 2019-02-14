@@ -1890,7 +1890,6 @@ Kernel::Kernel()
     useThreads              = false;
     max_ticks               = -1;
     tick_length             = 0;
-    nan_checks              = false;
     
     log_level               = log_level_info;
     ikaros_dir              = NULL;
@@ -1935,7 +1934,6 @@ Kernel::SetOptions(Options * opt)
     useThreads          = options->GetOption('t') || options->GetOption('T');
     max_ticks           = string_to_int(options->GetArgument('s'), -1);
     tick_length         = string_to_int(options->GetArgument('r'), 0);
-    nan_checks          = options->GetOption('n');
 
     if(options->GetOption('q'))
         log_level = log_level_off;
@@ -2418,7 +2416,6 @@ Kernel::Init()
         }
     }
 
-
     SortModules();
     if(fatal_error_occurred)
     {
@@ -2508,9 +2505,10 @@ Kernel::Tick()
         
     }
  
-    if(nan_checks)
+#ifdef NANCHECK
         CheckNAN();
-    
+#endif
+
     tick++;
     CalculateCPUUsage();
 }
@@ -3293,7 +3291,7 @@ Kernel::ReadXML()
     if(chdir(ikc_dir) < 0)
         return Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
 
-    xmlDoc = new XMLDocument(ikc_file_name, false, options->GetOption('X'));
+    xmlDoc = new XMLDocument(ikc_file_name, false);
     if(xmlDoc->xml == NULL)
         return Notify(msg_fatal_error, "Could not read (or find) \"%s\".\n", ikc_file_name);
 
@@ -3321,10 +3319,10 @@ Kernel::ReadXML()
     
     ConnectModules(main_group);
 
-    if(options->GetOption('x'))
-        xmlDoc->Print(stdout);
+#ifdef XML_PRINT
+    xmlDoc->Print(stdout);
+#endif
     
-//    main_group->Print();
     return true;
 }
 
@@ -3430,7 +3428,7 @@ Kernel::ListModulesAndConnections()
 void
 Kernel::ListBindings()
 {
-//    return;
+    return;
     Notify(msg_print, "\n");
     Notify(msg_print, "Bindings:\n");
     Notify(msg_print, "\n");

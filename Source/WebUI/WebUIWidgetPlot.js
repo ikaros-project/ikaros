@@ -3,8 +3,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
-//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name': "PLOT", 'control':'header'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},

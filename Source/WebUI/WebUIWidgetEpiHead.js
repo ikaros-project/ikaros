@@ -3,7 +3,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "EPI HEAD", 'control':'header'},
             
             {'name':'gazeSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'pupilLeftSource', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -27,7 +27,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             {'name':'vergence', 'default':0, 'type':'float', 'control': 'slider', 'min': -1.57, 'max': 1.57},
             {'name':'pupil', 'default':0.5, 'type':'float', 'control': 'slider', 'min': 0, 'max': 1},
             
-            {'name':'visibleModule', 'default':"", 'type':'module', 'control': 'textedit'},
+//            {'name':'visibleModule', 'default':"", 'type':'module', 'control': 'textedit'},
             {'name':'visibleSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'visibleFace', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'visibleFaceParameter', 'default':"", 'type':'source', 'control': 'textedit'},

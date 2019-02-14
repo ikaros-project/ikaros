@@ -3,9 +3,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "IMAGE", 'control':'header'},
             {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
-//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},

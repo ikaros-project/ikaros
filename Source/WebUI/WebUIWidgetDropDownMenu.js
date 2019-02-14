@@ -3,12 +3,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
-            {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
-//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name': "DROP DOWN MENU", 'control':'header'},
+            {'name':'title', 'default':"Menu", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'index', 'default':0, 'type':'int', 'control': 'textedit'},
-//            {'name':'list_module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'list', 'default':"", 'type':'string', 'control': 'textedit'},
 
@@ -16,13 +14,6 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'labelWidth', 'default':50, 'type':'int', 'control': 'textedit'},
 
-/*
-
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'step', 'default':0.01, 'type':'float', 'control': 'textedit'},
-            {'name':'show_values', 'default':false, 'type':'bool', 'control': 'checkbox'},
-*/
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},

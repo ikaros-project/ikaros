@@ -3,7 +3,7 @@ class WebUIWidgetTable extends WebUIWidget
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "TABLE", 'control':'header'},
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
  //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},

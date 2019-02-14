@@ -3,7 +3,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "PATH", 'control':'header'},
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
 //            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},

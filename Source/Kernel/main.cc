@@ -46,29 +46,27 @@ PrintInfo()
     printf("Usage:\n");
     printf("\n");
     printf("\tikaros [-W#][-p][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
-    printf("\t-w#   WebUI\n");
-    printf("\t-W#   WebUI: debug mode, list requests\n");
-    printf("\t-R#   WebUI: run automatically\n");
-    printf("\t-p    profile\n");
-    printf("\t-t    threaded\n");
-    printf("\t-T    list thread allocation\n");
-    printf("\t-b#   run one item in batch\n");
-    printf("\t-B    batch mode\n");
-    printf("\t-r#   real time mode; # is time per tick in milliseconds\n");
+    
+    printf("\t-r    run; don't wait for webui\n");
+    printf("\t-t#   set timebase in milliseconds for realtime mode\n");
     printf("\t-s#   stop after # ticks\n");
-    printf("\t-v    verbose mode\n");
-    printf("\t-q    quiet mode\n");
-    printf("\t-x    list xml after parsing/combination\n");
-    printf("\t-X    debug xml parser\n");
-    printf("\t-n    look for NANs in outputs\n");
-    printf("\t-m    list modules and connections\n");
-    printf("\t-c    list installed classes\n");
-    printf("\t-l    list scheduling\n");
-    printf("\t-i    list installed functionality sockets, timer etc, type of target system\n");
-    printf("\t-a    list all; implies -m -l and -T (if -t is set)\n");
-    printf("\t-z#   seed random number generator\n");
+    printf("\t-w#   set port for webui; default is 8000\n");
+    
     printf("\t-S#   store + optional path to storage directory\n");
     printf("\t-L#   load + optional path to storage directory\n");
+
+    printf("\t-v    verbose mode\n");
+    printf("\t-q    quiet mode\n");
+    
+    printf("\t-p    profile\n");
+    printf("\t-m    list modules and connections\n");
+    printf("\t-c    list installed classes\n");
+    printf("\t-l    list scheduling nad thread allocation\n");
+    printf("\t-i    list installed functionality sockets, timer etc, type of target system\n");
+    printf("\t-a    list all; implies -m, -i and -l\n");
+    
+    printf("\t-z#   seed random number generator\n");
+
     printf("\n");
     printf("Examples:\n");
     printf("\n");
@@ -77,17 +75,13 @@ PrintInfo()
     printf("\n");
     printf("\t\t./ikaros  ../Examples/example.ikc\n");
     printf("\n");
-    printf("\tUse the w-option to also start the WebUI:\n");
-    printf("\n");
-    printf("\t\t./ikaros -w ../Examples/example.ikc\n");
-    printf("\n");
     printf("\tThis example will wait for a request from the Web browser at\n");
     printf("\tthe default port (8000).\n");
     printf("\n");
 }
 
 
-
+/*
 static int
 count_elements(const char * s)
 {
@@ -101,7 +95,7 @@ count_elements(const char * s)
             c++;
     return (int)c;
 }
-
+*/
 
 
 int

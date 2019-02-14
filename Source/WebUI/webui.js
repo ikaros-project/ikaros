@@ -484,6 +484,7 @@ interaction = {
     selectedObject: undefined,
     grid_spacing: 20,
     sizegrid: 20,
+    curnewpos: 20,
     editMode: true,
     main: undefined,
     currentView: undefined,
@@ -496,113 +497,17 @@ interaction = {
 
     init: function () {
         interaction.main = document.querySelector('main');
-
         interaction.widget_inspector = document.querySelector('#widget_inspector');
         interaction.system_inspector = document.querySelector('#system_inspector');
         interaction.edit_inspector = document.querySelector('#edit_inspector');
         interaction.module_inspector = document.querySelector('#module_inspector');
         interaction.network_inspector = document.querySelector('#network_inspector');
-        
         interaction.setMode('run');
     },
     stopEvents: function (e) {
         if(interaction.main.dataset.mode == "edit") e.stopPropagation()
     },
-    initElement: function (element) {   // For interactively created object
-        console.log("initElement:", element);
 
-        element.addEventListener('mousedown', interaction.startDrag, true); //capture
-
-        let widget_select = document.querySelector('#widget_select');
-        let widget_name = widget_select.options[widget_select.selectedIndex].value;
-        let constr = webui_widgets.constructors[widget_name];
-        if(!constr)
-        {
-            alert("Internal Error: No constructor found for "+widget_name);
-            return;
-        }
-        element.widget = new webui_widgets.constructors[widget_name];
- //       element.widget.parameters['class'] = widget_name;
-        element.widget.element = element;
-        element.appendChild(element.widget);
-        element.widget.init();
-        element.widget.updateAll();
-
-        // TODO: Add default data field to view data structure **********
-
-        let widgetStyles = window.getComputedStyle(element.widget);
-        let x = widgetStyles.getPropertyValue('--x');
-        let y = widgetStyles.getPropertyValue('--y');
-        let width = widgetStyles.getPropertyValue('--width');
-        let height = widgetStyles.getPropertyValue('--height');
-
-        element.widget.parameters['x'] = x ? x : 20;
-        element.widget.parameters['y'] = y ? y : 20;
-        element.widget.parameters['width'] = width ? width : 100;
-        element.widget.parameters['height'] = height ? height : 100;
-
-        element.style.top = element.widget.parameters['y']+"px";
-        element.style.left = element.widget.parameters['x']+"px";
-        element.style.width = element.widget.parameters['width']+"px";
-        element.style.height = element.widget.parameters['height']+"px";
-
-        element.handle = document.createElement("div");
-        element.handle.setAttribute("class", "handle");
-        element.handle.onmousedown = interaction.startResize;
-        element.appendChild(element.handle);
-    },
-    initViewElement: function (element, data) {   // For object in view from IKC or IKG file - should be called add widget
-        element.addEventListener('mousedown', interaction.startDrag, true); // capture
-
-        let constr = webui_widgets.constructors["webui-widget-"+data['class']];
-        if(!constr)
-        {
-            console.log("Internal Error: No constructor found for "+"webui-widget-"+data['class']);
-            element.widget = new webui_widgets.constructors['webui-widget-text'];
-            element.widget.element = element; // FIXME: wjy not also below??
-            element.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
-            element.widget.parameters['text'] = "\""+"webui-widget-"+data['class']+"\" not found.";
-        }
-        else
-        {
-            element.widget = new webui_widgets.constructors["webui-widget-"+data['class']];
-            element.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
-            
-            // Add default parameters from CSS - possibly...
- 
-            // FIXME: we should type convert here also according to default_template
-            
-            for(k in element.widget.parameters)
-                if(data[k] === undefined)
-                    data[k] = element.widget.parameters[k];
-            
-            element.widget.parameters = data;
-        }
-
-        element.widget.setAttribute('class', 'widget');
-        element.appendChild(element.widget);    // must append before next section
-
-        // Section below should not exists - probably...
-
-        element.style.top = data.y+"px";
-        element.style.left = data.x+"px";
-        element.style.width = data.width+"px";
-        element.style.height = data.height+"px";
-
-        element.handle = document.createElement("div");
-        element.handle.setAttribute("class", "handle");
-        element.handle.onmousedown = interaction.startResize;
-        element.appendChild(element.handle);
-        
-        try
-        {
-            element.widget.updateAll();
-        }
-        catch(err)
-        {
-            console.log(err);
-        }
-    },
     initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");
         for (var i = 0; i <    nodes.length; i++)
@@ -652,16 +557,6 @@ interaction = {
         if(interaction.grid_spacing > 10)
             interaction.changeGrid(0.5*interaction.grid_spacing);
     },
-    addObject() {
-        let main = document.querySelector('main');
-        let newObject = document.createElement("div");
-        newObject.setAttribute("class", "frame");
-        interaction.main.appendChild(newObject);
-        interaction.initElement(newObject);
-        interaction.currentView.objects.push(newObject.widget.parameters);
-        interaction.selectObject(newObject);
-    },
-    
     drawArrow(context, arrow)
     {
         context.beginPath();
@@ -673,7 +568,6 @@ interaction = {
         context.fill();
         context.stroke();
     },
-
     moveArrow(arrow, x, y)
     {
         var rv = [];
@@ -682,7 +576,6 @@ interaction = {
         }
         return rv;
     },
-
     rotateArrow(arrow,angle)
     {
         var rv = [];
@@ -692,7 +585,6 @@ interaction = {
         }
         return rv;
     },
-
     drawArrowHead(context, fromX, fromY, toX, toY)
     {
         var angle = Math.atan2(toY-fromY, toX-fromX);
@@ -703,7 +595,6 @@ interaction = {
         this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
         context.restore();
     },
-
     drawConnections()
     {
         function bezier(t, p0, p1, p2, p3)
@@ -775,7 +666,112 @@ interaction = {
             }
         }
     },
+    deleteWidget()
+    {
+        let w = interaction.selectedObject;
+        interaction.deselectObject();
+        interaction.removeAllObjects();
+        interaction.currentView.objects = interaction.currentView.objects.filter(e => e!==w.widget.parameters); // delete from view
+        interaction.addView(interaction.currentViewName);
+    },
+    widgetToFront()
+    {
+        let w = interaction.selectedObject;
+        interaction.deselectObject();
+        interaction.removeAllObjects();
+        interaction.currentView.objects = interaction.currentView.objects.filter(e => e!==w.widget.parameters); // delete from view
+        interaction.currentView.objects.push(w.widget.parameters);
+        interaction.addView(interaction.currentViewName);
+    },
+    widgetToBack()
+    {
+        let w = interaction.selectedObject;
+        interaction.deselectObject();
+        interaction.removeAllObjects();
+        interaction.currentView.objects = interaction.currentView.objects.filter(e => e!==w.widget.parameters); // delete from view
+        interaction.currentView.objects.unshift(w.widget.parameters);
+        interaction.addView(interaction.currentViewName);
+    },
+    duplicateWidget()
+    {
+        let w = interaction.selectedObject;
+        let dup_parameters = Object.assign({}, w.widget.parameters); // to avoid sharing
+        dup_parameters.x = parseInt(dup_parameters.x) + 20;
+        dup_parameters.y = parseInt(dup_parameters.y) + 20;
+        let dup = interaction.addWidget(dup_parameters);
+        interaction.currentView.objects.push(dup.widget.parameters);
+        interaction.selectObject(dup);
+    },
+    addNewWidget()
+    {
+        let widget_select = document.querySelector('#widget_select');
+        let widget_class = widget_select.options[widget_select.selectedIndex].value;
+        let w = interaction.addWidget({'class': widget_class, 'show_title': true, 'show_frame': true, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
+        interaction.curnewpos += 20;
+        interaction.currentView.objects.push(w.widget.parameters);
+        interaction.selectObject(w);
+    },
+    addWidget(w)
+    {
+        let newObject = document.createElement("div");
+        newObject.setAttribute("class", "frame visible");
 
+        let newTitle = document.createElement("div");
+        newTitle.setAttribute("class", "title");
+        newTitle.innerHTML = "TITLE";
+        newObject.appendChild(newTitle);
+
+        interaction.main.appendChild(newObject);
+        newObject.addEventListener('mousedown', interaction.startDrag, true);
+
+        let constr = webui_widgets.constructors["webui-widget-"+w['class']];
+        if(!constr)
+        {
+            console.log("Internal Error: No constructor found for "+"webui-widget-"+w['class']);
+            newObject.widget = new webui_widgets.constructors['webui-widget-text'];
+            newObject.widget.element = newObject; // FIXME: why not also below??
+            newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
+            newObject.widget.parameters['text'] = "\""+"webui-widget-"+w['class']+"\" not found.";
+        }
+        else
+        {
+            newObject.widget = new webui_widgets.constructors["webui-widget-"+w['class']];
+            newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
+            // Add default parameters from CSS - possibly...
+            // FIXME: we should type convert here also according to default_template
+            for(k in newObject.widget.parameters)
+                if(w[k] === undefined)
+                    w[k] = newObject.widget.parameters[k];
+            newObject.widget.parameters = w;
+        }
+
+        newObject.widget.setAttribute('class', 'widget');
+        newObject.appendChild(newObject.widget);    // must append before next section
+
+        // Section below should not exists - probably...
+
+        newObject.style.top = w.y+"px";
+        newObject.style.left = w.x+"px";
+        newObject.style.width = w.width+"px";
+        newObject.style.height = w.height+"px";
+
+        newObject.handle = document.createElement("div");
+        newObject.handle.setAttribute("class", "handle");
+        newObject.handle.onmousedown = interaction.startResize;
+        newObject.appendChild(newObject.handle);
+        
+        try
+        {
+            newObject.widget.updateAll();
+        }
+        catch(err)
+        {
+            console.log(err);
+        }
+        
+        return newObject;
+    },
+    
     addView(viewName)
     {
         setCookie('current_view', viewName);
@@ -798,18 +794,7 @@ interaction = {
         if(v)
         {
             for(let i=0; i<v.length; i++)
-            {
-                let newObject = document.createElement("div");
-                newObject.setAttribute("class", "frame visible");
-                
-                let newTitle = document.createElement("div");
-                newTitle.setAttribute("class", "title");
-                newTitle.innerHTML = "TITLE";
-                newObject.appendChild(newTitle);
-                
-                interaction.main.appendChild(newObject);
-                interaction.initViewElement(newObject, v[i])
-            }
+                interaction.addWidget(v[i]);
             return;
         }
 
