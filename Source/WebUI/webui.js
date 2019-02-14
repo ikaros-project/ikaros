@@ -696,8 +696,8 @@ interaction = {
     {
         let w = interaction.selectedObject;
         let dup_parameters = Object.assign({}, w.widget.parameters); // to avoid sharing
-        dup_parameters.x += 20;
-        dup_parameters.y += 20;
+        dup_parameters.x = parseInt(dup_parameters.x) + 20;
+        dup_parameters.y = parseInt(dup_parameters.y) + 20;
         let dup = interaction.addWidget(dup_parameters);
         interaction.currentView.objects.push(dup.widget.parameters);
         interaction.selectObject(dup);
@@ -706,7 +706,7 @@ interaction = {
     {
         let widget_select = document.querySelector('#widget_select');
         let widget_class = widget_select.options[widget_select.selectedIndex].value;
-        let w = interaction.addWidget({'class': widget_class, 'show_title': true, 'show_frame': true, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 300, 'width': 300});
+        let w = interaction.addWidget({'class': widget_class, 'show_title': true, 'show_frame': true, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
         interaction.curnewpos += 20;
         interaction.currentView.objects.push(w.widget.parameters);
         interaction.selectObject(w);
