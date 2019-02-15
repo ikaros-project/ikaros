@@ -3,7 +3,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "BUTTON", 'control':'header'},
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
  

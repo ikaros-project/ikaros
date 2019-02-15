@@ -3,7 +3,7 @@ class WebUIWidgetSlider extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "PARAMETERS", 'control':'header'},
+            {'name': "SLIDE VERTICAL", 'control':'header'},
             {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},

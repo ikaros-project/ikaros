@@ -3,7 +3,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "SWITCH", 'control':'header'},
             {'name':'title', 'default':"Switch Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
 

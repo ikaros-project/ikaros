@@ -1,58 +1,64 @@
 <?xml version="1.0"?>
 
-<class name="SequenceRecorder" description="records a sequence">
+<class name="SequenceRecorder" description="minimal example module">
 
-	<description type="text">
-		Module that records a sequence of values and saves them into a file.
-	</description>
+    <description type="text">
+        Module that records a sequence of values and saves them into a file.
+    </description>
 
-	<example description="A simple example">
-		<module
-			class="SequenceRecorder"
-			name="SequenceRecorder"
+    <example description="A simple example">
+        <module
+            class="SequenceRecorder"
+            name="SequenceRecorder"
             filename="point"
-		/>
-	</example>
+        />
+    </example>
 
-    <parameter name="max_motion" type="int" default="10" description="Maximum nuber of motions" />
-	<parameter name="current_motion" type="int" default="0" description="The motion that will be recorded" />
+    <parameter name="max_motions" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
+    <parameter name="current_motion" type="int" default="0" description="The behavior that will be recorded" />
+    <parameter name="position_data_max" type="int" default="1000" description="The maximum number of datapoints that can be stored" />
     <parameter name="mode_string" type="string" default="stop" description="The current mode as a string" />
 
-	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored. '.dat' or '.json' format" />
+    <parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
+    <parameter name="directory" type="string" default="motions" description="The directory where the files will be stored." />
+    <parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
+    <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque." />
 
-    <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque (ms)." />
-    <parameter name="torque" type="float" default="1" description="Nominal torque to record for active channels" />
+    <parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
+    <parameter name="auto_save" type="bool" default="no" description="Save all behaviors before termination" />
 
-	<parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
-	<parameter name="auto_save" type="bool" default="no" description="Save all behaviors before termination" />
+    <parameter name="record_on_trig" type="bool" default="false" description="Start record on trig input." />
 
-	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_motions" optional="yes" />
-	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_set="max_motions" />
+    <input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_motions" optional="yes" />
+    <output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_motions" />
+    <output name="TRIG_OUT" description="A single 1 for one tick when a behavior is started" size_param="1" />
 
-	<input name="INPUT" description="Position data from the servos" />
-    <output name="OUTPUT" description="Position data to the servos" size_set="INPUT" />
-	<output name="TORQUE" description="Current torque for the motors" size_set="INPUT" />
-	<output name="ENABLE" description="Enable the motors when torque is larger than zero" size_set="INPUT" />
+    <input name="INPUT" description="Position data from the servos" />
 
     <output name="MODE" description="off/stop/play/record mode for each channel coded as a matrix" size_set_x="INPUT" size_y= "4" />
+    <output name="OUTPUT" description="Position data to the servos" size_set="INPUT" />
+    <output name="TORQUE" description="Current torque for the motors" size_set="INPUT" />
+    <output name="ENABLE" description="Enable the motors" size_set="INPUT" />
 
-    <output name="KEYPOINTS" description="The keypoint vectors as multiple paths" size_set_x="INPUT" size_param_y="1000" />
- 
-	<output name="TIME" description="Current record or play position (ms)" size="1" />
+    <output name="KEYPOINTS" description="The keypoint vectors" size_set_x="INPUT" size_param_y="position_data_max" />
+    <output name="TIMESTAMPS" description="Timestamp in ms for each keypoint" size_x="1" size_param_y="position_data_max" />
 
-	<link class="SequenceRecorder" />
+    <output name="STATE" description="State is 1 when the module records" size="1" />
+    <output name="TIME" description="Current record or play position" size="1" />
 
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
+    <link class="SequenceRecorder" />
+
+    <author>
+        <name>Christian Balkenius</name>
+        <email>christian.balkenius@lucs.lu.se</email>
+        <affiliation>Lund University Cognitive Science</affiliation>
+        <homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+    </author>
 
    <files>
-   		<file>SequenceRecorder.h</file>
-   		<file>MSequenceRecorder.cc</file>
-   		<file>SequenceRecorder.ikc</file>
+           <file>SequenceRecorder.h</file>
+           <file>SequenceRecorder.cc</file>
+           <file>SequenceRecorder.ikc</file>
    </files>
 
 </class>

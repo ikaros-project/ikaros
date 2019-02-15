@@ -3,9 +3,8 @@ class WebUIWidgetText extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "TEXT", 'control':'header'},
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
- //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'text', 'default':"", 'type':'string', 'control': 'textedit'},
             

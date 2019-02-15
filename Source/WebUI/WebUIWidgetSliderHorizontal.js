@@ -14,7 +14,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
     static template()
     {
         return [
-            {'name': "DATA", 'control':'header'},
+            {'name': "SLIDER HORIZONTAL", 'control':'header'},
             {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
