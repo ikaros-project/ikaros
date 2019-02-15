@@ -11,8 +11,8 @@
 	PupilSerialDevice		= "/dev/ttyPUPIL"
 
 	BodyDynamixel 			= "DynamixelSimulate"
-	HeadDynamixel 			= "DynamixelSimulate"
-	LeftArmDynamixel 		= "DynamixelSimulate"
+	HeadDynamixel 			= "Dynamixel"
+	LeftArmDynamixel 		= "Dynamixel"
 	RightArmDynamixel 		= "DynamixelSimulate"
 	PupilDynamixel 			= "DynamixelSimulate"
 
