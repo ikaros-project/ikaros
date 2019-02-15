@@ -18,10 +18,9 @@ nrServosRightArm = "6"
 nrServosPupil = "2"
 nrServosTotal = "19"
 
-VisionInput = "InputVideoStream"
-
 PupilModelA = "100"
 
+LogOn = "yes"
 >
 	<!-- import frame and id for epi robots> -->
     <?include file="EpiFrames.ikg" ?>
@@ -285,7 +284,7 @@ PupilModelA = "100"
 
 <!-- Sensors -->
 <module class = "EpiVision" active = "yes" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
-<module class = "EpiVision" active = "yes"	name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" active = "yes" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
 
 
 
@@ -533,6 +532,7 @@ PupilModelA = "100"
 </view>
 
 
+	<module class = "Constant" name = "SEVEN" data = "7" />
 
 	
 	<module
@@ -616,6 +616,7 @@ PupilModelA = "100"
 
 
 	<!-- Log -->
-    <module class="EpiLog" name="EpiLog" active = "no"/>
+    
+	<module class="EpiLog" name="EpiLog" active = "yes"/>
 
 </group>
