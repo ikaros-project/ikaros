@@ -3,14 +3,11 @@
 <!-- Here we can log everything yay! -->
 <group>
 
-<parameter name="LogOn" target="active" />
-
-
 	<!-- Logging Video -->
 	
 	<!-- Image -->
-	<module class = "OutputJPEG" name = "LOG_LEFT_EYE_FULL_RES" 	filename = "Log/LeftEye%02d.jpg"/>
-  	<module class = "OutputJPEG" name = "LOG_RIGHT_EYE_FULL_RES"  	filename = "Log/RightEye%02d.jpg" />
+	<module class = "OutputJPEG" name = "LOG_LEFT_EYE_FULL_RES" 	filename = "Log/LeftEye%02d.jpg" 	active = "@LogEyesImages" />
+  	<module class = "OutputJPEG" name = "LOG_RIGHT_EYE_FULL_RES"  	filename = "Log/RightEye%02d.jpg"  	active = "@LogEyesImages" />
 		<connection  source = "EpiBlack.LeftEye.FULL_RES_RED"  		target = "LOG_LEFT_EYE_FULL_RES.RED" />
 		<connection  source = "EpiBlack.LeftEye.FULL_RES_GREEN"  	target = "LOG_LEFT_EYE_FULL_RES.GREEN" />
 		<connection  source = "EpiBlack.LeftEye.FULL_RES_BLUE"  	target = "LOG_LEFT_EYE_FULL_RES.BLUE" />
@@ -19,8 +16,8 @@
 		<connection  source = "EpiBlack.RightEye.FULL_RES_BLUE"  	target = "LOG_RIGHT_EYE_FULL_RES.BLUE" />
 	<!-- Video -->
 	<!--
-	<module class = "OutputVideoFile" name = "LOG_VIDEO_LEFT_EYE_FULL_RES" filename = "Log/LeftEye.mp4"/>
-	<module class = "OutputVideoFile" name = "LOG_VIDEO_RIGHT_EYE_FULL_RES" filename = "Log/RightEye.mp4"/>
+	<module class = "OutputVideoFile" name = "LOG_VIDEO_LEFT_EYE_FULL_RES" 	filename = "Log/LeftEye.mp4" 	active = "@LogEyesVideos" />
+	<module class = "OutputVideoFile" name = "LOG_VIDEO_RIGHT_EYE_FULL_RES" filename = "Log/RightEye.mp4" 	active = "@LogEyesVideos" />
 		<connection  source = "EpiBlack.LeftEye.FULL_RES_RED"  		target = "LOG_VIDEO_LEFT_EYE_FULL_RES.RED" />
 		<connection  source = "EpiBlack.LeftEye.FULL_RES_GREEN"  	target = "LOG_VIDEO_LEFT_EYE_FULL_RES.GREEN" />
 		<connection  source = "EpiBlack.LeftEye.FULL_RES_BLUE"  	target = "LOG_VIDEO_LEFT_EYE_FULL_RES.BLUE" />
@@ -30,9 +27,10 @@
 -->
 	<!-- Servos -->
 		<module
-			class = "OutputFile"
-			name = "Log"
-			filename = "Log/Data.txt"
+			class 		= "OutputFile"
+			name 		= "Log"
+			filename 	= "Log/Data.txt"
+			active 		= "@LogData"
 		>
             <column name = "ServoTorqueEnable" />
             <column name = "ServoLed" />
