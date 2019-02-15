@@ -2147,9 +2147,9 @@ Kernel::Run()
             }
         }
     }
-
-    httpThread->join();
-    delete httpThread;
+    
+//    httpThread->join();
+ //   delete httpThread;
 //    delete idle_timer;
 }
 
