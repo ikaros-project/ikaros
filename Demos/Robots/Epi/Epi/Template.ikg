@@ -11,12 +11,18 @@
 	PupilSerialDevice		= "/dev/ttyPUPIL"
 
 	BodyDynamixel 			= "DynamixelSimulate"
-	HeadDynamixel 			= "Dynamixel"
-	LeftArmDynamixel 		= "Dynamixel"
+	HeadDynamixel 			= "DynamixelSimulate"
+	LeftArmDynamixel 		= "DynamixelSimulate"
 	RightArmDynamixel 		= "DynamixelSimulate"
 	PupilDynamixel 			= "DynamixelSimulate"
 
 	VisionInput = "InputVideoStream"
+
+	LogData 				= "yes"
+	LogEyesImages 			= "no"
+	LogEyesVideos			= "no"
+
+	MotionRecorderSystemOverrideValue = "100"
 	/>
 
 	<!-- Move EpiBlack -->

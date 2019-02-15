@@ -5,7 +5,7 @@
     <input name = "GOAL_POSITION"   targetmodule = "GOAL_POSITION_G"    target = "INPUT" /> 
     <input name = "MOVING_SPEED"    targetmodule = "MOVING_SPEED_G"     target = "INPUT" /> 
     <input name = "TORQUE_LIMIT"    targetmodule = "TORQUE_LIMIT_G"     target = "INPUT" /> 
-    <input name = "TORQUE_ENABLE"   targetmodule = "TORQUE_ENABLE_G"    target = "INPUT" /> 
+    <input name = "TORQUE_ENABLE"   targetmodule = "TORQUE_ENABLE_G"    target = "INPUT1" /> 
 
    <!-- Pupil converter -->
     <module
@@ -40,15 +40,28 @@
     
    <module class = "Sink" name = "NotAvailable" />
 
+    <!-- Values for motionRecoder override -->
+    <module class = "Constant" name = "MotionRecorderOffV" data = "0" />
+    <module class = "Constant" name = "MotionRecorderOnV" data = "@MotionRecorderSystemOverrideValue" />
+
+        <connection source = "MotionRecorderOffV.OUTPUT"    target = "TORQUE_ENABLE_G.VALUE1"          delay = "1"/>
+        <connection source = "MotionRecorderOnV.OUTPUT"     target = "TORQUE_ENABLE_G.VALUE2"          delay = "1"/>
+        <connection source = "MotionRecorderOffV.OUTPUT"    target = "GOAL_POSITION_G.VALUE1"          delay = "1"/>
+        <connection source = "MotionRecorderOnV.OUTPUT"     target = "GOAL_POSITION_G.VALUE2"          delay = "1"/>
+
     <!-- Add dynamixel outputs here Temperature Speed. Some of them must be transformed. Speed, force must go through a SC -->
 
     <!-- Dummy module -->
-    <module class = "Gate" name = "GOAL_POSITION_G"/>
-        <!-- Order is important -->
-	    <connection source = "mmToDegrees.OUTPUT"  	    target = "MotionGuard.INPUT" sourceoffset = "0"	                targetoffset = "@servosIndexPupil"    size = "@nrServosPupil"/>
-	    <connection source = "GOAL_POSITION_G.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "0"	                targetoffset = "0"                    size = "@servosIndexPupil"/>
-        <!-- Pupil mm to Degrees> -->
-	    <connection source = "GOAL_POSITION_G.OUTPUT"  	target = "mmToDegrees.INPUT" sourceoffset = "@servosIndexPupil"	targetoffset = "0"                    size = "@nrServosPupil"/>
+        <!--<module class = "Gate" name = "GOAL_POSITION_G"/>-->
+        <!-- Can be override by MotionRecder -->
+        <module class = "Arbiter" name = "GOAL_POSITION_G" no_of_inputs = "2"/>
+            <!-- Order is important -->
+            <connection source = "mmToDegrees.OUTPUT"  	    target = "MotionGuard.INPUT" sourceoffset = "0"	                targetoffset = "@servosIndexPupil"    size = "@nrServosPupil"/>
+            <connection source = "GOAL_POSITION_G.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "0"	                targetoffset = "0"                    size = "@servosIndexPupil"/>
+            <!-- Pupil mm to Degrees> -->
+            <connection source = "GOAL_POSITION_G.OUTPUT"  	target = "mmToDegrees.INPUT" sourceoffset = "@servosIndexPupil"	targetoffset = "0"                    size = "@nrServosPupil"/>
+        <!-- INPUT 2 is EpiMotionRecoder.ikg -->
+
 
     <!-- Just forward a few parameters to servoes -->
     <!-- Dummy module -->
@@ -67,7 +80,8 @@
         <connection source = "TORQUE_LIMIT_G.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     target = "Pupil.TORQUE_LIMIT"     delay = "1"/>
 
     <!-- Dummy module -->
-    <module class = "Gate" name = "TORQUE_ENABLE_G"/>
+    <!-- Motionrecoder needs to override torque enable. This is done using a arbiter with values -->
+    <module class = "Arbiter" name = "TORQUE_ENABLE_G" no_of_inputs = "2"/>
         <connection source = "TORQUE_ENABLE_G.OUTPUT" sourceoffset = "@servosIndexBody"	    size = "@nrServosBody"      target = "Body.TORQUE_ENABLE"     delay = "1"/>
         <connection source = "TORQUE_ENABLE_G.OUTPUT" sourceoffset = "@servosIndexHead"  	size = "@nrServosHead"      target = "Head.TORQUE_ENABLE"     delay = "1"/>
         <connection source = "TORQUE_ENABLE_G.OUTPUT" sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"   target = "LeftArm.TORQUE_ENABLE"  delay = "1"/>
@@ -75,7 +89,6 @@
         <connection source = "TORQUE_ENABLE_G.OUTPUT" sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"     target = "Pupil.TORQUE_ENABLE"    delay = "1"/>
 
     <!-- Add dynamixel outputs here Temperature Speed. Some of them must be transformed. Speed, force must go through a SC -->
-
 
     <!-- General -->
     <module class = "MotionGuard" name = "MotionGuard"  

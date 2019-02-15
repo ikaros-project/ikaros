@@ -1,25 +1,22 @@
-<?xml version="1.0"?>
-
-
-
-
-<module
+	<module
 			class = "MotionRecorder"
 			name = "MotionRecorder"
             mask = "1 1"
             torque = "0.25 0.25"
-            filename = "motions/motion.%d.mot"
-            json_filename = "motions/motion.%d.json"
-           smoothing_time = "0"
+            filename = "Actions/motion.%d.mot"
+            json_filename = "Actions/motion.%d.json"
+           smoothing_time = "40"
             max_motions="20"
             _auto_save="yes"
             _record_on_trig = "true"
 	/>
-		<!-- Get position from servo -->
-        <connection  source = "Servos.SC_FeedBackPosition.OUTPUT"  target = "MotionRecorder.INPUT" />
-       	<!-- Override system output  -->
-	    <connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" />
-        <connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" />
+
+		<!-- Get position from servos -->
+        <connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
+       	
+        <!-- Override system output  -->
+	    <connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE_G.INPUT2" />
+        <connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION_G.INPUT2" />
 
 
 
