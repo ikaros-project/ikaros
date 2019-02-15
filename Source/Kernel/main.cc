@@ -148,6 +148,11 @@ main(int argc, char *argv[])
 
     // Catch Exceptions and Terminate Execution
 
+    catch(std::runtime_error)
+    {
+        return 1;
+    }
+    
     catch (std::bad_alloc&)
     {
         k.Notify(msg_exception, "Could not allocate memory. Program terminates.\n");
