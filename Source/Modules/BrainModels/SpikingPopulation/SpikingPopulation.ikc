@@ -54,5 +54,34 @@
    		<file>SpikingPopulation.cc</file>
    		<file>SpikingPopulation.ikc</file>
    </files>
-
+	<view name="Spiking population default view">
+		<plot
+            class = "plot"
+            show_title = "true"
+            show_frame = "true"
+            x = "0"
+            y = "0"
+            height = "200"
+            width = "200"
+            source = ".OUTPUT"
+            min = "-100" max = "100"
+            title = "Spikes"
+            buffer_size = "50"
+            direction = "vertical"
+        />
+		<plot
+            class = "plot"
+            show_title = "true"
+            show_frame = "true"
+            x = "200"
+            y = "0"
+            height = "200"
+            width = "200"
+            source = ".ADENOSINE"
+            min = "0" max = "2"
+            title = "Adenosine"
+            buffer_size = "50"
+            direction = "vertical"
+        />
+	</view>
 </class>
