@@ -42,7 +42,7 @@
             <column name = "ServoTorqueLimit" />
             <column name = "ServoPresentPosition" />
             <column name = "ServoPresentSpeed" />
-            <column name = "ServoPreserntLoad" />
+            <column name = "ServoPresentLoad" />
             <column name = "ServoPresentVoltage" />
             <column name = "ServoPresentTemperature" />
             <column name = "ServoPresentCurrent" />
