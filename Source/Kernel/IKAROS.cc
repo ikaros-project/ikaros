@@ -2681,7 +2681,7 @@ Module::SetParameter(const char * parameter_name, int x, int y, float value)
 }
 
 
-void // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
+bool // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
 Kernel::SetParameter(const char * name, int x, int y, float value)
 {
     // OLD with variable substitution
@@ -2700,10 +2700,23 @@ Kernel::SetParameter(const char * name, int x, int y, float value)
         else if(b->type == bind_bool)
             *((bool *)(b->value)) = (value > 0);
         else if(b->type == bind_array)
-            ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+        {
+            if(x < 0 || x >= b->size_x)
+                return Notify(msg_warning, "Parameter index x out of range for %s\"", name);
+            ((float *)(b->value))[x] = value;
+        }
         else if(b->type == bind_matrix)
+        {
+            if(x < 0 || x >= b->size_x)
+                return Notify(msg_warning, "Parameter index x out of range for \"%s\"", name);
+            if(y < 0 || y >= b->size_y)
+                return Notify(msg_warning, "Parameter index y out of range for \"%s\"", name);
            ((float **)(b->value))[y][x] = value;
+        }
     }
+
+    return true;
+
 /*
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
     {
