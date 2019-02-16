@@ -18,7 +18,6 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
-//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'count', 'default':1, 'type':'int', 'control': 'textedit'},
@@ -44,7 +43,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
 
     slider_moved(value, index=0)
     {
-        this.send_control_change(this.parameters.parameter, value, index);
+        this.send_control_change(this.parameters.parameter, value, this.parameters.select + index);
     }
 
     updateAll()
@@ -72,7 +71,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             slider.step = this.parameters.step;
         }
 
-        let mode = this.parameters.labels.trim() == "" ? 'non' : 'block';
+        let mode = this.parameters.labels.trim() == "" ? 'none' : 'block';
             for(let label of this.querySelectorAll(".slider_label"))
                 label.style.display = mode;
 
@@ -133,7 +132,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
                 let size_y = d.length;
                 let size_x = d[0].length;
                 
-                let i = 0;
+                let i = this.parameters.select;
                 for(let slider of this.querySelectorAll("input"))
                     slider.value = d[0][i++];
             }
