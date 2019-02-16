@@ -17,6 +17,12 @@
 	PupilDynamixel 			= "DynamixelSimulate"
 
 	VisionInput = "InputVideoStream"
+
+	LogData 				= "yes"
+	LogEyesImages 			= "no"
+	LogEyesVideos			= "no"
+
+	MotionRecorderSystemOverrideValue = "100"
 	/>
 
 	<!-- Move EpiBlack -->

@@ -31,7 +31,7 @@
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_motions" optional="yes" />
 	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_motions" />
-    <output name="TRIG_OUT" description="A single 1 for one tick when a behavior is started" size_param="1" />
+    <output name="TRIG_OUT" description="A single 1 for one tick when a behavior is started" size="1" />
 
 	<input name="INPUT" description="Position data from the servos" />
 
