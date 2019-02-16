@@ -505,7 +505,8 @@ interaction = {
         interaction.setMode('run');
     },
     stopEvents: function (e) {
-        if(interaction.main.dataset.mode == "edit") e.stopPropagation()
+        if(interaction.main.dataset.mode == "edit")
+            e.stopPropagation()
     },
 
     initDraggables: function () { // only needed if there are already frame elements in the main view
@@ -706,7 +707,7 @@ interaction = {
     {
         let widget_select = document.querySelector('#widget_select');
         let widget_class = widget_select.options[widget_select.selectedIndex].value;
-        let w = interaction.addWidget({'class': widget_class, 'show_title': true, 'show_frame': true, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
+        let w = interaction.addWidget({'class': widget_class, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
         interaction.curnewpos += 20;
         interaction.currentView.objects.push(w.widget.parameters);
         interaction.selectObject(w);
@@ -722,7 +723,7 @@ interaction = {
         newObject.appendChild(newTitle);
 
         interaction.main.appendChild(newObject);
-        newObject.addEventListener('mousedown', interaction.startDrag, true);
+        newObject.addEventListener('mousedown', interaction.startDrag, false);
 
         let constr = webui_widgets.constructors["webui-widget-"+w['class']];
         if(!constr)

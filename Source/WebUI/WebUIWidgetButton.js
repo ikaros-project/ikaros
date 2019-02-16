@@ -4,22 +4,18 @@ class WebUIWidgetButton extends WebUIWidgetControl
     {
         return [
             {'name': "BUTTON", 'control':'header'},
-            {'name':'title', 'default':"Button Title", 'type':'string', 'control': 'textedit'},
-            {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
+            {'name':'title', 'default':"Title", 'type':'string', 'control': 'textedit'},
+            {'name':'label', 'default':"Button", 'type':'string', 'control': 'textedit'},
  
             {'name': "CONTROL", 'control':'header'},
-//            {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
             {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
-            
- //           {'name':'singleTrig', 'default':true, 'type':'bool', 'control': 'checkbox'},
  
             {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
- //           {'name':'enableModule', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
                 
             {'name': "FRAME", 'control':'header'},
@@ -71,10 +67,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
     update(d)
     {
         this.firstChild.innerText = this.parameters.label;
-
-        try {
+         try {
             if(this.parameters.enableSource)
-                this.firstChild.disabled = (this.getSource(enableSource)[0][0] == 0 ? true : false);
+                this.firstChild.disabled = (this.getSource('enableSource')[0][0] == 0 ? true : false)
         }
         catch(err)
         {}

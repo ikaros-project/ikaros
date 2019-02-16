@@ -4,7 +4,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
         return [
             {'name': "BAR GRAPH", 'control':'header'},
-            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'title', 'default':"Bar Graph", 'type':'string', 'control': 'textedit'},
  //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 
@@ -23,7 +23,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             
             {'name': "FRAME", 'control':'header'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}

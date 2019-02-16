@@ -4,6 +4,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
     {
         return [
             {'name': "PLOT", 'control':'header'},
+            {'name':'title', 'default':"Plot", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
@@ -13,7 +14,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "vertical", 'class':'true'},
             {'name': "STYLE", 'control':'header'},
             {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}

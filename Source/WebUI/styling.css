@@ -343,6 +343,16 @@ div.frame.visible {
     flex-grow:1;
 }
 
+[data-mode="edit"] .widget {
+    background-color: #eeeeee88;
+    cursor: move;
+    pointer-events: none;
+}
+
+[data-mode="run"] .widget {
+    cursor: pointer;
+    pointer-events: auto;
+}
 
 .dragged, .resized {
     border-color: black;
