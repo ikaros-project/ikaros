@@ -30,12 +30,6 @@ public:
 	static Module * Create(Parameter * p) { return new Delta(p); }
 	
     float       alpha;
-    float       beta;
-    float       gamma;
-    float       delta;
-    float       epsilon;
-    
-    bool        inverse;
     
     float *		cs;
     float *		us;
@@ -45,8 +39,6 @@ public:
     
     int			cs_size;
     int			us_size;
-
-    float *     output;
 
 				Delta(Parameter * p) : Module(p) {};
     virtual		~Delta() {};

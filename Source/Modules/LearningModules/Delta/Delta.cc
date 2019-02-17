@@ -28,12 +28,6 @@ void
 Delta::Init()
 {
     Bind(alpha, "alpha");
-    Bind(beta, "beta");
-    Bind(gamma, "gamma");
-    Bind(delta, "delta");
-    Bind(epsilon, "epsilon");
-    
-    Bind(inverse, "inverse");
 
     cs	=	GetInputArray("CS");
     us	=	GetInputArray("US");
