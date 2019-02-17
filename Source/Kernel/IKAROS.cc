@@ -111,8 +111,9 @@ class InputElement: public Element
 {
 public:
     InputElement(GroupElement * parent, XMLElement * xml_node=NULL);
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    std::string     MapTarget(std::string name);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 
 };
 
@@ -278,6 +279,15 @@ std::string ParameterElement::JSONString(int d)
 
 InputElement::InputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
+std::string InputElement::MapTarget(std::string name)
+{
+    auto target = rsplit(name, ".", 1);
+    auto new_module = attributes["targetmodule"];
+    auto new_target = attributes["target"];
+    return (new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]);
+}
+
+
 void InputElement::Print(int d)
 {
     printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
@@ -405,7 +415,13 @@ GroupElement::GetValue(const std::string & a) const
     {
         const auto & p = parameters.at(a);
         if(p->attributes.count("name"))
-            return GetValue(p->attributes.at("name")); // Can be called multiple times in principle, but a bad idea
+        {
+            auto new_name = p->attributes.at("name");
+            if(new_name == a)
+                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself");
+            else
+                return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
+        }
     }
 
     return Element::GetValue(a);
@@ -487,7 +503,7 @@ GroupElement::GetTargets(const std::string & name)
 
     GroupElement * g = GetGroup(target[0]);
     if(!g)
-        return tios;
+        return tios; // empty vector
     
     if(g && g->module)
     {
@@ -503,7 +519,9 @@ GroupElement::GetTargets(const std::string & name)
         {
             auto new_module = input["targetmodule"];
             auto new_target = input["target"];
+            auto n = input.MapTarget(name);
             auto targets = g->GetTargets((new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]));
+//            auto targets = g->GetTargets(input.MapTarget(name));
             tios.insert(tios.end(), targets.begin(), targets.end());
         }
 
@@ -2434,6 +2452,7 @@ Kernel::Init()
         return;
     }
 
+    ListModulesAndConnections();
     InitModules();
     
     webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
@@ -3989,7 +4008,7 @@ Kernel::HandleHTTPRequest()
     }
     else if (strstart(uri, "/command/"))
     {
-        char module_name[255];
+//        char module_name[255];
         float x, y;
         char command[255];
         char value[1024]; // FIXME: no range chacks
