@@ -15,11 +15,11 @@
 
     <!-- parameters that can be controlled at the top level -->
 
-    <parameter name="LCa_alpha" module="LCb" target="alpha_a" />
-    <parameter name="LCb_alpha" module="LCb" target="alpha_b" />
-    <parameter name="CG_alpha7" module="PeripheralPupilControl" target="CG_alpha7" default="1" />
-    <parameter name="Eye_m3" module="LeftEye" target="m3" default="1" />
-    <parameter name="Eye_m3" module="RightEye" target="m3" default="1" />
+    <parameter name="LCa_alpha" target="LCb.alpha_a" />
+    <parameter name="LCb_alpha" target="LCb.alpha_b" />
+    <parameter name="CG_alpha7" target="PeripheralPupilControl.CG_alpha7" default="1" />
+    <parameter name="Eye_m3" target="LeftEye.m3" default="1" />
+    <parameter name="Eye_m3" target="RightEye.m3" default="1" />
 
    <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
 
@@ -113,12 +113,9 @@
     <!-- ********************************* VIEW ********************************* -->
     
     <view title="Face View">
-        <object
-            class="EpiFace"
-            left_module="LeftEye"
-            left_source="OUTPUT"
-            right_module="LeftEye"
-            right_source="OUTPUT"
+        <epi-head
+            pupil_left_source="LeftEye.OUTPUT"
+            pupil_right_source="RightEye.OUTPUT"
             x="0" y="0"
             h="4" w="4"
         />

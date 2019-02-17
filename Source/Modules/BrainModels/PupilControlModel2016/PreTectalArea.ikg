@@ -2,7 +2,7 @@
 
 <group name="PreTectalArea" description="model of the pretectal area that sums its inputs and puts it through a sline funcion">
     
-    <parameter name="light_response" module="LightResponse" target="points" />
+    <parameter name="light_response" target="LightResponse.points" />
 
     <input name="INPUT" targetmodule="InputSummation" target="EXCITATION" />
     <output name="OUTPUT" sourcemodule="LightResponse" source="OUTPUT" />

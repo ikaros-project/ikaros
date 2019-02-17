@@ -21,8 +21,8 @@
     <output name="SCG_OUTPUT_Left" sourcemodule="Left" source="SCG_OUTPUT" />
     <output name="SCG_OUTPUT_Right" sourcemodule="Right" source="SCG_OUTPUT" />
 
-    <parameter name="CG_alpha7" module="Left" target="CG_alpha7" />
-    <parameter name="CG_alpha7" module="Right" target="CG_alpha7" />
+    <parameter name="CG_alpha7" target="Left.CG_alpha7" />
+    <parameter name="CG_alpha7" target="Right.CG_alpha7" />
 
     <!-- Left and Right -->
 

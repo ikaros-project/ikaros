@@ -11,7 +11,7 @@
     <output name="CG_OUTPUT" sourcemodule="CG" source="OUTPUT" />
     <output name="SCG_OUTPUT" sourcemodule="SCG" source="OUTPUT" />
 
-    <parameter name="CG_alpha7" module="CG" target="phi" />
+    <parameter name="CG_alpha7" target="CG.phi" />
 
     <!-- ********************************* PARASYMPATHETIC COMPONENT ********************************* -->
 

@@ -53,62 +53,51 @@
 
 
     <view title="Face View" object_size="40">
-        <object
-            class="EpiFace"
-            left_module="FullModel"
-            left_source="Eye_Left"
-            right_module="FullModel"
-            right_source="Eye_Right"
-            x="0" y="0"
-            h="8" w="8"
+        <epi-face
+            left_source="FullModel.Eye_Left"
+            right_source="FullModel.Eye_Right"
+            x="20" y="20"
+            h="320" w="320"
         />
         
-        <object
-            class="Slider"
-            module="FullModel"
+        <slider-horizontal
             title="LC"
-            parameter="LC_alpha"
-            x="8" y="0"
-            h="4" w="1"
+            parameter="FullModel.LC_alpha"
+            x="340" y="20"
+            height="160" width="40"
         />
 
-        <object
-            class="Slider"
-            module="Light"
+        <slider-horizontal
+
             title="Light"
-            parameter="data"
-            x="9" y="0"
-            h="4" w="1"
+            parameter="Light.data"
+            x="380" y="20"
+            height="160" width="40"
         />
 
-        <object
-            class="Slider"
-            module="Stimulus"
+        <slider-horizontal
             title="Stimulus"
-            parameter="amplitude"
-            x="10" y="0"
-            h="4" w="1"
+            parameter="Stimulus.amplitude"
+            x="420" y="20"
+            height="160" width="40"
         />
 
-        <object
-            class="Plot"
-            module="FullModel"
+        <plot
             title="Pupil"
-            source="Eye_Left"
+            source="FullModel.Eye_Left"
             select="2"
-            x="0" y="8"
-            h="8" w="16"
+            x="20" y="340"
+            height="320" width="640"
         />
 
-        <object
-            class="Plot"
-            module="Input"
+        <plot
+
             title="Stimulus"
-            source="OUTPUT"
+            source="Input.OUTPUT"
             select="0"
             color="lightblue"
-            x="0" y="8"
-            h="8" w="16"
+            x="20" y="340"
+            height="320" width="640"
         />
 
     </view>
