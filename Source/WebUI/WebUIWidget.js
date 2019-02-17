@@ -123,6 +123,11 @@ class WebUIWidget extends HTMLElement
             return default_data;
         }
     }
+    
+    getSourceAsFloat(source, default_value=0)
+    {
+        return parseFloat(this.getSource(source, [[default_value]])[0][0]);
+    }
 
     addSource(data_set, source) // this will be default function for all widgets later
     {
