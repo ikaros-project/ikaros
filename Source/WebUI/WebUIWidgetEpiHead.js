@@ -49,9 +49,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
     {
         super.init();
 
-        this.onclick = function (evt) {
-
-        };
+        this.onclick = function () { alert(this.data) }; // last matrix
     }
 
 
@@ -131,8 +129,6 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
         let s = Math.min(this.width, this.height)/180;
         let mw = Math.floor(0.5*(w-s*160))+0.5;
         let mh = Math.floor(0.5*(h-s*165))+0.5;
-        
-        this.scaleFactor = s;
 
         this.canvas.clearRect(-1, -1, this.width+1, this.height+1);
         this.canvas.setTransform(s, 0, 0, s, mw, mh);
@@ -185,24 +181,38 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             this.canvas.stroke();
             
             // head
-
             this.setColor(0);
-            let path = new Path2D();
-            path.moveTo(50, 0);
-            path.lineTo(110, 0);
-            path.quadraticCurveTo(145, 0, 145, 50);
-            path.lineTo(145, 126);
-            path.quadraticCurveTo(145, 165, 110, 165);
-            path.lineTo(50, 165);
-            path.quadraticCurveTo(15, 165, 15, 125);
-            path.lineTo(15, 40);
-            path.quadraticCurveTo(15, 0, 50, 0);
-            path.closePath();
-            this.canvas.fill(path);
-            this.canvas.stroke(path);
-            this.regionFace = path;
-            
-            // mouth
+            this.canvas.beginPath();
+            this.canvas.moveTo(50, 0);
+            this.canvas.lineTo(110, 0);
+            this.canvas.quadraticCurveTo(145, 0, 145, 50);
+            this.canvas.lineTo(145, 126);
+            this.canvas.quadraticCurveTo(145, 165, 110, 165);
+            this.canvas.lineTo(50, 165);
+            this.canvas.quadraticCurveTo(15, 165, 15, 125);
+            this.canvas.lineTo(15, 40);
+            this.canvas.quadraticCurveTo(15, 0, 50, 0);
+            this.canvas.closePath();
+
+            // Left Ear Lid
+            this.canvas.moveTo(5, 62.5);
+            this.canvas.lineTo(0, 67.5);
+            this.canvas.lineTo(0, 117.5);
+            this.canvas.lineTo(5, 122.5);
+            this.canvas.closePath();
+
+            // Right Ear Lid
+            this.canvas.moveTo(155, 62.5);
+            this.canvas.lineTo(160, 67.5);
+            this.canvas.lineTo(160, 117.5);
+            this.canvas.lineTo(155, 122.5);
+            this.canvas.closePath();
+
+            this.canvas.fill();
+            this.canvas.stroke();
+
+            // Mouth
+        
             this.canvas.fillStyle = this.parameters.mouthColor;
             for(let c=0; c<2; c++)
                 for(let i=0; i<6; i++)
@@ -233,7 +243,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
                             parseFloat(this.parameters.gaze)+parseFloat(this.parameters.vergence)];
         let defaultPupil = parseFloat(this.parameters.pupil);
         
-        let gaze = this.getSource('gazeSource', defaultGaze);
+        let gaze = this.getSourceAsArray('gazeSource', defaultGaze);
         let test = this.getSourceAsFloat('pupilLeftSource', defaultPupil);
         let pupil = [this.getSourceAsFloat('pupilLeftSource', defaultPupil), this.getSourceAsFloat('pupilRightSource', defaultPupil)];
         let headPosition = this.getSource('headPosition', [[0, 0]]);
