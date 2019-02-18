@@ -1132,7 +1132,7 @@ controller = {
         {
             if(!xhr.response)   // empty response is ignored
             {
-                console.log("onload - empty response - error")
+            //    console.log("onload - empty response - error")
                 return;
             }
             controller.defer_reconnect(); // we are still on line
@@ -1325,7 +1325,7 @@ controller = {
         }
         else
         {
-            console.log("incorrect package received form ikaros (2)")
+         //   console.log("incorrect package received form ikaros (2)")
         }
     },
 
