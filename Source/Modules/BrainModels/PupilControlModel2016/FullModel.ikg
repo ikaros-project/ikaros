@@ -7,11 +7,11 @@
     </description>
     
     
-    <input name="PTA_Left" targetmodule="PeripheralPupilControl" target="PTA_Left" />
-    <input name="PTA_Right" targetmodule="PeripheralPupilControl" target="PTA_Right" />
+    <input name="PTA_Left" target="PeripheralPupilControl.PTA_Left" />
+    <input name="PTA_Right" target="PeripheralPupilControl.PTA_Right" />
 
-    <output name="Eye_Left" sourcemodule="LeftEye" source="OUTPUT" />
-    <output name="Eye_Right" sourcemodule="RightEye" source="OUTPUT" />
+    <output name="Eye_Left" source="LeftEye.OUTPUT" />
+    <output name="Eye_Right" source="RightEye.OUTPUT" />
 
     <!-- parameters that can be controlled at the top level -->
 
@@ -85,7 +85,7 @@
     />
 
     <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
-    <connection  source = "Cerebellum_Right.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Right.CR" target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* EYES ********************************* -->
     

@@ -4,8 +4,8 @@
     
     <parameter name="light_response" target="LightResponse.points" />
 
-    <input name="INPUT" targetmodule="InputSummation" target="EXCITATION" />
-    <output name="OUTPUT" sourcemodule="LightResponse" source="OUTPUT" />
+    <input name="INPUT" target="InputSummation.EXCITATION" />
+    <output name="OUTPUT" source="LightResponse.OUTPUT" />
     
     <module
         class="Nucleus"

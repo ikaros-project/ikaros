@@ -10,14 +10,14 @@
     -->
 
 
-    <input name="PTA" targetmodule="PTA" target="INPUT" />
-    <input name="EW_EXCITATION" targetmodule="EWpg" target="EXCITATION" />
-    <input name="EW_SHUNTING" targetmodule="EWpg" target="SHUNTING_INHIBITION" />
-    <input name="IML_EXCITATION" targetmodule="IML" target="EXCITATION" />
+    <input name="PTA" targetmodule="PTA" target="PTA.INPUT" />
+    <input name="EW_EXCITATION" target="EWpg.EXCITATION" />
+    <input name="EW_SHUNTING" target="EWpg.SHUNTING_INHIBITION" />
+    <input name="IML_EXCITATION" target="IML.EXCITATION" />
 
-    <output name="PTA_OUTPUT" sourcemodule="PTA" source="OUTPUT" />
-    <output name="CG_OUTPUT" sourcemodule="CG" source="OUTPUT" />
-    <output name="SCG_OUTPUT" sourcemodule="SCG" source="OUTPUT" />
+    <output name="PTA_OUTPUT" source="PTA.OUTPUT" />
+    <output name="CG_OUTPUT"  source="CG.OUTPUT" />
+    <output name="SCG_OUTPUT" source="SCG.OUTPUT" />
 
     <!-- ********************************* PARASYMPATHETIC COMPONENT ********************************* -->
 
