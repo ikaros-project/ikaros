@@ -1178,6 +1178,10 @@ controller = {
         controller.command = 'realtime';
     },
 
+    start: function () {
+        controller.play();  // FIXME: start selected mode play/fast-forward/realtime
+    },
+    
     buildViewDictionary: function(group, name) {
         controller.views[name+"/"+group.attributes.name] = group;
 
