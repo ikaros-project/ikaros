@@ -124,6 +124,11 @@ class WebUIWidget extends HTMLElement
         }
     }
     
+    getSourceAsArray(source, default_array=[])
+    {
+        return this.getSource(source, [default_array])[0];
+    }
+
     getSourceAsFloat(source, default_value=0)
     {
         return parseFloat(this.getSource(source, [[default_value]])[0][0]);
