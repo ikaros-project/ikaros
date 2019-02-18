@@ -9,6 +9,7 @@ class WebUIWidgetTable extends WebUIWidget
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             
             {'name': "STYLE", 'control':'header'},
+            {'name':'direction', 'default':"normal", 'type':'string', 'control': 'menu', 'values': "normal,flip x/y"},
             {'name':'decimals', 'default': 4, 'type':'int', 'control': 'textedit'},
             {'name':'colorize', 'default':true, 'type':'bool', 'control': 'checkbox'},
 
@@ -38,7 +39,7 @@ class WebUIWidgetTable extends WebUIWidget
         this.cols = c;
         
         while(this.table.rows.length)
-            this.deleteRow(-1);
+            this.table.deleteRow(-1);
 
         for(let j=0; j<r; j++)
         {
@@ -58,24 +59,47 @@ class WebUIWidgetTable extends WebUIWidget
             let size_y = this.data.length;
             let size_x = this.data[0].length;
 
-            if(this.rows != size_y || this.cols != size_x)
-                this.reshapeTable(size_y, size_x);
+            if(this.parameters.direction == "normal")
+            {
+                if(this.rows != size_y || this.cols != size_x)
+                    this.reshapeTable(size_y, size_x);
             
-            if(this.parameters.colorize)
-                for(let j=0; j<size_y; j++)
-                    for(let i=0; i<size_x; i++)
-                    {
-                        this.table.rows[j].cells[i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                        this.table.rows[j].cells[i].style.color = this.getColor(i, this.data[j][i]);
-                    }
+                if(this.parameters.colorize)
+                    for(let j=0; j<size_y; j++)
+                        for(let i=0; i<size_x; i++)
+                        {
+                            this.table.rows[j].cells[i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
+                            this.table.rows[j].cells[i].style.color = this.getColor(i, this.data[j][i]);
+                        }
+                else
+                   for(let j=0; j<size_y; j++)
+                        for(let i=0; i<size_x; i++)
+                        {
+                            this.table.rows[j].cells[i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);;
+                            this.table.rows[j].cells[i].style.color = this.getColor(i);
+                        }
+            }
             else
-               for(let j=0; j<size_y; j++)
-                    for(let i=0; i<size_x; i++)
-                    {
-                        this.table.rows[j].cells[i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);;
-                        this.table.rows[j].cells[i].style.color = this.getColor(i);
-                    }
+            {
+                if(this.rows != size_x || this.cols != size_y)
+                    this.reshapeTable(size_x, size_y);
+            
+                if(this.parameters.colorize)
+                    for(let j=0; j<size_y; j++)
+                        for(let i=0; i<size_x; i++)
+                        {
+                            this.table.rows[i].cells[j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
+                            this.table.rows[i].cells[j].style.color = this.getColor(i, this.data[j][i]);
+                        }
+                else
+                   for(let j=0; j<size_y; j++)
+                        for(let i=0; i<size_x; i++)
+                        {
+                            this.table.rows[i].cells[j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);;
+                            this.table.rows[i].cells[j].style.color = this.getColor(i);
+                        }
 
+            }
         }
     }
 };
