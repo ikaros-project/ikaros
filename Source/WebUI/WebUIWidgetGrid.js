@@ -95,19 +95,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             }
         }
     }
-/*
-    requestData(data_set)
-    {
-        if(this.parameters.fill == "rgb")
-        {
-            data_set.add(this.parameters['module']+"."+this.parameters['red']);
-            data_set.add(this.parameters['module']+"."+this.parameters['green']);
-            data_set.add(this.parameters['module']+"."+this.parameters['blue']);
-        }
-        else
-            data_set.add(this.parameters['module']+"."+this.parameters['source']);
-    }
-*/
+
     drawPlotHorizontal(width, height, index, transform)
     {
         let d = this.data;
@@ -220,22 +208,25 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     update()
     {
-        if(this.data = this.getSource('source'))
+        if(this.parameters.fill == "rgb")
+        {
+            this.data = [this.getSource('red'), this.getSource('green'), this.getSource('blue')];
+            if(!this.data[0] || !this.data[1] || !this.data[2])
+                return;
+            if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
+                return;
+            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+        }
+        else if(this.data = this.getSource('source'))
         {
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
-/*
-            if(this.parameters.fill == "rgb")
-            {
-                let r = this.parameters['red'];
-                let g = this.parameters['green'];
-                let b = this.parameters['blue'];
-                this.data = [d[m][r], d[m][g], d[m][b]];
-            }
-*/
     }
 };
 
