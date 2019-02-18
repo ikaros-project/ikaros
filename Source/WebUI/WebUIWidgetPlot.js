@@ -9,7 +9,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'buffer_size', 'default':50, 'type':'int', 'control': 'textedit'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "vertical", 'class':'true'},
             {'name': "STYLE", 'control':'header'},
