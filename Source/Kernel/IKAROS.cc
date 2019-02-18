@@ -122,8 +122,9 @@ class OutputElement: public Element
 public:
     OutputElement(GroupElement * parent, XMLElement * xml_node=NULL);
 
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    std::string     MapSource(std::string name);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 };
 
 class ConnectionElement: public Element
@@ -131,8 +132,8 @@ class ConnectionElement: public Element
 public:
     ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL);
     
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 };
 
 class ViewObjectElement: public Element
@@ -140,8 +141,8 @@ class ViewObjectElement: public Element
 public:
     ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL);
 
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 
 };
 
@@ -151,8 +152,8 @@ public:
     ViewElement(GroupElement * parent, XMLElement * xml_node=NULL);
     std::vector<ViewObjectElement> objects;
 
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 };
 
 class GroupElement : public Element
@@ -281,12 +282,19 @@ InputElement::InputElement(GroupElement * parent, XMLElement * xml_node) : Eleme
 
 std::string InputElement::MapTarget(std::string name)
 {
+    // TEMPORARY: will be removed when all targetmodule attributes have been removed
+    auto t = attributes["target"];
+    if(attributes["targetmodule"] != "")
+    {
+        t = attributes["targetmodule"]+"."+t;
+        Kernel().Notify(msg_warning, "Attribute targetmodule=\"%s\" is deprecated in inputs.", attributes["targetmodule"].c_str());
+    }
+    
     auto target = rsplit(name, ".", 1);
-    auto new_module = attributes["targetmodule"];
-    auto new_target = attributes["target"];
-    return (new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]);
+    auto new_target = rsplit(t, ".", 1);    // t = attributes["target"] later
+    
+    return (new_target[0]!="" ? new_target[0] : target[0])+"."+(new_target[1]!="" ? new_target[1] : target[1]);
 }
-
 
 void InputElement::Print(int d)
 {
@@ -306,13 +314,32 @@ std::string InputElement::JSONString(int d)
 
 OutputElement::OutputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
-void OutputElement::Print(int d)
+std::string
+OutputElement::MapSource(std::string name)
+{
+    // TEMPORARY: will be removed when all sourcemodule attributes have been removed
+    auto s = attributes["source"];
+    if(attributes["sourcemodule"] != "")
+    {
+        s = attributes["sourcemodule"]+"."+s;
+        Kernel().Notify(msg_warning, "Attribute sourcemodule=\"%s\" is deprecated in inputs.", attributes["sourcemodule"].c_str());
+    }
+
+    auto source = rsplit(name, ".", 1);
+    auto new_source = rsplit(s, ".", 1);    // s = attributes["source"] later
+
+    return (new_source[0]!="" ? new_source[0] : source[0])+"."+(new_source[1]!="" ? new_source[1] : source[1]);
+}
+
+void
+OutputElement::Print(int d)
 {
     printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
     PrintAttributes(d);
 };
 
-std::string OutputElement::JSONString(int d)
+std::string
+OutputElement::JSONString(int d)
 {
     std::string s = std::string(d, '\t')+"{\n";
     s += JSONAttributeString(d+1);
@@ -473,7 +500,7 @@ GroupElement::GetModule(const std::string & name) // Get module from full or par
 
 
 Module_IO *
-GroupElement::GetSource(const std::string & name)
+GroupElement::GetSource(const std::string & name) // FIXME: simplify when sourcemodule is no longer used
 {
     auto source = rsplit(name, ".", 1);
     if(GroupElement * g = GetGroup(source[0]))
@@ -484,19 +511,21 @@ GroupElement::GetSource(const std::string & name)
         auto output = g->outputs[source[1]];
         if(!output)
             return NULL;
-        auto new_module = output->GetValue("sourcemodule"); // TODO: add output.remapp_source() function
+        auto new_module = output->GetValue("sourcemodule");
         auto new_source = output->GetValue("source");
-        
-        if(source[0] == new_module && source[1] == new_source) // FIXME: this will not work with variables, maybe g.GetValue("name") instead of s[0]???
+        auto n = output->MapSource(name);
+//        auto c = (new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1]); // comparison variable - remove later
+    
+        if(source[0] == new_module && source[1] == new_source)
             return NULL;
         
-        return g->GetSource((new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1])); // FIXME: same problem here
+        return g->GetSource(n); // FIXME: same problem here (new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1])
     }
     return NULL;
 }
 
 std::vector<Module_IO *>
-GroupElement::GetTargets(const std::string & name)
+GroupElement::GetTargets(const std::string & name) // FIXME: simplify when targetmodule is no longer used
 {
     std::vector<Module_IO *> tios;
     auto target = rsplit(name, ".", 1);
@@ -515,12 +544,14 @@ GroupElement::GetTargets(const std::string & name)
     }
     
     for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the same name for multiple connections
-        if(input["name"] == target[1]) // TODO: add input.remap_target() function
+        if(input["name"] == target[1])
         {
             auto new_module = input["targetmodule"];
             auto new_target = input["target"];
             auto n = input.MapTarget(name);
-            auto targets = g->GetTargets((new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]));
+//            auto c = (new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]);  // comparison variable - remove later
+            
+            auto targets = g->GetTargets(n); // (new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1])
 //            auto targets = g->GetTargets(input.MapTarget(name));
             tios.insert(tios.end(), targets.begin(), targets.end());
         }
@@ -2414,7 +2445,7 @@ Kernel::Init()
     if(options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_warning, "No IKC file supplied.\n");
+        Notify(msg_print, "Running without input file.\n");
     
     if(fatal_error_occurred)
         return;
@@ -2452,7 +2483,6 @@ Kernel::Init()
         return;
     }
 
-    ListModulesAndConnections();
     InitModules();
     
     webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
@@ -3319,7 +3349,7 @@ Kernel::ReadXML()
     char path[PATH_MAX];
     copy_string(path, ikc_dir, PATH_MAX);
     append_string(path, ikc_file_name, PATH_MAX);
-    Notify(msg_print, "Reading XML file \"%s\".\n", ikc_file_name);
+    Notify(msg_print, "Running \"%s\".\n", ikc_file_name);
     if(chdir(ikc_dir) < 0)
         return Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
 
