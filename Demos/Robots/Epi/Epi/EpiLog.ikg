@@ -80,6 +80,4 @@
 			<_connection  source = "LogTrigger.OUTPUT" target = "Log.Triggers"/>
 			<!-- BUG HERE target_offset can not be set. -->
 
-		<_connection  source = "EpiBlack.SEVEN.OUTPUT" source_offset = "0" target_offset = "3" size = "1"							target = "Log.Triggers"/>
-
 		</group>

@@ -16,7 +16,7 @@
 	RightArmDynamixel 		= "DynamixelSimulate"
 	PupilDynamixel 			= "DynamixelSimulate"
 
-	VisionInput = "InputVideoStream"
+	VisionInput 			= "InputVideoStream"
 
 	LogData 				= "yes"
 	LogEyesImages 			= "no"
@@ -24,6 +24,7 @@
 
 	MotionRecorderSystemOverrideValue = "100"
 	/>
+
 
 	<!-- Move EpiBlack -->
 	<module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
@@ -43,34 +44,8 @@
 		<connection source = "ManualFocusPointValue.OUTPUT"  target = "EpiBlack.EXT_FOCUS_POINT_V"/>
 
 
-	<!-- Importing Epi Pink
-	<module class = "Epi" name = "EpiPink" 
-	BodySerialDevice= "/dev/BODY"
-	HeadSerialDevice= "/dev/cu.usbserial-FTU7EL4B"
-	LeftArmSerialDevice= "/dev/cu.usbserial-FTU7NAO7"
-	RightArmSerialDevice= "/dev/RightArm"
-	PupilSerialDevice= "/dev/PUPIL"
+	<!-- Importing Epi Pink -->
 
-	BodyDynamixel = "DynamixelSimulate"
-	HeadDynamixel = "DynamixelSimulate"
-	LeftArmDynamixel = "DynamixelSimulate"
-	RightArmDynamixel = "DynamixelSimulate"
-	PupilDynamixel = "DynamixelSimulate"
-	/>
-	-->
-	<!-- Move EpiPink -->
-	<!-- <module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
-		<connection  source = "ManualServo.OUTPUT"  target = "EpiPink.SERVO_ANGLES"/>
-	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
-		<connection  source = "ManualServo.OUTPUT"  target = "EpiPink.SERVO_ANGLES_AMPLITUDE"/> -->
-
-	<!-- Set a manual focus point -->
-	<!-- <module class = "Constant" name = "ManualFocusPoint" data = "
-	1 0 0 0.85
-	0 1 0 0.6
-	0 0 1 0
-	0 0 0 1"/>
-		<connection  source = "ManualFocusPoint.OUTPUT"  target = "EpiPink.FOCUS_POINT"/> --> -->
 
 
 </group>

@@ -110,10 +110,10 @@ PupilModelA = "100"
 
 
 <!-- External Motor control -->
-<input name = "SERVO_ANGLES"      		targetmodule = "EXT_SERVO_ANGLE"		target = "INPUT"/>
-<input name = "SERVO_ANGLES_AMPLITUDE"	targetmodule = "EXT_SERVO_ANGLE_A"		target = "INPUT"/>
+<input name = "SERVO_ANGLES"      		target = "EXT_SERVO_ANGLE.INPUT"/>
+<input name = "SERVO_ANGLES_AMPLITUDE"	target = "EXT_SERVO_ANGLE_A.INPUT"/>
 
-<module class = "Gate" name = "EXT_SERVO_ANGLE"/> <!-- Dummy module -->
+<module class = "Gate" name = "EXT_SERVO_ANGLE"/>  <!-- Dummy module -->
 <module class = "Gate" name = "EXT_SERVO_ANGLE_A"/><!-- Dummy module -->
 
 <module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
