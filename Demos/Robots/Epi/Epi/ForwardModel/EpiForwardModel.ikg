@@ -2,28 +2,28 @@
 
 <group>
     
-    <input name = "BODY_FEEDBACK_POSITION" 		targetmodule = "Body" 	    target = "FEEDBACK_POSITION" />
-    <input name = "HEAD_FEEDBACK_POSITION" 		targetmodule = "Head" 	    target = "FEEDBACK_POSITION" />
-    <input name = "LEFT_ARM_FEEDBACK_POSITION" 	targetmodule = "LeftArm" 	target = "FEEDBACK_POSITION" />
-    <input name = "RIGHT_ARM_FEEDBACK_POSITION" targetmodule = "RightArm"   target = "FEEDBACK_POSITION" />
-    <input name = "PUPIL_FEEDBACK_POSITION"   	targetmodule = "Head" 	    target = "PUPIL_FEEDBACK_POSITION" />
+    <input name = "BODY_FEEDBACK_POSITION" 		target = "Body.FEEDBACK_POSITION" />
+    <input name = "HEAD_FEEDBACK_POSITION" 		target = "Head.FEEDBACK_POSITION" />
+    <input name = "LEFT_ARM_FEEDBACK_POSITION" 	target = "LeftArm.FEEDBACK_POSITION" />
+    <input name = "RIGHT_ARM_FEEDBACK_POSITION" target = "RightArm.FEEDBACK_POSITION" />
+    <input name = "PUPIL_FEEDBACK_POSITION"   	target = "Head.PUPIL_FEEDBACK_POSITION" />
 
 	<!-- MODEL_ID is a list of id that matches the id.stl in WebUI/Models -->
-    <output name = "MODEL_ID"     	sourcemodule = "JOIN_MODEL_ID" 	source = "OUTPUT" />
-    <output name = "MODEL_MATRIX" 	sourcemodule = "JOIN_ARRAYS" 	source = "OUTPUT" />
+    <output name = "MODEL_ID"     	source = "JOIN_MODEL_ID.OUTPUT" />
+    <output name = "MODEL_MATRIX" 	source = "JOIN_ARRAYS.OUTPUT" />
 
 	<!-- Points -->
 	<!-- Points good to know. Right now 3 points in each hand. -->
-    <output name = "POINTS_MATRIX" 	sourcemodule = "P_JOIN" source = "OUTPUT" />
+    <output name = "POINTS_MATRIX" 	source = "P_JOIN.OUTPUT" />
 
 	<!-- Sensors -->
 	<!-- Left Eye 	-->
 	<!-- Right Eye 	-->
-    <output name = "SENSOR_POS_EGO" 	sourcemodule = "SensorBodyHead" source = "MATRIX" />
+    <output name = "SENSOR_POS_EGO" 	source = "SensorBodyHead.MATRIX" />
 
    <!-- FrameID and ObjectID -->
-    <output name = "OBJECT_ID" 	sourcemodule = "ForwardModelObjectID"   source = "OUTPUT" />
-    <output name = "FRAME_ID" 	sourcemodule = "ForwardModelFrameID"    source = "OUTPUT" />
+    <output name = "OBJECT_ID" 	source = "ForwardModelObjectID.OUTPUT" />
+    <output name = "FRAME_ID" 	source = "ForwardModelFrameID.OUTPUT" />
 
     <module class = "Constant" name = "ForwardModelObjectID"    data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />
     <module class = "Constant" name = "ForwardModelFrameID"     data = "200; 200; 200; 200; 200; 200; 200; 200; 200;" />

@@ -16,7 +16,7 @@
 	RightArmDynamixel 		= "DynamixelSimulate"
 	PupilDynamixel 			= "DynamixelSimulate"
 
-	VisionInput 			= "InputVideoStream"
+	VisionInput 			= "InputJPEG"
 
 	LogData 				= "yes"
 	LogEyesImages 			= "no"

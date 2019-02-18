@@ -19,7 +19,7 @@ nrServosPupil = "2"
 nrServosTotal = "19"
 
 PupilModelA = "100"
-/>
+>
 	<!-- import frame and id for epi robots> -->
     <?include file="EpiFrames.ikg" ?>
 
@@ -78,8 +78,8 @@ PupilModelA = "100"
         <connection source = "ManFocusPoint.OUTPUT"                                     target = "HighLevelFocusArbiter.INPUT_1" />
         <connection source = "ManFocusPointValue.OUTPUT"                                target = "HighLevelFocusArbiter.VALUE_1" />
         <!-- External focus point-->
-        <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2"/>  <!-- targetmodule????? -->
-        <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2"/>
+        <input name = "EXT_FOCUS_POINT"      	target = "HighLevelFocusArbiter.INPUT_2"/>  <!-- targetmodule????? -->
+        <input name = "EXT_FOCUS_POINT_V"      	target = "HighLevelFocusArbiter.VALUE_2"/>
 
 
 <!-- 			END 				-->

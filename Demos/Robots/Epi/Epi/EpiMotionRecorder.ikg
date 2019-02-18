@@ -15,8 +15,8 @@
         <connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
        	
         <!-- Override system output  -->
-	    <connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE_G.INPUT2" />
-        <connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION_G.INPUT2" />
+	    <connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE_G.INPUT_2" />
+        <connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION_G.INPUT_2" />
 
 
 

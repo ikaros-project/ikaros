@@ -62,7 +62,7 @@
 		<connection  source = "EpiBlack.Servos.FEEDBACK_TORQUE_LIMIT"  			target = "Log.ServoTorqueLimit"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_POSITION"  		target = "Log.ServoPresentPosition"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_SPEED"  		target = "Log.ServoPresentSpeed"/>
-		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_LOAD"  			target = "Log.ServoPreserntLoad"/>
+		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_LOAD"  			target = "Log.ServoPresentLoad"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_VOLTAGE"  		target = "Log.ServoPresentVoltage"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_TEMPERATURE" 	target = "Log.ServoPresentTemperature"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_CURRENT"  		target = "Log.ServoPresentCurrent"/>

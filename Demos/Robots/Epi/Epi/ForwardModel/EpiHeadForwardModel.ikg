@@ -6,20 +6,20 @@
         WARNING. These modules are under development and can change at any time!
 	 </description>
 
-    <input name = "FEEDBACK_POSITION"   targetmodule = "L1_R1Rot"    target = "INPUT" />
-    <input name = "FEEDBACK_POSITION"   targetmodule = "L2_R1Rot"    target = "INPUT" />
-    <input name = "FEEDBACK_POSITION"   targetmodule = "L3A_R1Rot"   target = "INPUT" />
-    <input name = "FEEDBACK_POSITION"   targetmodule = "L3B_R1Rot"   target = "INPUT" />
-    <_input name = "FEEDBACK_POSITION"  targetmodule = "L4A_R1Rot"   target = "INPUT" />
-    <_input name = "FEEDBACK_POSITION"  targetmodule = "L4B_R1Rot"   target = "INPUT" />
+    <input name = "FEEDBACK_POSITION"   target = "L1_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION"   target = "L2_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION"   target = "L3A_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION"   target = "L3B_R1Rot.INPUT" />
+    <_input name = "FEEDBACK_POSITION"  target = "L4A_R1Rot.INPUT" />
+    <_input name = "FEEDBACK_POSITION"  target = "L4B_R1Rot.INPUT" />
 
-    <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
-    <input name = "PUPIL_FEEDBACK_POSITION" targetmodule = "NotAvailable"   target = "INPUT" />
+    <input name = "PUPIL_FEEDBACK_POSITION" target = "NotAvailable.INPUT" />
+    <input name = "PUPIL_FEEDBACK_POSITION" target = "NotAvailable.INPUT" />
 
 
-    <output name = "MODEL_ID"   sourcemodule = "MODEL_ID_C"     source = "OUTPUT" /> <!-- Model ID  -->
-    <output name = "OUTPUT"     sourcemodule = "M_JOIN"         source = "OUTPUT" /> <!-- Model     -->
-    <output name = "SENSORS"    sourcemodule = "S_JOIN"         source = "OUTPUT" /> <!-- Sensors   -->
+    <output name = "MODEL_ID"   source = "MODEL_ID_C.OUTPUT" /> <!-- Model ID  -->
+    <output name = "OUTPUT"     source = "M_JOIN.OUTPUT" /> <!-- Model     -->
+    <output name = "SENSORS"    source = "S_JOIN.OUTPUT" /> <!-- Sensors   -->
     
     <!-- BUG: output not working in the same way as connects -->
 	<module class = "DataConverter" name = "S_JOIN" output_size_x = "16" output_size_y = "2"/>

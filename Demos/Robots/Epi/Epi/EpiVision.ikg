@@ -6,25 +6,25 @@
         Camera input and down scaling of the image
 	</description>
 
-    <output name="FULL_RES_RED"      	sourcemodule="EYE"              source="RED" />
-    <output name="FULL_RES_GREEN"    	sourcemodule="EYE"              source="GREEN" />
-    <output name="FULL_RES_BLUE"     	sourcemodule="EYE"              source="BLUE" />
-    <output name="FULL_RES_INTENSITY"   sourcemodule="EYE"	            source="INTENSITY" />
+    <output name="FULL_RES_RED"      	source="EYE.RED" />
+    <output name="FULL_RES_GREEN"    	source="EYE.GREEN" />
+    <output name="FULL_RES_BLUE"     	source="EYE.BLUE" />
+    <output name="FULL_RES_INTENSITY"   source="EYE.INTENSITY" />
 
-    <output name="HIGH_RES_RED"      	sourcemodule="HIGH_RED"         source="OUTPUT" />
-    <output name="HIGH_RES_GREEN"    	sourcemodule="HIGH_GREEN"       source="OUTPUT" />
-    <output name="HIGH_RES_BLUE"     	sourcemodule="HIGH_BLUE"        source="OUTPUT" />
-    <output name="HIGH_RES_INTENSITY"   sourcemodule="HIGH_INTENSITY"   source="OUTPUT" />
+    <output name="HIGH_RES_RED"      	source="HIGH_RED.OUTPUT" />
+    <output name="HIGH_RES_GREEN"    	source="HIGH_GREEN.OUTPUT" />
+    <output name="HIGH_RES_BLUE"     	source="HIGH_BLUE.OUTPUT" />
+    <output name="HIGH_RES_INTENSITY"   source="HIGH_INTENSITY.OUTPUT" />
 
-    <output name="MEDIUM_RES_RED"      	sourcemodule="MEDIUM_RED"       source="OUTPUT" />
-    <output name="MEDIUM_RES_GREEN"    	sourcemodule="MEDIUM_GREEN"     source="OUTPUT" />
-    <output name="MEDIUM_RES_BLUE"     	sourcemodule="MEDIUM_BLUE"      source="OUTPUT" />
-    <output name="MEDIUM_RES_INTENSITY" sourcemodule="MEDIUM_INTENSITY" source="OUTPUT" />
+    <output name="MEDIUM_RES_RED"      	source="MEDIUM_RED.OUTPUT" />
+    <output name="MEDIUM_RES_GREEN"    	source="MEDIUM_GREEN.OUTPUT" />
+    <output name="MEDIUM_RES_BLUE"     	source="MEDIUM_BLUE.OUTPUT" />
+    <output name="MEDIUM_RES_INTENSITY" source="MEDIUM_INTENSITY.OUTPUT" />
 
-    <output name="LOW_RES_RED"      	sourcemodule="LOW_RED"          source="OUTPUT" />
-    <output name="LOW_RES_GREEN"    	sourcemodule="LOW_GREEN"        source="OUTPUT" />
-    <output name="LOW_RES_BLUE"     	sourcemodule="LOW_BLUE"         source="OUTPUT" />
-    <output name="LOW_RES_INTENSITY"    sourcemodule="LOW_INTENSITY"    source="OUTPUT" />
+    <output name="LOW_RES_RED"      	source="LOW_RED.OUTPUT" />
+    <output name="LOW_RES_GREEN"    	source="LOW_GREEN.OUTPUT" />
+    <output name="LOW_RES_BLUE"     	source="LOW_BLUE.OUTPUT" />
+    <output name="LOW_RES_INTENSITY"    source="LOW_INTENSITY.OUTPUT" />
 
     <!-- Input -->
     <module
