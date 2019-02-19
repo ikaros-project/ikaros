@@ -379,6 +379,7 @@ class WebUIWidget extends HTMLElement
 
         this.onclick = function (evt)
         {
+            return;
            if(this.parameters.command)
            {
                 let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
