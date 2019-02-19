@@ -374,6 +374,26 @@ class WebUIWidget extends HTMLElement
         this.onmouseover = function () { console.log("WebUIWidgetCanvas: mouseover"); }
         this.onmouseout = function () { console.log("WebUIWidgetCanvas: mouseout"); }
 */
+
+        // Default onclick function - send click coordinate if command is set
+
+        this.onclick = function (evt)
+        {
+           if(this.parameters.command)
+           {
+                let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+                let r = this.canvasElement.getBoundingClientRect();
+                let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
+                let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+                //this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/1");
+                send_command(this.parameters.command, 1, x, y);
+            }
+            else
+            {
+                alert("!");
+            }
+         }
+        
         this.updateStyle(this, this.parameters['style']);
         this.updateStyle(this.parentNode, this.parameters['frame-style']);
         this.readCSSvariables();
