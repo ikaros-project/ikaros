@@ -1372,25 +1372,7 @@ controller = {
 
     copyView: function() // TODO: Remove default parameters
     {
-        let s = "<view name=\""+interaction.currentViewName.split('#')[1]+"\">\n\n"; // FIXME: probably don't work for included views
-        let w = document.getElementsByClassName('frame');
-        for(let i=0; i<w.length; i++)
-            try
-            {
-                let wgt = w[i].children[1]
-                let name = wgt.localName.replace("webui-widget-", "");
-                s += "\t<"+name+"\n"
-                for(let p in wgt.parameters)
-                    if(wgt.parameters[p])
-                        s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
-                s += "\t/>\n\n"
-            }
-            catch(err)
-            {
-                s += " AN ERROR OCCURED";
-            }
-        s += "</view>"
-        copyToClipboard(s);
+        copyToClipboard(controller.viewToXML(interaction.currentView));
     },
 
     connectionToXML: function(connection, indent="")
