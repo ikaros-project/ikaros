@@ -511,18 +511,13 @@ GroupElement::GetSource(const std::string & name) // FIXME: simplify when source
         auto output = g->outputs[source[1]];
         if(!output)
             return NULL;
-        auto new_module = output->GetValue("sourcemodule");
-        auto new_source = output->GetValue("source");
+
         auto n = output->MapSource(name);
-//        auto c = (new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1]); // comparison variable - remove later
-    
-        if(source[0] == new_module && source[1] == new_source)
-            return NULL;
-        
-        return g->GetSource(n); // FIXME: same problem here (new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1])
+        return g->GetSource(n);
     }
     return NULL;
 }
+
 
 std::vector<Module_IO *>
 GroupElement::GetTargets(const std::string & name) // FIXME: simplify when targetmodule is no longer used
@@ -546,13 +541,8 @@ GroupElement::GetTargets(const std::string & name) // FIXME: simplify when targe
     for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the same name for multiple connections
         if(input["name"] == target[1])
         {
-            auto new_module = input["targetmodule"];
-            auto new_target = input["target"];
             auto n = input.MapTarget(name);
-//            auto c = (new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]);  // comparison variable - remove later
-            
-            auto targets = g->GetTargets(n); // (new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1])
-//            auto targets = g->GetTargets(input.MapTarget(name));
+            auto targets = g->GetTargets(n);
             tios.insert(tios.end(), targets.begin(), targets.end());
         }
 
@@ -3312,26 +3302,31 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
     {
         auto source = c["source"];
         auto target = c["target"];
+        try {
+            Module_IO * source_io = NULL;
+            if(starts_with(source, "."))
+                source_io = main_group->GetSource(source.substr(1));
+            else
+                source_io = group->GetSource(source);
 
-        Module_IO * source_io = NULL;
-        if(starts_with(source, "."))
-            source_io = main_group->GetSource(source.substr(1));
-        else
-            source_io = group->GetSource(source);
+            if(!source_io)
+                Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
 
-        if(!source_io)
-            Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
+            int cnt = 0;
+            if(starts_with(target, "."))
+                for(auto target_io : main_group->GetTargets(target.substr(1)))
+                    cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+            else
+                for(auto target_io : group->GetTargets(target))
+                    cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
 
-        int cnt = 0;
-        if(starts_with(target, "."))
-            for(auto target_io : main_group->GetTargets(target.substr(1)))
-                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
-        else
-            for(auto target_io : group->GetTargets(target))
-                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
-
-        if(cnt == 0)
-            Notify(msg_fatal_error, "Connection target %s not found.\n", target.c_str());
+            if(cnt == 0)
+                Notify(msg_fatal_error, "Connection target %s not found.\n", target.c_str());
+        }
+        catch(...)
+        {
+            Notify(msg_fatal_error, "Could not connect %s to %s.\n", source.c_str(), target.c_str());
+        }
     }
 
     for(auto & g : group->groups) // Connect in subgroups
