@@ -6,6 +6,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name': "IMAGE", 'control':'header'},
             {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
+
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
 
@@ -166,7 +167,6 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         }
         catch(err)
         {
-//            this.canvas.fillText(err, 0, 20);
             this.canvas.fillStyle="black";
             this.canvas.fillRect(0, 0, this.oversampling*this.width, this.oversampling*this.height);
         }

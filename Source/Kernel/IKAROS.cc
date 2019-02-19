@@ -3867,8 +3867,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
             }
             else if(format == "gray")
             {
-                Module_IO * io = root_group->GetSource(source);
-                if(io)
+                if(Module_IO * io = root_group->GetSource(source))
                 {
                     socket->Send(sep.c_str());
                     socket->Send("\t\t\"%s:gray\": ", source);
@@ -3876,33 +3875,35 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     sep = ",\n";
                 }
             }
-            else if(format == "rgb")
+            else if(format == "rgb" && source[0])
             {
                 auto a = rsplit(source, ".", 1); // separate out outputs
                 auto o = split(a[1], "+"); // split channel names
                 
-                auto c1 = a[0]+"."+o[0];
-                auto c2 = a[0]+"."+o[1];
-                auto c3 = a[0]+"."+o[2];
-
-                Module_IO * io1 = root_group->GetSource(c1);
-                Module_IO * io2 = root_group->GetSource(c2);
-                Module_IO * io3 = root_group->GetSource(c3);
-                
-                // TODO: check that all outputs have the same size
-
-                if(io2 && io2 && io3)
+                if(o.size() == 3)
                 {
-                    socket->Send(sep.c_str());
-                    socket->Send("\t\t\"%s:rgb\": ", source);
-                    SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
-                    sep = ",\n";
+                    auto c1 = a[0]+"."+o[0];
+                    auto c2 = a[0]+"."+o[1];
+                    auto c3 = a[0]+"."+o[2];
+
+                    Module_IO * io1 = root_group->GetSource(c1);
+                    Module_IO * io2 = root_group->GetSource(c2);
+                    Module_IO * io3 = root_group->GetSource(c3);
+                    
+                    // TODO: check that all outputs have the same size
+
+                    if(io2 && io2 && io3)
+                    {
+                        socket->Send(sep.c_str());
+                        socket->Send("\t\t\"%s:rgb\": ", source);
+                        SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
+                        sep = ",\n";
+                    }
                 }
             }
             else if(format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue")
             {
-                Module_IO * io = root_group->GetSource(source);
-                if(io)
+                if(Module_IO * io = root_group->GetSource(source))
                 {
                     socket->Send(sep.c_str());
                     socket->Send("\t\t\"%s:%s\": ", source, format.c_str());
