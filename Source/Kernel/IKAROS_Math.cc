@@ -1584,13 +1584,26 @@ namespace ikaros
 	// outer - tensor product
 	float **
 	outer(float ** r, float * a, float * b, int sizex, int sizey)
-	{
+    {
+ #ifdef USE_BLAS
+        cblas_sger(CblasRowMajor, sizey, sizex, 1.0, a, 1, b, 1, *r, sizex); // A := alpha*x*y' + A
+        return r;
+ #else
+        for (int j=0; j<sizey; j++)
+            for (int i=0; i<sizex; i++)
+                r[j][i] = a[j] * b[i]; //was a[i]*b[j]
+        return r;
+ #endif
+    }
+ /* OLD
+    {
 		for (int j=0; j<sizey; j++)
 			for (int i=0; i<sizex; i++)
 				r[j][i] = a[i] * b[j];
 		return r;
 	}
-	
+*/
+
 	// divide
 	float *
 	divide(float * r, float * a, int size)
