@@ -3865,7 +3865,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     sep = ",\n";
                 }
             }
-            else if(format == "gray")
+            else if(format == "gray"  && source[0])
             {
                 if(Module_IO * io = root_group->GetSource(source))
                 {
@@ -3901,7 +3901,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     }
                 }
             }
-            else if(format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue")
+            else if(source[0] && (format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue"))
             {
                 if(Module_IO * io = root_group->GetSource(source))
                 {
