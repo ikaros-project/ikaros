@@ -26,19 +26,26 @@
     <parameter name="phi" type="float" default="1.0" description="excitation weight" />
     <parameter name="chi" type="float" default="1.0" description="inhibition weight" />
     <parameter name="psi" type="float" default="1.0" description="shunting weight" />
+	<parameter name="tau" type="float" default="1.0" description="recursion weight" />
 
     <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
 
     <parameter name="epsilon" type="float" default="0.1" description="time constant" />
-	<parameter name="excitation_toplogy" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>
-	<parameter name="inhibition_toplogy" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
-	<parameter name="output_function" type="list" values="linear/tanh/expit" default="linear" description="Function applied to output"/>
+	<parameter name="excitation_topology" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>
+	<parameter name="inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="shunting_inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="recursion_topology" type="list" values="none/excitatory/inhibitory" default="none" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="activation_function" type="list" values="relu/scaledsigmoid/secondorder" default="scaledsigmoid" description="Function applied to output"/>
 	
 	<input name="EXCITATION" description="The excitatory input" optional="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
 	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
 
-	<output name="OUTPUT" description="The output from the nucleus" size="1" />
+	<input name="EX_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<input name="INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<input name="SH_INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+
+	<output name="OUTPUT" description="The output from the nucleus" size_param="size" />
 
 	<link class="NucleusEnsemble" />
 

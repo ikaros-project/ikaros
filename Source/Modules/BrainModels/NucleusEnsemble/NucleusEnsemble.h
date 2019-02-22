@@ -35,30 +35,58 @@ public:
 
     void 		Init();
     void 		Tick();
+    //void        NucleusTick();
 
+    void        SetExcTopology(std::string atopology);
+    void        SetInhTopology(std::string atopology);
+    void        SetShInhTopology(std::string atopology);
+    void        SetRecTopology(std::string atopology);
+    void        SetActivationFunc(std::string afunc);
+
+    float       (NucleusEnsemble::*Activate)(float a); // pointer to activation function
+
+    float       SecondOrder(float x);
+    float       ScaledSigmoid(float x);
+    float       ReLu(float x);
     // pointers to inputs and outputs
     // and integers to represent their sizes
-
+    int         ensemble_size;
     float       alpha;
     float       beta;
 
     float       phi;
     float       chi;
     float       psi;
+    float       tau;
 
     float       phi_scale;
     float       chi_scale;
     float       psi_scale;
+    float       tau_scale;
 
     bool        scale;
     
     float       epsilon;
 
-    float       x;
+    std::string excitation_topology_name;
+    std::string inhibition_topology_name;
+    std::string shunting_inhibition_topology_name;
+    std::string recurrent_topology_name;
+    std::string activation_function_name;
+    float *      x;
     
     float *		excitation;
     float *		inhibition;
     float *     shunting_inhibition;
+
+    float **    ext_excitation_topology;
+    float **    ext_inhibition_topology;
+    float **    ext_shunting_topology;
+
+    float **     excitation_topology;
+    float **     inhibition_topology;
+    float **     shunting_topology;
+    float **     recurrent_topology;
     
     int			excitation_size;
     int			inhibition_size;
