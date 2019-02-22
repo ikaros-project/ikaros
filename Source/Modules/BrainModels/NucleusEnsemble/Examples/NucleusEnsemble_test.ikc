@@ -1,7 +1,47 @@
 <?xml version="1.0"?>
 
-<group title="NucleusEnsemble Example">
-	
+<group name="NucleusEnsemble Test">
+	<description type="text">
+	Tests:
+	Nonfail:
+	- default instance: no inputs, all parameters at default
+	- default instance: single excitatory input
+	- default instance: single inhibitory input
+	- default instance: single shunting input
+	- default instance: exc and inh input
+	- default instance: exc and shunting
+	- default instance: exc, inh, shunting
+	- default instance: exc and recurrent
+	- parameter test: exc inp, change phi
+	- parameter test: exc, inh inp; change chi
+	- parameter test: exc, sh inh inp; change psi
+	- parameter test: exc, rec inp; change tau
+	- parameter test: exc inp, size = 2
+	</description>
+	<group name="NucleusEnsemble Default Test"
+		description="Default instance with no inputs should produce
+		ensemble with single nucleus, outputting zero"
+	>
+		
+
+		<module
+			class = "NucleusEnsemble"
+			name = "DefaultInstance"
+		/>
+		
+        
+		<view name="View">
+			<plot 
+				module="DefaultInstance" 
+				source="OUTPUT" 
+				x="0" y="1" w="1" h="1"
+				min="0"
+				max="2"
+			/>
+		</view>
+	</group>
+
+	<group title="NucleusEnsemble Default Test">
 		<module
 			class = "Constant"
 			name = "MyConstant"
@@ -20,13 +60,11 @@
 
 		<module
 			class = "NucleusEnsemble"
-			name = "NucleusEnsembleInstance"
-			parameter1  = "1.23"
-			parameter2  = "12"
+			name = "DefaultInstance"
 		/>
 		
-        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "NucleusEnsembleInstance" target = "INPUT1" />
-        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "NucleusEnsembleInstance" target = "INPUT2" />
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "DefaultInstance" target = "INPUT1" />
+        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "DefaultInstance" target = "INPUT2" />
 
 		<view name="View">
 			<object class="Plot " 
@@ -37,13 +75,13 @@
 				max="2"
 			/>
 			<object class="Plot " 
-				module="NucleusEnsembleInstance" 
+				module="DefaultInstance" 
 				source="OUTPUT" 
 				x="0" y="1" w="1" h="1"
 				min="0"
 				max="2"
 			/>
 		</view>
-
+	</group>
 </group>
  
