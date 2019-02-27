@@ -7,22 +7,22 @@
     </description>
     
     
-    <input name="Pupil_Stimulus" targetmodule="SC" target="EXCITATION" />
-    <input name="PTA_Left" targetmodule="PeripheralPupilControl" target="PTA_Left" />
-    <input name="PTA_Right" targetmodule="PeripheralPupilControl" target="PTA_Right" />
-    <input name="LC_Direct" targetmodule="LCa" target="EXCITATION" />
-    <input name="LC_Direct" targetmodule="LCb" target="EXCITATION" />
+    <input name="Pupil_Stimulus" target="SC.EXCITATION" />
+    <input name="PTA_Left" target="PeripheralPupilControl.PTA_Left" />
+    <input name="PTA_Right" target="PeripheralPupilControl.PTA_Right" />
+    <input name="LC_Direct" target="LCa.EXCITATION" />
+    <input name="LC_Direct" target="LCb.EXCITATION" />
 
-    <output name="Pupil_Left" sourcemodule="LeftEye" source="PUPIL_DIAMETER" />
-    <output name="Pupil_Right" sourcemodule="RightEye" source="PUPIL_DIAMETER" />
+    <output name="Pupil_Left" source="LeftEye.PUPIL_DIAMETER" />
+    <output name="Pupil_Right" source="RightEye.PUPIL_DIAMETER" />
 
     <!-- parameters that can be controlled at the top level -->
 
-    <parameter name="LCa_alpha" module="LCb" target="alpha" />
-    <parameter name="LCb_alpha" module="LCb" target="alpha" />
-    <parameter name="CG_alpha7" module="PeripheralPupilControl" target="CG_alpha7" default="1" />
-    <parameter name="Eye_m3" module="LeftEye" target="m3" default="1" />
-    <parameter name="Eye_m3" module="RightEye" target="m3" default="1" />
+    <parameter name="LCa_alpha" target="LCb.alpha" />
+    <parameter name="LCb_alpha" target="LCb.alpha" />
+    <parameter name="CG_alpha7" target="PeripheralPupilControl.CG_alpha7" default="1" />
+    <parameter name="Eye_m3" target="LeftEye.m3" default="1" />
+    <parameter name="Eye_m3" target="RightEye.m3" default="1" />
 
    <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
 

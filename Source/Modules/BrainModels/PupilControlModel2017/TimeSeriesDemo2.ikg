@@ -54,77 +54,13 @@
  -->
 
 
-    <view title="Face View" object_size="40">
-        <object
-            class="EpiFace"
-            left_module="FullModel"
-            left_source="Eye_Left"
-            right_module="FullModel"
-            right_source="Eye_Right"
-            x="0" y="0"
-            h="8" w="8"
-        />
-<!--
-        <object
-            class="Slider"
-            module="FullModel"
-            title="LC"
-            parameter="LC_alpha"
-            x="8" y="0"
-            h="4" w="1"
-        />
+<view name="Face view" object_size = "40"  >
+	<epi-head  x = "20" y = "660" height = "200" width = "200" title = "Epi Head" gazeSource = "" pupilLeftSource = "FullModel.Eye_Left" pupilRightSource = "FullModel.Eye_Right" headPosition = "" irisLeftRed = "" irisLeftGreen = "" irisLeftBlue = "" irisRightRed = "" irisRightGreen = "" irisRightBlue = "" mouthRed = "" mouthGreen = "" mouthBlue = "" gaze = "0" vergence = "0" pupil = "0.5" visibleSource = "" visibleFace = "true" visibleFaceParameter = "" color = "black" fill = "white" earColor = "#0088ff" irisColor = "#88aaff" mouthColor = "#000000" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "20" y = "860" height = "201" width = "721" title = "Left eye" source = "FullModel.Eye_Left" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "20" y = "1060" height = "201" width = "721" title = "Stimulus" source = "Stimulus.OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "20" y = "1260" height = "201" width = "721" title = "Timeseries" source = "TimeSeries.PUPIL" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
-        <object
-            class="Slider"
-            module="Light"
-            title="Light"
-            parameter="data"
-            x="9" y="0"
-            h="4" w="1"
-        />
-
-        <object
-            class="Slider"
-            module="Stimulus"
-            title="Stimulus"
-            parameter="amplitude"
-            x="10" y="0"
-            h="4" w="1"
-        />
-
--->
-        <plot
-            class="Plot"
-            module="FullModel"
-            title="Pupil"
-            source="Eye_Left"
-            select="2"
-            x="20" y="20"
-            height="200" width="600"
-        />
-
-        <plot
-            class="Plot"
-            module="Input"
-            title="Stimulus"
-            source="OUTPUT"
-            select="0"
-            color="lightblue"
-            x="20" y="240"
-            height="200" width="600"
-        />
-        <plot
-            class="Plot"
-            module="TimeSeries"
-            title="Pupil"
-            source="PUPIL"
-            select="0"
-            color = "red"
-            x="20" y="460"
-            height="200" width="600"
-        />
-
-    </view>
     
 </group>
 
