@@ -139,7 +139,7 @@
     <view name="View (Default)">
     
         <plot
-            source=".Eye_Left"
+            source=".Pupil_Left"
             color="red"
             lineWidth = "3"
             max="1"
@@ -148,7 +148,7 @@
         />
 
         <plot
-            source=".Eye_Right"
+            source=".Pupil_Right"
             color="blue"
             lineWidth = "3"
             max="1"
