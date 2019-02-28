@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+
+<group name="NucleusEnsemble Test">
+	<description type="text">
+	Tests:
+	Nonfail:
+	- default instance: no inputs, all parameters at default - expect constant 0 output
+	- default instance: single excitatory input - expect saturation curve to input
+	- default instance: single inhibitory input - expect 0 output
+	- default instance: single shunting input - expect 0 output
+	- default instance: exc and inh input - expect growth to exc-inh
+	- default instance: exc and shunting - expect growth to 1/sh * exc
+	- default instance: exc, inh, shunting - expect growth to 1/sh * (exc-inh)
+	- default instance: exc and recurrent - expect ?
+	
+	- parameter test: exc inp, change phi (exc weight) - expect output scaled by phi
+	- parameter test: exc, inh inp; change chi (inh weight) - expect output exc - (chi*inh)
+	- parameter test: exc, sh inh inp; change psi (sh weight) - expect output 1/psi*sh * exc 
+	- parameter test: exc, rec inp; change tau (recursion weight) - expect ?
+	- parameter test: exc inp, size = 2 - expect two outputs growing to inp
+	</description>
+	<group name="NucleusEnsemble Default Test"
+		description="Default instance with no inputs should produce
+		ensemble with single nucleus, outputting zero"
+	>
+		
+
+		<module
+			class = "NucleusEnsemble"
+			name = "DefaultTest"
+		/>
+		
+        
+		<view name="View" >
+			<plot  max = "2" source = "DefaultTest.OUTPUT" min = "0" module = "DefaultInstance" x = "20" y = "20" w = "100" h = "100" title = "Plot" select = "" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = "" width = "201" height = "221"/>
+		</view>
+
+	</group>
+
+	<group name="NucleusEnsemble Excitation Test">
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.1 0.2"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "NucleusEnsemble"
+			name = "Excitation_test"
+			excitation_topology="all_to_all"
+			
+		/>
+		
+        <connection source = "MyConstant.OUTPUT" target = "Excitation_test.EXCITATION" />
+        <connection source = "SquareGen.OUTPUT"  target = "Excitation_test.EXCITATION" />
+
+		<view name="View" >
+			<plot  show_title = "true" h = "100" max = "0.5" frame-style = "" buffer_size = "50" style = "" select = "" min = "0" module = "SquareGen" y = "1" show_frame = "false" color = "" width = "181" x = "1" source = "SquareGen.OUTPUT" title = "Squaregen" w = "100" direction = "vertical" height = "201"/>
+			<plot  show_title = "true" h = "100" max = "2" frame-style = "" buffer_size = "50" style = "" select = "" min = "0" module = "Excitation_test" y = "0" show_frame = "false" color = "" width = "181" x = "200" source = "Excitation_test.OUTPUT" title = "Defaultinstance" w = "100" direction = "vertical" height = "201"/>
+			<table  frame-style = "" style = "" show_frame = "false" colorize = "true" show_title = "false" decimals = "4" direction = "normal" y = "120" x = "380" title = "Excitation_test" source = "Excitation_test.OUTPUT" height = "41" width = "81"/>
+		</view>
+
+
+
+	</group>
+
+	<group name="NucleusEnsemble Inhibition Test">
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.1 0.2"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "NucleusEnsemble"
+			name = "Inhibition_Test"
+			
+		/>
+		
+        <connection source = "MyConstant.OUTPUT" target = "Inhibition_Test.INHIBITION" />
+        <connection source = "SquareGen.OUTPUT"  target = "Inhibition_Test.INHIBITION" />
+
+		<view name="View" >
+			<plot  min = "0" y = "1" module = "SquareGen" select = "" max = "2" frame-style = "" buffer_size = "50" width = "181" color = "" show_frame = "false" style = "" x = "1" source = "SquareGen.OUTPUT" title = "Squaregen" w = "100" height = "201" direction = "vertical" h = "100" show_title = "true"/>
+			<plot  min = "0" y = "0" module = "Inhibition_Test" select = "" max = "2" frame-style = "" buffer_size = "50" width = "181" color = "" show_frame = "false" style = "" x = "200" source = "DefaultInstance.OUTPUT" title = "Defaultinstance" w = "100" height = "201" direction = "vertical" h = "100" show_title = "true"/>
+			<table  x = "380" y = "120" height = "41" width = "81" title = "Inhibition_Test" source = "DefaultInstance.OUTPUT" direction = "normal" decimals = "4" colorize = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+		</view>
+
+
+	</group>
+
+	<group name="NucleusEnsemble Shunting Inhibition Test">
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.1 0.2"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "NucleusEnsemble"
+			name = "Shunting_Test"
+			
+		/>
+		
+        <connection source = "MyConstant.OUTPUT" target = "Shunting_Test.SHUNTING_INHIBITION" />
+        <connection source = "SquareGen.OUTPUT"  target = "Shunting_Test.SHUNTING_INHIBITION" />
+
+		<view name="View" >
+			<plot  min = "0" y = "1" module = "SquareGen" select = "" max = "2" frame-style = "" buffer_size = "50" width = "181" color = "" show_frame = "false" style = "" x = "1" source = "SquareGen.OUTPUT" title = "Squaregen" w = "100" height = "201" direction = "vertical" h = "100" show_title = "true"/>
+			<plot  min = "0" y = "0" module = "Shunting_Test" select = "" max = "2" frame-style = "" buffer_size = "50" width = "181" color = "" show_frame = "false" style = "" x = "200" source = "DefaultInstance.OUTPUT" title = "Defaultinstance" w = "100" height = "201" direction = "vertical" h = "100" show_title = "true"/>
+			<table  x = "380" y = "120" height = "41" width = "81" title = "Shunting_Test" source = "DefaultInstance.OUTPUT" direction = "normal" decimals = "4" colorize = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+		</view>
+
+
+	</group>
+
+	<group name="NucleusEnsemble Exc Inh Test">
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "0.1 0.2"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "NucleusEnsemble"
+			name = "ExcInh_Test"
+			
+		/>
+		
+        <connection source = "MyConstant.OUTPUT" target = "ExcInh_Test.INHIBITION" />
+        <connection source = "SquareGen.OUTPUT"  target = "ExcInh_Test.EXCITATION" />
+
+		<view name="View" >
+			<plot  min = "0" y = "1" module = "SquareGen" select = "" max = "2" frame-style = "" buffer_size = "50" width = "181" color = "" show_frame = "false" style = "" x = "1" source = "SquareGen.OUTPUT" title = "Squaregen" w = "100" height = "201" direction = "vertical" h = "100" show_title = "true"/>
+			<plot  min = "0" y = "0" module = "ExcInh_Test" select = "" max = "2" frame-style = "" buffer_size = "50" width = "181" color = "" show_frame = "false" style = "" x = "200" source = "DefaultInstance.OUTPUT" title = "Defaultinstance" w = "100" height = "201" direction = "vertical" h = "100" show_title = "true"/>
+			<table  x = "380" y = "120" height = "41" width = "81" title = "ExcInh_Test" source = "DefaultInstance.OUTPUT" direction = "normal" decimals = "4" colorize = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+		</view>
+
+
+	</group>
+</group>
+ 

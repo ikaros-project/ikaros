@@ -64,20 +64,20 @@ NucleusEnsemble::Init()
     io(ext_inhibition_topology, dummy_sz_x, dummy_sz_y, "INH_TOPOLOGY");
     io(ext_shunting_topology, dummy_sz_x, dummy_sz_y, "SH_INH_TOPOLOGY");
     
-
-    
-
     excitation_topology = create_matrix(excitation_size, ensemble_size);
     inhibition_topology = create_matrix(inhibition_size, ensemble_size);
     shunting_topology = create_matrix(shunting_inhibition_size, ensemble_size);
     recurrent_topology = create_matrix(ensemble_size, ensemble_size);
-    if(!ext_excitation_topology)
+
+    if(!ext_excitation_topology && excitation)
         SetExcTopology(excitation_topology_name);
-    if(!ext_inhibition_topology)
+    if(!ext_inhibition_topology && inhibition)
         SetInhTopology(inhibition_topology_name);
-    if(!ext_shunting_topology)
+    if(!ext_shunting_topology && shunting_inhibition)
         SetShInhTopology(shunting_inhibition_topology_name);
     SetRecTopology(recurrent_topology_name);
+
+    SetActivationFunc(activation_function_name);
 
     x = create_array(ensemble_size); // pre activation
 }
@@ -112,10 +112,12 @@ NucleusEnsemble::Tick()
     float *inh_sum = create_array(ensemble_size);
     float *sh_inh_sum = create_array(ensemble_size);
     float *rec_sum = create_array(ensemble_size);
-
-    multiply(exc_sum, excitation_topology, excitation, excitation_size, ensemble_size);
-    multiply(inh_sum, inhibition_topology, inhibition, inhibition_size, ensemble_size);
-    multiply(sh_inh_sum, shunting_topology, shunting_inhibition, shunting_inhibition_size, ensemble_size);
+    if(excitation)
+        multiply(exc_sum, excitation_topology, excitation, excitation_size, ensemble_size);
+    if(inhibition)
+        multiply(inh_sum, inhibition_topology, inhibition, inhibition_size, ensemble_size);
+    if(shunting_inhibition)
+        multiply(sh_inh_sum, shunting_topology, shunting_inhibition, shunting_inhibition_size, ensemble_size);
     multiply(rec_sum, recurrent_topology, output, ensemble_size, ensemble_size);
 
     if(scale)
@@ -156,6 +158,7 @@ NucleusEnsemble::Tick()
     destroy_array(exc_sum);
     destroy_array(inh_sum);
     destroy_array(sh_inh_sum);
+    destroy_array(rec_sum);
 }
 
 float 
@@ -319,7 +322,7 @@ NucleusEnsemble::SetRecTopology(std::string atopology)
         val = -1.f;
     // "none" means val = 0
     for(int i = 0; i < ensemble_size; i++)
-            excitation_topology[i][i] = val;
+            recurrent_topology[i][i] = val;
 
 }
 
