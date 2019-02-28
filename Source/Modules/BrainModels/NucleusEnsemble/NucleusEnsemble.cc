@@ -50,7 +50,7 @@ NucleusEnsemble::Init()
     Bind(excitation_topology_name, "excitation_topology");
     Bind(inhibition_topology_name, "inhibition_topology");
     Bind(shunting_inhibition_topology_name, "shunting_inhibition_topology");
-    Bind(recurrent_topology_name, "recursion_topology");
+    Bind(recurrent_topology_name, "recurrent_topology");
     Bind(activation_function_name, "activation_function");
 
     io(excitation, excitation_size, "EXCITATION");
@@ -126,7 +126,7 @@ NucleusEnsemble::Tick()
             phi_scale = 1.0/float(excitation_size);
 
         if(inhibition_size > 0)
-            chi_scale = 1.0/float(excitation_size);
+            chi_scale = 1.0/float(inhibition_size);
 
         if(shunting_inhibition_size > 0)
             psi_scale = 1.0/float(shunting_inhibition_size);

@@ -34,7 +34,7 @@
 	<parameter name="excitation_topology" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>
 	<parameter name="inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
 	<parameter name="shunting_inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
-	<parameter name="recursion_topology" type="list" values="none/excitatory/inhibitory" default="none" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="recurrent_topology" type="list" values="none/excitatory/inhibitory" default="none" description="How inh input is connected to ensemble nuclei"/>
 	<parameter name="activation_function" type="list" values="relu/scaledsigmoid/secondorder" default="scaledsigmoid" description="Function applied to output"/>
 	
 	<input name="EXCITATION" description="The excitatory input" optional="yes" />
