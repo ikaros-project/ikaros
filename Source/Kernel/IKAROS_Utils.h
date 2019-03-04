@@ -61,6 +61,7 @@ const int   MATLAB = 1024;
 const int   DIM = 2048;
 
 void        print_array(const char * name, float * a, int size, int decimals=2);
+void        print_array(const char * name, int * a, int size);
 void        print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals=2);
 
 float *     create_array(int size);

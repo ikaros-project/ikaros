@@ -397,7 +397,14 @@ print_array(const char * name, float * a, int size, int decimals)
     }
 }
 
-
+void
+print_array(const char * name, int * a, int size)
+{
+    printf("%s = ", name);
+    for (int i=0; i<size; i++)
+        printf("%i ", a[i]);
+    printf("\n");
+}
 
 void
 print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals)
