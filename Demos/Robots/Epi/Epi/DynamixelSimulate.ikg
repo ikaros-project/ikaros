@@ -28,7 +28,7 @@
 	<output name = "FEEDBACK_PRESENT_CURRENT" 		sourcemodule = "FAKE_DATA" source = "OUTPUT" />
 	<output name = "FEEDBACK_GOAL_TORQUE" 			sourcemodule = "FAKE_DATA" source = "OUTPUT" />
 	<output name = "FEEDBACK_GOAL_ACCELERATION" 	sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "ERROR" 							sourcemodule = "FAKE_DATA_ERROR" source = "OUTPUT" />/>
+	<output name = "ERRORS" 						sourcemodule = "FAKE_DATA_ERROR" source = "OUTPUT" />/>
 
     <!-- Simulate -->
     <module class = "Sink" name = "NotAvailable" />
