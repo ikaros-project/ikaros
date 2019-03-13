@@ -44,6 +44,7 @@
         <button onclick="toggleSystem()">System</button>
         <button onclick="interaction.toggleEditMode()">Edit</button>
         <button onclick="controller.saveNetwork()">Save</button>
+        <button onclick="controller.start()">Start</button>
 <!--        <button onclick="toggleInspector()">Inspector</button>    -->
 
 <!--
@@ -68,7 +69,6 @@
                 <button onclick="interaction.deleteWidget()">Delete</button>
 				<div id="i_header"></div>
 				<table id="i_table">
-				<!--	<tr><th>Attr</th><th>Value</th></tr> -->
 				</table>
 			</div>
             
@@ -79,15 +79,8 @@
 
         <aside id="module_inspector" style="baackground-color: yellow">
             <div id="inspector">
-                <!--
-                <button>To Front</button>
-                <button>To Back</button>
-                <button>Duplicate</button>
-                <button>Delete</button>
-                -->
                 <div id="mi_header"></div>
                 <table id="mi_table">
-                <!--    <tr><th>Attr</th><th>Value</th></tr> -->
                 </table>
             </div>
             
@@ -96,7 +89,7 @@
             </script>
         </aside>
 
-		<aside id="edit_inspector" > <!-- FOR WIDGET VIEW -->
+		<aside id="view_inspector" >
  
             <table id="i_table">
                  <tbody>
@@ -159,7 +152,7 @@
 		</aside>
 
 
-        <aside id="network_inspector">
+        <aside id="group_inspector">
  
             <table id="in_table">
                  <tbody>

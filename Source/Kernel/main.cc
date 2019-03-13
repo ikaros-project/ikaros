@@ -78,6 +78,9 @@ PrintInfo()
     printf("\tThis example will wait for a request from the Web browser at\n");
     printf("\tthe default port (8000).\n");
     printf("\n");
+    printf("\tConnect from a browser on this computer with the URL \"http://localhost:8000/\".\n");
+    printf("\tUse the URL \"http://<servername>:8000/\" from other computers.\n");
+    printf("\n");
 }
 
 
@@ -132,9 +135,9 @@ main(int argc, char *argv[])
         k.ListWarningsAndErrors();
         k.ListBindings();
 
-        k.Notify(msg_print, "Starting Ikaros WebUI server.\n");
-        k.Notify(msg_print, "Connect from a browser on this computer with the URL \"http://localhost:%d/\".\n", k.port);
-        k.Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", k.port);
+//       k.Notify(msg_print, "Starting Ikaros WebUI server.\n");
+//        k.Notify(msg_print, "Connect from a browser on this computer with the URL \"http://localhost:%d/\".\n", k.port);
+//        k.Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", k.port);
 
         k.Load();
         k.Run();
@@ -148,6 +151,11 @@ main(int argc, char *argv[])
 
     // Catch Exceptions and Terminate Execution
 
+    catch(std::runtime_error)
+    {
+        return 1;
+    }
+    
     catch (std::bad_alloc&)
     {
         k.Notify(msg_exception, "Could not allocate memory. Program terminates.\n");

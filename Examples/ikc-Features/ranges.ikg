@@ -14,41 +14,33 @@
     />
 
     <connection
-        sourcemodule="R"
-        source="OUTPUT"
+        source="R.OUTPUT"
         sourceoffset="1"
-        targetmodule="G"
-        target="INPUT"
+        target="G.INPUT"
         targetoffset="10"
         size="2"
     />
 
      <connection
-        sourcemodule="R"
-        source="OUTPUT"
+        source="R.OUTPUT"
         sourceoffset="0"
-        targetmodule="G"
-        target="INPUT"
+        target="G.INPUT"
         targetoffset="3"
         size="3"
     />
         
      <connection
-        sourcemodule="R"
-        source="OUTPUT"
+        source="R.OUTPUT"
         sourceoffset="2"
-        targetmodule="G"
-        target="INPUT"
+        target="G.INPUT"
         targetoffset="7"
         size="1"
     />
 
       <connection
-        sourcemodule="R"
-        source="OUTPUT"
+        source="R.OUTPUT"
         sourceoffset="0"
-        targetmodule="G"
-        target="INPUT"
+        target="G.INPUT"
         targetoffset="1"
         size="1"
     />

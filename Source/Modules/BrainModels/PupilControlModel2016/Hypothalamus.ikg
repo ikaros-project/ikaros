@@ -1,11 +1,11 @@
 <group name="Hypothalamus" description="Model of a few nuclei in Hypothalamus">
 
-    <input name="LIGHT" targetmodule="VPLO" target="EXCITATION" />
-    <input name="LIGHT" targetmodule="SCN" target="EXCITATION" />
+    <input name="LIGHT" target="VPLO.EXCITATION" />
+    <input name="LIGHT" target="SCN.EXCITATION" />
     
-    <output name="PVN_OUTPUT" sourcemodule="PVN" source="OUTPUT" />
-    <output name="VPLO_OUTPUT" sourcemodule="VPLO" source="OUTPUT" />
-    <output name="LH_OUTPUT" sourcemodule="LH" source="OUTPUT" />
+    <output name="PVN_OUTPUT" source="PVN.OUTPUT" />
+    <output name="VPLO_OUTPUT" source="VPLO.OUTPUT" />
+    <output name="LH_OUTPUT" source="LH.OUTPUT" />
 
     <module
         class="Nucleus"

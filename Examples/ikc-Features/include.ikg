@@ -15,6 +15,5 @@
     <module class = "Randomizer" name = "module_in_outer_file_B" />
     <?include file="included_file_3.ikg" ?>
     <module class = "Randomizer" name = "module_in_outer_file_C" />
-
 </group>
 

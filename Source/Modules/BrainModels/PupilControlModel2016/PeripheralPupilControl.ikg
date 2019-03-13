@@ -1,17 +1,17 @@
 <group name="PeripheralPupilControl">
 
 
-    <input name="PTA" targetmodule="PTA" target="INPUT" />
-    <input name="EW_EXCITATION" targetmodule="EdingerWestphal_pg" target="EXCITATION" />
-    <input name="EW_SHUNTING" targetmodule="EdingerWestphal_pg" target="SHUNTING_INHIBITION" />
-    <input name="IML_EXCITATION" targetmodule="IML" target="EXCITATION" />
+    <input name="PTA" target="PTA.INPUT" />
+    <input name="EW_EXCITATION" target="EdingerWestphal_pg.EXCITATION" />
+    <input name="EW_SHUNTING" target="EdingerWestphal_pg.SHUNTING_INHIBITION" />
+    <input name="IML_EXCITATION" target="IML.EXCITATION" />
 
-    <output name="PTA_OUTPUT" sourcemodule="PTA" source="OUTPUT" />
-    <output name="EW_OUTPUT" sourcemodule="EdingerWestphal_pg" source="OUTPUT" />
-    <output name="CG_OUTPUT" sourcemodule="CG" source="OUTPUT" />
-    <output name="SCG_OUTPUT" sourcemodule="SCG" source="OUTPUT" />
+    <output name="PTA_OUTPUT" source="PTA.OUTPUT" />
+    <output name="EW_OUTPUT" source="EdingerWestphal_pg.OUTPUT" />
+    <output name="CG_OUTPUT" source="CG.OUTPUT" />
+    <output name="SCG_OUTPUT" source="SCG.OUTPUT" />
 
-    <parameter name="CG_alpha7" module="CG" target="phi" />
+    <parameter name="CG_alpha7" target="CG.phi" />
 
     <!-- ********************************* PARASYMPATHETIC COMPONENT ********************************* -->
 

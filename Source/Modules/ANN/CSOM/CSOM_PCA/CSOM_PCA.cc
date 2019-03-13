@@ -134,7 +134,7 @@ CSOM_PCA::UpdateWeights_mmlt()
         reset_matrix(mapped_dw, kernelsize, numkernels);
 
         
-        outer(inh_prev, mapped_act[0], mapped_weights[0], kernelsize, inp_rows);
+        outer(inh_prev, mapped_act[0], mapped_weights[0], kernelsize, inp_rows); // FIXME: a AND b MAY HAVE TO BE SWITCHED AFTER CORRECTING OUTER; but actually looks corrrect
         
         //for (int k = 0; k < numkernels; ++k)
         //    printf("mapped_act ptr initial %i: %p\n", k, (void*)mapped_act[k]);
@@ -143,7 +143,7 @@ CSOM_PCA::UpdateWeights_mmlt()
             //printf("mapped_act ptr %i: %p\n", k, (void*)mapped_act[k]);
             reset_matrix(tmp_outer, kernelsize, inp_rows);
             outer(tmp_outer, mapped_act[k], mapped_weights[k], 
-                    kernelsize, inp_rows);
+                    kernelsize, inp_rows);       // FIXME: a AND b MAY HAVE TO BE SWITCHED AFTER CORRECTING OUTER; but actually looks corrrect
             
             add(inh_buffer[k], 
                 tmp_outer,

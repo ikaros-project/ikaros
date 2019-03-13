@@ -259,7 +259,7 @@ namespace ikaros
 	float		dot(float * a, float * b, int size);
 	float		dot(float ** a, float ** b, int sizex, int sizey);
 	
-	float **	outer(float ** r, float * a, float * b, int sizex, int sizey);		// outer product; r[j][i] = a[i]*b[j]; sizex = sizeof(a), sizey = sizeof(b)
+	float **	outer(float ** r, float * a, float * b, int sizex, int sizey);		// outer product;  a*b'  sizey = sizeof(a), sizex = sizeof(b), (sizex,sizey) = sizeof(r)
 	
 	float *     divide(float * r, float * a, int size);
 	float **	divide(float ** r, float ** a, int sizex, int sizey);

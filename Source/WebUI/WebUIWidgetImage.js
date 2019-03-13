@@ -6,6 +6,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name': "IMAGE", 'control':'header'},
             {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
+
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
 
@@ -18,8 +19,9 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
             {'name':'format', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,red,green,blue,rgb"},
             {'name':'scale', 'default':"both", 'type':'string', 'control': 'menu', 'values': "none,width,height,both"},
-
-           {'name': "COORDINATE SYSTEM", 'control':'header'},
+            {'name':'opacity', 'default':1, 'min': 0, 'max':1, 'type':'float', 'control': 'slider'},
+            
+            {'name': "COORDINATE SYSTEM", 'control':'header'},
 
             {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no", 'class':'true'},
             {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
@@ -65,6 +67,9 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
     updateFrame()
     {
+        if(this.parameters.opacity != 1)
+            this.canvas.canvas.style.opacity = this.parameters.opacity;
+        
         this.oversampling = 1; //(this.parameters.file ? 4 : 1);
         this.imageObj = new Image();
         this.imageCount = 0;
@@ -162,7 +167,6 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         }
         catch(err)
         {
-//            this.canvas.fillText(err, 0, 20);
             this.canvas.fillStyle="black";
             this.canvas.fillRect(0, 0, this.oversampling*this.width, this.oversampling*this.height);
         }

@@ -1,11 +1,11 @@
 <group name="Cerebellum" description="model of the cerebellum">
 
-    <input name="CS" targetmodule="CB" target="CS" />
-    <input name="US" targetmodule="CB" target="US" />
-    <input name="US" targetmodule="Subtract" target="INPUT2" />
+    <input name="CS" target="CB.CS" />
+    <input name="US" target="CB.US" />
+    <input name="US" target="Subtract.INPUT2" />
 
-    <output name="CR" sourcemodule="CB" source="CR" />
-    <output name="DELTA_CR" sourcemodule="Subtract" source="CR" />
+    <output name="CR" source="CB.CR" />
+    <output name="DELTA_CR" source="Subtract.CR" />
 
 
     <module

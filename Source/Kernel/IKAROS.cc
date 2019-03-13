@@ -111,8 +111,9 @@ class InputElement: public Element
 {
 public:
     InputElement(GroupElement * parent, XMLElement * xml_node=NULL);
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    std::string     MapTarget(std::string name);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 
 };
 
@@ -121,8 +122,9 @@ class OutputElement: public Element
 public:
     OutputElement(GroupElement * parent, XMLElement * xml_node=NULL);
 
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    std::string     MapSource(std::string name);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 };
 
 class ConnectionElement: public Element
@@ -130,8 +132,8 @@ class ConnectionElement: public Element
 public:
     ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL);
     
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 };
 
 class ViewObjectElement: public Element
@@ -139,8 +141,8 @@ class ViewObjectElement: public Element
 public:
     ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL);
 
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 
 };
 
@@ -150,8 +152,8 @@ public:
     ViewElement(GroupElement * parent, XMLElement * xml_node=NULL);
     std::vector<ViewObjectElement> objects;
 
-    void Print(int d=0);
-    std::string JSONString(int d=0);
+    void            Print(int d=0);
+    std::string     JSONString(int d=0);
 };
 
 class GroupElement : public Element
@@ -278,6 +280,22 @@ std::string ParameterElement::JSONString(int d)
 
 InputElement::InputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
+std::string InputElement::MapTarget(std::string name)
+{
+    // TEMPORARY: will be removed when all targetmodule attributes have been removed
+    auto t = attributes["target"];
+    if(attributes["targetmodule"] != "")
+    {
+        t = attributes["targetmodule"]+"."+t;
+        Kernel().Notify(msg_warning, "Attribute targetmodule=\"%s\" is deprecated in inputs.", attributes["targetmodule"].c_str());
+    }
+    
+    auto target = rsplit(name, ".", 1);
+    auto new_target = rsplit(t, ".", 1);    // t = attributes["target"] later
+    
+    return (new_target[0]!="" ? new_target[0] : target[0])+"."+(new_target[1]!="" ? new_target[1] : target[1]);
+}
+
 void InputElement::Print(int d)
 {
     printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
@@ -296,13 +314,32 @@ std::string InputElement::JSONString(int d)
 
 OutputElement::OutputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
-void OutputElement::Print(int d)
+std::string
+OutputElement::MapSource(std::string name)
+{
+    // TEMPORARY: will be removed when all sourcemodule attributes have been removed
+    auto s = attributes["source"];
+    if(attributes["sourcemodule"] != "")
+    {
+        s = attributes["sourcemodule"]+"."+s;
+        Kernel().Notify(msg_warning, "Attribute sourcemodule=\"%s\" is deprecated in inputs.", attributes["sourcemodule"].c_str());
+    }
+
+    auto source = rsplit(name, ".", 1);
+    auto new_source = rsplit(s, ".", 1);    // s = attributes["source"] later
+
+    return (new_source[0]!="" ? new_source[0] : source[0])+"."+(new_source[1]!="" ? new_source[1] : source[1]);
+}
+
+void
+OutputElement::Print(int d)
 {
     printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
     PrintAttributes(d);
 };
 
-std::string OutputElement::JSONString(int d)
+std::string
+OutputElement::JSONString(int d)
 {
     std::string s = std::string(d, '\t')+"{\n";
     s += JSONAttributeString(d+1);
@@ -405,7 +442,13 @@ GroupElement::GetValue(const std::string & a) const
     {
         const auto & p = parameters.at(a);
         if(p->attributes.count("name"))
-            return GetValue(p->attributes.at("name")); // Can be called multiple times in principle, but a bad idea
+        {
+            auto new_name = p->attributes.at("name");
+            if(new_name == a)
+                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself");
+            else
+                return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
+        }
     }
 
     return Element::GetValue(a);
@@ -457,7 +500,7 @@ GroupElement::GetModule(const std::string & name) // Get module from full or par
 
 
 Module_IO *
-GroupElement::GetSource(const std::string & name)
+GroupElement::GetSource(const std::string & name) // FIXME: simplify when sourcemodule is no longer used
 {
     auto source = rsplit(name, ".", 1);
     if(GroupElement * g = GetGroup(source[0]))
@@ -468,26 +511,23 @@ GroupElement::GetSource(const std::string & name)
         auto output = g->outputs[source[1]];
         if(!output)
             return NULL;
-        auto new_module = output->GetValue("sourcemodule"); // TODO: add output.remapp_source() function
-        auto new_source = output->GetValue("source");
-        
-        if(source[0] == new_module && source[1] == new_source) // FIXME: this will not work with variables, maybe g.GetValue("name") instead of s[0]???
-            return NULL;
-        
-        return g->GetSource((new_module!="" ? new_module : source[0])+"."+(new_source!="" ? new_source : source[1])); // FIXME: same problem here
+
+        auto n = output->MapSource(name);
+        return g->GetSource(n);
     }
     return NULL;
 }
 
+
 std::vector<Module_IO *>
-GroupElement::GetTargets(const std::string & name)
+GroupElement::GetTargets(const std::string & name) // FIXME: simplify when targetmodule is no longer used
 {
     std::vector<Module_IO *> tios;
     auto target = rsplit(name, ".", 1);
 
     GroupElement * g = GetGroup(target[0]);
     if(!g)
-        return tios;
+        return tios; // empty vector
     
     if(g && g->module)
     {
@@ -499,11 +539,10 @@ GroupElement::GetTargets(const std::string & name)
     }
     
     for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the same name for multiple connections
-        if(input["name"] == target[1]) // TODO: add input.remap_target() function
+        if(input["name"] == target[1])
         {
-            auto new_module = input["targetmodule"];
-            auto new_target = input["target"];
-            auto targets = g->GetTargets((new_module!="" ? new_module : target[0])+"."+(new_target!="" ? new_target : target[1]));
+            auto n = input.MapTarget(name);
+            auto targets = g->GetTargets(n);
             tios.insert(tios.end(), targets.begin(), targets.end());
         }
 
@@ -2147,9 +2186,9 @@ Kernel::Run()
             }
         }
     }
-
-    httpThread->join();
-    delete httpThread;
+    
+//    httpThread->join();
+ //   delete httpThread;
 //    delete idle_timer;
 }
 
@@ -2396,7 +2435,7 @@ Kernel::Init()
     if(options->GetFilePath())
         ReadXML();
     else
-        Notify(msg_warning, "No IKC file supplied.\n");
+        Notify(msg_print, "Running without input file.\n");
     
     if(fatal_error_occurred)
         return;
@@ -2681,7 +2720,7 @@ Module::SetParameter(const char * parameter_name, int x, int y, float value)
 }
 
 
-void // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
+bool // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
 Kernel::SetParameter(const char * name, int x, int y, float value)
 {
     // OLD with variable substitution
@@ -2700,10 +2739,23 @@ Kernel::SetParameter(const char * name, int x, int y, float value)
         else if(b->type == bind_bool)
             *((bool *)(b->value)) = (value > 0);
         else if(b->type == bind_array)
-            ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+        {
+            if(x < 0 || x >= b->size_x)
+                return Notify(msg_warning, "Parameter index x out of range for %s\"", name);
+            ((float *)(b->value))[x] = value;
+        }
         else if(b->type == bind_matrix)
+        {
+            if(x < 0 || x >= b->size_x)
+                return Notify(msg_warning, "Parameter index x out of range for \"%s\"", name);
+            if(y < 0 || y >= b->size_y)
+                return Notify(msg_warning, "Parameter index y out of range for \"%s\"", name);
            ((float **)(b->value))[y][x] = value;
+        }
     }
+
+    return true;
+
 /*
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
     {
@@ -3250,26 +3302,31 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
     {
         auto source = c["source"];
         auto target = c["target"];
+        try {
+            Module_IO * source_io = NULL;
+            if(starts_with(source, "."))
+                source_io = main_group->GetSource(source.substr(1));
+            else
+                source_io = group->GetSource(source);
 
-        Module_IO * source_io = NULL;
-        if(starts_with(source, "."))
-            source_io = main_group->GetSource(source.substr(1));
-        else
-            source_io = group->GetSource(source);
+            if(!source_io)
+                Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
 
-        if(!source_io)
-            Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
+            int cnt = 0;
+            if(starts_with(target, "."))
+                for(auto target_io : main_group->GetTargets(target.substr(1)))
+                    cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+            else
+                for(auto target_io : group->GetTargets(target))
+                    cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
 
-        int cnt = 0;
-        if(starts_with(target, "."))
-            for(auto target_io : main_group->GetTargets(target.substr(1)))
-                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
-        else
-            for(auto target_io : group->GetTargets(target))
-                cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
-
-        if(cnt == 0)
-            Notify(msg_fatal_error, "Connection target %s not found.\n", target.c_str());
+            if(cnt == 0)
+                Notify(msg_fatal_error, "Connection target %s not found.\n", target.c_str());
+        }
+        catch(...)
+        {
+            Notify(msg_fatal_error, "Could not connect %s to %s.\n", source.c_str(), target.c_str());
+        }
     }
 
     for(auto & g : group->groups) // Connect in subgroups
@@ -3287,7 +3344,7 @@ Kernel::ReadXML()
     char path[PATH_MAX];
     copy_string(path, ikc_dir, PATH_MAX);
     append_string(path, ikc_file_name, PATH_MAX);
-    Notify(msg_print, "Reading XML file \"%s\".\n", ikc_file_name);
+    Notify(msg_print, "Running \"%s\".\n", ikc_file_name);
     if(chdir(ikc_dir) < 0)
         return Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
 
@@ -3808,10 +3865,9 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     sep = ",\n";
                 }
             }
-            else if(format == "gray")
+            else if(format == "gray" && source[0])
             {
-                Module_IO * io = root_group->GetSource(source);
-                if(io)
+                if(Module_IO * io = root_group->GetSource(source))
                 {
                     socket->Send(sep.c_str());
                     socket->Send("\t\t\"%s:gray\": ", source);
@@ -3819,33 +3875,35 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     sep = ",\n";
                 }
             }
-            else if(format == "rgb")
+            else if(format == "rgb" && source[0])
             {
                 auto a = rsplit(source, ".", 1); // separate out outputs
                 auto o = split(a[1], "+"); // split channel names
                 
-                auto c1 = a[0]+"."+o[0];
-                auto c2 = a[0]+"."+o[1];
-                auto c3 = a[0]+"."+o[2];
-
-                Module_IO * io1 = root_group->GetSource(c1);
-                Module_IO * io2 = root_group->GetSource(c2);
-                Module_IO * io3 = root_group->GetSource(c3);
-                
-                // TODO: check that all outputs have the same size
-
-                if(io2 && io2 && io3)
+                if(o.size() == 3)
                 {
-                    socket->Send(sep.c_str());
-                    socket->Send("\t\t\"%s:rgb\": ", source);
-                    SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
-                    sep = ",\n";
+                    auto c1 = a[0]+"."+o[0];
+                    auto c2 = a[0]+"."+o[1];
+                    auto c3 = a[0]+"."+o[2];
+
+                    Module_IO * io1 = root_group->GetSource(c1);
+                    Module_IO * io2 = root_group->GetSource(c2);
+                    Module_IO * io3 = root_group->GetSource(c3);
+                    
+                    // TODO: check that all outputs have the same size
+
+                    if(io2 && io2 && io3)
+                    {
+                        socket->Send(sep.c_str());
+                        socket->Send("\t\t\"%s:rgb\": ", source);
+                        SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
+                        sep = ",\n";
+                    }
                 }
             }
-            else if(format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue")
+            else if(source[0] && (format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue"))
             {
-                Module_IO * io = root_group->GetSource(source);
-                if(io)
+                if(Module_IO * io = root_group->GetSource(source))
                 {
                     socket->Send(sep.c_str());
                     socket->Send("\t\t\"%s:%s\": ", source, format.c_str());
@@ -3976,7 +4034,7 @@ Kernel::HandleHTTPRequest()
     }
     else if (strstart(uri, "/command/"))
     {
-        char module_name[255];
+//        char module_name[255];
         float x, y;
         char command[255];
         char value[1024]; // FIXME: no range chacks

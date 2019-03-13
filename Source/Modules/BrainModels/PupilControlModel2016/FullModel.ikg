@@ -7,19 +7,19 @@
     </description>
     
     
-    <input name="PTA_Left" targetmodule="PeripheralPupilControl" target="PTA_Left" />
-    <input name="PTA_Right" targetmodule="PeripheralPupilControl" target="PTA_Right" />
+    <input name="PTA_Left" target="PeripheralPupilControl.PTA_Left" />
+    <input name="PTA_Right" target="PeripheralPupilControl.PTA_Right" />
 
-    <output name="Eye_Left" sourcemodule="LeftEye" source="OUTPUT" />
-    <output name="Eye_Right" sourcemodule="RightEye" source="OUTPUT" />
+    <output name="Eye_Left" source="LeftEye.OUTPUT" />
+    <output name="Eye_Right" source="RightEye.OUTPUT" />
 
     <!-- parameters that can be controlled at the top level -->
 
-    <parameter name="LCa_alpha" module="LCb" target="alpha_a" />
-    <parameter name="LCb_alpha" module="LCb" target="alpha_b" />
-    <parameter name="CG_alpha7" module="PeripheralPupilControl" target="CG_alpha7" default="1" />
-    <parameter name="Eye_m3" module="LeftEye" target="m3" default="1" />
-    <parameter name="Eye_m3" module="RightEye" target="m3" default="1" />
+    <parameter name="LCa_alpha" target="LCb.alpha_a" />
+    <parameter name="LCb_alpha" target="LCb.alpha_b" />
+    <parameter name="CG_alpha7" target="PeripheralPupilControl.CG_alpha7" default="1" />
+    <parameter name="Eye_m3" target="LeftEye.m3" default="1" />
+    <parameter name="Eye_m3" target="RightEye.m3" default="1" />
 
    <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
 
@@ -85,7 +85,7 @@
     />
 
     <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
-    <connection  source = "Cerebellum_Right.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Right.CR" target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* EYES ********************************* -->
     
@@ -113,12 +113,9 @@
     <!-- ********************************* VIEW ********************************* -->
     
     <view title="Face View">
-        <object
-            class="EpiFace"
-            left_module="LeftEye"
-            left_source="OUTPUT"
-            right_module="LeftEye"
-            right_source="OUTPUT"
+        <epi-head
+            pupil_left_source="LeftEye.OUTPUT"
+            pupil_right_source="RightEye.OUTPUT"
             x="0" y="0"
             h="4" w="4"
         />

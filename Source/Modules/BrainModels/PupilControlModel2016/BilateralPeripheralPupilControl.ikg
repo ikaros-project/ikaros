@@ -1,28 +1,28 @@
 <group name="BilateralPeripheralPupilControl">
 
-    <input name="PTA_Left" targetmodule="Left" target="PTA" />
-    <input name="PTA_Right" targetmodule="Right" target="PTA" />
+    <input name="PTA_Left" target="Left.PTA" />
+    <input name="PTA_Right" target="Right.PTA" />
 
-    <input name="EW_EXCITATION_Left" targetmodule="Left" target="EW_EXCITATION" />
-    <input name="EW_EXCITATION_Right" targetmodule="Right" target="EW_EXCITATION" />
+    <input name="EW_EXCITATION_Left" target="Left.EW_EXCITATION" />
+    <input name="EW_EXCITATION_Right" target="Right.EW_EXCITATION" />
 
-    <input name="EW_SHUNTING_Left" targetmodule="Left" target="EW_SHUNTING" />
-    <input name="EW_SHUNTING_Right" targetmodule="Right" target="EW_SHUNTING" />
+    <input name="EW_SHUNTING_Left" target="Left.EW_SHUNTING" />
+    <input name="EW_SHUNTING_Right" target="Right.EW_SHUNTING" />
 
-    <input name="IML_EXCITATION_Left" targetmodule="Left" target="IML_EXCITATION" />
-    <input name="IML_EXCITATION_Right" targetmodule="Right" target="IML_EXCITATION" />
+    <input name="IML_EXCITATION_Left" target="Left.IML_EXCITATION" />
+    <input name="IML_EXCITATION_Right" target="Right.IML_EXCITATION" />
 
-    <output name="EW_OUTPUT_Left" sourcemodule="Left" source="EW_OUTPUT" />
-    <output name="EW_OUTPUT_Right" sourcemodule="Right" source="EW_OUTPUT" />
+    <output name="EW_OUTPUT_Left" source="Left.EW_OUTPUT" />
+    <output name="EW_OUTPUT_Right" source="Right.EW_OUTPUT" />
 
-    <output name="CG_OUTPUT_Left" sourcemodule="Left" source="CG_OUTPUT" />
-    <output name="CG_OUTPUT_Right" sourcemodule="Right" source="CG_OUTPUT" />
+    <output name="CG_OUTPUT_Left" source="Left.CG_OUTPUT" />
+    <output name="CG_OUTPUT_Right" source="Right.CG_OUTPUT" />
 
-    <output name="SCG_OUTPUT_Left" sourcemodule="Left" source="SCG_OUTPUT" />
-    <output name="SCG_OUTPUT_Right" sourcemodule="Right" source="SCG_OUTPUT" />
+    <output name="SCG_OUTPUT_Left" source="Left.SCG_OUTPUT" />
+    <output name="SCG_OUTPUT_Right" source="Right.SCG_OUTPUT" />
 
-    <parameter name="CG_alpha7" module="Left" target="CG_alpha7" />
-    <parameter name="CG_alpha7" module="Right" target="CG_alpha7" />
+    <parameter name="CG_alpha7" target="Left.CG_alpha7" />
+    <parameter name="CG_alpha7" target="Right.CG_alpha7" />
 
     <!-- Left and Right -->
 

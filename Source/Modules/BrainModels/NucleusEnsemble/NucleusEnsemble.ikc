@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<group name="NucleusEnsemble" description="minimal example module">
+
+	<description type="text">
+		Ensemble of nuclei, where output is an array with size equal to number of nuclei.
+		Output = alpha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
+        
+        If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="NucleusEnsemble"
+			name="NucleusEnsemble"
+			
+			debug = "false"
+		/>
+	</example>
+
+	<parameter name="size" type="int" default="1" description="size of ensemble" />
+	<parameter name="alpha" type="float" default="0" description="bias term / offset level" />
+    <parameter name="beta" type="float" default="1" description="activity scaling" />
+
+    <parameter name="phi" type="float" default="1.0" description="excitation weight" />
+    <parameter name="chi" type="float" default="1.0" description="inhibition weight" />
+    <parameter name="psi" type="float" default="1.0" description="shunting weight" />
+	<parameter name="tau" type="float" default="1.0" description="recursion weight" />
+
+    <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
+
+    <parameter name="epsilon" type="float" default="0.1" description="time constant" />
+	<parameter name="excitation_topology" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>
+	<parameter name="inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="shunting_inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="recurrent_topology" type="list" values="none/excitatory/inhibitory" default="none" description="How inh input is connected to ensemble nuclei"/>
+	<parameter name="activation_function" type="list" values="relu/scaledsigmoid/secondorder" default="scaledsigmoid" description="Function applied to output"/>
+	
+	<input name="EXCITATION" description="The excitatory input" optional="yes" />
+	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
+	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
+
+	<input name="EX_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<input name="INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<input name="SH_INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+
+	<output name="OUTPUT" description="The output from the nucleus" size_param="size" />
+
+	<link class="NucleusEnsemble" />
+
+	<author>
+		<name>Trond Arild Tjøstheim</name>
+		<email>trond_arild.tjostheim@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>NucleusEnsemble.h</file>
+   		<file>NucleusEnsemble.cc</file>
+   		<file>NucleusEnsemble.ikc</file>
+   </files>
+
+</group>
+

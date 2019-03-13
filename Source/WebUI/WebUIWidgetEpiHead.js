@@ -4,11 +4,11 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
     {
         return [
             {'name': "EPI HEAD", 'control':'header'},
-            
+            {'name':'title', 'default':"Epi Head", 'type':'string', 'control': 'textedit'},
             {'name':'gazeSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'pupilLeftSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'pupilRightSource', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'offsetSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'headPosition', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name':'irisLeftRed', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'irisLeftGreen', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -22,12 +22,10 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             {'name':'mouthGreen', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'mouthBlue', 'default':"", 'type':'source', 'control': 'textedit'},
             
-            {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'gaze', 'default':0, 'type':'float', 'control': 'slider', 'min': -1.57, 'max': 1.57},
             {'name':'vergence', 'default':0, 'type':'float', 'control': 'slider', 'min': -1.57, 'max': 1.57},
             {'name':'pupil', 'default':0.5, 'type':'float', 'control': 'slider', 'min': 0, 'max': 1},
             
-//            {'name':'visibleModule', 'default':"", 'type':'module', 'control': 'textedit'},
             {'name':'visibleSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'visibleFace', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'visibleFaceParameter', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -124,14 +122,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
     }
 
 
-    draw(gaze, pupilLeft, pupilRight, offset, iLR, iLG, iLB, iRR, iRG, iRB)
+    draw(gaze, pupil, offset, iLR, iLG, iLB, iRR, iRG, iRB)
     {
-        let pupil = [0, 0];
-        if(pupilLeft)
-            pupil[0] = Math.min(Math.max(pupilLeft[0][0], 0), 1);
-        if(pupilRight)
-            pupil[1] = Math.min(Math.max(pupilRight[0][0], 0), 1);
-
         let w = this.width;
         let h = this.height;
         let s = Math.min(this.width, this.height)/180;
@@ -150,22 +142,47 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
         
         if(drawFace)
         {
-            // ears
-        
+            // right ear
             this.setColor(0);
             this.canvas.fillStyle = this.parameters.earColor;
-     
             this.canvas.beginPath();
             this.canvas.rect(5, 60, 10, 65);
+            this.canvas.fill();
+            this.canvas.stroke();
+  
+            // right ear lid
+            this.setColor(0);
+            this.canvas.beginPath();
+            this.canvas.moveTo(155, 62.5);
+            this.canvas.lineTo(160, 67.5);
+            this.canvas.lineTo(160, 117.5);
+            this.canvas.lineTo(155, 122.5);
+            this.canvas.closePath();
+            this.canvas.fill();
+            this.canvas.stroke();
+            
+            // left ear
+            this.setColor(0);
+            this.canvas.fillStyle = this.parameters.earColor;
+            this.canvas.beginPath();
             this.canvas.rect(145, 60, 10, 65);
             this.canvas.fill();
             this.canvas.stroke();
-        
-            // head
-
+  
+            // left ear lid
             this.setColor(0);
             this.canvas.beginPath();
-
+            this.canvas.moveTo(5, 62.5);
+            this.canvas.lineTo(0, 67.5);
+            this.canvas.lineTo(0, 117.5);
+            this.canvas.lineTo(5, 122.5);
+            this.canvas.closePath();
+            this.canvas.fill();
+            this.canvas.stroke();
+            
+            // head
+            this.setColor(0);
+            this.canvas.beginPath();
             this.canvas.moveTo(50, 0);
             this.canvas.lineTo(110, 0);
             this.canvas.quadraticCurveTo(145, 0, 145, 50);
@@ -176,25 +193,21 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             this.canvas.lineTo(15, 40);
             this.canvas.quadraticCurveTo(15, 0, 50, 0);
             this.canvas.closePath();
-        
+
+            // Left Ear Lid
             this.canvas.moveTo(5, 62.5);
             this.canvas.lineTo(0, 67.5);
             this.canvas.lineTo(0, 117.5);
             this.canvas.lineTo(5, 122.5);
             this.canvas.closePath();
 
-            this.canvas.moveTo(5, 62.5);
-            this.canvas.lineTo(0, 67.5);
-            this.canvas.lineTo(0, 117.5);
-            this.canvas.lineTo(5, 122.5);
-            this.canvas.closePath();
-        
+            // Right Ear Lid
             this.canvas.moveTo(155, 62.5);
             this.canvas.lineTo(160, 67.5);
             this.canvas.lineTo(160, 117.5);
             this.canvas.lineTo(155, 122.5);
             this.canvas.closePath();
-        
+
             this.canvas.fill();
             this.canvas.stroke();
 
@@ -210,17 +223,10 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
                     this.canvas.stroke();
                 }
         }
-         // left eye
+         // eyes
         
-        let g0 = gaze ? gaze[0] : parseFloat(this.parameters.gaze)+parseFloat(this.parameters.vergence);
-        let p0 = pupilLeft ? pupil[0] : this.parameters.pupil;
-        this.drawEye(22.5, 72.5, g0, p0, iLR, iLG, iLB);
-
-        // right eye
-
-        let g1 = gaze ? gaze[1] : parseFloat(this.parameters.gaze)-parseFloat(this.parameters.vergence);
-        let p1 = pupilRight ? pupil[1] : this.parameters.pupil;
-        this.drawEye(85, 72.5, g1, p1, iRR, iRG, iRB);
+        this.drawEye(22.5, 72.5, gaze[0], pupil[0], iLR, iLG, iLB);
+        this.drawEye(85, 72.5, gaze[1], pupil[1], iRR, iRG, iRB);
     }
 
 
@@ -233,11 +239,15 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
             return;
         }
 
-        let gaze = this.getSource('gazeSource', [[0, 0]])[0];
-        let pupilLeft = this.getSource('pupilLeftSource');
-        let pupilRight = this.getSource('pupilRightSource');
-        let offset = this.getSource('offsetSource', [[0, 0]])[0];
-
+        let defaultGaze = [ parseFloat(this.parameters.gaze)-parseFloat(this.parameters.vergence),
+                            parseFloat(this.parameters.gaze)+parseFloat(this.parameters.vergence)];
+        let defaultPupil = parseFloat(this.parameters.pupil);
+        
+        let gaze = this.getSourceAsArray('gazeSource', defaultGaze);
+        let test = this.getSourceAsFloat('pupilLeftSource', defaultPupil);
+        let pupil = [this.getSourceAsFloat('pupilLeftSource', defaultPupil), this.getSourceAsFloat('pupilRightSource', defaultPupil)];
+        let headPosition = this.getSource('headPosition', [[0, 0]]);
+        
         let iLR = this.getSource('irisLeftRed');
         let iLG = this.getSource('irisLeftGreen');
         let iLB = this.getSource('irisLeftBlue');
@@ -248,10 +258,10 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph
         if(gaze.length<2)
             gaze = [gaze[0], gaze[0]]
         
-        if(offset.length<2)
-            offset = [offset[0], 0]
+        if(headPosition.length<2)
+            headPosition = [headPosition[0], 0]
         
-        this.draw(gaze, pupilLeft, pupilRight, offset, iLR, iLG, iLB, iRR, iRG, iRB);
+        this.draw(gaze, pupil, headPosition, iLR, iLG, iLB, iRR, iRG, iRB);
     }
 };
 

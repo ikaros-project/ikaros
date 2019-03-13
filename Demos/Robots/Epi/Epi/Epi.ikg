@@ -19,8 +19,6 @@ nrServosPupil = "2"
 nrServosTotal = "19"
 
 PupilModelA = "100"
-
-LogOn = "yes"
 >
 	<!-- import frame and id for epi robots> -->
     <?include file="EpiFrames.ikg" ?>
@@ -80,8 +78,8 @@ LogOn = "yes"
         <connection source = "ManFocusPoint.OUTPUT"                                     target = "HighLevelFocusArbiter.INPUT_1" />
         <connection source = "ManFocusPointValue.OUTPUT"                                target = "HighLevelFocusArbiter.VALUE_1" />
         <!-- External focus point-->
-        <input name = "EXT_FOCUS_POINT"      	targetmodule = "HighLevelFocusArbiter"  target = "INPUT_2"/>  <!-- targetmodule????? -->
-        <input name = "EXT_FOCUS_POINT_V"      	targetmodule = "HighLevelFocusArbiter"  target = "VALUE_2"/>
+        <input name = "EXT_FOCUS_POINT"      	target = "HighLevelFocusArbiter.INPUT_2"/>  <!-- targetmodule????? -->
+        <input name = "EXT_FOCUS_POINT_V"      	target = "HighLevelFocusArbiter.VALUE_2"/>
 
 
 <!-- 			END 				-->
@@ -112,10 +110,10 @@ LogOn = "yes"
 
 
 <!-- External Motor control -->
-<input name = "SERVO_ANGLES"      		targetmodule = "EXT_SERVO_ANGLE"		target = "INPUT"/>
-<input name = "SERVO_ANGLES_AMPLITUDE"	targetmodule = "EXT_SERVO_ANGLE_A"		target = "INPUT"/>
+<input name = "SERVO_ANGLES"      		target = "EXT_SERVO_ANGLE.INPUT"/>
+<input name = "SERVO_ANGLES_AMPLITUDE"	target = "EXT_SERVO_ANGLE_A.INPUT"/>
 
-<module class = "Gate" name = "EXT_SERVO_ANGLE"/> <!-- Dummy module -->
+<module class = "Gate" name = "EXT_SERVO_ANGLE"/>  <!-- Dummy module -->
 <module class = "Gate" name = "EXT_SERVO_ANGLE_A"/><!-- Dummy module -->
 
 <module class = "PopulationCoder" name = "ExtServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
@@ -532,91 +530,10 @@ LogOn = "yes"
 </view>
 
 
-	<module class = "Constant" name = "SEVEN" data = "7" />
-
-	
-	<module
-			class = "MotionRecorder"
-			name = "MotionRecorder"
-            mask = "1 1"
-            torque = "0.25 0.25"
-            filename = "Actions/motion.%d.mot"
-            json_filename = "Actions/motion.%d.json"
-           smoothing_time = "40"
-            max_motions="20"
-            _auto_save="yes"
-            _record_on_trig = "true"
-	/>
-		<!-- Get position from servo -->
-        <connection  source = "Servos.SC_FeedBackPosition.OUTPUT"  target = "MotionRecorder.INPUT" />
-       	<!-- Override system output  -->
-	    <connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" />
-        <connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" />
-
-
-
-		<view name="Motion Recorder Low Level">
-            <grid
-                x = "10"
-                y = "10"
-                width = "121"
-                height = "41"
-                source = "STATE"
-                module = "MotionRecorder"
-                max = "7"
-                labels = "state"
-                labelWidth = "50"
-                fill = "custom"
-                colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
-                lineWidth = "1"
-                shape = "circle"
-                size = "1"
-                scales = "no"
-            />
-
-            <text
-                width = "121"
-                height = "41"
-                x="10"
-                y = "40"
-                parameter = "MotionRecorder.mode_string"
-            />
-    <!--
-            <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
-    -->
-            <table title="time" source="MotionRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
-    <!--
-			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
--->
-			<!-- key-points module="MotionRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" / -->
-            
-            <plot source="MotionRecorder.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="130" y="0" width="800" height="301" />
-
-            <grid source="MotionRecorder.MODE" labels="off, stop, play, record" shape="circle" size="0.75" fill="custom" colorTable="white,green" command="EpiBlack.MotionRecorder.toggle" x="130" y="350" width="800" height="101" />
-			<grid source="MotionRecorder.ENABLE" labels="torque" shape="circle" size="1" fill="custom" colorTable="white,red" x="130" y="451" width="800" height="41" />
-
-			<table title="time" source="MotionRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
-
-            <button label = "Off" command="MotionRecorder.off" x="10" y="121" height="41" width="101" />
-            <button label = "Stop" command="MotionRecorder.stop" x="10" y="161" height="41" width="101"  />
-            <button label = "Record" command="MotionRecorder.record" x="10" y="201" height="41" width="101"  />
-            <button label = "Play"  command="MotionRecorder.play" x="10" y="241" height="41" width="101"  />
-
-            <button label = "Load" command="MotionRecorder.load" x="10" y="361" height="41" width="101"  />
-            <button label = "Save" command="MotionRecorder.save" x="10" y="401" height="41" width="101"  />
-
-            <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19"  parameter="MotionRecorder.current_motion" x="10" y="311" width="121" height="41" />
-
-            <switch label=" Rec on trig" parameter="MotionRecorder.record_on_trig" x="10" y="461" width="101" height="41" />
-
-            <slider-horizontal title = "Joints" parameter="Joints.data" count="2" min="-360" max="360" x="130" y="510" height="100" width="200" />
-            <plot source="Joints.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="430" y="510" width="400" height="301" />
-
-		</view>
-
+	<!-- Motion Recorder -->
+    <?include file="EpiMotionRecorder.ikg" ?>
 
 	<!-- Log -->
-    
 	<module class="EpiLog" name="EpiLog" active = "yes"/>
 
 </group>

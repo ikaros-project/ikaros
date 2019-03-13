@@ -112,15 +112,26 @@ class WebUIWidget extends HTMLElement
     getSource(source, default_data=undefined)
     {
         try {
-//            let s = this.parameters[source].rsplit('.',1);
-//            return this.receivedData[s[0]][s[1]];
-            return this.receivedData[this.parameters[source]];
+            let v = this.receivedData[this.parameters[source]]
+            if(!v)
+                return default_data;
+            else
+                return this.receivedData[this.parameters[source]];
         }
         catch(err)
         {
-//            console.log("ERROR", err);
             return default_data;
         }
+    }
+    
+    getSourceAsArray(source, default_array=[])
+    {
+        return this.getSource(source, [default_array])[0];
+    }
+
+    getSourceAsFloat(source, default_value=0)
+    {
+        return parseFloat(this.getSource(source, [[default_value]])[0][0]);
     }
 
     addSource(data_set, source) // this will be default function for all widgets later
@@ -363,6 +374,27 @@ class WebUIWidget extends HTMLElement
         this.onmouseover = function () { console.log("WebUIWidgetCanvas: mouseover"); }
         this.onmouseout = function () { console.log("WebUIWidgetCanvas: mouseout"); }
 */
+
+        // Default onclick function - send click coordinate if command is set
+
+        this.onclick = function (evt)
+        {
+            return;
+           if(this.parameters.command)
+           {
+                let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+                let r = this.canvasElement.getBoundingClientRect();
+                let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
+                let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+                //this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/1");
+                send_command(this.parameters.command, 1, x, y);
+            }
+            else
+            {
+                alert("!");
+            }
+         }
+        
         this.updateStyle(this, this.parameters['style']);
         this.updateStyle(this.parentNode, this.parameters['frame-style']);
         this.readCSSvariables();
@@ -415,6 +447,25 @@ class WebUIWidget extends HTMLElement
         this.updateFrame();
         this.update();
     }
+    
+    // TODO: these should be changed to go through command object to allow faster update
+
+    send_control_change(parameter, value=0, index_x=0, index_y=0)
+    {
+        if(this.groupName)
+            this.get("/control/"+this.groupName+"."+parameter+"/"+index_x+"/"+index_y+"/"+value);
+        else
+            this.get("/control/"+parameter+"/"+index_x+"/"+index_y+"/"+value);
+    }
+
+    send_command(command, value=0, index_x=0, index_y=0)
+    {
+        if(this.groupName)
+            this.get("/command/"+this.groupName+"."+command+"/"+index_x+"/"+index_y+"/"+value);
+        else
+            this.get("/command/"+command+"/"+index_x+"/"+index_y+"/"+value);
+    }
+
 };
 
 customElements.define('webui-widget', WebUIWidget);

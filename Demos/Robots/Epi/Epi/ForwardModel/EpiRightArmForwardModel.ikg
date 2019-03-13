@@ -6,19 +6,19 @@
         WARNING. These modules are under development and can change at any time!
 	 </description>
 
-    <input name = "FEEDBACK_POSITION" targetmodule = "L1_R3Rot" target = "INPUT" />
-    <input name = "FEEDBACK_POSITION" targetmodule = "L2_R1Rot" target = "INPUT" />
-    <input name = "FEEDBACK_POSITION" targetmodule = "L3_R1Rot" target = "INPUT" />
-    <input name = "FEEDBACK_POSITION" targetmodule = "L4_R1Rot" target = "INPUT" />
-    <input name = "FEEDBACK_POSITION" targetmodule = "L5_R1Rot" target = "INPUT" />
-    <input name = "FEEDBACK_POSITION" targetmodule = "L6_R1Rot" target = "INPUT" />
+    <input name = "FEEDBACK_POSITION" target = "L1_R3Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION" target = "L2_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION" target = "L3_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION" target = "L4_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION" target = "L5_R1Rot.INPUT" />
+    <input name = "FEEDBACK_POSITION" target = "L6_R1Rot.INPUT" />
 
-    <output name = "MODEL_ID"     sourcemodule = "MODEL_ID_C"       source = "OUTPUT" />
-    <output name = "OUTPUT"       sourcemodule = "JOIN_ARRAYS"      source = "OUTPUT" />
+    <output name = "MODEL_ID"     source = "MODEL_ID_C.OUTPUT" />
+    <output name = "OUTPUT"       source = "JOIN_ARRAYS.OUTPUT" />
 
     <!-- Points -->
     <!-- Fingers -->
-    <output name = "POINTS"       sourcemodule = "P_JOIN"           source = "OUTPUT" />
+    <output name = "POINTS"       source = "P_JOIN.OUTPUT" />
 
 	<module class = "DataConverter" name = "P_JOIN" output_size_x = "16" output_size_y = "3"/>
         <connection source = "M_P3_T1.OUTPUT"   target = "P_JOIN.INPUT" />

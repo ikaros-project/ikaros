@@ -6,10 +6,10 @@
         WARNING. These modules are under development and can change at any time!
 	 </description>
 
-    <input name = "FEEDBACK_POSITION"   targetmodule = "NotAvailable"       target = "INPUT" />
+    <input name = "FEEDBACK_POSITION"   target = "NotAvailable.INPUT" />
 
-    <output name = "OUTPUT"             sourcemodule = "JOIN"               source = "OUTPUT" />
-    <output name = "MODEL_ID"           sourcemodule = "MODEL_ID_C"         source = "OUTPUT" />
+    <output name = "OUTPUT"             source = "JOIN.OUTPUT" />
+    <output name = "MODEL_ID"           source = "MODEL_ID_C.OUTPUT" />
 
     <!-- Model IDs -->
     <module class = "Constant" name = "MODEL_ID_C" data = "50 104" />

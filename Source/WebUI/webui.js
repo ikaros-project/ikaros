@@ -489,23 +489,26 @@ interaction = {
     main: undefined,
     currentView: undefined,
     currentViewName: undefined,
-    widget_inspector: undefined,
-    system_inspector: undefined,
-    edit_inspector: undefined,
+    
+    group_inspector: undefined,
     module_inspector: undefined,
-    network_inspector: undefined,
-
+    view_inspector: undefined,
+    widget_inspector: undefined,
+ 
+    system_inspector: undefined,
+    
     init: function () {
         interaction.main = document.querySelector('main');
         interaction.widget_inspector = document.querySelector('#widget_inspector');
         interaction.system_inspector = document.querySelector('#system_inspector');
-        interaction.edit_inspector = document.querySelector('#edit_inspector');
+        interaction.view_inspector = document.querySelector('#view_inspector');
         interaction.module_inspector = document.querySelector('#module_inspector');
-        interaction.network_inspector = document.querySelector('#network_inspector');
+        interaction.group_inspector = document.querySelector('#group_inspector');
         interaction.setMode('run');
     },
     stopEvents: function (e) {
-        if(interaction.main.dataset.mode == "edit") e.stopPropagation()
+        if(interaction.main.dataset.mode == "edit")
+            e.stopPropagation()
     },
 
     initDraggables: function () { // only needed if there are already frame elements in the main view
@@ -706,7 +709,7 @@ interaction = {
     {
         let widget_select = document.querySelector('#widget_select');
         let widget_class = widget_select.options[widget_select.selectedIndex].value;
-        let w = interaction.addWidget({'class': widget_class, 'show_title': true, 'show_frame': true, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
+        let w = interaction.addWidget({'class': widget_class, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
         interaction.curnewpos += 20;
         interaction.currentView.objects.push(w.widget.parameters);
         interaction.selectObject(w);
@@ -722,7 +725,7 @@ interaction = {
         newObject.appendChild(newTitle);
 
         interaction.main.appendChild(newObject);
-        newObject.addEventListener('mousedown', interaction.startDrag, true);
+        newObject.addEventListener('mousedown', interaction.startDrag, false);
 
         let constr = webui_widgets.constructors["webui-widget-"+w['class']];
         if(!constr)
@@ -876,8 +879,8 @@ interaction = {
 
             interaction.widget_inspector.style.display = "none";
             interaction.module_inspector.style.display = "none";
-            interaction.edit_inspector.style.display = "block";
-            interaction.network_inspector.style.display = "none";
+            interaction.view_inspector.style.display = "block";
+            interaction.group_inspector.style.display = "none";
         }
     },
     releaseElement: function(evt) {
@@ -900,9 +903,9 @@ interaction = {
         inspector.select(obj);
         
         interaction.widget_inspector.style.display = "block";
-        interaction.edit_inspector.style.display = "none";
+        interaction.view_inspector.style.display = "none";
         interaction.module_inspector.style.display = "none";
-        interaction.network_inspector.style.display = "none";
+        interaction.group_inspector.style.display = "none";
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -981,10 +984,10 @@ interaction = {
         
         if(main.dataset.mode == "edit")
         {
-            interaction.widget_inspector.style.display = "none";
+            interaction.group_inspector.style.display = "none";
             interaction.module_inspector.style.display = "none";
-            interaction.edit_inspector.style.display = "block";
-            interaction.network_inspector.style.display = "none";
+            interaction.view_inspector.style.display = "block";
+            interaction.widget_inspector.style.display = "none";
             interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
@@ -992,10 +995,10 @@ interaction = {
         }
         else if(main.dataset.mode == "run")
         {
-            interaction.widget_inspector.style.display = "none";
-            interaction.edit_inspector.style.display = "none";
+            interaction.group_inspector.style.display = "none";
             interaction.module_inspector.style.display = "none";
-            interaction.network_inspector.style.display = "none";
+            interaction.view_inspector.style.display = "none";
+            interaction.widget_inspector.style.display = "none";
             interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
             interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
@@ -1066,11 +1069,11 @@ interaction = {
         interaction.selectedObject.className += ' selected';
         //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
         module_inspector.select(obj);
+        interaction.group_inspector.style.display = "none";
         interaction.module_inspector.style.display = "block";
+        interaction.view_inspector.style.display = "none";
         interaction.widget_inspector.style.display = "none";
-        interaction.edit_inspector.style.display = "none";
-        interaction.network_inspector.style.display = "none";
-    },
+      },
     releaseModule: function(evt) {
         interaction.main.removeEventListener('mousemove',interaction.moveModule,true);
         interaction.main.removeEventListener('mouseup',interaction.releaseModule,true);
@@ -1131,7 +1134,7 @@ controller = {
         {
             if(!xhr.response)   // empty response is ignored
             {
-                console.log("onload - empty response - error")
+            //    console.log("onload - empty response - error")
                 return;
             }
             controller.defer_reconnect(); // we are still on line
@@ -1177,6 +1180,10 @@ controller = {
         controller.command = 'realtime';
     },
 
+    start: function () {
+        controller.play();  // FIXME: start selected mode play/fast-forward/realtime
+    },
+    
     buildViewDictionary: function(group, name) {
         controller.views[name+"/"+group.attributes.name] = group;
 
@@ -1324,7 +1331,7 @@ controller = {
         }
         else
         {
-            console.log("incorrect package received form ikaros (2)")
+         //   console.log("incorrect package received form ikaros (2)")
         }
     },
 
@@ -1367,25 +1374,7 @@ controller = {
 
     copyView: function() // TODO: Remove default parameters
     {
-        let s = "<view name=\""+interaction.currentViewName.split('#')[1]+"\">\n\n"; // FIXME: probably don't work for included views
-        let w = document.getElementsByClassName('frame');
-        for(let i=0; i<w.length; i++)
-            try
-            {
-                let wgt = w[i].children[1]
-                let name = wgt.localName.replace("webui-widget-", "");
-                s += "\t<"+name+"\n"
-                for(let p in wgt.parameters)
-                    if(wgt.parameters[p])
-                        s += "\t\t"+p+" = \""+wgt.parameters[p]+"\"\n";
-                s += "\t/>\n\n"
-            }
-            catch(err)
-            {
-                s += " AN ERROR OCCURED";
-            }
-        s += "</view>"
-        copyToClipboard(s);
+        copyToClipboard(controller.viewToXML(interaction.currentView));
     },
 
     connectionToXML: function(connection, indent="")

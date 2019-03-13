@@ -8,7 +8,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'index', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'list', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'list', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},

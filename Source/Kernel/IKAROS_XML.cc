@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdexcept>
 
 
 void
@@ -404,7 +404,7 @@ XMLDocument::XMLDocument(const char * filename, bool included)
     if (f==NULL)
     {
         printf("XML: Could not open \"%s\".\n", filename);
-        return;
+        throw std::runtime_error("File not found");
     }
     
     // allocate buffer
