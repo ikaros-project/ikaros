@@ -12,25 +12,7 @@
 	<input name = "GOAL_TORQUE"						target = "NotAvailable.INPUT"/>
 	<input name = "GOAL_ACCELERATION"				target = "NotAvailable.INPUT"/>
 	
-<<<<<<< HEAD
-	<output name = "FEEDBACK_TORQUE_ENABLE"		 	sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_LED" 					sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_D_GAIN" 				sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_I_GAIN" 				sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_P_GAIN" 				sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_GOAL_POSITION" 		sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_MOVING_SPEED" 	 		sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_TORQUE_LIMIT" 			sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_POSITION" 		sourcemodule = "GOAL_POSITION_SIM" source = "OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_SPEED" 		sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_LOAD" 			sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_VOLTAGE" 		sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_TEMPERATURE" 	sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_CURRENT" 		sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_GOAL_TORQUE" 			sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "FEEDBACK_GOAL_ACCELERATION" 	sourcemodule = "FAKE_DATA" source = "OUTPUT" />
-	<output name = "ERRORS" 						sourcemodule = "FAKE_DATA_ERROR" source = "OUTPUT" />/>
-=======
+
 	<output name = "FEEDBACK_TORQUE_ENABLE"		 	source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_LED" 					source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_D_GAIN" 				source = "FAKE_DATA.OUTPUT" />
@@ -48,7 +30,6 @@
 	<output name = "FEEDBACK_GOAL_TORQUE" 			source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_GOAL_ACCELERATION" 	source = "FAKE_DATA.OUTPUT" />
 	<output name = "ERROR" 							source = "FAKE_DATA_ERROR.OUTPUT" />/>
->>>>>>> f421018def1f5c92063bad402439adf6cdfafe58
 
     <!-- Simulate -->
     <module class = "Sink" name = "NotAvailable" />

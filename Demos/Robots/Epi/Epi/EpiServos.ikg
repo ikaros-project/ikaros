@@ -339,15 +339,9 @@
         <connection source = "Body.ERRORS"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
         <connection source = "Head.ERRORS"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
         <connection source = "LeftArm.ERRORS"    target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
-<<<<<<< HEAD
-        <connection source = "RightArm.ERRORS"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-        <connection source = "Pupil.ERRORS"      target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "ERROR"                      sourcemodule = "ERROR_G" source = "OUTPUT" />
-=======
         <connection source = "RightArm.ERROR"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
         <connection source = "Pupil.ERROR"      target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
     <output name = "ERROR"                      source = "ERROR_G.OUTPUT" />
->>>>>>> f421018def1f5c92063bad402439adf6cdfafe58
 
 	
 
