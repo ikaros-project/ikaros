@@ -5,13 +5,22 @@
 		<module
 			class = "Constant"
 			name = "MyConstant"
-			outputsize  = "2"
-			data  = "0.5 0.7"
+			outputsize  = "3"
+			data  = "0.5 0.7 0.3"
 		/>
 		<module
 		  class       =   "FunctionGenerator"
 		  name        =   "SquareGen"
 		  type        =   "square"
+		  frequency  =  "0.01"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen2"
+		  type        =   "Sin"
 		  frequency  =  "0.01"
 		  offset      =   "0.0"
 		  amplitude   =   "1"
@@ -38,6 +47,7 @@
         <connection  source = "MyConstant.OUTPUT"  target = "ExpressionInstance.x" />
         <connection  source = "SquareGen.OUTPUT"  target = "ExpressionInstance.y" />
         <connection  source = "SinGen.OUTPUT"  target = "ExpressionInstance.y" />
+		<connection  source = "SinGen2.OUTPUT"  target = "ExpressionInstance.y" />
 
 		
 

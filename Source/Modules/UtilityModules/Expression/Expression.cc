@@ -64,8 +64,12 @@ Expression::SetSizes()
         if (tst != sz)
         {
             std::stringstream ss(std::stringstream::in | std::stringstream::out);
-            ss << "Expression '" << expression_str << "': Inputs have different sizes, must have same size.";
-            Notify(msg_fatal_error, ss.str().c_str()); 
+            ss << "Expression '" << expression_str << "': Inputs have different sizes: " 
+                << variables[0].c_str() << "=" << sz << " vs " 
+                << variables[i].c_str() << "=" <<  tst 
+                << "; must have same size.";
+            // Notify(msg_fatal_error, ss.str().c_str()); 
+            Notify(msg_warning, ss.str().c_str()); 
         }
         sz = tst;
     }
