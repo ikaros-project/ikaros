@@ -49,7 +49,6 @@ public:
     float       ScaledSigmoid(float x);
     float       ReLu(float x);
 
-    float       CalcRndAvg(float a, float *timeseries, int size);
     // pointers to inputs and outputs
     // and integers to represent their sizes
     int         ensemble_size;
