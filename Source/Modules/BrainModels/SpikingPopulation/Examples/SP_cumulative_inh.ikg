@@ -121,21 +121,21 @@
        
 	    <connection  source = "Interneuron_2.OUTPUT"  target = "Scale_Inhibition.INPUT" />
 		<connection  source = "Scale_Inhibition.OUTPUT" sourceoffset="@InhPopSize" size="@InhPopSize"  target = "Pyramidal_3.INHIBITION_IN" />
-
+.
 		<connection  source = "Scale_Inhibition.OUTPUT" size="@InhPopSize"  target = "Pyramidal_3.INHIBITION_IN" />
 
         <view name="View">
 
 	<slider-horizontal
-		module = "Scale_Input"
+		_module = "Scale_Input"
 		xindex = "20"
 		height = "100"
 		class = "slider-horizontal"
 		width = "200"
 		show_title = "true"
 		title = "Scale Input"
-		max = "40"
-		parameter = "factor"
+		max = "100"
+		parameter = "Scale_Input.factor"
 		min = "0"
 		x = "200"
 		y = "0"
@@ -153,7 +153,7 @@
 		show_title = "true"
 		title = "InputSignal"
 		max = "5"
-		parameter = "data"
+		parameter = "InputSignal.data"
 		min = "0"
 		x = "200"
 		y = "100"
@@ -171,7 +171,7 @@
 		show_title = "true"
 		title = "Scale Excitation"
 		max = "40"
-		parameter = "factor"
+		parameter = "Scale_Excitation.factor"
 		min = "0"
 		x = "200"
 		y = "200"
@@ -187,7 +187,7 @@
 		show_title = "true"
 		title = "Scale Inhibition"
 		max = "40"
-		parameter = "factor"
+		parameter = "Scale_Inhibition.factor"
 		min = "0"
 		x = "200"
 		y = "300"
