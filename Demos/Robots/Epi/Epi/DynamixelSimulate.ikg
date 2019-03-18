@@ -12,6 +12,7 @@
 	<input name = "GOAL_TORQUE"						target = "NotAvailable.INPUT"/>
 	<input name = "GOAL_ACCELERATION"				target = "NotAvailable.INPUT"/>
 	
+
 	<output name = "FEEDBACK_TORQUE_ENABLE"		 	source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_LED" 					source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_D_GAIN" 				source = "FAKE_DATA.OUTPUT" />

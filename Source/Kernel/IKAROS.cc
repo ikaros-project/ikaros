@@ -3865,7 +3865,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     sep = ",\n";
                 }
             }
-            else if(format == "gray"  && source[0])
+            else if(format == "gray" && source[0])
             {
                 if(Module_IO * io = root_group->GetSource(source))
                 {

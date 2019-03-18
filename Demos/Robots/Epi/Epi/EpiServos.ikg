@@ -336,7 +336,7 @@
     <output name = "FEEDBACK_GOAL_ACCELERATION"                      source = "FEEDBACK_GOAL_ACCELERATION_G.OUTPUT" />
 
      <module class = "Gate" name = "ERROR_G"/>
-        <connection source = "Body.ERROR"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Body.ERRORS"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
         <connection source = "Head.ERRORS"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
         <connection source = "LeftArm.ERRORS"    target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
         <connection source = "RightArm.ERROR"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
