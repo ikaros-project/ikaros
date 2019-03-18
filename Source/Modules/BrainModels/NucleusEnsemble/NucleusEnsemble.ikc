@@ -8,6 +8,9 @@
         
         If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
 
+		TODO:
+		- ok add input: SETPOINT - weights should change so activity reaches this
+		- ok add input: ADAPTIONRATE - a kind of learning rate determining rate of adaptation to set point (ie acetylcholine receptors)
 	</description>
 
 	<example description="A simple example">
@@ -36,10 +39,15 @@
 	<parameter name="shunting_inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
 	<parameter name="recurrent_topology" type="list" values="none/excitatory/inhibitory" default="none" description="How inh input is connected to ensemble nuclei"/>
 	<parameter name="activation_function" type="list" values="relu/scaledsigmoid/secondorder" default="scaledsigmoid" description="Function applied to output"/>
+
+	<parameter name="moving_avg_window_size" type="int" default="100" description="size of moving avg window used for adaptation to set point" />
 	
 	<input name="EXCITATION" description="The excitatory input" optional="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
 	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
+
+	<input name="SETPOINT" description="Activity setpoint - weights will be changed to maintain this. Ignored if not connected" optional="yes" />
+	<input name="ADAPTATIONRATE" description="Learning rate for weights when using activity setpoint" optional="yes" />
 
 	<input name="EX_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
 	<input name="INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />

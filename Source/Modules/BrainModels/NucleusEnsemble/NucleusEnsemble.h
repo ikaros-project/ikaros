@@ -48,6 +48,8 @@ public:
     float       SecondOrder(float x);
     float       ScaledSigmoid(float x);
     float       ReLu(float x);
+
+    float       CalcRndAvg(float a, float *timeseries, int size);
     // pointers to inputs and outputs
     // and integers to represent their sizes
     int         ensemble_size;
@@ -87,6 +89,12 @@ public:
     float **     inhibition_topology;
     float **     shunting_topology;
     float **     recurrent_topology;
+
+    float *     setpoint;
+    float *     adaptationrate;
+    float *     weights;
+    float **    longtermavg;
+    int         avg_win_len;
     
     int			excitation_size;
     int			inhibition_size;

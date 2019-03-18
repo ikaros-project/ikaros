@@ -31,7 +31,7 @@
 
 using namespace ikaros;
 
-
+const float cDEFAULT_ADAPTRATE = 0.001f;
 void
 NucleusEnsemble::Init()
 {
@@ -52,6 +52,7 @@ NucleusEnsemble::Init()
     Bind(shunting_inhibition_topology_name, "shunting_inhibition_topology");
     Bind(recurrent_topology_name, "recurrent_topology");
     Bind(activation_function_name, "activation_function");
+    Bind(avg_win_len, "moving_avg_window_size");
 
     io(excitation, excitation_size, "EXCITATION");
     io(inhibition, inhibition_size, "INHIBITION");
@@ -69,6 +70,17 @@ NucleusEnsemble::Init()
     shunting_topology = create_matrix(shunting_inhibition_size, ensemble_size);
     recurrent_topology = create_matrix(ensemble_size, ensemble_size);
 
+    io(setpoint, dummy_sz_x, "SETPOINT");
+    io(adaptationrate, dummy_sz_x, "ADAPTATIONRATE");
+    if(setpoint)
+    {
+        weights = create_array(ensemble_size);
+        if(!adaptationrate)
+        {
+            adaptationrate = create_array(ensemble_size);
+            set_array(adaptationrate, cDEFAULT_ADAPTRATE, ensemble_size);
+        }
+    }
     if(!ext_excitation_topology && excitation)
         SetExcTopology(excitation_topology_name);
     if(!ext_inhibition_topology && inhibition)
@@ -80,6 +92,9 @@ NucleusEnsemble::Init()
     SetActivationFunc(activation_function_name);
 
     x = create_array(ensemble_size); // pre activation
+
+    longtermavg = create_matrix(avg_win_len, ensemble_size);
+    set_matrix(longtermavg, 0.5f, avg_win_len, ensemble_size);
 }
 
 
@@ -92,6 +107,7 @@ NucleusEnsemble::~NucleusEnsemble()
     destroy_matrix(shunting_topology);
     destroy_matrix(recurrent_topology);
     destroy_array(x);
+    destroy_matrix(longtermavg);
 }
 
 
@@ -140,18 +156,36 @@ NucleusEnsemble::Tick()
         tau_scale = 1.0;
     }
 
-    
-    
+    float *phival = create_array(ensemble_size);
+    set_array(phival, phi, ensemble_size);
+    if(setpoint)
+    {
+        // adapt weights so activation is closer to setpoint
+        for(int i = 0; i < ensemble_size; i++)
+        {
+            // update excitation scale according to long term avg and
+            // set point
+            int ix = random(avg_win_len); // use rnd placement instead of queue
+            longtermavg[i][ix] = output[i];
+            float avg = mean(longtermavg[i], ensemble_size);
+            weights[i] += (avg - setpoint[i])*adaptationrate[i];
+        }
+        copy_array(phival, weights, ensemble_size);
+    }
+
     for(int i = 0; i < ensemble_size; i++)
     {
         // calculate activation for each nucleus
         float s = 1/(1+psi*psi_scale*sh_inh_sum[i]); // shunting
-        float a = phi * phi_scale * s * exc_sum[i]; // excitation
+        float a = phival[i] * phi_scale * s * exc_sum[i]; // excitation
         a += tau * tau_scale * rec_sum[i];      // recursion
         a -= chi * chi_scale * inh_sum[i];      // inhibition
         x[i] += epsilon * (a - x[i]);           // effect of previous
         output[i] = alpha + beta * (this->*Activate)(x[i]);
+
     }
+
+    
     
 
     // clean up
@@ -159,6 +193,7 @@ NucleusEnsemble::Tick()
     destroy_array(inh_sum);
     destroy_array(sh_inh_sum);
     destroy_array(rec_sum);
+    destroy_array(phival);
 }
 
 float 
@@ -187,6 +222,7 @@ NucleusEnsemble::ReLu(float x)
     else
         return x;
 }
+
 
 /*
 void 
