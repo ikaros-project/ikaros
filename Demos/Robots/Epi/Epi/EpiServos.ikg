@@ -341,10 +341,5 @@
         <connection source = "LeftArm.ERRORS"    target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
         <connection source = "RightArm.ERROR"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
         <connection source = "Pupil.ERROR"      target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "ERROR"                      source = "ERROR_G.OUTPUT" />
-
-	
-
-
-
+    <output name = "ERRORS"                      source = "ERROR_G.OUTPUT" />
 </group>
