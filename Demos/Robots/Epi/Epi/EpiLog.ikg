@@ -48,7 +48,7 @@
             <column name = "ServoPresentCurrent" />
             <column name = "ServoGoalTorque" />
             <column name = "ServoGoalAcceleration" />
-            <column name = "ServoError" />
+            <column name = "ServoErrors" />
             <column name = "Triggers" />
         </module>
 
@@ -68,7 +68,7 @@
 		<connection  source = "EpiBlack.Servos.FEEDBACK_PRESENT_CURRENT"  		target = "Log.ServoPresentCurrent"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_GOAL_TORQUE"  			target = "Log.ServoGoalTorque"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_GOAL_ACCELERATION"  	target = "Log.ServoGoalAcceleration"/>
-		<connection  source = "EpiBlack.Servos.ERROR"  							target = "Log.ServoError"/>
+		<connection  source = "EpiBlack.Servos.ERRORS"  						target = "Log.ServoErrors"/>
 		<_connection  source = "EpiBlack.MotionRecorder.TRIG_OUT" source_offset = "0" target_offset = "6" size = "1"				target = "Log.Triggers"/>
 		
 		<module class = "Constant" name = "FIVE" data = "5 5" />
