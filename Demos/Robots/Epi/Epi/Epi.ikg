@@ -288,11 +288,11 @@ PupilModelA = "100"
 
 <!-- Actuators/Proprioception -->
 <module class = "EpiServos" 	name = "Servos" 		/>
-	<_connection	source = "GOAL_POSITION.OUTPUT" 		target = "Servos.GOAL_POSITION" />
+	<connection	source = "GOAL_POSITION.OUTPUT" 		target = "Servos.GOAL_POSITION" />
 	<connection	source = "SERVO_SPEED.OUTPUT" 			target = "Servos.MOVING_SPEED" />
 	<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
     <!--  Done by motion recorder -->
-    <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
+    <connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
     <!-- Pupil override -->
     <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
 

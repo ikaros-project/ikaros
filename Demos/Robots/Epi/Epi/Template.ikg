@@ -16,13 +16,13 @@
 	RightArmDynamixel 		= "DynamixelSimulate"
 	PupilDynamixel 			= "DynamixelSimulate"
 
-	VisionInput 			= "InputJPEG"
+	VisionInput 			= "InputVideoStream"
 
-	LogData 				= "yes"
+	LogData 				= "no"
 	LogEyesImages 			= "no"
 	LogEyesVideos			= "no"
 
-	MotionRecorderSystemOverrideValue = "100"
+	MotionRecorderSystemOverrideValue = "-1"
 	/>
 
 

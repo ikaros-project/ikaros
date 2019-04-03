@@ -2,7 +2,7 @@
 
 <group name = "Epi Servos" >
 	
-    <input name = "GOAL_POSITION"   target = "GOAL_POSITION_G.INPUT" /> 
+    <input name = "GOAL_POSITION"   target = "GOAL_POSITION_G.INPUT_1" /> 
     <input name = "MOVING_SPEED"    target = "MOVING_SPEED_G.INPUT" /> 
     <input name = "TORQUE_LIMIT"    target = "TORQUE_LIMIT_G.INPUT" /> 
     <input name = "TORQUE_ENABLE"   target = "TORQUE_ENABLE_G.INPUT_1" /> 
