@@ -6,7 +6,7 @@
 	<input name = "D_GAIN" 							target = "NotAvailable.INPUT"/>
 	<input name = "I_GAIN" 							target = "NotAvailable.INPUT"/>
 	<input name = "P_GAIN" 							target = "NotAvailable.INPUT"/>
-	<input name = "GOAL_POSITION"	 				target = "GOAL_POSITION_SIM.NPUT"/>
+	<input name = "GOAL_POSITION"	 				target = "GOAL_POSITION_SIM.INPUT"/>
 	<input name = "MOVING_SPEED" 					target = "NotAvailable.INPUT"/>
 	<input name = "TORQUE_LIMIT"					target = "NotAvailable.INPUT"/>
 	<input name = "GOAL_TORQUE"						target = "NotAvailable.INPUT"/>
