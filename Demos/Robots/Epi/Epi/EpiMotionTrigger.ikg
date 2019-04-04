@@ -1,3 +1,34 @@
+  <module
+		class = "NeuralArray"
+		name = "LowLevelMotionTrigger"
+        epsilon = "0.05"
+	/>
+	
+	<connection  source = "LowLevelMotionTrigger.OUTPUT"  target = "LowLevelMotionPlayer.TRIG" />
+
+
+	<view name="View">
+
+		<bar-graph
+            x="40" y="40"
+            width="301"
+            height="301"
+            source="LowLevelMotionTrigger.ACTIVITY"
+        />
+
+        <bar-graph
+            x="360" y="40"
+            width="301"
+            height="301"
+            source="LowLevelMotionTrigger.OUTPUT"
+        />
+	</view>
+    
+    <!-- Hack to get the motionrecorder to work as as motionplayer -->
+    <module class = "Constant" name = "HACK1" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0     0  0  " />
+
+    <connection  source = "HACK1.OUTPUT"  target = "LowLevelMotionPlayer.INPUT" />
+
 	<module
 			class = "MotionRecorder"
 			name = "LowLevelMotionPlayer"
@@ -6,13 +37,16 @@
             filename = "itchIdleMotions/motion.%d.mot"
             json_filename = "itchIdleMotions/motion.%d.json"
             smoothing_time = "40"
-            max_motions="20"
+            max_motions="72"
 	/>
 
-		<!-- Get position from servos -->
-        <_connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
-       	
-        <!-- Override system output  -->
-	    <_connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE_G.INPUT_2" />
-        <_connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION_G.INPUT_2" />
+	<connection  source = "LowLevelMotionPlayer.COMPLETED"  target = "LowLevelMotionTrigger.INHIBITION" />
+
+    <module class = "Constant" name = "LowLevelMotionPlayerA" data = "   1  	   1    1    1   1   	    0    1    1    1    1    1     0    1    1    1    1    1  0  0     " />
+		<connection source = "LowLevelMotionPlayerA.OUTPUT" target = "LowLevelMotionPlayerPop.AMPLITUDE"/>
+
+    <!-- Popalation decoder -->
+    <module class = "PopulationCoder" name = "LowLevelMotionPlayerPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+	    <connection source = "LowLevelMotionPlayer.OUTPUT"  target = "LowLevelMotionPlayerPop.INPUT" />
+
 
