@@ -41,7 +41,7 @@
    <module class = "Sink" name = "NotAvailable" />
 
     <!-- Values for motionRecoder override -->
-    <module class = "Constant" name = "MotionRecorderOffV" data = "0" />
+    <module class = "Constant" name = "MotionRecorderOffV" data = "0.001" />
     <module class = "Constant" name = "MotionRecorderOnV" data = "@MotionRecorderSystemOverrideValue" />
 
         <connection source = "MotionRecorderOffV.OUTPUT"    target = "TORQUE_ENABLE_G.VALUE_1"          delay = "1"/>
