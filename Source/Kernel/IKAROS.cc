@@ -3141,7 +3141,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 
 	const char * filename = file_exists(include_file);
 
-    filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes
+    filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
 
 	if(!filename)
 	{
