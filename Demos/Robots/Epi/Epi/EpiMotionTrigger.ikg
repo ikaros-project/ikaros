@@ -25,9 +25,10 @@
 	</view>
     
     <!-- Hack to get the motionrecorder to work as as motionplayer -->
-    <module class = "Constant" name = "HACK1" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0     0  0  " />
+    <_module class = "Constant" name = "HACK1" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0     0  0  " />
 
-    <connection  source = "HACK1.OUTPUT"  target = "LowLevelMotionPlayer.INPUT" />
+    <_connection  source = "HACK1.OUTPUT"  target = "LowLevelMotionPlayer.INPUT" />
+    <connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "LowLevelMotionPlayer.INPUT" />
 
 	<module
 			class = "MotionRecorder"
