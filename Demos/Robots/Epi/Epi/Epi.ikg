@@ -104,7 +104,7 @@ PupilModelA = "100"
 <!-- This needs to be taken cared of sometime -->
 <module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 1 1		0.5 0.5 0.5 0.5 0.5 0.5 	0.5 0.5 0.5 0.5 0.5 0.5     1 1" />
 <module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	 	0.5 0.5 1 1 	0.5 0.5 0.5 0.5 0.5 0.5 	0.5 0.5 0.5 0.5 0.5 0.5	 	1 1" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "  1  	  0   0 0 0   	  1   1   1   1   1   0       1   1   1   1   1   0     1 1" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "  1  	  1   1 1 1   	  1   1   1   1   1   0       1   1   1   1   1   0     1 1" />
 
 
 
@@ -309,9 +309,10 @@ PupilModelA = "100"
 <!-- ************************ -->
 <!-- ************************ -->
 
-<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "2" by_row = "true"/>
+<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "3" by_row = "true" switch_time = "40"/>
 	<connection source = "HighLevelMotorArbiter.OUTPUT"  	target = "LowLevelArbiter.INPUT_1" />
 	<connection source = "PupilContPop.OUTPUT"  			target = "LowLevelArbiter.INPUT_2" />
+	<connection source = "LowLevelMotionPlayerPop.OUTPUT"  	target = "LowLevelArbiter.INPUT_3" />
    
 
 <!-- Popalation decoder -->
