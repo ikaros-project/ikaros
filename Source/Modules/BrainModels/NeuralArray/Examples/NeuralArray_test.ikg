@@ -23,16 +23,14 @@
             x="40" y="40"
             width="301"
             height="301"
-            module="N"
-            source="ACTIVITY"
+            source="N.ACTIVITY"
         />
 
         <bar-graph
             x="360" y="40"
             width="301"
             height="301"
-            module="N"
-            source="OUTPUT"
+            source="N.OUTPUT"
         />
 	</view>
     <module class = "Logger" name = "Logger" />
