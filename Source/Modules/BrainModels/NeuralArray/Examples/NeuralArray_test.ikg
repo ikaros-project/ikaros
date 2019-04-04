@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+    <module
+        class = "Constant"
+        name = "C"
+        data = "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0"
+    />
+    
+    <module
+		class = "NeuralArray"
+		name = "N"
+        epsilon = "0.05"
+	/>
+	
+	<connection  source = "C.OUTPUT"  target = "N.INHIBITION" />
+
+
+	<view name="View">
+
+		<bar-graph
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="N"
+            source="ACTIVITY"
+        />
+
+        <bar-graph
+            x="360" y="40"
+            width="301"
+            height="301"
+            module="N"
+            source="OUTPUT"
+        />
+	</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
