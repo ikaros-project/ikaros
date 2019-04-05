@@ -17,7 +17,7 @@
 		/>
 	</example>
     
-    <parameter name="alpha" type="float" default="0" description="passive increase" />
+    <parameter name="alpha" type="float" default="0.001" description="passive increase" />
     <parameter name="beta" type="float" default="1" description="activity scaling" />
 
     <parameter name="phi" type="float" default="1.0" description="excitation weight" />
@@ -27,6 +27,8 @@
     <parameter name="psi" type="float" default="1.0" description="shunting weight" />
     <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
 
+    <parameter name="noise" type="float" default="0.0001" description="time constant" />
+    
     <parameter name="epsilon" type="float" default="0.1" description="time constant" />
 
 	<input name="EXCITATION" description="The excitatory input" optional="yes" />

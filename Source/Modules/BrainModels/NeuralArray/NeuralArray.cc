@@ -50,18 +50,36 @@ NeuralArray::Init()
 void
 NeuralArray::Tick()
 {
-    for(int i=0; i<size; i++)
-        activity[i] += phi*excitation[i] - chi*inhibition[i] + alpha * (1-activity[i]) + gaussian(0, noise);
+    int reset_width = 5;
+    
+    // TEST
+    
+     for(int i=0; i<size; i++)
+    {
+        float ex = excitation ? phi*excitation[i] : 0;
+        float ih = 0; // inhibition ? chi*inhibition[i] : 0;
+        float n = noise > 0 ? gaussian_noise(0, noise) : 0;
+        activity[i] += ex - ih + alpha * (1-activity[i]) + n;
+    }
+    
+    int m = arg_max(activity, size);
     
     float I = norm(inhibition, size);
+
     if (I > 0)
+    {
+        for(int i=m-reset_width; i<m+reset_width; i++)
+            if(i>=0 && i < size)
+                activity[i] = 0;
+
+        activity[m] = 0;
         reset_array(output, size);
+    }
 
     // Set output if not set and activity high enough
     float O = norm(output, size);
     if(O < 1)
     {
-        int m = arg_max(activity, size);
         if(activity[m] > 0.9)
             output[m] = 1;
     }

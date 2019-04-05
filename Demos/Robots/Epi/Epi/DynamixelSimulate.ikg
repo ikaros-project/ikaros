@@ -6,7 +6,7 @@
 	<input name = "D_GAIN" 							target = "NotAvailable.INPUT"/>
 	<input name = "I_GAIN" 							target = "NotAvailable.INPUT"/>
 	<input name = "P_GAIN" 							target = "NotAvailable.INPUT"/>
-	<input name = "GOAL_POSITION"	 				target = "GOAL_POSITION_SIM.NPUT"/>
+	<input name = "GOAL_POSITION"	 				target = "GOAL_POSITION_SIM.INPUT"/>
 	<input name = "MOVING_SPEED" 					target = "NotAvailable.INPUT"/>
 	<input name = "TORQUE_LIMIT"					target = "NotAvailable.INPUT"/>
 	<input name = "GOAL_TORQUE"						target = "NotAvailable.INPUT"/>
@@ -29,7 +29,7 @@
 	<output name = "FEEDBACK_PRESENT_CURRENT" 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_GOAL_TORQUE" 			source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_GOAL_ACCELERATION" 	source = "FAKE_DATA.OUTPUT" />
-	<output name = "ERROR" 							source = "FAKE_DATA_ERROR.OUTPUT" />/>
+	<output name = "ERRORS" 						source = "FAKE_DATA_ERROR.OUTPUT" />/>
 
     <!-- Simulate -->
     <module class = "Sink" name = "NotAvailable" />

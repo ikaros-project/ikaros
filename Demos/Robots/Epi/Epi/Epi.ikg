@@ -288,11 +288,11 @@ PupilModelA = "100"
 
 <!-- Actuators/Proprioception -->
 <module class = "EpiServos" 	name = "Servos" 		/>
-	<_connection	source = "GOAL_POSITION.OUTPUT" 		target = "Servos.GOAL_POSITION" />
+	<connection	source = "GOAL_POSITION.OUTPUT" 		target = "Servos.GOAL_POSITION" />
 	<connection	source = "SERVO_SPEED.OUTPUT" 			target = "Servos.MOVING_SPEED" />
 	<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
     <!--  Done by motion recorder -->
-    <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
+    <connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
     <!-- Pupil override -->
     <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
 
@@ -337,31 +337,24 @@ PupilModelA = "100"
 	<!-- test led -->
 
 
-	<!-- Eye Color -->
-	<module class = "Constant" name = "EColor" data = "0.5 0.5 1´" />
+	<!-- Eye Color 0.8 0.7 0.1 -->
+	<module class = "Constant" name = "EColor" data = "0.1 0.5 0.5" />
 		<connection source = "EColor.OUTPUT"  target = "LED.EYE_COLOR" />
 	<!-- Mouth Color -->
-	<module class = "Constant" name = "MColor" data = "0.5 0.5 1´" />
+	<module class = "Constant" name = "MColor" data = "0.2 0.1 0.5" />
 	<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
 
 
 	<!-- Intense -->
 	<module class = "Constant" name = "EIntense" data = "1´" />
-		<connection source = "INT.OUTPUT"  target = "LED.EYE_INTENSE" />
+		<connection source = "EIntense.OUTPUT"  target = "LED.EYE_INTENSE" />
 	<module class = "Constant" name = "MIntense" data = "1´" />
 		<connection source = "MIntense.OUTPUT"  target = "LED.MOUTH_INTENSE" />
 
+
 	<!-- Blink -->
-	<module
-		class		=	"FunctionGenerator"
-		name		=	"Blink"
-		type		=	"sin"
-		frequency	=	"0.1"
-		offset      =	"0.0"
-		amplitude	=	"1"
-	    shift		=	"0.1"
-    />
-	<connection source = "Blink.OUTPUT"  target = "LED.BLINK" />
+	<module class = "Randomizer" name = "BlinkRandom" outputsize = "1" minimum = "0" maximum = "1" interval = "4"/>
+		<connection source = "BlinkRandom.OUTPUT"  target = "LED.BLINK" />
 
 	<!-- Speeking -->
 		<module
@@ -369,21 +362,10 @@ PupilModelA = "100"
 		name		=	"Speek"
 		type		=	"sin"
 		frequency	=	"10"
-		offset      =	"0.0"
-		amplitude	=	"1"
-	    shift		=	"0.1"
-    />
-		<!-- Speeking -->
-		<module
-		class		=	"FunctionGenerator"
-		name		=	"INT"
-		type		=	"sin"
-		frequency	=	"0.2"
 		offset      =	"0.5"
-		amplitude	=	"0.3"
+		amplitude	=	"0"
 	    shift		=	"0.1"
     />
-
 	<connection source = "Speek.OUTPUT"  target = "LED.SPEEKING" />
 
 
@@ -469,7 +451,7 @@ PupilModelA = "100"
 
     />
     
-			<!-- Speeking -->
+	<!-- Speeking -->
 	<module
 		class		=	"FunctionGenerator"
 		name		=	"GYMPA"
@@ -507,7 +489,7 @@ PupilModelA = "100"
 		
 		<connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
         <connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
-        <connection  source = "ZERO3.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "0" 	size ="19"/>
+        <connection  source = "ZERO3.OUTPUT" 	 		 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "0" 	size ="19"/>
 
 
 
@@ -530,8 +512,12 @@ PupilModelA = "100"
 </view>
 
 
-	<!-- Motion Recorder -->
+	<!-- Motion Recorder Only used to record new motions -->
     <?include file="EpiMotionRecorder.ikg" ?>
+
+	<!-- Low level motion triger. Trigger motions -->
+    <?include file="EpiMotionTrigger.ikg" ?>
+
 
 	<!-- Log -->
 	<module class="EpiLog" name="EpiLog" active = "yes"/>

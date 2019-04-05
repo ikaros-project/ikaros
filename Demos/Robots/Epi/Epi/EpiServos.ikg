@@ -2,7 +2,7 @@
 
 <group name = "Epi Servos" >
 	
-    <input name = "GOAL_POSITION"   target = "GOAL_POSITION_G.INPUT" /> 
+    <input name = "GOAL_POSITION"   target = "GOAL_POSITION_G.INPUT_1" /> 
     <input name = "MOVING_SPEED"    target = "MOVING_SPEED_G.INPUT" /> 
     <input name = "TORQUE_LIMIT"    target = "TORQUE_LIMIT_G.INPUT" /> 
     <input name = "TORQUE_ENABLE"   target = "TORQUE_ENABLE_G.INPUT_1" /> 
@@ -41,7 +41,7 @@
    <module class = "Sink" name = "NotAvailable" />
 
     <!-- Values for motionRecoder override -->
-    <module class = "Constant" name = "MotionRecorderOffV" data = "0" />
+    <module class = "Constant" name = "MotionRecorderOffV" data = "0.001" />
     <module class = "Constant" name = "MotionRecorderOnV" data = "@MotionRecorderSystemOverrideValue" />
 
         <connection source = "MotionRecorderOffV.OUTPUT"    target = "TORQUE_ENABLE_G.VALUE_1"          delay = "1"/>
@@ -339,12 +339,7 @@
         <connection source = "Body.ERRORS"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
         <connection source = "Head.ERRORS"       target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
         <connection source = "LeftArm.ERRORS"    target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
-        <connection source = "RightArm.ERROR"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-        <connection source = "Pupil.ERROR"      target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "ERROR"                      source = "ERROR_G.OUTPUT" />
-
-	
-
-
-
+        <connection source = "RightArm.ERRORS"   target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.ERRORS"      target = "ERROR_G.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+    <output name = "ERRORS"                      source = "ERROR_G.OUTPUT" />
 </group>

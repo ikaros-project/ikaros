@@ -1,0 +1,18 @@
+	<module
+			class = "MotionRecorder"
+			name = "LowLevelMotionPlayer"
+            mask = "1 1"
+            torque = "0.25 0.25"
+            filename = "itchIdleMotions/motion.%d.mot"
+            json_filename = "itchIdleMotions/motion.%d.json"
+            smoothing_time = "40"
+            max_motions="20"
+	/>
+
+		<!-- Get position from servos -->
+        <_connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
+       	
+        <!-- Override system output  -->
+	    <_connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE_G.INPUT_2" />
+        <_connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION_G.INPUT_2" />
+
