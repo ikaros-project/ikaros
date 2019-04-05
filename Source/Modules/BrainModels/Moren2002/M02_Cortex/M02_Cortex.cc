@@ -58,4 +58,4 @@ M02_Cortex::Tick()
 
 
 
-static InitClass init("M02_Cortex", &M02_Cortex::Create, "Source/Modules/BrainModels/M02_Cortex/");
+static InitClass init("M02_Cortex", &M02_Cortex::Create, "Source/Modules/BrainModels/Moren2002/M02_Cortex/");
