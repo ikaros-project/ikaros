@@ -696,6 +696,18 @@ interaction = {
             context.stroke();
         }
 
+        function draw_back_connection(context, x0, y0, x1, y1, top)
+        {
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.lineTo(x0+20, y0);
+            context.lineTo(x0+20, top);
+            context.lineTo(x1-20, top);
+            context.lineTo(x1-20, y1);
+            context.lineTo(x1, y1);
+            context.stroke();
+        }
+        
         function draw_bez_arrow(context, x0, y0, x1, y1, xc, yc, r)
         {
             let d = Math.hypot(x0-x1, y0-y1);
@@ -733,15 +745,23 @@ interaction = {
                 let p1 = interaction.io_pos[c.source];
                 if(!p1)
                 {
-                    pp = interaction.module_pos[c.source.split('.')[0]];
+                    let pp = interaction.module_pos[c.source.split('.')[0]];
                     p1 = {'x':pp.x, 'y':pp.y};
                     p1.x += 110;
                     p1.y += 26+13/2;
                 }
                 
                 let p2 = interaction.io_pos[c.target];
-                draw_chord(context, p1.x, p1.y, p2.x, p2.y, 0.5*(p1.x+p2.x), 0.5*(p1.y+p2.y), 0);
-            //    draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, 0.5*(p1.x+p2.x), 0.5*(p1.y+p2.y), interaction.main_radius);
+                
+                if(p1.x < p2.x)
+                    draw_chord(context, p1.x, p1.y, p2.x, p2.y, 0.5*(p1.x+p2.x), 0.5*(p1.y+p2.y), 0);
+                else
+                {
+                    let mp0 = interaction.module_pos[c.source.split('.')[0]];
+                    let mp1 = interaction.module_pos[c.target.split('.')[0]];
+                    let top = Math.min(mp0.y, mp1.y);
+                    draw_back_connection(context, p1.x, p1.y, p2.x, p2.y, top-20); // heuristics: over/under/inbetween
+                }
             }
             catch(err)
             {
@@ -1237,12 +1257,7 @@ interaction = {
         interaction.selectedObject.parameters.attributes['_x'] = newLeft;
         interaction.selectedObject.parameters.attributes['_y'] = newTop;
         interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
-        
         interaction.calculateIOPositions(interaction.selectedObject.parameters, interaction.selectedObject.parameters.attributes._x, interaction.selectedObject.parameters.attributes._y);
-        
-        // Calculate IO positions
-        
-        
     },
     selectModule: function(obj) {
         interaction.deselectObject()
