@@ -610,6 +610,46 @@ std::string GroupElement::JSONString(int d)
     
     s += ",\n";
     
+    //     std::vector<InputElement> inputs;
+    //     std::unordered_map<std::string, OutputElement *> outputs;
+
+    if(inputs.size())
+    {
+        b = "";
+        s += tab2 + "\"inputs\":\n" + tab2 + "[\n";
+        for(auto p : inputs)
+        {
+            s += b + p.JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]";
+    }
+    else
+        s += tab2 + "\"inputs\": []";
+    
+    s += ",\n";
+    
+
+    if(outputs.size())
+    {
+        b = "";
+        s += tab2 + "\"outputs\":\n" + tab2 + "[\n";
+        for(auto p : outputs)
+        {
+            s += b + p.second->JSONString(d+2);
+            b = ",\n";
+        }
+        s += "\n";
+        s += tab2 + "]";
+    }
+    else
+        s += tab2 + "\"outputs\": []";
+    
+    s += ",\n";
+    
+
+
     if(connections.size())
     {
         b = "";
