@@ -683,12 +683,8 @@ interaction = {
             return {x:x, y:y};
         }
 
-        function draw_chord(context, x0, y0, x1, y1, xc, yc, r)
+        function draw_chord(context, x0, y0, x1, y1)
         {
-            let d = Math.hypot(x0-x1, y0-y1);
-            let a = 0.3 + 0.5*d/(2*r);
-            let b = 1-a;
-
             context.beginPath();
             context.moveTo(x0, y0);
  //           context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
@@ -708,22 +704,6 @@ interaction = {
             context.stroke();
         }
         
-        function draw_bez_arrow(context, x0, y0, x1, y1, xc, yc, r)
-        {
-            let d = Math.hypot(x0-x1, y0-y1);
-            let a = 0.3 + 0.5*d/(2*r);
-            let b = 1-a;
-
-            context.beginPath();
-            context.moveTo(x0, y0);
-            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
-            context.stroke();
-            
-            m0 = bezier(0.7, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1});
-            m1 = bezier(0.8, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1});
-            interaction.drawArrowHead(context, m0.x, m0.y, m1.x, m1.y);
-        }
-
         let canvas = document.querySelector("#maincanvas");
         let context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -731,8 +711,6 @@ interaction = {
         context.strokeStyle="#EEEEEE";
         context.lineWidth = 50;
         context.beginPath();
-//        context.arc(interaction.main_center, interaction.main_center, interaction.main_radius, 0, 2*Math.PI);
-//        context.stroke();
 
         for(let c of interaction.currentView.connections)
         {
@@ -754,7 +732,7 @@ interaction = {
                 let p2 = interaction.io_pos[c.target];
                 
                 if(p1.x < p2.x)
-                    draw_chord(context, p1.x, p1.y, p2.x, p2.y, 0.5*(p1.x+p2.x), 0.5*(p1.y+p2.y), 0);
+                    draw_chord(context, p1.x, p1.y, p2.x, p2.y);
                 else
                 {
                     let mp0 = interaction.module_pos[c.source.split('.')[0]];
@@ -1230,11 +1208,11 @@ interaction = {
         evt.stopPropagation()
         let dX = evt.clientX - interaction.initialMouseX;
         let dY = evt.clientY - interaction.initialMouseY;
-        interaction.setModulePosition(dX,dY,false); // !evt.altKey
+        interaction.setModulePosition(dX,dY);
         interaction.drawConnections();
         return false;
     },
-    setModulePosition: function (dx, dy, constrain) {
+    setModulePosition: function (dx, dy) {
         let m_width = 100;  // should not be repeated here
         let m_height = 100;
         let m_corner = 50;
@@ -1243,27 +1221,19 @@ interaction = {
         
         let newLeft = interaction.startX + dx;
         let newTop = interaction.startY + dy;
-
-        if(constrain)
-        {
-            let a = Math.atan2(newTop-interaction.main_center + interaction.module_radius_x, newLeft-interaction.main_center + interaction.module_radius_y)
-            newLeft = interaction.main_center+interaction.main_radius*Math.cos(a) - interaction.module_radius_x;
-            newTop = interaction.main_center+interaction.main_radius*Math.sin(a) - interaction.module_radius_y;
-        }
-        
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters.attributes['_x'] = newLeft;
-        interaction.selectedObject.parameters.attributes['_y'] = newTop;
-        interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
+        interaction.selectedObject.parameters.attributes._x = newLeft;
+        interaction.selectedObject.parameters.attributes._y = newTop;
+        let module_name = interaction.selectedObject.firstElementChild.innerText;
+        interaction.module_pos[module_name] = {'x':newLeft , 'y': newTop};
         interaction.calculateIOPositions(interaction.selectedObject.parameters, interaction.selectedObject.parameters.attributes._x, interaction.selectedObject.parameters.attributes._y);
     },
     selectModule: function(obj) {
         interaction.deselectObject()
         interaction.selectedObject = obj;
         interaction.selectedObject.className += ' selected';
-        //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
         module_inspector.select(obj);
         interaction.group_inspector.style.display = "none";
         interaction.module_inspector.style.display = "block";
