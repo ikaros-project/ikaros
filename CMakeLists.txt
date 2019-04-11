@@ -19,23 +19,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(CMAKE_C_COMPILER "clang")
 	set(CMAKE_CXX_COMPILER "clang++")
 
-   	#SET(GUI_TYPE MACOSX_BUNDLE)
-   	include_directories( /Developer/Headers/FlatCarbon )
-   	find_library(ACCELERATE_LIBRARY Accelerate)
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(QUARTZ_LIBRARY Quartz)
-    find_library(VIDEOTOOLBOX_LIBRARY VideoToolbox)
-    find_library(AVKIT_LIBRARY AVKit)
-    find_library(AVFOUNDATION_LIBRARY AVFoundation)
+  find_library(ACCELERATE_LIBRARY Accelerate) # Hardware Acceleration
+  find_library(COCOA_LIBRARY Cocoa)           # Wrapper for including the Cocoa frameworks AppKit.framework, Foundation.framework, and CoreData.framework.
+  find_library(QUARTZ_LIBRARY QuartzCore)     # Contains the interfaces for Core Image, Core Animation, and Core Video. See Quartz Core Framework Reference. Used by CIFaceDetector
 
-
-  	mark_as_advanced(ACCELERATE_LIBRARY
-                     COCOA_LIBRARY
-                     VIDEOTOOLBOX_LIBRARY
-                     AVFOUNDATION_LIBRARY
-                     AVKIT_LIBRARY
-                     QUARTZ_LIBRARY)
-    set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${VIDEOTOOLBOX_LIBRARY} ${AVFOUNDATION_LIBRARY} ${AVFKIT_LIBRARY} ${QUARTZ_LIBRARY})
+  # An advanced variable will not be displayed in any of the cmake GUIs
+  mark_as_advanced(ACCELERATE_LIBRARY COCOA_LIBRARY QUARTZ_LIBRARY)
+    set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} )
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
@@ -151,7 +141,6 @@ set(MODULES_INCLUDS ${MODULES_INCLUDS})
 set(MODULES_LIBS ${MODULES_LIBS})
 include_directories(${MODULES_INCLUDS})
 target_link_libraries (ikaros ${MODULES_LIBS})
-#  add_dependencies(ikaros MPIFaceDetector)
 
 # Set binary name to ikaros_d in debug mode
 set_target_properties(ikaros PROPERTIES DEBUG_POSTFIX "_d")
@@ -161,4 +150,4 @@ set_target_properties(ikaros PROPERTIES DEBUG_POSTFIX "_d")
 # list (SORT _variableNames)
 # foreach (_variableName ${_variableNames})
 #    message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
+#endforeach()

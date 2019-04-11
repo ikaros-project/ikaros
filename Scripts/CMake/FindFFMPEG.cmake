@@ -10,7 +10,7 @@
 # Find header files
 find_path(FFMPEG_INCLUDE_DIR1
   NAMES
-    avformat.h
+  libavformat/avformat.h
     PATHS
       /usr/local/include/ffmpeg
       /usr/include/ffmpeg
@@ -24,7 +24,7 @@ find_path(FFMPEG_INCLUDE_DIR1
 
 find_path(FFMPEG_INCLUDE_DIR2
   NAMES
-    avutil.h
+  libavutil/avutil.h
   PATHS
     /usr/local/include/ffmpeg
     /usr/include/ffmpeg
@@ -38,7 +38,7 @@ find_path(FFMPEG_INCLUDE_DIR2
 
 find_path(FFMPEG_INCLUDE_DIR3
   NAMES
-    avcodec.h
+  libavcodec/avcodec.h
   PATHS
     /usr/local/include/ffmpeg
     /usr/include/ffmpeg
@@ -52,7 +52,7 @@ find_path(FFMPEG_INCLUDE_DIR3
 
 find_path(FFMPEG_INCLUDE_DIR4
   NAMES
-    swscale.h
+    libswscale/swscale.h
   PATHS
     /usr/local/include/ffmpeg
     /usr/include/ffmpeg
@@ -66,7 +66,7 @@ find_path(FFMPEG_INCLUDE_DIR4
 
 find_path(FFMPEG_INCLUDE_DIR5
   NAMES
-    avdevice.h
+  libavdevice/avdevice.h
   PATHS
     /usr/local/include/ffmpeg
     /usr/include/ffmpeg
@@ -79,7 +79,7 @@ find_path(FFMPEG_INCLUDE_DIR5
   )
 
 if (FFMPEG_INCLUDE_DIR1 AND FFMPEG_INCLUDE_DIR2 AND FFMPEG_INCLUDE_DIR3 AND FFMPEG_INCLUDE_DIR4 AND FFMPEG_INCLUDE_DIR5)
-  set(FFMPEG_INCLUDE_DIR
+  set(FFMPEG_INCLUDE_DIRS
   ${FFMPEG_INCLUDE_DIR1}
   ${FFMPEG_INCLUDE_DIR2}
   ${FFMPEG_INCLUDE_DIR3}
@@ -169,6 +169,6 @@ if (FFMPEG_LIBRARY1 AND FFMPEG_LIBRARY2 AND FFMPEG_LIBRARY3 AND FFMPEG_LIBRARY4 
 endif ()
 
 if (FFMPEG_INCLUDE_DIR1 AND FFMPEG_INCLUDE_DIR2 AND FFMPEG_INCLUDE_DIR3 AND FFMPEG_INCLUDE_DIR4 AND FFMPEG_INCLUDE_DIR5 AND FFMPEG_LIBRARY1 AND FFMPEG_LIBRARY2 AND FFMPEG_LIBRARY3 AND FFMPEG_LIBRARY4 AND FFMPEG_LIBRARY5 AND FFMPEG_LIBRARY6)
-  message(STATUS "Found FFMPEG: Includes: ${FFMPEG_INCLUDE_DIR} Libraries: ${FFMPEG_LIBRARIES}")
+  message(STATUS "Found FFMPEG: Includes: ${FFMPEG_INCLUDE_DIRS} Libraries: ${FFMPEG_LIBRARIES}")
   set(FFMPEG_FOUND "YES" )
 endif ()
