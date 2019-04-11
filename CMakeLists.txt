@@ -25,7 +25,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
   # An advanced variable will not be displayed in any of the cmake GUIs
   mark_as_advanced(ACCELERATE_LIBRARY COCOA_LIBRARY QUARTZ_LIBRARY)
-    set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} )
+    set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${QUARTZ_LIBRARY} )
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
