@@ -335,7 +335,6 @@ PupilModelA = "100"
     </view>
 -->
 
-	<!-- test led -->
 
 
 	<!-- Eye Color 0.8 0.7 0.1 -->
@@ -346,6 +345,27 @@ PupilModelA = "100"
 	<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
 
 
+	<!-- Temporary face detector module -->
+    <!--
+	<connection  source = "LeftEye.HIGH_RES_INTENSITY"  target = "FaceDetector.INPUT" />
+    <module class = "DFaceDetector" name = "FaceDetector" min_size = "0.0"  />
+		<connection  source = "FaceDetector.FACE_COUNT"  target = "FaceDetectorT.INPUT" />
+
+	<module class = "Threshold" name = "FaceDetectorT" threshold = "0.9" />
+		<connection  source = "FaceDetectorT.OUTPUT"  target = "FaceDetectorS.INPUT" />
+
+	<module class = "Scale" name = "FaceDetectorS" factor = "0.3"/>
+	
+	<module class = "Add" name = "EIntense" />
+		<connection  source = "NoFaceIntense.OUTPUT"  	target = "EIntense.INPUT1" />
+		<connection  source = "FaceDetectorS.OUTPUT"  		target = "EIntense.INPUT2" />
+
+
+	<module class = "Constant" name = "NoFaceIntense" data = "0.4´" />
+
+	
+
+-->
 	<!-- Intense -->
 	<module class = "Constant" name = "EIntense" data = "1´" />
 		<connection source = "EIntense.OUTPUT"  target = "LED.EYE_INTENSE" />
