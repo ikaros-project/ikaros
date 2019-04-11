@@ -17,7 +17,8 @@
 
 	<module
         class = "InputFile"
-        name = "Stimuli" 
+        name = "Stimuli"
+        filename = "AcquisitionExtinction/input.txt"
     />
 
 	<module
@@ -48,97 +49,74 @@
 	/>
 
 	<connection
-        sourcemodule = "Stimuli"
-        source = "CS"
-        targetmodule = "Thalamus"
-        target = "INPUT"
+        source = "Stimuli.CS"
+        target = "Thalamus.INPUT"
     />
 
 	<connection
-        sourcemodule = "Thalamus"
-        source = "OUTPUT"
-        targetmodule = "Cortex"
-        target = "INPUT"
+        source = "Thalamus.OUTPUT"
+        target = "Cortex.INPUT"
     />
 
 	<connection
-        sourcemodule = "Thalamus"
-        source = "TH"
-        targetmodule = "AMY"
-        target = "INPUT"
+        source = "Thalamus.TH"
+        target = "AMY.INPUT"
     />
 
 	<connection
-        sourcemodule = "Cortex"
-        source = "OUTPUT"
-        targetmodule = "AMY"
-        target = "INPUT"
+        source = "Cortex.OUTPUT"
+        target = "AMY.INPUT"
     />
 
 	<connection
-        sourcemodule = "Stimuli"
-        source = "R"
-        targetmodule = "AMY"
-        target = "Rew"
+        source = "Stimuli.R"
+        target = "AMY.Rew"
         delay="3"
     />
 
 	<connection
-        sourcemodule = "Cortex"
-        source = "OUTPUT"
-        targetmodule = "OFC"
-        target = "INPUT"
+        source = "Cortex.OUTPUT"
+        target = "OFC.INPUT"
     />
 
 	<connection
-        sourcemodule = "Stimuli"
-        source = "R"
-        targetmodule = "OFC"
-        target = "Rew"
+        source = "Stimuli.R"
+        target = "OFC.Rew"
         delay="3"
     />
 
 	<connection
-        sourcemodule = "AMY"
-        source = "A"
-        targetmodule = "OFC"
-        target = "A"
+        source = "AMY.A"
+        target = "OFC.A"
     />
 
 	<connection
-        sourcemodule = "OFC"
-        source = "EO"
-        targetmodule = "AMY"
-        target = "EO"
+        source = "OFC.EO"
+        target = "AMY.EO"
     />
 
 	<connection
-        sourcemodule = "Stimuli"
-        source = "CS"
-        targetmodule = "HIPP"
-        target = "STIMULUS"
+        source = "Stimuli.CS"
+        target = "HIPP.STIMULUS"
     />
 
 	<connection
-        sourcemodule = "Stimuli"
-        source = "LOC"
-        targetmodule = "HIPP"
-        target = "LOCATION"
+        source = "Stimuli.LOC"
+        target = "HIPP.LOCATION"
     />
 
-    <view name="Emotion" object_size="70" >
-        <object title="CR" class="Plot" module = "AMY" source="E" x="0" y="0" w="3"/>
-        <object title="CS" class="Plot" module = "Stimuli" source="CS" x="0" y="1" w="3"/>
-        <object title="US" class="Plot" module = "Stimuli" source="R" x="0" y="2" w="3"/>
-
-        <object title="Cortex" class="Plot" module = "Cortex" source="OUTPUT" x="3" y="0" w="3"/>
-        <object title="Thalamus" class="Plot" module = "Thalamus" source="OUTPUT" x="3" y="1" w="3"/>
-        <object title="Hippocampus.BindDelta" class="Plot" module = "HIPP" source="BIND_DELTA" x="3" y="2" w="3"/>
-        <object title="Hippocampus.Context" class="Plot" module = "HIPP" source="CONTEXT" x="3" y="3" w="3"/>
-
-        <object title="V" class="Plot" module = "AMY" source="V" x="6" y="0" w="3"/>
-        <object title="W" class="Plot" module = "OFC" source="W" x="6" y="1" w="3"/>
+    <view name="Emotion" object_size = "70" >
+        <plot  height = "300" title = "CR" width = "300" source = "AMY.E" y = "660" x = "20" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  height = "300" title = "CS" width = "300" source = "Stimuli.CS" y = "20" x = "20" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  height = "300" title = "US" width = "300" source = "Stimuli.R" y = "340" x = "20" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  height = "300" title = "Cortex" width = "300" source = "Cortex.OUTPUT" y = "340" x = "340" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  height = "300" title = "Thalamus" width = "300" source = "Thalamus.OUTPUT" y = "20" x = "340" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  w = "3" height = "300" title = "Hippocampus.BindDelta" width = "300" source = "HIPP.BIND_DELTA" y = "660" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = "" x = "340"/>
+        <plot  height = "300" title = "Hippocampus.Context" width = "300" source = "HIPP.CONTEXT" x = "3" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  height = "300" title = "V" width = "300" source = "AMY.V" y = "340" x = "660" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <plot  height = "300" title = "W" width = "300" source = "OFC.W" y = "20" x = "660" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
     </view>
+
 
 </group>
 

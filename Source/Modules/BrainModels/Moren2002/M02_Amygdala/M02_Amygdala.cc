@@ -94,4 +94,4 @@ void M02_Amygdala::Tick()
     copy_array(input_last, input, size);
 }
 
-static InitClass init("M02_Amygdala", &M02_Amygdala::Create, "Source/Modules/BrainModels/M02_Amygdala/");
+static InitClass init("M02_Amygdala", &M02_Amygdala::Create, "Source/Modules/BrainModels/Moren2002/M02_Amygdala/");

@@ -134,5 +134,5 @@ void M02_OFC::Tick()
     copy_array(T_last, T, T_size);
 }
 
-static InitClass init("M02_OFC", &M02_OFC::Create, "Source/Modules/BrainModels/M02_OFC/");
+static InitClass init("M02_OFC", &M02_OFC::Create, "Source/Modules/BrainModels/Moren2002/M02_OFC/");
 

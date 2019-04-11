@@ -489,7 +489,7 @@ interaction = {
     main: undefined,
     currentView: undefined,
     currentViewName: undefined,
-    
+    io_pos: {},
     group_inspector: undefined,
     module_inspector: undefined,
     view_inspector: undefined,
@@ -598,7 +598,7 @@ interaction = {
         this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
         context.restore();
     },
-    drawConnections()
+    drawConnectionsCircular()
     {
         function bezier(t, p0, p1, p2, p3)
         {
@@ -662,6 +662,84 @@ interaction = {
                 p2 = interaction.module_pos[c.target.split('.')[0]];
                 draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
                 draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
+            }
+            catch(err)
+            {
+                console.log("draw connection "+c.sourcemodule+"->"+c.targetmodule+" failed.");
+            }
+        }
+    },
+    drawConnections()
+    {
+        function bezier(t, p0, p1, p2, p3)
+        {
+            t2 = t * t;
+            t3 = t2 * t;
+            mt = 1-t;
+            mt2 = mt * mt;
+            mt3 = mt2 * mt;
+            x = p0.x*mt3 + 3*p1.x*mt2*t + 3*p2.x*mt*t2 + p3.x*t3;
+            y = p0.y*mt3 + 3*p1.y*mt2*t + 3*p2.y*mt*t2 + p3.y*t3;
+            return {x:x, y:y};
+        }
+
+        function draw_chord(context, x0, y0, x1, y1)
+        {
+            context.beginPath();
+            context.moveTo(x0, y0);
+ //           context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
+            context.bezierCurveTo(x1, y0, x0, y1, x1, y1);
+            context.stroke();
+        }
+
+        function draw_back_connection(context, x0, y0, x1, y1, top)
+        {
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.lineTo(x0+20, y0);
+            context.lineTo(x0+20, top);
+            context.lineTo(x1-20, top);
+            context.lineTo(x1-20, y1);
+            context.lineTo(x1, y1);
+            context.stroke();
+        }
+        
+        let canvas = document.querySelector("#maincanvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    
+        context.strokeStyle="#EEEEEE";
+        context.lineWidth = 50;
+        context.beginPath();
+
+        for(let c of interaction.currentView.connections)
+        {
+            try
+            {
+                context.strokeStyle="#999";
+                context.fillStyle = "#999";
+                context.lineWidth = 3;
+                context.beginPath();
+                let p1 = interaction.io_pos[c.source];
+                if(!p1)
+                {
+                    let pp = interaction.module_pos[c.source.split('.')[0]];
+                    p1 = {'x':pp.x, 'y':pp.y};
+                    p1.x += 110;
+                    p1.y += 26+13/2;
+                }
+                
+                let p2 = interaction.io_pos[c.target];
+                
+                if(p1.x < p2.x)
+                    draw_chord(context, p1.x, p1.y, p2.x, p2.y);
+                else
+                {
+                    let mp0 = interaction.module_pos[c.source.split('.')[0]];
+                    let mp1 = interaction.module_pos[c.target.split('.')[0]];
+                    let top = Math.min(mp0.y, mp1.y);
+                    draw_back_connection(context, p1.x, p1.y, p2.x, p2.y, top-20); // heuristics: over/under/inbetween
+                }
             }
             catch(err)
             {
@@ -775,34 +853,8 @@ interaction = {
         return newObject;
     },
     
-    addView(viewName)
+    buildGroupViewCircular()
     {
-        setCookie('current_view', viewName);
-        nav.openGroup(viewName);
-        
-        interaction.deselectObject();
-        interaction.currentViewName = viewName;
-        interaction.currentView = controller.views[viewName];
-        interaction.removeAllObjects();
-
-        let canvas = document.querySelector("#maincanvas");
-        let context = canvas.getContext("2d");
-        context.clearRect(0, 0, canvas.width, canvas.height);
-
-        let main = document.querySelector('main');
-        
-        // Build widget view
-        
-        let v = interaction.currentView.objects;    // FIXME: objects should be called widgets
-        if(v)
-        {
-            for(let i=0; i<v.length; i++)
-                interaction.addWidget(v[i]);
-            return;
-        }
-
-        // Build group view - experimental
-
         let m_width = 100;
         let m_height = 100;
         let m_corner = 50;
@@ -865,9 +917,130 @@ interaction = {
                 
                 newObject.addEventListener('mousedown', interaction.startDragModule, true);
             }
+            interaction.drawConnectionsCircular();
+        }
+    },
+
+    calculateIOPositions(module, x, y)
+    {
+        y += 34;
+        x += 2;
+        
+        for(let a of module.inputs)
+        {
+            interaction.io_pos[module.attributes.name+"."+a.name] = {'x': x, 'y': y};
+            y += 19;
+        }
+
+        x += 116;
+        for(let a of module.outputs)
+        {
+            interaction.io_pos[module.attributes.name+"."+a.name] = {'x': x, 'y': y};
+            y += 19;
+        }
+    },
+
+    buildGroupView()
+    {
+        let m_width = 100;
+        let m_height = 100;
+        let m_corner = 50;
+        
+        interaction.main_radius = 400;
+        interaction.main_margin = 100;
+        interaction.main_center = interaction.main_radius+interaction.main_margin;
+
+        interaction.module_pos = {}
+        let v = interaction.currentView.groups;
+        if(v)
+        {
+            let scale = 2*Math.PI/v.length;
+            for(let i=0; i<v.length; i++)
+            {
+                let newObject = document.createElement("div");
+                if(v[i].is_group)
+                    newObject.setAttribute("class", "module group");
+                else
+                    newObject.setAttribute("class", "module");
+
+                newObject.innerHTML = "<div style='color:white;background-color:black;padding:5px'>"+v[i].attributes.name+"</div";
+                interaction.main.appendChild(newObject);
+
+                // Add inputs & outputs
+                
+                for(let a of v[i].inputs)
+                {
+                    let io = document.createElement("div");
+                    io.setAttribute("class","input");
+                    io.innerHTML = "<div class='iconnector'></div>"+a.name;
+                    newObject.appendChild(io);
+                }
+                
+                for(let a of v[i].outputs)
+                {
+                    let io = document.createElement("div");
+                    io.setAttribute("class","output");
+                    io.innerHTML = "<div class='oconnector'></div>"+a.name;
+                    newObject.appendChild(io);
+                }
+                
+                newObject.parameters = v[i];
+                
+                if(!newObject.parameters.attributes._x)
+                {
+                    newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                }
+                
+                interaction.module_pos[v[i].attributes.name] = {'x':newObject.parameters.attributes._x, 'y': newObject.parameters.attributes._y};
+                interaction.calculateIOPositions(v[i], newObject.parameters.attributes._x, newObject.parameters.attributes._y);
+
+                newObject.style.top = (newObject.parameters.attributes._y)+"px";
+                newObject.style.left = (newObject.parameters.attributes._x)+"px";
+ 
+                if(newObject.parameters.attributes._text_color)
+                    newObject.style.color = newObject.parameters.attributes._text_color;
+
+                if(newObject.parameters.attributes._color)
+                    newObject.style.backgroundColor = newObject.parameters.attributes._color;
+                
+                newObject.addEventListener('mousedown', interaction.startDragModule, true);
+            }
             interaction.drawConnections();
         }
     },
+
+    addView(viewName)
+    {
+        setCookie('current_view', viewName);
+        nav.openGroup(viewName);
+        
+        interaction.deselectObject();
+        interaction.currentViewName = viewName;
+        interaction.currentView = controller.views[viewName];
+        interaction.removeAllObjects();
+
+        let canvas = document.querySelector("#maincanvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        let main = document.querySelector('main');
+        
+        // Build widget view
+        
+        let v = interaction.currentView.objects;    // FIXME: objects should be called widgets
+        if(v)
+        {
+            for(let i=0; i<v.length; i++)
+                interaction.addWidget(v[i]);
+            return;
+        }
+
+        // Build group view - experimental
+
+        this.buildGroupView();
+    },
+
     deselectObject() {
         if(interaction.selectedObject)
         {
@@ -1035,11 +1208,11 @@ interaction = {
         evt.stopPropagation()
         let dX = evt.clientX - interaction.initialMouseX;
         let dY = evt.clientY - interaction.initialMouseY;
-        interaction.setModulePosition(dX,dY,!evt.altKey);
+        interaction.setModulePosition(dX,dY);
         interaction.drawConnections();
         return false;
     },
-    setModulePosition: function (dx, dy, constrain) {
+    setModulePosition: function (dx, dy) {
         let m_width = 100;  // should not be repeated here
         let m_height = 100;
         let m_corner = 50;
@@ -1048,26 +1221,19 @@ interaction = {
         
         let newLeft = interaction.startX + dx;
         let newTop = interaction.startY + dy;
-
-        if(constrain)
-        {
-            let a = Math.atan2(newTop-interaction.main_center + interaction.module_radius_x, newLeft-interaction.main_center + interaction.module_radius_y)
-            newLeft = interaction.main_center+interaction.main_radius*Math.cos(a) - interaction.module_radius_x;
-            newTop = interaction.main_center+interaction.main_radius*Math.sin(a) - interaction.module_radius_y;
-        }
-        
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters.attributes['_x'] = newLeft + m_radius_x;
-        interaction.selectedObject.parameters.attributes['_y'] = newTop + m_radius_y;
-        interaction.module_pos[interaction.selectedObject.innerText] = {'x':newLeft +interaction.module_radius_x , 'y': newTop+interaction.module_radius_y};
+        interaction.selectedObject.parameters.attributes._x = newLeft;
+        interaction.selectedObject.parameters.attributes._y = newTop;
+        let module_name = interaction.selectedObject.firstElementChild.innerText;
+        interaction.module_pos[module_name] = {'x':newLeft , 'y': newTop};
+        interaction.calculateIOPositions(interaction.selectedObject.parameters, interaction.selectedObject.parameters.attributes._x, interaction.selectedObject.parameters.attributes._y);
     },
     selectModule: function(obj) {
         interaction.deselectObject()
         interaction.selectedObject = obj;
         interaction.selectedObject.className += ' selected';
-        //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
         module_inspector.select(obj);
         interaction.group_inspector.style.display = "none";
         interaction.module_inspector.style.display = "block";

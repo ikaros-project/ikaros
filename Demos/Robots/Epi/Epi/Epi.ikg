@@ -281,8 +281,8 @@ PupilModelA = "100"
 <!-- ********************************* 	-->
 
 <!-- Sensors -->
-<module class = "EpiVision" active = "yes" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "../../../../Examples/Media/colorrobot.jpg"/>
-<module class = "EpiVision" active = "yes" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "../../../../Examples/Media/colorrobot.jpg"/>
+<module class = "EpiVision" active = "yes" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg"/>
+<module class = "EpiVision" active = "yes" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg"/>
 
 
 
