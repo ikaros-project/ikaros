@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<group name="Epi"
+
+>
+
+<view name="Color Robot" >
+	<slider-horizontal  height = "141" y = "40" show_title = "true" show_value = "true" x = "20" count = "3" parameter = "EColor.data" label = "Color" step = "0.1" module = "EColor" width = "321" title = "Color Eyes" max = "1" select = "0" labels = "R,G,B" min = "0" show_values = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  height = "161" y = "200" show_title = "true" show_value = "true" x = "20" count = "3" parameter = "MColor.data" label = "Color" step = "0.1" module = "MColor" width = "321" title = "Color Mouth" max = "1" select = "0" labels = "R,G,B" min = "0" show_values = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  height = "141" y = "40" show_title = "true" show_value = "true" x = "420" count = "1" parameter = "EIntense.data" label = "Color" step = "0.1" module = "EIntense" width = "361" title = "Intensity Eyes" max = "1" select = "0" labels = "" min = "0" show_values = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  height = "161" y = "200" show_title = "true" show_value = "true" x = "420" count = "1" parameter = "MIntense.data" label = "Color" step = "0.1" module = "MIntense" width = "361" title = "Intensity Mouth" max = "1" select = "0" labels = "" min = "0" show_values = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
+
+	<!-- Eye Color -->
+	<module class = "Constant" name = "EColor" data = "0.5 0.5 1´" />
+		<connection source = "EColor.OUTPUT"  target = "LED.EYE_COLOR" />
+	
+    <!-- Mouth Color -->
+	<module class = "Constant" name = "MColor" data = "0.5 0.5 1´" />
+	<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
+
+
+	<!-- Intense -->
+	<module class = "Constant" name = "EIntense" data = "1´" />
+		<connection source = "EIntense.OUTPUT"  target = "LED.EYE_INTENSE" />
+        
+	<module class = "Constant" name = "MIntense" data = "1´" />
+		<connection source = "MIntense.OUTPUT"  target = "LED.MOUTH_INTENSE" />
+
+
+
+	<module class = "EpiLed" name = "LED" />
+
+</group>
