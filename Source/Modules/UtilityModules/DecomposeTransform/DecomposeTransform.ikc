@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="DecomposeTransform" description="minimal example module">
+
+	<description type="text">
+		Decomposes homogenous matrices into translation, rotation, and scale
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DecomposeTransform"
+			name="DecomposeTransform"
+			use_degrees = "yes"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="use_degrees" type="boolean" default="yes" description="Whether to use degrees or radians" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The first input" />
+
+	<output name="TRANSLATION" description="Translation output" />
+	<output name="ROTATION" description="Euler rotation output" />
+	<output name="SCALE" description="Scale output" />
+
+	<link class="DecomposeTransform" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>DecomposeTransform.h</file>
+   		<file>DecomposeTransform.cc</file>
+   		<file>DecomposeTransform.ikc</file>
+   </files>
+
+</group>
+

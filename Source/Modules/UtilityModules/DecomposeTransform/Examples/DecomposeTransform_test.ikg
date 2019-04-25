@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group name="DecomposeTransform Example">
+	
+		<module
+			class = "Constant"
+			name = "M1"
+			outputsize  = "16"
+			data  = "6.9 -0.79 0.84 1 0.73 7.94 -0.54 2 -0.61 0.56 8.94 3 0 0 0 1"
+		/>
+		
+		<module
+			class = "Ones"
+			name = "M2"
+			size_x  = "16"
+			size_y  = "1"
+		/>
+		
+		<module
+			class = "DecomposeTransform"
+			name = "DecomposeTransformInstance"
+			debug="yes"
+		/>
+		
+        <connection source = "M1.OUTPUT" target = "DecomposeTransformInstance.INPUT" />
+				<connection source = "M2.OUTPUT" target = "DecomposeTransformInstance.INPUT" />
+        
+<view name="View" >
+	<table  x = "60" y = "60" height = "181" width = "201" title = "Default Title" source = "DecomposeTransformInstance.TRANSLATION" direction = "normal" decimals = "4" colorize = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "60" y = "240" height = "181" width = "201" title = "Default Title" source = "DecomposeTransformInstance.ROTATION" direction = "normal" decimals = "4" colorize = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "60" y = "420" height = "181" width = "201" title = "Default Title" source = "DecomposeTransformInstance.SCALE" direction = "normal" decimals = "4" colorize = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+</group>
+ 
