@@ -3052,7 +3052,6 @@ namespace ikaros
         }
     }
 
-
     
     float
     h_get_euler_angle(const h_matrix m, axis a)
@@ -3084,7 +3083,14 @@ namespace ikaros
         
         return 0;
     }
-    
+
+    void 
+    h_get_scale(const h_matrix m, float &x, float &y, float &z)
+    {
+        x = m[0];
+        y = m[5];
+        z = m[10];
+    }    
     
 
     // operations
@@ -3281,6 +3287,13 @@ namespace ikaros
         return r;
     }
  
+    float *
+    h_create_matrix(h_matrix &r, float *a)
+    {
+        memcpy(r, a, 16*sizeof(float));
+        return r;
+    }
+
     
     float **
     h_set_matrix(float ** m, h_matrix h)
@@ -3291,6 +3304,8 @@ namespace ikaros
                 m[j][i] = h[ix++];
         return m;
     }
+
+    
     
     
     

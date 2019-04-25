@@ -313,6 +313,7 @@ namespace ikaros
     void        h_get_translation(const h_matrix m, float & x, float & y, float &z);
     void        h_get_euler_angles(const h_matrix m, float & x, float & y, float &z);
     float       h_get_euler_angle(const h_matrix m, axis a);
+	void 		h_get_scale(const h_matrix m, float &x, float &y, float &z);
     
     inline float h_get_x(h_matrix m) { return m[3]; }
     inline float h_get_y(h_matrix m) { return m[7]; }
@@ -340,6 +341,7 @@ namespace ikaros
     void        h_print_matrix(const char * name, h_matrix m, int decimals=2);
 
     float **    h_create_matrix(h_matrix m); // create an ordinary 4x4 matrix; data is copied
+	float *     h_create_matrix(h_matrix &r, float *a);
     float **    h_set_matrix(float ** m, h_matrix h); // set top left 4x4 elements of a regular matrix from a h_matrix
 
     inline bool h_matrix_is_valid(h_matrix m) { return (m[15] > 0.1); } // Matrix is valid if bottom right element is 1 (but we do not want to make an exact match)
