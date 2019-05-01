@@ -3178,10 +3178,13 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
     
     append_string(include_file, class_name, PATH_MAX);
     append_string(include_file, ".ikg", PATH_MAX);
-
+    
 	const char * filename = file_exists(include_file);
-
-    filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
+    
+    if (!filename && classes.find(class_name)==classes.end())
+        Notify(msg_warning, "Group ikg for \"%s\" could not be found with path %s. HINT: Check if path is correct relative to including file.\n", class_name, include_file);
+    else
+        filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
 
 	if(!filename)
 	{
