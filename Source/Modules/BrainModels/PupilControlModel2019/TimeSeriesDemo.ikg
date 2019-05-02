@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<group name="Demo" description="demo of full pupil control model">
+
+    <module
+        class="FullModel"
+        name="FullModel"
+        
+        LC_alpha = "0.5"
+    />
+    
+    <module
+        class="Constant"
+        name="Light"
+        data = "0.5"
+    />
+    
+    <module
+      class = "InputFile"
+      name = "TimeSeries"
+      period = "50"
+      iterations = "1000"
+      _filename = "contagion.txt"
+      filename = "math.txt"
+    />
+
+    <module
+        class="Sum"
+        name="Input"
+    />
+    
+    
+    <connection  source = "Light.OUTPUT"  target = "Input.INPUT" delay="1" />
+    <connection  source = "TimeSeries.LIGHT"  target = "Input.INPUT" delay="1" />
+    
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Left" delay="0" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Right" delay="0" />
+
+    <_connection  source = "TimeSeries.PUPIL"  target = "FullModel.Pupil_Stimulus" delay="1"  />
+    <connection  source = "TimeSeries.PUPIL"  target = "FullModel.LC_Direct" delay="1"  />
+
+    <module
+        class="OutputFile"
+        name="Output"
+        filename = "data.txt"
+    >
+        <column name = "Light" />
+        <column name = "Pupil" />
+    </module>
+
+    <connection  source = "FullModel.Pupil_Right"  target = "Output.Pupil"/>
+    <connection  source = "Input.OUTPUT"  target = "Output.Light" />
+  
+
+
+<view name="Face View" object_size = "40" >
+	<epi-head  show_title = "false" irisColor = "#88aaff" earColor = "#0088ff" visibleFace = "true" pupil = "0.5" mouthBlue = "" mouthRed = "" irisRightBlue = "" height = "300" show_frame = "false" fill = "white" color = "black" width = "300" gaze = "0" mouthGreen = "" y = "20" style = "" label = "Epi" irisRightRed = "" irisLeftBlue = "" pupilSource = "FullModel.Eye_Left" headPosition = "" x = "20" irisLeftGreen = "" title = "Epi Head" gazeSource = "" frame-style = "" visibleFaceParameter = "" pupilLeftSource = "" mouthColor = "#000000" visibleSource = "" vergence = "0" irisRightGreen = "" pupilRightSource = "" irisLeftRed = ""/>
+	<slider-horizontal  style = "" labels = "LC alpha" parameter = "LC_alpha" select = "0" count = "1" min = "0" height = "40" x = "20" show_values = "false" title = "LC" module = "FullModel" y = "500" max = "1" width = "200" show_frame = "false" frame-style = "" step = "0.01" show_title = "false"/>
+	<slider-horizontal  style = "" labels = "light" parameter = "data" select = "0" count = "1" min = "0" height = "40" x = "20" show_values = "false" title = "Light" module = "Light" y = "550" max = "1" width = "200" show_frame = "false" frame-style = "" step = "0.01" show_title = "false"/>
+	<slider-horizontal  style = "" labels = "amplitude" title = "Stimulus" x = "20" show_values = "false" height = "40" y = "600" module = "Stimulus" parameter = "amplitude" min = "0.25" select = "0" count = "1" max = "0.5" width = "200" show_frame = "false" frame-style = "" step = "0.01" show_title = "false"/>
+	<plot  select = "2" min = "0" x = "320" title = "Pupil" source = "FullModel.Pupil_Left" max = "1" style = "" buffer_size = "50" frame-style = "" y = "20" width = "600" show_frame = "false" color = "" height = "200" direction = "vertical" show_title = "true"/>
+	<plot  y = "240" x = "320" source = "Input.OUTPUT" title = "Plot" select = "0" min = "0" strokeWidth = "3" max = "2" frame-style = "" buffer_size = "50" color = "blue" width = "600" show_frame = "false" style = "" height = "200" direction = "vertical" show_title = "true"/>
+	<plot  y = "420" x = "320" source = "TimeSeries.PUPIL" title = "Timeseries" select = "0" min = "0" strokeWidth = "3" max = "2" frame-style = "" buffer_size = "50" color = "blue" width = "600" show_frame = "false" style = "" height = "200" direction = "vertical" show_title = "true"/>
+</view>
+
+
+    
+</group>
+

@@ -1,0 +1,66 @@
+<group name="PeripheralPupilControl">
+
+
+    <input name="PTA"  target="PTA.INPUT" />
+    <input name="EW_EXCITATION" target="EdingerWestphal_pg.EXCITATION" />
+    <input name="EW_SHUNTING" target="EdingerWestphal_pg.SHUNTING_INHIBITION" />
+    <input name="IML_EXCITATION" target="IML.EXCITATION" />
+
+    <output name="PTA_OUTPUT" source="PTA.OUTPUT" />
+    <output name="EW_OUTPUT"  source="EdingerWestphal_pg.OUTPUT" />
+    <output name="CG_OUTPUT" source="CG.OUTPUT" />
+    <output name="SCG_OUTPUT"  source="SCG.OUTPUT" />
+
+    <parameter name="CG_alpha7" target="CG.phi" />
+
+    <!-- ********************************* PARASYMPATHETIC COMPONENT ********************************* -->
+
+    <module
+        class="PreTectalArea"
+        name="PTA"
+    />
+
+    <!-- PTA => Edinger-Westphal nucleus -->
+
+    <connection  source = "PTA.OUTPUT"  target = "EdingerWestphal_pg.EXCITATION" />
+
+    <module
+        class="Nucleus"
+        name="EdingerWestphal_pg"
+        scale = "no"
+     />
+
+    <!-- Edinger-Westphal nucleus ==> Ciliar Ganglion -->
+
+    <connection  source = "EdingerWestphal_pg.OUTPUT"  target = "CG.EXCITATION" />
+
+    <module
+        class="Nucleus"
+        name="CG"
+    />
+
+    <!-- ********************************* SYMPATHETIC COMPONENT ********************************* -->
+    
+    <module
+        class="Nucleus"
+        name="IML"
+    />
+
+    <module
+        class="Nucleus"
+        name="SCG"
+    />
+
+    <!-- IML => SCG -->
+    
+    <connection  source = "IML.OUTPUT"  target = "SCG.EXCITATION" />
+
+    <view name="Peripheral Pupil Control Circuit">
+        <plot title="Response PTA" source=".PTA_OUTPUT" x="20" y="20" width="800" height="200" max="1" />
+        <plot title="Response EW" source=".EW_OUTPUT" x="20" y="220" width="800" height="200" max="1" />
+        <plot title="Response CG (Constriction)" source=".CG_OUTPUT" x="20" y="420" width="800" height="200" max="1" />
+        <plot title="Response SCG (Dilation)" source=".SCG_OUTPUT" x="20" y="620" width="800" height="200" max="1" />
+    </view>
+
+</group>
+

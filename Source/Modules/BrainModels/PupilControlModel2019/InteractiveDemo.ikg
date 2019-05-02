@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+
+<group name="Demo" description="demo of full pupil control model">
+
+    <module
+        class="FullModel"
+        name="FullModel"
+        
+        LCa_alpha = "0.5"
+    />
+    
+    <module
+        class="Constant"
+        name="Light"
+        data = "0.5"
+    />
+    
+    <module
+        class="FunctionGenerator"
+        name="Stimulus"
+        type="ticksquare"
+        basetime="80"
+        tickduty="20"
+    />
+
+    <module
+        class="Sum"
+        name="Input"
+    />
+
+    <connection  source = "Light.OUTPUT"  target = "Input.INPUT" />
+    <connection  source = "Stimulus.OUTPUT"  target = "Input.INPUT" />
+
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Left" />
+    <connection  source = "Input.OUTPUT"  target = "FullModel.PTA_Right" />
+
+    <view name="Face View" object_size="40">
+
+       <epi-head label="Epi"
+            pupilLeftSource="FullModel.Pupil_Left"
+            pupilRightSource="FullModel.Pupil_Right"
+            x="20" y="20"
+            width="300" height="300"
+        />
+
+        <slider-horizontal
+            module="FullModel"
+            title="LC"
+            parameter="LCa_alpha"
+            labels = "LCa alpha"
+            x="20" y="500"
+            height="40" width="200"
+        />
+
+        <slider-horizontal
+            module="Light"
+            title="Light"
+            parameter="data"
+            labels="light"
+            x="20" y="550"
+            height="40" width="200"
+        />
+
+        <slider-horizontal
+            module="Stimulus"
+            title="Stimulus"
+            parameter="amplitude"
+            labels = "amplitude"
+            min = "0.25"
+            max = "0.5"
+            x="20" y="600"
+            height="40" width="200"
+        />
+
+        <plot
+            title="Pupil"
+            source="FullModel.Pupil_Left"
+            max="1"
+            x="320" y="20"
+            height="200" width="600"
+        />
+
+        <plot
+            title="Pupil"
+            source="FullModel.Pupil_Right"
+            max="1"
+            x="320" y="20"
+            height="200" width="600"
+        />
+        <plot
+            source="Input.OUTPUT"
+            select="0"
+            color="blue"
+            lineWidth = "3"
+            max="2"
+            x="320" y="240"
+            height="200" width="600"
+        />
+
+    </view>
+</group>
+
