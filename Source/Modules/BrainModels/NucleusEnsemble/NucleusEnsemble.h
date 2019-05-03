@@ -51,6 +51,7 @@ public:
 
     // pointers to inputs and outputs
     // and integers to represent their sizes
+    bool        debug;
     int         ensemble_size;
     float       alpha;
     float       beta;
