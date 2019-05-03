@@ -798,7 +798,7 @@ Module_IO::Allocate()
     }
     if(sizex*sizey <= 0)
     {
-        if(module != NULL)
+        if(module != NULL && !optional)
             return module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
     }
     
