@@ -76,6 +76,7 @@ NucleusEnsemble::Init()
     if(setpoint)
     {
         weights = create_array(ensemble_size);
+        set_array(weights, 1.f, ensemble_size);
         if(!adaptationrate)
         {
             adaptationrate = create_array(ensemble_size);
@@ -95,7 +96,7 @@ NucleusEnsemble::Init()
     x = create_array(ensemble_size); // pre activation
 
     longtermavg = create_matrix(avg_win_len, ensemble_size);
-    set_matrix(longtermavg, 0.5f, avg_win_len, ensemble_size);
+    set_matrix(longtermavg, 1.f, avg_win_len, ensemble_size);
 }
 
 
@@ -188,6 +189,7 @@ NucleusEnsemble::Tick()
 
     if(debug)
     {
+        printf("Instance: %s\n", this->instance_name);
         print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
         print_array("phival", phival, ensemble_size, 2);
         print_array("x", x, ensemble_size, 2);
