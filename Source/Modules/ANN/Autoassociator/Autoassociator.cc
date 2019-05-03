@@ -53,39 +53,64 @@ Autoassociator::Init()
     Bind(activation_gain_const, "activation_gain");
     Bind(noise_level, "noise_level");
 
-    input = GetInputArray("INPUT");
-    reset = GetInputArray("RESET");
-    output = GetOutputArray("OUTPUT");
+    // input = GetInputArray("INPUT");
+    // reset = GetInputArray("RESET");
+    // output = GetOutputArray("OUTPUT");
+    io(input, input_size, "INPUT");
+    io(reset, "RESET");
+    io(output, output_size, "OUTPUT");
 
-    t_input = GetInputArray("T-INPUT");
-    t_output = GetOutputArray("T-OUTPUT");
+    //t_input = GetInputArray("T-INPUT");
+    //t_output = GetOutputArray("T-OUTPUT");
+    io(t_input, "T-INPUT");
+    io(t_output, "T-OUTPUT");
     
-    delayed_t_input = GetInputArray("DELAYED-T-INPUT");
-    top_down_input = GetInputArray("TOP-DOWN-INPUT");
-
-    top_down_error = GetInputArray("TOP-DOWN-ERROR");
-    error_output = GetOutputArray("ERROR-OUTPUT");
-
-    learning_gain = GetInputArray("LEARNING-GAIN");
-    activation_gain = GetInputArray("ACTIVATION-GAIN");
+    //delayed_t_input = GetInputArray("DELAYED-T-INPUT");
+    //top_down_input = GetInputArray("TOP-DOWN-INPUT");
+    io(delayed_t_input, "DELAYED-T-INPUT");
+    io(top_down_input, "TOP-DOWN-INPUT");
     
-    aux_input = GetInputArray("AUX-INPUT");
-    aux_output = GetOutputArray("AUX-OUTPUT");
-    aux_t_input = GetInputArray("AUX-T-INPUT");
-    aux_t_output = GetInputArray("AUX-T-OUTPUT");
 
-    input_size        = GetInputSize("INPUT");
-    aux_input_size    = GetInputSize("AUX-T-INPUT");
-    output_size        = GetOutputSize("OUTPUT");
+    //top_down_error = GetInputArray("TOP-DOWN-ERROR");
+    //error_output = GetOutputArray("ERROR-OUTPUT");
+    io(top_down_error, "TOP-DOWN-ERROR");
+    io(error_output, "ERROR-OUTPUT");
+
+    // learning_gain = GetInputArray("LEARNING-GAIN");
+    // activation_gain = GetInputArray("ACTIVATION-GAIN");
+    io(learning_gain, "LEARNING-GAIN");
+    io(activation_gain, "ACTIVATION-GAIN");
     
-    w = GetOutputMatrix("W"); //create_matrix(input_size, output_size);    // size(input) x size(output)
-    u = GetOutputMatrix("U"); //create_matrix(aux_input_size, output_size);    // size(aux_input) x size(output)
+    // aux_input = GetInputArray("AUX-INPUT");
+    // aux_output = GetOutputArray("AUX-OUTPUT");
+    // aux_t_input = GetInputArray("AUX-T-INPUT");
+    // aux_t_output = GetInputArray("AUX-T-OUTPUT");
 
-    w_depression = GetOutputMatrix("W_DEPRESSION");
-    u_depression = GetOutputMatrix("U_DEPRESSION");
+    io(aux_input, "AUX-INPUT");
+    io(aux_output, "AUX-OUTPUT");
+    io(aux_t_input, aux_input_size, "AUX-T-INPUT");
+    io(aux_t_output, "AUX-T-OUTPUT");
 
-    net = GetOutputArray("NET");
-    energy = GetOutputArray("ENERGY");
+    // input_size        = GetInputSize("INPUT");
+    // aux_input_size    = GetInputSize("AUX-T-INPUT");
+    // output_size        = GetOutputSize("OUTPUT");
+    
+    
+    // w = GetOutputMatrix("W"); //create_matrix(input_size, output_size);    // size(input) x size(output)
+    // u = GetOutputMatrix("U"); //create_matrix(aux_input_size, output_size);    // size(aux_input) x size(output)
+    // w_depression = GetOutputMatrix("W_DEPRESSION");
+    // u_depression = GetOutputMatrix("U_DEPRESSION");
+    // net = GetOutputArray("NET");
+    // energy = GetOutputArray("ENERGY");
+    int dummy;
+    io(w, dummy, dummy, "W"); //create_matrix(input_size, output_size);    // size(input) x size(output)
+    io(u, dummy, dummy, "U"); //create_matrix(aux_input_size, output_size);    // size(aux_input) x size(output)
+    
+    io(w_depression, dummy, dummy, "W_DEPRESSION");
+    io(u_depression, dummy, dummy, "U_DEPRESSION");
+    
+    io(net, "NET");
+    io(energy, "ENERGY");
 }
 
 
