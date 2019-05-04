@@ -21,6 +21,7 @@
     <input name="Negative_Emotion" target="Amygdala.US" />
     <input name="Object_ID" target="Amygdala.CS" />
     <input name="Object_ID" target="Cerebellum.CS" />
+    <input name="Septal_Direct" target="SeptalArea.EXCITATION" description="connect to hippocampus familiarity and positive emotion">
 
     <!--TODO:
         gentle touch: n. tr solitaris to PVN
@@ -44,6 +45,13 @@
     <parameter name="Eye_m3" target="LeftEye.m3" default="1" />
     <parameter name="Eye_m3" target="RightEye.m3" default="1" />
 
+    <!-- ********************************* VARIOUS *********************************   -->
+    <module
+        description="Septal nuclei mediate social reward and trust"
+        class="Nucleus"
+        name="SeptalArea"
+    />
+    <connection source = "SeptalArea.OUTPUT"  target = "LH.EXCITATION" />
    <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
 
     <module
@@ -63,6 +71,7 @@
     <!-- ********************************* MEDULLA *********************************   -->
     <module
         class="Nucleus"
+        description="nucleus paragigantocellularis"
         name="PGi"
     />
     <module
@@ -121,6 +130,8 @@
 
     <connection source = "LH.OUTPUT"  target = "LCa.EXCITATION" />
     <connection source = "LH.OUTPUT"  target = "LCb.EXCITATION" />
+    <connection source = "LH.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection source = "LH.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
     
     
     <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
