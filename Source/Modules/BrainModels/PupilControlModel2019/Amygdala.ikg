@@ -3,6 +3,7 @@
     <input name="CS" target="Amygdala.CS" />
     <input name="US" target="Amygdala.US" />
     <input name="INHBITION" target="Output.INHBITION" />
+    <input name="EXCITATION" target="Output.EXCITATION" />
 
     <output name="CR" source="Output.OUTPUT" />
 
