@@ -11,17 +11,18 @@
     
     
     <input name="Pupil_Stimulus" target="SC.EXCITATION" />
+    <input name="Pupil_Stimulus" target="SCN.EXCITATION" />
     <input name="Pupil_Stimulus" target="VLPO.EXCITATION" />
     <input name="PTA_Left" target="PeripheralPupilControl.PTA_Left" />
     <input name="PTA_Right" target="PeripheralPupilControl.PTA_Right" />
     <input name="LC_Direct" target="LCa.EXCITATION" />
     <input name="LC_Direct" target="LCb.EXCITATION" />
     <input name="PAG_Direct" target="PAG.EXCITATION" description="Painful touch"/>
-    <input name="TSN_Direct" target="TSN.EXCITATION" description="Gentle touch"/>
+    <input name="TNS_Direct" target="TNS.EXCITATION" description="Gentle touch"/>
     <input name="Negative_Emotion" target="Amygdala.US" />
+    <input name="Septal_Direct" target="SeptalArea.EXCITATION" description="connect to hippocampus familiarity and positive emotion" />
     <input name="Object_ID" target="Amygdala.CS" />
     <input name="Object_ID" target="Cerebellum.CS" />
-    <input name="Septal_Direct" target="SeptalArea.EXCITATION" description="connect to hippocampus familiarity and positive emotion">
 
     <!--TODO:
         gentle touch: n. tr solitaris to PVN
@@ -52,7 +53,7 @@
         name="SeptalArea"
     />
     <connection source = "SeptalArea.OUTPUT"  target = "LH.EXCITATION" />
-    <connection source = "SeptalArea.OUTPUT"  target = "PVN.EXCITATION" description="Silverman, A. J., Hoffman, D. L., & Zimmerman, E. A. (1981)"/>
+    <connection source = "SeptalArea.OUTPUT"  target = "PVN.EXCITATION" description="Silverman, A. J., Hoffman, D. L., and Zimmerman, E. A. (1981)"/>
    <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
 
     <module
@@ -78,10 +79,10 @@
     <module
         description="n. tractus solitaris takes in gentle touch; could model jumpiness by upregulating weight due to little contact here"
         class="Nucleus"
-        name="TSN"
+        name="TNS"
     />
-    <connection source = "TSN.OUTPUT"  target = "PVN.EXCITATION" />
-    <connection source = "TSN.OUTPUT"  target = "Amygdala.EXCITATION" description="Ricardo & Koh 1978"/>
+    <connection source = "TNS.OUTPUT"  target = "PVN.EXCITATION" />
+    <_connection source = "TNS.OUTPUT"  target = "Amygdala.EXCITATION" description="Ricardo and Koh 1978, but exc or inh?"/>
 
     <connection source = "PGi.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
     <connection source = "PGi.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
@@ -93,6 +94,7 @@
         name="VTA"
         description="VTA excites cortex"
     />
+    <connection source = "VTA.OUTPUT"  target = "NAcc.EXCITATION" />
 
     <!-- ********************************* HYPOTHALAMUS *********************************   -->
     <module
@@ -102,8 +104,9 @@
     <module
         class="Nucleus"
         description = "Suprachiasmic nucleus"
-        name="SC"
+        name="SCN"
     />
+    
 
     <module
         class="Nucleus"
@@ -123,9 +126,9 @@
     />
     <connection source = "VLPO.OUTPUT"  target = "LCa.INHIBITION" />
     <connection source = "VLPO.OUTPUT"  target = "LCb.INHIBITION" />
-    <connection  source = "SC.OUTPUT"  target = "PULV.EXCITATION" />
-    <connection source = "SC.OUTPUT"  target = "PVN.INHIBITION" />
-    <connection source = "SC.OUTPUT"  target = "DMH.EXCITATION" />
+    
+    <connection source = "SCN.OUTPUT"  target = "PVN.INHIBITION" />
+    <connection source = "SCN.OUTPUT"  target = "DMH.EXCITATION" />
     
     <connection source = "DMH.OUTPUT"  target = "LCa.EXCITATION" />
     <connection source = "DMH.OUTPUT"  target = "LCb.EXCITATION" />
@@ -140,14 +143,23 @@
     <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
     <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
     <connection source = "PVN.OUTPUT"  target = "VTA.EXCITATION" />
+    <connection source = "PVN.OUTPUT"  target = "NAcc.EXCITATION" />
     <connection source = "PVN.OUTPUT"  target = "Amygdala.INHIBITION" /> <!-- OX inhibition of amygdala -->
 
+
     <!-- ********************************* THALAMUS *********************************   -->
-        <module
+    <module
+        class="Nucleus"
+        description = "Superior colliculus"
+        name="SC"
+    />
+    <module
         class="Nucleus"
         name="PULV"
         beta="1"
     />
+    <connection  source = "SC.OUTPUT"  target = "PULV.EXCITATION" />
+
     <connection  source = "PULV.OUTPUT"  target = "LCa.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
     <connection  source = "PULV.OUTPUT"  target = "LCb.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
 
@@ -195,6 +207,12 @@
     <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
     <connection  source = "Amygdala.CR"  target = "PAG.EXCITATION" />    <!-- CR OUTPUT -->
 
+    <!-- ********************************* BASAL GANGLIA ********************************* -->
+    <module
+        class="Nucleus"
+        name="NAcc"
+        
+    />
 
     <!-- ********************************* CERBELLUM ********************************* -->
     
@@ -226,7 +244,7 @@
     <connection  source = "PeripheralPupilControl.CG_OUTPUT_Left"  target = "LeftEye.PUPIL_SPHINCTER" delay="12" />
 
     <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Right"  target = "RightEye.PUPIL_DILATOR" delay="12" />
-    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Right"  target = "RightEye.PUPIL_SPHINCTER"delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Right"  target = "RightEye.PUPIL_SPHINCTER" delay="12" />
 
     <module
         class = "EyeModel"
