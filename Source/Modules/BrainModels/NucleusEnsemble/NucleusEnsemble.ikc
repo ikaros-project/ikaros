@@ -22,6 +22,7 @@
 		/>
 	</example>
 
+	<parameter name="debug" type="boolean" default="no" description="whether to print debug info" />
 	<parameter name="size" type="int" default="1" description="size of ensemble" />
 	<parameter name="alpha" type="float" default="0" description="bias term / offset level" />
     <parameter name="beta" type="float" default="1" description="activity scaling" />

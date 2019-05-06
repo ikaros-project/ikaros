@@ -72,14 +72,21 @@
 	<connection  source = "Trainer.TRAIN_X"  target = "B.T-INPUT" />
 	<connection  source = "Trainer.TRAIN_X"  target = "B.INPUT" />
 
-	<view name="View">
-        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />
-        <object class="BarGraph" title="A" module="A" source="OUTPUT" x="0" y="1" w="3" min="0.0" max="1" />
-        <object class="Grid" title="W" module="A" source="W" x="0" y="2" w="3" h="3" min="0.0" max="100" />
+<view name="View" >
+	<bar-graph  x = "40" y = "140" height = "200" width = "200" title = "Trainer" source = "Trainer.TRAIN_X" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "260" y = "140" height = "200" width = "200" title = "A" source = "A.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "480" y = "140" height = "200" width = "200" title = "A weight" source = "A.W" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "260" y = "360" height = "200" width = "200" title = "A" source = "B.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "480" y = "360" height = "200" width = "200" title = "B weight" source = "B.W" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+<!-- 
+	<BarGraph  max = "1" w = "3" module = "Trainer" title = "Trainer" source = "TRAIN_X" x = "0" y = "0"/>
+	<BarGraph  max = "1" w = "3" min = "0.0" module = "A" title = "A" source = "OUTPUT" x = "0" y = "1"/>
+	<Grid  max = "100" h = "3" w = "3" min = "0.0" module = "A" title = "W" source = "W" x = "0" y = "2"/>
+	<BarGraph  max = "1" w = "3" module = "Trainer" title = "Trainer" source = "TRAIN_X" x = "3" y = "0"/>
+	<BarGraph  max = "1" w = "3" min = "0.0" module = "B" title = "B" source = "OUTPUT" x = "3" y = "1"/>
+	<Grid  max = "100" h = "3" w = "3" min = "0.0" module = "B" title = "W" source = "W" x = "3" y = "2"/>
 
-        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="3" y="0" w="3" max="1" />
-        <object class="BarGraph" title="B" module="B" source="OUTPUT" x="3" y="1" w="3" min="0.0" max="1" />
-        <object class="Grid" title="W" module="B" source="W" x="3" y="2" w="3" h="3" min="0.0" max="100" />
- 	</view>
+-->
 </group>
  

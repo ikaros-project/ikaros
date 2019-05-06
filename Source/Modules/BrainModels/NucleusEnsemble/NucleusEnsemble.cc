@@ -35,6 +35,7 @@ const float cDEFAULT_ADAPTRATE = 0.001f;
 void
 NucleusEnsemble::Init()
 {
+    Bind(debug, "debug");
     Bind(ensemble_size, "size");
     Bind(alpha, "alpha");
     Bind(beta, "beta");
@@ -75,6 +76,7 @@ NucleusEnsemble::Init()
     if(setpoint)
     {
         weights = create_array(ensemble_size);
+        set_array(weights, 1.f, ensemble_size);
         if(!adaptationrate)
         {
             adaptationrate = create_array(ensemble_size);
@@ -94,7 +96,7 @@ NucleusEnsemble::Init()
     x = create_array(ensemble_size); // pre activation
 
     longtermavg = create_matrix(avg_win_len, ensemble_size);
-    set_matrix(longtermavg, 0.5f, avg_win_len, ensemble_size);
+    set_matrix(longtermavg, 1.f, avg_win_len, ensemble_size);
 }
 
 
@@ -168,7 +170,7 @@ NucleusEnsemble::Tick()
             int ix = random(avg_win_len); // use rnd placement instead of queue
             longtermavg[i][ix] = output[i];
             float avg = mean(longtermavg[i], ensemble_size);
-            weights[i] += (avg - setpoint[i])*adaptationrate[i];
+            weights[i] += (setpoint[i] - avg)*adaptationrate[i];
         }
         copy_array(phival, weights, ensemble_size);
     }
@@ -181,11 +183,17 @@ NucleusEnsemble::Tick()
         a += tau * tau_scale * rec_sum[i];      // recursion
         a -= chi * chi_scale * inh_sum[i];      // inhibition
         x[i] += epsilon * (a - x[i]);           // effect of previous
-        output[i] = alpha + beta * (this->*Activate)(x[i]);
+        output[i] = alpha + beta * (this->*Activate)(x[i]); // todo add threshold input
 
     }
 
-    
+    if(debug)
+    {
+        printf("Instance: %s\n", this->instance_name);
+        print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
+        print_array("phival", phival, ensemble_size, 2);
+        print_array("x", x, ensemble_size, 2);
+    }
     
 
     // clean up

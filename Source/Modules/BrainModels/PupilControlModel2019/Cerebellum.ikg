@@ -1,0 +1,28 @@
+<group name="Cerebellum" description="model of the cerebellum">
+
+    <input name="CS" target="CB.CS" />
+    <input name="US" target="CB.US" />
+    <input name="US" target="Subtract.INPUT2" />
+
+    <output name="CR" source="CB.CR" />
+    <output name="DELTA_CR" source="Subtract.CR" />
+
+
+    <module
+        class="Delta"
+        name="CB"
+        alpha = "0.1"
+    />
+
+    <module
+        class="Subtract"
+        name="Subtract"
+    />
+
+
+    <!-- Internal Cerebellar Connections -->
+    
+    <connection  source = "CB.CR"  target = "Subtract.INPUT1" />
+
+</group>
+

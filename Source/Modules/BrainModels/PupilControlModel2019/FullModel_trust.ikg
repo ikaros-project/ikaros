@@ -1,0 +1,279 @@
+<?xml version="1.0"?>
+
+<group name="FullModel_trust" description="full pupil control model">
+
+    <description>
+        Extension of the model in Johansson and Balkenius, "A Computational Model of Pupil Dilation", Connection Science, 2017. Here we add a simplified superior colliculus and pulvinar which is assumed to detect pupil stimuli.
+
+        This model adds inputs for gentle and painful touch, as well as a population
+        modeling simple facial recognition.
+    </description>
+    
+    
+    <input name="Pupil_Stimulus" target="SC.EXCITATION" />
+    <input name="Pupil_Stimulus" target="VLPO.EXCITATION" />
+    <input name="PTA_Left" target="PeripheralPupilControl.PTA_Left" />
+    <input name="PTA_Right" target="PeripheralPupilControl.PTA_Right" />
+    <input name="LC_Direct" target="LCa.EXCITATION" />
+    <input name="LC_Direct" target="LCb.EXCITATION" />
+    <input name="PAG_Direct" target="PAG.EXCITATION" description="Painful touch"/>
+    <input name="TSN_Direct" target="TSN.EXCITATION" description="Gentle touch"/>
+    <input name="Negative_Emotion" target="Amygdala.US" />
+    <input name="Object_ID" target="Amygdala.CS" />
+    <input name="Object_ID" target="Cerebellum.CS" />
+    <input name="Septal_Direct" target="SeptalArea.EXCITATION" description="connect to hippocampus familiarity and positive emotion">
+
+    <!--TODO:
+        gentle touch: n. tr solitaris to PVN
+        painful touch: PAG - 
+        facial recogn: fusiform face area
+
+        OX: PVN to VTA
+        OX: PVN to NAcc (approach)
+        OX: PVN to AMY (inhibitory)
+     -->
+
+    <output name="Pupil_Left" source="LeftEye.PUPIL_DIAMETER" />
+    <output name="Pupil_Right" source="RightEye.PUPIL_DIAMETER" />
+    <output name="VTA_Activation" source = "VTA.OUTPUT" description="VTA excites cortex" />
+
+    <!-- parameters that can be controlled at the top level -->
+
+    <parameter name="LCa_alpha" target="LCb.alpha" />
+    <parameter name="LCb_alpha" target="LCb.alpha" />
+    <parameter name="CG_alpha7" target="PeripheralPupilControl.CG_alpha7" default="1" />
+    <parameter name="Eye_m3" target="LeftEye.m3" default="1" />
+    <parameter name="Eye_m3" target="RightEye.m3" default="1" />
+
+    <!-- ********************************* VARIOUS *********************************   -->
+    <module
+        description="Septal nuclei mediate social reward and trust"
+        class="Nucleus"
+        name="SeptalArea"
+    />
+    <connection source = "SeptalArea.OUTPUT"  target = "LH.EXCITATION" />
+    <connection source = "SeptalArea.OUTPUT"  target = "PVN.EXCITATION" description="Silverman, A. J., Hoffman, D. L., & Zimmerman, E. A. (1981)"/>
+   <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
+
+    <module
+        class="BilateralPeripheralPupilControl"
+        name="PeripheralPupilControl"
+    />
+
+    <!-- ********************************* MIDBRAIN *********************************   -->
+    <module
+        description="PAG takes in painful touch"
+        class="Nucleus"
+        name="PAG"
+    />
+    <connection source = "PAG.OUTPUT"  target = "PGi.EXCITATION" />
+    
+
+    <!-- ********************************* MEDULLA *********************************   -->
+    <module
+        class="Nucleus"
+        description="nucleus paragigantocellularis"
+        name="PGi"
+    />
+    <module
+        description="n. tractus solitaris takes in gentle touch; could model jumpiness by upregulating weight due to little contact here"
+        class="Nucleus"
+        name="TSN"
+    />
+    <connection source = "TSN.OUTPUT"  target = "PVN.EXCITATION" />
+    <connection source = "TSN.OUTPUT"  target = "Amygdala.EXCITATION" description="Ricardo & Koh 1978"/>
+
+    <connection source = "PGi.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection source = "PGi.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
+    
+
+    <!-- ********************************* BRAINSTEM *********************************   -->
+    <module
+        class="Nucleus"
+        name="VTA"
+        description="VTA excites cortex"
+    />
+
+    <!-- ********************************* HYPOTHALAMUS *********************************   -->
+    <module
+        class="Nucleus"
+        name="VLPO"
+    />
+    <module
+        class="Nucleus"
+        description = "Suprachiasmic nucleus"
+        name="SC"
+    />
+
+    <module
+        class="Nucleus"
+        description = "Paraventricular nucleus - oxytocin"
+        name="PVN"
+        beta="1"
+    />
+    <module
+        class="Nucleus"
+        description="Lateral hypothalamus"
+        name="LH"
+    />
+    <module
+        class="Nucleus"
+        description = "Dorsomedial hypothalamus"
+        name="DMH"
+    />
+    <connection source = "VLPO.OUTPUT"  target = "LCa.INHIBITION" />
+    <connection source = "VLPO.OUTPUT"  target = "LCb.INHIBITION" />
+    <connection  source = "SC.OUTPUT"  target = "PULV.EXCITATION" />
+    <connection source = "SC.OUTPUT"  target = "PVN.INHIBITION" />
+    <connection source = "SC.OUTPUT"  target = "DMH.EXCITATION" />
+    
+    <connection source = "DMH.OUTPUT"  target = "LCa.EXCITATION" />
+    <connection source = "DMH.OUTPUT"  target = "LCb.EXCITATION" />
+    <connection source = "DMH.OUTPUT"  target = "LH.EXCITATION" />
+
+    <connection source = "LH.OUTPUT"  target = "LCa.EXCITATION" />
+    <connection source = "LH.OUTPUT"  target = "LCb.EXCITATION" />
+    <connection source = "LH.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection source = "LH.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
+    
+    
+    <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
+    <connection source = "PVN.OUTPUT"  target = "VTA.EXCITATION" />
+    <connection source = "PVN.OUTPUT"  target = "Amygdala.INHIBITION" /> <!-- OX inhibition of amygdala -->
+
+    <!-- ********************************* THALAMUS *********************************   -->
+        <module
+        class="Nucleus"
+        name="PULV"
+        beta="1"
+    />
+    <connection  source = "PULV.OUTPUT"  target = "LCa.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
+    <connection  source = "PULV.OUTPUT"  target = "LCb.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
+
+   <!-- ********************************* LOCUS COERULEUS *********************************   -->
+
+    <module
+        class="Nucleus"
+        name="LCa"
+        beta="0.05"
+        alpha="0.8"
+    />
+
+    <module
+        class="Nucleus"
+        name="LCb"
+        beta="0.05"
+    />
+
+    <!-- LC => IML -->
+    
+    <connection  source = "LCa.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection  source = "LCa.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
+
+    <connection  source = "LCb.OUTPUT"  target = "PeripheralPupilControl.EW_SHUNTING_Left" />
+    <connection  source = "LCb.OUTPUT"  target = "PeripheralPupilControl.EW_SHUNTING_Right" />
+
+    <connection  source = "LCa.OUTPUT"  target = "VTA.EXCITATION" />
+    <connection  source = "LCb.OUTPUT"  target = "VTA.EXCITATION" />
+
+    <connection  source = "LCa.OUTPUT"  target = "VLPO.INHIBITION" />
+    <connection  source = "LCb.OUTPUT"  target = "VLPO.INHIBITION" />
+
+    <!-- ********************************* AMYGDALA ********************************* -->
+    
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Amygdala.CS" delay="105" />
+    <_connection  source = "VisionBlackBock.EMOTION_NEG"  target = "Amygdala.US" />
+
+    <module
+        class="Amygdala"
+        name="Amygdala"
+        alpha = "0.05"
+    />
+
+    <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "PAG.EXCITATION" />    <!-- CR OUTPUT -->
+
+
+    <!-- ********************************* CERBELLUM ********************************* -->
+    
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Cerebellum.CS" />    <!-- CS INPUT -->
+
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Left"  target = "Cerebellum_Left.US" />    <!-- US INPUT (target) -->
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Right"  target = "Cerebellum_Right.US" />    <!-- US INPUT (target) -->
+
+    <module
+        class="Cerebellum"
+        name="Cerebellum_Left"
+        alpha = "0.1"
+    />
+
+    <module
+        class="Cerebellum"
+        name="Cerebellum_Right"
+        alpha = "0.1"
+    />
+
+    <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Right.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
+
+    <!-- ********************************* EYES ********************************* -->
+    
+    <!-- delay = 12 gives a minumum 260 ms latency of pupilary response -->
+
+    <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Left"  target = "LeftEye.PUPIL_DILATOR" delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Left"  target = "LeftEye.PUPIL_SPHINCTER" delay="12" />
+
+    <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Right"  target = "RightEye.PUPIL_DILATOR" delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Right"  target = "RightEye.PUPIL_SPHINCTER"delay="12" />
+
+    <module
+        class = "EyeModel"
+        name = "LeftEye"
+        epsilon = "0.1"
+        pupil_min = "0.2"
+        pupil_max = "2.0"
+    />
+    
+    <module
+        class = "EyeModel"
+        name = "RightEye"
+        epsilon = "0.1"
+        pupil_min = "0.2"
+        pupil_max = "2.0"
+    />
+    
+    
+    <!-- ********************************* VIEW ********************************* -->
+    
+    <view name="View (Default)">
+    
+        <plot
+            source=".Pupil_Left"
+            color="red"
+            lineWidth = "3"
+            max="1"
+            x="20" y="20"
+            height="200" width="600"
+        />
+
+        <plot
+            source=".Pupil_Right"
+            color="blue"
+            lineWidth = "3"
+            max="1"
+            x="20" y="200"
+            height="200" width="600"
+        />
+        <plot
+            source=".VTA_Activation"
+            color="black"
+            lineWidth = "3"
+            max="1"
+            x="20" y="400"
+            height="200" width="600"
+        />
+    </view>
+</group>
+

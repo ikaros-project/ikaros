@@ -1,0 +1,23 @@
+<group name="Amygdala" description="minimal amygdala model with inhibitable output nucleus">
+
+    <input name="CS" target="Amygdala.CS" />
+    <input name="US" target="Amygdala.US" />
+    <input name="INHBITION" target="Output.INHBITION" />
+    <input name="EXCITATION" target="Output.EXCITATION" />
+
+    <output name="CR" source="Output.OUTPUT" />
+
+    <module
+        class="Delta"
+        name="Amygdala"
+    />
+    <connection source = "Amygdala.CR"  target = "Output.EXCITATION" />
+
+    <module
+        class="Nucleus"
+        description = "inhibitable output nucleus"
+        name="Output"
+    />
+
+</group>
+

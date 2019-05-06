@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+
+<group name="FullModel" description="full pupil control model">
+
+    <description>
+        Extension of the model in Johansson and Balkenius, "A Computational Model of Pupil Dilation", Connection Science, 2017. Here we add a simplified superior colliculus and pulvinar which is assumed to detect pupil stimuli.
+    </description>
+    
+    
+    <input name="Pupil_Stimulus" target="SC.EXCITATION" />
+    <input name="PTA_Left" target="PeripheralPupilControl.PTA_Left" />
+    <input name="PTA_Right" target="PeripheralPupilControl.PTA_Right" />
+    <input name="LC_Direct" target="LCa.EXCITATION" />
+    <input name="LC_Direct" target="LCb.EXCITATION" />
+
+    <output name="Pupil_Left" source="LeftEye.PUPIL_DIAMETER" />
+    <output name="Pupil_Right" source="RightEye.PUPIL_DIAMETER" />
+
+    <!-- parameters that can be controlled at the top level -->
+
+    <parameter name="LCa_alpha" target="LCb.alpha" />
+    <parameter name="LCb_alpha" target="LCb.alpha" />
+    <parameter name="CG_alpha7" target="PeripheralPupilControl.CG_alpha7" default="1" />
+    <parameter name="Eye_m3" target="LeftEye.m3" default="1" />
+    <parameter name="Eye_m3" target="RightEye.m3" default="1" />
+
+   <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
+
+    <module
+        class="BilateralPeripheralPupilControl"
+        name="PeripheralPupilControl"
+    />
+
+    <!-- ********************************* SC / PULV *********************************   -->
+
+    <module
+        class="Nucleus"
+        name="SC"
+    />
+
+    <module
+        class="Nucleus"
+        name="PULV"
+        beta="1"
+    />
+
+    <connection  source = "SC.OUTPUT"  target = "PULV.EXCITATION" />
+    <connection  source = "PULV.OUTPUT"  target = "LCa.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
+    <connection  source = "PULV.OUTPUT"  target = "LCb.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
+
+   <!-- ********************************* LOCUS COERULEUS *********************************   -->
+
+    <module
+        class="Nucleus"
+        name="LCa"
+        beta="0.05"
+        alpha="0.8"
+    />
+
+    <module
+        class="Nucleus"
+        name="LCb"
+        beta="0.05"
+    />
+
+    <!-- LC => IML -->
+    
+    <connection  source = "LCa.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
+    <connection  source = "LCa.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
+
+    <connection  source = "LCb.OUTPUT"  target = "PeripheralPupilControl.EW_SHUNTING_Left" />
+    <connection  source = "LCb.OUTPUT"  target = "PeripheralPupilControl.EW_SHUNTING_Right" />
+
+    <!-- ********************************* AMYGDALA ********************************* -->
+    
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Amygdala.CS" delay="105" />
+    <_connection  source = "VisionBlackBock.EMOTION_NEG"  target = "Amygdala.US" />
+
+    <module
+        class="Amygdala"
+        name="Amygdala"
+        alpha = "0.05"
+    />
+
+    <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
+
+    <!-- ********************************* CERBELLUM ********************************* -->
+    
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Cerebellum.CS" />    <!-- CS INPUT -->
+
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Left"  target = "Cerebellum_Left.US" />    <!-- US INPUT (target) -->
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Right"  target = "Cerebellum_Right.US" />    <!-- US INPUT (target) -->
+
+    <module
+        class="Cerebellum"
+        name="Cerebellum_Left"
+        alpha = "0.1"
+    />
+
+    <module
+        class="Cerebellum"
+        name="Cerebellum_Right"
+        alpha = "0.1"
+    />
+
+    <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Right.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
+
+    <!-- ********************************* EYES ********************************* -->
+    
+    <!-- delay = 12 gives a minumum 260 ms latency of pupilary response -->
+
+    <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Left"  target = "LeftEye.PUPIL_DILATOR" delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Left"  target = "LeftEye.PUPIL_SPHINCTER" delay="12" />
+
+    <connection  source = "PeripheralPupilControl.SCG_OUTPUT_Right"  target = "RightEye.PUPIL_DILATOR" delay="12" />
+    <connection  source = "PeripheralPupilControl.CG_OUTPUT_Right"  target = "RightEye.PUPIL_SPHINCTER"delay="12" />
+
+    <module
+        class = "EyeModel"
+        name = "LeftEye"
+        epsilon = "0.1"
+        pupil_min = "0.2"
+        pupil_max = "2.0"
+    />
+    
+    <module
+        class = "EyeModel"
+        name = "RightEye"
+        epsilon = "0.1"
+        pupil_min = "0.2"
+        pupil_max = "2.0"
+    />
+    
+    
+    <!-- ********************************* VIEW ********************************* -->
+    
+    <view name="View (Default)">
+    
+        <plot
+            source=".Pupil_Left"
+            color="red"
+            lineWidth = "3"
+            max="1"
+            x="20" y="20"
+            height="200" width="600"
+        />
+
+        <plot
+            source=".Pupil_Right"
+            color="blue"
+            lineWidth = "3"
+            max="1"
+            x="20" y="200"
+            height="200" width="600"
+        />
+
+    </view>
+</group>
+

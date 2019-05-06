@@ -45,18 +45,28 @@
 	<_connection  source = "Trainer.TRAIN_X"  target = "A1.INPUT" />
 	<connection  source = "In.OUTPUT"  target = "A1.INPUT" />
 
-	<view name="View">
-        <object class="BarGraph" title="Trainer" module="Trainer" source="TRAIN_X" x="0" y="0" w="3" max="1" />
-        <object class="BarGraph" title="net" module="A1" source="NET" x="0" y="1" w="3" min="-5" max="5" />
-        <object class="BarGraph" title="A1" module="A1" source="OUTPUT" x="0" y="2" w="3" min="0" max="1" />
-        <object class="Grid" title="W" module="A1" source="W"  x="0" y="3" w="3" h="3" min="-1" max="1" />
-        <object class="Grid" title="depression" module="A1" source="W_DEPRESSION"  x="3" y="3" w="3" h="3" min="0" max="0.1" />
-        <object class="Plot" title="f(x)" module="A1" source="OUTPUT" select="0, 1, 2"  stroke_width="3" color="red, green, blue, yellow, white, pink" x="0" y="6" w="6" h="1" min="0" max="1" />
-        <object class="Plot" title="E" module="A1" source="ENERGY" color="red" x="0" y="7" w="6" h="1" min="-5" max="1" />
- 
-        <object class="Slider" title="S Dep" module="A1" parameter="depression_rate" x="3" y="0" h="3" max="0.02" />
-        <object class="Slider" title="Gain" module="A1" parameter="activation_gain" x="4" y="0" h="3" max="10" />
-        <object class="Slider" title="Noise" module="A1" parameter="noise_level" x="5" y="0" h="3" max="0.1" />
-	</view>
+<view name="View" >
+	<bar-graph  lineWidth = "1" direction = "vertical" height = "200" lineCap = "" source = "Trainer.TRAIN_X" title = "Trainer" min = "0" show_title = "true" max = "1" frame-style = "" style = "" labels = "" lineJoin = "" x = "40" y = "60" show_frame = "false" width = "200" fill = "" color = ""/>
+	<bar-graph  lineWidth = "1" direction = "vertical" height = "200" lineCap = "" source = "A1.NET" title = "Net" min = "0" show_title = "true" max = "1" frame-style = "" style = "" labels = "" lineJoin = "" x = "260" y = "60" show_frame = "false" width = "200" fill = "" color = ""/>
+	<bar-graph  lineWidth = "1" direction = "vertical" height = "200" lineCap = "" source = "A1.OUTPUT" title = "A1" min = "0" show_title = "true" max = "1" frame-style = "" style = "" labels = "" lineJoin = "" x = "480" y = "60" show_frame = "false" width = "200" fill = "" color = ""/>
+	<grid  show_title = "true" command = "" x = "40" scales = "no" max = "1" colorTable = "" min = "0" flipYCanvas = "no" valueHigh = "1" source = "A1.W" title = "Weights" height = "200" green = "" shape = "rectangle" y = "280" parameter = "" size = "1" labels = "" width = "200" color = "" fill = "gray" show_frame = "false" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
+	<grid  show_title = "true" command = "" x = "260" scales = "no" max = "1" colorTable = "" min = "0" flipYCanvas = "no" valueHigh = "1" source = "A1.SYNAPTIC_DEPRESSION" title = "Depression" height = "200" green = "" shape = "rectangle" y = "280" parameter = "" size = "1" labels = "" width = "200" color = "" fill = "gray" show_frame = "false" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
+	<plot  title = "f(x)" source = "A1.OUTPUT" x = "40" y = "500" min = "0" select = "" max = "1" style = "" buffer_size = "50" frame-style = "" color = "" show_frame = "false" width = "200" height = "200" direction = "vertical" show_title = "true"/>
+	<plot  title = "Energy" source = "A1.ENERGY" x = "260" y = "500" min = "-1000" select = "" max = "1000" style = "" buffer_size = "50" frame-style = "" color = "" show_frame = "false" width = "200" height = "200" direction = "vertical" show_title = "true"/>
+	<slider-horizontal  x = "40" y = "720" height = "61" width = "221" title = "S Dep" parameter = "A1.depression_rate" select = "0" count = "1" labels = "" min = "0" max = "0.02" step = "0.001" show_values = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "40" y = "780" height = "61" width = "221" title = "Gain" parameter = "A1.activation_gain" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "40" y = "840" height = "61" width = "221" title = "Noise" parameter = "A1.noise_level" select = "0" count = "1" labels = "" min = "0" max = "0.1" step = "0.01" show_values = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+<!-- 
+	<Slider  max = "0.02" h = "3" title = "S Dep" x = "3" module = "A1" parameter = "depression_rate" y = "0"/>
+	<Slider  max = "10" h = "3" title = "Gain" x = "4" module = "A1" parameter = "activation_gain" y = "0"/>
+	<Slider  max = "0.1" h = "3" title = "Noise" x = "5" module = "A1" parameter = "noise_level" y = "0"/>
+
+    <object class="Slider" title="S Dep" module="A1" parameter="depression_rate" x="3" y="0" h="3" max="0.02" />
+    <object class="Slider" title="Gain" module="A1" parameter="activation_gain" x="4" y="0" h="3" max="10" />
+    <object class="Slider" title="Noise" module="A1" parameter="noise_level" x="5" y="0" h="3" max="0.1" />
+</view>
+-->
 </group>
  
