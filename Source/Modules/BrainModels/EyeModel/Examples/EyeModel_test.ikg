@@ -2,41 +2,31 @@
 
 <group name="Eye Model Test" description="minimal example module">
     
-    <module
-        class="FunctionGenerator"
-        name="S0"
-        type = "sin"
-        frequency = "0.00314"
-        offset = "0.15"
-        amplitude = "0.1"
-    />
+
+
+    <module class="Constant" name="Dilation" data = "0"/>
+    <module class="Constant" name="Constriction" data = "0"/>
         
-    <module
-        class="FunctionGenerator"
-        name="S1"
-        type = "sin"
-        frequency = "0.0314"
-        offset = "0.0"
-        amplitude = "0.3"
-    />
-        
-    <module
-        class="Randomizer"
-        name="S2"
-        period = "50"
-        min="0.5"
-    />
-        
-    <module
-        class="EyeModel"
-        name="Eyes"
-        speed = "0.2"
-    />
+    <module class="EyeModel" name="Eyes" pupil_min = "0.2" pupil_max = "0.8"/>
+
+    <connection  source = "Dilation.OUTPUT"  target = "Eyes.PUPIL_DILATOR" />
+    <connection  source = "Constriction.OUTPUT"  target = "Eyes.PUPIL_SPHINCTER" />
     
-    <connection  source = "S0.OUTPUT"  target = "Eyes.GAZE" />
-    <connection  source = "S1.OUTPUT"  target = "Eyes.GAZE" />
-    <connection  source = "S2.OUTPUT"  target = "Eyes.PUPIL_DILATOR" />
-    <connection  source = "S2.OUTPUT"  target = "Eyes.PUPIL_SPHINCTER" />
-    
+<view name="Pupil" >
+	<slider-horizontal  frame-style = "" show_title = "true" max = "1" show_values = "false" step = "0.01" label = "X" min = "0" style = "" labels = "" select = "0" parameter = "Dilation.data" count = "1" y = "240" width = "301" title = "Dilation" x = "60" show_frame = "false" height = "221"/>
+	<slider-horizontal  frame-style = "" show_title = "true" max = "1" show_values = "false" step = "0.01" label = "X" min = "0" style = "" labels = "" select = "0" parameter = "Constriction.data" count = "1" y = "40" width = "301" title = "Constrict" x = "60" show_frame = "false" height = "201"/>
+	<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "1" min = "0" direction = "vertical" select = "" source = "Eyes.PUPIL_DIAMETER" color = "" title = "Pupil Diameter" width = "681" show_frame = "false" height = "221" y = "480" x = "60"/>
+	<epi-head  x = "420" y = "40" height = "421" width = "321" title = "Epi Head" pupilLeftSource = "Eyes.PUPIL_DIAMETER" pupilRightSource = "Eyes.PUPIL_DIAMETER" />
+</view>
+
+
+
+
+
+
+
+
+
+
 </group>
 

@@ -60,11 +60,8 @@ EyeModel::Tick()
         output[1] = gaze[1];
     }
     float p = pupil_min + (pupil_max-pupil_min) * clip(amplifier*(alpha1a*pupil_dilator[0]-m3*pupil_sphincter[0]), 0, 1);
-	
     pupil_diameter[0]  += epsilon * (p - pupil_diameter[0]);
-    
-
-    output[2] = amplifier * pupil_diameter[0]; 
+    output[2] = pupil_diameter[0]; 
 }
 
 
