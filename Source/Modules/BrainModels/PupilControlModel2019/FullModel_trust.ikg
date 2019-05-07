@@ -21,8 +21,9 @@
     <input name="TNS_Direct" target="TNS.EXCITATION" description="Gentle touch"/>
     <input name="Negative_Emotion" target="Amygdala.US" />
     <input name="Septal_Direct" target="SeptalArea.EXCITATION" description="connect to hippocampus familiarity and positive emotion" />
-    <input name="Object_ID" target="Amygdala.CS" />
-    <input name="Object_ID" target="Cerebellum.CS" />
+    <input name="Object_ID" target="Amygdala.CS" description="amygdala id takes in vector of one-hot values" />
+    <input name="Object_ID" target="Cerebellum_Left.CS" description="cerebellum id takes in vector of one-hot values" />
+    <input name="Object_ID" target="Cerebellum_Right.CS" description="cerebellum id takes in vector of one-hot values" />
 
     <!--TODO:
         gentle touch: n. tr solitaris to PVN
@@ -203,9 +204,9 @@
         alpha = "0.05"
     />
 
+    <connection  source = "Amygdala.CR"  target = "PAG.EXCITATION" />    <!-- CR OUTPUT -->
     <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
     <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
-    <connection  source = "Amygdala.CR"  target = "PAG.EXCITATION" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* BASAL GANGLIA ********************************* -->
     <module
@@ -225,12 +226,14 @@
         class="Cerebellum"
         name="Cerebellum_Left"
         alpha = "0.1"
+        description="Cerebellum learns light intensity of object categories, so a drawing of the sun can constrict pupil"
     />
 
     <module
         class="Cerebellum"
         name="Cerebellum_Right"
         alpha = "0.1"
+        description="Cerebellum learns light intensity of object categories, so a drawing of the sun can constrict pupil"
     />
 
     <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
