@@ -41,6 +41,7 @@ public:
     int		size_x;
     int		size_y;
 
+    bool keepval;
     float **	input;
     float **	output;
 };

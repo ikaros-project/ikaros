@@ -10,10 +10,11 @@
 
 		<connection  source = "Constant.OUTPUT"  target = "SelectMax.INPUT" />
 
-		<view name="View">
-			<object class="BarGraph" module="Constant" source="OUTPUT" max="5" x="0" y="0" />
-			<object class="BarGraph" module="SelectMax" source="OUTPUT" max="5" x="0" y="1" />
-		</view>
+<view name="View" >
+	<bar-graph  x = "360" y = "160" height = "200" width = "200" title = "SelectMax" source = "SelectMax.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "120" y = "160" height = "200" width = "200" title = "Input" source = "Constant.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "10" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
     <module class = "Logger" name = "Logger" />
 </group>
  
