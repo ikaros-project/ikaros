@@ -30,7 +30,8 @@
 // this is preferred to using math.h
 
 using namespace ikaros;
-
+const int cAccumulate = 0;
+const int cCopy = 1;
 void 
 InitialValue::SetSizes() // Infer output size from data if none is given
 {
@@ -52,10 +53,12 @@ InitialValue::Init()
     Bind(outputsize, "outputsize");
     Bind(delay, "wait");
     Bind(debugmode, "debug");
+    Bind(mode, "mode");
 
-    input_array = GetInputArray("INPUT");
-    input_array_size = GetInputSize("INPUT");
-    
+    //input_array = GetInputArray("INPUT");
+    //input_array_size = GetInputSize("INPUT");
+    io(input_array, input_array_size, "INPUT");
+    io(update, "UPDATE");
 
     output_array = GetOutputArray("OUTPUT");
     output_array_size = GetOutputSize("OUTPUT");
@@ -77,11 +80,19 @@ InitialValue::Tick()
 {
     // TODO allow on-the-fly updating of values - 
     // if change in data use updated value instead of input
+
     if(delay<=0)
     {
-        // add input to output
-        //copy_array(output_array, input_array, outputsize);
-        add(output_array, input_array, outputsize);
+        // default is to update, if not connected
+        if(!update || update && update[0]==1.f)
+        {
+            // add input to output
+            //copy_array(output_array, input_array, outputsize);
+            if(mode==cAccumulate)
+                add(output_array, input_array, outputsize);
+            else if (mode==cCopy)
+                copy_array(output_array, input_array, outputsize);    
+        }
     }
     else
     {
