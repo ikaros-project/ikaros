@@ -3,8 +3,8 @@
 <group name="FullModel_trust" description="full pupil control model">
 
     <description>
-        Extension of the model in Johansson and Balkenius, "A Computational Model of Pupil Dilation", Connection Science, 2017. Here we add a simplified superior colliculus and pulvinar which is assumed to detect pupil stimuli.
-
+        Extension of the model in Johansson and Balkenius, "A Computational Model of Pupil Dilation", Connection Science, 2017. 
+        
         This model adds inputs for gentle and painful touch, as well as a population
         modeling simple facial recognition.
     </description>
@@ -33,11 +33,17 @@
         OX: PVN to VTA
         OX: PVN to NAcc (approach)
         OX: PVN to AMY (inhibitory)
+
+        Add also basal ganglia?
      -->
 
     <output name="Pupil_Left" source="LeftEye.PUPIL_DIAMETER" />
     <output name="Pupil_Right" source="RightEye.PUPIL_DIAMETER" />
     <output name="VTA_Activation" source = "VTA.OUTPUT" description="VTA excites cortex" />
+    <output name="Septal_Activation" source="SeptalArea.OUTPUT" description="SA is part of anterior paracingulate ctx" />
+    <output name="NAcc_Activation" source="NAcc.OUTPUT" description="NAcc is part of BG Striatum" />
+    <output name="AMY_Activation" source="Amygdala.CR" description="Amygdala activation" />
+    <output name="PAG_Activation" source="PAG.OUTPUT" description="Nociception" />
 
     <!-- parameters that can be controlled at the top level -->
 
