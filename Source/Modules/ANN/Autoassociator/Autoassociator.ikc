@@ -3,7 +3,11 @@
 <class name="Autoassociator" description="Template for general learming modules">
 
 	<description type="text">
-		Autoassociator
+		Autoassociator performs Hebbian learning between inputs;
+		given a partial input it will output the full learned pattern.
+		This can be used to e.g. associate different sensory streams
+		like audio and vision, or interoception/feelings with each other
+		or other inputs.
 	</description>
 
 	<example description="A simple example">
