@@ -17,6 +17,7 @@
     <parameter name="open" type="bool" default="yes" description="Is the gate open?" />
     
 	<input name="INPUT" description="The input" />
+	<input name="INPUT_GATE" description="The gating input; will override parameter if set" optional="yes"  size_set="INPUT" />
 	<output name="OUTPUT" description="The output" size_set="INPUT" />
 
     <limitation>

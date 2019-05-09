@@ -2,8 +2,11 @@
 
 <group>
 	
-		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
-	
+		<module class = "Constant" name = "Constant" outputsize = "4" data="1 2 3 4" />
+		<connection  source = "Constant.OUTPUT"  target = "Gate1.INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Gate2.INPUT" />
+		<connection  source = "Constant.OUTPUT"  target = "Gate3.INPUT" />
+
 		<module
 			class = "Gate"
 			name = "Gate1"
@@ -15,14 +18,29 @@
 			name = "Gate2"
 			open  = "no"
 		/>
+		
 
-		<connection  source = "Constant.OUTPUT"  target = "Gate1.INPUT" />
-		<connection  source = "Constant.OUTPUT"  target = "Gate2.INPUT" />
+		<module
+			class="Constant"
+			name="Mask"
+			data="1 1 0 0"
+		/>
+		<connection  source = "Mask.OUTPUT"  target = "Gate3.INPUT_GATE" />
 
-		<view name="View">
-			<object class="BarGraph" module="Gate1" source="OUTPUT" max="5" x="0" y="0" />
-			<object class="BarGraph" module="Gate2" source="OUTPUT" max="5" x="1" y="0" />
-		</view>
+		<module
+			class = "Gate"
+			name = "Gate3"
+			open  = "no"
+		/>
+
+<view name="View" >
+	<bar-graph  y = "0" x = "20" source = "Gate1.OUTPUT" max = "5" title = "Gate1" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" show_title = "true" show_frame = "false" style = "" frame-style = "" width = "201" height = "261"/>
+	<bar-graph  y = "0" x = "240" source = "Gate2.OUTPUT" max = "5" title = "Gate 2" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" show_title = "true" show_frame = "false" style = "" frame-style = "" width = "201" height = "241"/>
+	<bar-graph  y = "260" x = "20" source = "Gate3.OUTPUT" max = "5" title = "Gate 3" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" show_title = "true" show_frame = "false" style = "" frame-style = "" width = "221" height = "241"/>
+	<bar-graph  y = "260" x = "240" source = "Mask.OUTPUT" max = "5" title = "Gate 3 mask" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" show_title = "true" show_frame = "false" style = "" frame-style = "" width = "241" height = "241"/>
+	<bar-graph  x = "440" y = "0" height = "241" width = "221" title = "Input" source = "Constant.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "5" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
     <module class = "Logger" name = "Logger" />
 </group>
  
