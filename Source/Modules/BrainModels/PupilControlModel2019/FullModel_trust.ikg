@@ -167,8 +167,8 @@
     />
     <connection  source = "SC.OUTPUT"  target = "PULV.EXCITATION" />
 
-    <connection  source = "PULV.OUTPUT"  target = "LCa.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
-    <connection  source = "PULV.OUTPUT"  target = "LCb.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
+    <_connection  source = "PULV.OUTPUT"  target = "LCa.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
+    <_connection  source = "PULV.OUTPUT"  target = "LCb.EXCITATION" />     <!-- We pass through amygdala since US gives no UR in delta rule model -->
 
    <!-- ********************************* LOCUS COERULEUS *********************************   -->
 
@@ -211,8 +211,8 @@
     />
 
     <connection  source = "Amygdala.CR"  target = "PAG.EXCITATION" />    <!-- CR OUTPUT -->
-    <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
     <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* BASAL GANGLIA ********************************* -->
     <module
@@ -227,12 +227,20 @@
 
     <connection  source = "PeripheralPupilControl.EW_OUTPUT_Left"  target = "Cerebellum_Left.US" />    <!-- US INPUT (target) -->
     <connection  source = "PeripheralPupilControl.EW_OUTPUT_Right"  target = "Cerebellum_Right.US" />    <!-- US INPUT (target) -->
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Left"  target = "Cerebellum_intermediate_left.INHIBITION" />    <!-- US INPUT (target) -->
+    <connection  source = "PeripheralPupilControl.EW_OUTPUT_Right"  target = "Cerebellum_intermediate_right.INHIBITION" />    <!-- US INPUT (target) -->
+
 
     <module
         class="Cerebellum"
         name="Cerebellum_Left"
         alpha = "0.1"
         description="Cerebellum learns light intensity of object categories, so a drawing of the sun can constrict pupil"
+    />
+    <module
+        class="Nucleus"
+        name="Cerebellum_intermediate_left"
+        
     />
 
     <module
@@ -241,9 +249,16 @@
         alpha = "0.1"
         description="Cerebellum learns light intensity of object categories, so a drawing of the sun can constrict pupil"
     />
+    <module
+        class="Nucleus"
+        name="Cerebellum_intermediate_right"
+        
+    />
+    <connection  source = "Cerebellum_Left.CR"  target = "Cerebellum_intermediate_left.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_intermediate_left.OUTPUT"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_Right.CR"  target = "Cerebellum_intermediate_right.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Cerebellum_intermediate_right.OUTPUT"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
 
-    <connection  source = "Cerebellum_Left.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Left" />    <!-- CR OUTPUT -->
-    <connection  source = "Cerebellum_Right.CR"  target = "PeripheralPupilControl.EW_EXCITATION_Right" />    <!-- CR OUTPUT -->
 
     <!-- ********************************* EYES ********************************* -->
     
