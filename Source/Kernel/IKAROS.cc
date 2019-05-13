@@ -4182,7 +4182,7 @@ Kernel::HandleHTTPRequest()
         if(!socket->SendFile(&uri[1], webui_dir))   // Now look in WebUI directory
         {
             if (strend(uri, ".gltf") || strend(uri, ".glb"))
-                socket->SendFile("/Models/glTF/Error.gltf", webui_dir);   // Send error model
+                socket->SendFile("/Models/glTF/Error.glb", webui_dir);   // Send error model
             else
                 socket->SendFile("404.html", webui_dir); // Send 404 if not file found
         }
