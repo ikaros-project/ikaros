@@ -3,43 +3,43 @@
 <group>
 	
     <description>
-        WARNING. These modules are under development and can change at any time!
 	 </description>
 
-    <input name = "FEEDBACK_POSITION"   target = "NotAvailable.INPUT" />
+    <input name = "JOINT_ANGLES"   target = "L1_R2Rot.INPUT" />
 
-    <output name = "OUTPUT"             source = "JOIN.OUTPUT" />
-    <output name = "MODEL_ID"           source = "MODEL_ID_C.OUTPUT" />
+    <!-- Ego -->
+    <output name = "EGO_SKELETON"               source = "SkeletonJoin.OUTPUT" />             
+    <output name = "EGO_MODELS" 	            source = "ModelJoin.OUTPUT" />
+    <!--<_output name = "EGO_POINTS" 	        source = "PointJoin.OUTPUT" />-->
+    <!--<output name = "EGO_SENSOR" 	        source = "SensorBodyHead.MATRIX" />-->
 
-    <!-- Model IDs -->
-    <module class = "Constant" name = "MODEL_ID_C" data = "50 104" />
+    <module class = "DataConverter" name = "SkeletonJoin" output_size_x = "16" output_size_y = "2"/>
+        <connection source = "M_L1_R2.OUTPUT"       target = "SkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "0"   size = "16"/>
+        <connection source = "M_L2_T1.OUTPUT"       target = "SkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "16"  size = "16"/>
+
+    <module class = "DataConverter" name = "ModelJoin" output_size_x = "16" output_size_y = "2"/>
+        <connection source = "L1_R1.OUTPUT"         target = "ModelJoin.INPUT" sourceoffset = "0" targetoffset = "0"   size = "16"/>
+        <connection source = "M_L1_R2.OUTPUT"       target = "ModelJoin.INPUT" sourceoffset = "0" targetoffset = "16"   size = "16"/>
+
+    <!--<module class = "Gate" name = "PointJoin"/>-->
+    <!--<module class = "Gate" name = "SENSOR"/>-->
 
     <!-- Used to filll xyz intputs of rotationConverter -->
     <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
 
-	<module class = "DataConverter" name = "JOIN" output_size_x = "16" output_size_y = "2"/>
-        <connection source = "M_L1_R1.OUTPUT"   target = "JOIN.INPUT" />
-        <connection source = "L1_R1.OUTPUT"     target = "JOIN.INPUT" />
-    
-    
-    <module class = "Sink" name = "NotAvailable" />
-
-
     <!-- Body -->
     <!-- LINK 1: JOINT 1: (Non existing servo) Rotation -90 dgrees in Y to have X in the path of the chain  --> 
-    <module class = "Constant"    name = "L1_R1Rot"  data = "-90" />
+    <module class = "Constant"    name = "L1_R1Rot"  data = "0 -90 0" />
     <module class = "RotationConverter" name = "L1_R1_C" input_format = "axayaz" output_format = "matrix" />
-        <connection source = "ZERO.OUTPUT"      target = "L1_R1_C.INPUT" />
         <connection source = "L1_R1Rot.OUTPUT"  target = "L1_R1_C.INPUT" />
-        <connection source = "ZERO.OUTPUT"      target = "L1_R1_C.INPUT" />
+
 	<module class = "DataConverter" name = "L1_R1"/>
         <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" />
 
-
-    <!-- LINK 1: TRANS 1: Translation to origo (Center of arm joints) --> 
+    <!-- LINK 1: TRANS 1: Translation to Joint 2  --> 
     <module class = "Constant" name = "L1_T1" 
 	data = "
-	1 0 0 0.685;
+	1 0 0 0.200;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -50,5 +50,35 @@
         <connection source = "L1_R1.OUTPUT" target = "M_L1_R1.INPUT1" delay = "0"/>
         <connection source = "L1_T1.OUTPUT" target = "M_L1_R1.INPUT2" delay = "0"/>
 
+    <!-- LINK1: Rotation JOINT 2 -->
+    <module class = "Gate" name = "L1_R2Rot"/>
+    <module class = "RotationConverter" name = "L1_R2_C" input_format = "axayaz" output_format = "matrix" />
+        <connection source = "L1_R2Rot.OUTPUT"  target = "L1_R2_C.INPUT" sourceoffset = "0" targetoffset = "0" size = "1"/>
+        <connection source = "ZERO.OUTPUT"      target = "L1_R2_C.INPUT" sourceoffset = "0" targetoffset = "1" size = "1"/>
+        <connection source = "ZERO.OUTPUT"      target = "L1_R2_C.INPUT" sourceoffset = "0" targetoffset = "2" size = "1"/>
+        
+    <module class = "DataConverter" name = "L1_R2"/>
+        <connection source = "L1_R2_C.OUTPUT"   target = "L1_R2.INPUT" />
+     
+
+    <module class = "MatrixMultiply"   name = "M_L1_R2" />
+        <connection source = "M_L1_R1.OUTPUT"   target = "M_L1_R2.INPUT1" delay = "0"/>
+        <connection source = "L1_R2.OUTPUT"     target = "M_L1_R2.INPUT2" delay = "0"/>
+
+     <!-- LINK 2: Translation to point between arms -->
+    <module class = "Constant" name = "L2_T1" 
+	data = "
+	1 0 0 0.55824;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" />
+    
+    <!-- 3 mm is missing -->
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L2_T1" />
+        <connection source = "M_L1_R2.OUTPUT"   target = "M_L2_T1.INPUT1" delay = "0"/>
+        <connection source = "L2_T1.OUTPUT"     target = "M_L2_T1.INPUT2" delay = "0"/>
+
 </group>
- 
