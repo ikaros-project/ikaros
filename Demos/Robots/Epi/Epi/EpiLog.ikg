@@ -69,15 +69,15 @@
 		<connection  source = "EpiBlack.Servos.FEEDBACK_GOAL_TORQUE"  			target = "Log.ServoGoalTorque"/>
 		<connection  source = "EpiBlack.Servos.FEEDBACK_GOAL_ACCELERATION"  	target = "Log.ServoGoalAcceleration"/>
 		<connection  source = "EpiBlack.Servos.ERRORS"  						target = "Log.ServoErrors"/>
-		<_connection  source = "EpiBlack.MotionRecorder.TRIG_OUT" source_offset = "0" target_offset = "6" size = "1"				target = "Log.Triggers"/>
+		<_connection  source = "EpiBlack.MotionRecorder.TRIG_OUT" source_offset = "0" targetoffset = "6" size = "1"				target = "Log.Triggers"/>
 		
 		<module class = "Constant" name = "FIVE" data = "5 5" />
-		<connection  source = "FIVE.OUTPUT" source_offset = "0" target_offset = "2" size = "2"							target = "Log.Triggers"/>
+		<connection  source = "FIVE.OUTPUT" source_offset = "0" targetoffset = "2" size = "2"							target = "Log.Triggers"/>
 
 		<!-- Triggers array size 10 -->
 		<module class = "Constant" name = "LogTrigger" data = "11 22 33 44 55 66 77 88 99 10" />
-			<connection  source = "LogTrigger.OUTPUT"  	source_offset = "0" target_offset = "2" size = "10"	target = "Log.Triggers"/>
+			<connection  source = "LogTrigger.OUTPUT"  	source_offset = "0" targetoffset = "2" size = "10"	target = "Log.Triggers"/>
 			<_connection  source = "LogTrigger.OUTPUT" target = "Log.Triggers"/>
-			<!-- BUG HERE target_offset can not be set. -->
+			<!-- BUG HERE targetoffset can not be set. -->
 
 		</group>
