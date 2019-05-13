@@ -3183,7 +3183,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
     
     if (!filename && classes.find(class_name)==classes.end())
         Notify(msg_warning, "Group ikg for \"%s\" could not be found with path %s. HINT: Check if path is correct relative to including file.\n", class_name, include_file);
-    else
+    else if(classes.count(class_name))
         filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
 
 	if(!filename)
@@ -3268,7 +3268,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         {
             const char * class_name = GetXMLAttribute(group_xml, "class");
             Parameter * parameter = new Parameter(this, xml_node, group);
-            Module * m = classes.at(class_name)->CreateModule(parameter);
+            Module * m = classes.count(class_name) ? classes.at(class_name)->CreateModule(parameter) : NULL;
             delete parameter;
             if(m == NULL)
                 Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
