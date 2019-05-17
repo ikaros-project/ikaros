@@ -36,6 +36,7 @@ public:
     bool		is_open;
 
     float **	input;
+    float **    input_gate;
     float **	output;
 
     Gate(Parameter * p) : Module(p) {}

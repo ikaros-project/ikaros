@@ -42,6 +42,7 @@ public:
 
     float *     input_array;
     int         input_array_size;
+    float *     update;
 
     float *     output_array;
     int         output_array_size;
@@ -52,6 +53,7 @@ public:
     // parameter values
 
     int       outputsize;
+    int       mode;
     int       delay;
 	bool       	debugmode;
 };

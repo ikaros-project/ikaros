@@ -27,11 +27,13 @@ using namespace ikaros;
 void
 SelectMax::Init()
 {
+    Bind(keepval, "keep_value");
     size_x	= GetInputSizeX("INPUT");
     size_y	= GetInputSizeY("INPUT");
 
     input   = GetInputMatrix("INPUT");
     output	= GetOutputMatrix("OUTPUT");
+
 }
 
 
@@ -44,7 +46,10 @@ SelectMax::Tick()
     arg_max(x, y, input, size_x, size_y);
 
     reset_matrix(output, size_x, size_y);
-    output[y][x] = 1;
+    if(keepval)
+        output[y][x] = input[y][x];
+    else
+        output[y][x] = 1;
 }
 
 

@@ -17,7 +17,7 @@
    <module
         class = "Randomizer"
         name = "RAND"
-        max="0"
+        max="1"
         outputsize_x = "5"
         outputsize_y = "1"
     />
@@ -44,14 +44,16 @@
 	<connection  source = "RAND.OUTPUT"  target = "A1.INPUT" />
 
 <view name="View" >
-	<bar-graph  show_title = "true" max = "1" min = "0" title = "Trainer" source = "Trainer.TRAIN_X" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "40" y = "60" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
-	<bar-graph  show_title = "true" max = "1" min = "0" title = "Net" source = "A1.NET" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "260" y = "60" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
-	<bar-graph  show_title = "true" max = "1" min = "0" title = "A1" source = "A1.OUTPUT" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "480" y = "60" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
-	<grid  height = "200" title = "Weights" y = "280" green = "" shape = "rectangle" flipYCanvas = "no" min = "0" colorTable = "" source = "A1.W" valueHigh = "1" scales = "no" x = "40" command = "" show_title = "true" parameter = "" max = "1" size = "1" labels = "" width = "200" color = "" fill = "gray" show_frame = "false" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
-	<grid  height = "200" title = "Depression" y = "280" green = "" shape = "rectangle" flipYCanvas = "no" min = "0" colorTable = "" source = "A1.SYNAPTIC_DEPRESSION" valueHigh = "1" scales = "no" x = "260" command = "" show_title = "true" parameter = "" max = "1" size = "1" labels = "" width = "200" color = "" fill = "gray" show_frame = "false" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
-	<plot  min = "0" select = "" y = "500" x = "40" source = "A1.OUTPUT" title = "f(x)" max = "1" style = "" buffer_size = "50" frame-style = "" color = "" show_frame = "false" width = "200" height = "200" direction = "vertical" show_title = "true"/>
-	<plot  min = "-1000" select = "" y = "500" x = "260" source = "A1.ENERGY" title = "Energy" max = "1000" style = "" buffer_size = "50" frame-style = "" color = "" show_frame = "false" width = "200" height = "200" direction = "vertical" show_title = "true"/>
+	<bar-graph  lineWidth = "1" direction = "vertical" height = "200" lineCap = "" source = "Trainer.TRAIN_X" title = "Trainer" min = "0" show_title = "true" max = "1" frame-style = "" style = "" labels = "" lineJoin = "" x = "40" y = "60" show_frame = "false" width = "200" fill = "" color = ""/>
+	<bar-graph  lineWidth = "1" direction = "vertical" height = "200" lineCap = "" source = "A1.NET" title = "Net" min = "0" show_title = "true" max = "1" frame-style = "" style = "" labels = "" lineJoin = "" x = "260" y = "60" show_frame = "false" width = "200" fill = "" color = ""/>
+	<bar-graph  lineWidth = "1" direction = "vertical" height = "200" lineCap = "" source = "A1.OUTPUT" title = "A1" min = "0" show_title = "true" max = "1" frame-style = "" style = "" labels = "" lineJoin = "" x = "260" y = "720" show_frame = "false" width = "200" fill = "" color = ""/>
+	<grid  show_title = "true" command = "" x = "40" scales = "no" max = "1" colorTable = "" min = "0" flipYCanvas = "no" valueHigh = "1" source = "A1.W" title = "Weights" height = "200" green = "" shape = "rectangle" y = "280" parameter = "" size = "1" labels = "" width = "200" color = "" fill = "gray" show_frame = "false" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
+	<grid  show_title = "true" command = "" x = "260" scales = "no" max = "1" colorTable = "" min = "0" flipYCanvas = "no" valueHigh = "1" source = "A1.SYNAPTIC_DEPRESSION" title = "Depression" height = "200" green = "" shape = "rectangle" y = "280" parameter = "" size = "1" labels = "" width = "200" color = "" fill = "gray" show_frame = "false" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
+	<plot  title = "f(x)" source = "A1.OUTPUT" x = "40" y = "500" min = "0" select = "" max = "1" style = "" buffer_size = "50" frame-style = "" color = "" show_frame = "false" width = "200" height = "200" direction = "vertical" show_title = "true"/>
+	<plot  title = "Energy" source = "A1.ENERGY" x = "260" y = "500" min = "-1000" select = "" max = "1000" style = "" buffer_size = "50" frame-style = "" color = "" show_frame = "false" width = "200" height = "200" direction = "vertical" show_title = "true"/>
+	<bar-graph  x = "40" y = "720" height = "200" width = "200" title = "Random gen" source = "RAND.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 </view>
+
 
 
 <!-- 

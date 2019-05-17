@@ -5,6 +5,7 @@
 	<description type="text">
 		Module that can be used as an initial value for difference equations.
 		The module works like a constant vector, but updates its values after a given number of ticks.
+
 		
 		In "stock and flow" models, this module can be used as a "stock" (i.e. a reservoir).
 	</description>
@@ -23,10 +24,12 @@
 	<parameter name="outputsize" type="int" default="1" description="Size of vector" />
 	<parameter name="data" type="list" default="1" description="List of values" />
 	<parameter name="wait" type="int" default="1" description="Delay before values are updated" />
+	<parameter name="mode" type="list" default="accumulate" values="accumulate/copy" description="What to do with output" />
 
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="INPUT" description="The input with updated values. Size must be same as outputsize param" />
+	<input name="UPDATE" description="Whether to update" size="1" optional="yes"/>
 
 	<output name="OUTPUT" description="The first output" size_param="outputsize" />
 

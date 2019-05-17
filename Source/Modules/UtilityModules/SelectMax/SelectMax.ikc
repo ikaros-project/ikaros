@@ -14,6 +14,7 @@
 		/>
 	</example>
 
+	<parameter name="keep_value" default="no" description="Whether to keep value of max or use 1 (one hot)" />
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="Output with a single 1 at the maximum of the input" size_set="INPUT" />
 

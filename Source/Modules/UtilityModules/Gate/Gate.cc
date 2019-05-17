@@ -31,6 +31,8 @@ Gate::Init()
 
     input	= GetInputMatrix("INPUT");
     output	= GetOutputMatrix("OUTPUT");
+    int x,y;
+    io(input_gate, x, y, "INPUT_GATE");
 }
 
 
@@ -38,20 +40,18 @@ Gate::Init()
 void
 Gate::Tick()
 {
-    switch (int(is_open))
-    {
-        case true: // OPEN
-            for (int i=0; i<size_x; i++)
-                for (int j=0; j<size_y; j++)
-                    output[j][i] = input[j][i];
-            break;
-
-        case false: // CLOSED
-            for (int i=0; i<size_x; i++)
-                for (int j=0; j<size_y; j++)
-                    output[j][i] = 0.0;
-            break;
+    set_matrix(output, 0.f, size_x, size_y);
+    if(input_gate) 
+    {    
+        for (int i=0; i<size_x; i++)
+            for (int j=0; j<size_y; j++)
+                if(input_gate[j][i] > 0.f)
+                    output[j][i] = input[j][i];       
     }
+    else if(is_open)
+        copy_matrix(output, input, size_x, size_y);
+        
+        
 }
 
 
