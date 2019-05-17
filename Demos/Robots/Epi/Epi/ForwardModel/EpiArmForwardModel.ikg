@@ -18,26 +18,18 @@
     <output name = "EGO_MODELS" 	    source = "ModelJoin.OUTPUT" />
     <output name = "EGO_POINTS" 	    source = "PointJoin.OUTPUT" />
     
-    <module class = "DataConverter" name = "SkeletonJoin" output_size_x = "16" output_size_y = "6"/>
-        <connection source = "M_L1_T_R3.OUTPUT"    target = "SkeletonJoin.INPUT"    sourceoffset = "0" targetoffset = "0"    size = "16"/>
-        <connection source = "M_L2_R1.OUTPUT"      target = "SkeletonJoin.INPUT"    sourceoffset = "0" targetoffset = "16"   size = "16"/>
-        <connection source = "M_L3_R1.OUTPUT"      target = "SkeletonJoin.INPUT"    sourceoffset = "0" targetoffset = "32"   size = "16"/>
-        <connection source = "M_L4_R1.OUTPUT"      target = "SkeletonJoin.INPUT"    sourceoffset = "0" targetoffset = "48"   size = "16"/>
-        <connection source = "M_L5_R1.OUTPUT"      target = "SkeletonJoin.INPUT"    sourceoffset = "0" targetoffset = "64"   size = "16"/>
-        <connection source = "M_L6_R1.OUTPUT"      target = "SkeletonJoin.INPUT"    sourceoffset = "0" targetoffset = "80"   size = "16"/>
+    <module class = "DataConverter" name = "PointJoin" output_size_x = "16" output_size_y = "9"/>
+        <connection source = "M_L1_T_R3.OUTPUT"    target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "0"    size = "16"/>
+        <connection source = "M_L2_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "16"   size = "16"/>
+        <connection source = "M_L3_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "32"   size = "16"/>
+        <connection source = "M_L4_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "48"   size = "16"/>
+        <connection source = "M_L5_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "64"   size = "16"/>
+        <connection source = "M_L6_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "80"   size = "16"/>
+        <connection source = "M_P1_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "96"   size = "16"/>
+        <connection source = "M_P2_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "112"  size = "16"/>
+        <connection source = "M_P3_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "128"  size = "16"/>
 
-    <module class = "DataConverter" name = "ModelJoin" output_size_x = "16" output_size_y = "6"/>
-        <connection source = "M_L1_T_R3.OUTPUT"    target = "ModelJoin.INPUT"    sourceoffset = "0" targetoffset = "0"    size = "16"/>
-        <connection source = "M_L2_R1.OUTPUT"      target = "ModelJoin.INPUT"    sourceoffset = "0" targetoffset = "16"   size = "16"/>
-        <connection source = "M_L3_R1.OUTPUT"      target = "ModelJoin.INPUT"    sourceoffset = "0" targetoffset = "32"   size = "16"/>
-        <connection source = "M_L4_R1.OUTPUT"      target = "ModelJoin.INPUT"    sourceoffset = "0" targetoffset = "48"   size = "16"/>
-        <connection source = "M_L5_R1.OUTPUT"      target = "ModelJoin.INPUT"    sourceoffset = "0" targetoffset = "64"   size = "16"/>
-        <connection source = "M_L6_R1.OUTPUT"      target = "ModelJoin.INPUT"    sourceoffset = "0" targetoffset = "80"   size = "16"/>
     
-    <module class = "DataConverter" name = "PointJoin" output_size_x = "16" output_size_y = "3"/>
-        <connection source = "M_P1_T1.OUTPUT"  target = "PointJoin.INPUT" sourceoffset = "0" targetoffset = "0"    size = "16"/>
-        <connection source = "M_P2_T1.OUTPUT"  target = "PointJoin.INPUT" sourceoffset = "0" targetoffset = "16"    size = "16"/>
-        <connection source = "M_P3_T1.OUTPUT"  target = "PointJoin.INPUT" sourceoffset = "0" targetoffset = "32"    size = "16"/>
 
    
     <!-- Used to filll xyz intputs of rotationConverter -->
@@ -244,7 +236,7 @@
     <!-- POINTS --> 
     <module class = "Constant" name = "P1_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 0.2;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -257,7 +249,7 @@
 
     <module class = "Constant" name = "P2_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 0.3;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -270,7 +262,7 @@
 
     <module class = "Constant" name = "P3_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 0.4;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;

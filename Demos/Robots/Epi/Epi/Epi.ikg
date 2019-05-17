@@ -20,16 +20,23 @@ nrServosTotal = "19"
 
 PupilModelA = "100"
 >
+	
 	<!-- import frame and id for epi robots> -->
     <?include file="EpiFrames.ikg" ?>
 
 
     <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
-´   <module class = "Constant" name = "PositioExo" data = "
+´   <module class = "Constant" name = "PositioExo" _data = "
         1 0 0 0.85
         0 1 0 0.15
         0 0 1 0.847
-        0 0 0 1;" />
+        0 0 0 1;" 
+		data = "
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1;"
+		/>
 
     <module class = "Constant" name = "RotationExo" data = "
         0 -1 0 0
@@ -47,7 +54,7 @@ PupilModelA = "100"
         <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_2" delay = "0"/>
         <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_2"  delay = "0"/>
 
-
+	<connection source = "EpiPositionExo.MATRIX"    target = "ForwardModel.EPI_POSITION"  delay = "0"/>
 
  
 
@@ -121,8 +128,19 @@ PupilModelA = "100"
 	<connection source = "EXT_SERVO_ANGLE_A.OUTPUT"     target = "ExtServoAngleCode.AMPLITUDE" />
 
 <!-- Internal Motor control -->
-<module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
-<module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+<_module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
+	<module
+		class		=	"FunctionGenerator"
+		name		=	"INT_SERVO_ANGLE"
+		type		=	"sin"
+		frequency	=	"0.2"
+		offset      =	"12"
+		amplitude	=	"5"
+	    shift		=	"0"
+		size 		=   "19"
+    />
+
+<module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "1   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
 
 <module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
 	<connection source = "INT_SERVO_ANGLE.OUTPUT"   target = "IntServoAngleCode.INPUT" />
@@ -281,8 +299,8 @@ PupilModelA = "100"
 <!-- ********************************* 	-->
 
 <!-- Sensors -->
-<module class = "EpiVision" active = "yes" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg"/>
-<module class = "EpiVision" active = "yes" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg"/>
+<module class = "EpiVision" active = "no" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg"/>
+<module class = "EpiVision" active = "no" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg"/>
 
 
 
@@ -298,11 +316,11 @@ PupilModelA = "100"
 
 <!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.BODY_FEEDBACK_POSITION" 			targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.HEAD_FEEDBACK_POSITION" 			targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.LEFT_ARM_FEEDBACK_POSITION" 		targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.RIGHT_ARM_FEEDBACK_POSITION" 	targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.PUPIL_FEEDBACK_POSITION" 		targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.BODY_JOINT_ANGLES" 			targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.HEAD_JOINT_ANGLES" 			targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.LEFT_ARM_JOINT_ANGLES" 		targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.RIGHT_ARM_JOINT_ANGLES" 		targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.PUPIL_JOINT_ANGLES" 			targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
 
 
 <!--  Low Level Motion mixer  -->
@@ -345,6 +363,77 @@ PupilModelA = "100"
 	<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
 
 
+	<view name="Color Robot">
+	<slider-horizontal
+		max = "1"
+		title = "Color Eyes"
+		label = "Color"
+		module = "EColor"
+		step = "0.1"
+		parameter = "EColor.data"
+		count = "3"
+		x = "20"
+		width = "150"
+		show_title = "true"
+		show_value = "true"
+		y = "40"
+		height = "450"
+		class = "slider-horizontal"
+	/>
+	<slider-horizontal
+		max = "1"
+		title = "Color Mouth"
+		label = "Color"
+		module = "MColor"
+		step = "0.1"
+		parameter = "MColor.data"
+		count = "3"
+		x = "20"
+		width = "150"
+		show_title = "true"
+		show_value = "true"
+		y = "40"
+		height = "450"
+		class = "slider-horizontal"
+	/>
+
+	<slider-horizontal
+		max = "1"
+		title = "Intensity Eyes"
+		label = "Color"
+		module = "EIntense"
+		step = "0.1"
+		parameter = "EIntense.data"
+		count = "1"
+		x = "20"
+		width = "150"
+		show_title = "true"
+		show_value = "true"
+		y = "40"
+		height = "450"
+		class = "slider-horizontal"
+	/>
+
+
+	<slider-horizontal
+		max = "1"
+		title = "Intensity Eyes"
+		label = "Color"
+		module = "MIntense"
+		step = "0.1"
+		parameter = "MIntense.data"
+		count = "1"
+		x = "20"
+		width = "150"
+		show_title = "true"
+		show_value = "true"
+		y = "40"
+		height = "450"
+		class = "slider-horizontal"
+	/>
+
+	</view>
+
 	<!-- Temporary face detector module -->
     <!--
 	<connection  source = "LeftEye.HIGH_RES_INTENSITY"  target = "FaceDetector.INPUT" />
@@ -366,6 +455,9 @@ PupilModelA = "100"
 	
 
 -->
+
+
+
 	<!-- Intense -->
 	<module class = "Constant" name = "EIntense" data = "1´" />
 		<connection source = "EIntense.OUTPUT"  target = "LED.EYE_INTENSE" />
@@ -518,19 +610,12 @@ PupilModelA = "100"
 		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
 
 
-
-<view name="3D View">
-        <canvas3d
-            x="10" y="10"
-            width="1000"
-            height="600"
-            title="Triangles"
-        	model_mat_module  	= "MODEL_MATRIX"
-        	model_mat_source  	= "OUTPUT"
-       	 	model_id_module  	= "MODEL_ID"
-        	model_id_source     = "OUTPUT"
-        />
+<view name="3D View" >
+	<canvas3d  matrix = "ForwardModel.EXO_POINTS" height = "1021"  width = "1581"  y = "20"  x = "20"/>
 </view>
+
+
+
 
 
 	<!-- Motion Recorder Only used to record new motions -->
@@ -539,8 +624,10 @@ PupilModelA = "100"
 	<!-- Low level motion triger. Trigger motions -->
     <?include file="EpiMotionTrigger.ikg" ?>
 
-
 	<!-- Log -->
 	<module class="EpiLog" name="EpiLog" active = "yes"/>
+
+
+
 
 </group>

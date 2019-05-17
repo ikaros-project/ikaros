@@ -8,21 +8,12 @@
     <input name = "JOINT_ANGLES"   target = "L1_R2Rot.INPUT" />
 
     <!-- Ego -->
-    <output name = "EGO_SKELETON"               source = "SkeletonJoin.OUTPUT" />             
-    <output name = "EGO_MODELS" 	            source = "ModelJoin.OUTPUT" />
-    <!--<_output name = "EGO_POINTS" 	        source = "PointJoin.OUTPUT" />-->
-    <!--<output name = "EGO_SENSOR" 	        source = "SensorBodyHead.MATRIX" />-->
-
-    <module class = "DataConverter" name = "SkeletonJoin" output_size_x = "16" output_size_y = "2"/>
-        <connection source = "M_L1_R2.OUTPUT"       target = "SkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "0"   size = "16"/>
-        <connection source = "M_L2_T1.OUTPUT"       target = "SkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "16"  size = "16"/>
-
-    <module class = "DataConverter" name = "ModelJoin" output_size_x = "16" output_size_y = "2"/>
-        <connection source = "L1_R1.OUTPUT"         target = "ModelJoin.INPUT" sourceoffset = "0" targetoffset = "0"   size = "16"/>
-        <connection source = "M_L1_R2.OUTPUT"       target = "ModelJoin.INPUT" sourceoffset = "0" targetoffset = "16"   size = "16"/>
-
-    <!--<module class = "Gate" name = "PointJoin"/>-->
-    <!--<module class = "Gate" name = "SENSOR"/>-->
+    <output name = "EGO_POINTS"               source = "PointJoin.OUTPUT" />             
+  
+    <module class = "DataConverter" name = "PointJoin" output_size_x = "16" output_size_y = "3"/>
+        <connection source = "L1_R1.OUTPUT"         target = "PointJoin.INPUT"   sourceoffset = "0" targetoffset = "0"   size = "16"/> 
+        <connection source = "M_L1_R2.OUTPUT"       target = "PointJoin.INPUT"   sourceoffset = "0" targetoffset = "16"   size = "16"/>
+        <connection source = "M_L2_T1.OUTPUT"       target = "PointJoin.INPUT"   sourceoffset = "0" targetoffset = "32"  size = "16"/>
 
     <!-- Used to filll xyz intputs of rotationConverter -->
     <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />

@@ -10,7 +10,9 @@
     4. Head Joint 1
     5. Head Joint 2
     6. Head Joint 3 (Left eye)
-    7. Head Joint 4 (Right eye)
+    7. Head Joint 4 (Right eye) 
+
+    PUPIL HERE AS WELL
     8. Left arm Joint 1
     9. Left arm Joint 2
     10. Left arm Joint 3
@@ -50,48 +52,18 @@
 
     -->
 
-    	<!-- Speeking -->
-	<module
-		class		=	"FunctionGenerator"
-		name		=	"GYMPA"
-		type		=	"sin"
-		frequency	=	"0.2"
-		offset      =	"0"
-		amplitude	=	"0"
-	    shift		=	"0"
-    />
+    <input name = "BODY_JOINT_ANGLES" 		target = "Body.JOINT_ANGLES" />
 
-    
-    <connection source = "GYMPA.OUTPUT"   target = "Body.JOINT_ANGLES" sourceoffset = "0" targetoffset = "0" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "Head.JOINT_ANGLES" sourceoffset = "0" targetoffset = "0" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "Head.JOINT_ANGLES" sourceoffset = "0" targetoffset = "1" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "LeftArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "0" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "LeftArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "1" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "LeftArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "2" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "LeftArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "3" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "LeftArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "4" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "LeftArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "5" size = "1"/> 
-
-    <connection source = "GYMPA.OUTPUT"   target = "RightArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "0" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "RightArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "1" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "RightArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "2" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "RightArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "3" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "RightArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "4" size = "1"/> 
-    <connection source = "GYMPA.OUTPUT"   target = "RightArm.JOINT_ANGLES" sourceoffset = "0" targetoffset = "5" size = "1"/> 
-    <_input name = "BODY_JOINT_ANGLES" 		target = "Body.JOINT_ANGLES" />
-
-    <_input name = "HEAD_JOINT_ANGLES" 		target = "Head.JOINT_ANGLES" />
-    <_input name = "LEFT_ARM_JOINT_ANGLES" 	target = "LeftArm.JOINT_ANGLES" />
-    <_input name = "RIGHT_ARM_JOINT_ANGLES"  target = "RightArm.JOINT_ANGLES" />
-    <_input name = "PUPIL_JOINT_ANGLES"   	target = "Head.JOINT_ANGLES" />
+    <input name = "HEAD_JOINT_ANGLES" 		target = "Head.JOINT_ANGLES" />
+    <input name = "LEFT_ARM_JOINT_ANGLES" 	target = "LeftArm.JOINT_ANGLES" />
+    <input name = "RIGHT_ARM_JOINT_ANGLES"  target = "RightArm.JOINT_ANGLES" />
+    <input name = "PUPIL_JOINT_ANGLES"   	target = "Head.JOINT_ANGLES" />
 
     <input name = "EPI_POSITION"   	        target = "EpiPos.INPUT" />     <!-- In exo -->
 
 
     <!-- Exo -->
-    <output name = "EXO_SKELETON"           source = "ExoSkeletonJoin.OUTPUT" />    <!-- Skeleton -->
-    <output name = "EXO_MODELS" 	        source = "ExoModelJoin.OUTPUT" />       <!-- 3d Model matrices -->
-    <_output name = "EXO_POINTS" 	        source = "ExoPointsJoin.OUTPUT" /> 	    <!-- Points good to know. Right now 3 points in each hand. -->
+    <output name = "EXO_POINTS" 	        source = "ExoPointsJoin.OUTPUT" /> 	    <!-- points on the robot -->
 
     <!-- Ego -->
     
@@ -111,24 +83,16 @@
 
     <module class = "Gate" name = "EpiPos"/>
 
-    <!-- Ouptuts can not handle sourceoffset targetoffset. Using a dummy module to be able to use sourceoffset and targetoffset -->
+    <!-- Outputs can not handle sourceoffset targetoffset. Using a dummy module to be able to use sourceoffset and targetoffset -->
 
     <!-- Exo -->    
-    <module class = "DataConverter" name = "ExoSkeletonJoin" output_size_x = "16" output_size_y = "19"/>
-        <connection source = "EpiPos.OUTPUT"         target = "ExoSkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "0"   size = "16"/> <!-- 4x4x1 --> 
-        <connection source = "SkPosBody.MATRIX"      target = "ExoSkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "16"  size = "32"/> <!-- 4x4x2 -->
-        <connection source = "SkBodyHead.MATRIX"     target = "ExoSkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "48"  size = "64"/> <!-- 4x4x4 -->
-        <connection source = "SkBodyLeftArm.MATRIX"  target = "ExoSkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "112" size = "96"/> <!-- 4x4x6 -->
-        <connection source = "SkBodyRightArm.MATRIX" target = "ExoSkeletonJoin.INPUT" sourceoffset = "0" targetoffset = "208" size = "96"/> <!-- 4x4x6 -->
+    <module class = "DataConverter" name = "ExoPointsJoin" output_size_x = "16" output_size_y = "30"/>
+        <connection source = "EpiPos.OUTPUT"         target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "0"   size = "16"/> <!-- 4x4x1 -->         
+        <connection source = "PosBody.MATRIX"        target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "16"  size = "48"/> <!-- 4x4x3 -->
+        <connection source = "BodyHead.MATRIX"       target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "64"  size = "128"/> <!-- 4x4x8 -->
+        <connection source = "BodyLeftArm.MATRIX"    target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "192" size = "144"/> <!-- 4x4x9 -->
+        <connection source = "BodyRightArm.MATRIX"   target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "336" size = "144"/> <!-- 4x4x9 -->
 
-
-    <module class = "DataConverter" name = "ExoModelJoin" output_size_x = "16" output_size_y = "18"/>
-        <connection source = "ModelPosBody.MATRIX"    target = "ExoModelJoin.INPUT" sourceoffset = "0"   targetoffset = "0"  size = "16"/>  <!-- 1: Same as Epi-pos but x up -->
-        <connection source = "ExoSkeletonJoin.OUTPUT" target = "ExoModelJoin.INPUT" sourceoffset = "16" targetoffset = "16"  size = "16"/> <!-- waist -->
-        <connection source = "ExoSkeletonJoin.OUTPUT" target = "ExoModelJoin.INPUT" sourceoffset = "48" targetoffset = "32"  size = "256"/> <!-- No torso origo -->
-        
-    <_module class = "Gate" name = "ExoPointsJoin"/>
-    <_module class = "Gate" name = "ExoSensor"/>
 
     <!-- Ego -->
     <_module class = "Gate" name = "EgoSkeletonJoin"/>
@@ -136,14 +100,7 @@
     <_module class = "Gate" name = "EgoPointsJoin"/>
     <_module class = "Gate" name = "EgoSensor"/>
 
-
-	<_module class = "Gate" name = "JOIN_ARRAYS"/>
-        <_connection source = "Epi_pos.OUTPUT"       target = "JOIN_ARRAYS.INPUT" sourceoffset = "0" targetoffset = "0"   size = "16"/> <!-- 4x4x1 -->
-        <_connection source = "PosBody.MATRIX"       target = "JOIN_ARRAYS.INPUT" sourceoffset = "0" targetoffset = "16"  size = "48"/> <!-- 4x4x3 --> <!-- 1: Same as Epi-pos but x up -->
-        <_connection source = "BodyHead.MATRIX"      target = "JOIN_ARRAYS.INPUT" sourceoffset = "0" targetoffset = "64"  size = "96"/> <!-- 4x4x6 -->
-        <_connection source = "BodyLeftArm.MATRIX"   target = "JOIN_ARRAYS.INPUT" sourceoffset = "0" targetoffset = "160" size = "96"/> <!-- 4x4x6 -->
-        <_connection source = "BodyRightArm.MATRIX"  target = "JOIN_ARRAYS.INPUT" sourceoffset = "0" targetoffset = "256" size = "96"/> <!-- 4x4x6 -->
-    
+	
     <!-- Points -->
     <!-- output not working in the same way as connects -->
     <!--
@@ -182,8 +139,6 @@
 	" 
     />
 
-    <_module class = "ForwardModel/EpiLeftArmForwardModel"    name = "LeftArm" />
-
     <!-- RightArm -->
     <module class = "ForwardModel/EpiArmForwardModel"    name = "RightArm" 
     L1_R1RotData = "0 0 -90" 
@@ -193,106 +148,60 @@
 	0 0 1 -0.018;
 	0 0 0 1;
 	" 
-
     />
-
-    <_module class = "ForwardModel/EpiRightArmForwardModel"   name = "RightArm" />
-
 
     <!-- Put the matrices togather -->
     <!-- Tansform -->
     <module class = "Constant" name = "PositionID"      data = "2" /> 
     <module class = "Constant" name = "PositionFrame"   data = "1" />
 
-    <module class = "Constant" name = "BodyID"          data = "100 20" />
-    <module class = "Constant" name = "BodyFrame"       data = "2 2" />
+    <module class = "Constant" name = "BodyID"          data = "100 100 20" />
+    <module class = "Constant" name = "BodyFrame"       data = "2 2 2" />
 
-    <module class = "Constant" name = "HeadID"          data = "10 11 12 13" /> <!-- ID IS NOT USED -->
-    <module class = "Constant" name = "HeadFrame"       data = "20 20 20 20" />
+    <module class = "Constant" name = "HeadID"          data = "10 11 12 13 14 15 16 17" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "HeadFrame"       data = "20 20 20 20 20 20 20 20" />
 
-    <module class = "Constant" name = "LeftArmID"       data = "20; 21; 22; 23; 24; 25;" /> <!-- ID IS NOT USED -->
-    <module class = "Constant" name = "LeftArmFrame"    data = "20; 20; 20; 20; 20; 20;" />
+    <module class = "Constant" name = "LeftArmID"       data = "20; 21; 22; 23; 24; 25; 26; 27; 28" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "LeftArmFrame"    data = "20; 20; 20; 20; 20; 20; 20; 20; 20" />
 
-    <module class = "Constant" name = "RightArmID"      data = "30; 31; 32; 33; 34; 35;" /> <!-- ID IS NOT USED -->
-    <module class = "Constant" name = "RightArmFrame"   data = "20; 20; 20; 20; 20; 20;" />
+    <module class = "Constant" name = "RightArmID"      data = "30; 31; 32; 33; 34; 35; 36; 37; 38" /> <!-- ID IS NOT USED -->
+    <module class = "Constant" name = "RightArmFrame"   data = "20; 20; 20; 20; 20; 20; 20; 20; 20" />
 
     <!-- Skeleton -->
-    <module class = "Transform"   name = "SkPosBody" />
-        <connection source = "EpiPos.OUTPUT"        target = "SkPosBody.MATRIX_1"    delay = "0"/>
-        <connection source = "PositionID.OUTPUT"    target = "SkPosBody.OBJECT_ID_1" delay = "0"/>
-        <connection source = "PositionFrame.OUTPUT" target = "SkPosBody.FRAME_ID_1"  delay = "0"/>
-        <connection source = "Body.EGO_SKELETON"    target = "SkPosBody.MATRIX_2"    delay = "0"/>
-        <connection source = "BodyID.OUTPUT"        target = "SkPosBody.OBJECT_ID_2" delay = "0"/>
-        <connection source = "BodyFrame.OUTPUT"     target = "SkPosBody.FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "PosBody" />
+        <connection source = "EpiPos.OUTPUT"        target = "PosBody.MATRIX_1"    delay = "0"/>
+        <connection source = "PositionID.OUTPUT"    target = "PosBody.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PositionFrame.OUTPUT" target = "PosBody.FRAME_ID_1"  delay = "0"/>
+        <connection source = "Body.EGO_POINTS"      target = "PosBody.MATRIX_2"    delay = "0"/>
+        <connection source = "BodyID.OUTPUT"        target = "PosBody.OBJECT_ID_2" delay = "0"/>
+        <connection source = "BodyFrame.OUTPUT"     target = "PosBody.FRAME_ID_2"  delay = "0"/>
 
     <!-- Body -> Head --> 
-    <module class = "Transform"   name = "SkBodyHead" />
-        <connection source = "SkPosBody.MATRIX"     target = "SkBodyHead.MATRIX_1"    delay = "0"/>
-        <connection source = "SkPosBody.OBJECT_ID"  target = "SkBodyHead.OBJECT_ID_1" delay = "0"/>
-        <connection source = "SkPosBody.FRAME_ID"   target = "SkBodyHead.FRAME_ID_1"  delay = "0"/>
-        <connection source = "Head.EGO_SKELETON"    target = "SkBodyHead.MATRIX_2"    delay = "0"/>
-        <connection source = "HeadID.OUTPUT"        target = "SkBodyHead.OBJECT_ID_2" delay = "0"/>
-        <connection source = "HeadFrame.OUTPUT"     target = "SkBodyHead.FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "BodyHead" />
+        <connection source = "PosBody.MATRIX"       target = "BodyHead.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "BodyHead.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "BodyHead.FRAME_ID_1"  delay = "0"/>
+        <connection source = "Head.EGO_POINTS"      target = "BodyHead.MATRIX_2"    delay = "0"/>
+        <connection source = "HeadID.OUTPUT"        target = "BodyHead.OBJECT_ID_2" delay = "0"/>
+        <connection source = "HeadFrame.OUTPUT"     target = "BodyHead.FRAME_ID_2"  delay = "0"/>
         
     <!-- Body -> Left Arm --> 
-    <module class = "Transform"   name = "SkBodyLeftArm" />
-        <connection source = "SkPosBody.MATRIX"       target = "SkBodyLeftArm.MATRIX_1"    delay = "0"/>
-        <connection source = "SkPosBody.OBJECT_ID"    target = "SkBodyLeftArm.OBJECT_ID_1" delay = "0"/>
-        <connection source = "SkPosBody.FRAME_ID"     target = "SkBodyLeftArm.FRAME_ID_1"  delay = "0"/>
-        <connection source = "LeftArm.EGO_SKELETON"   target = "SkBodyLeftArm.MATRIX_2"    delay = "0"/>
-        <connection source = "LeftArmID.OUTPUT"       target = "SkBodyLeftArm.OBJECT_ID_2" delay = "0"/>
-        <connection source = "LeftArmFrame.OUTPUT"    target = "SkBodyLeftArm.FRAME_ID_2"  delay = "0"/>
+    <module class = "Transform"   name = "BodyLeftArm" />
+        <connection source = "PosBody.MATRIX"       target = "BodyLeftArm.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "BodyLeftArm.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "BodyLeftArm.FRAME_ID_1"  delay = "0"/>
+        <connection source = "LeftArm.EGO_POINTS"   target = "BodyLeftArm.MATRIX_2"    delay = "0"/>
+        <connection source = "LeftArmID.OUTPUT"       target = "BodyLeftArm.OBJECT_ID_2" delay = "0"/>
+        <connection source = "LeftArmFrame.OUTPUT"    target = "BodyLeftArm.FRAME_ID_2"  delay = "0"/>
         
     <!-- Body -> Right Arm --> 
+    <module class = "Transform"   name = "BodyRightArm" />
+        <connection source = "PosBody.MATRIX"       target = "BodyRightArm.MATRIX_1"    delay = "0"/>
+        <connection source = "PosBody.OBJECT_ID"    target = "BodyRightArm.OBJECT_ID_1" delay = "0"/>
+        <connection source = "PosBody.FRAME_ID"     target = "BodyRightArm.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RightArm.EGO_POINTS"  target = "BodyRightArm.MATRIX_2"    delay = "0"/>
+        <connection source = "RightArmID.OUTPUT"      target = "BodyRightArm.OBJECT_ID_2" delay = "0"/>
+        <connection source = "RightArmFrame.OUTPUT"   target = "BodyRightArm.FRAME_ID_2"  delay = "0"/>
 
-    <module class = "Transform"   name = "SkBodyRightArm" />
-        <connection source = "SkPosBody.MATRIX"       target = "SkBodyRightArm.MATRIX_1"    delay = "0"/>
-        <connection source = "SkPosBody.OBJECT_ID"    target = "SkBodyRightArm.OBJECT_ID_1" delay = "0"/>
-        <connection source = "SkPosBody.FRAME_ID"     target = "SkBodyRightArm.FRAME_ID_1"  delay = "0"/>
-        <connection source = "RightArm.EGO_SKELETON"  target = "SkBodyRightArm.MATRIX_2"    delay = "0"/>
-        <connection source = "RightArmID.OUTPUT"      target = "SkBodyRightArm.OBJECT_ID_2" delay = "0"/>
-        <connection source = "RightArmFrame.OUTPUT"   target = "SkBodyRightArm.FRAME_ID_2"  delay = "0"/>
-
-	<!-- SENSORS -->
-    <!-- Body -> Head --> 
-    <!--
-    <module class = "Transform"   name = "SensorBodyHead" />
-        <connection source = "PosBody.MATRIX"       target = "SensorBodyHead.MATRIX_1"    delay = "0"/>
-        <connection source = "PosBody.OBJECT_ID"    target = "SensorBodyHead.OBJECT_ID_1" delay = "0"/>
-        <connection source = "PosBody.FRAME_ID"     target = "SensorBodyHead.FRAME_ID_1"  delay = "0"/>
-        <connection source = "Head.SENSORS"         target = "SensorBodyHead.MATRIX_2"    delay = "0"/>
-        <connection source = "HeadID.OUTPUT"        target = "SensorBodyHead.OBJECT_ID_2" delay = "0"/>
-        <connection source = "HeadFrame.OUTPUT"     target = "SensorBodyHead.FRAME_ID_2"  delay = "0"/>
--->
-	<!-- POINTS -->
-	<!-- Body -> Left Arm --> 
-    <!--
-    <module class = "Transform"   name = "PointsBodyLeftArm" />
-        <connection source = "PosBody.MATRIX"       target = "PointsBodyLeftArm.MATRIX_1"    delay = "0"/>
-        <connection source = "PosBody.OBJECT_ID"    target = "PointsBodyLeftArm.OBJECT_ID_1" delay = "0"/>
-        <connection source = "PosBody.FRAME_ID"     target = "PointsBodyLeftArm.FRAME_ID_1"  delay = "0"/>
-        <connection source = "LeftArm.POINTS"       target = "PointsBodyLeftArm.MATRIX_2"    delay = "0"/>
-        <connection source = "LeftArmID.OUTPUT"     target = "PointsBodyLeftArm.OBJECT_ID_2" delay = "0"/>
-        <connection source = "LeftArmFrame.OUTPUT"  target = "PointsBodyLeftArm.FRAME_ID_2"  delay = "0"/>
-        -->
-    <!-- Body -> Right Arm --> 
-    <!--
-    <module class = "Transform"   name = "PointsBodyRightArm" />
-        <connection source = "PosBody.MATRIX"       target = "PointsBodyRightArm.MATRIX_1"    delay = "0"/>
-        <connection source = "PosBody.OBJECT_ID"    target = "PointsBodyRightArm.OBJECT_ID_1" delay = "0"/>
-        <connection source = "PosBody.FRAME_ID"     target = "PointsBodyRightArm.FRAME_ID_1"  delay = "0"/>
-        <connection source = "RightArm.POINTS"      target = "PointsBodyRightArm.MATRIX_2"    delay = "0"/>
-        <connection source = "RightArmID.OUTPUT"    target = "PointsBodyRightArm.OBJECT_ID_2" delay = "0"/>
-        <connection source = "RightArmFrame.OUTPUT" target = "PointsBodyRightArm.FRAME_ID_2"  delay = "0"/>
--->
-
-   <!-- Models -->
-    <module class = "Transform"   name = "ModelPosBody" />
-        <connection source = "EpiPos.OUTPUT"        target = "ModelPosBody.MATRIX_1"    delay = "0"/>
-        <connection source = "PositionID.OUTPUT"    target = "ModelPosBody.OBJECT_ID_1" delay = "0"/>
-        <connection source = "PositionFrame.OUTPUT" target = "ModelPosBody.FRAME_ID_1"  delay = "0"/>
-        <connection source = "Body.EGO_MODELS"      target = "ModelPosBody.MATRIX_2"    delay = "0"/>
-        <connection source = "BodyID.OUTPUT"        target = "ModelPosBody.OBJECT_ID_2" delay = "0"/>
-        <connection source = "BodyFrame.OUTPUT"     target = "ModelPosBody.FRAME_ID_2"  delay = "0"/>
 </group>
  
