@@ -4,9 +4,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': "CANVAS 3D", 'control': 'header' },
 			{ 'name': 'matrix', 'default': "", 'type': 'source', 'control': 'textedit' },
 
+			{'name': "CONTROL", 'control':'header'},
 			{ 'name': 'show_models', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'models', 'default': "Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis", 'type': 'string', 'control': 'textedit' },
-
 			{ 'name': 'show_lines', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'line', 'default': "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
@@ -22,6 +22,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'robot_data', 'default': "", 'type': 'source', 'control': 'textedit' },
 			{ 'name': 'robot', 'default': "EpiBlack", 'type': 'string', 'control': 'menu', 'values': "EpiBlue,EpiGreen,EpiBlack,EpiWhite" },
 
+
+			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'values': "Home, Top,Bottom, Front, Back, Left, Right" },
 			{ 'name': 'camera_pos', 'default': "2,2,2.4", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'camera_target', 'default': "0,0,0", 'type': 'string', 'control': 'textedit' },
 
@@ -97,7 +99,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		//this.scene.add(new THREE.CameraHelper(light.shadow.camera));
 
 		// Camera
-		this.camera = new THREE.PerspectiveCamera();
+		//this.camera = new THREE.PerspectiveCamera();
+		this.camera = new THREE.OrthographicCamera();
+		
 		this.cameraTarget = new THREE.Vector3(this.parameters.camera1, this.parameters.camera2, this.parameters.camera3);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 
@@ -490,6 +494,33 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.updateProjectionMatrix();
+
+		
+		switch (this.parameters.views) {
+			case "Top":
+				this.camera.position.set(0, 2, 0);
+			break;
+			case "Bottom":
+				this.camera.position.set(0, -2, 0);
+			break;
+			case "Front":
+				this.camera.position.set(2, 0, 0);
+			break;
+			case "Back":
+				this.camera.position.set(-2, 0, 0);
+			break;
+			case "Left":
+				this.camera.position.set(0, 0, 2);
+			break;
+			case "Right":
+				this.camera.position.set(0, 0, -2);
+			break;
+			case "Home":
+			this.camera.position.set(2, 2, 2);
+		break;
+			default:
+				this.EpiColor = 0x000000
+		}
 
 		// var t0 = performance.now();
 		// var t1 = performance.now();
