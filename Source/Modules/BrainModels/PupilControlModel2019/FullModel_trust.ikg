@@ -7,6 +7,12 @@
         
         This model adds inputs for gentle and painful touch, as well as a population
         modeling simple facial recognition.
+
+        References:
+            Bender, F., Gorbati, M., Cadavieco, M. C., Denisova, N., Gao, X., Holman, C., et al. (2015). Theta oscillations regulate the speed of locomotion via a hippocampus to lateral septum pathway. Nat. Commun. 6:8521. doi: 10.1038/ncomms9521
+            Dimoka, A. (2010). What does the brain tell us about trust and distrust? Evidence from a functional neuroimaging study. Mis Quarterly, 373-396.
+            Dölen, G., Darvishzadeh, A., Huang, K. W., & Malenka, R. C. (2013). Social reward requires coordinated activity of nucleus accumbens oxytocin and serotonin. Nature, 501(7466), 179.
+            Silverman, A. J., Hoffman, D. L., & Zimmerman, E. A. (1981). The descending afferent connections of the paraventricular nucleus of the hypothalamus (PVN). Brain research bulletin, 6(1), 47-61.
     </description>
     
     
@@ -55,11 +61,11 @@
 
     <!-- ********************************* VARIOUS *********************************   -->
     <module
-        description="Septal nuclei mediate social reward and trust"
+        description="Septal nuclei mediate social reward and trust (Dimoka 2010, Krueger 2007)"
         class="Nucleus"
         name="SeptalArea"
     />
-    <connection source = "SeptalArea.OUTPUT"  target = "LH.EXCITATION" />
+    <connection source = "SeptalArea.OUTPUT"  target = "LH.EXCITATION" description="Bender et al 2015" />
     <connection source = "SeptalArea.OUTPUT"  target = "PVN.EXCITATION" description="Silverman, A. J., Hoffman, D. L., and Zimmerman, E. A. (1981)"/>
    <!-- ********************************* PERIPHERAL NERVOUS SYSTEM *********************************   -->
 
@@ -150,7 +156,7 @@
     <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Left" />
     <connection source = "PVN.OUTPUT"  target = "PeripheralPupilControl.IML_EXCITATION_Right" />
     <connection source = "PVN.OUTPUT"  target = "VTA.EXCITATION" />
-    <connection source = "PVN.OUTPUT"  target = "NAcc.EXCITATION" />
+    <connection source = "PVN.OUTPUT"  target = "NAcc.EXCITATION" description="Dölen 2013 - Social reward requires coordinated activity of nucleus accumbens oxytocin and serotonin"/>
     <connection source = "PVN.OUTPUT"  target = "Amygdala.INHIBITION" /> <!-- OX inhibition of amygdala -->
 
 
