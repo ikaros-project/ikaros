@@ -6,9 +6,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 			{'name': "CONTROL", 'control':'header'},
 			{ 'name': 'show_models', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'models', 'default': "Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'models', 'default': "", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'show_lines', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'line', 'default': "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
 
 			{ 'name': 'show_points', 'default': true, 'type': 'bool', 'control': 'checkbox' },
