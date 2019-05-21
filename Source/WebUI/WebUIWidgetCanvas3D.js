@@ -4,7 +4,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': "CANVAS 3D", 'control': 'header' },
 			{ 'name': 'matrix', 'default': "", 'type': 'source', 'control': 'textedit' },
 
-			{'name': "CONTROL", 'control':'header'},
+			{ 'name': "CONTROL", 'control': 'header' },
 			{ 'name': 'show_models', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'models', 'default': "", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'show_lines', 'default': false, 'type': 'bool', 'control': 'checkbox' },
@@ -62,6 +62,11 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	// TODO
 	// 1. Take care of different color formats
 
+	updateAll() {
+		console.log("Uppdate all")
+		this.FixedView = true;
+	}
+
 	init() {
 
 		this.points_loaded = false;
@@ -100,7 +105,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Camera
 		//this.camera = new THREE.PerspectiveCamera();
 		this.camera = new THREE.OrthographicCamera();
-		
+
 		this.cameraTarget = new THREE.Vector3(this.parameters.camera1, this.parameters.camera2, this.parameters.camera3);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 
@@ -219,7 +224,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	update() {
 
-
 		if (!(this.data = this.getSource('matrix'))) {
 			console.log("No 3D data from ikaros")
 			return;
@@ -315,7 +319,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 						this.model_objects[i].visible = false;
 
 		//console.log("updated")
-	
+
 		// Point
 		if (this.parameters.show_points) {
 			//console.log('Points')
@@ -336,8 +340,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				}
 				geometry.addAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
 				geometry.addAttribute('customColor', new THREE.Float32BufferAttribute(colors, 3));
-				geometry.addAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
-				
+				geometry.addAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
 				var material = new THREE.ShaderMaterial({
 					uniforms: {
 						color: { value: new THREE.Color(0xffffff) },
@@ -494,38 +498,41 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.updateProjectionMatrix();
 
-		
-		switch (this.parameters.views) {
-			case "Top":
-				this.camera.position.set(0, 2, 0);
-			break;
-			case "Bottom":
-				this.camera.position.set(0, -2, 0);
-			break;
-			case "Front":
-				this.camera.position.set(2, 0, 0);
-			break;
-			case "Back":
-				this.camera.position.set(-2, 0, 0);
-			break;
-			case "Left":
-				this.camera.position.set(0, 0, 2);
-			break;
-			case "Right":
-				this.camera.position.set(0, 0, -2);
-			break;
-			case "Home":
-			this.camera.position.set(2, 2, 2);
-		break;
-			default:
-				this.EpiColor = 0x000000
+		if (this.FixedView) {
+			switch (this.parameters.views) {
+				case "Top":
+					this.camera.position.set(0, 2, 0);
+					break;
+				case "Bottom":
+					this.camera.position.set(0, -2, 0);
+					break;
+				case "Front":
+					this.camera.position.set(2, 0, 0);
+					break;
+				case "Back":
+					this.camera.position.set(-2, 0, 0);
+					break;
+				case "Left":
+					this.camera.position.set(0, 0, 2);
+					break;
+				case "Right":
+					this.camera.position.set(0, 0, -2);
+					break;
+				case "Home":
+					this.camera.position.set(2, 2, 2);
+					break;
+				default:
+					this.EpiColor = 0x000000
+			}
 		}
-
 		// var t0 = performance.now();
 		// var t1 = performance.now();
 		// console.log("Update took " + (t1 - t0) + " milliseconds.");
 
+		this.FixedView = false;
+
 	};
+	
 };
 
 
