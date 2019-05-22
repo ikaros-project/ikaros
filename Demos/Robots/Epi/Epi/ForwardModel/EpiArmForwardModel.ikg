@@ -25,9 +25,9 @@
         <connection source = "M_L4_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "48"   size = "16"/>
         <connection source = "M_L5_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "64"   size = "16"/>
         <connection source = "M_L6_R1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "80"   size = "16"/>
-        <connection source = "M_P1_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "96"   size = "16"/>
-        <connection source = "M_P2_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "112"  size = "16"/>
-        <connection source = "M_P3_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "128"  size = "16"/>
+        <connection source = "M_P1_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "96"   size = "16" description="thumb"/>
+        <connection source = "M_P2_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "112"  size = "16" description="index"/>
+        <connection source = "M_P3_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "128"  size = "16" description="pinky"/>
 
     
 
@@ -243,10 +243,11 @@
         <connection source = "M_L5_R1.OUTPUT"   target = "M_P1_T1.INPUT1" delay = "0"/>
         <connection source = "P1_T1.OUTPUT"     target = "M_P1_T1.INPUT2" delay = "0"/>
 
+    <!--Index -->
     <module class = "Constant" name = "P2_T1" 
 	data = "
 	1 0 0 0.055;
-	0 1 0 0.04;
+	0 1 0 -0.04;
 	0 0 1 0;
 	0 0 0 1;
 	" />
@@ -255,11 +256,11 @@
     <module class = "MatrixMultiply"   name = "M_P2_T1" />
         <connection source = "M_L6_R1.OUTPUT"   target = "M_P2_T1.INPUT1" delay = "0"/>
         <connection source = "P2_T1.OUTPUT"     target = "M_P2_T1.INPUT2" delay = "0"/>
-
+    <!--Pinky -->
     <module class = "Constant" name = "P3_T1" 
 	data = "
 	1 0 0 0.055;
-	0 1 0 -0.04;
+	0 1 0 0.04;
 	0 0 1 0;
 	0 0 0 1;
 	" />
