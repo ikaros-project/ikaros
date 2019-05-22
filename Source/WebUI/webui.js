@@ -282,7 +282,7 @@ inspector = {
                             if(p.name == "frame-style")
                                 widget.updateStyle(webui_object, evt.target.innerText);
                          }
-                        widget.updateAll();
+                        widget.parameterChangeNotification(p);
                     });
                 break;
 
@@ -293,7 +293,7 @@ inspector = {
                         cell2.addEventListener("input", function(evt) {
                             evt.target.parentElement.querySelector('div').innerText = evt.target.value;
                             parameters[p.name] = evt.target.value;
-                            widget.updateAll();
+                            widget.parameterChangeNotification(p);
                         });
                     }
                 break;
@@ -312,7 +312,7 @@ inspector = {
                     }
                     s += '</select>';
                     cell2.innerHTML= s;
-                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value.trim(); widget.updateAll();});
+                    cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value.trim(); widget.parameterChangeNotification(p);});
                 break;
                 
                 case 'checkbox':
@@ -322,7 +322,7 @@ inspector = {
                             cell2.innerHTML= '<input type="checkbox" checked />';
                         else
                             cell2.innerHTML= '<input type="checkbox" />';
-                        cell2.addEventListener("change", function(evt) { parameters[p.name] = evt.target.checked; widget.updateAll();});
+                        cell2.addEventListener("change", function(evt) { parameters[p.name] = evt.target.checked; widget.parameterChangeNotification(p);});
                     }
                 break;
                 
@@ -330,7 +330,7 @@ inspector = {
                     if(p.type == 'int')
                     {
                         cell2.innerHTML= '<input type="number" value="'+value+'" min="'+p.min+'" max="'+p.max+'"/>';
-                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.updateAll();});
+                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.parameterChangeNotification(p);});
                     }
                 break;
                 

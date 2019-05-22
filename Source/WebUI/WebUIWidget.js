@@ -447,7 +447,12 @@ class WebUIWidget extends HTMLElement
         this.updateFrame();
         this.update();
     }
-    
+   parameterChangeNotification(p)
+   {
+        this.updateAll()
+   }
+
+
     // TODO: these should be changed to go through command object to allow faster update
 
     send_control_change(parameter, value=0, index_x=0, index_y=0)
