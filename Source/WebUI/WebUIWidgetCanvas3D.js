@@ -244,7 +244,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 
 		// Models
-		if (this.parameters.show_models) {
+		if (this.toBool(this.parameters.show_models)) {
 			//console.log('Models')
 			this.modelNames = this.parameters.models.split(',');
 
@@ -321,7 +321,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		//console.log("updated")
 
 		// Point
-		if (this.parameters.show_points) {
+		if (this.toBool(this.parameters.show_points)) {
 			//console.log('Points')
 
 			if (!this.points_loaded) {
@@ -411,7 +411,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 
 		// Line
-		if (this.parameters.show_lines) {
+		if (this.toBool(this.parameters.show_lines)) {
 			this.l = this.parameters.line.split(',');
 
 
@@ -476,19 +476,19 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		//console.log("Done lines")
 
 		// Stats
-		if (this.parameters.show_stats)
+		if (this.toBool(this.parameters.show_stats))
 			this.s.firstChild.style.display = "block"
 		else
 			this.s.firstChild.style.display = "none"
 
 		// Axis
-		if (this.parameters.show_axis)
+		if (this.toBool(this.parameters.show_axis))
 			this.axisHelper.visible = true
 		else
 			this.axisHelper.visible = false
 
 		// Ground grid
-		if (this.parameters.show_ground_grid)
+		if (this.toBool(this.parameters.show_ground_grid))
 			this.grid.visible = true
 		else
 			this.grid.visible = false
@@ -498,7 +498,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.updateProjectionMatrix();
 
-		if (this.FixedView) {
+		if (this.toBool(this.FixedView)) {
 			switch (this.parameters.views) {
 				case "Top":
 					this.camera.position.set(0, 2, 0);
