@@ -89,7 +89,11 @@ class ServerSocket
 		bool				Send(const char * format, ...); // Maximum 1023 characters
 		bool				Send(const float *, int sizex, int sizey);
 		bool				SendFile(const char * filename, const char * path="", Dictionary * header = NULL);
-		
+
+		void				fillBuffer(std::string s);
+		bool				SendBuffer();
+		void 				clearBuffer();
+
 		bool				Close();								// Close reply socket
 		
 		int					Port();									// Get port no
@@ -101,6 +105,7 @@ class ServerSocket
 		
 		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
 		long				Read(char * buffer, int maxSize);		// Read
+		std::string 		buffer;	
 	};
 
 

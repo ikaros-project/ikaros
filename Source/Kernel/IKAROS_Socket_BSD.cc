@@ -611,7 +611,22 @@ ServerSocket::Send(const char * format, ...)
     return SendData(buffer, strlen(buffer));
 }
 
+void ServerSocket::fillBuffer(std::string s)
+{
+    buffer.append(s);
+}
 
+bool ServerSocket::SendBuffer()
+{
+    return SendData(buffer.c_str(),buffer.length());
+}
+
+void ServerSocket::clearBuffer()
+{
+    buffer.clear();
+    if (buffer.empty())
+        buffer.reserve(5000000); // 5Mb
+}
 
 bool
 ServerSocket::Send(const float * d, int sizex, int sizey)

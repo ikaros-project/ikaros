@@ -3765,12 +3765,13 @@ SendJSONArrayData(ServerSocket * socket, char * source, float * array, int size)
     if (array == NULL)
         return false;
     
-    socket->Send("\t\"%s\":\n\t[\n", source);
-    socket->Send("\t\t[%.4E", checknan(array[0]));
+    socket->fillBuffer("\t\t\"" + std::string(source) + "\":\n\t\t[\n");
+    socket->fillBuffer("\t\t[" + std::to_string(checknan(array[0])));
     for (int i=1; i<size; i++)
-        socket->Send(", %.4E", checknan(array[i]));
-    socket->Send("]\n\t]");
-    
+        socket->fillBuffer("," + std::to_string(checknan(array[i])));
+    socket->fillBuffer("]\n\t]");
+    socket->SendBuffer();
+    socket->clearBuffer();
     return true;
 }
 
@@ -3784,18 +3785,20 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
     
     int k = 0;
 
-    socket->Send("\t\t\"%s\":\n\t\t[\n", source);    // module
+    socket->fillBuffer("\t\t\"" + std::string(source) + "\":\n\t\t[\n");
     for (int j=0; j<sizey; j++)
     {
-        socket->Send("\t\t\t[%.4E", checknan(matrix[k++]));
+        socket->fillBuffer("\t\t\t[" + std::to_string(  checknan(matrix[k++])));
         for (int i=1; i<sizex; i++)
-            socket->Send(", %.4E", checknan(matrix[k++]));
+            socket->fillBuffer("," + std::to_string(checknan(matrix[k++])));
         if (j<sizey-1)
-            socket->Send("\t],\n");
+            socket->fillBuffer("],\n");
         else
-            socket->Send("\t]\n\t\t]");
+            socket->fillBuffer("]\n\t\t]");
     }
-    
+    socket->SendBuffer();
+    socket->clearBuffer();
+
     return true;
 }
 
@@ -3803,13 +3806,12 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
 
 void
 Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
-{
+{    
     sending_ui_data = true; // must be set while main thread is still running
     while(tick_is_running)
         {}
     
     Dictionary header;
-    
     header.Set("Session-Id", std::to_string(session_id).c_str()); // FIXME: GetValue("session_id")
     header.Set("Package-Type", "data");
     header.Set("Content-Type", "application/json");
@@ -3819,7 +3821,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
     header.Set("Expires", "0");
     
     socket->SendHTTPHeader(&header);
-
+    
     socket->Send("{\n");
     socket->Send("\t\"state\": %d,\n", ui_state);
     
@@ -3837,7 +3839,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
     // Timing information
     
     float total_time = timer->GetTime()/1000.0; // in seconds
-    
+
     socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
     socket->Send("\t\"total_time\": %.2f,\n", total_time);
     socket->Send("\t\"ticks_per_s\": %.2f,\n", float(tick)/total_time);
@@ -3849,7 +3851,6 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
     socket->Send("\t\"cpu_usage\": %.3f", cpu_usage);
 
     socket->Send(",\n\t\"data\":\n\t{\n");
-
     std::string sep = "";
 
     while(args && args[0])
@@ -3962,7 +3963,6 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
         socket->Send(",\n\t\"has_data\": 0\n"); // there may be data but it cannot be trusted
     else
         socket->Send(",\n\t\"has_data\": 1\n");
-
     socket->Send("}\n");
     
     sending_ui_data = false;
