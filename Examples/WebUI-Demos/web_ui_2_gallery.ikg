@@ -852,11 +852,15 @@
     </view>
     
 <view name="Tables" >
-	<table  frame-style = "" style = "" show_title = "false" colorize = "false" x = "40" decimals = "4" direction = "normal" y = "60" label_y = "" source = "R23T.OUTPUT" width = "301" label_x = "" title = "Default Table" show_frame = "false" height = "81"/>
-	<table  frame-style = "" style = "" show_title = "false" colorize = "true" x = "400" width = "241" label_x = "" label_y = "" y = "60" color = "red, green, blue" title = "Fliped direction" decimals = "4" direction = "flip x/y" source = "R23T.OUTPUT" show_frame = "false" height = "81"/>
-	<table  frame-style = "" style = "" show_title = "false" colorize = "true" x = "40" width = "301" label_x = "" label_y = "" y = "180" decimals = "4" direction = "normal" source = "R23T.OUTPUT" title = "Color by Sign" show_frame = "false" height = "81" font_size = "24px"/>
-	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "4" direction = "normal" y = "160" label_y = "Y1,Y2,Y3" source = "R23T.OUTPUT" title = "Default Title" label_x = "X1,X2" width = "301" show_frame = "false" height = "101" x = "340"/>
+	<table  height = "81" show_frame = "false" title = "Default Table" source = "R23T.OUTPUT" y = "60" label_y = "" direction = "normal" decimals = "4" x = "40" colorize = "false" label_x = "" width = "301" frame-style = "" show_title = "false" style = "" scrollable = "false"/>
+	<table  height = "81" show_frame = "false" source = "R23T.OUTPUT" direction = "flip x/y" decimals = "4" y = "60" label_y = "" x = "400" colorize = "true" title = "Fliped direction" color = "red, green, blue" label_x = "" width = "241" frame-style = "" show_title = "false" style = "" scrollable = "false"/>
+	<table  font_size = "24px" height = "81" show_frame = "false" title = "Color by Sign" source = "R23T.OUTPUT" direction = "normal" decimals = "4" y = "180" label_y = "" x = "40" colorize = "true" label_x = "" width = "301" frame-style = "" show_title = "false" style = "" scrollable = "false"/>
+	<table  x = "340" height = "101" show_frame = "false" source = "R23T.OUTPUT" y = "160" label_y = "Y1,Y2,Y3" direction = "normal" decimals = "4" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" width = "301" label_x = "X1,X2" style = "" scrollable = "false"/>
+	<table  x = "40" y = "300" height = "181" width = "301" title = "Default Title" source = "R10x10.OUTPUT" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<text  x = "40" y = "280" height = "21" width = "201" title = "Default Title" parameter = "" text = "Scrollable" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
 </view>
+
+
 
 
 
@@ -1078,7 +1082,12 @@
         min = "0.1"
         max = "0.9"
     />
-
+   <module
+        class = "Randomizer"
+        name = "R10x10"
+        outputsize_x = "10"
+        outputsize_y = "10"
+    />
     <module
         class = "FunctionGenerator"
         name = "G1"

@@ -4,13 +4,14 @@ class WebUIWidgetTable extends WebUIWidget {
             { 'name': "TABLE", 'control': 'header' },
             { 'name': 'title', 'default': "Default Title", 'type': 'string', 'control': 'textedit' },
             { 'name': 'source', 'default': "", 'type': 'source', 'control': 'textedit' },
-        
+
             { 'name': "STYLE", 'control': 'header' },
             { 'name': 'label_x', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'label_y', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'direction', 'default': "normal", 'type': 'string', 'control': 'menu', 'values': "normal,flip x/y" },
             { 'name': 'decimals', 'default': 4, 'type': 'int', 'control': 'textedit' },
             { 'name': 'colorize', 'default': true, 'type': 'bool', 'control': 'checkbox' },
+            { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 
             { 'name': "FRAME", 'control': 'header' },
             { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
@@ -21,12 +22,7 @@ class WebUIWidgetTable extends WebUIWidget {
     };
 
     static html() {
-        return "<table> </table>";
-    }
-
-    init() {
-        this.div = this.querySelector('div');
-        this.table = this.querySelector('table');
+        return "<div><table></table></div>";
     }
 
     reshapeTable(r, c, rLabel, cLabel) {
@@ -43,7 +39,7 @@ class WebUIWidgetTable extends WebUIWidget {
             let new_row = this.table.insertRow(-1);
             for (let i = 0; i < c; i++) {
                 let cell = new_row.insertCell(i);
-                cell.innerHTML = "d" + j + " " + i;
+                cell.innerHTML = "X";
                 this.tData[j][i] = cell
             }
         }
@@ -51,7 +47,7 @@ class WebUIWidgetTable extends WebUIWidget {
             let new_row = this.table.insertRow(0);
             for (let i = 0; i < c; i++) {
                 let cell = new_row.insertCell(i);
-                cell.innerHTML = "r" + i;
+                cell.innerHTML = "X";
                 this.xHeader.push(cell)
             }
         }
@@ -59,20 +55,11 @@ class WebUIWidgetTable extends WebUIWidget {
             for (let i = 0; i < this.table.rows.length; i++) {
                 let cell = this.table.rows[i].insertCell(0);
                 if (!(rLabel && i == 0)) {
-                    cell.innerHTML = "c" + i;
+                    cell.innerHTML = "X";
                     this.yHeader.push(cell)
                 }
             }
         }
-
-        // Fill 
-        // for (var i = 0; i < this.xHeader.length; i++)
-        //     this.xHeader[i].innerHTML = "R" + i
-        // for (var i = 0; i < this.yHeader.length; i++)
-        //     this.yHeader[i].innerHTML = "C" + i
-        // for (var j = 0; j < this.tData.length; j++)
-        //     for (var i = 0; i < this.tData[0].length; i++)
-        //         this.tData[j][i].innerHTML = "D" + j + " " + i
     }
     fillLabels(type, label_x, xCells, label_y, yCells) {
         if (label_x || label_y) {
@@ -113,24 +100,48 @@ class WebUIWidgetTable extends WebUIWidget {
             }
         }
     }
-    update() {
+    scrollable() {
+        if (this.toBool(this.parameters.scrollable))
+            this.div.style.overflow = "auto";
+        else
+            this.div.style.overflow = "inherit";
+    }
+    init() {
+        this.div = this.querySelector('div');
+        this.table = this.querySelector('table');
+        this.loaded = false;
+    }
+    updateAll() {
+        this.updateFrame();
         if (this.data = this.getSource('source')) {
+            this.loaded = true;
+
             let size_y = this.data.length;
             let size_x = this.data[0].length;
 
-            let doReshape = false
-            if (this.lastSource != this.parameters.source || this.lastdirection != this.parameters.direction || this.lastLabelx != this.parameters.label_x || this.lastLabely != this.parameters.label_y)
-                doReshape = true
-            this.lastLabelx = this.parameters.label_x
-            this.lastLabely = this.parameters.label_y
-            this.lastSource = this.parameters.source
-            this.lastdirection = this.parameters.direction
+            if (this.parameters.direction == "normal") {
+                this.reshapeTable(size_y, size_x, this.parameters.label_x, this.parameters.label_y);
+                this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
+            }
+            else {
+                this.reshapeTable(size_x, size_y, this.parameters.label_y, this.parameters.label_x);
+                this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
+            }
+            this.update()
+        }
+        this.scrollable()
+        
+    }
+    update() {
+        if (!this.loaded)   // The init and update all does not have data? is this right.
+            this.updateAll()
+
+        if (this.data = this.getSource('source')) {
+
+            let size_y = this.data.length;
+            let size_x = this.data[0].length;
 
             if (this.parameters.direction == "normal") {
-                if (doReshape) {
-                    this.reshapeTable(size_y, size_x, this.parameters.label_x, this.parameters.label_y);
-                    this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
-                }
                 if (this.parameters.colorize)
                     for (let j = 0; j < size_y; j++)
                         for (let i = 0; i < size_x; i++) {
@@ -145,10 +156,6 @@ class WebUIWidgetTable extends WebUIWidget {
                         }
             }
             else {
-                if (doReshape) {
-                    this.reshapeTable(size_x, size_y, this.parameters.label_y, this.parameters.label_x);
-                    this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
-                }
                 if (this.parameters.colorize)
                     for (let j = 0; j < size_y; j++)
                         for (let i = 0; i < size_x; i++) {
@@ -163,6 +170,12 @@ class WebUIWidgetTable extends WebUIWidget {
                         }
             }
         }
+    }
+    parameterChangeNotification(p) {
+        if (p.name == "scrollable")
+            this.scrollable()
+        else
+            this.updateAll()
     }
 };
 
