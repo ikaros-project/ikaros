@@ -105,7 +105,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         }
     }
 
-    // update() gest the data for the graph and calls WebUIWidgetGraph::draw() which in turn calls
+    // update() get the data for the graph and calls WebUIWidgetGraph::draw() which in turn calls
     // drawPlotHorizontal() or drawPlotVertical()
     
     update()
