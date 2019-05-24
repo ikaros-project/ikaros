@@ -7,23 +7,6 @@
 	<connection  source = "LowLevelMotionTrigger.OUTPUT"  target = "LowLevelMotionPlayer.TRIG" />
 
 
-	<view name="View">
-
-		<bar-graph
-            x="40" y="40"
-            width="301"
-            height="301"
-            source="LowLevelMotionTrigger.ACTIVITY"
-        />
-
-        <bar-graph
-            x="360" y="40"
-            width="301"
-            height="301"
-            source="LowLevelMotionTrigger.OUTPUT"
-        />
-	</view>
-    
     <!-- Hack to get the motionrecorder to work as as motionplayer -->
     <_module class = "Constant" name = "HACK1" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0     0  0  " />
 

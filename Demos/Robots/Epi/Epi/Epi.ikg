@@ -45,6 +45,7 @@ PupilModelA = "100"
         0 0 0 1;" />
 
 
+	
     <!-- Multiply position and rotation-->
    <module class="Transform"   name="EpiPositionExo" />
         <connection source = "PositioExo.OUTPUT"    target = "EpiPositionExo.MATRIX_1"    delay = "0"/>
@@ -128,159 +129,14 @@ PupilModelA = "100"
 	<connection source = "EXT_SERVO_ANGLE_A.OUTPUT"     target = "ExtServoAngleCode.AMPLITUDE" />
 
 <!-- Internal Motor control -->
-<_module class = "Constant" name = "INT_SERVO_ANGLE" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
-	<module
-		class		=	"FunctionGenerator"
-		name		=	"INT_SERVO_ANGLE"
-		type		=	"sin"
-		frequency	=	"0.2"
-		offset      =	"12"
-		amplitude	=	"5"
-	    shift		=	"0"
-		size 		=   "19"
-    />
-
-<module class = "Constant" name = "INT_SERVO_ANGLE_A" 		data = "1   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					0 0" />
+<module class = "Constant" name = "IntServoPosition" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
+<module class = "Constant" name = "IntServoPositionA" 		data = "1   		1 1 1 1   				1 1 1 1 1 1   					1 1 1 1 1 1  					1 1" />
 
 <module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
-	<connection source = "INT_SERVO_ANGLE.OUTPUT"   target = "IntServoAngleCode.INPUT" />
-	<connection source = "INT_SERVO_ANGLE_A.OUTPUT" target = "IntServoAngleCode.AMPLITUDE" />
+	<connection source = "IntServoPosition.OUTPUT"   target = "IntServoAngleCode.INPUT" />
+	<connection source = "IntServoPositionA.OUTPUT" target = "IntServoAngleCode.AMPLITUDE" />
 
-<view name="Manual Control">
 
-	<slider-horizontal
-		max = "1"
-		title = "Internal Amplitude"
-		label = "Servo Angles"
-		module = "INT_SERVO_ANGLE_A"
-		step = "0.01"
-		parameter = "INT_SERVO_ANGLE_A.data"
-		count = "20"
-		x = "20"
-		width = "150"
-		show_title = "true"
-		show_value = "true"
-		y = "40"
-		height = "450"
-		class = "slider-horizontal"
-	/>
-
-	<slider-horizontal
-		title = "Internal Angles"
-		width = "300"
-		label = "Servo Angles"
-		show_value = "true"
-		show_title = "true"
-		step = "5"
-		module = "INT_SERVO_ANGLE"
-		min = "-180"
-		parameter = "INT_SERVO_ANGLE.data"
-		count = "20"
-		x = "180"
-		y = "40"
-		height = "450"
-		max = "180"
-		labels = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil"
-		class = "slider-horizontal"
-	/>
-
-	<table
-		colorize = "true"
-		width = "1021"
-		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
-		title = "External Manual"
-		show_title = "true"
-		y = "80"
-		show_frame = "true"
-		height = "41"
-		source = "EXT_SERVO_ANGLE.OUTPUT"
-		decimals = "2"
-		x = "500"
-		module = "EXT_SERVO_ANGLE"
-		class = "table"
-	/>
-
-	<table
-		colorize = "true"
-		width = "1021"
-		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
-		title = "Amplitude"
-		show_title = "true"
-		y = "120"
-		show_frame = "true"
-		height = "41"
-		source = "EXT_SERVO_ANGLE_A.OUTPUT"
-		decimals = "2"
-		x = "500"
-		module = "EXT_SERVO_ANGLE_A"
-		class = "table"
-	/>
-
-	<table
-		colorize = "true"
-		width = "1021"
-		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
-		title = "Internal Manual"
-		show_title = "true"
-		y = "220"
-		show_frame = "true"
-		height = "41"
-		source = "INT_SERVO_ANGLE.OUTPUT"
-		decimals = "2"
-		x = "500"
-		module = "INT_SERVO_ANGLE"
-		class = "table"
-	/>
-
-	<table
-		colorize = "true"
-		width = "1021"
-		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
-		title = "Internal Manual Amplitude"
-		show_title = "true"
-		y = "260"
-		show_frame = "true"
-		height = "41"
-		source = "INT_SERVO_ANGLE_A.OUTPUT"
-		decimals = "0"
-		x = "500"
-		module = "INT_SERVO_ANGLE_A"
-		class = "table"
-	/>
-
-	<table
-		colorize = "true"
-		width = "1021"
-		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
-		title = "High level motor arbiter"
-		show_title = "true"
-		y = "320"
-		show_frame = "true"
-		height = "461"
-		source = "HighLevelMotorArbiter.OUTPUT"
-		decimals = "3"
-		x = "500"
-		module = "GOAL_POSITION"
-		class = "table"
-	/>
-
-	<table
-		colorize = "true"
-		width = "1021"
-		color = "red, green, green, green, green, blue, blue, blue, blue, blue, blue, yellow, yellow, yellow, yellow, yellow, yellow, pink, pink"
-		title = "Feedback"
-		show_title = "true"
-		y = "800"
-		show_frame = "true"
-		height = "41"
-		source = "FEEDBACK_POSITION"
-		decimals = "1"
-		x = "500"
-		module = "Servos"
-		class = "table"
-	/>
-
-</view>
  
 
 <!-- 			HIGH LEVEL 				-->
@@ -314,28 +170,39 @@ PupilModelA = "100"
     <!-- Pupil override -->
     <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
 
+
+
+<!-- <module class = "Constant" name = "temp" data = "0  0 0 0 0   0 0 0 0 0 0      0 0 0 0 0 0     0 0 " />
+	<connection source = "temp.OUTPUT" 	target = "ForwardModel.BODY_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+	<connection source = "temp.OUTPUT" 	target = "ForwardModel.HEAD_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+	<connection source = "temp.OUTPUT" 	target = "ForwardModel.LEFT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	<connection source = "temp.OUTPUT" 	target = "ForwardModel.RIGHT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+	<connection source = "temp.OUTPUT" 	target = "ForwardModel.PUPIL_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> ´
+ -->
+
+
 <!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.BODY_JOINT_ANGLES" 			targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.HEAD_JOINT_ANGLES" 			targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.LEFT_ARM_JOINT_ANGLES" 		targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.RIGHT_ARM_JOINT_ANGLES" 		targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.PUPIL_JOINT_ANGLES" 			targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> ´
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.BODY_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.HEAD_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.LEFT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.RIGHT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.PUPIL_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> ´
 
 
 <!--  Low Level Motion mixer  -->
 <!-- ************************ -->
 <!-- ************************ -->
 
-<module class = "Arbiter" name = "LowLevelArbiter" no_of_inputs = "3" by_row = "true" switch_time = "40"/>
-	<connection source = "HighLevelMotorArbiter.OUTPUT"  	target = "LowLevelArbiter.INPUT_1" />
-	<connection source = "PupilContPop.OUTPUT"  			target = "LowLevelArbiter.INPUT_2" />
-	<connection source = "LowLevelMotionPlayerPop.OUTPUT"  	target = "LowLevelArbiter.INPUT_3" />
+<module class = "Arbiter" name = "LowLevelMotorArbiter" no_of_inputs = "3" by_row = "true" switch_time = "40"/>
+	<connection source = "HighLevelMotorArbiter.OUTPUT"  	target = "LowLevelMotorArbiter.INPUT_1" />
+	<connection source = "PupilContPop.OUTPUT"  			target = "LowLevelMotorArbiter.INPUT_2" />
+	<connection source = "LowLevelMotionPlayerPop.OUTPUT"  	target = "LowLevelMotorArbiter.INPUT_3" />
    
 
 <!-- Popalation decoder -->
 <module class = "PopulationDecoder" name = "GOAL_POSITION" min  = "-400" max  = "400" size = "@nrServosTotal"/>
-	<connection source = "LowLevelArbiter.OUTPUT"  target = "GOAL_POSITION.INPUT" />
+	<connection source = "LowLevelMotorArbiter.OUTPUT"  target = "GOAL_POSITION.INPUT" />
 
 
  <!-- Sound -->
@@ -356,83 +223,13 @@ PupilModelA = "100"
 
 
 	<!-- Eye Color 0.8 0.7 0.1 -->
-	<module class = "Constant" name = "EColor" data = "0.1 0.5 0.5" />
+	<module class = "Constant" name = "EColor" data = "0.8 0.7 0.1" />
 		<connection source = "EColor.OUTPUT"  target = "LED.EYE_COLOR" />
 	<!-- Mouth Color -->
-	<module class = "Constant" name = "MColor" data = "0.2 0.1 0.5" />
-	<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
+	<module class = "Constant" name = "MColor" data = "0.8 0.7 0.1" />
+		<connection source = "MColor.OUTPUT"  target = "LED.MOUTH_COLOR" />
 
 
-	<view name="Color Robot">
-	<slider-horizontal
-		max = "1"
-		title = "Color Eyes"
-		label = "Color"
-		module = "EColor"
-		step = "0.1"
-		parameter = "EColor.data"
-		count = "3"
-		x = "20"
-		width = "150"
-		show_title = "true"
-		show_value = "true"
-		y = "40"
-		height = "450"
-		class = "slider-horizontal"
-	/>
-	<slider-horizontal
-		max = "1"
-		title = "Color Mouth"
-		label = "Color"
-		module = "MColor"
-		step = "0.1"
-		parameter = "MColor.data"
-		count = "3"
-		x = "20"
-		width = "150"
-		show_title = "true"
-		show_value = "true"
-		y = "40"
-		height = "450"
-		class = "slider-horizontal"
-	/>
-
-	<slider-horizontal
-		max = "1"
-		title = "Intensity Eyes"
-		label = "Color"
-		module = "EIntense"
-		step = "0.1"
-		parameter = "EIntense.data"
-		count = "1"
-		x = "20"
-		width = "150"
-		show_title = "true"
-		show_value = "true"
-		y = "40"
-		height = "450"
-		class = "slider-horizontal"
-	/>
-
-
-	<slider-horizontal
-		max = "1"
-		title = "Intensity Eyes"
-		label = "Color"
-		module = "MIntense"
-		step = "0.1"
-		parameter = "MIntense.data"
-		count = "1"
-		x = "20"
-		width = "150"
-		show_title = "true"
-		show_value = "true"
-		y = "40"
-		height = "450"
-		class = "slider-horizontal"
-	/>
-
-	</view>
 
 	<!-- Temporary face detector module -->
     <!--
@@ -493,67 +290,7 @@ PupilModelA = "100"
 
 	<module class = "Constant" name = "IML_EXCITATION" data = "0.5" />
 
-<view name="PupilControl">
 
-	<image
-		flipYCanvas = "no"
-		max_y = "1"
-		title = "Low"
-		source = "LeftEye.LOW_RES_INTENSITY"
-		max_x = "1"
-		scale = "both"
-		scales = "no"
-		x = "60"
-		flipXAxis = "no"
-		width = "321"
-		format = "gray"
-		height = "241"
-		class = "image"
-		flipYAxis = "no"
-		flipXCanvas = "no"
-		show_title = "true"
-		h = "4"
-		w = "4"
-		y = "0"
-	/>
-
-	<plot
-		show_title = "true"
-		direction = "vertical"
-		y = "260"
-		height = "301"
-		show_frame = "true"
-		buffer_size = "50"
-		max = "1"
-		x = "60"
-		class = "plot"
-		width = "301"
-		labels = "B"
-		title = "CG_OUTPUT"
-		source = "PupilControl.CG_OUTPUT"
-		module = "CG_OUTPUT"
-		min = "0"
-	/>
-
-	<plot
-		show_title = "true"
-		direction = "vertical"
-		y = "260"
-		height = "301"
-		show_frame = "true"
-		buffer_size = "50"
-		max = "1"
-		x = "400"
-		class = "plot"
-		width = "301"
-		labels = "B"
-		title = "SCG_OUTPUT"
-		source = "PupilControl.SCG_OUTPUT"
-		module = "SCG_OUTPUT"
-		min = "0"
-	/>
-
-</view>
     <module
         class="EyeModel"
         name="Eyes"
@@ -610,9 +347,7 @@ PupilModelA = "100"
 		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
 
 
-<view name="3D View" >
-	<canvas3d  matrix = "ForwardModel.EXO_POINTS" height = "1021"  width = "1581"  y = "20"  x = "20"/>
-</view>
+
 
 
 
@@ -628,6 +363,45 @@ PupilModelA = "100"
 	<module class="EpiLog" name="EpiLog" active = "yes"/>
 
 
+<!-- Views -->
+
+<view name="Color Robot" >
+	<slider-horizontal  height = "450" y = "100" show_title = "true" show_value = "true" x = "520" count = "3" parameter = "EColor.data" label = "Color" step = "0.1" module = "EColor" width = "150" title = "Color Eyes" max = "1" select = "0" labels = "" min = "0" show_values = "false" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  height = "450" y = "100" show_title = "true" show_value = "true" x = "360" count = "3" parameter = "MColor.data" label = "Color" step = "0.1" module = "MColor" width = "150" title = "Color Mouth" max = "1" select = "0" labels = "" min = "0" show_values = "false" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  height = "450" y = "100" show_title = "true" show_value = "true" x = "180" count = "1" parameter = "EIntense.data" label = "Color" step = "0.1" module = "EIntense" width = "150" title = "Intensity Eyes" max = "1" select = "0" labels = "" min = "0" show_values = "false" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  height = "450" y = "100" show_title = "true" show_value = "true" x = "20" count = "1" parameter = "MIntense.data" label = "Color" step = "0.1" module = "MIntense" width = "150" title = "Intensity Eyes" max = "1" select = "0" labels = "" min = "0" show_values = "false" show_frame = "false" style = "" frame-style = ""/>
+	<epi-head  x = "960" y = "100" height = "200" width = "200" title = "Epi Head" gazeSource = "" pupilLeftSource = "" pupilRightSource = "" headPosition = "" irisLeftRed = "" irisLeftGreen = "" irisLeftBlue = "" irisRightRed = "" irisRightGreen = "" irisRightBlue = "" mouthRed = "" mouthGreen = "" mouthBlue = "" gaze = "0" vergence = "0" pupil = "0.5" visibleSource = "" visibleFace = "true" visibleFaceParameter = "" color = "black" fill = "white" earColor = "#0088ff" irisColor = "#88aaff" mouthColor = "#000000" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+<view name="Motor system flow" >
+	<table  x = "280" height = "461" show_frame = "false" source = "LowLevelMotorArbiter.ARBITRATION" y = "60" label_y = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" direction = "normal" decimals = "4" colorize = "true" title = "Low Level" frame-style = "" show_title = "false" width = "461" label_x = "HL Arbiter,Pupil Control, LL Motion player" style = ""/>
+	<table  x = "20" height = "461" show_frame = "false" source = "HighLevelMotorArbiter.ARBITRATION" y = "60" label_y = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" direction = "normal" decimals = "4" colorize = "true" title = "HighLevel" frame-style = "" show_title = "false" width = "241" label_x = "External,Internal" style = ""/>
+	<text  show_frame = "false" height = "41" text = "High Level Motor Arbiter" parameter = "" frame-style = "" show_title = "false" title = "Default Title" width = "241" style = "" y = "20" x = "20"/>
+	<text  show_frame = "false" height = "41" text = "Low Level Motor Arbiter" parameter = "" frame-style = "" show_title = "false" title = "Default Title" width = "241" style = "" y = "20" x = "280"/>
+</view>
+
+<view name="Manual control" >
+	<slider-horizontal  width = "161" show_title = "false" show_values = "false" y = "80" x = "340" show_frame = "false" height = "461" count = "19" parameter = "IntServoPositionA.data" label = "Servo Angles" module = "IntServoPositionA" step = "0.1" max = "2" select = "0" style = "" labels = "" title = "Internal Amplitude" frame-style = "" min = "0"/>
+	<slider-horizontal  x = "40" max = "180" y = "80" labels = "Body, Head tilt, head pan,LeftEye,RightEye, LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftFingers,RightArm1,RightArm2,RightArrm3,RightArm4,RightArm5,RightFingers,Pupil,Pupil" style = "" height = "461" show_frame = "false" count = "19" parameter = "IntServoPosition.data" min = "-180" step = "5" module = "IntServoPosition" show_value = "true" show_title = "false" title = "Internal Angles" frame-style = "" width = "301" label = "Servo Angles" select = "0" show_values = "false"/>
+	<table  source = "LowLevelMotorArbiter.ARBITRATION" decimals = "4" direction = "normal" x = "880" show_frame = "false" height = "461" y = "60" label_y = "" colorize = "true" title = "Low Level" show_title = "false" frame-style = "" width = "461" label_x = "HL Arbiter,Pupil Control, LL Motion player" style = ""/>
+	<table  source = "HighLevelMotorArbiter.ARBITRATION" decimals = "4" direction = "normal" x = "580" show_frame = "false" height = "461" y = "60" label_y = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" colorize = "true" title = "HighLevel" show_title = "false" frame-style = "" width = "241" label_x = "External,Internal" style = ""/>
+	<text  parameter = "" x = "580" show_frame = "false" height = "41" text = "High Level Motor Arbiter" frame-style = "" title = "Default Title" width = "241" show_title = "false" style = "" y = "20"/>
+	<text  parameter = "" x = "880" show_frame = "false" height = "41" text = "Low level motor arbiter" frame-style = "" title = "Default Title" width = "461" show_title = "false" style = "" y = "20"/>
+	<text  parameter = "" x = "40" show_frame = "false" height = "41" text = "Internal Positions" frame-style = "" title = "Default Title" width = "301" show_title = "false" style = "" y = "40"/>
+	<text  parameter = "" x = "340" show_frame = "false" height = "41" text = "Amplitude" frame-style = "" title = "Default Title" width = "161" show_title = "false" style = "" y = "40"/>
+	<table  source = "Servos.GoalPositionG.ARBITRATION" decimals = "4" direction = "normal" x = "1360" show_frame = "false" height = "101" y = "60" label_y = "" colorize = "true" title = "Low Level" show_title = "false" frame-style = "" width = "241" label_x = "Off, On" style = ""/>
+	<text  parameter = "" x = "1360" show_frame = "false" height = "41" text = "Motionrecorder override" frame-style = "" title = "Default Title" width = "461" show_title = "false" style = "" y = "20"/>
+</view>
+
+<view name="3D View" >
+	<canvas3d  show_title = "true" title = "Epi" camera_target = "0,0,0" camera_pos = "2,2,2.4" width = "1581" robot_data = "" show_stats = "false" show_ground_grid = "true" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" line_color = "blue" x = "20" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" models = "Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis" matrix = "ForwardModel.EXO_POINTS" height = "1021" views = "Home" show_lines = "false" show_axis = "true" y = "20"/>
+</view>
+
+<view name="Pupil Control" >
+	<image  y = "0" w = "4" h = "4" flipXCanvas = "no" flipYAxis = "no" x = "60" scale = "both" flipXAxis = "no" show_title = "true" scales = "no" max_x = "1" width = "321" flipYCanvas = "no" title = "Low" format = "gray" source = "LeftEye.LOW_RES_INTENSITY" height = "241" max_y = "1" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_frame = "false" style = "" frame-style = ""/>
+	<plot  min = "0" module = "CG_OUTPUT" source = "PupilControl.CG_OUTPUT" title = "CG_OUTPUT" labels = "B" direction = "vertical" max = "1" buffer_size = "50" x = "60" show_frame = "true" height = "301" y = "260" width = "301" show_title = "true" select = "" color = "" style = "" frame-style = ""/>
+	<plot  min = "0" module = "SCG_OUTPUT" source = "PupilControl.SCG_OUTPUT" title = "SCG_OUTPUT" labels = "B" direction = "vertical" max = "1" buffer_size = "50" x = "400" show_frame = "true" height = "301" y = "260" width = "301" show_title = "true" select = "" color = "" style = "" frame-style = ""/>
+</view>
 
 
 </group>
