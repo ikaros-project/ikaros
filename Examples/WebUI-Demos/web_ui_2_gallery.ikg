@@ -6,7 +6,7 @@
 
 
     <view name="3D View" >
-        <canvas3d  line = "0,1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9,0,10,0,11,0,12,0,13,0,14,0,15,0,16,0,17,0,18,0,19" point_color = "red,green,blue" line_color = "red,green,blue" x = "20" y = "20" show_lines = "false" width = "1581" point_size = "0.1" height = "1021" matrix = "R3x20_M.OUTPUT" show_models = "true" models = "Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" show_points = "true" show_axis = "true" show_ground_grid = "true" show_stats = "false" robot_data = "" robot = "EpiBlack" views = "Home" camera_pos = "2,2,2.4" camera_target = "0,0,0" title = "Points and lines in 3D" show_title = "true" show_frame = "true"/>
+        <canvas3d  line = "0,1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9,0,10,0,11,0,12,0,13,0,14,0,15,0,16,0,17,0,18,0,19" point_color = "red,green,blue" line_color = "red,green,blue" x = "20" y = "20" show_lines = "false" width = "1581" point_size = "0.1" height = "1021" matrix = "RLarge_M.OUTPUT" show_models = "false" models = "" show_points = "true" show_axis = "true" show_ground_grid = "true" show_stats = "false" robot_data = "" robot = "EpiBlack" views = "Home" camera_pos = "2,2,2.4" camera_target = "0,0,0" title = "Points and lines in 3D" show_title = "true" show_frame = "true"/>
     </view>
 
     <view name="Epi the Robot">
@@ -961,13 +961,13 @@
 
     <module
         class = "Randomizer"
-        name = "R3x20"
+        name = "RLarge"
         outputsize_x = "3"
-        outputsize_y = "20"
+        outputsize_y = "1"
     />
 
-    <module class = "RotationConverter" name = "R3x20_M" input_format = "xyz" output_format = "matrix" />
-        <connection source = "R3x20.OUTPUT"  target = "R3x20_M.INPUT" />
+    <module class = "RotationConverter" name = "RLarge_M" input_format = "xyz" output_format = "matrix" />
+        <connection source = "RLarge.OUTPUT"  target = "RLarge_M.INPUT" />
 
     <module
         class = "FunctionGenerator"
