@@ -170,12 +170,12 @@
 
    <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L4A_T1" />
-        <connection source = "M_L3A_T1.OUTPUT"  target = "M_L4A_T1.INPUT1" delay = "0"/>
+        <connection source = "M_L3A_R1.OUTPUT"  target = "M_L4A_T1.INPUT1" delay = "0"/>
         <connection source = "L4_T1.OUTPUT"     target = "M_L4A_T1.INPUT2" delay = "0"/>
 
    <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L4B_T1" />
-        <connection source = "M_L3B_T1.OUTPUT"  target = "M_L4B_T1.INPUT1" delay = "0"/>
+        <connection source = "M_L3B_R1.OUTPUT"  target = "M_L4B_T1.INPUT1" delay = "0"/>
         <connection source = "L4_T1.OUTPUT"     target = "M_L4B_T1.INPUT2" delay = "0"/>
 
     <module class = "Constant"    name = "L4_R1Rot"  data = "90" />
@@ -200,10 +200,11 @@
     <!-- Sensors -->
     <!-- Left Eye --> 
     <!-- From Pupil to Focus -->
+    <!-- 5 mm into the head Estimated -->
     <!-- Tanslation in x     -->
     <module class = "Constant" name = "S1_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 -0.005;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
@@ -217,7 +218,7 @@
     <!-- Tanslation in x     -->
     <module class = "Constant" name = "S2_T1" 
 	data = "
-	1 0 0 0.1;
+	1 0 0 -0.005;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
