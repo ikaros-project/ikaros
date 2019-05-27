@@ -103,7 +103,7 @@
 
   <module class = "ServoConnector" name = "SCPosition"
 		connector       = "   1        2    3    4    5      6    7    8    9   10   11     12   13   14   15   16   17      18   19"
-        pre_inverted    = "   1        0    0    0    0      0    0    0    0    0    0      0    1    0    0    0    0       0    0" 
+        pre_inverted    = "   1        1    0    0    0      0    0    0    0    0    1      0    1    0    0    0    0       0    0" 
         post_inverted   = "   0        0    0    0    0      0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
         offset          = " 170      180  180  180  180    270  180  180  180  225  180    90  180  180  180  135  180     210  210" 
         output_size     = "@nrServosTotal"
@@ -189,21 +189,8 @@
         />
 
     <!-- Feedback -->
-    <module
-		class = "ServoConnector"
-		name = "SCFeedbackPosition"
-		connector       = "   1        2    3    4    5        6    7    8    9   10   11     12   13   14   15   16   17      18   19"
-        pre_inverted    = "   0        0    0    0    0        0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
-        post_inverted   = "   1        0    0    0    0        0    0    0    0    0    0      0    1    0    0    0    0       0    0" 
-        offset          = "   -170     -180 -180 -180 -180  -270 -180 -180 -180 -225 -180   -90 -180 -180 -180 -135 -180    -210 -210" 
-        output_size     = "@nrServosTotal"
-	/>
-        <connection source = "Body.FEEDBACK_PRESENT_POSITION"       target = "SCFeedbackPosition.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-        <connection source = "Head.FEEDBACK_PRESENT_POSITION"       target = "SCFeedbackPosition.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "LeftArm.FEEDBACK_PRESENT_POSITION"    target = "SCFeedbackPosition.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	    size = "@nrServosLeftArm"/>  
-        <connection source = "RightArm.FEEDBACK_PRESENT_POSITION"   target = "SCFeedbackPosition.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-        <connection source = "Pupil.FEEDBACK_PRESENT_POSITION"      target = "SCFeedbackPosition.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
 
+     
     <!-- Create modules that join server data -->
  
     <module class = "Gate" name = "FeedbackTorqueEnableG"/>
@@ -270,7 +257,28 @@
         <connection source = "Pupil.FEEDBACK_TORQUE_LIMIT"      target = "FeedbackTorqueLimitG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
     <output name = "FEEDBACK_TORQUE_LIMIT"                     source = "FeedbackTorqueLimitG.OUTPUT" />
 
+    <module class = "Gate" name = "FeedbackPresentPositionRawG"/>
+        <connection source = "Body.FEEDBACK_PRESENT_POSITION"       target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "Head.FEEDBACK_PRESENT_POSITION"       target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
+        <connection source = "LeftArm.FEEDBACK_PRESENT_POSITION"    target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+        <connection source = "RightArm.FEEDBACK_PRESENT_POSITION"   target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
+        <connection source = "Pupil.FEEDBACK_PRESENT_POSITION"      target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> 
+
+      
+    <module
+		class = "ServoConnector"
+		name = "SCFeedbackPosition"
+		connector       = "   1        2    3    4    5        6    7    8    9   10   11     12   13   14   15   16   17      18   19"
+        pre_inverted    = "   0        0    0    0    0        0    0    0    0    0    0      0    0    0    0    0    0       0    0" 
+        post_inverted   = "   1        1    0    0    0        0    0    0    0    0    1      0    1    0    0    0    0       0    0" 
+        offset          = "   -170     -180 -180 -180 -180  -270 -180 -180 -180 -225 -180   -90 -180 -180 -180 -135 -180    -210 -210" 
+        output_size     = "@nrServosTotal"
+	/>
+        <connection source = "FeedbackPresentPositionRawG.OUTPUT"  	        target = "SCFeedbackPosition.INPUT" />
+
+        
     <module class = "Gate" name = "FeedbackPresentPositionG"/>
+
         <!-- Order is important -->
 	    <connection source = "DegreesTomm.OUTPUT"  	        target = "FeedbackPresentPositionG.INPUT"  sourceoffset = "0"                targetoffset = "@servosIndexPupil"    size = "@nrServosPupil"/>
 	    <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"  sourceoffset = "0"	            targetoffset = "0"                    size = "@servosIndexPupil"/>
@@ -344,32 +352,36 @@
     <output name = "ERRORS"                      source = "ErrorG.OUTPUT" />
 
 <view name="Input/Feedback" >
-	<table  x = "20" height = "461" show_frame = "false" source = "GoalPositionG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Goal position" frame-style = "text-align: center;" show_title = "true" width = "141" label_x = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" style = ""/>
-	<table  x = "160" height = "461" show_frame = "true" source = "SCPosition.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "SC" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "220" height = "461" show_frame = "false" source = "TorqueEnableG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Torque Enable" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "280" height = "461" show_frame = "false" source = "TorqueLimitG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Torque Limit" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "340" height = "461" show_frame = "false" source = "MovingSpeedG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Moving Speed" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<text  y = "20" style = "text-align: center;" width = "381" title = "INPUT" show_title = "false" frame-style = "" show_frame = "true" text = "INPUT" height = "21" parameter = "" x = "20"/>
-	<text  y = "40" style = "text-align: center;" width = "921" title = "INPUT" show_title = "false" frame-style = "" show_frame = "true" text = "FEEDBACK" height = "1" parameter = "" x = "400"/>
-	<table  x = "940" height = "461" show_frame = "false" source = "FeedbackPresentPositionG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Position" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "880" height = "461" show_frame = "false" source = "SCFeedbackPosition.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "SC" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "400" height = "461" show_frame = "false" source = "FeedbackTorqueEnableG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Torque Enable" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "820" height = "461" show_frame = "false" source = "FeedbackTorqueLimitG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Torque Limit" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1000" height = "461" show_frame = "false" source = "FeedbackPresentSpeedG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Moving Speed" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "460" height = "461" show_frame = "false" source = "FeedbackLedG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "LED" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "520" height = "461" show_frame = "false" source = "FeedbackDGainG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "D" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "580" height = "461" show_frame = "false" source = "FeedbackIGainG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "I" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "640" height = "461" show_frame = "false" source = "FeedbackPGainG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "P" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "700" height = "461" show_frame = "false" source = "FeedbackGoalPositionG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Goal position" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "760" height = "461" show_frame = "false" source = "FeedbackMovingSpeedG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Moving Speed" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1060" height = "461" show_frame = "false" source = "FeedbackPresentLoadG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Load" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1120" height = "461" show_frame = "false" source = "FeedbackPresentVoltageG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Voltage" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1180" height = "461" show_frame = "false" source = "FeedbackPresentTemperatureG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Temperature" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1240" height = "461" show_frame = "false" source = "FeedbackPresentCurrentG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Current" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1300" height = "461" show_frame = "false" source = "FeedbackGoalTorqueG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Goal Torque" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<table  x = "1360" height = "461" show_frame = "false" source = "FeedbackGoalAccelerationG.OUTPUT" y = "40" label_y = "" direction = "flip x/y" decimals = "1" colorize = "true" title = "Goal acceleration" frame-style = "text-align: center;" show_title = "true" width = "61" label_x = "" style = ""/>
-	<text  y = "20" style = "text-align: center;" width = "1021" title = "INPUT" show_title = "false" frame-style = "" show_frame = "true" text = "Feedback" height = "21" parameter = "" x = "400"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" show_frame = "false" width = "141" decimals = "1" x = "20" title = "Goal position" source = "GoalPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "true" width = "61" decimals = "1" x = "220" title = "SC" source = "SCPosition.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "280" title = "Torque Enable" source = "TorqueEnableG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "340" title = "Torque Limit" source = "TorqueLimitG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "400" title = "Moving Speed" source = "MovingSpeedG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<text  width = "441" height = "21" x = "20" show_title = "false" y = "20" style = "text-align: center;" show_frame = "true" frame-style = "" title = "INPUT" text = "INPUT" parameter = ""/>
+	<text  width = "921" height = "1" x = "400" show_title = "false" y = "40" style = "text-align: center;" show_frame = "true" frame-style = "" title = "INPUT" text = "FEEDBACK" parameter = ""/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1060" title = "Position" source = "FeedbackPresentPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1000" title = "SC" source = "SCFeedbackPosition.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "460" title = "Torque Enable" source = "FeedbackTorqueEnableG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "880" title = "Torque Limit" source = "FeedbackTorqueLimitG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1120" title = "Moving Speed" source = "FeedbackPresentSpeedG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "520" title = "LED" source = "FeedbackLedG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "580" title = "D" source = "FeedbackDGainG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "640" title = "I" source = "FeedbackIGainG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "700" title = "P" source = "FeedbackPGainG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "760" title = "Goal position" source = "FeedbackGoalPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "820" title = "Moving Speed" source = "FeedbackMovingSpeedG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1180" title = "Load" source = "FeedbackPresentLoadG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1240" title = "Voltage" source = "FeedbackPresentVoltageG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1300" title = "Temperature" source = "FeedbackPresentTemperatureG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1360" title = "Current" source = "FeedbackPresentCurrentG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1420" title = "Goal Torque" source = "FeedbackGoalTorqueG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1480" title = "Goal acceleration" source = "FeedbackGoalAccelerationG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<text  width = "1081" height = "21" x = "460" show_title = "false" y = "20" style = "text-align: center;" show_frame = "true" frame-style = "" title = "INPUT" text = "Feedback" parameter = ""/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "true" width = "61" decimals = "1" x = "160" title = "Motion Guard" source = "MotionGuard.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "940" title = "Position row" source = "FeedbackPresentPositionRawG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 </view>
+
+
 
 <view name="Errors" >
 	<bar-graph  x = "20" y = "40" height = "401" width = "641" title = "Errors" source = "ErrorG.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
