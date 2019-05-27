@@ -3,7 +3,7 @@
 <group>
 	
     <description>
-        WARNING. These modules are under development and can change at any time!
+        The total delay for this forward model is 2 tick (JOINT_ANGLES -> L1R2Rot-L2_R1Rot-L3A_R1Rot-L3B_R1Rot, * -> PointJoin).
 	 </description>
 
     <input name = "JOINT_ANGLES" target = "L1_R3Rot.INPUT" />
@@ -14,8 +14,6 @@
     <input name = "JOINT_ANGLES" target = "L6_R1Rot.INPUT" />
 
     <!-- Ego -->
-    <output name = "EGO_SKELETON"       source = "SkeletonJoin.OUTPUT" />             
-    <output name = "EGO_MODELS" 	    source = "ModelJoin.OUTPUT" />
     <output name = "EGO_POINTS" 	    source = "PointJoin.OUTPUT" />
     
     <module class = "DataConverter" name = "PointJoin" output_size_x = "16" output_size_y = "9"/>
@@ -28,9 +26,6 @@
         <connection source = "M_P1_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "96"   size = "16" description="thumb"/>
         <connection source = "M_P2_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "112"  size = "16" description="index"/>
         <connection source = "M_P3_T1.OUTPUT"      target = "PointJoin.INPUT"    sourceoffset = "0" targetoffset = "128"  size = "16" description="pinky"/>
-
-    
-
    
     <!-- Used to filll xyz intputs of rotationConverter -->
     <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
@@ -42,18 +37,18 @@
     <!-- LINK 1: JOINT 1: Rotation Z  Rotation 90 dgrees in Z  --> 
     <module class = "Constant"    name = "L1_R1Rot"  data = "@L1_R1RotData" />
     <module class = "RotationConverter" name = "L1_R1_C" input_format = "axayaz" output_format = "matrix" />
-        <connection source = "L1_R1Rot.OUTPUT"  target = "L1_R1_C.INPUT" />
+        <connection source = "L1_R1Rot.OUTPUT"  target = "L1_R1_C.INPUT" delay = "0"/>
 
 	<module class = "DataConverter" name = "L1_R1"/>
-        <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" />
+        <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" delay = "0"/>
 
      <!-- LINK 1: JOINT 2: Rotation X  Rotation 90 dgrees in X  --> 
     <module class = "Constant"    name = "L1_R2Rot"  data = "90 0 0" />
     <module class = "RotationConverter" name = "L1_R2_C" input_format = "axayaz" output_format = "matrix" />
-        <connection source = "L1_R2Rot.OUTPUT"  target = "L1_R2_C.INPUT"/>
+        <connection source = "L1_R2Rot.OUTPUT"  target = "L1_R2_C.INPUT" delay = "0"/>
     
 	<module class = "DataConverter" name = "L1_R2"/>
-        <connection source = "L1_R2_C.OUTPUT"   target = "L1_R2.INPUT" />
+        <connection source = "L1_R2_C.OUTPUT"   target = "L1_R2.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L1_R2" />
@@ -82,7 +77,7 @@
         <connection source = "ZERO.OUTPUT"          target = "L1_R3_C.INPUT" sourceoffset = "0" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"          target = "L1_R3_C.INPUT" sourceoffset = "0" targetoffset = "2" size = "1"/>
 	<module class = "DataConverter" name = "L1_R3"/>
-        <connection source = "L1_R3_C.OUTPUT"       target = "L1_R3.INPUT" />
+        <connection source = "L1_R3_C.OUTPUT"       target = "L1_R3.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L1_T_R3" />
@@ -114,7 +109,7 @@
         <connection source = "L2_R1Rot.OUTPUT"      target = "L2_R1_C.INPUT"  sourceoffset = "1" targetoffset = "2" size = "1"/>
 
 	<module class = "DataConverter" name = "L2_R1"/>
-        <connection source = "L2_R1_C.OUTPUT"       target = "L2_R1.INPUT" />
+        <connection source = "L2_R1_C.OUTPUT"       target = "L2_R1.INPUT" delay = "0" />
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L2_R1" />
@@ -143,7 +138,7 @@
         <connection source = "ZERO.OUTPUT"      target = "L3_R1_C.INPUT" sourceoffset = "2" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"      target = "L3_R1_C.INPUT" sourceoffset = "2" targetoffset = "2" size = "1"/>
  	<module class = "DataConverter" name = "L3_R1"/>
-        <connection source = "L3_R1_C.OUTPUT"   target = "L3_R1.INPUT" />
+        <connection source = "L3_R1_C.OUTPUT"   target = "L3_R1.INPUT" delay = "0" />
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L3_R1" />
@@ -173,7 +168,7 @@
         <connection source = "L4_R1Rot.OUTPUT"  target = "L4_R1_C.INPUT" sourceoffset = "3" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"      target = "L4_R1_C.INPUT" sourceoffset = "3" targetoffset = "2" size = "1"/>
  	<module class = "DataConverter" name = "L4_R1"/>
-        <connection source = "L4_R1_C.OUTPUT"   target = "L4_R1.INPUT" />
+        <connection source = "L4_R1_C.OUTPUT"   target = "L4_R1.INPUT" delay = "0" />
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L4_R1" />
@@ -201,7 +196,7 @@
         <connection source = "ZERO.OUTPUT"      target = "L5_R1_C.INPUT" sourceoffset = "4" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"      target = "L5_R1_C.INPUT" sourceoffset = "4" targetoffset = "2" size = "1"/>
  	<module class = "DataConverter" name = "L5_R1"/>
-        <connection source = "L5_R1_C.OUTPUT"   target = "L5_R1.INPUT" />
+        <connection source = "L5_R1_C.OUTPUT"   target = "L5_R1.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L5_R1" />
@@ -223,7 +218,7 @@
         <connection source = "L6_R1Rot.OUTPUT"      target = "L6_R1_C.INPUT" sourceoffset = "5" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"  target = "L6_R1_C.INPUT" sourceoffset = "5" targetoffset = "2" size = "1"/>
  	<module class = "DataConverter" name = "L6_R1"/>
-        <connection source = "L6_R1_C.OUTPUT"   target = "L6_R1.INPUT" />
+        <connection source = "L6_R1_C.OUTPUT"   target = "L6_R1.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L6_R1" />

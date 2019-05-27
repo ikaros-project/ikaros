@@ -3,6 +3,7 @@
 <group title = "Forward Model">
 
     <description>
+        The total delay for this forward model is 2 tick (JOINT_ANGLES -> L1R2Rot-L2_R1Rot-L3A_R1Rot-L3B_R1Rot, * -> PointJoin).
 	 </description>
 
     <input name = "JOINT_ANGLES"   target = "L1_R1Rot.INPUT" />
@@ -59,7 +60,7 @@
         <connection source = "L1_R1Rot.OUTPUT"  target = "L1_R1_C.INPUT" sourceoffset = "0" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"      target = "L1_R1_C.INPUT" sourceoffset = "0" targetoffset = "2" size = "1"/>
     <module class = "DataConverter" name = "L1_R1"/>
-        <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" />
+        <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" delay = "0"/>
 
    <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L1_R1" />
@@ -90,7 +91,7 @@
         <connection source = "ZERO.OUTPUT"          target = "L2_R1_C.INPUT" sourceoffset = "0" targetoffset = "2" size = "1"/>
 
 	<module class = "DataConverter" name = "L2_R1"/>
-        <connection source = "L2_R1_C.OUTPUT"       target = "L2_R1.INPUT" />
+        <connection source = "L2_R1_C.OUTPUT"       target = "L2_R1.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L2_R1" />
@@ -119,7 +120,7 @@
         <connection source = "ZERO.OUTPUT"          target = "L3A_R1_C.INPUT" sourceoffset = "0" targetoffset = "1" size = "1"/>
         <connection source = "ZERO.OUTPUT"          target = "L3A_R1_C.INPUT" sourceoffset = "0" targetoffset = "2" size = "1"/>
 	<module class = "DataConverter" name = "L3A_R1"/>
-        <connection source = "L3A_R1_C.OUTPUT"      target = "L3A_R1.INPUT" />
+        <connection source = "L3A_R1_C.OUTPUT"      target = "L3A_R1.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L3A_R1" />
@@ -150,7 +151,7 @@
         <connection source = "ZERO.OUTPUT"          target = "L3B_R1_C.INPUT" sourceoffset = "0" targetoffset = "2" size = "1"/>
 
 	<module class = "DataConverter" name = "L3B_R1"/>
-        <connection source = "L3B_R1_C.OUTPUT"      target = "L3B_R1.INPUT" />
+        <connection source = "L3B_R1_C.OUTPUT"      target = "L3B_R1.INPUT" delay = "0"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L3B_R1" />
@@ -183,7 +184,7 @@
         <connection source = "L4_R1Rot.OUTPUT"  target = "L4_R1_C.INPUT" />
         <connection source = "ZERO.OUTPUT"      target = "L4_R1_C.INPUT" />
 	<module class = "DataConverter" name = "L4_R1"/>
-        <connection source = "L4_R1_C.OUTPUT"   target = "L4_R1.INPUT" />
+        <connection source = "L4_R1_C.OUTPUT"   target = "L4_R1.INPUT" delay = "0"/>
 
    <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L4A_R1" />

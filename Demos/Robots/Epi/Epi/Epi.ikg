@@ -171,24 +171,8 @@ PupilModelA = "100"
     <_connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" sourceoffset = "@servosIndexPupil" targetoffset ="@servosIndexPupil"  size = "@nrServosPupil"/>
 
 
-
-<!-- <module class = "Constant" name = "temp" data = "0  0 0 0 0   0 0 0 0 0 0      0 0 0 0 0 0     0 0 " />
-	<connection source = "temp.OUTPUT" 	target = "ForwardModel.BODY_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-	<connection source = "temp.OUTPUT" 	target = "ForwardModel.HEAD_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-	<connection source = "temp.OUTPUT" 	target = "ForwardModel.LEFT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-	<connection source = "temp.OUTPUT" 	target = "ForwardModel.RIGHT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-	<connection source = "temp.OUTPUT" 	target = "ForwardModel.PUPIL_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> ´
- -->
-
-
-<!-- This can be cleaned up now when we have include and variables -->
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.BODY_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.HEAD_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.LEFT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.RIGHT_ARM_JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.PUPIL_JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> ´
-
+	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.JOINT_ANGLES" />
 
 <!--  Low Level Motion mixer  -->
 <!-- ************************ -->
