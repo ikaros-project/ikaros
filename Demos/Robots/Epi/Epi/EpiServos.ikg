@@ -128,53 +128,28 @@
         name            = "Body" 
         device          = "@BodySerialDevice" 
         index_mode 		= "indirect"
-        print_info 		= "full"
+        print_info 		= "minimal"
         baud_rate 		= "3000000"
         angle_unit 		= "degrees"
         max_servo_id 	= "3"
         start_up_delay 	= "20"
         servo_id 		= "2"
         strict_servo_id = "no"
+        fakeoutputsize_y     = "@nrServosBody"
         />
     <module 
         class           = "@HeadDynamixel" 
         name            = "Head" 
         device          = "@HeadSerialDevice" 
         index_mode 		= "indirect"
-        print_info 		= "full"
+        print_info 		= "minimal"
         baud_rate 		= "1000000"
         angle_unit 		= "degrees"
         max_servo_id 	= "7"
         start_up_delay 	= "20"
         servo_id 		= "2, 3, 4, 5"
         strict_servo_id = "yes"
-        />
-    <module 
-        class           = "@LeftArmDynamixel" 
-        name            = "LeftArm" 
-        device          = "@LeftArmSerialDevice" 
-        index_mode      = "indirect"
-        print_info 		= "minimal"
-        baud_rate       = "3000000"
-        angle_unit      = "degrees"
-        max_servo_id    = "9"
-        start_up_delay 	= "20"
-        servo_id        = "2, 3, 4, 5, 6, 7"
-        strict_servo_id = "yes"
-        />
-  
-    <module 
-        class           = "@RightArmDynamixel" 
-        name            = "RightArm" 
-        device          = "@RightArmSerialDevice" 
-        index_mode      = "indirect"
-        print_info 		= "full"
-        baud_rate       = "3000000"
-        angle_unit      = "degrees"
-        max_servo_id    = "9"
-        start_up_delay 	= "20"
-        servo_id        = "2, 3, 4, 5, 6, 7"
-        strict_servo_id = "yes"
+        fakeoutputsize_y     = "@nrServosHead"
         />
     <module 
         class           = "@PupilDynamixel" 
@@ -189,7 +164,38 @@
         max_servo_id    = "4"
         servo_id        = "2, 3"
         strict_servo_id = "yes"
+        fakeoutputsize_y     = "@nrServosPupil"
         />
+    <module 
+        class           = "@LeftArmDynamixel" 
+        name            = "LeftArm" 
+        device          = "@LeftArmSerialDevice" 
+        index_mode      = "indirect"
+        print_info 		= "minimal"
+        baud_rate       = "3000000"
+        angle_unit      = "degrees"
+        max_servo_id    = "9"
+        start_up_delay 	= "20"
+        servo_id        = "2, 3, 4, 5, 6, 7"
+        strict_servo_id = "yes"
+        fakeoutputsize_y     = "@nrServosLeftArm"
+        />
+  
+    <module 
+        class           = "@RightArmDynamixel" 
+        name            = "RightArm" 
+        device          = "@RightArmSerialDevice" 
+        index_mode      = "indirect"
+        print_info 		= "minimal"
+        baud_rate       = "3000000"
+        angle_unit      = "degrees"
+        max_servo_id    = "9"
+        start_up_delay 	= "20"
+        servo_id        = "2, 3, 4, 5, 6, 7"
+        strict_servo_id = "yes"
+        fakeoutputsize_y     = "@nrServosRightArm"
+        />
+
 
     <!-- Feedback -->
 
@@ -377,16 +383,20 @@
         <connection source = "RightArm.FEEDBACK_GOAL_ACCELERATION"   target = "FeedbackGoalAccelerationG.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
     <output name = "FEEDBACK_GOAL_ACCELERATION"                      source = "FeedbackGoalAccelerationG.OUTPUT" />
 
-     <module class = "Gate" name = "ErrorG"/>
-        <connection source = "Body.ERRORS"       target = "ErrorG.INPUT" delay = "1" />
-        <connection source = "Head.ERRORS"       target = "ErrorG.INPUT" delay = "1" />
-        <connection source = "Pupil.ERRORS"      target = "ErrorG.INPUT" delay = "1" /> 
-        <connection source = "LeftArm.ERRORS"    target = "ErrorG.INPUT" delay = "1" />  
-        <connection source = "RightArm.ERRORS"   target = "ErrorG.INPUT" delay = "1" />
-    <output name = "ERRORS"                      source = "ErrorG.OUTPUT" />
+    <!-- Errors Order is important. Add sourceoffset and target offset -->
+     <module class = "Gate" name = "ErrorRawG"/>
+        <connection source = "Body.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
+        <connection source = "Head.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
+        <connection source = "Pupil.ERRORS"      target = "ErrorRawG.INPUT" delay = "1" /> 
+        <connection source = "LeftArm.ERRORS"    target = "ErrorRawG.INPUT" delay = "1" />  
+        <connection source = "RightArm.ERRORS"   target = "ErrorRawG.INPUT" delay = "1" />
+    <output name = "ERRORS"                      source = "ErrorRawG.OUTPUT" />
+
+	<module class = "DataConverter" name = "ErrorG" output_size_x = "19" output_size_y = "19"/>
+        <connection source = "ErrorRawG.OUTPUT"   target = "ErrorG.INPUT" delay = "1" />
 
 <view name="Input/Feedback" >
-	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand,LeftPupil,RightPupil" show_frame = "false" width = "141" decimals = "1" x = "20" title = "Goal position" source = "GoalPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
+	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,PupilLeft,PupilRight,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand" show_frame = "false" width = "141" decimals = "1" x = "20" title = "Goal position" source = "GoalPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "true" width = "61" decimals = "1" x = "220" title = "SC" source = "SCPosition.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "280" title = "Torque Enable" source = "TorqueEnableG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  show_title = "true" style = "" colorize = "true" frame-style = "text-align: center;" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "340" title = "Torque Limit" source = "TorqueLimitG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
