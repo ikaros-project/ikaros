@@ -418,7 +418,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
     
     fclose(f);
 
-    printf("Loaded: %d\n", current_motion);
+    //printf("Loaded: %d\n", current_motion);
     
     *time = 0;
 }
