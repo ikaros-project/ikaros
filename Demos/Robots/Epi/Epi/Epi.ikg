@@ -4,18 +4,18 @@
 
 servosIndexBody = "0"
 servosIndexHead = "1"
-servosIndexLeftArm = "5"
-servosIndexRightArm = "11"
-servosIndexPupil = "17"
+servosIndexPupil = "5"
+servosIndexLeftArm = "7"
+servosIndexRightArm = "13"
 
-servosIndexPupilLeft = "17"
-servosIndexPupilRight = "18"
+servosIndexPupilLeft = "5"
+servosIndexPupilRight = "6"
 
 nrServosBody = "1"
+nrServosPupil = "2"
 nrServosHead = "4"
 nrServosLeftArm = "6"
 nrServosRightArm = "6"
-nrServosPupil = "2"
 nrServosTotal = "19"
 
 PupilModelA = "100"
@@ -110,9 +110,9 @@ PupilModelA = "100"
 <!-- LeftPupil RightPupil -->
 
 <!-- This needs to be taken cared of sometime -->
-<module class = "Constant" name = "SERVO_SPEED" 		data = "0.5 	0.5 0.5 1 1		0.5 0.5 0.5 0.5 0.5 0.5 	0.5 0.5 0.5 0.5 0.5 0.5     1 1" />
-<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	 	0.5 0.5 1 1 	0.5 0.5 0.5 0.5 0.5 0.5 	0.5 0.5 0.5 0.5 0.5 0.5	 	1 1" />
-<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "  1  	  1   1 1 1   	  1   1   1   1   1   0       1   1   1   1   1   0     1 1" />
+<module class = "Constant" name = "SERVO_SPEED" 		data = "0.5   0.5 0.5 0.5 0.5 0.5 0.5    0.5 0.5 0.5 0.5 0.5 0.5 	0.5 0.5 0.5 0.5 0.5 0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5	  0.5 0.5 0.5 0.5 0.5 0.5    0.5 0.5 0.5 0.5 0.5 0.5 	0.5 0.5 0.5 0.5 0.5 0.5" />
+<module class = "Constant" name = "SERVO_TORQUE_ENABLE" data = "  1     1   1   1   1   0   0  	   1   1   1   1   1   0      1   1   1   1   1   0" />
 
 
 
@@ -129,8 +129,8 @@ PupilModelA = "100"
 	<connection source = "EXT_SERVO_ANGLE_A.OUTPUT"     target = "ExtServoAngleCode.AMPLITUDE" />
 
 <!-- Internal Motor control -->
-<module class = "Constant" name = "IntServoPosition" 		data = "0   		0 0 0 0   				0 0 0 0 0 0    					0 0 0 0 0 0   					10 10" />
-<module class = "Constant" name = "IntServoPositionA" 		data = "1   		1 1 1 1   				1 1 1 1 1 1   					1 1 1 1 1 1  					1 1" />
+<module class = "Constant" name = "IntServoPosition" 		data = "0    0 0 0 0 10 10   0 0 0 0 0 0   	0 0 0 0 0 0" />
+<module class = "Constant" name = "IntServoPositionA" 		data = "1    1 1 1 1  1  1	 1 1 1 1 1 1   	1 1 1 1 1 1" />
 
 <module class = "PopulationCoder" name = "IntServoAngleCode" min  = "-400" max  = "400" size = "@nrServosTotal"/>
 	<connection source = "IntServoPosition.OUTPUT"   target = "IntServoAngleCode.INPUT" />
@@ -305,36 +305,16 @@ PupilModelA = "100"
     	<object class="Plot" title="Response SCG (Dilation)"    module="PupilControl" source="SCG_OUTPUT"   x="0" y="1" w="4" _min = "0" max="20" />
 -->	
 
-	<module class = "Constant" name = "ZERO1" data = "0" />
-	<module class = "Constant" name = "ZERO2" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0      10    10" />
-	<module class = "Constant" name = "ZERO3" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0      " />
-
-
+	<module class = "Constant" name = "ZERO3" data = "   0    0 0 0 0 0 0   0 0 0 0 0 0    0 0 0 0 0 0" />
 	<module class = "Constant" name = "PupilContPopA" data = "@PupilModelA" />
-
    	<module class = "PopulationCoder" name = "PupilContPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
-        <_connection  source = "ZERO1.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "18" 	size ="1"/>
-        <_connection  source = "ZERO2.OUTPUT" 	 			target = "PupilContPop.INPUT"/>
-        <_connection  source = "ZERO3.OUTPUT" 	 			target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "0" 	size ="17"/>
-    	<_connection  source = "GYMPA.OUTPUT" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
-        <_connection  source = "GYMPA.OUTPUT" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
-        
 
-		
 		<connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft" 	size ="1"/>
         <connection  source = "Eyes.PUPIL_DIAMETER" 	 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
         <connection  source = "ZERO3.OUTPUT" 	 		 target = "PupilContPop.INPUT" sourceoffset = "0" targetoffset = "0" 	size ="19"/>
-
-
-
+		
 		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilLeft"		size ="1"/>
 		<connection source = "PupilContPopA.OUTPUT" target = "PupilContPop.AMPLITUDE" sourceoffset = "0" targetoffset = "@servosIndexPupilRight"	size ="1"/>
-
-
-
-
-
-
 
 
 	<!-- Motion Recorder Only used to record new motions -->

@@ -12,11 +12,12 @@
 
 	BodyDynamixel 			= "DynamixelSimulate"
 	HeadDynamixel 			= "Dynamixel"
-	LeftArmDynamixel 		= "Dynamixel"
-	RightArmDynamixel 		= "DynamixelSimulate"
 	PupilDynamixel 			= "DynamixelSimulate"
+	LeftArmDynamixel 		= "Dynamixel"
+	RightArmDynamixel 		= "Dynamixel"
 
-	VisionInput 			= "InputVideoStream"
+	_VisionInput 			= "InputVideoStream"
+	VisionInput 			= "InputJPEG"
 
 	LogData 				= "no"
 	LogEyesImages 			= "no"
@@ -27,9 +28,9 @@
 
 
 	<!-- Move EpiBlack -->
-	<module class = "Constant" name = "ManualServo" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
+	<module class = "Constant" name = "ManualServo" data = "0    0 0 0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0" />
 		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES"/>
-	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0  0 0" />
+	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0" />
 		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES_AMPLITUDE"/>
 
 	<!-- Set a manual focus point -->

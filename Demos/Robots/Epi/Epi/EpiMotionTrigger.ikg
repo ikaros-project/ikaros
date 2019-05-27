@@ -1,36 +1,33 @@
-  <module
+<module
 		class = "NeuralArray"
 		name = "LowLevelMotionTrigger"
-        epsilon = "0.05"
-	/>
-	
-	<connection  source = "LowLevelMotionTrigger.OUTPUT"  target = "LowLevelMotionPlayer.TRIG" />
+        epsilon = "0.05" />
+
+<connection  source = "LowLevelMotionTrigger.OUTPUT"  target = "LowLevelMotionPlayer.TRIG" />
 
 
-    <!-- Hack to get the motionrecorder to work as as motionplayer -->
-    <_module class = "Constant" name = "HACK1" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0     0  0  " />
+<!-- Hack to get the motionrecorder to work as as motionplayer -->
+<_module class = "Constant" name = "HACK1" data = "   0  	   0    0    0   0   	    0    0    0    0    0    0     0    0    0    0    0    0     0  0  " />
 
-    <_connection  source = "HACK1.OUTPUT"  target = "LowLevelMotionPlayer.INPUT" />
-    <connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "LowLevelMotionPlayer.INPUT" />
+<_connection  source = "HACK1.OUTPUT"  target = "LowLevelMotionPlayer.INPUT" />
+<connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "LowLevelMotionPlayer.INPUT" />
 
-	<module
+<module
 			class = "MotionRecorder"
 			name = "LowLevelMotionPlayer"
             mask = "1 1"
             torque = "0.25 0.25"
             filename = "itchIdleMotions/motion.%d.mot"
             json_filename = "itchIdleMotions/motion.%d.json"
-            smoothing_time = "40"
-            max_motions="72"
-	/>
+            smoothing_time = "40" max_motions="72" />
 
-	<connection  source = "LowLevelMotionPlayer.COMPLETED"  target = "LowLevelMotionTrigger.INHIBITION" />
+<connection  source = "LowLevelMotionPlayer.COMPLETED"  target = "LowLevelMotionTrigger.INHIBITION" />
 
-    <module class = "Constant" name = "LowLevelMotionPlayerA" data = "   1  	   1    1    1   1   	    0    1    1    1    1    1     0    1    1    1    1    1  0  0     " />
-		<connection source = "LowLevelMotionPlayerA.OUTPUT" target = "LowLevelMotionPlayerPop.AMPLITUDE"/>
+<module class = "Constant" name = "LowLevelMotionPlayerA" data = "   1  	   1    1    1   1   	    0    1    1    1    1    1     0    1    1    1    1    1  0  0     " />
+<connection source = "LowLevelMotionPlayerA.OUTPUT" target = "LowLevelMotionPlayerPop.AMPLITUDE"/>
 
-    <!-- Popalation decoder -->
-    <module class = "PopulationCoder" name = "LowLevelMotionPlayerPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
-	    <connection source = "LowLevelMotionPlayer.OUTPUT"  target = "LowLevelMotionPlayerPop.INPUT" />
+<!-- Popalation decoder -->
+<module class = "PopulationCoder" name = "LowLevelMotionPlayerPop" min  = "-400" max  = "400" size = "@nrServosTotal"/>
+<connection source = "LowLevelMotionPlayer.OUTPUT"  target = "LowLevelMotionPlayerPop.INPUT" />
 
 
