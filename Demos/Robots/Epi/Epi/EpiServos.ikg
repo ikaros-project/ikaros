@@ -304,10 +304,10 @@
         <connection source = "RightArm.FEEDBACK_PRESENT_SPEED"   target = "FeedbackPresentSpeedRawG.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
    
     <module class = "ServoConnector" name = "FeedbackPresentSpeed"
-            connector       = "   1   2 3 4 5 6   7 8 9 10 11 12   13 14 15 16 17 18 19"
-            pre_inverted    = "   0   1 1 1 1 1   1 1 1  1  1  1    1  1  1  1  1  1  1" 
-            post_inverted   = "   0   0 0 0 0 0   0 0 0  0  0  0    0  0  0  0  0  0  0" 
-            offset          = "   0   0 0 0 0 0   0 0 0  0  0  0    0  0  0  0  0  0  0" 
+            connector       = "   1   2 3 4 5 6 7    8 9 10 11 12 13   14 15 16 17 18 19"
+            pre_inverted    = "   1   1 0 0 0 0 0    0 0  0  0  0  1    0  1  0  0  0  0" 
+            post_inverted   = "   0   0 0 0 0 0 0    0 0  0  0  0  0    0  0  0  0  0  0" 
+            offset          = "   0   0 0 0 0 0 0    0 0  0  0  0  0    0  0  0  0  0  0" 
             output_size     = "@nrServosTotal"
         />
         <connection source = "FeedbackPresentSpeedRawG.OUTPUT"      target = "FeedbackPresentSpeed.INPUT" delay = "0" /> 
@@ -322,10 +322,10 @@
         <connection source = "RightArm.FEEDBACK_PRESENT_LOAD"   target = "FeedbackPresentLoadRawG.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
    
     <module class = "ServoConnector" name = "FeedbackPresentLoad"
-            connector       = "   1   2 3 4 5 6   7 8 9 10 11 12   13 14 15 16 17 18 19"
-            pre_inverted    = "   0   1 1 1 1 1   1 1 1  1  1  1    1  1  1  1  1  1  1" 
-            post_inverted   = "   0   0 0 0 0 0   0 0 0  0  0  0    0  0  0  0  0  0  0" 
-            offset          = "   0   0 0 0 0 0   0 0 0  0  0  0    0  0  0  0  0  0  0" 
+            connector       = "   1   2 3 4 5 6 7    8 9 10 11 12 13   14 15 16 17 18 19"
+            pre_inverted    = "   1   1 0 0 0 0 0    0 0  0  0  0  1    0  1  0  0  0  0" 
+            post_inverted   = "   0   0 0 0 0 0 0    0 0  0  0  0  0    0  0  0  0  0  0" 
+            offset          = "   0   0 0 0 0 0 0    0 0  0  0  0  0    0  0  0  0  0  0" 
             output_size     = "@nrServosTotal"
         />
         <connection source = "FeedbackPresentLoadRawG.OUTPUT"      target = "FeedbackPresentLoad.INPUT" delay = "0" /> 
@@ -356,10 +356,10 @@
         <connection source = "RightArm.FEEDBACK_PRESENT_CURRENT"   target = "FeedbackPresentCurrentRawG.INPUT" delay = "1" targetoffset = "@servosIndexRightArm"    size = "@nrServosRightArm"/>
     
     <module class = "ServoConnector" name = "FeedbackPresentCurrent"
-            connector       = "   1   2 3 4 5 6   7 8 9 10 11 12   13 14 15 16 17 18 19"
-            pre_inverted    = "   0   1 1 1 1 1   1 1 1  1  1  1    1  1  1  1  1  1  1" 
-            post_inverted   = "   0   0 0 0 0 0   0 0 0  0  0  0    0  0  0  0  0  0  0" 
-            offset          = "   0   0 0 0 0 0   0 0 0  0  0  0    0  0  0  0  0  0  0" 
+            connector       = "   1   2 3 4 5 6 7    8 9 10 11 12 13   14 15 16 17 18 19"
+            pre_inverted    = "   1   1 0 0 0 0 0    0 0  0  0  0  1    0  1  0  0  0  0" 
+            post_inverted   = "   0   0 0 0 0 0 0    0 0  0  0  0  0    0  0  0  0  0  0" 
+            offset          = "   0   0 0 0 0 0 0    0 0  0  0  0  0    0  0  0  0  0  0" 
             output_size     = "@nrServosTotal"
         />
         <connection source = "FeedbackPresentCurrentRawG.OUTPUT"      target = "FeedbackPresentCurrent.INPUT" delay = "0" /> 
@@ -402,7 +402,6 @@
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "340" title = "Torque Limit" source = "TorqueLimitG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "400" title = "Moving Speed" source = "MovingSpeedG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<text  parameter = "" text = "INPUT" title = "INPUT" height = "21" frame-style = "" show_frame = "true" style = "text-align: center;" width = "441" x = "20" show_title = "false" y = "20"/>
-	<text  parameter = "" text = "FEEDBACK" title = "INPUT" height = "1" frame-style = "" show_frame = "true" style = "text-align: center;" width = "921" x = "400" show_title = "false" y = "40"/>
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1060" title = "Position" source = "FeedbackPresentPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1000" title = "SC" source = "SCFeedbackPosition.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "460" title = "Torque Enable" source = "FeedbackTorqueEnableG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
@@ -427,10 +426,6 @@
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1240" title = "Load" source = "FeedbackPresentLoadRawG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "" show_frame = "false" width = "61" decimals = "1" x = "1480" title = "Current" source = "FeedbackPresentCurrentRawG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
 </view>
-
-
-
-
 
 <view name="Errors" >
 	<table  x = "20" y = "20" height = "481" width = "1581" title = "Default Title" source = "ErrorG.OUTPUT" label_x = "MissingByte,crc,ext,not complete,Int,Overload,Cheksum,Range,Overheating,AngleLimit,InputVoltage,Servo2,Result,Int,Crc,Range,Length,Limit,Access" label_y = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,PupilLeft,PupilRight,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand" direction = "flip x/y" decimals = "0" colorize = "true" scrollable = "false" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
