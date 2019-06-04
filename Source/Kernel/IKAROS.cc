@@ -1613,6 +1613,7 @@ Module::Module(Parameter * p)
     period = (GetValue("period") ? GetIntValue("period") : 1);
     phase = (GetValue("phase") ? GetIntValue("phase") : 0);
 	active = GetBoolValue("active", true);
+    high_priority = GetBoolValue("high_priority", false);
 
 	// Compute full name - // FIXME: use new classes instead here
 	
@@ -1919,8 +1920,18 @@ ThreadGroup::~ThreadGroup()
 }
 
 static void *
-ThreadGroup_Tick(void * group)
+ThreadGroup_Tick(void *group, bool high_priority)
 {
+    if (high_priority)     // Set high priority of the thread
+    {
+        sched_param sch;
+        int policy;
+        pthread_t t = pthread_self();
+        pthread_getschedparam(t, &policy, &sch);
+        sch.sched_priority = 80;
+        if (pthread_setschedparam(t, SCHED_FIFO, &sch))
+            std::cout << "Failed to setschedparam: " << std::strerror(errno) << '\n';
+    }
     ((ThreadGroup *)group)->Tick();
     return NULL;
 }
@@ -1933,7 +1944,7 @@ ThreadGroup::Start(long tick)
     {
 //        if(thread->Create(ThreadGroup_Tick, (void*)this))
 //            printf("Thread Creation Failed!\n");
-        thread = new std::thread(ThreadGroup_Tick, (void*)this);
+        thread = new std::thread(ThreadGroup_Tick, (void *)this, high_priority);
     }
 }
 
@@ -2963,6 +2974,8 @@ Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)
 
                     tg->_modules.push_back(m);
                     m->mark = 4;
+                    if (m->high_priority  && !tg->high_priority) // thread group priority
+                        tg->high_priority = true;
                 }
         }
     return true;
@@ -3547,7 +3560,7 @@ Kernel::ListThreads()
     int i=0;
     for(ThreadGroup * tg : _threadGroups)
     {
-        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d]\n", i++, tg->period, tg->phase);
+        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d, High_priority:%d]\n", i++, tg->period, tg->phase, tg->high_priority);
         for(Module * m : tg->_modules)
             Notify(msg_print, "\t Module: %s\n", m->GetFullName());
         i++;

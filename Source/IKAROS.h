@@ -374,6 +374,7 @@ public:
     int                 phase;            // Phase when the module ticks
     bool                active;           // If false, will not call Tick()
     int                 log_level;
+    bool                high_priority;
 
     Timer *             timer;            // Statistics variables
     float               time;
@@ -431,8 +432,9 @@ class ThreadGroup
 public:
     std::vector<Module *> _modules;
     
-    int             period;              // How often should the thread be started
-    int             phase;               // Phase when the thread should start
+    int             period;                     // How often should the thread be started
+    int             phase;                      // Phase when the thread should start
+    bool            high_priority = false;              // Priority of the thread group
     std::thread *   thread;
     
     ThreadGroup(Kernel * k);
