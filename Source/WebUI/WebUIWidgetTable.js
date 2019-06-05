@@ -115,7 +115,6 @@ class WebUIWidgetTable extends WebUIWidget {
         this.updateFrame();
         if (this.data = this.getSource('source')) {
             this.loaded = true;
-
             let size_y = this.data.length;
             let size_x = this.data[0].length;
 
@@ -130,10 +129,10 @@ class WebUIWidgetTable extends WebUIWidget {
             this.update()
         }
         this.scrollable()
-        
     }
     update() {
-        if (!this.loaded)   // The init and update all does not have data? is this right.
+
+        if (!this.loaded)
             this.updateAll()
 
         if (this.data = this.getSource('source')) {
@@ -170,12 +169,6 @@ class WebUIWidgetTable extends WebUIWidget {
                         }
             }
         }
-    }
-    parameterChangeNotification(p) {
-        if (p.name == "scrollable")
-            this.scrollable()
-        else
-            this.updateAll()
     }
 };
 
