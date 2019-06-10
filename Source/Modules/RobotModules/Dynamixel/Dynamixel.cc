@@ -350,9 +350,9 @@ void Dynamixel::Init()
 	feedbackGoalTorque = GetOutputArray("FEEDBACK_GOAL_TORQUE");
 	feedbackGoalAcceleration = GetOutputArray("FEEDBACK_GOAL_ACCELERATION");
 	errors = GetOutputMatrix("ERRORS");
-	errorsSizeY = GetOutputSizeY("ERRORS");
+	errorsSizeX = GetOutputSizeX("ERRORS");
 
-	//reset_matrix(errors, nrOfServos, errorsSizeY);
+	//reset_matrix(errors, nrOfServos, errorsSizeX);
 
 	// Print to console
 	if (infoLevel == 1)
@@ -567,7 +567,6 @@ void Dynamixel::Tick()
 	{
 		if (useFeedback)
 		{
-
 			com->ReadMemoryRange(servo[servoIndex[i]]->extraInfo.GetInt("ID"), servo[servoIndex[i]]->protocol, servo[servoIndex[i]]->dynamixelMemory, 0, servo[servoIndex[i]]->extraInfo.GetInt("Model Memory"));
 			GetErrors(servoIndex[i]);
 		}
@@ -623,38 +622,64 @@ void Dynamixel::Tick()
 void Dynamixel::GetErrors(int index)
 {
 	// Communication errors
-	errors[0][index] = float(com->missingBytesError);
-	errors[1][index] = float(com->crcError);
-	errors[2][index] = float(com->extendedError);
-	errors[3][index] = float(com->notCompleteError);
+	errors[index][0] += float(com->missingBytesError);
+	errors[index][1] += float(com->crcError);
+	errors[index][2] += float(com->extendedError);
+	errors[index][3] += float(com->notCompleteError);
 
 	// Get servo errors
 	if (protocol == 1)
 	{
-		errors[4][index] = com->errorServoIntruction;
-		errors[5][index] = com->errorServoOverload;
-		errors[6][index] = com->errorServoChecksum;
-		errors[7][index] = com->errorServoRange;
-		errors[8][index] = com->errorServoOverHeating;
-		errors[9][index] = com->errorServoAngleLimit;
-		errors[10][index] = com->errorServoInputVoltage;
+		errors[index][4] += com->errorServoIntruction;
+		errors[index][5] += com->errorServoOverload;
+		errors[index][6] += com->errorServoChecksum;
+		errors[index][7] += com->errorServoRange;
+		errors[index][8] += com->errorServoOverHeating;
+		errors[index][9] += com->errorServoAngleLimit;
+		errors[index][10] += com->errorServoInputVoltage;
 	}
 	else if (protocol == 2)
 	{
-		errors[11][index] = com->errorServo2;
-		errors[12][index] = com->errorServoResaultFail2;
-		errors[13][index] = com->errorServoIntruction2;
-		errors[14][index] = com->errorServoCrc2;
-		errors[15][index] = com->errorServoRange2;
-		errors[16][index] = com->errorServoLength2;
-		errors[17][index] = com->errorServoLimit2;
-		errors[18][index] = com->errorServoAccess2;
+		errors[index][11] += com->errorServo2;
+		errors[index][12] += com->errorServoResaultFail2;
+		errors[index][13] += com->errorServoIntruction2;
+		errors[index][14] += com->errorServoCrc2;
+		errors[index][15] += com->errorServoRange2;
+		errors[index][16] += com->errorServoLength2;
+		errors[index][17] += com->errorServoLimit2;
+		errors[index][18] += com->errorServoAccess2;
 	}
+	// printf("%i %i\n",nrOfServos,errorsSizeX);
 	ResetComErrors();
+	// for (int i = 0; i < errorsSizeX; i++)
+	// 		for (int j = 0; j < nrOfServos; j++)
+	// 			errors[j][i] = j;
+
+	// print_matrix("E",errors,errorsSizeX,nrOfServos);
+
 }
 void Dynamixel::ResetComErrors()
 {
-	com->missingBytesError = com->crcError = com->extendedError = com->notCompleteError = 0;
+		com->missingBytesError 
+		= com->crcError 
+		= com->extendedError 
+		= com->notCompleteError
+		= com->errorServoIntruction
+		= com->errorServoOverload
+		= com->errorServoChecksum
+		= com->errorServoRange
+		= com->errorServoOverHeating
+		= com->errorServoAngleLimit
+		=  com->errorServoInputVoltage
+		=  com->errorServo2
+		=  com->errorServoResaultFail2
+		=  com->errorServoIntruction2
+		=  com->errorServoCrc2
+		=  com->errorServoRange2
+		=  com->errorServoLength2
+		=  com->errorServoLimit2
+		=  com->errorServoAccess2
+		= 0;
 }
 
 void Dynamixel::PrintMinimal()

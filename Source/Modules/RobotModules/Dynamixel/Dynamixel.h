@@ -69,8 +69,7 @@ public:
 	Dynamixel(Parameter * p);
 	virtual ~Dynamixel();
 	void		Init();
-	void		Tick();
-	
+	void		Tick();	
 	
 private:
 	int         size;           		// Size of the servo[]. Size != number of servos as in direct mode it can be gap between servos.
@@ -125,7 +124,7 @@ private:
 	float *     feedbackGoalTorque;
 	float *     feedbackGoalAcceleration;
 	float **	errors;
-	int 		errorsSizeY;			// Size of error output matrix [nrServos][errorsSizeY]
+	int 		errorsSizeX;			// Size of error output matrix  y = nrServos x = errorsSizeX]
 
 	DynamixelServo **   servo; // Array of servo data
 	

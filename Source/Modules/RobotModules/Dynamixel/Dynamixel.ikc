@@ -50,6 +50,9 @@
 	<parameter name="max_temperature" type="int" default="60" description="Max temperature on servo before shutting down ikaros." />
 	<parameter name="optimize" type="bool" default="true" description="Reduce the servo calls by avoid sending identical value as already on servo. If feedback is not used this parameter should be set to false." />
 	<parameter name="serial_latency" type="int" default="16" description="The serial latency in ms set by the operation system." />
+	<parameter name="number_of_servos" type="int" default="16" description="A temporary parameter. Used to set size of errors output matrix." />
+	
+
 	
 	<input name="TORQUE_ENABLE" description="Torque Enable On/Off, ON if not connected" optional="yes"/>
 	<input name="LED" description="LED On/Off, Off if not connected" optional="yes"/>
@@ -78,7 +81,8 @@
 	<output name="FEEDBACK_PRESENT_CURRENT" description="The current Current (in mA))" size_set="TORQUE_LIMIT" />
 	<output name="FEEDBACK_GOAL_TORQUE" description="The goal torque value (Not yet tested)" size_set="TORQUE_LIMIT" />
 	<output name="FEEDBACK_GOAL_ACCELERATION" description="The goal acceleration value (Not yet tested)" size_set="TORQUE_LIMIT" />
-	<output name="ERRORS" description="Errors" size_set_x="TORQUE_LIMIT" size_y = "19"/>
+	<output name="ERRORS" description="Errors" size_param_y="number_of_servos" size_x = "19"/>
+	<_output name="ERRORS" description="Errors" size_set_x = "TORQUE_LIMIT"  size_y = "19"/>
 	
 	<link class="Dynamixel" />
 	
