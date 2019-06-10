@@ -135,7 +135,9 @@
         start_up_delay 	= "20"
         servo_id 		= "2"
         strict_servo_id = "no"
-        fakeoutputsize_y     = "@nrServosBody"
+        number_of_servos     = "@nrServosBody"
+        serial_latency  = "1"
+
         />
     <module 
         class           = "@HeadDynamixel" 
@@ -149,7 +151,8 @@
         start_up_delay 	= "20"
         servo_id 		= "2, 3, 4, 5"
         strict_servo_id = "yes"
-        fakeoutputsize_y     = "@nrServosHead"
+        number_of_servos     = "@nrServosHead"
+        serial_latency  = "1"
         />
     <module 
         class           = "@PupilDynamixel" 
@@ -164,7 +167,9 @@
         max_servo_id    = "4"
         servo_id        = "2, 3"
         strict_servo_id = "yes"
-        fakeoutputsize_y     = "@nrServosPupil"
+        number_of_servos     = "@nrServosPupil"
+        serial_latency  = "1"
+
         />
     <module 
         class           = "@LeftArmDynamixel" 
@@ -178,7 +183,9 @@
         start_up_delay 	= "20"
         servo_id        = "2, 3, 4, 5, 6, 7"
         strict_servo_id = "yes"
-        fakeoutputsize_y     = "@nrServosLeftArm"
+        number_of_servos     = "@nrServosLeftArm"
+        serial_latency  = "1"
+
         />
   
     <module 
@@ -193,8 +200,11 @@
         start_up_delay 	= "20"
         servo_id        = "2, 3, 4, 5, 6, 7"
         strict_servo_id = "yes"
-        fakeoutputsize_y     = "@nrServosRightArm"
+        number_of_servos     = "@nrServosRightArm"
+        serial_latency  = "1"
+
         />
+
 
 
     <!-- Feedback -->
@@ -385,15 +395,17 @@
 
     <!-- Errors Order is important. Add sourceoffset and target offset -->
      <module class = "Gate" name = "ErrorRawG"/>
-        <connection source = "Body.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
-        <connection source = "Head.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
-        <connection source = "Pupil.ERRORS"      target = "ErrorRawG.INPUT" delay = "1" /> 
+        <connection source = "RightArm.ERRORS"   target = "ErrorRawG.INPUT" delay = "1"/>
         <connection source = "LeftArm.ERRORS"    target = "ErrorRawG.INPUT" delay = "1" />  
-        <connection source = "RightArm.ERRORS"   target = "ErrorRawG.INPUT" delay = "1" />
-    <output name = "ERRORS"                      source = "ErrorRawG.OUTPUT" />
+        <connection source = "Pupil.ERRORS"      target = "ErrorRawG.INPUT" delay = "1" /> 
+        <connection source = "Head.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
+        <connection source = "Body.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
+
+    <output name = "ERRORS"                      source = "ErrorG.OUTPUT" />
 
 	<module class = "DataConverter" name = "ErrorG" output_size_x = "19" output_size_y = "19"/>
         <connection source = "ErrorRawG.OUTPUT"   target = "ErrorG.INPUT" delay = "1" />
+	
 
 <view name="Input/Feedback" >
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,PupilLeft,PupilRight,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand" show_frame = "false" width = "141" decimals = "1" x = "20" title = "Goal position" source = "GoalPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
