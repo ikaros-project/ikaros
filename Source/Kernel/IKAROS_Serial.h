@@ -72,7 +72,7 @@ public:
 
 protected:
     int             max_failed_reads;
-	int 			time_per_byte;
+	float 			time_per_byte;
 private:
     SerialData *    data;
 };

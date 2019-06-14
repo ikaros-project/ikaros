@@ -163,7 +163,6 @@ bool DynamixelComm::ReadMemoryRange2(int id, unsigned char * buffer, int from, i
 #ifdef LOG_COMM
 	printf("DynamixelComm (ReadMemoryRange2): Fill internal buffer from recived buffer. (id:%i)\n",id);
 #endif
-	
 	// Parse servo error byte
 	GetServoError2(inbuf[ERROR_BYTE_2]);
 	memcpy(&buffer[0], &inbuf[STATUS_HEADER_2-1+from+1], bytesToRead * sizeof(unsigned char)-1); // -1 error bit in protocol2
@@ -183,10 +182,10 @@ int DynamixelComm::Receive2(unsigned char * b)
 #ifdef LOG_COMM
 	printf("DynamixelComm (Receive2)\n");
 #endif
-	int c = ReceiveBytes((char *)b, LEN_H_BYTE_2+1, (this->time_per_byte*(LEN_H_BYTE_2+1)) + 8 + serialLatency); // Get first part of message to calculate total length of package.
+	int c = ReceiveBytes((char *)b, LEN_H_BYTE_2+1, (this->time_per_byte*(LEN_H_BYTE_2+1)) + (serialLatency*2.0) + 2.0); // Get first part of message to calculate total length of package.
 	if(c < LEN_H_BYTE_2+1)
 	{
-#ifdef LOG_COMM
+#ifdef LOG_COMM_ERROR
 		printf("DynamixelComm (Receive2): Did not get header (Timed out. Got %i bytes)\n",c);
 #endif
 		FlushIn();
@@ -194,11 +193,11 @@ int DynamixelComm::Receive2(unsigned char * b)
 	}
 	
 	int lengthOfPackage = (b[LEN_H_BYTE_2]<<8) + b[LEN_L_BYTE_2];
-	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage) + 8 + serialLatency); // Get the rest of the package
+	c += ReceiveBytes((char *)&b[LEN_H_BYTE_2+1], lengthOfPackage, (this->time_per_byte*lengthOfPackage)  + (serialLatency*2.0) + 2.0); // Get the rest of the package
 	
 	if(c < LEN_H_BYTE_2 + lengthOfPackage)
 	{
-#ifdef LOG_COMM
+#ifdef LOG_COMM_ERROR
 		printf("DynamixelComm (Receive2): Did not get all message (Timed out. Got %i (%i) bytes)\n",c, LEN_H_BYTE_2 + lengthOfPackage);
 #endif
 		FlushIn();
@@ -405,11 +404,11 @@ void DynamixelComm::GetServoError2(unsigned char errorByte)
 	errorServoLimit2 = (errorByte >> 6) & 0x1;
 	errorServoAccess2 = (errorByte >> 7) & 0x1;
 	
-#ifdef LOG_COMM_ERROR
-	if (errorServo2 != 0)
-	{
-		printf("DynamixelComm: Error byte\n");
-		printf("%i %i %i %i %i %i %i %i\n",errorServo2,errorServoResaultFail2,errorServoIntruction2,errorServoCrc2,errorServoRange2,errorServoLength2,errorServoLimit2,errorServoAccess2);
-	}
-#endif
+// #ifdef LOG_COMM_ERROR
+// 	if (errorServo2 != 0)
+// 	{
+// 		printf("DynamixelComm: Error byte\n");
+// 		printf("%i %i %i %i %i %i %i %i\n",errorServo2,errorServoResaultFail2,errorServoIntruction2,errorServoCrc2,errorServoRange2,errorServoLength2,errorServoLimit2,errorServoAccess2);
+// 	}
+// #endif
 }

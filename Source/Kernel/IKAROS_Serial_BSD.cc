@@ -134,6 +134,12 @@ Serial::Serial(const char * device_name, unsigned long baud_rate)
 {
 	struct termios options;
 	
+		printf("baud_rate: %lu\n",baud_rate);
+
+	// Time to transfer 1 byte in 
+	time_per_byte = 1000.0/baud_rate * 10.0; // Time per bit in ms. 8 bytes of data and 2 bits of start and stop bit.
+	printf("time_per_byte: %f\n",time_per_byte);
+
 	data = new SerialData();
 	
 	data->fd = open(device_name, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -159,10 +165,7 @@ Serial::Serial(const char * device_name, unsigned long baud_rate)
 	// Non blocking. Handle timeout manualy
 	options.c_cc[VMIN]  = 0;
 	// options.c_cc[VTIME] = 1;    	// tenth of seconds allowed between bytes of serial data but since VMIN = 0 we will wait at most 1/10 s for data and then return
-	
-	// Time to transfer 1 byte
-	time_per_byte = 1024.0/baud_rate;
-	
+
 	tcflush(data->fd, TCIOFLUSH);
 	tcsetattr(data->fd, TCSANOW, &options);   // set the options
 	
@@ -189,6 +192,7 @@ Serial::~Serial()
 void
 Serial::Flush()
 {
+	usleep(5000); //5 ms
 	tcflush(data->fd, TCIOFLUSH);
 }
 
@@ -201,6 +205,7 @@ Serial::FlushOut()
 void
 Serial::FlushIn()
 {
+	usleep(5000); //5 ms
 	tcflush(data->fd, TCIFLUSH);
 }
 
@@ -262,7 +267,7 @@ Serial::SendBytes(const char *sendbuf, int length)
 	long n = write(data->fd, sendbuf, length);
 	
 	if(n == -1)
-		printf("Could not send bytes (%d)", errno);
+		printf("Serial::SendBytes: Could not send bytes (%d)\n", errno);
 	
 	return int(n);
 }
@@ -298,6 +303,8 @@ Serial::ReceiveBytes(char *rcvbuf, int length, int timeout_ms)
 		usleep(500); // Sleep 0.5 ms to reduce CPU Load.
 	}
 	
+	//printf("read %i bytes %f ms %i timeoutms\n", length, t.GetTime(), timeout_ms);
+
 	if (read_bytes_tot == 0)
 		return int(read_bytes);
 	else
