@@ -184,24 +184,28 @@ void DynamixelComm::Send1(unsigned char * b)
 
 int DynamixelComm::Receive1(unsigned char * b)
 {	
+
+// printf("Time to ReceiveBytes: %f\n",(this->time_per_byte*(LEN_H_BYTE_2+1)) + (serialLatency*2.0) + 2.0); 
+// printf("Time to ReceiveBytes: %i\n",int((this->time_per_byte*(LEN_H_BYTE_2+1)) + (serialLatency*2.0) + 2.0)); 
+
 #ifdef LOG_COMM
 	printf("DynamixelComm (Receive1)\n");
 #endif
-	int c = ReceiveBytes((char *)b, LEN_BYTE_1 + 1, (this->time_per_byte*(LEN_BYTE_1 +1)) + 8 + serialLatency); // Get first part of message to calculate total length of package.
+	int c = ReceiveBytes((char *)b, LEN_BYTE_1 + 1, (this->time_per_byte*(LEN_BYTE_1 +1)) + (serialLatency*2.0) + 2.0);  // Get first part of message to calculate total length of package.
 	if(c < LEN_BYTE_1 + 1)
 	{
-#ifdef LOG_COMM
+#ifdef LOG_COMM_ERROR
 		printf("DynamixelComm (Receive1): Did not get header (Timed out. Got %i bytes)\n",c);
 #endif
 		FlushIn();
 		return ERROR_NO_HEADER;
 	}
 	int lengthOfPackage = b[LEN_BYTE_1];
-	c += ReceiveBytes((char *)&b[LEN_BYTE_1+1], lengthOfPackage,  (this->time_per_byte*lengthOfPackage) + 8 + serialLatency);
+	c += ReceiveBytes((char *)&b[LEN_BYTE_1+1], lengthOfPackage,  (this->time_per_byte*lengthOfPackage) +  (serialLatency*2.0) + 2.0); 
 	
 	if(c < lengthOfPackage)
 	{
-#ifdef LOG_COMM
+#ifdef LOG_COMM_ERROR
 		printf("DynamixelComm (Receive1): Did not get all message (Timed out. Got %i bytes)\n",c);
 #endif
 		FlushIn();
@@ -220,9 +224,9 @@ int DynamixelComm::Receive1(unsigned char * b)
 bool DynamixelComm::Ping1(int id)
 {
 	Timer t;
-	t.Sleep(100); // Dynamixel wait 100 ms between package. 100 ms sleep will make servo discard any not completed message
+	t.Sleep(10); // Dynamixel wait 10 ms between package. 100 ms sleep will make servo discard any not completed message
 	Flush();
-	t.Sleep(100);
+	t.Sleep(10);
 
 #ifdef LOG_COMM
 	printf("DynamixelComm (Ping1) ID %i\n", id);

@@ -215,9 +215,9 @@ int DynamixelComm::Receive2(unsigned char * b)
 bool DynamixelComm::Ping2(int id)
 {
 	Timer t;
-	t.Sleep(100); // Dynamixel wait 100 ms between package. 100 ms sleep will make servo discard any not completed message
+	t.Sleep(10); // Dynamixel wait 100 ms between package. 100 ms sleep will make servo discard any not completed message
 	Flush();
-	t.Sleep(100);
+	t.Sleep(10);
 	
 #ifdef LOG_COMM
 	printf("DynamixelComm (Ping2) ID %i\n", id);
