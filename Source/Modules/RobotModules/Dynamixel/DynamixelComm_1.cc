@@ -184,10 +184,6 @@ void DynamixelComm::Send1(unsigned char * b)
 
 int DynamixelComm::Receive1(unsigned char * b)
 {	
-
-// printf("Time to ReceiveBytes: %f\n",(this->time_per_byte*(LEN_H_BYTE_2+1)) + (serialLatency*2.0) + 2.0); 
-// printf("Time to ReceiveBytes: %i\n",int((this->time_per_byte*(LEN_H_BYTE_2+1)) + (serialLatency*2.0) + 2.0)); 
-
 #ifdef LOG_COMM
 	printf("DynamixelComm (Receive1)\n");
 #endif

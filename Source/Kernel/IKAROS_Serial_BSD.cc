@@ -133,12 +133,7 @@ public:
 Serial::Serial(const char * device_name, unsigned long baud_rate)
 {
 	struct termios options;
-	
-		printf("baud_rate: %lu\n",baud_rate);
-
-	// Time to transfer 1 byte in 
 	time_per_byte = 1000.0/baud_rate * 10.0; // Time per bit in ms. 8 bytes of data and 2 bits of start and stop bit.
-	printf("time_per_byte: %f\n",time_per_byte);
 
 	data = new SerialData();
 	
@@ -205,7 +200,7 @@ Serial::FlushOut()
 void
 Serial::FlushIn()
 {
-	usleep(5000); //5 ms
+	usleep(5000); //5 ms. 
 	tcflush(data->fd, TCIFLUSH);
 }
 
