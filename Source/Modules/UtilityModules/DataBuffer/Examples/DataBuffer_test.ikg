@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group title="DataBuffer Example">
+	
+		
+		<module
+      class = "Randomizer"
+      name = "Randomizer"
+      outputsize = "2"
+      min = "0"
+      max = "1"
+  />
+
+		<module
+			class = "DataBuffer"
+			name = "DataBufferInstance"
+			size  = "10"
+			
+		/>
+
+		<module
+			class="Constant"
+			name="Mean"
+			data="0.5 0.5"
+		/>
+		<module
+				class = "Noise"
+				name = "Noise"
+				sigma= "0.1"
+				mean= "0"
+		/>
+		<module
+			class = "DataBuffer"
+			name = "NormalDistro"
+			size  = "10"
+			
+		/>
+		
+        <connection source = "Randomizer.OUTPUT" target = "DataBufferInstance.INPUT" />
+				<connection source = "Mean.OUTPUT" target = "Noise.INPUT" />
+				<connection source = "Noise.OUTPUT" target = "NormalDistro.INPUT" />
+				
+        
+		<view name="View">
+			<marker  x = "40" y = "40" height = "500" width = "500" title = "Databuffer" source = "DataBufferInstance.OUTPUT" scales = "yes" min_x = "0" max_x = "1" min_y = "0" max_y = "1"  show_title = "true" show_frame = "true" />
+			<marker  x = "40" y = "540" height = "500" width = "500" title = "NormalDistro" source = "NormalDistro.OUTPUT" scales = "yes" min_x = "0" max_x = "1" min_y = "0" max_y = "1"  show_title = "true" show_frame = "true" />
+		</view>
+
+</group>
+ 
