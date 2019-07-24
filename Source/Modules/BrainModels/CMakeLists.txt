@@ -4,7 +4,7 @@ add_subdirectory(EyeModel)
 add_subdirectory(Moren2002)
 add_subdirectory(Nucleus)
 add_subdirectory(NeuralArray)
-
+add_subdirectory(NucleusEnsemble)
 
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
