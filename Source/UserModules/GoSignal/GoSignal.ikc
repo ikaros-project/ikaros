@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group name="GoSignal" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "GoSignal" to the name of your new module in
+		GoSignal.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="GoSignal"
+			name="GoSignal"
+			threshold="1"
+			wait_low="100"
+			wait_high="150"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="trigger_threshold" type="float" default="0.99" description="Threshold for input to turn off signal" />
+	<parameter name="reset_threshold" type="float" default="0.1" description="Threshold for input to sink below to reset trigger" />
+	<parameter name="wait_low" type="int" default="10" description="Low limit for random wait time" />
+	<parameter name="wait_high" type="int" default="20" description="High limit for random wait time" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The first input" />
+
+	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+
+	<link class="GoSignal" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>GoSignal.h</file>
+   		<file>GoSignal.cc</file>
+   		<file>GoSignal.ikc</file>
+   </files>
+
+</group>
+

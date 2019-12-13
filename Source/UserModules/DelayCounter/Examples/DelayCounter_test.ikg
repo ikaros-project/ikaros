@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group title="DelayCounter Example">
+	
+		<module
+			class = "OutputFile"
+			name = "Out"
+			filename="test.txt">
+			<column name = "X" />  
+		</module>
+
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "DelayCounter"
+			name = "DelayCounterInstance"
+			debug="no"
+
+		/>
+		
+        <connection source = "DelayCounterInstance.OUTPUT" target = "Out.X" />
+        <connection source = "SquareGen.OUTPUT"  target = "DelayCounterInstance.INPUT" />
+				<connection source = "DelayCounterInstance.WRITE"  target = "Out.WRITE" />
+
+<view name="View" >
+	<plot  w = "200" height = "241" direction = "vertical" y = "20" max = "2" width = "281" color = "" show_frame = "false" style = "" buffer_size = "50" frame-style = "" source = "SquareGen.OUTPUT" title = "Squaregen" x = "20" min = "0" select = "" h = "200" show_title = "true"/>
+	<plot  w = "200" height = "261" direction = "vertical" y = "260" max = "2" width = "281" color = "" show_frame = "false" style = "" buffer_size = "50" frame-style = "" source = "DelayCounterInstance.WRITE" title = "Counter write" x = "20" min = "0" select = "" h = "200" show_title = "true"/>
+	<table  x = "20" y = "520" height = "81" width = "281" title = "Counter output" source = "DelayCounterInstance.OUTPUT" direction = "normal" decimals = "4" colorize = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
+
+
+
+</group>
+ 

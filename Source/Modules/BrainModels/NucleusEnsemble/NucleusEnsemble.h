@@ -69,6 +69,10 @@ public:
     bool        scale;
     
     float       epsilon;
+    float       sigma;
+    float       rho;
+    float *     threshold;
+    float       default_threshold;
 
     std::string excitation_topology_name;
     std::string inhibition_topology_name;
@@ -95,12 +99,16 @@ public:
     float *     weights;
     float **    longtermavg;
     int         avg_win_len;
+
+    float *     dopamine;
+    float *     adenosine_in;
     
     int			excitation_size;
     int			inhibition_size;
     int			shunting_inhibition_size;
 
     float *     output;
+    float *     adenosine_out;
 
 	bool       	debugmode;
 };

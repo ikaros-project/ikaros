@@ -32,6 +32,7 @@
 using namespace ikaros;
 const int cAccumulate = 0;
 const int cCopy = 1;
+
 void 
 InitialValue::SetSizes() // Infer output size from data if none is given
 {
@@ -54,6 +55,8 @@ InitialValue::Init()
     Bind(delay, "wait");
     Bind(debugmode, "debug");
     Bind(mode, "mode");
+    Bind(internal_array, outputsize, "data");
+    
 
     //input_array = GetInputArray("INPUT");
     //input_array_size = GetInputSize("INPUT");
@@ -66,7 +69,7 @@ InitialValue::Init()
     if (input_array_size != outputsize)
         Notify(msg_fatal_error, "InitialValue : Input has different size than output.");
 
-    internal_array = create_array(GetValue("data"), outputsize);
+    // internal_array = create_array(GetValue("data"), outputsize);
 }
 
 InitialValue::~InitialValue()

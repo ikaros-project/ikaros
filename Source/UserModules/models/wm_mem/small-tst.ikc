@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<group title="Example">
+	<!-- Modules -->
+        <!--inputs-->
+            <module
+                class = "Ones"
+                name = "SmallSquare"
+                size_x  = "2"
+                size_y  = "2"
+                value="0.5"
+            />
+            <module
+                class = "Ones"
+                name = "BigSquare"
+                size_x  = "10"
+                size_y  = "10"
+                value="0.9"
+            />
+            <module
+                class = "Ones"
+                name = "Canvas1"
+                size_x  = "36"
+                size_y  = "36"
+                value="0"
+            />
+            <module
+                class = "Ones"
+                name = "Canvas2"
+                size_x  = "36"
+                size_y  = "36"
+                value="0"
+            />
+            <module
+                class = "SetSubmatrix"
+                name = "SetSub1"
+                offset_x  = "10"
+                offset_y  = "10"
+            />
+            <module
+                class = "SetSubmatrix"
+                name = "SetSub2"
+                offset_x  = "5"
+                offset_y  = "5"
+            />
+        <!--Transforms-->                
+        <!--csom stack-->
+ 
+          
+	<!--Connections-->	
+        <!--Inputs-->
+            <connection sourcemodule = "SmallSquare" source = "OUTPUT" targetmodule = "SetSub1" target = "SOURCE" />
+            <connection sourcemodule = "Canvas1" source = "OUTPUT" targetmodule = "SetSub1" target = "DESTINATION" />
+            <connection sourcemodule = "BigSquare" source = "OUTPUT" targetmodule = "SetSub2" target = "SOURCE" />
+            <connection sourcemodule = "Canvas2" source = "OUTPUT" targetmodule = "SetSub2" target = "DESTINATION" />
+        <!--csom stack-->
+ 	<!-- View -->
+		<view name="WM">
+                <object class= "Image" type="gray" module="SetSub1" source="OUTPUT"
+			        	x="0" y="0" h="2" w="2" />
+                <object class= "Image" type="gray" module="SetSub2" source="OUTPUT"
+			        	x="0" y="2" h="2" w="2" />
+       
+		</view>
+
+
+</group>

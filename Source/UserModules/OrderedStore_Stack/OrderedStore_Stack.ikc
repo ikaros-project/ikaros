@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="OrderedStore_Stack" description="minimal example module">
+
+	<description type="text">
+		Module that functions as an ordered store with 2 slots, both of which are output
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OrderedStore_Stack"
+			name="OrderedStore_Stack"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The first input" />
+	<input name="PUSH" description="Pushes input if set to 1" />
+
+	<output name="OUTPUT1" description="The first output" size_set="INPUT" />
+	<output name="OUTPUT2" description="The second output" size_set="INPUT" />
+
+	<module class="OrderedStore_Stack" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>OrderedStore_Stack.h</file>
+   		<file>OrderedStore_Stack.cc</file>
+   		<file>OrderedStore_Stack.ikc</file>
+   </files>
+
+</group>
+

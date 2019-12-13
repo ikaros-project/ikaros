@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<group title="Acquisition and Extinction">
+<group name="Acquisition and Extinction">
 
 	<module class = "InputFile" name = "DATA" 
 	    filename = "input.txt"/>
@@ -14,18 +14,19 @@
 	    <column name = "BIND"/>
 	</module>
 
-	<module class = "M02_Amygdala" name = "AMY">
-	    <alpha>0.2</alpha>
-	</module>
-	<module class = "M02_OFC" name = "OFC">
-	    <beta>0.2</beta>
-	</module>
-	<module class = "M02_Thalamus" name = "THA">
-	</module>
-	<module class = "M02_Hippocampus" name = "HIPP">
-	    <bindsize>4</bindsize>
-	    <contextsize>4</contextsize>
-	</module>
+	<module class = "M02_Amygdala" name = "AMY"
+		alpha="0.2"
+	/>
+	<module class = "M02_OFC" name = "OFC"
+		beta="0.2"
+	/>
+	<module class = "M02_Thalamus" name = "THA" />
+	<module class = "M02_Hippocampus" name = "HIPP"
+		bindsize="4"
+		contextsize="4"
+	/>
+	
+	<!-- 
 	<module class = "M02_Delay" name = "BINDELAY">
 	    <delay>2</delay>
 	</module>
@@ -44,63 +45,94 @@
 	<module class = "M02_Delay" name = "RDELAY">
 	    <delay>1</delay>
 	</module>
+	-->
 
-	<connection sourcemodule = "DATA"	source = "CS"
-		    targetmodule = "THA"	target = "CS"/>
-	<connection sourcemodule = "DATA"	source = "CS"
-		    targetmodule = "HIPP"	target = "STIMULUS"/>
-	<connection sourcemodule = "DATA"	source = "LOC"
-		    targetmodule = "HIPP"	target = "LOCATION"/>
-	<connection sourcemodule = "DATA"	source = "R"
-		    targetmodule = "RDELAY"	target = "INPUT"/>
-	<connection sourcemodule = "DATA"       source = "LOC"
-		    targetmodule = "LOCDELAY"   target = "INPUT"/>
-	<connection sourcemodule = "DATA"       source = "R"
-		    targetmodule = "RDELAY2"	target = "INPUT"/>
-	<connection sourcemodule = "DATA"       source = "CS"
-		    targetmodule = "CSDELAY"	target = "INPUT"/>
+	<connection source = "DATA.CS"
+		    target = "THA.INPUT"/>
+	<connection source = "DATA.CS"
+		    target = "HIPP.STIMULUS"/>
+	<connection source = "DATA.LOC"
+		    target = "HIPP.LOCATION"/>
 
-	<connection sourcemodule = "HIPP"       source = "BIND"
-		    targetmodule = "BINDELAY"   target = "INPUT"/>
-	<connection sourcemodule = "HIPP"       source = "CONTEXT"
-		    targetmodule = "CONDELAY"   target = "INPUT"/>
+	<!-- input delays -->
+	<connection source = "DATA.R"
+		    target = "AMY.Rew" delay="1"/>
+	<connection source = "DATA.R"
+		    target = "OFC.Rew" delay="1"/>			
+	<connection source = "DATA.LOC"
+		    target = "OUT.LOC" delay="2" />
+	<connection source = "DATA.R"
+		    target = "OUT.Rew" delay="2" />
+	<connection source = "DATA.CS"
+		    target = "OUT.CS" delay="2" />
 
-	<connection sourcemodule = "BINDELAY"	source = "OUTPUT"
-		    targetmodule = "OUT"	target = "BIND"/>
-	<connection sourcemodule = "CONDELAY"	source = "OUTPUT"
-		    targetmodule = "OUT"	target = "CON"/>
-	<connection sourcemodule = "LOCDELAY"	source = "OUTPUT"
-		    targetmodule = "OUT"	target = "LOC"/>
-	<connection sourcemodule = "CSDELAY"	source = "OUTPUT"
-		    targetmodule = "OUT"	target = "CS"/>
-	<connection sourcemodule = "RDELAY2"	source = "OUTPUT"
-		    targetmodule = "OUT"	target = "Rew"/>
-    	<connection sourcemodule = "AMY"        source = "E"
-		    targetmodule = "OUT"	target = "E"/>
-	<connection sourcemodule = "AMY"        source = "V"
-		    targetmodule = "OUT"	target = "V"/>
+	<connection source = "HIPP.BIND"
+		    target = "OUT.BIND" delay="2"/>
+	<connection source = "HIPP.CONTEXT"
+		    target = "OUT.CON" delay="2"/>
+   	<connection source = "AMY.E"
+		    target = "OUT.E"/>
+	<connection source = "AMY.V"
+		    target = "OUT.V"/>
+
+
+	<!-- internal conn -->
 	
-	<connection sourcemodule = "THA"	source = "CSout"
-		    targetmodule = "AMY"	target = "CS"/>
-	<connection sourcemodule = "THA"	source = "CSout"
-		    targetmodule = "OFC"	target = "CS"/>
+	<connection source = "THA.TH"
+		    target = "AMY.INPUT"/>
+	<connection source = "THA.TH"
+		    target = "OFC.INPUT"/>
+	<connection source = "HIPP.CONTEXT"
+		    target = "OFC.CON"/>
 	
-	<connection sourcemodule = "HIPP"	source = "CONTEXT"
-		    targetmodule = "OFC"	target = "CON"/>
-	<connection sourcemodule = "HIPP"	source = "BIND"
-		    targetmodule = "OFC"	target = "BIND"/>
-	<connection sourcemodule = "HIPP"	source = "BIND"
-		    targetmodule = "AMY"	target = "BIND"/>
-	
-	<connection sourcemodule = "RDELAY"	source = "OUTPUT"
-		    targetmodule = "AMY"	target = "Rew"/>
-	<connection sourcemodule = "RDELAY"	source = "OUTPUT"
-		    targetmodule = "OFC"	target = "Rew"/>
+	<!--TODO these tgts do not exist -->
+	<_connection source = "HIPP.BIND"
+		    target = "OFC.BIND"/>
+	<_connection source = "HIPP.BIND"
+		    target = "AMY.BIND"/>
 
-	<connection sourcemodule = "AMY"	source = "O"
-		    targetmodule = "OFC"	target = "A"/>
-	<connection sourcemodule = "OFC"	source = "EO"
-		    targetmodule = "AMY"	target = "EO"/>
+	<connection source = "AMY.A"
+		    target = "OFC.A"/>
+	<connection source = "OFC.EO"
+		    target = "AMY.EO"/>
+
+	<!-- 
+	<connection source = "RDELAY.OUTPUT"
+		    target = "AMY.Rew"/>
+	<connection source = "RDELAY.OUTPUT"
+		    target = "OFC.Rew"/>
+
+	
+	
+	<connection source = "BINDELAY.OUTPUT"
+		    target = "OUT.BIND"/>
+	<connection source = "CONDELAY.OUTPUT"
+		    target = "OUT.CON"/>
+	<connection source = "LOCDELAY.OUTPUT"
+		    target = "OUT.LOC"/>
+	<connection source = "CSDELAY.OUTPUT"
+		    target = "OUT.CS"/>
+	<connection source = "RDELAY2.OUTPUT"
+		    target = "OUT.Rew"/>
+	-->
+<view name="Acquisition Extinction" >
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "Amg activity, to OFC" source = "AMY.A" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "20" y = "240" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "Amg emotion" source = "AMY.E" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "220" y = "240" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "Amg weights" source = "AMY.V" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "420" y = "240" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<table  width = "201" height = "41" source = "DATA.R" title = "In Reward" x = "20" y = "80" direction = "normal" style = "" show_frame = "false" frame-style = "" colorize = "true" show_title = "true" decimals = "4"/>
+	<table  width = "201" height = "41" source = "DATA.LOC" title = "In location" x = "20" y = "120" direction = "normal" style = "" show_frame = "false" frame-style = "" colorize = "true" show_title = "true" decimals = "4"/>
+	<table  width = "201" height = "41" source = "DATA.CS" title = "In cond stim" x = "20" y = "160" direction = "normal" style = "" show_frame = "false" frame-style = "" colorize = "true" show_title = "true" decimals = "4"/>
+	<text  frame-style = "" style = "" show_frame = "false" show_title = "false" y = "40" parameter = "" x = "20" text = "Acquisition Extinction" title = "Default Title" height = "21" width = "201"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "OFC EO to AMY" source = "OFC.EO" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "20" y = "460" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "OFC weights" source = "OFC.W" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "220" y = "460" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "HC bind" source = "HIPP.BIND" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "20" y = "700" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "HC ctx" source = "HIPP.CONTEXT" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "220" y = "700" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "Thalamus th out" source = "THA.TH" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "20" y = "920" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+	<bar-graph  show_title = "true" max = "1" min = "0" title = "Thalamus OUTPUT" source = "THA.OUTPUT" lineCap = "" labels = "" lineJoin = "" frame-style = "" style = "" x = "240" y = "920" width = "200" fill = "" show_frame = "false" color = "" height = "200" direction = "vertical" lineWidth = "1"/>
+</view>
+
+
+
 
 </group>
 

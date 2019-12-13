@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+
+<group name="Working memory model">
+	<!-- Modules -->
+        <!--Misc-->
+            <module class = "InputPNG" 
+                name = "ModelDiagram" 
+                filename = "model_diagram.png" 
+            />
+        <!--inputs-->
+            
+            <module class = "InputPNG" 
+                name = "InputImage" 
+                filename = "raven-matrix-01.png"  
+            />
+            
+        <!--Attentional focus-->
+           
+            <!--Ordered store-->
+                
+        <!--Transforms-->
+            <!--Translation-->                
+                
+            <!--Rotation-->
+               
+            <!--Scale-->
+                
+            <!--Threshold-->
+               
+    <!--csom stack-->
+            
+	<!--Connections-->	
+        <!--Inputs-->
+           
+        <!--Attention-->
+           
+            <!--InputSelector-->
+            <!--OrderedStore-->
+            
+        <!--csom stack-->
+               <!--WM-->
+            
+	<!-- View -->
+		<view name="WM">
+                	<image
+                        height = "321"
+                        y = "0"
+                        x = "0"
+                        width = "321"
+                        class = "image"
+                        format = "gray"
+                        module = "ModelDiagram"
+                        source = "INTENSITY"
+                        title = "L1 reconstruction"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+
+                    <image
+                        height = "321"
+                        x = "320"
+                        y="0"
+                        width = "361"
+                        class = "image"
+                        format = "gray"
+                        module = "ModelDiagram"
+                        source = "INTENSITY"
+                        title = "L4 output 3"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+
+                    <image
+                        height = "341"
+                        x="0"
+                        y = "320"
+                        width = "361"
+                        class = "image"
+                        format = "gray"
+                        module = "ModelDiagram"
+                        source = "INTENSITY"
+                        title = "wm add"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+                <!--Slot 1-->
+                
+                <!--Slot 2-->
+                
+                <!--Attention ordered store-->
+                
+                	<image
+                        height = "261"
+                        x="0"
+                        y = "680"
+                        width = "281"
+                        class = "image"
+                        format = "gray"
+                        module = "InputImage"
+                        source = "INTENSITY"
+                        title = "aa"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+
+                    <image
+                        height = "261"
+                        y = "680"
+                        x = "280"
+                        width = "301"
+                        class = "image"
+                        format = "gray"
+                        module = "InputImage"
+                        source = "INTENSITY"
+                        title = "bb"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+
+                    <image
+                        height = "241"
+                        y = "700"
+                        x = "600"
+                        width = "281"
+                        class = "image"
+                        format = "gray"
+                        module = "InputImage"
+                        source = "INTENSITY"
+                        title = "cc"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+
+                <!--Model Diagram-->
+                	<image
+                        height = "341"
+                        y = "0"
+                        x = "700"
+                        width = "341"
+                        class = "image"
+                        format = "rgb"
+                        module = "ModelDiagram"
+                        source = "RED+GREEN+BLUE"
+                        title = "dd"
+                        scale = "both"
+                        scales = "no"
+                        max_x = "1"
+                        max_y = "1"
+                        flipXAxis = "no"
+                        flipYAxis = "no"
+                        flipXCanvas = "no"
+                        flipYCanvas = "no"
+                    />
+
+		</view>
+        <view name="Stack">
+            
+        </view>	
+
+</group>

@@ -31,14 +31,18 @@
     <parameter name="chi" type="float" default="1.0" description="inhibition weight" />
     <parameter name="psi" type="float" default="1.0" description="shunting weight" />
 	<parameter name="tau" type="float" default="1.0" description="recursion weight" />
+	<parameter name="sigma" type="float" default="1.0" description="threshold_lower weight" />
+	<parameter name="rho" type="float" default="1.0" description="threshold_lower_inh weight" />
 
     <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
-
+	<parameter name="threshold" type="float" default="0.0" description="default threshold for activity" />
     <parameter name="epsilon" type="float" default="0.1" description="how quick to adapt to change" />
+	
 	<parameter name="excitation_topology" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>
 	<parameter name="inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
 	<parameter name="shunting_inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
 	<parameter name="recurrent_topology" type="list" values="none/excitatory/inhibitory" default="none" description="How inh input is connected to ensemble nuclei"/>
+	<_parameter name="threshold_lower_topology" type="list" values="none" default="none" description="How threshold lowering (dopamine) input is connected"/>
 	<parameter name="activation_function" type="list" values="relu/scaledsigmoid/secondorder" default="scaledsigmoid" description="Function applied to output"/>
 
 	<parameter name="moving_avg_window_size" type="int" default="100" description="size of moving avg window used for adaptation to set point" />
@@ -46,7 +50,8 @@
 	<input name="EXCITATION" description="The excitatory input" optional="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
 	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
-
+	<input name="DOPAMINE" description="Lowers threshold to make excitation more likely - dopamine" optional="yes" />
+	<input name="ADENO_INPUT" description="Inhibits threshold lowering - adenosine" optional="yes" />
 	<input name="SETPOINT" description="Activity setpoint - weights will be changed to maintain this. Ignored if not connected" optional="yes" />
 	<input name="ADAPTATIONRATE" description="Learning rate for weights when using activity setpoint" optional="yes" />
 
@@ -55,6 +60,7 @@
 	<input name="SH_INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
 
 	<output name="OUTPUT" description="The output from the nucleus" size_param="size" />
+	<output name="ADENO_OUTPUT" description="The adenosine (metabolic waste) output from the nucleus" size_param="size" />
 
 	<link class="NucleusEnsemble" />
 

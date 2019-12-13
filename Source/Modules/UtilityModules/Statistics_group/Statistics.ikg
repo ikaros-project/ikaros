@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<group title="Statistics" >
+	<description type="text">
+		Group module containing various statistical function like mean, std deviation,
+        min and max.
+	</description>
+<!-- IO -->
+    <!--input -> buffer -->
+
+    <!-- outputs: mean, std dev, min, max, mode, median -->
+
+<!-- modules -->
+
+<!-- connections -->
+
+<view name="Statistics view">
+</view>
+</group>

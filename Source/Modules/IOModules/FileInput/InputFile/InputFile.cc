@@ -24,7 +24,7 @@
 //	2002-01-17	Support for UNIX, Mac and DOS end of line tokens added
 //	2012-11-04	Support for static output added
 
-//#define DEBUG_INPUTFILE
+#define DEBUG_INPUTFILE
 
 #include "InputFile.h"
 
@@ -95,13 +95,26 @@ InputFile::InputFile(Parameter * p):
     no_of_columns = 0;
     char col_label[64];
     int	col_size;
+    int col_ix;
 
     // Count number of columns in input file
 
     skip_comment_lines(file);
-    fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+    int tst = fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
 
+    // old format:
     while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
+    {
+        no_of_columns++;
+        fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
+#ifdef DEBUG_INPUTFILE
+        printf("  Counting column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
+#endif
+    }
+
+    // new format: label:0 label:1 label2:0 label2:1
+    // or          label:0:0 label:0:1 label2:0 label2:1
+    while (fscanf(file, "%[^/\n\r]:%d", col_label, &col_ix) == 2)
     {
         no_of_columns++;
         fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line

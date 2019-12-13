@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+
+<group title="TAT master project: experiment 1b: model 1b: train" alpha = "0.00001" >
+    
+        <description type="text">
+            Using CIFAR data set for training 
+        </description>
+  
+        <!--Input data-->
+        <module
+            class = "InputPNG"
+            name = "Input"
+				filename = "../pics/cifar_train/%05d.png"
+            filecount = "50000"
+            iterations = "999000"
+            period = "2"
+            randomize = "yes"
+        />
+        
+        
+
+        <!--Affine transform modules-->
+          
+
+        <!--Neural networks-->
+      		<module
+      			class = "CSOM_change"
+      			name = "L1"
+			
+            rf_size_x = "5"
+            rf_size_y = "5"
+            rf_inc_x = "1"
+            rf_inc_y = "1"
+            som_size_x = "3"
+            som_size_y = "3"
+
+            _alpha_min = "0.0001"
+            _alpha = "0.0001"
+
+            
+            output_type = "combined"
+            use_arbor = "no"
+            update_weights="no"
+
+				filename = "./weights/cifar_l1.dat"
+            save_state = "no"
+            load_state = "yes"
+        />
+
+        <module
+            class = "CSOM_change"
+            name = "L2"
+        
+            rf_size_x = "9"
+            rf_size_y = "9"
+            rf_inc_x = "3"
+            rf_inc_y = "3"
+            som_size_x = "4"
+            som_size_y = "4"
+        
+            _alpha_min = "0.0005"
+            _alpha = "0.0005"
+
+            output_type = "combined"
+            use_arbor = "no"
+            update_weights="no"
+				filename = "./weights/cifar_l2.dat"
+            save_state = "no"
+            load_state = "yes"
+        />
+
+        <module
+            class = "CSOM_change"
+            name = "L3"
+            
+            rf_size_x = "12"
+            rf_size_y = "12"
+            rf_inc_x = "4"
+            rf_inc_y = "4"
+            som_size_x = "5"
+            som_size_y = "5"
+            
+            _alpha_min = "0.000001"
+            _alpha = "0.000001"
+             
+            output_type = "combined"
+            use_arbor = "no"
+            update_weights="no"
+
+            filename = "./weights/cifar_l3.dat"
+            save_state = "no"
+            load_state = "yes"
+		    />
+        <module
+            class = "CSOM_change"
+            name = "L4"
+            
+            rf_size_x = "25"
+            rf_size_y = "25"
+            rf_inc_x = "25"
+            rf_inc_y = "25"
+            som_size_x = "6"
+            som_size_y = "6"
+            
+            _alpha_min = "0.000001"
+            _alpha = "0.000001"
+             
+            output_type = "combined"
+            use_arbor = "no"
+            update_weights="yes"
+
+            filename = "./weights/cifar_l4.dat"
+            save_state = "yes"
+            load_state = "yes"
+        />
+        <!--Perceptron and learning signal-->
+        
+
+<!--Connections--> 
+	    
+        
+        <!--To CSOMs-->
+        <connection sourcemodule = "Input" source = "INTENSITY" targetmodule = "L1" target = "INPUT" delay="1" />        
+
+        <connection sourcemodule = "L1" source = "OUTPUT" targetmodule = "L2" target = "INPUT" delay="1" />
+        <connection sourcemodule = "L2" source = "OUTPUT" targetmodule = "L3" target = "INPUT" delay="1" />
+        <connection sourcemodule = "L3" source = "OUTPUT" targetmodule = "L4" target = "INPUT" delay="1" />
+        
+      
+        <connection sourcemodule = "L4" source = "OUTPUT" targetmodule = "L4" target = "TOP_DOWN" delay="1" />
+        <connection sourcemodule = "L4" source = "RECONSTRUCTION" targetmodule = "L3" target = "TOP_DOWN" delay="1" />
+        <connection sourcemodule = "L3" source = "RECONSTRUCTION" targetmodule = "L2" target = "TOP_DOWN" delay="1" />
+        <connection sourcemodule = "L2" source = "RECONSTRUCTION" targetmodule = "L1" target = "TOP_DOWN" delay="1" />
+
+        <!--To outputfile-->
+        
+
+<!--View-->
+		<view name="Map">
+            <!--First row-->
+        			<object class= "Image" type="gray" module="Input" source="INTENSITY"                                        x="0" y="0" h="2" w="2" />
+         			<object class= "Image" type="gray" module="L1" source="RECONSTRUCTION"                                      x="2" y="0" h="2" w="2" />
+                    <object class= "Image" type="gray" title="RF1" module="L1" source="WEIGHTS"                                      x="4" y="0" h="2" w="2" />
+        			<object class= "Image" type="rgb" title="Output" module="L1" source="OUTPUT_RED+OUTPUT_GREEN+OUTPUT_BLUE"  x="6" y="0" h="2" w="2" />
+                        
+            <!--second row 2-4-->    
+        			<object class= "Image" type="gray" module="L1" source="OUTPUT"                                              x="0" y="2" h="2" w="2" />
+         			<object class= "Image" type="gray" module="L2" source="RECONSTRUCTION"                                      x="2" y="2" h="2" w="2" />
+              <object class= "Image" type="gray" title="RF2" module="L2" source="WEIGHTS"                                 x="4" y="2" h="2" w="2" />
+        			<object class= "Image" type="rgb" title="Output" module="L2" source="OUTPUT_RED+OUTPUT_GREEN+OUTPUT_BLUE"   x="6" y="2" h="2" w="2" />
+                    
+            <!--Third row 4-6-->
+              <object class= "Image" type="gray" module="L2" source="OUTPUT"                                              x="0" y="4" h="2" w="2" />
+              <object class= "Image" type="gray" title="L3 reconstruction" module="L3" source="RECONSTRUCTION"                                      x="2" y="4" h="2" w="2" />
+              <object class= "Image" type="gray" title="RF3" module="L3" source="WEIGHTS"                                 x="4" y="4" h="2" w="2" />
+  			     <object class= "Image" type="rgb" title="Output" module="L3" source="OUTPUT_RED+OUTPUT_GREEN+OUTPUT_BLUE"  x="6" y="4" h="2" w="2" />
+
+            <!--Fourth row 6-8-->
+            <object class= "Image" type="gray" module="L3" source="OUTPUT"                                x="0" y="6" h="2" w="2" />
+            <object class= "Image" type="gray" module="L4" source="RECONSTRUCTION"                                      x="2" y="6" h="2" w="2" />
+            <object class= "Image" type="gray" module="L4" source="WEIGHTS"                                      x="4" y="6" h="2" w="2" />
+            <object class= "Image" type="rgb" module="L4" source="OUTPUT_RED+OUTPUT_GREEN+OUTPUT_BLUE"                                      x="6" y="6" h="2" w="2" />
+
+            <!--Fifth row 8-10-->
+            <object class= "Image" module="L4" type="gray" source="OUTPUT"                                x="0" y="8" h="2" w="2" />
+            <object class= "Plot" module="L1" source="ERROR"                                x="2" y="8" h="2" w="2" />
+</view>
+
+        <view name="Fast">
+			<object class= "Image" type="gray" module="L1" source="WEIGHTS" x="0" y="0" h="2" w="2" />
+		</view>
+
+</group>
+
+''

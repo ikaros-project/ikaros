@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<group name="VariableRadiusAttentionalFocus" description="minimal example module">
+
+	<description type="text">
+		Module that extracts a variable sized submatrix from a matrix, given relative
+		xy coordinates. Output is constant size, so this module works like a kind of
+		zoom.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="VariableRadiusAttentionalFocus"
+			name="VariableRadiusAttentionalFocus"
+			size_x = "32"
+			size_y = "32"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="size_x" type="int" default="32" description="Width of output" />
+	<parameter name="size_y" type="int" default="32" description="Height of output" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+	<parameter name="origo" type="int" default="0" description="Placement of origo. 0=center, 1=top lefthand corner" />
+
+	<input name="INPUT" description="The input" />
+	<input name="X" description="The X position of the submatrix input, float from 0..1" />
+	<input name="Y" description="The Y position of the submatrix input, float from 0..1" />
+	<input name="RADIUS" description="Size of area covered by submatrix, float from 0..1" />
+
+	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+
+	<module class="VariableRadiusAttentionalFocus" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>VariableRadiusAttentionalFocus.h</file>
+   		<file>VariableRadiusAttentionalFocus.cc</file>
+   		<file>VariableRadiusAttentionalFocus.ikc</file>
+   </files>
+
+</group>
+

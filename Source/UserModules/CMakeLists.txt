@@ -1,5 +1,15 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
+add_subdirectory(MaxElement)
+
+add_subdirectory(ComposeTransform)
+
+add_subdirectory(BoundaryCheck)
+
+add_subdirectory(DelayCounter)
+add_subdirectory(GoSignal)
+
 add_subdirectory(MinimalModule)
 add_subdirectory(MyModule)
 
