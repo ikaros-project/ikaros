@@ -31,8 +31,8 @@
     <parameter name="chi" type="float" default="1.0" description="inhibition weight" />
     <parameter name="psi" type="float" default="1.0" description="shunting weight" />
 	<parameter name="tau" type="float" default="1.0" description="recursion weight" />
-	<parameter name="sigma" type="float" default="1.0" description="threshold_lower weight" />
-	<parameter name="rho" type="float" default="1.0" description="threshold_lower_inh weight" />
+	<parameter name="sigma" type="float" default="1.0" description="dopamine weight" />
+	<parameter name="rho" type="float" default="1.0" description="adenosine weight" />
 
     <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
 	<parameter name="threshold" type="float" default="0.0" description="default threshold for activity" />

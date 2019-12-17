@@ -20,6 +20,7 @@
 	- parameter test: exc inp, size = 2 - expect two outputs growing to inp
 
 	- external topology test: exc inp, size=2
+	- default instance: threshold - expect dopamine to lower threshold, adenosine to void dopamine lowering
 	</description>
 	<group name="NucleusEnsemble Default Test"
 		description="Default instance with no inputs should produce
@@ -451,7 +452,7 @@
 </group>
 
 
-<group name="NucleusEnsemble Shunting Inhibition Topology Test">
+	<group name="NucleusEnsemble Shunting Inhibition Topology Test">
 		<module
 			class = "Constant"
 			name = "Excitation"
@@ -516,9 +517,52 @@
 	</group>
 
 
-</group>
 
-<group name="NucleusEnsemble threshold test">
+	<group name="NucleusEnsemble Threshold test">
+		<description type="text">
+		- default instance: threshold - expect dopamine to lower threshold, adenosine to void dopamine lowering
+		</description>
+		<module
+			class = "Constant"
+			name = "Excitation"
+			outputsize  = "1"
+			data  = "0.5"
+		/>
+		<module
+			class = "Constant"
+			name = "Dopamine"
+			outputsize  = "1"
+			data  = "0.0"
+		/>
+		<module
+			class = "Constant"
+			name = "Adenosine"
+			outputsize  = "1"
+			data  = "0.0"
+		/>
+		<module
+			class = "NucleusEnsemble"
+			name = "Threshold_test"
+			threshold = "0.4"
+			excitation_topology="all_to_all"
+			size="1"
+			debug="yes"
+		/>
+		<connection source = "Excitation.OUTPUT"  target = "Threshold_test.EXCITATION" />
+		<connection source = "Dopamine.OUTPUT"  target = "Threshold_test.DOPAMINE" />
+		<connection source = "Adenosine.OUTPUT"  target = "Threshold_test.ADENO_INPUT" />
+<view name="View #0" >
+	<text  x = "20" y = "0" height = "121" width = "481" title = "Default Title" parameter = "" text = "Threshold test" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "20" y = "160" height = "200" width = "200" title = "Output" source = "Threshold_test.OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "240" y = "160" height = "200" width = "200" title = "Adenosine out" source = "Threshold_test.ADENO_OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "40" y = "380" height = "61" width = "181" title = "Excitation" parameter = "Excitation.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "40" y = "440" height = "61" width = "181" title = "Dopamine" parameter = "Dopamine.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "40" y = "500" height = "61" width = "181" title = "Adenosine" parameter = "Adenosine.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "240" y = "380" height = "61" width = "181" title = "Ensemble threshold" parameter = "Threshold_test.threshold" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "240" y = "440" height = "61" width = "181" title = "Ensemble baserate" parameter = "Threshold_test.alpha" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
-</group>
+
+	</group>
  
+</group>

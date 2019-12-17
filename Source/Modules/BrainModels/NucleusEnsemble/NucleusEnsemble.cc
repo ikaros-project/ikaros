@@ -187,9 +187,10 @@ NucleusEnsemble::Tick()
         }
         copy_array(phival, weights, ensemble_size);
     }
-
+    
     if(adenosine_in)
     {
+        // TODO add caffeine inhibition
         for(int i = 0; i < ensemble_size; i++)
             adeno[i] = rho * adenosine_in[i]; // dopa inhibition
     }
@@ -204,10 +205,10 @@ NucleusEnsemble::Tick()
     for(int i = 0; i < ensemble_size; i++)
     {
         float thr_modulation = dopa[i]-adeno[i];
-        thr_modulation = thr_modulation ? thr_modulation > 0 : 0;
+        thr_modulation = ( thr_modulation > 0) ? thr_modulation : 0;
         //threshold[i] = 1/(1 + thr_modulation) * default_threshold; // hyperbolic
         threshold[i] = default_threshold - thr_modulation; // linear
-        threshold[i] = threshold[i] ? threshold[i] > 0 : 0;
+        threshold[i] = (threshold[i] > 0) ? threshold[i] : 0;
     }
     
     for(int i = 0; i < ensemble_size; i++)
@@ -234,9 +235,12 @@ NucleusEnsemble::Tick()
     if(debug)
     {
         printf("Instance: %s\n", this->instance_name);
-        print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
-        print_array("phival", phival, ensemble_size, 2);
-        print_array("x", x, ensemble_size, 2);
+        // print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
+        // print_array("phival", phival, ensemble_size, 2);
+        // print_array("x", x, ensemble_size, 2);
+        print_array("dopa", dopa, ensemble_size);
+        print_array("adeno", adeno, ensemble_size);
+        print_array("threshold", threshold, ensemble_size);
     }
     
 
