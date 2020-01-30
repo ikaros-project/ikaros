@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<group>
+
+<module
+	class="TouchBoard"
+	name="TOUCHBOARD"
+	port="/dev/cu.usbmodem14201"
+/>
+
+  <view name="Plots">
+      <bar-graph
+          x="50" y="50"
+          width="1300"
+          height="700"
+          module="TOUCHBOARD"
+          source="OUTPUT"
+					min="0"
+					max="1"
+          title = "E0"
+          labels = "0,1,2,3,4,5,6,7,8,9,10,11"
+          style = "--color:red,green,blue,grey,yellow,black,purple,orange,cyan,magenta,brown,pink;--fill:red,green,blue,grey,yellow,black,purple,orange,cyan,magenta,brown,pink"
+      />
+
+</view>
+
+</group>
