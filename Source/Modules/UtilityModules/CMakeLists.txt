@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(DataBuffer)
 add_subdirectory(DecomposeTransform)
 add_subdirectory(InitialValue)
 add_subdirectory(Expression)

@@ -47,6 +47,9 @@ NucleusEnsemble::Init()
     
     Bind(scale, "scale");
     Bind(epsilon, "epsilon");
+    Bind(sigma, "sigma");
+    Bind(rho, "rho");
+    Bind(default_threshold, "threshold");
 
     Bind(excitation_topology_name, "excitation_topology");
     Bind(inhibition_topology_name, "inhibition_topology");
@@ -59,6 +62,8 @@ NucleusEnsemble::Init()
     io(inhibition, inhibition_size, "INHIBITION");
     io(shunting_inhibition, shunting_inhibition_size, "SHUNTING_INHIBITION");
     io(output, "OUTPUT");
+    io(adenosine_out, "ADENO_OUTPUT");
+
 
     int dummy_sz_x;
     int dummy_sz_y;
@@ -90,6 +95,11 @@ NucleusEnsemble::Init()
     if(!ext_shunting_topology && shunting_inhibition)
         SetShInhTopology(shunting_inhibition_topology_name);
     SetRecTopology(recurrent_topology_name);
+
+    io(dopamine, dummy_sz_x, "DOPAMINE");
+    io(adenosine_in, dummy_sz_y, "ADENO_INPUT");
+    threshold = create_array(ensemble_size);
+    set_array(threshold, default_threshold, ensemble_size);
 
     SetActivationFunc(activation_function_name);
 
@@ -130,6 +140,9 @@ NucleusEnsemble::Tick()
     float *inh_sum = create_array(ensemble_size);
     float *sh_inh_sum = create_array(ensemble_size);
     float *rec_sum = create_array(ensemble_size);
+    float *dopa = create_array(ensemble_size);
+    float *adeno = create_array(ensemble_size);
+
     if(excitation)
         multiply(exc_sum, excitation_topology, excitation, excitation_size, ensemble_size);
     if(inhibition)
@@ -174,25 +187,60 @@ NucleusEnsemble::Tick()
         }
         copy_array(phival, weights, ensemble_size);
     }
+    
+    if(adenosine_in)
+    {
+        // TODO add caffeine inhibition
+        for(int i = 0; i < ensemble_size; i++)
+            adeno[i] = rho * adenosine_in[i]; // dopa inhibition
+    }
 
+    if(dopamine)
+    {
+        for(int i = 0; i < ensemble_size; i++)
+            dopa[i] = sigma * dopamine[i]; // threshold reduction
+    }
+
+    // calculate threshold
     for(int i = 0; i < ensemble_size; i++)
     {
+        float thr_modulation = dopa[i]-adeno[i];
+        thr_modulation = ( thr_modulation > 0) ? thr_modulation : 0;
+        //threshold[i] = 1/(1 + thr_modulation) * default_threshold; // hyperbolic
+        threshold[i] = default_threshold - thr_modulation; // linear
+        threshold[i] = (threshold[i] > 0) ? threshold[i] : 0;
+    }
+    
+    for(int i = 0; i < ensemble_size; i++)
+    {
+        output[i] = 0.f;
         // calculate activation for each nucleus
         float s = 1/(1+psi*psi_scale*sh_inh_sum[i]); // shunting
         float a = phival[i] * phi_scale * s * exc_sum[i]; // excitation
+        
         a += tau * tau_scale * rec_sum[i];      // recursion
         a -= chi * chi_scale * inh_sum[i];      // inhibition
+        
         x[i] += epsilon * (a - x[i]);           // effect of previous
-        output[i] = alpha + beta * (this->*Activate)(x[i]); // todo add threshold input
+        float a_final = alpha + beta * (this->*Activate)(x[i]);
+        if(a_final >= threshold[i])
+            output[i] = a_final;
+        else
+            output[i] = alpha;
+        adenosine_out[i] = output[i]; // TODO add multiplier here?
+        
 
     }
 
     if(debug)
     {
         printf("Instance: %s\n", this->instance_name);
-        print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
-        print_array("phival", phival, ensemble_size, 2);
-        print_array("x", x, ensemble_size, 2);
+        // print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
+        // print_array("phival", phival, ensemble_size, 2);
+        // print_array("x", x, ensemble_size, 2);
+        print_array("dopa", dopa, ensemble_size);
+        print_array("adeno", adeno, ensemble_size);
+        print_array("threshold", threshold, ensemble_size);
     }
     
 
@@ -202,6 +250,8 @@ NucleusEnsemble::Tick()
     destroy_array(sh_inh_sum);
     destroy_array(rec_sum);
     destroy_array(phival);
+    destroy_array(dopa);
+    destroy_array(adeno);
 }
 
 float 

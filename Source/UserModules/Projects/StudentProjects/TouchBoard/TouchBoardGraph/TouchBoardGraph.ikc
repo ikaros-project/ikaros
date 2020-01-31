@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+
+<group name="TouchBoardGraph" description="Visualizing touch board">
+
+
+<description type="text">
+	Touch board Graph
+</description>
+
+
+<example description="A simple example">
+<module
+	class="TouchBoardGraph"
+	name="TOUCHBOARDGRAPH"
+/>
+</example>
+<input name="INPUT" description="The input" />
+<module class="TouchBoardGraph" />
+
+
+<author>
+	<name>Isak Amundsson, Fredrik Lütz</name>
+	<email></email>
+	<affiliation>Lunds Tekniska Högskola</affiliation>
+</author>
+
+<files>
+	<file>TouchBoardGraph.h</file>
+	<file>TouchBoardGraph.cc</file>
+	<file>TouchBoardGraph.ikc</file>
+</files>
+
+</group>
