@@ -1,0 +1,147 @@
+/*
+
+header {
+    text-align: right;
+    background-color: black;
+    border: none;
+}
+
+main {
+    background: black;
+    
+    --main-color: #2079D7;
+
+    --title-height: 0;
+    --title-font:  bold small-caps 20px "Frutiger LT Std";
+    --title-color: rgba(0,0,0,0);
+    --title-background: rgba(0,0,0,0);
+    --title-margins: yes;
+    --title-align: left;
+    --title-offset: -2, -5;
+
+    --margin-left: 1;
+    --margin-right: 1;
+    --margin-top: 1;
+    --margin-bottom: 2;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
+
+    --frame: none;
+
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --grid-color: lightgray;
+    --grid-fill: lightgreen;
+    --grid-line-width: 1;
+    
+    --x-axis: yes; 
+    --y-axis: yes;
+    --axis-color: black;
+    --left-tick-marks: 0;
+    --right-tick-marks: 0;
+    --bottom-tick-marks: 0;
+    --left-scale: 0;
+    --right-scale: 0;
+    --bottom-scale: 0;
+    --scale-font: 11px Arial;
+    --scale-offset: 10;
+    
+    --labels: no;
+    --label-color: none;
+    
+    --spacing: 0.05;
+ 
+    --color: var(--main-color), var(--main-color), gray, var(--main-color);
+    --fill: var(--main-color), var(--main-color), gray, var(--main-color);
+    --line-width: 1;
+    
+}
+
+
+footer {
+    color: #2079D7;
+    background-color: black;
+    border-top: 1px dashed #21486C;
+    max-height: 100px;
+    padding: 10px;
+}
+
+div.frame {
+    border: none;
+    background: none;
+}
+
+div.frame  *:last-child {
+    border: 2px solid #31587C;
+}
+
+div.frame.visible {
+    border: none;
+    background: none;
+}
+
+div.title {
+    height: 40px;
+    background: none;
+    border: none;
+    color: #09559E;
+    font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: bold;
+    line-height: 24pt;
+}
+
+main[data-mode="edit"] {
+    background: #222;
+}
+
+.vgrid {
+     border-left: 1px solid #444;
+}
+
+.hgrid {
+    border-top: 1px solid #444;
+}
+
+.dragged, .resized {
+    box-shadow: none;
+}
+
+div.selected {
+    border: 1px solid red;
+}
+
+div.visible.selected {
+    border: 1px solid red;
+}
+
+aside {
+    background: #222;
+    border-left: none;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+nav {
+    background: black;
+    border-right: 1px dashed #21486C;
+    color: white;
+    font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
+    font-size: 16pt;
+    font-weight: lighter;
+    line-height: 24pt;
+}
+
+li {
+    cursor: pointer;
+    color: #0059B7;
+}
+
+li:hover {
+    color: #3089E7;
+}
+*/
+
