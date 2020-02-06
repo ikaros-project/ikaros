@@ -35,8 +35,8 @@ using namespace ikaros;
 void
 Oscillator::Init()
 {
-    intput = GetInput("INPUT")
-    output = GetOutput("OUTPUT");
+    input = GetInputArray("INPUT");
+    output = GetOutputArray("OUTPUT");
 
     Bind(input_gain, "input_gain");
     Bind(alpha, "alpha");

@@ -36,8 +36,12 @@ public:
     void 		Init();
     void 		Tick();
 
+    float       input_gain;
+    float       alpha;
+
     float *     x;
     float *     y;
+    float *     input;
     float *     output;
 };
 
