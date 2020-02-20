@@ -224,7 +224,7 @@ NucleusEnsemble::Tick()
         x[i] += epsilon * (a - x[i]);           // effect of previous
         float a_final = alpha + beta * (this->*Activate)(x[i]);
         if(a_final >= threshold[i])
-            output[i] = a_final;
+            output[i] = a_final-threshold[i];
         else
             output[i] = alpha;
         adenosine_out[i] = output[i]; // TODO add multiplier here?
@@ -238,6 +238,7 @@ NucleusEnsemble::Tick()
         // print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
         // print_array("phival", phival, ensemble_size, 2);
         // print_array("x", x, ensemble_size, 2);
+        // print_matrix("excitation_topology", excitation_topology, excitation_size, ensemble_size, 2);
         print_array("dopa", dopa, ensemble_size);
         print_array("adeno", adeno, ensemble_size);
         print_array("threshold", threshold, ensemble_size);
@@ -356,13 +357,15 @@ NucleusEnsemble::SetExcTopology(std::string atopology)
 {
     // create topology matrix rows = ensemble size, cols = inputs
     
-    if (atopology == "all_to_all")
+    if (atopology == "all_to_all" || ensemble_size==1)
     {
         set_matrix(excitation_topology, 1.f, excitation_size, ensemble_size);
     }
     else // one to one
     {
         // inputs must be same size as ensemble, otherwise crash
+        // note 2020-02-10: if only single nucleus, only last
+        // input will make any difference
         for(int i = 0; i < ensemble_size; i++)
             excitation_topology[i][i] = 1.f;
         
