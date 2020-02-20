@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+
+<group>
+
+  <module
+    class = "BackProp"
+    name = "BACKPROP"
+    />
+    <!--
+        learning_rule = "mu_lms"
+        activation_type = "step"
+        normalize_target = "true"
+        learning_rate = "0.24"
+        learning_rate_mod = "none"
+        learning_type = "instant"
+        momentum_ratio = "0.5"
+        batch_size = "50"
+      -->
+
+    <module
+      class = "InputFile"
+      name = "TRAININGFILE"
+      filename = "OutputExample.txt"
+      iterations = "100000"
+    />
+    <module
+      class="TouchBoard"
+      name="TOUCHBOARD"
+      port="/dev/cu.usbmodem14201"
+
+
+    />
+
+    <module
+      class = "OutputFile"
+      name = "OUTPUTFILE"
+      filename = "TargetTest.txt"
+      >
+        <column name = "OUT"
+          decimals = "0"
+          />
+      </module>
+    <!-- iterations = "12" -->
+
+
+      <connection sourcemodule = "TOUCHBOARD"  source = "OUTPUT"
+        targetmodule = "BACKPROP"  target = "INPUT" delay = "1:50"/>
+
+      <connection sourcemodule = "TRAININGFILE"  source = "E"
+          targetmodule = "BACKPROP"  target = "T_INPUT" delay = "1:50" />
+
+        <connection sourcemodule = "TRAININGFILE"  source = "X"
+      		targetmodule = "BACKPROP"  target = "T_TARGET" />
+
+
+        <connection sourcemodule = "BACKPROP"  source = "OUTPUT"
+        		targetmodule = "OUTPUTFILE"  target = "OUT"  />
+
+  <view title="BackProp">
+    <plot
+        x="50" y="50"
+        width="1300"
+        height="700"
+        min="0"
+        max="1"
+        module="BACKPROP"
+        source="OUTPUT"
+    />
+
+</view>
+
+</group>
