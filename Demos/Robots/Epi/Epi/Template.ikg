@@ -10,20 +10,21 @@
 	RightArmSerialDevice	= "/dev/ttyRIGHT_ARM"
 	PupilSerialDevice		= "/dev/ttyPUPIL"
 
-	BodyDynamixel 			= "DynamixelSimulate"
+	BodyDynamixel 			= "Dynamixel"
 	HeadDynamixel 			= "Dynamixel"
 	PupilDynamixel 			= "DynamixelSimulate"
 	LeftArmDynamixel 		= "Dynamixel"
 	RightArmDynamixel 		= "Dynamixel"
 
-	_VisionInput 			= "InputVideoStream"
-	VisionInput 			= "InputJPEG"
+	VisionInputLeft 		= "InputVideoStream"
+	VisionInputRight 		= "InputJPEG"
 
 	LogData 				= "no"
-	LogEyesImages 			= "no"
+	LogEyesImages 			= "yes"
 	LogEyesVideos			= "no"
 
-	MotionRecorderSystemOverrideValue = "-1"
+	LedIntenseScale			= "0" 
+	MotionRecorderSystemOverrideValue = "1100"
 	/>
 
 
