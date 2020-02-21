@@ -1,11 +1,9 @@
 	<module
 			class = "MotionRecorder"
 			name = "MotionRecorder"
-            mask = "1 1"
-            torque = "0.25 0.25"
             filename = "Actions/motion.%d.mot"
             json_filename = "Actions/motion.%d.json"
-           smoothing_time = "40"
+            smoothing_time = "40"
             max_motions="20"
             _auto_save="yes"
             _record_on_trig = "true"
@@ -23,61 +21,20 @@
 	    <_connection  source = "MotionRecorder.TRIG_OUT"  target = "EpiLog.LOG_LEFT_EYE_FULL_RES.WRITE" />
 	    <_connection  source = "MotionRecorder.TRIG_OUT"  target = "EpiLog.LOG_RIGHT_EYE_FULL_RES.WRITE" />
 
-		<view name="Override MotionRecorder">
-            <grid
-                x = "10"
-                y = "10"
-                width = "121"
-                height = "41"
-                source = "STATE"
-                module = "MotionRecorder"
-                max = "7"
-                labels = "state"
-                labelWidth = "50"
-                fill = "custom"
-                colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
-                lineWidth = "1"
-                shape = "circle"
-                size = "1"
-                scales = "no"
-            />
-
-            <text
-                width = "121"
-                height = "41"
-                x="10"
-                y = "40"
-                parameter = "MotionRecorder.mode_string"
-            />
-    <!--
-            <plot module="MotionRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
-    -->
-            <table title="time" source="MotionRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
-    <!--
-			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
--->
-			<!-- key-points module="MotionRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" / -->
-            
-            <plot source="MotionRecorder.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="130" y="0" width="800" height="301" />
-
-            <grid source="MotionRecorder.MODE" labels="off, stop, play, record" shape="circle" size="0.75" fill="custom" colorTable="white,green" command="EpiBlack.MotionRecorder.toggle" x="130" y="350" width="800" height="101" />
-			<grid source="MotionRecorder.ENABLE" labels="torque" shape="circle" size="1" fill="custom" colorTable="white,red" x="130" y="451" width="800" height="41" />
-
-			<table title="time" source="MotionRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
-
-            <button label = "Off" command="MotionRecorder.off" x="10" y="121" height="41" width="101" />
-            <button label = "Stop" command="MotionRecorder.stop" x="10" y="161" height="41" width="101"  />
-            <button label = "Record" command="MotionRecorder.record" x="10" y="201" height="41" width="101"  />
-            <button label = "Play"  command="MotionRecorder.play" x="10" y="241" height="41" width="101"  />
-
-            <button label = "Load" command="MotionRecorder.load" x="10" y="361" height="41" width="101"  />
-            <button label = "Save" command="MotionRecorder.save" x="10" y="401" height="41" width="101"  />
-
-            <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19"  parameter="MotionRecorder.current_motion" x="10" y="311" width="121" height="41" />
-
-            <switch label=" Rec on trig" parameter="MotionRecorder.record_on_trig" x="10" y="461" width="101" height="41" />
-
-            <slider-horizontal title = "Joints" parameter="Joints.data" count="2" min="-360" max="360" x="130" y="510" height="100" width="200" />
-            <plot source="Joints.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="430" y="510" width="400" height="301" />
-
-		</view>
+<view name="Override MotionRecorder" >
+	<grid  height = "41" fill = "custom" width = "121" color = "" show_frame = "false" labels = "state" size = "1" module = "MotionRecorder" y = "10" shape = "circle" green = "" title = "" x = "10" scales = "no" source = "STATE" valueHigh = "1" frame-style = "" lineWidth = "1" flipYAxis = "no" max = "7" colorTable = "yellow, black, red, green, purple, brownn, pink, maroon" min = "0" flipYCanvas = "no" valueLow = "0" blue = "" command = "" show_title = "false" parameter = "" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "50" flipXCanvas = "no"/>
+	<text  frame-style = "" style = "" show_frame = "false" show_title = "false" y = "40" parameter = "MotionRecorder.mode_string" x = "20" text = "" title = "Default Title" width = "121" height = "41"/>
+	<table  y = "80" show_title = "false" decimals = "0" x = "20" title = "time" source = "MotionRecorder.TIME" label_x = "" label_y = "" height = "41" direction = "normal" scrollable = "false" width = "101" show_frame = "false" style = "" colorize = "true" frame-style = ""/>
+	<plot  y = "20" x = "160" source = "MotionRecorder.OUTPUT" title = "Joints" max = "360" style = "" buffer_size = "50" frame-style = "" color = "red, green" show_frame = "false" width = "800" min = "-360" select = "0, 1" height = "301" direction = "vertical" show_title = "true"/>
+	<grid  size = "0.75" labels = "off, stop, play, record" width = "800" fill = "custom" color = "" show_frame = "false" min = "0" colorTable = "white,green" flipYCanvas = "no" shape = "circle" green = "" x = "140" source = "MotionRecorder.MODE" valueHigh = "1" scales = "no" command = "EpiBlack.MotionRecorder.toggle" show_title = "false" title = "" y = "360" height = "101" max = "1" parameter = "" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
+	<grid  size = "0.75" labels = "torque" width = "800" fill = "custom" color = "" show_frame = "false" min = "0" colorTable = "white,red" flipYCanvas = "no" shape = "circle" green = "" x = "140" source = "MotionRecorder.ENABLE" valueHigh = "1" scales = "no" title = "" y = "480" max = "1" height = "41" command = "" show_title = "false" parameter = "" blue = "" valueLow = "0" flipYAxis = "no" max_y = "1" min_x = "0" flipXAxis = "no" red = "" max_x = "1" min_y = "0" style = "" labelWidth = "100" flipXCanvas = "no" lineWidth = "1" frame-style = ""/>
+	<button  height = "41" y = "120" frame-style = "" valueUp = "0" xindex = "0" style = "" label = "Off" command = "MotionRecorder.off" show_title = "false" x = "20" title = "Title" enableSource = "" commandUp = "" parameter = "" value = "1" yindex = "0" width = "101" show_frame = "false"/>
+	<button  height = "41" y = "160" frame-style = "" valueUp = "0" xindex = "0" style = "" label = "Stop" command = "MotionRecorder.stop" show_title = "false" x = "20" title = "Title" enableSource = "" commandUp = "" parameter = "" value = "1" yindex = "0" width = "101" show_frame = "false"/>
+	<button  height = "41" y = "200" frame-style = "" valueUp = "0" xindex = "0" style = "" label = "Record" command = "MotionRecorder.record" show_title = "false" x = "20" title = "Title" enableSource = "" commandUp = "" parameter = "" value = "1" yindex = "0" width = "101" show_frame = "false"/>
+	<button  height = "41" y = "240" frame-style = "" valueUp = "0" xindex = "0" style = "" label = "Play" command = "MotionRecorder.play" show_title = "false" x = "20" title = "Title" enableSource = "" commandUp = "" parameter = "" value = "1" yindex = "0" width = "101" show_frame = "false"/>
+	<button  height = "41" y = "340" frame-style = "" valueUp = "0" xindex = "0" style = "" label = "Load" command = "MotionRecorder.load" show_title = "false" x = "20" title = "Title" enableSource = "" commandUp = "" parameter = "" value = "1" yindex = "0" width = "101" show_frame = "false"/>
+	<button  height = "41" y = "380" frame-style = "" valueUp = "0" xindex = "0" style = "" label = "Save" command = "MotionRecorder.save" show_title = "false" x = "20" title = "Title" enableSource = "" commandUp = "" parameter = "" value = "1" yindex = "0" width = "101" show_frame = "false"/>
+	<drop-down-menu  show_title = "false" label = "" frame-style = "" style = "" show_frame = "false" labelWidth = "50" list_parameter = "" index = "0" width = "121" height = "41" list = "motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" title = "motion" x = "20" parameter = "MotionRecorder.current_motion" y = "300"/>
+	<text  frame-style = "" style = "" show_frame = "false" show_title = "false" y = "340" parameter = "" x = "260" text = "1      2      3       4      5      6      7      8      9     10    11     12    13    14    15    16    17    18   19" title = "Default Title" height = "21" width = "681"/>
+	<text  frame-style = "" style = "" show_frame = "false" show_title = "false" y = "520" parameter = "" x = "260" text = "1 = BodyAngle1 2 = NeckTilt 3 = NeckPan 4 = LeftEye 5 = RightEye 6 = LeftPupil 7 = RightPupil  8 = LeftArm1 9 = LeftArm2 10 = LeftArm3 11 = LeftArm4 12 = LeftArm5 13 = LeftHand 14 = RightArm1 15 = RightArm2 16 = RightArm3 17 = RightArm4 18 = RightArm5 19 = RightHand " title = "Default Title" height = "141" width = "641"/>
+</view>
