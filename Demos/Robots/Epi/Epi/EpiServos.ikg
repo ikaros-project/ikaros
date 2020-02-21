@@ -54,7 +54,7 @@
     <!-- Dummy module -->
         <!--<module class = "Gate" name = "GoalPositionG"/>-->
         <!-- Can be override by MotionRecder -->
-        <module class = "Arbiter" name = "GoalPositionG" no_of_inputs = "2" />
+        <module class = "Arbiter" name = "GoalPositionG" no_of_inputs = "2" alpha = "1"/>
 
         <connection source = "GoalPositionG.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "@servosIndexBody"      targetoffset = "@servosIndexBody"       size = "@nrServosBody"/>
         <connection source = "GoalPositionG.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "@servosIndexHead"      targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
@@ -108,7 +108,7 @@
 		connector       = "   1        2    3    4    5     6    7       8    9   10   11   12   13      14   15   16   17   18   19"
         pre_inverted    = "   1        1    0    0    0     0    0       0    0    0    0    0    1       0    1    0    0    0    0" 
         post_inverted   = "   0        0    0    0    0     0    0       0    0    0    0    0    0       0    0    0    0    0    0" 
-        offset          = " 170      180  180  180  180   210  210     180  180  180  180  225  180     180  180  180  180  135  180 " 
+        offset          = " 190      180  180  180  180   210  210     180  180  180  180  225  180     180  180  180  180  135  180 " 
         output_size     = "@nrServosTotal"
 	/>
         <connection source = "MotionGuard.OUTPUT" target = "SCPosition.INPUT"   delay = "1"/>
@@ -290,7 +290,7 @@
 		connector       = "   1        2    3    4    5     6    7      8    9   10   11   12   13      14   15   16   17   18   19"
         pre_inverted    = "   0        0    0    0    0     0    0      0    0    0    0    0    0       0    0    0    0    0    0" 
         post_inverted   = "   1        1    0    0    0     0    0      0    0    0    0    0    1       0    1    0    0    0    0" 
-        offset          = "-170     -180 -180 -180 -180  -210 -210   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180" 
+        offset          = "-190     -180 -180 -180 -180  -210 -210   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180" 
         output_size     = "@nrServosTotal"
 	/>
         <connection source = "FeedbackPresentPositionRawG.OUTPUT"  	        target = "SCFeedbackPosition.INPUT" />
@@ -298,7 +298,7 @@
         
     <module class = "Gate" name = "FeedbackPresentPositionG"/>
 
-        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "MotionGuard.INPUT"                sourceoffset = "@servosIndexBody"       targetoffset = "@servosIndexBody"       size = "@nrServosBody"/>
+        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "@servosIndexBody"       targetoffset = "@servosIndexBody"       size = "@nrServosBody"/>
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "@servosIndexHead"       targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "DegreesTomm.INPUT"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil"/>
         <connection source = "DegreesTomm.OUTPUT"  	        target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
