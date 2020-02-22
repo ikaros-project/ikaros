@@ -1481,7 +1481,7 @@ Module::GetInputSizeX(const char * input_name) // TODO: also used internally so 
         {
             if(i->sizex != unknown_size)
                 return i->sizex;
-            else if(kernel != NULL) // FIXME: remove thse conditions and use exception handling here instead
+            else if(kernel != NULL) // FIXME: remove these conditions and use exception handling here instead
                 return kernel->CalculateInputSizeX(i);
             else
                 break;
@@ -1615,21 +1615,14 @@ Module::Module(Parameter * p)
 	active = GetBoolValue("active", true);
     high_priority = GetBoolValue("high_priority", false);
 
-	// Compute full name - // FIXME: use new classes instead here
-	
-	char n[1024] = "";
-    const char * group[128];
-    int i=0;
-    for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
-        if(kernel->GetXMLAttribute(parent,"name") && i<100 && parent->parent != NULL)
-            group[i++] = kernel->GetXMLAttribute(parent, "name");
-    for(int j=i-1; j>=0; j--)
-    {
-        append_string(n, group[j], 1024);
-        if(j>0) append_string(n, ".", 1024);
-    }
-    full_instance_name = create_string(n);
+	// Compute full name
+    std::vector<std::string> path;
+    for (GroupElement * g = group; g->parent != NULL; g = g->parent) // Skip the outermost group name
+        path.push_back(g->GetAttribute("name"));
+    std::string s = join(".", path, true);
+    full_instance_name = create_string(s.c_str());
 }
+
 
 void
 Module::AddIOFromIKC()
@@ -2933,8 +2926,6 @@ Kernel::CalculateInputSizeY(Module_IO * i)
     return s;
 }
 
-
-
 /*
     Partition Graph:
 
@@ -3541,7 +3532,6 @@ Kernel::ListModulesAndConnections()
 void
 Kernel::ListBindings()
 {
-    return;
     Notify(msg_print, "\n");
     Notify(msg_print, "Bindings:\n");
     Notify(msg_print, "\n");
@@ -3897,12 +3887,16 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     {
                         case data_source_int:
                         case data_source_list:
+                            socket->Send("\t\t\"%s\": [[%d]]", source, *(int *)(b->value));
+                            break;
+
                         case data_source_bool:
+                            socket->Send("\t\t\"%s\": [[%d]]", source, int(*(bool *)(b->value)));
+                            break;
+
                         case data_source_float:
-                        {
                             socket->Send("\t\t\"%s\": [[%f]]", source, *(float *)(b->value));
                             break;
-                        }
 
                         case data_source_string:
                             socket->Send("\t\t\"%s\": \"%s\"", source, ((std::string *)(b->value))->c_str());
