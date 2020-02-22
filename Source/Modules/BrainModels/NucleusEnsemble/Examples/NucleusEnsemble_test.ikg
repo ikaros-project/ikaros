@@ -546,12 +546,12 @@
 			threshold = "0.4"
 			excitation_topology="all_to_all"
 			size="1"
-			debug="yes"
+			debug="no"
 		/>
 		<connection source = "Excitation.OUTPUT"  target = "Threshold_test.EXCITATION" />
 		<connection source = "Dopamine.OUTPUT"  target = "Threshold_test.DOPAMINE" />
 		<connection source = "Adenosine.OUTPUT"  target = "Threshold_test.ADENO_INPUT" />
-<view name="View #0" >
+<view name="View Threshold test" >
 	<text  x = "20" y = "0" height = "121" width = "481" title = "Default Title" parameter = "" text = "Threshold test" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
 	<plot  x = "20" y = "160" height = "200" width = "200" title = "Output" source = "Threshold_test.OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 	<plot  x = "240" y = "160" height = "200" width = "200" title = "Adenosine out" source = "Threshold_test.ADENO_OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
@@ -561,7 +561,66 @@
 	<slider-horizontal  x = "240" y = "380" height = "61" width = "181" title = "Ensemble threshold" parameter = "Threshold_test.threshold" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 	<slider-horizontal  x = "240" y = "440" height = "61" width = "181" title = "Ensemble baserate" parameter = "Threshold_test.alpha" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 </view>
-
+	</group>
+	<group name="NucleusEnsemble Noradrenaline test">
+		<description type="text">
+		- default instance: threshold - expect norad to inhibit below threshold, excite above
+		</description>
+		<module
+			class = "Constant"
+			name = "Excitation"
+			outputsize  = "1"
+			data  = "0.5"
+		/>
+		<module
+			class = "Constant"
+			name = "Dopamine"
+			outputsize  = "1"
+			data  = "0.0"
+		/>
+		<module
+			class = "Constant"
+			name = "Adenosine"
+			outputsize  = "1"
+			data  = "0.0"
+		/>
+		<module
+			class = "Constant"
+			name = "Noradrenaline"
+			outputsize  = "1"
+			data  = "0.5"
+		/>
+		<module
+			class = "Constant"
+			name = "NA_threshold"
+			outputsize  = "1"
+			data  = "0.4"
+		/>
+		<module
+			class = "NucleusEnsemble"
+			name = "Norad_test"
+			threshold = "0.4"
+			excitation_topology="all_to_all"
+			size="1"
+			debug="yes"
+		/>
+		<connection source = "Excitation.OUTPUT"  target = "Norad_test.EXCITATION" />
+		<connection source = "Dopamine.OUTPUT"  target = "Norad_test.DOPAMINE" />
+		<connection source = "Adenosine.OUTPUT"  target = "Norad_test.ADENO_INPUT" />
+		<connection source = "Noradrenaline.OUTPUT"  target = "Norad_test.NORADRENALINE" />
+		<connection source = "NA_threshold.OUTPUT"  target = "Norad_test.NA_THRESHOLD" />
+<view name="View Noradrenaline test" >
+	<text  show_frame = "false" height = "121" text = "Noradrenaline test" parameter = "" frame-style = "" show_title = "false" title = "Default Title" width = "481" style = "" y = "0" x = "20"/>
+	<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "1" min = "0" direction = "vertical" select = "" source = "Norad_test.OUTPUT" color = "" title = "Output" width = "200" show_frame = "false" height = "200" y = "160" x = "20"/>
+	<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "1" min = "0" direction = "vertical" select = "" source = "Norad_test.ADENO_OUTPUT" color = "" title = "Adenosine out" width = "200" show_frame = "false" height = "200" y = "160" x = "240"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Excitation.data" title = "Excitation" width = "181" show_frame = "false" height = "61" y = "380" x = "40"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Dopamine.data" title = "Dopamine" width = "181" show_frame = "false" height = "61" y = "440" x = "40"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Adenosine.data" title = "Adenosine" width = "181" show_frame = "false" height = "61" y = "500" x = "40"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Norad_test.threshold" title = "Ensemble threshold" width = "181" show_frame = "false" height = "61" y = "380" x = "240"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Norad_test.alpha" title = "Ensemble baserate" width = "181" show_frame = "false" height = "61" y = "440" x = "240"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Noradrenaline.data" title = "Noradrenaline" width = "181" show_frame = "false" height = "61" y = "560" x = "40"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "NA_threshold.data" title = "NA threshold" width = "181" show_frame = "false" height = "61" y = "620" x = "40"/>
+</view>
 
 	</group>
  

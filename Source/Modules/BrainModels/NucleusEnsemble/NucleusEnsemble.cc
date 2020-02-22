@@ -32,6 +32,7 @@
 using namespace ikaros;
 
 const float cDEFAULT_ADAPTRATE = 0.001f;
+const float cDEFAULT_NA_THRESHOLD = 0.5f; // 2020-02-22: arbitarily set for now
 void
 NucleusEnsemble::Init()
 {
@@ -67,6 +68,7 @@ NucleusEnsemble::Init()
 
     int dummy_sz_x;
     int dummy_sz_y;
+    int dummy_sz_z;
     io(ext_excitation_topology, dummy_sz_x, dummy_sz_y, "EX_TOPOLOGY");
     io(ext_inhibition_topology, dummy_sz_x, dummy_sz_y, "INH_TOPOLOGY");
     io(ext_shunting_topology, dummy_sz_x, dummy_sz_y, "SH_INH_TOPOLOGY");
@@ -98,6 +100,8 @@ NucleusEnsemble::Init()
 
     io(dopamine, dummy_sz_x, "DOPAMINE");
     io(adenosine_in, dummy_sz_y, "ADENO_INPUT");
+    io(noradrenaline, dummy_sz_z, "NORADRENALINE");
+    io(na_threshold, dummy_sz_x, "NA_THRESHOLD");
     threshold = create_array(ensemble_size);
     set_array(threshold, default_threshold, ensemble_size);
 
@@ -142,6 +146,8 @@ NucleusEnsemble::Tick()
     float *rec_sum = create_array(ensemble_size);
     float *dopa = create_array(ensemble_size);
     float *adeno = create_array(ensemble_size);
+    float *norad = create_array(ensemble_size);
+    float *na_thr = create_array(ensemble_size);
 
     if(excitation)
         multiply(exc_sum, excitation_topology, excitation, excitation_size, ensemble_size);
@@ -201,6 +207,19 @@ NucleusEnsemble::Tick()
             dopa[i] = sigma * dopamine[i]; // threshold reduction
     }
 
+    if(noradrenaline)
+    {
+        for (int i = 0; i < ensemble_size; i++)
+            norad[i] = noradrenaline[i]; // no modulation weight for now
+        if(na_threshold)
+            for (int i = 0; i < ensemble_size; i++)
+                na_thr[i] = na_threshold[i];
+        else
+            set_array(na_thr, cDEFAULT_NA_THRESHOLD, ensemble_size);
+        
+    }
+
+
     // calculate threshold
     for(int i = 0; i < ensemble_size; i++)
     {
@@ -220,8 +239,12 @@ NucleusEnsemble::Tick()
         
         a += tau * tau_scale * rec_sum[i];      // recursion
         a -= chi * chi_scale * inh_sum[i];      // inhibition
+        if (norad[i] >= na_thr[i])              // noradrenaline
+            a += norad[i];
+        else
+            a -= norad[i];
+        x[i] += epsilon * (a - x[i]);       // effect of previous
         
-        x[i] += epsilon * (a - x[i]);           // effect of previous
         float a_final = alpha + beta * (this->*Activate)(x[i]);
         if(a_final >= threshold[i])
             output[i] = a_final-threshold[i];
@@ -242,6 +265,9 @@ NucleusEnsemble::Tick()
         print_array("dopa", dopa, ensemble_size);
         print_array("adeno", adeno, ensemble_size);
         print_array("threshold", threshold, ensemble_size);
+        print_array("norad", norad, ensemble_size);
+        print_array("na_thr", na_thr, ensemble_size);
+        print_array("out", output, ensemble_size);
     }
     
 
