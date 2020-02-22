@@ -35,8 +35,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
     option_selected(index, value)
     {
+    //    if(this.parameters.parameter)
+    //        this.get("/control/"+this.parameters.parameter+"/"+index+"/0/"+value);
         if(this.parameters.parameter)
-            this.get("/control/"+this.parameters.parameter+"/"+index+"/0/"+value);
+            this.send_control_change(this.parameters.parameter, value)
     }
 
     changeOptions(options)
