@@ -102,6 +102,8 @@ public:
 
     float *     dopamine;
     float *     adenosine_in;
+    float *     noradrenaline;
+    float *     na_threshold;
     
     int			excitation_size;
     int			inhibition_size;

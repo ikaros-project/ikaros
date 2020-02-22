@@ -51,6 +51,8 @@
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
 	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
 	<input name="DOPAMINE" description="Lowers threshold to make excitation more likely - dopamine" optional="yes" />
+	<input name="NORADRENALINE" description="Inhibitive below NA threshold, excitative over (Maletic et al., 2017). " optional="yes" />
+	<input name="NA_THRESHOLD" description="NA threshold, should be [0,1] and simulates proportion of high affinity inhibitive receptors vs low affinity excitatory ones (Maletic et al., 2017). Default value=0.5" optional="yes" />
 	<input name="ADENO_INPUT" description="Inhibits threshold lowering - adenosine" optional="yes" />
 	<input name="SETPOINT" description="Activity setpoint - weights will be changed to maintain this. Ignored if not connected" optional="yes" />
 	<input name="ADAPTATIONRATE" description="Learning rate for weights when using activity setpoint" optional="yes" />
