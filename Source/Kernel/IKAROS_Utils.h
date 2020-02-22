@@ -44,9 +44,9 @@ bool	strend(const char * s1, const char * s2); // does 1s end with s2
 
 const std::vector<std::string> split_string(const std::string &c, const char &d);
 
-const std::vector<std::string>  split(const std::string & str, const std::string & sep = "", int maxsplit = -1);     // Python-like split
-const std::vector<std::string>  rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);    // Python-like rsplit
-std::string                     join(const std::string & separator, const std::vector<std::string> & v);             // Pyhon-like join
+const std::vector<std::string>  split(const std::string & str, const std::string & sep = "", int maxsplit = -1);            // Python-like split
+const std::vector<std::string>  rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);           // Python-like rsplit
+std::string                     join(const std::string & separator, const std::vector<std::string> & v, bool reverse =false);    // Pyhon-like join
 
 bool starts_with(const std::string & s, const std::string & start);
 

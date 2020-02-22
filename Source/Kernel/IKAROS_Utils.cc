@@ -317,15 +317,22 @@ rsplit(const std::string & str, const std::string & sep, int maxsplit)
 
 
 std::string
-join(const std::string & separator, const std::vector<std::string> & v)
+join(const std::string & separator, const std::vector<std::string> & v, bool reverse)
 {
     std::string s;
     std::string sep;
-    for (auto & e : v)
-    {
-        s += sep + e;
-        sep = separator;
-    }
+    if(reverse)
+        for (auto & e : v)
+        {
+            s = e + sep + s;
+            sep = separator;
+        }    
+    else
+        for (auto & e : v)
+        {
+            s += sep + e;
+            sep = separator;
+        }
     return s;
 }
 
