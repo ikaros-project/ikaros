@@ -81,6 +81,8 @@ public:
     int         max_motions;
     int         current_motion;
 
+    float *     lengths; // lengths of each recording
+
     int         position_data_max;
     int   *     position_data_count;
 

@@ -84,6 +84,8 @@ MotionRecorder::Init()
     state = GetOutputArray("STATE");
     *state = state_stop;
 
+    lengths = GetOutputArray("LENGTHS");
+
     time = GetOutputArray("TIME");
     timebase = GetTickLength();
     if(timebase == 0)
@@ -123,7 +125,6 @@ MotionRecorder::~MotionRecorder()
 void
 MotionRecorder::Command(std::string s, float x, float y, std::string value)
 {
-//    printf("##%s\n", s.c_str());
     if(s == "off")
         Off();
     else if (s == "stop")
@@ -428,6 +429,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 void
 MotionRecorder::Tick()
 {
+
     // TEST: Copy current data to webui output
     
     for(int c=0; c<2; c++)
@@ -448,7 +450,7 @@ MotionRecorder::Tick()
 
     reset_array(completed, max_motions);
 
-    if(trig) // FIXME: call rectord or play functions instead after setting current_motion
+    if(trig) // FIXME: call record or play functions instead after setting current_motion
     {
         if(record_on_trig)
         {
@@ -623,6 +625,9 @@ MotionRecorder::Tick()
 
     if(trig)
         copy_array(trig_last, trig, trig_size);
+
+    for(int i=0; i<max_motions; i++)   
+        lengths[i] = float(position_data_count[i]);
 }
 
 

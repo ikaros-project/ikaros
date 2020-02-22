@@ -42,6 +42,7 @@
 
     <output name="KEYPOINTS" description="The keypoint vectors" size_set_x="INPUT" size_param_y="position_data_max" />
     <output name="TIMESTAMPS" description="Timestamp in ms for each keypoint" size_x="1" size_param_y="position_data_max" />
+    <output name="LENGTHS" description="Lenghts of the recording" size_param="max_motions" />
 
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />
