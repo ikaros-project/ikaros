@@ -48,7 +48,7 @@ class WebUIWidget extends HTMLElement
         this.parameter_template = pt;        
      }
 
-   get(url, callback) // FIXME: This function should instead call the get funciton in webui.js to maintain update
+    get(url, callback) // FIXME: This function should instead call the get funciton in webui.js to maintain update
     {
         controller.get(url, controller.update);
         return;
