@@ -67,6 +67,7 @@ public:
 
     float **     mode; // record, play, hold, free in matrix format
     std::string  mode_string;
+    std::string  status_string;
     int          size;
 
     long        timebase;
@@ -80,6 +81,7 @@ public:
 
     int         max_motions;
     int         current_motion;
+
 
     float *     lengths; // lengths of each recording
 

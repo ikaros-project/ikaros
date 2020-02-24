@@ -38,6 +38,7 @@ MotionRecorder::Init()
 
     Bind(current_motion, "current_motion");
     Bind(mode_string, "mode_string");
+    Bind(status_string, "status_string");
     
     max_motions = GetIntValue("max_motions");
     current_motion = 0;
@@ -166,6 +167,7 @@ void
 MotionRecorder::Off()
 {
     mode_string = "Off";
+    status_string += "Set state: Off<br>";
     *state = state_off;
     copy_array(output, input, size); // Immediate no torque response even before the button is released
     for(int i=0; i<size; i++)
@@ -179,6 +181,8 @@ void
 MotionRecorder::Stop()
 {
     mode_string = "Stop";
+    status_string += "Set state: Stop<br>";
+
     *state = state_stop;
     
     for(int i=0; i<size; i++)
@@ -220,6 +224,7 @@ void
 MotionRecorder::Record()
 {
     mode_string = "Rec";
+    status_string += "Set state: Record<br>";
     *state = state_record;
     set_array(enable, 0, size); // disable all
 
@@ -243,7 +248,8 @@ MotionRecorder::Record()
 void
 MotionRecorder::Play()
 {
-    mode_string = "Play";
+    mode_string = "Play";    
+    status_string += "Set state: Play<br>";
     *state = state_play;
     *trig_out = 1;
 
@@ -309,7 +315,7 @@ MotionRecorder::SaveAsJSON()
     fprintf(f, "\t}\n]\n");
     fclose(f);
 
-    printf("Saved: %d\n", current_motion);
+    printf("Saved JSON: %d\n", current_motion);
 }
 
 
@@ -319,6 +325,9 @@ MotionRecorder::Save()
 {
     *state = state_stop;
     mode_string = "Stop";
+    status_string += "Set state: Stop<br>";
+
+    printf("%s\n", status_string.c_str());
 
     if(file_name)
     {
@@ -370,6 +379,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
 {
     *state = state_stop;
     mode_string = "Stop";
+    status_string += "Set state: Stop<br>";
     char fname[1024];
 
     snprintf(fname, 1023, file_name, current_motion);
@@ -419,7 +429,7 @@ MotionRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRE
     
     fclose(f);
 
-    //printf("Loaded: %d\n", current_motion);
+    printf("Loaded: %d\n", current_motion);
     
     *time = 0;
 }
@@ -601,6 +611,7 @@ MotionRecorder::Tick()
             completed[current_motion] = 1;
             *state = state_stop;
             mode_string = "Stop";
+            status_string += "Set state: Stop\n";
 //            copy_array(stop_position, input, size);
             for(int i=0; i< size; i++)
             {
