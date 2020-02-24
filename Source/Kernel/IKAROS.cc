@@ -1348,7 +1348,9 @@ Module::Bind(std::string & v, const char * n)
 {
     // TODO: check type here
     v = std::string(GetValue(n));
-    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_string, &v, 0, 0));
+    auto p = std::string(full_instance_name)+"."+std::string(n);
+    auto b = new Binding(this, n, bind_string, &v, 0, 0);
+    kernel->bindings[p].push_back(b);
 }
 
 
