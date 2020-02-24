@@ -1347,7 +1347,11 @@ void
 Module::Bind(std::string & v, const char * n)
 {
     // TODO: check type here
-    v = std::string(GetValue(n));
+    auto x = GetValue(n);   // FIXME: temoprary; GetValue should never return NULL
+    if(!x)
+        v = std::string("");
+    else
+        v = std::string(x);
     auto p = std::string(full_instance_name)+"."+std::string(n);
     auto b = new Binding(this, n, bind_string, &v, 0, 0);
     kernel->bindings[p].push_back(b);
