@@ -25,7 +25,7 @@
 //
 
 #include "Expression.h"
-
+#include <regex>
 // use the ikaros namespace to access the math library
 // this is preferred to using math.h
 
@@ -35,6 +35,13 @@ Expression::Expression(Parameter * p):
     Module(p)
 {
     expression_str = GetValue("expression");
+    // replace 'lt', 'gt', lte' and 'gte' with < > <= >=
+    //myReplace(expression_str, "lt", "<");
+    expression_str = do_replace(expression_str, "lt", "<");
+    expression_str = do_replace(expression_str.c_str(), "gt", ">");
+    expression_str = do_replace(expression_str.c_str(), "lte", "<=");
+    expression_str = do_replace(expression_str.c_str(), "lte", ">=");
+
     std::string inputs = GetValue("inputs");
     // std::string output = GetValue("output");
     
@@ -111,6 +118,26 @@ Expression::Init()
 }
 
 
+
+
+
+std::string 
+Expression::do_replace( const std::string & in, const std::string & from,  const std::string & to )
+{
+  return std::regex_replace( in, std::regex(from), to );
+}
+
+void 
+Expression::myReplace(std::string& str,
+               const std::string& oldStr,
+               const std::string& newStr)
+{
+  std::string::size_type pos = 0u;
+  while((pos = str.find(oldStr, pos)) != std::string::npos){
+     str.replace(pos, oldStr.length(), newStr);
+     pos += newStr.length();
+  }
+}
 
 Expression::~Expression()
 {

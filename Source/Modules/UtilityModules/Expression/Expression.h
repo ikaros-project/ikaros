@@ -37,7 +37,10 @@ public:
     void        SetSizes();
     void 		Init();
     void 		Tick();
-
+    std::string do_replace( const std::string & in, const std::string & from,  const std::string & to );
+    void myReplace(std::string& str,
+               const std::string& oldStr,
+               const std::string& newStr);
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
