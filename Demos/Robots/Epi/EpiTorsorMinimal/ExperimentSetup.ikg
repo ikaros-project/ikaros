@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<group name="Experimental setup">
+
+	<!-- Importing Epi Green -->
+	<module class = "EpiTorsorMinimal" name = "EpiGreen" />
+
+</group>

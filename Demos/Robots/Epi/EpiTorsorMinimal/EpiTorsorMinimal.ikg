@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+
+<!-- 
+Serial ports (servos):
+Typical:
+Linux
+HeadSerialDevice = "/dev/ttyXXXX" 
+OSX: 
+HeadSerialDevice = "/dev/cu_XXXX" 
+
+Servo mode:
+The system can simulate the servos to be able to run the simulation without the robot. 
+The feedback from the servoes is very limited. The goal position sent to the simulated servos is used as feedback position. 
+The rest of the feedback channels (feedback speed, current, load etc. is just zeros).
+
+Use Robot servos:
+HeadDynamixel = "Dynamixel"
+PupilDynamixel = "Dynamixel"
+Use simlated servos:
+HeadDynamixel = "DynamixelSimulate"
+PupilDynamixel = "DynamixelSimulate"
+
+
+Vision input mode:
+The vision input can also be simulated by instead of the camera stream read a local image from file (NoCamera.jpg).
+From video stream:
+VisionInputLeft = "InputVideoStream"
+VisionInputRight = "InputVideoStream"
+
+From local image:
+VisionInputLeft = "InputJPEG"
+VisionInputRight = "InputJPEG"
+
+servoIndex and nrServoes is used internally to handle the array of servos. Do not change these values.
+-->
+
+<group name="Epi" 
+
+HeadSerialDevice = "/dev/ttyHEAD" 
+PupilSerialDevice = "/dev/ttyPUPIL"
+
+HeadDynamixel = "DynamixelSimulate"
+PupilDynamixel = "DynamixelSimulate"
+
+VisionInputLeft = "InputJPEG"
+VisionInputRight = "InputJPEG"
+
+servosIndexHead = "0"
+servosIndexPupil = "4"
+servosIndexPupilLeft = "4"
+servosIndexPupilRight = "5"
+nrServosPupil = "2"
+nrServosHead = "4"
+nrServosTotal = "6"
+
+>
+
+	<!-- 			Motion recorder 		-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	
+	<!-- This module controls the robot. The motion recoder can record movments of the head, eyes, pupils size and colors of the eyes and mounth. -->
+	<module
+	class = "MotionRecorder"
+	name = "MotionRecorder"
+	filename = "Actions/motion.%d.mot"
+	json_filename = "Actions/motion.%d.json"
+	smoothing_time = "40" 
+	max_motions="20" 
+	/>
+
+	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->
+	<!-- Feedback from neck and eyes (not pupil)-->
+	<connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "0" size = "2"/>	
+
+	<!-- Eye direction with vergence effect -->
+	<module class = "Constant" name = "EyesDirection"	data = "0" />
+	<module class = "Constant" name = "EyesVergence"	data = "10" />
+	<module class = "Constant" name = "EyesVergenceMultiply"	data = "-1" />
+	<module class = "Multiply" name = "MultiplyVergence"/>
+		<connection  source = "EyesVergence.OUTPUT"  target = "MultiplyVergence.INPUT1"/>	
+		<connection  source = "EyesVergenceMultiply.OUTPUT"  target = "MultiplyVergence.INPUT2"/>	
+	<module class = "Add" name = "EyesDirectionVergence"/>
+		<connection  source = "EyesDirection.OUTPUT"  target = "EyesDirectionVergence.INPUT1"  sourceoffset = "0" targetoffset = "0" size = "1"/>	
+		<connection  source = "EyesDirection.OUTPUT"  target = "EyesDirectionVergence.INPUT1"  sourceoffset = "0" targetoffset = "1" size = "1"/>	
+		<connection  source = "EyesVergence.OUTPUT"  target = "EyesDirectionVergence.INPUT2"  sourceoffset = "0" targetoffset = "0" size = "1"/>	
+		<connection  source = "MultiplyVergence.OUTPUT"  target = "EyesDirectionVergence.INPUT2"  sourceoffset = "0" targetoffset = "1" size = "1"/>	
+
+	<connection  source = "EyesDirectionVergence.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "2" size = "2"/>	
+
+	<module class = "Constant" name = "PupilInMM"	data = "10" />
+		<connection  source = "PupilInMM.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "4" size = "1"/>	
+		<connection  source = "PupilInMM.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "5" size = "1"/>	
+
+	<connection  source = "EyesColorRGB.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "6" size = "3"/>	
+	<connection  source = "EyesColorRGB.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "9" size = "3"/>	
+	<connection  source = "MouthColorRGB.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "12" size = "3"/>	
+
+	<connection  source = "EyesIntensity.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "15" size = "1"/>	
+	<connection  source = "EyesIntensity.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "16" size = "1"/>	
+	<connection  source = "MouthIntensity.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "17" size = "1"/>	
+
+	<!-- Send Torque enable (on/off) and goal position (Pupil size in mm, the rest of the servos in degrees) of the servos.-->
+	<connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "6"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "6"/>
+	
+	<!-- Sending Eye color, mounth color and instensity. THIS IS WRONG ORDER! -->
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "7" targetoffset = "0" size = "3"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_COLOR" 		sourceoffset = "10" targetoffset = "0" size = "3"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "11" targetoffset = "0" size = "1"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_INTENSITY" 	sourceoffset = "12" targetoffset = "0" size = "1"/>
+
+
+	<!-- 			Motor control 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- Servo paramters Format -->
+	<!-- NeckTilt NeckPan LeftEye RightEye -->
+	<!-- LeftPupil RightPupil -->
+
+	<!-- Set torque limit of the servos. Setting value to 1 will use the most torque but the motion may be gerky. Often a lower value is better. -->
+	<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.8 0.8 0.8 0.8 0.8 0.8" />
+
+	<!-- 			Sensors		 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- The camera in the eyes are sending a network stream of h.264 that can be decoded using the ffmpeg library. 
+	By setting the VisionInputLeft/Right variable a local image can be used instaed of the viseo stream. -->
+	<module class = "EpiVision" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg" 	VisionInput = "@VisionInputLeft"/>
+	<module class = "EpiVision" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg" 	VisionInput = "@VisionInputRight"/>
+
+	<!-- Actuators/Proprioception -->
+	<module class = "EpiServos" 	name = "Servos" />
+		<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
+
+	<!-- 			Sound		 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- The robot can "speak" by playing mp3 files. -->
+
+	<module
+	    class = "SoundOutput"
+		name = "SoundOutput"
+		sounds  = "Sounds/ok2.mp3"
+        command = "afplay" 
+	/>	
+		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
+	<module class = "Constant" name = "SoundTrigger" data = "0" />
+
+	<!-- 			LED			 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- The color and intensity of both the eyes and mounth can be controlled.-->
+	
+	<!-- Eye Color RGB-->
+	<module class = "Constant" name = "EyesColorRGB" data = "0.8 0.7 0.1" />
+	<_connection source = "EyesColorRGB.OUTPUT"  target = "LED.EYE_COLOR" />
+
+	<!-- Mouth Color RGB -->
+	<module class = "Constant" name = "MouthColorRGB" data = "0.8 0.7 0.1" />
+	<_connection source = "MouthColorRGB.OUTPUT"  target = "LED.MOUTH_COLOR" />
+
+	<!-- Intensity -->
+	<module class = "Constant" name = "EyesIntensity" data = "0.3" />
+		<_connection source = "EyesIntensity.OUTPUT"  target = "LED.EYE_INTENSITY" />
+	<module class = "Constant" name = "MouthIntensity" data = "0.3" />
+		<_connection source = "MouthIntensity.OUTPUT"  target = "LED.MOUTH_INTENSITY" />
+	
+	<module class = "EpiLed" name = "LED" />
+
+	<!-- Speeking -->
+	<module class =	"FunctionGenerator" name =	"Speek" type =	"sin" frequency =	"10"
+		offset      =	"0.5" amplitude =	"0" shift =	"0.1" />
+	<connection source = "Speek.OUTPUT"  target = "LED.SPEEKING" />
+
+
+	<!-- This is the main view of the robot. Fromo this view you record and play motions of the robot. 
+	The xml can be edited to custimize the view but using the webUI and copy XML features are easier. -->
+
+<view name="Main view" >
+	<text  parameter = "" x = "120" show_frame = "false" height = "201" text = " " frame-style = "" title = "Default Title" width = "821" show_title = "false" style = "border:1px solid gray; text-align:center;font-size:12px;background-color:#EEEEEF;" y = "460"/>
+	<text  parameter = "" x = "10" show_frame = "false" height = "441" text = " " frame-style = "" title = "Default Title" width = "121" show_title = "false" style = "border:1px solid gray; text-align:center;font-size:12px;background-color:#EEEEEF;" y = "10"/>
+	<text  y = "40" style = "font-weight:bold; text-align:center" show_title = "false" width = "101" title = "Default Title" frame-style = "" text = "" height = "41" show_frame = "false" x = "20" parameter = "MotionRecorder.mode_string"/>
+	<table  style = "" x = "20" title = "time" show_title = "false" height = "41" show_frame = "false" width = "101" label_x = "" label_y = "" y = "80" direction = "normal" scrollable = "false" colorize = "true" decimals = "0" source = "MotionRecorder.TIME" frame-style = ""/>
+	<plot  y = "20" style = "" height = "441" show_frame = "false" x = "140" buffer_size = "100" min = "-180" source = "MotionRecorder.OUTPUT" select = "" direction = "vertical" max = "180" frame-style = "" color = "black" title = "Joints" width = "321" show_title = "false"/>
+	<grid  show_frame = "false" min = "0" valueHigh = "1" title = "" max_y = "1" color = "" flipXAxis = "no" labels = "off, stop, play, record" flipYAxis = "no" width = "821" blue = "" size = "0.75" flipYCanvas = "no" height = "101" fill = "custom" green = "" x = "120" lineWidth = "1" shape = "circle" source = "MotionRecorder.MODE" command = "MotionRecorder.toggle" show_title = "false" labelWidth = "40" scales = "no" flipXCanvas = "no" min_y = "0" y = "500" frame-style = "" parameter = "" max_x = "1" red = "" max = "1" valueLow = "0" min_x = "0" colorTable = "white,green" style = ""/>
+	<grid  show_frame = "false" min = "0" valueHigh = "1" title = "" max_y = "1" color = "" flipXAxis = "no" labels = "torque" flipYAxis = "no" width = "821" blue = "" size = "0.75" flipYCanvas = "no" height = "41" fill = "custom" green = "" x = "120" lineWidth = "1" shape = "circle" source = "MotionRecorder.ENABLE" command = "" show_title = "false" labelWidth = "40" scales = "no" flipXCanvas = "no" min_y = "0" y = "600" frame-style = "" parameter = "" max_x = "1" red = "" max = "1" valueLow = "0" min_x = "0" colorTable = "white,red" style = ""/>
+	<button  height = "41" show_frame = "false" style = "" xindex = "0" frame-style = "" valueUp = "0" yindex = "0" label = "Off" x = "20" value = "1" enableSource = "" parameter = "" command = "MotionRecorder.off" y = "120" commandUp = "" show_title = "false" title = "Title" width = "101"/>
+	<button  height = "41" show_frame = "false" style = "" xindex = "0" frame-style = "" valueUp = "0" yindex = "0" label = "Stop" x = "20" value = "1" enableSource = "" parameter = "" command = "MotionRecorder.stop" y = "160" commandUp = "" show_title = "false" title = "Title" width = "101"/>
+	<button  height = "41" show_frame = "false" style = "" xindex = "0" frame-style = "" valueUp = "0" yindex = "0" label = "Record" x = "20" value = "1" enableSource = "" parameter = "" command = "MotionRecorder.record" y = "200" commandUp = "" show_title = "false" title = "Title" width = "101"/>
+	<button  height = "41" show_frame = "false" style = "" xindex = "0" frame-style = "" valueUp = "0" yindex = "0" label = "Play" x = "20" value = "1" enableSource = "" parameter = "" command = "MotionRecorder.play" y = "240" commandUp = "" show_title = "false" title = "Title" width = "101"/>
+	<button  height = "41" show_frame = "false" style = "" xindex = "0" frame-style = "" valueUp = "0" yindex = "0" label = "Load" x = "20" value = "1" enableSource = "" parameter = "" command = "MotionRecorder.load" y = "340" commandUp = "" show_title = "false" title = "Title" width = "101"/>
+	<button  height = "41" show_frame = "false" style = "" xindex = "0" frame-style = "" valueUp = "0" yindex = "0" label = "Save" x = "20" value = "1" enableSource = "" parameter = "" command = "MotionRecorder.save" y = "380" commandUp = "" show_title = "false" title = "Title" width = "101"/>
+	<drop-down-menu  style = "" list_parameter = "" label = "" labelWidth = "50" show_frame = "false" height = "41" x = "15" show_title = "false" list = "motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19" parameter = "MotionRecorder.current_motion" frame-style = "" index = "0" width = "123" title = "motion" y = "290"/>
+	<text  y = "640" style = "" show_title = "false" width = "761" title = "Default Title" frame-style = "" text = " 1       2       3       4       5       6       7       8       9      10     11     12     13     14     15     16     17     18     19" height = "21" show_frame = "false" x = "180" parameter = ""/>
+	<text  y = "460" style = "border-bottom:5px solid black; text-align:center;font-size:12px;" show_title = "false" width = "101" title = "Default Title" frame-style = "" text = "Head" height = "21" show_frame = "false" x = "200" parameter = ""/>
+	<text  y = "460" style = "border-bottom:5px solid black; text-align:center;font-size:12px;" show_title = "false" width = "101" title = "Default Title" frame-style = "" text = "Eyes" height = "21" show_frame = "false" x = "320" parameter = ""/>
+	<text  y = "460" style = "border-bottom:5px solid black; text-align:center;font-size:12px;" show_title = "false" width = "101" title = "Default Title" frame-style = "" text = "Pupil" height = "21" show_frame = "false" x = "440" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "P" height = "21" show_frame = "false" x = "280" parameter = ""/>
+	<text  y = "580" style = "font-size:10px;text-align:center;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "T" height = "21" show_frame = "false" x = "240" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "H" height = "21" show_frame = "false" x = "680" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "H" height = "21" show_frame = "false" x = "920" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "LE" height = "21" show_frame = "false" x = "320" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "RE" height = "21" show_frame = "false" x = "360" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "RP" height = "21" show_frame = "false" x = "440" parameter = ""/>
+	<text  y = "580" style = "text-align:center;font-size:10px;" show_title = "false" width = "21" title = "Default Title" frame-style = "" text = "LP" height = "21" show_frame = "false" x = "400" parameter = ""/>
+	<button  commandUp = "" height = "81" show_frame = "false" title = "Okey" width = "241" command = "" y = "380" parameter = "SoundTrigger.data" frame-style = "" valueUp = "0" yindex = "0" label = "Okey" value = "1" x = "840" xindex = "0" enableSource = "" show_title = "false" style = ""/>
+	<epi-head  irisLeftIntensity = "EyesIntensity.OUTPUT" style = "" irisColor = "#88aaff" show_title = "false" fill = "white" visibleFace = "true" visibleSource = "" show_frame = "false" height = "241" motionRecorderInput = "" headPosition = "" pupil = "0.5" pupilRightSource = "PupilInMM.OUTPUT" irisRightRGB = "EyesColorRGB.OUTPUT" visibleFaceParameter = "" earColor = "#0088ff" width = "181" mouthColor = "#000000" mouthIntensity = "MouthIntensity.OUTPUT" gazeSource = "EyesDirectionVergence.OUTPUT" y = "20" frame-style = "" pupilInMM = "11" irisRightIntensity = "EyesIntensity.OUTPUT" gaze = "0" pupilLeftSource = "PupilInMM.OUTPUT" irisLeftRGB = "EyesColorRGB.OUTPUT" vergence = "0" color = "black" title = "Epi Head" mouthRGB = "MouthColorRGB.OUTPUT" x = "460"/>
+	<slider-horizontal  width = "241" height = "61" show_frame = "false" x = "840" show_value = "true" show_title = "true" y = "200" count = "1" parameter = "EyesDirection.data" label = "Eye direction" module = "EyesDirection" step = "1" max = "40" select = "0" show_values = "true" style = "" labels = "" title = "Eyes direction" frame-style = "" min = "-40"/>
+	<slider-horizontal  width = "241" height = "61" show_frame = "false" x = "840" show_value = "true" show_title = "true" y = "260" count = "1" parameter = "PupilInMM.data" label = "Pupil size" module = "PupilInMM" step = "1" max = "18" select = "0" show_values = "true" style = "" labels = "" title = "Pupil size" frame-style = "" min = "6"/>
+	<slider-horizontal  width = "121" height = "121" show_frame = "false" x = "840" show_value = "true" show_title = "true" y = "20" count = "3" parameter = "EyesColorRGB.data" label = "Color" module = "EColor" step = "0.1" max = "1" select = "0" show_values = "false" style = "" labels = "" title = "Color Eyes" frame-style = "" min = "0"/>
+	<slider-horizontal  width = "121" height = "121" show_frame = "false" x = "960" show_value = "true" show_title = "true" y = "20" count = "3" parameter = "MouthColorRGB.data" label = "Color" module = "MColor" step = "0.1" max = "1" select = "0" show_values = "false" style = "" labels = "" title = "Color Mouth" frame-style = "" min = "0"/>
+	<slider-horizontal  width = "121" height = "61" show_frame = "false" x = "960" show_value = "true" show_title = "true" y = "140" count = "1" parameter = "MouthIntensity.data" label = "Color" module = "MouthIntensity" step = "0.1" max = "1" select = "0" show_values = "false" style = "" labels = "" title = "Intensity Mounth" frame-style = "" min = "0"/>
+	<slider-horizontal  width = "121" height = "61" show_frame = "false" x = "840" show_value = "true" show_title = "true" y = "140" count = "1" parameter = "EyesIntensity.data" label = "Color" module = "EyesIntensity" step = "0.1" max = "1" select = "0" show_values = "false" style = "" labels = "" title = "Intensity Eyes" frame-style = "" min = "0"/>
+	<slider-horizontal  width = "241" height = "61" show_frame = "false" x = "840" show_value = "true" show_title = "true" y = "320" count = "1" parameter = "EyesVergence.data" label = "Eye direction" module = "EyesDirection" step = "1" max = "20" select = "0" show_values = "true" style = "" labels = "" title = "Eyes Vergence" frame-style = "" min = "-20"/>
+	<epi-head  style = "" irisColor = "#88aaff" show_title = "false" fill = "white" visibleFace = "true" visibleSource = "" show_frame = "false" height = "241" motionRecorderInput = "MotionRecorder.OUTPUT" headPosition = "" pupil = "0.5" pupilRightSource = "" irisRightRGB = "" visibleFaceParameter = "" irisLeftInt = "" earColor = "#0088ff" width = "181" mouthColor = "#000000" mouthIntensity = "" gazeSource = "" y = "20" frame-style = "" pupilInMM = "11" irisRightIntensity = "" gaze = "0" pupilLeftSource = "" irisLeftRGB = "" vergence = "0" color = "black" title = "Epi Head" mouthRGB = "" x = "660" irisLeftIntensity = ""/>
+</view>
+
+
+
+
+	
+</group>
