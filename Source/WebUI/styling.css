@@ -605,7 +605,7 @@ header button:active, aside button:hover {
 }
 
 .vranger input[type=range] {
-    -webkit-appearance: none; /*removes default webkit styles*/
+    -webkit-appearance: slider-vertical; /*removes default webkit styles*/
     width: 100%;
     height: 16px;
     border: 1px solid purple;
@@ -613,15 +613,18 @@ header button:active, aside button:hover {
 }
 
 .vranger input[type=range]::-webkit-slider-runnable-track {
+/*
     height: 7px;
     background-image: -webkit-linear-gradient(top, #555, #aaa);
     border: 1px solid #ddd;
     border-radius: 13px;
     border: 1px solid blue;
+*/
     width:400px;
 }
 
 .vranger input[type=range]::-webkit-slider-thumb {
+/*
     -webkit-appearance: none;
     border: none;
     height: 19px;
@@ -632,6 +635,7 @@ header button:active, aside button:hover {
     margin-top: -7px;
     box-shadow: -2px 2px 5px #888888;
     border: 1px solid red;
+*/
 }
 
 
