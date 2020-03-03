@@ -36,14 +36,14 @@ servoIndex and nrServoes is used internally to handle the array of servos. Do no
 
 <group name="Epi" 
 
-HeadSerialDevice = "/dev/ttyHEAD" 
-PupilSerialDevice = "/dev/ttyPUPIL"
+HeadSerialDevice = "/dev/cu.usbserial-FT3WI37F" 
+PupilSerialDevice = "/dev/cu.usbserial-FT3WKHCT"
 
-HeadDynamixel = "DynamixelSimulate"
-PupilDynamixel = "DynamixelSimulate"
+HeadDynamixel = "Dynamixel"
+PupilDynamixel = "Dynamixel"
 
-VisionInputLeft = "InputJPEG"
-VisionInputRight = "InputJPEG"
+VisionInputLeft = "InputVideoStream"
+VisionInputRight = "InputVideoStream"
 
 servosIndexHead = "0"
 servosIndexPupil = "4"
@@ -105,11 +105,11 @@ nrServosTotal = "6"
 	<connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "6"/>
 	<connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "6"/>
 	
-	<!-- Sending Eye color, mounth color and instensity. THIS IS WRONG ORDER! -->
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "7" targetoffset = "0" size = "3"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_COLOR" 		sourceoffset = "10" targetoffset = "0" size = "3"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "11" targetoffset = "0" size = "1"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_INTENSITY" 	sourceoffset = "12" targetoffset = "0" size = "1"/>
+	<!-- Sending Eye color, mounth color and instensity. -->
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "6" targetoffset = "0" size = "3"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_COLOR" 		sourceoffset = "12" targetoffset = "0" size = "3"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "15" targetoffset = "0" size = "1"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_INTENSITY" 	sourceoffset = "17" targetoffset = "0" size = "1"/>
 
 
 	<!-- 			Motor control 			-->
