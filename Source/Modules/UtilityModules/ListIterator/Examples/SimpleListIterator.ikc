@@ -8,9 +8,9 @@
  		<parameter name="period" module="SquareGen" target="basetime" default="1" /> 
  
  	<!--Inputs and outputs-->
-	 	<output name="OUTPUT" sourcemodule = "ListIterator" source = "OUTPUT" set_size="1"/>
-	 	<output name="EPOCH_OUT" sourcemodule = "ListIterator" source = "SYNC OUTPUT" set_size="1"/>
-	 	<output name="SYNC_OUT" sourcemodule = "SquareGen" source = "OUTPUT" set_size="1"/>
+	 	<output name="OUTPUT" sourcemodule = "ListIterator" source = "OUTPUT" size="1"/>
+	 	<output name="EPOCH_OUT" sourcemodule = "ListIterator" source = "SYNC OUTPUT" size="1"/>
+	 	<output name="SYNC_OUT" sourcemodule = "SquareGen" source = "OUTPUT" size="1"/>
 
  
  	

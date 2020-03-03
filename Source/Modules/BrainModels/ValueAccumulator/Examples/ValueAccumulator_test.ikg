@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+    <module
+        class="FunctionGenerator"
+        name="L"
+        type = "ticksquare"
+        basetime = "200"
+        tickduty = "50"
+        amplitude = "1.0"
+    />
+
+
+	<module
+		class = "Nucleus"
+		name = "N1"
+        epsilon = "0.05"
+	/>
+	
+	<module
+		class = "Nucleus"
+		name = "N2"
+        epsilon = "0.05"
+	/>
+	
+	<module
+		class = "Nucleus"
+		name = "N3"
+        epsilon = "0.05"
+	/>
+	
+	<connection  source = "L.OUTPUT"  target = "N1.EXCITATION" delay="10"/>
+	<connection  source = "N1.OUTPUT"  target = "N2.EXCITATION" />
+	<connection  source = "N2.OUTPUT"  target = "N3.EXCITATION" />
+
+	<view name="View">
+        <plot
+            x="40" y="40"
+            width="301"
+            height="301"
+            module="L"
+            source="L.OUTPUT"
+            title = "L"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="340"
+            width="301"
+            height="301"
+            module="N1"
+            source="N1.OUTPUT"
+            title = "N1"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="640"
+            width="301"
+            height="301"
+            module="N2"
+            source="N2.OUTPUT"
+            title = "N2"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+		<plot
+            x="40" y="940"
+            width="301"
+            height="301"
+            module="N3"
+            source="N3.OUTPUT"
+            title = "N3"
+            _labels = "A, B, C, D, E, F, G"
+            style = ""
+        />
+	</view>
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
