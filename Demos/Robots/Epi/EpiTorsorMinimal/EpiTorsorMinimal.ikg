@@ -68,6 +68,8 @@ nrServosTotal = "6"
 	json_filename = "Actions/motion.%d.json"
 	smoothing_time = "40" 
 	max_motions="20" 
+	torque_on_record = "0 0 1 1 1 1" 
+
 	/>
 
 	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->
