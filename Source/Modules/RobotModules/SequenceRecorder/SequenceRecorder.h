@@ -25,21 +25,6 @@
 
 #include "IKAROS.h"
 
-class MotionTrack
-{
-public:
-    MotionTrack(int no_of_channels);
-    ~MotionTrack();
-    
-    void        AppendKeypoint(float * positions, float * torque, float * enable, float time);  // Add keypoint to the end of the array
-    void        GetPosition(float * positions, float * torque, float * enable, float time);     // Interpolate
-    
-    std::string WriteJSON();
-    void        ReadJSON(std::string json);
-};
-
-
-
 class SequenceRecorder: public Module
 {
 public:
@@ -51,41 +36,44 @@ public:
     void 		Init();
     void 		Tick();
 
-    void        SetOutputs(float * position);
-
     // Commands
 
     void        Command(std::string s, float x, float y, std::string value);
 
-    void        ToggleMode(int channel, int y);
+    void        ToggleMode(int x, int y);
     void        Off();
     void        Stop();
     void        Record();
     void        Play();
     void        SaveAsJSON();
-    void        Save();
-    void        Load();
-    
+    void 		Save();
+    void 		Load();
+
     float *     trig;
     float *     trig_last;
     int         trig_size;
     float *     trig_out;
     
-    float *     run_mode;
-    float **     channel_mode; // record, play, hold, free in matrix format
-    std::string  run_mode_string;
-    float *     completed;  // FIXME: brackets: start, ongoing, completed AND trigs?
+    float *     state;
+    float *     completed;
 
     float *     input;
     float *     output;
 
+    float *     positions;
+
     int         smoothing_time; // for torque and position
     float *     stop_position;
     float *     start_position;
-    float *     lock_position;
     float *     start_torque;
 
-    int          size;
+    float **     mode; // record, play, hold, free in matrix format
+    std::string  mode_string;
+    std::string  status_string;
+
+    int         size;
+    int         input_size;
+    int         output_size;
 
     long        timebase;
 
@@ -98,6 +86,8 @@ public:
 
     int         max_motions;
     int         current_motion;
+
+    float *     lengths; // lengths of each recording
 
     int         position_data_max;
     int   *     position_data_count;
@@ -112,7 +102,6 @@ public:
 
     bool        record_on_trig;
     bool        auto_save;
-
 };
 
 #endif
