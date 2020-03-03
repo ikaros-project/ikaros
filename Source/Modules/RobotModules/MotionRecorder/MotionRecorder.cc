@@ -180,10 +180,7 @@ void
 MotionRecorder::Stop()
 {
     mode_string = "Stop";
-
-
-    *state = state_stop;
-    
+    // don't set stop state here
     for(int i=0; i<size; i++)
         if(mode[mode_stop][i] == 1)
             stop_position[i] = start_position[i]; // Never set new position for stoppped channel
