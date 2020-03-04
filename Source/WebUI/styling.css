@@ -143,7 +143,7 @@ select {
 
 nav {
     padding: 10px;
-    background: white;
+    background: #38383A;
     border-right: 1px solid gray;
     font: 12px Arial, sans-serif;
 }
@@ -160,7 +160,7 @@ li {
     text-overflow: ellipsis;
     padding:1px 1px 1px 20px;
     cursor: pointer;
-    color: black;
+    color: #eee;
 }
 
 li.group-open::before {
