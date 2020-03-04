@@ -16,7 +16,6 @@
 <!-- Intense -->
 <module class = "Scale" name = "EyeIntensity" />
 
-
 <!-- Send to fadecandy -->
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED"	    targetoffset = "0" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED"	    targetoffset = "1" size = "1"/>
@@ -30,18 +29,18 @@
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED"	    targetoffset = "9" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED"	    targetoffset = "10" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED"	    targetoffset = "11" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "0" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "1" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "2" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "3" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "4" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "5" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "6" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "7" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "8" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "9" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "10" size = "1" />
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	targetoffset = "11" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "0" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "1" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "2" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "3" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "4" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "5" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "6" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "7" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "8" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "9" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "10" size = "1" />
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.LEFT_EYE_GREEN"	    targetoffset = "11" size = "1" />
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE"	    targetoffset = "0" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE"	    targetoffset = "1" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.LEFT_EYE_BLUE"	    targetoffset = "2" size = "1"/>
@@ -66,30 +65,30 @@
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED"	    targetoffset = "9" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED"	    targetoffset = "10" size = "1"/>
 <connection source = "EyeIntensity.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED"	    targetoffset = "11" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "0" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "1" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "2" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "3" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "4" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "5" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "6" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "7" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "8" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "9" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "10" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	targetoffset = "11" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	targetoffset = "0" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	targetoffset = "1" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	targetoffset = "2" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	targetoffset = "3" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "4" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "5" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "6" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "7" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "8" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "9" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "10" size = "1"/>
-<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"   targetoffset = "11" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "0" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "1" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "2" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "3" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "4" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "5" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "6" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "7" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "8" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "9" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "10" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "1" target = "FadeCandy.RIGHT_EYE_GREEN"	    targetoffset = "11" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	    targetoffset = "0" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	    targetoffset = "1" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	    targetoffset = "2" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"	    targetoffset = "3" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "4" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "5" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "6" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "7" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "8" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "9" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "10" size = "1"/>
+<connection source = "EyeIntensity.OUTPUT"  sourceoffset = "2" target = "FadeCandy.RIGHT_EYE_BLUE"      targetoffset = "11" size = "1"/>
 
 
 
@@ -109,11 +108,7 @@
     <connection source = "MouthArbiter.OUTPUT" target = "MouthIntensity.INPUT"/>
     <input name = "MOUTH_INTENSITY" target = "MouthIntensity.SCALE" />
 
-
-
-
 <!-- Send to fadecandy -->
-
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "0" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "1" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "2" size = "1"/>
@@ -122,30 +117,30 @@
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "5" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "6" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "7" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "0" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "1" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "2" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "3" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "4" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "5" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "6" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	targetoffset = "7" size = "1" />
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "0" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "1" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "2" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "3" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "4" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "5" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "6" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	targetoffset = "7" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "0" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "1" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "2" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "3" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "4" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "5" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "6" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	targetoffset = "7" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "0" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "1" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "2" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "3" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "4" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "5" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "6" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_TOP_GREEN"	    targetoffset = "7" size = "1" />
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "0" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "1" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "2" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "3" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "4" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "5" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "6" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_TOP_BLUE"	    targetoffset = "7" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "0" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "1" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "2" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "3" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "4" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "5" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "6" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    targetoffset = "7" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_BOTTOM_GREEN"	targetoffset = "0" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_BOTTOM_GREEN"	targetoffset = "1" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "1" target = "FadeCandy.MOUTH_BOTTOM_GREEN"	targetoffset = "2" size = "1"/>
@@ -158,9 +153,9 @@
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"	targetoffset = "1" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"	targetoffset = "2" size = "1"/>
 <connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"	targetoffset = "3" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"   targetoffset = "4" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"   targetoffset = "5" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"   targetoffset = "6" size = "1"/>
-<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"   targetoffset = "7" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"    targetoffset = "4" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"    targetoffset = "5" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"    targetoffset = "6" size = "1"/>
+<connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"    targetoffset = "7" size = "1"/>
 
 </group>
