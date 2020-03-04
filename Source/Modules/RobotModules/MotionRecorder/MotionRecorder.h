@@ -49,6 +49,7 @@ public:
     void 		Save();
     void 		Load();
 
+    float *     torque_on_record;
     float *     trig;
     float *     trig_last;
     int         trig_size;

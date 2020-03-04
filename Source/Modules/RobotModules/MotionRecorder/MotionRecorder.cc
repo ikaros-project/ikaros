@@ -45,6 +45,11 @@ MotionRecorder::Init()
     input = GetInputArray("INPUT");
     size = GetInputSize("INPUT");
     
+    if(GetValue("torque_on_record"))
+        torque_on_record = GetArray("torque_on_record", size, true);
+    else
+        torque_on_record = NULL;
+
     stop_position = create_array(size);
     start_position = create_array(size);
     start_torque = create_array(size);
@@ -180,10 +185,7 @@ void
 MotionRecorder::Stop()
 {
     mode_string = "Stop";
-
-
-    *state = state_stop;
-    
+    // don't set stop state here
     for(int i=0; i<size; i++)
         if(mode[mode_stop][i] == 1)
             stop_position[i] = start_position[i]; // Never set new position for stoppped channel
@@ -236,7 +238,7 @@ MotionRecorder::Record()
         }
         else
         {
-            enable[i] = 0;
+            enable[i] = (torque_on_record && torque_on_record[i] ? 1 : 0);
         }
 
     position_data_count[current_motion] = 0;
@@ -481,7 +483,7 @@ MotionRecorder::Tick()
                             }
                             else
                             {
-                                enable[i] = 0;
+                                enable[i] = (torque_on_record && torque_on_record[i] ? 1 : 0);
                             }
                     }
 

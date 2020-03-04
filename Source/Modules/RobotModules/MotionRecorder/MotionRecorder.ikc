@@ -19,10 +19,13 @@
 	<parameter name="position_data_max" type="int" default="1000" description="The maximum number of datapoints that can be stored" />
     <parameter name="mode_string" type="string" default="stop" description="The current mode as a string" />
 
+    <parameter name="torque_on_REcord" type="array" description="A 1 indicates that the channel should have torque on record" />
+
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
 	<parameter name="directory" type="string" default="motions" description="The directory where the files will be stored." />
 	<parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
     <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque." />
+
 
 	<parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
 	<parameter name="auto_save" type="bool" default="no" description="Save all behaviors before termination" />
