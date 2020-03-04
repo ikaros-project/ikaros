@@ -78,7 +78,7 @@ nrServosTotal = "6"
 
 	<!-- Eye direction with vergence effect -->
 	<module class = "Constant" name = "EyesDirection"	data = "0" />
-	<module class = "Constant" name = "EyesVergence"	data = "10" />
+	<module class = "Constant" name = "EyesVergence"	data = "2" />
 	<module class = "Constant" name = "EyesVergenceMultiply"	data = "-1" />
 	<module class = "Multiply" name = "MultiplyVergence"/>
 		<connection  source = "EyesVergence.OUTPUT"  target = "MultiplyVergence.INPUT1"/>	
