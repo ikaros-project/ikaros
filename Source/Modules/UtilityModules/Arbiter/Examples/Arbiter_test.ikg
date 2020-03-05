@@ -18,18 +18,33 @@
 		<connection  source = "C2.OUTPUT"  target = "Arbiter.INPUT_2" delay="0" />
 		<connection  source = "V1.OUTPUT"  target = "Arbiter.VALUE_1" delay="0" />
 		<connection  source = "V2.OUTPUT"  target = "Arbiter.VALUE_2" delay="0" />
+<view name="Arbiter Test" >
+	<drop-down-menu  height = "50" width = "100" list = "WTA,hysteresis,softmax,hierarchy" label = "arbitration" x = "20" module = "Arbiter" parameter = "arbitration" y = "0" title = "Menu" index = "0" list_parameter = "" labelWidth = "50" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "10" height = "300" min = "0" module = "C1" title = "Input 1" source = "C1.OUTPUT" x = "20" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "10" height = "300" min = "0" module = "C2" title = "Input 2" source = "C2.OUTPUT" x = "220" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "10" height = "300" min = "0" module = "Arbiter" title = "Selected output" source = "Arbiter.OUTPUT" x = "420" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "20" y = "340" height = "81" width = "201" title = "Value of input 1" parameter = "V1.data" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "220" y = "340" height = "81" width = "201" title = "Value of input 2" parameter = "V2.data" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "420" y = "340" height = "81" width = "201" title = "Switch time" parameter = "Arbiter.switch_time" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "10" height = "300" min = "0" module = "Arbiter" title = "Amplitudes" source = "Arbiter.AMPLITUDES" x = "820" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "10" height = "300" min = "0" module = "Arbiter" title = "Smoothed" source = "Arbiter.SMOOTHED" x = "1020" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "1" height = "300" min = "0" module = "Arbiter" title = "Normalized" source = "Arbiter.NORMALIZED" x = "1220" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "1" height = "300" min = "0" module = "Arbiter" title = "Value" source = "Arbiter.VALUE" x = "1420" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  max = "10" height = "300" min = "0" module = "Arbiter" title = "Arbitration" source = "Arbiter.ARBITRATION" x = "620" y = "60" width = "200" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "420" y = "420" height = "81" width = "201" title = "Alpha - smoothing constant" parameter = "Arbiter.alpha" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "420" y = "500" height = "81" width = "201" title = "Hysteresis threshold" parameter = "Arbiter.hysteresis_threshold" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.1" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "420" y = "580" height = "81" width = "201" title = "Softmax_exponent" parameter = "Arbiter.softmax_exponent" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.1" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
-		<view name="Arbiter Test">
-			<drop-down-menu label="arbitration" list="WTA,hysteresis,softmax,hierarchy" module="Arbiter" parameter="arbitration" x="20" y="10" width="100" height="50" />
 
-			<bar-graph class ="BarGraph" title="C1" module="C1" source="OUTPUT" x="20" y="50" width="200" height="300" min="0" max="10" />
-			<bar-graph class ="BarGraph" title="C2" module="C2" source="OUTPUT" x="220" y="50" width="200" height="300" min="0" max="10" />
-			<bar-graph class ="BarGraph" title="Selected" module="Arbiter" source="OUTPUT" x="420" y="50" width="200" height="300" min="0" max="10" />
 
-			<slider-horizontal class ="Slider" title="V1" module="V1" parameter="data" select="0" x="20" y="320" width="100" height="100" max="10" />
-			<slider-horizontal class ="Slider" title="V2" module="V2" parameter="data" select="0" x="220" y="320" width="100" height="100" max="10" />
-			<slider-horizontal class ="Slider" title="Switch time" module="Arbiter" parameter="switch_time" select="0" x="422" y="320" width="100" height="100" min="0" max="50" />
-		</view>
+
+
+
+
+
+
+
 
     <module class = "Logger" name = "Logger" />
 </group>
