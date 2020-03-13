@@ -287,6 +287,9 @@
 			outputsize  = "2"
 			data  = "0.1 0.2"
 		/>
+		<connection source = "MyConstant.OUTPUT" target = "MultExcitation_test_c.EXCITATION" />
+		<connection source = "MyConstant.OUTPUT" target = "MultExcitation_test.EXCITATION" />
+
 		<module
 		  class       =   "FunctionGenerator"
 		  name        =   "SquareGen"
@@ -297,6 +300,7 @@
 		  shift       =   "0.0"
 		/>
 
+		
 		<module
 			class = "NucleusEnsemble"
 			name = "MultExcitation_test"
@@ -304,10 +308,7 @@
 			size="3"
 			
 		/>
-		
-		
-        <connection source = "MyConstant.OUTPUT" target = "MultExcitation_test.EXCITATION" />
-        <connection source = "SquareGen.OUTPUT"  target = "MultExcitation_test.EXCITATION" />
+		<connection source = "SquareGen.OUTPUT"  target = "MultExcitation_test.EXCITATION" />
 
 		<module
 			class = "NucleusEnsemble"
@@ -316,20 +317,31 @@
 			size="3"
 			
 		/>
+
+		<module
+			class = "NucleusEnsemble"
+			name = "MultExcitation_test_c"
+			excitation_topology="one_to_one"
+			size="2"
+			
+		/>
 		
 		
         <connection source = "MyConstant.OUTPUT" target = "MultExcitation_test_b.EXCITATION" />
         <connection source = "SquareGen.OUTPUT"  target = "MultExcitation_test_b.EXCITATION" />
 
 		<view name="View" >
-			<plot  title = "Squaregen" source = "SquareGen.OUTPUT" x = "1" max = "0.5" buffer_size = "50" frame-style = "" style = "" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "SquareGen" y = "1" show_frame = "false" color = "" width = "181"/>
-			<plot  title = "one to one topology" source = "MultExcitation_test.OUTPUT" x = "200" max = "0.3" buffer_size = "50" frame-style = "" style = "" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "Excitation_test" y = "0" show_frame = "false" color = "" width = "181"/>
-			<table  decimals = "4" show_title = "false" colorize = "true" frame-style = "" show_frame = "false" style = "" direction = "normal" height = "41" width = "201" source = "MultExcitation_test.OUTPUT" title = "Excitation_test" x = "380" y = "120"/>
-			<slider-horizontal  labels = "" height = "61" title = "Excitation scaling" x = "200" show_values = "false" parameter = "MultExcitation_test.phi" select = "0" count = "1" min = "0" y = "200" max = "1" width = "181" show_frame = "false" style = "" frame-style = "" step = "0.01" show_title = "true"/>
-			<plot  title = "all to all topology" source = "MultExcitation_test_b.OUTPUT" x = "200" max = "0.3" buffer_size = "50" frame-style = "" style = "" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "Excitation_test" y = "280" show_frame = "false" color = "" width = "181"/>
-			<slider-horizontal  labels = "" height = "61" title = "Excitation scaling" x = "200" show_values = "false" parameter = "MultExcitation_test_b.phi" select = "0" count = "1" min = "0" y = "480" max = "1" width = "181" show_frame = "false" style = "" frame-style = "" step = "0.01" show_title = "true"/>
-			<table  decimals = "4" show_title = "false" colorize = "true" frame-style = "" show_frame = "false" style = "" direction = "normal" height = "41" width = "201" source = "MultExcitation_test_b.OUTPUT" title = "Excitation_test" x = "380" y = "380"/>
+			<plot  width = "181" color = "" show_frame = "false" frame-style = "" buffer_size = "50" max = "0.5" style = "" x = "1" title = "Squaregen" source = "SquareGen.OUTPUT" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "SquareGen" y = "1"/>
+			<plot  width = "181" color = "" show_frame = "false" frame-style = "" buffer_size = "50" max = "0.3" style = "" x = "200" title = "one to one topology (3 nucl)" source = "MultExcitation_test.OUTPUT" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "Excitation_test" y = "0"/>
+			<table  y = "120" x = "380" title = "Excitation_test" source = "MultExcitation_test.OUTPUT" width = "201" height = "41" direction = "normal" show_title = "false" decimals = "4" colorize = "true" frame-style = "" show_frame = "false" style = "" label_x = "" label_y = "" scrollable = "false"/>
+			<slider-horizontal  show_title = "true" x = "200" show_values = "false" title = "Excitation scaling" parameter = "MultExcitation_test.phi" select = "0" count = "1" min = "0" labels = "" height = "61" y = "200" max = "1" width = "181" show_frame = "false" style = "" frame-style = "" step = "0.01"/>
+			<plot  width = "181" color = "" show_frame = "false" frame-style = "" buffer_size = "50" max = "0.3" style = "" x = "200" title = "all to all topology" source = "MultExcitation_test_b.OUTPUT" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "Excitation_test" y = "280"/>
+			<slider-horizontal  show_title = "true" x = "200" show_values = "false" title = "Excitation scaling" parameter = "MultExcitation_test_b.phi" select = "0" count = "1" min = "0" labels = "" height = "61" y = "480" max = "1" width = "181" show_frame = "false" style = "" frame-style = "" step = "0.01"/>
+			<table  y = "380" x = "380" title = "Excitation_test" source = "MultExcitation_test_b.OUTPUT" width = "201" height = "41" direction = "normal" show_title = "false" decimals = "4" colorize = "true" frame-style = "" show_frame = "false" style = "" label_x = "" label_y = "" scrollable = "false"/>
+			<plot  width = "181" color = "" show_frame = "false" frame-style = "" buffer_size = "50" max = "0.3" style = "" x = "0" title = "one to one topology (2 nucl)" source = "MultExcitation_test_c.OUTPUT" w = "100" direction = "vertical" height = "201" h = "100" show_title = "true" select = "" min = "0" module = "Excitation_test" y = "200"/>
+			<table  y = "220" x = "-20" title = "Excitation_test" source = "MultExcitation_test_c.OUTPUT" width = "201" height = "41" direction = "normal" show_title = "false" decimals = "4" colorize = "true" frame-style = "" show_frame = "false" style = "" label_x = "" label_y = "" scrollable = "false"/>
 		</view>
+
 	</group>
 
 	<group name="NucleusEnsemble Excitation Topology Test">
