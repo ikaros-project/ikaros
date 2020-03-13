@@ -133,6 +133,7 @@ Arbiter::Init()
     Bind(hysteresis_threshold, "hysteresis_threshold");
     Bind(switch_time, "switch_time");
     Bind(alpha, "alpha");
+    Bind(debug, "debug");
 
     int vcnt = 0;
     for(int i=0; i<no_of_inputs; i++)
@@ -276,6 +277,26 @@ Arbiter::Tick()
         for(int i=0; i<no_of_inputs; i++)
             add(output[r], normalized[r][i], input[i][r], size_x);
     }
+    if(debug)
+    {
+        printf("--Instance name: %s--\n", this->instance_name);
+        printf("size_x= %i, size_y= %i\n", size_x, size_y);
+        for (int i = 0; i < no_of_inputs; i++)
+        {
+            print_matrix(input_name[i], input[i], size_x, size_y);
+            print_array(value_name[i], value_in[i], size_x);
+        }
+        print_matrix("output", output, size_x, size_y);
+        print_matrix("value_out", value_out, size_x, size_y);
+        print_matrix("amplitudes", amplitudes, size_x, size_y);
+        print_matrix("arbitration_state", arbitration_state, size_x, size_y);
+        print_matrix("smoothed", smoothed, size_x, size_y);
+        print_matrix("normalized", normalized, size_x, size_y);
+        
+        
+    }
+
+    
 }
 
 
