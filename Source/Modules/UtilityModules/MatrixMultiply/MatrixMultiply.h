@@ -36,6 +36,7 @@ public:
     int			size1_y;
     int			size2_x;
     int			size2_y;
+    bool        trans_2;
 
     MatrixMultiply(Parameter * p) : Module(p) {}
     virtual		~MatrixMultiply() {}

@@ -26,6 +26,33 @@
 			class = "MatrixMultiply"
 			name = "Product2"
 		/>
+		<module
+			class = "MatrixMultiply"
+			name = "Product3"
+			trans_2="yes"
+		/>
+		<module
+			class = "MatrixMultiply"
+			name = "Product4"
+			trans_2="yes"
+		/>
+
+		<module
+		class = "Constant"
+		name = "Constant3"
+		data  = "1 2"
+		/>
+		<connection source = "Constant3.OUTPUT"  target = "Product3.INPUT1" />
+		<connection source = "Constant3.OUTPUT"  target = "Product3.INPUT2" />
+
+		<module
+		class = "Constant"
+		name = "Constant4"
+		data  = "1 2; 3 4"
+		/>
+		<connection source = "Constant4.OUTPUT"  target = "Product4.INPUT1" />
+		<connection source = "Constant3.OUTPUT"  target = "Product4.INPUT2" />
+
 		
 		<connection  source = "Constant1.OUTPUT"  target = "Product1.INPUT1" />
 		<connection  source = "Constant2.OUTPUT"  target = "Product1.INPUT2" />
@@ -33,12 +60,22 @@
 		<connection  source = "Constant2.OUTPUT"  target = "Product2.INPUT1" />
 		<connection  source = "Constant1.OUTPUT"  target = "Product2.INPUT2" />
 
-		<view name="View">
-			<object class="Image" module="Constant1" source="OUTPUT" x="0" y="0" />
-			<object class="Image" module="Constant2" source="OUTPUT" x="0" y="1" />
-			<object class="Image" module="Product1" source="OUTPUT" x="1" y="0" />
-			<object class="Image" module="Product2" source="OUTPUT" x="1" y="1" />
-		</view>
+<view name="View" >
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "40" label_y = "" source = "Constant1.OUTPUT" title = "A" label_x = "" width = "101" show_frame = "false" height = "181" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "40" label_y = "" source = "Constant2.OUTPUT" title = "B" label_x = "" width = "201" show_frame = "false" height = "161" x = "140"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "40" label_y = "" source = "Constant3.OUTPUT" title = "C" label_x = "" width = "101" show_frame = "false" height = "181" x = "340"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "220" label_y = "" source = "Product1.OUTPUT" title = "Product1" label_x = "" width = "221" show_frame = "false" height = "181" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "220" label_y = "" source = "Product2.OUTPUT" title = "Product2" label_x = "" width = "221" show_frame = "false" height = "161" x = "260"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "400" label_y = "" source = "Product3.OUTPUT" title = "Product3" label_x = "" width = "221" show_frame = "false" height = "81" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "40" label_y = "" source = "Constant4.OUTPUT" title = "D" label_x = "" width = "101" show_frame = "false" height = "181" x = "440"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "400" label_y = "" source = "Product4.OUTPUT" title = "Product4" label_x = "" width = "81" show_frame = "false" height = "81" x = "260"/>
+	<text  x = "40" y = "200" height = "21" width = "161" title = "Default Title" parameter = "" text = "AxB" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<text  x = "260" y = "200" height = "21" width = "161" title = "Default Title" parameter = "" text = "BxA" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<text  x = "260" y = "380" height = "21" width = "161" title = "Default Title" parameter = "" text = "DxC'" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<text  x = "40" y = "380" height = "21" width = "161" title = "Default Title" parameter = "" text = "CxC'" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
     <module class = "Logger" name = "Logger" />
 </group>
  
