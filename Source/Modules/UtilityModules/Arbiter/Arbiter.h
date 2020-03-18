@@ -60,6 +60,7 @@ public:
     float       hysteresis_threshold;
     
     int         winner;
+    bool        debug;
 
     Arbiter(Parameter * p);
     virtual	~Arbiter();

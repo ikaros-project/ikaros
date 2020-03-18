@@ -8,56 +8,44 @@
 			class = "Arbiter"
 			name = "Arbiter"
             by_row = "yes"
+            no_of_inputs="1"
 		/>
 
 		<module class = "Constant" name = "C1" data = "1 2 3 9 8 6" />
 		<module class = "Constant" name = "C2" data = "5 6 7 1 2 3" />
-		<module class = "Constant" name = "V1" data = "2" />
+		<module class = "Constant" name = "V1" data = "2 2" />
 		<module class = "Constant" name = "V2" data = "2" />
 
 		<connection  source = "C1.OUTPUT"  target = "Arbiter.INPUT_1" delay="0" />
 		<connection  source = "C2.OUTPUT"  target = "Arbiter.INPUT_2" delay="0" />
-		<_connection  source = "V1.OUTPUT"  target = "Arbiter.VALUE_1" delay="0" />
-		<_connection  source = "V2.OUTPUT"  target = "Arbiter.VALUE_2" delay="0" />
+		<connection  source = "V1.OUTPUT"  target = "Arbiter.VALUE_1" delay="0" />
+		<connection  source = "V2.OUTPUT"  target = "Arbiter.VALUE_2" delay="0" />
 
-        <view name="View X">
-            <bar-graph
-                x="10" y="10"
-                width="301"
-                height="301"
-                module="C1"
-                source="OUTPUT"
-                title = "C1"
-                labels = ""
-                style = ""
-                min="0"
-                max="10"
-            />
-            <bar-graph
-                x="310" y="10"
-                width="301"
-                height="301"
-                module="C2"
-                source="OUTPUT"
-                title = "C2"
-                labels = ""
-                style = ""
-                min="0"
-                max="10"
-            />
-        </view>
+<view name="View X" >
+	<bar-graph  max = "10" style = "" y = "10" x = "10" min = "0" module = "C1" title = "C1" source = "C1.OUTPUT" labels = "" width = "301" height = "301" direction = "vertical" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" frame-style = ""/>
+	<bar-graph  max = "10" style = "" y = "10" x = "310" min = "0" module = "C2" title = "C2" source = "C2.OUTPUT" labels = "" width = "301" height = "301" direction = "vertical" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" show_title = "true" show_frame = "false" frame-style = ""/>
+</view>
+
         
-		<view name="View Y">
-			<object class ="DropDownMenu" title="arbitration" list="WTA/hysteresis/softmax/hierarchy" module="Arbiter" parameter="arbitration" x="0" y="0" w="4" min="0" max="10" />
+<view name="View Y" >
+	<drop-down-menu  height = "50" title = "Menu" x = "160" module = "Arbiter" y = "20" parameter = "arbitration" index = "0" list_parameter = "" labelWidth = "50" frame-style = "" show_frame = "false" width = "100" list = "WTA,hysteresis,softmax,hierarchy" style = "" label = "arbitration" show_title = "false"/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "C1" y = "60" max = "10" frame-style = "" style = "" x = "160" source = "C1.OUTPUT" title = "C1" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "281"/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "C2" y = "60" max = "10" frame-style = "" style = "" x = "440" source = "C2.OUTPUT" title = "C2" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "261"/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "Arbiter" y = "60" max = "10" frame-style = "" style = "" x = "700" source = "Arbiter.OUTPUT" title = "Selected" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "221"/>
+	<slider-horizontal  show_title = "true" h = "1" count = "1" select = "0" parameter = "V1.data" min = "0" height = "61" module = "V1" y = "300" x = "160" show_values = "true" title = "V1" max = "10" style = "" step = "0.1" frame-style = "" show_frame = "false" width = "161" labels = ""/>
+	<slider-horizontal  show_title = "true" h = "1" count = "1" select = "0" parameter = "V2.data" min = "0" height = "61" module = "V2" y = "300" x = "460" show_values = "true" title = "V2" max = "10" style = "" step = "0.1" frame-style = "" show_frame = "false" width = "141" labels = ""/>
+	<slider-horizontal  show_title = "true" h = "1" labels = "" max = "5" width = "141" show_frame = "false" style = "" step = "0.1" frame-style = "" show_values = "true" x = "740" height = "61" title = "Switch time" min = "0" parameter = "Arbiter.switch_time" select = "0" count = "1" module = "Arbiter" y = "0"/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "Arbiter" y = "60" max = "10" frame-style = "" style = "" x = "920" source = "Arbiter.VALUE" title = "Value out" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "221"/>
+	<button  x = "160" y = "360" height = "200" width = "200" title = "Title" label = "Arbiter debug" command = "" commandUp = "" parameter = "Arbiter.debug" value = "1" valueUp = "0" xindex = "0" yindex = "0" enableSource = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "Arbiter" y = "300" max = "10" frame-style = "" style = "" x = "720" source = "Arbiter.AMPLITUDES" title = "Amplitudes" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "221"/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "Arbiter" y = "300" max = "10" frame-style = "" style = "" x = "940" source = "Arbiter.ARBITRATION" title = "Arbitration" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "221"/>
+	<bar-graph  show_title = "true" lineWidth = "1" lineJoin = "" min = "0" module = "Arbiter" y = "540" max = "10" frame-style = "" style = "" x = "720" source = "Arbiter.SMOOTHED" title = "Arbitration" lineCap = "" height = "241" direction = "vertical" labels = "" fill = "" color = "" show_frame = "false" width = "221"/>
+</view>
 
-			<object class ="BarGraph" title="C1" module="C1" source="OUTPUT" x="0" y="1" min="0" max="10" />
-			<object class ="BarGraph" title="C2" module="C2" source="OUTPUT" x="1" y="1" min="0" max="10" />
-			<object class ="BarGraph" title="Selected" module="Arbiter" source="OUTPUT" x="2" y="1" min="0" max="10" />
 
-			<object class ="Slider" title="V1" module="V1" parameter="data" select="0" x="0" y="2" h="1" max="10" />
-			<object class ="Slider" title="V2" module="V2" parameter="data" select="0" x="1" y="2" h="1" max="10" />
-			<object class ="Slider" title="Switch time" module="Arbiter" parameter="switch_time" select="0" x="2" y="2" h="1" min="0" max="50" />
-		</view>
+
+
+
 
     <module class = "Logger" name = "Logger" />
 </group>

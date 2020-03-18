@@ -260,13 +260,13 @@ NucleusEnsemble::Tick()
         printf("Instance: %s\n", this->instance_name);
         // print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
         // print_array("phival", phival, ensemble_size, 2);
-        // print_array("x", x, ensemble_size, 2);
-        // print_matrix("excitation_topology", excitation_topology, excitation_size, ensemble_size, 2);
-        print_array("dopa", dopa, ensemble_size);
-        print_array("adeno", adeno, ensemble_size);
+        print_array("x", x, ensemble_size, 2);
+        print_matrix("excitation_topology", excitation_topology, excitation_size, ensemble_size, 2);
+        // print_array("dopa", dopa, ensemble_size);
+        // print_array("adeno", adeno, ensemble_size);
         print_array("threshold", threshold, ensemble_size);
-        print_array("norad", norad, ensemble_size);
-        print_array("na_thr", na_thr, ensemble_size);
+        // print_array("norad", norad, ensemble_size);
+        // print_array("na_thr", na_thr, ensemble_size);
         print_array("out", output, ensemble_size);
     }
     

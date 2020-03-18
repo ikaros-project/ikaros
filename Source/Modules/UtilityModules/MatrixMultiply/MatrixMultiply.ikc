@@ -22,6 +22,9 @@
 
 	<output name="OUTPUT" description="The output" />
 
+	<parameter name="trans_2" type="bool" default="no" description="Transpose input 2" />
+	
+
 	<link class="MatrixMultiply" />
 
 	<author>

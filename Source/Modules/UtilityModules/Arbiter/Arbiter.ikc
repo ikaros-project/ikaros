@@ -44,6 +44,7 @@
     <parameter name="hysteresis_threshold" type="float" default="5" description="The value difference that needs to be passed for a switch"/>
     <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
     <parameter name="alpha" type="float" default="1" description="Smoothing constant (set to 1/switch_time if not set)"/>
+	<parameter name="debug" type="bool" default="false" description="Print out debug info"/>
 
 	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
 
