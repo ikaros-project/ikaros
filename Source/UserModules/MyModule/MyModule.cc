@@ -39,7 +39,7 @@ MyModule::Init()
     // function for each parameter. The parameters are initialized
     // from the IKC and can optionally be changed from the
     // user interface while Ikaros is running. If the parameter is not
-    // set, the default value will be used instead.
+    // set, the default value specified in the ikc-file will be used instead.
     
     Bind(float_parameter, "parameter1");
     Bind(int_parameter, "parameter2");
@@ -52,24 +52,17 @@ MyModule::Init()
     // to the inputs. We will treat it an array in this module
     // anyway.
 
-    input_array = GetInputArray("INPUT1");
-    input_array_size = GetInputSize("INPUT1");
+    io(input_array, input_array_size, "INPUT1");
 
     // Get pointer to a matrix and treat it as a matrix. If an array is
     // connected to this input, size_y will be 1.
 
-    input_matrix = GetInputMatrix("INPUT2");
-    input_matrix_size_x = GetInputSizeX("INPUT2");
-    input_matrix_size_y = GetInputSizeY("INPUT2");
+    io(input_matrix, input_matrix_size_x, input_matrix_size_y, "INPUT2");
 
     // Do the same for the outputs
 
-    output_array = GetOutputArray("OUTPUT1");
-    output_array_size = GetOutputSize("OUTPUT1");
-
-    output_matrix = GetOutputMatrix("OUTPUT2");
-    output_matrix_size_x = GetOutputSizeX("OUTPUT2");
-    output_matrix_size_y = GetOutputSizeY("OUTPUT2");
+    io(output_array, output_array_size, "OUTPUT1");
+    io(output_matrix, output_matrix_size_x, output_matrix_size_y, "OUTPUT2");
 
     // Allocate some data structures to use internaly
     // in the module
@@ -101,13 +94,17 @@ MyModule::Init()
 
 MyModule::~MyModule()
 {
+    // In general, a dstructor is only necessary 
+    // when a module communicates with external devices etc
+    // All modules are destroyed when Ikaros stops
+
     // Destroy data structures that you allocated in Init.
 
     destroy_array(internal_array);
     destroy_matrix(internal_matrix);
 
     // Do NOT destroy data structures that you got from the
-    // kernel with GetInputArray, GetInputMatrix etc.
+    // kernel with io or GetInputArray, GetInputMatrix etc.
 }
 
 
@@ -120,7 +117,7 @@ MyModule::Tick()
 
     // This example makes a copy of the data on INPUT2 which is now
     // in input_matrix to internal_matrix
-    // Arrays can be copied with copy_array
+    // Arrays can be similarly copied with copy_array()
     // To clear an array or matrix use reset_array and reset_matrix
 
     copy_matrix(internal_matrix, input_matrix, input_matrix_size_x, input_matrix_size_y);
