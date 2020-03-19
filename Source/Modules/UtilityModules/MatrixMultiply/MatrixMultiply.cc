@@ -37,26 +37,45 @@ MatrixMultiply::Init()
     size1_y		=	GetInputSizeY("INPUT1");
     size2_x		=	GetInputSizeX("INPUT2");
     size2_y		=	GetInputSizeY("INPUT2");
+    if(trans_2)
+    {
+        int tmp = size2_x;
+        size2_x=size2_y;
+        size2_y=tmp;
+    }
+
 }
 
 
 
 void MatrixMultiply::SetSizes()
 {
+    bool wrongdims = false;
+    Bind(trans_2, "trans_2");
     int sz1_x = GetInputSizeX("INPUT1");
     int sz1_y = GetInputSizeY("INPUT1");
     int sz2_x = GetInputSizeX("INPUT2");
     int sz2_y = GetInputSizeY("INPUT2");
+
+    int tmp;
+
+    if(trans_2)
+    {
+        tmp = sz2_x;
+        sz2_x = sz2_y;
+        sz2_y = tmp; 
+    }
 
     if (sz1_x == unknown_size || sz1_y == unknown_size || sz2_x == unknown_size || sz2_y == unknown_size)
         return;
 
     if (sz1_x != sz2_y)
     {
-        Notify(msg_fatal_error, "MatrixMultiply: The sizes of the inputs are not compatible: INPUT1 = [%d, %d] INPUT2 = [%d, %d]\n", sz1_x, sz1_y, sz2_x, sz2_y);
+        Notify(msg_fatal_error, "MatrixMultiply: The sizes of the inputs are not compatible: INPUT1 = [%d, %d] INPUT2 = [%d, %d], trans_2 = %i\n", sz1_x, sz1_y, sz2_x, sz2_y, trans_2);
         return;
     }
 
+    
     SetOutputSize("OUTPUT", sz2_x, sz1_y);
 }
 
@@ -65,7 +84,11 @@ void MatrixMultiply::SetSizes()
 void
 MatrixMultiply::Tick()
 {
-    multiply(output, input1, input2, size2_x, size1_y, size1_x);
+    if(trans_2)
+        multiply_t(output, input1, input2, size2_x, size1_y, size1_x);
+    else
+        multiply(output, input1, input2, size2_x, size1_y, size1_x);
+    
 }
 
 static InitClass init("MatrixMultiply", &MatrixMultiply::Create, "Source/Modules/UtilityModules/MatrixMultiply/");
