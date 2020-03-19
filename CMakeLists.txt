@@ -132,6 +132,13 @@ if (PNG_FOUND)
     message(FATAL_ERROR "\nIkaros require the PNG library. \nVisit www.ikaros-project.org for information about dependencies")
 endif (PNG_FOUND)
 
+# ALSA Midi
+find_package(ALSA)                                    
+if (ALSA_FOUND)      
+    add_definitions(-D__LINUX_ALSA__)                                        
+    include_directories(${ALSA_INCLUDE_DIRS})                  
+    target_link_libraries (ikaros ${ALSA_LIBRARIES})      
+endif(ALSA_FOUND)
 
 # Add extra libraries when linking
 target_link_libraries(ikaros ${EXTRA_LIBS} )
