@@ -31,15 +31,20 @@ const int cMidiMsgSize = 3;
 // this is preferred to using math.h
 
 using namespace ikaros;
+
 void
 Callback( double deltatime, std::vector< unsigned char > *message, void *user /*userData*/ )
 {
     unsigned int nBytes = message->size();
-  for ( unsigned int i=0; i<nBytes; i++ )
-    std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
-  if ( nBytes > 0 )
-    std::cout << "stamp = " << deltatime << std::endl;
-    reinterpret_cast<MidiInterface*>(user)->SetMidiData(message);
+    MidiInterface *interface = reinterpret_cast<MidiInterface *>(user);
+    if(interface->debugmode)
+    {
+        for (unsigned int i = 0; i < nBytes; i++)
+            std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
+        if (nBytes > 0)
+            std::cout << "stamp = " << deltatime << std::endl;
+    }
+    interface->SetMidiData(message);
 }
 
 void
@@ -105,6 +110,6 @@ MidiInterface::SetMidiData(std::vector< unsigned char> *message)
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("MidiInterface", &MidiInterface::Create, "Source/UserModules/MidiInterface/");
+static InitClass init("MidiInterface", &MidiInterface::Create, "Source/Modules/UtilityModules/MidiInterface/");
 
 
