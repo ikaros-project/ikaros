@@ -25,7 +25,7 @@
 
 #include "IKAROS.h"
 class RtMidiIn;
-
+class RtMidiOut;
 
 class MidiInterface: public Module
 {
@@ -44,20 +44,22 @@ public:
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
-    //float *     input_array;
-    //int         input_array_size;
+    float *     input_array;
+    int         input_array_size;
 
     float *     output_array;
     int         output_array_size;
 
     // internal data storage
     float *     internal_array;
-    RtMidiIn*   rtmidi;
+    RtMidiIn*   rtmidi_in;
+    RtMidiOut*  rtmidi_out;
 
     // parameter values
 
-    int       port;
-	bool       	debugmode;
+    int         inport;
+    int         outport;
+    bool       	debugmode;
 };
 
 #endif

@@ -4,35 +4,42 @@
 	
 		<module
 			class = "Constant"
-			name = "MyConstant"
-			outputsize  = "2"
-			data  = "1 2"
+			name = "MidiNoteCode"
+			data  = "153"
+		/>
+		<module
+			class = "Constant"
+			name = "MidiNote"
+			data  = "70"
 		/>
 		<module
 		  class       =   "FunctionGenerator"
 		  name        =   "SquareGen"
-		  type        =   "square"
-		  frequency  =  "0.001"
+		  type        =   "ticksquare"
+			tickduty = "10"
+			basetime = "50"
 		  offset      =   "0.0"
-		  amplitude   =   "1"
+		  amplitude   =   "60"
 		  shift       =   "0.0"
 		/>
 
 		<module
 			class = "MidiInterface"
 			name = "MidiInterfaceInstance"
-			port="1"
+			inport="1"
+			outport="0"
 		/>
 		
-        <_connection source = "MyConstant.OUTPUT" target = "MidiInterfaceInstance.INPUT1" />
-        <_connection source = "SquareGen.OUTPUT"  target = "MidiInterfaceInstance.INPUT2" />
+        <connection source = "SquareGen.OUTPUT"  target = "MidiInterfaceInstance.INPUT" />
+        <connection source = "MidiNote.OUTPUT" target = "MidiInterfaceInstance.INPUT" />
+		<connection source = "MidiNoteCode.OUTPUT" target = "MidiInterfaceInstance.INPUT" />
 
 <view name="View" >
-	<plot  max = "2" x = "0" y = "0" source = "SquareGen.OUTPUT" select = "" direction = "vertical" height = "100" show_frame = "false" width = "100" title = "Plot" color = "" frame-style = "" show_title = "true" style = "" min = "0" buffer_size = "50"/>
-	<plot  max = "2" x = "0" y = "100" source = "MidiInterfaceInstance.OUTPUT" select = "" direction = "vertical" height = "100" show_frame = "false" width = "100" title = "Plot" color = "" frame-style = "" show_title = "true" style = "" min = "0" buffer_size = "50"/>
-	<table  x = "160" height = "61" show_frame = "false" width = "141" label_x = "" direction = "normal" scrollable = "false" source = "MidiInterfaceInstance.OUTPUT" y = "20" label_y = "" decimals = "1" colorize = "true" title = "Midi" frame-style = "" show_title = "true" style = ""/>
-	<switch  x = "160" y = "60" height = "41" width = "161" title = "Switch Title" label = "Debug" parameter = "MidiInterfaceInstance.debug" single_trig = "true" value = "1" xindex = "0" yindex = "0" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<plot  buffer_size = "50" min = "0" style = "" show_title = "true" frame-style = "" color = "" title = "Squaregen" width = "281" show_frame = "false" height = "181" direction = "vertical" select = "" source = "SquareGen.OUTPUT" y = "0" x = "20" max = "128"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Midi in" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "180" label_y = "" source = "MidiInterfaceInstance.OUTPUT" width = "141" label_x = "" x = "20" show_frame = "false" height = "61"/>
+	<switch  style = "" show_title = "false" xindex = "0" x = "20" value = "1" single_trig = "true" parameter = "MidiInterfaceInstance.debug" frame-style = "" yindex = "0" label = "Debug" title = "Switch Title" width = "161" show_frame = "false" height = "41" y = "240"/>
 </view>
+
 
 
 

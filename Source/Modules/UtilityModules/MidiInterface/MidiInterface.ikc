@@ -3,26 +3,25 @@
 <group name="MidiInterface" description="minimal example module">
 
 	<description type="text">
-		Module that can be used as a start for a new module.
-		Simply change all occurrences of "MidiInterface" to the name of your new module in
-		MidiInterface.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
-		in the new code and documentation. This module is located in the
-		UserModules directory.
+		Midi interface that connects to a midi port number.
+
+		Built on top of RtMidi library
 	</description>
 
 	<example description="A simple example">
 		<module
 			class="MidiInterface"
 			name="MidiInterface"
-			port="0"
+			inport="0"
 			debug = "true"
 		/>
 	</example>
 
-	<parameter name="port" type="int" default="0" description="The midi port to use" />
+	<parameter name="inport" type="int" default="0" description="The midi input port to use" />
+	<parameter name="outport" type="int" default="0" description="The midi output port to use" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
-	<_input name="INPUT" description="The first input" />
+	<input name="INPUT" description="The midi input" optional="yes" />
 
 	<output name="OUTPUT" description="The first output" />
 

@@ -55,26 +55,38 @@ MidiInterface::SetSizes()
 void
 MidiInterface::Init()
 {
-    Bind(port, "port");
-	Bind(debugmode, "debug");    
+    Bind(inport, "inport");
+    Bind(outport, "outport");
+    Bind(debugmode, "debug");    
 
     // TODO input
+    io(input_array, input_array_size, "INPUT");
     //input_array = GetInputArray("INPUT");
     //input_array_size = GetInputSize("INPUT");
     io(output_array, output_array_size, "OUTPUT");
     //output_array = GetOutputArray("OUTPUT");
     //output_array_size = GetOutputSize("OUTPUT");
 
+    internal_array = create_array(cMidiMsgSize);
     try{
-        internal_array = create_array(cMidiMsgSize);
-        rtmidi = new RtMidiIn();
-        rtmidi->openPort( port );
-        rtmidi->setCallback( &Callback , this);
-        rtmidi->ignoreTypes( false, false, false );
+        rtmidi_in = new RtMidiIn();
+        rtmidi_in->openPort( inport );
+        rtmidi_in->setCallback( &Callback , this);
+        rtmidi_in->ignoreTypes( false, false, false );
     } catch ( RtMidiError &error ) {
         error.printMessage();
     }
-    // TODO print out all midi available ports
+    if(input_array)
+        try
+        {
+            rtmidi_out = new RtMidiOut();
+            rtmidi_out->openPort(outport);
+        }
+        catch (RtMidiError &error)
+        {
+            error.printMessage();
+        }
+    // TODO print out all midi available inports
 
 }
 
@@ -84,7 +96,8 @@ MidiInterface::~MidiInterface()
 {
     // Destroy data structures that you allocated in Init.
     destroy_array(internal_array);
-    delete rtmidi;
+    delete rtmidi_in;
+    if(rtmidi_out) delete rtmidi_out;
 }
 
 
@@ -92,10 +105,23 @@ MidiInterface::~MidiInterface()
 void
 MidiInterface::Tick()
 {
+    // output
     copy_array(output_array, internal_array, output_array_size);
+    // input, assumes input size is multiple of 3
+    for (int i = 0; input_array && i < input_array_size; i+=cMidiMsgSize)
+    {
+        std::vector<unsigned char> msg;
+        msg.push_back((unsigned char)input_array[i]);
+        msg.push_back((unsigned char)input_array[i + 1]);
+        msg.push_back((unsigned char)input_array[i + 2]);
+        rtmidi_out->sendMessage(&msg);
+    }
+    
 	if(debugmode)
 	{
 		// print out debug info
+        printf("Instance name: %s\n", this->instance_name);
+
 	}
 }
 
