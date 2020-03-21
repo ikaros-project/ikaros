@@ -35,7 +35,7 @@
 	<parameter name="rho" type="float" default="1.0" description="adenosine weight" />
 
     <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
-	<parameter name="threshold" type="float" default="0.0" description="default threshold for activity" />
+	<parameter name="threshold" type="float" default="0.0" description="default threshold for activity. This is a positive number, which corresponds to the input activity necessary to elicit action potentials. It is not directly translateable to the threshold value of -55mV of rate neurons, however." />
     <parameter name="epsilon" type="float" default="0.1" description="how quick to adapt to change" />
 	
 	<parameter name="excitation_topology" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>

@@ -27,6 +27,14 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   mark_as_advanced(ACCELERATE_LIBRARY COCOA_LIBRARY QUARTZ_LIBRARY)
     set(EXTRA_LIBS ${ACCELERATE_LIBRARY} ${COCOA_LIBRARY} ${QUARTZ_LIBRARY} )
 
+  # CoreMIDI
+  add_definitions(-D__MACOSX_CORE__)
+  find_library(COREAUDIO CoreAudio)
+  find_library(COREFOUNDATION CoreFoundation)
+  find_library(COREMIDI CoreMidi)
+  find_library(CORESERVICES CoreServices)
+  set(EXTRA_LIBS ${EXTRA_LIBS} ${COREAUDIO} ${COREFOUNDATION} ${COREMIDI} ${CORESERVICES})
+  
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

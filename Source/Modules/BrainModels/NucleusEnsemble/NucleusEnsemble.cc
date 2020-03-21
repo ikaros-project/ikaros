@@ -257,7 +257,7 @@ NucleusEnsemble::Tick()
 
     if(debug)
     {
-        printf("Instance: %s\n", this->instance_name);
+        printf("\n\nInstance: %s\n", this->instance_name);
         // print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
         // print_array("phival", phival, ensemble_size, 2);
         print_array("x", x, ensemble_size, 2);

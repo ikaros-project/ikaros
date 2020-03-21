@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="MidiInterface" description="minimal example module">
+
+	<description type="text">
+		Midi interface that connects to a midi port number.
+
+		Built on top of RtMidi library
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MidiInterface"
+			name="MidiInterface"
+			inport="0"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="inport" type="int" default="0" description="The midi input port to use" />
+	<parameter name="outport" type="int" default="0" description="The midi output port to use" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The midi input" optional="yes" />
+
+	<output name="OUTPUT" description="The first output" />
+
+	<link class="MidiInterface" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>MidiInterface.h</file>
+   		<file>MidiInterface.cc</file>
+   		<file>MidiInterface.ikc</file>
+   </files>
+
+</group>
+
