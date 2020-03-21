@@ -79,7 +79,7 @@ void M02_Amygdala::Tick()
     for(int i=0; i<size;i++)
         SumA += A[i] = input[i] * V[i];
     
-    // Calcaulte emotional output
+    // Calculate emotional output
 
     E[0] = max(0.0, min(1.0, EOld));    
     if(EO)
