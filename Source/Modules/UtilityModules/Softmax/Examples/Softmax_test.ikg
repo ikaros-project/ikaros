@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group>
+<group name="Softmax test">
 	
 		<module class = "Constant" name = "Constant" outputsize = "5" data="1 2 3 4 5" />
 	
@@ -26,11 +26,14 @@
 		<connection  source = "Constant.OUTPUT"  target = "Softmax5.INPUT" />
 		<connection  source = "Constant.OUTPUT"  target = "Softmax25.INPUT" />
 
-		<view name="View">
-			<object class="BarGraph" module="Softmax" source="OUTPUT" x="0" y="0" />
-			<object class="BarGraph" module="Softmax5" source="OUTPUT" x="1" y="0" />
-			<object class="BarGraph" module="Softmax25" source="OUTPUT" x="2" y="0" />
-		</view>
+<view name="Softmax test view" >
+	<bar-graph  x = "60" y = "220" height = "200" width = "200" title = "Softmax" source = "Softmax.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "260" y = "220" height = "200" width = "200" title = "Softmax 5" source = "Softmax5.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "460" y = "220" height = "200" width = "200" title = "Softmax 25" source = "Softmax25.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "260" y = "20" height = "201" width = "201" title = "Input" source = "Constant.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "10" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "60" y = "400" height = "81" width = "201" title = "Softmax exponent" parameter = "Softmax.exponent" select = "0" count = "1" labels = "" min = "0" max = "20" step = "0.01" show_values = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
 
     <module class = "Logger" name = "Logger" />
 </group>
