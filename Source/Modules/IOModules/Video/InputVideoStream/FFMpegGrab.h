@@ -64,6 +64,7 @@ class FFMpegGrab
 	int 			inputSizeY;
 	int 			outputSizeX;
 	int 			outputSizeY;
+    SwsContext      *img_convert_ctx;
 	
 	uint8_t			*ikarosFrame;
 	int 			ikarosFrameSize;
