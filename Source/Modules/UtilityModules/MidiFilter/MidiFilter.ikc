@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group name="MidiFilter" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "MidiFilter" to the name of your new module in
+		MidiFilter.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+		
+		Filter defined as 
+		min1 max1;min2 max2
+
+		Which yields 2 outputs with size max1-min1 and max2-min2
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MidiFilter"
+			name="MidiFilter"
+			filter="167 0 50;167 51 100"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="filter" type="list" default="0 0 0" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The midi stream to filter" />
+
+	<output name="*" description="Outputs corresponding to given filter configurations" />
+
+	<link class="MidiFilter" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>MidiFilter.h</file>
+   		<file>MidiFilter.cc</file>
+   		<file>MidiFilter.ikc</file>
+   </files>
+
+</group>
+
