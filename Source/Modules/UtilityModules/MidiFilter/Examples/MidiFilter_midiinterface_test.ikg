@@ -24,12 +24,13 @@
         <connection source = "Midi.OUTPUT" target = "MidiFilterInstance.INPUT" />
         
 <view name="Midifilter test view" >
-	<table  x = "20" height = "81" show_frame = "false" width = "201" label_x = "" direction = "normal" scrollable = "false" source = "Midi.OUTPUT" y = "20" label_y = "" decimals = "1" colorize = "true" title = "Midi message" frame-style = "" show_title = "true" style = ""/>
-	<table  x = "20" height = "61" show_frame = "false" width = "401" label_x = "" direction = "normal" scrollable = "false" source = "MidiFilterInstance.OUTPUT_1" y = "420" label_y = "" decimals = "1" colorize = "true" title = "Midifilter out 1" frame-style = "" show_title = "true" style = ""/>
-	<table  x = "20" height = "101" show_frame = "false" width = "401" label_x = "" direction = "normal" scrollable = "false" source = "MidiFilterInstance.OUTPUT_2" y = "640" label_y = "" decimals = "1" colorize = "true" title = "Midifilter out 2" frame-style = "" show_title = "true" style = ""/>
-	<bar-graph  frame-style = "" show_title = "true" max = "10" min = "0" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "MidiFilterInstance.OUTPUT_1" lineJoin = "" width = "401" lineWidth = "1" color = "" title = "Midifilter 1" show_frame = "false" height = "201" y = "260" x = "20"/>
-	<bar-graph  frame-style = "" show_title = "true" max = "10" min = "0" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "MidiFilterInstance.OUTPUT_2" lineJoin = "" width = "401" lineWidth = "1" color = "" title = "Midifilter 2" show_frame = "false" height = "201" y = "480" x = "20"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Midi message" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "20" label_y = "" source = "Midi.OUTPUT" width = "201" label_x = "" x = "20" show_frame = "false" height = "81"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Midifilter out 1" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "420" label_y = "" source = "MidiFilterInstance.OUTPUT_1" width = "401" label_x = "" x = "20" show_frame = "false" height = "61"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Midifilter out 2" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "640" label_y = "" source = "MidiFilterInstance.OUTPUT_2" width = "401" label_x = "" x = "20" show_frame = "false" height = "101"/>
+	<bar-graph  x = "20" y = "260" height = "201" show_frame = "false" title = "Midifilter 1" color = "" lineWidth = "1" width = "401" lineJoin = "" source = "MidiFilterInstance.OUTPUT_1" direction = "vertical" style = "" labels = "" lineCap = "" fill = "" max = "128" frame-style = "" show_title = "true" min = "0"/>
+	<bar-graph  x = "20" y = "480" height = "201" show_frame = "false" title = "Midifilter 2" color = "" lineWidth = "1" width = "401" lineJoin = "" source = "MidiFilterInstance.OUTPUT_2" direction = "vertical" style = "" labels = "" lineCap = "" fill = "" max = "128" frame-style = "" show_title = "true" min = "0"/>
 </view>
+
 
 
 
