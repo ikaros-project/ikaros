@@ -35,7 +35,7 @@
 
 	<parameter name="repeat" type="bool" default="false" description="Whether to repeat when get to end of list" />
 	<parameter name="listdata" type="list" default="0" description="A list of floats to iterate through" /> 
-	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="INPUT" optional="yes" description="A matrix or array to iterate over; this will override list parameter" />
 	<input name="SYNC_IN" description="When this is 1 list will be iterated" size="1"/>

@@ -4,7 +4,7 @@
 		<module
 			class = "Constant"
 			name = "List"
-			data = "1 2;3 4"
+			data = "1 2 3;3 4 5"
 		/>
 
 		<module
@@ -32,7 +32,7 @@
 			class="ListIterator"
 			name="AutoList"
 			repeat = "true"
-			listdata = "5 6;7 8"
+			listdata = "5 6 7;7 8 9"
 			
 			_debug = "true"
 		/>

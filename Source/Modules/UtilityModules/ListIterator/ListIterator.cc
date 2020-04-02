@@ -43,7 +43,8 @@ ListIterator::SetSizes()
         Notify(msg_warning, "(SetSizes) List is empty");
         destroy_matrix(m);
     }
-    SetOutputSize("OUTPUT", sy);
+    int outsize = sy > 1 ? sx : sy;
+    SetOutputSize("OUTPUT", outsize);
     SetOutputSize("SYNC_OUT", 1);
 }
 
