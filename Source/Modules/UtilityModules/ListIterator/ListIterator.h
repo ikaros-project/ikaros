@@ -32,13 +32,15 @@ public:
 
     ListIterator(Parameter * p) : Module(p) {}
     virtual ~ListIterator();
-
+    void        SetSizes();
     void 		Init();
     void 		Tick();
 
     // pointers to inputs and outputs
     // and integers to represent their sizes
-
+    float **    input_matrix;
+    int         input_x;
+    int         input_y;
     float *     sync_in;
     float *     select;
 
@@ -50,8 +52,9 @@ public:
     
     // parameter values
 
-    float *     list;
-    int         list_length;
+    float **    list;
+    int         list_length_x;
+    int         list_length_y;
     bool        repeat;
 	bool       	debugmode;
 
