@@ -14,12 +14,10 @@
 		/>
 	</example>
 
-	<parameter name="OUTPUT" type="Text" default="Alpha" description="parameter containing a string that is used as output from the module" />
+	<parameter name="OUTPUT" type="Text" default="Alpha" description="parameter containing a string that is used as 'output' from the module through this parameter" />
 
 	<link class="Text" />
 
-    
-    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>

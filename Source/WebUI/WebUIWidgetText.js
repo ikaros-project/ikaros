@@ -7,7 +7,11 @@ class WebUIWidgetText extends WebUIWidgetControl
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'text', 'default':"", 'type':'string', 'control': 'textedit'},
-            
+            {'name':'prefix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'postfix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'separator', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'strings', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'select_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -49,8 +53,22 @@ class WebUIWidgetText extends WebUIWidgetControl
                 return;
             }
          
-            this.text = this.getSource('parameter');
-            this.innerText = this.text;
+            else if(this.text = this.getSource('parameter'))
+            {
+                this.innerText = this.text;
+            }
+
+            this.data = this.getSource('select_source')
+            if(this.data && this.parameters.strings)
+            {
+                let sep = this.parameters.separator || "";
+                let ss = this.parameters.strings.split(",")
+                let s = [];
+                for(let i=0; i<this.data[0].length; i++)
+                    if(this.data[0][i] > 0)
+                        s.push(ss[i].trim());
+                this.innerText = (this.parameters.prefix || "")+s.join(sep)+(this.parameters.postfix || "");
+            }
         }
         catch(err)
         {
@@ -58,8 +76,6 @@ class WebUIWidgetText extends WebUIWidgetControl
         }
     }
 };
-
-
 
 webui_widgets.add('webui-widget-text', WebUIWidgetText);
 

@@ -87,7 +87,7 @@ InitialValue::Tick()
     if(delay<=0)
     {
         // default is to update, if not connected
-        if(!update || update && update[0]==1.f)
+        if(!update || (update && update[0]==1.f))
         {
             // add input to output
             //copy_array(output_array, input_array, outputsize);
