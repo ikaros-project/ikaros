@@ -80,13 +80,12 @@ OutputVideoFile::Init()
         frameRate  =  GetIntValue("frame_rate");
 
         // Register all formats and codecs
-        // av_register_all();
         av_log_set_level(AV_LOG_FATAL);
 
         filename = GetValue("filename");
         if (filename == NULL)
         {
-                Notify(msg_fatal_error, "No input file parameter supplied.\n");
+                Notify(msg_fatal_error, "No output file parameter supplied.\n");
                 return;
         }
         if (filename[strlen(filename)-4] != '.' ||
@@ -97,9 +96,6 @@ OutputVideoFile::Init()
                 Notify(msg_fatal_error, "Filename must end with .mp4\n");
                 return;
         }
-
-        if (printInfo)
-                printf("Encode video file %s\n", filename);
 
         // Find the h264 codec
         output_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
@@ -173,7 +169,6 @@ OutputVideoFile::Init()
         }
 
         // Someone smart on the internet said "The range is a log scale of 0 to 51. 0 is lossless (files will likely be huge), 18 is often considered to be "visually lossless", 23 is default, and 51 is worst quality. Generally you use the highest value that still gives you an acceptable quality"
-        quality = 1;
         switch (quality) {
         case 0:
                 av_opt_set(c->priv_data, "crf", "45", 0); // verylow
@@ -282,7 +277,6 @@ OutputVideoFile::Tick()
                 }
 
         // Convert AV_PIX_FMT_RGB24 to AV_PIX_FMT_YUV420P
-        static struct SwsContext *img_convert_ctx;
         img_convert_ctx = sws_getCachedContext(img_convert_ctx,c->width, c->height,
                                                AV_PIX_FMT_RGB24,
                                                c->width, c->height, AV_PIX_FMT_YUV420P,

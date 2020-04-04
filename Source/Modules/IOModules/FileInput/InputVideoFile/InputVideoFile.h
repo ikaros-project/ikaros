@@ -70,7 +70,8 @@ public:
     AVPacket        packet;
     int             numBytes;
     uint8_t         *buffer;
-    
+    SwsContext      *img_convert_ctx;
+
     int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
 };
 

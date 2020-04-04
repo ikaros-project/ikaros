@@ -9,7 +9,7 @@
 			loop = "true"
 		/>
 		
-	s<view name="View">
+	<view name="View">
 		<image
 		max_x = "1"
 		title = "Intensity"

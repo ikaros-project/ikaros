@@ -70,6 +70,8 @@ public:
     int             i, ret, got_output;
     AVFormatContext *output_format_context;
     AVOutputFormat  *fmt;
+    SwsContext      *img_convert_ctx;
+
     
     int encode(AVCodecContext *avctx, AVPacket *pkt, int *got_packet, AVFrame *frame);
 };

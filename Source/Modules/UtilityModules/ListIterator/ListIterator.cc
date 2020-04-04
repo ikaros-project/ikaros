@@ -30,21 +30,58 @@
 // this is preferred to using math.h
 
 using namespace ikaros;
+// const char* lstname = "list";
+
+void
+ListIterator::SetSizes()
+{
+    int sx = GetInputSizeX("INPUT");
+    int sy = GetInputSizeY("INPUT");
+    if(sx == 0 && sy==0)
+    {
+        float ** m = create_matrix(GetValue("listdata"), sx, sy); // get the sizes but ignore the data
+        Notify(msg_warning, "(SetSizes) List is empty");
+        destroy_matrix(m);
+    }
+    int outsize = sy > 1 ? sx : sy;
+    SetOutputSize("OUTPUT", outsize);
+    SetOutputSize("SYNC_OUT", 1);
+}
 
 
 void
 ListIterator::Init()
 {
-    Bind(list_length, "list_length");
-    list = GetArray("list", list_length);
+    
     Bind(repeat, "repeat");
 	Bind(debugmode, "debug");    
 
+    io(input_matrix, input_x, input_y, "INPUT");
+    
+    if(!input_matrix)
+    {        
+        list = create_matrix(GetValue("listdata"), list_length_x, list_length_y);
+        // TODO fix so bind works
+        //Bind(list, list_length_x, list_length_y, "listdata", true);
+        if(list_length_x==0 || list_length_y==0)
+            Notify(msg_fatal_error, "(Init) List is empty");
+        print_matrix("List: ", list, list_length_x, list_length_y);
+    }
+    else
+    {
+        list = create_matrix(input_x, input_y);
+        list_length_x = input_x;
+        list_length_y = input_y;
+    }
+    
+    
+    
     // these should have size == 1
-    sync_in = GetInputArray("SYNC IN");
+    // TODO make this optional
+    sync_in = GetInputArray("SYNC_IN");
     select = GetInputArray("SELECT");
 
-    sync_out = GetOutputArray("SYNC OUT");
+    sync_out = GetOutputArray("SYNC_OUT");
     output_array = GetOutputArray("OUTPUT");
     output_array_size = GetOutputSize("OUTPUT");
 
@@ -58,6 +95,8 @@ ListIterator::Init()
 ListIterator::~ListIterator()
 {
     // Destroy data structures that you allocated in Init.
+    if(input_matrix)
+        destroy_matrix(list);
 }
 
 
@@ -76,35 +115,33 @@ ListIterator::Tick()
 
     if(sync_in[0] && !stop)
     {
-        reset_array(output_array, output_array_size);
-        int sel = (int)select[0];
-        if(sel < output_array_size)
+        if(input_matrix)
+            copy_matrix(list, input_matrix, input_x, input_y);
+        int countix = 0;
+        if(list_length_y>1)
         {
-            float tmp = list[index];
-            output_array[sel] = tmp;
-            int nextix = (index < (list_length-1))? index+1 : 0;
-            sync_sent = !(nextix==0 && index > 0);
-            index = nextix;
-            stop = index==0 && !repeat; 
-
+            copy_array(output_array, list[index], list_length_x);
+            countix = list_length_y;
         }
         else
-            printf("ListIterator: error got select=%i with outputsize=%i\n", (int)select[0], output_array_size);
+        {
+            output_array[0] = list[0][index];
+            countix = list_length_x;
+        }
+        
+        int nextix = (index < (countix-1))? index+1 : 0;
+        sync_sent = !(nextix==0 && index > 0);
+        index = nextix;
+        stop = index==0 && !repeat; 
     }
 
     if(debugmode)
 	{
-		// print out debug info
-        //printf("sync_sent=%i\n", sync_sent);
-        // for (int i = 0; i < list_length; ++i)
-        // {
-        //     printf("list %i = %f\n", i, list[i]); 
-        // }
-	   printf("list = %1.f at index = %i, select = %.1f, output=[", list[index], index, select[0]);
-       for (int i = 0; i < output_array_size; ++i)
-           printf("%.1f ", output_array[i] );
-       printf("]\n");
-       
+		printf("Instance: %s\n", this->instance_name);
+        // print out debug info
+        print_matrix("list", list, list_length_x, list_length_y);
+	   printf("index = %i\n", index);
+       print_array("output: ", output_array, output_array_size);
     }
 }
 

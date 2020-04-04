@@ -224,7 +224,6 @@ void FFMpegGrab::loop()
 #endif
 
 					//	Convert the frame to AV_PIX_FMT_RGB24 format
-					static struct SwsContext *img_convert_ctx;
 					img_convert_ctx = sws_getCachedContext(img_convert_ctx,avctx->width, avctx->height,
 														   avctx->pix_fmt,
 														   outputSizeX, outputSizeY, AV_PIX_FMT_RGB24,

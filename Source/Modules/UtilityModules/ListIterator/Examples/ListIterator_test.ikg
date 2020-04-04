@@ -3,8 +3,8 @@
 <group title="ListIterator Example">
 		<module
 			class = "Constant"
-			name = "Index"
-			data = "1"
+			name = "List"
+			data = "1 2 3;3 4 5"
 		/>
 
 		<module
@@ -23,38 +23,43 @@
 			class="ListIterator"
 			name="ListIterator"
 			repeat = "true"
-			list = "1"
-			list_length = "1"
-			debug = "true"
+			_list = "1"
+			_list_length = "1"
+			_debug = "true"
+		/>
+
+		<module
+			class="ListIterator"
+			name="AutoList"
+			repeat = "true"
+			listdata = "5 6 7;7 8 9"
+			
+			_debug = "true"
+		/>
+		<module
+			class="ListIterator"
+			name="ArrayList"
+			repeat = "true"
+			listdata = "0 1 2"
+			
+			_debug = "true"
 		/>
 		
-        <connection  source = "Index.OUTPUT"  target = "ListIterator.SELECT" />
-        <connection  source = "SquareGen.OUTPUT"  target = "ListIterator.SYNC IN" />
+        <connection  source = "List.OUTPUT"  target = "ListIterator.INPUT" />
+        <connection  source = "SquareGen.OUTPUT"  target = "ListIterator.SYNC_IN" />
+		<connection  source = "SquareGen.OUTPUT"  target = "AutoList.SYNC_IN" />
+		<connection  source = "SquareGen.OUTPUT"  target = "ArrayList.SYNC_IN" />
 
         
-		<view name="View">
-			<object class="Plot " 
-				module="SquareGen" 
-				source="OUTPUT" 
-				x="0" y="0" w="1" h="1"
-				min="0"
-				max="2"
-			/>
-			<object class="Plot " 
-				module="ListIterator" 
-				source="OUTPUT" 
-				x="0" y="1" w="1" h="1"
-				min="0"
-				max="4"
-			/>
-			<object class="Plot " 
-				module="ListIterator" 
-				source="SYNC OUT" 
-				x="0" y="2" w="1" h="1"
-				min="0"
-				max="2"
-			/>  
-		</view>
+<view name="ListIterator Test View" >
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "40" label_y = "" source = "List.data" title = "List" label_x = "" width = "221" show_frame = "false" height = "81" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "280" label_y = "" source = "ListIterator.OUTPUT" title = "ListIterator" label_x = "" width = "221" show_frame = "false" height = "61" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "340" label_y = "" source = "AutoList.OUTPUT" title = "AutoList" label_x = "" width = "221" show_frame = "false" height = "61" x = "40"/>
+	<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "1" min = "0" direction = "vertical" select = "" source = "SquareGen.OUTPUT" color = "" title = "Plot" width = "221" show_frame = "false" height = "161" y = "120" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "400" label_y = "" source = "ArrayList.OUTPUT" title = "ArrayList" label_x = "" width = "221" show_frame = "false" height = "61" x = "40"/>
+</view>
+
+
 
 </group>
  

@@ -1,5 +1,5 @@
 //
-//	ListIterator.h		This file is a part of the IKAROS project
+//	MidiFilter.h		This file is a part of the IKAROS project
 //
 //    Copyright (C) 2012 <Author Name>
 //
@@ -20,47 +20,41 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-#ifndef ListIterator_
-#define ListIterator_
+#ifndef MidiFilter_
+#define MidiFilter_
 
 #include "IKAROS.h"
 
-class ListIterator: public Module
+class MidiFilter: public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new ListIterator(p); }
+    static Module * Create(Parameter * p) { return new MidiFilter(p); }
 
-    ListIterator(Parameter * p) : Module(p) {}
-    virtual ~ListIterator();
-    void        SetSizes();
+    MidiFilter(Parameter * p);
+    virtual ~MidiFilter();
+    void SetSizes();
+
     void 		Init();
     void 		Tick();
 
     // pointers to inputs and outputs
     // and integers to represent their sizes
-    float **    input_matrix;
-    int         input_x;
-    int         input_y;
-    float *     sync_in;
-    float *     select;
 
-    float *     sync_out;
-    float *     output_array;
-    int         output_array_size;
+    char **     output_name;
+    float *   input;
+    int         input_size;
+    float **   output;
+    int *       output_sizes;
 
-    // internal data storage
+    int         outs;
     
+    // internal data storage
+    float *     filter;
+
     // parameter values
 
-    float **    list;
-    int         list_length_x;
-    int         list_length_y;
-    bool        repeat;
+    float **     filter_data;
 	bool       	debugmode;
-
-    int         index;
-    bool        stop;
-    bool        sync_sent;
 };
 
 #endif
