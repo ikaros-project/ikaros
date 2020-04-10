@@ -343,6 +343,35 @@ starts_with(const std::string & s, const std::string & start)
     return start.length() <= s.length() && equal(start.begin(), start.end(), s.begin()); // more efficient than find
 }
 
+// trim from start (in place)
+std::string ltrim(const std::string &ss)
+{
+    std::string s = ss;
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+                return !std::isspace(ch);
+            }));
+    return s;
+}
+
+// trim from end (in place)
+std::string rtrim(const std::string &ss)
+{
+    std::string s = ss;
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+                return !std::isspace(ch);
+            }).base(),
+            s.end());
+    return s;
+}
+
+// trim from both ends (in place)
+std::string trim(const std::string &ss)
+{
+    std::string s = ss;
+    s = ltrim(s);
+    s = rtrim(s);
+    return s;
+}
 
 bool
 is_path(const char * p)
