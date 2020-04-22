@@ -1,0 +1,7 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(osc)
+set(SOURCE
+	${SOURCE}
+	${CMAKE_CURRENT_SOURCE_DIR}/OscInterface.cc
+	PARENT_SCOPE
+)

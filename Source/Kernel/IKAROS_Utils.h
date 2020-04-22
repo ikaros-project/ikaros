@@ -48,8 +48,10 @@ const std::vector<std::string>  split(const std::string & str, const std::string
 const std::vector<std::string>  rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);           // Python-like rsplit
 std::string                     join(const std::string & separator, const std::vector<std::string> & v, bool reverse =false);    // Pyhon-like join
 
-bool starts_with(const std::string & s, const std::string & start);
-
+bool starts_with(const std::string &s, const std::string & start);
+std::string ltrim(const std::string &s);
+std::string rtrim(const std::string &s);
+std::string trim(const std::string &s);
 // File path operations
 
 bool    is_path(const char * p);

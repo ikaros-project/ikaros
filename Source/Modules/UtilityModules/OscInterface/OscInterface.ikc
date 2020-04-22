@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<group name="OscInterface" description="minimal example module">
+
+	<description type="text">
+		Interface with Open Sound Control (OSC).
+
+		Planned Address format:
+		[ address string ]:type+
+		Example:
+		/2/faderB:ff -> address = "/2/faderB" types=float, float
+		This will expect an address called "/2/faderB" to come with 
+		two floats, for sending or receiving
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OscInterface"
+			name="OscInterface"
+			ins="1"
+			outs="1"
+			outhost="127.0.0.1"
+			outport="9001"
+			inport = "12000"
+			inaddresses = "/1/faderA:f;/2/faderB:ff"
+			outaddresses="/1/faderC:f;/2/faderD:f"
+			debug = "true"
+		/>
+		
+	</example>
+
+	<_parameter name="ins" type="int" default="1" description="The number of ins" />
+	<_parameter name="outs" type="int" default="1" description="The number of outs" />
+	<parameter name="outhost" type="string" default="127.0.0.1" description="The host to send to" />
+	<parameter name="outport" type="int" default="12001" description="The port to send to" />
+	<parameter name="inport" type="int" default="12000" description="The port to listen to" />
+	<parameter name="inadresses" type="string" default="" description="The adresses to listen to" />
+	<parameter name="outadresses" type="string" default="" description="The adresses to send to" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+	<parameter name="show_unhandled" type="bool" default="false" description="Prints unhandled messages" />
+
+	<input name="*" description="The inputs" />
+
+	<output name="*" description="The outputs" />
+
+	<link class="OscInterface" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>trond_arild.tjostheim@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>OscInterface.h</file>
+   		<file>OscInterface.cc</file>
+   		<file>OscInterface.ikc</file>
+   </files>
+
+</group>
+

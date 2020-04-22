@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<group title="OscInterface Example">
+	
+
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.001"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "OscInterface"
+			name = "OscInterfaceInstance"
+			inport  = "12001"
+			inadresses = "/ctrl/0;/1/fader1"
+			
+		/>
+		
+        
+<view name="View" >
+	<image  style = "" show_frame = "false" min_y = "0" flipXCanvas = "no" width = "200" flipYAxis = "no" format = "fire" max_x = "1" command = "" show_title = "true" scales = "no" opacity = "1" flipXAxis = "no" source = "OscInterfaceInstance.OUTPUT_1" scale = "both" height = "200" flipYCanvas = "no" module = "" min_x = "0" frame-style = "" y = "80" index = "" file = "" title = "OSC output 1" max_y = "1" x = "20"/>
+	<image  style = "" show_frame = "false" min_y = "0" flipXCanvas = "no" width = "200" flipYAxis = "no" format = "fire" max_x = "1" command = "" show_title = "true" scales = "no" opacity = "1" flipXAxis = "no" source = "OscInterfaceInstance.OUTPUT_2" scale = "both" height = "200" flipYCanvas = "no" module = "" min_x = "0" frame-style = "" y = "280" index = "" file = "" title = "OSC output 2" max_y = "1" x = "20"/>
+</view>
+
+
+
+</group>
+ 
