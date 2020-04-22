@@ -10,6 +10,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
             {'name': "STYLE", 'control':'header'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'values': "horizontal,vertical", 'class':'true'},
+            {'name':'transpose', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
             {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
@@ -21,6 +22,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto', 'default':false, 'type':'bool', 'control': 'checkbox'},
             
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -108,10 +110,36 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     // update() get the data for the graph and calls WebUIWidgetGraph::draw() which in turn calls
     // drawPlotHorizontal() or drawPlotVertical()
     
+    transpose(d)
+    {
+        var e = d[0].map(function(col, i){
+            return d.map(function(row){
+                return row[i];
+            });
+        });
+        return e;
+    }
+
+    max(m)
+    {
+        let res = 0;
+        for(const r of m)
+            res = Math.max(res, Math.max(...r));
+        return res;
+    }
+
     update()
     {
         if(this.data = this.getSource('source'))
+        {
+            if(this.parameters.auto)
+                this.parameters.max = this.max(this.data) || 1;
+
+            if(this.parameters.transpose)
+                this.data = this.transpose(this.data); // TODO: should be changed in drawing instead
+
             this.draw(this.data[0].length, this.data.length);
+        }
     }
 };
 
