@@ -445,7 +445,7 @@ GroupElement::GetValue(const std::string & a) const
         {
             auto new_name = p->attributes.at("name");
             if(new_name == a)
-                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself");
+                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself: %s", new_name.c_str());
             else
                 return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
         }
