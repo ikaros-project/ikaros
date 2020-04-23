@@ -51,12 +51,12 @@ SetSubmatrix::Init()
     // TODO assert correct sizes
     if (source_size_x > destination_size_x || source_size_y > destination_size_y)
     {
-        Notify(msg_fatal_error, "Source is larger than destination.\n");
+        Notify(msg_fatal_error, "Source is larger than destination: (%i, %i) vs (%i, %i).\n", source_size_x, source_size_y, destination_size_x, destination_size_y);
         return;
     }
     if ((source_size_x + offset_x) > destination_size_x || (source_size_y + offset_y) > destination_size_y)
     {
-        Notify(msg_fatal_error, "Source + offset is larger than destination.\n");
+        Notify(msg_fatal_error, "Source + offset is larger than destination: (%i, %i) vs (%i, %i).\n", source_size_x+offset_x, source_size_y+offset_y, destination_size_x, destination_size_y);
         return;   
     }
     // internal_array = create_array(10);
