@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="BlackBox" description="Abstract 'black box' module that can be used to assemble and design abstract structures. In category theory terms, the BlackBox module is an operad.">
+
+	<description type="text">
+	Abstract 'black box' module that can be used to assemble 
+	and design abstract structures. 
+	In category theory terms, the BlackBox module is an operad.	</description>
+
+	<example description="A simple example">
+		<module
+			class="BlackBox"
+			name="BlackBox"
+			ins="A;B"
+			outs="C;D;E"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="ins" type="string" default="None" description="The names of the inputs" />
+	<parameter name="outs" type="string" default="None" description="The names of outputs" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="*" description="The first input" />
+
+	<output name="*" description="The first output" size_set="INPUT_1" />
+
+	<link class="BlackBox" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>BlackBox.h</file>
+   		<file>BlackBox.cc</file>
+   		<file>BlackBox.ikc</file>
+   </files>
+
+</group>
+
