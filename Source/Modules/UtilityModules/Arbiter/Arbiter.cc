@@ -88,10 +88,10 @@ Arbiter::SetSizes()
             continue; // Not ready yet
 
         if(sx != 0 && sxi != 0 && sx != sxi)
-            Notify(msg_fatal_error, "Inputs have different sizes");
+            Notify(msg_fatal_error, "Inputs have different sizes x: %s, %i vs %i, ", input_name[i], sxi, sx);
 
         if(sy != 0 && syi != 0 && sy != syi)
-            Notify(msg_fatal_error, "Inputs have different sizes");
+            Notify(msg_fatal_error, "Inputs have different sizes y: %s, %i vs %i", input_name[i], syi, sy);
         
         sx = sxi;
         sy = syi;
