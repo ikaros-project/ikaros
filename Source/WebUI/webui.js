@@ -835,7 +835,6 @@ interaction = {
             newObject.widget = new webui_widgets.constructors["webui-widget-"+w['class']];
             newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
             // Add default parameters from CSS - possibly...
-            // FIXME: we should type convert here also according to default_template
             for(let k in newObject.widget.parameters)
             if(w[k] === undefined)
             {
@@ -947,6 +946,8 @@ interaction = {
 
     calculateIOPositions(module, x, y)
     {
+        x = parseInt(x);
+        y = parseInt(y);
         y += 34;
         x += 2;
         
