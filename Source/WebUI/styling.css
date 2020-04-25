@@ -412,10 +412,11 @@ div.module {
     text-align: center;
     border-radius:6px;
     width:120px;
+    border: 2px solid #ffffff00;
 }
 
 div.module:hover {
-    border: 4px solid blue;
+    border: 2px solid orange;
 
 }
 
@@ -427,6 +428,8 @@ div.group {
 div.input {
     padding: 3px 20px 3px 0px;
     text-align: left;
+    overflow: hidden;
+    white-space: nowrap;    
 }
 
 div.iconnector {
@@ -442,7 +445,11 @@ div.iconnector {
 div.output {
     padding: 3px 0px 3px 20px;
     text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    position:relative;
 }
+
 
 div.oconnector {
     background-color: #44A;
@@ -451,9 +458,14 @@ div.oconnector {
     height: 10px;
     margin-left: 10px;
     margin-top 0px;
-    float: right;
+    position:absolute;
+    left:97px;
 }
 
+div.oconnector:hover {
+    background-color: lightskyblue;
+    cursor: e-resize;
+}
 
 /* Style for grid */
 

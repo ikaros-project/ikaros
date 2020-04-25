@@ -521,12 +521,20 @@ interaction = {
         interaction.module_inspector = document.querySelector('#module_inspector');
         interaction.group_inspector = document.querySelector('#group_inspector');
         interaction.setMode('run');
+        window.addEventListener("resize", interaction.windowResize);
     },
     stopEvents: function (e) {
         if(interaction.main.dataset.mode == "edit")
             e.stopPropagation()
     },
-
+    windowResize: function () {
+        // Trigger redraw the hard way
+        let v = getCookie('current_view');
+        if(Object.keys(controller.views).includes(v))
+            controller.selectView(v);
+        else
+            controller.selectView(Object.keys(controller.views)[0]);
+    },
     initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");
         for (var i = 0; i <    nodes.length; i++)
@@ -614,6 +622,7 @@ interaction = {
         this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
         context.restore();
     },
+/*
     drawConnectionsCircular()
     {
         function bezier(t, p0, p1, p2, p3)
@@ -685,6 +694,7 @@ interaction = {
             }
         }
     },
+*/
     drawConnections()
     {
         function bezier(t, p0, p1, p2, p3)
@@ -875,7 +885,7 @@ interaction = {
         
         return newObject;
     },
-    
+/*    
     buildGroupViewCircular()
     {
         let m_width = 100;
@@ -943,25 +953,27 @@ interaction = {
             interaction.drawConnectionsCircular();
         }
     },
-
+*/
     calculateIOPositions(module, x, y)
     {
         x = parseInt(x);
         y = parseInt(y);
-        y += 34;
+        y += 32;
         x += 2;
+        let yinc = 17;
+        let outinc = 116;
         
         for(let a of module.inputs)
         {
             interaction.io_pos[module.attributes.name+"."+a.name] = {'x': x, 'y': y};
-            y += 19;
+            y += yinc;
         }
 
-        x += 116;
+        x += outinc;
         for(let a of module.outputs)
         {
             interaction.io_pos[module.attributes.name+"."+a.name] = {'x': x, 'y': y};
-            y += 19;
+            y += yinc;
         }
     },
 
