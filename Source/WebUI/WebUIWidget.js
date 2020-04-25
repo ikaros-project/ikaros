@@ -41,10 +41,14 @@ class WebUIWidget extends HTMLElement
     {
         super();
         let pt = this.constructor.template();
+        this.param_types = {};
         this.parameters = {};
         for(let i in pt)
             if(pt[i].control != 'header')
+            {
                 this.parameters[pt[i].name] = this.setType(pt[i]['default'], pt[i]['type']);
+                this.param_types[pt[i].name] = pt[i]['type'];
+            }
         this.parameter_template = pt;        
      }
 
@@ -447,11 +451,11 @@ class WebUIWidget extends HTMLElement
         this.updateFrame();
         this.update();
     }
-   parameterChangeNotification(p)
-   {
-        this.updateAll()
-   }
 
+    parameterChangeNotification(p)
+    {
+        this.updateAll()
+    }
 
     // TODO: these should be changed to go through command object to allow faster update
 

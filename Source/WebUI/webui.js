@@ -10,6 +10,22 @@ String.prototype.rsplit = function(sep, maxsplit) {
 }
 
 
+function setType(x, t)
+{
+    if(t == 'int')
+        return parseInt(x);
+    
+    if(t == 'float')
+        return parseFloat(x);
+    
+    if(t == 'bool')
+        return ['on','yes','true'].includes(x.toString().toLowerCase());
+    
+    return x;
+}
+
+
+
 // COOKIES FOR PERSISTENT STATE
 
 function setCookie(name,value,days=100)
@@ -820,9 +836,17 @@ interaction = {
             newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
             // Add default parameters from CSS - possibly...
             // FIXME: we should type convert here also according to default_template
-            for(k in newObject.widget.parameters)
-                if(w[k] === undefined)
-                    w[k] = newObject.widget.parameters[k];
+            for(let k in newObject.widget.parameters)
+            if(w[k] === undefined)
+            {
+                w[k] = newObject.widget.parameters[k];
+            }
+            else
+            {
+                let tp = newObject.widget.param_types[k]
+                w[k] = setType(w[k], tp);
+            }
+
             newObject.widget.parameters = w;
         }
 
