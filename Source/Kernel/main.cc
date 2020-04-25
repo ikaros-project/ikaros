@@ -146,7 +146,7 @@ main(int argc, char *argv[])
         k.PrintTiming();
         k.ListProfiling();
 
-        delete options;
+        delete options;    
     }
 
     // Catch Exceptions and Terminate Execution
@@ -180,6 +180,8 @@ main(int argc, char *argv[])
         return i;	// OTHER ERROR
     }
 
+    for (Module * m: k._modules)
+        delete m;
     delete &k;
     return 0;
 }
