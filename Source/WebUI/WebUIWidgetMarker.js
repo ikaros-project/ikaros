@@ -11,8 +11,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 //            {'name':'length_module', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'values': "col,row"},
-            {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'selectValue', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'selectValue', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
             {'name': "MARKER STYLE", 'control':'header'},
