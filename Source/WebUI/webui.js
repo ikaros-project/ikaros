@@ -346,7 +346,8 @@ inspector = {
                     if(p.type == 'int')
                     {
                         cell2.innerHTML= '<input type="number" value="'+value+'" min="'+p.min+'" max="'+p.max+'"/>';
-                        cell2.addEventListener("input", function(evt) { parameters[p.name] = evt.target.value; widget.parameterChangeNotification(p);});
+                        cell2.addEventListener("input", function(evt) { 
+                            parameters[p.name] = evt.target.value; widget.parameterChangeNotification(p);});
                     }
                 break;
                 

@@ -232,7 +232,7 @@ class WebUIWidget extends HTMLElement
         else
             return this.getProp(attribute, index)
     }
-    
+
     setFormat(variable, attribute, type, index=undefined)
     {
         let v = null;
