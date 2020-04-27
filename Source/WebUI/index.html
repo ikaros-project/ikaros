@@ -19,6 +19,7 @@
 <script src="WebUIWidgetMarker.js"></script>
 <script src="WebUIWidgetGrid.js"></script>
 <script src="WebUIWidgetText.js"></script>
+<script src="WebUIWidgetRectangle.js"></script>
 <script src="WebUIWidgetTable.js"></script>
 <script src="WebUIWidgetButton.js"></script>
 <script src="WebUIWidgetSwitch.js"></script>
@@ -119,6 +120,7 @@
                                 <option value="grid">Grid</option>
                                 <option value="image">Image</option>
                                 <option value="text">Text</option>
+                                <option value="rectangle">Rectangle</option>
                                 <option value="button">Button</option>
                                 <option value="slider-horizontal">Slider</option>
                                 <option value="switch">Check Box</option>
@@ -128,6 +130,17 @@
                             </select>
                             <button onclick="interaction.addNewWidget()">Add</button>
                         </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            View
+                        </td>
+                        <td>
+                            <button onclick="controller.copyView()">Copy as XML</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="header">STYLE</td>
                     </tr>
                     <tr>
                         <td>
@@ -142,13 +155,11 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>
-                            View
-                        </td>
-                        <td>
-                            <button onclick="controller.copyView()">Copy as XML</button>
-                        </td>
+                <!--
+                    <tr>
+                        <td>style</td><td id="bg_style" contenteditable="true"></td>
                     </tr>
+                -->
                 </tbody>
             </table>
 		</aside>
@@ -282,7 +293,7 @@
     interaction.generateGrid(20);
     interaction.initDraggables();
     controller.init();
-    
+
 //    setInterval(function (){ console.log("NOW"); f = document.querySelector('footer'); f.innerHTML += "<p>Hej! ("+Date.now()+")</p>"; f.scrollTop = f.scrollHeight; }, 1000);
 
 </script>
