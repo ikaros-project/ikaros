@@ -1,8 +1,8 @@
 //
-//		ValueAccumulator.cc		This file is a part of the IKAROS project
+//		MemorySequencer.cc		This file is a part of the IKAROS project
 //				
 //
-//    Copyright (C) 2016 Christian Balkenius
+//    Copyright (C) 2020 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,34 +20,40 @@
 //
 
 
-#include "ValueAccumulator.h"
+#include "MemorySequencer.h"
 
 using namespace ikaros;
 
 void
-ValueAccumulator::Init()
+MemorySequencer::Init()
 {
-    /*
-    Bind(alpha, "alpha");
-
-   io(input, input_size, "EXCITATION");
-    io(inhibition, inhibition_size, "INHIBITION");
-    io(shunting_inhibition, shunting_inhibition_size, "SHUNTING_INHIBITION");
+    io(input, size, "INPUT");
     io(output, "OUTPUT");
-
-    x = 0;
- */
+    last_input = create_array(8);
 }
-
 
 
 void
-ValueAccumulator::Tick()
+MemorySequencer::Tick()
 {
-   
+    reset_array(output, 80);
+        
+    if(dist1(input, last_input, size) > 0 || counter > 10) // new input
+    {
+        counter = 1;
+        index = 10*arg_max(input, size);
+    }
 
+    if(counter)
+    {
+        output[index] = 1;
+        counter++;
+        index++;
+    }
+    
+    copy_array(last_input, input, size);
 }
 
-static InitClass init("ValueAccumulator", &ValueAccumulator::Create, "Source/Modules/BrainModels/ValueAccumulator/");
+static InitClass init("MemorySequencer", &MemorySequencer::Create, "Source/Modules/BrainModels/DecisionModel2020/MemorySequencer/");
 
 

@@ -1,5 +1,5 @@
 //
-//		ValueAccumulator.h		This file is a part of the IKAROS project
+//		Perception.h		This file is a part of the IKAROS project
 //
 //
 //    Copyright (C) 2015 Christian Balkenius
@@ -19,27 +19,33 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef ValueAccumulator_
-#define ValueAccumulator_
+#ifndef Perception_
+#define Perception_
 
 #include "IKAROS.h"
 
-class ValueAccumulator: public Module
+class Perception: public Module
 {
 public:
-	static Module * Create(Parameter * p) { return new ValueAccumulator(p); }
+	static Module * Create(Parameter * p) { return new Perception(p); }
 	
     float       alpha;
-    
-    int          input_size;
+    float       beta;
+    float       phi;
+
+    int         interval;
+    int         o_size;
+    int         p_size;
+    int         f_size;
    
-    float *		input;
-    float *		index;
-    float *     state;
+    float *		location_in;
+    float **    environment;
+    float **    features;
+    float *     location_out;
     float *     output;
 
-				ValueAccumulator(Parameter * p) : Module(p) {};
-    virtual		~ValueAccumulator() {};
+				Perception(Parameter * p) : Module(p) {};
+    virtual		~Perception() {};
 
     void		Init();
     void		Tick();
