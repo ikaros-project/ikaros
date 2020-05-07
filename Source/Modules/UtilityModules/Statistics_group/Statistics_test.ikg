@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group name="Statistics test group">
+<description>
+Test for statistics
+</description>
+
+
+<!-- Modules -->
+<module
+class="Statistics"
+name="Stats"
+buffersize="20"
+/>
+
+<module
+    class = "Randomizer"
+    name = "Randomizer"
+    outputsize = "4"
+    min="0"
+    max = "1"
+/>
+<connection source = "Randomizer.OUTPUT"  target = "Stats.INPUT" />
+
+<!--Connections-->	
+
+<!-- View -->
+<view name="View" >
+</view>
+
+</group>
