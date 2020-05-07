@@ -141,6 +141,6 @@ RingBuffer::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("RingBuffer", &RingBuffer::Create, "Source/UserModules/RingBuffer/");
+static InitClass init("RingBuffer", &RingBuffer::Create, "Source/Modules/UtilityModules/RingBuffer/");
 
 
