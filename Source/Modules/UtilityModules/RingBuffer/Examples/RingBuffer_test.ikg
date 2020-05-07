@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<group title="RingBuffer Example">
+	
+		<module
+			class = "Randomizer"
+			name = "Rnd"
+			outputsize  = "2"
+
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.001"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "RingBuffer"
+			name = "RingBufferInstance"
+			size  = "4"
+			debug="yes"
+			
+		/>
+		
+        <connection source = "Rnd.OUTPUT" target = "RingBufferInstance.INPUT" />
+        
+<view name="View" >
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "2" scrollable = "false" direction = "normal" y = "200" label_y = "" source = "RingBufferInstance.OUTPUT" title = "Default Title" label_x = "" width = "301" show_frame = "false" height = "81" x = "160"/>
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "2" scrollable = "false" direction = "normal" y = "60" label_y = "" source = "Rnd.OUTPUT" title = "Default Title" label_x = "" width = "161" show_frame = "false" height = "61" x = "160"/>
+	<grid  x = "160" y = "280" height = "121" width = "201" title = "" source = "RingBufferInstance.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "fire" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
+
+</group>
+ 
