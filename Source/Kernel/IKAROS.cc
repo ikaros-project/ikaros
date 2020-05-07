@@ -4143,7 +4143,7 @@ Kernel::HandleHTTPRequest()
         else
             socket->Send("ERROR - No logfile found\n");
     }
-    else if (strstart(uri, "/module/"))
+    else if (strstart(uri, "/module/")) // should probably be removed
     {
         char module[256], output[256], type[256];
         int c = sscanf(uri, "/module/%[^/]/%[^/]/%[^/]", module, output, type);
@@ -4173,6 +4173,24 @@ Kernel::HandleHTTPRequest()
             destroy_string(uri);
             return;
         }
+    }
+    else if (strstart(uri, "/classes/"))
+    {
+        Dictionary header;
+        header.Set("Content-Type", "text/json");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        socket->Send("{\"classes\":[\n\t\"");
+        std::string s = "";
+        for(auto & c: classes)
+        {
+            socket->Send(s.c_str());
+            socket->Send(c.first.c_str());
+            s = "\",\n\t\"";
+        }
+        socket->Send("\"\n]\n}\n");
     }
     else if(equal_strings(uri, "/"))
     {
