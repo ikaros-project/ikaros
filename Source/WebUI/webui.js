@@ -117,8 +117,23 @@ function toggleFooter()
     }
 }
 
+
+function hideAside()
+{
+    for (const s of document.querySelectorAll('aside'))
+        s.style.display = 'none'
+}
+
+function displayAside(d)
+{
+    hideAside();
+    document.getElementById(d).style.display = 'block';
+}
+
 function toggleInspector()
 {
+    displayAside('widget_inspector');
+    return;
     var x = document.getElementById('widget_inspector');
     var s = window.getComputedStyle(x, null);
     if (s.display === 'none') {
@@ -130,6 +145,8 @@ function toggleInspector()
 
 function toggleModuleInspector()
 {
+    displayAside('module_inspector');
+    return;
     var x = document.getElementById('module_inspector');
     var s = window.getComputedStyle(x, null);
     if (s.display === 'none') {
@@ -144,11 +161,15 @@ function toggleSystem()
     var x = document.getElementById('system_inspector');
     var s = window.getComputedStyle(x, null);
     if (s.display === 'none') {
-        x.style.display = 'block';
+        displayAside('system_inspector');
     } else {
-        x.style.display = 'none';
+        hideAside();
     }
 }
+
+
+
+
 
 
 /*
@@ -445,7 +466,7 @@ module_inspector = {
         
         else // add module
         {
-            module_inspector.addHeader("MODULE");
+            module_inspector.addHeader("MODULE (not live)");
             module_inspector.addRow("name", m.parameters.attributes.name);
             module_inspector.addRow("class", m.parameters.attributes.class);
 
@@ -478,6 +499,236 @@ module_inspector = {
 }
 
 
+module_edit_inspector = {
+    inspector: null,
+    table: null,
+    list: null,
+    webui_object: null,
+    
+    init: function () {
+        module_edit_inspector.inspector = document.getElementById('module_edit_inspector');
+        module_edit_inspector.table = document.getElementById('mei_table');
+    },
+    remove: function () {
+        while(module_edit_inspector.table.rows.length)
+            module_edit_inspector.table.deleteRow(-1);
+    },
+    addHeader(title) {
+        row = module_edit_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = title;
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+    },
+    addRow(attribute, value) {
+        value = value!=undefined ? value : "";
+        row = module_edit_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = attribute;
+        cell2.innerHTML = value;
+    },
+    add: function (module) {
+    //    let widget = webui_object.widget;
+    //    let parameters = widget.parameters;
+
+        module_edit_inspector.module = module;
+   //     module_edit_inspector.parameter_template = widget.parameter_template;
+
+        // Add header info
+
+        let m = module_edit_inspector.module;
+        
+        if(m.parameters.groups.length > 0) // add group
+        {
+            module_edit_inspector.addHeader("GROUP");
+            module_edit_inspector.addRow("name", m.parameters.attributes.name);
+            for(let p in m.parameters.parameters)
+                if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
+                {
+                    let row = module_edit_inspector.table.insertRow(-1);
+                    let value = m.parameters.attributes[p];
+                    module_edit_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                }
+
+            module_edit_inspector.addHeader("SUBGROUPS");
+            module_edit_inspector.addRow("modules", m.parameters.groups.length);
+            module_edit_inspector.addRow("connections", m.parameters.connections.length);
+
+            module_edit_inspector.addHeader("APPEARANCE");
+            module_edit_inspector.addRow("x", m.parameters.attributes._x);
+            module_edit_inspector.addRow("y", m.parameters.attributes._y);
+            module_edit_inspector.addRow("color", m.parameters.attributes._color);
+            module_edit_inspector.addRow("text_color", m.parameters.attributes._text_color);
+            module_edit_inspector.addRow("shape", m.parameters.attributes._shape);
+        }
+        
+        else // add module
+        {
+            module_edit_inspector.addHeader("MODULE (edit, not live)");
+            module_edit_inspector.addRow("name", m.parameters.attributes.name);
+            module_edit_inspector.addRow("class", m.parameters.attributes.class);
+
+            for(let p of m.parameters.parameters)
+                module_edit_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+
+            module_edit_inspector.addRow("description", m.parameters.attributes.description);
+
+            module_edit_inspector.addHeader("APPEARANCE");
+            module_edit_inspector.addRow("x", m.parameters.attributes._x);
+            module_edit_inspector.addRow("y", m.parameters.attributes._y);
+            module_edit_inspector.addRow("color", m.parameters.attributes._color);
+            module_edit_inspector.addRow("text_color", m.parameters.attributes._text_color);
+            module_edit_inspector.addRow("shape", m.parameters.attributes._shape);
+        }
+    },
+    select: function (obj)
+    {
+        module_edit_inspector.remove();
+        module_edit_inspector.add(obj);
+    },
+    update: function (attr_value)
+    {
+        // New data from server
+    },
+    change: function (attr_value)
+    {
+        // Send changed value to server
+    }
+}
+
+
+group_inspector = {
+    inspector: null,
+    table: null,
+    list: null,
+    webui_object: null,
+    
+    init: function () {
+        group_inspector.inspector = document.getElementById('group_inspector');
+        group_inspector.table = document.getElementById('gi_table');
+    },
+    remove: function () {
+        while(group_inspector.table.rows.length)
+            group_inspector.table.deleteRow(-1);
+    },
+    addHeader(title) {
+        row = group_inspector.table.insertRow(-1);
+        cell = row.insertCell(0);
+        cell.innerText = title;
+        cell.setAttribute("colspan", 2);
+        cell.setAttribute("class", "header");
+    },
+    addRow(attribute, value) {
+        value = value!=undefined ? value : "";
+        row = group_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = attribute;
+        cell2.innerHTML = value;
+    },
+    addButton(attribute, title, func) {
+        row = group_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = attribute;
+        cell2.innerHTML = "<button>"+title+"</button>";
+        cell2.firstChild.onclick = func;
+    },
+    addSelectionList(items, func) {
+        row = group_inspector.table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell1.innerText = "classes";
+        cell2.style.textAlign="right";
+        cell2.style.paddingRight="15px";
+        classes = "";
+        for(let c of interaction.classes)
+            classes += "<option value='"+c+"'>"+c+"</option>";
+        cell2.innerHTML = "<select name='classes' id='classes' style='width:165px;' size='10'>"+classes+"</select><br><button>Add module</button>";
+        //cell.setAttribute("colspan", 2);
+        b = cell2.querySelector('button');
+        b.onclick = func;
+        //cell.setAttribute("class", "selectionlist");
+    },
+    add: function (module) {
+    //    let widget = webui_object.widget;
+    //    let parameters = widget.parameters;
+
+        group_inspector.module = module;
+   //     group_inspector.parameter_template = widget.parameter_template;
+
+        // Add header info
+
+        let m = group_inspector.module;
+        if(m.groups.length > 0) // add group
+        {
+            group_inspector.addHeader("GROUP");
+            group_inspector.addRow("name", m.attributes.name);
+            group_inspector.addRow("log level", m.attributes.log_level);
+            group_inspector.addRow("inputs", m.inputs.length);
+            group_inspector.addRow("outputs", m.outputs.length);
+            group_inspector.addRow("parameters", m.parameters.length);
+            group_inspector.addRow("views", m.views.length); 
+
+            for(let p in m.parameters)
+            {
+                let row = group_inspector.table.insertRow(-1);
+                let value = m.attributes[p];
+                group_inspector.addRow(p.name, m.attributes[p.name] ? m.attributes[p.name].toString() : p["default"]);
+            }
+
+            group_inspector.addHeader("SUBGROUPS");
+            group_inspector.addRow("modules", m.groups.length);
+            group_inspector.addRow("connections", m.connections.length);
+            group_inspector.addSelectionList(['A','B','C'], function () {interaction.addModule()});
+            //group_inspector.addButton("", "Add module", function () {interaction.addModule()});
+            group_inspector.addButton("", "Copy as XML", function () {alert("Not implemented yet")});
+
+            group_inspector.addHeader("APPEARANCE");
+            group_inspector.addRow("x", m.attributes._x);
+            group_inspector.addRow("y", m.attributes._y);
+            group_inspector.addRow("color", m.attributes._color);
+            group_inspector.addRow("text_color", m.attributes._text_color);
+            group_inspector.addRow("shape", m.attributes._shape);
+        }
+        
+        else // add module
+        {
+            group_inspector.addHeader("MODULE (edit, not live)");
+            group_inspector.addRow("name", m.attributes.name);
+            group_inspector.addRow("class", m.attributes.class);
+
+            for(let p of m.parameters)
+                group_inspector.addRow(p.name, m.attributes[p.name] ? m.attributes[p.name].toString() : p["default"]);
+
+            group_inspector.addRow("description", m.attributes.description);
+
+            group_inspector.addHeader("APPEARANCE");
+            group_inspector.addRow("x", m.attributes._x);
+            group_inspector.addRow("y", m.attributes._y);
+            group_inspector.addRow("color", m.attributes._color);
+            group_inspector.addRow("text_color", m.attributes._text_color);
+            group_inspector.addRow("shape", m.attributes._shape);
+        }
+    },
+    select: function (obj)
+    {
+        group_inspector.remove();
+        group_inspector.add(obj);
+    },
+    update: function (attr_value)
+    {
+        // New data from server
+    },
+    change: function (attr_value)
+    {
+        // Send changed value to server
+    }
+}
+
+
+
 webui_widgets = {
     constructors: {},
     add: function(element_name, class_object) {
@@ -502,27 +753,120 @@ interaction = {
     grid_spacing: 20,
     sizegrid: 20,
     curnewpos: 20,
-    editMode: true,
+
+    edit_mode: false,
+    view_mode: false, // view or groups
+
+    group_inspector: undefined,
+    module_inspector: undefined,
+    module_edit_inspector: undefined,
+    view_inspector: undefined,
+    widget_inspector: undefined,
+    system_inspector: undefined,
+
     main: undefined,
     currentView: undefined,
     currentViewName: undefined,
+    currentInspector: undefined,
+
     io_pos: {},
-    group_inspector: undefined,
-    module_inspector: undefined,
-    view_inspector: undefined,
-    widget_inspector: undefined,
- 
-    system_inspector: undefined,
-    
+
     init: function () {
+        interaction.getClasses();
         interaction.main = document.querySelector('main');
         interaction.widget_inspector = document.querySelector('#widget_inspector');
         interaction.system_inspector = document.querySelector('#system_inspector');
         interaction.view_inspector = document.querySelector('#view_inspector');
         interaction.module_inspector = document.querySelector('#module_inspector');
+        interaction.module_edit_inspector = document.querySelector('#module_edit_inspector');
         interaction.group_inspector = document.querySelector('#group_inspector');
-        interaction.setMode('run');
+        main.dataset.mode = "run";
         window.addEventListener("resize", interaction.windowResize);
+    },
+    getClasses() {
+        fetch('/classes/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("HTTP error " + response.status);
+            }
+            return response.json();
+        })
+        .then(json => {
+            interaction.classes = json.classes.sort();
+        })
+        .catch(function () {
+            console.log("Could not get class list from server.");
+        })
+    },
+    toggleSystemMode: function() {
+        interaction.edit_mode = false;
+        interaction.deselectObject();
+        let main = document.querySelector('main');
+        main.dataset.mode = "run";
+        if(interaction.system_inspector.style.display=="none")
+            displayAside('system_inspector');
+        else
+            hideAside();
+        /*
+        interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
+        interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
+        interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
+        interaction.main.removeEventListener('click', interaction.stopEvents, true);
+        */
+    },
+    toggleEditMode: function() {
+        interaction.edit_mode = ! interaction.edit_mode;
+        if(interaction.view_mode)
+        {
+            if(interaction.edit_mode)
+            {
+                interaction.deselectObject();
+                let main = document.querySelector('main');
+                main.dataset.mode = "edit";
+                displayAside('view_inspector');
+                interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
+                interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
+                interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
+                interaction.main.addEventListener('click', interaction.stopEvents, true);
+            }
+            else
+            {
+                interaction.deselectObject();
+                let main = document.querySelector('main');
+                main.dataset.mode = "run";
+                hideAside();
+                interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
+                interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
+                interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
+                interaction.main.removeEventListener('click', interaction.stopEvents, true);
+            }
+        }
+        else // group mode
+        {
+            if(interaction.edit_mode)
+            {
+                interaction.deselectObject();
+                let main = document.querySelector('main');
+                main.dataset.mode = "edit";
+                group_inspector.select(interaction.currentView);
+                displayAside('group_inspector');
+                interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
+                interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
+                interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
+                interaction.main.addEventListener('click', interaction.stopEvents, true);
+            }
+            else
+            {
+                interaction.deselectObject();
+                let main = document.querySelector('main');
+                main.dataset.mode = "run";
+                hideAside();
+                interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
+                interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
+                interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
+                interaction.main.removeEventListener('click', interaction.stopEvents, true);
+            }
+        }
     },
     stopEvents: function (e) {
         if(interaction.main.dataset.mode == "edit")
@@ -541,7 +885,16 @@ interaction = {
         for (var i = 0; i <    nodes.length; i++)
             interaction.initElement(nodes[i]);
         let  main = document.querySelector('main');
-        main.addEventListener('mousedown',interaction.deselectObject,false);
+        main.addEventListener('mousedown',interaction.backgroundClick, false);
+    },
+    backgroundClick() {
+        interaction.deselectObject();
+        if(interaction.edit_mode && interaction.view_mode)
+            displayAside('view_inspector')
+        else if(interaction.edit_mode && !interaction.view_mode)
+            displayAside('group_inspector')
+        else
+            hideAside(); // For now, shows run group inspector later possibly
     },
     removeAllObjects() {
         let main = document.querySelector('main');
@@ -554,36 +907,25 @@ interaction = {
             main.removeChild(nodes[i]);
     },
     generateGrid: function (spacing) {
-        interaction.grid_spacing = spacing;
+        interaction.grid_spacing = spacing
         let grid = interaction.main.querySelector('#grid');
-        if(grid)
-            interaction.main.removeChild(grid);
-        interaction.main.innerHTML += '<div id="grid"></div>'
-        grid = document.getElementById('grid');
-        for(let i=1; i<250; i++)
+        while(grid && grid.firstChild)
+            grid.removeChild(grid.firstChild);
+        for(let i=1; i<500; i++)
         {
-            if(i*interaction.grid_spacing > 2000) // should check main canvas size instead
-                break;
-            grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px; height: 2000px"></div>'
-            grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px; width: 2000px"></div>'
+            if(i*interaction.grid_spacing < 3000) // should check main canvas size instead
+                grid.innerHTML += '<div class="vgrid" style="left:'+i*interaction.grid_spacing+'px; height: 2000px"></div>'
+            if(i*interaction.grid_spacing < 2000)
+                grid.innerHTML += '<div class="hgrid" style="top:'+i*interaction.grid_spacing+'px; width: 3000px"></div>'
         }
-    },
-    changeGrid: function(spacing) {
-        interaction.grid_spacing = spacing;
-        vgrids = document.querySelectorAll('.vgrid');
-        for(let i = 0; i < vgrids.length; i++)
-            vgrids[i].style.left = ""+(i+1)*spacing+"px";
-        hgrids = document.querySelectorAll('.hgrid');
-        for(let i = 0; i < hgrids.length; i++)
-            hgrids[i].style.top = ""+(i+1)*spacing+"px";
     },
     increaseGrid() {
         if(interaction.grid_spacing < 160)
-            interaction.changeGrid(2*interaction.grid_spacing);
+            interaction.generateGrid(2*interaction.grid_spacing);
     },
     decreaseGrid() {
         if(interaction.grid_spacing > 10)
-            interaction.changeGrid(0.5*interaction.grid_spacing);
+            interaction.generateGrid(0.5*interaction.grid_spacing);
     },
     drawArrow(context, arrow)
     {
@@ -623,79 +965,7 @@ interaction = {
         this.drawArrow(context, this.moveArrow(this.rotateArrow(arrow,angle),toX,toY));
         context.restore();
     },
-/*
-    drawConnectionsCircular()
-    {
-        function bezier(t, p0, p1, p2, p3)
-        {
-            t2 = t * t;
-            t3 = t2 * t;
-            mt = 1-t;
-            mt2 = mt * mt;
-            mt3 = mt2 * mt;
-            x = p0.x*mt3 + 3*p1.x*mt2*t + 3*p2.x*mt*t2 + p3.x*t3;
-            y = p0.y*mt3 + 3*p1.y*mt2*t + 3*p2.y*mt*t2 + p3.y*t3;
-            return {x:x, y:y};
-        }
 
-        function draw_chord(context, x0, y0, x1, y1, xc, yc, r)
-        {
-            let d = Math.hypot(x0-x1, y0-y1);
-            let a = 0.3 + 0.5*d/(2*r);
-            let b = 1-a;
-
-            context.beginPath();
-            context.moveTo(x0, y0);
-            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
-            context.stroke();
-        }
-
-        function draw_bez_arrow(context, x0, y0, x1, y1, xc, yc, r)
-        {
-            let d = Math.hypot(x0-x1, y0-y1);
-            let a = 0.3 + 0.5*d/(2*r);
-            let b = 1-a;
-
-            context.beginPath();
-            context.moveTo(x0, y0);
-            context.bezierCurveTo(a*xc+b*x0, a*yc+b*y0, a*xc+b*x1, a*yc+b*y1, x1, y1);
-            context.stroke();
-            
-            m0 = bezier(0.7, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1});
-            m1 = bezier(0.8, {x:x0, y:y0}, {x:a*xc+b*x0, y:a*yc+b*y0}, {x:a*xc+b*x1, y:a*yc+b*y1}, {x:x1, y:y1});
-            interaction.drawArrowHead(context, m0.x, m0.y, m1.x, m1.y);
-        }
-
-        let canvas = document.querySelector("#maincanvas");
-        let context = canvas.getContext("2d");
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    
-        context.strokeStyle="#EEEEEE";
-        context.lineWidth = 50;
-        context.beginPath();
-        context.arc(interaction.main_center, interaction.main_center, interaction.main_radius, 0, 2*Math.PI);
-        context.stroke();
-
-        for(let c of interaction.currentView.connections)
-        {
-            try
-            {
-                context.strokeStyle="#999";
-                context.fillStyle = "#999";
-                context.lineWidth = 3;
-                context.beginPath();
-                p1 = interaction.module_pos[c.source.split('.')[0]];
-                p2 = interaction.module_pos[c.target.split('.')[0]];
-                draw_chord(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
-                draw_bez_arrow(context, p1.x, p1.y, p2.x, p2.y, interaction.main_center, interaction.main_center, interaction.main_radius);
-            }
-            catch(err)
-            {
-                console.log("draw connection "+c.sourcemodule+"->"+c.targetmodule+" failed.");
-            }
-        }
-    },
-*/
     drawConnections()
     {
         function bezier(t, p0, p1, p2, p3)
@@ -886,75 +1156,13 @@ interaction = {
         
         return newObject;
     },
-/*    
-    buildGroupViewCircular()
+
+
+    addModule()
     {
-        let m_width = 100;
-        let m_height = 100;
-        let m_corner = 50;
-        let m_radius_x = m_width/2;
-        let m_radius_y = m_height/2;
-        
-        interaction.main_radius = 400;
-        interaction.main_margin = 100;
-        interaction.main_center = interaction.main_radius+interaction.main_margin;
-        interaction.module_radius_x = m_radius_x;
-        interaction.module_radius_y = m_radius_x;
-
-        interaction.module_pos = {}
-        v = interaction.currentView.groups;
-        if(v)
-        {
-            let scale = 2*Math.PI/v.length;
-            for(let i=0; i<v.length; i++)
-            {
-                let newObject = document.createElement("div");
-                if(v[i].is_group)
-                    newObject.setAttribute("class", "module group");
-                else
-                    newObject.setAttribute("class", "module");
-
-                newObject.innerHTML = v[i].attributes.name;
-                interaction.main.appendChild(newObject);
-
-                newObject.parameters = v[i];
-                
-                if(!newObject.parameters.attributes._x)
-                {
-                    newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                    newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
-                }
-                
-                interaction.module_pos[v[i].attributes.name] = {'x':newObject.parameters.attributes._x, 'y': newObject.parameters.attributes._y};
-
-                newObject.style.top = (newObject.parameters.attributes._y-m_radius_x)+"px";
-                newObject.style.left = (newObject.parameters.attributes._x-m_radius_y)+"px";
- 
-                if(newObject.parameters.attributes._text_color)
-                    newObject.style.color = newObject.parameters.attributes._text_color;
-
-                if(newObject.parameters.attributes._shape == 'rect')
-                {
-                
-                }
-                else
-                {
-                    newObject.style.borderRadius = m_corner+"px";
-                }
-                
-                newObject.style.lineHeight = m_height+"px";
-                newObject.style.width = m_width+"px";
-                newObject.style.height = m_height+"px";
-
-                if(newObject.parameters.attributes._color)
-                    newObject.style.backgroundColor = newObject.parameters.attributes._color;
-                
-                newObject.addEventListener('mousedown', interaction.startDragModule, true);
-            }
-            interaction.drawConnectionsCircular();
-        }
+        alert("Cannot add modules yet!")
     },
-*/
+
     calculateIOPositions(module, x, y)
     {
         x = parseInt(x);
@@ -1061,22 +1269,31 @@ interaction = {
         let canvas = document.querySelector("#maincanvas");
         let context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
-
         let main = document.querySelector('main');
         
         // Build widget view
         
-        let v = interaction.currentView.objects;    // FIXME: objects should be called widgets
+        let v = interaction.currentView.objects; // FIXME: objects should be called widgets
         if(v)
         {
+            interaction.view_mode = true;
             for(let i=0; i<v.length; i++)
                 interaction.addWidget(v[i]);
+            if(interaction.edit_mode)
+                displayAside('view_inspector');
+            else
+                hideAside();
             return;
         }
 
         // Build group view - experimental
 
+        interaction.view_mode = false;
         this.buildGroupView();
+        if(interaction.edit_mode)
+            displayAside('group_inspector');
+        else
+            hideAside();
     },
 
     deselectObject() {
@@ -1087,11 +1304,7 @@ interaction = {
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
             interaction.releaseElement();
             interaction.selectedObject = null;
-
-            interaction.widget_inspector.style.display = "none";
-            interaction.module_inspector.style.display = "none";
-            interaction.view_inspector.style.display = "block";
-            interaction.group_inspector.style.display = "none";
+            displayAside('widget_inspector');
         }
     },
     releaseElement: function(evt) {
@@ -1112,11 +1325,7 @@ interaction = {
         //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
         
         inspector.select(obj);
-        
-        interaction.widget_inspector.style.display = "block";
-        interaction.view_inspector.style.display = "none";
-        interaction.module_inspector.style.display = "none";
-        interaction.group_inspector.style.display = "none";
+        displayAside('widget_inspector');
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -1188,41 +1397,7 @@ interaction = {
         
         interaction.selectedObject.widget.updateAll();
     },
-    setMode: function(mode) {
-        interaction.deselectObject();
-        let main = document.querySelector('main');
-        main.dataset.mode = mode;
-        
-        if(main.dataset.mode == "edit")
-        {
-            interaction.group_inspector.style.display = "none";
-            interaction.module_inspector.style.display = "none";
-            interaction.view_inspector.style.display = "block";
-            interaction.widget_inspector.style.display = "none";
-            interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
-            interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
-            interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
-            interaction.main.addEventListener('click', interaction.stopEvents, true);
-        }
-        else if(main.dataset.mode == "run")
-        {
-            interaction.group_inspector.style.display = "none";
-            interaction.module_inspector.style.display = "none";
-            interaction.view_inspector.style.display = "none";
-            interaction.widget_inspector.style.display = "none";
-            interaction.main.removeEventListener('mousemove', interaction.stopEvents, true);
-            interaction.main.removeEventListener('mouseout', interaction.stopEvents, true);
-            interaction.main.removeEventListener('mouseover', interaction.stopEvents, true);
-            interaction.main.removeEventListener('click', interaction.stopEvents, true);
-        }
-    },
-    toggleEditMode: function() {
-        interaction.edit_mode = ! interaction.edit_mode;
-        if(interaction.edit_mode)
-            interaction.setMode("edit")
-        else
-            interaction.setMode("run");
-    },
+
     changeStylesheet: function() {
         let sheet = document.getElementById("stylesheet_select").value;
         document.getElementById("stylesheet").setAttribute("href", sheet);
@@ -1272,11 +1447,16 @@ interaction = {
         interaction.deselectObject()
         interaction.selectedObject = obj;
         interaction.selectedObject.className += ' selected';
-        module_inspector.select(obj);
-        interaction.group_inspector.style.display = "none";
-        interaction.module_inspector.style.display = "block";
-        interaction.view_inspector.style.display = "none";
-        interaction.widget_inspector.style.display = "none";
+        if(interaction.edit_mode)
+        {
+            module_edit_inspector.select(obj);
+            displayAside('module_edit_inspector');
+        }
+        else
+        {
+            module_inspector.select(obj);
+            displayAside('module_inspector');
+        }
       },
     releaseModule: function(evt) {
         interaction.main.removeEventListener('mousemove',interaction.moveModule,true);
@@ -1356,6 +1536,7 @@ controller = {
             console.log(error);
         }
     },
+
 
     init: function () {
         controller.get("update", controller.update);
@@ -1662,4 +1843,3 @@ controller = {
         download("network.ikg", '<?xml version="1.0" encoding="UTF-8"?>\n'+controller.groupToXML(controller.network));
     }
 }
-

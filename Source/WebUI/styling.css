@@ -248,6 +248,10 @@ main[data-mode="edit"] {
 
 /* Inspector Styles */
 
+aside {
+    display: none;
+}
+
 aside table {
     width: 100%;
 }
@@ -261,6 +265,15 @@ aside table td.header {
 
 aside table td.textedit {
 //    border: 1px solid gray;
+}
+
+aside #classes {
+    background-color: #333;
+    border-left: 1px solid #222;
+    border-top: 1px solid #222;
+    border-right: 1px solid #666;
+    border-bottom: 1px solid #666;
+    color: white;
 }
 
 div.title {

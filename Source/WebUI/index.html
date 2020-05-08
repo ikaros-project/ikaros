@@ -44,7 +44,7 @@
 	<header>
 		<button onclick="toggleNav()">Nav</button>
         <button onclick="toggleFooter()">Messages</button>
-        <button onclick="toggleSystem()">System</button>
+        <button onclick="interaction.toggleSystemMode()">System</button>
         <button onclick="interaction.toggleEditMode()">Edit</button>
         <button onclick="controller.saveNetwork()">Save</button>
         <button onclick="controller.start()">Start</button>
@@ -57,7 +57,8 @@
 
 	<section>
 		<main id="main">
-            <canvas id="maincanvas" width="2000" height="2000">
+            <div id="grid"></div>
+            <canvas id="maincanvas" width="3000" height="2000">
             </canvas>
 		</main>
 	
@@ -65,11 +66,20 @@
 		</nav>
 	
 		<aside id="widget_inspector">
+            <table id="i_table">
+                <tbody>
+                   <tr>
+                        <td colspan="2" style="text-align:right;padding-right:5px">
+                        <button onclick="interaction.widgetToFront()">To Front</button>
+                        <button onclick="interaction.widgetToBack()">To Back</button>
+                        <button onclick="interaction.duplicateWidget()">Duplicate</button>
+                        <button onclick="interaction.deleteWidget()">Delete</button>
+                       </td>
+                   </tr>
+                </tbody>
+            </table>
 			<div id="inspector">
-                <button onclick="interaction.widgetToFront()">To Front</button>
-                <button onclick="interaction.widgetToBack()">To Back</button>
-                <button onclick="interaction.duplicateWidget()">Duplicate</button>
-                <button onclick="interaction.deleteWidget()">Delete</button>
+
 				<div id="i_header"></div>
 				<table id="i_table">
 				</table>
@@ -80,8 +90,9 @@
 			</script>
 		</aside>
 
-        <aside id="module_inspector" style="baackground-color: yellow">
+        <aside id="module_inspector">
             <div id="inspector">
+
                 <div id="mi_header"></div>
                 <table id="mi_table">
                 </table>
@@ -92,19 +103,44 @@
             </script>
         </aside>
 
+        <aside id="module_edit_inspector">
+            <table id="i_table">
+                <tbody>
+                   <tr>
+                    <td colspan="2" style="text-align:right;padding-right:5px">
+                        <button onclick="interaction.duplicateWidget()">Duplicate</button>
+                        <button onclick="interaction.deleteWidget()">Delete</button>
+                       </td>
+                   </tr>
+                </tbody>
+            </table>
+
+            <div id="inspector">
+                <div id="mei_header"></div>
+                <table id="mei_table">
+                </table>
+            </div>
+            
+            <script>
+            module_edit_inspector.init();
+            </script>
+        </aside>
+
 		<aside id="view_inspector" >
- 
             <table id="i_table">
                  <tbody>
-                 
+
                     <tr>
                        <td>
-                            Grid
+                            
                         </td>
-                        <td>
+                        <td colspan="2" style="text-align:right;padding-right:5px">
                             <button onclick="interaction.decreaseGrid()">Grid -</button>
                             <button onclick="interaction.increaseGrid()">Grid +</button>
                         </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="header">WIDGETS</td>
                     </tr>
                    <tr>
                         <td>
@@ -166,60 +202,24 @@
 
 
         <aside id="group_inspector">
- 
-            <table id="in_table">
+            <table id="">
                  <tbody>
-                     <tr>
-                       <td>
-                            Align
-                        </td>
-                        <td>
-                            <select id="align_select">
-                                <option value="align-circle">Circle</option>
-                                <option value="align-grid">Grid</option>
-                            </select>
-                            <button onclick="interaction.autoPlaceObjects()">Auto</button>
-                        </td>
-                    </tr>
                     <tr>
-                       <td>
-                            Grid
-                        </td>
-                        <td>
+                        <td colspan="2" style="text-align:right;padding-right:5px">
                             <button onclick="interaction.decreaseGrid()">Grid -</button>
                             <button onclick="interaction.increaseGrid()">Grid +</button>
-                        </td>
-                    </tr>
-                   <tr>
-                        <td>
-                            Module
-                        </td>
-                        <td>
-                            <button onclick="interaction.addObject()">Add</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Stylesheet
-                         </td>
-                        <td>
-                            <select id="stylesheet_select" onclick="interaction.changeStylesheet()">
-                                <option value="default.css">default</option>
-                                <option value="demo.css">demo</option>
-                                <option value="classic.css">classic</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Network
-                        </td>
-                        <td>
-                            <button onclick="controller.copyView()">Copy as XML</button>
+                            <button onclick="interaction.arrangeGroups()">Arrange</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <table id="gi_table">
+                <tbody>
+                </tbody>
+            </table>
+            <script>
+                group_inspector.init();
+            </script>
         </aside>
 
 		<aside id="system_inspector">
