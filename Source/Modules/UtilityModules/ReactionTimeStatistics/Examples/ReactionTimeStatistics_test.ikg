@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	
+    <module
+        class="Constant"
+        name="Value"
+        data = "1"
+    />
+
+    <module
+        class="Constant"
+        name="Attention"
+        data = "1,0"
+    />
+
+	<module
+		class = "ValueAccumulator"
+		name = "A"
+        alpha = "0.05"
+        beta = "0"
+        delta = "1"
+	/>
+	
+	<connection  source = "Attention.OUTPUT"  target = "A.INDEX" />
+	<connection  source = "Value.OUTPUT"  target = "A.INPUT" />
+
+    <view name="View" >
+        <plot  y = "20" width = "421" title = "State" color = "red,green" show_frame = "false" height = "201" x = "20" source = "A.STATE" select = "" direction = "vertical" min = "0" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+        <plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "1" min = "0" direction = "vertical" select = "" source = "A.OUTPUT" x = "20" height = "201" show_frame = "false" color = "red,green" title = "Output" width = "421" y = "220"/>
+        <slider-horizontal  x = "20" y = "540" height = "41" show_frame = "false" width = "221" title = "Sliders" parameter = "A.delta" count = "1" select = "0" style = "" labels = "delta" min = "0.8" step = "0.01" show_values = "true" max = "1" show_title = "false" frame-style = ""/>
+        <slider-horizontal  x = "20" y = "420" height = "41" show_frame = "false" width = "221" title = "Sliders" parameter = "A.alpha" count = "1" select = "0" style = "" labels = "alpha" min = "0" step = "0.01" show_values = "true" max = "1" show_title = "false" frame-style = ""/>
+        <slider-horizontal  x = "20" y = "460" height = "41" show_frame = "false" width = "221" title = "Sliders" parameter = "A.beta" count = "1" select = "0" style = "" labels = "beta" min = "0" step = "0.01" show_values = "true" max = "0.1" show_title = "false" frame-style = ""/>
+        <slider-horizontal  x = "240" y = "420" height = "41" show_frame = "false" width = "221" title = "Sliders" parameter = "A.sigma" count = "1" select = "0" style = "" labels = "sigma" min = "0" step = "0.001" show_values = "true" max = "0.1" show_title = "false" frame-style = ""/>
+        <slider-horizontal  frame-style = "" show_title = "false" show_values = "true" step = "0.01" max = "0.1" min = "0" style = "" labels = "gamma" select = "0" count = "1" parameter = "A.gamma" title = "Sliders" width = "221" show_frame = "false" height = "41" y = "500" x = "20"/>
+    </view>
+
+
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
