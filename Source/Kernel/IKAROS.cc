@@ -1,7 +1,7 @@
 //
 //	  IKAROS.cc		Kernel code for the IKAROS project
 //
-//    Copyright (C) 2001-2019  Christian Balkenius
+//    Copyright (C) 2001-2020  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ int         global_warning_count = 0;
 
 static std::string empty_string = "";
 
-//#include "IKAROS_Malloc_Debug.h"
+#include "IKAROS_Malloc_Debug.h"
 #ifndef USING_MALLOC_DEBUG
 void* operator new (std::size_t size) noexcept(false)
 {
@@ -2493,7 +2493,12 @@ Kernel::Init()
     // Fill data structures
  
     for (Module * & m : _modules)
-       module_map.insert({ m->GetFullName(), m });
+    {
+        if(!module_map.count(m->GetFullName()))
+             module_map.insert({ m->GetFullName(), m });
+        else
+            Notify(msg_fatal_error, "Duplicate module name \"%s\".", m->GetFullName()); // Would be good to find this out before module creation
+    }
 
     for (Connection * c = connections; c != NULL; c = c->next)
     {
@@ -2666,12 +2671,7 @@ void
 Kernel::AddModule(Module * m)
 {
     if(!m) return;
-//    m->next = modules;
-//    modules = m;
     m->kernel = this;
-
-    // 2.0
-
     _modules.push_back(m);
 }
 
