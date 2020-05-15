@@ -3,8 +3,8 @@
 <class name="ReactionTimeStatistics" description="collects reaction time statistics">
 
 	<description type="text">
-		Module that collects reaction time statistics. Mean, porpbability and response time histogram
-		is calcualted for several channels.
+		Module that collects reaction time statistics. Mean, propbability and response time histogram
+		is calculated for several channels.
 		
 		The recording starts when any element of START is above 0 and stops when STOP is above 0. 
 		The active value in STOP selects the channel that records the reaction time.
@@ -13,7 +13,7 @@
 		that should be recorded. Time continues to run after STOP has been received for cases when
 		more than one reaction is allowed.
 
-		In many cases, the same input can be connected to both START and STOP to record
+		The same input can be connected to both START and STOP to record
 		time between signals, or if a new trials starts immediately after the response.
 	</description>
 
@@ -25,7 +25,7 @@
 	<input name="STOP" description="A resposne is recorded for the channel that is above zero."/>
 
 	<output name="RT-HISTOGRAM" description="The reaction time histogram for the different choice" size_param_y="bins" size_set_x="STOP" />
-	<output name="RT-OUTLIER" description="Reaction times that do not fit in the histogram." size_set="STOP" />
+	<output name="RT-OUTLIER" description="Number for reaction times that do not fit in the histogram." size_set="STOP" />
 	<output name="RT-MEAN" description="Mean response time for each of the choices" size_set="STOP" />
 	<output name="CHOICE-COUNT" description="Number of choices of each alternative" size_set="STOP" />
 	<output name="CHOICE-PROBABILITY" description="Probability of choosing each alternative" size_set="STOP" />
