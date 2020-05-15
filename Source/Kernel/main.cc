@@ -130,6 +130,7 @@ main(int argc, char *argv[])
 
         k.ListClasses();
         k.ListModulesAndConnections();
+        k.CalculateChecksum();
         k.ListScheduling();
         k.ListThreads();
         k.ListWarningsAndErrors();

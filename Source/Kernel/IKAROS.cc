@@ -59,7 +59,7 @@ int         global_warning_count = 0;
 
 static std::string empty_string = "";
 
-#include "IKAROS_Malloc_Debug.h"
+//#include "IKAROS_Malloc_Debug.h"
 #ifndef USING_MALLOC_DEBUG
 void* operator new (std::size_t size) noexcept(false)
 {
@@ -260,7 +260,6 @@ Element::JSONAttributeString(int d)
 }
 
 
-
 ParameterElement::ParameterElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
 void ParameterElement::Print(int d)
@@ -311,7 +310,6 @@ std::string InputElement::JSONString(int d)
 };
 
 
-
 OutputElement::OutputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
 std::string
@@ -348,7 +346,6 @@ OutputElement::JSONString(int d)
 };
 
 
-
 ConnectionElement::ConnectionElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
 
 void ConnectionElement::Print(int d)
@@ -364,7 +361,6 @@ std::string ConnectionElement::JSONString(int d)
     s += "\n" + std::string(d, '\t')+"}";
     return s;
 };
-
 
 
 ViewObjectElement::ViewObjectElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
@@ -383,7 +379,6 @@ std::string ViewObjectElement::JSONString(int d)
     s += "\n" + tab+"}";
     return s;
 };
-
 
 
 ViewElement::ViewElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
@@ -566,11 +561,7 @@ GroupElement::Print(int d)
     printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
     for(auto c : connections)
         c.Print(d+1);
-/* TEMPORARY
-    printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
-    for(auto v : views)
-        v->Print(d+1);
-*/
+
     for(auto g : groups)
         g.second->Print(d+1);
     
@@ -609,9 +600,6 @@ std::string GroupElement::JSONString(int d)
         s += tab2 + "\"parameters\": []";
     
     s += ",\n";
-    
-    //     std::vector<InputElement> inputs;
-    //     std::unordered_map<std::string, OutputElement *> outputs;
 
     if(inputs.size())
     {
@@ -630,7 +618,6 @@ std::string GroupElement::JSONString(int d)
     
     s += ",\n";
     
-
     if(outputs.size())
     {
         b = "";
@@ -648,8 +635,6 @@ std::string GroupElement::JSONString(int d)
     
     s += ",\n";
     
-
-
     if(connections.size())
     {
         b = "";
@@ -683,13 +668,6 @@ std::string GroupElement::JSONString(int d)
         s += tab2 + "\"views\": []";
     
     s += ",\n";
-  
-  
-/*
-    printf("%s\n", (std::string(d, '\t')+"\tVIEWS:").c_str());
-    for(auto v : views)
-        v->Print(d+1);
-*/
 
     if(groups.size())
     {
@@ -752,7 +730,6 @@ GroupElement::CreateDefaultView()
     
     views.push_back(*v);
 }
-
 
 
 //
@@ -877,7 +854,6 @@ Module::~Module()
     delete timer;
     delete input_list;
     delete output_list;
-//    delete next;
 }
 
 void
@@ -946,7 +922,6 @@ Module::GetTick()
 }
 
 
-
 void
 StoreArray(const char * path, const char * name, float * a, int size)
 {
@@ -954,13 +929,11 @@ StoreArray(const char * path, const char * name, float * a, int size)
 }
 
 
-
 void
 StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
 {
     store_matrix(path, name, m, size_x, size_y);
 }
-
 
 
 bool
@@ -971,13 +944,11 @@ LoadArray(const char * path, const char * name, float * a, int size)
 }
 
 
-
 bool
 LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
 {
     return load_matrix(path, name, m, size_x, size_y);
 }
-
 
 
 void
@@ -988,7 +959,6 @@ Module::Store(const char * path)
 }
 
 
-
 void
 Module::Load(const char * path)
 {
@@ -997,8 +967,7 @@ Module::Load(const char * path)
 }
 
 
-
-const char *// FIXME: ***********************
+const char * // FIXME: ***********************
 Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
     const char * module_name = GetName();
@@ -1047,7 +1016,6 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     }
     return NULL; // No list value was found
 }
-
 
 
 const char * // FIXME: ***********************
@@ -1102,7 +1070,6 @@ Module::GetDefault(const char * n)
 }
 
 
-
 const char *
 Module::GetValue(const char * n)	// This function implements attribute inheritance with renaming through the parameter element
 {
@@ -1110,9 +1077,15 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
     if(!r.empty())
         return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
     else
-        return GetDefault(n);
+    {
+        std::string ss = std::string(instance_name)+"."+std::string(n);
+        r = group->GetValue(ss.c_str());
+        if(!r.empty())
+            return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
+    }
+       
+   return GetDefault(n);
 }
-
 
 
 float
@@ -1177,7 +1150,6 @@ findindex(const char * name, const char * list)
 }
 
 
-
 int
 Module::GetIntValueFromList(const char * n, const char * list)
 {
@@ -1207,13 +1179,11 @@ Module::GetIntValueFromList(const char * n, const char * list)
 }
 
 
-
 float *
 Module::GetArray(const char * n, int & size, bool fixed_size)
 {
     return create_array(GetValue(n), size, fixed_size);
 }
-
 
 
 int *
@@ -1276,13 +1246,11 @@ Module::GetIntArray(const char * n, int & size, bool fixed_size)
 }
 
 
-
 float **
 Module::GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size)
 {
     return create_matrix(GetValue(n), sizex, sizey, fixed_size);
 }
-
 
 
 void
@@ -1294,7 +1262,6 @@ Module::Bind(float & v, const char * n)
 }
 
 
-
 void
 Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 {
@@ -1304,7 +1271,6 @@ Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 }
 
 
-
 void
 Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
 {
@@ -1312,7 +1278,6 @@ Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_
     v = GetMatrix(n, sizex, sizey, fixed_size);
     kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_matrix, v, sizex, sizey));
 }
-
 
 
 void
@@ -1332,7 +1297,6 @@ Module::Bind(int & v, const char * n)
 }
 
 
-
 void
 Module::Bind(bool & v, const char * n)
 {
@@ -1340,7 +1304,6 @@ Module::Bind(bool & v, const char * n)
     v = GetBoolValue(n);
     kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_bool, &v, 0, 0));
 }
-
 
 
 void
@@ -1358,7 +1321,6 @@ Module::Bind(std::string & v, const char * n)
 }
 
 
-
 Module_IO *
 Module::GetModule_IO(Module_IO * list, const char * name)
 {
@@ -1367,7 +1329,6 @@ Module::GetModule_IO(Module_IO * list, const char * name)
             return i;
     return NULL;
 }
-
 
 
 void
@@ -1588,7 +1549,6 @@ Module::io(float ** & m, int & size_x, int & size_y, const char * name)
 }
 
 
-
 void
 Module::SetOutputSize(const char * name, int x, int y)
 {
@@ -1702,7 +1662,6 @@ Module::GetSizeXFromList(const char * sizearg)
 }
 
 
-
 int
 Module::GetSizeYFromList(const char * sizearg)
 {
@@ -1744,7 +1703,6 @@ Module::GetSizeYFromList(const char * sizearg)
 }
 
 
-
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
 
 void
@@ -1764,46 +1722,46 @@ Module::SetSizes()  // FIXME: remove xml access, use output elements
             int sx = unknown_size;
             int sy = unknown_size;
 
-            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_param_x")) && (arg = GetValue(sizearg)))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute("size_param_x")) && (arg = GetValue(sizearg)))
                 sx = string_to_int(arg);
             
-            if((sy == unknown_size) && (sizearg = e->GetAttribute( "size_param_y")) && (arg = GetValue(sizearg)))
+            if((sy == unknown_size) && (sizearg = e->GetAttribute("size_param_y")) && (arg = GetValue(sizearg)))
                 sy = string_to_int(arg);
             
-            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_param")) && (arg = GetValue(sizearg)))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute("size_param")) && (arg = GetValue(sizearg)))
             {
                 sx = string_to_int(arg);
                 sy = 1;
             }
             
-            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_x")))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute("size_x")))
                 sx = string_to_int(sizearg);
             
-            if((sy == unknown_size) && (sizearg = e->GetAttribute( "size_y")))
+            if((sy == unknown_size) && (sizearg = e->GetAttribute("size_y")))
                 sy = string_to_int(sizearg);
             
-            if((sx == unknown_size) && (sizearg = e->GetAttribute( "size")))
+            if((sx == unknown_size) && (sizearg = e->GetAttribute("size")))
             {
                 sx = string_to_int(sizearg);
                 sy = 1;
             }
             
-			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = e->GetAttribute( "size_set"))) // Set output size x & y from one or multiple inputs
+			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = e->GetAttribute("size_set"))) // Set output size x & y from one or multiple inputs
             {
                 sx = GetSizeXFromList(sizearg);
                 sy = GetSizeYFromList(sizearg);
 			}
             
-			else if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_set_x")) && (sizeargy = e->GetAttribute( "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
+			else if((sx == unknown_size) && (sizearg = e->GetAttribute("size_set_x")) && (sizeargy = e->GetAttribute("size_set_y"))) // Set output size x from one or multiple different inputs for both x and y
 			{
                 sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
                 sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
 			}
             
-			else if((sx == unknown_size) && (sizearg = e->GetAttribute( "size_set_x"))) // Set output size x from one or multiple inputs
+			else if((sx == unknown_size) && (sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
                 sx = GetSizeXFromList(sizearg);
             
-			else if((sy == unknown_size) && (sizearg = e->GetAttribute( "size_set_y"))) // Set output size y from one or multiple inputs
+			else if((sy == unknown_size) && (sizearg = e->GetAttribute("size_set_y"))) // Set output size y from one or multiple inputs
                 sy = GetSizeYFromList(sizearg);
             
             SetOutputSize(output_name, sx, sy);
@@ -1893,7 +1851,6 @@ Connection::Propagate(long tick)
     for (int i=0; i<size; i++)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
 }
-
 
 
 ThreadGroup::ThreadGroup(Kernel * k)
@@ -2015,7 +1972,6 @@ Kernel::Kernel()
 }
 
 
-
 void
 Kernel::SetOptions(Options * opt)
 {
@@ -2135,7 +2091,6 @@ Kernel::JSONString()
 }
 
 
-
 bool
 Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 {
@@ -2179,33 +2134,8 @@ Kernel::Run()
 
     timer->Restart();
     tick = 0;
-    
-//    Timer * idle_timer = new Timer();
-//    idle_timer->Restart();
-
     httpThread = new std::thread(Kernel::StartHTTPThread, this);
 
-    // Synchronize with master process if one is indicated in the IKC file
-    // TODO: update
-/*
-    if(xmlDoc)
-    {
-        const char * ip = GetXMLAttribute(xmlDoc->xml, "masterip");
-        if(ip)
-        {
-            Socket s;
-            char rr[100];
-            int port = string_to_int(GetXMLAttribute(xmlDoc->xml, "masterport"), 9000);
-            printf("Waiting for master: %s:%d\n", ip, port);
-            fflush(stdout);
-            if(!s.Get(ip, port, "*", rr, 100))
-            {
-                printf("Master not running.\n");
-                exit(-1); // No master
-            }
-        }
-    }
-*/
     while (!Terminate())
     {
         if (!isRunning)
@@ -2236,12 +2166,7 @@ Kernel::Run()
             }
         }
     }
-    
-//    httpThread->join();
- //   delete httpThread;
-//    delete idle_timer;
 }
-
 
 
 void
@@ -2494,10 +2419,10 @@ Kernel::Init()
  
     for (Module * & m : _modules)
     {
-        if(!module_map.count(m->GetFullName()))
+ //       if(!module_map.count(m->GetFullName()))
              module_map.insert({ m->GetFullName(), m });
-        else
-            Notify(msg_fatal_error, "Duplicate module name \"%s\".", m->GetFullName()); // Would be good to find this out before module creation
+ //       else
+ //           Notify(msg_fatal_error, "Duplicate module name \"%s\".", m->GetFullName()); // Would be good to find this out before module creation
     }
 
     for (Connection * c = connections; c != NULL; c = c->next)
@@ -2608,7 +2533,6 @@ Kernel::Tick()
 }
 
 
-
 void
 Kernel::Store()
 {
@@ -2656,15 +2580,12 @@ Kernel::Load()
 }
 
 
-
-
 void
 Kernel::DelayOutputs()
 {
     for (Module * & m : _modules)
         m->DelayOutputs();
 }
-
 
 
 void
@@ -2676,7 +2597,6 @@ Kernel::AddModule(Module * m)
 }
 
 
-
 Module *
 Kernel::GetModule(const char * n)
 {
@@ -2685,7 +2605,6 @@ Kernel::GetModule(const char * n)
             return m;
     return NULL;
 }
-
 
 
 Module *
@@ -2709,7 +2628,6 @@ Kernel::GetSource(Module_IO * &io, GroupElement * group, const char * source_mod
     else
         return false;
 }
-
 
 
 const char *
@@ -3030,7 +2948,6 @@ Kernel::SortModules()
 }
 
 
-
 void
 Kernel::CalculateDelays()
 {
@@ -3096,7 +3013,6 @@ Kernel::Notify(int msg, const char * format, ...)
 }
 
 
-
 // Create one or several connections with different delays between two ModuleIOs
 
 int
@@ -3143,7 +3059,6 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
 }
 
 
-
 // Check if class file exists and return path if valid
 
 static const char *
@@ -3159,7 +3074,6 @@ file_exists(const char * path)
     
 	return NULL;
 }
-
 
 
 // Read class file (or included file) and merge with the current XML-tree
@@ -3255,7 +3169,6 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 }
 
 
-
 // Parse XML for a group
 //
 // FIXME: names of should never be inherited!!!
@@ -3294,15 +3207,24 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
             char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
             GroupElement * subgroup = new GroupElement(group);
             xml_node = BuildClassGroup(subgroup, xml_node, class_name, current_filename); // TODO: merge with line above
-            group->groups.insert({ subgroup->GetAttribute("name"), subgroup });
+            auto n = xml_node->GetActualAttribute("name");
+            if(group->groups.count(n))
+                Notify(msg_fatal_error, "Duplicate module name \"%s\".", n);
+            else
+                group->groups.insert({ n, subgroup });
             destroy_string(class_name);
         }
         else if(xml_node->IsElement("group"))	// Add group
         {
-            if(!xml_node->GetActualAttribute("name"))
+            auto n = xml_node->GetActualAttribute("name");
+            if(!n)
                 xml_node->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
             GroupElement * g = new GroupElement(group);
-            group->groups.insert( { xml_node->GetActualAttribute("name"), BuildGroup(g, xml_node) });
+
+            if(group->groups.count(n))
+                Notify(msg_fatal_error, "Duplicate group name \"%s\".", n);
+            else
+                group->groups.insert( { n, BuildGroup(g, xml_node) });
         }
     
         else if(xml_node->IsElement("parameter"))
@@ -3347,7 +3269,6 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
 }
 
 
-
 void
 Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remove indent
 {
@@ -3385,7 +3306,6 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
     for(auto & g : group->groups) // Connect in subgroups
         ConnectModules(g.second, indent+"\t");
 }
-
 
 
 bool
@@ -3437,7 +3357,6 @@ Kernel::ReadXML()
 }
 
 
-
 void
 Kernel::ListInfo()
 {
@@ -3479,6 +3398,28 @@ Kernel::ListInfo()
     Notify(msg_print, "ikaros root directory: %s\n", ikaros_dir);
 }
 
+
+void
+Kernel::CalculateChecksum()
+{
+    if(_modules.empty())
+        return;
+
+    std::string c = main_group->GetValue("checksum");
+    if(c.empty())
+        return;
+
+    int target_checksum = std::stoi(c);
+    int checksum = 1;
+    for (Module * & m : _modules)
+        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
+            checksum *= i->sizex * i->sizey;
+
+    if(checksum == target_checksum)
+        Notify(msg_print, "Checksum match (%d).", checksum);
+    else
+        Notify(msg_print, "Checksum mismatch: %d != %d.\n", checksum, target_checksum);
+}
 
 
 void
@@ -3565,6 +3506,7 @@ Kernel::ListThreads()
     Notify(msg_print, "\n");
 }
 
+
 void
 Kernel::ListWarningsAndErrors()
 {
@@ -3578,6 +3520,7 @@ Kernel::ListWarningsAndErrors()
     else if(global_error_count == 1)
         printf("IKAROS: %d ERROR.\n", global_error_count);
 }
+
 
 void
 Kernel::ListScheduling()
@@ -3667,7 +3610,7 @@ Kernel& kernel()
 
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
-// WenUI STARTS HERE
+// WebUI STARTS HERE
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static bool
@@ -3728,7 +3671,6 @@ SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey
 }
 
 
-
 static bool
 SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int sizex, int sizey)
 {
@@ -3757,7 +3699,6 @@ SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int siz
 }
 
 
-
 static inline float
 checknan(float x)
 {
@@ -3766,7 +3707,6 @@ checknan(float x)
     else
         return 0;
 }
-
 
 
 static bool
@@ -3784,7 +3724,6 @@ SendJSONArrayData(ServerSocket * socket, char * source, float * array, int size)
     socket->clearBuffer();
     return true;
 }
-
 
 
 static bool
@@ -3811,7 +3750,6 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
 
     return true;
 }
-
 
 
 void
@@ -4231,7 +4169,6 @@ Kernel::HandleHTTPRequest()
 }
 
 
-
 void
 Kernel::HandleHTTPThread()
 {
@@ -4247,11 +4184,9 @@ Kernel::HandleHTTPThread()
 }
 
 
-
 void *
 Kernel::StartHTTPThread(Kernel * k)
 {
     k->HandleHTTPThread();
     return NULL;
 }
-

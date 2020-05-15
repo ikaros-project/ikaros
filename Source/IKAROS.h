@@ -553,6 +553,7 @@ public:
     }
 
     void        ListInfo();
+    void        CalculateChecksum();
     void        ListModulesAndConnections();
     void        ListBindings();
     void        ListScheduling();
