@@ -1480,7 +1480,17 @@ Module::GetOutputSize(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if(equal_strings(name, i->name.c_str()))
-            return i->size;
+        {
+            if(i->size > 0)
+            {
+                return i->size;
+            }
+            else
+            {
+                Notify(msg_fatal_error, "Output size not set for %s.%s \n", this->instance_name, name);
+                return 1;
+            }
+        }
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
@@ -1490,7 +1500,18 @@ Module::GetOutputSizeX(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if(equal_strings(name, i->name.c_str()))
-            return  i->sizex;
+        {
+            if(i->sizex > 0)
+            {
+                return  i->sizex;
+            }
+            else
+            {
+                Notify(msg_fatal_error, "Output size x not set for %s.%s \n", this->instance_name, name);
+                return 1;
+            }
+        }
+
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
@@ -1500,7 +1521,18 @@ Module::GetOutputSizeY(const char * name)
 {
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if(equal_strings(name, i->name.c_str()))
-            return  i->sizey;
+        {
+            if(i->sizey > 0)
+            {
+                return  i->sizey;
+            }
+            else
+            {
+                Notify(msg_fatal_error, "Output size y not set for %s.%s \n", this->instance_name, name);
+                return 1;
+            }
+        }
+
     Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
