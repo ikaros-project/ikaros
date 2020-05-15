@@ -31,12 +31,9 @@
 
 using namespace ikaros;
 
-
 void
 Ones::Init()
 {
-   
-   
     output_matrix = GetOutputMatrix("OUTPUT");
     output_matrix_size_x = GetOutputSizeX("OUTPUT");
     output_matrix_size_y = GetOutputSizeY("OUTPUT");
@@ -47,7 +44,6 @@ Ones::Init()
 }
 
 
-
 Ones::~Ones()
 {
     // Destroy data structures that you allocated in Init.
@@ -55,13 +51,11 @@ Ones::~Ones()
 }
 
 
-
 void
 Ones::Tick()
 {
 	
 }
-
 
 
 // Install the module. This code is executed during start-up.
