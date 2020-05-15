@@ -39,6 +39,7 @@ ReactionTimeStatistics::Init()
     io(choice_count, "CHOICE-COUNT");
     io(choice_probability, "CHOICE-PROBABILITY");
     io(startbalance_out, "STARTBALANCE");
+    io(rt_out, "REACTIONTIME");
 
     rt_sum = create_array(size);
 }
@@ -50,6 +51,7 @@ ReactionTimeStatistics::Tick()
 {
     if(max(stop, size) > 0)
     {
+
         int c = arg_max(stop, size);
         int b = float(reaction_time)*(bins/max_rt);
         if(0 <= b && b < bins)

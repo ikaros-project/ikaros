@@ -49,6 +49,7 @@ public:
     float *     choice_count;
     float *     choice_probability;
     float *     startbalance_out;
+    float *     rt_out;
 
 				ReactionTimeStatistics(Parameter * p) : Module(p) {};
     virtual		~ReactionTimeStatistics() {};

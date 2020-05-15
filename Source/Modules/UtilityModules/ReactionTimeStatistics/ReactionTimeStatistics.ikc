@@ -30,6 +30,8 @@
 	<output name="CHOICE-COUNT" description="Number of choices of each alternative" size_set="STOP" />
 	<output name="CHOICE-PROBABILITY" description="Probability of choosing each alternative" size_set="STOP" />
 	<output name="STARTBALANCE" description="Number of choices of each alternative" size="1" />
+	<output name="REACTIONTIME" description="Raw reaction time" size="1" />
+
 
 
 	<link class="ReactionTimeStatistics" />
