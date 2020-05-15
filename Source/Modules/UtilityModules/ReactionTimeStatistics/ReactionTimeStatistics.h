@@ -38,6 +38,7 @@ public:
     int         rt_size_y;
 
     int         reaction_time;
+    int         startbalance;
    
     float *		start;
     float *		stop;
@@ -47,6 +48,7 @@ public:
     float *     rt_sum;
     float *     choice_count;
     float *     choice_probability;
+    float *     startbalance_out;
 
 				ReactionTimeStatistics(Parameter * p) : Module(p) {};
     virtual		~ReactionTimeStatistics() {};

@@ -38,6 +38,7 @@ ReactionTimeStatistics::Init()
     io(rt_mean, "RT-MEAN");
     io(choice_count, "CHOICE-COUNT");
     io(choice_probability, "CHOICE-PROBABILITY");
+    io(startbalance_out, "STARTBALANCE");
 
     rt_sum = create_array(size);
 }
@@ -65,13 +66,15 @@ ReactionTimeStatistics::Tick()
                 rt_mean[i] = rt_sum[i] / choice_count[i];
             else
                 rt_mean[i] = 0;
+        startbalance--;
     }
 
     if(max(start, start_size) > 0)
     {
         reaction_time = 0;
+        startbalance++;
     }
-
+    startbalance_out[0] = startbalance;
     reaction_time += 1;
 }
 
