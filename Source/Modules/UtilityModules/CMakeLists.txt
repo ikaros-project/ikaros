@@ -1,4 +1,8 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(RingBuffer)
+add_subdirectory(OscInterface)
+add_subdirectory(MidiFilter)
+add_subdirectory(MidiInterface)
 add_subdirectory(DataBuffer)
 add_subdirectory(DecomposeTransform)
 add_subdirectory(InitialValue)
