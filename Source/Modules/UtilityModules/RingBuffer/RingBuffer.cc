@@ -33,18 +33,20 @@ using namespace ikaros;
 
 void RingBuffer::SetSizes()
 {
-    int sz = string_to_int( GetValue("size"));
-    sz = sz <= 0 ? 1 : sz;
+    size = string_to_int( GetValue("size"));
+    size = size <= 0 ? 1 : size;
+    //Bind(size, "size");
+    
     int inpsz = GetInputSize("INPUT");
 
-    SetOutputSize("OUTPUT", sz, inpsz);
+    SetOutputSize("OUTPUT", size, inpsz);
 }
 
 void
 RingBuffer::Init()
 {
-    Bind(size, "size"); // TODO: minimum is 1, edge case
-    size = size<=0 ? 1 : size;
+    // Bind(size, "size"); // TODO: minimum is 1, edge case
+    // size = size<=0 ? 1 : size;
 	Bind(debugmode, "debug");    
 
     io(input_array, input_array_size,"INPUT");
