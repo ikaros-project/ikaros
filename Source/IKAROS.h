@@ -2,7 +2,7 @@
 //  IKAROS.h        Kernel code for the IKAROS project
 //
 //
-//    Copyright (C) 2001-2019  Christian Balkenius
+//    Copyright (C) 2001-2020  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -553,6 +553,7 @@ public:
     }
 
     void        ListInfo();
+    void        CalculateChecksum();
     void        ListModulesAndConnections();
     void        ListBindings();
     void        ListScheduling();

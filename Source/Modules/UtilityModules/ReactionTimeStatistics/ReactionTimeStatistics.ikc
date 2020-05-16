@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<class name="ReactionTimeStatistics" description="collects reaction time statistics">
+
+	<description type="text">
+		Module that collects reaction time statistics. Mean, propbability and response time histogram
+		is calculated for several channels.
+		
+		The recording starts when any element of START is above 0 and stops when STOP is above 0. 
+		The active value in STOP selects the channel that records the reaction time.
+
+		The input START can be of any size but the input STOP should reflect the number of reactions 
+		that should be recorded. Time continues to run after STOP has been received for cases when
+		more than one reaction is allowed.
+
+		The same input can be connected to both START and STOP to record
+		time between signals, or if a new trials starts immediately after the response.
+	</description>
+
+
+    <parameter name="bins" type="int" default="40" description="number of bins in the histograms" />
+    <parameter name="max_rt" type="float" default="1" description="maximum reaction time" />
+
+ 	<input name="START" description="Recording starts when any value is above zoro" />
+	<input name="STOP" description="A resposne is recorded for the channel that is above zero."/>
+
+	<output name="RT-HISTOGRAM" description="The reaction time histogram for the different choice" size_param_y="bins" size_set_x="STOP" />
+	<output name="RT-OUTLIER" description="Number for reaction times that do not fit in the histogram." size_set="STOP" />
+	<output name="RT-MEAN" description="Mean response time for each of the choices" size_set="STOP" />
+	<output name="CHOICE-COUNT" description="Number of choices of each alternative" size_set="STOP" />
+	<output name="CHOICE-PROBABILITY" description="Probability of choosing each alternative" size_set="STOP" />
+	<output name="STARTBALANCE" description="Number of choices of each alternative" size="1" />
+	<output name="REACTIONTIME" description="Raw reaction time" size="1" />
+
+
+
+	<link class="ReactionTimeStatistics" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://christian.balkenius.se</homepage>
+	</author>
+
+   <files>
+   		<file>ReactionTimeStatistics.h</file>
+   		<file>ReactionTimeStatistics.cc</file>
+   		<file>ReactionTimeStatistics.ikc</file>
+   </files>
+
+</class>
