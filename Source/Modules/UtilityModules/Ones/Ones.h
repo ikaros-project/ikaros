@@ -33,6 +33,7 @@ public:
     Ones(Parameter * p) : Module(p) {}
     virtual ~Ones();
 
+    void        SetSizes();
     void 		Init();
     void 		Tick();
 

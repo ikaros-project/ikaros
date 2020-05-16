@@ -16,10 +16,10 @@
 		/>
 	</example>
 
-	<output name="OUTPUT" description="The first output" size_param_x="size_x" size_param_y="size_y" />
+	<output name="OUTPUT" description="The first output" />
 
-	<parameter name="size_x" type="int" default="1" description="Width of matrix" />
-	<parameter name="size_y" type="int" default="1" description="Height of matrix" />
+	<parameter name="size_x" type="int" _default="1" description="Width of matrix" />
+	<parameter name="size_y" type="int" _default="1" description="Height of matrix" />
 	<parameter name="value" type="float" default="1.0" description="Value to fill with" />
 
 	<link class="Ones" />

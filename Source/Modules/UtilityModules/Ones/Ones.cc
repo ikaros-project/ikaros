@@ -31,6 +31,13 @@
 
 using namespace ikaros;
 
+void
+Ones::SetSizes()
+{
+    int outx = GetIntValue("size_x");
+    int outy = GetIntValue("size_y");
+    SetOutputSize("OUTPUT", outx, outy);
+}
 
 void
 Ones::Init()
