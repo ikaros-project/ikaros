@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<group title="FFT Example">
+	
+		
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SineGen1"
+		  type        =   "sine"
+		  frequency  =  "0.01"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SineGen2"
+		  type        =   "sine"
+		  frequency  =  "0.05"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<connection  source = "SineGen1.OUTPUT"  target = "Add.INPUT" />
+		<connection source = "SineGen2.OUTPUT" target = "Add.INPUT" />
+
+		<module
+		class="Sum"
+		name="Add"
+		/>
+		<connection source = "Add.OUTPUT"  target = "Buffer.INPUT" />
+
+		<module
+		class="RingBuffer"
+		name="Buffer"
+		size="1024"
+		/>
+		<connection source = "Buffer.OUTPUT"  target = "FFTInstance.INPUT" />
+
+
+		<module
+			class = "FFT"
+			name = "FFTInstance"
+			debug="no"
+		/>
+		<connection source = "FFTInstance.REAL_OUTPUT" sourceoffset="0" size="10" target = "Selection.INPUT" />
+
+		<module
+		class="Concat"
+		name="Selection"
+		/>
+<view name="View" >
+	<bar-graph  frame-style = "" show_title = "true" min = "-100" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "Selection.OUTPUT" title = "Bar Graph" color = "" max = "376.013031" transpose = "false" lineJoin = "" lineWidth = "1" width = "921" show_frame = "false" auto = "true" height = "441" y = "400" x = "40"/>
+	<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "2" min = "-2" direction = "vertical" select = "" source = "Add.OUTPUT" color = "" title = "Input waveform" width = "200" show_frame = "false" height = "200" y = "40" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "4" scrollable = "true" direction = "normal" y = "280" label_y = "" source = "FFTInstance.REAL_OUTPUT" title = "FFT real" label_x = "" width = "501" show_frame = "false" height = "61" x = "40"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "4" scrollable = "true" direction = "normal" y = "340" label_y = "" source = "FFTInstance.IM_OUTPUT" title = "FFT im" label_x = "" width = "501" show_frame = "false" height = "61" x = "40"/>
+</view>
+
+
+        
+
+
+
+</group>
+ 
