@@ -1,4 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(Concat)
+add_subdirectory(FFT)
 add_subdirectory(RingBuffer)
 add_subdirectory(OscInterface)
 add_subdirectory(MidiFilter)
