@@ -37,6 +37,8 @@
     <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
 	<parameter name="threshold" type="float" default="0.0" description="default threshold for activity. This is a positive number, which corresponds to the input activity necessary to elicit action potentials. It is not directly translateable to the threshold value of -55mV of rate neurons, however." />
     <parameter name="epsilon" type="float" default="0.1" description="how quick to adapt to change" />
+	<parameter name="tetanus_leak" type="float" default="0.99" description="how quickly current leaks from buildup (tetanus) to activity" />
+	<parameter name="tetanus_factor" type="float" default="0.8" description="how much input contributes to buidup (tetanus) to activity" />
 	
 	<parameter name="excitation_topology" type="list" values="one_to_one/all_to_all" default="one_to_one" description="How exc input is connected to ensemble nuclei"/>
 	<parameter name="inhibition_topology" type="list" values="one_to_one/lateral/wta" default="one_to_one" description="How inh input is connected to ensemble nuclei"/>
@@ -63,6 +65,8 @@
 
 	<output name="OUTPUT" description="The output from the nucleus" size_param="size" />
 	<output name="ADENO_OUTPUT" description="The adenosine (metabolic waste) output from the nucleus" size_param="size" />
+	<output name="THRESHOLD" description="The activation threshold of the nucleus" size_param="size" />
+	<output name="TETANUS" description="The buildup to activation threshold of the nucleus" size_param="size" />
 
 	<link class="NucleusEnsemble" />
 

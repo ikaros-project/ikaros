@@ -73,6 +73,8 @@ public:
     float       rho;
     float *     threshold;
     float       default_threshold;
+    float       tetanus_factor;
+    float       tetanus_leak;
 
     std::string excitation_topology_name;
     std::string inhibition_topology_name;
@@ -84,6 +86,7 @@ public:
     float *		excitation;
     float *		inhibition;
     float *     shunting_inhibition;
+    float *     tetanus;
 
     float **    ext_excitation_topology;
     float **    ext_inhibition_topology;
@@ -111,6 +114,7 @@ public:
 
     float *     output;
     float *     adenosine_out;
+
 
 	bool       	debugmode;
 };

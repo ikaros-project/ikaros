@@ -25,7 +25,8 @@
 //
 
 #include "NucleusEnsemble.h"
-
+#include <vector>
+#include <iostream>
 // use the ikaros namespace to access the math library
 // this is preferred to using math.h
 
@@ -33,6 +34,60 @@ using namespace ikaros;
 
 const float cDEFAULT_ADAPTRATE = 0.001f;
 const float cDEFAULT_NA_THRESHOLD = 0.5f; // 2020-02-22: arbitarily set for now
+const float cCLIPMIN = 0.01f; // min and max phivalues
+const float cCLIPMAX = 100.f;
+
+struct ring_buffer
+{
+    ring_buffer(std::size_t cap) : buffer(cap) {}
+    bool empty() const { return sz == 0; }
+    bool full() const { return sz == buffer.size(); }
+
+    void push(float str)
+    {
+        if (last >= buffer.size())
+            last = 0;
+        buffer[last] = str;
+        ++last;
+        if (full())
+            first = (first + 1) % buffer.size();
+        else
+            ++sz;
+    }
+
+    float operator[](std::size_t pos)
+    {
+        auto p = (first + pos) % buffer.size();
+        return buffer[p];
+    }
+
+    float mean()
+    {
+        return ::mean(buffer.data(), buffer.size());
+    }
+
+    std::ostream &print(std::ostream &stm = std::cout) const
+    {
+        if (first < last)
+            for (std::size_t i = first; i < last; ++i)
+                std::cout << buffer[i] << ' ';
+        else
+        {
+            for (std::size_t i = first; i < buffer.size(); ++i)
+                std::cout << buffer[i] << ' ';
+            for (std::size_t i = 0; i < last; ++i)
+                std::cout << buffer[i] << ' ';
+        }
+        return stm;
+    }
+
+private:
+    std::vector<float> buffer;
+    std::size_t first = 0;
+    std::size_t last = 0;
+    std::size_t sz = 0;
+};
+
 void
 NucleusEnsemble::Init()
 {
@@ -51,6 +106,8 @@ NucleusEnsemble::Init()
     Bind(sigma, "sigma");
     Bind(rho, "rho");
     Bind(default_threshold, "threshold");
+    Bind(tetanus_factor, "tetanus_factor");
+    Bind(tetanus_leak, "tetanus_leak");
 
     Bind(excitation_topology_name, "excitation_topology");
     Bind(inhibition_topology_name, "inhibition_topology");
@@ -64,6 +121,7 @@ NucleusEnsemble::Init()
     io(shunting_inhibition, shunting_inhibition_size, "SHUNTING_INHIBITION");
     io(output, "OUTPUT");
     io(adenosine_out, "ADENO_OUTPUT");
+    io(threshold, "THRESHOLD");
 
 
     int dummy_sz_x;
@@ -80,6 +138,7 @@ NucleusEnsemble::Init()
 
     io(setpoint, dummy_sz_x, "SETPOINT");
     io(adaptationrate, dummy_sz_x, "ADAPTATIONRATE");
+    
     if(setpoint)
     {
         weights = create_array(ensemble_size);
@@ -102,8 +161,10 @@ NucleusEnsemble::Init()
     io(adenosine_in, dummy_sz_y, "ADENO_INPUT");
     io(noradrenaline, dummy_sz_z, "NORADRENALINE");
     io(na_threshold, dummy_sz_x, "NA_THRESHOLD");
-    threshold = create_array(ensemble_size);
+    // threshold = create_array(ensemble_size);
     set_array(threshold, default_threshold, ensemble_size);
+    //tetanus = create_array(ensemble_size);
+    io(tetanus, "TETANUS");
 
     SetActivationFunc(activation_function_name);
 
@@ -124,6 +185,7 @@ NucleusEnsemble::~NucleusEnsemble()
     destroy_matrix(recurrent_topology);
     destroy_array(x);
     destroy_matrix(longtermavg);
+    //destroy_array(tetanus);
 }
 
 
@@ -181,17 +243,22 @@ NucleusEnsemble::Tick()
     set_array(phival, phi, ensemble_size);
     if(setpoint)
     {
+        // TODO test this algo more: safe range of adaptation and buffer length
         // adapt weights so activation is closer to setpoint
         for(int i = 0; i < ensemble_size; i++)
         {
             // update excitation scale according to long term avg and
             // set point
-            int ix = random(avg_win_len); // use rnd placement instead of queue
-            longtermavg[i][ix] = output[i];
-            float avg = mean(longtermavg[i], ensemble_size);
-            weights[i] += (setpoint[i] - avg)*adaptationrate[i];
+            if(output[i] > 0.f) // only update when actually active
+            {
+                int ix = random(avg_win_len); // use rnd placement instead of queue
+                longtermavg[i][ix] = output[i];
+                float avg = mean(longtermavg[i], ensemble_size);
+                weights[i] += (setpoint[i] - avg)*adaptationrate[i];
+            }
         }
-        copy_array(phival, weights, ensemble_size);
+        
+        copy_array(phival, clip(weights, cCLIPMIN, cCLIPMAX, ensemble_size), ensemble_size);
     }
     
     if(adenosine_in)
@@ -223,10 +290,13 @@ NucleusEnsemble::Tick()
     // calculate threshold
     for(int i = 0; i < ensemble_size; i++)
     {
-        float thr_modulation = dopa[i]-adeno[i];
-        thr_modulation = ( thr_modulation > 0) ? thr_modulation : 0;
+        float tmpthr = default_threshold + adeno[i];
+        tmpthr -= dopa[i];
+        threshold[i] = tmpthr;
+        //float thr_modulation = dopa[i]-adeno[i];
+        //thr_modulation = ( thr_modulation > 0) ? thr_modulation : 0;
         //threshold[i] = 1/(1 + thr_modulation) * default_threshold; // hyperbolic
-        threshold[i] = default_threshold - thr_modulation; // linear
+        //threshold[i] = default_threshold - thr_modulation; // linear
         threshold[i] = (threshold[i] > 0) ? threshold[i] : 0;
     }
     
@@ -236,6 +306,7 @@ NucleusEnsemble::Tick()
         // calculate activation for each nucleus
         float s = 1/(1+psi*psi_scale*sh_inh_sum[i]); // shunting
         float a = phival[i] * phi_scale * s * exc_sum[i]; // excitation
+
         
         a += tau * tau_scale * rec_sum[i];      // recursion
         a -= chi * chi_scale * inh_sum[i];      // inhibition
@@ -243,11 +314,18 @@ NucleusEnsemble::Tick()
             a += norad[i];
         else
             a -= norad[i];
-        x[i] += epsilon * (a - x[i]);       // effect of previous
+
+        // TODO subthreshold integration to get
+        // delays from threshold modulations (dopa, adeno)
+        // note: shold probably affect rise time too
+        tetanus[i] = (1-tetanus_leak)*tetanus[i] + tetanus_factor*a;
+        
+        x[i] += epsilon * (a - x[i]);       // rise time to max value
+
         
         float a_final = alpha + beta * (this->*Activate)(x[i]);
-        if(a_final >= threshold[i])
-            output[i] = a_final-threshold[i];
+        if(tetanus[i] >= threshold[i])
+            output[i] = a_final; //-threshold[i];
         else
             output[i] = alpha;
         adenosine_out[i] = output[i]; // TODO add multiplier here?
@@ -258,13 +336,14 @@ NucleusEnsemble::Tick()
     if(debug)
     {
         printf("\n\nInstance: %s\n", this->instance_name);
-        // print_matrix("long term avg", longtermavg, avg_win_len, ensemble_size, 2);
-        // print_array("phival", phival, ensemble_size, 2);
+        print_matrix("long term avg", longtermavg, 10, ensemble_size, 2);
+        printf("mean excitation: %f\n", mean(longtermavg[0], ensemble_size));
+            print_array("phival", phival, ensemble_size, 2);
         print_array("x", x, ensemble_size, 2);
-        print_matrix("excitation_topology", excitation_topology, excitation_size, ensemble_size, 2);
+        //print_matrix("excitation_topology", excitation_topology, excitation_size, ensemble_size, 2);
         // print_array("dopa", dopa, ensemble_size);
         // print_array("adeno", adeno, ensemble_size);
-        print_array("threshold", threshold, ensemble_size);
+        //print_array("threshold", threshold, ensemble_size);
         // print_array("norad", norad, ensemble_size);
         // print_array("na_thr", na_thr, ensemble_size);
         print_array("out", output, ensemble_size);
@@ -461,6 +540,7 @@ NucleusEnsemble::SetActivationFunc(std::string afunc)
     
 
 }
+
 
 
 // Install the module. This code is executed during start-up.
