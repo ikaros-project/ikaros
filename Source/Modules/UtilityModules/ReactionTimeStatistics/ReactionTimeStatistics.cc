@@ -54,6 +54,7 @@ ReactionTimeStatistics::Tick()
 
         int c = arg_max(stop, size);
         int b = float(reaction_time)*(bins/max_rt);
+        rt_out[0] = reaction_time;
         if(0 <= b && b < bins)
             rt_histogram[b][c] += 1;
         else
