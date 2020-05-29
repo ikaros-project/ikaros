@@ -74,7 +74,23 @@ MidiInterface::Init()
         rtmidi_in->setCallback( &Callback , this);
         rtmidi_in->ignoreTypes( false, false, false );
     } catch ( RtMidiError &error ) {
+
         error.printMessage();
+
+        unsigned int nPorts = rtmidi_in->getPortCount();
+        
+        std::cout << "\nThere are " << nPorts << " MIDI input sources available.\n";
+        std::string portName;
+        for ( unsigned int i=0; i<nPorts; i++ ) {
+            try {
+            portName = rtmidi_in->getPortName(i);
+            }
+            catch ( RtMidiError &error ) {
+            error.printMessage();
+            // goto cleanup;
+            }
+            std::cout << "  Input Port #" << i+1 << ": " << portName << '\n';
+        }
     }
     if(input_array)
         try
