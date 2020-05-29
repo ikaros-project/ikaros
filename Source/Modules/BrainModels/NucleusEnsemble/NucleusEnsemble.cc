@@ -37,56 +37,6 @@ const float cDEFAULT_NA_THRESHOLD = 0.5f; // 2020-02-22: arbitarily set for now
 const float cCLIPMIN = 0.01f; // min and max phivalues
 const float cCLIPMAX = 100.f;
 
-struct ring_buffer
-{
-    ring_buffer(std::size_t cap) : buffer(cap) {}
-    bool empty() const { return sz == 0; }
-    bool full() const { return sz == buffer.size(); }
-
-    void push(float str)
-    {
-        if (last >= buffer.size())
-            last = 0;
-        buffer[last] = str;
-        ++last;
-        if (full())
-            first = (first + 1) % buffer.size();
-        else
-            ++sz;
-    }
-
-    float operator[](std::size_t pos)
-    {
-        auto p = (first + pos) % buffer.size();
-        return buffer[p];
-    }
-
-    float mean()
-    {
-        return ::mean(buffer.data(), buffer.size());
-    }
-
-    std::ostream &print(std::ostream &stm = std::cout) const
-    {
-        if (first < last)
-            for (std::size_t i = first; i < last; ++i)
-                std::cout << buffer[i] << ' ';
-        else
-        {
-            for (std::size_t i = first; i < buffer.size(); ++i)
-                std::cout << buffer[i] << ' ';
-            for (std::size_t i = 0; i < last; ++i)
-                std::cout << buffer[i] << ' ';
-        }
-        return stm;
-    }
-
-private:
-    std::vector<float> buffer;
-    std::size_t first = 0;
-    std::size_t last = 0;
-    std::size_t sz = 0;
-};
 
 void
 NucleusEnsemble::Init()
@@ -106,7 +56,7 @@ NucleusEnsemble::Init()
     Bind(sigma, "sigma");
     Bind(rho, "rho");
     Bind(default_threshold, "threshold");
-    Bind(tetanus_factor, "tetanus_factor");
+    Bind(tetanus_growth, "tetanus_growth");
     Bind(tetanus_leak, "tetanus_leak");
 
     Bind(excitation_topology_name, "excitation_topology");
@@ -302,6 +252,21 @@ NucleusEnsemble::Tick()
     
     for(int i = 0; i < ensemble_size; i++)
     {
+        /*
+        retval = 0
+        tetanus = (1-tetanus_leak)*tet_prev + tetanus_growth*inp
+        stim = 0
+        if tetanus >= threshold:
+            stim = inp
+            tetanus = threshold
+        if inp < threshold:
+            tetanus = 0
+        
+        a = prev
+        a += epsilon * (stim - prev)
+        retval = a
+        return retval, tetanus
+        */
         output[i] = 0.f;
         // calculate activation for each nucleus
         float s = 1/(1+psi*psi_scale*sh_inh_sum[i]); // shunting
@@ -318,16 +283,22 @@ NucleusEnsemble::Tick()
         // TODO subthreshold integration to get
         // delays from threshold modulations (dopa, adeno)
         // note: shold probably affect rise time too
-        tetanus[i] = (1-tetanus_leak)*tetanus[i] + tetanus_factor*a;
+        tetanus[i] = (1-tetanus_leak)*tetanus[i] + tetanus_growth*a;
+        float stim = 0;
+        if(tetanus[i] >= threshold[i])
+        {
+            stim = a;
+            tetanus[i] = threshold[i];
+        }
+        // descend with a
+        if(a < threshold[i])
+            tetanus[i] = 0; // TODO should really descend gradually with a
         
-        x[i] += epsilon * (a - x[i]);       // rise time to max value
+        x[i] += epsilon * (stim - x[i]);       // rise time to max value
 
         
         float a_final = alpha + beta * (this->*Activate)(x[i]);
-        if(tetanus[i] >= threshold[i])
-            output[i] = a_final; //-threshold[i];
-        else
-            output[i] = alpha;
+        output[i] = a_final; //-threshold[i];
         adenosine_out[i] = output[i]; // TODO add multiplier here?
         
 
@@ -336,10 +307,11 @@ NucleusEnsemble::Tick()
     if(debug)
     {
         printf("\n\nInstance: %s\n", this->instance_name);
-        print_matrix("long term avg", longtermavg, 10, ensemble_size, 2);
-        printf("mean excitation: %f\n", mean(longtermavg[0], ensemble_size));
-            print_array("phival", phival, ensemble_size, 2);
+        // print_matrix("long term avg", longtermavg, 10, ensemble_size, 2);
+        // printf("mean excitation: %f\n", mean(longtermavg[0], ensemble_size));
+        // print_array("phival", phival, ensemble_size, 2);
         print_array("x", x, ensemble_size, 2);
+        print_array("tetanus", tetanus, ensemble_size, 2);
         //print_matrix("excitation_topology", excitation_topology, excitation_size, ensemble_size, 2);
         // print_array("dopa", dopa, ensemble_size);
         // print_array("adeno", adeno, ensemble_size);

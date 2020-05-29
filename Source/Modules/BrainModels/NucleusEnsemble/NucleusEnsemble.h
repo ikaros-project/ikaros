@@ -73,7 +73,7 @@ public:
     float       rho;
     float *     threshold;
     float       default_threshold;
-    float       tetanus_factor;
+    float       tetanus_growth;
     float       tetanus_leak;
 
     std::string excitation_topology_name;
