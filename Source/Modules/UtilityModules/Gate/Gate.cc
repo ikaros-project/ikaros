@@ -33,6 +33,15 @@ Gate::Init()
     output	= GetOutputMatrix("OUTPUT");
     int x,y;
     io(input_gate, x, y, "INPUT_GATE");
+
+    single_gate_ctrl=false;
+    if(input_gate)
+    {
+        if (x==1 && y==1)
+            single_gate_ctrl = true;
+        else if(x!=size_x || y!=size_y)
+            Notify(msg_fatal_error, "Gate input must be either size 1 or same size as input");
+    }
 }
 
 
@@ -45,8 +54,14 @@ Gate::Tick()
     {    
         for (int i=0; i<size_x; i++)
             for (int j=0; j<size_y; j++)
-                if(input_gate[j][i] > 0.f)
-                    output[j][i] = input[j][i];       
+                if(single_gate_ctrl)
+                {
+                    if(input_gate[0][0] > 0.f)
+                        output[j][i] = input[j][i];       
+                }
+                else if(input_gate[j][i] > 0.f)
+                        output[j][i] = input[j][i];       
+                
     }
     else if(is_open)
         copy_matrix(output, input, size_x, size_y);

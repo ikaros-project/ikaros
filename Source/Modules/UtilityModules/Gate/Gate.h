@@ -44,6 +44,8 @@ public:
     
     void		Init();
     void		Tick();
+
+    bool single_gate_ctrl;
 };
 
 
