@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="GrowthDecay" description="minimal example module">
+
+	<description type="text">
+		Module that models unsymmetric growth and decay similar 
+		to those often found in biological systems.
+		This module typically takes a step input.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="GrowthDecay"
+			name="GrowthDecay"
+			growthfactor = "0.8"
+			decayfactor = "0.2"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="growthfactor" type="float" default="0.2" description="The rate of growth" />
+	<parameter name="decayfactor" type="float" default="0.2" description="The rate of decay" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The first input" />
+
+	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+
+	<link class="GrowthDecay" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>GrowthDecay.h</file>
+   		<file>GrowthDecay.cc</file>
+   		<file>GrowthDecay.ikc</file>
+   </files>
+
+</group>
+

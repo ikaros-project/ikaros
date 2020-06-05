@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<group title="GrowthDecay Example">
+	
+		
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "ticksquare"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		  basetime = "100"
+		  tickduty="2"
+
+		/>
+
+		<module
+			class = "GrowthDecay"
+			name = "GrowthDecayInstance"
+			growthfactor  = "0.8"
+			decayfactor  = "0.4"
+		/>
+		
+        <connection source = "SquareGen.OUTPUT"  target = "GrowthDecayInstance.INPUT" />
+
+<view name="View" >
+	<plot  max = "1" x = "0" source = "SquareGen.OUTPUT" y = "0" width = "321" height = "361" min = "0" title = "Plot" select = "" buffer_size = "150" direction = "vertical" color = "pink" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<plot  max = "1" x = "320" source = "GrowthDecayInstance.OUTPUT" y = "0" width = "341" height = "361" min = "0" title = "GrowthDecay out" select = "" buffer_size = "150" direction = "vertical" color = "lightblue" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "320" y = "360" height = "101" width = "341" title = "growth" parameter = "GrowthDecayInstance.growthfactor" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "320" y = "440" height = "101" width = "341" title = "decay" parameter = "GrowthDecayInstance.decayfactor" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "0" y = "360" height = "81" width = "321" title = "tickduty" parameter = "SquareGen.tickduty" select = "0" count = "1" labels = "" min = "0" max = "100" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
+
+</group>
+ 
