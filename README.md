@@ -3,7 +3,9 @@ Ikaros ReadMe
 
 This is the public distribution of the Ikaros kernel together with a number of functional modules. This version is mainly intended for potential developers and not for more general use. The current distribution includes versions for OS X and Linux.
 
-Installation instructions and other documentation can be found on the web site: http://www.ikaros-project.org/installing/
+Installation instructions can be found [here](https://github.com/ikaros-project/ikaros/wiki/Installation "Ikaros 2.0")
+
+Documentation can be found on the web site: http://www.ikaros-project.org/
 
 For important changes in Ikaros 2.0 see the link below:
 
