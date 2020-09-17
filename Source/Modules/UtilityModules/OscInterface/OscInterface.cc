@@ -22,17 +22,20 @@
 //  This example is intended as a starting point for writing new Ikaros modules
 //  The example includes most of the calls that you may want to use in a module.
 //  If you prefer to start with a clean example, use he module MinimalModule instead.
-//
+// 
+//  Uses oscpack: http://www.rossbencina.com/code/oscpack?q=~rossb/code/oscpack/
 
 #include "OscInterface.h"
-
+#include "ip/UdpSocket.h"
+#include "osc/OscOutboundPacketStream.h"
+#include "ip/IpEndpointName.h"
 // use the ikaros namespace to access the math library
 // this is preferred to using math.h
 
 using namespace ikaros;
 
 const char cDelimiter = ';';
-
+const int OUTPUT_BUFFER_SIZE = 512;
 OscInterface::OscInterface(Parameter *P):
 Module(P)
 {
@@ -186,7 +189,32 @@ OscInterface::Tick()
 void
 OscInterface::Send()
 {
-    // TODO
+    
+    if(outsock.isOk())
+    {
+        // TODO
+        for (int i = 0; i < outadresses.size(); i++)
+        {
+            std::string address_string = outadresses.at(i);
+            // formatting messages into a packet for sending:
+            UdpTransmitSocket transmitSocket( IpEndpointName( address_string.c_str(), outport ) );
+
+            char buffer[OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+
+            p << osc::BeginBundleImmediate
+                << osc::BeginMessage( "/test1" )
+                    << true << 23 << (float)3.1415 << "hello" << osc::EndMessage
+                << osc::BeginMessage( "/test2" )
+                    << true << 24 << (float)10.8 << "world" << osc::EndMessage
+                << osc::EndBundle;
+            transmitSocket.Send( p.Data(), p.Size() );
+
+            // processing incoming messages
+        }
+    }
+    else
+        printf("OscListener: outsock is not ok\n");
 }
 
 void
