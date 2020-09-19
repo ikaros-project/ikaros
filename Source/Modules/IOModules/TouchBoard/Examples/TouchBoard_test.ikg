@@ -4,22 +4,25 @@
 
   <module
     class="TouchBoard"
-    name="TOUCHBOARD"
-    port="/dev/cu.usbmodem14201"
+    name="TouchBoard"
+    port="/dev/cu.usbmodem143301"
   />
 
-    <view name="Plots">
-        <bar-graph
-            x="50" y="50"
-            width="1300"
-            height="700"
-            source="TOUCHBOARD.OUTPUT"
-            min="0"
-            max="1"
-            title = "Touch Signals"
-            labels = "0,1,2,3,4,5,6,7,8,9,10,11"
-            style = "--color:red,green,blue,grey,yellow,black,purple,orange,cyan,magenta,brown,pink;--fill:red,green,blue,grey,yellow,black,purple,orange,cyan,magenta,brown,pink"
-        />
-  </view>
+  <module
+    class="TappedDelayLine"
+    name="DL"
+    no_of_taps = "40"
+  />
+
+  <connection source="TouchBoard.OUTPUT" target="DL.INPUT" />
+
+
+<view name="Touch View" >
+	<bar-graph  frame-style = "" show_title = "true" min = "0" lineCap = "" fill = "" style = "" labels = "" x = "20" y = "20" show_frame = "false" auto = "false" height = "200" title = "Output" color = "" max = "1" transpose = "false" lineJoin = "" lineWidth = "1" width = "400" source = "TouchBoard.OUTPUT" direction = "vertical"/>
+	<bar-graph  frame-style = "" show_title = "true" min = "0" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "TouchBoard.TOUCH" title = "Touch" color = "" max = "1" transpose = "false" lineJoin = "" lineWidth = "1" width = "401" show_frame = "false" auto = "false" height = "201" y = "220" x = "20"/>
+	<grid  x = "420" y = "20" height = "401" width = "401" title = "History" source = "DL.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "fire" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
 
 </group>
