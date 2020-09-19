@@ -270,8 +270,9 @@ Serial::SendBytes(const char *sendbuf, int length)
 int
 Serial::ReceiveBytes(char *rcvbuf, int length)
 {
-	return ReceiveBytes(rcvbuf,length, 100);
+	return ReceiveBytes(rcvbuf, length, 100);
 }
+
 int
 Serial::ReceiveBytes(char *rcvbuf, int length, int timeout_ms)
 {
