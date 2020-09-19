@@ -27,6 +27,8 @@
 #include "osc/oscpkt.hh"
 #include "osc/udp.hh"
 #include <map>
+class UdpTransmitSocket;
+
 class OscInterface: public Module
 {
 public:
@@ -48,13 +50,15 @@ public:
     char **     output_name;
     float **   input;
     float **   output;
+    int *         input_size_x;
+    int *         input_size_y;
     int         size_x;
     int         size_y;
     int         ins;
     int         outs;
     
     // internal data storage
-    float *     internal_array;
+    // float *     internal_array;
 
     // parameter values
     std::vector<std::string>    inadresses;
@@ -70,6 +74,7 @@ public:
     oscpkt::UdpSocket outsock;
     oscpkt::PacketReader pr;
     oscpkt::PacketWriter pw;
+    UdpTransmitSocket *transmitSocket;
 };
 
 #endif

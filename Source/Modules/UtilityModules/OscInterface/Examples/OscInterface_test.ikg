@@ -7,17 +7,26 @@
 		  class       =   "FunctionGenerator"
 		  name        =   "SquareGen"
 		  type        =   "square"
-		  frequency  =  "0.001"
+		  frequency  =  "0.1"
 		  offset      =   "0.0"
 		  amplitude   =   "1"
 		  shift       =   "0.0"
 		/>
+		<connection source = "SquareGen.OUTPUT"  target = "OscSend.INPUT_1" />
 
-		<module
+		<_module
 			class = "OscInterface"
 			name = "OscInterfaceInstance"
 			inport  = "12001"
 			inadresses = "/ctrl/0;/1/fader1"
+			
+		/>
+
+		<module
+			class = "OscInterface"
+			name = "OscSend"
+			outport  = "8338"
+			outadresses = "testadr"
 			
 		/>
 		
