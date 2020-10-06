@@ -3,79 +3,57 @@
 //
 //
 //  Created by Isak Amundsson on 2018-09-28.
+//  Modified by Christian Balkenius 2020-09-17
 //
 
 #include "TouchBoard.h"
 
-//#include "../../Kernel/IKAROS_Serial.h"
-
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <stdio.h>
-
 using namespace ikaros;
-
 
 TouchBoard::~TouchBoard()
 {
-    s->Close();
+    if(s)
+        s->Close();
 }
+
 
 void
 TouchBoard::Init()
 {
-    s = new Serial(GetValue("port"), 57600);
+    s = new Serial(GetValue("port"), 115200);
     s->Flush();
-    rcvmsg = new char [100];
-    output = GetOutputArray("OUTPUT");
+    rcvmsg = new char [1000];
+    io(output, "OUTPUT");
+    io(touch, "TOUCH");
 }
 
 
-
 void 
-TouchBoard::Tick() {
+TouchBoard::Tick()
+{
+    int d[13];
+
     if(!s)
         return; // Not connected to board
 
-    int count = s->ReceiveBytes(rcvmsg, 100, 10);
-    // std::cout << rcvmsg;
-    // std::cout << "\n";
-    std::stringstream stream(rcvmsg);
-    int i=0;
-    while(1) {
-      int n;
-      stream >> n;
-      if(!stream)
-      break;
-      //int val =  1024-n;
-      int val = n;
-      output[i]= val;
-      //std::cout << val<< " ";
+    int count = s->ReceiveUntil(rcvmsg, '\n');
+    rcvmsg[count] = 0;
 
-      i++;
+    //printf("%s", rcvmsg);
+
+    if(starts_with(rcvmsg, "DIFF:"))
+    {
+        sscanf(rcvmsg, "DIFF: %d %d %d %d %d %d %d %d %d %d %d %d", &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7], &d[8], &d[9], &d[10], &d[11]);
+        for(int i=0; i<12; i++)
+            output[i] = clip(float(d[i])/1024.0, 0, 1);
     }
-    //std::cout << "\n";
-    // for (int i =0; i<12; i++){
-    //   std::stringstream st;
-    //   st << rcvmsg[i];
-    //   int p;
-    //   st >> p;
-    //   output[i]= p;
-    //   std::cout << output[i] << " ";
-    //   // std::cout << "\n";
-    // }
-    //std::cout << "\n";
-    // if(count > 0)
-    //     std::cout<<rcvmsg;
-    // else
-    //     std::cout<<"***\n";
-}
 
-
-void 
-TouchBoard::PrintValue(){
-    std::cout<<"Value printed"<<std::endl;
+    if(starts_with(rcvmsg, "TOUCH:"))
+    {
+        sscanf(rcvmsg, "TOUCH: %d %d %d %d %d %d %d %d %d %d %d %d", &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7], &d[8], &d[9], &d[10], &d[11]);
+        for(int i=0; i<12; i++)
+            touch[i] = float(d[i]);
+    }
 }
 
 

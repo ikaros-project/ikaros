@@ -22,17 +22,20 @@
 //  This example is intended as a starting point for writing new Ikaros modules
 //  The example includes most of the calls that you may want to use in a module.
 //  If you prefer to start with a clean example, use he module MinimalModule instead.
-//
+// 
+//  Uses oscpack: http://www.rossbencina.com/code/oscpack?q=~rossb/code/oscpack/
 
 #include "OscInterface.h"
-
+#include "ip/UdpSocket.h"
+#include "osc/OscOutboundPacketStream.h"
+#include "ip/IpEndpointName.h"
 // use the ikaros namespace to access the math library
 // this is preferred to using math.h
 
 using namespace ikaros;
 
 const char cDelimiter = ';';
-
+const int OUTPUT_BUFFER_SIZE = 512;
 OscInterface::OscInterface(Parameter *P):
 Module(P)
 {
@@ -75,7 +78,10 @@ OscInterface::~OscInterface()
     delete[] output_name;
     delete[] input;
     delete[] output;
-    destroy_array(internal_array);
+    delete[] input_size_x;
+    delete[] input_size_y;
+    //destroy_array(internal_array);
+    delete transmitSocket;
 }
 
 void 
@@ -131,8 +137,15 @@ OscInterface::Init()
         outadresses = split_string(GetValue("outadresses"), cDelimiter);
     Bind(debugmode, "debug");
 
+    outhost = GetValue("outhost");
+    input_size_x = new int[ins];
+    input_size_y = new int[ins];
     for (int i = 0; i < ins; i++)
+    {
         input[i] = GetInputArray(input_name[i]);
+        input_size_x[i] = GetInputSizeX(input_name[i]);
+        input_size_y[i] = GetInputSizeY(input_name[i]);
+    }
     //printf("init 3\n");
     for (int i = 0; i < outs; i++)
         output[i] = GetOutputArray(output_name[i]);
@@ -142,7 +155,7 @@ OscInterface::Init()
     Bind(inport, "inport");
     Bind(outport, "outport");
     Bind(show_unhandled, "show_unhandled");
-    internal_array = create_array(10);
+    //internal_array = create_array(10);
     //insock.connectTo(host, port);
     if(outs>0)
     {
@@ -150,19 +163,22 @@ OscInterface::Init()
         if (!insock.isOk()) {
             printf("OscInterface: Error opening port %i : %s \n", inport, insock.errorMessage().c_str());
         } else {
-            printf("OscListener: Listener started, will listen to packets on port %i \n", outport);
+            printf("OscInterface: Listener started, will listen to packets on port %i \n", outport);
         }
     }
 
     if(ins>0)
     {
         // TODO open outhost
-        outsock.bindTo(outport);
-        if (!outsock.isOk()) {
-            printf("OscInterface: Error opening port %i : %s \n", outport, outsock.errorMessage().c_str());
-        } else {
-            printf("OscListener: Listener started, will listen to packets on port %i \n", outport);
-        }
+        // outsock.bindTo(outport);
+            
+        
+        transmitSocket = new UdpTransmitSocket ( IpEndpointName( outhost.c_str(), outport ) );
+        //if(transmitSocket->IsBound())
+        printf("OscInterface: Transmitter started, will transmit packets to host %s, port %i \n", outhost.c_str(), outport);
+        //else
+        //    printf("OscInterface: Transmitter socket not bound to host %s, port %i \n", outhost.c_str(), outport);
+        
     }
 }
 
@@ -186,22 +202,54 @@ OscInterface::Tick()
 void
 OscInterface::Send()
 {
-    // TODO
+    //if (outadresses.size() == 0)
+    //    return;
+    //if(transmitSocket->.isOk())
+    //{
+        // TODO
+        for (int i = 0; i < outadresses.size(); i++)
+        {
+            std::string address_string = outadresses.at(i);
+            // formatting messages into a packet for sending:
+            
+
+            char buffer[OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+
+            p << osc::BeginBundleImmediate
+                << osc::BeginMessage( address_string.c_str() );
+                //<< osc::Blob(input[i], input_size_x[i])
+                
+            //for(int jj=0; jj<input_size_y; jj++)
+            for(int ii=0; ii<input_size_x[i]; ii++)
+                p << input[i][ii];
+            p << osc::EndMessage
+                << osc::EndBundle;
+
+            
+            transmitSocket->Send( p.Data(), p.Size() );
+
+            // processing incoming messages
+        }
+    //}
+    //else
+    //    printf("OscInterface: outsock is not ok\n");
 }
 
 void
 OscInterface::Receive()
 {
-    // TODO
+    if (inadresses.size() == 0)
+        return;
     if(insock.isOk())
     {
-       //printf("OscListener: insock is ok\n");  
+       //printf("OscInterface: insock is ok\n");  
       if (insock.receiveNextPacket(30 /* timeout, in ms */)) {
-        // printf("OscListener: packet received\n");  
+        // printf("OscInterface: packet received\n");  
         pr.init(insock.packetData(), insock.packetSize());
         oscpkt::Message *msg;
         while (pr.isOk() && (msg = pr.popMessage()) != 0) {
-          //printf("OscListener: going through message\n");    
+          //printf("OscInterface: going through message\n");    
           float iarg;
 
           // TODO iterate over addresses
@@ -210,12 +258,12 @@ OscInterface::Receive()
             std::string address_string = inadresses.at(i);
             if (msg->match(address_string).popFloat(iarg).isOkNoMoreArgs()) {
                 output[i][0] = iarg;
-                //printf("OscListener: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());
+                //printf("OscInterface: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());
                 //oscpkt::Message repl; repl.init("/pong").pushInt32(iarg+1);
                 //pw.init().addMessage(repl);
                 //insock.sendPacketTo(pw.packetData(), pw.packetSize(), insock.packetOrigin());
             } else if (show_unhandled){
-                printf("OscListener: unhandled message: %s\n", msg->asString().c_str() );
+                printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
                 //cout << "Server: unhandled message: " << *msg << "\n";
             }
           }
@@ -223,7 +271,7 @@ OscInterface::Receive()
       }  
     }
     else
-        printf("OscListener: insock is not ok\n"); 
+        printf("OscInterface: insock is not ok\n"); 
 }
 
 

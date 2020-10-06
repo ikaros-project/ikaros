@@ -78,7 +78,7 @@ PrintInfo()
     printf("\tThis example will wait for a request from the Web browser at\n");
     printf("\tthe default port (8000).\n");
     printf("\n");
-    printf("\tConnect from a browser on this computer with the URL \"http://localhost:8000/\".\n");
+    printf("\tConnect from a browser on this computer with the URL \"http://127.0.0.1:8000/\".\n");
     printf("\tUse the URL \"http://<servername>:8000/\" from other computers.\n");
     printf("\n");
 }

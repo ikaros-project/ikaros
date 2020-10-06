@@ -3,6 +3,7 @@
 //
 //
 //  Created by Isak Amundsson on 2018-09-28.
+//  Modified by Christian Balkenius 2020-09-17
 //
 
 #ifndef TouchBoard_
@@ -20,12 +21,13 @@ public:
     virtual ~TouchBoard();
 
     void Init();
-    void PrintValue();
     void Tick();
 
-    Serial *s;
-    char    *rcvmsg;
-    float *	output;
+    Serial * s;
+    char   * rcvmsg;
+
+    float  * output;
+    float  * touch;
 };
 
 #endif
