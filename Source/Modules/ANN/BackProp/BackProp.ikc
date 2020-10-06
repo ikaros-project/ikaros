@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 
-<group name="BackProp" description="basic multi-layer perceptron">
+<class name="BackProp" description="basic multi-layer perceptron">
 
 
 <description type="text">
