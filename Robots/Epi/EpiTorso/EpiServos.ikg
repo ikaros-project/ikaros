@@ -48,7 +48,6 @@
         <connection source = "GoalPositionG.OUTPUT"  	target = "mmToDegrees.INPUT" sourceoffset = "@servosIndexPupil" 	targetoffset = "0"                      size = "@nrServosPupil"/>
         
         <!-- Calibration of pupil servoes -->
-        <!-- -->
         <module class = "Constant" name = "PupiloffsetData" data = "@pupilOffset" />
         <module class = "Add" name = "PupilToDegreesOffset" />
 
@@ -57,7 +56,7 @@
         <connection source = "PupilToDegreesOffset.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
 
 
-    <!-- Just forward a few parameters to servoes -->
+<!-- Just forward a few parameters to servoes -->
    <!-- Dummy module -->
     <module class = "Gate" name = "TorqueLimitG"/>
         <connection source = "TorqueLimitG.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     target = "Pupil.TORQUE_LIMIT"     delay = "1"/>
@@ -94,7 +93,6 @@
     <!-- Split -->
     <connection source = "SCPosition.OUTPUT" sourceoffset = "@servosIndexHead"  	    size = "@nrServosHead"      target = "Head.GOAL_POSITION"         delay = "1"/>
     <connection source = "SCPosition.OUTPUT" sourceoffset = "@servosIndexPupil"	        size = "@nrServosPupil"     target = "Pupil.GOAL_POSITION"        delay = "1"/>
-
 
     <!-- Dynamxiels -->
    
@@ -197,6 +195,7 @@
     <module class = "Gate" name = "FeedbackPresentPositionG"/>
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "@servosIndexHead"       targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
         <_connection source = "SCFeedbackPosition.OUTPUT"  	target = "DegreesTomm.INPUT"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil"/>
+        
         <!-- Subtract offset for pupil servos -->
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "PupilTommOffset.INPUT1"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil" />
         <module class = "Subtract" name = "PupilTommOffset" />
