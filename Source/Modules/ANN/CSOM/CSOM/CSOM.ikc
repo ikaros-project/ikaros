@@ -48,7 +48,7 @@
 	<parameter name="save_weights_only" type="bool" default="no" description="Should only weights be saved on exit?" />
 	<parameter name="load_weights_only" type="bool" default="no" description="Should only weights be loaded on initiation?" />
 	<parameter name="update_weights" type="bool" default="yes" description="Should weights be udpated?" />
-	<parameter name="filename" type="list" default="CSOM.dat" description="Name of file to save to or load from if save/load state is set to true"
+	<parameter name="filename" type="list" default="CSOM.dat" description="Name of file to save to or load from if save/load state is set to true" />
 
 	<parameter name="device_id" type="int" default="0" description="Id of acceleration device, typically id of CUDA card if present" />
 	<input name="*" description="The input" />
