@@ -36,15 +36,6 @@ servoIndex and nrServoes is used internally to handle the array of servos. Do no
 
 <group name="Epi" 
 
-HeadSerialDevice = "/dev/cu.usbserial-FT3WI37F" 
-PupilSerialDevice = "/dev/cu.usbserial-FT3WKHCT"
-
-HeadDynamixel = "Dynamixel"
-PupilDynamixel = "Dynamixel"
-
-VisionInputLeft = "InputVideoStream"
-VisionInputRight = "InputVideoStream"
-
 servosIndexHead = "0"
 servosIndexPupil = "4"
 servosIndexPupilLeft = "4"
@@ -67,8 +58,9 @@ nrServosTotal = "6"
 	filename = "Actions/motion.%d.mot"
 	json_filename = "Actions/motion.%d.json"
 	smoothing_time = "40" 
-	max_motions="20" 
+	max_motions = "20" 
 	torque_on_record = "0 0 1 1 1 1" 
+	position_data_max = "10000"
 	/>
 
 	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->

@@ -46,10 +46,17 @@
 
         <connection source = "GoalPositionG.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "@servosIndexHead"      targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
         <connection source = "GoalPositionG.OUTPUT"  	target = "mmToDegrees.INPUT" sourceoffset = "@servosIndexPupil" 	targetoffset = "0"                      size = "@nrServosPupil"/>
-        <connection source = "mmToDegrees.OUTPUT"  	    target = "MotionGuard.INPUT" sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
+        
+        <!-- Calibration of pupil servoes -->
+        <module class = "Constant" name = "PupiloffsetData" data = "@pupilOffset" />
+        <module class = "Add" name = "PupilToDegreesOffset" />
+
+        <connection source = "mmToDegrees.OUTPUT"  	            target = "PupilToDegreesOffset.INPUT1" delay = "0"/>
+        <connection source = "PupiloffsetData.OUTPUT"  	        target = "PupilToDegreesOffset.INPUT2" delay = "0"/>
+        <connection source = "PupilToDegreesOffset.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
 
 
-    <!-- Just forward a few parameters to servoes -->
+<!-- Just forward a few parameters to servoes -->
    <!-- Dummy module -->
     <module class = "Gate" name = "TorqueLimitG"/>
         <connection source = "TorqueLimitG.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     target = "Pupil.TORQUE_LIMIT"     delay = "1"/>
@@ -86,7 +93,6 @@
     <!-- Split -->
     <connection source = "SCPosition.OUTPUT" sourceoffset = "@servosIndexHead"  	    size = "@nrServosHead"      target = "Head.GOAL_POSITION"         delay = "1"/>
     <connection source = "SCPosition.OUTPUT" sourceoffset = "@servosIndexPupil"	        size = "@nrServosPupil"     target = "Pupil.GOAL_POSITION"        delay = "1"/>
-
 
     <!-- Dynamxiels -->
    
@@ -187,11 +193,20 @@
 
         
     <module class = "Gate" name = "FeedbackPresentPositionG"/>
-
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "@servosIndexHead"       targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
-        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "DegreesTomm.INPUT"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil"/>
+        <_connection source = "SCFeedbackPosition.OUTPUT"  	target = "DegreesTomm.INPUT"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil"/>
+        
+        <!-- Subtract offset for pupil servos -->
+        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "PupilTommOffset.INPUT1"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil" />
+        <module class = "Subtract" name = "PupilTommOffset" />
+        <connection source = "PupiloffsetData.OUTPUT"  	target = "PupilTommOffset.INPUT2"/>
+
+        <connection source = "PupilTommOffset.OUTPUT"  	target = "DegreesTomm.INPUT" delay = "0"/>
+
         <connection source = "DegreesTomm.OUTPUT"  	        target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
-    <output name = "FEEDBACK_PRESENT_POSITION"                      source = "FeedbackPresentPositionG.OUTPUT" />
+
+        
+    <output name = "FEEDBACK_PRESENT_POSITION"              source = "FeedbackPresentPositionG.OUTPUT" />
 
     <module class = "Gate" name = "FeedbackPresentSpeedRawG"/>
         <connection source = "Head.FEEDBACK_PRESENT_SPEED"       target = "FeedbackPresentSpeedRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
@@ -310,5 +325,24 @@
 <view name="Load" >
 	<bar-graph  x = "20" y = "40" height = "401" width = "641" title = "Load" source = "FeedbackPresentLoadG.OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 </view>
+
+<view name="Pupil Calibration" >
+	<table  x = "500" height = "81" show_frame = "false" width = "141" label_x = "" direction = "normal" scrollable = "false" source = "mmToDegrees.OUTPUT" y = "100" label_y = "" decimals = "0" colorize = "true" title = "mmToDegrees" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "500" height = "81" show_frame = "false" width = "141" label_x = "" direction = "normal" scrollable = "false" source = "PupiloffsetData.OUTPUT" y = "180" label_y = "" decimals = "0" colorize = "true" title = "PupiloffsetData" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "500" height = "81" show_frame = "false" width = "141" label_x = "" direction = "normal" scrollable = "false" source = "PupilToDegreesOffset.OUTPUT" y = "260" label_y = "" decimals = "0" colorize = "true" title = "PupilToDegreesOffset" frame-style = "" show_title = "true" style = ""/>
+	<slider-horizontal  frame-style = "" show_title = "false" show_values = "false" step = "1" max = "90" min = "-90" style = "" labels = "Left,Right" select = "0" count = "2" parameter = "PupiloffsetData.data" title = "Sliders" width = "221" show_frame = "false" height = "81" y = "180" x = "640"/>
+	<table  x = "500" height = "81" show_frame = "false" width = "141" label_x = "" direction = "normal" scrollable = "false" source = "PupilTommOffset.OUTPUT" y = "400" label_y = "" decimals = "0" colorize = "true" title = "PupilTommOffset" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "500" height = "81" show_frame = "false" width = "141" label_x = "" direction = "normal" scrollable = "false" source = "DegreesTomm.OUTPUT" y = "480" label_y = "" decimals = "0" colorize = "true" title = "DegreesTomm" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "180" y = "20" height = "81" width = "461" title = "GoalPositionG" source = "GoalPositionG.OUTPUT" label_x = "Neck,Neck,Eye,Eye,Pupil,Pupil" label_y = "" direction = "normal" decimals = "1" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "180" y = "560" height = "81" width = "461" title = "FeedbackPresentPositionG" source = "FeedbackPresentPositionG.OUTPUT" label_x = "Neck,Neck,Eye,Eye,Pupil,Pupil" label_y = "" direction = "normal" decimals = "1" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<text  x = "180" y = "140" height = "361" width = "261" title = "Default Title" parameter = "" text = "This view can be used to calibrate the pupils servos to match real mm for the robot. By adjusting the sliders the robot pupil should match the mm in DegreesTomm table" prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
+
+
+
+
+
+
 
 </group>
