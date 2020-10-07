@@ -57,6 +57,7 @@ def create_md_str(io_param_lst):
         md_str = ''
         # heading: add name
         md_str += '#' + name + '\n'
+        # image: TODO
         # subh: brief description
         md_str += '##Short description\n' + short_descr 
         # subh: inputs
