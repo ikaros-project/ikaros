@@ -21,9 +21,9 @@ Implements a valueaccumulator
 
 |Name|Description|
 |:----|:-----------|
-|STATE|The internal state of the ValueAccumulator|
-|OUTPUT|The output from each of the nodes of the ValueAccumulator|
-|CHOICE|The filtered output from the ValueAccumulator|
+|STATE|The internal state of the valueaccumulator|
+|OUTPUT|The output from each of the nodes of the valueaccumulator|
+|CHOICE|The filtered output from the valueaccumulator|
 |RT-HISTOGRAM|The reaction time histogram for the different choice|
 |RT-MEAN|Mean response time for each of the choices|
 |CHOICE-COUNT|Number of choices of each alternative|
@@ -35,13 +35,13 @@ Implements a valueaccumulator
 
 |Name|Description|Type|Default value|
 |:----|:-----------|:----|:-------------|
-|alpha|integration gain|float|0.2|
-|beta|lateral inhibtion|float|0.2|
-|gamma|feedback excitation|float|0|
-|delta|feedback inhibition|float|0|
-|lambda|decay factor for leaky integrator|float|0|
-|mean|mean of noise|float|0|
-|sigma|noise sigma|float|0|
+|alpha|Integration gain|float|0.2|
+|beta|Lateral inhibtion|float|0.2|
+|gamma|Feedback excitation|float|0|
+|delta|Feedback inhibition|float|0|
+|lambda|Decay factor for leaky integrator|float|0|
+|mean|Mean of noise|float|0|
+|sigma|Noise sigma|float|0|
 
 <br><br>
 ## Long description
