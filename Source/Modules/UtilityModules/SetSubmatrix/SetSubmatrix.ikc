@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="SetSubmatrix" description="minimal example module">
+<class name="SetSubmatrix" description="Set one matrix as a submatrix of another">
 
 	<description type="text">
 		Module that can set one matrix as a submatrix of another.

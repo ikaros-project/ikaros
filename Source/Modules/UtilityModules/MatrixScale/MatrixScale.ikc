@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="MatrixScale" description="minimal example module">
+<class name="MatrixScale" description="Scales content of matrix">
 
 	<description type="text">
 		Scales content of matrix. Typically used for images.

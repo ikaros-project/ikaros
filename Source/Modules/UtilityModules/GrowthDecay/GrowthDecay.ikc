@@ -19,7 +19,9 @@
 	</example>
 
 	<parameter name="growthfactor" type="float" default="0.2" description="The rate of growth" />
-	<parameter name="decayfactor" type="float" default="0.2" description="The rate of decay" />
+	<parameter name="accumulate" type="float" default="0" description="Percentage accumulate" />
+	<parameter name="slopefactor" type="float" default="1.0" description="The knee of slope" />
+	<parameter name="decaythreshold" type="float" default="0.000001" description="The threshold for switching to decay" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="INPUT" description="The first input" />

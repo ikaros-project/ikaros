@@ -294,6 +294,7 @@ NucleusEnsemble::Tick()
         if(a < threshold[i])
             tetanus[i] = 0; // TODO should really descend gradually with a
         
+        // TODO add decay time dept on dopa stimulation (ref Li & Jasanoff 2020)
         x[i] += epsilon * (stim - x[i]);       // rise time to max value
 
         

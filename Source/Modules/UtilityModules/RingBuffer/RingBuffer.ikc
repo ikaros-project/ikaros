@@ -10,12 +10,12 @@
 		<module
 			class="RingBuffer"
 			name="RingBuffer"
-			size = "10"
+			buffersize = "10"
 			debug = "true"
 		/>
 	</example>
 
-	<parameter name="size" type="int" default="10" description="The size of the buffer" />
+	<parameter name="buffersize" type="int" default="10" description="The size of the buffer" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="INPUT" description="The first input" />

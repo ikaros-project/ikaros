@@ -52,6 +52,8 @@ public:
 
     float       growthfactor;
     float       decayfactor;
+    float       accumulate;
+    float       decaythreshold;
 	bool       	debugmode;
 };
 

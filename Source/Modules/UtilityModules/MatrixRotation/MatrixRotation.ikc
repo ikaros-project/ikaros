@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="MatrixRotation" description="minimal example module">
+<class name="MatrixRotation" description="Rotates a matrix around its center by given angle">
 
 	<description type="text">
         Rotates a matrix by given angle. Rotation is around the center

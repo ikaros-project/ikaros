@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<class name="InputSelector" description="minimal example module">
+<class name="InputSelector" description="Outputs one of n inputs based on an input index">
 
 	<description type="text">
-		Module that outputs one of two inputs based on an input index
+		Module that outputs one of n inputs based on an input index
 	</description>
 
 	<example description="A simple example">
