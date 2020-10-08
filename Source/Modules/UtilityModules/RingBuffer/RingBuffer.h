@@ -53,7 +53,7 @@ public:
 
     // parameter values
 
-    int       size;
+    int       buffersize;
 	bool       	debugmode;
 };
 

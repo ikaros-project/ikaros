@@ -37,7 +37,9 @@ GrowthDecay::Init()
 {
     Bind(growthfactor, "growthfactor");
     Bind(decayfactor, "decayfactor");
+    Bind(accumulate, "accumulate");
 	Bind(debugmode, "debug");    
+    Bind(decaythreshold, "decaythreshold");
 
     input_array = GetInputArray("INPUT");
     input_array_size = GetInputSize("INPUT");
@@ -72,17 +74,23 @@ GrowthDecay::Tick()
         retval = a
         */
         float epsilon=growthfactor;
-        if(input_array[i]==0)
+        float lambda = accumulate;
+        if(input_array[i]<decaythreshold)
+        {
             epsilon = decayfactor;
-        output_array[i] += epsilon*(input_array[i] - output_array[i]);
-
+            lambda=0;
+        }
+        output_array[i] += epsilon*(input_array[i] - (1-lambda)*output_array[i]);
+        if(debugmode)
+        {
+            // print out debug info
+            printf("Instance: %s\n", this->instance_name);
+            printf("input= %f; epsilon= %f; lambda= %f\n", input_array[i], epsilon, lambda);
+        }
     }
     
     
-    if(debugmode)
-	{
-		// print out debug info
-	}
+    
 }
 
 
