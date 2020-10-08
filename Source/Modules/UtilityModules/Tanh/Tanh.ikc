@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="Tanh" description="minimal example module">
+<class name="Tanh" description="Applies the tanh function to the input">
 
 	<description type="text">
 		Module that applies the tanh function to the input

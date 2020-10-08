@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="SumMatrix" description="minimal example module">
+<class name="SumMatrix" description="Sums a matrix to one value">
 
 	<description type="text">
 	Sums a matrix to one value

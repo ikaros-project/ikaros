@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<class name="MotionRecorder" description="minimal example module">
+<class name="MotionRecorder" description="Module that records a sequence of values and saves them to a file">
 
 	<description type="text">
-		Module that records a sequence of values and saves them into a file.
+		Module that records a sequence of values and saves them to a file.
 	</description>
 
 	<example description="A simple example">

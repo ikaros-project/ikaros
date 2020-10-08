@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<class name="IPCInput" description="minimal example module">
+<class name="IPCInput" description="Client for inter-process communication (IPC)">
 
 	<description type="text">
-
+	Client for inter-process communication
 	</description>
 
 	<example description="A simple example">

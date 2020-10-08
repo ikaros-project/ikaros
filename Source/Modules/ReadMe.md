@@ -23,7 +23,7 @@
   * [NeuralField](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/BrainModels/NeuralField/) : Neuralfield
   * [NucleusEnsemble](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/BrainModels/NucleusEnsemble/) : Ensemble of nuclei with support for dopamine, adenosine, noradrenaline
   * [Nucleus](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/BrainModels/Nucleus/) : Implements a nucleus
-  * [SpikingPopulation](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/BrainModels/SpikingPopulation/) : Minimal example module
+  * [SpikingPopulation](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/BrainModels/SpikingPopulation/) : Simulates a population of spiking neurons
 * CodingModules/
   * [CoarseCoder](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/CodingModules/CoarseCoder/) : Encodes a two-dimensional value in a vector
   * [IntervalCoder](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/CodingModules/IntervalCoder/) : Encodes a value in a vector
@@ -56,7 +56,7 @@
     * [OutputRawImage](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/FileOutput/OutputRawImage/) : Writes images in raw format
     * [OutputVideoFile](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/FileOutput/OutputVideoFile/) : Save to a video file
   * Network/
-    * [IPCClient](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/Network/IPCClient/) : Minimal example module
+    * [IPCClient](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/Network/IPCClient/) : Client for receiving inter-process communication (IPC)
     * [IPCServer](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/Network/IPCServer/) : Module to send data using sockets
     * [YARPPort](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/Network/YARPPort/) : Ikaros to yarp network communication
   * [SoundOutput](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/IOModules/SoundOutput/) : Plays a sound file
@@ -81,10 +81,10 @@
   * [Dynamixel/DynamixelConfigure](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/Dynamixel/DynamixelConfigure/) : Configures dynamixel servos
   * [Dynamixel](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/Dynamixel/) : Interfaces dynamixel servos
   * [Epuck](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/Epuck/) : Interfaces the e-puck robot
-  * [FadeCandy](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/FadeCandy/) : Minimal example module
+  * [FadeCandy](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/FadeCandy/) : Allows control of NeoPixels hardware through FadeCandy server
   * [GazeController](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/GazeController/) : Controls a 4 dof stereo head
   * [MotionGuard](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/MotionGuard/) : Module to prevent suddden and dangerous movements
-  * [MotionRecorder](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/MotionRecorder/) : Minimal example module
+  * [MotionRecorder](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/MotionRecorder/) : Module that records a sequence of values and saves them to a file
   * [Phidgets](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/Phidgets/) : Controlling a phidgets ioboard
   * [SSC32](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/SSC32/) : Interfaces the ssc-32 rc servos
   * [SequenceRecorder](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/RobotModules/SequenceRecorder/) : Records a sequence
@@ -109,8 +109,8 @@
   * [EventTrigger](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/EventTrigger/) : Triggers events
   * [Expression](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Expression/) : Mathematical expression
   * [FFT](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FFT/) : Fast Fourier transform
-  * [FanIn](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FanIn/) : Minimal example module
-  * [FanOut](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FanOut/) : Minimal example module
+  * [FanIn](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FanIn/) : Multiplexer for CSOM networks
+  * [FanOut](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FanOut/) : De-multiplexer for use with CSOM networks
   * [Flip](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Flip/) : Flips a signal
   * [FunctionGenerator](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FunctionGenerator/) : Functions of times
   * [Fuse](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Fuse/) : Fuses streams of coordinate transformations
@@ -118,16 +118,16 @@
   * [GrowthDecay](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/GrowthDecay/) : Produces a biological growth-decay curve
   * [Histogram](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Histogram/) : Generates a histogram
   * [InitialValue](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/InitialValue/) : Initial value for difference equations
-  * [InputSelector](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/InputSelector/) : Minimal example module
+  * [InputSelector](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/InputSelector/) : Outputs one of n inputs based on an input index
   * [Integrator](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Integrator/) : Sums input over time
   * [LinearSplines](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/LinearSplines/) : Computes linear spline functions
-  * [ListIterator](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/ListIterator/) : Minimal example module
+  * [ListIterator](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/ListIterator/) : Iterates through a list of numbers whenever gets a trigger signal
   * [Logger](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Logger/) : Sends a log message at start-up to the ikaros site
-  * [Map](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Map/) : Minimal example module
+  * [Map](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Map/) : Maps from one interval to another
   * [MatrixMultiply](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixMultiply/) : Multiplies two matrices
-  * [MatrixRotation](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixRotation/) : Minimal example module
-  * [MatrixScale](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixScale/) : Minimal example module
-  * [MatrixTranslation](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixTranslation/) : Minimal example module
+  * [MatrixRotation](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixRotation/) : Rotates a matrix around its center by given angle
+  * [MatrixScale](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixScale/) : Scales content of matrix
+  * [MatrixTranslation](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/MatrixTranslation/) : Translates content of a matrix
   * [Max](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Max/) : Maximum of two inputs
   * [Maxima](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Maxima/) : Selects maximum element
   * [Mean](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Mean/) : Caluates mean of all inputs
@@ -150,15 +150,15 @@
   * [SelectMax](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/SelectMax/) : Selects maximum element
   * [SelectRow](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/SelectRow/) : Selectrows maximum element
   * [Select](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Select/) : Selects maximum element
-  * [SetSubmatrix](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/SetSubmatrix/) : Minimal example module
+  * [SetSubmatrix](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/SetSubmatrix/) : Set one matrix as a submatrix of another
   * [Sink](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Sink/) : Throws away a signal
   * [Softmax](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Softmax/) : Calculates softmax
   * [Submatrix](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Submatrix/) : Submatrixs matrix elements
   * [Subtract](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Subtract/) : Subtracts two inputs
-  * [SumMatrix](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/SumMatrix/) : Minimal example module
+  * [SumMatrix](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/SumMatrix/) : Sums a matrix to one value
   * [Sum](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Sum/) : Sums inputs
   * [Sweep](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Sweep/) : Produces a sequence of values
-  * [Tanh](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Tanh/) : Minimal example module
+  * [Tanh](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Tanh/) : Applies the tanh function to the input
   * [Text](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Text/) : Tests a text parameter
   * [Threshold](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Threshold/) : Applies a threshold
   * [Transform](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Transform/) : Transforms a set of matrices

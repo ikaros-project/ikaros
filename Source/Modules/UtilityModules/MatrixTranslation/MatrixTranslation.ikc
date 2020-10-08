@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="MatrixTranslation" description="minimal example module">
+<class name="MatrixTranslation" description="Translates content of a matrix">
 
 	<description type="text">
 		Translates content of a matrix.

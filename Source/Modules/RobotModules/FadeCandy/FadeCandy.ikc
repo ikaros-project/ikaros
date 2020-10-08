@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<class name="FadeCandy" description="minimal example module">
+<class name="FadeCandy" description="Allows control of NeoPixels hardware through FadeCandy server">
 
 	<description type="text">
-        Ikaros modele for FadeCandy that allows Ikaros to control NeoPixels through a FadeCandy (https://github.com/scanlime fadecandy). 
+        Ikaros module for FadeCandy that allows Ikaros to control NeoPixels through a FadeCandy (https://github.com/scanlime fadecandy). 
 		The module starts the fadecandy server using the name set by command. The binary is assumed to be placed next to the module. 
 		If command is set to "" (empty string), the server will not be started.
 

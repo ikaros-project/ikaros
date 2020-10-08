@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="ListIterator" description="minimal example module">
+<class name="ListIterator" description="Iterates through a list of numbers whenever gets a trigger signal">
 
 	<description type="text">
 		Iterates through a list of numbers whenever SYNC_IN is 1, sets SYNC_OUT to 1 on beginning of every iteration.
