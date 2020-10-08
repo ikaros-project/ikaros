@@ -9,10 +9,13 @@ import re
 # github:
 # https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/ANN/Autoassociator/Autoassociator.ikc
 # %%
-def writefile(fname, content):
+def writefile(fname, content, confirm=False):
     fileobj = open(fname, 'w') # open for writing
-    fileobj.write(content)
+    written = fileobj.write(content)
     fileobj.close()
+    if confirm:
+        print('Wrote ' + str(written) + ' to ' + fname)
+
 
 def get_ikc_list(rootDir):
     '''
@@ -71,12 +74,12 @@ def create_md_str(io_param_lst):
     '''
     returns:
     - a list of strings for md files for each class
-    - a string with a list of all module classes with links to github
+
     '''
     retval_md = list()
     blankspace = '\n<br><br>\n'
-    github_str = 'https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/'
-    md_module_lst_str = '# Modules\n\n'
+    # github_str = 'https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/'
+    # md_module_lst_str = '# Modules\n\n'
     for item in io_params_lst:
         name  = item[0]
         inps = item[1]
@@ -119,7 +122,7 @@ def create_md_str(io_param_lst):
         for out in outs:
             descr = ''
             if 'description' in out.keys():
-                descr = out['description']
+                descr = out['description'].capitalize()
             md_str += '|' + out['name'] + '|' + descr + '|' + '\n'
         
         # subh: params
@@ -129,7 +132,7 @@ def create_md_str(io_param_lst):
         for prm in params:
             descr = ''
             if 'description' in prm.keys():
-                descr = prm['description']
+                descr = prm['description'].capitalize()
             deflt = ''
             if 'default' in prm.keys():
                 deflt = prm['default']
@@ -148,11 +151,42 @@ def create_md_str(io_param_lst):
         # add link to github
         # TODO
 
-        # add module list, TODO sort list, 
-        md_module_lst_str += '* [' + dir_adr + '/' + name + '](' + github_str + dir_adr +'/) : ' + short_descr + '\n'
-
+        
         retval_md.append((dir_adr, md_str))
-    return retval_md, md_module_lst_str
+    return retval_md #, md_module_lst_str
+
+def create_module_lst_str(io_param_lst):
+    '''
+    Returns:
+        - a string with a list of all module classes with links to github
+    '''
+    
+    github_str = 'https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/'
+    md_module_lst_str = '# Modules\n\n'
+    module_lst = list()
+    for item in io_params_lst:
+        # add module list, TODO sort list, 
+        name  = item[0]
+        # inps = item[1]
+        # outs = item[2]
+        # params = item[3]
+        # long_descr = item[4]
+        short_descr_lst = item[5]
+        dir_adr = item[6]
+        dir_adr_lst = dir_adr.split('/')
+
+        short_descr = ''
+        if len(short_descr_lst) > 0:
+            short_descr = short_descr_lst[0].capitalize()
+        
+        if not name in dir_adr:
+            dir_adr += '/' + name
+        module_lst.append('* [' + dir_adr + '](' + \
+            github_str + dir_adr +'/) : ' + short_descr + '\n')
+    module_lst.sort()
+    #print(module_lst)
+    md_module_lst_str += ''.join(module_lst) 
+    return md_module_lst_str
 
 # %% str tst
 # TODO replace with query
@@ -160,13 +194,15 @@ rootDir = '/home/trondarild/ikaros/ikaros/Source/Modules/'
 readme_name = 'ReadMe.md'
 ikc_list = get_ikc_list(rootDir)
 io_params_lst = extract_io_params(ikc_list)
-md_lst, module_lst = create_md_str(io_params_lst)
-for i in range(2):
+md_lst = create_md_str(io_params_lst)
+module_lst = create_module_lst_str(io_params_lst)
+#print (module_lst[:4000])
+for i in range(len(md_lst)):
     fname = rootDir + md_lst[i][0] + '/' + readme_name
     writefile(fname, md_lst[i][1])
-    print ('wrote: ' + fname)
+    #print ('wrote: ' + fname)
 #writefile('ReadMe.md', md_lst[0])
-#writefile('mod_list.md', module_lst)
+#writefile('ikaros_module_list.md', module_lst)
 
 
 # %%
