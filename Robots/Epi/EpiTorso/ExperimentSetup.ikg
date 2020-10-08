@@ -51,12 +51,12 @@ VisionInputRight = "InputJPEG"
 
 	<!-- Importing Epi Orange-->
 	<module class = "EpiTorsoMinimal" name = "EpiOrange" 
-	HeadDynamixel = "DynamixelSimulate" 
-	PupilDynamixel = "DynamixelSimulate" 
+	HeadDynamixel = "Dynamixel" 
+	PupilDynamixel = "Dynamixel" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT3WI2K2" 
 	PupilSerialDevice = "/dev/cu.usbserial-FT3WI2WH"
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
-	pupilOffset = "-15 -10"
+	pupilOffset = "-15 -28"
 	/>
 </group>
