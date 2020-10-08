@@ -115,7 +115,7 @@
   * [FunctionGenerator](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/FunctionGenerator/) : Functions of times
   * [Fuse](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Fuse/) : Fuses streams of coordinate transformations
   * [Gate](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Gate/) : Gates a signal
-  * [GrowthDecay](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/GrowthDecay/) : 
+  * [GrowthDecay](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/GrowthDecay/) : Produces a biological growth-decay curve
   * [Histogram](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/Histogram/) : Generates a histogram
   * [InitialValue](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/InitialValue/) : Initial value for difference equations
   * [InputSelector](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/UtilityModules/InputSelector/) : Minimal example module
