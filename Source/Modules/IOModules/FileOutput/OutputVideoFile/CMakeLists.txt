@@ -20,5 +20,5 @@ if(FFMPEG_FOUND)
 	PARENT_SCOPE
     ) 
 else()
-	message(STATUS "Ikaros: FFMEG is not found. OutputVideoFile module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
+	message(STATUS "Ikaros: FFMPEG is not found. OutputVideoFile module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
 endif(FFMPEG_FOUND)
