@@ -22,5 +22,5 @@ if(FFMPEG_FOUND)
     ) 
 
 else()
-	message(STATUS "Ikaros: FFMEG is not found. InputVideo module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
+	message(STATUS "Ikaros: FFPMEG is not found. InputVideo module is not included into the build. Visit www.ikaros-project.org for information of module dependencies." )
 endif(FFMPEG_FOUND)
