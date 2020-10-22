@@ -39,7 +39,7 @@ class WebUIWidgetTable extends WebUIWidget {
             let new_row = this.table.insertRow(-1);
             for (let i = 0; i < c; i++) {
                 let cell = new_row.insertCell(i);
-                cell.innerHTML = "X";
+                cell.innerHTML = ".";
                 this.tData[j][i] = cell
             }
         }
@@ -47,7 +47,7 @@ class WebUIWidgetTable extends WebUIWidget {
             let new_row = this.table.insertRow(0);
             for (let i = 0; i < c; i++) {
                 let cell = new_row.insertCell(i);
-                cell.innerHTML = "X";
+                cell.innerHTML = ".";
                 this.xHeader.push(cell)
             }
         }
@@ -55,7 +55,7 @@ class WebUIWidgetTable extends WebUIWidget {
             for (let i = 0; i < this.table.rows.length; i++) {
                 let cell = this.table.rows[i].insertCell(0);
                 if (!(rLabel && i == 0)) {
-                    cell.innerHTML = "X";
+                    cell.innerHTML = ".";
                     this.yHeader.push(cell)
                 }
             }
@@ -118,54 +118,38 @@ class WebUIWidgetTable extends WebUIWidget {
             let size_y = this.data.length;
             let size_x = this.data[0].length;
 
-            if (this.parameters.direction == "normal") {
+            if (this.parameters.direction == "normal")
                 this.reshapeTable(size_y, size_x, this.parameters.label_x, this.parameters.label_y);
-                this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
-            }
-            else {
+            else
                 this.reshapeTable(size_x, size_y, this.parameters.label_y, this.parameters.label_x);
-                this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
-            }
-            this.update()
+            this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
         }
         this.scrollable()
     }
     update() {
-
         if (!this.loaded)
             this.updateAll()
+        else {
+            if (this.data = this.getSource('source')) {
 
-        if (this.data = this.getSource('source')) {
+                let size_y = this.data.length;
+                let size_x = this.data[0].length;
 
-            let size_y = this.data.length;
-            let size_x = this.data[0].length;
-
-            if (this.parameters.direction == "normal") {
-                if (this.parameters.colorize)
-                    for (let j = 0; j < size_y; j++)
-                        for (let i = 0; i < size_x; i++) {
-                            this.tData[j][i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                            this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
+                for (let j = 0; j < size_y; j++)
+                    for (let i = 0; i < size_x; i++)
+                        if (this.parameters.direction == "normal") {
+                            this.tData[j][i].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
+                            if (this.parameters.colorize)
+                                this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
+                            else
+                                this.tData[j][i].style.color = this.getColor(i);
                         }
-                else
-                    for (let j = 0; j < size_y; j++)
-                        for (let i = 0; i < size_x; i++) {
-                            this.tData[j][i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);;
-                            this.tData[j][i].style.color = this.getColor(i);
-                        }
-            }
-            else {
-                if (this.parameters.colorize)
-                    for (let j = 0; j < size_y; j++)
-                        for (let i = 0; i < size_x; i++) {
-                            this.tData[i][j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                            this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
-                        }
-                else
-                    for (let j = 0; j < size_y; j++)
-                        for (let i = 0; i < size_x; i++) {
-                            this.tData[i][j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);;
-                            this.tData[i][j].style.color = this.getColor(i);
+                        else {
+                            this.tData[i][j].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
+                            if (this.parameters.colorize)
+                                this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
+                            else
+                                this.tData[i][j].style.color = this.getColor(i);
                         }
             }
         }
