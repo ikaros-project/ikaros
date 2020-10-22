@@ -3731,14 +3731,15 @@ SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int siz
 }
 
 
-static inline float
-checknan(float x)
+std::string
+checkNumber(float x)
 {
-    if(x == x && abs(x) > 0.00001) // Check NaN
-        return x;
+    if(isnormal(x)) // Check data
+        return std::to_string(x);
     else
-        return 0;
+        return "\"NAN\"";
 }
+
 
 
 static bool
@@ -3748,9 +3749,9 @@ SendJSONArrayData(ServerSocket * socket, char * source, float * array, int size)
         return false;
     
     socket->fillBuffer("\t\t\"" + std::string(source) + "\":\n\t\t[\n");
-    socket->fillBuffer("\t\t[" + std::to_string(checknan(array[0])));
+    socket->fillBuffer("\t\t[" + checkNumber(array[0]));
     for (int i=1; i<size; i++)
-        socket->fillBuffer("," + std::to_string(checknan(array[i])));
+        socket->fillBuffer("," + checkNumber(array[i]));
     socket->fillBuffer("]\n\t]");
     socket->SendBuffer();
     socket->clearBuffer();
@@ -3769,9 +3770,9 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
     socket->fillBuffer("\t\t\"" + std::string(source) + "\":\n\t\t[\n");
     for (int j=0; j<sizey; j++)
     {
-        socket->fillBuffer("\t\t\t[" + std::to_string(  checknan(matrix[k++])));
+        socket->fillBuffer("\t\t\t[" + checkNumber(matrix[k++]));
         for (int i=1; i<sizex; i++)
-            socket->fillBuffer("," + std::to_string(checknan(matrix[k++])));
+            socket->fillBuffer("," + checkNumber(matrix[k++]));
         if (j<sizey-1)
             socket->fillBuffer("],\n");
         else
@@ -3779,7 +3780,6 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
     }
     socket->SendBuffer();
     socket->clearBuffer();
-
     return true;
 }
 
