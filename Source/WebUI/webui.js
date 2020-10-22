@@ -1518,7 +1518,7 @@ controller = {
         {
             if(!xhr.response)   // empty response is ignored
             {
-            //    console.log("onload - empty response - error")
+                //console.log("onload - empty response - error")
                 return;
             }
             controller.defer_reconnect(); // we are still on line
@@ -1589,6 +1589,7 @@ controller = {
     {
         // Update the views with data in response
         let w = document.getElementsByClassName('frame')
+
         for(let i=0; i<w.length; i++)
             try
             {
@@ -1661,6 +1662,7 @@ controller = {
             else
                 controller.run_mode = 'pause'
             controller.session_id = session_id;
+            controller.tick = response.iteration;
             nav.init(response);
             controller.network = response;
             controller.views = {};
@@ -1671,6 +1673,7 @@ controller = {
                 controller.selectView(v);
             else
                 controller.selectView(Object.keys(controller.views)[0]);
+            
         }
         else if(package_type == "data") // same session - a new data package
         {
@@ -1703,8 +1706,10 @@ controller = {
                 {
                     p.style.display = "none";
                 }
-                
+
+                controller.tick = response.iteration;
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
+                
             }
             catch(err)
             {
