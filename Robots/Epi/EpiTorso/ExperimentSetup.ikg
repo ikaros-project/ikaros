@@ -67,7 +67,7 @@ VisionInputRight = "InputJPEG"
 	PupilDynamixel = "Dynamixel" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
 	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
-	VisionInputLeft = "InputVideoStream"
+	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputVideoStream"
 	pupilOffset = "-20 -15"
 	/>
