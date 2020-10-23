@@ -60,7 +60,7 @@ VisionInputRight = "InputJPEG"
 	pupilOffset = "-15 -28"
 	/>
 
-	<!-- Importing Epi Orange-->
+	<!-- Importing Epi Gray-->
 <!--
 	<module class = "EpiTorsoMinimal" name = "EpiGray" 
 	HeadDynamixel = "Dynamixel" 
