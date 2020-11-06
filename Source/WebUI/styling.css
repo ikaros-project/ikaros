@@ -663,4 +663,22 @@ header button:active, aside button:hover {
 */
 }
 
+#WidgetOverlay
+{   
+    position: absolute;
+    top:0; 
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.253);
+    border: 1px solid black;
+}
 
+#WidgetOverlayText{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    padding: 10px;
+    height: auto;
+}

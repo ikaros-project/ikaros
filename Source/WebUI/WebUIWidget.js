@@ -475,6 +475,15 @@ class WebUIWidget extends HTMLElement
             this.get("/command/"+command+"/"+index_x+"/"+index_y+"/"+value);
     }
 
+    // Only implemented in widgetTable.
+    widget_overlay(state, text = "")
+    {
+        this.div.children[1].children[0].innerHTML = text;
+        if(state)
+            this.div.children[1].style.display = "block"
+        else
+            this.div.children[1].style.display = "none"
+    }
 };
 
 customElements.define('webui-widget', WebUIWidget);

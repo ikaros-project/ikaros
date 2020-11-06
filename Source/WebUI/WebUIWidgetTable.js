@@ -22,7 +22,7 @@ class WebUIWidgetTable extends WebUIWidget {
     };
 
     static html() {
-        return "<div><table></table></div>";
+        return `<div><table></table><div id=\"WidgetOverlay\"><div id=\"WidgetOverlayText\"></div> </div></div>`;
     }
 
     reshapeTable(r, c, rLabel, cLabel) {
@@ -110,6 +110,7 @@ class WebUIWidgetTable extends WebUIWidget {
         this.div = this.querySelector('div');
         this.table = this.querySelector('table');
         this.loaded = false;
+        this.overlay = false;
     }
     updateAll() {
         this.updateFrame();
@@ -127,30 +128,38 @@ class WebUIWidgetTable extends WebUIWidget {
         this.scrollable()
     }
     update() {
+
+        this.widget_overlay(false)
+    
         if (!this.loaded)
             this.updateAll()
+
         else {
             if (this.data = this.getSource('source')) {
 
                 let size_y = this.data.length;
                 let size_x = this.data[0].length;
-
-                for (let j = 0; j < size_y; j++)
-                    for (let i = 0; i < size_x; i++)
-                        if (this.parameters.direction == "normal") {
-                            this.tData[j][i].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
-                            if (this.parameters.colorize)
-                                this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
-                            else
-                                this.tData[j][i].style.color = this.getColor(i);
-                        }
-                        else {
-                            this.tData[i][j].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
-                            if (this.parameters.colorize)
-                                this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
-                            else
-                                this.tData[i][j].style.color = this.getColor(i);
-                        }
+                try {
+                    for (let j = 0; j < size_y; j++)
+                        for (let i = 0; i < size_x; i++)
+                            if (this.parameters.direction == "normal") {
+                                this.tData[j][i].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
+                                if (this.parameters.colorize)
+                                    this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
+                                else
+                                    this.tData[j][i].style.color = this.getColor(i);
+                            }
+                            else {
+                                this.tData[i][j].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
+                                if (this.parameters.colorize)
+                                    this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
+                                else
+                                    this.tData[i][j].style.color = this.getColor(i);
+                            }
+                }
+                catch (err) {
+                    this.widget_overlay(true, "Received bad data")
+                }
             }
         }
     }
