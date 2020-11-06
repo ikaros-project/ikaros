@@ -33,12 +33,16 @@
 	<parameter name="synapse_max" type="float" default="1.5" description="max random value for synapes" />
 	<parameter name="synapse_min" type="float" default="0.5" description="min random value for synapes" />
 	
-	<input name="DIRECT_IN" description="Direct current input" size_param="population_size" />
-	<input name="EXCITATION_IN" description="Synaptic exhitation input" />
-	<input name="INHIBITION_IN" description="Synaptic inhibition input" />
+	<input name="DIRECT_IN" optional="yes" description="Direct current input" size_param="population_size" />
+	<input name="EXCITATION" optional="yes" description="Synaptic exhitation input" />
+	<input name="INHIBITION" optional="yes" description="Synaptic inhibition input" />
+	<input name="EX_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<input name="INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<!--input name="INTERNAL_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" /-->
+
 
 	<output name="OUTPUT" description="The first output" size_param="population_size" />
-	<output name="ADENOSINE" size="1" description="Scalar indicating amount of adenosine produced every tick" />
+	<output name="ADENO_OUTPUT" size="1" description="Scalar indicating amount of adenosine produced every tick" />
 
 	<link class="SpikingPopulation" />
 
