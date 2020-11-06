@@ -60,14 +60,14 @@ VisionInputRight = "InputJPEG"
 	pupilOffset = "-15 -28"
 	/>
 
-	<!-- Importing Epi Orange-->
+	<!-- Importing Epi Gray-->
 <!--
 	<module class = "EpiTorsoMinimal" name = "EpiGray" 
 	HeadDynamixel = "Dynamixel" 
 	PupilDynamixel = "Dynamixel" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
 	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
-	VisionInputLeft = "InputVideoStream"
+	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputVideoStream"
 	pupilOffset = "-20 -15"
 	/>

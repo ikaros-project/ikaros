@@ -39,8 +39,8 @@ Module(P)
     
     std::vector<std::string> 
         outsvec = split(std::string(GetValue("outs"))==cNone?"":GetValue("outs"), std::string(";"));
-    ins = insvec.size();
-    outs = outsvec.size();
+    ins = insvec.size()==1 && insvec[0]=="" ? 0 : insvec.size();
+    outs = outsvec.size()==1 && outsvec[0]=="" ? 0 : outsvec.size();
 
     if(ins>0)
     {
@@ -149,4 +149,4 @@ BlackBox::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("BlackBox", &BlackBox::Create, "Source/UserModules/BlackBox/");
+static InitClass init("BlackBox", &BlackBox::Create, "Source/Modules/UtilityModules/BlackBox/");
