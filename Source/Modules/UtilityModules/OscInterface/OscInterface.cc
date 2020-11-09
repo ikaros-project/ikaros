@@ -53,7 +53,8 @@ Module(P)
             int sz = string_to_int(adr_sz.at(1));
             std::pair<std::string, int> pair;
             pair.first=adr_sz.at(0);
-            pair.second=create_array(sz);
+            printf("frst: %s\n", pair.first.c_str());
+            pair.second=sz;
             out_adr_dict.push_back(pair);
         }
     }
@@ -130,8 +131,12 @@ OscInterface::SetSizes()
     // printf("Setsizes 1\n");
     if (sx == unknown_size || sy == unknown_size)
         return; // Not ready yet
-    for (int i = 0; i < outs; i++)
+    for (int i = 0; i < outs; i++){
+        sx = out_adr_dict[i].second;
         SetOutputSize(output_name[i], sx, sy);
+    }
+
+
     // other sizes here
     size_x=sx;
     size_y=sy;
@@ -161,7 +166,8 @@ OscInterface::Init()
     }
     //printf("init 3\n");
     for (int i = 0; i < outs; i++)
-        output[i] = GetOutputArray(output_name[i]);
+        //output[i] = GetOutputArray(output_name[i]);
+        io(output[i], output_name[i]);
     //printf("init 4\n");
     // other outputs etc
     // io(output_array, output_array_size, "OUTPUT");
@@ -264,22 +270,31 @@ OscInterface::Receive()
         while (pr.isOk() && (msg = pr.popMessage()) != 0) {
           //printf("OscInterface: going through message\n");    
           float iarg;
-
+          // printf("OscInterface: handling message: %s\n", msg->asString().c_str() );  
           // TODO iterate over addresses
-          for (int i = 0; i < inadresses.size(); i++)
+          for (int i = 0; i < out_adr_dict.size(); i++)
           {
-            std::string address_string = inadresses.at(i);
+            std::string address_string = out_adr_dict.at(i).first;
+            // printf("inadress: %s, match: %i\n", address_string.c_str(), 
+            //     msg->match(address_string).isOk());
             // TODO iterate over size of array
-            if (msg->match(address_string).popFloat(iarg).isOkNoMoreArgs()) {
-                output[i][0] = iarg;
-                //printf("OscInterface: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());
-                //oscpkt::Message repl; repl.init("/pong").pushInt32(iarg+1);
-                //pw.init().addMessage(repl);
-                //insock.sendPacketTo(pw.packetData(), pw.packetSize(), insock.packetOrigin());
-            } else if (show_unhandled){
-                printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
-                //cout << "Server: unhandled message: " << *msg << "\n";
+            int sz = out_adr_dict.at(i).second;
+            for(int j=0;j<sz; j++)
+            {
+                // if (msg->match(address_string).popFloat(iarg).isOkNoMoreArgs()) {
+                if (msg->match(address_string).popFloat(iarg)) {
+                    output[i][j] = iarg;
+                    
+                    //printf("OscInterface: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());
+                    //oscpkt::Message repl; repl.init("/pong").pushInt32(iarg+1);
+                    //pw.init().addMessage(repl);
+                    //insock.sendPacketTo(pw.packetData(), pw.packetSize(), insock.packetOrigin());
+                } else if (show_unhandled){
+                    printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
+                    //cout << "Server: unhandled message: " << *msg << "\n";
+                }
             }
+            print_array("output", output[i], sz);
           }
         }
       }  

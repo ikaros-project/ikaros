@@ -8,7 +8,7 @@
 		Planned Address format:
 		[ address string ]:type+
 		Example:
-		/2/faderB:ff -> address = "/2/faderB" types=float, float
+		/2/faderB:2 -> address = "/2/faderB" types=float, float
 		This will expect an address called "/2/faderB" to come with 
 		two floats, for sending or receiving
 	</description>
@@ -22,8 +22,8 @@
 			outhost="127.0.0.1"
 			outport="9001"
 			inport = "12000"
-			inaddresses = "/1/faderA:f;/2/faderB:ff"
-			outaddresses="/1/faderC:f;/2/faderD:f"
+			inaddresses = "/1/faderA:1;/2/faderB:2"
+			outaddresses="/1/faderC:1;/2/faderD:1"
 			debug = "true"
 		/>
 		
