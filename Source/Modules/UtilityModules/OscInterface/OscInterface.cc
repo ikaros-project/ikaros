@@ -35,6 +35,7 @@
 using namespace ikaros;
 
 const char cDelimiter = ';';
+const char cSizeDelim = ':';
 const int OUTPUT_BUFFER_SIZE = 512;
 OscInterface::OscInterface(Parameter *P):
 Module(P)
@@ -44,12 +45,24 @@ Module(P)
     // printf("constr 1\n");
     const char* tmp = GetValue( "inadresses");
     // printf("constr 1, %s\n", tmp);
-    if(tmp)
+    if(tmp){
         inadrvec = split_string(tmp, cDelimiter);
+        outsizes = new int[inadrvec.size()];
+        for(int i=0; i<inadrvec.size(); i++){
+            std::vector<std::string> adr_sz = split_string(inadrvec.at(i), cSizeDelim);
+            int sz = string_to_int(adr_sz.at(1));
+            std::pair<std::string, int> pair;
+            pair.first=adr_sz.at(0);
+            pair.second=create_array(sz);
+            out_adr_dict.push_back(pair);
+        }
+    }
     // printf("constr 2\n");
     tmp = GetValue("outadresses");
     if(tmp)
         outadrvec = split_string(tmp, cDelimiter);
+
+    
     // inputs are sent to out adresses and vice versa
     ins = outadrvec.size();
     outs = inadrvec.size();
@@ -256,6 +269,7 @@ OscInterface::Receive()
           for (int i = 0; i < inadresses.size(); i++)
           {
             std::string address_string = inadresses.at(i);
+            // TODO iterate over size of array
             if (msg->match(address_string).popFloat(iarg).isOkNoMoreArgs()) {
                 output[i][0] = iarg;
                 //printf("OscInterface: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());

@@ -56,7 +56,8 @@ public:
     int         size_y;
     int         ins;
     int         outs;
-    
+    int *       outsizes;
+    std::vector<std::pair<std::string, float*> > out_adr_dict;
     // internal data storage
     // float *     internal_array;
 
