@@ -30,8 +30,8 @@
 	<parameter name="threshold" type="float" default="30" description="Firing threshold for neurons" />
 	<parameter name="adenosine_factor" type="float" default="1" description="Adenosine cost of action potentials per tick" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
-	<parameter name="synapse_max" type="float" default="1.5" description="max random value for synapes" />
-	<parameter name="synapse_min" type="float" default="0.5" description="min random value for synapes" />
+	<parameter name="synapse_max" type="float" default="1" description="max random value for synapes" />
+	<parameter name="synapse_min" type="float" default="1" description="min random value for synapes" />
 	
 	<input name="DIRECT_IN" optional="yes" description="Direct current input" size_param="population_size" />
 	<input name="EXCITATION" optional="yes" description="Synaptic exhitation input" />

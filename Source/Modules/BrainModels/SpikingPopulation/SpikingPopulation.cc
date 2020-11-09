@@ -75,12 +75,18 @@ SpikingPopulation::Init()
 
     // create synapses/topologies
     int_synapse = create_matrix(population_size, population_size);
-    exc_syn = create_matrix(excitation_size, population_size);
-    inh_syn = create_matrix(inhibition_size, population_size);
-    random(exc_syn, minrand, maxrand, 
-        excitation_size , population_size);
-    random(inh_syn, -maxrand, -minrand, 
-        inhibition_size, population_size);
+    if(excitation_array)
+    {
+        exc_syn = create_matrix(excitation_size, population_size);
+        random(exc_syn, minrand, maxrand, 
+            excitation_size , population_size);
+    }
+    if(inhibition_array)
+    {
+        inh_syn = create_matrix(inhibition_size, population_size);
+        random(inh_syn, maxrand, minrand, 
+            inhibition_size, population_size);
+    }
 
     taurecovery = create_array(population_size); // tau_recovery
     coupling = create_array(population_size); // coupling
@@ -176,11 +182,12 @@ void
 SpikingPopulation::Tick()
 {
     // update input synapses
-    float **exc_syn_tmp = create_matrix(excitation_size, population_size);
-    float **inh_syn_tmp = create_matrix(inhibition_size, population_size);
-    float *dir_in_tmp = create_array(population_size);
+    float **exc_syn_tmp = NULL; 
+    float **inh_syn_tmp = NULL; 
+    float *dir_in_tmp = NULL; 
     if(excitation_array != NULL)
     {
+        exc_syn_tmp = create_matrix(excitation_size, population_size);
         // weed out nonspiking input and scale by synapse
         threshold_gteq(excitation_array, excitation_array, threshold, excitation_size);
         tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
@@ -188,6 +195,7 @@ SpikingPopulation::Tick()
     }
     if(inhibition_array != NULL)
     {
+        inh_syn_tmp = create_matrix(inhibition_size, population_size);
         // weed out nonspiking input and scale by synapse
         threshold_gteq(inhibition_array, inhibition_array, threshold, inhibition_size);
         tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
@@ -195,6 +203,7 @@ SpikingPopulation::Tick()
     }
     if(direct_input != NULL)
     {
+        dir_in_tmp = create_array(population_size);
         copy_array(dir_in_tmp, direct_input, population_size);
         multiply(dir_in_tmp, cDirectCurrentScale, population_size);
 
@@ -234,11 +243,16 @@ SpikingPopulation::Tick()
 	{
 		// print out debug info
         printf("\n\n---Module %s\n", GetName());
-        print_array("exc_in: ", excitation_array, excitation_size);
-        print_matrix("exc_syn: ", exc_syn_tmp, excitation_size, population_size);
-        print_array("inh_in: ", inhibition_array, inhibition_size);
-        print_matrix("inh_syn", inh_syn_tmp, inhibition_size, population_size);
-        print_array("direct_in: ", dir_in_tmp, population_size);
+        if(excitation_array){
+            print_array("exc_in: ", excitation_array, excitation_size);
+            print_matrix("exc_syn: ", exc_syn_tmp, excitation_size, population_size);
+        }
+        if(inhibition_array){
+            print_array("inh_in: ", inhibition_array, inhibition_size);
+            print_matrix("inh_syn", inh_syn_tmp, inhibition_size, population_size);
+        }
+        if(direct_input)
+            print_array("direct_in: ", dir_in_tmp, population_size);
         //print_matrix("internal synapse", int_synapse, population_size, population_size);
     
         
@@ -336,6 +350,7 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
 	{
       //print_matrix("syn_fired: ", a_syn, synsize_x, population_size);
       print_array("i1: ", i1, population_size);
+      print_array("inputvlt: ", inputvlt, population_size);
     }
     
     copy_array(a_v, v1, population_size); // output voltage
