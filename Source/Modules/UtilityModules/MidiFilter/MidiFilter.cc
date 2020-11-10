@@ -139,4 +139,4 @@ MidiFilter::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("MidiFilter", &MidiFilter::Create, "Source/UserModules/MidiFilter/");
+static InitClass init("MidiFilter", &MidiFilter::Create, "Source/Modules/UtilityModules/MidiFilter/");
