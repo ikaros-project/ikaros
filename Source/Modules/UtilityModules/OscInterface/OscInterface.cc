@@ -266,7 +266,7 @@ OscInterface::Receive()
       if (insock.receiveNextPacket(30 /* timeout, in ms */)) {
         // printf("OscInterface: packet received\n");  
         pr.init(insock.packetData(), insock.packetSize());
-        oscpkt::Message *msg;
+        oscpkt::Message *msg; 
         while (pr.isOk() && (msg = pr.popMessage()) != 0) {
           //printf("OscInterface: going through message\n");    
           float iarg;
@@ -279,22 +279,15 @@ OscInterface::Receive()
             //     msg->match(address_string).isOk());
             // TODO iterate over size of array
             int sz = out_adr_dict.at(i).second;
-            for(int j=0;j<sz; j++)
-            {
-                // if (msg->match(address_string).popFloat(iarg).isOkNoMoreArgs()) {
-                if (msg->match(address_string).popFloat(iarg)) {
-                    output[i][j] = iarg;
-                    
-                    //printf("OscInterface: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());
-                    //oscpkt::Message repl; repl.init("/pong").pushInt32(iarg+1);
-                    //pw.init().addMessage(repl);
-                    //insock.sendPacketTo(pw.packetData(), pw.packetSize(), insock.packetOrigin());
-                } else if (show_unhandled){
-                    printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
-                    //cout << "Server: unhandled message: " << *msg << "\n";
-                }
+            std::vector<float> vec;
+            if(msg->match(address_string).getFloatArray(vec)){
+                copy_array(output[i], vec.data(), sz);
+            } else if (show_unhandled){
+                printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
+                //cout << "Server: unhandled message: " << *msg << "\n";
             }
-            print_array("output", output[i], sz);
+            
+            //print_array("output", output[i], sz);
           }
         }
       }  
