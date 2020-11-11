@@ -286,8 +286,8 @@ OscInterface::Receive()
                 printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
                 //cout << "Server: unhandled message: " << *msg << "\n";
             }
-            
-            //print_array("output", output[i], sz);
+            if(debugmode)
+                print_array(out_adr_dict.at(i).first.c_str(), output[i], 10);
           }
         }
       }  
