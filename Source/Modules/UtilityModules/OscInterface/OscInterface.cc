@@ -35,6 +35,7 @@
 using namespace ikaros;
 
 const char cDelimiter = ';';
+const char cSizeDelim = ':';
 const int OUTPUT_BUFFER_SIZE = 512;
 OscInterface::OscInterface(Parameter *P):
 Module(P)
@@ -44,12 +45,25 @@ Module(P)
     // printf("constr 1\n");
     const char* tmp = GetValue( "inadresses");
     // printf("constr 1, %s\n", tmp);
-    if(tmp)
+    if(tmp){
         inadrvec = split_string(tmp, cDelimiter);
+        outsizes = new int[inadrvec.size()];
+        for(int i=0; i<inadrvec.size(); i++){
+            std::vector<std::string> adr_sz = split_string(inadrvec.at(i), cSizeDelim);
+            int sz = string_to_int(adr_sz.at(1));
+            std::pair<std::string, int> pair;
+            pair.first=adr_sz.at(0);
+            printf("frst: %s\n", pair.first.c_str());
+            pair.second=sz;
+            out_adr_dict.push_back(pair);
+        }
+    }
     // printf("constr 2\n");
     tmp = GetValue("outadresses");
     if(tmp)
         outadrvec = split_string(tmp, cDelimiter);
+
+    
     // inputs are sent to out adresses and vice versa
     ins = outadrvec.size();
     outs = inadrvec.size();
@@ -117,8 +131,12 @@ OscInterface::SetSizes()
     // printf("Setsizes 1\n");
     if (sx == unknown_size || sy == unknown_size)
         return; // Not ready yet
-    for (int i = 0; i < outs; i++)
+    for (int i = 0; i < outs; i++){
+        sx = out_adr_dict[i].second;
         SetOutputSize(output_name[i], sx, sy);
+    }
+
+
     // other sizes here
     size_x=sx;
     size_y=sy;
@@ -148,7 +166,8 @@ OscInterface::Init()
     }
     //printf("init 3\n");
     for (int i = 0; i < outs; i++)
-        output[i] = GetOutputArray(output_name[i]);
+        //output[i] = GetOutputArray(output_name[i]);
+        io(output[i], output_name[i]);
     //printf("init 4\n");
     // other outputs etc
     // io(output_array, output_array_size, "OUTPUT");
@@ -247,25 +266,28 @@ OscInterface::Receive()
       if (insock.receiveNextPacket(30 /* timeout, in ms */)) {
         // printf("OscInterface: packet received\n");  
         pr.init(insock.packetData(), insock.packetSize());
-        oscpkt::Message *msg;
+        oscpkt::Message *msg; 
         while (pr.isOk() && (msg = pr.popMessage()) != 0) {
           //printf("OscInterface: going through message\n");    
           float iarg;
-
+          // printf("OscInterface: handling message: %s\n", msg->asString().c_str() );  
           // TODO iterate over addresses
-          for (int i = 0; i < inadresses.size(); i++)
+          for (int i = 0; i < out_adr_dict.size(); i++)
           {
-            std::string address_string = inadresses.at(i);
-            if (msg->match(address_string).popFloat(iarg).isOkNoMoreArgs()) {
-                output[i][0] = iarg;
-                //printf("OscInterface: received /lfo %f from %s\n", iarg, insock.packetOrigin().asString().c_str());
-                //oscpkt::Message repl; repl.init("/pong").pushInt32(iarg+1);
-                //pw.init().addMessage(repl);
-                //insock.sendPacketTo(pw.packetData(), pw.packetSize(), insock.packetOrigin());
+            std::string address_string = out_adr_dict.at(i).first;
+            // printf("inadress: %s, match: %i\n", address_string.c_str(), 
+            //     msg->match(address_string).isOk());
+            // TODO iterate over size of array
+            int sz = out_adr_dict.at(i).second;
+            std::vector<float> vec;
+            if(msg->match(address_string).getFloatArray(vec)){
+                copy_array(output[i], vec.data(), sz);
             } else if (show_unhandled){
                 printf("OscInterface: unhandled message: %s\n", msg->asString().c_str() );
                 //cout << "Server: unhandled message: " << *msg << "\n";
             }
+            if(debugmode)
+                print_array(out_adr_dict.at(i).first.c_str(), output[i], 10);
           }
         }
       }  

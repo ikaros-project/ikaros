@@ -48,7 +48,8 @@ public:
                                 float *a_b, 
                                 float *a_c, 
                                 float *a_d, 
-                                float **a_syn,
+                                float **e_syn,
+                                float **i_syn,
                                 float *a_i,
                                 float *a_v, 
                                 float *a_u 
@@ -61,6 +62,7 @@ public:
     float *     inhibition_array;
     int         inhibition_size;
     float *     direct_input;
+    int         direct_in_size;
 
     float *     output_array;
     int         output_array_size;
@@ -69,14 +71,14 @@ public:
     // internal data storage
     float *     vlt;
     float *     u;
-    float **    synapse;
+    float **    int_synapse;
     float **    exc_syn;
     float **    inh_syn;
     float       numfired;
-    float *     param_a;
-    float *     param_b;
-    float *     param_c;
-    float *     param_d;
+    float *     taurecovery;
+    float *     coupling;
+    float *     resetvolt;
+    float *     resetrecovery;
     
     //std::map<NeuronType, Iz_Params> iz_neuron_params;
 
