@@ -25,11 +25,37 @@
 
 using namespace ikaros;
 
+ArrayToMatrix::ArrayToMatrix(Parameter *p):
+    Module(p)
+{
+    Bind(arrayLength, "array_length");
+    Bind(channels, "channels");
+
+    for(int i=1; i <= channels; i++)
+    {
+        std::string ix_str = channels>1?std::to_string(i):"";
+        std::string str = "INPUT" + ix_str;
+        AddInput(str.c_str());
+
+        str = "OUTPUT" + ix_str;
+        AddOutput(str.c_str());
+    }
+}
+
 void
 ArrayToMatrix::Init()
 {
-    input = GetInputArray("INPUT");
-    output = GetOutputMatrix("OUTPUT");
+    input = new float* [channels];
+    output = new float** [channels];
+    for(int i=1; i <= channels; i++)
+    {
+        std::string ix_str = channels>1?std::to_string(i):"";
+        std::string str = "INPUT" + ix_str;
+        input[i] = GetInputArray(str.c_str());
+        str = "OUTPUT" + ix_str;
+        output[i] = GetOutputMatrix(str.c_str());    
+    }
+    
 }
 
 void
@@ -39,12 +65,21 @@ ArrayToMatrix::SetSizes()
     arrayLength = GetIntValue("array_length");
     
     // Find length of input
-    inputSizeX = GetInputSizeX("INPUT");
+    std::string ix_str = channels>1?std::to_string(1):"";
+    std::string str = "INPUT" + ix_str;
+    inputSizeX = GetInputSizeX(str.c_str());
+    nrArrays = inputSizeX/arrayLength;;
     
     if (inputSizeX != unknown_size)
     {
-        nrArrays = inputSizeX/arrayLength;
-        SetOutputSize("OUTPUT", arrayLength, nrArrays);
+        for(int i=1; i <= channels; i++)
+        {
+            ix_str = channels>1?std::to_string(i):"";
+            str = "OUTPUT" + ix_str;
+            SetOutputSize(str.c_str(), arrayLength, nrArrays);
+        }
+        
+        
     }
 }
 
@@ -52,7 +87,8 @@ ArrayToMatrix::SetSizes()
 void
 ArrayToMatrix::Tick()
 {
-    copy_array(*output, input, inputSizeX);
+    for(int i=0; i < channels; i++)
+        copy_array(output[i][0], input[i], inputSizeX);
 }
 
 static InitClass init("ArrayToMatrix", &ArrayToMatrix::Create, "Source/Modules/UtilityModules/ArrayToMatrix/");

@@ -4,7 +4,8 @@
 
 	<description type="text">
         Module that converts one or several arrays into a matrix.
-        This module may be removed when similar features are provided directly in the ikaros connections.
+        This module may be removed when similar features are provided 
+		directly in the ikaros connections.
 	</description>
 
 	<example description="A simple example">
@@ -15,9 +16,11 @@
 	</example>
 
     <parameter name="array_length" type="int" default="16" description="Size of each row of the output matrix"/>
+	<parameter name="channels" type="int" default="1" description="Number of parallel channels"/>
 
-    <input name="INPUT" description="Inputs consisting of one or several connected arrays" />
-    <output name="OUTPUT" description="The matrix output"/>
+
+    <input name="*" description="Inputs consisting of one or several connected arrays" />
+    <output name="*" description="The matrix output"/>
 
 	<link class="ArrayToMatrix" />
 
