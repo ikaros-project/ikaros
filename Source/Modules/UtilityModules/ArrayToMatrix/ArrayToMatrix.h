@@ -32,7 +32,7 @@ public:
     static Module * Create(Parameter * p) { return new ArrayToMatrix(p); }
 
     ArrayToMatrix(Parameter * p);
-    virtual ~ArrayToMatrix() {}
+    virtual ~ArrayToMatrix(); 
 
     void 		Init();
     void 		Tick();

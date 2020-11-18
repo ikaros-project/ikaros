@@ -42,6 +42,12 @@ ArrayToMatrix::ArrayToMatrix(Parameter *p):
     }
 }
 
+ArrayToMatrix::~ArrayToMatrix()
+{
+    delete[] input;
+    delete[] output;
+}
+
 void
 ArrayToMatrix::Init()
 {
@@ -51,9 +57,12 @@ ArrayToMatrix::Init()
     {
         std::string ix_str = channels>1?std::to_string(i):"";
         std::string str = "INPUT" + ix_str;
-        input[i] = GetInputArray(str.c_str());
+        float *tmp = GetInputArray(str.c_str());
+        io(input[i], str.c_str());
+        //input[i] = tmp; //GetInputArray(str.c_str());
         str = "OUTPUT" + ix_str;
-        output[i] = GetOutputMatrix(str.c_str());    
+        float **otmp = GetOutputMatrix(str.c_str());
+        output[i] = otmp;
     }
     
 }

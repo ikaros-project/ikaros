@@ -10,6 +10,7 @@
 			class = "ArrayToMatrix"
 			name = "ArrayToMatrix"
 			array_length = "2"
+			channels="1"
 		/>
 
 		<module
