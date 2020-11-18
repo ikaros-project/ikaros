@@ -6,7 +6,7 @@
 		<module class = "Constant" name = "Array2" data="0 1" />
 		<module class = "Constant" name = "Array3" data="2 2" />
 	
-		<module
+		<_module
 			class = "ArrayToMatrix"
 			name = "ArrayToMatrix"
 			array_length = "2"
@@ -18,23 +18,30 @@
 			name = "ATM_Chan"
 			array_length = "2"
 			channels="2"
+			debug_mode="yes"
 		/>
 				
-		<connection  source = "Array3.OUTPUT"  target = "ArrayToMatrix.INPUT" />
-		<connection  source = "Array2.OUTPUT"  target = "ArrayToMatrix.INPUT" />
-		<connection  source = "Array1.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<_connection  source = "Array3.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<_connection  source = "Array2.OUTPUT"  target = "ArrayToMatrix.INPUT" />
+		<_connection  source = "Array1.OUTPUT"  target = "ArrayToMatrix.INPUT" />
 
-		<connection  source = "Array3.OUTPUT"  target = "ATM_Chan.INPUT1" />
-		<connection  source = "Array2.OUTPUT"  target = "ATM_Chan.INPUT1" />
-		<connection  source = "Array1.OUTPUT"  target = "ATM_Chan.INPUT1" />
+		<connection  source = "Array3.OUTPUT"  target = "ATM_Chan.INPUT_1" />
+		<connection  source = "Array2.OUTPUT"  target = "ATM_Chan.INPUT_1" />
+		<connection  source = "Array1.OUTPUT"  target = "ATM_Chan.INPUT_1" />
 		
-		<connection  source = "Array1.OUTPUT"  target = "ATM_Chan.INPUT2" />
-		<connection  source = "Array2.OUTPUT"  target = "ATM_Chan.INPUT2" />
-		<connection  source = "Array3.OUTPUT"  target = "ATM_Chan.INPUT2" />
+		<connection  source = "Array1.OUTPUT"  target = "ATM_Chan.INPUT_2" />
+		<connection  source = "Array2.OUTPUT"  target = "ATM_Chan.INPUT_2" />
+		<connection  source = "Array3.OUTPUT"  target = "ATM_Chan.INPUT_2" />
 
 
-		<view name="View">
-					</view>
+<view name="View" >
+	<table  x = "280" y = "20" height = "101" width = "201" title = "Output_1" source = "ATM_Chan.OUTPUT_1" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "280" y = "120" height = "101" width = "201" title = "Output_2" source = "ATM_Chan.OUTPUT_2" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "20" y = "20" height = "61" width = "181" title = "Array1" source = "Array1.OUTPUT" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "20" y = "80" height = "61" width = "181" title = "Array2" source = "Array2.OUTPUT" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<table  x = "20" y = "140" height = "61" width = "181" title = "Array3" source = "Array3.OUTPUT" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
     <module class = "Logger" name = "Logger" />
 </group>
  

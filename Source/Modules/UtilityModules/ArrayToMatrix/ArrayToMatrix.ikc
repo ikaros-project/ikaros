@@ -17,6 +17,7 @@
 
     <parameter name="array_length" type="int" default="16" description="Size of each row of the output matrix"/>
 	<parameter name="channels" type="int" default="1" description="Number of parallel channels"/>
+	<parameter name="debug_mode" type="bool" default="no" description="Debug output"/>
 
 
     <input name="*" description="Inputs consisting of one or several connected arrays" />
