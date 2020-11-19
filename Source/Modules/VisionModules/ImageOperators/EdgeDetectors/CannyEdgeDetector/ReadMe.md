@@ -1,8 +1,6 @@
 # CannyEdgeDetector
 
-![alt text][logo]
-
-[logo]: https://en.wikipedia.org/wiki/File:%C3%84%C3%A4retuvastuse_n%C3%A4ide.png "Canny edge detector"
+![Canny edge detector](https://en.wikipedia.org/wiki/File:%C3%84%C3%A4retuvastuse_n%C3%A4ide.png)
 
 https://en.wikipedia.org/wiki/Canny_edge_detector
 
