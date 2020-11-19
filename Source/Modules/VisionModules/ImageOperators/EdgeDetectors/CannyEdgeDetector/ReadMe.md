@@ -1,6 +1,6 @@
 # CannyEdgeDetector
 
-![Canny edge detector](https://en.wikipedia.org/wiki/File:%C3%84%C3%A4retuvastuse_n%C3%A4ide.png)
+![Canny edge detector](https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/%C3%84%C3%A4retuvastuse_n%C3%A4ide.png/500px-%C3%84%C3%A4retuvastuse_n%C3%A4ide.png)
 
 https://en.wikipedia.org/wiki/Canny_edge_detector
 
