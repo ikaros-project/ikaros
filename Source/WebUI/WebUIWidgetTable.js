@@ -39,7 +39,7 @@ class WebUIWidgetTable extends WebUIWidget {
             let new_row = this.table.insertRow(-1);
             for (let i = 0; i < c; i++) {
                 let cell = new_row.insertCell(i);
-                cell.innerHTML = ".";
+                cell.innerHTML = "-";
                 this.tData[j][i] = cell
             }
         }
@@ -47,7 +47,7 @@ class WebUIWidgetTable extends WebUIWidget {
             let new_row = this.table.insertRow(0);
             for (let i = 0; i < c; i++) {
                 let cell = new_row.insertCell(i);
-                cell.innerHTML = ".";
+                cell.innerHTML = "-";
                 this.xHeader.push(cell)
             }
         }
@@ -55,7 +55,7 @@ class WebUIWidgetTable extends WebUIWidget {
             for (let i = 0; i < this.table.rows.length; i++) {
                 let cell = this.table.rows[i].insertCell(0);
                 if (!(rLabel && i == 0)) {
-                    cell.innerHTML = ".";
+                    cell.innerHTML = "-";
                     this.yHeader.push(cell)
                 }
             }
@@ -129,8 +129,6 @@ class WebUIWidgetTable extends WebUIWidget {
     }
     update() {
 
-        this.widget_overlay(false)
-    
         if (!this.loaded)
             this.updateAll()
 
@@ -139,27 +137,33 @@ class WebUIWidgetTable extends WebUIWidget {
 
                 let size_y = this.data.length;
                 let size_x = this.data[0].length;
-                try {
-                    for (let j = 0; j < size_y; j++)
-                        for (let i = 0; i < size_x; i++)
-                            if (this.parameters.direction == "normal") {
-                                this.tData[j][i].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
-                                if (this.parameters.colorize)
-                                    this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
-                                else
-                                    this.tData[j][i].style.color = this.getColor(i);
+
+                for (let j = 0; j < size_y; j++)
+                    for (let i = 0; i < size_x; i++)
+                        if (this.parameters.direction == "normal") {
+                            try {
+                                this.tData[j][i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
                             }
-                            else {
-                                this.tData[i][j].innerHTML = parseFloat(this.data[j][i]).toFixed(this.parameters.decimals);
-                                if (this.parameters.colorize)
-                                    this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
-                                else
-                                    this.tData[i][j].style.color = this.getColor(i);
+                            catch (err) {
+                                this.tData[j][i].innerHTML = "-";
                             }
-                }
-                catch (err) {
-                    this.widget_overlay(true, "Received bad data")
-                }
+                            if (this.parameters.colorize)
+                                this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
+                            else
+                                this.tData[j][i].style.color = this.getColor(i);
+                        }
+                        else {
+                            try {
+                                this.tData[i][j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
+                            }
+                            catch (err) {
+                                this.tData[i][j].innerHTML = "-";
+                            }
+                            if (this.parameters.colorize)
+                                this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
+                            else
+                                this.tData[i][j].style.color = this.getColor(i);
+                        }
             }
         }
     }
