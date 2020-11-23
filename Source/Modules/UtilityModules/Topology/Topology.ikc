@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="Topology" description="minimal example module">
+
+	<description type="text">
+		Provides a topology to a set of units, nodes etc
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Topology"
+			name="Topology"
+			size_x = "3"
+			size_y = "3"
+			debug = "true"
+		/>
+	</example>
+	<parameter name="size_x" type="int" default="1" description="x size of output "/>
+	<parameter name="size_y" type="int" default="1" description="y size of output "/>
+	<parameter name="type" type="list" default="empty" values="empty;one-to-one;nearest-neighbor_2D; nearest-neighbor_3D; nearest-neighbor_4D;circle;donut" default="" description="The first parameter" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="SIZE_X" description="If connected, uses size for an n x n topology" optional="yes"/>
+	<input name="SIZE_Y" description="If connected, uses size for an m x n topology; requires SIZE_X input to be connected" optional="yes"/>
+
+
+	<output name="OUTPUT" description="The first output" />
+
+	<link class="Topology" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Topology.h</file>
+   		<file>Topology.cc</file>
+   		<file>Topology.ikc</file>
+   </files>
+
+</group>
+
