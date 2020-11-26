@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="SpikingPopulation Example" vThreshold="20" vPopSize="10" >
+<group title="SpikingPopulation Example" vThreshold="30" vPopSize="2" >
 	
 		<module
 			class = "Constant"
@@ -92,32 +92,32 @@
 			_factor = "5"
 		/>
 		
-        <connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.INHIBITION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "RegularSpiking.INHIBITION" />
 		
-		<connection  source = "MyConstant.OUTPUT"  target = "IntrBursting.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "IntrBursting.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "IntrBursting.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "IntrBursting.INHIBITION" />
 		
-		<connection  source = "MyConstant.OUTPUT"  target = "Chattering.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "Chattering.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Chattering.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Chattering.INHIBITION" />
 
-		<connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "FastSpiking.INHIBITION" />
         
-		<connection  source = "MyConstant.OUTPUT"  target = "LowThreshold.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "LowThreshold.INHIBITION_IN" />
+		<connection  source = "MyConstant.OUTPUT"  target = "LowThreshold.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "LowThreshold.INHIBITION" />
         
-        <connection  source = "MyConstant.OUTPUT"  target = "Resonator.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "Resonator.INHIBITION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "Resonator.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "Resonator.INHIBITION" />
         
 		<connection  source = "SquareGen.OUTPUT"  target = "PopulationCoder.INPUT" />
         <connection  source = "PopulationCoder.OUTPUT"  target = "Scale.INPUT" />
-		<connection  source = "Scale.OUTPUT"  target = "RegularSpiking.DIRECT_IN" />
-		<connection  source = "Scale.OUTPUT"  target = "IntrBursting.DIRECT_IN" />
-		<connection  source = "Scale.OUTPUT"  target = "Chattering.DIRECT_IN" />
-		<connection  source = "Scale.OUTPUT"  target = "FastSpiking.DIRECT_IN" />
-		<connection  source = "Scale.OUTPUT"  target = "LowThreshold.DIRECT_IN" />
-		<connection  source = "Scale.OUTPUT"  target = "Resonator.DIRECT_IN" />
+		<connection  source = "Scale.OUTPUT"  target = "RegularSpiking.DIRECT" />
+		<connection  source = "Scale.OUTPUT"  target = "IntrBursting.DIRECT" />
+		<connection  source = "Scale.OUTPUT"  target = "Chattering.DIRECT" />
+		<connection  source = "Scale.OUTPUT"  target = "FastSpiking.DIRECT" />
+		<connection  source = "Scale.OUTPUT"  target = "LowThreshold.DIRECT" />
+		<connection  source = "Scale.OUTPUT"  target = "Resonator.DIRECT" />
 
 		<view name="View">
 			<slider-horizontal

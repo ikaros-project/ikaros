@@ -312,6 +312,17 @@ public:
       else ++arg_idx;
       return *this;
     }
+    ArgReader &getFloatArray(std::vector<float> &v) {
+      if(isFloat()){
+        while(isOk() && nbArgRemaining() > 0){
+          float arg=0;
+          popFloat(arg);
+          v.push_back(arg);
+        }
+      }
+      return *this;
+
+    }
 
     // Convert to string 
     

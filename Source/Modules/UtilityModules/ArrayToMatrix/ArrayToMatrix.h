@@ -25,25 +25,29 @@
 #define ArrayToMatrix_
 
 #include "IKAROS.h"
-
+#include <vector>
 class ArrayToMatrix: public Module
 {
 public:
     static Module * Create(Parameter * p) { return new ArrayToMatrix(p); }
 
-    ArrayToMatrix(Parameter * p) : Module(p) {}
-    virtual ~ArrayToMatrix() {}
+    ArrayToMatrix(Parameter * p);
+    virtual ~ArrayToMatrix(); 
 
     void 		Init();
     void 		Tick();
     void        SetSizes();
     
-    float *     input;
-    float **    output;
+    float **     input;
+    // std::vector<float*> inp_vec;
+    // std::vector<float**> out_vec;
+    float ***    output;
     
     int         inputSizeX;
     int         arrayLength;
     int         nrArrays;
+    int         channels;
+    bool        debug_mode;
 
 };
 

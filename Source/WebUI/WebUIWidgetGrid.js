@@ -160,13 +160,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     {
                         this.setColor(i+j);
                         this.canvas.beginPath();
-
-                        let r = (255*d[0][i][j]).toString(16);
-                        let g = (255*d[1][i][j]).toString(16);
-                        let b = (255*d[2][i][j]).toString(16);
-                        
-                        this.canvas.fillStyle = '#'+r+g+b;
-                        
+                        try {
+                            let r = (255*d[0][i][j]).toString(16);
+                            let g = (255*d[1][i][j]).toString(16);
+                            let b = (255*d[2][i][j]).toString(16);
+                            
+                            this.canvas.fillStyle = '#'+r+g+b;
+                        }  catch (error) {
+                            this.canvas.fillStyle = "black";
+                        }
                         if(this.parameters.shape == 'circle')
                             this.canvas.arc(ls+dx*j+dx/2, dy*i+dy/2, sx/2, 0, 2*Math.PI);
                         else
@@ -191,10 +193,14 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 {
                     this.setColor(i+j);
                     this.canvas.beginPath();
-                    let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
-                    let ix = Math.min(Math.floor(n*f), n-1);
-                    this.canvas.fillStyle = ct[ix].trim();
-                    
+                    try {
+                        let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
+                        let ix = Math.min(Math.floor(n*f), n-1);
+                        this.canvas.fillStyle = ct[ix].trim();
+                    } catch (error) {
+                        this.canvas.fillStyle = "black";
+                    }
+                           
                     if(this.parameters.shape == 'circle')
                         this.canvas.arc(ls+dx*j+dx/2, dy*i+dy/2, sx/2, 0, 2*Math.PI);
                     else

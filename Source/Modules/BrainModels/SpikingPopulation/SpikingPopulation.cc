@@ -24,6 +24,10 @@
 //  If you prefer to start with a clean example, use he module MinimalModule instead.
 //
 
+// TODO 2020-11-01:
+// 1) add support for connection topology
+// 2) fix excitation, inhibition
+
 #include "SpikingPopulation.h"
 
 // use the ikaros namespace to access the math library
@@ -33,7 +37,8 @@ using namespace ikaros;
 
 //const float minrand = 0.5001f;
 //const float maxrand = 1.499f;
-const float cDirectCurrentScale = 100.f;
+const float cDirectCurrentScale = 1; //100.f;
+const float cMinVolt = -65.f;
 
 // void
 // SpikingPopulation::SetSizes()
@@ -59,59 +64,42 @@ SpikingPopulation::Init()
     Bind(maxrand, "synapse_max");
 
 
-    excitation_array = GetInputArray("EXCITATION_IN");
-    inhibition_array = GetInputArray("INHIBITION_IN");
-    direct_input = GetInputArray("DIRECT_IN");
-    excitation_size = GetInputSize("EXCITATION_IN");
-    inhibition_size = GetInputSize("INHIBITION_IN");
-    // TODO check that excitation and inhibition are same size
-
-    output_array = GetOutputArray("OUTPUT");
-    output_array_size = GetOutputSize("OUTPUT");
-    adenosine_out = GetOutputArray("ADENOSINE");
-
-    // create synapses
-    synapse = create_matrix(excitation_size + inhibition_size, population_size);
-    exc_syn = create_matrix(excitation_size, population_size);
-    inh_syn = create_matrix(inhibition_size, population_size);
-    random(exc_syn, minrand, maxrand, 
-        excitation_size , population_size);
-    random(inh_syn, -maxrand, -minrand, 
-        inhibition_size, population_size);
+    io(excitation_array, excitation_size, "EXCITATION");
+    io(inhibition_array, inhibition_size, "INHIBITION");
+    io(direct_input, direct_in_size, "DIRECT_IN");
+    // TODO add ext inh external topologies
     
-    // set up neuron type params
-    // Iz_Params pyramidcell;
-    // pyramidcell.a[0] = 0.02f;
-    // pyramidcell.a[1] = 0.001f;
-    // pyramidcell.b[0] = 0.2f;
-    // pyramidcell.b[1] = 0.001f;
-    // pyramidcell.c[0] = -65.f;
-    // pyramidcell.c[1] = 5.f;
-    // pyramidcell.d[0] = 8.f;
-    // pyramidcell.d[1] =-6.f;
 
-    // Iz_Params interneuron;
-    // interneuron.a[0] = 0.02f;
-    // interneuron.a[1] = 0.02f;
-    // interneuron.b[0] = 0.25f;
-    // interneuron.b[1] = -0.05f;
-    // interneuron.c[0] = -65.f;
-    // interneuron.c[1] = 0.5f;
-    // interneuron.d[0] = 2.f;
-    // interneuron.d[1] = 0.5f;
+    io(output_array, output_array_size, "OUTPUT");
+    io(adenosine_out, "ADENO_OUTPUT");
 
-    param_a = create_array(population_size);
-    param_b = create_array(population_size);
-    param_c = create_array(population_size);
-    param_d = create_array(population_size);
+    // create synapses/topologies
+    int_synapse = create_matrix(population_size, population_size);
+    if(excitation_array)
+    {
+        exc_syn = create_matrix(excitation_size, population_size);
+        random(exc_syn, minrand, maxrand, 
+            excitation_size , population_size);
+    }
+    if(inhibition_array)
+    {
+        inh_syn = create_matrix(inhibition_size, population_size);
+        random(inh_syn, maxrand, minrand, 
+            inhibition_size, population_size);
+    }
+
+    taurecovery = create_array(population_size); // tau_recovery
+    coupling = create_array(population_size); // coupling
+    resetvolt = create_array(population_size); // reset voltage
+    resetrecovery = create_array(population_size); // reset recovery
 
     vlt = create_array(population_size);
-    add(vlt, -65.f, population_size); 
+    add(vlt, cMinVolt, population_size); 
     
 
     // TODO initialize population abcd values
-    float *rndfact = random(create_array(population_size), minrand, maxrand, 
-        population_size);
+    // float *rndfact = random(create_array(population_size), minrand, maxrand, 
+    //     population_size);
     
     u = create_array(population_size);
     // TODO add switch for model type
@@ -121,51 +109,51 @@ SpikingPopulation::Init()
         {
             // values taken from Izhivich 2003
             case eIntrinsically_bursting:
-                param_a[i] = 0.02f;
-                param_b[i] = 0.2f;
-                param_c[i] = -55;
-                param_d[i] = 4;
+                taurecovery[i] = 0.02f;
+                coupling[i] = 0.2f;
+                resetvolt[i] = -55;
+                resetrecovery[i] = 4;
                 break;
             case eChattering:
-                param_a[i] = 0.02f;
-                param_b[i] = 0.2f;
-                param_c[i] = -50;
-                param_d[i] = 2;
+                taurecovery[i] = 0.02f;
+                coupling[i] = 0.2f;
+                resetvolt[i] = -50;
+                resetrecovery[i] = 2;
                 break;
             case eFast_spiking:
-                param_a[i] = 0.1f;
-                param_b[i] = 0.2f;
-                param_c[i] = -65;
-                param_d[i] = 2;
+                taurecovery[i] = 0.1f;
+                coupling[i] = 0.2f;
+                resetvolt[i] = -65;
+                resetrecovery[i] = 2;
 
                 break;
             case eLow_threshold:
-                param_a[i] = 0.1f;
-                param_b[i] = 0.25f;
-                param_c[i] = -65.f;
-                param_d[i] = 2.f;
+                taurecovery[i] = 0.1f;
+                coupling[i] = 0.25f;
+                resetvolt[i] = -65.f;
+                resetrecovery[i] = 2.f;
 
                 break;
             case eResonator:
-                param_a[i] = 0.1f;
-                param_b[i] = 0.26f;
-                param_c[i] = 65;
-                param_d[i] = 2;
+                taurecovery[i] = 0.1f;
+                coupling[i] = 0.26f;
+                resetvolt[i] = 65;
+                resetrecovery[i] = 2;
 
                 break;
             default:
             case eRegular_spiking:
-                param_a[i] = 0.02f;
-                param_b[i] = 0.2f;
-                param_c[i] = -65.f;
-                param_d[i] = 8;
+                taurecovery[i] = 0.02f;
+                coupling[i] = 0.2f;
+                resetvolt[i] = -65.f;
+                resetrecovery[i] = 8;
                 break;
         }
-        u[i] = param_b[i] * vlt[i];
+        u[i] = coupling[i] * vlt[i];
     }
     
 
-    destroy_array(rndfact);
+    // destroy_array(rndfact);
 
 }
 
@@ -174,12 +162,12 @@ SpikingPopulation::Init()
 SpikingPopulation::~SpikingPopulation()
 {
     // Destroy data structures that you allocated in Init.
-    destroy_array(param_a);
-    destroy_array(param_b);
-    destroy_array(param_c);
-    destroy_array(param_d);
+    destroy_array(taurecovery);
+    destroy_array(coupling);
+    destroy_array(resetvolt);
+    destroy_array(resetrecovery);
 
-    destroy_matrix(synapse);
+    destroy_matrix(int_synapse);
     destroy_matrix(exc_syn);
     destroy_matrix(inh_syn);
 
@@ -194,11 +182,12 @@ void
 SpikingPopulation::Tick()
 {
     // update input synapses
-    float **exc_syn_tmp = create_matrix(excitation_size, population_size);
-    float **inh_syn_tmp = create_matrix(inhibition_size, population_size);
-    float *dir_in_tmp = create_array(population_size);
+    float **exc_syn_tmp = NULL; 
+    float **inh_syn_tmp = NULL; 
+    float *dir_in_tmp = NULL; 
     if(excitation_array != NULL)
     {
+        exc_syn_tmp = create_matrix(excitation_size, population_size);
         // weed out nonspiking input and scale by synapse
         threshold_gteq(excitation_array, excitation_array, threshold, excitation_size);
         tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
@@ -206,6 +195,7 @@ SpikingPopulation::Tick()
     }
     if(inhibition_array != NULL)
     {
+        inh_syn_tmp = create_matrix(inhibition_size, population_size);
         // weed out nonspiking input and scale by synapse
         threshold_gteq(inhibition_array, inhibition_array, threshold, inhibition_size);
         tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
@@ -213,28 +203,31 @@ SpikingPopulation::Tick()
     }
     if(direct_input != NULL)
     {
+        dir_in_tmp = create_array(population_size);
         copy_array(dir_in_tmp, direct_input, population_size);
         multiply(dir_in_tmp, cDirectCurrentScale, population_size);
 
     }
+    // TODO internal topology: weed out and scale by topology
     
     // compose complete synapse
-    set_submatrix(synapse[0], excitation_size+inhibition_size, 
-                    exc_syn_tmp[0], population_size, excitation_size, 0, 0);
-    set_submatrix(synapse[0], excitation_size+inhibition_size,
-                    inh_syn_tmp[0], population_size, inhibition_size, 
-                    0, excitation_size);
+    //set_submatrix(synapse[0], excitation_size+inhibition_size, 
+    //                exc_syn_tmp[0], population_size, excitation_size, 0, 0);
+    //set_submatrix(synapse[0], excitation_size+inhibition_size,
+    //                inh_syn_tmp[0], population_size, inhibition_size, 
+    //                0, excitation_size);
     
     switch(modeltype)
     {
         default:
         case eIzhikevich:
         {   
-            TimeStep_Iz(    param_a,
-                            param_b,
-                            param_c,
-                            param_d,
-                            synapse, // excitation and inh
+            TimeStep_Iz(    taurecovery,
+                            coupling,
+                            resetvolt,
+                            resetrecovery,
+                            exc_syn_tmp, // excitation
+                            inh_syn_tmp,
                             dir_in_tmp,
                             vlt, // in output
                             u
@@ -250,12 +243,17 @@ SpikingPopulation::Tick()
 	{
 		// print out debug info
         printf("\n\n---Module %s\n", GetName());
-        print_array("exc_in: ", excitation_array, excitation_size);
-        print_matrix("exc_syn: ", exc_syn_tmp, excitation_size, population_size);
-        print_array("inh_in: ", inhibition_array, inhibition_size);
-        print_matrix("inh_syn", inh_syn_tmp, inhibition_size, population_size);
-        print_array("direct_in: ", dir_in_tmp, population_size);
-        print_matrix("synapse", synapse, excitation_size+inhibition_size, population_size);
+        if(excitation_array){
+            print_array("exc_in: ", excitation_array, excitation_size);
+            print_matrix("exc_syn: ", exc_syn_tmp, excitation_size, population_size);
+        }
+        if(inhibition_array){
+            print_array("inh_in: ", inhibition_array, inhibition_size);
+            print_matrix("inh_syn", inh_syn_tmp, inhibition_size, population_size);
+        }
+        if(direct_input)
+            print_array("direct_in: ", dir_in_tmp, population_size);
+        //print_matrix("internal synapse", int_synapse, population_size, population_size);
     
         
 	}
@@ -270,7 +268,8 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
                                 float *a_b, // coupling
                                 float *a_c, // reset voltage
                                 float *a_d, // reset recovery
-                                float **a_syn, // synapse - contains excitation and inh scaled by synaptic vals, or zero if not spiked
+                                float **e_syn, // synapse - contains excitation scaled by synaptic vals, or zero if not spiked
+                                float **i_syn, // synapse - contains excitation scaled by synaptic vals, or zero if not spiked
                                 float *a_i, // direct current
                                 float *a_v, // in out excitation
                                 float *a_u  // recovery
@@ -292,12 +291,14 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
     copy_array(u1, a_u, population_size);
     
     float *i1 = create_array(population_size);
-    int synsize_x = excitation_size + inhibition_size;
+    // int synsize_x = excitation_size + inhibition_size;
     // float **syn_fired = create_matrix(synsize_x, population_size);
 
     //float *tmp = create_array(population_size);
     //sum(tmp, a_syn, synsize_x, population_size, 1); // sum along x axis
 
+    // TODO convert to matrix by weeding out (gteq) and summing along x
+    float *inputvlt = create_array(population_size);
     for(int j = 0; j < population_size; j++)
     {
         if(fired[j] == 1.f)
@@ -307,32 +308,36 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
             u1[j] = a_u[j] + a_d[j];
         }
         // sum up 
-        // for(size_t i = 0; i < excitation_size + inhibition_size; i++)
-        // {
-        //     // TODO: change so inhibition is not removed
-        //     if(a_syn[j][i] >= threshold)
-        //         syn_fired[j][i] = a_syn[j][i];
-        //     
-        // }
+        for(int i = 0; i < excitation_size; i++)
+        {
+            if(e_syn[j][i] >= threshold)
+                inputvlt[j] += e_syn[j][i];
+        }
+        for(int i = 0; i< inhibition_size; i++)
+        {
+            if(i_syn[j][i] >= threshold)
+                inputvlt[j]-= i_syn[j][i];
+        }
     }
-    float *tmp = create_array(population_size);
+    //float *tmp = create_array(population_size);
     //sum(tmp, syn_fired, synsize_x, population_size, 1); // sum along x axis
-    sum(tmp, a_syn, synsize_x, population_size, 1); // sum along x axis
+    //sum(tmp, a_syn, synsize_x, population_size, 1); // sum along x axis
 
-    add(i1, tmp, a_i, population_size ); // add direct current
+    add(i1, inputvlt, a_i, population_size ); // add direct current
   // calculate output voltage
     float stepfact = 1.f/substeps;
-    for(int step = 0; step < substeps; step++)
+    for(int i = 0; i < population_size; i++)
     {
-        for(int i = 0; i < population_size; i++)
+        for(int step = 0; step < substeps; step++)
         {
             // v1=v1+(1.0/substeps)*(0.04*(v1**2)+(5*v1)+140-u + i1) 
             // 
             v1[i] += stepfact*(0.04f*pow(v1[i], 2) + 5*v1[i] + 
                         140-a_u[i] + i1[i]);
-            // u1=u1+(1.0/substeps)*a*(b*v1-u1)               
-            u1[i] += stepfact*(a_a[i]*(a_b[i]*v1[i] - u1[i]));
+            // u1=u1+(1.0/substeps)*a*(b*v1-u1)                  
         }
+        // u1[i] += stepfact*(a_a[i]*(a_b[i]*v1[i] - u1[i]));
+        u1[i] += (a_a[i]*(a_b[i]*v1[i] - u1[i]));
     }
     // multiply(v1, 100.f, population_size);
     // clip at threshold
@@ -343,8 +348,9 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
     }
     if(debugmode)
 	{
-      print_matrix("syn_fired: ", a_syn, synsize_x, population_size);
+      //print_matrix("syn_fired: ", a_syn, synsize_x, population_size);
       print_array("i1: ", i1, population_size);
+      print_array("inputvlt: ", inputvlt, population_size);
     }
     
     copy_array(a_v, v1, population_size); // output voltage
@@ -353,7 +359,7 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
     destroy_array(v1);
     destroy_array(u1);
     destroy_array(i1);
-    destroy_array(tmp);
+    //destroy_array(tmp);
     destroy_array(fired);
     // destroy_matrix(syn_fired);
         
