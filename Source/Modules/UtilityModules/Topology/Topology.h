@@ -41,6 +41,7 @@ public:
     void        SetNearestNeighbor(int adim);
     void        SetCircle();
     void        SetDonut();
+    void        SetRandom();
     float**     CreateIxMatrix(int x, int y, int border);
 
     // pointers to inputs and outputs
@@ -63,6 +64,8 @@ public:
     // parameter values
 
     int       type;
+    float       rnd_limit;
+    bool        self_conn;
 	bool       	debugmode;
 };
 

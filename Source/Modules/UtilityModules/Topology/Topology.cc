@@ -36,9 +36,11 @@ const int cONE_TO_ONE = 1;
 const int cNEAREST_NEIGHBOR_1D = 2;
 const int cNEAREST_NEIGHBOR_2D = 3;
 const int cNEAREST_NEIGHBOR_3D = 4;
-const int cNEAREST_NEIGHBOR_4D = 5;
+const int cNEAREST_NEIGHBOR_3_1D = 5;
 const int cCIRCLE = 6;
 const int cDONUT = 7;
+const int cRANDOM = 8;
+const int cSMALL_WORLD = 9;
 
 Topology::Topology(Parameter * p) : Module(p)
 {
@@ -47,26 +49,13 @@ Topology::Topology(Parameter * p) : Module(p)
     Bind (tensor_x, "tensor_size_x");
     Bind (tensor_y, "tensor_size_y");
 
-    io(input_array_x, input_array_size_x, "SIZE_X");
-    io(input_array_y, input_array_size_y, "SIZE_Y");
-
-    if(input_array_x && !input_array_y || !input_array_x && input_array_y)
-        Notify(msg_fatal_error, "Only one input stream given, need both");
-    if(input_array_x)
-        input_array_size_x = GetInputSize("SIZE_X");
-    if(input_array_y)
-        input_array_size_y = GetInputSize("SIZE_Y");
-
     AddOutput("OUTPUT");
 }
 
 void 
 Topology::SetSizes()
 {
-    if(input_array_x && input_array_y)
-        SetOutputSize("OUTPUT", input_array_size_x, input_array_size_y);
-    else
-        SetOutputSize("OUTPUT", tensor_x*tensor_y, tensor_x*tensor_y);
+    SetOutputSize("OUTPUT", tensor_x*tensor_y, tensor_x*tensor_y);
     
     
 }
@@ -75,7 +64,12 @@ void
 Topology::Init()
 {
     Bind(type, "type");
+    Bind(rnd_limit, "random_limit");
+    Bind(self_conn, "allow_self_connection");
 	Bind(debugmode, "debug");  
+    // TODO check tensor sizes when type is n.neighbor
+    // io(input_array_x, input_array_size_x, "SIZE_X");
+    // io(input_array_y, input_array_size_y, "SIZE_Y");
 
     io(output_matrix, output_array_size_x, output_array_size_y,  "OUTPUT");
 
@@ -94,7 +88,7 @@ Topology::Init()
     case cNEAREST_NEIGHBOR_3D:
         SetNearestNeighbor(3);
         break;
-    case cNEAREST_NEIGHBOR_4D:
+    case cNEAREST_NEIGHBOR_3_1D:
         SetNearestNeighbor(4);
         break;
     case cCIRCLE:
@@ -102,6 +96,11 @@ Topology::Init()
         break;
     case cDONUT:
         SetDonut();
+        break;
+    case cRANDOM:
+        SetRandom();
+        break;
+    
     case cEMPTY:
         // do nothing, filled with  zeros
         default:
@@ -139,7 +138,7 @@ Topology::SetOneToOne()
     {
         for(int j=0; j<output_array_size_y; j++)
             for(int i=0; i<output_array_size_x; i++)
-                output_matrix[j][i]=1.f;
+                if(j==i) output_matrix[j][i]=1.f;
     }
 }
 
@@ -150,13 +149,14 @@ Topology::SetNearestNeighbor(int adim)
     float **ixm;
     int ctr = 0;
     set_matrix(output_matrix, 0, output_array_size_x, output_array_size_y);  
-    
+
     switch (adim)
     {
-    case 1:
-    
-        // 1 dim
+    case 1:{
+        std::vector<std::vector<int> > kernel {{0,-1}, {0, 1}};
+        // 1 dim, along line
         break;
+    }
     case 2:{
         // 2 dim
         std::vector<std::vector<int> > kernel {{-1,-1}, {-1, 0}, {-1, 1},
@@ -184,7 +184,12 @@ Topology::SetNearestNeighbor(int adim)
         destroy_matrix(ixm);
         break;
     }
-    // 3 dim
+    case 3:{
+        break;
+    }
+    case 4:{
+        break;
+    }
 
     // 4 dim   
     
@@ -197,6 +202,18 @@ Topology::SetNearestNeighbor(int adim)
 void
 Topology::SetCircle()
 {
+    for(int j=0; j<output_array_size_y; j++)
+    {
+    	//for(int i=0; i<output_array_size_x; i++)
+        //{
+            if(j==output_array_size_y-1)
+                output_matrix[j][0] = 1;
+            else
+                output_matrix[j][j+1] = 1;
+            
+            
+        //}
+    }
 
 }
 
@@ -204,6 +221,21 @@ void
 Topology::SetDonut()
 {
 
+}
+
+void
+Topology::SetRandom()
+{
+    for(int j=0; j<output_array_size_y; j++)
+    {
+    	for(int i=0; i<output_array_size_x; i++)
+        {
+            if(random(0.f, 1.f) > rnd_limit)
+                if(i!=j || (i==j && self_conn)) 
+                    output_matrix[j][i] = 1;
+        }
+            
+    }
 }
 
 float ** 
