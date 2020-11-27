@@ -41,6 +41,7 @@ public:
     void        SetNearestNeighbor(int adim);
     void        SetCircle();
     void        SetDonut();
+    float**     CreateIxMatrix(int x, int y, int border);
 
     // pointers to inputs and outputs
     // and integers to represent their sizes
@@ -49,6 +50,8 @@ public:
     float *     input_array_y;
     int         input_array_size_x;
     int         input_array_size_y;
+    int         tensor_x;
+    int         tensor_y;
 
     float **    output_matrix;
     int         output_array_size_x;

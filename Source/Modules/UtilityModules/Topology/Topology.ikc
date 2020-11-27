@@ -15,9 +15,10 @@
 			debug = "true"
 		/>
 	</example>
-	<parameter name="size_x" type="int" default="1" description="x size of output "/>
-	<parameter name="size_y" type="int" default="1" description="y size of output "/>
-	<parameter name="type" type="list" default="empty" values="empty;one-to-one;nearest-neighbor_2D; nearest-neighbor_3D; nearest-neighbor_4D;circle;donut" default="" description="The first parameter" />
+	<_parameter name="dim" type="int" default="3" description="Dimension. Output will be dim squared "/>
+	<parameter name="tensor_size_x" type="int" default="3" description="x size of tensor for n neighbor "/>
+	<parameter name="tensor_size_y" type="int" default="3" description="y size of tensor for n neighbor "/>
+	<parameter name="type" type="list" default="empty" values="empty/one-to-one/nearest-neighbor_1D/nearest-neighbor_2D/nearest-neighbor_3D/nearest-neighbor_4D/circle/donut" default="" description="The first parameter" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="SIZE_X" description="If connected, uses size for an n x n topology" optional="yes"/>
