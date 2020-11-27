@@ -4606,7 +4606,7 @@ namespace ikaros
         for (int j = 0; j < map_y; ++j)
             for (int i = 0; i < map_x; ++i)
             {
-                memset(s, rf_y, 0);
+                memset(s, 0, rf_y);
                 for (int k = 0; k < rf_y; ++k)
                 {
                     int dv = k / blk_y;
