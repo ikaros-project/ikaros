@@ -460,6 +460,8 @@ namespace ikaros
     bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
 	 void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
 	float *		threshold_gteq(float *r, float *a, float threshold, float size);
+	float *		threshold_gt(float *r, float *a, float threshold, float size);
+	float *		threshold_lt(float *r, float *a, float threshold, float size);
 
 }	
 
