@@ -33,14 +33,14 @@ using namespace ikaros;
 
 const int cEMPTY = 0;
 const int cONE_TO_ONE = 1;
-const int cNEAREST_NEIGHBOR_1D = 2;
-const int cNEAREST_NEIGHBOR_2D = 3;
-const int cNEAREST_NEIGHBOR_3D = 4;
-const int cNEAREST_NEIGHBOR_3_1D = 5;
-const int cCIRCLE = 6;
-const int cDONUT = 7;
-const int cRANDOM = 8;
-const int cSMALL_WORLD = 9;
+const int cNEAREST_NEIGHBOR_1D = 20;
+const int cNEAREST_NEIGHBOR_2D = 2;
+const int cNEAREST_NEIGHBOR_3D = 40;
+const int cNEAREST_NEIGHBOR_3_1D = 50;
+const int cCIRCLE = 3;
+const int cDONUT = 70;
+const int cRANDOM = 4;
+const int cSMALL_WORLD = 90;
 
 Topology::Topology(Parameter * p) : Module(p)
 {
@@ -153,7 +153,7 @@ Topology::SetNearestNeighbor(int adim)
     switch (adim)
     {
     case 1:{
-        std::vector<std::vector<int> > kernel {{0,-1}, {0, 1}};
+        std::vector<std::vector<int> > kernel {{-1}, {1}};
         // 1 dim, along line
         break;
     }
@@ -190,9 +190,6 @@ Topology::SetNearestNeighbor(int adim)
     case 4:{
         break;
     }
-
-    // 4 dim   
-    
     default:
         break;
     }
@@ -204,15 +201,11 @@ Topology::SetCircle()
 {
     for(int j=0; j<output_array_size_y; j++)
     {
-    	//for(int i=0; i<output_array_size_x; i++)
-        //{
-            if(j==output_array_size_y-1)
-                output_matrix[j][0] = 1;
-            else
-                output_matrix[j][j+1] = 1;
-            
-            
-        //}
+
+        if(j==output_array_size_y-1)
+            output_matrix[j][0] = 1;
+        else
+            output_matrix[j][j+1] = 1;
     }
 
 }

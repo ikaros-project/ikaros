@@ -3,7 +3,26 @@
 <group title="Topology Example">
 	
 
-
+		<_module
+			class = "Topology"
+			name = "TopologyInstance"
+			_type=""
+			tensor_size_x="3"
+			tensor_size_y="3"
+			
+			debug="yes"
+			
+		/>
+		<_module
+			class = "Topology"
+			name = "TopologyInstance"
+			type="one-to-one"
+			tensor_size_x="3"
+			tensor_size_y="3"
+			
+			debug="yes"
+			
+		/>
 		<_module
 			class = "Topology"
 			name = "TopologyInstance"
@@ -15,16 +34,6 @@
 			
 		/>
 
-		<_module
-			class = "Topology"
-			name = "TopologyInstance"
-			type="one-to-one"
-			tensor_size_x="3"
-			tensor_size_y="1"
-			
-			debug="yes"
-			
-		/>
 		<_module
 			class = "Topology"
 			name = "TopologyInstance"
@@ -41,6 +50,8 @@
 			type="random"
 			tensor_size_x="3"
 			tensor_size_y="3"
+			random_limit="0.9"
+			allow_self_connection="no"
 			
 			debug="yes"
 			

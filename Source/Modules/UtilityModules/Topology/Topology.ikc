@@ -19,7 +19,7 @@
 	<parameter name="allow_self_connection" type="bool" default="no" description="Whether to allow self-connection for random topologies"/>
 	<parameter name="tensor_size_x" type="int" default="3" description="x size of tensor for n neighbor "/>
 	<parameter name="tensor_size_y" type="int" default="3" description="y size of tensor for n neighbor "/>
-	<parameter name="type" type="list" default="empty" values="empty/one-to-one/nearest-neighbor_1D/nearest-neighbor_2D/nearest-neighbor_3D/nearest-neighbor_3_1D/circle/donut/random" default="" description="The first parameter" />
+	<parameter name="type" type="list" default="empty" values="empty/one-to-one/nearest-neighbor_2D/circle/random" default="empty" description="The type of topology" />
 
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
