@@ -69,9 +69,10 @@ SpikingPopulation::Init()
     io(direct_input, direct_in_size, "DIRECT_IN");
     
     // TODO add ext inh external topologies
+    internal_topology = create_matrix(population_size, population_size);
     int dummy_x, dummy_y;
-    io(internal_topology, dummy_x, dummy_y, "INTERNAL_TOPOLOGY");
-    if(dummy_x != population_size || dummy_y!=population_size)
+    io(internal_topology_inp, dummy_x, dummy_y, "INTERNAL_TOPOLOGY");
+    if(internal_topology_inp && (dummy_x != population_size || dummy_y!=population_size))
         Notify(msg_fatal_error, "Internal topology must be square equal to population size");
     
 
@@ -175,6 +176,7 @@ SpikingPopulation::~SpikingPopulation()
     destroy_matrix(int_synapse);
     destroy_matrix(exc_syn);
     destroy_matrix(inh_syn);
+    destroy_matrix(internal_topology);
 
     destroy_array(vlt);
     destroy_array(u);
@@ -222,7 +224,9 @@ SpikingPopulation::Tick()
         multiply(dir_in_tmp, cDirectCurrentScale, population_size);
 
     }
-    if(internal_topology != NULL)
+    if(internal_topology_inp != NULL)
+        copy_matrix(internal_topology, internal_topology_inp, population_size, population_size);
+    // always do internal topology even if its filled with 0
     {
         // excitation
         int_exc_syn_tmp = create_matrix(population_size, population_size);
@@ -236,7 +240,7 @@ SpikingPopulation::Tick()
 
         // inhibition
         int_inh_syn_tmp = create_matrix(population_size, population_size);
-        threshold_lt(int_inh_syn_tmp[0]), internal_topology[0], 0.f, population_size*population_size);
+        threshold_lt(int_inh_syn_tmp[0], internal_topology[0], 0.f, population_size*population_size);
         multiply(int_inh_syn_tmp, output_tiled, population_size, population_size);
         composed_inh_syn_length += population_size;
         
@@ -249,22 +253,32 @@ SpikingPopulation::Tick()
     // copy_array(composed_ext_syn[0], exc_syn_tmp[0], excitation_size*population_size);
     // copy_array(composed_ext_syn[excitation_size*population_size], int_exc_syn_tmp[0], population_size*population_size);
     // TODO: compose internal and external composite matrix
-    float ** composed_ext_t = create_matrix(composed_ext_syn_length, population_size);
-    ComposeMatrices(composed_ext_t, 
+    float ** composed_ext_t = int_exc_syn_tmp;
+    if(exc_syn_tmp)
+    {
+        composed_ext_t = create_matrix(composed_ext_syn_length, population_size);
+        ComposeMatrices(composed_ext_t, 
                     exc_syn_tmp, 
                     excitation_size,
                     int_exc_syn_tmp,
                     population_size,
                     population_size);
+    }
+    
+    
     // transpose(composed_ext_t, composed_ext_syn, population_size, composed_ext_syn_length);
     
-    float **composed_inh_t = create_matrix(composed_inh_syn_length, population_size);
-    ComposeMatrices(composed_inh_t,
+    float **composed_inh_t = int_inh_syn_tmp;
+    if(inh_syn_tmp)
+    {
+        composed_inh_t = create_matrix(composed_inh_syn_length, population_size);
+        ComposeMatrices(composed_inh_t,
                     inh_syn_tmp,
                     inhibition_size,
                     int_inh_syn_tmp,
                     population_size,
                     population_size);
+    }
     // compose complete synapse
     //set_submatrix(synapse[0], excitation_size+inhibition_size, 
     //                exc_syn_tmp[0], population_size, excitation_size, 0, 0);
@@ -281,9 +295,9 @@ SpikingPopulation::Tick()
                             coupling,
                             resetvolt,
                             resetrecovery,
-                            exc_syn_tmp, // excitation
+                            composed_ext_t, // excitation
                             composed_ext_syn_length,
-                            inh_syn_tmp,
+                            composed_inh_t,
                             composed_inh_syn_length,
                             dir_in_tmp,
                             vlt, // in output
@@ -318,6 +332,8 @@ SpikingPopulation::Tick()
     destroy_array(dir_in_tmp);
     destroy_matrix(exc_syn_tmp);
     destroy_matrix(inh_syn_tmp);
+    destroy_matrix(int_exc_syn_tmp);
+    destroy_matrix(int_inh_syn_tmp);
     destroy_matrix(composed_ext_t);
     destroy_matrix(composed_inh_t);
 }
@@ -438,8 +454,10 @@ SpikingPopulation::ComposeMatrices(float **retval,
                                     int rety)
 {
     float **m = create_matrix(rety, ax+bx);
+    // TODO: fix memory bug here:
     copy_array(m[0], a[0], ax*rety);
-    copy_array(m[ax*rety], b[0], bx*rety);
+    copy_array(m[0] + (ax*rety), b[0], bx*rety);
+    
     transpose(retval, m, ax+bx, rety);
     destroy_matrix(m);
     

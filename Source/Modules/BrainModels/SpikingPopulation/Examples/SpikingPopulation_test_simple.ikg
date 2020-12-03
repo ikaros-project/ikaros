@@ -52,9 +52,9 @@
 			_factor = "5"
 		/>
 		
-        <connection  source = "MyConstant.OUTPUT"  target = "SensorNeuron.EXCITATION_IN" />
-		<connection  source = "MyConstant.OUTPUT"  target = "SensorNeuron.INHIBITION_IN" />
-        <connection  source = "MyConstant.OUTPUT"  target = "HiddenNeuron.INHIBITION_IN" />
+        <connection  source = "MyConstant.OUTPUT"  target = "SensorNeuron.EXCITATION" />
+		<connection  source = "MyConstant.OUTPUT"  target = "SensorNeuron.INHIBITION" />
+        <connection  source = "MyConstant.OUTPUT"  target = "HiddenNeuron.INHIBITION" />
         <connection  source = "MyConstant.OUTPUT"  target = "HiddenNeuron.DIRECT_IN" />
 		
 		  
@@ -62,7 +62,7 @@
         <connection  source = "PopulationCoder.OUTPUT"  target = "Scale.INPUT" />
 		<connection  source = "Scale.OUTPUT"  target = "SensorNeuron.DIRECT_IN" />
 		
-        <connection  source = "SensorNeuron.OUTPUT"  target = "HiddenNeuron.EXCITATION_IN" />
+        <connection  source = "SensorNeuron.OUTPUT"  target = "HiddenNeuron.EXCITATION" />
 
 		<view name="View">
 			<slider-horizontal

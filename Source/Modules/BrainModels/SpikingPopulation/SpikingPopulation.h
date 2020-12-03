@@ -73,6 +73,7 @@ public:
     int         direct_in_size;
     //float **    excitation_topology;
     float **    internal_topology;
+    float **    internal_topology_inp;
 
     float *     output_array;
     int         output_array_size;
