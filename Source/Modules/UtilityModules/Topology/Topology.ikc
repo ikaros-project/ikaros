@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="Topology" description="minimal example module">
+
+	<description type="text">
+		Provides a topology to a set of units, nodes etc
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Topology"
+			name="Topology"
+			tensor_size_x = "3"
+			tensor_size_y = "3"
+			debug = "true"
+		/>
+	</example>
+	<parameter name="random_limit" type="float" default="0.5" description="Set connection to 1 when larger than this for random topologies"/>
+	<parameter name="allow_self_connection" type="bool" default="no" description="Whether to allow self-connection for random topologies"/>
+	<parameter name="tensor_size_x" type="int" default="3" description="x size of tensor for n neighbor "/>
+	<parameter name="tensor_size_y" type="int" default="3" description="y size of tensor for n neighbor "/>
+	<parameter name="type" type="list" default="empty" values="empty/one-to-one/nearest-neighbor_2D/circle/random" default="empty" description="The type of topology" />
+
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="SIZE_X" description="If connected, uses size for an n x n topology" optional="no"/>
+	<input name="SIZE_Y" description="If connected, uses size for an m x n topology; requires SIZE_X input to be connected" optional="no"/>
+	<_input name="INPUT" description="" optional="no"/>
+
+	<output name="OUTPUT" description="The first output" />
+
+	<link class="Topology" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Topology.h</file>
+   		<file>Topology.cc</file>
+   		<file>Topology.ikc</file>
+   </files>
+
+</group>
+
