@@ -67,7 +67,12 @@ SpikingPopulation::Init()
     io(excitation_array, excitation_size, "EXCITATION");
     io(inhibition_array, inhibition_size, "INHIBITION");
     io(direct_input, direct_in_size, "DIRECT_IN");
+    
     // TODO add ext inh external topologies
+    int dummy_x, dummy_y;
+    io(internal_topology, dummy_x, dummy_y, "INTERNAL_TOPOLOGY");
+    if(dummy_x != population_size || dummy_y!=population_size)
+        Notify(msg_fatal_error, "Internal topology must be square equal to population size");
     
 
     io(output_array, output_array_size, "OUTPUT");
@@ -185,6 +190,12 @@ SpikingPopulation::Tick()
     float **exc_syn_tmp = NULL; 
     float **inh_syn_tmp = NULL; 
     float *dir_in_tmp = NULL; 
+    float **int_exc_syn_tmp = NULL;
+    float **int_inh_syn_tmp = NULL;
+    int composed_ext_syn_length = 0;
+    int composed_inh_syn_length = 0;
+
+    
     if(excitation_array != NULL)
     {
         exc_syn_tmp = create_matrix(excitation_size, population_size);
@@ -192,6 +203,7 @@ SpikingPopulation::Tick()
         threshold_gteq(excitation_array, excitation_array, threshold, excitation_size);
         tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
         multiply(exc_syn_tmp, exc_syn, excitation_size, population_size);
+        composed_ext_syn_length += excitation_size;
     }
     if(inhibition_array != NULL)
     {
@@ -200,6 +212,8 @@ SpikingPopulation::Tick()
         threshold_gteq(inhibition_array, inhibition_array, threshold, inhibition_size);
         tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
         multiply(inh_syn_tmp, inh_syn, inhibition_size, population_size);
+        composed_inh_syn_length += inhibition_size;
+
     }
     if(direct_input != NULL)
     {
@@ -208,8 +222,49 @@ SpikingPopulation::Tick()
         multiply(dir_in_tmp, cDirectCurrentScale, population_size);
 
     }
-    // TODO internal topology: weed out and scale by topology
+    if(internal_topology != NULL)
+    {
+        // excitation
+        int_exc_syn_tmp = create_matrix(population_size, population_size);
+        threshold_gt(int_exc_syn_tmp[0], internal_topology[0], 0.f, population_size*population_size);
+        float *output_spikes = create_array(population_size);
+        threshold_gteq(output_spikes, output_array, threshold, population_size);
+        float **output_tiled = create_matrix(population_size, population_size);
+        tile(output_tiled[0], output_spikes, population_size, population_size);
+        multiply(int_exc_syn_tmp, output_tiled, population_size, population_size);
+        composed_ext_syn_length += population_size;
+
+        // inhibition
+        int_inh_syn_tmp = create_matrix(population_size, population_size);
+        threshold_lt(int_inh_syn_tmp[0]), internal_topology[0], 0.f, population_size*population_size);
+        multiply(int_inh_syn_tmp, output_tiled, population_size, population_size);
+        composed_inh_syn_length += population_size;
+        
+        destroy_array(output_spikes);
+        destroy_matrix(output_tiled);
+
+    }
+    // compose synapses of ext and internal exc and inh
+    // float **composed_ext_syn = create_matrix(population_size, composed_ext_syn_length);
+    // copy_array(composed_ext_syn[0], exc_syn_tmp[0], excitation_size*population_size);
+    // copy_array(composed_ext_syn[excitation_size*population_size], int_exc_syn_tmp[0], population_size*population_size);
+    // TODO: compose internal and external composite matrix
+    float ** composed_ext_t = create_matrix(composed_ext_syn_length, population_size);
+    ComposeMatrices(composed_ext_t, 
+                    exc_syn_tmp, 
+                    excitation_size,
+                    int_exc_syn_tmp,
+                    population_size,
+                    population_size);
+    // transpose(composed_ext_t, composed_ext_syn, population_size, composed_ext_syn_length);
     
+    float **composed_inh_t = create_matrix(composed_inh_syn_length, population_size);
+    ComposeMatrices(composed_inh_t,
+                    inh_syn_tmp,
+                    inhibition_size,
+                    int_inh_syn_tmp,
+                    population_size,
+                    population_size);
     // compose complete synapse
     //set_submatrix(synapse[0], excitation_size+inhibition_size, 
     //                exc_syn_tmp[0], population_size, excitation_size, 0, 0);
@@ -227,7 +282,9 @@ SpikingPopulation::Tick()
                             resetvolt,
                             resetrecovery,
                             exc_syn_tmp, // excitation
+                            composed_ext_syn_length,
                             inh_syn_tmp,
+                            composed_inh_syn_length,
                             dir_in_tmp,
                             vlt, // in output
                             u
@@ -261,6 +318,8 @@ SpikingPopulation::Tick()
     destroy_array(dir_in_tmp);
     destroy_matrix(exc_syn_tmp);
     destroy_matrix(inh_syn_tmp);
+    destroy_matrix(composed_ext_t);
+    destroy_matrix(composed_inh_t);
 }
 
 void
@@ -269,7 +328,9 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
                                 float *a_c, // reset voltage
                                 float *a_d, // reset recovery
                                 float **e_syn, // synapse - contains excitation scaled by synaptic vals, or zero if not spiked
+                                int e_syn_x, // x length of exc synapse
                                 float **i_syn, // synapse - contains excitation scaled by synaptic vals, or zero if not spiked
+                                int i_syn_x, // x length of inh synapse
                                 float *a_i, // direct current
                                 float *a_v, // in out excitation
                                 float *a_u  // recovery
@@ -308,12 +369,12 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
             u1[j] = a_u[j] + a_d[j];
         }
         // sum up 
-        for(int i = 0; i < excitation_size; i++)
+        for(int i = 0; i < e_syn_x; i++)
         {
             if(e_syn[j][i] >= threshold)
                 inputvlt[j] += e_syn[j][i];
         }
-        for(int i = 0; i< inhibition_size; i++)
+        for(int i = 0; i< i_syn_x; i++)
         {
             if(i_syn[j][i] >= threshold)
                 inputvlt[j]-= i_syn[j][i];
@@ -365,6 +426,24 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
         
 }
 
+/** Composes/tiles two matrices in x/col direction; must have same y/row size
+ * retval must have dims [rety][ax+bx]
+*/
+void
+SpikingPopulation::ComposeMatrices(float **retval, 
+                                    float **a, 
+                                    int ax, 
+                                    float **b, 
+                                    int bx, 
+                                    int rety)
+{
+    float **m = create_matrix(rety, ax+bx);
+    copy_array(m[0], a[0], ax*rety);
+    copy_array(m[ax*rety], b[0], bx*rety);
+    transpose(retval, m, ax+bx, rety);
+    destroy_matrix(m);
+    
+}
 
 // Install the module. This code is executed during start-up.
 
