@@ -663,8 +663,10 @@ header button:active, aside button:hover {
 */
 }
 
+/* Overlay not used. Should it be removed? */
 #WidgetOverlay
-{   
+{       
+    display: none; /* disable overlay */ 
     position: absolute;
     top:0; 
     width: 100%;
