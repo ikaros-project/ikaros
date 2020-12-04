@@ -186,12 +186,12 @@
 	  type="SMA"
   />
 	
-	<connection target = "Pyramidal_1.EXCITATION_IN" source = "Constant_zero.OUTPUT" />
-	<connection target = "Pyramidal_1.INHIBITION_IN" source = "Constant_zero.OUTPUT" />
-	<connection target = "Pyramidal_2.EXCITATION_IN" source = "Constant_zero.OUTPUT" />
-	<connection target = "Pyramidal_3.EXCITATION_IN" source = "Constant_zero.OUTPUT" />
-	<connection target = "Interneuron_1.INHIBITION_IN" source = "Constant_zero.OUTPUT" />
-	<connection target = "Interneuron_2.INHIBITION_IN" source = "Constant_zero.OUTPUT" />
+	<connection target = "Pyramidal_1.EXCITATION" source = "Constant_zero.OUTPUT" />
+	<connection target = "Pyramidal_1.INHIBITION" source = "Constant_zero.OUTPUT" />
+	<connection target = "Pyramidal_2.EXCITATION" source = "Constant_zero.OUTPUT" />
+	<connection target = "Pyramidal_3.EXCITATION" source = "Constant_zero.OUTPUT" />
+	<connection target = "Interneuron_1.INHIBITION" source = "Constant_zero.OUTPUT" />
+	<connection target = "Interneuron_2.INHIBITION" source = "Constant_zero.OUTPUT" />
 	<connection target = "Interneuron_1.DIRECT_IN" source = "Constant_zero.OUTPUT" />
 	<connection target = "Interneuron_2.DIRECT_IN" source = "Constant_zero.OUTPUT" />
 
@@ -203,23 +203,23 @@
 	<connection target = "Pyramidal_3.DIRECT_IN" source = "Scale_Input.OUTPUT" />
 
 	<connection target = "Scale_Excitation.INPUT" source = "Pyramidal_1.OUTPUT" />
-	<_connection target = "Interneuron_1.EXCITATION_IN" source = "Scale_Excitation.OUTPUT" size = "@ExPopSize" />
-	<connection target = "Interneuron_1.EXCITATION_IN" source = "Pyramidal_1.OUTPUT" size = "@ExPopSize" />
+	<_connection target = "Interneuron_1.EXCITATION" source = "Scale_Excitation.OUTPUT" size = "@ExPopSize" />
+	<connection target = "Interneuron_1.EXCITATION" source = "Pyramidal_1.OUTPUT" size = "@ExPopSize" />
 	<connection target = "Scale_Inhibition.INPUT" source = "Interneuron_1.OUTPUT" />
-	<_connection target = "Pyramidal_2.INHIBITION_IN" source = "Scale_Inhibition.OUTPUT" size = "@InhPopSize" />
-	<connection target = "Pyramidal_2.INHIBITION_IN" source = "Interneuron_1.OUTPUT" size = "@InhPopSize" />
-	<connection target = "Interneuron_2.EXCITATION_IN" source = "Pyramidal_2.OUTPUT" />
-	<connection target = "Interneuron_2.EXCITATION_IN" source = "Pyramidal_1.OUTPUT" />
+	<_connection target = "Pyramidal_2.INHIBITION" source = "Scale_Inhibition.OUTPUT" size = "@InhPopSize" />
+	<connection target = "Pyramidal_2.INHIBITION" source = "Interneuron_1.OUTPUT" size = "@InhPopSize" />
+	<connection target = "Interneuron_2.EXCITATION" source = "Pyramidal_2.OUTPUT" />
+	<connection target = "Interneuron_2.EXCITATION" source = "Pyramidal_1.OUTPUT" />
 	<connection target = "Scale_Excitation.INPUT" source = "Pyramidal_2.OUTPUT" />
-	<_connection size = "@ExPopSize" target = "Interneuron_2.EXCITATION_IN" source = "Scale_Excitation.OUTPUT" sourceoffset = "@ExPopSize" />
+	<_connection size = "@ExPopSize" target = "Interneuron_2.EXCITATION" source = "Scale_Excitation.OUTPUT" sourceoffset = "@ExPopSize" />
 	<connection target = "Scale_Inhibition.INPUT" source = "Interneuron_2.OUTPUT" />
-	<connection size = "@InhPopSize" target = "Pyramidal_3.INHIBITION_IN" source = "Scale_Inhibition.OUTPUT" sourceoffset = "@InhPopSize" />
-	<_connection target = "Pyramidal_3.INHIBITION_IN" source = "Scale_Inhibition.OUTPUT" size = "@InhPopSize" />
-	<connection target = "Pyramidal_3.INHIBITION_IN" source = "Interneuron_1.OUTPUT"/>
-	<connection target = "Pyramidal_3.INHIBITION_IN" source = "Interneuron_2.OUTPUT"/>
+	<connection size = "@InhPopSize" target = "Pyramidal_3.INHIBITION" source = "Scale_Inhibition.OUTPUT" sourceoffset = "@InhPopSize" />
+	<_connection target = "Pyramidal_3.INHIBITION" source = "Scale_Inhibition.OUTPUT" size = "@InhPopSize" />
+	<connection target = "Pyramidal_3.INHIBITION" source = "Interneuron_1.OUTPUT"/>
+	<connection target = "Pyramidal_3.INHIBITION" source = "Interneuron_2.OUTPUT"/>
 	
-	<connection source = "Pyramidal_1.ADENOSINE" target = "AdenosineAvg_1.INPUT" />
-	<connection source = "Pyramidal_2.ADENOSINE" target = "AdenosineAvg_2.INPUT" />
+	<connection source = "Pyramidal_1.ADENO_OUTPUT" target = "AdenosineAvg_1.INPUT" />
+	<connection source = "Pyramidal_2.ADENO_OUTPUT" target = "AdenosineAvg_2.INPUT" />
 	<view name="View" >
 		<slider-horizontal  value = "1" step = "0.01"  min = "0" parameter = "Scale_Input.factor" max = "10" title = "Scale Input" y = "0" xindex = "20" _module = "Scale_Input" x = "200" height = "100" width = "200" show_title = "true" select = "0" labels = "" show_values = "false" show_frame = "false" style = "" frame-style = ""/>
 		<slider-horizontal  value = "20" step = "0.01" max = "5" title = "InputSignal" y = "100" xindex = "0" count = "1" min = "0" parameter = "InputSignal.data" module = "InputSignal" height = "100" x = "200" width = "200" show_title = "true" select = "0" labels = "" show_values = "false" show_frame = "false" style = "" frame-style = ""/>
