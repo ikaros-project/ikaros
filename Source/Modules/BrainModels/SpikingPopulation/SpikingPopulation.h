@@ -49,11 +49,14 @@ public:
                                 float *a_c, 
                                 float *a_d, 
                                 float **e_syn,
+                                int e_syn_x,
                                 float **i_syn,
+                                int i_syn_x,
                                 float *a_i,
                                 float *a_v, 
                                 float *a_u 
                                 );
+    
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
@@ -63,10 +66,16 @@ public:
     int         inhibition_size;
     float *     direct_input;
     int         direct_in_size;
+    float **    excitation_topology;
+    float **    inhibition_topology;
+    float **    internal_topology;
+    float **    internal_topology_inp;
 
     float *     output_array;
     int         output_array_size;
     float *     adenosine_out;
+
+
 
     // internal data storage
     float *     vlt;

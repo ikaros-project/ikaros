@@ -42,13 +42,14 @@
 		
 		
         
-		<view name="View" >
-	<slider-horizontal  show_values = "true" y = "0" xindex = "0" min = "0.9" height = "100" max = "100" width = "200" _module = "Scale" count = "1" parameter = "Scale.factor" step = "0.01" show_title = "true" title = "Scale inhibition" x = "200" select = "0" labels = "" show_frame = "false" style = "" frame-style = ""/>
-	<bar-graph  title = "Scale output" max = "100" height = "200" width = "200" min = "-1" y = "0" x = "400" source = "Scale.OUTPUT" direction = "horizontal" show_title = "true" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" auto = "false" show_frame = "false" style = "" frame-style = ""/>
-	<bar-graph  title = "Sensor neuron" max = "100" height = "200" width = "200" min = "-100" y = "200" x = "0" source = "SensorNeuron.OUTPUT" direction = "horizontal" show_title = "true" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" auto = "false" show_frame = "false" style = "" frame-style = ""/>
-	<plot  show_title = "true" title = "Sensor neuron" max = "30" height = "741" width = "501" min = "-70" y = "200" x = "200" source = "SensorNeuron.OUTPUT" select = "" buffer_size = "50" direction = "vertical" color = "" show_frame = "false" style = "" frame-style = ""/>
-	<slider-horizontal  show_values = "true" y = "0" xindex = "0" min = "0.1" height = "100" max = "100" width = "200" _module = "Scale" count = "2" parameter = "MyConstant.data" step = "0.01" show_title = "true" title = "Direct in" x = "0" select = "0" labels = "" show_frame = "false" style = "" frame-style = ""/>
+<view name="View" >
+	<slider-horizontal  frame-style = "" style = "" labels = "" select = "0" x = "200" title = "Scale inhibition" show_title = "true" step = "0.01" parameter = "Scale.factor" count = "1" _module = "Scale" width = "200" show_frame = "false" height = "100" min = "0.9" max = "100" xindex = "0" y = "0" show_values = "true"/>
+	<bar-graph  frame-style = "" lineCap = "" fill = "" style = "" labels = "" direction = "horizontal" source = "Scale.OUTPUT" x = "400" y = "0" min = "-1" max = "100" transpose = "false" show_title = "true" color = "" title = "Scale output" lineJoin = "" lineWidth = "1" width = "200" show_frame = "false" auto = "false" height = "200"/>
+	<bar-graph  frame-style = "" lineCap = "" fill = "" style = "" labels = "" direction = "horizontal" source = "SensorNeuron.OUTPUT" x = "0" y = "200" min = "-100" max = "100" transpose = "false" show_title = "true" color = "" title = "Sensor neuron" lineJoin = "" lineWidth = "1" width = "201" show_frame = "false" auto = "false" height = "241"/>
+	<plot  frame-style = "" style = "" direction = "vertical" buffer_size = "50" select = "" source = "SensorNeuron.OUTPUT" x = "200" y = "200" min = "-70" show_title = "true" color = "blue, red" title = "Sensor neuron" width = "461" show_frame = "false" height = "241" max = "30"/>
+	<slider-horizontal  frame-style = "" style = "" labels = "" select = "0" x = "0" title = "Direct in" show_title = "true" step = "0.01" parameter = "MyConstant.data" count = "2" _module = "Scale" width = "200" show_frame = "false" height = "100" min = "0.1" max = "100" xindex = "0" y = "0" show_values = "true"/>
 </view>
+
 
 
 

@@ -310,9 +310,9 @@ class Dictionary
     void        get_submatrix(float *S, int mrows, int mcols, float *A, int ncols, int row, int col);
 	 void 		repeat(float *r, float *a, int repeats);
 	 void 		tile(float *r, float *a, int tiles);
-	 void			put(float *r, float *a, int *indeces);
+	 void		put(float *r, float *a, int *indeces);
 	 void 		take(float *r, float *a, int *indeces);
-	 
+     void       hstack(float **r, float **a, int ax, float **b, int bx, int rety);
 
 #endif
 

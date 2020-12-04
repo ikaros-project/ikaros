@@ -878,6 +878,24 @@ tile(float *target, const float *src, const int tiles, const int srclen)
    return target;
 }
 
+//
+// stack two matrices horizontally
+//
+void hstack(float **target,
+            float **a,
+            int ax,
+            float **b,
+            int bx,
+            int rety)
+{
+    for (int j = 0, rj = 0, aj = 0, bj = 0;
+         j < rety;
+         j++, rj += ax + bx, aj += ax, bj += bx)
+    {
+        copy_array(target[0] + rj, a[0] + aj, ax);
+        copy_array(target[0] + rj + ax, b[0] + bj, bx);
+    }
+}
 
 bool
 store_array(const char * path, const char * name, float * a, int size)

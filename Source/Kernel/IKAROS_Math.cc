@@ -4767,5 +4767,36 @@ namespace ikaros
 
     }
 
+    // returns array containing only values > threshold
+    float *		
+    threshold_gt(float *r, float *a, float threshold, float size)
+    {
+        
+        for(int i = 0; i < size; i++)
+        {
+            if(a[i] > threshold)
+                r[i] = a[i];
+            else
+                r[i] = 0.f;
+        }
+		return r;
+
+    }
+    // returns array containing only values < threshold
+    float *		
+    threshold_lt(float *r, float *a, float threshold, float size)
+    {
+        
+        for(int i = 0; i < size; i++)
+        {
+            if(a[i] < threshold)
+                r[i] = a[i];
+            else
+                r[i] = 0.f;
+        }
+		return r;
+
+    }
+
 }
 

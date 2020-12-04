@@ -67,8 +67,27 @@ SpikingPopulation::Init()
     io(excitation_array, excitation_size, "EXCITATION");
     io(inhibition_array, inhibition_size, "INHIBITION");
     io(direct_input, direct_in_size, "DIRECT_IN");
-    // TODO add ext inh external topologies
+    if(direct_input && direct_in_size > population_size)
+        Notify(msg_fatal_error, "Direct in size cannot be larger than population size");
+
     
+    
+    // TODO add ext inh external topologies
+    internal_topology = create_matrix(population_size, population_size);
+    int dummy_x, dummy_y;
+    io(internal_topology_inp, dummy_x, dummy_y, "INTERNAL_TOPOLOGY");
+    if(internal_topology_inp && (dummy_x != population_size || dummy_y!=population_size))
+        Notify(msg_fatal_error, "Internal topology must be square equal to population size");
+    io(excitation_topology, dummy_x, dummy_y, "EXCITATION_TOPOLOGY");
+    if(excitation_topology && (dummy_x != excitation_size || dummy_y != population_size)){
+        printf("Exc topology (%i, %i); exc size = %i, pop size = %i\n", dummy_x, dummy_y, excitation_size, population_size);
+        Notify(msg_fatal_error, "Excitation topology must be excitation size x population size");
+    }
+    io(inhibition_topology, dummy_x, dummy_y, "INHIBITION_TOPOLOGY");
+    if(inhibition_topology && (dummy_x != inhibition_size || dummy_y != population_size)){
+        printf("Inh topology (%i, %i); inhibition size = %i, pop size = %i\n", dummy_x, dummy_y, inhibition_size, population_size);
+        Notify(msg_fatal_error, "Inhibition topology must be inhibition size x population size");
+    }
 
     io(output_array, output_array_size, "OUTPUT");
     io(adenosine_out, "ADENO_OUTPUT");
@@ -170,6 +189,7 @@ SpikingPopulation::~SpikingPopulation()
     destroy_matrix(int_synapse);
     destroy_matrix(exc_syn);
     destroy_matrix(inh_syn);
+    destroy_matrix(internal_topology);
 
     destroy_array(vlt);
     destroy_array(u);
@@ -184,14 +204,23 @@ SpikingPopulation::Tick()
     // update input synapses
     float **exc_syn_tmp = NULL; 
     float **inh_syn_tmp = NULL; 
-    float *dir_in_tmp = NULL; 
+    float *dir_in_tmp = create_array(population_size); 
+    float **int_exc_syn_tmp = NULL;
+    float **int_inh_syn_tmp = NULL;
+    int composed_ext_syn_length = 0;
+    int composed_inh_syn_length = 0;
+
+    
     if(excitation_array != NULL)
     {
         exc_syn_tmp = create_matrix(excitation_size, population_size);
         // weed out nonspiking input and scale by synapse
         threshold_gteq(excitation_array, excitation_array, threshold, excitation_size);
         tile(exc_syn_tmp[0], excitation_array, population_size, excitation_size);
+        if(excitation_topology != NULL)
+            multiply(exc_syn_tmp, excitation_topology, excitation_size, population_size);
         multiply(exc_syn_tmp, exc_syn, excitation_size, population_size);
+        composed_ext_syn_length += excitation_size;
     }
     if(inhibition_array != NULL)
     {
@@ -199,24 +228,69 @@ SpikingPopulation::Tick()
         // weed out nonspiking input and scale by synapse
         threshold_gteq(inhibition_array, inhibition_array, threshold, inhibition_size);
         tile(inh_syn_tmp[0], inhibition_array, population_size, inhibition_size);
+        if(inhibition_topology != NULL)
+            multiply(inh_syn_tmp, inhibition_topology, inhibition_size, population_size);
         multiply(inh_syn_tmp, inh_syn, inhibition_size, population_size);
+        composed_inh_syn_length += inhibition_size;
+
     }
     if(direct_input != NULL)
+        copy_array(dir_in_tmp, direct_input, direct_in_size);
     {
-        dir_in_tmp = create_array(population_size);
-        copy_array(dir_in_tmp, direct_input, population_size);
+
+        // copy_array(dir_in_tmp, direct_input, population_size);
         multiply(dir_in_tmp, cDirectCurrentScale, population_size);
 
     }
-    // TODO internal topology: weed out and scale by topology
+    if(internal_topology_inp != NULL)
+        copy_matrix(internal_topology, internal_topology_inp, population_size, population_size);
+    // always do internal topology even if its filled with 0
+    {
+        // excitation
+        int_exc_syn_tmp = create_matrix(population_size, population_size);
+        threshold_gt(int_exc_syn_tmp[0], internal_topology[0], 0.f, population_size*population_size);
+        float *output_spikes = create_array(population_size);
+        threshold_gteq(output_spikes, output_array, threshold, population_size);
+        float **output_tiled = create_matrix(population_size, population_size);
+        tile(output_tiled[0], output_spikes, population_size, population_size);
+        multiply(int_exc_syn_tmp, output_tiled, population_size, population_size);
+        composed_ext_syn_length += population_size;
+
+        // inhibition
+        int_inh_syn_tmp = create_matrix(population_size, population_size);
+        threshold_lt(int_inh_syn_tmp[0], internal_topology[0], 0.f, population_size*population_size);
+        multiply(int_inh_syn_tmp, output_tiled, population_size, population_size);
+        composed_inh_syn_length += population_size;
+        
+        destroy_array(output_spikes);
+        destroy_matrix(output_tiled);
+
+    }
+    float ** composed_ext_t = int_exc_syn_tmp;
+    if(exc_syn_tmp)
+    {
+        composed_ext_t = create_matrix(composed_ext_syn_length, population_size);
+        hstack(composed_ext_t, 
+                    exc_syn_tmp, 
+                    excitation_size,
+                    int_exc_syn_tmp,
+                    population_size,
+                    population_size);
+    }
     
-    // compose complete synapse
-    //set_submatrix(synapse[0], excitation_size+inhibition_size, 
-    //                exc_syn_tmp[0], population_size, excitation_size, 0, 0);
-    //set_submatrix(synapse[0], excitation_size+inhibition_size,
-    //                inh_syn_tmp[0], population_size, inhibition_size, 
-    //                0, excitation_size);
-    
+
+    float **composed_inh_t = int_inh_syn_tmp;
+    if(inh_syn_tmp)
+    {
+        composed_inh_t = create_matrix(composed_inh_syn_length, population_size);
+        hstack(composed_inh_t,
+                    inh_syn_tmp,
+                    inhibition_size,
+                    int_inh_syn_tmp,
+                    population_size,
+                    population_size);
+    }
+
     switch(modeltype)
     {
         default:
@@ -226,8 +300,10 @@ SpikingPopulation::Tick()
                             coupling,
                             resetvolt,
                             resetrecovery,
-                            exc_syn_tmp, // excitation
-                            inh_syn_tmp,
+                            composed_ext_t, // excitation
+                            composed_ext_syn_length,
+                            composed_inh_t,
+                            composed_inh_syn_length,
                             dir_in_tmp,
                             vlt, // in output
                             u
@@ -247,20 +323,37 @@ SpikingPopulation::Tick()
             print_array("exc_in: ", excitation_array, excitation_size);
             print_matrix("exc_syn: ", exc_syn_tmp, excitation_size, population_size);
         }
+        if(excitation_topology)
+            print_matrix("exc topology: ", excitation_topology, excitation_size, population_size);
         if(inhibition_array){
             print_array("inh_in: ", inhibition_array, inhibition_size);
             print_matrix("inh_syn", inh_syn_tmp, inhibition_size, population_size);
         }
+        if(inhibition_topology)
+            print_matrix("inh topology: ", inhibition_topology, inhibition_size, population_size);
+        
         if(direct_input)
             print_array("direct_in: ", dir_in_tmp, population_size);
         //print_matrix("internal synapse", int_synapse, population_size, population_size);
-    
+        if(internal_topology_inp){
+            print_matrix("internal topology: ", internal_topology_inp, population_size, population_size);
+            print_matrix("int_inh_top_syn: ", int_inh_syn_tmp, population_size, population_size);
+        }
         
 	}
 
     destroy_array(dir_in_tmp);
-    destroy_matrix(exc_syn_tmp);
-    destroy_matrix(inh_syn_tmp);
+    if(exc_syn_tmp)
+        destroy_matrix(exc_syn_tmp);
+    if(inh_syn_tmp)
+        destroy_matrix(inh_syn_tmp);
+    if(int_exc_syn_tmp != composed_ext_t)
+        destroy_matrix(composed_ext_t);
+    if(int_inh_syn_tmp != composed_inh_t)
+        destroy_matrix(composed_inh_t);
+    destroy_matrix(int_exc_syn_tmp);
+    destroy_matrix(int_inh_syn_tmp);
+    
 }
 
 void
@@ -269,7 +362,9 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
                                 float *a_c, // reset voltage
                                 float *a_d, // reset recovery
                                 float **e_syn, // synapse - contains excitation scaled by synaptic vals, or zero if not spiked
+                                int e_syn_x, // x length of exc synapse
                                 float **i_syn, // synapse - contains excitation scaled by synaptic vals, or zero if not spiked
+                                int i_syn_x, // x length of inh synapse
                                 float *a_i, // direct current
                                 float *a_v, // in out excitation
                                 float *a_u  // recovery
@@ -308,12 +403,12 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
             u1[j] = a_u[j] + a_d[j];
         }
         // sum up 
-        for(int i = 0; i < excitation_size; i++)
+        for(int i = 0; i < e_syn_x; i++)
         {
             if(e_syn[j][i] >= threshold)
                 inputvlt[j] += e_syn[j][i];
         }
-        for(int i = 0; i< inhibition_size; i++)
+        for(int i = 0; i< i_syn_x; i++)
         {
             if(i_syn[j][i] >= threshold)
                 inputvlt[j]-= i_syn[j][i];
@@ -322,7 +417,7 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
     //float *tmp = create_array(population_size);
     //sum(tmp, syn_fired, synsize_x, population_size, 1); // sum along x axis
     //sum(tmp, a_syn, synsize_x, population_size, 1); // sum along x axis
-
+    
     add(i1, inputvlt, a_i, population_size ); // add direct current
   // calculate output voltage
     float stepfact = 1.f/substeps;
@@ -364,6 +459,7 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
     // destroy_matrix(syn_fired);
         
 }
+
 
 
 // Install the module. This code is executed during start-up.
