@@ -66,7 +66,8 @@ public:
     int         inhibition_size;
     float *     direct_input;
     int         direct_in_size;
-    //float **    excitation_topology;
+    float **    excitation_topology;
+    float **    inhibition_topology;
     float **    internal_topology;
     float **    internal_topology_inp;
 

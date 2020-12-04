@@ -36,8 +36,8 @@
 	<input name="DIRECT_IN" optional="yes" description="Direct current input" size_param="population_size" />
 	<input name="EXCITATION" optional="yes" description="Synaptic exhitation input" />
 	<input name="INHIBITION" optional="yes" description="Synaptic inhibition input" />
-	<!--input name="EX_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" /-->
-	<!--input name="INH_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" /-->
+	<input name="EXCITATION_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
+	<input name="INHIBITION_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
 	<input name="INTERNAL_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
 
 
