@@ -332,10 +332,13 @@ SpikingPopulation::Tick()
     destroy_array(dir_in_tmp);
     destroy_matrix(exc_syn_tmp);
     destroy_matrix(inh_syn_tmp);
+    if(int_exc_syn_tmp != composed_ext_t)
+        destroy_matrix(composed_ext_t);
+    if(int_inh_syn_tmp != composed_inh_t)
+        destroy_matrix(composed_inh_t);
     destroy_matrix(int_exc_syn_tmp);
     destroy_matrix(int_inh_syn_tmp);
-    destroy_matrix(composed_ext_t);
-    destroy_matrix(composed_inh_t);
+    
 }
 
 void
