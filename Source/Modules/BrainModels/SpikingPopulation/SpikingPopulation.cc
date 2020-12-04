@@ -257,7 +257,7 @@ SpikingPopulation::Tick()
     if(exc_syn_tmp)
     {
         composed_ext_t = create_matrix(composed_ext_syn_length, population_size);
-        ComposeMatrices(composed_ext_t, 
+        hstack(composed_ext_t, 
                     exc_syn_tmp, 
                     excitation_size,
                     int_exc_syn_tmp,
@@ -272,7 +272,7 @@ SpikingPopulation::Tick()
     if(inh_syn_tmp)
     {
         composed_inh_t = create_matrix(composed_inh_syn_length, population_size);
-        ComposeMatrices(composed_inh_t,
+        hstack(composed_inh_t,
                     inh_syn_tmp,
                     inhibition_size,
                     int_inh_syn_tmp,
@@ -442,26 +442,7 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
         
 }
 
-/** Composes/tiles two matrices in x/col direction; must have same y/row size
- * retval must have dims [rety][ax+bx]
-*/
-void
-SpikingPopulation::ComposeMatrices(float **retval, 
-                                    float **a, 
-                                    int ax, 
-                                    float **b, 
-                                    int bx, 
-                                    int rety)
-{
-    float **m = create_matrix(rety, ax+bx);
-    // TODO: fix memory bug here:
-    copy_array(m[0], a[0], ax*rety);
-    copy_array(m[0] + (ax*rety), b[0], bx*rety);
-    
-    transpose(retval, m, ax+bx, rety);
-    destroy_matrix(m);
-    
-}
+
 
 // Install the module. This code is executed during start-up.
 

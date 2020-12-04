@@ -56,12 +56,7 @@ public:
                                 float *a_v, 
                                 float *a_u 
                                 );
-    void        ComposeMatrices(float **retval, 
-                                float **a, 
-                                int ax, 
-                                float **b, 
-                                int bx, 
-                                int rety);
+    
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
