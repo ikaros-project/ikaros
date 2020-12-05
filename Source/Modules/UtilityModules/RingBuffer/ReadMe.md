@@ -3,7 +3,7 @@
 
 <br><br>
 ## Short description
-
+Rolling buffer where last element is replaced when filled up
 
 
 <br><br>
