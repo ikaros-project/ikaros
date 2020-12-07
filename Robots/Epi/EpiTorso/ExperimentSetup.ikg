@@ -69,7 +69,7 @@ VisionInputRight = "InputJPEG"
 	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputVideoStream"
-	pupilOffset = "-20 -15"
+	pupilOffset = "-20 -81"
 	/>
 -->
 </group>
