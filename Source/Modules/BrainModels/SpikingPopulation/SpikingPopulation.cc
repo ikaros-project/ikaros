@@ -76,8 +76,10 @@ SpikingPopulation::Init()
     internal_topology = create_matrix(population_size, population_size);
     int dummy_x, dummy_y;
     io(internal_topology_inp, dummy_x, dummy_y, "INTERNAL_TOPOLOGY");
-    if(internal_topology_inp && (dummy_x != population_size || dummy_y!=population_size))
+    if(internal_topology_inp && (dummy_x != population_size || dummy_y!=population_size)){
+        printf("Topology size x = %i, y = %i; population: %i\n", dummy_x, dummy_y, population_size);
         Notify(msg_fatal_error, "Internal topology must be square equal to population size");
+    }
     io(excitation_topology, dummy_x, dummy_y, "EXCITATION_TOPOLOGY");
     if(excitation_topology && (dummy_x != excitation_size || dummy_y != population_size)){
         printf("Exc topology (%i, %i); exc size = %i, pop size = %i\n", dummy_x, dummy_y, excitation_size, population_size);
