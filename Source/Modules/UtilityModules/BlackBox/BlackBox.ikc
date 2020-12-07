@@ -21,9 +21,9 @@
 	<parameter name="outs" type="string" default="None" description="The names of outputs" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
-	<input name="*" description="The first input" />
+	<input name="*" description="The first input" optional="Yes"/>
 
-	<output name="*" description="The first output" size_set="INPUT_1" />
+	<output name="*" description="The first output" optional="Yes" size_set="INPUT_1" />
 
 	<link class="BlackBox" />
 
