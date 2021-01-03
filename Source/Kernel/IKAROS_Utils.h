@@ -26,6 +26,7 @@
 #include <stddef.h> // for NULL
 #include <string>
 #include <vector>
+
 // Basic string functions
 
 char *	create_string(const char * c); // copy string c
@@ -52,6 +53,7 @@ bool starts_with(const std::string &s, const std::string & start);
 std::string ltrim(const std::string &s);
 std::string rtrim(const std::string &s);
 std::string trim(const std::string &s);
+
 // File path operations
 
 bool    is_path(const char * p);
