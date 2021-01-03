@@ -11,8 +11,8 @@
 		<module
 			class = "SoundOutput"
 			name = "SoundOutput"
-			sounds  = " Sounds/clang.mp3,
-                        Sounds/entity.mp3,
+			sounds  = " Sounds/seen.aiff,
+                        Sounds/clang.mp3,
                         Sounds/shot.mp3,
                         Sounds/soda.mp3,
                         Sounds/wreee.mp3,
@@ -21,16 +21,18 @@
 		
         <connection  source = "MyConstant.OUTPUT"  target = "SoundOutput.INPUT" />
 
-		<view name="View">
-			<object class="BarGraph" title="Sound Triggers" module="MyConstant" source="OUTPUT" x="0" y="0" w="3" />
-            
-            <object title = "clang" class="Button" module="MyConstant" parameter="data" select="0" x="0" y="1" />
-            <object title = "entity" class="Button" module="MyConstant" parameter="data" select="1" x="1" y="1" />
-            <object title = "shot" class="Button" module="MyConstant" parameter="data" select="2" x="2" y="1" />
-            <object title = "soda" class="Button" module="MyConstant" parameter="data" select="3" x="0" y="2" />
-            <object title = "wree" class="Button" module="MyConstant" parameter="data" select="4" x="1" y="2" />
-            <object title = "R2D2" class="Button" module="MyConstant" parameter="data" select="5" x="2" y="2" />
-		</view>
+        <view name="View" >
+            <bar-graph  w = "3" source = "MyConstant.OUTPUT" direction = "vertical" lineCap = "" module = "MyConstant" transpose = "false" max = "1" color = "" title = "Sound Triggers" fill = "" x = "60" lineWidth = "1" width = "701" lineJoin = "" min = "0" height = "201" show_frame = "false" style = "" auto = "false" show_title = "true" y = "20" frame-style = "" labels = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "seen" frame-style = "" yindex = "0" valueUp = "0" xindex = "0" value = "1" x = "60" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "clang" frame-style = "" yindex = "0" valueUp = "0" xindex = "1" value = "1" x = "180" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "shot" frame-style = "" yindex = "0" valueUp = "0" xindex = "2" value = "1" x = "300" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "soda" frame-style = "" yindex = "0" valueUp = "0" xindex = "3" value = "1" x = "420" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "wree" frame-style = "" yindex = "0" valueUp = "0" xindex = "4" value = "1" x = "540" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "R2D2" frame-style = "" yindex = "0" valueUp = "0" xindex = "5" value = "1" x = "660" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <bar-graph  frame-style = "" show_title = "true" min = "-100" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "SoundOutput.RMS" title = "VU" color = "" max = "5" transpose = "false" lineJoin = "" lineWidth = "1" width = "200" show_frame = "false" auto = "false" height = "200" y = "20" x = "780"/>
+            <bar-graph  x = "780" y = "240" height = "200" width = "200" title = "VOLUME" source = "SoundOutput.VOLUME" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "0.03" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        </view>
+
 
     <module class = "Logger" name = "Logger" />
 </group>

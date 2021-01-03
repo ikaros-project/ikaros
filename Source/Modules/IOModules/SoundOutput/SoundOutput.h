@@ -26,20 +26,52 @@
 
 #include "IKAROS.h"
 
+#include <vector>
+#include <string>
+
+class Sound
+{
+    public:
+        Sound(const std::string & s) : sound_path(s) { timer = new Timer(); };
+
+        void    Play(const char * command);
+        bool    UpdateVolume(float * rms);  // returns true of still playing
+
+        std::string sound_path;
+        std::vector<float> time;
+        std::vector<float> left;
+        std::vector<float> right;
+
+        int pid;
+
+        int frame;
+        Timer * timer;
+};
+
+
+
 class SoundOutput: public Module
 {
 public:
     float * input;
     float * last_input;
     int     size;
+
+    float * rms;
+    float * volume;
+    
     const char *  command;
-    const char ** sound;
-    int     sound_count;
+    
+    std::vector<Sound> sound;
+    int current_sound;
+
 
     static Module * Create(Parameter * p) { return new SoundOutput(p); }
 
     SoundOutput(Parameter * p) : Module(p) {}
     virtual ~SoundOutput() {}
+
+    Sound       CreateSound(std::string sound_name);
 
     void 		Init();
     void 		Tick();

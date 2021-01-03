@@ -17,7 +17,9 @@
     <parameter name="sounds" type="string" default="" description="comma separated list of sound file names (including path)." />
     
     <input name="INPUT" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
-    
+    <output name="RMS" size="2" description="precalculated approximate volume (dB) of the current sound being played at relativey low temporal resolution. Can be used for VU-meter or other animation (left and right)." />
+    <output name="VOLUME" size="2" description="precalculated approximate volume of the current sound being played at relativey low temporal resolution. Linear version of VU (left and right)." />
+   
 	<link class="SoundOutput" />
 
 	<author>
