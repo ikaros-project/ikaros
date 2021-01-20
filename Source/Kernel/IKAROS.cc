@@ -3734,7 +3734,7 @@ SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int siz
 std::string
 checkNumber(float x)
 {
-    if(std::isnormal(x)) // Check data
+    if(std::isfinite(x)) // Check data
         return std::to_string(x);
     else
         return "\"NAN\"";
