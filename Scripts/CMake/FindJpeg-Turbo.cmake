@@ -14,6 +14,7 @@ find_path(TURBO_JPEG_INCLUDE_DIR
     turbojpeg.h jpeglib.h
   PATHS
     /usr/local/opt/jpeg-turbo/ # homebrew
+    /opt/homebrew/opt/jpeg-turbo/ # Homebrew 2021
     /usr/lib/x86_64-linux-gnu/ # Ubuntu
   PATH_SUFFIXES
     include
@@ -25,6 +26,7 @@ find_library(TURBO_JPEG_LIBRARIES
     turbojpeg libturbojpeg.so.1 libturbojpeg.so.0 libturbojpeg.0.dylib libjpeg.so
   PATHS
     /usr/local/opt/jpeg-turbo/ # homebrew
+    /opt/homebrew/opt/jpeg-turbo/ # Homebrew 2021
     /usr/lib/x86_64-linux-gnu/ # Ubuntu
   PATH_SUFFIXES
     lib
