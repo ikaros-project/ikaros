@@ -3,7 +3,7 @@
 <class name="SoundOutput" description="plays a sound file">
 
 	<description type="text">
-        Plays one or several named sound files. Requires that a command to play sounds is available that can be started from the system() call. The dafult is the afplay command available in OS X. On Linux, this can be replaced with the "play" command. There is no way to stop a playing sound so beware of long sound files.
+        Plays one or several named sound files. Requires that a command to play sounds is available that can be started from the system() call. The default is the afplay command available in OS X. On Linux, this can be replaced with the "play" command. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time.
 	</description>
 
 	<example description="A simple example">
