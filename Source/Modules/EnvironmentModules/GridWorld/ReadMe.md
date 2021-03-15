@@ -43,7 +43,7 @@ Simple agent and world simulator.
 
 <br><br>
 ## Long description
-The GridWorld module can e.g. be used with the MazeGenerator module and the QLearning module. The former generates an environment with borders, the latter generates movement commands based on Location and Reward outputs from a GridWorld instance.
+The GridWorld module can e.g. be used with the [MazeGenerator](https://github.com/ikaros-project/ikaros/tree/master/Source/Modules/EnvironmentModules/MazeGenerator) module and the [QLearning](https://github.com/ikaros-project/ikaros/tree/master/Source/Modules/LearningModules/QLearning) module. The former generates an environment with borders, the latter generates movement commands based on Location and Reward outputs from a GridWorld instance.
 
 Coarsely, the GridWorld module can be thought of as modeling grid cells, border/boundary cells, and goal cells in the entorhinal cortex.
 
