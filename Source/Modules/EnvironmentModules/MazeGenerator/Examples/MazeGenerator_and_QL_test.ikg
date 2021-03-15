@@ -12,6 +12,8 @@
         name = "Environment"
         size = "6"
         regenerate = "0"
+        _x= "84"
+        _y= "274"
     />
 		
     <module
@@ -19,6 +21,8 @@
         name = "Goals"
         outputsize_x = "13"
         outputsize_y = "13"
+        _x="86"
+        _y="339"
         data = "
             0	0	0	0	0	0	0   0	0	0	0	0	0
             0	0	0	0	0	0	0	0	0	0	0	1   0
@@ -41,6 +45,8 @@
         x_start = "7"
         y_start = "12"
         move = "max"
+        _x="367"
+        _y="337"
     />
 
     <module
@@ -49,6 +55,8 @@
         horizon = "infinite"
         initial = "0.1"
         epsilon = "0.0"
+        _x="550"
+        _y="437"
     />
 
     <connection  source = "Environment.OUTPUT"  target = "GW.OBSTACLES" delay="0" />
@@ -59,33 +67,31 @@
     <connection  source = "GW.REWARD"  target = "Q.REINFORCEMENT" delay="0" />	
 
     <view name="Default">
-        <object class="Grid" module="GW" source="IMAGE" color="black, gray, red, green" max="3" x="0" y="0" />
-        <object class="Grid" module="Q" source="VALUE" max="1" x="1" y="0" />
-        <object class="Plot3D" module="Q" source="VALUE" max="1" x="0" y="1" h="2" w="2" />
-        
-        <_object class="BarGraph" module="GW" source="REWARD" x="1" y="1" />
+        <grid  x = "60" y = "120" height = "261" width = "241" title = "Gridworld Image" source = "GW.IMAGE" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	    <grid  x = "300" y = "120" height = "261" width = "241" title = "Q value" source = "Q.VALUE" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "spectrum" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+        <bar-graph  x = "60" y = "380" height = "200" width = "200" title = "GW reward" source = "GW.REWARD" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
     </view>
 
     <view name="All">
-        <object class="Grid" module="GW" source="IMAGE" color="black, gray, red, green" max="3" x="0" y="0" />
-        <object class="Grid" module="GW" source="LOCAL_OBSTACLES" x="1" y="0" />
-        <object class="Grid" module="GW" source="LOCAL_VALUES" max="2" x="2" y="0" />
-        <object class="Grid" module="GW" source="LOCATION" x="3" y="0" />
-        <object class="BarGraph" module="GW" source="REWARD" x="1" y="1" />
-        <object class="BarGraph" module="GW" source="COORDINATE" x="2" y="1" max="13" />
-        <object class="BarGraph" module="Q" source="ACTION" x="0" y="1" />
-        <object class="Grid" module="Q" source="VALUE" max="1" x="0" y="2" />
-        <object class="Plot3D" module="Q" source="VALUE" max="1" x="1" y="2" h="1" w="1" />
-    </view>
+	<grid  x = "60" y = "120" height = "261" width = "241" title = "Gridworld Image" source = "GW.IMAGE" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "300" y = "120" height = "261" width = "241" title = "Gridworld local obstacles" source = "GW.LOCAL_OBSTACLES" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "60" y = "380" height = "261" width = "241" title = "Gridworld local vals" source = "GW.LOCAL_VALUES" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "300" y = "380" height = "261" width = "241" title = "Gridworld location" source = "GW.LOCATION" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "60" y = "640" height = "200" width = "200" title = "GW reward" source = "GW.REWARD" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "280" y = "640" height = "200" width = "200" title = "GW coordinate" source = "GW.COORDINATE" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<bar-graph  x = "60" y = "840" height = "200" width = "200" title = "Q action" source = "Q.ACTION" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "280" y = "840" height = "261" width = "241" title = "Q value" source = "Q.VALUE" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "spectrum" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
-    <view name="Fast">
-        <object class="Image" module="GW" source="IMAGE" x="0" y="0" />
-    </view>
+   <view name="Fast" >
+	<image  x = "120" y = "120" height = "221" width = "241" title = "GW Image" source = "GW.IMAGE" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
+    <!--
     <view name="Field">
         <object class="Plot3D" module="Q" source="VALUE" max="1" x="0" y="0" h="3" w="3" />
     </view>
-
+    -->
     <module class = "Logger" name = "Logger" />
 </group>
  
