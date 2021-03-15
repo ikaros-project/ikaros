@@ -49,6 +49,8 @@ Coarsely, the GridWorld module can be thought of as modeling grid cells, border/
 
 See also:
 
+https://en.wikipedia.org/wiki/Entorhinal_cortex
+
 https://en.wikipedia.org/wiki/Grid_cell
 
 https://en.wikipedia.org/wiki/Boundary_cell
