@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Simple q-learning
+Simple q-learning, a type of reinforcement learning
 
 <br><br>
 
@@ -39,3 +39,11 @@ Simple q-learning
 <br><br>
 ## Long description
 Basic Q-learning.
+
+The QLearning module can be used to with the [GridWorld](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/EnvironmentModules/GridWorld) module to control an agent's navigation to a reward. The [MazeGenerator](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/EnvironmentModules/MazeGenerator) can be used to easily generate an environment to move around in.
+
+See also:
+
+https://en.wikipedia.org/wiki/Q-learning
+
+https://www.youtube.com/watch?v=wN3rxIKmMgE
