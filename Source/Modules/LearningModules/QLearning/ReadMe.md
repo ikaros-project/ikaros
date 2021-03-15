@@ -39,3 +39,5 @@ Simple q-learning
 <br><br>
 ## Long description
 Basic Q-learning.
+
+https://en.wikipedia.org/wiki/Q-learning
