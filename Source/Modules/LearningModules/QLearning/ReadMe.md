@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Simple q-learning
+Simple q-learning, a type of reinforcement learning
 
 <br><br>
 
