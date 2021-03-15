@@ -59,21 +59,21 @@
 	<connection  source = "Goals.OUTPUT"  target = "GW.VALUES" delay="0" />
 	<connection  source = "R.OUTPUT"  target = "GW.MOVE" />
 
-	<view name="Full View">
-		<object class="Grid" module="GW" source="IMAGE" x="0" y="0" color="black,white,red,green" max="3" colors="['black','white','red','green']"/>
-		<object class="Grid" module="GW" source="LOCAL_OBSTACLES" x="1" y="0" />
-		<object class="Grid" module="GW" source="LOCAL_VALUES" x="2" y="0" color="black,orange,yellow" max="2" colors="['black','orange','yellow']"/>
-		<object class="Grid" module="GW" source="LOCATION" x="2" y="1" />
-		<object class="BarGraph" module="GW" source="REWARD" x="1" y="1" min="0" max="2" />
-		<object class="BarGraph" module="R" source="OUTPUT" x="0" y="1" min="0" max="10" />
+<view name="Full View" >
+	<grid  y = "120" frame-style = "" command = "" show_title = "true" colorTable = "" height = "261" flipYCanvas = "no" width = "241" flipYAxis = "no" lineWidth = "1" x = "60" title = "Gridworld Image" max_y = "1" color = "" shape = "rectangle" source = "GW.IMAGE" max_x = "1" red = "" parameter = "" max = "1" labelWidth = "100" scales = "no" green = "" min = "0" valueLow = "0" style = "" labels = "" flipXAxis = "no" size = "1" blue = "" fill = "gray" flipXCanvas = "no" min_y = "0" min_x = "0" valueHigh = "1" show_frame = "false"/>
+	<grid  y = "120" frame-style = "" command = "" show_title = "true" colorTable = "" height = "261" flipYCanvas = "no" width = "241" flipYAxis = "no" lineWidth = "1" x = "300" title = "Gridworld local obstacles" max_y = "1" color = "" shape = "rectangle" source = "GW.LOCAL_OBSTACLES" max_x = "1" red = "" parameter = "" max = "1" labelWidth = "100" scales = "no" green = "" min = "0" valueLow = "0" style = "" labels = "" flipXAxis = "no" size = "1" blue = "" fill = "gray" flipXCanvas = "no" min_y = "0" min_x = "0" valueHigh = "1" show_frame = "false"/>
+	<grid  y = "380" frame-style = "" command = "" show_title = "true" colorTable = "" height = "261" flipYCanvas = "no" width = "241" flipYAxis = "no" lineWidth = "1" x = "60" title = "Gridworld local vals" max_y = "1" color = "" shape = "rectangle" source = "GW.LOCAL_VALUES" max_x = "1" red = "" parameter = "" max = "1" labelWidth = "100" scales = "no" green = "" min = "0" valueLow = "0" style = "" labels = "" flipXAxis = "no" size = "1" blue = "" fill = "gray" flipXCanvas = "no" min_y = "0" min_x = "0" valueHigh = "1" show_frame = "false"/>
+	<grid  y = "380" frame-style = "" command = "" show_title = "true" colorTable = "" height = "261" flipYCanvas = "no" width = "241" flipYAxis = "no" lineWidth = "1" x = "300" title = "Gridworld location" max_y = "1" color = "" shape = "rectangle" source = "GW.LOCATION" max_x = "1" red = "" parameter = "" max = "1" labelWidth = "100" scales = "no" green = "" min = "0" valueLow = "0" style = "" labels = "" flipXAxis = "no" size = "1" blue = "" fill = "gray" flipXCanvas = "no" min_y = "0" min_x = "0" valueHigh = "1" show_frame = "false"/>
+	<bar-graph  x = "60" y = "640" height = "200" auto = "false" show_frame = "false" width = "200" lineWidth = "1" lineJoin = "" transpose = "false" max = "1" source = "GW.REWARD" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" color = "" title = "GW reward" frame-style = "" show_title = "true" min = "0"/>
+	<bar-graph  x = "280" y = "640" height = "200" auto = "false" show_frame = "false" width = "200" lineWidth = "1" lineJoin = "" transpose = "false" max = "20" source = "GW.COORDINATE" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" color = "" title = "GW coordinate" frame-style = "" show_title = "true" min = "0"/>
+	<grid  y = "840" frame-style = "" command = "" show_title = "true" colorTable = "" height = "261" flipYCanvas = "no" width = "241" flipYAxis = "no" lineWidth = "1" x = "280" title = "Environment" max_y = "1" color = "" shape = "rectangle" source = "Environment.OUTPUT" max_x = "1" red = "" parameter = "" max = "1" labelWidth = "100" scales = "no" green = "" min = "0" valueLow = "0" style = "" labels = "" flipXAxis = "no" size = "1" blue = "" fill = "spectrum" flipXCanvas = "no" min_y = "0" min_x = "0" valueHigh = "1" show_frame = "false"/>
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "0" scrollable = "false" direction = "normal" y = "660" label_y = "" source = "GW.COORDINATE" title = "Default Title" label_x = "" width = "81" show_frame = "false" height = "41" x = "340"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "NaN" scrollable = "false" direction = "normal" y = "840" label_y = "" source = "GW.COLLISION" title = "GW Collision action" label_x = "" width = "201" show_frame = "false" height = "61" x = "60"/>
+</view>
 
-		<object class="Grid" module="Environment" source="OUTPUT" x="0" y="2" />
-		<object class="BarGraph" module="GW" source="COORDINATE" x="1" y="2" max="9" />
-		<object class="BarGraph" module="GW" source="COLLISION" x="2" y="2" max="1" />
-	</view>
 
 	<view name="Small View">
-		<object class="Grid" module="GW" source="IMAGE" x="0" y="0" color="black,white,red,green" max="3" />
+		<grid source="GW.IMAGE" x="100" y="100" color="black,white,red,green" max="3" width="250" height="250" />
 	</view>
 
     <module class = "Logger" name = "Logger" />
