@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group name="Epi Eye">
+
+	<description>
+        Camera input and down scaling of the image
+	</description>
+
+	<output name="FULL_RES_RED" source="EYE.RED" />
+	<output name="FULL_RES_GREEN" source="EYE.GREEN" />
+	<output name="FULL_RES_BLUE" source="EYE.BLUE" />
+	<output name="FULL_RES_INTENSITY" source="EYE.INTENSITY" />
+
+	<output name="LOW_RES_RED" source="LOW_RED.OUTPUT" />
+	<output name="LOW_RES_GREEN" source="LOW_GREEN.OUTPUT" />
+	<output name="LOW_RES_BLUE" source="LOW_BLUE.OUTPUT" />
+	<output name="LOW_RES_INTENSITY" source="LOW_INTENSITY.OUTPUT" />
+
+	<!-- Input from video stream or local images if running in simlation -->
+	<module
+		class = "@VisionInput"
+		name = "EYE"
+        url = "@VisionStream"
+        uv4l = "true"
+		info = "false"
+        active = "yes"
+		size_x = "640"
+		size_y = "640"
+		syncronized_tick = "false" />
+
+	<!-- Downsample -->
+	<module class = "Downsample" name = "LOW_RED" />
+	<module class = "Downsample" name = "LOW_GREEN" />
+	<module class = "Downsample" name = "LOW_BLUE" />
+	<module class = "Downsample" name = "LOW_INTENSITY" />
+
+	<connection source = "EYE.RED"       target = "LOW_RED.INPUT" delay="0" />
+	<connection source = "EYE.GREEN"     target = "LOW_GREEN.INPUT" delay="0" />
+	<connection source = "EYE.BLUE"      target = "LOW_BLUE.INPUT" delay="0" />
+	<connection source = "EYE.INTENSITY" target = "LOW_INTENSITY.INPUT" delay="0" />
+
+	<view name="Scaled">
+		<image  flipXAxis = "no" scale = "both" width = "301" title = "Full" max_x = "1" max_y = "1" height = "261" x = "400" source = "EYE.RED+GREEN+BLUE" format = "rgb" flipYAxis = "no" flipXCanvas = "no" h = "4" y = "20" w = "4" show_title = "true" scales = "no" flipYCanvas = "no" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_frame = "false" style = "" frame-style = ""/>
+		<image  flipXAxis = "no" scale = "both" width = "321" title = "Full" max_x = "1" max_y = "1" height = "261" x = "60" format = "gray" source = "EYE.INTENSITY" flipYAxis = "no" flipXCanvas = "no" h = "4" y = "20" w = "4" show_title = "true" scales = "no" flipYCanvas = "no" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_frame = "false" style = "" frame-style = ""/>
+		<image  flipXAxis = "no" scale = "both" width = "301" title = "Low" max_x = "1" max_y = "1" height = "241" x = "400" source = "LOW_RED.OUTPUT+LOW_GREEN.OUTPUT+LOW_BLUE.OUTPUT" format = "rgb" flipYAxis = "no" flipXCanvas = "no" h = "4" y = "300" w = "4" show_title = "true" scales = "no" flipYCanvas = "no" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_frame = "false" style = "" frame-style = ""/>
+		<image  flipXAxis = "no" scale = "both" width = "321" title = "Low" max_x = "1" max_y = "1" height = "241" x = "60" format = "gray" source = "LOW_INTENSITY.OUTPUT" flipYAxis = "no" flipXCanvas = "no" h = "4" y = "300" w = "4" show_title = "true" scales = "no" flipYCanvas = "no" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_frame = "false" style = "" frame-style = ""/>
+	</view>
+
+</group>
+
