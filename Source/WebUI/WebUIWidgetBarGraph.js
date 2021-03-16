@@ -133,10 +133,10 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         if(this.data = this.getSource('source'))
         {
             if(this.parameters.auto)
-                this.parameters.max = this.max(parseFloat(this.data)) || 1;
+                this.parameters.max = this.max(this.data) || 1;
 
             if(this.parameters.transpose)
-                this.data = this.transpose(parseFloat(this.data)); // TODO: should be changed in drawing instead
+                this.data = this.transpose(this.data); // TODO: should be changed in drawing instead
 
             this.draw(this.data[0].length, this.data.length);
         }
