@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Segments into depth planes
+Segments a depth image into depth planes
 
 <br><br>
 
@@ -34,4 +34,4 @@ Segments into depth planes
 
 <br><br>
 ## Long description
-Segments a depth image to find a single object.
+Segments a depth image, e.g. from a Kinect unit, to find a single object.
