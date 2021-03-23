@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Simple agent and world simulator
+Simple agent and world simulator.
 
 <br><br>
 
@@ -43,3 +43,16 @@ Simple agent and world simulator
 
 <br><br>
 ## Long description
+The GridWorld module can e.g. be used with the [MazeGenerator](https://github.com/ikaros-project/ikaros/tree/master/Source/Modules/EnvironmentModules/MazeGenerator) module and the [QLearning](https://github.com/ikaros-project/ikaros/tree/master/Source/Modules/LearningModules/QLearning) module. The former generates an environment with borders, the latter generates movement commands based on Location and Reward outputs from a GridWorld instance.
+
+Coarsely, the GridWorld module can be thought of as modeling grid cells, border/boundary cells, and goal cells in the entorhinal cortex.
+
+See also:
+
+https://en.wikipedia.org/wiki/Entorhinal_cortex
+
+https://en.wikipedia.org/wiki/Grid_cell
+
+https://en.wikipedia.org/wiki/Boundary_cell
+
+[Grieves and Jeffrey 2017 - The representation of space in the brain](https://www.sciencedirect.com/science/article/pii/S0376635716302480?casa_token=iuWm55YA-i4AAAAA:_rA4_oHQRCRIbCgB36-EqPVtXluLJ8VWypl3bHoRbpnMTrL7fbnSt7lg7JrJzzdLrS3TnVdvXQ) 

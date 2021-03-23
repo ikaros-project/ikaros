@@ -13,7 +13,7 @@
 		/>
 	</example>
  
- 	<input name="INPUT" description="The input" />
+ 	<input name="INPUT" description="Perception input" />
 	<output name="OUTPUT" description="The feature vector for the currently attended property of the selected object/location" size="80" />
 
 	<link class="MemorySequencer" />

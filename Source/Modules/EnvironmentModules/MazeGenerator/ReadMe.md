@@ -33,3 +33,4 @@ Generates a perfect maze
 
 <br><br>
 ## Long description
+The MazeGenerator module can be used to generate input for the [GridWorld](https://github.com/ikaros-project/ikaros/blob/master/Source/Modules/EnvironmentModules/GridWorld/ReadMe.md) module, which again can be used with the [QLearning](https://github.com/ikaros-project/ikaros/tree/master/Source/Modules/LearningModules/QLearning) module that learns the path to a reward, and generates movement actions.

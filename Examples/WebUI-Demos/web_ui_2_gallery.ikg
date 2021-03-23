@@ -921,13 +921,18 @@
         _color = "red"
         _text_color =" white"
     />
-    <module
+    <_module
         class = "Randomizer"
         name = "R3x7"
         outputsize_x = "2"
         outputsize_y = "1"
     />
 
+    <module
+        class = "Constant"
+        name = "R3x7"
+        data ="0 0 0 0 0 0"
+    />
      <module
         class = "Randomizer"
         name = "R23"
