@@ -41,4 +41,6 @@ A standard kalman filter
 
 <br><br>
 ## Long description
-The module implements a standard Kalman filter. The process is described by the equation
+The module implements a standard Kalman filter. The process is described by the equation.
+
+See [Kalman filter](https://en.wikipedia.org/wiki/Kalman_filter)
