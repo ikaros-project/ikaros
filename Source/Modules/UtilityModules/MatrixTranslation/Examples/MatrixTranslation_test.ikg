@@ -21,7 +21,7 @@
 		  class       =   "FunctionGenerator"
 		  name        =   "SinGenY"
 		  type        =   "sin"
-		  frequency  =  "0.005"
+		  frequency  =  "0.5"
 		  offset      =   "0.0"
 		  amplitude   =   "5"
 		  shift       =   "0.50"
@@ -37,28 +37,13 @@
         <connection  source = "SinGenY.OUTPUT"  target = "MatrixTranslationInstance.Y" />
         <connection  source = "InputImg.INTENSITY"  target = "MatrixTranslationInstance.INPUT" />
 
-		<view name="View">
-			<object class="Plot " 
-				module="SinGenX" 
-				source="OUTPUT" 
-				x="0" y="0" w="2" h="2"
-				min="-10"
-				max="10"
-				color="yellow"
-			/>
-			<object class="Plot " 
-				module="SinGenY" 
-				source="OUTPUT" 
-				x="2" y="0" w="2" h="2"
-				min="10"
-				max="-10"
-				color="green"
-			/>
-			<object class= "Image" type="gray" module="InputImg" source="INTENSITY"
-                x="0" y="2" h="2" w="2" />
-            <object class= "Image" type="gray" module="MatrixTranslationInstance" source="OUTPUT"
-                x="2" y="2" h="2" w="2" />
-		</view>
+<view name="View" >
+	<image  x = "240" y = "160" height = "200" width = "200" title = "Image" source = "MatrixTranslationInstance.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "160" height = "200" width = "200" title = "Image" source = "InputImg.INTENSITY" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "20" y = "380" height = "200" width = "200" title = "Plot" source = "SinGenX.OUTPUT" select = "" min = "100" max = "-100" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "220" y = "380" height = "200" width = "200" title = "Plot" source = "SinGenY.OUTPUT" select = "" min = "-100" max = "100" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
 
 </group>
  

@@ -12,7 +12,7 @@
 		  class       =   "FunctionGenerator"
 		  name        =   "SinGenX"
 		  type        =   "sin"
-		  frequency  =  "0.009"
+		  frequency  =  "0.09"
 		  offset      =   "1.9"
 		  amplitude   =   "1"
 		  shift       =   "0.0"
@@ -37,28 +37,11 @@
         <connection  source = "SinGenX.OUTPUT"  target = "MatrixScaleInstance.Y" />
         <connection  source = "InputImg.INTENSITY"  target = "MatrixScaleInstance.INPUT" />
 
-		<view name="View">
-			<object class="Plot " 
-				module="SinGenX" 
-				source="OUTPUT" 
-				x="0" y="0" w="2" h="2"
-				min="-10"
-				max="10"
-				color="yellow"
-			/>
-			<_object class="Plot " 
-				module="SinGenY" 
-				source="OUTPUT" 
-				x="2" y="0" w="2" h="2"
-				min="10"
-				max="-10"
-				color="green"
-			/>
-			<object class= "Image" type="gray" module="InputImg" source="INTENSITY"
-                x="0" y="2" h="2" w="2" />
-            <object class= "Image" type="gray" module="MatrixScaleInstance" source="OUTPUT"
-                x="2" y="2" h="2" w="2" />
-		</view>
+<view name="View" >
+	<image  x = "220" y = "120" height = "200" width = "200" title = "Image" source = "MatrixScaleInstance.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "120" height = "200" width = "200" title = "Image" source = "InputImg.INTENSITY" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
 
 </group>
  
