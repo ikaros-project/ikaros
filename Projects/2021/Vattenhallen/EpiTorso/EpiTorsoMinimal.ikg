@@ -27,8 +27,8 @@ nrServosTotal = "6"
 	json_filename = "Actions/motion.%d.json"
 	smoothing_time = "40" 
 	max_motions = "31" 
-	torque_on_record = "0 0 1 1 1 1" 
-	position_data_max = "10000"
+	torque_on_record = "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" 
+	position_data_max = "10000" 
 	/>
 
 	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->
@@ -90,7 +90,7 @@ nrServosTotal = "6"
 	<!-- The servo used is Dynamixel XL-320 for the pupil dilation, RX28F for Eyes and MX106 for neck -->
 
 	<!-- Set torque limit of the servos. Setting value to 1 will use the most torque but the motion may be gerky. Often a lower value is better. -->
-	<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.8 0.8 0.8 0.8 0.8 0.8" />
+	<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.5 0.5 0.8 0.8 0.8 0.8" />
 
 	<!-- 			Sensors		 			-->
 	<!-- ********************************* 	-->
@@ -98,8 +98,8 @@ nrServosTotal = "6"
 	<!-- ********************************* 	-->
 	<!-- The camera in the eyes are sending a network stream of h.264 that can be decoded using the ffmpeg library. 
 	By setting the VisionInputLeft/Right variable a local image can be used instead of the viseo stream. -->
-	<module class = "EpiVision" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg" 	VisionInput = "@VisionInputLeft"/>
-	<module class = "EpiVision" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg" 	VisionInput = "@VisionInputRight"/>
+	<_module class = "EpiVision" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg" 	VisionInput = "@VisionInputLeft"/>
+	<_module class = "EpiVision" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg" 	VisionInput = "@VisionInputRight"/>
 
 	<!-- Actuators/Proprioception -->
 	<module class = "EpiServos" 	name = "Servos" />

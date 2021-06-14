@@ -63,13 +63,13 @@ VisionInputRight = "InputJPEG"
 	<!-- Importing Epi Gray-->
 
 <module class = "EpiTorsoMinimal" name = "EpiGray" 
-	HeadDynamixel = "DynamixelSimulate" 
-	PupilDynamixel = "DynamixelSimulate" 
-	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
-	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
+	HeadDynamixel = "Dynamixel" 
+	PupilDynamixel = "Dynamixel" 
+	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGMS" 
+	PupilSerialDevice = "/dev/cu.usbserial-FT4THV1J"
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
-	pupilOffset = "-20 -81"
+	pupilOffset = "-34 -13"
 	/>
 
     <!-- Take picture trigger -->
@@ -97,7 +97,7 @@ VisionInputRight = "InputJPEG"
     <module
         class="Constant"
         name="MotionTrigger"
-        data="0 0 0 0 0"
+        data="0 0 0 0 0 0 0"
     />
     <connection source = "MotionTrigger.OUTPUT" target = "EpiGray.MotionRecorder.TRIG" />
 
