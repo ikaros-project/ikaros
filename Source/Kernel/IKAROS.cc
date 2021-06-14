@@ -4100,6 +4100,7 @@ Kernel::HandleHTTPRequest()
         header.Set("Content-Type", "text/plain");
         header.Set("Cache-Control", "no-cache");
         header.Set("Cache-Control", "no-store");
+        header.Set("Access-Control-Allow-Origin", "*");
         header.Set("Pragma", "no-cache");
         socket->SendHTTPHeader(&header);
         socket->Send("OK\n");
