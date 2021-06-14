@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<group name="Ikaros Viewer">
+
+    <module
+        class   = "MothAnimation"
+        name	= "MothAnimation"
+    />
+
+
+    <module class = "Logger" name = "Logger" />
+
+    <view name="Epi the Robot">
+        <epi-head 
+            label="Epi"
+            gazeSource="G.OUTPUT"
+            pupilLeftSource="P.OUTPUT"
+            pupilRightSource="P.OUTPUT"
+            x="20" y="20"
+            width="300" height="300"
+            _visibleSource="Enable.OUTPUT"
+            offsetSource="Wave.OUTPUT"
+            irisLeftRed="WaveR.OUTPUT"
+            irisLeftGreen="WaveG.OUTPUT"
+            irisLeftBlue="WaveB.OUTPUT"
+            irisRightRed="WaveR.OUTPUT"
+            irisRightGreen="WaveG.OUTPUT"
+            irisRightBlue="WaveB.OUTPUT"
+            show_title = "no"
+            show_frame = "yes"
+        />
+    </view>
+    
+</group>

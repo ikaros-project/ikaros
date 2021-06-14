@@ -12,7 +12,7 @@
 		  class       =   "FunctionGenerator"
 		  name        =   "SinGen"
 		  type        =   "sin"
-		  frequency  =  "0.005"
+		  frequency  =  "0.5"
 		  offset      =   "0.0"
 		  amplitude   =   "90"
 		  shift       =   "0.0"
@@ -27,19 +27,12 @@
 		
         <connection  source = "SinGen.OUTPUT"  target = "MatrixRotationInstance.ANGLE" />
         <connection  source = "InputImg.INTENSITY"  target = "MatrixRotationInstance.INPUT" />
-		<view name="View">
-			<object class="Plot " 
-				module="SinGen"
-				source="OUTPUT" 
-				x="0" y="0" w="2" h="2"
-				min="-90"
-				max="90"
-			/>
-			<object class= "Image" type="gray" module="InputImg" source="INTENSITY"
-                x="2" y="0" h="2" w="2" />
-            <object class= "Image" type="gray" module="MatrixRotationInstance" source="OUTPUT"
-                x="0" y="2" h="2" w="2" />
-		</view>
+<view name="View" >
+	<image  x = "220" y = "120" height = "200" width = "200" title = "Image" source = "MatrixRotationInstance.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "0" y = "120" height = "200" width = "200" title = "Image" source = "InputImg.INTENSITY" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<plot  x = "40" y = "380" height = "200" width = "200" title = "Plot" source = "SinGen.OUTPUT" select = "" min = "-100" max = "100" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
 
 </group>
  
