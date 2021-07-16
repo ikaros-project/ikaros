@@ -7,19 +7,41 @@
 -->
 
 <group title="FAST Detector">
-		<module class = "InputJPEG" name = "IN" filename = "../../../../../../../Examples/Media/cannes.jpg" iterations = "2000" />
+	<module_ 
+		class = "InputJPEG" 
+		name = "IN" 
+		filename = "../../../../../../../Examples/Media/cannes.jpg" 
+		iterations = "2000" 
+	/>
 
-		<module  class = "FASTDetector" name = "FAST" />
+	<module
+		class="InputVideo" 
+		name="InputVideo" 
+		_frame_rate="29.97" 
+		frame_rate="30" 
+		list_devices = "yes"
+		id ="1"
+	/>
 
-		<connection  source = "IN.INTENSITY"  target = "FAST.INPUT" delay="0" />
+	<module  
+		class = "FASTDetector" 
+		name = "FAST" 
+	/>
 
-		<view name = "Points">
-			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" h="4" w="4" />
-			<object class="Image" module="FAST" source="OUTPUT" x="4" y="0" h="4" w="4"  />
-            
-            <object class="Cross"  module="FAST" source="POINTS" x="0" y="0" h="4" w="4"  size="0.005"/>
+	<connection  source = "InputVideo.INTENSITY"  target = "FAST.INPUT" delay="0" />
 
-		</view>
+<view name="View" >
+	<image  w = "4" scales = "no" scale = "both" flipXAxis = "no" y = "220" max_y = "1" height = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" format = "rgb" source = "InputVideo.RED+GREEN+BLUE" width = "381" title = "Output" flipYCanvas = "no" x = "240" max_x = "1" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<Image  w = "4" h = "4" y = "0" x = "0" source = "INTENSITY" module = "IN"/>
+	<Image  w = "4" h = "4" y = "0" x = "4" source = "OUTPUT" module = "FAST"/>
+	<Cross  w = "4" h = "4" y = "0" x = "0" source = "POINTS" size = "0.005" module = "FAST"/>
+	<image  w = "4" scales = "no" scale = "both" flipXAxis = "no" y = "220" max_y = "1" height = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" format = "rgb" source = "InputVideo.RED+GREEN+BLUE" width = "381" title = "Output" flipYCanvas = "no" x = "620" max_x = "1" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "20" height = "861" width = "1041" title = "Image" source = "InputVideo.RED+GREEN+BLUE" file = "" index = "" module = "" command = "" format = "rgb" scale = "both" opacity = "1" scales = "yes" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<marker  x = "20" y = "20" height = "861" width = "1041" title = "" source = "FAST.POINTS" order = "col" select = "0" selectValue = "" count = "0" markerType = "cross" size = "0.02" color = "yellow" fill = "red" lineWidth = "1" lineCap = "butt" lineJoin = "miter" labelType = "none" labels = "" labelFont = "18px sans-serif" labelDecimals = "2" labelPrefix = "" labelPostfix = "" labelAlign = "center" labelBaseline = "middle" labelOffsetX = "0" labelOffsetY = "0" scales = "yes" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "yes" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = "" scale_x = "1" scale_y = "1"/>
+	<table  x = "120" y = "900" height = "21" width = "121" title = "Default Title" source = "FAST.POINT_COUNT" label_x = "" label_y = "" direction = "normal" decimals = "0" colorize = "true" scrollable = "false" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<text  x = "60" y = "900" height = "21" width = "61" title = "Default Title" parameter = "" text = "Points" prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "420" y = "900" height = "21" width = "221" title = "Sliders" parameter = "FAST.threshold" select = "0" count = "1" labels = "" min = "0" max = "100" step = "1" show_values = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
     <module class = "Logger" name = "Logger" />
 </group>
