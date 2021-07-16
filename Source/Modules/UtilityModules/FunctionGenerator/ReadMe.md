@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Generates a signals of type:
+Generates a signal of type:
 
 * sinus
 * triangle
