@@ -4,7 +4,13 @@
 <br><br>
 ## Short description
 
-Functions of times
+Generates a signals of type:
+
+* sinus
+* triangle
+* ramp
+* square
+* ticksquare: square wave where uptime, or "tick" length can be specified
 
 <br><br>
 
@@ -28,7 +34,7 @@ Functions of times
 |Name|Description|Type|Default value|
 |:----|:-----------|:----|:-------------|
 |size|Number of outputs (that will contain the same value)|int|1|
-|type|Function selector|list||
+|type|Function selector|list|sin/triangle/ramp/square/ticksquare|
 |offset|A constant value added to the output|float|0.0|
 |amplitude|The amplitide of the signal|float|1.0|
 |frequency|Frequency of the signal.|float|0.15707963267949|
