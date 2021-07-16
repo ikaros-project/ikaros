@@ -2,30 +2,37 @@
 
 <group title="InputVideo Example">
 
-	<module class="InputVideo" name="InputVideo" _frame_rate="29.97" frame_rate="30" />
+	<module
+		class="InputVideo" 
+		name="InputVideo" 
+		_frame_rate="29.97" 
+		frame_rate="30" 
+		list_devices = "yes"
+		id ="1"
+	/>
 
+	
 	<view name="View">
 		<image
-		max_x = "1"
-		title = "Output"
-		width = "381"
-		flipYCanvas = "no"
-		x = "60"
-		source = "InputVideo.RED+GREEN+BLUE"
-		format = "rgb"
-		flipYAxis = "no"
-		flipXCanvas = "no"
-		h = "4"
-		height = "321"
-		max_y = "1"
-		y = "60"
-		flipXAxis = "no"
-		scale = "both"
-		class = "image"
-		scales = "no"
-		w = "4"
+			max_x = "1"
+			title = "Output"
+			width = "381"
+			flipYCanvas = "no"
+			x = "60"
+			source = "InputVideo.RED+GREEN+BLUE"
+			format = "rgb"
+			flipYAxis = "no"
+			flipXCanvas = "no"
+			h = "4"
+			height = "321"
+			max_y = "1"
+			y = "60"
+			flipXAxis = "no"
+			scale = "both"
+			class = "image"
+			scales = "no"
+			w = "4"
 		/>
-		
 	</view>
 	<module class="Logger" name="Logger"/>
 </group>
