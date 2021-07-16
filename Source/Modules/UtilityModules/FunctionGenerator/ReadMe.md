@@ -34,7 +34,7 @@ Generates a signals of type:
 |Name|Description|Type|Default value|
 |:----|:-----------|:----|:-------------|
 |size|Number of outputs (that will contain the same value)|int|1|
-|type|Function selector|list|sin/triangle/ramp/square/ticksquare|
+|type|Function selector|list (sin/triangle/ramp/square/ticksquare)|sin|
 |offset|A constant value added to the output|float|0.0|
 |amplitude|The amplitide of the signal|float|1.0|
 |frequency|Frequency of the signal.|float|0.15707963267949|
