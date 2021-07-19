@@ -55,7 +55,7 @@ FASTDetector::Tick()
     float_to_byte(data, *input, 0, 1, size_x*size_y);
     
     int numcorners;
-    xy * points = fast9_detect_nonmax(data, size_x, size_y, size_x, threshold, &numcorners);
+    xy * points = fast12_detect_nonmax(data, size_x, size_y, size_x, threshold, &numcorners);
     
     reset_matrix(corners, 2, max_points);
     int point_count = min(numcorners, max_points);

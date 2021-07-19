@@ -12,7 +12,9 @@
 		/>
 	</example>
     
-    <parameter name="threshold" type="int" default="40" description="the threshold for the FAST detector" />
+    <parameter name="threshold" type="float" default="12" description="the threshold for the FAST detector" />
+    <parameter name="adaptive_threshold" type="float" default="100" description="the desired number of points to detect" />
+    <parameter name="adaptive_delta" type="float" default="0.0" description="treshold change per iteration" />
     <parameter name="max_points" type="int" default="5000" description="maximum number of points to detect" />
 
 	<input name="INPUT" description="The input image" />

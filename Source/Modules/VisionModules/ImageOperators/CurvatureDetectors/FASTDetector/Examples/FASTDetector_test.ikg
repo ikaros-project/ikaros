@@ -7,12 +7,6 @@
 -->
 
 <group title="FAST Detector">
-	<module_ 
-		class = "InputJPEG" 
-		name = "IN" 
-		filename = "../../../../../../../Examples/Media/cannes.jpg" 
-		iterations = "2000" 
-	/>
 
 	<module
 		class="InputVideo" 
@@ -23,25 +17,51 @@
 		id ="1"
 	/>
 
-	<module  
-		class = "FASTDetector" 
-		name = "FAST" 
-	/>
+	<module class = "Downsample" name = "D1" />
+	<module class = "Downsample" name = "D2" />
+	<module class = "Downsample" name = "D3" />
+	<module class = "Downsample" name = "D4" />
 
-	<connection  source = "InputVideo.INTENSITY"  target = "FAST.INPUT" delay="0" />
+	<connection  source = "InputVideo.INTENSITY"  target = "D1.INPUT" delay="0" />
+	<connection  source = "D1.OUTPUT"  target = "D2.INPUT" delay="0" />
+	<connection  source = "D2.OUTPUT"  target = "D3.INPUT" delay="0" />
+	<connection  source = "D3.OUTPUT"  target = "D4.INPUT" delay="0" />
+
+	<module class = "FASTDetector" name = "FAST0" />
+	<module class = "FASTDetector" name = "FAST1" />
+	<module class = "FASTDetector" name = "FAST2" />
+	<module class = "FASTDetector" name = "FAST3" />
+	<module class = "FASTDetector" name = "FAST4" />
+
+
+	<connection  source = "InputVideo.INTENSITY"  target = "FAST0.INPUT" delay="0" />
+	<connection  source = "D1.OUTPUT"  target = "FAST1.INPUT" delay="0" />
+	<connection  source = "D2.OUTPUT"  target = "FAST2.INPUT" delay="0" />
+	<connection  source = "D3.OUTPUT"  target = "FAST3.INPUT" delay="0" />
+	<connection  source = "D4.OUTPUT"  target = "FAST4.INPUT" delay="0" />
 
 <view name="View" >
-	<image  w = "4" scales = "no" scale = "both" flipXAxis = "no" y = "220" max_y = "1" height = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" format = "rgb" source = "InputVideo.RED+GREEN+BLUE" width = "381" title = "Output" flipYCanvas = "no" x = "240" max_x = "1" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-	<Image  w = "4" h = "4" y = "0" x = "0" source = "INTENSITY" module = "IN"/>
-	<Image  w = "4" h = "4" y = "0" x = "4" source = "OUTPUT" module = "FAST"/>
-	<Cross  w = "4" h = "4" y = "0" x = "0" source = "POINTS" size = "0.005" module = "FAST"/>
-	<image  w = "4" scales = "no" scale = "both" flipXAxis = "no" y = "220" max_y = "1" height = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" format = "rgb" source = "InputVideo.RED+GREEN+BLUE" width = "381" title = "Output" flipYCanvas = "no" x = "620" max_x = "1" file = "" index = "" module = "" command = "" opacity = "1" min_x = "0" min_y = "0" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-	<image  x = "20" y = "20" height = "861" width = "1041" title = "Image" source = "InputVideo.RED+GREEN+BLUE" file = "" index = "" module = "" command = "" format = "rgb" scale = "both" opacity = "1" scales = "yes" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-	<marker  x = "20" y = "20" height = "861" width = "1041" title = "" source = "FAST.POINTS" order = "col" select = "0" selectValue = "" count = "0" markerType = "cross" size = "0.02" color = "yellow" fill = "red" lineWidth = "1" lineCap = "butt" lineJoin = "miter" labelType = "none" labels = "" labelFont = "18px sans-serif" labelDecimals = "2" labelPrefix = "" labelPostfix = "" labelAlign = "center" labelBaseline = "middle" labelOffsetX = "0" labelOffsetY = "0" scales = "yes" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "yes" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = "" scale_x = "1" scale_y = "1"/>
-	<table  x = "120" y = "900" height = "21" width = "121" title = "Default Title" source = "FAST.POINT_COUNT" label_x = "" label_y = "" direction = "normal" decimals = "0" colorize = "true" scrollable = "false" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-	<text  x = "60" y = "900" height = "21" width = "61" title = "Default Title" parameter = "" text = "Points" prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-	<slider-horizontal  x = "420" y = "900" height = "21" width = "221" title = "Sliders" parameter = "FAST.threshold" select = "0" count = "1" labels = "" min = "0" max = "100" step = "1" show_values = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  style = "" x = "20" opacity = "1" file = "" index = "" format = "gray" max_x = "1" module = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Output" flipYAxis = "no" width = "281" scale = "both" source = "D1.OUTPUT" min_y = "0" flipXCanvas = "no" h = "4" show_title = "false" command = "" min_x = "0" frame-style = "" y = "0" flipXAxis = "no" scales = "no" w = "4"/>
+	<image  style = "" show_frame = "false" opacity = "1" min_y = "0" flipXCanvas = "no" flipYAxis = "no" width = "1021" y = "0" frame-style = "" format = "rgb" max_x = "1" scales = "yes" command = "" show_title = "false" min_x = "0" flipXAxis = "no" scale = "both" source = "InputVideo.RED+GREEN+BLUE" title = "Image" max_y = "1" flipYCanvas = "no" height = "961" module = "" file = "" index = "" x = "300"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "1" scales = "yes" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "red" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "FAST1.POINTS" title = "" max_y = "1" labelBaseline = "middle" lineWidth = "1" x = "300" flipYCanvas = "no" height = "961" labelPrefix = "" color = "green" markerType = "cross" flipYAxis = "no" width = "1021" y = "0" frame-style = "" order = "col"/>
+	<table  style = "" show_title = "false" frame-style = "" title = "Default Title" colorize = "true" direction = "normal" scrollable = "false" decimals = "0" y = "980" label_y = "" source = "FAST.POINT_COUNT" width = "121" label_x = "" x = "420" show_frame = "false" height = "21"/>
+	<text  style = "" y = "980" postfix = "" prefix = "" select_source = "" frame-style = "" separator = "" show_frame = "false" text = "Points" height = "21" strings = "" x = "360" parameter = "" show_title = "false" width = "61" title = "Default Title"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "100" show_values = "true" step = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "FAST0.threshold" x = "1380" height = "21" show_frame = "false" title = "Sliders" width = "221" y = "20"/>
+	<image  style = "" x = "20" opacity = "1" file = "" index = "" format = "gray" max_x = "1" module = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Output" flipYAxis = "no" width = "281" scale = "both" source = "D3.OUTPUT" min_y = "0" flipXCanvas = "no" h = "4" show_title = "false" command = "" min_x = "0" frame-style = "" y = "480" flipXAxis = "no" scales = "no" w = "4"/>
+	<image  style = "" x = "20" opacity = "1" file = "" index = "" format = "gray" max_x = "1" module = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Output" flipYAxis = "no" width = "281" scale = "both" source = "D4.OUTPUT" min_y = "0" flipXCanvas = "no" h = "4" show_title = "false" command = "" min_x = "0" frame-style = "" y = "720" flipXAxis = "no" scales = "no" w = "4"/>
+	<image  style = "" x = "20" opacity = "1" file = "" index = "" format = "gray" max_x = "1" module = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Output" flipYAxis = "no" width = "281" scale = "both" source = "D2.OUTPUT" min_y = "0" flipXCanvas = "no" h = "4" show_title = "false" command = "" min_x = "0" frame-style = "" y = "240" flipXAxis = "no" scales = "no" w = "4"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "1" scales = "yes" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "red" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "FAST2.POINTS" title = "" max_y = "1" labelBaseline = "middle" lineWidth = "1" x = "300" flipYCanvas = "no" height = "961" labelPrefix = "" color = "red" markerType = "cross" flipYAxis = "no" width = "1021" y = "0" frame-style = "" order = "col"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "1" scales = "yes" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "red" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "FAST0.POINTS" title = "" max_y = "1" labelBaseline = "middle" lineWidth = "1" x = "300" flipYCanvas = "no" height = "961" labelPrefix = "" color = "yellow" markerType = "cross" flipYAxis = "no" width = "1021" y = "0" frame-style = "" order = "col"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "100" show_values = "true" step = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "FAST1.threshold" x = "1380" height = "21" show_frame = "false" title = "Sliders" width = "221" y = "60"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "100" show_values = "true" step = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "FAST2.threshold" x = "1380" height = "21" show_frame = "false" title = "Sliders" width = "221" y = "100"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "100" show_values = "true" step = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "FAST3.threshold" x = "1380" height = "21" show_frame = "false" title = "Sliders" width = "221" y = "140"/>
 </view>
+
+
+
+
+
+
 
     <module class = "Logger" name = "Logger" />
 </group>
