@@ -34,7 +34,6 @@ FASTDetector::Init()
     Bind(max_points, "max_points");
   
     input	= GetInputMatrix("INPUT");
-    output	= GetOutputMatrix("OUTPUT");
     
     corners         = GetOutputMatrix("POINTS");
     corner_count    = GetOutputArray("POINT_COUNT");
@@ -48,8 +47,7 @@ FASTDetector::Init()
 void
 FASTDetector::Tick()
 {
-    copy_matrix(output, input, size_x, size_y);
-    
+
     unsigned char * data = new unsigned char [size_x*size_y];
     
     float_to_byte(data, *input, 0, 1, size_x*size_y);

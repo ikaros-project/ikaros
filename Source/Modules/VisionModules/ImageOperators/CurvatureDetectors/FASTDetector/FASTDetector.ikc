@@ -18,7 +18,6 @@
     <parameter name="max_points" type="int" default="5000" description="maximum number of points to detect" />
 
 	<input name="INPUT" description="The input image" />
-	<output name="OUTPUT" description="Output" size_set="INPUT" />
 	<output name="POINTS" description="Table with corners" size_x="2" size_y="5000" />
 	<output name="POINT_COUNT" description="Number of corners found" size="1" />
 
