@@ -36,7 +36,7 @@ FASTDetector::Init()
     input	= GetInputMatrix("INPUT");
     
     corners         = GetOutputMatrix("POINTS");
-    corner_count    = GetOutputArray("POINT_COUNT");
+    corner_count    = GetOutputArray("POINTS_COUNT");
     
     size_x  = GetInputSizeX("INPUT");
     size_y  = GetInputSizeY("INPUT");
