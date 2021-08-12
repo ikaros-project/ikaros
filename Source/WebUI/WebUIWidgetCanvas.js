@@ -79,6 +79,9 @@ class WebUIWidgetCanvas extends WebUIWidget
 
     drawArrowHead(fromX, fromY, toX, toY)
     {
+        if(fromX==toX && fromY==toY)
+            return;
+
         var angle = Math.atan2(toY-fromY, toX-fromX);
         var arrow = [[0,0], [-10,-5], [-10, 5]];
         this.canvas.save();
