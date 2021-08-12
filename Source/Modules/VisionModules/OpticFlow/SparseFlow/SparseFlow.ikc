@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<class name="SparseFlow" description="calculates optic flow between points">
+
+	<description type="text">
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SparseFlow"
+			name="SparseFlow"
+		/>
+	</example>
+    
+    <parameter name="threshold" type="float" default="12" description="the threshold for the FAST detector" />
+    <parameter name="adaptive_threshold" type="float" default="100" description="the desired number of points to detect" />
+    <parameter name="adaptive_delta" type="float" default="0.0" description="treshold change per iteration" />
+    <parameter name="max_points" type="int" default="5000" description="maximum number of points to detect" />
+
+	<input name="INPUT" description="The input image" />
+	<input name="INPUT_LAST" description="The input image for the previous time step" />
+	<input name="POINTS" description="The interest points in the image"/>
+	<input name="POINTS_LAST" description="The interest points in the image for the previous time step"/>
+	<input name="POINTS_COUNT" description="Number of interest points" />
+	<input name="POINTS_COUNT_LAST" description="Number of interest points for the previous time step" />
+
+	<output name="FEATURE_LOCATIONS" description="Table with coordinates" size_x="2" size_y="5000" />
+	<output name="FLOW" description="Table with coordinates" size_x="2" size_y="5000" />
+	<output name="FLOW_COUNT" description="Number of interest points found" size="1" />
+
+	<output name="DISPLACEMENTS" description="Table with coordinates" size_x="4" size_y="5000" />
+	
+
+	<link class="SparseFlow" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+    <created>2021</created>
+    
+   <files>
+   		<file>SparseFlow.h</file>
+   		<file>SparseFlow.cc</file>
+   		<file>SparseFlow.ikc</file>
+   </files>
+
+</class>
+
