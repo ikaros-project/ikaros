@@ -3597,10 +3597,11 @@ Kernel::ListClasses()
 void
 Kernel::ListProfiling()
 {
-    if(!options->GetOption('p')) return;
+    if(!options->GetOption('p') && !options->GetOption('P')) return;
     // Calculate Total Time
     float total_module_time = 0;
     float non_listed_modules = 0;
+    float limit = (options->GetOption('p') ? 1.0 : 0.01);
     for (Module * & m : _modules)
         total_module_time += m->time;
     Notify(msg_print, "\n");
@@ -3618,7 +3619,7 @@ Kernel::ListProfiling()
     Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
     Notify(msg_print, "----------------------------------------------------------------------\n");
     for (Module * & m : _modules)
-        if(m->ticks > 0 && m->time/m->ticks > 1.0)
+        if(m->ticks > 0 && m->time/m->ticks >= limit)
             Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
         else
             non_listed_modules += (m->time/m->ticks);
@@ -3626,7 +3627,8 @@ Kernel::ListProfiling()
     Notify(msg_print, "----------------------------------------------------------------------\n");
     if(useThreads)
         Notify(msg_print, "Note: Time is real-time, not time in thread.\n");
-    Notify(msg_print, "Additional modules used on average %0.2f ms together per tick\n", non_listed_modules);
+    if(non_listed_modules > 0)
+        Notify(msg_print, "Additional modules used on average %0.2f ms together per tick\n", non_listed_modules);
     Notify(msg_print, "\n");
 }
 

@@ -46,7 +46,7 @@ PrintInfo()
     printf("\n");
     printf("Usage:\n");
     printf("\n");
-    printf("\tikaros [-W#][-p][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
+    printf("\tikaros [-W#][-p][-P][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
     
     printf("\t-r    run; don't wait for webui\n");
     printf("\t-t#   set timebase in milliseconds for realtime mode\n");
@@ -59,7 +59,8 @@ PrintInfo()
     printf("\t-v    verbose mode\n");
     printf("\t-q    quiet mode\n");
     
-    printf("\t-p    profile\n");
+    printf("\t-p    profile (>= 1 ms)\n");
+    printf("\t-P    profile (>= 0.01 ms)\n");
     printf("\t-m    list modules and connections\n");
     printf("\t-c    list installed classes\n");
     printf("\t-l    list scheduling nad thread allocation\n");
