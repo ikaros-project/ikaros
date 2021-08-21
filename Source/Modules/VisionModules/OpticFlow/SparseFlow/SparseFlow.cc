@@ -101,15 +101,15 @@ SparseFlow::Tick()
                 }
                 if(x00!=0 && c<max_displacements)
                 {
-                    float x_0 = float(x00)/float(size_x);
-                    float y_0 = float(y00)/float(size_y);
-                    float x_1 = float(x1)/float(size_x);
-                    float y_1 = float(y1)/float(size_y);
+                    float x_0 = float(x00+pix)/float(size_x);
+                    float y_0 = float(y00+pix)/float(size_y);
+                    float x_1 = float(x1+pix)/float(size_x);
+                    float y_1 = float(y1+pix)/float(size_y);
 
                     displacements[c][0] = x_1;
                     displacements[c][1] = y_1;
-                    displacements[c][2] = x_1+1*(x_1-x_0);
-                    displacements[c][3] = y_1+1*(y_1-y_0);
+                    displacements[c][2] = x_1+3*(x_1-x_0);
+                    displacements[c][3] = y_1+3*(y_1-y_0);
                     c++;
                 }
             }
