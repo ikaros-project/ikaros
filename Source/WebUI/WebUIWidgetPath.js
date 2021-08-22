@@ -25,7 +25,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            
+
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
             {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no,invisible", 'class':'true'},
@@ -100,7 +100,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                 this.canvas.closePath();
             this.canvas.stroke();
             
-            if(this.parameters.arrow)
+            if(this.parameters.arrow && (lx!=x||ly!=y))
                 this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
         }
     }
