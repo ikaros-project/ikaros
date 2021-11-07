@@ -35,9 +35,11 @@ public:
     void 		Init();
     void 		Tick();
 
-    int         threshold;
-    int			max_points;
-    
+    float   magnification;
+    float   feature_threshold;
+    int     feature_radius;
+    float   search_radius;
+
     int			size_x;
     int			size_y;
 

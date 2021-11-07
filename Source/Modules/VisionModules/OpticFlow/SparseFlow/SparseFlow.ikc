@@ -12,10 +12,11 @@
 		/>
 	</example>
     
-    <parameter name="threshold" type="float" default="12" description="the threshold for the FAST detector" />
-    <parameter name="adaptive_threshold" type="float" default="100" description="the desired number of points to detect" />
-    <parameter name="adaptive_delta" type="float" default="0.0" description="treshold change per iteration" />
-    <parameter name="max_points" type="int" default="5000" description="maximum number of points to detect" />
+    <parameter name="magnification" type="float" default="10000" description="magnification of the motion vectors for visualization" />
+    <parameter name="feature_threshold" type="float" default="1" description="minimum similarity for matching" />
+    <parameter name="feature_radius" type="int" default="10" description="size of feature radus (in pixels)" />
+    <parameter name="search_radius" type="int" default="0.1" description="maximum distance between frames" />
+
 
 	<input name="INPUT" description="The input image" />
 	<input name="INPUT_LAST" description="The input image for the previous time step" />
@@ -24,11 +25,11 @@
 	<input name="POINTS_COUNT" description="Number of interest points" />
 	<input name="POINTS_COUNT_LAST" description="Number of interest points for the previous time step" />
 
-	<output name="FEATURE_LOCATIONS" description="Table with coordinates" size_x="2" size_y="5000" />
-	<output name="FLOW" description="Table with coordinates" size_x="2" size_y="5000" />
+	<output name="FEATURE_LOCATIONS" description="Table with (x,y) coordinates" size_x="2" size_y="5000" />
+	<output name="FLOW" description="Table with flow vectors, (dx, dy)" size_x="2" size_y="5000" />
 	<output name="FLOW_COUNT" description="Number of interest points found" size="1" />
 
-	<output name="DISPLACEMENTS" description="Table with coordinates" size_x="4" size_y="5000" />
+	<output name="DISPLACEMENTS" description="Table with vectors for visualization" size_x="4" size_y="5000" />
 	
 
 	<link class="SparseFlow" />

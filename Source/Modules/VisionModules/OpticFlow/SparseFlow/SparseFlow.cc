@@ -25,8 +25,10 @@ using namespace ikaros;
 void
 SparseFlow::Init()
 {
-    //Bind(threshold, "threshold");
-    //Bind(max_points, "max_points");
+    Bind(magnification, "magnification");
+    Bind(feature_radius, "feature_radius");
+    Bind(feature_threshold, "feature_threshold");
+    Bind(search_radius, "search_radius");
 
     input               = GetInputMatrix("INPUT");
     input_last  	    = GetInputMatrix("INPUT_LAST");
@@ -41,7 +43,7 @@ SparseFlow::Init()
     displacements       = GetOutputMatrix("DISPLACEMENTS");
     max_displacements   = GetOutputSizeY("DISPLACEMENTS");
 
-    feature_locations   = GetInputMatrix("FEATURE_LOCATIONS");
+    feature_locations   = GetOutputMatrix("FEATURE_LOCATIONS");
     flow                = GetOutputMatrix("FLOW");
     flow_count          = GetOutputArray("FLOW_COUNT");
 
@@ -57,38 +59,41 @@ SparseFlow::Tick()
     int c = 0;
     reset_matrix(displacements, 4, max_displacements);
 
-    float max_dist = 0.05;
     int s = int(*points_count);
     int sl = int(*points_count_last);
 
     int hit_count = 0;
-    int pix = 3;
-    int fsize = 2*pix+1;
+    int feature_size = 2*feature_radius+1;
     int margin_top = 0;
     int margin_left = 0;
-    int margin_bottom = size_y-fsize;
-    int margin_right = size_x-fsize;
-    float max_diff = float(fsize*fsize); // Add factor here
+    int margin_bottom = size_y-feature_size;
+    int margin_right = size_x-feature_size;
+    float max_diff = feature_threshold*float(feature_size*feature_size);
+
+    long ticklength = GetTickLength();
+
+    float x_factor = ticklength ? 1.0/float(size_x)*1000/float(ticklength) : 1.0/float(size_x); // Vector length as pixels/width/s; scale invariant in time and space
+    float y_factor = ticklength ? 1.0/float(size_y)*1000/float(ticklength) : 1.0/float(size_y); ; // Vector length pixels/height/s; scale invariant in time and space
 
     for(int i=0; i<s; i++)    
         {
-            int x1 = int(float(size_x)*points[i][0])-pix;
-            int y1 = int(float(size_y)*points[i][1])-pix;
+            int x1 = int(float(size_x)*points[i][0])-feature_radius;
+            int y1 = int(float(size_y)*points[i][1])-feature_radius;
             int x00 = 0;
             int y00 = 0;
             if(0 <= x1 && x1 < margin_right && 0 <= y1 && y1 < margin_bottom)
             {
                 float min_diff = max_diff;
                 for(int j=0; j<sl; j++)
-                if(hypot(points[i][0]-points_last[j][0], points[i][1]-points_last[j][1]) <max_dist)
+                if(hypot(points[i][0]-points_last[j][0], points[i][1]-points_last[j][1])<search_radius)
                 {
-                    int x0 =int(float(size_x)*points_last[j][0])-pix;
-                    int y0 =int(float(size_y)*points_last[j][1])-pix;  
+                    int x0 =int(float(size_x)*points_last[j][0])-feature_radius;
+                    int y0 =int(float(size_y)*points_last[j][1])-feature_radius;  
                     if(0 <= x0 && x0 < margin_right && 0 <= y0 && y0 < margin_bottom)
                     {
                         float diff = 0;
-                        for(int j0=y0, j1=y1; j0<y0+fsize; j0++,j1++)
-                            for(int i0=x0, i1=x1; i0<x0+fsize; i0++,i1++)
+                        for(int j0=y0, j1=y1; j0<y0+feature_size; j0++,j1++)
+                            for(int i0=x0, i1=x1; i0<x0+feature_size; i0++,i1++)
                                 diff += abs(input[j1][i1] - input_last[j0][i0]);
                         if(diff < min_diff)
                         {
@@ -101,15 +106,22 @@ SparseFlow::Tick()
                 }
                 if(x00!=0 && c<max_displacements)
                 {
-                    float x_0 = float(x00+pix)/float(size_x);
-                    float y_0 = float(y00+pix)/float(size_y);
-                    float x_1 = float(x1+pix)/float(size_x);
-                    float y_1 = float(y1+pix)/float(size_y);
+                    float x_0 = float(x00+feature_radius)/float(size_x);
+                    float y_0 = float(y00+feature_radius)/float(size_y);
+                    float x_1 = float(x1+feature_radius)/float(size_x);
+                    float y_1 = float(y1+feature_radius)/float(size_y);
 
                     displacements[c][0] = x_1;
                     displacements[c][1] = y_1;
-                    displacements[c][2] = x_1+3*(x_1-x_0);
-                    displacements[c][3] = y_1+3*(y_1-y_0);
+                    displacements[c][2] = x_1+magnification*x_factor*(x_1-x_0);
+                    displacements[c][3] = y_1+magnification*y_factor*(y_1-y_0);
+
+                    feature_locations[c][0] = x_1;
+                    feature_locations[c][1] = y_1;
+
+                    flow[c][0] = x_factor*(x_1-x_0);
+                    flow[c][1] = y_factor*(y_1-y_0);                 
+
                     c++;
                 }
             }
