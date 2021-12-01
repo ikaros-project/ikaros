@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<class name="MotorControl" description="minimal example module">
+
+	<description type="text">
+
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MotorControl"
+			name="MotorControl"
+			parameter1 = "3.14"
+			parameter2 = "42"
+		/>
+	</example>
+
+
+	<input name="LEFT_EYE" description="Relative angles to target (degrees), leftX, leftY" />
+	<input name="RIGHT_EYE" description="Relative angles to target (degrees), rightX, rightY" />
+
+	<output name="HEAD_TILT" description="head tilt" size="1" />
+	<output name="HEAD_PAN" description="The first output" size="1" />
+	<output name="LEFT_EYE_PAN" description="The first output" size="1" />
+	<output name="RIGHT_EYE_PAN" description="The first output" size="1" />
+
+	<link class="MotorControl" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MotorControl.h</file>
+   		<file>MotorControl.cc</file>
+   		<file>MotorControl.ikc</file>
+   </files>
+
+</class>
