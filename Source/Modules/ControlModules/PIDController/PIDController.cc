@@ -58,6 +58,8 @@ void PIDController::Init()
 	output          = GetOutputArray("OUTPUT");
 	delta			= GetOutputArray("DELTA");
 	
+	reset			= GetInputArray("RESET");
+
     filtered_set_point  = GetOutputArray("FILTERED_SETPOINT");
     filtered_input      = GetOutputArray("FILTERED_INPUT");
     filtered_error_p    = GetOutputArray("FILTERED_ERROR_P");
@@ -72,6 +74,7 @@ void PIDController::Init()
 
 void PIDController::Tick()
 {	
+    
 	for(int i=0; i<size; i++)
     {
         filtered_set_point[i]   = (1-Fs)*set_point[i]+(Fs)*filtered_set_point[i];
@@ -97,6 +100,17 @@ void PIDController::Tick()
         }
         
 		output[i] = (1-Fc) * co + (Fc) * output[i];
+
+        // if (reset[i])
+        // {
+        //     printf("Resetting PID\n");
+        //     // Reseting all
+        //     filtered_error_p[i]     = 0;
+        //     filtered_error_i[i]     = 0;
+        //     filtered_error_d[i]     = 0;
+        //     output[i] = filtered_set_point[i];
+        // }
+
     }
 
 	copy_array(input_last, filtered_input, size);

@@ -40,6 +40,8 @@
 	<input name="INPUT" description="The curent signal" />
 	<input name="SETPOINT" description="The desired value" />
     
+	<input name="RESET" description="Reset PID" />
+
 	<output name="OUTPUT" description="The control output." size_set="INPUT, SETPOINT"/>
 	<output name="DELTA" description="The current deviation from the set point." size_set="INPUT, SETPOINT"/>
 

@@ -51,6 +51,7 @@ public:
 	float *	input;		// Current state of the system
 	float *	input_last;	// Last state of the system
 	float *	set_point;  // Desired set point
+	float *	reset;		// Reset
 
 	
     float *	filtered_set_point;
