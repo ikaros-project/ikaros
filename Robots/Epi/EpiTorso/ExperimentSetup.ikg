@@ -50,6 +50,7 @@ VisionInputRight = "InputJPEG"
 	-->
 
 	<!-- Importing Epi Orange-->
+<!--
 	<module class = "EpiTorsoMinimal" name = "EpiOrange" 
 	HeadDynamixel = "Dynamixel" 
 	PupilDynamixel = "Dynamixel" 
@@ -59,17 +60,102 @@ VisionInputRight = "InputJPEG"
 	VisionInputRight = "InputVideoStream"
 	pupilOffset = "-15 -28"
 	/>
-
+-->
 	<!-- Importing Epi Gray-->
-<!--
+
 	<module class = "EpiTorsoMinimal" name = "EpiGray" 
-	HeadDynamixel = "Dynamixel" 
-	PupilDynamixel = "Dynamixel" 
+	HeadDynamixel = "DynamixelSimulate" 
+	PupilDynamixel = "DynamixelSimulate" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
 	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputVideoStream"
 	pupilOffset = "-20 -81"
 	/>
--->
+
+	<!--
+		Stimuli, Target, etc...
+	-->
+	<!--
+		Grab images from booth cameras
+	-->
+
+        <module
+            class = "ColorTransform"
+            name = "ColorTransformLeft"
+            transform = "RGB->rgI"
+        />
+		<connection  source = "EpiGray.LeftEye.RED"  target = "ColorTransformLeft.INPUT0" delay="0" />
+		<connection  source = "EpiGray.LeftEye.GREEN"  target = "ColorTransformLeft.INPUT1" delay="0" />
+		<connection  source = "EpiGray.LeftEye.BLUE"  target = "ColorTransformLeft.INPUT2" delay="0" />
+
+
+        <module
+			class			= "ColorClassifier"
+			name			= "ColorClassifierLeftRed"
+
+			color			= "330 degrees"
+			width           = "3 degrees"
+			saturation_min	= "0.45"
+			saturation_max	= "1.0"
+            compensation	= "yes"			
+            statistics      = "yes"
+		/>
+        <module
+			class			= "ColorClassifier"
+			name			= "ColorClassifierLeftGreen"
+
+			color			= "330 degrees"
+			width           = "3 degrees"
+			saturation_min	= "0.45"
+			saturation_max	= "1.0"
+            compensation	= "yes"			
+            statistics      = "yes"
+		/>
+        <module
+			class			= "ColorClassifier"
+			name			= "ColorClassifierLeftBlue"
+
+			color			= "330 degrees"
+			width           = "3 degrees"
+			saturation_min	= "0.45"
+			saturation_max	= "1.0"
+            compensation	= "yes"			
+            statistics      = "yes"
+		/>
+
+		<connection  source = "ColorTransform.OUTPUT0"  target = "ColorClassifierLeftRed.R" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT1"  target = "ColorClassifierLeftRed.G" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT2"  target = "ColorClassifierLeftRed.I" delay="0" />
+
+		<connection  source = "ColorTransform.OUTPUT0"  target = "ColorClassifierLeftGreen.R" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT1"  target = "ColorClassifierLeftGreen.G" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT2"  target = "ColorClassifierLeftGreen.I" delay="0" />
+
+		<connection  source = "ColorTransform.OUTPUT0"  target = "ColorClassifierLeftBlue.R" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT1"  target = "ColorClassifierLeftBlue.G" delay="0" />
+		<connection  source = "ColorTransform.OUTPUT2"  target = "ColorClassifierLeftBlue.I" delay="0" />
+
+
+		<view name="Color Space">
+			<object
+				class="Image" title="Color Space" type = "rgb"
+				module = "ColorClassifierLeftRed"
+				source = "COLORSPACE_R+COLORSPACE_G+COLORSPACE_B" x="0" y="0" w="2" h="2" 
+			/>
+						<object
+				class="Image" title="Color Space" type = "rgb"
+				module = "ColorClassifierLeftGreen"
+				source = "COLORSPACE_R+COLORSPACE_G+COLORSPACE_B" x="0" y="0" w="2" h="2" 
+			/>
+						<object
+				class="Image" title="Color Space" type = "rgb"
+				module = "ColorClassifierLeftBlue"
+				source = "COLORSPACE_R+COLORSPACE_G+COLORSPACE_B" x="0" y="0" w="2" h="2" 
+			/>
+		</view>
+
+
+
+	-->
 </group>
