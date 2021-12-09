@@ -58,16 +58,22 @@ VisionInputRight = "InputJPEG"
 	/>
 -->
     <!-- Importing Epi Gray-->
-    <module class = "EpiTorsoMinimal" name = "Epi" 
-	HeadDynamixel = "Dynamixel" 
+    <module class = "EpiTorso" name = "Epi" 
+	HeadDynamixel = "DynamixelSimulate" 
 	PupilDynamixel = "DynamixelSimulate" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
 	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
 	VisionInputLeft = "InputJPEG"
-	VisionInputRight = "InputVideoStream"
+	VisionInputRight = "InputJPEG"
 	pupilOffset = "-20 -81"
 	/>
     
+
+	<!-- BOTTOM UP -->
+	<!--*****************************************************************-->
+	<!--*****************************************************************-->
+	<!--*****************************************************************-->
+
 	<!--
 		TARGET DETECTOR 
 		***************
@@ -81,7 +87,7 @@ VisionInputRight = "InputJPEG"
     <connection  source = "Epi.RightEye.LOW_RES_GREEN"  target = "DetectorRightEye.GREEN" delay="0" />
     <connection  source = "Epi.RightEye.LOW_RES_BLUE"  	target = "DetectorRightEye.BLUE" delay="0" />
     
-	
+
 	<!-- 
 		TARGET SELECTION 
 		****************
@@ -108,10 +114,10 @@ VisionInputRight = "InputJPEG"
     <connection source = "TargetSlectionValue.OUTPUT" sourceoffset = "2"  size = "1"    target = "TargetRight.VALUE_3" />
     <connection source = "CENTER_POS_IN_IMAGE.OUTPUT"                        			target = "TargetRight.INPUT_4" />
     <connection source = "TargetSlectionValue.OUTPUT" sourceoffset = "3"  size = "1"   	target = "TargetRight.VALUE_4" />
+	
 	<!-- Buttons -->
     <module class = "Constant" name = "TargetSlectionValue" data = "0 0 0 0.5"/>
     
-
 
 	<!-- 
 		Image coordinate to relative angle 
@@ -146,12 +152,12 @@ VisionInputRight = "InputJPEG"
     <module class = "Constant" name = "ZERO" data = "0"/>
 
 
-		<module class="PIDController" name="HeadTilt" Kp = "0.001" Kd = "0.0001" Ki = "0.001"/>
+		<module class="PIDController" name="HeadTilt" Kp = "0.000001" Kd = "0.0001" Ki = "0.001"/>
 		    <connection  source = "MotorControl.HEAD_TILT"  		target = "HeadTilt.INPUT" />
    			<connection  source = "ZERO.OUTPUT"  					target = "HeadTilt.SETPOINT" />
    			<connection  source = "TargetSlectionValue.OUTPUT"  	target = "HeadTilt.RESET" />
 
-		<module class="PIDController" name="HeadPan" Kp = "0.001" Kd = "0.0001" Ki = "0.001"/>
+		<module class="PIDController" name="HeadPan" Kp = "0.000001" Kd = "0.0001" Ki = "0.001"/>
 		    <connection  source = "MotorControl.HEAD_PAN"  			target = "HeadPan.INPUT" />
 		    <connection  source = "ZERO.OUTPUT"  					target = "HeadPan.SETPOINT" />
 			<connection  source = "TargetSlectionValue.OUTPUT"  	target = "HeadPan.RESET" />
@@ -174,36 +180,36 @@ VisionInputRight = "InputJPEG"
 	-->
 	
 
+
 		<module class="Add" name="HeadTiltAbsolute" />
 			<connection  source = "HeadTilt.OUTPUT"  target = "HeadTiltAbsolute.INPUT1" />
+			<_connection  source = "ZERO.OUTPUT"  target = "HeadTiltAbsolute.INPUT1" />
 			<connection  source = "Epi.Servos.FeedbackPresentPositionG.OUTPUT"  sourceoffset = "0"  size = "1"  target = "HeadTiltAbsolute.INPUT2" />
+			
+			<_connection  source = "HeadTiltAbsolute.OUTPUT"  targetoffset = "0"  size = "1"  target = "Epi.Servos.GOAL_POSITION" />
 
-			<connection  source = "HeadTiltAbsolute.OUTPUT"  targeteoffset = "0"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
-		
 		<module class="Add" name="HeadPanAbsolute" />
 			<connection  source = "HeadPan.OUTPUT"  target = "HeadPanAbsolute.INPUT1" />
 			<connection  source = "Epi.Servos.FeedbackPresentPositionG.OUTPUT"  sourceoffset = "1"  size = "1"  target = "HeadPanAbsolute.INPUT2" />
 
-			<connection  source = "HeadPanAbsolute.OUTPUT"  sourceoffset = "0" targeteoffset = "1"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
+			<_connection  source = "HeadPanAbsolute.OUTPUT"  sourceoffset = "0" targetoffset = "1"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
 		
 		<module class="Add" name="LeftEyeAbsolute" />
 			<connection  source = "LeftEye.OUTPUT"  target = "LeftEyeAbsolute.INPUT1" />
 			<connection  source = "Epi.Servos.FeedbackPresentPositionG.OUTPUT"  sourceoffset = "2"  size = "1"  target = "LeftEyeAbsolute.INPUT2" />
 
-			<c_onnection  source = "LeftEyeAbsolute.OUTPUT"  targeteoffset = "2"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
+			<c_onnection  source = "LeftEyeAbsolute.OUTPUT"  targetoffset = "2"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
 
 		<module class="Add" name="RightEyeAbsolute" />
 			<connection  source = "RightEye.OUTPUT"  target = "RightEyeAbsolute.INPUT1" />
 			<connection  source = "Epi.Servos.FeedbackPresentPositionG.OUTPUT"  sourceoffset = "3"  size = "1"  target = "RightEyeAbsolute.INPUT2" />
 
-			<_connection  source = "RightEyeAbsolute.OUTPUT"  targeteoffset = "3"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
+			<_connection  source = "RightEyeAbsolute.OUTPUT"  targetoffset = "3"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
 
-<!---->
-	<connection  source = "ZERO6.OUTPUT"  targetoffset = "0" sourceoffset = "0"  size = "4"  target = "Epi.Servos.GOAL_POSITION"/>
-    <module class = "Constant" name = "ZERO6" data = "0 0 0 0 0 0"/>
--->
 
-<view name="Targets" >
+
+
+<view name="Buttom up" >
 	<text  title = "Target" width = "641" show_title = "true" parameter = "" x = "500" show_frame = "false" strings = "" height = "181" text = "Bug" separator = "" frame-style = "" select_source = "" y = "880" postfix = "" style = "" prefix = ""/>
 	<text  prefix = "" postfix = "" y = "40" style = "" select_source = "" frame-style = "" separator = "" show_frame = "false" strings = "" text = "" height = "761" parameter = "" show_title = "true" width = "261" title = "Control" x = "1620"/>
 	<image  x = "880" file = "" index = "" max_y = "1" title = "Left" module = "" height = "761" flipYCanvas = "no" source = "Epi.LeftEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "721" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
@@ -253,6 +259,69 @@ VisionInputRight = "InputJPEG"
 
 
 
+
+
+	<!-- TOP DOWN -->
+	<!--*****************************************************************-->
+	<!--*****************************************************************-->
+
+	<!-- Position of the top down targets in allocentric coordinated. This shold be from memory -->
+    <module class = "Constant" name = "TopDownTarget_xyz" data = "0.5 -0.5 0.2    0.5 0 0.2    0.5 0.5 0.2"/>
+
+	<!-- xzy format to matrix -->
+    <module class = "RotationConverter" name = "TopDownTarget1_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
+  		<connection  source = "TopDownTarget_xyz.OUTPUT"  sourceoffset = "0" targetoffset = "0"  size = "3" target = "TopDownTarget1_mat.INPUT" />
+    <module class = "RotationConverter" name = "TopDownTarget2_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
+    		<connection  source = "TopDownTarget_xyz.OUTPUT"  sourceoffset = "3" targetoffset = "0"  size = "3" target = "TopDownTarget2_mat.INPUT" />
+    <module class = "RotationConverter" name = "TopDownTarget3_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
+  		<connection  source = "TopDownTarget_xyz.OUTPUT"  sourceoffset = "6" targetoffset = "0"  size = "3" target = "TopDownTarget3_mat.INPUT" />
+
+	<!-- Buttons -->
+    <module class = "Constant" name = "TargetSlectionValueTopDown" data = "0 0 0"/>
+    
+	<!-- 
+		TARGET SELECTION 
+		****************
+	-->
+	<module class = "Arbiter" name = "TopDownTarget" no_of_inputs = "3"/>
+		<connection  source = "TopDownTarget1_mat.OUTPUT"  			target = "TopDownTarget.INPUT_1" />
+		<connection  source = "TargetSlectionValueTopDown.OUTPUT"  	sourceoffset = "0" targetoffset = "0"  size = "1"  target = "TopDownTarget.VALUE_1" />
+
+		<connection  source = "TopDownTarget2_mat.OUTPUT" 			target = "TopDownTarget.INPUT_2" />
+		<connection  source = "TargetSlectionValueTopDown.OUTPUT"  	sourceoffset = "1" targetoffset = "0"  size = "1"  target = "TopDownTarget.VALUE_2" />
+
+		<connection  source = "TopDownTarget3_mat.OUTPUT"   		target = "TopDownTarget.INPUT_3" />
+		<connection  source = "TargetSlectionValueTopDown.OUTPUT"  	sourceoffset = "2" targetoffset = "0"  size = "1"  target = "TopDownTarget.VALUE_3" />
+
+
+	<module class = "GazeController" name = "GazeController" offset = "0.01 -0.03 0.01 -0.01" />
+		<connection  source = "TopDownTarget.OUTPUT"  target = "GazeController.INPUT" />
+
+	<!-- Top down and bottom up should connect to an arbiter. -->
+	<connection  source = "GazeController.OUTPUT"  sourceoffset = "0" targetoffset = "0"  size = "4"  target = "Epi.Servos.GOAL_POSITION" />
+
+
+
+	<!-- 3d Visualization -->
+	<!-- **************** -->
+	<!-- Add top down objects to visual-->
+		<connection  source = "Epi.ForwardModel.EXO_POINTS" 		sourceoffset = "0" targetoffset = "0"  		size = "480"   	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget1_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "480"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget2_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "496"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget3_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "512"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget.OUTPUT" 				sourceoffset = "0" targetoffset = "528"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+	
+	<!-- Bug?/feature?  -->
+	<module class = "DataConverter" name = "VisualsationMatrixes" output_size_x = "16" output_size_y = "34"/>
+
+<view name="Top down" >
+	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "true" show_axis = "true" width = "701" robot_data = "" show_ground_grid = "true" show_stats = "false" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" x = "20" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" views = "Home" show_lines = "false" matrix = "VisualsationMatrixes.OUTPUT" height = "641" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,RedBall,BlueBall,YellowBall,Axis,Axis" y = "20"/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "0" x = "60" value = "1" label = "Object 1 (XYZ)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValueTopDown.data" y = "60" command = "" width = "161" title = "Title" show_frame = "false" height = "81" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "1" x = "280" value = "1" label = "Object 2 (XYZ)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValueTopDown.data" y = "60" command = "" width = "181" title = "Title" show_frame = "false" height = "81" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "2" x = "500" value = "1" label = "Object 3 (XYZ)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValueTopDown.data" y = "60" command = "" width = "181" title = "Title" show_frame = "false" height = "81" commandUp = ""/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Gaze controller angles" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "660" label_y = "" source = "GazeController.OUTPUT" x = "20" height = "81" show_frame = "false" label_x = "" width = "701"/>
+	<slider-horizontal  y = "20" title = "Target postiions" width = "261" height = "321" show_frame = "false" x = "760" parameter = "TopDownTarget_xyz.data" count = "9" select = "0" style = "" labels = "X1,Y1,Z1,X2,Y2,Z2,X3,Y3,Z3" min = "0" step = "0.1" show_values = "true" max = "1" show_title = "true" frame-style = ""/>
+</view>
 
 
 

@@ -13,6 +13,56 @@ nrServosHead = "4"
 nrServosTotal = "6"
 
 >
+
+	
+	<!-- import frame and id for epi robots> -->
+    <?include file="EpiFrames.ikg" ?>
+
+
+    <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
+´   <module class = "Constant" name = "ManualPosition" data = "0.0 0.0 0.0"/>
+´   <module class = "Constant" name = "ManualRotation" data = "0 0 0"/>
+	<module class = "RotationConverter" name = "PositioExo" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix" />
+	        <connection source = "ManualPosition.OUTPUT"    target = "PositioExo.INPUT"    delay = "0"/>
+	<module class = "RotationConverter" name = "RotationExo" angle_unit = "degrees" input_format  = "axayaz" output_format  = "matrix" />
+	        <connection source = "ManualRotation.OUTPUT"    target = "RotationExo.INPUT"    delay = "0"/>
+
+´   <_module class = "Constant" name = "PositioExo" _data = "
+        1 0 0 0.85
+        0 1 0 0.15
+        0 0 1 0.847
+        0 0 0 1;" 
+		data = "
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1;"
+		/>
+
+    <_module class = "Constant" name = "RotationExo" _data = "
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1;"
+		data = "
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1;"
+		 />
+
+    <!-- Multiply position and rotation-->
+   <module class="Transform"   name="EpiPositionExo" />
+        <connection source = "PositioExo.OUTPUT"    target = "EpiPositionExo.MATRIX_1"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_1" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RotationExo.OUTPUT"   target = "EpiPositionExo.MATRIX_2"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_2" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_2"  delay = "0"/>
+
+	<connection source = "EpiPositionExo.MATRIX"    target = "ForwardModel.EPI_POSITION"  delay = "0"/>
+
+
 	<!-- 			Motion recorder 		-->
 	<!-- ********************************* 	-->
 	<!-- ********************************* 	-->
@@ -69,13 +119,25 @@ nrServosTotal = "6"
 	<!-- Outputs from the motion recoder -->
 	<!-- Send Torque enable (on/off) and goal position (Pupil size in mm, the rest of the servos in degrees) of the servos.-->
 	<_connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "6"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "6"/>
+	<_connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "6"/>
 	
 	<!-- Sending Eye color, mounth color and instensity. -->
 	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "6" targetoffset = "0" size = "3"/>
 	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_COLOR" 		sourceoffset = "12" targetoffset = "0" size = "3"/>
 	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "15" targetoffset = "0" size = "1"/>
 	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_INTENSITY" 	sourceoffset = "17" targetoffset = "0" size = "1"/>
+
+
+	<!-- 			Forward model 	    	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+
+	<module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
+	<module class = "Constant" 	name = "Zero" data = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"	/>
+		<!-- Only Head -->
+		<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	sourceoffset = "0" targetoffset = "1" size = "4" target = "ForwardModel.JOINT_ANGLES" />
+	
 
 
 	<!-- 			Motor control 			-->
@@ -199,6 +261,12 @@ nrServosTotal = "6"
 	<image  x = "960" y = "480" height = "161" width = "141" title = "Left Eye" source = "LeftEye.LOW_RES_INTENSITY" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 </view>
 
+
+<view name="3D View" >
+	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "true" show_axis = "true" width = "741" robot_data = "" show_ground_grid = "true" show_stats = "false" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" x = "20" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" views = "Home" show_lines = "false" matrix = "ForwardModel.EXO_POINTS" height = "541" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Axis"  y = "20"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "2" min = "-2" style = "" labels = "" select = "0" count = "3" parameter = "ManualPosition.data" title = "Manual position" width = "361" show_frame = "false" height = "181" y = "580" x = "20"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "1" max = "180" min = "-180" style = "" labels = "" select = "0" count = "3" parameter = "ManualRotation.data" title = "Manual rotation" width = "361" show_frame = "false" height = "181" y = "580" x = "400"/>
+</view>
 
 
 </group>
