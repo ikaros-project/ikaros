@@ -21,7 +21,7 @@
 	<output name = "FEEDBACK_GOAL_POSITION" 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_MOVING_SPEED" 	 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_TORQUE_LIMIT" 			source = "FAKE_DATA.OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_POSITION" 		source = "GOAL_POSITION_SIM.OUTPUT" />
+	<output name = "FEEDBACK_PRESENT_POSITION" 		source = "GOAL_POSITION_SIM_DELAY.OUTPUT" />
 	<output name = "FEEDBACK_PRESENT_SPEED" 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_PRESENT_LOAD" 			source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_PRESENT_VOLTAGE" 		source = "FAKE_DATA.OUTPUT" />
@@ -34,8 +34,14 @@
     <!-- Simulate -->
     <module class = "Sink" name = "NotAvailable" />
     <module class = "Gate" name = "GOAL_POSITION_SIM"/>
-
+	    <connection source = "GOAL_POSITION_SIM.OUTPUT"       target = "GOAL_POSITION_SIM_DELAY.INPUT" delay = "0"  />
+   
+	<!-- faking some real world data -->
+		<module class = "Integrator" name = "GOAL_POSITION_SIM_DELAY" alpha  = "0.2" beta  = "0.8" />
+	
     <module class = "Constant" name = "FAKE_DATA" data = "0 0 0 0 0 0"/>
     <module class = "Constant" name = "FAKE_DATA_ERROR"  outputsize_x = "19" outputsize_y = "@number_of_servos" />
+
+
 
 </group> 
