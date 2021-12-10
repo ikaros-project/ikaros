@@ -60,14 +60,36 @@ VisionInputRight = "InputJPEG"
     <!-- Importing Epi Gray-->
     <module class = "EpiTorso" name = "Epi" 
 	HeadDynamixel = "DynamixelSimulate" 
-	PupilDynamixel = "DynamixelSimulate" 
+	PupilDynamixel = "DynamixelSimulate2" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
 	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
-	VisionInputLeft = "InputJPEG"
+	VisionInputLeft = "CameraSimulate"
 	VisionInputRight = "InputJPEG"
 	pupilOffset = "-20 -81"
 	/>
     
+	<!-- Camera positon in allocentric coordinate-->
+	<_connection  source = "Epi.ForwardModel.Head.M_S1.OUTPUT"  sourceoffset = "0" targetoffset = "96"  target = "Epi.RightEye.EYE.CAMERA" delay="1" />
+	<connection  source = "Epi.ForwardModel.BodyHead.MATRIX"  	sourceoffset = "112" targetoffset = "0"   size = "16" target = "Epi.LeftEye.EYE.CAMERA" delay="1" />
+
+
+	<!-- Position of the top down targets in allocentric coordinated. This shold be from memory -->
+    <module class = "Constant" name = "BottomDownTarget_xyz" data = "0.5 -0.5 0.2    0.5 0 0.2    0.5 0.5 0.2"/>
+
+	<!-- xzy format to matrix -->
+    <module class = "RotationConverter" name = "BottomUpTarget1_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
+  		<connection  source = "BottomDownTarget_xyz.OUTPUT"  sourceoffset = "0" targetoffset = "0"  size = "3" target = "BottomUpTarget1_mat.INPUT" />
+    <module class = "RotationConverter" name = "BottomUpTarget2_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
+    		<connection  source = "BottomDownTarget_xyz.OUTPUT"  sourceoffset = "3" targetoffset = "0"  size = "3" target = "BottomUpTarget2_mat.INPUT" />
+    <module class = "RotationConverter" name = "BottomUpTarget3_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
+  		<connection  source = "BottomDownTarget_xyz.OUTPUT"  sourceoffset = "6" targetoffset = "0"  size = "3" target = "BottomUpTarget3_mat.INPUT" />
+
+	<connection  source = "BottomUpTarget1_mat.OUTPUT"  sourceoffset = "0" targetoffset = "0"  size = "16"	target = "Epi.LeftEye.EYE.TARGET" delay="1" />
+	<connection  source = "BottomUpTarget2_mat.OUTPUT"  sourceoffset = "0" targetoffset = "16"  size = "16"	target = "Epi.LeftEye.EYE.TARGET" delay="1" />
+	<connection  source = "BottomUpTarget3_mat.OUTPUT"  sourceoffset = "0" targetoffset = "32"  size = "16"	target = "Epi.LeftEye.EYE.TARGET" delay="1" />
+
+
+
 
 	<!-- BOTTOM UP -->
 	<!--*****************************************************************-->
@@ -152,22 +174,22 @@ VisionInputRight = "InputJPEG"
     <module class = "Constant" name = "ZERO" data = "0"/>
 
 
-		<module class="PIDController" name="HeadTilt" Kp = "0.000001" Kd = "0.0001" Ki = "0.001"/>
+		<module class="PIDController" name="HeadTilt" Kp = "0.000001" Kd = "0.000001" Ki = "0.1"/>
 		    <connection  source = "MotorControl.HEAD_TILT"  		target = "HeadTilt.INPUT" />
    			<connection  source = "ZERO.OUTPUT"  					target = "HeadTilt.SETPOINT" />
    			<connection  source = "TargetSlectionValue.OUTPUT"  	target = "HeadTilt.RESET" />
 
-		<module class="PIDController" name="HeadPan" Kp = "0.000001" Kd = "0.0001" Ki = "0.001"/>
+		<module class="PIDController" name="HeadPan" Kp = "0.000001" Kd = "0.000001" Ki = "0.1"/>
 		    <connection  source = "MotorControl.HEAD_PAN"  			target = "HeadPan.INPUT" />
 		    <connection  source = "ZERO.OUTPUT"  					target = "HeadPan.SETPOINT" />
 			<connection  source = "TargetSlectionValue.OUTPUT"  	target = "HeadPan.RESET" />
 
-		<module class="PIDController" name="LeftEye" Kp = "0.001" Kd = "0.0001" Ki = "0.001"/>
+		<module class="PIDController" name="LeftEye" Kp = "0.000001" Kd = "0.000001" Ki = "0.1"/>
 			<connection  source = "MotorControl.LEFT_EYE_PAN"  		target = "LeftEye.INPUT" />
 		    <connection  source = "ZERO.OUTPUT"  					target = "LeftEye.SETPOINT" />
 			<connection  source = "TargetSlectionValue.OUTPUT"  	target = "LeftEye.RESET" />
 
-		<module class="PIDController" name="RightEye" Kp = "0.001" Kd = "0.0001" Ki = "0.001"/>
+		<module class="PIDController" name="RightEye" Kp = "0.000001" Kd = "0.000001" Ki = "0.1"/>
 			<connection  source = "MotorControl.RIGHT_EYE_PAN"  	target = "RightEye.INPUT" />
 		    <connection  source = "ZERO.OUTPUT"  					target = "RightEye.SETPOINT" />
 			<connection  source = "TargetSlectionValue.OUTPUT"  	target = "RightEye.RESET" />
@@ -207,56 +229,55 @@ VisionInputRight = "InputJPEG"
 			<_connection  source = "RightEyeAbsolute.OUTPUT"  targetoffset = "3"  size = "1"  target = "Epi.Servos.GoalPositionG.INPUT" />
 
 
-
-
-<view name="Buttom up" >
-	<text  title = "Target" width = "641" show_title = "true" parameter = "" x = "500" show_frame = "false" strings = "" height = "181" text = "Bug" separator = "" frame-style = "" select_source = "" y = "880" postfix = "" style = "" prefix = ""/>
-	<text  prefix = "" postfix = "" y = "40" style = "" select_source = "" frame-style = "" separator = "" show_frame = "false" strings = "" text = "" height = "761" parameter = "" show_title = "true" width = "261" title = "Control" x = "1620"/>
-	<image  x = "880" file = "" index = "" max_y = "1" title = "Left" module = "" height = "761" flipYCanvas = "no" source = "Epi.LeftEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "721" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorLeftEye.Object1_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "880" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorLeftEye.Object2_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "880" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorLeftEye.Object3_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "880" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "red" size = "0.1" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "TargetLeft.OUTPUT" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "5" x = "880" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "cross" order = "col" color = "red" frame-style = "" y = "60"/>
-	<image  x = "40" file = "" index = "" max_y = "1" title = "Right" module = "" height = "761" flipYCanvas = "no" source = "Epi.RightEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "721" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorRightEye.Object1_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorRightye.Object2_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorRightEye.Object3_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
-	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "red" size = "0.1" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "TargetRight.OUTPUT" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "5" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "741" flipYAxis = "no" width = "721" markerType = "cross" order = "col" color = "red" frame-style = "" y = "60"/>
-	<button  style = "" show_title = "false" enableSource = "" xindex = "0" x = "500" value = "1" label = "Object 1 (Red)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "920" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
-	<button  style = "" show_title = "false" enableSource = "" xindex = "1" x = "720" value = "1" label = "Object 2 (Green)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "920" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
-	<button  style = "" show_title = "false" enableSource = "" xindex = "2" x = "940" value = "1" label = "Object 3 (Blue)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "920" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
-	<table  style = "" show_title = "true" frame-style = "" title = "Image pos" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "TargetRight.OUTPUT" x = "520" height = "81" show_frame = "false" label_x = "" width = "101"/>
-	<table  style = "" show_title = "true" frame-style = "" title = "Image pos" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "TargetLeft.OUTPUT" x = "1360" height = "81" show_frame = "false" label_x = "" width = "101"/>
-	<table  style = "" show_title = "true" frame-style = "" title = "Relative Angle" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "RightImgToRelAngle.OUTPUT" x = "620" height = "81" show_frame = "false" label_x = "" width = "121"/>
-	<table  style = "" show_title = "true" frame-style = "" title = "Relative angle" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "LeftImgToRelAngle.OUTPUT" x = "1460" height = "81" show_frame = "false" label_x = "" width = "121"/>
-	<plot  y = "60" x = "1620" width = "261" color = "" title = "Head tilt" height = "201" show_frame = "false" source = "HeadTilt.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-	<plot  y = "240" x = "1620" width = "261" color = "" title = "Head pan" height = "201" show_frame = "false" source = "HeadPan.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-	<plot  y = "420" x = "1620" width = "261" color = "" title = "Left eye pan" height = "201" show_frame = "false" source = "LeftEye.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-	<plot  y = "600" x = "1620" width = "261" color = "" title = "Right eye pan" height = "201" show_frame = "false" source = "RightEye.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-	<table  width = "81" label_x = "" x = "2080" show_frame = "false" height = "61" direction = "normal" scrollable = "false" source = "MotorControl.HEAD_TILT" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Head tilt" frame-style = "" show_title = "true" style = ""/>
-	<table  width = "81" label_x = "" x = "2080" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "HeadTilt.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "501" label_x = "" x = "2080" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "Epi.Servos.FEEDBACK_PRESENT_POSITION" y = "140" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2080" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "HeadTiltAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2160" show_frame = "false" height = "61" direction = "normal" scrollable = "false" source = "MotorControl.HEAD_PAN" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Head pan" frame-style = "" show_title = "true" style = ""/>
-	<table  width = "81" label_x = "" x = "2160" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "HeadPan.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2160" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "HeadPanAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2320" show_frame = "false" height = "61" direction = "normal" scrollable = "false" source = "MotorControl.LEFT_EYE_PAN" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Left eye pan" frame-style = "" show_title = "true" style = ""/>
-	<table  width = "81" label_x = "" x = "2240" show_frame = "false" height = "61" direction = "normal" scrollable = "false" source = "MotorControl.RIGHT_EYE_PAN" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Right eye pan" frame-style = "" show_title = "true" style = ""/>
-	<table  width = "81" label_x = "" x = "2320" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "LeftEye.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2240" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "RightEye.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2320" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "LeftEyeAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "81" label_x = "" x = "2240" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "RightEyeAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<text  x = "1940" width = "141" show_title = "false" title = "Position" parameter = "" show_frame = "false" strings = "" height = "41" text = "Motor control (box)" separator = "" frame-style = "" select_source = "" style = "" y = "60" postfix = "" prefix = ""/>
-	<text  x = "1940" width = "141" show_title = "false" title = "Default Title" parameter = "" show_frame = "false" strings = "" height = "41" text = "PIDs" separator = "" frame-style = "" select_source = "" style = "" y = "100" postfix = "" prefix = ""/>
-	<text  x = "1940" width = "141" show_title = "false" title = "Default Title" parameter = "" show_frame = "false" strings = "" height = "41" text = "Feedback" separator = "" frame-style = "" select_source = "" style = "" y = "140" postfix = "" prefix = ""/>
-	<text  x = "1940" width = "141" show_title = "false" title = "Default Title" parameter = "" show_frame = "false" strings = "" height = "41" text = "Goal position" separator = "" frame-style = "" select_source = "" style = "" y = "180" postfix = "" prefix = ""/>
-	<slider-horizontal  frame-style = "" show_title = "false" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "HeadTilt.Kp" title = "Sliders" width = "261" show_frame = "false" height = "101" y = "340" x = "1940"/>
-	<slider-horizontal  frame-style = "" show_title = "false" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "HeadTilt.Ki" title = "Sliders" width = "261" show_frame = "false" height = "101" y = "440" x = "1940"/>
-	<slider-horizontal  frame-style = "" show_title = "false" show_values = "true" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "HeadTilt.Kd" title = "Sliders" width = "261" show_frame = "false" height = "101" y = "540" x = "1940"/>
-	<table  width = "501" label_x = "" x = "2080" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "Epi.Servos.FeedbackGoalPositionG.OUTPUT" y = "220" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
-	<table  width = "501" label_x = "" x = "2080" show_frame = "false" height = "41" direction = "normal" scrollable = "false" source = "Epi.Servos.GoalPositionG.OUTPUT" y = "260" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+<view name="Bottom up" >
+	<text  x = "1020" title = "Target" width = "641" show_title = "true" parameter = "" show_frame = "false" strings = "" height = "181" text = "Bug" separator = "" frame-style = "" select_source = "" style = "" y = "700" postfix = "" prefix = ""/>
+	<text  prefix = "" postfix = "" y = "40" style = "" select_source = "" frame-style = "" separator = "" show_frame = "false" strings = "" text = "" height = "761" parameter = "" show_title = "true" width = "261" title = "Control" x = "1700"/>
+	<image  x = "540" file = "" index = "" module = "" height = "461" flipYCanvas = "no" max_y = "1" title = "Left" source = "Epi.LeftEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "441" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorLeftEye.Object1_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "540" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "441" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorLeftEye.Object2_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "540" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "441" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorLeftEye.Object3_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "540" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "441" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "red" size = "0.1" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "TargetLeft.OUTPUT" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "5" x = "540" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "441" markerType = "cross" order = "col" color = "red" frame-style = "" y = "60"/>
+	<image  x = "40" file = "" index = "" module = "" height = "461" flipYCanvas = "no" max_y = "1" title = "Right" source = "Epi.RightEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "461" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorRightEye.Object1_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "461" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorRightye.Object2_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "461" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "black" size = "0.02" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "DetectorRightEye.Object3_POS_IN_IMAGE" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "1" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "461" markerType = "circle" order = "col" color = "black" frame-style = "" y = "60"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "10" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = ")" select = "0" labelDecimals = "1" flipXAxis = "no" labels = "" fill = "red" size = "0.1" min_y = "0" flipXCanvas = "no" count = "0" labelOffsetX = "10" labelType = "xy_value" lineJoin = "miter" selectValue = "" source = "TargetRight.OUTPUT" title = "" max_y = "1" labelBaseline = "hanging" lineWidth = "5" x = "40" labelPrefix = "(" flipYCanvas = "no" height = "441" flipYAxis = "no" width = "461" markerType = "cross" order = "col" color = "red" frame-style = "" y = "60"/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "0" x = "1020" value = "1" label = "Object 1 (Red)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "760" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "1" x = "1240" value = "1" label = "Object 2 (Green)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "760" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "2" x = "1460" value = "1" label = "Object 3 (Blue)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "760" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Image pos" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "TargetRight.OUTPUT" x = "260" height = "81" show_frame = "false" label_x = "" width = "101"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Image pos" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "TargetLeft.OUTPUT" x = "760" height = "81" show_frame = "false" label_x = "" width = "101"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Relative Angle" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "RightImgToRelAngle.OUTPUT" x = "360" height = "81" show_frame = "false" label_x = "" width = "121"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Relative angle" colorize = "true" direction = "flip x/y" scrollable = "false" decimals = "1" y = "80" label_y = "" source = "LeftImgToRelAngle.OUTPUT" x = "860" height = "81" show_frame = "false" label_x = "" width = "121"/>
+	<plot  y = "60" x = "1700" width = "261" color = "" title = "Head tilt" height = "201" show_frame = "false" source = "HeadTilt.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  y = "240" x = "1700" width = "261" color = "" title = "Head pan" height = "201" show_frame = "false" source = "HeadPan.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  y = "420" x = "1700" width = "261" color = "" title = "Left eye pan" height = "201" show_frame = "false" source = "LeftEye.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  y = "600" x = "1700" width = "261" color = "" title = "Right eye pan" height = "201" show_frame = "false" source = "RightEye.OUTPUT" select = "" direction = "vertical" min = "-90" max = "90" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "61" x = "2080" direction = "normal" scrollable = "false" source = "MotorControl.HEAD_TILT" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Head tilt" frame-style = "" show_title = "true" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2080" direction = "normal" scrollable = "false" source = "HeadTilt.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "501" label_x = "" show_frame = "false" height = "41" x = "2080" direction = "normal" scrollable = "false" source = "Epi.Servos.FEEDBACK_PRESENT_POSITION" y = "140" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2080" direction = "normal" scrollable = "false" source = "HeadTiltAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "61" x = "2160" direction = "normal" scrollable = "false" source = "MotorControl.HEAD_PAN" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Head pan" frame-style = "" show_title = "true" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2160" direction = "normal" scrollable = "false" source = "HeadPan.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2160" direction = "normal" scrollable = "false" source = "HeadPanAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "61" x = "2320" direction = "normal" scrollable = "false" source = "MotorControl.LEFT_EYE_PAN" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Left eye pan" frame-style = "" show_title = "true" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "61" x = "2240" direction = "normal" scrollable = "false" source = "MotorControl.RIGHT_EYE_PAN" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Right eye pan" frame-style = "" show_title = "true" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2320" direction = "normal" scrollable = "false" source = "LeftEye.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2240" direction = "normal" scrollable = "false" source = "RightEye.OUTPUT" y = "100" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2320" direction = "normal" scrollable = "false" source = "LeftEyeAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "81" label_x = "" show_frame = "false" height = "41" x = "2240" direction = "normal" scrollable = "false" source = "RightEyeAbsolute.OUTPUT" y = "180" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<text  x = "1960" title = "Position" width = "141" show_title = "false" parameter = "" show_frame = "false" strings = "" height = "41" text = "Motor control (box)" separator = "" frame-style = "" select_source = "" style = "" y = "60" postfix = "" prefix = ""/>
+	<text  x = "1960" title = "Default Title" width = "141" show_title = "false" parameter = "" show_frame = "false" strings = "" height = "41" text = "PIDs" separator = "" frame-style = "" select_source = "" style = "" y = "100" postfix = "" prefix = ""/>
+	<text  x = "1960" title = "Default Title" width = "141" show_title = "false" parameter = "" show_frame = "false" strings = "" height = "41" text = "Feedback" separator = "" frame-style = "" select_source = "" style = "" y = "140" postfix = "" prefix = ""/>
+	<text  x = "1960" title = "Default Title" width = "141" show_title = "false" parameter = "" show_frame = "false" strings = "" height = "41" text = "Goal position" separator = "" frame-style = "" select_source = "" style = "" y = "180" postfix = "" prefix = ""/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "HeadTilt.Kp" x = "1980" show_frame = "false" height = "101" width = "261" title = "Sliders" y = "340"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "HeadTilt.Ki" x = "1980" show_frame = "false" height = "101" width = "261" title = "Sliders" y = "440"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "HeadTilt.Kd" x = "1980" show_frame = "false" height = "101" width = "261" title = "Sliders" y = "540"/>
+	<table  width = "501" label_x = "" show_frame = "false" height = "41" x = "2080" direction = "normal" scrollable = "false" source = "Epi.Servos.FeedbackGoalPositionG.OUTPUT" y = "220" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<table  width = "501" label_x = "" show_frame = "false" height = "41" x = "2080" direction = "normal" scrollable = "false" source = "Epi.Servos.GoalPositionG.OUTPUT" y = "260" label_y = "" decimals = "1" colorize = "true" title = "Default Title" frame-style = "" show_title = "false" style = ""/>
+	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "true" width = "701" robot_data = "" show_axis = "true" show_ground_grid = "true" show_stats = "false" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" x = "1000" views = "Home" show_lines = "false" matrix = "VisualsationMatrixes.OUTPUT" height = "641" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,RedBall,GreenBall,BlueBall,Axis,Axis,Axis,Axis,Axis" y = "40"/>
+	<slider-horizontal  y = "520" title = "Target postiions" width = "441" height = "361" show_frame = "false" x = "540" parameter = "BottomDownTarget_xyz.data" count = "9" select = "0" style = "" labels = "X1,Y1,Z1,X2,Y2,Z2,X3,Y3,Z3" min = "-1" step = "0.1" show_values = "true" max = "1" show_title = "true" frame-style = ""/>
 </view>
-
 
 
 
@@ -266,7 +287,7 @@ VisionInputRight = "InputJPEG"
 	<!--*****************************************************************-->
 
 	<!-- Position of the top down targets in allocentric coordinated. This shold be from memory -->
-    <module class = "Constant" name = "TopDownTarget_xyz" data = "0.5 -0.5 0.2    0.5 0 0.2    0.5 0.5 0.2"/>
+    <module class = "Constant" name = "TopDownTarget_xyz" data = "0.5 -0.5 0.4    0.5 0 0.4    0.5 0.5 0.4"/>
 
 	<!-- xzy format to matrix -->
     <module class = "RotationConverter" name = "TopDownTarget1_mat" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix"/>
@@ -298,7 +319,34 @@ VisionInputRight = "InputJPEG"
 		<connection  source = "TopDownTarget.OUTPUT"  target = "GazeController.INPUT" />
 
 	<!-- Top down and bottom up should connect to an arbiter. -->
-	<connection  source = "GazeController.OUTPUT"  sourceoffset = "0" targetoffset = "0"  size = "4"  target = "Epi.Servos.GOAL_POSITION" />
+	<_connection  source = "GazeController.OUTPUT"  sourceoffset = "0" targetoffset = "0"  size = "4"  target = "Epi.Servos.GOAL_POSITION" />
+
+
+
+
+<!-- MIXER -->
+<!-- *************************** -->
+<!-- *************************** -->
+<!-- *************************** -->
+
+    <module class = "Constant" name = "SystemChooser" data = "1 0"/>
+
+	<module class = "Arbiter" name = "Motor" no_of_inputs = "2"/>
+		<!-- Bottom up-->
+		<connection  source = "HeadTiltAbsolute.OUTPUT" targetoffset = "0"  size = "1"  target = "Motor.INPUT_1" />
+		<connection  source = "HeadPanAbsolute.OUTPUT"  targetoffset = "1"  size = "1"  target = "Motor.INPUT_1" />
+		<connection  source = "LeftEyeAbsolute.OUTPUT"  targetoffset = "2"  size = "1"  target = "Motor.INPUT_1" />
+		<connection  source = "RightEyeAbsolute.OUTPUT" targetoffset = "3"  size = "1"  target = "Motor.INPUT_1" />
+		<connection  source = "SystemChooser.OUTPUT"  	targetoffset = "0"  size = "1"  target = "Motor.VALUE_1" />
+
+		<!-- Top Down-->
+		<connection  source = "GazeController.OUTPUT"  target = "Motor.INPUT_2" />
+		<connection  source = "SystemChooser.OUTPUT"  sourceoffset = "1" targetoffset = "0"  size = "1"  target = "Motor.VALUE_2" />
+
+	
+		<connection  source = "Motor.OUTPUT" target = "Epi.Servos.GOAL_POSITION" />
+
+
 
 
 
@@ -306,13 +354,20 @@ VisionInputRight = "InputJPEG"
 	<!-- **************** -->
 	<!-- Add top down objects to visual-->
 		<connection  source = "Epi.ForwardModel.EXO_POINTS" 		sourceoffset = "0" targetoffset = "0"  		size = "480"   	target = "VisualsationMatrixes.INPUT" />
-		<connection  source = "TopDownTarget1_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "480"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
-		<connection  source = "TopDownTarget2_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "496"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
-		<connection  source = "TopDownTarget3_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "512"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
-		<connection  source = "TopDownTarget.OUTPUT" 				sourceoffset = "0" targetoffset = "528"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "BottomUpTarget1_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "480"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "BottomUpTarget2_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "496"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "BottomUpTarget3_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "512"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "BottomUpTarget3_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "528"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+
+		<connection  source = "TopDownTarget1_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "544"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget2_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "560"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget3_mat.OUTPUT" 			sourceoffset = "0" targetoffset = "576"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
+		<connection  source = "TopDownTarget.OUTPUT" 				sourceoffset = "0" targetoffset = "592"  	size = "16"  	target = "VisualsationMatrixes.INPUT" />
 	
 	<!-- Bug?/feature?  -->
-	<module class = "DataConverter" name = "VisualsationMatrixes" output_size_x = "16" output_size_y = "34"/>
+	<module class = "DataConverter" name = "VisualsationMatrixes" output_size_x = "16" output_size_y = "38"/>
+
+
 
 <view name="Top down" >
 	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "true" show_axis = "true" width = "701" robot_data = "" show_ground_grid = "true" show_stats = "false" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" x = "20" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" views = "Home" show_lines = "false" matrix = "VisualsationMatrixes.OUTPUT" height = "641" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,RedBall,BlueBall,YellowBall,Axis,Axis" y = "20"/>
@@ -322,6 +377,27 @@ VisionInputRight = "InputJPEG"
 	<table  style = "" show_title = "true" frame-style = "" title = "Gaze controller angles" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "660" label_y = "" source = "GazeController.OUTPUT" x = "20" height = "81" show_frame = "false" label_x = "" width = "701"/>
 	<slider-horizontal  y = "20" title = "Target postiions" width = "261" height = "321" show_frame = "false" x = "760" parameter = "TopDownTarget_xyz.data" count = "9" select = "0" style = "" labels = "X1,Y1,Z1,X2,Y2,Z2,X3,Y3,Z3" min = "0" step = "0.1" show_values = "true" max = "1" show_title = "true" frame-style = ""/>
 </view>
+
+
+<view name="Bottom up VS Top down" >
+	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "true" width = "1321" robot_data = "" show_axis = "true" show_ground_grid = "true" show_stats = "false" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" x = "40" views = "Home" show_lines = "false" matrix = "VisualsationMatrixes.OUTPUT" height = "1101" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,RedBall,GreenBall,BlueBall,Axis,BlackBall,GrayBall,PurpleBall,Axis" y = "20"/>
+	<slider-horizontal  y = "60" title = "Target postiions" width = "281" height = "381" show_frame = "false" x = "1060" parameter = "BottomDownTarget_xyz.data" count = "9" select = "0" style = "" labels = "X1,Y1,Z1,X2,Y2,Z2,X3,Y3,Z3" min = "-1" step = "0.1" show_values = "true" max = "1" show_title = "true" frame-style = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "0" x = "360" value = "1" label = "Object 1 (XYZ)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValueTopDown.data" y = "60" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "1" x = "600" value = "1" label = "Object 2 (XYZ)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValueTopDown.data" y = "60" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "2" x = "840" value = "1" label = "Object 3 (XYZ)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValueTopDown.data" y = "60" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<slider-horizontal  y = "720" title = "Target postiions" width = "281" height = "381" show_frame = "false" x = "1060" parameter = "TopDownTarget_xyz.data" count = "9" select = "0" style = "" labels = "X1,Y1,Z1,X2,Y2,Z2,X3,Y3,Z3" min = "0" step = "0.1" show_values = "true" max = "1" show_title = "true" frame-style = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "0" x = "360" value = "1" label = "Object 1 (Red)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "1000" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "1" x = "600" value = "1" label = "Object 2 (Green)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "1000" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<button  style = "" show_title = "false" enableSource = "" xindex = "2" x = "840" value = "1" label = "Object 3 (Blue)" frame-style = "" yindex = "0" valueUp = "0" parameter = "TargetSlectionValue.data" y = "1000" command = "" width = "201" title = "Title" show_frame = "false" height = "101" commandUp = ""/>
+	<slider-horizontal  y = "220" title = "Manual position" width = "361" height = "181" show_frame = "false" x = "60" parameter = "ManualPosition.data" count = "3" select = "0" style = "" labels = "" min = "-2" step = "0.1" show_values = "true" max = "2" show_title = "true" frame-style = ""/>
+	<slider-horizontal  y = "400" title = "Manual rotation" width = "361" height = "181" show_frame = "false" x = "60" parameter = "ManualRotation.data" count = "3" select = "0" style = "" labels = "" min = "-180" step = "45" show_values = "true" max = "180" show_title = "true" frame-style = ""/>
+	<image  x = "1880" file = "" index = "" max_y = "1" title = "Left" module = "" height = "461" flipYCanvas = "no" source = "Epi.LeftEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "20" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "441" flipYAxis = "no" min_x = "0" style = "" show_frame = "true"/>
+	<image  x = "1380" file = "" index = "" max_y = "1" title = "Right" module = "" height = "461" flipYCanvas = "no" source = "Epi.RightEye.LOW_RES_RED+LOW_RES_GREEN+LOW_RES_BLUE" scale = "both" flipXAxis = "no" command = "" show_title = "true" scales = "no" max_x = "1" format = "rgb" y = "20" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "461" flipYAxis = "no" min_x = "0" style = "" show_frame = "true"/>
+	<bar-graph  x = "1720" y = "580" height = "421" width = "181" title = "Bar Graph" source = "SystemChooser.OUTPUT" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<button  x = "1460" y = "580" height = "200" width = "200" title = "Title" label = "Top down" command = "" commandUp = "" parameter = "SystemChooser.data" value = "1" valueUp = "0" xindex = "0" yindex = "0" enableSource = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<button  x = "1460" y = "800" height = "200" width = "200" title = "Title" label = "Bottom up" command = "" commandUp = "" parameter = "SystemChooser.data" value = "1" valueUp = "0" xindex = "0" yindex = "0" enableSource = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
 
 
 

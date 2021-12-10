@@ -263,10 +263,12 @@ nrServosTotal = "6"
 
 
 <view name="3D View" >
-	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "true" show_axis = "true" width = "741" robot_data = "" show_ground_grid = "true" show_stats = "false" point_size = "0.15" show_frame = "true" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" x = "20" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" views = "Home" show_lines = "false" matrix = "ForwardModel.EXO_POINTS" height = "541" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Axis"  y = "20"/>
-	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "2" min = "-2" style = "" labels = "" select = "0" count = "3" parameter = "ManualPosition.data" title = "Manual position" width = "361" show_frame = "false" height = "181" y = "580" x = "20"/>
-	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "1" max = "180" min = "-180" style = "" labels = "" select = "0" count = "3" parameter = "ManualRotation.data" title = "Manual rotation" width = "361" show_frame = "false" height = "181" y = "580" x = "400"/>
+	<canvas3d  y = "20" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Axis" show_lines = "false" views = "Home" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" x = "20" show_points = "false" show_models = "true" robot = "EpiBlack" height = "541" matrix = "ForwardModel.EXO_POINTS" show_frame = "true" point_color = "black" point_size = "0.15" show_stats = "false" show_ground_grid = "true" width = "741" robot_data = "" show_axis = "true" show_title = "true" title = "Epi" line_color = "blue" camera_target = "0,0,0" camera_pos = "2,2,2.4"/>
+	<slider-horizontal  x = "20" y = "580" height = "181" show_frame = "false" width = "361" title = "Manual position" parameter = "ManualPosition.data" count = "3" select = "0" style = "" labels = "" min = "-2" step = "0.1" show_values = "true" max = "2" show_title = "true" frame-style = ""/>
+	<slider-horizontal  x = "400" y = "580" height = "181" show_frame = "false" width = "361" title = "Manual rotation" parameter = "ManualRotation.data" count = "3" select = "0" style = "" labels = "" min = "-180" step = "45" show_values = "true" max = "180" show_title = "true" frame-style = ""/>
 </view>
+
+
 
 
 </group>
