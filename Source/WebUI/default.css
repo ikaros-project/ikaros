@@ -350,3 +350,14 @@ webui-widget-table td {
     padding-left: 10px;
     padding-right: 10px;
 }
+
+
+.button-selected {
+    background-color: #444;
+    border-left: 1px solid #222;
+    border-top: 1px solid #222;
+    border-right:1px solid #bbb;
+    border-bottom: 1px solid #bbb;
+    color: white;
+    font-weight: bold;
+}
