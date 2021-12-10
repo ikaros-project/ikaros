@@ -119,8 +119,8 @@ void CameraSimulate::Tick()
 
         // Target position in image
         // uses a propotion of FOV. This is a primitive solution.
-        int x_ratio = -100; 
-        int y_ratio = -100;
+        int x_ratio = -100000; 
+        int y_ratio = -100000;
 
         // Angle to target
         if (angleX > -CameraAngleX and angleX < CameraAngleX and angleY > -CameraAngleY and angleY < CameraAngleY)
@@ -136,8 +136,13 @@ void CameraSimulate::Tick()
         // printf("x_ratio %i\t", x_ratio);
         // printf("y_ratio %i\n", y_ratio);
 
-        for (int i = 0; i < targetSize; i++)
-            for (int j = 0; j < targetSize; j++)
+        // Adaptive targetsize
+        int aTargetSize = 0;
+        if (x!=0)
+            aTargetSize = int(1/x * targetSize );
+
+        for (int i = 0; i < aTargetSize; i++)
+            for (int j = 0; j < aTargetSize; j++)
                 if (y_ratio + i > 0 and y_ratio + i < 640)
                     if (x_ratio + j > 0 and x_ratio + j < 640)
                     {

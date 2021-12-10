@@ -27,8 +27,8 @@
 	<parameter name="horizontal_field_of_view" type="float" default="62.2" description="Field of view in degrees" />
 	<parameter name="vertical_field_of_view" type="float" default="48.8" description="Field of view in degrees" />
 	<parameter name="target_size" type="int" default="60" description="In pixels" />
-	<parameter name="target_colors_RGB" type="float" default="1 0.0 0.0; 0.0 1 0.0; 0 0 1" description="" />
-	<parameter name="nr_of_targets" type="int" default="3" description="Numbers of targets" />
+	<parameter name="target_colors_RGB" type="float" default="1 0.0 0.0; 0.0 1 0.0; 0 0 1; 0 0 0; 0.5 0.5 0.5; 1 0.75 0.8" description="" />
+	<parameter name="nr_of_targets" type="int" default="6" description="Numbers of targets" />
 
 
 
