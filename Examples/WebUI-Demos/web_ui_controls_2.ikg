@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!-- Control test -->
+
+<group name="Buttons">
+
+        <module class = "Constant" name = "B1" data="0"         _x="10" _y="10" />
+        <module class = "Constant" name = "B2" data="0"         _x="10" _y="60" />
+        <module class = "Constant" name = "B3" data="0 0 0"     _x="10" _y="110" />
+    
+<view name="Demo" >
+	<button  style = "" enableSource = "" radioGroup = "" icon="heart.png" xindex = "0" show_title = "false" command = "" y = "200" type = "push" yindex = "0" frame-style = "" valueUp = "0" parameter = "B1.data" label = "PUSH (B1)" title = "Title" width = "121" show_frame = "false" height = "41" commandUp = "" x = "40" value = "1" color = "" background = ""/>
+	<button  style = "" enableSource = "" radioGroup = "" xindex = "0" show_title = "false" command = "" y = "200" type = "toggle" yindex = "0" frame-style = "" valueUp = "0" parameter = "B2.data" label = "TOGGLE (B2)" title = "Title" width = "121" show_frame = "false" height = "41" commandUp = "" x = "280" value = "1" color = "" background = ""/>
+	<button  style = "" enableSource = "" radioGroup = "group" xindex = "0" show_title = "false" command = "" y = "200" type = "radio" yindex = "0" frame-style = "" valueUp = "0" parameter = "B3.data" label = "RADIO(B3:0)" title = "Title" width = "121" show_frame = "false" height = "41" commandUp = "" x = "520" value = "1" color = "" background = ""/>
+	<button  style = "" enableSource = "" radioGroup = "group" xindex = "1" show_title = "false" command = "" y = "240" type = "radio" yindex = "0" frame-style = "" valueUp = "0" parameter = "B3.data" label = "RADIO (B3:1)" title = "Title" width = "121" show_frame = "false" height = "41" commandUp = "" x = "520" value = "1" color = "" background = ""/>
+	<button  style = "" enableSource = "" radioGroup = "group" xindex = "2" show_title = "false" command = "" y = "280" type = "radio" yindex = "0" frame-style = "" valueUp = "0" parameter = "B3.data" label = "RADIO (B3:2)" title = "Title" width = "121" show_frame = "false" height = "41" commandUp = "" x = "520" value = "1" color = "" background = ""/>
+	<bar-graph  x = "0" y = "20" height = "181" auto = "false" show_frame = "false" width = "241" lineWidth = "1" lineJoin = "" transpose = "false" max = "1" source = "B1.data" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" color = "" title = "Bar Graph" frame-style = "" show_title = "false" min = "0"/>
+	<bar-graph  x = "240" y = "20" height = "181" auto = "false" show_frame = "false" width = "241" lineWidth = "1" lineJoin = "" transpose = "false" max = "1" source = "B2.data" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" color = "" title = "Bar Graph" frame-style = "" show_title = "false" min = "0"/>
+	<bar-graph  x = "480" y = "20" height = "181" auto = "false" show_frame = "false" width = "241" lineWidth = "1" lineJoin = "" transpose = "false" max = "1" source = "B3.data" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" color = "" title = "Bar Graph" frame-style = "" show_title = "false" min = "0"/>
+	<text  style = "" show_title = "false" select_source = "" prefix = "" frame-style = "" separator = "" show_frame = "false" strings = "" height = "21" text = "Buttons controlling parameters" y = "20" postfix = "" parameter = "" title = "Default Title" width = "261" x = "20"/>
+	<text  style = "" show_title = "false" select_source = "" prefix = "" frame-style = "" separator = "" show_frame = "false" strings = "" height = "21" text = "Buttons sending commands" y = "340" postfix = "" parameter = "" title = "Default Title" width = "261" x = "40"/>
+</view>
+
+
+
+    <module class="Logger" name="Logger"  _x="10" _y="170" />
+</group>
+
