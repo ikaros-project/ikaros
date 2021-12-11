@@ -282,6 +282,11 @@ inspector = {
             cell1.innerText = p.name;
             cell2.innerHTML = value != undefined ? value : "";
             cell2.setAttribute('class', p.type);
+            cell2.addEventListener("paste", function(e) {
+                e.preventDefault();
+                var text = e.clipboardData.getData("text/plain");
+                document.execCommand("insertHTML", false, text);
+            });
             switch(p.control)
             {
                 case 'header':
@@ -1849,3 +1854,6 @@ controller = {
         download("network.ikg", '<?xml version="1.0" encoding="UTF-8"?>\n'+controller.groupToXML(controller.network));
     }
 }
+
+
+
