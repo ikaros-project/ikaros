@@ -12,6 +12,7 @@ String.prototype.rsplit = function(sep, maxsplit) {
 
 function setType(x, t)
 {
+
     if(t == 'int')
         return parseInt(x);
     
@@ -279,7 +280,7 @@ inspector = {
             let cell1 = row.insertCell(0);
             let cell2 = row.insertCell(1);
             cell1.innerText = p.name;
-            cell2.innerHTML = value;
+            cell2.innerHTML = value != undefined ? value : "";
             cell2.setAttribute('class', p.type);
             switch(p.control)
             {
