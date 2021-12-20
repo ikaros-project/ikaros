@@ -1,7 +1,7 @@
 //
 //	IKAROS_Timer.h		Timer utilities for the IKAROS project
 //
-//    Copyright (C) 2006  Christian Balkenius
+//    Copyright (C) 2006-2021  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -45,9 +45,42 @@ public:
 
 
 void
+Timer::Reset()
+{
+
+    timer_time = 0;
+    gettimeofday(&(data->start_time), NULL);
+}
+
+
+
+void
 Timer::Restart()
 {
+    timer_time = 0;
     gettimeofday(&(data->start_time), NULL);
+    running = true;
+}
+
+
+
+void
+Timer::Start()
+{
+    timer_time = GetTime();
+    gettimeofday(&(data->start_time), NULL);
+    running = true;
+
+}
+
+
+
+
+void
+Timer::Stop()
+{
+    timer_time = GetTime();
+    running = false;
 }
 
 
@@ -55,11 +88,15 @@ Timer::Restart()
 float
 Timer::GetTime()
 {
+    if(!running)
+        return timer_time;
+
     struct timeval stop_time;
     gettimeofday(&stop_time, NULL);
     long sec_diff = stop_time.tv_sec - data->start_time.tv_sec;
     long usec_diff = stop_time.tv_usec - data->start_time.tv_usec;
-    return  1E3*float(sec_diff) + float(usec_diff)/1E3; // difference in milliseconds
+
+    return  timer_time + 1E3*float(sec_diff) + float(usec_diff)/1E3; // difference in milliseconds
 }
 
 
@@ -76,10 +113,12 @@ Timer::WaitUntil(float time)
 
 
 
-Timer::Timer()
+Timer::Timer(bool run)
 {
+    running = run;
+    timer_time = 0;
     data = new TimerData();
-    Restart();
+    gettimeofday(&(data->start_time), NULL);
 }
 
 

@@ -1,7 +1,7 @@
 //
 //	IKAROS_Timer.h		Timer utilities for the IKAROS project
 //
-//    Copyright (C) 2006  Christian Balkenius
+//    Copyright (C) 2006-2021  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -30,15 +30,21 @@ class Timer
 private:
     TimerData *	data;
 public:
-    void		Restart();					// Start the timer
-    float		GetTime();					// Get the time (in milliseconds) since the timer was created or restarted
+    void        Reset();                    // Set time to zero
+    void        Start();                    // Start from where the timer was stopped before
+    void        Stop();                     // Stop timer and report the stop time in GetTime()
+    void		Restart();					// Start the timer at zero
+     float		GetTime();					// Get the time (in milliseconds) since the timer was created or restarted
     float		WaitUntil(float time);		// Suspend execution until time; return timing lag (in milliseconds)
 
-    Timer();
+    Timer(bool run=true);
     ~Timer();
 
     static void Sleep(float time);			// Sleep this many milliseconds
     static long GetRealTime();
+
+    bool    running;
+    float   timer_time;
 };
 
 #endif
