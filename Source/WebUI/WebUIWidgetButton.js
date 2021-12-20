@@ -147,7 +147,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     update(d)
     {
         if(this.parameters.icon)
-            this.firstChild.innerHTML = "<img src='"+this.parameters.icon+"'>";
+            this.firstChild.innerHTML = "<img src='"+this.parameters.icon+"' class='button-icon'>"; // ' style='width: 70%;height: 70%;object-fit: contain;'
         else
             this.firstChild.innerText = this.parameters.label;
 
