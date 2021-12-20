@@ -333,12 +333,12 @@ public:
     int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
 
     // New way to get inputs and outputs
-
+/*
     void            Bind(float *, const char * n, int & size) {}                        // output
     void            Bind(float **, const char * n, int & sizex, int & sizey) {}         // output
     void            Bind(const float *, const char * n, int & size) {}                  // input
     void            Bind(const float **, const char * n, int & sizex, int & sizey) {}   // input
-    
+  */  
 //     void           Bind(matrix & m, std:string name) {};
     
     // Bind values to names and get values from XML tree if possible

@@ -622,7 +622,7 @@ std::string GroupElement::JSONString(int d)
     {
         b = "";
         s += tab2 + "\"outputs\":\n" + tab2 + "[\n";
-        for(auto p : outputs)
+        for(auto p : outputs) // FIXME: not empty when there are no outputs; instead null pointer in second
         {
             s += b + p.second->JSONString(d+2);
             b = ",\n";
