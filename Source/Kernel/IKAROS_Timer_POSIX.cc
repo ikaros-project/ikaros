@@ -70,7 +70,6 @@ Timer::Start()
     timer_time = GetTime();
     gettimeofday(&(data->start_time), NULL);
     running = true;
-
 }
 
 
@@ -97,6 +96,15 @@ Timer::GetTime()
     long usec_diff = stop_time.tv_usec - data->start_time.tv_usec;
 
     return  timer_time + 1E3*float(sec_diff) + float(usec_diff)/1E3; // difference in milliseconds
+}
+
+
+
+void
+Timer::SetTime(float time)
+{
+    timer_time = time;
+    gettimeofday(&(data->start_time), NULL);
 }
 
 

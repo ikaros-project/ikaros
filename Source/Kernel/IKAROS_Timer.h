@@ -35,6 +35,7 @@ public:
     void        Stop();                     // Stop timer and report the stop time in GetTime()
     void		Restart();					// Start the timer at zero
      float		GetTime();					// Get the time (in milliseconds) since the timer was created or restarted
+     void       SetTime(float time);
     float		WaitUntil(float time);		// Suspend execution until time; return timing lag (in milliseconds)
 
     Timer(bool run=true);
