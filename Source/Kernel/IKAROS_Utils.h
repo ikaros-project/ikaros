@@ -316,5 +316,8 @@ class Dictionary
 	 void 		take(float *r, float *a, int *indeces);
      void       hstack(float **r, float **a, int ax, float **b, int bx, int rety);
 
+
+    std::string time_code_string(float time);
+
 #endif
 
