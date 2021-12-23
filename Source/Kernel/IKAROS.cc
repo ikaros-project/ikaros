@@ -503,7 +503,10 @@ GroupElement::GetSource(const std::string & name) // FIXME: simplify when source
         if(g->module)
             return g->module->GetModule_IO(g->module->output_list, source[1].c_str());
 
-        auto output = g->outputs[source[1]];
+        if(!g->outputs.count(source[1]))
+            return NULL;
+
+        auto output = g->outputs.at(source[1]);
         if(!output)
             return NULL;
 
@@ -622,11 +625,17 @@ std::string GroupElement::JSONString(int d)
     {
         b = "";
         s += tab2 + "\"outputs\":\n" + tab2 + "[\n";
-        for(auto p : outputs) // FIXME: not empty when there are no outputs; instead null pointer in second
+        for(auto p : outputs) // FIXME: not empty when there are no outputs; instead null pointer in second???
         {
+            if(p.second)
+            {
             s += b + p.second->JSONString(d+2);
             b = ",\n";
+            }
+            else
+                kernel().Notify(msg_fatal_error, "Internal Eror – Empty output structure.");
         }
+
         s += "\n";
         s += tab2 + "]";
     }
@@ -3273,7 +3282,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         else if(xml_node->IsElement("output"))
         {
             if(const char * name = xml_node->GetAttribute("name"))
-                group->outputs.insert( { name, new OutputElement(group, xml_node) });
+                group->outputs.insert( { name, new OutputElement(group, xml_node) }); // LOOK HERE!
             else
                 Notify(msg_fatal_error, "Output element does not have a name.");
         }
@@ -3846,11 +3855,11 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
         if(!std::string(root).empty())
             src = std::string(root)+"."+src;
         
-        if(root_group)
+        if(root_group && source && source[0])
         {
             if(format == "") // as default, send a matrix
             {
-                Module_IO * io = root_group->GetSource(source); // Also look for inputs here
+                Module_IO * io = root_group->GetSource(source); // FIXME: Also look for inputs here
                 if(io)
                 {
                     socket->Send(sep.c_str());
@@ -3967,6 +3976,12 @@ Kernel::Pause()
 void
 Kernel::HandleControlChange(char * uri, char * args)
 {
+    if(!uri)
+    {
+        Notify(msg_fatal_error, "No URI to Control change."); // should never happen
+        return;
+    }
+
     // ad hoc parsing of arguments
     char * client = strsep(&args, "&");
     char * id = (client ? &client[3] : NULL);
@@ -3989,6 +4004,8 @@ Kernel::HandleControlChange(char * uri, char * args)
     }
     else // possibly a data request - send requested data
     {
+    //    if(!args)
+    //        return Notify(msg_fatal_error, "No argument in control change");
         strsep(&args, "=");
         root = strsep(&args, "#");
 
