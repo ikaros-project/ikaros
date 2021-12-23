@@ -361,3 +361,12 @@ webui-widget-table td {
     color: white;
     font-weight: bold;
 }
+
+
+
+.button-icon {
+    pointer-events: none;
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
