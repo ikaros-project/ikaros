@@ -790,7 +790,7 @@ interaction = {
         window.addEventListener("resize", interaction.windowResize);
     },
     getClasses() {
-        fetch('/classes/')
+        fetch('/classes')
         .then(response => {
             if (!response.ok) {
                 throw new Error("HTTP error " + response.status);
@@ -1506,7 +1506,7 @@ controller = {
         else
             document.querySelector("#state").innerHTML = "waiting";
     },
-    
+
     defer_reconnect: function ()
     {
         clearInterval(controller.reconnect_timer);
@@ -1524,11 +1524,11 @@ controller = {
         {
             if(!xhr.response)   // empty response is ignored
             {
-                //console.log("onload - empty response - error")
+                console.log("onload - empty response - error")
                 return;
             }
             controller.defer_reconnect(); // we are still on line
-            setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
+            setTimeout(controller.update, controller.webui_req_int); // schedule next update; approximately 10/s
             callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
         }
         
@@ -1542,7 +1542,6 @@ controller = {
             console.log(error);
         }
     },
-
 
     init: function () {
         controller.get("update", controller.update);
