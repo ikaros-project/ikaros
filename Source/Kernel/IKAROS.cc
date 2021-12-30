@@ -1898,7 +1898,7 @@ ThreadGroup::ThreadGroup(Kernel * k)
 {
     period = 1;
     phase = 0;
-    thread = NULL; // new Thread();
+    thread = NULL;
 }
 
 
@@ -1906,7 +1906,7 @@ ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
 {
     period = period_;
     phase = phase_;
-    thread = NULL; // new Thread();
+    thread = NULL;
 }
 
 
@@ -1939,8 +1939,7 @@ ThreadGroup::Start(long tick)
     // Test if group should be started
     if(tick % period == phase)
     {
-//        if(thread->Create(ThreadGroup_Tick, (void*)this))
-//            printf("Thread Creation Failed!\n");
+
         thread = new std::thread(ThreadGroup_Tick, (void *)this, high_priority);
     }
 }
@@ -2001,8 +2000,6 @@ Kernel::Kernel()
     
     webui_dir               = NULL;
     xml                     = NULL;
-    current_xml_root        = NULL;
-    current_xml_root_path   = create_string("");
     ui_state                = ui_state_pause;
     master_id               = 0;
     tick_is_running         = false;
@@ -2764,47 +2761,6 @@ Kernel::SetParameter(const char * name, int x, int y, float value)
     }
 
     return true;
-
-/*
-    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-    {
-        // Set parameters of modules in this group
-    
-       if(xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
-		{
-			Module * m = (Module *)(xml->aux);
-			if(m != NULL)
-                m->SetParameter(parameter_name, select_x, select_y, value);
- 		}
-
-        // Set parameters in included groups
-        
-		else if(xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
-		{
-            const char * new_module = wildcard;
-            const char * new_parameter = parameter_name;
-
-			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
-			{
-				const char * n = GetXMLAttribute(parameter, "name");
-                
-				if(n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
-				{
- 					new_module = GetXMLAttribute(parameter, "targetmodule");
-					new_parameter = GetXMLAttribute(parameter, "target");
-                    
-					if(new_module == NULL)
-						new_module = wildcard;	// match all modules
-                    
-					if(new_parameter == NULL)
-						new_parameter = parameter_name;	// retain name
-				}
-			}
-            
-            SetParameter(xml, new_module, new_parameter, select_x, select_y, value);
-		}
-    }
-*/
 }
 
 
@@ -3770,33 +3726,6 @@ SendJSONArrayData(ServerSocket * socket, const std::string & source, float * arr
 }
 
 
-/*
-static bool
-SendJSONMatrixData(ServerSocket * socket, const char * source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead ---- DEPRECATED
-{
-    if (matrix == NULL)
-        return false;
-    
-    int k = 0;
-
-    socket->fillBuffer("\t\t\"" + std::string(source) + "\":\n\t\t[\n");
-    for (int j=0; j<sizey; j++)
-    {
-        socket->fillBuffer("\t\t\t[" + checkNumber(matrix[k++]));
-        for (int i=1; i<sizex; i++)
-            socket->fillBuffer("," + checkNumber(matrix[k++]));
-        if (j<sizey-1)
-            socket->fillBuffer("],\n");
-        else
-            socket->fillBuffer("]\n\t\t]");
-    }
-    socket->SendBuffer();
-    socket->clearBuffer();
-    return true;
-}
-*/
-
-
 
 static bool
 SendJSONMatrixData(ServerSocket * socket, const std::string & source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead
@@ -4010,6 +3939,7 @@ Kernel::Pause()
 
 
 
+/*
 void
 Kernel::HandleControlChange(char * uri, char * args)
 {
@@ -4081,7 +4011,7 @@ Kernel::HandleControlChange(char * uri, char * args)
         SendUIData(args);
     }
 }
-
+*/
 
 
 /* ---------- NEW CONTROL FUNCTIONS ------------ */
@@ -4188,15 +4118,8 @@ Kernel::DoControl(std::string uri, std::string args)
     float value;
     int c = sscanf(uri.c_str(), "/control/%[^/]/%d/%d/%f", parameter, &x, &y, &value);
     if(c == 4)
-    {
-        XMLElement * group = current_xml_root;
-        if(equal_strings(module_name, "*")) // FIXME: !!!
-        {
-            strcpy(module_name, GetXMLAttribute(current_xml_root, "name"));
-            group = group->GetParentElement();
-        }
+
         SetParameter(parameter, x, y, value); // TODO: check if groups are handled correctly
-    }
     
     Dictionary header;
     header.Set("Content-Type", "text/plain");

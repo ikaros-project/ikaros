@@ -167,7 +167,6 @@ public:
     int             size_x; // size for scalar [float, int, bool] = (0, 0) for array = (n, 1), for matrix = (n, m)
     int             size_y;
     int             type;
-//    Binding *       next;
     
     Binding(Module * m, const char * n, int t, void * v, int sx, int sy) :
         module(m), name(n), value(v), size_x(sx), size_y(sy), type(t)
@@ -199,7 +198,6 @@ public:
     
     void            SetClassPath(const char * class_name);
     const char *	GetClassPath();
-//    friend Module *	CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);	// Return a module of class class_name initialized with parameters in p and attributes in a
     Module *    CreateModule(Parameter * p);
 };
 
@@ -241,11 +239,8 @@ public:
 };
 
 
-
-
-
 //
-// Module is the base class for all simulation modules
+// Module is the base class for all modules
 //
 // Bind(io_matrix_or_variable, "name") should replace all GetValue and GetInput/Output and get_size
 
@@ -422,7 +417,6 @@ public:
 };
 
 
-
 //
 // ThreadGroup contains a linked list of modules that are executed in the same thread
 //
@@ -461,8 +455,6 @@ public:
     int             port;
     ServerSocket *  socket;
     XMLElement *    xml;
-    XMLElement *    current_xml_root;       // FIXME: remove
-    char *          current_xml_root_path;  // FIXME: remove
     bool            debug_mode;
     bool            isRunning;
     int             ui_state;
@@ -471,8 +463,6 @@ public:
     bool            first_request;
     long            master_id;
 
-//    std::atomic<float *> ui_data;       
-//    std::atomic<bool> dont_copy_data;
     std::atomic<bool> tick_is_running;
     std::atomic<bool> sending_ui_data;
     
@@ -495,15 +485,10 @@ public:
     bool DoModule(std::string uri, std::string args);
     bool DoClasses(std::string uri, std::string args);
     bool DoSendFile(std::string file);
-
     bool DoSendError();
-    bool HandleHTTPRequest_v2();
 
-
-
-    void            HandleControlChange(char * uri, char * args);
-    bool            HandleHTTPRequest();
-    void            HandleHTTPThread();
+    bool HandleHTTPRequest();
+    void HandleHTTPThread();
     
     std::thread *   httpThread;
     static void *   StartHTTPThread(Kernel * k);
@@ -542,8 +527,6 @@ public:
 
     bool        GetSource(Module_IO * &io, GroupElement * group, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-//    bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-//    void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
     bool        SetParameter(const char * name, int x, int y, float value); // returns false on failure
     void        SendCommand(const char * command, float x, float y, std::string value);
     
