@@ -31,6 +31,10 @@
 #include <unistd.h>
 #include <new>
 #include <stdexcept>
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 // Kernel
 
@@ -63,7 +67,7 @@ PrintInfo()
     printf("\t-P    profile (>= 0.01 ms)\n");
     printf("\t-m    list modules and connections\n");
     printf("\t-c    list installed classes\n");
-    printf("\t-l    list scheduling nad thread allocation\n");
+    printf("\t-l    list scheduling and thread allocation\n");
     printf("\t-i    list installed functionality sockets, timer etc, type of target system\n");
     printf("\t-a    list all; implies -m, -i and -l\n");
     
@@ -101,6 +105,9 @@ count_elements(const char * s)
     return (int)c;
 }
 */
+
+
+
 
 
 int
