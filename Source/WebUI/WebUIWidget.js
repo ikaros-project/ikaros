@@ -55,7 +55,6 @@ class WebUIWidget extends HTMLElement
     get(url, callback) // FIXME: This function should instead call the get funciton in webui.js to maintain update
     {
         controller.get(url, controller.update);
-        controller.get("update", controller.update); // TEST
         return;
         
         var last_request = url;
