@@ -88,7 +88,7 @@ class ServerSocket
 		bool				SendData(const char * buffer, long size);
 		bool				Send(const char * format, ...); // Maximum 1023 characters
 		bool				Send(const float *, int sizex, int sizey);
-		bool				SendFile(const char * filename, const char * path="", Dictionary * header = NULL);
+		bool				SendFile(const char * filename, const char * path="", Dictionary * header = NULL); // FIXME: add header automatically based on file type
 
 		void				fillBuffer(std::string s);
 		bool				SendBuffer();
