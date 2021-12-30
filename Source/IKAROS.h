@@ -478,11 +478,31 @@ public:
     
     void            SendXML();
     void            ReadXML(XMLDocument * xmlDoc);
-    void            SendUIData(char * root, char * args);
+    void            SendUIData(std::string args);
     void            Pause();
-    
+
+
+    bool DoStop(std::string uri, std::string args);
+    bool DoPause(std::string uri, std::string args);
+    bool DoStep(std::string uri, std::string args);
+    bool DoPlay(std::string uri, std::string args);
+    bool DoRealtime(std::string uri, std::string args);
+    bool DoCommand(std::string uri, std::string args);
+    bool DoControl(std::string uri, std::string args);
+    bool DoSendViewData(std::string uri, std::string args);
+    bool DoUpdate(std::string uri, std::string args);
+    bool DoGetLog(std::string uri, std::string args);
+    bool DoModule(std::string uri, std::string args);
+    bool DoClasses(std::string uri, std::string args);
+    bool DoSendFile(std::string file);
+
+    bool DoSendError();
+    bool HandleHTTPRequest_v2();
+
+
+
     void            HandleControlChange(char * uri, char * args);
-    void            HandleHTTPRequest();
+    bool            HandleHTTPRequest();
     void            HandleHTTPThread();
     
     std::thread *   httpThread;

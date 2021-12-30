@@ -3319,7 +3319,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
         auto target = c["target"];
         try {
             Module_IO * source_io = NULL;
-            if(starts_with(source, "."))
+            if(source.starts_with("."))
                 source_io = main_group->GetSource(source.substr(1));
             else
                 source_io = group->GetSource(source);
@@ -3328,7 +3328,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
                 Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
 
             int cnt = 0;
-            if(starts_with(target, "."))
+            if(target.starts_with("."))
                 for(auto target_io : main_group->GetTargets(target.substr(1)))
                     cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
             else
@@ -3754,12 +3754,12 @@ checkNumber(float x)
 
 
 static bool
-SendJSONArrayData(ServerSocket * socket, char * source, float * array, int size)
+SendJSONArrayData(ServerSocket * socket, const std::string & source, float * array, int size)
 {
     if (array == NULL)
         return false;
     
-    socket->fillBuffer("\t\t\"" + std::string(source) + "\":\n\t\t[\n");
+    socket->fillBuffer("\t\t\"" + source + "\":\n\t\t[\n");
     socket->fillBuffer("\t\t[" + checkNumber(array[0]));
     for (int i=1; i<size; i++)
         socket->fillBuffer("," + checkNumber(array[i]));
@@ -3770,8 +3770,9 @@ SendJSONArrayData(ServerSocket * socket, char * source, float * array, int size)
 }
 
 
+/*
 static bool
-SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead
+SendJSONMatrixData(ServerSocket * socket, const char * source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead ---- DEPRECATED
 {
     if (matrix == NULL)
         return false;
@@ -3793,15 +3794,49 @@ SendJSONMatrixData(ServerSocket * socket, char * source, float * matrix, int siz
     socket->clearBuffer();
     return true;
 }
+*/
+
+
+
+static bool
+SendJSONMatrixData(ServerSocket * socket, const std::string & source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead
+{
+    if (matrix == NULL)
+        return false;
+    
+    int k = 0;
+
+    socket->fillBuffer("\t\t\"" + source + "\":\n\t\t[\n");
+    for (int j=0; j<sizey; j++)
+    {
+        socket->fillBuffer("\t\t\t[" + checkNumber(matrix[k++]));
+        for (int i=1; i<sizex; i++)
+            socket->fillBuffer("," + checkNumber(matrix[k++]));
+        if (j<sizey-1)
+            socket->fillBuffer("],\n");
+        else
+            socket->fillBuffer("]\n\t\t]");
+    }
+    socket->SendBuffer();
+    socket->clearBuffer();
+    return true;
+}
+
+
+
 
 
 void
-Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
+Kernel::SendUIData(std::string args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
 {    
     sending_ui_data = true; // must be set while main thread is still running
     while(tick_is_running)
         {}
-    
+        // FIXME: GET ROOT HERE
+
+std::string data = cut(args, "data=");
+std::string root = head(data, "#");
+
     Dictionary header;
     header.Set("Session-Id", std::to_string(session_id).c_str()); // FIXME: GetValue("session_id")
     header.Set("Package-Type", "data");
@@ -3844,18 +3879,18 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
     socket->Send(",\n\t\"data\":\n\t{\n");
     std::string sep = "";
 
-    while(args && args[0])
+    while(!data.empty())
     {
-        char * ms = strsep(&args, "#");
-        char * source = strsep(&ms, ":");
-        auto format = ms ? std::string(ms) : std::string();
-        auto root_group = main_group->GetGroup(std::string(root));
+        std::string source = head(data, "#");
+        std::string  format = rcut(source, ":");
+
+        auto root_group = main_group->GetGroup(root);
         
-        std::string src = std::string(source);
-        if(!std::string(root).empty())
-            src = std::string(root)+"."+src;
+        std::string src = source;
+        if(!root.empty())    // FIXME: Empty or Not empty?
+            src = root+"."+src;
         
-        if(root_group && source && source[0])
+        if(root_group && !source.empty())
         {
             if(format == "") // as default, send a matrix
             {
@@ -3875,19 +3910,19 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     {
                         case data_source_int:
                         case data_source_list:
-                            socket->Send("\t\t\"%s\": [[%d]]", source, *(int *)(b->value));
+                            socket->Send("\t\t\"%s\": [[%d]]", source.c_str(), *(int *)(b->value));
                             break;
 
                         case data_source_bool:
-                            socket->Send("\t\t\"%s\": [[%d]]", source, int(*(bool *)(b->value)));
+                            socket->Send("\t\t\"%s\": [[%d]]", source.c_str(), int(*(bool *)(b->value)));
                             break;
 
                         case data_source_float:
-                            socket->Send("\t\t\"%s\": [[%f]]", source, *(float *)(b->value));
+                            socket->Send("\t\t\"%s\": [[%f]]", source.c_str(), *(float *)(b->value));
                             break;
 
                         case data_source_string:
-                            socket->Send("\t\t\"%s\": \"%s\"", source, ((std::string *)(b->value))->c_str());
+                            socket->Send("\t\t\"%s\": \"%s\"", source.c_str(), ((std::string *)(b->value))->c_str());
                             break;
          
                         case data_source_matrix:
@@ -3909,12 +3944,12 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                 if(Module_IO * io = root_group->GetSource(source))
                 {
                     socket->Send(sep.c_str());
-                    socket->Send("\t\t\"%s:gray\": ", source);
+                    socket->Send("\t\t\"%s:gray\": ", source.c_str());
                     SendColorJPEGbase64(socket, *io->matrix[0], *io->matrix[0], *io->matrix[0], io->sizex, io->sizey);
                     sep = ",\n";
                 }
             }
-            else if(format == "rgb" && source[0])
+            else if(format == "rgb" && !source.empty())
             {
                 auto a = rsplit(source, ".", 1); // separate out outputs
                 auto o = split(a[1], "+"); // split channel names
@@ -3934,7 +3969,7 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                     if(io2 && io2 && io3)
                     {
                         socket->Send(sep.c_str());
-                        socket->Send("\t\t\"%s:rgb\": ", source);
+                        socket->Send("\t\t\"%s:rgb\": ", source.c_str());
                         SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
                         sep = ",\n";
                     }
@@ -3945,8 +3980,8 @@ Kernel::SendUIData(char * root, char * args) // FIXME: are some types missing? T
                 if(Module_IO * io = root_group->GetSource(source))
                 {
                     socket->Send(sep.c_str());
-                    socket->Send("\t\t\"%s:%s\": ", source, format.c_str());
-                    SendPseudoColorJPEGbase64(socket, *io->matrix[0], io->sizex, io->sizey, format);
+                    socket->Send("\t\t\"%s:%s\": ", source.c_str(), format.c_str());
+                    SendPseudoColorJPEGbase64(socket, *io->matrix[0], io->sizex, io->sizey, format.c_str());
                     sep = ",\n";
                 }
             }
@@ -3971,6 +4006,8 @@ Kernel::Pause()
     while(tick_is_running)
         ;
 }
+
+
 
 
 void
@@ -4041,184 +4078,308 @@ Kernel::HandleControlChange(char * uri, char * args)
             isRunning = true;
         }
 
-        SendUIData(root, args);
+        SendUIData(args);
     }
 }
 
 
-void
-Kernel::HandleHTTPRequest()
+
+/* ---------- NEW CONTROL FUNCTIONS ------------ */
+
+long
+get_id(std::string & args)
 {
-    if (debug_mode)
-        printf("HTTP Request: %s %s\n", socket->header.Get("Method"), socket->header.Get("URI"));
+    std::string id_string =  head(args, "&");
+    std::string id_number = cut(id_string, "id=");
 
-    std::string s = socket->header.Get("URI");
-    
-    // Copy URI and remove index
-    char * uri_p = create_string(socket->header.Get("URI"));
-    char * uri = strsep(&uri_p, "?");
-    char * args = uri_p;
-
-    if(!strcmp(uri, "/update"))
-        HandleControlChange(uri, args);
-    else if(!strcmp(uri, "/pause"))
-        HandleControlChange(uri, args);
-    else if(!strcmp(uri, "/step"))
-        HandleControlChange(uri, args);
-    else if(!strcmp(uri, "/play"))
-        HandleControlChange(uri, args);
-    else if(!strcmp(uri, "/realtime"))
-        HandleControlChange(uri, args);
-    else if(!strcmp(uri, "/update.json"))
-        HandleControlChange(uri, args);
-    else if(!strcmp(uri, "/stop"))
+    try
     {
+        return stol(id_number);
+    }
+    catch(const std::invalid_argument)
+    {
+        return 0;
+    }
+}
+
+
+
+
+
+bool
+Kernel::DoStop(std::string uri, std::string args)
+{
         Pause();
         ui_state = ui_state_stop;
-        SendUIData(NULL, NULL); // FIXME: must be corrected
-        Notify(msg_terminate, "Sent by WebUI.\n");
-    }
-    else if (strstart(uri, "/command/"))
-    {
-//        char module_name[255];
-        float x, y;
-        char command[255];
-        char value[1024]; // FIXME: no range chacks
-        int c = sscanf(uri, "/command/%[^/]/%f/%f/%[^/]", command, &x, &y, value);
-        if(c == 4)
-            SendCommand(command, x, y, value);
+        SendUIData(""); // FIXME: must be corrected
+        return Notify(msg_terminate, "Sent by WebUI.\n");
+}
 
-        Dictionary header;
-        header.Set("Content-Type", "text/plain");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
-        socket->SendHTTPHeader(&header);
-        socket->Send("OK\n");
-        
-        // SHOULD: SendUIData(root, args);
-    }
-    else if (strstart(uri, "/control/"))
-    {
-        char module_name[255];
-        char parameter[255];
-        int x, y;
-        float value;
-        int c = sscanf(uri, "/control/%[^/]/%d/%d/%f", parameter, &x, &y, &value);
-        if(c == 4)
-        {
-            XMLElement * group = current_xml_root;
-            if(equal_strings(module_name, "*")) // FIXME: !!!
-            {
-                strcpy(module_name, GetXMLAttribute(current_xml_root, "name"));
-                group = group->GetParentElement();
-            }
-            SetParameter(parameter, x, y, value); // TODO: check if groups are handled correctly
-        }
-        Dictionary header;
-        header.Set("Content-Type", "text/plain");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Access-Control-Allow-Origin", "*");
-        header.Set("Pragma", "no-cache");
-        socket->SendHTTPHeader(&header);
-        socket->Send("OK\n");
 
-        // SHOULD: SendUIData(root, args);
-    }
-    else if (!strcmp(uri, "/getlog"))
-    {
-        if (logfile)
-            socket->SendFile("logfile", webui_dir);
-        else
-            socket->Send("ERROR - No logfile found\n");
-    }
-    else if (strstart(uri, "/module/")) // should probably be removed
-    {
-        char module[256], output[256], type[256];
-        int c = sscanf(uri, "/module/%[^/]/%[^/]/%[^/]", module, output, type);
 
-        if(c != 3)
-        {
-            socket->Send( "Incorrect data: %s/%s/%s\n", module, output, type);
-            destroy_string(uri);
-            return;
-        }
+bool
+Kernel::DoPause(std::string uri, std::string args)
+{
+    return true;
+}
 
-        Module * m = GetModuleFromFullName(module);
-        if(m)
-        {
-            int sx = m->GetOutputSizeX(output);
-            int sy = m->GetOutputSizeY(output);
-            char * s = create_formatted_string("%s.%s [%dx%d]", module, output, sx, sy);
-            if (!SendHTMLData(socket, s, m->GetOutputMatrix(output), sx, sy))
-                Notify(msg_warning, "Could not send: data.txt\n");
-            destroy_string(uri);
-            return;
-        }
-        else
-        {
-            socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
-            socket->Send( "\"%s\" may be an unkown data type.\n", type);
-            destroy_string(uri);
-            return;
-        }
-    }
-    else if (strstart(uri, "/classes/"))
+
+
+bool
+Kernel::DoStep(std::string uri, std::string args)
+{
+    return true;
+}
+
+
+
+
+bool
+Kernel::DoPlay(std::string uri, std::string args)
+{
+    return true;
+}
+
+
+
+
+bool
+Kernel::DoRealtime(std::string uri, std::string args)
+{
+    ui_state = ui_state_realtime;
+    master_id = get_id(args);
+    isRunning = true;
+    SendUIData(args);
+    return true;
+}
+
+
+
+bool
+Kernel::DoCommand(std::string uri, std::string args)
+{
+// char module_name[255];
+    float x, y;
+    char command[255];
+    char value[1024]; // FIXME: no range chacks
+    int c = sscanf(uri.c_str(), "/command/%[^/]/%f/%f/%[^/]", command, &x, &y, value);
+    if(c == 4)
+        SendCommand(command, x, y, value);
+
+    Dictionary header;
+    header.Set("Content-Type", "text/plain");
+    header.Set("Cache-Control", "no-cache");
+    header.Set("Cache-Control", "no-store");
+    header.Set("Pragma", "no-cache");
+    socket->SendHTTPHeader(&header);
+    socket->Send("OK\n");
+    // SHOULD: SendUIData(root, args);
+    return true;
+}
+
+
+
+bool
+Kernel::DoControl(std::string uri, std::string args)
+{
+    char module_name[255];
+    char parameter[255];
+    int x, y;
+    float value;
+    int c = sscanf(uri.c_str(), "/control/%[^/]/%d/%d/%f", parameter, &x, &y, &value);
+    if(c == 4)
     {
-        Dictionary header;
-        header.Set("Content-Type", "text/json");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
-        socket->SendHTTPHeader(&header);
-        socket->Send("{\"classes\":[\n\t\"");
-        std::string s = "";
-        for(auto & c: classes)
+        XMLElement * group = current_xml_root;
+        if(equal_strings(module_name, "*")) // FIXME: !!!
         {
-            socket->Send(s.c_str());
-            socket->Send(c.first.c_str());
-            s = "\",\n\t\"";
+            strcpy(module_name, GetXMLAttribute(current_xml_root, "name"));
+            group = group->GetParentElement();
         }
-        socket->Send("\"\n]\n}\n");
-    }
-    else if(equal_strings(uri, "/"))
-    {
-        socket->SendFile("index.html", webui_dir);
-    }
-    else if (
-        strend(uri, ".xml") ||
-        strend(uri, ".jpg") ||
-        strend(uri, ".html") ||
-        strend(uri, ".css") ||
-        strend(uri, ".png") ||
-        strend(uri, ".svg") ||
-        strend(uri, ".js") ||
-        strend(uri, ".gif") ||
-        strend(uri, ".stl") ||
-        strend(uri, ".gltf") ||
-        strend(uri, ".glb") ||
-        strend(uri, ".ico"))
-    {
-        if(!socket->SendFile(&uri[1], ikc_dir))  // Check IKC-directory first to allow files to be overriden
-        if(!socket->SendFile(&uri[1], webui_dir))   // Now look in WebUI directory
-        {
-            if (strend(uri, ".gltf") || strend(uri, ".glb"))
-                socket->SendFile("/Models/glTF/Error.glb", webui_dir);   // Send error model
-            else
-                socket->SendFile("404.html", webui_dir); // Send 404 if not file found
-        }
-    }
-    else
-    {
-        Dictionary header;
-        header.Set("Content-Type", "text/plain");
-        socket->SendHTTPHeader(&header);
-        socket->Send("ERROR\n");
+        SetParameter(parameter, x, y, value); // TODO: check if groups are handled correctly
     }
     
-    destroy_string(uri);
+    Dictionary header;
+    header.Set("Content-Type", "text/plain");
+    header.Set("Cache-Control", "no-cache");
+    header.Set("Cache-Control", "no-store");
+    header.Set("Access-Control-Allow-Origin", "*");
+    header.Set("Pragma", "no-cache");
+    socket->SendHTTPHeader(&header);
+    socket->Send("OK\n");
+
+    // SHOULD: SendUIData(root, args);
+return true;
 }
+
+
+
+
+bool
+Kernel::DoUpdate(std::string uri, std::string args)
+{
+
+    long client_id = get_id(args);
+
+    if(args.empty() || first_request) // not a data request - send view data
+    {
+        first_request = false;
+        std::string s = JSONString();
+        Dictionary rtheader;
+        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
+        rtheader.Set("Package-Type", "network");
+        rtheader.Set("Content-Type", "application/json");
+        rtheader.Set("Content-Length", int(s.size()));
+        socket->SendHTTPHeader(&rtheader);
+        socket->SendData(s.c_str(), int(s.size()));
+        return true;
+    }
+
+    if(ui_state == ui_state_play && master_id == client_id) // paced from webui - move to DoStep() ???
+    {
+        Pause();
+        Tick();
+    }
+
+    SendUIData(args);
+
+return true;
+}
+
+
+
+bool
+Kernel::DoGetLog(std::string uri, std::string args)
+{
+    if (logfile)
+        socket->SendFile("logfile", webui_dir);
+    else
+        socket->Send("ERROR - No logfile found\n");
+    return true;
+}
+
+
+
+
+bool
+Kernel::DoClasses(std::string uri, std::string args)
+{
+    Dictionary header;
+    header.Set("Content-Type", "text/json");
+    header.Set("Cache-Control", "no-cache");
+    header.Set("Cache-Control", "no-store");
+    header.Set("Pragma", "no-cache");
+    socket->SendHTTPHeader(&header);
+    socket->Send("{\"classes\":[\n\t\"");
+    std::string s = "";
+    for(auto & c: classes)
+    {
+        socket->Send(s.c_str());
+        socket->Send(c.first.c_str());
+        s = "\",\n\t\"";
+    }
+    socket->Send("\"\n]\n}\n");
+    return true;
+}
+
+
+
+bool
+Kernel::DoSendFile(std::string file)
+{
+        if(file[0] == '/')
+            file = file.erase(0,1); // Remove initial slash
+
+        if(socket->SendFile(file.c_str(), ikc_dir))  // Check IKC-directory first to allow files to be overriden
+            return true;
+
+        if(socket->SendFile(file.c_str(), webui_dir))   // Now look in WebUI directory
+            return true;
+        
+        file = "error." + rcut(file, ".");
+        if(socket->SendFile(("error." + rcut(file, ".")).c_str(), webui_dir)) // Try to send error file
+            return true;
+
+        return DoSendError();
+}
+
+
+bool
+Kernel::DoSendError()
+{
+    Dictionary header;
+    header.Set("Content-Type", "text/plain");
+    socket->SendHTTPHeader(&header);
+    socket->Send("ERROR\n");
+    // FIXME: CLOSE???
+    return true;
+}
+
+
+
+bool
+Kernel::DoSendViewData(std::string uri, std::string args)
+{
+    std::string s = JSONString();
+    Dictionary rtheader;
+    rtheader.Set("Session-Id", std::to_string(session_id).c_str());
+    rtheader.Set("Package-Type", "network");
+    rtheader.Set("Content-Type", "application/json");
+    rtheader.Set("Content-Length", int(s.size()));
+    socket->SendHTTPHeader(&rtheader);
+    socket->SendData(s.c_str(), int(s.size()));
+    return true;
+}
+
+
+
+bool
+Kernel::HandleHTTPRequest()
+{
+    std::string uri = socket->header.Get("URI");
+    if(uri.empty())
+        return Notify(msg_warning, "No URI");
+
+    std::string args = cut(uri, "?");
+
+    // SELECT METHOD
+
+    if(uri == "/update")
+        return DoUpdate(uri, args);
+
+        if(uri == "/pause")
+        return DoPause(uri, args);
+
+    if(uri == "/step")
+        return DoStep(uri, args);
+
+
+    if(uri == "/play")
+        return DoPlay(uri, args);
+
+    if(uri == "/realtime")
+        return DoRealtime(uri, args);
+
+    if(uri == "/stop")
+        return DoStop(uri, args);
+
+    if(uri == "/getlog")
+        return DoGetLog(uri, args);
+    
+    if(uri == "/classes") 
+        return DoClasses(uri, args);
+
+    if(uri == "/")
+       return DoSendFile("index.html");
+
+    if(uri.starts_with("/command/"))
+        return DoCommand(uri, args);
+        
+    if(uri.starts_with("/control/"))
+        return DoControl(uri, args);
+
+    return DoSendFile(uri);
+}
+
 
 
 void
