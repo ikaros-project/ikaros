@@ -49,7 +49,12 @@ const std::vector<std::string>  split(const std::string & str, const std::string
 const std::vector<std::string>  rsplit(const std::string & str, const std::string & sep = "", int maxsplit = -1);           // Python-like rsplit
 std::string                     join(const std::string & separator, const std::vector<std::string> & v, bool reverse =false);    // Pyhon-like join
 
-bool starts_with(const std::string &s, const std::string & start);
+bool starts_with(const std::string &s, const std::string & start); // deprecated - only used in TouchBoard
+
+std::string head(std::string & s, const std::string & delimiter); // return string before delimiter and remove it from s
+std::string cut(std::string & s, const std::string & delimiter); // cut of string at delimiter and return the rest
+std::string rcut(std::string & s, const std::string & delimiter);// search for delimeter from the end instead
+
 std::string ltrim(const std::string &s);
 std::string rtrim(const std::string &s);
 std::string trim(const std::string &s);

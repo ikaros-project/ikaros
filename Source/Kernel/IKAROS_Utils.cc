@@ -337,11 +337,61 @@ join(const std::string & separator, const std::vector<std::string> & v, bool rev
 }
 
 
+
 bool
 starts_with(const std::string & s, const std::string & start)
 {
     return start.length() <= s.length() && equal(start.begin(), start.end(), s.begin()); // more efficient than find
 }
+
+
+
+std::string
+head(std::string & s, const std::string & delimiter)
+{
+    int end = s.find(delimiter);
+    if(end == -1)
+    {
+        std::string h = s;
+        s = "";
+        return h;
+    }
+    else
+    {
+        std::string h = s.substr(0, end);
+        s.erase(0, end+delimiter.length());
+        return h;
+    }
+}
+
+std::string 
+cut(std::string & s, const std::string & delimiter)
+{
+    int end = s.find(delimiter);
+    if(end == -1)
+        return "";
+
+    std::string tail = s.substr(end+delimiter.length(), s.length());
+    s.erase(end, s.length());
+
+    return tail;
+}
+
+
+
+std::string 
+rcut(std::string & s, const std::string & delimiter)
+{
+    int end = s.rfind(delimiter);
+    if(end == -1)
+        return "";
+
+    std::string tail = s.substr(end+delimiter.length(), s.length());
+    s.erase(end, s.length());
+
+    return tail;
+}
+
 
 // trim from start (in place)
 std::string ltrim(const std::string &ss)
@@ -352,6 +402,7 @@ std::string ltrim(const std::string &ss)
             }));
     return s;
 }
+
 
 // trim from end (in place)
 std::string rtrim(const std::string &ss)
