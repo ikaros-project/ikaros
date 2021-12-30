@@ -1,7 +1,7 @@
 //
 //    main.cc		The main code for the IKAROS project
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2021  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -88,23 +88,6 @@ PrintInfo()
     printf("\tUse the URL \"http://<servername>:8000/\" from other computers.\n");
     printf("\n");
 }
-
-
-/*
-static int
-count_elements(const char * s)
-{
-    if(!s) return 0;
-    size_t c = 0;
-    size_t l = strlen(s);
-    if(l==0)
-        return 0;
-    for(size_t i=0; i<l; i++)
-        if(s[i] > ' ' && ((s[i+1] <= ' ' )|( s[i+1] == '\0')))
-            c++;
-    return (int)c;
-}
-*/
 
 
 
