@@ -3942,9 +3942,6 @@ Kernel::Pause()
 
 
 
-
-/
-
 long
 get_client_id(std::string & args)
 {
