@@ -66,7 +66,7 @@ public:
     AVStream        *audio_st, *video_st;
     AVFrame         *inputFrame;
     AVFrame         *outputFrame;
-    AVPacket        pkt;
+    AVPacket        *pkt;
     int             i, ret, got_output;
     AVFormatContext *output_format_context;
     AVOutputFormat  *fmt;

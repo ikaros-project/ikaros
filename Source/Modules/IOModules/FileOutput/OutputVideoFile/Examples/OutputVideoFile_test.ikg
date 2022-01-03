@@ -4,7 +4,6 @@
 
   <module class="InputVideo" name="IN"/>
 
-  />
   <module class="OutputVideoFile" name="OUT" filename="test.mp4"/>
 
   <connection  source = "IN.RED"  target = "OUT.RED"/>

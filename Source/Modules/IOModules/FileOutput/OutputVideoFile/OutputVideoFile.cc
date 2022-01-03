@@ -288,18 +288,21 @@ OutputVideoFile::Tick()
         outputFrame->pts = (int)GetTick()*90000*1/float(frameRate);
 
         // Send ikaros data to encoder
-        av_init_packet(&pkt);
-        pkt.data = NULL; // packet data will be allocated by the encoder
-        pkt.size = 0;
+        //av_init_packet(&pkt);
+        //pkt.data = NULL; // packet data will be allocated by the encoder
+        //pkt.size = 0;
+
+        pkt = av_packet_alloc();
+
         fflush(stdout);
 
         // Encode
-        encode(c, &pkt, &got_output, outputFrame);
+        encode(c, pkt, &got_output, outputFrame);
 
         if (got_output)
         {
-                av_interleaved_write_frame(output_format_context, &pkt);
-                av_packet_unref(&pkt);
+                av_interleaved_write_frame(output_format_context, pkt);
+                av_packet_unref(pkt);
         }
 
         // Free frames
@@ -315,14 +318,14 @@ OutputVideoFile::~OutputVideoFile()
         for (got_output = 1; got_output; i++) {
                 fflush(stdout);
 
-                ret = encode(c, &pkt, &got_output, NULL);
+                ret = encode(c, pkt, &got_output, NULL);
                 if (ret != 0 and ret != AVERROR_EOF) {
                         Notify(msg_fatal_error, "Error encodeing frame\n");
                         return;
                 }
                 if (got_output) {
-                        av_interleaved_write_frame(output_format_context, &pkt);
-                        av_packet_unref(&pkt);
+                        av_interleaved_write_frame(output_format_context, pkt);
+                        av_packet_unref(pkt);
                 }
         }
         av_write_trailer(output_format_context);
