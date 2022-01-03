@@ -531,9 +531,16 @@ header button:hover, aside button:hover {
     color: black;
 }
 
-header button:active, aside button:hover {
+header button:hover, aside button:hover {
     background-color: black;
     color: white;
+}
+
+
+header button:active, aside button:active {
+    background-color: lightgray;
+    color: black;
+
 }
 
 /* Specific widgets - this could be included in the template instead for non-standard widgets */
