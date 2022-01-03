@@ -3960,7 +3960,6 @@ get_client_id(std::string & args)
 
 
 
-
 void
 Kernel::DoSendNetwork(std::string uri, std::string args)
 {

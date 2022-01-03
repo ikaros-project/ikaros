@@ -41,6 +41,7 @@
 #include "Kernel/IKAROS_Socket.h"
 #include "Kernel/IKAROS_Utils.h"
 #include "Kernel/IKAROS_Math.h"
+#include "Kernel/IKAROS_Image_Processing.h"
 #include "Kernel/IKAROS_Serial.h"
 #include "Kernel/IKAROS_XML.h"
 
