@@ -3761,7 +3761,6 @@ Kernel::DoSendData(std::string uri, std::string args) // FIXME: are some types m
     sending_ui_data = true; // must be set while main thread is still running
     while(tick_is_running)
         {}
-        // FIXME: GET ROOT HERE
 
 std::string data = cut(args, "data=");
 std::string root = head(data, "#");
@@ -4146,7 +4145,6 @@ Kernel::DoSendError()
     header.Set("Content-Type", "text/plain");
     socket->SendHTTPHeader(&header);
     socket->Send("ERROR\n");
-    // FIXME: CLOSE???
 }
 
 

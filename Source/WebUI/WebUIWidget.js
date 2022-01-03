@@ -116,11 +116,11 @@ class WebUIWidget extends HTMLElement
     getSource(source, default_data=undefined)
     {
         try {
-            let v = this.receivedData[this.parameters[source]]
-            if(!v)
-                return default_data;
+            let v = this.receivedData[this.parameters[source]];
+            if(v)
+                return v;
             else
-                return this.receivedData[this.parameters[source]];
+                return default_data;
         }
         catch(err)
         {
@@ -462,9 +462,9 @@ class WebUIWidget extends HTMLElement
     send_control_change(parameter, value=0, index_x=0, index_y=0)
     {
         if(this.groupName)
-            this.get("/control/"+this.groupName+"."+parameter+"/"+index_x+"/"+index_y+"/"+value);
+            controller.requestCommand("control/"+this.groupName+"."+parameter+"/"+index_x+"/"+index_y+"/"+value);
         else
-            this.get("/control/"+parameter+"/"+index_x+"/"+index_y+"/"+value);
+            controller.requestCommand("control/"+parameter+"/"+index_x+"/"+index_y+"/"+value);
         
     }
 

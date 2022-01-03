@@ -68,6 +68,7 @@ class WebUIWidgetText extends WebUIWidgetControl
                     if(this.data[0][i] > 0)
                         s.push(ss[i].trim());
                 this.innerText = (this.parameters.prefix || "")+s.join(sep)+(this.parameters.postfix || "");
+
             }
         }
         catch(err)

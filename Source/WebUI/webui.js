@@ -1519,7 +1519,7 @@ controller = {
         controller.send_stamp = Date.now();
         var last_request = url;
         xhr = new XMLHttpRequest();
-        console.log("controller.get: "+url);
+        //console.log("controller.get: "+url);
         xhr.open("GET", url, true);
 
         xhr.onload = function(evt)
@@ -1551,6 +1551,10 @@ controller = {
         controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
     
+    requestCommand: function (command) {
+        controller.command = command;
+    },
+
     stop: function () {
         controller.run_mode = 'stop';
         controller.get("stop", controller.update); // do not request data -  stop immediately
@@ -1703,8 +1707,7 @@ controller = {
 
         if(!response)
         {
-        //    console.log("controller.update: empty response.");
-        //    controller.requestUpdate(); // empty respone - probably an error
+            console.log("controller.update: empty response.");
         }
         else if(controller.session_id != session_id) // new session
         {
@@ -1732,7 +1735,6 @@ controller = {
         }
         else if(package_type == "data") // same session - a new data package
         {
-            //console.log("controller.update: data response.");
             controller.setSystemInfo(response);
             if(response.has_data)
                 controller.updateImages(response.data);
@@ -1742,8 +1744,6 @@ controller = {
             console.log("controller.update: incorrect package received form ikaros.")
         }
         controller.defer_reconnect(); // we are still on line
-    //    setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
-
     },
 
     requestUpdate: function()
@@ -1773,7 +1773,7 @@ controller = {
             catch(err)
             {}
 
-        let group_path = interaction.currentViewName.split('#')[0].split('/').slice(2).join('.'); // OLD currentViewName.substring(1).split("/").slice(1).join("."); // FIXME: use this format all the time
+        let group_path = interaction.currentViewName.split('#')[0].split('/').slice(2).join('.');
         let data_string = group_path+"#"; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)
