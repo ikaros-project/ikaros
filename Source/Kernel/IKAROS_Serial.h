@@ -58,10 +58,10 @@ public:
 	int SendString(const char *sendbuf);
 	int SendBytes(const char *sendbuf, int length);
 
-	int ReceiveUntil(char *rcvbuf, char c);
+	int ReceiveUntil(char *rcvbuf, int length, char c);
 	int ReceiveBytes(char *rcvbuf, int length);
 
-	int ReceiveUntil(char *rcvbuf, char c, int timeout); // Timeout in ms.
+	int ReceiveUntil(char *rcvbuf, int length, char c, int timeout); // Timeout in ms.
 	int ReceiveBytes(char *rcvbuf, int length, int timeout);
 
     void Close();

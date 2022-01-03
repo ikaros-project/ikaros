@@ -216,13 +216,13 @@ Serial::SendString(const char *sendbuf)
 
 // Read characters until we receive character c
 int
-Serial::ReceiveUntil(char *rcvbuf, char c)
+Serial::ReceiveUntil(char *rcvbuf, int length, char c)
 {
-	return ReceiveUntil(rcvbuf, c, 100);
+	return ReceiveUntil(rcvbuf, c, length);
 }
 
 int
-Serial::ReceiveUntil(char *rcvbuf, char c, int timeout_ms)
+Serial::ReceiveUntil(char *rcvbuf, int length, char c, int timeout_ms)
 {
 	if(data->fd == -1)
 		return 0;
@@ -232,10 +232,11 @@ Serial::ReceiveUntil(char *rcvbuf, char c, int timeout_ms)
 	
 	while (true)
 	{
-		read_bytes = read(data->fd, bufptr, 1);
+		read_bytes = read(data->fd, bufptr, length); // Was 1 instead of length
 		
 		if (read_bytes > 0)
 		{
+			length -= read_bytes; // do not read more than lenht characters - not tested
 			bufptr += read_bytes;
 			read_bytes_tot += read_bytes;
 		}

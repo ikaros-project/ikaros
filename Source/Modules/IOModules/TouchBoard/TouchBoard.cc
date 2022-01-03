@@ -36,7 +36,7 @@ TouchBoard::Tick()
     if(!s)
         return; // Not connected to board
 
-    int count = s->ReceiveUntil(rcvmsg, '\n');
+    int count = s->ReceiveUntil(rcvmsg, 1000, '\n');
     rcvmsg[count] = 0;
 
     //printf("%s", rcvmsg);

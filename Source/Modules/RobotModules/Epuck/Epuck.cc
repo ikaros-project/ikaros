@@ -182,7 +182,7 @@ Epuck::Reset()
     // send unknown crap
     s->SendString("z\n");
     // there could be some crap received here
-    s->ReceiveUntil(rcvmsg, '\n');
+    s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
     // send reset command
     s->SendString("r\n");
@@ -200,7 +200,7 @@ Epuck::Reset()
         memset(rcvmsg, '0', BUFSIZE);
         timer->Sleep(10); // milliseconds
         // should eventually receive: the EPFL education robot type \"H\" for help\r\n"
-        s->ReceiveUntil(rcvmsg, '\n');
+        s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
         // This value is made up by shooting from the hip...
         if (counter > 100)
         {
@@ -253,7 +253,7 @@ Epuck::ReadLeftOverBytes()
         }
     else
         while (bytes_left_to_read > 0){
-            r = s->ReceiveUntil(rcvmsg, '\n');
+            r = s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
             i++;
             if (i % 3 == 0){
                 Notify(msg_warning, "Epuck - tried to read left over bytes %i times so far.\n", i);
@@ -297,7 +297,7 @@ void Epuck::CalibrateSensors()
         printf(".");
         fflush(stdout);
         memset(rcvmsg, '0', BUFSIZE);
-        s->ReceiveUntil(rcvmsg, '\n');
+        s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
         // This value is made up by shooting from the hip...
         if (counter > 24)
         {
@@ -619,7 +619,7 @@ Epuck::SetLight()
     s->SendString(message.c_str());
 
     // should receive "f\r\n"
-    r = s->ReceiveUntil(rcvmsg, '\n');
+    r = s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
     if (r > 0 && rcvmsg[0] != 'f')
         Notify(msg_warning, "Epuck - got some reply to front light command, but it seems erroneous.\n");
@@ -668,7 +668,7 @@ void Epuck::SetBodyLight()
     s->SendString(message.c_str());
 
     // should receive "b\r\n"
-    r = s->ReceiveUntil(rcvmsg, '\n');
+    r = s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
     if (r > 0 && rcvmsg[0] != 'b')
         Notify(msg_warning, "Epuck - got some reply to body light command, but it seems erroneous.\n");
@@ -760,7 +760,7 @@ void Epuck::SetSound()
 
         message.clear();
         oss.str("");
-        r = s->ReceiveUntil(rcvmsg, '\n');
+        r = s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
         if (r > 0 && rcvmsg[0] != 't')
             Notify(msg_warning, "Epuck - got some reply to the stop-sound command, but it seems erroneous.\n");
@@ -786,7 +786,7 @@ void Epuck::SetSound()
         last_sound_time = timer->GetTime();
         message.clear();
         oss.str("");
-        r = s->ReceiveUntil(rcvmsg, '\n');
+        r = s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
         if (r > 0 && rcvmsg[0] != 't')
             Notify(msg_warning, "Epuck - got some reply to the sound command, but it seems erroneous.\n");
@@ -817,7 +817,7 @@ Epuck::SetCameraSettings()
     s->SendString(message.c_str());
     //s->flush();
 
-    r = s->ReceiveUntil(rcvmsg, '\n');
+    r = s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
     if (r > 0 && rcvmsg[0] != 'j')
         Notify(msg_warning, "Epuck - got some reply to the upload camera settings command, but it seems erroneous.\n");
@@ -892,7 +892,7 @@ Epuck::GetAccelerationPlain()
     //s->flush();
 
     // get reply with plain ascii accelerator info
-    s->ReceiveUntil(rcvmsg, '\n');
+    s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
     // try to read reply
     r = sscanf(rcvmsg, "a,%d,%d,%d%c%c", ap+0, ap+1, ap+2, &c1, &c2);
@@ -1215,7 +1215,7 @@ Epuck::GetMicrophoneVolume()
     //s->flush_in();
 
     // get reply with mic vol info
-    s->ReceiveUntil(rcvmsg, '\n');
+    s->ReceiveUntil(rcvmsg, BUFSIZE, '\n');
 
     // try to read reply
     r = sscanf(rcvmsg, "u,%d,%d,%d%c%c", mv, mv+1, mv+2, &c1, &c2);
