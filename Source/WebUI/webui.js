@@ -1496,6 +1496,7 @@ controller = {
     timeout: 500,
     reconnect_interval: 1200,
     reconnect_timer: null,
+    request_timer: null,
     
     reconnect: function ()
     {
@@ -1518,17 +1519,18 @@ controller = {
         controller.send_stamp = Date.now();
         var last_request = url;
         xhr = new XMLHttpRequest();
+        console.log("controller.get: "+url);
         xhr.open("GET", url, true);
 
         xhr.onload = function(evt)
         {
             if(!xhr.response)   // empty response is ignored
             {
-                console.log("onload - empty response - error")
+                console.log("console.get: onload - empty response - error.")
                 return;
             }
-            controller.defer_reconnect(); // we are still on line
-            setTimeout(controller.update, controller.webui_req_int); // schedule next update; approximately 10/s
+         //   controller.defer_reconnect(); // we are still on line
+        //    setTimeout(controller.update, controller.webui_req_int); // schedule next update; approximately 10/s
             callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
         }
         
@@ -1539,13 +1541,13 @@ controller = {
         }
         catch(error)
         {
-            console.log(error);
+            console.log("console.get: "+error);
         }
     },
 
-    init: function () {
-        controller.get("update", controller.update);
-        //controller.defer_reconnect(); // start heartbeat
+    init: function ()
+    {
+        controller.requestUpdate();
         controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
     
@@ -1571,7 +1573,7 @@ controller = {
     },
 
     start: function () {
-        controller.play();  // FIXME: start selected mode play/fast-forward/realtime
+        controller.play();  // FIXME: possibly start selected mode play/fast-forward/realtime
     },
     
     buildViewDictionary: function(group, name) {
@@ -1600,6 +1602,7 @@ controller = {
             {
                 w[i].children[1].receivedData = data;
                 w[i].children[1].update(data); // include data for backward compatibility
+                w[i].children[1].receivedData = null; // Try to free memory
             }
             catch(err)
             {
@@ -1645,27 +1648,74 @@ controller = {
         }
         catch(err)
         {
-
+            console.log("updateImage: exception: "+err);
         }
     },
+
+    setSystemInfo(response)
+    {
+        // Set system info from package
+        try
+        {
+            document.querySelector("#iteration").innerText = response.iteration;
+            document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
+            document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
+            document.querySelector("#timebase").innerText = response.timebase+" ms";
+            document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
+            document.querySelector("#lag").innerText = response.lag+" ms";
+            document.querySelector("#cpu_cores").innerText = response.cpu_cores;
+            document.querySelector("#idle_time").value = response.idle_time;
+            document.querySelector("#usage").value = response.cpu_usage;
+
+            document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1) + (response.has_data ? "": " (no data)");
+            document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
+            document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
+            document.querySelector("#webui_ping").innerText = controller.ping+" ms";
+            document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
+            
+            let p = document.querySelector("#progress");
+            if(response.progress > 0) // FIXME: not working
+            {
+                p.value = response.progress;
+                p.style.display = "table-row";
+            }
+            else
+            {
+                p.style.display = "none";
+            }
+
+            controller.tick = response.iteration;
+            controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
+            
+        }
+        catch(err)
+        {
+            console.log("controller.setSystemInfo: incorrect package received form ikaros.")
+        }
+    },
+    
 
 
     update(response, session_id, package_type)
     {
+
         controller.ping = Date.now() - controller.send_stamp;
 
-        // Check if this is a new session
         if(!response)
         {
-            controller.requestUpdate(); // empty respone - probably an error
+        //    console.log("controller.update: empty response.");
+        //    controller.requestUpdate(); // empty respone - probably an error
         }
         else if(controller.session_id != session_id) // new session
         {
-//            console.log("NEW SESSION "+session_id+" :"+['stop','pause','step','play','realtime'][response.state]);
+            console.log("controller.update: new session. state="+['stop','pause','step','play','realtime'][response.state]);
             if(response.state)
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             else
-                controller.run_mode = 'pause'
+            {
+                console.log("console.update: no state - setting pause");
+                controller.run_mode = 'pause';
+            }
             controller.session_id = session_id;
             controller.tick = response.iteration;
             nav.init(response);
@@ -1682,56 +1732,25 @@ controller = {
         }
         else if(package_type == "data") // same session - a new data package
         {
-            // Set system info from package
-            try
-            {
-                document.querySelector("#iteration").innerText = response.iteration;
-                document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
-                document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
-                document.querySelector("#timebase").innerText = response.timebase+" ms";
-                document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
-                document.querySelector("#lag").innerText = response.lag+" ms";
-                document.querySelector("#cpu_cores").innerText = response.cpu_cores;
-                document.querySelector("#idle_time").value = response.idle_time;
-                document.querySelector("#usage").value = response.cpu_usage;
-
-                document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1) + (response.has_data ? "": " (no data)");
-                document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
-                document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
-                document.querySelector("#webui_ping").innerText = controller.ping+" ms";
-                document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
-                
-                let p = document.querySelector("#progress");
-                if(response.progress > 0)
-                {
-                    p.value = response.progress;
-                    p.style.display = "table-row";
-                }
-                else
-                {
-                    p.style.display = "none";
-                }
-
-                controller.tick = response.iteration;
-                controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
-                
-            }
-            catch(err)
-            {
-                console.log("incorrect package received form ikaros (1)")
-            }
-            
+            //console.log("controller.update: data response.");
+            controller.setSystemInfo(response);
             if(response.has_data)
                 controller.updateImages(response.data);
         }
         else
         {
-         //   console.log("incorrect package received form ikaros (2)")
+            console.log("controller.update: incorrect package received form ikaros.")
         }
+        controller.defer_reconnect(); // we are still on line
+    //    setTimeout(controller.requestUpdate, controller.webui_req_int); // schedule next update; approximately 10/s
+
     },
 
     requestUpdate: function()
     {
+        clearTimeout(controller.request_timer);
+        controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schdeule next
+
         controller.webui_interval = Date.now() - controller.last_request_time;
         controller.last_request_time = Date.now();
 
@@ -1763,6 +1782,7 @@ controller = {
             sep = "#"
          }
 
+        
         controller.get(controller.command+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
         controller.command = 'update';
     },

@@ -472,22 +472,22 @@ public:
     void            Pause();
 
 
-    bool DoStop(std::string uri, std::string args);
-    bool DoPause(std::string uri, std::string args);
-    bool DoStep(std::string uri, std::string args);
-    bool DoPlay(std::string uri, std::string args);
-    bool DoRealtime(std::string uri, std::string args);
-    bool DoCommand(std::string uri, std::string args);
-    bool DoControl(std::string uri, std::string args);
-    bool DoSendViewData(std::string uri, std::string args);
-    bool DoUpdate(std::string uri, std::string args);
-    bool DoGetLog(std::string uri, std::string args);
-    bool DoModule(std::string uri, std::string args);
-    bool DoClasses(std::string uri, std::string args);
-    bool DoSendFile(std::string file);
-    bool DoSendError();
+    void DoStop(std::string uri, std::string args);
+    void DoPause(std::string uri, std::string args);
+    void DoStep(std::string uri, std::string args);
+    void DoPlay(std::string uri, std::string args);
+    void DoRealtime(std::string uri, std::string args);
+    void DoCommand(std::string uri, std::string args);
+    void DoControl(std::string uri, std::string args);
+    void DoSendNetwork(std::string uri, std::string args);
+    void DoSendData(std::string uri, std::string args);
+    void DoUpdate(std::string uri, std::string args);
+    void DoGetLog(std::string uri, std::string args);
+    void DoSendClasses(std::string uri, std::string args);
+    void DoSendFile(std::string file);
+    void DoSendError();
 
-    bool HandleHTTPRequest();
+    void HandleHTTPRequest();
     void HandleHTTPThread();
     
     std::thread *   httpThread;

@@ -2083,7 +2083,7 @@ Kernel::SetOptions(Options * opt)
         }
         else
         {
-//            ui_state = ui_state_play;
+//          ui_state = ui_state_play;
             Notify(msg_debug, "Setting play mode.\n");
         }
         isRunning = true;
@@ -2518,10 +2518,11 @@ Kernel::CalculateCPUUsage()
 }
 
 
+
 void
 Kernel::Tick()
 {
-    Notify(msg_debug, "Kernel::Tick()\n");
+    Notify(msg_debug, "   Kernel::Tick()\n");
     Propagate();
     DelayOutputs();
   
@@ -3754,9 +3755,8 @@ SendJSONMatrixData(ServerSocket * socket, const std::string & source, float * ma
 
 
 
-
 void
-Kernel::SendUIData(std::string args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
+Kernel::DoSendData(std::string uri, std::string args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
 {    
     sending_ui_data = true; // must be set while main thread is still running
     while(tick_is_running)
@@ -3919,9 +3919,13 @@ std::string root = head(data, "#");
     socket->Send("\n\t}");
 
     if(tick_is_running) // new tick has started during sending
+    {
         socket->Send(",\n\t\"has_data\": 0\n"); // there may be data but it cannot be trusted
+    }
     else
+    {
         socket->Send(",\n\t\"has_data\": 1\n");
+    }
     socket->Send("}\n");
     
     sending_ui_data = false;
@@ -3939,85 +3943,10 @@ Kernel::Pause()
 
 
 
-/*
-void
-Kernel::HandleControlChange(char * uri, char * args)
-{
-    if(!uri)
-    {
-        Notify(msg_fatal_error, "No URI to Control change."); // should never happen
-        return;
-    }
-
-    // ad hoc parsing of arguments
-    char * client = strsep(&args, "&");
-    char * id = (client ? &client[3] : NULL);
-    long client_id = 0;
-    if(id)
-        client_id = atol(id);
-    char * root = NULL;
-
-    if(!args || first_request) // not a data request - send view data
-    {
-        first_request = false;
-        std::string s = JSONString();
-        Dictionary rtheader;
-        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
-        rtheader.Set("Package-Type", "network");
-        rtheader.Set("Content-Type", "application/json");
-        rtheader.Set("Content-Length", int(s.size()));
-        socket->SendHTTPHeader(&rtheader);
-        socket->SendData(s.c_str(), int(s.size()));
-    }
-    else // possibly a data request - send requested data
-    {
-    //    if(!args)
-    //        return Notify(msg_fatal_error, "No argument in control change");
-        strsep(&args, "=");
-        root = strsep(&args, "#");
-
-        if(!strcmp(uri, "/update") && ui_state == ui_state_play && master_id == client_id)
-        {
-            Pause();
-            Tick();
-        }
-        else if(!strcmp(uri, "/pause"))
-        {
-            Pause();
-            ui_state = ui_state_pause;
-            master_id = client_id;
-        }
-        else if(!strcmp(uri, "/step"))
-        {
-            Pause();
-            ui_state = ui_state_pause;
-            master_id = client_id;
-            Tick();
-        }
-        else if(!strcmp(uri, "/play"))
-        {
-            Pause();
-            ui_state = ui_state_play;
-            master_id = client_id;
-            Tick();
-        }
-        else if(!strcmp(uri, "/realtime") && ui_state != ui_state_realtime)
-        {
-            ui_state = ui_state_realtime;
-            master_id = client_id;
-            isRunning = true;
-        }
-
-        SendUIData(args);
-    }
-}
-*/
-
-
-/* ---------- NEW CONTROL FUNCTIONS ------------ */
+/
 
 long
-get_id(std::string & args)
+get_client_id(std::string & args)
 {
     std::string id_string =  head(args, "&");
     std::string id_number = cut(id_string, "id=");
@@ -4035,81 +3964,95 @@ get_id(std::string & args)
 
 
 
+void
+Kernel::DoSendNetwork(std::string uri, std::string args)
+{
+        std::string s = JSONString();
+        Dictionary rtheader;
+        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
+        rtheader.Set("Package-Type", "network");
+        rtheader.Set("Content-Type", "application/json");
+        rtheader.Set("Content-Length", int(s.size()));
+        socket->SendHTTPHeader(&rtheader);
+        socket->SendData(s.c_str(), int(s.size()));
+}
 
-bool
+
+
+void
 Kernel::DoStop(std::string uri, std::string args)
 {
         Pause();
         ui_state = ui_state_stop;
-        SendUIData(""); // FIXME: must be corrected
-        return Notify(msg_terminate, "Sent by WebUI.\n");
+        Notify(msg_terminate, "Sent by WebUI.\n");
+        DoSendData(uri, args);
 }
 
 
 
-bool
+void
 Kernel::DoPause(std::string uri, std::string args)
 {
-    return true;
+    Pause();
+    ui_state = ui_state_pause;
+    master_id = get_client_id(args);
+    DoSendData(uri, args);
 }
 
 
 
-bool
+void
 Kernel::DoStep(std::string uri, std::string args)
 {
-    return true;
+    Pause();
+    ui_state = ui_state_pause;
+    master_id = get_client_id(args);
+    Tick();
+    DoSendData(uri, args);
 }
 
 
 
 
-bool
+void
 Kernel::DoPlay(std::string uri, std::string args)
 {
-    return true;
+        Pause();
+        ui_state = ui_state_play;
+        master_id = get_client_id(args);
+        Tick();
+    DoSendData(uri, args);
 }
 
 
 
 
-bool
+void
 Kernel::DoRealtime(std::string uri, std::string args)
 {
     ui_state = ui_state_realtime;
-    master_id = get_id(args);
+    master_id = get_client_id(args);
     isRunning = true;
-    SendUIData(args);
-    return true;
+    DoSendData(uri, args);
 }
 
 
 
-bool
+void
 Kernel::DoCommand(std::string uri, std::string args)
 {
-// char module_name[255];
     float x, y;
     char command[255];
     char value[1024]; // FIXME: no range chacks
     int c = sscanf(uri.c_str(), "/command/%[^/]/%f/%f/%[^/]", command, &x, &y, value);
     if(c == 4)
         SendCommand(command, x, y, value);
-
-    Dictionary header;
-    header.Set("Content-Type", "text/plain");
-    header.Set("Cache-Control", "no-cache");
-    header.Set("Cache-Control", "no-store");
-    header.Set("Pragma", "no-cache");
-    socket->SendHTTPHeader(&header);
-    socket->Send("OK\n");
-    // SHOULD: SendUIData(root, args);
-    return true;
+    DoSendData(uri, args);
 }
 
 
 
-bool
+void
 Kernel::DoControl(std::string uri, std::string args)
 {
     char module_name[255];
@@ -4120,71 +4063,46 @@ Kernel::DoControl(std::string uri, std::string args)
     if(c == 4)
 
         SetParameter(parameter, x, y, value); // TODO: check if groups are handled correctly
-    
-    Dictionary header;
-    header.Set("Content-Type", "text/plain");
-    header.Set("Cache-Control", "no-cache");
-    header.Set("Cache-Control", "no-store");
-    header.Set("Access-Control-Allow-Origin", "*");
-    header.Set("Pragma", "no-cache");
-    socket->SendHTTPHeader(&header);
-    socket->Send("OK\n");
-
-    // SHOULD: SendUIData(root, args);
-return true;
+    DoSendData(uri, args);
 }
 
 
 
 
-bool
+void
 Kernel::DoUpdate(std::string uri, std::string args)
 {
-
-    long client_id = get_id(args);
-
     if(args.empty() || first_request) // not a data request - send view data
     {
         first_request = false;
-        std::string s = JSONString();
-        Dictionary rtheader;
-        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
-        rtheader.Set("Package-Type", "network");
-        rtheader.Set("Content-Type", "application/json");
-        rtheader.Set("Content-Length", int(s.size()));
-        socket->SendHTTPHeader(&rtheader);
-        socket->SendData(s.c_str(), int(s.size()));
-        return true;
+            DoSendNetwork(uri, args);
     }
-
-    if(ui_state == ui_state_play && master_id == client_id) // paced from webui - move to DoStep() ???
+    else if(ui_state == ui_state_play && master_id == get_client_id(args))
     {
         Pause();
         Tick();
+        DoSendData(uri, args);
     }
-
-    SendUIData(args);
-
-return true;
+    else 
+        DoSendData(uri, args);
 }
 
 
 
-bool
+void
 Kernel::DoGetLog(std::string uri, std::string args)
 {
     if (logfile)
         socket->SendFile("logfile", webui_dir);
     else
         socket->Send("ERROR - No logfile found\n");
-    return true;
 }
 
 
 
 
-bool
-Kernel::DoClasses(std::string uri, std::string args)
+void
+Kernel::DoSendClasses(std::string uri, std::string args)
 {
     Dictionary header;
     header.Set("Content-Type", "text/json");
@@ -4201,32 +4119,31 @@ Kernel::DoClasses(std::string uri, std::string args)
         s = "\",\n\t\"";
     }
     socket->Send("\"\n]\n}\n");
-    return true;
 }
 
 
 
-bool
+void
 Kernel::DoSendFile(std::string file)
 {
         if(file[0] == '/')
             file = file.erase(0,1); // Remove initial slash
 
         if(socket->SendFile(file.c_str(), ikc_dir))  // Check IKC-directory first to allow files to be overriden
-            return true;
+            return;
 
         if(socket->SendFile(file.c_str(), webui_dir))   // Now look in WebUI directory
-            return true;
+            return;
         
         file = "error." + rcut(file, ".");
         if(socket->SendFile(("error." + rcut(file, ".")).c_str(), webui_dir)) // Try to send error file
-            return true;
+            return;
 
-        return DoSendError();
+        DoSendError();
 }
 
 
-bool
+void
 Kernel::DoSendError()
 {
     Dictionary header;
@@ -4234,73 +4151,61 @@ Kernel::DoSendError()
     socket->SendHTTPHeader(&header);
     socket->Send("ERROR\n");
     // FIXME: CLOSE???
-    return true;
 }
 
 
 
-bool
-Kernel::DoSendViewData(std::string uri, std::string args)
-{
-    std::string s = JSONString();
-    Dictionary rtheader;
-    rtheader.Set("Session-Id", std::to_string(session_id).c_str());
-    rtheader.Set("Package-Type", "network");
-    rtheader.Set("Content-Type", "application/json");
-    rtheader.Set("Content-Length", int(s.size()));
-    socket->SendHTTPHeader(&rtheader);
-    socket->SendData(s.c_str(), int(s.size()));
-    return true;
-}
-
-
-
-bool
+void
 Kernel::HandleHTTPRequest()
 {
     std::string uri = socket->header.Get("URI");
+    printf(">>>%s\n", uri.c_str());
     if(uri.empty())
-        return Notify(msg_warning, "No URI");
+    {
+        Notify(msg_warning, "No URI");
+        return;
+    }
 
     std::string args = cut(uri, "?");
 
     // SELECT METHOD
 
     if(uri == "/update")
-        return DoUpdate(uri, args);
+        DoUpdate(uri, args);
 
-        if(uri == "/pause")
-        return DoPause(uri, args);
+    else if(uri == "/pause")
+        DoPause(uri, args);
 
-    if(uri == "/step")
-        return DoStep(uri, args);
+    else if(uri == "/step")
+        DoStep(uri, args);
 
 
-    if(uri == "/play")
-        return DoPlay(uri, args);
+    else if(uri == "/play")
+        DoPlay(uri, args);
 
-    if(uri == "/realtime")
-        return DoRealtime(uri, args);
+    else if(uri == "/realtime")
+        DoRealtime(uri, args);
 
-    if(uri == "/stop")
-        return DoStop(uri, args);
+    else if(uri == "/stop")
+        DoStop(uri, args);
 
-    if(uri == "/getlog")
-        return DoGetLog(uri, args);
+    else if(uri == "/getlog")
+        DoGetLog(uri, args);
     
-    if(uri == "/classes") 
-        return DoClasses(uri, args);
+    else if(uri == "/classes") 
+        DoSendClasses(uri, args);
 
-    if(uri == "/")
-       return DoSendFile("index.html");
+    else if(uri == "/")
+       DoSendFile("index.html");
 
-    if(uri.starts_with("/command/"))
-        return DoCommand(uri, args);
+    else if(uri.starts_with("/command/"))
+        DoCommand(uri, args);
         
-    if(uri.starts_with("/control/"))
-        return DoControl(uri, args);
+    else if(uri.starts_with("/control/"))
+        DoControl(uri, args);
 
-    return DoSendFile(uri);
+    else 
+        DoSendFile(uri);
 }
 
 
