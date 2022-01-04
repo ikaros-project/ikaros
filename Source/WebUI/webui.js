@@ -71,7 +71,7 @@ function resetCookies()
 
 
 
-function copyToClipboard(text)
+function copyToClipboard(text) // FIXME: uses deprecated functions
 {
     if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
         var textarea = document.createElement("textarea");
@@ -268,7 +268,7 @@ inspector = {
             cell2.addEventListener("paste", function(e) {
                 e.preventDefault();
                 var text = e.clipboardData.getData("text/plain");
-                document.execCommand("insertHTML", false, text);
+                document.execCommand("insertHTML", false, text); // FIXME: uses deprecated functions
             });
             switch(p.control)
             {
