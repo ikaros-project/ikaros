@@ -178,68 +178,6 @@ li.group-closed > ul {
 main {
     padding: 0px;
     background: white;
-    
-    /* global variables should be set here! Will be inherited by enclosed elements */
-
-    --direction: vertical;
-/*
-    --title-height: 0;
-    --title-font: 18px Arial;
-    --title-color: white;
-    --title-background: black;
-    --title-margins: no;
-    --title-align: center;
-    --title-offset: 10, -5;
-*/
-    --margin-left: 40;
-    --margin-right: 40;
-    --margin-top: 40;
-    --margin-bottom: 40;
-
-    --space-left: 20;
-    --space-right: 20;
-    --space-top: 20;
-    --space-bottom: 20;
-
-    --frame: none;
-
-    --vertical-gridlines: 0;
-    --horizontal-gridlines: 0;
-    --vertical-gridlines-over: 0;
-    --horizontal-gridlines-over: 0;
-    --grid-color: lightgray;        /*  #00000000 for none  */
-    --grid-fill: lightgreen;
-    --grid-line-width: 1;
-    
-    --x-axis: yes;  /* width? color? */
-    --y-axis: yes;
-    --axis-color: black;
-    --left-tick-marks: 0
-    --right-tick-marks: 0;
-    --bottom-tick-marks: 0;
-    --left-scale: 0;
-    --right-scale: 0;
-    --bottom-scale: 0;
-    --scale-font: 9pt Arial;
-    --scale-offset: 10;
-    
-    --label-color: gray;
-    --label-font: 12pt Arial;
-    --draw-labels-x: no;
-    --draw-labels-y: no;
-
-    --spacing: 0.1;
- 
-    --color: black;
-    --positive-color: green;
-    --negative-color: red;
-
-    --fill: darkgray;
-    --line-width: 1;
-    
-    --decimals: 2;
-    --min: 0;
-    --max: 1;
 }
 
 main[data-mode="edit"] {
@@ -543,151 +481,24 @@ header button:active, aside button:active {
 
 }
 
-/* Specific widgets - this could be included in the template instead for non-standard widgets */
 
-/* h sliders */
 
-.hranger {
-    display: flex;
-    flex-direction: column;
-}
 
-.hranger div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.hranger .slider_label {
-    font: 12px Arial, sans-serif;
-    text-align:right;
-    padding-right:10px;
-    width: 100px;
-    display: none;
-}
-
-.hranger  .slider_value {
-    width: 50px;
-    font: 12px Arial, sans-serif;
-    text-align:right;
-    padding-right:6px;
-    display: none;
-}
-
-.hranger input {
-    background: none;
-}
-
-.hranger input[type=range] {
-    -webkit-appearance: none; /*removes default webkit styles*/
-    width: 100%;
-    height: 16px;
-}
-
-.hranger input[type=range]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 7px;
-    background-image: -webkit-linear-gradient(top, #555, #aaa);
-    border: 1px solid #ddd;
-    border-radius: 13px;
-}
-
-.hranger input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    border: none;
-    height: 19px;
-    width: 12px;
-    border-radius: 10%;
-    border: 1px solid #777;
-    background-image: -webkit-linear-gradient(top, #888, #aaa, #555);
-    margin-top: -7px;
-    box-shadow: 2px 2px 5px #888888;
-}
-
-/* v sliders */
-
-.vranger {
-    display: flex;
-    flex-direction: row;
-}
-
-.vranger div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    min-width: 10px;
-    border: 1px solid green;
-}
-
-.vranger .slider_label {
-    width: 200px;
-    font: 12px Arial, sans-serif;
-    display: none;
-}
-
-.vranger  .slider_value {
-    width: 100px;
-    font: 12px Arial, sans-serif;
-    text-align:right;
-    display: none;
-}
-
-.vranger input {
-    background: none;
-}
-
-.vranger input[type=range] {
-    -webkit-appearance: slider-vertical; /*removes default webkit styles*/
-    width: 100%;
-    height: 16px;
-    border: 1px solid purple;
-    transform: rotate(270deg);
-}
-
-.vranger input[type=range]::-webkit-slider-runnable-track {
-/*
-    height: 7px;
-    background-image: -webkit-linear-gradient(top, #555, #aaa);
-    border: 1px solid #ddd;
-    border-radius: 13px;
-    border: 1px solid blue;
-*/
-    width:400px;
-}
-
-.vranger input[type=range]::-webkit-slider-thumb {
-/*
-    -webkit-appearance: none;
-    border: none;
-    height: 19px;
-    width: 12px;
-    border-radius: 10%;
-    border: 1px solid #777;
-    background-image: -webkit-linear-gradient(top, #888, #aaa, #555);
-    margin-top: -7px;
-    box-shadow: -2px 2px 5px #888888;
-    border: 1px solid red;
-*/
-}
-
-/* Overlay not used. Should it be removed? */
-#WidgetOverlay
-{       
-    display: none; /* disable overlay */ 
-    position: absolute;
-    top:0; 
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.253);
-    border: 1px solid black;
-}
-
-#WidgetOverlayText{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.3);
+.button-selected {
+    background-color: #444;
+    border-left: 1px solid #222;
+    border-top: 1px solid #222;
+    border-right:1px solid #bbb;
+    border-bottom: 1px solid #bbb;
     color: white;
-    padding: 10px;
-    height: auto;
+    font-weight: bold;
+}
+
+
+
+.button-icon {
+    pointer-events: none;
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
 }

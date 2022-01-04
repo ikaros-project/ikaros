@@ -1,0 +1,71 @@
+
+/* global variables should be set here! Will be inherited by enclosed elements */
+
+
+main {
+     --main-color: #2079D7;
+
+    --direction: vertical;
+/*
+    --title-height: 0;
+    --title-font: 18px Arial;
+    --title-color: white;
+    --title-background: black;
+    --title-margins: no;
+    --title-align: center;
+    --title-offset: 10, -5;
+
+    --color: var(--main-color), var(--main-color), gray, var(--main-color);
+    --fill: var(--main-color), var(--main-color), gray, var(--main-color);
+ 
+*/
+    --margin-left: 40;
+    --margin-right: 40;
+    --margin-top: 40;
+    --margin-bottom: 40;
+
+    --space-left: 20;
+    --space-right: 20;
+    --space-top: 20;
+    --space-bottom: 20;
+
+    --frame: none;
+
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --vertical-gridlines-over: 0;
+    --horizontal-gridlines-over: 0;
+    --grid-color: lightgray;        /*  #00000000 for none  */
+    --grid-fill: lightgreen;
+    --grid-line-width: 1;
+    
+    --x-axis: yes;
+    --y-axis: yes;
+    --axis-color: black;
+    --left-tick-marks: 0
+    --right-tick-marks: 0;
+    --bottom-tick-marks: 0;
+    --left-scale: 0;
+    --right-scale: 0;
+    --bottom-scale: 0;
+    --scale-font: 9pt Arial;
+    --scale-offset: 10;
+    
+    --label-color: gray;
+    --label-font: 12pt Arial;
+    --draw-labels-x: no;
+    --draw-labels-y: no;
+
+    --spacing: 0.1;
+ 
+    --color: black;
+    --positive-color: green;
+    --negative-color: red;
+
+    --fill: darkgray;
+    --line-width: 1;
+    
+    --decimals: 2;
+    --min: 0;
+    --max: 1;
+}
