@@ -1,296 +1,693 @@
-
-html, body
-{
-	width: 100%;
-	height: 100%;
-	padding: 0px;
-	margin: 0px;
-	background-color: black;
-	color: white;
-    
-	-webkit-user-select: none;
-	-webkit-user-drag: none;
-	
-	-moz-user-select: none;
-	-moz-user-drag: none;
-    
-    font-family: Arial, sans-serif;
-}
-
-
-table
-{
-	table-layout:fixed;
-	border-collapse: collapse;
-	width: 100%;
-	height: 100%;
-}
-
-tr
-{
-	padding: 0px;
-	margin: 0px;
-}
-
-td
-{
-	padding: 0px;
-	margin: 0px;
-	overflow: hidden;
-	white-space: nowrap;
-}
-
-a
-{
-    cursor:hand;
-}
-
-
 /*
  *
- *	Controls
+ * Default Styling CSS
  *
  */
 
 
-td#controlframe
-{
-    width: 190px;
-    padding-left:20px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
+    overflow: hidden;
 }
 
-div#controls
-{
-	height: 20px;
-	width: 150px;	
-	margin: 0px;
-	padding: 15px 0px 0px 5px;
-    vertical-align: middle;
-    display: span;
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow:hidden;
 }
 
-
-a.button
-{
-	display: block;
-	float : left;
-	overflow: hidden;
-	
-	height: 19px;
-	width: 30px;
-	
-	padding: 0px;
-	margin: 0px;
-	
-	-webkit-user-select: none;
-	-webkit-user-drag: none;
-	
-	-moz-user-select: none;
-	-moz-user-drag: none;
+body {
+    display: flex;
+    flex-direction: column;
 }
 
-a.selected
-{
-	display: block;
-	float : left;
-	overflow: hidden;
-	
-	height: 19px;
-	width: 30px;
-	
-	padding: 0px;
-	margin: 0px;
-	
-	-webkit-user-select: none;
-	-webkit-user-drag: none;
-	
-	-moz-user-select: none;
-	-moz-user-drag: none;
-}
-
-
-
-a.button:active
-{
-}
-
-
-a.button img
-{
-}
-
-.button:active img,
-.selected img
-{
-	position: relative;
-	top: -19px;
-    
-	-webkit-user-select: none;
-	-webkit-user-drag: none;
-	
-	-moz-user-select: none;
-	-moz-user-drag: none;
-}
-
-
-
-td#iteration
-{
-    width: 100px;
-    padding-top: 15px;
-    vertical-align: middle;
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    text-align: left;
-    color: #AAAAAA;
-}
-
-td#title
-{
-    padding-right: 40px;
-    padding-top: 20px;
-    font-size: 36px;
-    font-family: sans-serif;
+header {
+    flex: 0 0 30px;
+    color: #b0b0b0;
+    background: #38383A;
+    border-bottom: 1px solid black;
     text-align: right;
-    color: #AAAAAA;
-    height: 41;
+    padding: 5px;
 }
 
-td#footer
-{
-    padding-bottom: 7px;
-    padding-left:20px;
-    padding-right: 20px;
-    font-size: 12px;
-    font-family: Arial, sans-serif;
-    color: #888888;
-    text-align: center;
-    height:25px;
-}
-
-div#viewcontrol
-{
-    float: right;
-    text-align: right;
-    width: 120;
-}
-
-
-div#viewdots
-{
-    font-size: 16px;
-    clear: both;
-    display: inline;
-}
-
-
-div#toggle
-{
+header > button:first-child {
     float: left;
-    text-align: left;
-    width: 120;
 }
 
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 500px;
+}
+
+main {
+    flex: 1;
+    overflow: scroll;   /* allow main area to scroll */
+    position: relative;
+ }
+
+nav {
+    order: -1;
+    width: 200px;
+    resize: horizontal;
+    
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    display: none;
+}
+
+aside {
+    flex: 0 0 300px;
+    display: block; /* or none to hide */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0px;
+    color: #b0b0b0;
+    background: #38383A;
+    border-left: 1px solid black;
+}
+
+footer {
+    border-top: 1px solid black;
+    flex: 0 0 100px;
+    
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    display: none;
+}
+
+table {
+    border-spacing: 0;
+}
+
+td {
+    word-wrap: break-word;
+/*    white-space: pre-wrap; */
+/*    max-width: 200px; */
+    padding-top: 5px;
+    padding-bottom: 2px;
+    padding-left: 20px;
+    color: #b0b0b0;
+    font-size: 10pt;
+/*    font-weight: bold; */
+    width: 100px;
+    text-align: left;
+    outline: none;
+
+    border-top: 1px solid #585858;
+    border-bottom: 1px solid #171717;
+}
+
+td + td {
+    width: 200px;
+}
+
+td + td.textedit {
+    padding-right: 20px;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+td + td.textedit:hover
+{
+    background-color: #303034;
+}
+
+td + td.textedit:focus
+{
+    color: black;
+    background-color: lightgray;
+}
+
+select {
+    outline: none;
+}
+
+nav {
+    padding: 10px;
+    background: #38383A;
+    border-right: 1px solid gray;
+    font: 12px Arial, sans-serif;
+}
+
+
+li:hover {
+    color: red;
+}
+
+
+li {
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding:1px 1px 1px 20px;
+    cursor: pointer;
+    color: #eee;
+}
+
+li.group-open::before {
+    content: "\0025BD\0020";
+}
+
+li.group-closed::before {
+    content: "\0025B7\0020";
+}
+
+li.group-closed > ul {
+    display: none;
+}
+
+main {
+    padding: 0px;
+    background: white;
+    
+    /* global variables should be set here! Will be inherited by enclosed elements */
+
+    --direction: vertical;
+/*
+    --title-height: 0;
+    --title-font: 18px Arial;
+    --title-color: white;
+    --title-background: black;
+    --title-margins: no;
+    --title-align: center;
+    --title-offset: 10, -5;
+*/
+    --margin-left: 40;
+    --margin-right: 40;
+    --margin-top: 40;
+    --margin-bottom: 40;
+
+    --space-left: 20;
+    --space-right: 20;
+    --space-top: 20;
+    --space-bottom: 20;
+
+    --frame: none;
+
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --vertical-gridlines-over: 0;
+    --horizontal-gridlines-over: 0;
+    --grid-color: lightgray;        /*  #00000000 for none  */
+    --grid-fill: lightgreen;
+    --grid-line-width: 1;
+    
+    --x-axis: yes;  /* width? color? */
+    --y-axis: yes;
+    --axis-color: black;
+    --left-tick-marks: 0
+    --right-tick-marks: 0;
+    --bottom-tick-marks: 0;
+    --left-scale: 0;
+    --right-scale: 0;
+    --bottom-scale: 0;
+    --scale-font: 9pt Arial;
+    --scale-offset: 10;
+    
+    --label-color: gray;
+    --label-font: 12pt Arial;
+    --draw-labels-x: no;
+    --draw-labels-y: no;
+
+    --spacing: 0.1;
+ 
+    --color: black;
+    --positive-color: green;
+    --negative-color: red;
+
+    --fill: darkgray;
+    --line-width: 1;
+    
+    --decimals: 2;
+    --min: 0;
+    --max: 1;
+}
+
+main[data-mode="edit"] {
+    background: white; /* lightyellow */
+}
+
+/* Inspector Styles */
+
+aside {
+    display: none;
+}
+
+aside table {
+    width: 100%;
+}
+
+aside table td.header {
+    text-align: left;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-weight: bold;
+}
+
+aside table td.textedit {
+//    border: 1px solid gray;
+}
+
+aside #classes {
+    background-color: #333;
+    border-left: 1px solid #222;
+    border-top: 1px solid #222;
+    border-right: 1px solid #666;
+    border-bottom: 1px solid #666;
+    color: white;
+}
+
+div.title {
+    color: white;
+    background-color: black;
+    font: 16px Arial, sans-serif;
+    height: 22px;
+    border: none;
+    padding:2px 2px 2px 5px;
+}
+
+div.frame {
+    display: flex;
+    flex-direction: column;
+    border: none;
+    background: none;
+    overflow: hidden;
+}
+
+webui-widget-table div {
+    height: 35px;
+    padding: 0;
+}
+
+table {
+//    width: 100%;
+}
+
+_webui-widget-bar-graph {
+
+}
+
+webui-widget-button button {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+}
+
+webui-widget-button button:hover {
+    cursor: pointer;
+}
 
 /*
  *
- *	Group List Pane
+ *  MAIN AREA
  *
  */
 
-div#grouppane
-{
-    padding: 0px; 
-    margin:0px;
-    height:100%;
-    background-color: #303030; 
-    border: 1px solid #666666; 
-    -webkit-border-radius: 5px;
+
+
+/* Basic style for frame object */
+
+div.frame {
+    position: absolute;
+    top: 10;
+    left: 10;
+    z-index: 200;
+    width: 101px;
+    height: 101px;
+    border: 1px solid black;
+    overflow: hidden;
+    background-color: none;
+    cursor: move;
+    border: none;
 }
 
-ul
-{
-    padding-left: 16px;
-    padding-top: 2px;
-    padding-bottom: 6px;
+div.frame.visible {
+    border: 1px solid black;
+    background: none;
 }
 
-ul#grouplist
-{
-    padding: 0px 0px 0px 0px;
-    margin: 16px 0px 0px 16px;
-    list-style-type: none;
-    padding-left:0;
-    color: #CCCCCC;
+.widget {
+    flex-grow:1;
+    display: flex;
+    flex-direction: column;
+    border: none;
+ }
+
+.widget * {
+    flex-grow:1;
 }
 
-ul.visible
-{
+[data-mode="edit"] .widget {
+    background-color: #eeeeee88;
+    cursor: move;
+    pointer-events: none;
+}
+
+[data-mode="run"] .widget {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.dragged, .resized {
+    border-color: black;
+}
+
+.dragged, .resized {
+    box-shadow: 4px 4px 4px lightgray;
+}
+
+
+div.selected {
+    border: 1px solid red;
+}
+
+div.visible.selected {
+    border: 1px solid red;
+}
+
+
+.selected .handle,
+.dragged .handle,
+.resized .handle {
     display: block;
 }
 
 
-ul.hidden
-{
+.handle {
+    position:absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    display: none;
+    background-color: gray;
+    cursor: se-resize;
+}
+
+
+/*
+.frame:hover .handle,
+.dragged .handle,
+.resized .handle {
+    display: block;
+}
+
+/* Style for modules */
+
+div.module {
+    position: absolute;
+    z-index: 200;
+    overflow: hidden;
+    background-color: #38383A;
+    color: #ddd;
+    font-size: 10px;
+    cursor: move;
+    border: 1px solid black;
+    text-align: center;
+    border-radius:6px;
+    width:120px;
+    border: 2px solid #ffffff00;
+}
+
+div.module:hover {
+    border: 2px solid orange;
+
+}
+
+div.group {
+    border: 5px solid black;
+ /*   background-color: lightgreen; */
+}
+
+div.input {
+    padding: 3px 20px 3px 0px;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;    
+}
+
+div.iconnector {
+    background-color: #A44;
+    border-radius: 0 5px 5px 0;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    margin-top 0px;
+    float: left;
+}
+
+div.output {
+    padding: 3px 0px 3px 20px;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    position:relative;
+}
+
+
+div.oconnector {
+    background-color: #44A;
+    border-radius: 5px 0 0  5px;
+    width: 10px;
+    height: 10px;
+    margin-left: 10px;
+    margin-top 0px;
+    position:absolute;
+    left:97px;
+}
+
+div.oconnector:hover {
+    background-color: lightskyblue;
+    cursor: e-resize;
+}
+
+/* Style for grid */
+
+main[data-mode="run"] div#grid {
     display: none;
 }
 
-li {
-    font-family: Arial;
-    font-size: 9pt;
-    line-height: 1.5em;
-    margin-left: 0;
-    cursor:hand;
-    list-style-type: none;
+main[data-mode="edit"] div#grid {
+    display: block;
+}
+
+.vgrid {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px solid lightgray;
+}
+
+.hgrid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px solid lightgray;
 }
 
 
-span.group-bar,
-span.group-bar-selected
-{
-    -webkit-border-radius: 10px;
-    padding: 2px 15px 1px 10px;
+#system_inspector {
+    display: none;
 }
 
-span.group-bar:hover
-{
-    background-color: #111;
+header button, aside button {
+    background-color: transparent;
+    padding-top: 2px;
+    padding-bottom: 0px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+    margin-right: 0px;
+    color: lightgray;
+    border: 1px solid gray;
+    border-radius: 0px;
 }
 
-span.group-bar-selected
-{
-    color: #333;
-    background-color: #DDD;
+header button:hover, aside button:hover {
+    background-color: lightgray;
+    color: black;
 }
 
-td#pane
-{
-    width: 0px; 
-    -webkit-transition: width 0.5s ease-in-out; 
-    padding: 10px;margin: 0px;
-    padding-right: 0px;
-    padding-left:20px;       
+header button:hover, aside button:hover {
+    background-color: black;
+    color: white;
 }
 
-td#viewbox
-{
-    padding: 10px; 
-    padding-right:20px;
-    padding-left:20px;
-    margin: 0px;
+
+header button:active, aside button:active {
+    background-color: lightgray;
+    color: black;
+
 }
 
-div#viewframe
-{
-    position: relative; 
-    top: 0; 
-    left:0; 
-    overflow: hidden; 
-    border: 1px solid #666666; 
-    background-color: #303030; 
-    padding: 4px; 
-    margin:0px;
-    height:100%;   
-    -webkit-border-radius: 5;
+/* Specific widgets - this could be included in the template instead for non-standard widgets */
+
+/* h sliders */
+
+.hranger {
+    display: flex;
+    flex-direction: column;
 }
 
+.hranger div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.hranger .slider_label {
+    font: 12px Arial, sans-serif;
+    text-align:right;
+    padding-right:10px;
+    width: 100px;
+    display: none;
+}
+
+.hranger  .slider_value {
+    width: 50px;
+    font: 12px Arial, sans-serif;
+    text-align:right;
+    padding-right:6px;
+    display: none;
+}
+
+.hranger input {
+    background: none;
+}
+
+.hranger input[type=range] {
+    -webkit-appearance: none; /*removes default webkit styles*/
+    width: 100%;
+    height: 16px;
+}
+
+.hranger input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 7px;
+    background-image: -webkit-linear-gradient(top, #555, #aaa);
+    border: 1px solid #ddd;
+    border-radius: 13px;
+}
+
+.hranger input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 19px;
+    width: 12px;
+    border-radius: 10%;
+    border: 1px solid #777;
+    background-image: -webkit-linear-gradient(top, #888, #aaa, #555);
+    margin-top: -7px;
+    box-shadow: 2px 2px 5px #888888;
+}
+
+/* v sliders */
+
+.vranger {
+    display: flex;
+    flex-direction: row;
+}
+
+.vranger div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 10px;
+    border: 1px solid green;
+}
+
+.vranger .slider_label {
+    width: 200px;
+    font: 12px Arial, sans-serif;
+    display: none;
+}
+
+.vranger  .slider_value {
+    width: 100px;
+    font: 12px Arial, sans-serif;
+    text-align:right;
+    display: none;
+}
+
+.vranger input {
+    background: none;
+}
+
+.vranger input[type=range] {
+    -webkit-appearance: slider-vertical; /*removes default webkit styles*/
+    width: 100%;
+    height: 16px;
+    border: 1px solid purple;
+    transform: rotate(270deg);
+}
+
+.vranger input[type=range]::-webkit-slider-runnable-track {
+/*
+    height: 7px;
+    background-image: -webkit-linear-gradient(top, #555, #aaa);
+    border: 1px solid #ddd;
+    border-radius: 13px;
+    border: 1px solid blue;
+*/
+    width:400px;
+}
+
+.vranger input[type=range]::-webkit-slider-thumb {
+/*
+    -webkit-appearance: none;
+    border: none;
+    height: 19px;
+    width: 12px;
+    border-radius: 10%;
+    border: 1px solid #777;
+    background-image: -webkit-linear-gradient(top, #888, #aaa, #555);
+    margin-top: -7px;
+    box-shadow: -2px 2px 5px #888888;
+    border: 1px solid red;
+*/
+}
+
+/* Overlay not used. Should it be removed? */
+#WidgetOverlay
+{       
+    display: none; /* disable overlay */ 
+    position: absolute;
+    top:0; 
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.253);
+    border: 1px solid black;
+}
+
+#WidgetOverlayText{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    padding: 10px;
+    height: auto;
+}
