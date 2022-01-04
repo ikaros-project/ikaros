@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<link rel="stylesheet" type="text/css" href="styling.css">
+<link rel="stylesheet" type="text/css" href="style.css">
 <link rel="stylesheet" type="text/css" href="default.css" id="stylesheet">
 <title>Ikaros WebUI</title>
 <script src="webui.js"></script>
@@ -34,10 +34,7 @@
 <script src="js/three.min.js"></script>
 <script src="js/controls/OrbitControls.js"></script>
 <script src="js/loaders/GLTFLoader.js"></script>
-<!--<script src="js/loaders/FBXLoader.js"></script>-->
-<!-- <script src="js/Detector.js"></script>-->
 <script src="js/libs/stats.min.js"></script>
-<!--<script src="js/libs/draco/draco_decoder.js"></script>-->
 
 </head>
 <body>
@@ -48,11 +45,7 @@
         <button onclick="interaction.toggleEditMode()">Edit</button>
         <button onclick="controller.saveNetwork()">Save</button>
         <button onclick="controller.start()">Start</button>
-<!--        <button onclick="toggleInspector()">Inspector</button>    -->
 
-<!--
-        <span>Selected:</span> <span id="selected"></span>
--->
 	</header>
 
 	<section>
@@ -293,8 +286,6 @@
     interaction.generateGrid(20);
     interaction.initDraggables();
     controller.init();
-
-//    setInterval(function (){ console.log("NOW"); f = document.querySelector('footer'); f.innerHTML += "<p>Hej! ("+Date.now()+")</p>"; f.scrollTop = f.scrollHeight; }, 1000);
 
 </script>
 </body>
