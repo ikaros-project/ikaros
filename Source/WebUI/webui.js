@@ -69,13 +69,7 @@ function resetCookies()
  *
  */
 
-function test_sleep(millis)
-{
-    var date = new Date();
-    var curDate = null;
-    do { curDate = new Date(); }
-    while(curDate-date < millis);
-}
+
 
 function copyToClipboard(text)
 {
@@ -147,14 +141,6 @@ function toggleInspector()
 function toggleModuleInspector()
 {
     displayAside('module_inspector');
-    return;
-    var x = document.getElementById('module_inspector');
-    var s = window.getComputedStyle(x, null);
-    if (s.display === 'none') {
-        x.style.display = 'block';
-    } else {
-        x.style.display = 'none';
-    }
 }
 
 function toggleSystem()
@@ -216,9 +202,6 @@ nav = {
     },
     buildList: function(group, name) {
         let s = "";
-//        if(group.groups.length + group.views.length == 0)
-//            s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='XXX'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
-//        else
             s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
         if(group.views)
         {
@@ -1529,8 +1512,6 @@ controller = {
                 console.log("console.get: onload - empty response - error.")
                 return;
             }
-         //   controller.defer_reconnect(); // we are still on line
-        //    setTimeout(controller.update, controller.webui_req_int); // schedule next update; approximately 10/s
             callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
         }
         
@@ -1606,7 +1587,6 @@ controller = {
             {
                 w[i].children[1].receivedData = data;
                 w[i].children[1].update(data); // include data for backward compatibility
-                w[i].children[1].receivedData = null; // Try to free memory
             }
             catch(err)
             {
