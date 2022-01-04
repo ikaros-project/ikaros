@@ -1481,7 +1481,7 @@ interaction = {
 
 controller = {
     run_mode: 'pause',
-    command: 'update',
+    commandQueue: ['update'],
     tick: 0,
     session_id: 0,
     client_id: Date.now(),
@@ -1551,8 +1551,8 @@ controller = {
         controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
     
-    requestCommand: function (command) {
-        controller.command = command;
+    queueCommand: function (command) {
+        controller.commandQueue.push(command);
     },
 
     stop: function () {
@@ -1561,19 +1561,19 @@ controller = {
      },
     
     pause: function () {
-        controller.command = 'pause';
+        controller.queueCommand('pause');
     },
     
     step: function () {
-        controller.command = 'step';
+        controller.queueCommand('step');
     },
     
     play: function () {
-        controller.command = 'play';
+        controller.queueCommand('play');
     },
     
     realtime: function () {
-        controller.command = 'realtime';
+        controller.queueCommand('realtime');
     },
 
     start: function () {
@@ -1783,8 +1783,9 @@ controller = {
          }
 
         
-        controller.get(controller.command+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
-        controller.command = 'update';
+         while(controller.commandQueue.length>0)
+            controller.get(controller.commandQueue.shift()+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
+        controller.queueCommand('update');
     },
 
     copyView: function() // TODO: Remove default parameters
