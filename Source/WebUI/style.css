@@ -60,7 +60,7 @@ header > button:first-child {
 	color: var(--breadcrumb-color);
 	line-height: var(--breadcrumb-height);
 	vertical-align: middle;
-    font-size: calc(0.6*var(--breadcrumb-height))
+    font-size: calc(0.55*var(--breadcrumb-height))
 }
 
 .breadcrumbs div:hover {
