@@ -1262,10 +1262,11 @@ interaction = {
         else
             n = viewName;
         let h = "";
+        let viewPath = "";
         for(g of n.substring(1).split('/'))
         {
-            console.log(g);
-            h += "<div class='bread'>"+g+"</div>";
+            viewPath += "/"+g;
+            h += "<div class='bread'  onclick='controller.selectView(\""+viewPath+"\")'>"+g+"</div>";
         }
         if(v)
             h+= "<div class='bread' style='--breadcrumb-element-color:#888'>"+v+"</div>";
