@@ -8,9 +8,6 @@
 <link rel="stylesheet" type="text/css" href="widget_style.css">
 <link rel="stylesheet" type="text/css" href="widget_defaults.css">
 
-<!--
-<link rel="stylesheet" type="text/css" href="default.css" id="stylesheet">
--->
 
 <title>Ikaros WebUI</title>
 <script src="webui.js"></script>
@@ -46,13 +43,31 @@
 </head>
 <body>
 	<header>
-		<button onclick="toggleNav()">Nav</button>
-        <button onclick="toggleFooter()">Messages</button>
-        <button onclick="interaction.toggleSystemMode()">System</button>
-        <button onclick="interaction.toggleEditMode()">Edit</button>
-        <button onclick="controller.saveNetwork()">Save</button>
-        <button onclick="controller.start()">Start</button>
 
+        <div  class="breadcrumbs">
+
+            <div class="button" onclick="toggleNav()" id="nav">&#8801;</div>
+            <div class="stretch" ></div>
+            <div class="button" onclick="toggleFooter()">&#x26A0;</div>
+            <div class="button" onclick="interaction.toggleEditMode()">&#x270E;</div>
+            <!--
+            <div class="button" class="button" onclick="controller.saveNetwork()">Save</div>
+            <div class="button" onclick="controller.start()">Start</div>
+            -->
+            <div class="large button" onclick="interaction.toggleSystemMode()">&#x2699;</div>
+        </div>
+    
+
+
+    </header>
+
+            
+<!--
+		<button onclick="toggleNav()">Nav</button>
+
+        </div>
+
+-->
 	</header>
 
 	<section>

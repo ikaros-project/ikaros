@@ -1,9 +1,9 @@
 
-/* global variables should be set here! Will be inherited by enclosed elements */
+/* global variables should be set here! Will be inherited by all elements */
 
-
-main {
+* {
      --main-color: #2079D7;
+     --accent-color: pink;
 
     --direction: vertical;
 /*
@@ -19,6 +19,15 @@ main {
     --fill: var(--main-color), var(--main-color), gray, var(--main-color);
  
 */
+
+    --breadcrumb-height: 24px;
+    --breadcrumb-gap: 3px;
+    --breadcrumb-background-color: #2c2c2c;
+    --breadcrumb-element-color: #5a5a5a;
+    --breadcrumb-color: #e2e2e2;
+    --breadcrumb-hover-color: #5a5a5a;
+    --breadcrumb-active-color: #797979;
+
     --margin-left: 40;
     --margin-right: 40;
     --margin-top: 40;
@@ -42,7 +51,7 @@ main {
     --x-axis: yes;
     --y-axis: yes;
     --axis-color: black;
-    --left-tick-marks: 0
+    --left-tick-marks: 0;
     --right-tick-marks: 0;
     --bottom-tick-marks: 0;
     --left-scale: 0;

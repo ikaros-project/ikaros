@@ -862,12 +862,14 @@ interaction = {
             e.stopPropagation()
     },
     windowResize: function () {
-        // Trigger redraw the hard way
+        /*
+        // Trigger redraw the hard way - causes flicker - why is it needed?
         let v = getCookie('current_view');
         if(Object.keys(controller.views).includes(v))
             controller.selectView(v);
         else
             controller.selectView(Object.keys(controller.views)[0]);
+    */
     },
     initDraggables: function () { // only needed if there are already frame elements in the main view
         let nodes = document.querySelectorAll(".frame");
@@ -1245,9 +1247,36 @@ interaction = {
         }
     },
 
+    setBreadcrums(viewName)
+    {
+        var elements = document.getElementsByClassName("bread");
+        while(elements.length > 0)
+            elements[0].parentNode.removeChild(elements[0]);
+
+            let v = null;
+        let n = viewName.split('#');
+        if(n.length>1)
+        {   v = n[1];
+            n = n[0];
+        }
+        else
+            n = viewName;
+        let h = "";
+        for(g of n.substring(1).split('/'))
+        {
+            console.log(g);
+            h += "<div class='bread'>"+g+"</div>";
+        }
+        if(v)
+            h+= "<div class='bread' style='--breadcrumb-element-color:#888'>"+v+"</div>";
+
+            document.querySelector("#nav").insertAdjacentHTML('afterend', h);
+    },
+
     addView(viewName)
     {
         setCookie('current_view', viewName);
+        interaction.setBreadcrums(viewName);
         nav.openGroup(viewName);
         
         interaction.deselectObject();

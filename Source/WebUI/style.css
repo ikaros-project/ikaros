@@ -11,7 +11,8 @@
     padding: 0;
     user-select: none;
     -webkit-user-select: none;
-    font-family: "Frutiger LT Std", Hind, Arial, sans-serif;
+    font-family: Arial, sans-serif;
+    
     overflow: hidden;
 }
 
@@ -28,18 +29,106 @@ body {
     flex-direction: column;
 }
 
-header {
-    flex: 0 0 30px;
-    color: #b0b0b0;
-    background: #38383A;
-    border-bottom: 1px solid black;
-    text-align: right;
-    padding: 5px;
+header
+{
+    background: var(--breadcrumb-background-color);
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 header > button:first-child {
     float: left;
 }
+
+
+.breadcrumbs {
+
+	display: flex;
+	overflow: hidden;
+	background-color: var(--breadcrumb-background-color);
+}
+
+.breadcrumbs div {
+    cursor:default;
+	box-sizing: border-box;
+    overflow: visible;
+	position: relative;
+	height: var(--breadcrumb-height);
+	padding-left: var(--breadcrumb-height);
+	padding-right: var(--breadcrumb-height);
+	background-color:  var(--breadcrumb-element-color);
+	color: var(--breadcrumb-color);
+	line-height: var(--breadcrumb-height);
+	vertical-align: middle;
+    font-size: calc(0.6*var(--breadcrumb-height))
+}
+
+.breadcrumbs div:hover {
+	background-color:var(--breadcrumb-hover-color);
+}
+
+
+
+.breadcrumbs div:active {
+	background-color:var(--breadcrumb-active-color);
+}
+
+
+.breadcrumbs div:nth-child(2) {
+	border-radius: 5px;
+}
+
+
+.breadcrumbs div:nth-last-child(5) {
+	border-radius: 5px;
+}
+
+.breadcrumbs div:nth-last-child(5):after {
+    display: none;
+}
+
+.breadcrumbs div:after {
+	box-sizing: border-box;
+  	content: "";
+  	position: absolute;
+  	display: inline-block;
+  	width: var(--breadcrumb-height);
+  	height: var(--breadcrumb-height);
+  	top: -0px;
+  	right: calc(-0px + -0.5*var(--breadcrumb-height)); 
+  	background-color: inherit;
+  	transform: rotate(45deg);
+  	border-top: var(--breadcrumb-gap) solid var(--breadcrumb-background-color);
+    border-right: var(--breadcrumb-gap) solid var(--breadcrumb-background-color);
+	z-index: 1;
+}
+
+
+.breadcrumbs div.button {
+    margin-left: calc(2px + var(--breadcrumb-gap));
+    margin-right: calc(2px + var(--breadcrumb-gap));
+    border-radius: 5px;
+}
+
+.breadcrumbs div.button:after {
+    display: none;
+}
+
+.breadcrumbs div.large {
+    font-size: calc(1.1*var(--breadcrumb-height))
+}
+
+
+.breadcrumbs div.stretch {
+
+    background-color:transparent;
+    flex-grow: 10;
+}
+
+.breadcrumbs div.stretch:after {
+    display: none;
+}
+
 
 section {
     background:white;
@@ -143,14 +232,14 @@ select {
 
 nav {
     padding: 10px;
-    background: #38383A;
+    background: #38383a;
     border-right: 1px solid gray;
     font: 12px Arial, sans-serif;
 }
 
 
 li:hover {
-    color: red;
+    color: var(--accent-color);
 }
 
 
@@ -217,7 +306,7 @@ aside #classes {
 div.title {
     color: white;
     background-color: black;
-    font: 16px Arial, sans-serif;
+    font: 16px Arial, sans;
     height: 22px;
     border: none;
     padding:2px 2px 2px 5px;
@@ -315,11 +404,11 @@ div.frame.visible {
 
 
 div.selected {
-    border: 1px solid red;
+    border: 1px solid var(--accent-color);
 }
 
 div.visible.selected {
-    border: 1px solid red;
+    border: 1px solid var(--accent-color);
 }
 
 
@@ -355,7 +444,7 @@ div.module {
     position: absolute;
     z-index: 200;
     overflow: hidden;
-    background-color: #38383A;
+    background-color: #232323;
     color: #ddd;
     font-size: 10px;
     cursor: move;
@@ -367,7 +456,7 @@ div.module {
 }
 
 div.module:hover {
-    border: 2px solid orange;
+    border: 2px solid var(--accent-color);
 
 }
 
@@ -461,7 +550,7 @@ header button, aside button {
     margin-right: 0px;
     color: lightgray;
     border: 1px solid gray;
-    border-radius: 0px;
+    border-radius: 3px;
 }
 
 header button:hover, aside button:hover {
