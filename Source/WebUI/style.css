@@ -308,6 +308,8 @@ div.title {
     background-color: black;
     font: 16px Arial, sans;
     height: 22px;
+    line-height: 22px;
+    vertical-align: middle;
     border: none;
     padding:2px 2px 2px 5px;
 }
@@ -444,25 +446,31 @@ div.module {
     position: absolute;
     z-index: 200;
     overflow: hidden;
-    background-color: #232323;
+    background-color: #383838;
     color: #ddd;
     font-size: 10px;
     cursor: move;
-    border: 1px solid black;
+
     text-align: center;
     border-radius:6px;
     width:120px;
-    border: 2px solid #ffffff00;
+
 }
 
-div.module:hover {
-    border: 2px solid var(--accent-color);
+    .module .title {
+    color:#e2e2e2;
+    background-color: #5a5a5a;
+    font-size: 10px;  
+}
 
+/*
+div.module:hover {
+    border: 1px solid var(--accent-color);
+*/
 }
 
 div.group {
-    border: 5px solid black;
- /*   background-color: lightgreen; */
+
 }
 
 div.input {

@@ -1200,7 +1200,7 @@ interaction = {
                 else
                     newObject.setAttribute("class", "module");
 
-                newObject.innerHTML = "<div style='color:white;background-color:black;padding:5px'>"+v[i].attributes.name+"</div";
+                newObject.innerHTML = "<div class='title'>"+v[i].attributes.name+"</div";
                 interaction.main.appendChild(newObject);
 
                 // Add inputs & outputs
