@@ -1266,10 +1266,25 @@ interaction = {
         for(g of n.substring(1).split('/'))
         {
             viewPath += "/"+g;
-            h += "<div class='bread'  onclick='controller.selectView(\""+viewPath+"\")'>"+g+"</div>";
+            let styleStr = "";
+            if(viewPath==viewName)
+
+            {
+                styleStr = "style='--breadcrumb-element-color: var(--breadcrumb-active-color)'";
+            }
+                h += "<div class='bread' "+styleStr+" onclick='controller.selectView(\""+viewPath+"\")'>"+g+"</div>";
         }
         if(v)
-            h+= "<div class='bread' style='--breadcrumb-element-color:#888'>"+v+"</div>";
+            h+= "<div class='bread' style='--breadcrumb-element-color: var(--breadcrumb-active-color)'>"+v+"</div>"; // change class instead
+        else
+        {
+            let vw = controller.views[viewName];
+            if(vw && vw.views[0])
+            {
+                viewPath += "#"+vw.views[0].name;
+                h+= "<div class='bread' onclick='controller.selectView(\""+viewPath+"\")'>"+vw.views[0].name+"</div>";
+            }
+        }
 
             document.querySelector("#nav").insertAdjacentHTML('afterend', h);
     },

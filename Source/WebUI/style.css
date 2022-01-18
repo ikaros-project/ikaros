@@ -64,7 +64,9 @@ header > button:first-child {
 }
 
 .breadcrumbs div:hover {
+    /*
 	background-color:var(--breadcrumb-hover-color);
+    */
 }
 
 
