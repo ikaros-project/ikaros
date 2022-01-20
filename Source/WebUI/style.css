@@ -269,7 +269,7 @@ li.group-closed > ul {
 
 main {
     padding: 0px;
-    background: white;
+    background: var(--main-background);
 }
 
 main[data-mode="edit"] {

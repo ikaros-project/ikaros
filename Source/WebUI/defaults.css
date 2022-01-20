@@ -5,10 +5,11 @@
      --main-color: #2079D7;
      --accent-color: orange;
 
+     --main-background: white;
+
      /* Widget Properties */
 
     --widget-background: none;
-
     --widget-title-height: 24px;
     --widget-title-font: 'Didact Gothic', sans-serif;
     --widget-title-color: #eee;
@@ -87,4 +88,21 @@
     --grid-line-width: 1;
     
 
+
+
+    /* FANCY STYLING TEST */
+
+/*
+    --main-background: rgb(50, 58, 62);
+    --widget-background: rrgb(50, 58, 62);
+    --widget-title-color: rgb(135, 180, 202);
+    --widget-title-background: transparent;
+    --widget-frame-color: rgb(135, 180, 202);
+    --widget-title-align: center;
+    --grid-color: rgb(135, 180, 202);
+    --color: rgb(135, 180, 202);
+    --fill: rgb(135, 180, 202); // Not working
+    --axis-color: rgb(135, 180, 202);
+*/
+    
 }
