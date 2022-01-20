@@ -29,7 +29,7 @@
 	<output name="BLUE" description="The blue channel." />
 	<output name="INTENSITY" description="The intensity channel." />
 	
-	<view name = "Default View">
+	<view name = "View">
 		<image
 		max_x = "1"
 		title = "Output"

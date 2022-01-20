@@ -58,7 +58,7 @@
    		<file>SpikingPopulation.cc</file>
    		<file>SpikingPopulation.ikc</file>
    </files>
-	<view name="Spiking population default view">
+	<view name="Spiking population View">
 		<plot
             class = "plot"
             show_title = "true"

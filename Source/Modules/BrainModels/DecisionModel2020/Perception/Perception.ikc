@@ -33,7 +33,7 @@
 
 	<link class="Perception" />
 
-    <view name="Default View" >
+    <view name="View" >
         <bar-graph  x = "20" y = "20" height = "201" width = "421" title = ".OUTPUT" source = ".OUTPUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
         <bar-graph  x = "20" y = "240" height = "201" width = "421" title = ".LOCATION_OUT" source = ".LOCATION_OUT" direction = "vertical" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
     </view>

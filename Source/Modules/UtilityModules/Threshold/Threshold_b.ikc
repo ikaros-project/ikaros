@@ -34,7 +34,7 @@
 			height="200"  
             module="*"
             source="OUTPUT"
-            title="Default view for Threshold"
+            title="View for Threshold"
         />
     </view>
     
