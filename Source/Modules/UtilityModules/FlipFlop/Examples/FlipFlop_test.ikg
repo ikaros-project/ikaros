@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<group name="Flip Flop">
+	
+	<module class = "Constant" name = "A" data="0" _x="20" _y="40" />
+	<module class = "Constant" name = "B" data="0" _x="20" _y="140"  />
+	<module class = "Constant" name = "E" data="0" _x="20" _y="240"  />
+	<module class = "FlipFlop" name = "FlipFlop" 
+	
+	enable_on = "rising"
+	type = "D"
+
+	_x="200" _y="70"  />
+
+	<connection  source = "A.OUTPUT"  target = "FlipFlop.SET" />
+	<connection  source = "B.OUTPUT"  target = "FlipFlop.RESET" />
+	<connection  source = "E.OUTPUT"  target = "FlipFlop.ENABLE" />
+
+<view name="View" >
+	<bar-graph  min = "0" show_title = "true" frame-style = "" title = "Q" color = "" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" transpose = "false" max = "1" source = "FlipFlop.OUTPUT" lineJoin = "" lineWidth = "1" width = "201" x = "20" show_frame = "true" height = "181" auto = "false" y = "20"/>
+	<bar-graph  min = "0" show_title = "true" frame-style = "" title = "not Q" color = "" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" transpose = "false" max = "1" source = "FlipFlop.INVERSE" lineJoin = "" lineWidth = "1" width = "201" x = "240" show_frame = "true" height = "181" auto = "false" y = "20"/>
+	<button  enableSource = "" xindex = "0" value = "1" style = "" x = "20" commandUp = "" command = "" show_title = "false" icon = "" type = "toggle" frame-style = "" y = "220" parameter = "A.data" label = "A" height = "41" show_frame = "false" title = "Title" radioGroup = "" background = "" yindex = "0" valueUp = "0" color = "" width = "201"/>
+	<button  enableSource = "" xindex = "0" value = "1" style = "" x = "240" commandUp = "" command = "" show_title = "false" icon = "" type = "toggle" frame-style = "" y = "220" parameter = "B.data" label = "B" height = "41" show_frame = "false" title = "Title" radioGroup = "" background = "" yindex = "0" valueUp = "0" color = "" width = "201"/>
+	<button  enableSource = "" xindex = "0" value = "1" style = "" x = "460" commandUp = "" command = "" show_title = "false" icon = "" type = "push" frame-style = "" y = "220" parameter = "E.data" label = "E" height = "41" show_frame = "false" title = "Title" radioGroup = "" background = "" yindex = "0" valueUp = "0" color = "" width = "201"/>
+	<drop-down-menu  x = "460" y = "20" height = "181" width = "181" title = "FlipFlop Type" parameter = "FlipFlop.type" index = "0" list_parameter = "" list = "SR,JK,D" label = "" labelWidth = "50" show_title = "true" show_frame = "true" style = "" frame-style = ""/>
+</view>
+
+
+
+
+    <module class = "Logger" name = "Logger" _x="20" _y="330"   />
+
+</group>
+ 
+
