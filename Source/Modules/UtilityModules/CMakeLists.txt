@@ -74,6 +74,10 @@ add_subdirectory(Threshold)
 add_subdirectory(Transform)
 add_subdirectory(TruncateArray)
 
+add_subdirectory(And)
+add_subdirectory(Or)
+add_subdirectory(Xor)
+add_subdirectory(FlipFlop)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
