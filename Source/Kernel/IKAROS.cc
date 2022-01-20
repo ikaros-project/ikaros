@@ -717,7 +717,7 @@ GroupElement::CreateDefaultView()
     {
         auto * o = new ViewObjectElement((GroupElement *)v);    // FIXME: parent should be ViewElement not GroupElement
 
-        v->attributes["name"] = "Default View";
+        v->attributes["name"] = "View";
         
         o->attributes["class"] = "plot";
         o->attributes["source"] = "."+output.first;
@@ -1457,7 +1457,7 @@ Module::GetInputSizeX(const char * input_name) // TODO: also used internally so 
         {
             if(i->sizex != unknown_size)
                 return i->sizex;
-            else if(kernel != NULL) // FIXME: remove these conditions and use exception handling here instead
+            else if(kernel != NULL)
                 return kernel->CalculateInputSizeX(i);
             else
                 break;
@@ -3272,7 +3272,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
 {
     for(auto & c : group->connections)
     {
-        auto source = c["source"];
+        auto source = c["source"]; // FIXME: use count and at instead
         auto target = c["target"];
         try {
             Module_IO * source_io = NULL;
@@ -3599,7 +3599,7 @@ Kernel::ListProfiling()
 }
 
 
-// The following lines will create the kernel the first time it is accessed by on of the modules
+// The following lines will create the kernel the first time it is accessed by one of the modules
 
 Kernel& kernel()
 {
@@ -3670,7 +3670,7 @@ SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey
     return ok;
 }
 
-
+/*
 static bool
 SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int sizex, int sizey)
 {
@@ -3697,6 +3697,7 @@ SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int siz
 
     return true;
 }
+*/
 
 
 std::string
@@ -3756,7 +3757,7 @@ SendJSONMatrixData(ServerSocket * socket, const std::string & source, float * ma
 
 
 void
-Kernel::DoSendData(std::string uri, std::string args) // FIXME: are some types missing? Text? // FIXME: divide into smaller functions
+Kernel::DoSendData(std::string uri, std::string args)
 {    
     sending_ui_data = true; // must be set while main thread is still running
     while(tick_is_running)
@@ -4153,7 +4154,7 @@ void
 Kernel::HandleHTTPRequest()
 {
     std::string uri = socket->header.Get("URI");
-    printf(">>>%s\n", uri.c_str());
+    //printf(">>>%s\n", uri.c_str());
     if(uri.empty())
     {
         Notify(msg_warning, "No URI");
