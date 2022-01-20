@@ -5,28 +5,18 @@
      --main-color: #2079D7;
      --accent-color: orange;
 
-    --direction: vertical;
-/*
-    --title-height: 0;
-    --title-font: 18px Arial;
-    --title-color: white;
-    --title-background: black;
-    --title-margins: no;
-    --title-align: center;
-    --title-offset: 10, -5;
+     /* Widget Properties */
 
-    --color: var(--main-color), var(--main-color), gray, var(--main-color);
-    --fill: var(--main-color), var(--main-color), gray, var(--main-color);
- 
-*/
+    --widget-background: none;
 
-    --breadcrumb-height: 24px;
-    --breadcrumb-gap: 3px;
-    --breadcrumb-background-color: #2c2c2c;
-    --breadcrumb-element-color: #5a5a5a;
-    --breadcrumb-color: #e2e2e2;
-    --breadcrumb-hover-color: #5a5a5a;
-    --breadcrumb-active-color: #797979;
+    --widget-title-height: 24px;
+    --widget-title-font: 'Didact Gothic', sans-serif;
+    --widget-title-color: #eee;
+    --widget-title-background: #777;
+    --widget-frame-color: #777;
+    --widget-title-align: center;
+
+        /* Widget contents properties */
 
     --margin-left: 40;
     --margin-right: 40;
@@ -40,14 +30,7 @@
 
     --frame: none;
 
-    --vertical-gridlines: 0;
-    --horizontal-gridlines: 0;
-    --vertical-gridlines-over: 0;
-    --horizontal-gridlines-over: 0;
-    --grid-color: lightgray;        /*  #00000000 for none  */
-    --grid-fill: lightgreen;
-    --grid-line-width: 1;
-    
+    --direction: vertical;
     --x-axis: yes;
     --y-axis: yes;
     --axis-color: black;
@@ -77,4 +60,31 @@
     --decimals: 2;
     --min: 0;
     --max: 1;
+    /*
+    --color: var(--main-color), var(--main-color), gray, var(--main-color);
+    --fill: var(--main-color), var(--main-color), gray, var(--main-color);
+ 
+*/
+
+    /* Breadcrumbs properties */
+
+    --breadcrumb-height: 24px;
+    --breadcrumb-gap: 3px;
+    --breadcrumb-background-color: #2c2c2c;
+    --breadcrumb-element-color: #5a5a5a;
+    --breadcrumb-color: #e2e2e2;
+    --breadcrumb-hover-color: #5a5a5a;
+    --breadcrumb-active-color: #797979;
+
+
+
+    --vertical-gridlines: 0;
+    --horizontal-gridlines: 0;
+    --vertical-gridlines-over: 0;
+    --horizontal-gridlines-over: 0;
+    --grid-color: lightgray;
+    --grid-fill: lightgreen;
+    --grid-line-width: 1;
+    
+
 }

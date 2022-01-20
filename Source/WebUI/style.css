@@ -12,6 +12,7 @@
     user-select: none;
     -webkit-user-select: none;
     font-family: Arial, sans-serif;
+
     
     overflow: hidden;
 }
@@ -236,7 +237,7 @@ nav {
     padding: 10px;
     background: #38383a;
     border-right: 1px solid gray;
-    font: 12px Arial, sans-serif;
+    font-size: 11px;
 }
 
 
@@ -305,24 +306,6 @@ aside #classes {
     color: white;
 }
 
-div.title {
-    color: white;
-    background-color: black;
-    font: 16px Arial, sans;
-    height: 22px;
-    line-height: 22px;
-    vertical-align: middle;
-    border: none;
-    padding:2px 2px 2px 5px;
-}
-
-div.frame {
-    display: flex;
-    flex-direction: column;
-    border: none;
-    background: none;
-    overflow: hidden;
-}
 
 webui-widget-table div {
     height: 35px;
@@ -364,17 +347,37 @@ div.frame {
     z-index: 200;
     width: 101px;
     height: 101px;
-    border: 1px solid black;
+/*    border: 1px solid red; */
     overflow: hidden;
-    background-color: none;
+    /* background-color: none; */
     cursor: move;
     border: none;
 }
 
 div.frame.visible {
-    border: 1px solid black;
-    background: none;
+    border: 1px solid var(--widget-frame-color);
+    background: var(--widget-background);
 }
+
+div.title {
+    color: var(--widget-title-color);
+    background-color: var(--widget-title-background);
+    font-family: var(--widget-title-font);
+    font-size: calc(var(--widget-title-height) - 8px);
+    text-align: var( --widget-title-align);
+    height: var(--widget-title-height);
+    line-height: calc(var(--widget-title-height) - 2px);
+    vertical-align: middle;
+}
+
+div.frame {
+    display: flex;
+    flex-direction: column;
+    /* border: none;
+    background: none; */
+    overflow: hidden;
+}
+
 
 .widget {
     flex-grow:1;

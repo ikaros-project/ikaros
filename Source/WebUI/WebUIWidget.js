@@ -264,8 +264,8 @@ class WebUIWidget extends HTMLElement
         this.setFormat('titleBackground', '--title-background', 'string');
         this.setFormat('titleMargins', '--title-margins','int');
         this.setFormat('titleAlign', '--title-align', 'string');
-        this.setFormat('titleOffsetX', '--title-offset','int', 0);
-        this.setFormat('titleOffsetY', '--title-offset','int', 1);
+    //    this.setFormat('ViewX', '--title-offset','int', 0);
+    //    this.setFormat('ViewY', '--title-offset','int', 1);
 
         this.setFormat('marginLeft', '--margin-left', 'int');
         this.setFormat('marginRight', '--margin-right', 'int');
