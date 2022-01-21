@@ -23,9 +23,27 @@ function setType(x, t)
         return ['on','yes','true'].includes(x.toString().toLowerCase());
     
     return x;
+};
+
+
+
+function zeroPad(x)
+{
+    if(x <10)
+        return "0"+x;
+    else
+        return String(x);
 }
 
 
+
+function secondsToHMS(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+    return h+":"+zeroPad(m)+":"+zeroPad(s);
+}
 
 // COOKIES FOR PERSISTENT STATE
 
@@ -1688,6 +1706,7 @@ controller = {
         {
             document.querySelector("#iteration").innerText = response.iteration;
             document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
+            document.querySelector("#total_time").innerText = secondsToHMS(response.total_time);
             document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
             document.querySelector("#timebase").innerText = response.timebase+" ms";
             document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
