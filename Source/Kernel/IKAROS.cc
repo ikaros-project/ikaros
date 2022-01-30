@@ -3775,7 +3775,7 @@ std::string root = head(data, "#");
     }
     else
     {
-        socket->Send("\t\"iteration\": %d,\n", GetTick());
+        socket->Send("\t\"iteration\": %lld,\n", GetTick());
         socket->Send("\t\"progress\": 0,\n");
     }
 
