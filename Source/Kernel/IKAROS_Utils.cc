@@ -1,7 +1,7 @@
 //
 //	IKAROS_Utils.cc		Various utilities for the IKAROS project
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2022  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//	Created: July 17 2001
 //
 #include "IKAROS_Utils.h"
 #include "IKAROS_System.h"
@@ -1673,4 +1671,196 @@ const char *
 Dictionary::GetKey(Dictionary::Iterator i)
 {
 	return i.kv->key;
+}
+
+
+
+vector::vector():
+size(0),
+data(nullptr),
+owns_data(false)
+{}
+
+
+vector::vector(size_t s):
+    size(s),
+    data(create_array(s)),
+    owns_data(true)
+{}
+
+vector::vector(float * d, size_t s):
+    size(s),
+    data(d),
+    owns_data(false)
+{}
+
+vector::vector(matrix m, size_t row):
+    size(m.size_x),
+    data(m[row]),
+    owns_data(false)
+{
+    if(m.size_y < row-1)
+        throw std::out_of_range("size_y != 1");
+}
+
+
+
+vector::~vector()
+{}
+
+    float &  
+    vector::operator*()
+    {
+        return data[0];
+    }
+
+    float &     
+    vector::operator[](size_t i)
+    {
+            return data[i];
+    }
+
+    float &     
+    vector::operator()(size_t i)
+    {
+        if(i <0)
+            throw std::out_of_range("i < 0");
+           if(i > size-1)
+        throw std::out_of_range("i out of range");  
+
+            return data[i];
+    }
+
+
+
+float dot(vector & a, vector & b)
+{
+    if(a.size != b.size)
+        throw std::out_of_range("a.size != b.size");
+         
+    float r = 0;
+    for(int i=0; i<a.size; i++)
+        r += a[i]*b[i];
+    return r;
+}
+
+
+
+matrix::matrix():
+    allocated_size_x(0), 
+    allocated_size_y(0), 
+    size_x(0), 
+    size_y(0), 
+    dims(2), 
+    data(nullptr),
+    owns_data(true)
+{
+}
+
+
+
+matrix::matrix(size_t sx, size_t sy):
+    allocated_size_x(sx), 
+    allocated_size_y(sy), 
+    size_x(sx), 
+    size_y(sy), 
+    dims(2), 
+    data(create_matrix(sx,sy)),
+    owns_data(true)
+{
+}
+
+
+matrix::matrix(float ** data, size_t sx, size_t sy):
+    allocated_size_x(sx), 
+    allocated_size_y(sy), 
+    size_x(sx), 
+    size_y(sy), 
+    dims(2), 
+    data(data),
+    owns_data(false)
+{
+}
+
+
+float * matrix::operator[](size_t y)
+{
+    return data[y];
+}
+
+float * matrix::operator*()
+{
+    return data[0];
+}
+
+bool matrix::resize(size_t sx, size_t sy)
+{
+    if(sx > allocated_size_x)
+        return false;
+    
+    if(sy > allocated_size_y)
+        return false;
+    size_x = sx;
+    size_y = sy;
+    return true;
+}
+
+void matrix::clear()
+{
+    resize(0, 0);
+}
+
+bool matrix::add_row(float * row) 
+{
+    return true; // NOT COMPLETE
+}
+
+bool matrix::filter(matrix & m, bool (*f)(float * row))
+{
+    clear();
+    for(size_t y=0; y<m.size_y; y++)
+        if(f(m[y]))
+            ; // // COPY ARRAY m -> this
+        // CHECK BOUNDS
+    return true; // The rows from m fit in this
+}
+
+float & matrix::operator()(size_t y, size_t x)
+{
+    if(y <0)
+        throw std::out_of_range("y<0");
+    if(x <0)
+        throw std::out_of_range("x<0");
+    if(y >=size_y)
+        throw std::out_of_range("y>=size_y");
+    if(x >= size_x)
+        throw std::out_of_range("x>=size_x");
+    return data[y][x];
+}
+
+float matrix::max()
+{
+    float m = data[0][0];
+    for(int i=1; i<size_x*size_y; i++)
+    if(data[0][i] > m)
+        m = data[0][i];
+    return m;
+}
+
+void matrix::print(std::string name, int decimals)
+{
+    if(name != "")
+        printf("%s =\n", name.c_str());
+    int nums = 4; // int(log10(max()));
+    for(size_t y=0; y<size_y; y++)
+    {
+        for(size_t x=0; x<size_x; x++)
+            printf("%*.*f\t", nums+decimals+2, decimals, data[y][x]);
+        printf("\n");
+    }
+}
+
+void matrix::print(int decimals)
+{
+    print("", decimals);
 }

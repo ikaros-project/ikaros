@@ -3777,3 +3777,32 @@ namespace ikaros
 
 }
 
+
+
+vector
+closest_point_on_line_segment(vector & A, vector & B, vector & P)
+{
+
+	float dx = B[0]-A[0];
+	float dy = B[1]-A[1];
+          
+	float det = dx*dx + dy*dy;
+	
+     float k = (dy*(P[1]-A[1])+dx*(P[0]-A[0]))/det;
+     
+     float x0 = A[0]+k*dx;
+     float x1 = A[1]+k*dy;
+     
+     if(x0<A[0] || x1<A[1])
+         return A;
+     else if(x0>B[0] || x1>B[1])
+        return B;
+     else 
+     {
+        vector x(2);
+        x[0] = x0;
+        x[1] = x1;
+        return x;
+     }
+}
+

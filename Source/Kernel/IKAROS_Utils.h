@@ -143,40 +143,69 @@ void        Deserialize4d(FILE *afile, float ****adata, int si, int sj, int sk, 
 
 
 
+// Vector
+
+class matrix;
+
+class vector
+{
+public:
+    size_t  size;
+
+    vector();
+    vector(size_t s);
+    vector(float * data, size_t s);
+    vector(matrix m, size_t row=0);
+    ~vector();
+
+    float &     operator*();
+    float &     operator[](size_t i);
+    float &     operator()(size_t i);
+
+private:
+    float * data;
+    bool    owns_data;
+
+    friend float dot(vector & a, vector & b);
+};
+
 // Matrix
 
-class matrix {
+class matrix
+{
     public:
-        float ** data;
-        int dim;
-        int size_x;
-        int size_y;
-        int max_size_x; // = stride
-        int max_size_y;
 
-        matrix(int sizex):
-            size_x(sizex), size_y(1), max_size_x(sizex), max_size_y(1), data(create_matrix(sizex, 1))
-        {
-            dim = 1;
-        }
-    
-        matrix(int sizex, int sizey):
-            size_x(sizex), size_y(sizey), max_size_x(sizex), max_size_y(sizey), data(create_matrix(sizex, sizey))
-        {
-            dim = 2;
-        }
-    
-        bool resize(int sx, int sy)
-        {
-        
-            return true;
-        }
-    
-        float * operator[](int y)
-        {
-            return data[y];
-        }
+        size_t      size_x;
+        size_t      size_y;
+
+        matrix();
+        matrix(size_t sx, size_t sy);
+        matrix(float ** data, size_t sx, size_t sy);
+        ~matrix() {}
+
+        bool        resize(size_t sx, size_t sy);
+        void        clear();
+
+        bool        add_row(float * row);
+        bool        filter(matrix & m, bool (*f)(float * row));
+        float *     operator[](size_t y);
+        float *     operator*();
+        float &     operator()(size_t y, size_t x);
+
+        float       max();
+
+        void print(std::string name="", int decimals=4);
+        void print(int decimals);
+
+    private:
+
+        size_t      allocated_size_x;
+        size_t      allocated_size_y;
+        int         dims;
+        float **    data;
+        bool        owns_data;
 };
+
 
 
 // Delay Line
@@ -313,13 +342,13 @@ class Dictionary
 
     // mark - TAT additions
 
-    void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
-    void        get_submatrix(float *S, int mrows, int mcols, float *A, int ncols, int row, int col);
-	 void 		repeat(float *r, float *a, int repeats);
-	 void 		tile(float *r, float *a, int tiles);
-	 void		put(float *r, float *a, int *indeces);
-	 void 		take(float *r, float *a, int *indeces);
-     void       hstack(float **r, float **a, int ax, float **b, int bx, int rety);
+        void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
+        void        get_submatrix(float *S, int mrows, int mcols, float *A, int ncols, int row, int col);
+        void 		repeat(float *r, float *a, int repeats);
+        void 		tile(float *r, float *a, int tiles);
+        void		put(float *r, float *a, int *indeces);
+        void 		take(float *r, float *a, int *indeces);
+        void       hstack(float **r, float **a, int ax, float **b, int bx, int rety);
 
 
     std::string time_code_string(float time);

@@ -34,8 +34,6 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-
 // Kernel
 
 #include "IKAROS.h"

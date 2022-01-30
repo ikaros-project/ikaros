@@ -1590,6 +1590,21 @@ Module::io(float ** & m, int & size_x, int & size_y, const char * name)
 }
 
 
+
+matrix 
+Module::io(std::string name, bool required)
+{
+    float ** m;
+    if((m = GetOutputMatrix(name.c_str(), required)))
+        return matrix();
+    else if ((m = GetInputMatrix(name.c_str(), required)))
+        return matrix();
+    else
+        return matrix();
+}
+
+
+
 void
 Module::SetOutputSize(const char * name, int x, int y)
 {
@@ -1876,7 +1891,7 @@ Connection::~Connection()
 }
 
 void
-Connection::Propagate(long tick)
+Connection::Propagate(long long tick)
 {
     if(!active)
         return;
@@ -1934,7 +1949,7 @@ ThreadGroup_Tick(void *group, bool high_priority)
 }
 
 void
-ThreadGroup::Start(long tick)
+ThreadGroup::Start(long long tick)
 {
     // Test if group should be started
     if(tick % period == phase)
@@ -1945,7 +1960,7 @@ ThreadGroup::Start(long tick)
 }
 
 void
-ThreadGroup::Stop(long tick)
+ThreadGroup::Stop(long long tick)
 {
     // Test if group should be joined
     if((tick + 1) % period == phase)
@@ -3006,7 +3021,7 @@ Kernel::Notify(int msg, const char * format, ...)
         printf("\n");
     fflush(stdout);
     if(logfile != NULL)
-        fprintf(logfile, "%5ld: %s", tick, message);	// Print in both places
+        fprintf(logfile, "%5lld: %s", tick, message);	// Print in both places
     return false;
 }
 
@@ -3670,34 +3685,7 @@ SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey
     return ok;
 }
 
-/*
-static bool
-SendHTMLData(ServerSocket * socket, const char * title, float ** matrix, int sizex, int sizey)
-{
-    Dictionary header;
-    header.Set("Content-Type", "text/html");
-    socket->SendHTTPHeader(&header);
-    
-    socket->Send("<html>\n");
-    socket->Send("<header>\n");
-    socket->Send("<title>%s</title>\n", title);
-    socket->Send("<style>td {font:10pt Arial,sans-serif;text-align:right}</style>");
-    socket->Send("</header>\n");
-    socket->Send("<body><div><table>\n");
 
-    for (int j=0; j<sizey; j++)
-    {
-        socket->Send("<tr>\n");
-        for(int i=0; i<sizex; i++)
-            socket->Send("<td>%.4f</td>", matrix[j][i]);
-        socket->Send("</tr>\n");
-    }
-
-    socket->Send("</table></div></body></html>\n");
-
-    return true;
-}
-*/
 
 
 std::string

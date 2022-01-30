@@ -2,7 +2,7 @@
 //  IKAROS.h        Kernel code for the IKAROS project
 //
 //
-//    Copyright (C) 2001-2020  Christian Balkenius
+//    Copyright (C) 2001-2022  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -273,8 +273,11 @@ public:
     int        GetOutputSizeY(const char * name);                   // Get the vertical size of an output array (1 if one-dimensional)
 
     void            io(float * & a, const char * name);   // When size is known
-    void            io(float * & a, int & size, const char * name);   // Replaces all array functions above; will support resizeable arrays in the future
-    void            io(float ** & m, int & size_x, int & size_y, const char * name);   // Replaces all matrix functions above; will support resizeable matrices in the future
+    void            io(float * & a, int & size, const char * name);   // Replaces all array functions above
+    void            io(float ** & m, int & size_x, int & size_y, const char * name);   // Replaces all matrix functions above
+    void            io(float * & a, int *& size, const char * name);   // Replaces all array functions above for variable array size
+    void            io(float ** & m, int *& size_x, int *& size_y, const char * name);   // Replaces all matrix functions above for variable matrix size
+    matrix          io(std::string name, bool required=true); // Get input or output matrix
 
     void            StoreArray(const char * path, const char * name, float * a, int size);
     void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
@@ -411,7 +414,7 @@ public:
     Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a); // int d = 1, bool a = true
     ~Connection();
     
-    void Propagate(long tick);
+    void Propagate(long long tick);
     
     friend class Kernel;
     friend class WebUI;
@@ -436,8 +439,8 @@ public:
     ThreadGroup(Kernel * k, int period, int phase);
     ~ThreadGroup();
     
-    void        Start(long tick);
-    void        Stop(long tick);
+    void        Start(long long tick);
+    void        Stop(long long tick);
     void        Tick();
 };
 
@@ -541,7 +544,7 @@ public:
 
     std::string JSONString();
 
-    long        GetTick()
+    long long        GetTick()
     {
         return tick;
     }
@@ -569,8 +572,8 @@ public:
     
     // FIXME: make following variables private again when WebUI-code has been merged with kernel
 
-    long                tick;             // Updated every iteration
-    long                max_ticks;        // Max iterations, stop after these many ticks
+    long long           tick;             // Updated every iteration
+    long long           max_ticks;        // Max iterations, stop after these many ticks
     
     long                tick_length;      // Desired length (in ms) of each tick
     Timer *             timer;            // Global timer

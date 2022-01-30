@@ -31,6 +31,8 @@
 #include <string>
 #include <cmath>
 
+#include "IKAROS_Utils.h"
+
 namespace ikaros
 {	
 	extern const float	pi;
@@ -408,6 +410,8 @@ namespace ikaros
 	float *		threshold_gt(float *r, float *a, float threshold, float size);
 	float *		threshold_lt(float *r, float *a, float threshold, float size);
 
+
+	vector	closest_point_on_line_segment(vector & A, vector & B, vector & P); // temporary version
 }	
 
 #endif
