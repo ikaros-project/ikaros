@@ -1705,6 +1705,19 @@ vector::vector(matrix m, size_t row):
 
 
 
+vector::vector(std::initializer_list<float> d)
+{   
+    size = d.size();
+    owns_data = true;
+    data = create_array(size);
+
+    size_t i=0;
+    for(auto value: d)
+        data[i++] = value;
+}
+
+
+
 vector::~vector()
 {}
 
@@ -1780,6 +1793,33 @@ matrix::matrix(float ** data, size_t sx, size_t sy):
     data(data),
     owns_data(false)
 {
+}
+
+
+matrix::matrix(std::initializer_list<std::initializer_list<float>> d)
+{   
+    size_x = 0;
+    for(auto x: d)
+    {
+        size_t sx = x.size();
+        if(sx > size_x)
+            size_x = sx;
+    }
+    size_y = d.size();
+    allocated_size_x = size_x;
+    allocated_size_y = size_y;
+    dims = 2;
+    owns_data = true;
+    data = create_matrix(size_x, size_y);
+
+    size_t y = 0;
+    for(auto row: d)
+    {
+        size_t x = 0;
+        for(float value: row)
+            data[y][x++] = value;
+        y++;
+    }
 }
 
 

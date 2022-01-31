@@ -156,6 +156,8 @@ public:
     vector(size_t s);
     vector(float * data, size_t s);
     vector(matrix m, size_t row=0);
+    vector(std::initializer_list<float> d);
+    
     ~vector();
 
     float &     operator*();
@@ -181,6 +183,7 @@ class matrix
         matrix();
         matrix(size_t sx, size_t sy);
         matrix(float ** data, size_t sx, size_t sy);
+        matrix(std::initializer_list<std::initializer_list<float>>);
         ~matrix() {}
 
         bool        resize(size_t sx, size_t sy);
