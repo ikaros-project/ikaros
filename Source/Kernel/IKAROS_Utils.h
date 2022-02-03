@@ -160,6 +160,7 @@ public:
     
     ~vector();
 
+ //   vector & operator=(const vector & v);
     float &     operator*();
     float &     operator[](size_t i);
     float &     operator()(size_t i);
@@ -186,6 +187,8 @@ class matrix
         matrix(std::initializer_list<std::initializer_list<float>>);
         ~matrix() {}
 
+        matrix& operator=(const matrix& m);
+
         bool        resize(size_t sx, size_t sy);
         void        clear();
 
@@ -200,7 +203,7 @@ class matrix
         void print(std::string name="", int decimals=4);
         void print(int decimals);
 
-    private:
+//    private:
 
         size_t      allocated_size_x;
         size_t      allocated_size_y;

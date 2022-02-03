@@ -1718,6 +1718,18 @@ vector::vector(std::initializer_list<float> d)
 
 
 
+/*
+vector &
+vector::operator=(const vector & v)
+{
+    size = v.size;
+    data = v.data;
+    owns_data = false; // TODO: Need to check transfer of ownership later
+    return *this;
+}
+*/
+
+
 vector::~vector()
 {}
 
@@ -1822,6 +1834,17 @@ matrix::matrix(std::initializer_list<std::initializer_list<float>> d)
     }
 }
 
+
+matrix& matrix::operator=(const matrix& m) // TODO: optimize
+{
+    if(size_x != m.size_x || size_y != m.size_y)
+        throw std::out_of_range("out of range");
+
+        for(size_t y=0; y<size_y; y++)
+            for(size_t x=0; x<size_x; x++)
+                data[y][x] = m.data[y][x]; 
+        return *this;
+}
 
 float * matrix::operator[](size_t y)
 {

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!-- Example xml file with a ContinousWorld  -->
+<!-- the agent i  in the world -->
+
+<group name="LearningSimulation">
+	
+    <module
+        class = "Constant"
+        name = "Attend"
+        data = "0	1"
+    />
+	
+       <module
+        class = "Constant"
+        name = "Approach"
+        data = "0"
+    />
+
+    <module
+        class = "ContinuousWorld"
+        name = "Environment"
+        place_obstacles_at = "200"
+    />
+	
+	<connection  source = "Attend.OUTPUT"  target = "Environment.ATTEND" />
+	<connection  source = "Approach.OUTPUT"  target = "Environment.APPROACH" />
+
+<view name="Environment" >
+	<path  min_x = "0" frame-style = "" y = "40" lineCap = "round" flipYCanvas = "no" height = "581" lineJoin = "miter" lineWidth = "5" x = "40" source = "Environment.OBSTACLES" select = "0" fill = "transparent" arrow = "false" flipXAxis = "no" show_title = "false" scales = "no" flipXCanvas = "no" count = "0" min_y = "0" style = "" order = "row" close = "false" width = "681" flipYAxis = "yes" show_frame = "true" title = "" max_y = "10" max_x = "10" color = "red" scale_x = "0.1" scale_y = "0.1"/>
+	<path  scale_y = "0.1" scale_x = "0.1" color = "" max_x = "10" max_y = "10" title = "" show_frame = "false" order = "row" close = "false" style = "" flipXCanvas = "no" min_y = "0" count = "0" scales = "no" show_title = "false" flipXAxis = "no" arrow = "true" fill = "gray" select = "0" source = "Environment.AGENT" flipYAxis = "yes" width = "681" x = "40" lineWidth = "7" lineJoin = "miter" lineCap = "butt" height = "581" flipYCanvas = "no" y = "40" frame-style = "" min_x = "0"/>
+	<marker  order = "col" y = "40" frame-style = "" color = "black" markerType = "circle" width = "681" flipYAxis = "yes" height = "581" flipYCanvas = "no" labelPrefix = "" x = "40" lineWidth = "1" labelBaseline = "middle" max_y = "10" title = "" source = "Environment.GOAL" selectValue = "" lineJoin = "miter" labelType = "labels" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "yellow" labels = "A,B" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "0.1" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" min_x = "0" scale_y = "0.1" labelFont = "18px sans-serif" style = "" max_x = "10" show_frame = "true"/>
+	<bar-graph  y = "240" auto = "false" height = "200" show_frame = "false" x = "760" width = "200" lineWidth = "1" lineJoin = "" source = "Attend.OUTPUT" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" max = "1" transpose = "false" color = "" title = "Top-Down Attention" show_title = "true" frame-style = "" min = "0"/>
+	<bar-graph  y = "40" auto = "false" height = "200" show_frame = "false" x = "760" width = "200" lineWidth = "1" lineJoin = "" source = "Environment.VISIBLE" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" max = "1" transpose = "false" color = "" title = "Bottom-Up Attention" show_title = "true" frame-style = "" min = "0"/>
+	<bar-graph  y = "420" auto = "false" height = "200" show_frame = "false" x = "760" width = "200" lineWidth = "1" lineJoin = "" source = "Environment.OBJECT" direction = "vertical" labels = "" style = "" fill = "" lineCap = "" max = "1" transpose = "false" color = "" title = "Perception" show_title = "true" frame-style = "" min = "0"/>
+	<plot  y = "620" width = "200" title = "Reward" color = "" show_frame = "false" height = "200" x = "760" source = "Environment.REWARD" select = "" direction = "vertical" min = "0" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<button  height = "41" show_frame = "false" width = "81" label = "A" background = "" title = "Title" radioGroup = "td" color = "" parameter = "Attend.data" y = "660" frame-style = "" valueUp = "0" yindex = "0" icon = "" command = "" show_title = "false" commandUp = "" value = "1" style = "" type = "radio" xindex = "0" enableSource = "" x = "240"/>
+	<button  height = "41" show_frame = "false" width = "81" label = "B" background = "" title = "Title" radioGroup = "td" color = "" parameter = "Attend.data" y = "660" frame-style = "" valueUp = "0" yindex = "0" icon = "" command = "" show_title = "false" commandUp = "" value = "1" style = "" type = "radio" xindex = "1" enableSource = "" x = "320"/>
+	<button  value = "1" style = "" enableSource = "" xindex = "0" y = "660" frame-style = "" yindex = "0" valueUp = "0" parameter = "Approach.data" commandUp = "" show_title = "false" command = "" type = "toggle" title = "Title" radioGroup = "" icon = "" background = "" label = "Approach" color = "" width = "81" show_frame = "false" height = "41" x = "480"/>
+	<marker  x = "40" y = "40" height = "581" width = "681" title = "" source = "Environment.OBSTACLE" order = "col" select = "0" selectValue = "" count = "0" markerType = "circle" size = "0.01" color = "red" fill = "red" lineWidth = "1" lineCap = "butt" lineJoin = "miter" labelType = "none" labels = "" labelFont = "18px sans-serif" labelDecimals = "2" labelPrefix = "" labelPostfix = "" labelAlign = "center" labelBaseline = "middle" labelOffsetX = "0" labelOffsetY = "0" scales = "no" min_x = "0" max_x = "10" min_y = "0" max_y = "10" flipXAxis = "no" flipYAxis = "yes" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = "" scale_x = "0.1" scale_y = "0.1"/>
+</view>
+
+
+
+
+
+
+
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
+

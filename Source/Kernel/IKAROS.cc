@@ -1591,16 +1591,26 @@ Module::io(float ** & m, int & size_x, int & size_y, const char * name)
 
 
 
-matrix 
-Module::io(std::string name, bool required)
+void
+Module::io(matrix & m, std::string name, bool required)
 {
-    float ** m;
-    if((m = GetOutputMatrix(name.c_str(), required)))
-        return matrix();
-    else if ((m = GetInputMatrix(name.c_str(), required)))
-        return matrix();
-    else
-        return matrix();
+    float ** data;
+    if((data = GetOutputMatrix(name.c_str(), required)))
+    {
+        m.size_x = GetOutputSizeX(name.c_str());
+        m.size_y = GetOutputSizeY(name.c_str());
+        m.data = data;
+        return;
+    }
+    else if ((data = GetInputMatrix(name.c_str(), required)))
+    {
+        m.size_x = GetInputSizeX(name.c_str());
+        m.size_y = GetInputSizeY(name.c_str());
+        m.data = data;
+        return;
+    }
+ //   else
+ //       return matrix(); // FIXME: throw exception if required
 }
 
 
