@@ -563,7 +563,7 @@ header button, aside button {
     margin-right: 0px;
     color: lightgray;
     border: 1px solid gray;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 header button:hover, aside button:hover {
