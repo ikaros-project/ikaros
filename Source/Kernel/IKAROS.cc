@@ -2170,8 +2170,6 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
     else
         path_to_ikc_file = create_formatted_string("%s%s.ikc", path, name); // relative path
 
-    printf(">>>>>>>>>< %s\n", path_to_ikc_file);
-
     classes.insert({ name, new ModuleClass(name, mc, path_to_ikc_file)} );
     
     destroy_string(path_to_ikc_file);
