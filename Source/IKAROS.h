@@ -464,6 +464,7 @@ public:
     int             ui_state;
     int             iterations_per_runstep;
     float           idle_time;
+    float           time_usage;
     bool            first_request;
     long            master_id;
 

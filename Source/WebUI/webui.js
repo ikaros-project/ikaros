@@ -1712,7 +1712,7 @@ controller = {
             document.querySelector("#timebase_actual").innerText = response.timebase_actual+" ms";
             document.querySelector("#lag").innerText = response.lag+" ms";
             document.querySelector("#cpu_cores").innerText = response.cpu_cores;
-            document.querySelector("#idle_time").value = response.idle_time;
+            document.querySelector("#time_usage").value = response.time_usage;
             document.querySelector("#usage").value = response.cpu_usage;
 
             document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1) + (response.has_data ? "": " (no data)");

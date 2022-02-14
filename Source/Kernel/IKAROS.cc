@@ -2032,6 +2032,7 @@ Kernel::Kernel()
     debug_mode              = false;
     isRunning               = false;
     idle_time               = 0;
+    time_usage              = 0;
 }
 
 
@@ -2169,6 +2170,8 @@ Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
     else
         path_to_ikc_file = create_formatted_string("%s%s.ikc", path, name); // relative path
 
+    printf(">>>>>>>>>< %s\n", path_to_ikc_file);
+
     classes.insert({ name, new ModuleClass(name, mc, path_to_ikc_file)} );
     
     destroy_string(path_to_ikc_file);
@@ -2215,8 +2218,11 @@ Kernel::Run()
             // Calculate idle_time
             
             if(tick_length > 0)
+            {
                 idle_time = (float(tick*tick_length) - timer->GetTime()) / float(tick_length);
-            
+                time_usage = 1 - idle_time;
+            }
+
             if (tick_length > 0)
             {
                 lag = timer->WaitUntil(float(tick*tick_length));
@@ -3800,7 +3806,7 @@ std::string root = head(data, "#");
     socket->Send("\t\"timebase_actual\": %.0f,\n", tick > 0 ? 1000*float(total_time)/float(tick) : 0);
     socket->Send("\t\"lag\": %.0f,\n", lag);
     socket->Send("\t\"cpu_cores\": %d,\n", cpu_cores);
-    socket->Send("\t\"idle_time\": %.3f,\n", idle_time);  // TODO: move to kernel from WebUI
+    socket->Send("\t\"time_usage\": %.3f,\n", time_usage);  // TODO: move to kernel from WebUI
     socket->Send("\t\"cpu_usage\": %.3f", cpu_usage);
 
     socket->Send(",\n\t\"data\":\n\t{\n");
