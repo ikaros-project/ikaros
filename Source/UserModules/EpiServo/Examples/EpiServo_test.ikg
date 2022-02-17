@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<group title="MinimalModule Example">
+	
+		<module
+			class = "EpiServo"
+			name = "EpiServo"
+		/>
+
+		<view name="View">
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<class name="EpiServo" description="minimal example module">
+
+	<description type="text">
+This is a dedicated module to communicate with Epi.
+
+Requeirment:
+EpiTorso
+2 x MX-106 (ID 2 3 4 5)
+2 x MX-28 (ID (2 3)
+Epi
+Predefined
+
+
+Features:
+- Optimized memory. Using sync_read? sync_write
+- Simulate servos
+
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="EpiServo"
+			name="EpiServo"
+		/>
+	</example>
+
+	<link class="EpiServo" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EpiServo.h</file>
+   		<file>EpiServo.cc</file>
+   		<file>EpiServo.ikc</file>
+   </files>
+
+</class>
