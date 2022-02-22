@@ -59,6 +59,8 @@ std::string ltrim(const std::string &s);
 std::string rtrim(const std::string &s);
 std::string trim(const std::string &s);
 
+bool        replace(std::string& str, const std::string& from, const std::string& to);
+
 // File path operations
 
 bool    is_path(const char * p);
