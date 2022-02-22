@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+
+<!--
+
+	power_output is a special attribute that adds a "POWER" output to every module
+	power_coefficient is special attribute that sets a coefficient that is multiplied with the module CPU use % to get a value in Watts.
+
+-->
+
+<group title="EnergyMeter Example" power_output="yes" power_coefficient="1">
+	
+	<module
+		class = "EnergyMeter"
+		name = "EnergyMeter"
+	 	_x = "10" 
+		_y = "10"
+	/>
+
+	<module
+		class = "Logger"
+		name = "Logger"
+		_x = "10"
+		_y = "100"
+	/>
+
+	<view name="View" >
+		<plot  buffer_size = "5000" style = "--decimals: 0" show_title = "true" frame-style = "" max = "2000" min = "0" direction = "vertical" select = "" source = "EnergyMeter.MEASURED_POWER" x = "20" height = "200" show_frame = "false" color = "" title = "Power (W)" width = "1000" y = "20"/>
+		<plot  buffer_size = "5000" style = "--decimals: 3" show_title = "true" frame-style = "" max = "0.1" min = "0" direction = "vertical" select = "" source = "EnergyMeter.ENERGY" x = "20" height = "200" show_frame = "false" color = "" title = "Energy (kWh)" width = "1000" y = "200"/>
+	</view>
+</group>
+ 
