@@ -770,6 +770,8 @@ ModuleClass::CreateModule(Parameter * p)
     Module * m = (*module_creator)(p);
     if(!m->input_list && !m->output_list)
         m->AddIOFromIKC();
+        if(m->GetBoolValue("power_output"))
+        m->AddOutput("POWER", false, 1, 1); // TEST *******
     return m;
 }
 
@@ -1989,8 +1991,13 @@ ThreadGroup::Tick()
         m->timer->Restart();
         if(m->active)
             m->Tick();
-        m->time += m->timer->GetTime();
+            float time_used = m->timer->GetTime();
+        m->time += time_used;
         m->ticks += 1;
+    
+        // Set power usage output here
+        if(m->power)
+            *(m->power) = time_used / m->GetTickLength();
     }
 }
 
@@ -1998,7 +2005,7 @@ ThreadGroup::Tick()
 Kernel::Kernel()
 {
     options                 = NULL;
-    useThreads              = false;
+    useThreads              = false; // FIXE: Should be set to true
     max_ticks               = -1;
     tick_length             = 0;
     
@@ -2459,8 +2466,12 @@ Kernel::InitModules()
     {
         m->Bind(m->log_level, "log_level");
         m->Init();
+        m->power=m->GetOutputArray("POWER");
+        m->power_coefficient = m->GetFloatValue("power_coefficient", 1.0);
     }
 }
+
+
 
 void
 Kernel::NotifySizeChange()
@@ -2494,7 +2505,7 @@ Kernel::Init()
 
     for (Connection * c = connections; c != NULL; c = c->next)
     {
-        module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
+        //module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
         if(c->delay == 0)
         {
             module_map[c->source_io->module->GetFullName()]->connects_to_with_zero_delay.push_back(c->target_io->module);
@@ -2555,7 +2566,7 @@ Kernel::Tick()
     Propagate();
     DelayOutputs();
   
-    if(useThreads)
+    if(useThreads) // TODO: Threads are always used - remove other alternatives
     {
         for (auto & g : _threadGroups)
             g->Start(tick);

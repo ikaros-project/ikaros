@@ -61,6 +61,7 @@ class Socket
 		bool			Poll(); // return true if data is waiting
 		int				ReadData(char * result, int maxlen, bool fill=false);
 		int				Get(const char * hostname, int port, const char * request, char * result, int maxlen);
+		std::string 	HTTPGet(const std::string & url);
 		void			Close();
 		
 	private:
