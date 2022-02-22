@@ -3,12 +3,40 @@
 <group title="MinimalModule Example">
 	
 		<module
-			class = "EpiServo"
-			name = "EpiServo"
+			class = "Constant"
+			name = "Goal_position"
+			data = "180 180 180 180"
 		/>
 
-		<view name="View">
-		</view>
+		<module
+			class = "Constant"
+			name = "Goal_current"
+			data = "0 0 0 0"
+
+		/>
+
+		<module
+			class = "EpiServo"
+			name = "EpiServo"
+			log_level = "7"
+		/>
+        <connection  source = "Goal_position.OUTPUT"  target = "EpiServo.GOAL_POSITION" />
+        <connection  source = "Goal_current.OUTPUT"  target = "EpiServo.GOAL_CURRENT" />
+
+<view name="View" >
+	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "180" min = "-180" direction = "vertical" select = "" source = "EpiServo.PRESENT_POSITION" x = "40" height = "381" show_frame = "false" color = "" title = "Present position" width = "1001" y = "40"/>
+	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "2000" min = "-2000" direction = "vertical" select = "" source = "EpiServo.PRESENT_CURRENT" x = "40" height = "381" show_frame = "false" color = "" title = "Present current" width = "1001" y = "420"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "360" min = "0" style = "" labels = "" select = "0" count = "4" parameter = "Goal_position.data" title = "Goal position" width = "581" show_frame = "false" height = "381" y = "40" x = "1040"/>
+	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "360" min = "0" style = "" labels = "" select = "0" count = "4" parameter = "Goal_current.data" title = "Goal current" width = "581" show_frame = "false" height = "381" y = "420" x = "1040"/>
+</view>
+
+
+
+
+
+
+
+
 
     <module class = "Logger" name = "Logger" />
 </group>

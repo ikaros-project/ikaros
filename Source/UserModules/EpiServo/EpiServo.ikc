@@ -27,6 +27,19 @@ Features:
 		/>
 	</example>
 
+
+    <parameter name="robot" type="list" values="EpiTorso/EpiFull/min/max" default="EpiTorso" descrition="Robot to control" />
+
+	<parameter name="parameter1" type="float" default="7.0" description="The first parameter" />
+	<parameter name="parameter2" type="int" default="2" description="The second parameter" />
+
+	<input name="GOAL_POSITION" description="The first input" />
+	<input name="GOAL_CURRENT" description="The second input" />
+
+	<output name="PRESENT_POSITION" description="The first output" size="4" />
+	<output name="PRESENT_CURRENT" description="The first output" size="4" />
+
+
 	<link class="EpiServo" />
 
 	<author>

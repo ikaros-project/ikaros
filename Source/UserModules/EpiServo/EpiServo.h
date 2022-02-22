@@ -26,23 +26,50 @@
 
 #include "IKAROS.h"
 
+#include "dynamixel_sdk.h" // Uses Dynamixel SDK library
+
 class EpiServo: public Module
 {
 public:
     static Module * Create(Parameter * p) { return new EpiServo(p); }
 
     EpiServo(Parameter * p) : Module(p) {}
-    virtual ~EpiServo() {}
+    virtual ~EpiServo();
 
     void 		Init();
     void 		Tick();
 
+    bool        SetDefaultSettingServo();
+
+    // Paramteters
+    int robotType = 0;
+
+
+    // Ikaros IO
+    float * goalPosition;
+    float * goalCurrent;    
+    int goalPositionSize;
+    int goalCurrentSize;
     
+    float * presentPosition;
+    int presentPositionSize;
+    float * presentCurrent;
+    int presentCurrentSize;
+    
+
     dynamixel::PortHandler *portHandlerHead;
     dynamixel::PacketHandler *packetHandlerHead;
+    int dxl_comm_resultHead;
+    std::vector<uint8_t> vecHead; // Dynamixel data storages
+    dynamixel::GroupSyncRead *groupSyncReadHead;
+    dynamixel::GroupSyncWrite * groupSyncWriteHead;
 
     dynamixel::PortHandler *portHandlerPupil;
     dynamixel::PacketHandler *packetHandlerPupil;
+    int dxl_comm_resultPupil;
+    std::vector<uint8_t> vecPupil; // Dynamixel data storages
+    dynamixel::GroupSyncRead *groupSyncReadPupil;
+
   
 };
 
