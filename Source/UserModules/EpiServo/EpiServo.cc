@@ -119,174 +119,12 @@ void EpiServo::Init()
         if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_TORSO_NR_SERVOS && goalCurrentSize != EPI_TORSO_NR_SERVOS)
             Notify(msg_fatal_error, "Input size does not match robot type\n");
 
-    // Inderect data
-    int dxl_comm_result = COMM_TX_FAIL; // Communication result
-    uint8_t dxl_error = 0;              // Dynamixel error
-
-    for (int i = 2; i <= 5; i++)
-    {
-        printf("ID: %i\n", i);
-
-        // Goal position 4 bytes
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168, 116, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 2, 116 + 1, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 4, 116 + 2, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 6, 116 + 3, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        if (i < 4)
-        {
-            // Goal current (ONLY MX 106?!!)
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176, 102, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176 + 2, 102 + 1, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-        }
-        else
-        {
-            // For MX28. Write goal current to the control table heaven...
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178, 228, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 180 + 2, 228 + 1, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-        }
-
-        // Feedback
-        // ********
-        // Present position 4 bytes
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578, 132, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 2, 132 + 1, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 4, 132 + 2, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 6, 132 + 3, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        if (i < 4)
-        {
-            // Goal current (ONLY MX 106?!!)
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 128, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 128 + 1, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-        }
-        else
-        {
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 228, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-            dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 228 + 1, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-        }
-        // Present tempurature
-        dxl_comm_result = packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 590, 146, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        // Settings
-        uint32_t param_default;
-
-        // Profile acceleration
-        param_default = 50;
-        dxl_comm_result = packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 108, param_default, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        // Profile velocity
-        param_default = 210;
-        dxl_comm_result = packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 112, param_default, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        else if (dxl_error != 0)
-            printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-        // Specific setting for ID
-        if (i == 2) // Neck
-        {
-            // Limit position min
-            param_default = 2660;
-            dxl_comm_result = packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 48, param_default, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-
-            // Limit position max
-            param_default = 1460;
-            dxl_comm_result = packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 52, param_default, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS)
-                printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-            else if (dxl_error != 0)
-                printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-        }
-    }
+    if (!SetDefaultSettingServo())
+        Notify(msg_fatal_error, "Unable to write default settings on servoes\n");
 
     // Torqing up the servos?
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    uint8_t dxl_error = 0;              // Dynamixel error
 
     // Enable DYNAMIXEL#1 Torque
     dxl_comm_result = packetHandlerHead->write1ByteTxRx(portHandlerHead, 2, 64, 1, &dxl_error);
@@ -498,9 +336,163 @@ void EpiServo::Tick()
     }
 }
 
+// A function that set importat parameters in the control table.
+// Baud rate and ID needs to be set manually.
+
 bool EpiServo::SetDefaultSettingServo()
 {
+    printf("Setting control table on servos\n");
 
+    // To be able to set some of the setting toruqe enable needs to be off.
+
+    if (robotType == EPI_TORSO)
+    {
+        // Inderect data
+        int dxl_comm_result = COMM_TX_FAIL; // Communication result
+        uint8_t dxl_error = 0;              // Dynamixel error
+
+        for (int i = 2; i <= 5; i++)
+        {
+            // Indirect adresses for ikaros input
+            // Goal position
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168, 116, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 2, 116 + 1, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 4, 116 + 2, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 6, 116 + 3, &dxl_error))
+                return false;
+
+            // Goal current (Only availabe on MX-106)
+            if (i == 2 || i == 3)
+            {
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176, 102, &dxl_error))
+                    return false;
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176 + 2, 102 + 1, &dxl_error))
+                    return false;
+            }
+
+            // For MX28. Write goal current to the control table heaven...
+            if (i == 4 || i == 5)
+            {
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178, 228, &dxl_error))
+                    return false;
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178 + 2, 228 + 1, &dxl_error))
+                    return false;
+            }
+
+            // Feedback
+            // ********
+            // Present position
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578, 132, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 2, 132 + 1, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 4, 132 + 2, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 6, 132 + 3, &dxl_error))
+                return false;
+
+            // Present current (Only availabe on MX-106)
+            if (i == 2 || i == 3)
+            {
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 128, &dxl_error))
+                    return false;
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 128 + 1, &dxl_error))
+                    return false;
+            }
+            // For MX28. Write goal current to the control table heaven...
+            if (i == 4 || i == 5)
+            {
+
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 228, &dxl_error))
+                    return false;
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 228 + 1, &dxl_error))
+                    return false;
+            }
+
+            // Present tempurature
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 590, 146, &dxl_error))
+                return false;
+
+            // Common settings for the seros
+            uint32_t param_default;
+
+            // Profile velocity
+            param_default = 210;
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 112, param_default, &dxl_error))
+                return false;
+        }
+
+        // Specific setting for the servos
+        // NECK ID 2
+        uint32_t param_default;
+
+        // Limit position max
+        param_default = 2660;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 48, param_default, &dxl_error))
+            return false;
+
+        // Limit position min
+        param_default = 1460;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 52, param_default, &dxl_error))
+            return false;
+
+        // Profile acceleration
+        param_default = 50;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 108, param_default, &dxl_error))
+            return false;
+
+        // NECK ID 3
+        // Limit position max
+        param_default = 2660;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 48, param_default, &dxl_error))
+            return false;
+
+        // Limit position min
+        param_default = 1500;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 52, param_default, &dxl_error))
+            return false;
+
+        // Profile acceleration
+        param_default = 50;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 108, param_default, &dxl_error))
+            return false;
+
+        // Left eye 4
+        // Limit position max
+        param_default = 2300;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 48, param_default, &dxl_error))
+            return false;
+
+        // Limit position min
+        param_default = 1700;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 52, param_default, &dxl_error))
+            return false;
+
+        // Profile acceleration
+        param_default = 150;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 108, param_default, &dxl_error))
+            return false;
+
+        // Right eye 5
+        // Limit position max
+        param_default = 2300;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 48, param_default, &dxl_error))
+            return false;
+
+        // Limit position min
+        param_default = 1700;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 52, param_default, &dxl_error))
+            return false;
+
+        // Profile acceleration
+        param_default = 150;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 108, param_default, &dxl_error))
+            return false;
+    }
+    return true;
 }
 
 EpiServo::~EpiServo()
