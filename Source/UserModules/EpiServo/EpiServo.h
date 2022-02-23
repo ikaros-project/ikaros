@@ -28,6 +28,20 @@
 
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
+typedef struct
+{   
+    std::string serialPortPupil;
+    std::string serialPortHead;
+    std::string serialPortLeftArm;
+    std::string serialPortRightArm;
+    std::string type;
+
+} Robot_parameters;
+
+#include <map>
+#include <iostream>
+
+
 class EpiServo: public Module
 {
 public:
@@ -56,6 +70,8 @@ public:
     float * presentCurrent;
     int presentCurrentSize;
     
+    bool EpiTorsoMode = false;
+    bool EpiMode = false;
 
     dynamixel::PortHandler *portHandlerHead;
     dynamixel::PacketHandler *packetHandlerHead;
@@ -63,6 +79,7 @@ public:
     std::vector<uint8_t> vecHead; // Dynamixel data storages
     dynamixel::GroupSyncRead *groupSyncReadHead;
     dynamixel::GroupSyncWrite * groupSyncWriteHead;
+    dynamixel::GroupSyncWrite * groupSyncWritePupil;
 
     dynamixel::PortHandler *portHandlerPupil;
     dynamixel::PacketHandler *packetHandlerPupil;
@@ -70,7 +87,8 @@ public:
     std::vector<uint8_t> vecPupil; // Dynamixel data storages
     dynamixel::GroupSyncRead *groupSyncReadPupil;
 
-  
+    std::string robotName;
+    std::map<std::string,Robot_parameters> robot;
 };
 
 #endif

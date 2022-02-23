@@ -5,13 +5,13 @@
 		<module
 			class = "Constant"
 			name = "Goal_position"
-			data = "180 180 180 180"
+			data = "180 180 180 180 180 180"
 		/>
-
+		
 		<module
 			class = "Constant"
 			name = "Goal_current"
-			data = "0 0 0 0"
+			data = "0 0 0 0 0 0"
 
 		/>
 
@@ -19,16 +19,20 @@
 			class = "EpiServo"
 			name = "EpiServo"
 			log_level = "7"
+			robot = "EpiWhite"
 		/>
+
+
         <connection  source = "Goal_position.OUTPUT"  target = "EpiServo.GOAL_POSITION" />
         <connection  source = "Goal_current.OUTPUT"  target = "EpiServo.GOAL_CURRENT" />
-
 <view name="View" >
-	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "180" min = "-180" direction = "vertical" select = "" source = "EpiServo.PRESENT_POSITION" x = "40" height = "381" show_frame = "false" color = "" title = "Present position" width = "1001" y = "40"/>
-	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "2000" min = "-2000" direction = "vertical" select = "" source = "EpiServo.PRESENT_CURRENT" x = "40" height = "381" show_frame = "false" color = "" title = "Present current" width = "1001" y = "420"/>
-	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "360" min = "0" style = "" labels = "" select = "0" count = "4" parameter = "Goal_position.data" title = "Goal position" width = "581" show_frame = "false" height = "381" y = "40" x = "1040"/>
-	<slider-horizontal  frame-style = "" show_title = "true" show_values = "true" step = "0.01" max = "360" min = "0" style = "" labels = "" select = "0" count = "4" parameter = "Goal_current.data" title = "Goal current" width = "581" show_frame = "false" height = "381" y = "420" x = "1040"/>
+	<plot  y = "40" width = "1001" title = "Present position" color = "" show_frame = "false" height = "381" x = "40" source = "EpiServo.PRESENT_POSITION" select = "" direction = "vertical" min = "-180" max = "180" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  y = "420" width = "1001" title = "Present current" color = "" show_frame = "false" height = "381" x = "40" source = "EpiServo.PRESENT_CURRENT" select = "" direction = "vertical" min = "-2000" max = "2000" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<slider-horizontal  x = "1040" y = "40" height = "381" show_frame = "false" width = "581" title = "Goal position" parameter = "Goal_position.data" count = "6" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "true" max = "360" show_title = "true" frame-style = ""/>
+	<slider-horizontal  x = "1040" y = "420" height = "381" show_frame = "false" width = "581" title = "Goal current" parameter = "Goal_current.data" count = "6" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "true" max = "360" show_title = "true" frame-style = ""/>
 </view>
+
+
 
 
 
