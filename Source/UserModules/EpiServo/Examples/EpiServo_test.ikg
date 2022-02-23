@@ -20,6 +20,7 @@
 			name = "EpiServo"
 			log_level = "7"
 			robot = "EpiWhite"
+			simulate = "true"
 		/>
 
 

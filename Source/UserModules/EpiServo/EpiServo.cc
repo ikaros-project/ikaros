@@ -57,48 +57,67 @@ using namespace ikaros;
 #define EPI_TORSO_NR_SERVOS 6
 #define EPI_NR_SERVOS 10
 
-
-
-
-
-
-
 void EpiServo::Init()
 {
-      
-  
-      //initializing
-      robot["EpiWhite"] =  {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI", 
+      // initializing
+    robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
+                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+                         .serialPortLeftArm = "",
+                         .serialPortRightArm = "",
+                         .type = "EpiTorso"};
+
+    robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
-                        .serialPortLeftArm = "", 
+                        .serialPortLeftArm = "",
                         .serialPortRightArm = "",
-                        .type = "EpiTorso" };
+                        .type = "EpiTorso"};
 
-      robot["EpiBlue"] =  {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI", 
-                        .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
-                        .serialPortLeftArm = "", 
-                        .serialPortRightArm = "",
-                        .type = "EpiTorso" };
-
-      robot["EpiBlack"] =  {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI", 
-                        .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
-                        .serialPortLeftArm = "", 
-                        .serialPortRightArm = "",
-                        .type = "Epi" };
-
-        // Add more robots here
-
-
+    robot["EpiBlack"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
+                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+                         .serialPortLeftArm = "",
+                         .serialPortRightArm = "",
+                         .type = "Epi"};
 
     robotName = GetValue("robot");
 
-        
     EpiTorsoMode = (robot[robotName].type.compare("EpiTorso") == 0);
     EpiMode = (robot[robotName].type.compare("Epi") == 0);
 
-    Notify(msg_debug,"Connecting to %s (%s)\n", robotName.c_str(), robot[robotName].type.c_str());
+    Notify(msg_debug, "Connecting to %s (%s)\n", robotName.c_str(), robot[robotName].type.c_str());
 
 
+    // Input
+    io(goalPosition, goalPositionSize, "GOAL_POSITION");
+    io(goalCurrent, goalCurrentSize, "GOAL_CURRENT");
+
+    // OUTPUT
+    io(presentPosition, presentPositionSize, "PRESENT_POSITION");
+    io(presentCurrent, presentCurrentSize, "PRESENT_CURRENT");
+
+    // Simulate
+    simulate = GetBoolValue("simulate");
+
+    if (simulate)
+    {
+        Notify(msg_debug, "Simulate servos"); // msg_warning not printing?? loglevel bug?
+        return;
+    }
+
+    // NOT WORKIGN CHECK!!
+    // Check if the input size are correct
+    if (EpiTorsoMode)
+        if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_TORSO_NR_SERVOS && goalCurrentSize != EPI_TORSO_NR_SERVOS)
+            Notify(msg_fatal_error, "Input size does not match robot type\n");
+
+    if (EpiMode)
+        if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_NR_SERVOS && goalCurrentSize != EPI_NR_SERVOS)
+            Notify(msg_fatal_error, "Input size does not match robot type\n");
+
+
+
+    // Add more robots here
+
+   
     // Epi torso
     // =========
     if (EpiTorsoMode)
@@ -107,7 +126,7 @@ void EpiServo::Init()
 
         int dxl_comm_result;
         std::vector<uint8_t> vec; // Dynamixel data storages
-        
+
         // Init Dynaxmixel SDK
         portHandlerHead = dynamixel::PortHandler::getPortHandler(robot[robotName].serialPortHead.c_str());
         packetHandlerHead = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
@@ -133,7 +152,7 @@ void EpiServo::Init()
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
 
-        // Pupil (id 2,3) = XL320 Left eye, right eye 
+        // Pupil (id 2,3) = XL320 Left eye, right eye
         // Init Dynaxmixel SDK
         portHandlerPupil = dynamixel::PortHandler::getPortHandler(robot[robotName].serialPortPupil.c_str());
         packetHandlerPupil = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
@@ -163,25 +182,6 @@ void EpiServo::Init()
     {
         Notify(msg_fatal_error, "Robot type is not yet implementet\n");
     }
-
-    // Input
-    io(goalPosition, goalPositionSize, "GOAL_POSITION");
-    io(goalCurrent, goalCurrentSize, "GOAL_CURRENT");
-
-    // OUTPUT
-    io(presentPosition, presentPositionSize, "PRESENT_POSITION");
-    io(presentCurrent, presentCurrentSize, "PRESENT_CURRENT");
-
-
-// NOT WORKIGN CHECK!!
-    // Check if the input size are correct
-    if (EpiTorsoMode)
-        if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_TORSO_NR_SERVOS && goalCurrentSize != EPI_TORSO_NR_SERVOS)
-            Notify(msg_fatal_error, "Input size does not match robot type\n");
-
-    if (EpiMode)
-        if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_NR_SERVOS && goalCurrentSize != EPI_NR_SERVOS)
-            Notify(msg_fatal_error, "Input size does not match robot type\n");
 
     if (!SetDefaultSettingServo())
         Notify(msg_fatal_error, "Unable to write default settings on servoes\n");
@@ -247,8 +247,7 @@ void EpiServo::Init()
         printf("DYNAMIXEL#%d has been successfully connected \n", 1);
     }
 
-
-    // Pupil 
+    // Pupil
     dxl_comm_result = packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 1, &dxl_error);
     if (dxl_comm_result != COMM_SUCCESS)
     {
@@ -263,7 +262,7 @@ void EpiServo::Init()
         printf("DYNAMIXEL#%d has been successfully connected \n", 1);
     }
 
-        dxl_comm_result = packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 1, &dxl_error);
+    dxl_comm_result = packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 1, &dxl_error);
     if (dxl_comm_result != COMM_SUCCESS)
     {
         printf("%s\n", packetHandlerPupil->getTxRxResult(dxl_comm_result));
@@ -276,13 +275,31 @@ void EpiServo::Init()
     {
         printf("DYNAMIXEL#%d has been successfully connected \n", 1);
     }
-
-
-
 }
 
 void EpiServo::Tick()
 {
+
+    if (simulate)
+    {
+        Notify(msg_debug, "Simulate servos ´"); // msg_warning not printing?? loglevel bug?
+        if (EpiTorsoMode)
+        {
+            // Add dynamic change depending on realtime tick.
+            float maxVel = 45.0/1000*10; // No timebase
+            if (GetTickLength()!= 0)
+                maxVel = 45.0/1000*GetTickLength(); // Maximum change in one second in degrees / timebase
+
+            int index = 0;
+            for (int i = 2; i <= 7; i++)
+            {
+                presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel); 
+                presentCurrent[index] = 0;                                                     // mA
+                index++;
+            }
+        }
+        return;
+    }
 
     if (EpiTorsoMode)
     {
@@ -296,7 +313,7 @@ void EpiServo::Tick()
         int dxl_comm_result = COMM_TX_FAIL; // Communication result
         bool dxl_addparam_result = false;   // addParam result
         bool dxl_getdata_result = false;    // GetParam result
-        //int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};  // Goal position
+        // int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};  // Goal position
 
         uint8_t dxl_error = 0; // Dynamixel error
         uint8_t param_goal_position[6];
@@ -315,7 +332,7 @@ void EpiServo::Tick()
         // Sync read
 
         dxl_comm_resultHead = groupSyncReadHead->txRxPacket();
-        //dxl_comm_resultHead = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated. Not sure if all
+        // dxl_comm_resultHead = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated. Not sure if all
 
         if (dxl_comm_resultHead != COMM_SUCCESS)
             printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
@@ -343,21 +360,18 @@ void EpiServo::Tick()
 
             // Fill IO
             presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
-            presentCurrent[index] = dxl_present_current * 3.36;             //mA
+            presentCurrent[index] = dxl_present_current * 3.36;             // mA
             index++;
         }
 
         print_array("goalPosition", goalPosition, 6);
-
-
-
 
         // Send (sync write)
         index = 0;
         for (int i = 2; i <= 5; i++)
         {
             int goal = goalPosition[index] / 360.0 * 4096.0;
-            //printf("GOAL %i\n", goal);
+            // printf("GOAL %i\n", goal);
             param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goal));
             param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goal));
             param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goal));
@@ -365,7 +379,7 @@ void EpiServo::Tick()
             // Goal current is not available on MX28 writing
 
             int goalC = goalCurrent[index] / 3.36;
-            //printf("Current %i\n", goalC);
+            // printf("Current %i\n", goalC);
             param_goal_position[4] = DXL_LOBYTE(DXL_HIWORD(goalC));
             param_goal_position[5] = DXL_HIBYTE(DXL_HIWORD(goalC));
 
@@ -385,8 +399,6 @@ void EpiServo::Tick()
         // Clear syncwrite parameter storage
         groupSyncWriteHead->clearParam();
 
-
-
         // Send to pupil. Only goal position? No feedback?
         groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2);
 
@@ -395,13 +407,13 @@ void EpiServo::Tick()
         for (int i = 2; i <= 3; i++)
         {
             printf("SKICKAR");
-            int goal = goalPosition[index]/360.0*1023.0;
-            printf("GOAL:%i\n",goal);
-            //param_goal_position[0] = DXL_LOBYTE(DXL_HIWORD(goal));
-            //param_goal_position[1] = DXL_HIBYTE(DXL_HIWORD(goal));
+            int goal = goalPosition[index] / 360.0 * 1023.0;
+            printf("GOAL:%i\n", goal);
+            // param_goal_position[0] = DXL_LOBYTE(DXL_HIWORD(goal));
+            // param_goal_position[1] = DXL_HIBYTE(DXL_HIWORD(goal));
             uint16_t param_default;
 
-            param_default = goalPosition[index]/360.0*1023.0;
+            param_default = goalPosition[index] / 360.0 * 1023.0;
             if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
                 Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
 
@@ -656,11 +668,10 @@ bool EpiServo::SetDefaultSettingServo()
         param_default_1Byte = 20;
         if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 28, param_default_1Byte, &dxl_error))
             return false;
-        // D 
-         param_default_1Byte = 5;
+        // D
+        param_default_1Byte = 5;
         if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 27, param_default_1Byte, &dxl_error))
             return false;
-
 
         // Right
         // Limit position max
@@ -672,7 +683,7 @@ bool EpiServo::SetDefaultSettingServo()
         param_default_2Byte = 601;
         if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, param_default_2Byte, &dxl_error))
             return false;
-        
+
         // Moving speed
         param_default_2Byte = 150;
         if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 32, param_default_2Byte, &dxl_error))
@@ -686,8 +697,8 @@ bool EpiServo::SetDefaultSettingServo()
         param_default_1Byte = 20;
         if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 28, param_default_1Byte, &dxl_error))
             return false;
-        // D 
-         param_default_1Byte = 5;
+        // D
+        param_default_1Byte = 5;
         if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, param_default_1Byte, &dxl_error))
             return false;
 
@@ -696,7 +707,6 @@ bool EpiServo::SetDefaultSettingServo()
         // RIGHT ARM
 
         // ...
-
     }
     return true;
 }

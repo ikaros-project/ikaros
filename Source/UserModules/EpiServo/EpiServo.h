@@ -57,7 +57,7 @@ public:
 
     // Paramteters
     int robotType = 0;
-
+    bool simulate = false;
 
     // Ikaros IO
     float * goalPosition;
