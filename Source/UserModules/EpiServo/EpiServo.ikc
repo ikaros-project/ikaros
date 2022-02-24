@@ -1,51 +1,49 @@
 <?xml version="1.0"?>
 
-<class name="EpiServo" description="minimal example module">
+<class name="EpiServo" description="Robot servo control module">
 
 	<description type="text">
-This is a dedicated module to communicate with Epi.
+	This module connects to the Epi robot. The module handles the communication with servoes using Dynaxmiel SDK. 
+	It also stores configuration settings for each robots (serial port names etc.) and uses the appropiate settings depening on the robot parameter. 
+	The module also supports simulation of the servos.
 
-Requeirment:
-EpiTorso
-2 x MX-106 (ID 2 3 4 5)
-2 x MX-28 (ID (2 3)
-Epi
-Predefined
+	The robot supports
+		EpiWhite (EpiTorso)
+		EpiBlack (Epi)
 
-
-Features:
-- Optimized memory. Using sync_read? sync_write
-- Simulate servos
-
-
+	Robot types:
+		EpiTorso has 6 servoes. 
+		Epi has 19 servoes.
+			
 	</description>
 
 	<example description="A simple example">
 		<module
 			class="EpiServo"
 			name="EpiServo"
+			robot = "EpiWhite"
+			simulate = "true"
 		/>
 	</example>
 
 
-    <parameter name="robot" type="list" values="EpiWhite/EpiGreen/EpiBlue/EpiBlack" default="EpiWhite" descrition="Robot to control" />
+    <parameter name="robot" type="list" values="EpiWhite/EpiGreen/EpiBlue/EpiBlack" default="EpiWhite" descrition="Robot to connect to." />
 
-	<parameter name="simulate" type="bool" default="False" description="Simulate servo" />
+	<parameter name="simulate" type="bool" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." />
 
-	<input name="GOAL_POSITION" description="The first input" />
-	<input name="GOAL_CURRENT" description="The second input" />
+	<input name="GOAL_POSITION" description="Goal position of the joints in degrees." />
+	<input name="GOAL_CURRENT" description="Goal current in mA." />
 
-	<output name="PRESENT_POSITION" description="The first output" size="6" />
-	<output name="PRESENT_CURRENT" description="The first output" size="6" />
-
+	<output name="PRESENT_POSITION" description="Present angle of the joints in degrees." size="19" />
+	<output name="PRESENT_CURRENT" description="Present current (if supported by the servo) in mA." size="19" />
+	<!-- maybe add power output -->
 
 	<link class="EpiServo" />
 
 	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
 		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
 	</author>
 
    <files>
