@@ -59,7 +59,7 @@ using namespace ikaros;
 
 void EpiServo::Init()
 {
-      // initializing
+      // Robots configurations
     robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                          .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
                          .serialPortLeftArm = "",
@@ -79,6 +79,14 @@ void EpiServo::Init()
                          .type = "Epi"};
 
     robotName = GetValue("robot");
+
+
+    // Check if robotname exist in configuration
+    if(robot.find(robotName) == robot.end())
+        {
+            Notify(msg_fatal_error,"%s is not supported", robotName.c_str());
+            return;
+        }
 
     EpiTorsoMode = (robot[robotName].type.compare("EpiTorso") == 0);
     EpiMode = (robot[robotName].type.compare("Epi") == 0);
