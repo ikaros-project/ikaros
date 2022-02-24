@@ -51,11 +51,8 @@ using namespace ikaros;
 // Protocol version
 #define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
 
-#define EPI_TORSO 0
-// #define EPI_FULL 1
-
 #define EPI_TORSO_NR_SERVOS 6
-#define EPI_NR_SERVOS 10
+#define EPI_NR_SERVOS 19
 
 void EpiServo::Init()
 {
@@ -111,15 +108,20 @@ void EpiServo::Init()
         return;
     }
 
-    // NOT WORKIGN CHECK!!
+
     // Check if the input size are correct
     if (EpiTorsoMode)
-        if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_TORSO_NR_SERVOS && goalCurrentSize != EPI_TORSO_NR_SERVOS)
+        if (goalPositionSize < EPI_TORSO_NR_SERVOS || goalCurrentSize < EPI_TORSO_NR_SERVOS)
+        {
             Notify(msg_fatal_error, "Input size does not match robot type\n");
-
+            return;
+        }
     if (EpiMode)
-        if (goalPositionSize != goalCurrentSize && goalPositionSize != EPI_NR_SERVOS && goalCurrentSize != EPI_NR_SERVOS)
+        if (goalPositionSize < EPI_NR_SERVOS || goalCurrentSize < EPI_NR_SERVOS)
+        {
             Notify(msg_fatal_error, "Input size does not match robot type\n");
+            return;
+        }
 
 
 
