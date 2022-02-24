@@ -88,21 +88,21 @@ void EpiServo::Init()
             return;
         }
 
+    // Check type of robot
     EpiTorsoMode = (robot[robotName].type.compare("EpiTorso") == 0);
     EpiMode = (robot[robotName].type.compare("Epi") == 0);
 
     Notify(msg_debug, "Connecting to %s (%s)\n", robotName.c_str(), robot[robotName].type.c_str());
 
-
-    // Input
+    // Ikaros input
     io(goalPosition, goalPositionSize, "GOAL_POSITION");
     io(goalCurrent, goalCurrentSize, "GOAL_CURRENT");
 
-    // OUTPUT
+    // Ikaros output
     io(presentPosition, presentPositionSize, "PRESENT_POSITION");
     io(presentCurrent, presentCurrentSize, "PRESENT_CURRENT");
 
-    // Simulate
+    // Ikaros parameter simulate
     simulate = GetBoolValue("simulate");
 
     if (simulate)
