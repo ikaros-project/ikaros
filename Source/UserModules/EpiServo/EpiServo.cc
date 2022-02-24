@@ -368,6 +368,14 @@ void EpiServo::Tick()
     if (EpiTorsoMode)
     {
 
+        // Still need to be done.
+
+        // 1. Set the order of servos = EPi FULL
+        // 2. Seperate the threads/serial ports
+        // 3. Clean up code
+        // 4. Optimize. Test with FTDI Latency
+        // 5. 
+
         // Optimize.
         // 1. Threads for each serial port.
         // 2. Latency timer FTDI issue.
@@ -383,14 +391,17 @@ void EpiServo::Tick()
         // auto future1 = std::async(this::comSeralPort1,this);
         // auto future2 = std::async(comSeralPort2);
 
-        auto future1 = std::async(std::launch::async,&EpiServo::comSeralPortHead, this); // 13 ms
+        auto future1 = std::async(std::launch::async,&EpiServo::comSeralPortHead, this);  // 13 ms
         auto future2 = std::async(std::launch::async,&EpiServo::comSeralPortPupil, this); //  25 ms Head and pupil = 25
-        int number1 = future1.get(); //Whole program waits for this
-        int number2 = future2.get(); //Whole program waits for this
+        int number1 = future1.get(); 
+        int number2 = future2.get(); 
 
         //comSeralPortHead(); // 11 ms
-        //omSeralPortPupil(); // 25.17 ms Head and pupil 37ms
+        //comSeralPortPupil(); // 25.17 ms Head and pupil 37ms // comSeralPortPupil makes two write commands that gives two status message. Sync_write will probaly lower this to half
 
+        // Setting comSeralPortPupil to not respond with status should reduce the time to <1ms
+
+        // latency timer? This needs to be tested.
 
         // Read
         // Read 6 bytes from each servo using indirect mode. Present position and present current
