@@ -291,7 +291,16 @@ void EpiServo::Tick()
             // Fill IO
             presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
             presentCurrent[index] = dxl_present_current * 3.36;             // mA
+            
+            printf("dxl_present_temperature:  %i (%i)\n",dxl_present_temperature,i);
+
+            // Check temp
+            if (dxl_present_temperature > 55) // 55 degrees
+                Notify(msg_fatal_error,"Temperature over limit %i degrees (id %i)\n",dxl_present_temperature,i);
+
             index++;
+
+
         }
 
         // Send (sync write)
@@ -299,7 +308,6 @@ void EpiServo::Tick()
         for (int i = 2; i <= 5; i++)
         {
             int goal = goalPosition[index] / 360.0 * 4096.0;
-            // printf("GOAL %i\n", goal);
             param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goal));
             param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goal));
             param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goal));
@@ -341,12 +349,14 @@ void EpiServo::Tick()
             if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
                 Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
         
+            // No feedback = temperature from pupil
+
             index++;
         }
 
 
         // Check temperature
-
+    
 
         // Syncwrite goal position
         // dxl_comm_result = groupSyncWritePupil->txPacket();
