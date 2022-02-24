@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <vector>
+#include <future>
 
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
@@ -53,6 +54,140 @@ using namespace ikaros;
 
 #define EPI_TORSO_NR_SERVOS 6
 #define EPI_NR_SERVOS 19
+
+int EpiServo::comSeralPortPupil()
+{
+
+    Notify(msg_debug, "Comunication Pupil");
+
+
+    int index = 0;
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    bool dxl_addparam_result = false;   // addParam result
+    bool dxl_getdata_result = false;    // GetParam result
+
+    uint8_t dxl_error = 0; // Dynamixel error
+
+
+     // Send to pupil. Only goal position? No feedback?
+    groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2);
+
+
+    index = 4;
+
+    for (int i = 2; i <= 3; i++)
+    {
+        int goal = goalPosition[index] / 360.0 * 1023.0;
+        uint16_t param_default;
+
+        param_default = goalPosition[index] / 360.0 * 1023.0;
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
+            Notify(msg_fatal_error, "[ID:%03d] write2ByteTxRx failed", i);
+        // if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxOnly(portHandlerPupil, i, 30, param_default)) // Takes a long time 2x16ms
+        //     Notify(msg_fatal_error, "[ID:%03d] write2ByteTxOnly failed", i);
+
+        // No feedback = temperature from pupil
+
+        index++;
+    }
+    return (2);
+}
+int EpiServo::comSeralPortHead()
+{
+    Notify(msg_debug, "Comunication Head");
+
+    groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, 224, 4 + 2);
+    groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, 634, 4 + 2 + 1);
+
+    int index = 0;
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    bool dxl_addparam_result = false;   // addParam result
+    bool dxl_getdata_result = false;    // GetParam result
+
+    uint8_t dxl_error = 0; // Dynamixel error
+    uint8_t param_goal_position[6];
+
+    int32_t dxl_present_position = 0;
+    int16_t dxl_present_current = 0;
+    int8_t dxl_present_temperature = 0;
+
+    // Add if for syncread
+    for (int i = 2; i <= 5; i++)
+        if (!groupSyncReadHead->addParam(i))
+            Notify(msg_fatal_error, "[ID:%03d] groupSyncRead addparam failed", i);
+
+    // Sync read
+
+    dxl_comm_resultHead = groupSyncReadHead->txRxPacket();
+    // dxl_comm_resultHead = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated.
+
+    if (dxl_comm_resultHead != COMM_SUCCESS)
+        printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
+
+    // Check if data is available
+    for (int i = 2; i <= 5; i++)
+    {
+        dxl_comm_resultHead = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
+        if (dxl_comm_resultHead != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", i);
+        }
+    }
+
+    // Extract data
+    index = 0;
+    for (int i = 2; i <= 5; i++)
+    {
+        dxl_present_position = groupSyncReadHead->getData(i, 634, 4);    // Present postiion
+        dxl_present_current = groupSyncReadHead->getData(i, 638, 2);     // Present current
+        dxl_present_temperature = groupSyncReadHead->getData(i, 640, 1); // Present temperature
+        // Notify(msg_debug, "ID %i:\tPresent position:%03d\tPresent current:%03d\tPresent current:%03d\n", i, dxl_present_position, dxl_present_current, dxl_present_temperature);
+
+        // Fill IO
+        presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
+        presentCurrent[index] = dxl_present_current * 3.36;             // mA
+
+        // Check temp
+        if (dxl_present_temperature > 55) // 55 degrees
+            Notify(msg_fatal_error, "Temperature over limit %i degrees (id %i)\n", dxl_present_temperature, i);
+
+        index++;
+    }
+    // Send (sync write)
+    index = 0;
+    for (int i = 2; i <= 5; i++)
+    {
+        int goal = goalPosition[index] / 360.0 * 4096.0;
+        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goal));
+        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goal));
+        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goal));
+        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goal));
+        // Goal current is not available on MX28 writing
+
+        int goalC = goalCurrent[index] / 3.36;
+        // printf("Current %i\n", goalC);
+        param_goal_position[4] = DXL_LOBYTE(DXL_HIWORD(goalC));
+        param_goal_position[5] = DXL_HIBYTE(DXL_HIWORD(goalC));
+
+        dxl_addparam_result = groupSyncWriteHead->addParam(i, param_goal_position, 6);
+
+        if (dxl_addparam_result != true)
+            Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
+
+        index++;
+    }
+
+    // Syncwrite goal position
+    dxl_comm_result = groupSyncWriteHead->txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+        printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
+
+    // Clear syncwrite parameter storage
+    groupSyncWriteHead->clearParam();
+
+  
+    return (1);
+}
 
 void EpiServo::Init()
 {
@@ -209,7 +344,6 @@ void EpiServo::Init()
 
 void EpiServo::Tick()
 {
-
     if (simulate)
     {
         Notify(msg_debug, "Simulate servos ´"); // msg_warning not printing?? loglevel bug?
@@ -233,187 +367,144 @@ void EpiServo::Tick()
 
     if (EpiTorsoMode)
     {
+
+        // Optimize.
+        // 1. Threads for each serial port.
+        // 2. Latency timer FTDI issue.
+        // 3. Stuatus Return Level.
+
+        // Avg 32ms s1000 (No threads)
+
+        //auto f = async(&cabc::pr,cap);
+        //auto f=std::async(&capc::pr,&cap);
+        //std::future<int> f = std::async(&EpiServo::comSeralPort1,this);
+        //std::cout << "result: " << f.get() << std::endl;
+
+        // auto future1 = std::async(this::comSeralPort1,this);
+        // auto future2 = std::async(comSeralPort2);
+
+        auto future1 = std::async(std::launch::async,&EpiServo::comSeralPortHead, this); // 13 ms
+        auto future2 = std::async(std::launch::async,&EpiServo::comSeralPortPupil, this); //  25 ms Head and pupil = 25
+        int number1 = future1.get(); //Whole program waits for this
+        int number2 = future2.get(); //Whole program waits for this
+
+        //comSeralPortHead(); // 11 ms
+        //omSeralPortPupil(); // 25.17 ms Head and pupil 37ms
+
+
         // Read
         // Read 6 bytes from each servo using indirect mode. Present position and present current
 
-        groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, 224, 4 + 2);
-        groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, 634, 4 + 2 + 1);
+        // groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, 224, 4 + 2);
+        // groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, 634, 4 + 2 + 1);
 
-        int index = 0;
-        int dxl_comm_result = COMM_TX_FAIL; // Communication result
-        bool dxl_addparam_result = false;   // addParam result
-        bool dxl_getdata_result = false;    // GetParam result
-        // int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};  // Goal position
+        // int index = 0;
+        // int dxl_comm_result = COMM_TX_FAIL; // Communication result
+        // bool dxl_addparam_result = false;   // addParam result
+        // bool dxl_getdata_result = false;    // GetParam result
+        // // int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};  // Goal position
 
-        uint8_t dxl_error = 0; // Dynamixel error
-        uint8_t param_goal_position[6];
+        // uint8_t dxl_error = 0; // Dynamixel error
+        // uint8_t param_goal_position[6];
 
-        int32_t dxl_present_position = 0;
-        int16_t dxl_present_current = 0;
-        int8_t dxl_present_temperature = 0;
+        // int32_t dxl_present_position = 0;
+        // int16_t dxl_present_current = 0;
+        // int8_t dxl_present_temperature = 0;
 
-        // Add if for syncread
-        for (int i = 2; i <= 5; i++)
-            if (!groupSyncReadHead->addParam(i))
-                Notify(msg_fatal_error, "[ID:%03d] groupSyncRead addparam failed", i);
-        // else
-        //     Notify(msg_debug, "[ID:%03d] groupSyncRead addparam YAY", i);
+        // // Add if for syncread
+        // for (int i = 2; i <= 5; i++)
+        //     if (!groupSyncReadHead->addParam(i))
+        //         Notify(msg_fatal_error, "[ID:%03d] groupSyncRead addparam failed", i);
 
-        // Sync read
+        // // Sync read
 
-        dxl_comm_resultHead = groupSyncReadHead->txRxPacket();
-        // dxl_comm_resultHead = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated. Not sure if all
+        // dxl_comm_resultHead = groupSyncReadHead->txRxPacket();
+        // // dxl_comm_resultHead = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated.
 
-        if (dxl_comm_resultHead != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-        // else
-        //     printf("SUCCESS: %s\n", packetHandlerHead->getTxRxResult(dxl_comm_resultHead));
+        // if (dxl_comm_resultHead != COMM_SUCCESS)
+        //     printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
 
-        // Check if data is available
-        for (int i = 2; i <= 5; i++)
-        {
-            dxl_comm_resultHead = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
-            if (dxl_comm_resultHead != true)
-            {
-                fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", i);
-            }
-        }
-
-        // Extract data
-        index = 0;
-        for (int i = 2; i <= 5; i++)
-        {
-            dxl_present_position = groupSyncReadHead->getData(i, 634, 4);    // Present postiion
-            dxl_present_current = groupSyncReadHead->getData(i, 638, 2);     // Present current
-            dxl_present_temperature = groupSyncReadHead->getData(i, 640, 1); // Present temperature
-            // Notify(msg_debug, "ID %i:\tPresent position:%03d\tPresent current:%03d\tPresent current:%03d\n", i, dxl_present_position, dxl_present_current, dxl_present_temperature);
-
-            // Fill IO
-            presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
-            presentCurrent[index] = dxl_present_current * 3.36;             // mA
-            
-            printf("dxl_present_temperature:  %i (%i)\n",dxl_present_temperature,i);
-
-            // Check temp
-            if (dxl_present_temperature > 55) // 55 degrees
-                Notify(msg_fatal_error,"Temperature over limit %i degrees (id %i)\n",dxl_present_temperature,i);
-
-            index++;
-
-
-        }
-
-        // Send (sync write)
-        index = 0;
-        for (int i = 2; i <= 5; i++)
-        {
-            int goal = goalPosition[index] / 360.0 * 4096.0;
-            param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goal));
-            param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goal));
-            param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goal));
-            param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goal));
-            // Goal current is not available on MX28 writing
-
-            int goalC = goalCurrent[index] / 3.36;
-            // printf("Current %i\n", goalC);
-            param_goal_position[4] = DXL_LOBYTE(DXL_HIWORD(goalC));
-            param_goal_position[5] = DXL_HIBYTE(DXL_HIWORD(goalC));
-
-            dxl_addparam_result = groupSyncWriteHead->addParam(i, param_goal_position, 6);
-
-            if (dxl_addparam_result != true)
-                Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
-
-            index++;
-        }
-
-        // Syncwrite goal position
-        dxl_comm_result = groupSyncWriteHead->txPacket();
-        if (dxl_comm_result != COMM_SUCCESS)
-            printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-
-        // Clear syncwrite parameter storage
-        groupSyncWriteHead->clearParam();
-
-        // Send to pupil. Only goal position? No feedback?
-        groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2);
-
-        index = 4;
-
-        for (int i = 2; i <= 3; i++)
-        {
-            int goal = goalPosition[index] / 360.0 * 1023.0;
-            uint16_t param_default;
-
-            param_default = goalPosition[index] / 360.0 * 1023.0;
-            if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
-                Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
-        
-            // No feedback = temperature from pupil
-
-            index++;
-        }
-
-
-        // Check temperature
-    
-
-        // Syncwrite goal position
-        // dxl_comm_result = groupSyncWritePupil->txPacket();
-        // if (dxl_comm_result != COMM_SUCCESS)
-        //     printf("%s\n", packetHandlerPupil->getTxRxResult(dxl_comm_result));
-
-        // Clear syncwrite parameter storage
-        // groupSyncWritePupil->clearParam();
-
-        // Read servo.
-        // What paramters should we read? (input of module?)
-
-        // Write servo
-        // What parameters should we write? (outputs of module)
-
-        //		// Multi core 2
-
-        // const int nrOfCores = 4;
-        // // Create some threads pointers
-        // thread tConv[nrOfCores];
-        // //printf("Number of threads %i\n",thread::hardware_concurrency());
-        // int span = size_x*size_y/nrOfCores;
-
-        // for(int j=0; j<nrOfCores; j++)
+        // // Check if data is available
+        // for (int i = 2; i <= 5; i++)
         // {
-        // 	tConv[j] = thread([&,j]()
-        // 					  {
-        // 						  float * r = red;
-        // 						  float * g = green;
-        // 						  float * b = blue;
-        // 						  float * inte = intensity;
-        // 						  int t = 0;
+        //     dxl_comm_resultHead = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
+        //     if (dxl_comm_resultHead != true)
+        //     {
+        //         fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", i);
+        //     }
+        // }
 
-        // 						  unsigned char * d = data;
+        // // Extract data
+        // index = 0;
+        // for (int i = 2; i <= 5; i++)
+        // {
+        //     dxl_present_position = groupSyncReadHead->getData(i, 634, 4);    // Present postiion
+        //     dxl_present_current = groupSyncReadHead->getData(i, 638, 2);     // Present current
+        //     dxl_present_temperature = groupSyncReadHead->getData(i, 640, 1); // Present temperature
+        //     // Notify(msg_debug, "ID %i:\tPresent position:%03d\tPresent current:%03d\tPresent current:%03d\n", i, dxl_present_position, dxl_present_current, dxl_present_temperature);
 
-        // 						  for (int i = 0; i < j*span; i++)
-        // 						  {
-        // 							  d++;
-        // 							  d++;
-        // 							  d++;
-        // 							  r++;
-        // 							  g++;
-        // 							  b++;
-        // 							  inte++;
-        // 						  }
-        // 						  while(t++ < span)
-        // 						  {
-        // 							  *r       = convertIntToFloat[*d++];
-        // 							  *g       = convertIntToFloat[*d++];
-        // 							  *b       = convertIntToFloat[*d++];
-        // 							  *inte++ = *r++ + *g++ + *b++;
-        // 						  }
-        // 					  });
+        //     // Fill IO
+        //     presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
+        //     presentCurrent[index] = dxl_present_current * 3.36;             // mA
+
+        //     // Check temp
+        //     if (dxl_present_temperature > 55) // 55 degrees
+        //         Notify(msg_fatal_error,"Temperature over limit %i degrees (id %i)\n",dxl_present_temperature,i);
+
+        //     index++;
 
         // }
-        // for(int j=0; j<nrOfCores; j++)
-        // 	tConv[j].join();
+
+        //     // Send (sync write)
+        //     index = 0;
+        //     for (int i = 2; i <= 5; i++)
+        //     {
+        //         int goal = goalPosition[index] / 360.0 * 4096.0;
+        //         param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goal));
+        //         param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goal));
+        //         param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goal));
+        //         param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goal));
+        //         // Goal current is not available on MX28 writing
+
+        //         int goalC = goalCurrent[index] / 3.36;
+        //         // printf("Current %i\n", goalC);
+        //         param_goal_position[4] = DXL_LOBYTE(DXL_HIWORD(goalC));
+        //         param_goal_position[5] = DXL_HIBYTE(DXL_HIWORD(goalC));
+
+        //         dxl_addparam_result = groupSyncWriteHead->addParam(i, param_goal_position, 6);
+
+        //         if (dxl_addparam_result != true)
+        //             Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
+
+        //         index++;
+        //     }
+
+        //     // Syncwrite goal position
+        //     dxl_comm_result = groupSyncWriteHead->txPacket();
+        //     if (dxl_comm_result != COMM_SUCCESS)
+        //         printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
+
+        //     // Clear syncwrite parameter storage
+        //     groupSyncWriteHead->clearParam();
+
+        //     // Send to pupil. Only goal position? No feedback?
+        //     groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2);
+
+        //     index = 4;
+
+        //     for (int i = 2; i <= 3; i++)
+        //     {
+        //         int goal = goalPosition[index] / 360.0 * 1023.0;
+        //         uint16_t param_default;
+
+        //         param_default = goalPosition[index] / 360.0 * 1023.0;
+        //         if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
+        //             Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
+
+        //         // No feedback = temperature from pupil
+
+        //         index++;
+        //     }
     }
 }
 
@@ -422,7 +513,7 @@ void EpiServo::Tick()
 
 bool EpiServo::SetDefaultSettingServo()
 {
-    Notify(msg_debug,"Setting control table on servos\n");
+    Notify(msg_debug, "Setting control table on servos\n");
 
     // To be able to set some of the setting toruqe enable needs to be off.
 
@@ -890,7 +981,7 @@ bool EpiServo::TorqueingDownServo()
             return false;
         if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 30, present_postition_value7, &dxl_error))
             return false;
-        
+
         t.Restart();
         t.Sleep(2000); // What is a good value???
 
@@ -925,6 +1016,7 @@ bool EpiServo::TorqueingDownServo()
     }
     return true;
 }
+
 EpiServo::~EpiServo()
 {
 

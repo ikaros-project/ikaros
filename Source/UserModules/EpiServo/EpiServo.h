@@ -91,6 +91,11 @@ public:
 
     std::string robotName;
     std::map<std::string,Robot_parameters> robot;
+
+
+    int comSeralPortPupil();
+    int comSeralPortHead();
+
 };
 
 #endif
