@@ -56,7 +56,7 @@ using namespace ikaros;
 
 void EpiServo::Init()
 {
-      // Robots configurations
+    // Robots configurations
     robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                          .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
                          .serialPortLeftArm = "",
@@ -77,13 +77,12 @@ void EpiServo::Init()
 
     robotName = GetValue("robot");
 
-
     // Check if robotname exist in configuration
-    if(robot.find(robotName) == robot.end())
-        {
-            Notify(msg_fatal_error,"%s is not supported", robotName.c_str());
-            return;
-        }
+    if (robot.find(robotName) == robot.end())
+    {
+        Notify(msg_fatal_error, "%s is not supported", robotName.c_str());
+        return;
+    }
 
     // Check type of robot
     EpiTorsoMode = (robot[robotName].type.compare("EpiTorso") == 0);
@@ -108,7 +107,6 @@ void EpiServo::Init()
         return;
     }
 
-
     // Check if the input size are correct
     if (EpiTorsoMode)
         if (goalPositionSize < EPI_TORSO_NR_SERVOS || goalCurrentSize < EPI_TORSO_NR_SERVOS)
@@ -123,11 +121,6 @@ void EpiServo::Init()
             return;
         }
 
-
-
-    // Add more robots here
-
-   
     // Epi torso
     // =========
     if (EpiTorsoMode)
@@ -143,15 +136,21 @@ void EpiServo::Init()
 
         // Open port
         if (portHandlerHead->openPort())
-            Notify(msg_debug, "Succeeded to open the port!\n");
+            Notify(msg_debug, "Succeeded to open serial port!\n");
         else
-            Notify(msg_fatal_error, "Failed to open the port!\n");
+        {
+            Notify(msg_fatal_error, "Failed to open serial port!\n");
+            return;
+        }
 
         // Set port baudrate
         if (portHandlerHead->setBaudRate(BAUDRATE3M))
-            Notify(msg_debug, "Succeeded to change the baudrate!\n");
+            Notify(msg_debug, "Succeeded to change baudrate!\n");
         else
-            Notify(msg_fatal_error, "Failed to change the baudrate!\n");
+        {
+            Notify(msg_fatal_error, "Failed to change baudrate!\n");
+            return;
+        }
 
         // Ping all the servos to make sure they are all there.
         dxl_comm_result = packetHandlerHead->broadcastPing(portHandlerHead, vec);
@@ -169,16 +168,20 @@ void EpiServo::Init()
 
         // Open port
         if (portHandlerPupil->openPort())
-            Notify(msg_debug, "Succeeded to open the port!\n");
+            Notify(msg_debug, "Succeeded to open serial port!\n");
         else
-            Notify(msg_fatal_error, "Failed to open the port!\n");
-
+        {
+            Notify(msg_fatal_error, "Failed to open serial port!\n");
+            return;
+        }
         // Set port baudrate
         if (portHandlerPupil->setBaudRate(BAUDRATE1M))
-            Notify(msg_debug, "Succeeded to change the baudrate!\n");
+            Notify(msg_debug, "Succeeded to change baudrate!\n");
         else
-            Notify(msg_fatal_error, "Failed to change the baudrate!\n");
-
+        {
+            Notify(msg_fatal_error, "Failed to change baudrate!\n");
+            return;
+        }
         // Ping all the servos to make sure they are all there.
         dxl_comm_result = packetHandlerPupil->broadcastPing(portHandlerPupil, vec);
         if (dxl_comm_result != COMM_SUCCESS)
@@ -188,6 +191,10 @@ void EpiServo::Init()
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
     }
+    else if (EpiMode)
+    {
+        Notify(msg_fatal_error, "Robot type (Full epi) is not yet implementet\n");
+    }
     else
     {
         Notify(msg_fatal_error, "Robot type is not yet implementet\n");
@@ -196,95 +203,8 @@ void EpiServo::Init()
     if (!SetDefaultSettingServo())
         Notify(msg_fatal_error, "Unable to write default settings on servoes\n");
 
-    // Torqing up the servos? This can not be done in 2.0 and position mode only in position-current mode.
-    int dxl_comm_result = COMM_TX_FAIL; // Communication result
-    uint8_t dxl_error = 0;              // Dynamixel error
-
-    // Enable DYNAMIXEL#1 Torque
-    dxl_comm_result = packetHandlerHead->write1ByteTxRx(portHandlerHead, 2, 64, 1, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-        printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-    }
-    else
-    {
-        printf("DYNAMIXEL#%d has been successfully connected \n", 1);
-    }
-
-    dxl_comm_result = packetHandlerHead->write1ByteTxRx(portHandlerHead, 3, 64, 1, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-        printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-    }
-    else
-    {
-        printf("DYNAMIXEL#%d has been successfully connected \n", 1);
-    }
-
-    dxl_comm_result = packetHandlerHead->write1ByteTxRx(portHandlerHead, 4, 64, 1, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-        printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-    }
-    else
-    {
-        printf("DYNAMIXEL#%d has been successfully connected \n", 1);
-    }
-
-    dxl_comm_result = packetHandlerHead->write1ByteTxRx(portHandlerHead, 5, 64, 1, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-        printf("%s\n", packetHandlerHead->getRxPacketError(dxl_error));
-    }
-    else
-    {
-        printf("DYNAMIXEL#%d has been successfully connected \n", 1);
-    }
-
-    // Pupil
-    dxl_comm_result = packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 1, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        printf("%s\n", packetHandlerPupil->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-        printf("%s\n", packetHandlerPupil->getRxPacketError(dxl_error));
-    }
-    else
-    {
-        printf("DYNAMIXEL#%d has been successfully connected \n", 1);
-    }
-
-    dxl_comm_result = packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 1, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        printf("%s\n", packetHandlerPupil->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-        printf("%s\n", packetHandlerPupil->getRxPacketError(dxl_error));
-    }
-    else
-    {
-        printf("DYNAMIXEL#%d has been successfully connected \n", 1);
-    }
+    if (!TorqueingUpServo())
+        Notify(msg_fatal_error, "Unable torque up servos\n");
 }
 
 void EpiServo::Tick()
@@ -296,15 +216,15 @@ void EpiServo::Tick()
         if (EpiTorsoMode)
         {
             // Add dynamic change depending on realtime tick.
-            float maxVel = 45.0/1000*10; // No timebase
-            if (GetTickLength()!= 0)
-                maxVel = 45.0/1000*GetTickLength(); // Maximum change in one second in degrees / timebase
+            float maxVel = 45.0 / 1000 * 10; // No timebase
+            if (GetTickLength() != 0)
+                maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
 
             int index = 0;
             for (int i = 2; i <= 7; i++)
             {
-                presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel); 
-                presentCurrent[index] = 0;                                                     // mA
+                presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel);
+                presentCurrent[index] = 0; // mA
                 index++;
             }
         }
@@ -374,8 +294,6 @@ void EpiServo::Tick()
             index++;
         }
 
-        print_array("goalPosition", goalPosition, 6);
-
         // Send (sync write)
         index = 0;
         for (int i = 2; i <= 5; i++)
@@ -416,24 +334,19 @@ void EpiServo::Tick()
 
         for (int i = 2; i <= 3; i++)
         {
-            printf("SKICKAR");
             int goal = goalPosition[index] / 360.0 * 1023.0;
-            printf("GOAL:%i\n", goal);
-            // param_goal_position[0] = DXL_LOBYTE(DXL_HIWORD(goal));
-            // param_goal_position[1] = DXL_HIBYTE(DXL_HIWORD(goal));
             uint16_t param_default;
 
             param_default = goalPosition[index] / 360.0 * 1023.0;
             if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
                 Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
-
-            // dxl_addparam_result = groupSyncWritePupil->addParam(i, param_goal_position, 2);
-
-            // if (dxl_addparam_result != true)
-            //     Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
-
+        
             index++;
         }
+
+
+        // Check temperature
+
 
         // Syncwrite goal position
         // dxl_comm_result = groupSyncWritePupil->txPacket();
@@ -499,7 +412,7 @@ void EpiServo::Tick()
 
 bool EpiServo::SetDefaultSettingServo()
 {
-    printf("Setting control table on servos\n");
+    Notify(msg_debug,"Setting control table on servos\n");
 
     // To be able to set some of the setting toruqe enable needs to be off.
 
@@ -581,6 +494,21 @@ bool EpiServo::SetDefaultSettingServo()
             // Profile velocity
             param_default = 210;
             if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 112, param_default, &dxl_error))
+                return false;
+
+            // P
+            uint16_t param_default_2Byte = 850;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 84, param_default_2Byte, &dxl_error))
+                return false;
+
+            // I
+            param_default_2Byte = 0;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 82, param_default_2Byte, &dxl_error))
+                return false;
+
+            // D
+            param_default_2Byte = 0;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 80, param_default_2Byte, &dxl_error))
                 return false;
         }
 
@@ -721,11 +649,280 @@ bool EpiServo::SetDefaultSettingServo()
     return true;
 }
 
+bool EpiServo::TorqueingUpServo()
+{
+    // Trying to torque up the power of the servos.
+    // Dynamixel protocel 2.0
+    // In current base position control mode goal current can be used.
+    // In poistion control mode P can be used (PID).
+    // Torqing up the servos? This can not be done in 2.0 and position mode only in position-current mode.
+    // 1. Set P (PID) = 0. Store start P value
+    // 2. Set goal poistion to present position
+    // 3. Increase current or P (PID)
+    // 4. Repeat 2,3 for 2 seconds.
+
+    int TorqueUpTime = 4000; //ms
+    Timer t;
+
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    uint8_t dxl_error = 0;              // Dynamixel error
+
+    if (EpiTorsoMode)
+    {
+
+        // 1.
+        uint16_t start_p_value2 = 0;
+        uint16_t start_p_value3 = 0;
+        uint16_t start_p_value4 = 0;
+        uint16_t start_p_value5 = 0;
+        uint8_t start_p_value6 = 0;
+        uint8_t start_p_value7 = 0;
+
+        // Get P values
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 2, 84, &start_p_value2, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 3, 84, &start_p_value3, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 4, 84, &start_p_value4, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 5, 84, &start_p_value5, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->read1ByteTxRx(portHandlerPupil, 2, 29, &start_p_value6, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->read1ByteTxRx(portHandlerPupil, 3, 29, &start_p_value7, &dxl_error))
+            return false;
+        // Set P value to 0
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 2, 84, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 3, 84, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 4, 84, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 5, 84, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, 0, &dxl_error))
+            return false;
+
+        Notify(msg_debug, "Enable torque on servos");
+        // Enable torque
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 2, 64, 1, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 3, 64, 1, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 4, 64, 1, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 5, 64, 1, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 1, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 1, &dxl_error))
+            return false;
+
+        while (t.GetTime() < TorqueUpTime)
+        {
+            Notify(msg_debug, "Power up servos");
+            // Get present position
+            uint32_t present_postition_value2 = 0;
+            uint32_t present_postition_value3 = 0;
+            uint32_t present_postition_value4 = 0;
+            uint32_t present_postition_value5 = 0;
+            uint16_t present_postition_value6 = 0;
+            uint16_t present_postition_value7 = 0;
+            if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 2, 132, &present_postition_value2, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 3, 132, &present_postition_value3, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 4, 132, &present_postition_value4, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 5, 132, &present_postition_value5, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->read2ByteTxRx(portHandlerPupil, 2, 37, &present_postition_value6, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->read2ByteTxRx(portHandlerPupil, 3, 37, &present_postition_value7, &dxl_error))
+                return false;
+            // Set goal position to present postiion
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 116, present_postition_value2, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 116, present_postition_value3, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 116, present_postition_value4, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 116, present_postition_value5, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 30, present_postition_value6, &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 30, present_postition_value7, &dxl_error))
+                return false;
+            // Ramping down P
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 2, 84, int(float(start_p_value2) / float(TorqueUpTime) * t.GetTime()), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 3, 84, int(float(start_p_value3) / float(TorqueUpTime) * t.GetTime()), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 4, 84, int(float(start_p_value4) / float(TorqueUpTime) * t.GetTime()), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 5, 84, int(float(start_p_value5) / float(TorqueUpTime) * t.GetTime()), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, int(float(start_p_value6) / float(TorqueUpTime) * t.GetTime()), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, int(float(start_p_value7) / float(TorqueUpTime) * t.GetTime()), &dxl_error))
+                return false;
+        }
+        // Set P value to start value
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 2, 84, start_p_value2, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 3, 84, start_p_value3, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 4, 84, start_p_value4, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 5, 84, start_p_value5, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, start_p_value6, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, start_p_value7, &dxl_error))
+            return false;
+        Notify(msg_debug, "Power up servos done");
+    }
+
+    return true;
+}
+
+bool EpiServo::TorqueingDownServo()
+{
+    // Power down servos.
+    // 1. Store P (PID) value
+    // 2. Ramp down P
+    // 3. Turn of torque enable
+    // 4. Set P (PID) valued from 1.
+
+    int TorqueUpTime = 4000; //ms
+    Timer t;
+
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    uint8_t dxl_error = 0;              // Dynamixel error
+
+    if (EpiTorsoMode)
+    {
+
+        // 1.
+        uint16_t start_p_value2 = 0;
+        uint16_t start_p_value3 = 0;
+        uint16_t start_p_value4 = 0;
+        uint16_t start_p_value5 = 0;
+        uint8_t start_p_value6 = 0;
+        uint8_t start_p_value7 = 0;
+
+        // Get P values
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 2, 84, &start_p_value2, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 3, 84, &start_p_value3, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 4, 84, &start_p_value4, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, 5, 84, &start_p_value5, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->read1ByteTxRx(portHandlerPupil, 2, 29, &start_p_value6, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->read1ByteTxRx(portHandlerPupil, 3, 29, &start_p_value7, &dxl_error))
+            return false;
+
+        t.Reset();
+
+        Notify(msg_warning, "Power down servos. If needed support the head while power off the servos");
+
+        while (t.GetTime() < TorqueUpTime)
+        {
+            // Set P value
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 2, 84, int(float(start_p_value2) * (float(TorqueUpTime) - t.GetTime()) / float(TorqueUpTime)), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 3, 84, int(float(start_p_value3) * (float(TorqueUpTime) - t.GetTime()) / float(TorqueUpTime)), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 4, 84, int(float(start_p_value4) * (float(TorqueUpTime) - t.GetTime()) / float(TorqueUpTime)), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 5, 84, int(float(start_p_value5) * (float(TorqueUpTime) - t.GetTime()) / float(TorqueUpTime)), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, int(float(start_p_value6) * (float(TorqueUpTime) - t.GetTime()) / float(TorqueUpTime)), &dxl_error))
+                return false;
+            if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, int(float(start_p_value7) * (float(TorqueUpTime) - t.GetTime()) / float(TorqueUpTime)), &dxl_error))
+                return false;
+        }
+
+        // Get present position
+        uint32_t present_postition_value2 = 0;
+        uint32_t present_postition_value3 = 0;
+        uint32_t present_postition_value4 = 0;
+        uint32_t present_postition_value5 = 0;
+        uint16_t present_postition_value6 = 0;
+        uint16_t present_postition_value7 = 0;
+        if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 2, 132, &present_postition_value2, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 3, 132, &present_postition_value3, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 4, 132, &present_postition_value4, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, 5, 132, &present_postition_value5, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->read2ByteTxRx(portHandlerPupil, 2, 37, &present_postition_value6, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->read2ByteTxRx(portHandlerPupil, 3, 37, &present_postition_value7, &dxl_error))
+            return false;
+        // Set goal position to present postiion
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 116, present_postition_value2, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 116, present_postition_value3, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 116, present_postition_value4, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 116, present_postition_value5, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 30, present_postition_value6, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 30, present_postition_value7, &dxl_error))
+            return false;
+        
+        t.Restart();
+        t.Sleep(2000); // What is a good value???
+
+        Notify(msg_debug, "Enable torque off servos");
+        // Enable torque
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 2, 64, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 3, 64, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 4, 64, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, 5, 64, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 0, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 0, &dxl_error))
+            return false;
+
+        // Set P value to start value
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 2, 84, start_p_value2, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 3, 84, start_p_value3, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 4, 84, start_p_value4, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, 5, 84, start_p_value5, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, start_p_value6, &dxl_error))
+            return false;
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, start_p_value7, &dxl_error))
+            return false;
+    }
+    return true;
+}
 EpiServo::~EpiServo()
 {
 
     if (EpiTorsoMode)
     {
+        // Torque down
+        TorqueingDownServo();
+
         // Close port
         portHandlerHead->closePort();
         portHandlerPupil->closePort();

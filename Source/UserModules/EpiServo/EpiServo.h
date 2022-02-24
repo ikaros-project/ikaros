@@ -54,6 +54,8 @@ public:
     void 		Tick();
 
     bool        SetDefaultSettingServo();
+    bool        TorqueingUpServo();
+    bool        TorqueingDownServo();
 
     // Paramteters
     int robotType = 0;
