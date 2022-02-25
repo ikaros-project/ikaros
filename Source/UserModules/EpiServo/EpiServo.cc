@@ -387,13 +387,10 @@ void EpiServo::Tick()
 
     if (EpiTorsoMode)
     {
-
+        // Todo
         // 3. Clean up code
-        // 4. Optimize. Test with FTDI Latency
+        // 4. Stuatus Return Level.
 
-        // Optimize.
-        // 2. Latency timer FTDI issue.
-        // 3. Stuatus Return Level.
 
         // Avg 32ms s1000 (No threads)
         auto headThread = std::async(std::launch::async,&EpiServo::comSeralPortHead, this);  // 13 ms
@@ -408,13 +405,12 @@ void EpiServo::Tick()
 
 // A function that set importat parameters in the control table.
 // Baud rate and ID needs to be set manually.
-
 bool EpiServo::SetDefaultSettingServo()
 {
     Notify(msg_debug, "Setting control table on servos\n");
 
     // To be able to set some of the setting toruqe enable needs to be off.
-
+    
     if (EpiTorsoMode)
     {
         // Indirect data
