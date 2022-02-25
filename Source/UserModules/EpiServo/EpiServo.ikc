@@ -14,7 +14,26 @@
 	Robot types:
 		EpiTorso has 6 servoes. 
 		Epi has 19 servoes.
-			
+
+	The order of joint (io):	
+		0 = Neck tilt
+		1 = Neck pan
+		2 = Left eye
+		3 = Right eye
+		4 = Pupil left
+		5 = Pupil right
+		6 = Body
+		7 = Left arm joint 1 (from body)
+		8 = Left arm joint 2 (from body)
+		9 = Left arm joint 3 (from body)
+		10 = Left arm joint 4 (from body)
+		11 = Left hand
+		12 = Right arm joint 1 (from body)
+		13 = Right arm joint 2 (from body)
+		14 = Right arm joint 3 (from body)
+		15 = Right arm joint 4 (from body)
+		16 = Right hand
+
 	</description>
 
 	<example description="A simple example">
