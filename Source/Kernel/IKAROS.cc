@@ -3316,7 +3316,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
         auto target = c["target"];
         try {
             Module_IO * source_io = NULL;
-            if(source.starts_with("."))
+            if(starts_with(source, "."))
                 source_io = main_group->GetSource(source.substr(1));
             else
                 source_io = group->GetSource(source);
@@ -3325,7 +3325,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
                 Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
 
             int cnt = 0;
-            if(target.starts_with("."))
+            if(starts_with(target, "."))
                 for(auto target_io : main_group->GetTargets(target.substr(1)))
                     cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
             else
@@ -4206,10 +4206,10 @@ Kernel::HandleHTTPRequest()
     else if(uri == "/")
        DoSendFile("index.html");
 
-    else if(uri.starts_with("/command/"))
+    else if(starts_with(uri, "/command/"))
         DoCommand(uri, args);
         
-    else if(uri.starts_with("/control/"))
+    else if(starts_with(uri, "/control/"))
         DoControl(uri, args);
 
     else 
