@@ -55,7 +55,7 @@ using namespace ikaros;
 #define EPI_TORSO_NR_SERVOS 6
 #define EPI_NR_SERVOS 19
 
-int EpiServo::comSeralPortPupil()
+bool EpiServo::comSeralPortPupil()
 {
 
     Notify(msg_debug, "Comunication Pupil");
@@ -90,9 +90,9 @@ int EpiServo::comSeralPortPupil()
 
         index++;
     }
-    return (2);
+    return (true);
 }
-int EpiServo::comSeralPortHead()
+bool EpiServo::comSeralPortHead()
 {
     Notify(msg_debug, "Comunication Head");
 
@@ -186,8 +186,28 @@ int EpiServo::comSeralPortHead()
     groupSyncWriteHead->clearParam();
 
   
-    return (1);
+    return (true);
 }
+
+bool EpiServo::comSeralPortBody()
+{
+    Notify(msg_debug, "Comunication Body");
+    return (true);
+
+}
+bool EpiServo::comSeralPortLeftArm()
+{
+    Notify(msg_debug, "Comunication Left arm");
+    return (true);
+
+}
+bool EpiServo::comSeralPortRightArm()
+{
+    Notify(msg_debug, "Comunication Right arm");
+    return (true);
+
+}
+
 
 void EpiServo::Init()
 {
@@ -368,154 +388,21 @@ void EpiServo::Tick()
     if (EpiTorsoMode)
     {
 
-        // Still need to be done.
-
-        // 1. Set the order of servos = EPi FULL
-        // 2. Seperate the threads/serial ports
         // 3. Clean up code
         // 4. Optimize. Test with FTDI Latency
-        // 5. 
 
         // Optimize.
-        // 1. Threads for each serial port.
         // 2. Latency timer FTDI issue.
         // 3. Stuatus Return Level.
 
         // Avg 32ms s1000 (No threads)
+        auto headThread = std::async(std::launch::async,&EpiServo::comSeralPortHead, this);  // 13 ms
+        auto pupilThread = std::async(std::launch::async,&EpiServo::comSeralPortPupil, this); //  25 ms Head and pupil = 25
 
-        //auto f = async(&cabc::pr,cap);
-        //auto f=std::async(&capc::pr,&cap);
-        //std::future<int> f = std::async(&EpiServo::comSeralPort1,this);
-        //std::cout << "result: " << f.get() << std::endl;
-
-        // auto future1 = std::async(this::comSeralPort1,this);
-        // auto future2 = std::async(comSeralPort2);
-
-        auto future1 = std::async(std::launch::async,&EpiServo::comSeralPortHead, this);  // 13 ms
-        auto future2 = std::async(std::launch::async,&EpiServo::comSeralPortPupil, this); //  25 ms Head and pupil = 25
-        int number1 = future1.get(); 
-        int number2 = future2.get(); 
-
-        //comSeralPortHead(); // 11 ms
-        //comSeralPortPupil(); // 25.17 ms Head and pupil 37ms // comSeralPortPupil makes two write commands that gives two status message. Sync_write will probaly lower this to half
-
-        // Setting comSeralPortPupil to not respond with status should reduce the time to <1ms
-
-        // latency timer? This needs to be tested.
-
-        // Read
-        // Read 6 bytes from each servo using indirect mode. Present position and present current
-
-        // groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, 224, 4 + 2);
-        // groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, 634, 4 + 2 + 1);
-
-        // int index = 0;
-        // int dxl_comm_result = COMM_TX_FAIL; // Communication result
-        // bool dxl_addparam_result = false;   // addParam result
-        // bool dxl_getdata_result = false;    // GetParam result
-        // // int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};  // Goal position
-
-        // uint8_t dxl_error = 0; // Dynamixel error
-        // uint8_t param_goal_position[6];
-
-        // int32_t dxl_present_position = 0;
-        // int16_t dxl_present_current = 0;
-        // int8_t dxl_present_temperature = 0;
-
-        // // Add if for syncread
-        // for (int i = 2; i <= 5; i++)
-        //     if (!groupSyncReadHead->addParam(i))
-        //         Notify(msg_fatal_error, "[ID:%03d] groupSyncRead addparam failed", i);
-
-        // // Sync read
-
-        // dxl_comm_resultHead = groupSyncReadHead->txRxPacket();
-        // // dxl_comm_resultHead = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated.
-
-        // if (dxl_comm_resultHead != COMM_SUCCESS)
-        //     printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-
-        // // Check if data is available
-        // for (int i = 2; i <= 5; i++)
-        // {
-        //     dxl_comm_resultHead = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
-        //     if (dxl_comm_resultHead != true)
-        //     {
-        //         fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", i);
-        //     }
-        // }
-
-        // // Extract data
-        // index = 0;
-        // for (int i = 2; i <= 5; i++)
-        // {
-        //     dxl_present_position = groupSyncReadHead->getData(i, 634, 4);    // Present postiion
-        //     dxl_present_current = groupSyncReadHead->getData(i, 638, 2);     // Present current
-        //     dxl_present_temperature = groupSyncReadHead->getData(i, 640, 1); // Present temperature
-        //     // Notify(msg_debug, "ID %i:\tPresent position:%03d\tPresent current:%03d\tPresent current:%03d\n", i, dxl_present_position, dxl_present_current, dxl_present_temperature);
-
-        //     // Fill IO
-        //     presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
-        //     presentCurrent[index] = dxl_present_current * 3.36;             // mA
-
-        //     // Check temp
-        //     if (dxl_present_temperature > 55) // 55 degrees
-        //         Notify(msg_fatal_error,"Temperature over limit %i degrees (id %i)\n",dxl_present_temperature,i);
-
-        //     index++;
-
-        // }
-
-        //     // Send (sync write)
-        //     index = 0;
-        //     for (int i = 2; i <= 5; i++)
-        //     {
-        //         int goal = goalPosition[index] / 360.0 * 4096.0;
-        //         param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goal));
-        //         param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goal));
-        //         param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goal));
-        //         param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goal));
-        //         // Goal current is not available on MX28 writing
-
-        //         int goalC = goalCurrent[index] / 3.36;
-        //         // printf("Current %i\n", goalC);
-        //         param_goal_position[4] = DXL_LOBYTE(DXL_HIWORD(goalC));
-        //         param_goal_position[5] = DXL_HIBYTE(DXL_HIWORD(goalC));
-
-        //         dxl_addparam_result = groupSyncWriteHead->addParam(i, param_goal_position, 6);
-
-        //         if (dxl_addparam_result != true)
-        //             Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
-
-        //         index++;
-        //     }
-
-        //     // Syncwrite goal position
-        //     dxl_comm_result = groupSyncWriteHead->txPacket();
-        //     if (dxl_comm_result != COMM_SUCCESS)
-        //         printf("%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
-
-        //     // Clear syncwrite parameter storage
-        //     groupSyncWriteHead->clearParam();
-
-        //     // Send to pupil. Only goal position? No feedback?
-        //     groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2);
-
-        //     index = 4;
-
-        //     for (int i = 2; i <= 3; i++)
-        //     {
-        //         int goal = goalPosition[index] / 360.0 * 1023.0;
-        //         uint16_t param_default;
-
-        //         param_default = goalPosition[index] / 360.0 * 1023.0;
-        //         if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
-        //             Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
-
-        //         // No feedback = temperature from pupil
-
-        //         index++;
-        //     }
+        if (!headThread.get())
+            Notify(msg_fatal_error, "Can not communicate with head serial port");
+        if (!pupilThread.get())
+            Notify(msg_fatal_error, "Can not communicate with pupil serial port");
     }
 }
 

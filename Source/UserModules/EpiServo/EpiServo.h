@@ -93,8 +93,14 @@ public:
     std::map<std::string,Robot_parameters> robot;
 
 
-    int comSeralPortPupil();
-    int comSeralPortHead();
+    // Functions for each serial port (used to threading´)
+    bool comSeralPortHead();
+    bool comSeralPortPupil();
+
+    bool comSeralPortBody();
+    bool comSeralPortLeftArm();
+    bool comSeralPortRightArm();
+
 
 };
 
