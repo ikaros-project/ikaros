@@ -719,9 +719,9 @@ bool EpiServo::TorqueingUpServo()
         if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 1, &dxl_error))
             return false;
 
+        Notify(msg_debug, "Power up servos");
         while (t.GetTime() < TorqueUpTime)
         {
-            Notify(msg_debug, "Power up servos");
             // Get present position
             uint32_t present_postition_value2 = 0;
             uint32_t present_postition_value3 = 0;
