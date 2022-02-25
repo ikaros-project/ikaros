@@ -299,7 +299,7 @@ public:
 
     // zero connections in both directions
 
-    std::set<std::string> outgoing_connection;  // only one entry even if there are multiple connections
+    //std::set<std::string> outgoing_connection;  // only one entry even if there are multiple connections
     std::vector<Module *> connects_to_with_zero_delay;
     std::vector<Module *> connects_from_with_zero_delay;
 
@@ -377,6 +377,9 @@ public:
 
     Timer *             timer;            // Statistics variables
     float               time;
+    float *             power;      // Current power usage (in % or W if coefficient set)
+    float               power_coefficient;
+
     float               ticks;
 
     void                DelayOutputs();
@@ -392,7 +395,6 @@ public:
     friend Module *        CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);
     friend class WebUI;
 };
-
 
 
 //

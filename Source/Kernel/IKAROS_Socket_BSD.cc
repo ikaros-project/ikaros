@@ -263,6 +263,24 @@ Socket::Close()
 
 
 
+std::string
+Socket::HTTPGet(const std::string & url) // Very temporary implementation that only handles incomplete urls for now with only site + path
+{
+    long max_size = 100000;
+    char buffer[100000];
+    auto parts = split(url, "/", 1);
+    auto site = parts.at(0);
+    auto path = parts.at(1);
+    std::string request = "GET /"+path+" HTTP/1.1\r\nHost: " + site+"\r\nConnection: close\r\n\r\n";
+    Get(site.c_str(), 80, request.c_str(), buffer, 100000);
+    auto buff = std::string(buffer);
+    auto header_and_data = split(buff, "\r\n\r\n", 1);
+    Close();
+
+    return header_and_data.at(1); 
+}
+
+
 //
 //	ServerSocketData
 //

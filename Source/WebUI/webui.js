@@ -1204,6 +1204,10 @@ interaction = {
         interaction.main_radius = 400;
         interaction.main_margin = 100;
         interaction.main_center = interaction.main_radius+interaction.main_margin;
+        interaction.main_position_x = 100;
+        interaction.main_increment_x = 200;
+        interaction.main_position_y = 100;
+        interaction.main_increment_y = 50;
 
         interaction.module_pos = {}
         let v = interaction.currentView.groups;
@@ -1243,8 +1247,13 @@ interaction = {
                 
                 if(!newObject.parameters.attributes._x)
                 {
-                    newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                    newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                    newObject.parameters.attributes._x = interaction.main_position_x;
+                    newObject.parameters.attributes._y = interaction.main_position_y;
+                    interaction.main_position_x += interaction.main_increment_x;
+                    interaction.main_position_y += interaction.main_increment_y;
+
+                    //newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    //newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
                 }
                 
                 interaction.module_pos[v[i].attributes.name] = {'x':newObject.parameters.attributes._x, 'y': newObject.parameters.attributes._y};

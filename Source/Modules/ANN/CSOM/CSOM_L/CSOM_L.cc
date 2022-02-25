@@ -73,7 +73,7 @@ CSOM_L::CSOM_L(Parameter * p):
     assoc_size_y = (1+2*assoc_radius_y)*som_size_y;
    
     AddInput("INPUT");
-    AddOutput("OUTPUT");
+    AddOutput("OUTPUT");    // FIXME: Are missing required parameter
     AddOutput("SALIENCE");
 
     AddOutput("WEIGHTS", rf_size_x*som_size_x, rf_size_y*som_size_y);

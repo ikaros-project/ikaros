@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<group title="Burner Example" power_output="yes" power_coefficient="1">
+	
+	<module class = "Burner" name = "Burner1" percent = "0" _x = "10" _y = "10" />
+	<module class = "Burner" name = "Burner2" percent = "0" _x = "10" _y = "40" />
+	<module class = "Burner" name = "Burner3" percent = "0" _x = "10" _y = "70" />
+	<module class = "Burner" name = "Burner4" percent = "0" _x = "10" _y = "10" />
+	<module class = "Burner" name = "Burner5" percent = "0" _x = "10" _y = "40" />
+	<module class = "Burner" name = "Burner6" percent = "0" _x = "10" _y = "70" />
+	<module class = "Burner" name = "Burner7" percent = "0" _x = "10" _y = "10" />
+	<module class = "Burner" name = "Burner8" percent = "0" _x = "10" _y = "40" />
+	<module class = "Burner" name = "Burner9" percent = "0" _x = "10" _y = "70" />
+	<module class = "Burner" name = "Burner10" percent = "0" _x = "10" _y = "10" />
+	<module class = "Burner" name = "Burner11" percent = "0" _x = "10" _y = "40" />
+	<module class = "Burner" name = "Burner12" percent = "0" _x = "10" _y = "70" />
+
+
+	<view name="Burner View" >
+		<plot  buffer_size = "5000" style = "" show_title = "true" frame-style = "" max = "1" min = "0" direction = "vertical" select = "" source = "Burner1.POWER" x = "20" height = "201" show_frame = "false" color = "" title = "Burner 1 CPU Usage" width = "501" y = "400"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner1.percent" x = "20" show_frame = "false" height = "61" width = "201" title = "Burner 1" y = "20"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner2.percent" x = "20" show_frame = "false" height = "61" width = "201" title = "Burner 2" y = "80"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner3.percent" x = "20" show_frame = "false" height = "61" width = "201" title = "Burner 3" y = "140"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner4.percent" x = "20" show_frame = "false" height = "61" width = "201" title = "Burner 4" y = "200"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner5.percent" x = "20" show_frame = "false" height = "61" width = "201" title = "Burner 5" y = "260"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner6.percent" x = "20" show_frame = "false" height = "61" width = "201" title = "Burner 6" y = "320"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner7.percent" x = "320" show_frame = "false" height = "61" width = "201" title = "Burner 7" y = "20"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner8.percent" x = "320" show_frame = "false" height = "61" width = "201" title = "Burner 8" y = "80"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner9.percent" x = "320" show_frame = "false" height = "61" width = "201" title = "Burner 9" y = "140"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner10.percent" x = "320" show_frame = "false" height = "61" width = "201" title = "Burner 10" y = "200"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner11.percent" x = "320" show_frame = "false" height = "61" width = "201" title = "Burner 11" y = "260"/>
+		<slider-horizontal  frame-style = "" show_title = "true" max = "100" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Burner12.percent" x = "320" show_frame = "false" height = "61" width = "201" title = "Burner 12" y = "320"/>
+	</view>
+
+
+    <module class = "Logger" name = "Logger" _x = "10" _y = "100"	
+	/>
+</group>
+ 
