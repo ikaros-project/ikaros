@@ -42,7 +42,7 @@
 
         <connection  source = "Joints.OUTPUT"  target = "SequenceRecorder.INPUT" />
 
-		<view name="Old View">
+		<view name="View">
             <grid
                 x = "10"
                 y = "10"
@@ -54,7 +54,7 @@
                 labels = "state"
                 labelWidth = "50"
                 fill = "custom"
-                colorTable = "yellow, black, red, green, purple, brown, pink, maroon"
+                colorTable = "yellow, black, red, green, purple, brownn, pink, maroon"
                 lineWidth = "1"
                 shape = "circle"
                 size = "1"

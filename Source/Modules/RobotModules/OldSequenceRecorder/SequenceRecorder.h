@@ -1,7 +1,7 @@
 //
 //	SequenceRecorder.h		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015-2022 Christian Balkenius
+//    Copyright (C) 2015-2018 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -20,18 +20,10 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-// JSON library from https://github.com/nlohmann/json
-
-
 #ifndef SequenceRecorder_
 #define SequenceRecorder_
 
-
 #include "IKAROS.h"
-#include "json.hpp"
-
-using json = nlohmann::json; 
-
 
 class SequenceRecorder: public Module
 {
@@ -46,43 +38,23 @@ public:
 
     // Commands
 
-    void        Stop();
-    void        Play();
-    void        Record();
-    void        Pause();
-    void        SkipStart();
-    void        SkipEnd();
-    void        SetStartMark();
-    void        SetEndMark();
-    void        ExtendTime();
-    void        ReduceTime();
-
     void        Command(std::string s, float x, float y, std::string value);
 
-    json        sequence_data;
-
-    float *     state; // state vector for controls
-    Timer       timer;
-    float       position;
-    float       last_position; // to see if the value has been changed by WebUI
-    float       mark_start;
-    float       mark_end;
-
-    
-    std::string time_string;
-    std::string end_time_string;
-
-    void        SetOutputForTime(float t); // time in ms
-
-/*
     void        ToggleMode(int x, int y);
+    void        Off();
+    void        Stop();
+    void        Record();
+    void        Play();
+    void        SaveAsJSON();
+    void 		Save();
+    void 		Load();
 
     float *     trig;
     float *     trig_last;
     int         trig_size;
     float *     trig_out;
     
-
+    float *     state;
     float *     completed;
 
     float *     input;
@@ -94,6 +66,34 @@ public:
     float *     stop_position;
     float *     start_position;
     float *     start_torque;
+
+    float **     mode; // record, play, hold, free in matrix format
+    std::string  mode_string;
+    std::string  status_string;
+
+    int         size;
+    int         input_size;
+    int         output_size;
+
+    long        timebase;
+
+    std::string *   motion_name;
+    float ***       position_data;
+    float **        timestamp_data;
+    
+    float **        keypoints; // of currently selected motion
+    float *         timestamps; // of currently selected motion
+
+    int         max_motions;
+    int         current_motion;
+
+    float *     lengths; // lengths of each recording
+
+    int         position_data_max;
+    int   *     position_data_count;
+
+    float *     time; // in ms
+
     float *     enable;
 
     const char * file_name;
@@ -102,8 +102,6 @@ public:
 
     bool        record_on_trig;
     bool        auto_save;
-*/
-
 };
 
 #endif

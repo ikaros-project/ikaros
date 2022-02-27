@@ -1,7 +1,7 @@
 //
 //	SequenceRecorder.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015-2020 Christian Balkenius
+//    Copyright (C) 2015-2022 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -22,160 +22,71 @@
 
 #include "SequenceRecorder.h"
 
-#include <sys/types.h>
-#include <dirent.h>
+#include <iostream>
+#include <fstream>
 
 using namespace ikaros;
 
-enum { state_stop, state_off, state_record, state_play, state_train, state_save, state_load, state_sq_play };
-enum { mode_off=0, mode_stop, mode_play, mode_record };
+
+std::string
+make_timestamp(float t)
+{
+    char buff[100];
+    int t_ms = int(t) %1000;
+    int t_s = (int(t)/1000) % 60;
+    int t_min = int(t/60000);
+    snprintf(buff, 100, "%02d:%02d:%03d", t_min, t_s, t_ms);
+    return buff;     
+}
+
+
+
+void
+SetOutputForTime(float t)
+{
+
+}
+
+
 
 void
 SequenceRecorder::Init()
 {
-    Bind(record_on_trig, "record_on_trig");
-    Bind(smoothing_time, "smoothing_time");
+    Bind(state, 10, "state", true);
+    Bind(time_string, "time");
+    Bind(end_time_string, "end_time");
+    Bind(position, "position");
+    Bind(mark_start, "mark_start");
+    Bind(mark_end, "mark_end");
 
-    Bind(current_motion, "current_motion");
-    Bind(mode_string, "mode_string");
+    /*
 
-    max_motions = GetIntValue("max_motions");
-    current_motion = 0;
+    sequence = R"(
+  {
+    "happy": true,
+    "pi": 3.141
+  }
+)"_json;
 
-    input = GetInputArray("INPUT");
-    input_size = GetInputSize("INPUT");
-    size = GetIntValue("output_size");
-    if(size == 0)
-        size = input_size;
-    Bind(positions, size, "positions", true);
+    float x = sequence["pi"];
+*/
+    // Load JSON
 
-    stop_position = create_array(size);
-    start_position = create_array(size);
-    start_torque = create_array(size);
+    std::ifstream i("/Users/cba/ikaros/Source/Modules/RobotModules/SequenceRecorder/test_sequence.json");
+    i >> sequence_data;
 
-    position_data_max = GetIntValue("position_data_max");
-    position_data_count = new int[max_motions];
-    position_data  = create_matrix(size, position_data_max, max_motions);
-    timestamp_data = create_matrix(size, position_data_max);
+    std::string s = sequence_data["sequences"][0]["name"];
 
-    file_name = GetValue("filename");
-    json_file_name = GetValue("json_filename");
-    directory = GetValue("directory");
+    int sz = sequence_data["sequences"][0]["keypoints"].size();
 
-    motion_name = new std::string [max_motions];
-
-    trig = GetInputArray("TRIG");
-    trig_size = GetInputSize("TRIG");
-    
-    trig_out = GetOutputArray("TRIG_OUT");
-
-    if(trig_size > max_motions)
-    {
-        Notify(msg_warning, "TRIG input larger than max behaviors");
-        trig_size = max_motions;
-    }
-    
-    trig_last = create_array(max_motions);
-
-    completed = GetOutputArray("COMPLETED");
-
-    output = GetOutputArray("OUTPUT");
-    enable = GetOutputArray("ENABLE");
-    mode = GetOutputMatrix("MODE");
-    for(int i=0; i<size; i++)
-        mode[mode_off][i] = 1;
-
-    state = GetOutputArray("STATE");
-    *state = state_stop;
-
-    lengths = GetOutputArray("LENGTHS");
-
-    time = GetOutputArray("TIME");
-    timebase = GetTickLength();
-    if(timebase == 0)
-        timebase = 1;
-
-    auto_save = GetBoolValue("auto_save"); // Cannot be called in destructor
-    if(GetBoolValue("auto_load"))
-    {
-        for(current_motion=0; current_motion<max_motions; current_motion++)
-            Load();
-        current_motion=0;
-    }
-    
-    keypoints = GetOutputMatrix("KEYPOINTS");
-    timestamps = GetOutputArray("TIMESTAMPS");
+    Stop();
 }
 
 
 
 SequenceRecorder::~SequenceRecorder()
 {
-    if(auto_save)
-    {
-        for(current_motion=0; current_motion<max_motions; current_motion++)
-            Save();
-    }
-
-    destroy_array(start_torque);
-    destroy_array(start_position);
-    destroy_array(stop_position);
-    destroy_matrix(position_data);
-    destroy_array(trig_last);
-    delete [] position_data_count;
-}
-
-
-void
-SequenceRecorder::Command(std::string s, float x, float y, std::string value)
-{
-    if(s == "off")
-        Off();
-    else if (s == "stop")
-        Stop();
-    else if (s == "record")
-        Record();
-    else if (s == "play")
-        Play();
-    else if (s == "load")
-        Load();
-    else if (s == "save")
-        Save();
-    else if (s == "toggle")
-        ToggleMode(x, y);
-}
-
-
-
-void
-SequenceRecorder::ToggleMode(int x, int y)
-{
-    for(int i=0; i<4; i++) // reset row
-        mode[i][x] = 0;
-    mode[y][x] = 1;
-    
-    // Check if we should store servo position if stop is selected
-    
-    if(y==1) // STOP
-    {
-        start_position[x] = positions[x];
-        stop_position[x] = positions[x];
-        enable[x] = 1;
-    }
-}
-
-
-
-void
-SequenceRecorder::Off()
-{
-    mode_string = "Off";
-    *state = state_off;
-    copy_array(output, positions, size); // Immediate no torque response even before the button is released
-    for(int i=0; i<size; i++)
-        if(mode[mode_stop][i] == 0)
-            enable[i] = 0;
-    printf("off\n");
+// auto save
 }
 
 
@@ -183,252 +94,139 @@ SequenceRecorder::Off()
 void
 SequenceRecorder::Stop()
 {
-    mode_string = "Stop";
-    *state = state_stop;
-
-    for(int i=0; i<size; i++)
-        if(mode[mode_stop][i] == 1)
-            stop_position[i] = start_position[i]; // Never set new position for stoppped channel
-        else
-            stop_position[i] = positions[i];
-        
-//    copy_array(stop_position, positions, size);
-
-    print_array("stop_position", stop_position, size);
-
-    // If we record - copy position for all recorded channels to the rest of the track
-    if(*state == state_record)
-    {
-        for(int i=0; i<size; i++)
-            if(mode[mode_record][i])
-                for(int p=int(*time/float(timebase)); p<position_data_max; p++)
-                    position_data[current_motion][p][i] = positions[i];
-    }
-
-    *state = state_stop;
-    copy_array(output, stop_position, size); // Immediate freeze response even before the button is released
-
-    set_array(enable, 1, size);
-    if(mode)
-    {
-        for(int i=0; i<size; i++)
-            if(mode[mode_off][i])
-                enable[i] = 0;
-     }
-
-    printf("stop\n");
+    set_one(state, 0, 8);
+    timer.Stop();
+    timer.Reset();
 }
 
-
-void
-SequenceRecorder::Record()
-{
-    mode_string = "Rec";
-    *state = state_record;
-    set_array(enable, 0, size); // disable all
-    print_matrix("mode", mode, 2, 4);
-
-    for(int i=0; i<size; i++)
-        if(mode[mode_stop][i] || mode[mode_play][i]) // enabled channels with stop or play
-        {
-            enable[i] = 1;
-        }
-        else
-        {
-            enable[i] = 0;
-        }
-
-    position_data_count[current_motion] = 0;
-    *time = 0;
-    printf("record\n");
-}
 
 
 void
 SequenceRecorder::Play()
 {
-    mode_string = "Play";    
-    *state = state_play;
-    *trig_out = 1;
-
-    copy_array(start_position, positions, size);
-    set_array(enable, 1, size);
-    if(mode)
+    if(sequence_data["sequences"][0]["end_mark_time"] == 0)
+    /*
     {
-        for(int i=0; i<size; i++)
-            if(mode[mode_off][i]) // disable some channels
-                enable[i] = 0;
-    }
-    *time = 0;
-    printf("play\n");
-}
-
-
-
-void
-SequenceRecorder::SaveAsJSON()
-{
-    char fname[1024];
-    snprintf(fname, 1023, json_file_name, current_motion);
-    fname[1023] = 0;
-
-    FILE * f = fopen(fname, "w");
-    if(!f)
-    {
-        printf("ERROR could save to motion JSON file \"%s\"\n", fname);
+        Pause(); // pause immediately to prevent time from running 
         return;
     }
-
-    fprintf(f, "[\n\t{\n");
-
-    fprintf(f, "\t\t\"channels\": %d\n", size);
-    fprintf(f, "\t\t\"timebase\": %ld\n", GetTickLength());
-    fprintf(f, "\t\t\"interpolation\": \"linear\"\n");
-    fprintf(f, "\t\t\"units\": \"ms\"\n");
-    fprintf(f, "\t\t\"loop\": \"no\"\n");
-    fprintf(f, "\t\t\"start\": 0\n");
-    fprintf(f, "\t\t\"stop\": %ld\n", position_data_count[current_motion]*GetTickLength());
-    fprintf(f, "\t\t\"motion\":\n\t\t[\n");
-
-    char c0[] = "\t\t\t";
-    char c1[] = ",\n\t\t\t";
-    char * start_chars = c0;
-
-    for(int j=0; j<position_data_count[current_motion]; j++)
-    {
-        fprintf(f, "%s", start_chars);
-        long t = j*GetTickLength();
-        fprintf(f, "{\"t\" : %ld\t\"p\" : [", t);
-
-        for(int i=0; i<size; i++)
-        {
-            if(i!=0) fprintf(f, ", ");
-            fprintf(f, "%.4f", position_data[current_motion][j][i]);
-        }
-
-        fprintf(f, "]}");
-        start_chars = c1;
-    }
-
-    fprintf(f, "\n\t\t]\n");
-    fprintf(f, "\t}\n]\n");
-    fclose(f);
-
-    printf("Saved JSON: %d\n", current_motion);
+*/
+    set_one(state, 1, 8);
+      timer.Start();
 }
 
 
 
 void
-SequenceRecorder::Save()
+SequenceRecorder::Record()
 {
-    *state = state_stop;
-    mode_string = "Stop";
-    printf("%s\n", status_string.c_str());
-
-    if(file_name)
-    {
-        char fname[1024];
-        snprintf(fname, 1023, file_name, current_motion);
-        fname[1023] = 0;
-
-        FILE * f = fopen(fname, "w");
-
-        if(!f)
-        {
-            printf("ERROR could not save to motion file \"%s\"\n", fname);
-            return;
-        }
-
-        fprintf(f, "TIME/1  POSITION/%d\n", size);
-
-        for(int j=0; j<position_data_count[current_motion]-1; j++) // FIXME: should 1 be subtracted or not???
-        {
-            long t = j*GetTickLength();
-            fprintf(f, "%ld\t", t);
-
-            for(int i=0; i<size; i++)
-            {
-                if(i!=0) fprintf(f, "\t");
-                fprintf(f, "%.4f", position_data[current_motion][j][i]);
-            }
-
-            fprintf(f, "\n");
-        }
-
-        fclose(f);
-
-        printf("Saved: %d\n", current_motion);
-    }
-
-    // Also save in new JSON format
-
-    if(json_file_name)
-        SaveAsJSON();
-
-    *time = 0;
+    set_one(state, 2, 8);
+    timer.Start();
 }
 
 
 
 void
-SequenceRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS CORRECT;  // FIXME: causes output to change somehow!!!
+SequenceRecorder::Pause()
 {
-    *state = state_stop;
-    mode_string = "Stop";
+    set_one(state, 3, 8);
+    timer.Stop();
+}
 
-    char fname[1024];
 
-    snprintf(fname, 1023, file_name, current_motion);
-    fname[1023] = 0;
 
-    FILE * f = fopen(fname, "r");
+void
+SequenceRecorder::SkipStart()
+{
+    timer.Stop();
+    set_one(state, 3, 8);// Pause
+    if(timer.GetTime() <= sequence_data["sequences"][0]["start_mark_time"])
+        timer.SetTime(sequence_data["sequences"][0]["start_time"]);
+    else if(timer.GetTime() <= sequence_data["sequences"][0]["end_mark_time"])
+        timer.SetTime(sequence_data["sequences"][0]["start_mark_time"]);
+    else
+        timer.SetTime(sequence_data["sequences"][0]["end_mark_time"]);
+}
 
-    if(f == NULL)
-    {
-        snprintf(fname, 1023, file_name, current_motion);
-        fname[1023] = 0;
-        f = fopen(fname, "r");
-    }
 
-    if(!f)
-    {
-        //printf("WARNING: could not open motion file \"%s\" (ignored)\n", fname);
-        return;
-    }
 
-    position_data_count[current_motion] = 0;
+void
+SequenceRecorder::SkipEnd()
+{
+    timer.Stop();
+    set_one(state, 3, 8);// Pause
+    if(timer.GetTime() >= sequence_data["sequences"][0]["end_mark_time"])
+        timer.SetTime(sequence_data["sequences"][0]["end_time"]);
+    else if(timer.GetTime() >= sequence_data["sequences"][0]["start_mark_time"])
+        timer.SetTime(sequence_data["sequences"][0]["end_mark_time"]);
+    else
+        timer.SetTime(sequence_data["sequences"][0]["start_mark_time"]);
+}
 
-    char buff [1024];
-    fscanf(f, "%s", buff);
-    fscanf(f, "%s", buff);
-    fscanf(f, "%s", buff);
 
-    while(!feof(f))
-    {
-        long t;
-        fscanf(f, "%ld", &t); // ignore for now
 
-        for(int i=0; i<size; i++)
-        {
-            if(i!=0) fprintf(f, "\t");
-            fscanf(f, "%f", &position_data[current_motion][position_data_count[current_motion]][i]);
-        }
+void
+SequenceRecorder::SetStartMark()
+{
+    sequence_data["sequences"][0]["start_mark_time"] = timer.GetTime();
+}
 
-        position_data_count[current_motion]++;
-    }
 
-    // Fill the rest of the buffer with the last read positions - necessary with multirecording with mixed play/record
-    
-    for(int p=position_data_count[current_motion]; p<position_data_max; p++)
-        for(int i=0; i<size; i++)
-            position_data[current_motion][p][i] = position_data[current_motion][position_data_count[current_motion]][i];
-    
-    fclose(f);
 
-    printf("Loaded: %d\n", current_motion);
-    
-    *time = 0;
+void
+SequenceRecorder::SetEndMark()
+{
+    sequence_data["sequences"][0]["end_mark_time"] = timer.GetTime();
+
+}
+
+
+
+void
+SequenceRecorder::ExtendTime() // ass one second to the end of the sequence
+{
+    float end_time = sequence_data["sequences"][0]["end_time"];
+    sequence_data["sequences"][0]["end_time"] = 1000.0f+1000*int(0.001*end_time);
+}
+
+
+
+void
+SequenceRecorder::ReduceTime()
+{
+    float end_time = sequence_data["sequences"][0]["end_time"];
+    end_time = -1000.0f+1000*int(0.001*end_time+0.99999);
+     sequence_data["sequences"][0]["end_time"] = end_time > 0 ? end_time: 0;
+}
+
+
+
+
+
+void
+SequenceRecorder::Command(std::string s, float x, float y, std::string value)
+{
+    if(s == "stop")
+        Stop();
+    else if (s == "play")
+        Play();
+    else if (s == "record")
+        Record();
+    else if (s == "pause")
+        Pause();
+    else if (s == "skip_start")
+        SkipStart();
+
+    else if (s == "skip_end")
+        SkipEnd();
+    else if (s == "set_start_mark")
+        SetStartMark();
+    else if (s == "set_end_mark")
+        SetEndMark();
+    else if (s == "extend_time")
+        ExtendTime();
+    else if (s == "reduce_time")
+        ReduceTime();
 }
 
 
@@ -436,137 +234,55 @@ SequenceRecorder::Load() // SHOULD READ WIDTH FROM FILE AND CHECK THAT IT IS COR
 void
 SequenceRecorder::Tick()
 {
-    // TEST: Copy current data to webui output
-    for(int c=0; c<2; c++)
-        for(int i=0; i<1000; i++)
-        {
-            keypoints[i][c] = position_data[current_motion][i][c]; // position_data_count[current_motion]
-            timestamps[i] = float(i)*20;    // ms
-        }
     
-    if(GetTick() < 20) // wait for valid data
+    if(position != last_position) // Check if position has been changed from WebUI - should use command in the future
     {
-        copy_array(start_position, positions, size);
-        copy_array(stop_position, positions, size);
-        copy_array(output, positions, size);
-        reset_array(enable, size);
-        return;
-    }
-    reset_array(completed, max_motions);
-
-    // Handle the different states
-
-    int f = int(*time/float(timebase));
-
-    if(*state == state_stop)
-    {
-        *time = 0;
-        set_array(enable, 1, size);
-        if(mode)
-        {
-            for(int i=0; i<size; i++)
-                if(mode[mode_off][i]) // disable some channels
-                    enable[i] = 0;
-         }
-            for(int i=0; i<size; i++)
-                if(mode[mode_play][i]) // disable some channels
-                    output[i] = stop_position[i];
-     }
-
-    else if(*state == state_off)
-    {
-        *time = 0;
-        for(int i=0; i<size; i++)
-        {
-            if(mode[mode_stop][i] == 0)
-            {
-                output[i] = positions[i];
-                enable[i] = 0; 
-            }
-        }
+            Pause();
+            float end_time = sequence_data["sequences"][0]["end_time"];
+            timer.SetTime(position*end_time);
+            last_position = position;
     }
 
-    else if(*state == state_record)
+    // Set position
+    float t = timer.GetTime();
+    float end_time = sequence_data["sequences"][0]["end_time"];
+    position = end_time? t/end_time : 0;
+    last_position = position;
+    
+    if(state[1]) // handle play mode
     {
-        for(int i=0; i<size; i++)
-            if(mode[mode_stop][i] == 0)
-                output[i] = positions[i];
-
-        if(position_data_count[current_motion] < position_data_max && norm1(positions, size) > 0)
+        if(state[8] && t >= float(sequence_data["sequences"][0]["end_mark_time"])) // loop
         {
-            // copy_array(position_data[position_data_count], positions, size);
-            for(int i=0; i<size; i++)
-                if(mode[mode_record][i])
-                    position_data[current_motion][position_data_count[current_motion]][i] = positions[i];
-                    
-                else if(mode[mode_play][i])
-                    if(position_data[current_motion][f][i] != 0)
-                        output[i] = position_data[current_motion][f][i];
-
-            position_data_count[current_motion]++;
+            timer.SetTime(float(sequence_data["sequences"][0]["start_mark_time"]));
         }
-        else
-            Notify(msg_warning, "Recording buffer full.");
-        
-        *time = float(position_data_count[current_motion]*timebase);
+        else if(position >= 1 || end_time == 0)
+        {   
+            timer.SetTime(sequence_data["sequences"][0]["end_time"]);
+            Pause();
+    }   }
+
+    else if(state[2]) // handle record mode
+    {
+        if(position >= 1 || end_time == 0) // extend recoding if at end
+            sequence_data["sequences"][0]["end_time"] = t;
+
     }
 
-    else if(*state == state_play)
+   // Set position again
+    t = timer.GetTime();
+    end_time = sequence_data["sequences"][0]["end_time"];
+    position = end_time? t/end_time : 0;
+    last_position = position;
+
+// Set parameters and outputs
+    time_string = make_timestamp(timer.GetTime());
+    end_time_string  = make_timestamp(sequence_data["sequences"][0]["end_time"]);
+
+    if(float(end_time = sequence_data["sequences"][0]["end_time"]) != 0)
     {
-        if(f < smoothing_time)
-        {
-            float a = float(f)/float(smoothing_time);
-            for(int i=0; i< size; i++)
-            {
-                if(mode[mode_play][i] == 1 || mode[mode_record][i] == 1)
-                    if(position_data[current_motion][f] != 0)
-                        output[i] = (1-a) * start_position[i] + a * position_data[current_motion][f][i];
-            }
-        }
-        else
-        {
-            for(int i=0; i<size; i++)
-                if(mode[mode_play][i] == 1 || mode[mode_record][i] == 1)
-                    output[i] = position_data[current_motion][f][i];
-        }
-//           copy_array(output, position_data[current_motion][f], size);
-
-        if(f < position_data_count[current_motion]-1)
-            *time += timebase;
-        else
-        {
-            completed[current_motion] = 1;
-            *state = state_stop;
-            mode_string = "Stop";
-//            copy_array(stop_position, positions, size);
-            for(int i=0; i< size; i++)
-            {
-                if(mode[mode_play][i] == 1)
-                {
-                    stop_position[i] = positions[i];
-                    output[i] = stop_position[i];
-                }
-            }
-            set_array(enable, 1, size);
-            if(mode)
-            {
-                for(int i=0; i<size; i++)
-                    if(mode[mode_off][i]) // disable some channels
-                        enable[i] = 0;
-             }
-        }
-    }
-
-    if(*state != state_play || f > 1)
-        *trig_out = 0;
-
-    if(trig)
-        copy_array(trig_last, trig, trig_size);
-
-    for(int i=0; i<max_motions; i++)   
-        lengths[i] = float(position_data_count[i]);
+        mark_start = float(sequence_data["sequences"][0]["start_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);
+        mark_end = float(sequence_data["sequences"][0]["end_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);}
 }
-
 
 
 static InitClass init("SequenceRecorder", &SequenceRecorder::Create, "Source/Modules/RobotModules/SequenceRecorder/");

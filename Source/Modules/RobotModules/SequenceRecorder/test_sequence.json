@@ -1,0 +1,31 @@
+{
+	"channels": 4,
+	"sequences": [{
+		"name": "Sequence A",
+		"start_time": 0,
+		"start_mark_time": 0,
+		"end_mark_time": 0,
+		"end_time": 0,
+		"keypoints": [{
+				"time": 0,
+				"point": [0, 1, 0, 1]
+			},
+			{
+				"time": 100,
+				"point": [0, 2, 0, 1]
+			},
+			{
+				"time": 200,
+				"point": [0, 4, 0, 1]
+			},
+			{
+				"time": 300,
+				"point": [0, 8, 0, 1]
+			},
+			{
+				"time": 400,
+				"point": [0, 3, 0, 1]
+			}
+		]
+	}]
+}
