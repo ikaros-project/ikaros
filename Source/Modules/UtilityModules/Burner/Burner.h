@@ -38,6 +38,8 @@ public:
     void 		Tick();
 
     float       percent;
+    long long   cycle_estimation;
+    float *     throttling;
 };
 
 #endif
