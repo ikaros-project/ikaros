@@ -30,8 +30,9 @@
 
 typedef struct
 {   
-    std::string serialPortPupil;
+    std::string serialPortPupil; 
     std::string serialPortHead;
+    std::string serialPortBody;
     std::string serialPortLeftArm;
     std::string serialPortRightArm;
     std::string type;
@@ -81,13 +82,34 @@ public:
     std::vector<uint8_t> vecHead; // Dynamixel data storages
     dynamixel::GroupSyncRead *groupSyncReadHead;
     dynamixel::GroupSyncWrite * groupSyncWriteHead;
-    dynamixel::GroupSyncWrite * groupSyncWritePupil;
 
     dynamixel::PortHandler *portHandlerPupil;
     dynamixel::PacketHandler *packetHandlerPupil;
     int dxl_comm_resultPupil;
     std::vector<uint8_t> vecPupil; // Dynamixel data storages
     dynamixel::GroupSyncRead *groupSyncReadPupil;
+    dynamixel::GroupSyncWrite * groupSyncWritePupil;
+
+    dynamixel::PortHandler *portHandlerLeftArm;
+    dynamixel::PacketHandler *packetHandlerLeftArm;
+    int dxl_comm_resultLeftArm;
+    std::vector<uint8_t> vecLeftArm; // Dynamixel data storages
+    dynamixel::GroupSyncRead *groupSyncReadLeftArm;
+    dynamixel::GroupSyncWrite * groupSyncWriteLeftArm;
+
+    dynamixel::PortHandler *portHandlerRightArm;
+    dynamixel::PacketHandler *packetHandlerRightArm;
+    int dxl_comm_resultRightArm;
+    std::vector<uint8_t> vecRightArm; // Dynamixel data storages
+    dynamixel::GroupSyncRead *groupSyncReadRightArm;
+    dynamixel::GroupSyncWrite * groupSyncWriteRightArm;
+
+    dynamixel::PortHandler *portHandlerBody;
+    dynamixel::PacketHandler *packetHandlerBody;
+    int dxl_comm_resultBody;
+    std::vector<uint8_t> vecBody; // Dynamixel data storages
+    dynamixel::GroupSyncRead *groupSyncReadBody;
+    dynamixel::GroupSyncWrite * groupSyncWriteBody;
 
     std::string robotName;
     std::map<std::string,Robot_parameters> robot;

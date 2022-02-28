@@ -1,8 +1,8 @@
 //
 //	EpiServo.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2012 <Author Name>
-//
+//    Copyright (C) 2022 Birger Johansson
+
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
 //    the Free Software Foundation; either version 2 of the License, or
@@ -23,8 +23,8 @@
 #include "EpiServo.h"
 
 #include <stdio.h>
-#include <vector>
-#include <future>
+#include <vector> // Data from dynamixel sdk
+#include <future> // Threads
 
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
@@ -32,25 +32,54 @@ using namespace ikaros;
 
 // Dynamixel settings
 #define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
-#define BAUDRATE1M 1000000
-#define BAUDRATE3M 3000000
+#define BAUDRATE1M 1000000   // XL-320 is limited to 1Mbit
+#define BAUDRATE3M 3000000   // MX servos
 
-// Control table address (ikaros input uses indirect adresses)
-#define ADDR_GOAL_POSITION 168
-#define ADDR_GOAL_CURRENT 224
+// Indirect adress (Goal position)
+#define IND_ADDR_GOAL_POSITION 168
+#define ADDR_GOAL_POSITION 116
+#define IND_ADDR_GOAL_CURRENT 176
+#define ADDR_GOAL_CURRENT 102
+#define IND_ADDR_PRESENT_POSITION 578
+#define ADDR_PRESENT_POSITION 132
+#define IND_ADDR_PRESENT_CURRENT 586
+#define ADDR_PRESENT_CURRENT 128
+#define IND_ADDR_PRESENT_TEMPERATURE 590
+#define ADDR_PRESENT_TEMPERATURE 146
 
-#define LEN_GOAL_POSITION 168
-#define LEN_GOAL_CURRENT 224
+//
+#define ADDR_PROFILE_ACCELERATION 108
+#define ADDR_PROFILE_VELOCITY 112
+#define ADDR_P 84
+#define ADDR_I 82
+#define ADDR_D 80
 
-#define ADDR_PRO_LED_RED 65
-#define ADDR_PRO_PRESENT_POSITION 224
+// ID of each dynamixel chain.
+#define HEAD_ID_MIN 2
+#define HEAD_ID_MAX 7
 
-// Data Byte Length
-#define LEN_PRO_LED_RED 1
-#define LEN_PRO_PRESENT_POSITION 4
+#define ARM_ID_MIN 2
+#define ARM_ID_MAX 7
 
-// Protocol version
-#define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
+#define BODY_ID_MIN 2
+#define BODY_ID_MAX 2
+
+#define PUPIL_ID_MIN 2
+#define PUPIL_ID_MAX 3
+
+// // Control table address (ikaros input uses indirect adresses)
+// #define ADDR_GOAL_POSITION 168
+// #define ADDR_GOAL_CURRENT 224
+
+// #define LEN_GOAL_POSITION 168
+// #define LEN_GOAL_CURRENT 224
+
+// #define ADDR_PRO_LED_RED 65
+// #define ADDR_PRO_PRESENT_POSITION 224
+
+// // Data Byte Length
+// #define LEN_PRO_LED_RED 1
+// #define LEN_PRO_PRESENT_POSITION 4
 
 #define EPI_TORSO_NR_SERVOS 6
 #define EPI_NR_SERVOS 19
@@ -58,20 +87,16 @@ using namespace ikaros;
 bool EpiServo::comSeralPortPupil()
 {
 
-    Notify(msg_debug, "Comunication Pupil");
-
+    Notify(msg_trace, "Comunication serial (Pupil)");
 
     int index = 0;
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
     bool dxl_addparam_result = false;   // addParam result
     bool dxl_getdata_result = false;    // GetParam result
+    uint8_t dxl_error = 0;              // Dynamixel error
 
-    uint8_t dxl_error = 0; // Dynamixel error
-
-
-     // Send to pupil. Only goal position? No feedback?
+    // Send to pupil. Only goal position? No feedback?
     groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2);
-
 
     index = 4;
 
@@ -185,47 +210,45 @@ bool EpiServo::comSeralPortHead()
     // Clear syncwrite parameter storage
     groupSyncWriteHead->clearParam();
 
-  
     return (true);
 }
 
 bool EpiServo::comSeralPortBody()
 {
-    Notify(msg_debug, "Comunication Body");
+    Notify(msg_trace, "Comunication serial (Body)");
     return (true);
-
 }
 bool EpiServo::comSeralPortLeftArm()
 {
-    Notify(msg_debug, "Comunication Left arm");
+    Notify(msg_trace, "Comunication serial (Left arm)");
     return (true);
-
 }
 bool EpiServo::comSeralPortRightArm()
 {
-    Notify(msg_debug, "Comunication Right arm");
+    Notify(msg_trace, "Comunication serial (Right arm)");
     return (true);
-
 }
-
 
 void EpiServo::Init()
 {
     // Robots configurations
     robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                          .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+                         .serialPortBody = "",
                          .serialPortLeftArm = "",
                          .serialPortRightArm = "",
                          .type = "EpiTorso"};
 
     robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+                        .serialPortBody = "",
                         .serialPortLeftArm = "",
                         .serialPortRightArm = "",
                         .type = "EpiTorso"};
 
     robot["EpiBlack"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                          .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+                         .serialPortBody = "",
                          .serialPortLeftArm = "",
                          .serialPortRightArm = "",
                          .type = "Epi"};
@@ -258,7 +281,7 @@ void EpiServo::Init()
 
     if (simulate)
     {
-        Notify(msg_debug, "Simulate servos"); // msg_warning not printing?? loglevel bug?
+        Notify(msg_warning, "Simulate servos");
         return;
     }
 
@@ -348,6 +371,10 @@ void EpiServo::Init()
     }
     else if (EpiMode)
     {
+        // Neck (id 2,3) =  2x MX106R Eyes = 2xMX28R (id 3,4)
+        // Left arm 6x MX106R 1 MX28R
+        // Right arm 6x MX106R 1 MX28R
+        // Body MX106R
         Notify(msg_fatal_error, "Robot type (Full epi) is not yet implementet\n");
     }
     else
@@ -391,10 +418,9 @@ void EpiServo::Tick()
         // 3. Clean up code
         // 4. Stuatus Return Level.
 
-
         // Avg 32ms s1000 (No threads)
-        auto headThread = std::async(std::launch::async,&EpiServo::comSeralPortHead, this);  // 13 ms
-        auto pupilThread = std::async(std::launch::async,&EpiServo::comSeralPortPupil, this); //  25 ms Head and pupil = 25
+        auto headThread = std::async(std::launch::async, &EpiServo::comSeralPortHead, this);   // 13 ms
+        auto pupilThread = std::async(std::launch::async, &EpiServo::comSeralPortPupil, this); //  25 ms Head and pupil = 25
 
         if (!headThread.get())
             Notify(msg_fatal_error, "Can not communicate with head serial port");
@@ -407,240 +433,502 @@ void EpiServo::Tick()
 // Baud rate and ID needs to be set manually.
 bool EpiServo::SetDefaultSettingServo()
 {
+
+    uint32_t param_default_4Byte;
+    uint16_t param_default_2Byte;
+    uint8_t param_default_1Byte;
+
+    uint8_t dxl_error = 0;              // Dynamixel error
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+
     Notify(msg_debug, "Setting control table on servos\n");
 
     // To be able to set some of the setting toruqe enable needs to be off.
-    
-    if (EpiTorsoMode)
+    // Using write byte function instead of syncwrite. It may take some time.
+
+    // Indirect adress (Goal position) 4 bytes. Indiret mode not used for XL-320 (pupil)
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 4; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                return false;
+    if (EpiMode)
     {
-        // Indirect data
-        int dxl_comm_result = COMM_TX_FAIL; // Communication result
-        uint8_t dxl_error = 0;              // Dynamixel error
-
-        // NECK/EYES
-        for (int i = 2; i <= 5; i++)
-        {
-            // Indirect adresses for ikaros input
-            // Goal position
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168, 116, &dxl_error))
-                return false;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 2, 116 + 1, &dxl_error))
-                return false;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 4, 116 + 2, &dxl_error))
-                return false;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 6, 116 + 3, &dxl_error))
-                return false;
-
-            // Goal current (Only availabe on MX-106)
-            if (i == 2 || i == 3)
-            {
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176, 102, &dxl_error))
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
                     return false;
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176 + 2, 102 + 1, &dxl_error))
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
                     return false;
-            }
-
-            // For MX28. Write goal current to the control table heaven...
-            if (i == 4 || i == 5)
-            {
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178, 228, &dxl_error))
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
                     return false;
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178 + 2, 228 + 1, &dxl_error))
-                    return false;
-            }
-
-            // Feedback
-            // ********
-            // Present position
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578, 132, &dxl_error))
-                return false;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 2, 132 + 1, &dxl_error))
-                return false;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 4, 132 + 2, &dxl_error))
-                return false;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 6, 132 + 3, &dxl_error))
-                return false;
-
-            // Present current (Only availabe on MX-106)
-            if (i == 2 || i == 3)
-            {
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 128, &dxl_error))
-                    return false;
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 128 + 1, &dxl_error))
-                    return false;
-            }
-            // For MX28. Write goal current to the control table heaven...
-            if (i == 4 || i == 5)
-            {
-
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 228, &dxl_error))
-                    return false;
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 228 + 1, &dxl_error))
-                    return false;
-            }
-
-            // Present tempurature
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 590, 146, &dxl_error))
-                return false;
-
-            // Common settings for the seros
-            uint32_t param_default;
-
-            // Profile velocity
-            param_default = 210;
-            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 112, param_default, &dxl_error))
-                return false;
-
-            // P
-            uint16_t param_default_2Byte = 850;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 84, param_default_2Byte, &dxl_error))
-                return false;
-
-            // I
-            param_default_2Byte = 0;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 82, param_default_2Byte, &dxl_error))
-                return false;
-
-            // D
-            param_default_2Byte = 0;
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 80, param_default_2Byte, &dxl_error))
-                return false;
-        }
-
-        // Specific setting for the servos
-        // NECK ID 2
-        uint32_t param_default;
-
-        // Limit position max
-        param_default = 2660;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 48, param_default, &dxl_error))
-            return false;
-
-        // Limit position min
-        param_default = 1460;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 52, param_default, &dxl_error))
-            return false;
-
-        // Profile acceleration
-        param_default = 50;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 108, param_default, &dxl_error))
-            return false;
-
-        // NECK ID 3
-        // Limit position max
-        param_default = 2660;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 48, param_default, &dxl_error))
-            return false;
-
-        // Limit position min
-        param_default = 1500;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 52, param_default, &dxl_error))
-            return false;
-
-        // Profile acceleration
-        param_default = 50;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 108, param_default, &dxl_error))
-            return false;
-
-        // Left eye 4
-        // Limit position max
-        param_default = 2300;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 48, param_default, &dxl_error))
-            return false;
-
-        // Limit position min
-        param_default = 1700;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 52, param_default, &dxl_error))
-            return false;
-
-        // Profile acceleration
-        param_default = 150;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 108, param_default, &dxl_error))
-            return false;
-
-        // Right eye 5
-        // Limit position max
-        param_default = 2300;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 48, param_default, &dxl_error))
-            return false;
-
-        // Limit position min
-        param_default = 1700;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 52, param_default, &dxl_error))
-            return false;
-
-        // Profile acceleration
-        param_default = 150;
-        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 108, param_default, &dxl_error))
-            return false;
-
-        // PUPIL
-        // Left
-        // Limit position max
-        uint16_t param_default_2Byte = 550;
-        uint8_t param_default_1Byte;
-
-        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, param_default_2Byte, &dxl_error))
-            return false;
-
-        // Limit position min
-        param_default_2Byte = 801;
-        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, param_default_2Byte, &dxl_error))
-            return false;
-
-        // Moving speed
-        param_default_2Byte = 150;
-        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 32, param_default_2Byte, &dxl_error))
-            return false;
-
-        // P
-        param_default_1Byte = 100;
-        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, param_default_1Byte, &dxl_error))
-            return false;
-        // I
-        param_default_1Byte = 20;
-        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 28, param_default_1Byte, &dxl_error))
-            return false;
-        // D
-        param_default_1Byte = 5;
-        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 27, param_default_1Byte, &dxl_error))
-            return false;
-
-        // Right
-        // Limit position max
-        param_default_2Byte = 351;
-        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, param_default_2Byte, &dxl_error))
-            return false;
-
-        // Limit position min
-        param_default_2Byte = 601;
-        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, param_default_2Byte, &dxl_error))
-            return false;
-
-        // Moving speed
-        param_default_2Byte = 150;
-        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 32, param_default_2Byte, &dxl_error))
-            return false;
-
-        // P
-        param_default_1Byte = 100;
-        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, param_default_1Byte, &dxl_error))
-            return false;
-        // I
-        param_default_1Byte = 20;
-        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 28, param_default_1Byte, &dxl_error))
-            return false;
-        // D
-        param_default_1Byte = 5;
-        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, param_default_1Byte, &dxl_error))
-            return false;
-
-        // LEFT ARM
-
-        // RIGHT ARM
-
-        // ...
     }
+    // Indirect adress (Goal current). Indiret mode not used for XL-320 (pupil). MX28 does not support current mode.
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_CURRENT, ADDR_GOAL_CURRENT, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_CURRENT, ADDR_GOAL_CURRENT, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_CURRENT, ADDR_GOAL_CURRENT, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_GOAL_CURRENT, ADDR_GOAL_CURRENT, &dxl_error))
+                    return false;
+    }
+    // Indirect adress (present position). Feedback
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_POSITION, ADDR_PRESENT_POSITION, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_POSITION, ADDR_PRESENT_POSITION, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_POSITION, ADDR_PRESENT_POSITION, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_POSITION, ADDR_PRESENT_POSITION, &dxl_error))
+                    return false;
+    }
+    // Indirect adress (present current). Feedback. MX28 does not support current mode.
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_CURRENT, ADDR_PRESENT_CURRENT, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_CURRENT, ADDR_PRESENT_CURRENT, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_CURRENT, ADDR_PRESENT_CURRENT, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_CURRENT, ADDR_PRESENT_CURRENT, &dxl_error))
+                    return false;
+    }
+    // Indirect adress (present temperature).
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                    return false;
+    }
+
+    // Profile accelration
+    param_default_4Byte = 50;
+
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
+                return false;
+    for (int i = PUPIL_ID_MIN; i <= PUPIL_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerPupil->write4ByteTxRx(portHandlerPupil, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
+                    return false;
+    }
+
+    // Common settings for the seros
+    // Profile velocity
+    param_default_4Byte = 210;
+
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
+                return false;
+    for (int i = PUPIL_ID_MIN; i <= PUPIL_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerPupil->write4ByteTxRx(portHandlerPupil, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
+                    return false;
+    }
+
+    // P
+    param_default_2Byte = 850;
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_P, param_default_2Byte, &dxl_error))
+                return false;
+    for (int i = PUPIL_ID_MIN; i <= PUPIL_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerPupil->write4ByteTxRx(portHandlerPupil, i, ADDR_P, param_default_2Byte, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_P, param_default_2Byte, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_P, param_default_2Byte, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_P, param_default_2Byte, &dxl_error))
+                    return false;
+    }
+
+    // I
+    param_default_2Byte = 0;
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_I, param_default_2Byte, &dxl_error))
+                return false;
+    for (int i = PUPIL_ID_MIN; i <= PUPIL_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerPupil->write4ByteTxRx(portHandlerPupil, i, ADDR_I, param_default_2Byte, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_I, param_default_2Byte, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_I, param_default_2Byte, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_I, param_default_2Byte, &dxl_error))
+                    return false;
+    }
+
+    // D
+    param_default_2Byte = 0;
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_D, param_default_2Byte, &dxl_error))
+                return false;
+    for (int i = PUPIL_ID_MIN; i <= PUPIL_ID_MAX; i++)
+        for (int j = 0; j < 2; j++)
+            if (COMM_SUCCESS != packetHandlerPupil->write4ByteTxRx(portHandlerPupil, i, ADDR_D, param_default_2Byte, &dxl_error))
+                return false;
+    if (EpiMode)
+    {
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_D, param_default_2Byte, &dxl_error))
+                    return false;
+        for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_D, param_default_2Byte, &dxl_error))
+                    return false;
+        for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+            for (int j = 0; j < 4; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_D, param_default_2Byte, &dxl_error))
+                    return false;
+    }
+
+    // if (EpiMode)
+    // {
+    //     //
+    //     for (int i = 2; i <= 7; i++)
+    //     {
+
+    //         // Indirect adress (Goal position) 4 bytes
+    //         for (int j = 0; j < 4; j++)
+    //             if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+    //                 return false;
+    //         for (int j = 0; j < 4; j++)
+    //             if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+    //                 return false;
+
+    //         // Indirect adress (Goal current) // No current for MX28
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, 176, 102, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, 176 + 2, 102 + 1, &dxl_error))
+    //             return false;
+    //         // Indirect adress (Present position)
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, 578, 132, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, 578 + 2, 132 + 1, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, 578 + 4, 132 + 2, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerLeftArm, i, 578 + 6, 132 + 3, &dxl_error))
+    //             return false;
+    //     }
+
+    //     // BODY
+    // }
+    // // NECK/EYES
+    // for (int i = 2; i <= 5; i++)
+    // {
+    //     // Indirect adresses for ikaros input
+    //     // Goal position
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168, 116, &dxl_error))
+    //         return false;
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 2, 116 + 1, &dxl_error))
+    //         return false;
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 4, 116 + 2, &dxl_error))
+    //         return false;
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 168 + 6, 116 + 3, &dxl_error))
+    //         return false;
+
+    //     // Goal current (Only availabe on MX-106)
+    //     if (i == 2 || i == 3)
+    //     {
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176, 102, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 176 + 2, 102 + 1, &dxl_error))
+    //             return false;
+    //     }
+
+    //     // For MX28. Write goal current to the control table heaven...
+    //     if (i == 4 || i == 5)
+    //     {
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178, 228, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 178 + 2, 228 + 1, &dxl_error))
+    //             return false;
+    //     }
+
+    //     // Feedback
+    //     // ********
+    //     // Present position
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578, 132, &dxl_error))
+    //         return false;
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 2, 132 + 1, &dxl_error))
+    //         return false;
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 4, 132 + 2, &dxl_error))
+    //         return false;
+    //     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 578 + 6, 132 + 3, &dxl_error))
+    //         return false;
+
+    //     // Present current (Only availabe on MX-106)
+    //     if (i == 2 || i == 3)
+    //     {
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 128, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 128 + 1, &dxl_error))
+    //             return false;
+    //     }
+    //     // For MX28. Write goal current to the control table heaven...
+    //     if (i == 4 || i == 5)
+    //     {
+
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586, 228, &dxl_error))
+    //             return false;
+    //         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 586 + 2, 228 + 1, &dxl_error))
+    //             return false;
+    //     }
+
+    // // Present tempurature
+    // if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 590, 146, &dxl_error))
+    //     return false;
+
+    // // Common settings for the seros
+    // uint32_t param_default_4Byte;
+    // uint16_t param_default_2Byte;
+
+    // // Profile velocity
+    // param_default = 210;
+    // if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, 112, param_default, &dxl_error))
+    //     return false;
+
+    // // P
+    // param_default_2Byte = 850;
+    // if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 84, param_default_2Byte, &dxl_error))
+    //     return false;
+
+    // I
+    // param_default_2Byte = 0;
+    // if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 82, param_default_2Byte, &dxl_error))
+    //     return false;
+
+    // D
+    // param_default_2Byte = 0;
+    // if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, 80, param_default_2Byte, &dxl_error))
+    //     return false;
+
+    // Specific setting for the servos
+    // NECK ID 2
+    uint32_t param_default;
+
+    // Limit position max
+    param_default = 2660;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 48, param_default, &dxl_error))
+        return false;
+
+    // Limit position min
+    param_default = 1460;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 52, param_default, &dxl_error))
+        return false;
+
+    // // Profile acceleration
+    // param_default = 50;
+    // if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 108, param_default, &dxl_error))
+    //     return false;
+
+    // NECK ID 3
+    // Limit position max
+    param_default = 2660;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 48, param_default, &dxl_error))
+        return false;
+
+    // Limit position min
+    param_default = 1500;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 52, param_default, &dxl_error))
+        return false;
+
+    // // Profile acceleration
+    // param_default = 50;
+    // if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 108, param_default, &dxl_error))
+    //     return false;
+
+    // Left eye 4
+    // Limit position max
+    param_default = 2300;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 48, param_default, &dxl_error))
+        return false;
+
+    // Limit position min
+    param_default = 1700;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 52, param_default, &dxl_error))
+        return false;
+
+    // // Profile acceleration
+    // param_default = 150;
+    // if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 108, param_default, &dxl_error))
+    //     return false;
+
+    // Right eye 5
+    // Limit position max
+    param_default = 2300;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 48, param_default, &dxl_error))
+        return false;
+
+    // Limit position min
+    param_default = 1700;
+    if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 52, param_default, &dxl_error))
+        return false;
+
+    // // Profile acceleration
+    // param_default = 150;
+    // if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 108, param_default, &dxl_error))
+    //     return false;
+
+    // PUPIL
+    // Left
+    // Limit position max
+    param_default_2Byte = 550;
+
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, param_default_2Byte, &dxl_error))
+        return false;
+
+    // Limit position min
+    param_default_2Byte = 801;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, param_default_2Byte, &dxl_error))
+        return false;
+
+    // Moving speed
+    param_default_2Byte = 150;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 32, param_default_2Byte, &dxl_error))
+        return false;
+
+    // P
+    param_default_1Byte = 100;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, param_default_1Byte, &dxl_error))
+        return false;
+    // I
+    param_default_1Byte = 20;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 28, param_default_1Byte, &dxl_error))
+        return false;
+    // D
+    param_default_1Byte = 5;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 27, param_default_1Byte, &dxl_error))
+        return false;
+
+    // Right
+    // Limit position max
+    param_default_2Byte = 351;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, param_default_2Byte, &dxl_error))
+        return false;
+
+    // Limit position min
+    param_default_2Byte = 601;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, param_default_2Byte, &dxl_error))
+        return false;
+
+    // Moving speed
+    param_default_2Byte = 150;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 32, param_default_2Byte, &dxl_error))
+        return false;
+
+    // P
+    param_default_1Byte = 100;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, param_default_1Byte, &dxl_error))
+        return false;
+    // I
+    param_default_1Byte = 20;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 28, param_default_1Byte, &dxl_error))
+        return false;
+    // D
+    param_default_1Byte = 5;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, param_default_1Byte, &dxl_error))
+        return false;
+
     return true;
 }
 
@@ -656,7 +944,7 @@ bool EpiServo::TorqueingUpServo()
     // 3. Increase current or P (PID)
     // 4. Repeat 2,3 for 2 seconds.
 
-    int TorqueUpTime = 4000; //ms
+    int TorqueUpTime = 2000; // ms
     Timer t;
 
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
@@ -791,7 +1079,7 @@ bool EpiServo::TorqueingDownServo()
     // 3. Turn of torque enable
     // 4. Set P (PID) valued from 1.
 
-    int TorqueUpTime = 4000; //ms
+    int TorqueUpTime = 4000; // ms
     Timer t;
 
     int dxl_comm_result = COMM_TX_FAIL; // Communication result

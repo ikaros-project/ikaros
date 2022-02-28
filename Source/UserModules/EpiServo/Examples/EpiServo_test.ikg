@@ -18,9 +18,9 @@
 		<module
 			class = "EpiServo"
 			name = "EpiServo"
-			log_level = "7"
+			log_level = "8"
 			robot = "EpiWhite"
-			simulate = "false"
+			simulate = "true"
 		/>
 
 

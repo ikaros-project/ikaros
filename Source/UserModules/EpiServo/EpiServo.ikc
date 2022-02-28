@@ -64,7 +64,9 @@
 		<email>birger.johansson@lucs.lu.se</email>
 		<affiliation>Lund University Cognitive Science</affiliation>
 	</author>
-
+   <limitations>
+		Only mac support.
+   </limitations>
    <files>
    		<file>EpiServo.h</file>
    		<file>EpiServo.cc</file>
