@@ -55,8 +55,8 @@ public:
     void 		Tick();
 
     bool        SetDefaultSettingServo();
-    bool        TorqueingUpServo();
-    bool        TorqueingDownServo();
+    bool        PowerOnRobot();
+    bool        PowerOffRobot();
 
     // Paramteters
     int robotType = 0;
@@ -116,13 +116,23 @@ public:
 
 
     // Functions for each serial port (used to threading´)
-    bool comSeralPortHead();
-    bool comSeralPortPupil();
+    bool CommunicationHead();
+    bool CommunicationPupil();
+    bool CommunicationLeftArm();
+    bool CommunicationBody();
+    bool CommunicationRightArm();
+    
+    bool PowerOnHead();
+    bool PowerOnPupil();
+    bool PowerOnLeftArm();
+    bool PowerOnRightArm();
+    bool PowerOnBody();
 
-    bool comSeralPortBody();
-    bool comSeralPortLeftArm();
-    bool comSeralPortRightArm();
-
+    bool PowerOffHead();
+    bool PowerOffPupil();
+    bool PowerOffLeftArm();
+    bool PowerOffRightArm();
+    bool PowerOffBody();
 
 };
 
