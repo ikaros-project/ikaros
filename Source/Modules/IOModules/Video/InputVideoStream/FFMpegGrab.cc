@@ -44,7 +44,7 @@ bool FFMpegGrab::Init()
 {
 	kernel().Notify(msg_debug, "FFMpegGrab Init()\n");
 
-	AVInputFormat *file_iformat = NULL;
+	const AVInputFormat *file_iformat = NULL;
 	// uv4l uses raw h264
 	if (uv4l)
 		file_iformat = av_find_input_format("h264");

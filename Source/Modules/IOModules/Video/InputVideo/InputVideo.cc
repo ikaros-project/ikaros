@@ -39,7 +39,7 @@ void show_dshow_device(){
     AVFormatContext *input_format_context = avformat_alloc_context();
     AVDictionary* options = NULL;
     av_dict_set(&options,"list_devices","true",0);
-    AVInputFormat *iformat = av_find_input_format("dshow");
+    const AVInputFormat *iformat = av_find_input_format("dshow");
     printf("========Device Info=============\n");
     avformat_open_input(&input_format_context,"video=dummy",iformat,&options);
     printf("================================\n");
@@ -50,7 +50,7 @@ void show_dshow_device_option(){
     AVFormatContext *input_format_context = avformat_alloc_context();
     AVDictionary* options = NULL;
     av_dict_set(&options,"list_options","true",0);
-    AVInputFormat *iformat = av_find_input_format("dshow");
+    const AVInputFormat *iformat = av_find_input_format("dshow");
     printf("========Device Option Info======\n");
     avformat_open_input(&input_format_context,"video=Integrated Camera",iformat,&options);
     printf("================================\n");
@@ -59,7 +59,7 @@ void show_dshow_device_option(){
 //Show VFW Device
 void show_vfw_device(){
     AVFormatContext *input_format_context = avformat_alloc_context();
-    AVInputFormat *iformat = av_find_input_format("vfwcap");
+    const AVInputFormat *iformat = av_find_input_format("vfwcap");
     printf("========VFW Device Info======\n");
     avformat_open_input(&input_format_context,"list",iformat,NULL);
     printf("=============================\n");
@@ -70,7 +70,7 @@ void show_avfoundation_device(){
     AVFormatContext *input_format_context = avformat_alloc_context();
     AVDictionary* options = NULL;
     av_dict_set(&options,"list_devices","true",0);
-    AVInputFormat *iformat = av_find_input_format("avfoundation");
+    const AVInputFormat *iformat = av_find_input_format("avfoundation");
     printf("==AVFoundation Device Info===\n");
     avformat_open_input(&input_format_context,"",iformat,&options);
     printf("=============================\n");
@@ -106,21 +106,21 @@ Module(p)
         show_vfw_device();
     }
 #if USE_DSHOW
-    AVInputFormat *ifmt=av_find_input_format("dshow");
+    const AVInputFormat *ifmt=av_find_input_format("dshow");
     //Set own video device's name
     if(avformat_open_input(&input_format_context,"video=Integrated Camera",ifmt,NULL)!=0){
 		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
     }
 #else
-    AVInputFormat *ifmt=av_find_input_format("vfwcap");
+    const AVInputFormat *ifmt=av_find_input_format("vfwcap");
     if(avformat_open_input(&input_format_context,"0",ifmt,NULL)!=0){
 		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
     }
 #endif
 #elif defined LINUX
-    AVInputFormat *ifmt=av_find_input_format("video4linux2");
+    const AVInputFormat *ifmt=av_find_input_format("video4linux2");
     if(avformat_open_input(&input_format_context,"/dev/video0",ifmt,NULL)!=0){
 		Notify(msg_fatal_error,"Couldn't open input stream.\n");
         return;
@@ -130,7 +130,7 @@ Module(p)
     if (listDevices)
         show_avfoundation_device();
     
-    AVInputFormat *ifmt=av_find_input_format("avfoundation");
+    const AVInputFormat *ifmt=av_find_input_format("avfoundation");
     AVDictionary* options = NULL;
     
     // Setting options
@@ -172,7 +172,7 @@ Module(p)
     // Decoding video
     
     /// Find the decoder for the video stream
-    input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
+    const AVCodec * input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
     if(input_codec==NULL) {
 		Notify(msg_fatal_error,"Unsupported codec!\n");
         return; // Codec not found

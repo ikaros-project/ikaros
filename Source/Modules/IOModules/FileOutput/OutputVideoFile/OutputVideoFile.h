@@ -61,7 +61,7 @@ public:
     int             frameRate;
     
     // FFmpeg related
-    AVCodec         *output_codec;
+    //AVCodec         *output_codec;
     AVCodecContext  *c;
     AVStream        *audio_st, *video_st;
     AVFrame         *inputFrame;
@@ -69,7 +69,7 @@ public:
     AVPacket        *pkt;
     int             i, ret, got_output;
     AVFormatContext *output_format_context;
-    AVOutputFormat  *fmt;
+    //AVOutputFormat  *fmt;
     SwsContext      *img_convert_ctx;
 
     

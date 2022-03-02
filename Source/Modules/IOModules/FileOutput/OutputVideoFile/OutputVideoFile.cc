@@ -98,7 +98,7 @@ OutputVideoFile::Init()
         }
 
         // Find the h264 codec
-        output_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+        const AVCodec * output_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
         if (!output_codec) {
                 Notify(msg_fatal_error, "Codec not found\n");
         }
@@ -116,7 +116,7 @@ OutputVideoFile::Init()
                 return;
         }
 
-        fmt = output_format_context->oformat;
+       const AVOutputFormat  * fmt = output_format_context->oformat;
 
         // Add streams
         video_st  = avformat_new_stream(output_format_context, NULL);

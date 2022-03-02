@@ -82,7 +82,7 @@ Module(p)
     // Decoding video
     
     /// Find the decoder for the video stream
-    input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
+    const AVCodec  *input_codec = avcodec_find_decoder(input_format_context->streams[videoStreamId]->codecpar->codec_id);
     if(input_codec==NULL) {
         fprintf(stderr, "Unsupported codec!\n");
         return; // Codec not found
