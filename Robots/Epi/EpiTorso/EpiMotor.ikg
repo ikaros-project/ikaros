@@ -3,7 +3,6 @@
 <group name = "Epi Servos" >
 	
     <input name = "GOAL_POSITION"   target = "GoalPositionG.INPUT" /> 
-    <input name = "TORQUE_LIMIT"    target = "TorqueLimitG.INPUT" /> 
     <input name = "TORQUE_ENABLE"   target = "TorqueEnableG.INPUT" /> 
 
    <!-- Pupil mm to servo degrees converter -->
@@ -41,12 +40,9 @@
        <!-- Add dynamixel outputs here Temperature Speed. Some of them must be transformed. Speed, force must go through a SC -->
 
     <module class = "Gate" name = "GoalPositionG"/>
-        <_connection source = "GoalPositionG.OUTPUT" sourceoffset = "@servosIndexHead"       size = "@nrServosHead"      target = "Head.GOAL_POSITION"      delay = "1"/>
-        <_connection source = "GoalPositionG.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     target = "Pupil.GOAL_POSITION"     delay = "1"/>
-
         <connection source = "GoalPositionG.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "@servosIndexHead"      targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
         <connection source = "GoalPositionG.OUTPUT"  	target = "mmToDegrees.INPUT" sourceoffset = "@servosIndexPupil" 	targetoffset = "0"                      size = "@nrServosPupil"/>
-        
+ 
         <!-- Calibration of pupil servoes -->
         <module class = "Constant" name = "PupiloffsetData" data = "@pupilOffset" />
         <module class = "Add" name = "PupilToDegreesOffset" />
@@ -56,16 +52,10 @@
         <connection source = "PupilToDegreesOffset.OUTPUT"  	target = "MotionGuard.INPUT" sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
 
 
-<!-- Just forward a few parameters to servoes -->
-   <!-- Dummy module -->
-    <module class = "Gate" name = "TorqueLimitG"/>
-        <connection source = "TorqueLimitG.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     target = "Pupil.TORQUE_LIMIT"     delay = "1"/>
-        <connection source = "TorqueLimitG.OUTPUT" sourceoffset = "@servosIndexHead"        size = "@nrServosHead"      target = "Head.TORQUE_LIMIT"      delay = "1"/>
-  
+    <!-- Just forward a few parameters to servoes -->
     <!-- Dummy module -->
     <module class = "Gate" name = "TorqueEnableG" />
-        <connection source = "TorqueEnableG.OUTPUT" sourceoffset = "@servosIndexHead"  	    size = "@nrServosHead"      target = "Head.TORQUE_ENABLE"     delay = "1"/>
-        <connection source = "TorqueEnableG.OUTPUT" sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"     target = "Pupil.TORQUE_ENABLE"    delay = "1"/>
+        <connection source = "TorqueEnableG.OUTPUT" target = "EpiServos.TORQUE_ENABLE"     delay = "1"/>
 
     <!-- Add dynamixel outputs here Temperature Speed. Some of them must be transformed. Speed, force must go through a SC -->
 
@@ -90,13 +80,17 @@
         <connection source = "MotionGuard.OUTPUT" target = "SCPosition.INPUT"   delay = "1"/>
 
 
-    <!-- Split -->
-    <connection source = "SCPosition.OUTPUT" sourceoffset = "@servosIndexHead"  	    size = "@nrServosHead"      target = "Head.GOAL_POSITION"         delay = "1"/>
-    <connection source = "SCPosition.OUTPUT" sourceoffset = "@servosIndexPupil"	        size = "@nrServosPupil"     target = "Pupil.GOAL_POSITION"        delay = "1"/>
+    <connection source = "SCPosition.OUTPUT" target = "EpiServos.GOAL_POSITION"  delay = "1"/>
 
     <!-- Dynamxiels -->
-   
-    <module 
+	<module
+        class = "EpiServos"
+        name = "EpiServos"
+        log_level = "8"
+        robot = "EpiWhite"
+        simulate = "true"
+    />
+    <!-- <module 
         class           = "@HeadDynamixel" 
         name            = "Head" 
         device          = "@HeadSerialDevice" 
@@ -127,7 +121,7 @@
         number_of_servos     = "@nrServosPupil"
         serial_latency  = "1"
 
-        />
+        /> -->
     
 
     <!-- Feedback -->
@@ -135,49 +129,8 @@
      
     <!-- Create modules that join server data -->
  
-    <module class = "Gate" name = "FeedbackTorqueEnableG"/>
-        <connection source = "Head.FEEDBACK_TORQUE_ENABLE"       target = "FeedbackTorqueEnableG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_TORQUE_ENABLE"      target = "FeedbackTorqueEnableG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_TORQUE_ENABLE"                       source = "FeedbackTorqueEnableG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackLedG"/>
-        <connection source = "Head.FEEDBACK_LED"       target = "FeedbackLedG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_LED"      target = "FeedbackLedG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_LED"                       source = "FeedbackLedG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackDGainG"/>
-        <connection source = "Head.FEEDBACK_D_GAIN"       target = "FeedbackDGainG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_D_GAIN"      target = "FeedbackDGainG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_D_GAIN"                         source = "FeedbackDGainG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackIGainG"/>
-        <connection source = "Head.FEEDBACK_I_GAIN"       target = "FeedbackIGainG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_D_GAIN"      target = "FeedbackIGainG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_I_GAIN"                       source = "FeedbackIGainG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackPGainG"/>
-        <connection source = "Head.FEEDBACK_P_GAIN"       target = "FeedbackPGainG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_P_GAIN"      target = "FeedbackPGainG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_P_GAIN"                        source = "FeedbackPGainG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackGoalPositionG"/>
-        <connection source = "Head.FEEDBACK_GOAL_POSITION"       target = "FeedbackGoalPositionG.INPUT" delay = "1" targetoffset = "@servosIndexHead"   	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_GOAL_POSITION"      target = "FeedbackGoalPositionG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_GOAL_POSITION"                     source = "FeedbackGoalPositionG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackMovingSpeedG"/>
-        <connection source = "Head.FEEDBACK_MOVING_SPEED"       target = "FeedbackMovingSpeedG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_MOVING_SPEED"      target = "FeedbackMovingSpeedG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_MOVING_SPEED"                      source = "FeedbackMovingSpeedG.OUTPUT"/>
-
-    <module class = "Gate" name = "FeedbackTorqueLimitG"/>
-        <connection source = "Head.FEEDBACK_TORQUE_LIMIT"       target = "FeedbackTorqueLimitG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_TORQUE_LIMIT"      target = "FeedbackTorqueLimitG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_TORQUE_LIMIT"                     source = "FeedbackTorqueLimitG.OUTPUT" />
-
     <module class = "Gate" name = "FeedbackPresentPositionRawG"/>
-        <connection source = "Head.FEEDBACK_PRESENT_POSITION"       target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_PRESENT_POSITION"      target = "FeedbackPresentPositionRawG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+        <connection source = "EpiServos.PRESENT_POSITION"       target = "FeedbackPresentPositionRawG.INPUT"  sourceoffset = "0" size = "@nrServosTotal"  delay = "1" />
       
     <module
 		class = "ServoConnector"
@@ -193,8 +146,7 @@
 
         
     <module class = "Gate" name = "FeedbackPresentPositionG"/>
-        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "@servosIndexHead"       targetoffset = "@servosIndexHead"       size = "@nrServosHead"/>
-        <_connection source = "SCFeedbackPosition.OUTPUT"  	target = "DegreesTomm.INPUT"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil"/>
+        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"/>
         
         <!-- Subtract offset for pupil servos -->
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "PupilTommOffset.INPUT1"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil" />
@@ -203,54 +155,13 @@
 
         <connection source = "PupilTommOffset.OUTPUT"  	target = "DegreesTomm.INPUT" delay = "0"/>
 
-        <connection source = "DegreesTomm.OUTPUT"  	        target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "0"	                    targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
+        <connection source = "DegreesTomm.OUTPUT"  	        target = "FeedbackPresentPositionG.INPUT"   sourceoffset = "0"	targetoffset = "@servosIndexPupil"      size = "@nrServosPupil"/>
 
         
-    <output name = "FEEDBACK_PRESENT_POSITION"              source = "FeedbackPresentPositionG.OUTPUT" />
-
-    <module class = "Gate" name = "FeedbackPresentSpeedRawG"/>
-        <connection source = "Head.FEEDBACK_PRESENT_SPEED"       target = "FeedbackPresentSpeedRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_PRESENT_SPEED"      target = "FeedbackPresentSpeedRawG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-   
-    <module class = "ServoConnector" name = "FeedbackPresentSpeed"
-            connector       = " 1 2 3 4 5 6"
-            pre_inverted    = " 1 0 0 0 0 0" 
-            post_inverted   = " 0 0 0 0 0 0" 
-            offset          = " 0 0 0 0 0 0" 
-            output_size     = "@nrServosTotal"
-        />
-        <connection source = "FeedbackPresentSpeedRawG.OUTPUT"      target = "FeedbackPresentSpeed.INPUT" delay = "0" /> 
-    <output name = "FEEDBACK_PRESENT_SPEED"                     source = "FeedbackPresentSpeed.OUTPUT" />
-
-
-    <module class = "Gate" name = "FeedbackPresentLoadRawG"/>
-        <connection source = "Head.FEEDBACK_PRESENT_LOAD"       target = "FeedbackPresentLoadRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_PRESENT_LOAD"      target = "FeedbackPresentLoadRawG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-   
-    <module class = "ServoConnector" name = "FeedbackPresentLoad"
-            connector       = " 1 2 3 4 5 6"
-            pre_inverted    = " 1 0 0 0 0 0" 
-            post_inverted   = " 0 0 0 0 0 0" 
-            offset          = " 0 0 0 0 0 0" 
-            output_size     = "@nrServosTotal"
-        />
-        <connection source = "FeedbackPresentLoadRawG.OUTPUT"      target = "FeedbackPresentLoad.INPUT" delay = "0" /> 
-
-    <output name = "FEEDBACK_PRESENT_LOAD"                     source= "FeedbackPresentLoad.OUTPUT" />
-
-   <module class = "Gate" name = "FeedbackPresentVoltageG"/>
-        <connection source = "Head.FEEDBACK_PRESENT_VOLTAGE"       target = "FeedbackPresentVoltageG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_PRESENT_VOLTAGE"      target = "FeedbackPresentVoltageG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_PRESENT_VOLTAGE"                    source = "FeedbackPresentVoltageG.OUTPUT" />
-
-   <module class = "Gate" name = "FeedbackPresentTemperatureG"/>
-        <connection source = "Head.FEEDBACK_PRESENT_TEMPERATURE"       target = "FeedbackPresentTemperatureG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_PRESENT_TEMPERATURE"      target = "FeedbackPresentTemperatureG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_PRESENT_TEMPERATURE"                     source = "FeedbackPresentTemperatureG.OUTPUT" />
+    <output name = "PRESENT_POSITION"              source = "FeedbackPresentPositionG.OUTPUT" />
 
    <module class = "Gate" name = "FeedbackPresentCurrentRawG"/>
-        <connection source = "Head.FEEDBACK_PRESENT_CURRENT"       target = "FeedbackPresentCurrentRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_PRESENT_CURRENT"      target = "FeedbackPresentCurrentRawG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
+        <connection source = "EpiServos.PRESENT_CURRENT"       target = "FeedbackPresentCurrentRawG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
     
     <module class = "ServoConnector" name = "FeedbackPresentCurrent"
             connector       = " 1 2 3 4 5 6"
@@ -261,29 +172,7 @@
         />
         <connection source = "FeedbackPresentCurrentRawG.OUTPUT"      target = "FeedbackPresentCurrent.INPUT" delay = "0" /> 
 
-    <output name = "FEEDBACK_PRESENT_CURRENT"                    source = "FeedbackPresentCurrent.OUTPUT" />
-
-    <!-- Not used -->
-   <module class = "Gate" name = "FeedbackGoalTorqueG"/>
-        <connection source = "Head.FEEDBACK_GOAL_TORQUE"       target = "FeedbackGoalTorqueG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_GOAL_TORQUE"      target = "FeedbackGoalTorqueG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_GOAL_TORQUE"                      source = "FeedbackGoalTorqueG.OUTPUT" />
-    <!-- Not used -->
-   <module class = "Gate" name = "FeedbackGoalAccelerationG"/>
-        <connection source = "Head.FEEDBACK_GOAL_ACCELERATION"       target = "FeedbackGoalAccelerationG.INPUT" delay = "1" targetoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
-        <connection source = "Pupil.FEEDBACK_GOAL_ACCELERATION"      target = "FeedbackGoalAccelerationG.INPUT" delay = "1" targetoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 
-    <output name = "FEEDBACK_GOAL_ACCELERATION"                      source = "FeedbackGoalAccelerationG.OUTPUT" />
-
-    <!-- Errors Order is important. Add sourceoffset and target offset -->
-     <module class = "Gate" name = "ErrorRawG"/>
-        <connection source = "Pupil.ERRORS"      target = "ErrorRawG.INPUT" delay = "1" /> 
-        <connection source = "Head.ERRORS"       target = "ErrorRawG.INPUT" delay = "1" />
-
-    <output name = "ERRORS"                      source = "ErrorG.OUTPUT" />
-
-	<module class = "DataConverter" name = "ErrorG" output_size_x = "19" output_size_y = "@nrServosTotal"/>
-        <connection source = "ErrorRawG.OUTPUT"   target = "ErrorG.INPUT" delay = "1" />
-	
+    <output name = "PRESENT_CURRENT"                    source = "FeedbackPresentCurrent.OUTPUT" />
 
 <view name="Input/Feedback" >
 	<table  style = "" frame-style = "text-align: center;" colorize = "true" show_title = "true" direction = "flip x/y" height = "461" label_x = "BodyAngle1,NeckTilt,NeckPan,LeftEye,RightEye,PupilLeft,PupilRight,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftArm5,LeftHand,RightArm1,RightArm2,RightArm3,RightArm4,RightArm5,RightHand" show_frame = "false" width = "141" decimals = "1" x = "20" title = "Goal position" source = "GoalPositionG.OUTPUT" y = "40" label_y = "" scrollable = "false"/>
