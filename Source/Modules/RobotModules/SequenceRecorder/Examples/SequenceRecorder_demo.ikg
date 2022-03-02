@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+
+<group title="SequenceRecorder">
+
+        <module
+            class = "Constant"
+            name = "Joints"
+            data = "0.5 0.5"
+        />
+
+		<module
+			class = "SequenceRecorder"
+			name = "SR"
+
+            torque = "0.25 0.25 0.25 0.25"
+            filename = "motions/motion.%d.mot"
+            json_filename = "motions/motion.%d.json"
+            smoothing_time = "0"
+            max_motions="20"
+            _auto_save="yes"
+            _record_on_trig = "true"
+            output_size = "4"
+		/>
+
+<!--
+        <connection  source = "Joints.OUTPUT"  target = "SequenceRecorder.INPUT" />
+-->
+
+
+<view name="View" >
+	<rectangle  y = "400" height = "141" show_frame = "true" x = "20" label = "" background = "" frame_color = "" frame_width = "1" title = "Default Title" width = "881" frame-style = "" show_title = "false" style = "background-color:#eee;"/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "SR.state" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "stop.png" command = "SR.stop" show_title = "false" type = "radio" enableSource = "" style = "" value = "1" x = "40" xindex = "0" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "SR.state" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "play.png" command = "SR.play" show_title = "false" type = "radio" enableSource = "" style = "" value = "1" x = "120" xindex = "1" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "SR.state" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "record.png" command = "SR.record" show_title = "false" type = "radio" enableSource = "" style = "" value = "1" x = "200" xindex = "2" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "SR.state" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "pause.png" command = "SR.pause" show_title = "false" type = "radio" enableSource = "" style = "" value = "1" x = "280" xindex = "3" commandUp = ""/>
+	<text  x = "40" title = "Default Title" width = "181" show_title = "false" parameter = "SR.time" show_frame = "true" strings = "" height = "41" text = "" separator = "" frame-style = "background-color:black;" select_source = "" style = "font-size:36px;color:green;" y = "420" postfix = "" prefix = ""/>
+	<slider-horizontal  y = "360" title = "Sliders" width = "881" height = "41" show_frame = "false" x = "20" parameter = "SR.position" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.00001" show_values = "false" max = "1" show_title = "false" frame-style = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "skip_start.png" command = "SR.skip_start" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "360" xindex = "4" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "skip_end.png" command = "SR.skip_end" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "440" xindex = "5" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "step_forward.png" command = "SR.step_forward" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "620" xindex = "7" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "control" background = "" show_frame = "false" height = "41" label = "Button" parameter = "" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "step_backward.png" command = "SR.step_backward" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "540" xindex = "6" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "" background = "" show_frame = "false" height = "41" label = "Button" parameter = "SR.state" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "repeat.png" command = "SR.repeat" show_title = "false" type = "toggle" enableSource = "" style = "" value = "1" x = "720" xindex = "8" commandUp = ""/>
+	<button  width = "81" color = "" title = "Title" radioGroup = "" background = "" show_frame = "false" height = "41" label = "Button" parameter = "SR.state" valueUp = "0" yindex = "0" y = "480" frame-style = "" icon = "shuffle.png" command = "SR.shuffle" show_title = "false" type = "toggle" enableSource = "" style = "" value = "1" x = "800" xindex = "9" commandUp = ""/>
+	<bar-graph  x = "20" y = "560" style = "" labels = "" height = "181" auto = "false" show_frame = "false" width = "881" lineWidth = "1" lineJoin = "" source = "SR.state" direction = "vertical" lineCap = "" fill = "" max = "1" transpose = "false" color = "" title = "Bar Graph" show_title = "true" frame-style = "" min = "0"/>
+	<button  commandUp = "" xindex = "0" x = "240" value = "1" style = "" enableSource = "" command = "SR.set_start_mark" show_title = "false" icon = "" type = "push" y = "420" frame-style = "" yindex = "0" valueUp = "0" parameter = "" label = "[" height = "41" show_frame = "false" background = "" radioGroup = "" title = "Title" color = "" width = "41"/>
+	<button  commandUp = "" xindex = "0" x = "280" value = "1" style = "" enableSource = "" command = "SR.set_end_mark" show_title = "false" icon = "" type = "push" y = "420" frame-style = "" yindex = "0" valueUp = "0" parameter = "" label = "]" height = "41" show_frame = "false" background = "" radioGroup = "" title = "Title" color = "" width = "41"/>
+	<button  commandUp = "" xindex = "0" x = "320" value = "1" style = "" enableSource = "" command = "SR.crop" show_title = "false" icon = "" type = "push" frame-style = "" y = "420" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "crop" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
+	<key-points  style = "" show_title = "false" frame-style = "" width = "881" mark_end = "SR.mark_end" mark_start = "SR.mark_start" frame_width = "1" title = "Default Title" color = "" background = "" position = "SR.position" label = "" show_frame = "true" height = "321" playhead = "SR.playhead" y = "20" max = "1" fraction = "SR.position" module = "" min = "0" frame_color = "" x = "20"/>
+	<button  commandUp = "" xindex = "0" x = "380" value = "1" style = "" enableSource = "" command = "SR.add_keypoint" show_title = "false" icon = "" type = "push" frame-style = "" y = "420" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "▲" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
+	<button  commandUp = "" xindex = "0" x = "420" value = "1" style = "" enableSource = "" command = "SR.delete_keypoint" show_title = "false" icon = "" type = "push" frame-style = "" y = "420" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "✕" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
+	<text  x = "780" title = "Default Title" width = "101" show_title = "false" parameter = "SR.end_time" show_frame = "false" strings = "" height = "21" text = "" separator = "" frame-style = "" select_source = "" style = "font-size:12px;text-align:right;line-height:20px;" y = "340" postfix = "" prefix = ""/>
+	<button  commandUp = "" xindex = "0" x = "880" value = "1" style = "" enableSource = "" command = "SR.extend_time" show_title = "false" icon = "" type = "push" frame-style = "" y = "340" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "▶︎" height = "21" show_frame = "false" width = "21" color = "" title = "Title" radioGroup = "" background = ""/>
+	<button  commandUp = "" xindex = "0" x = "800" value = "1" style = "" enableSource = "" command = "SR.reduce_time" show_title = "false" icon = "" type = "push" frame-style = "" y = "340" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "◀︎" height = "21" show_frame = "false" width = "21" color = "" title = "Title" radioGroup = "" background = ""/>
+</view>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
+

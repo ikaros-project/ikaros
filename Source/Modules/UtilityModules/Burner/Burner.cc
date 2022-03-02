@@ -29,6 +29,7 @@ void
 Burner::Init()
 {
     Bind(percent, "percent");
+    throttling = GetOutputArray("THROTTLING");
 }
 
 
@@ -36,12 +37,25 @@ Burner::Init()
 void
 Burner::Tick()
 {
+    long long counter = 0;
     Timer timer;
-while(timer.GetTime() < 0.01*percent*GetTickLength())
-    ; // Burn!
+    float tl = GetTickLength();
+    while(timer.GetTime() < 0.01*percent*GetTickLength())
+        counter++; // Burn!
 
+    if(GetTick() < 10)
+        cycle_estimation += counter;
+
+    else if (cycle_estimation > 0)
+    {
+        float th = 1.0 - float(counter) / (0.1*float(cycle_estimation));
+        if(th < 0)
+            th = 0;
+        if(th > 1)
+            th = 1;
+        *throttling = th;
+    }
 }
-
 
 
 static InitClass init("Burner", &Burner::Create, "Source/Modules/UtilityModules/Burner/");

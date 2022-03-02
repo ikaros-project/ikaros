@@ -8,6 +8,8 @@
 
 	<parameter name="percent" type="float" default="50" description="fraction of CPU time to burn" />
 
+	<output name="THROTTLING" size="1" description="estimation of CPU throttling; only works for constant percent starting above 0" />
+
 	<link class="Burner" />
 
 	<author>
@@ -24,3 +26,4 @@
    </files>
 
 </class>
+

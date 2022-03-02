@@ -6,17 +6,14 @@
 		Module that records a sequence of values and saves them into a file.
 	</description>
 
-	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state." />
-	<parameter name="time" type="string" default="00:00:000" description="String representation of the current time." />
-	<parameter name="end_time" type="string" default="00:00:000" description="String representation of the end time." />
-	<parameter name="position" type="float" default="0" description="Position in sequence from 0 to 1." />
-	<parameter name="mark_start" type="float" default="0" description="Position of start mark in sequence from 0 to 1." />
-	<parameter name="end_mark" type="float" default="0" description="Position of end mark in sequence from 0 to 1." />
+	<example description="A simple example">
+		<module
+			class="SequenceRecorder"
+			name="SequenceRecorder"
+            filename="point"
+		/>
+	</example>
 
-
-	<output name="OUTPUT" size="4" description="The output positions" />
-
-<!--
 	<parameter name="positions" type="array" description="Positions of recorder that can be used by for example sliders to control the input." />
 	<parameter name="output_size" type="int" description="Requested output size. Can be larger than connected input." />
 
@@ -52,7 +49,6 @@
 
 	<output name="STATE" description="State is 1 when the module records" size="1" />
 	<output name="TIME" description="Current record or play position" size="1" />
--->
 
 	<link class="SequenceRecorder" />
 
