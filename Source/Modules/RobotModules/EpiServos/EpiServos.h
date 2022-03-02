@@ -65,9 +65,12 @@ public:
     // Ikaros IO
     float * goalPosition;
     float * goalCurrent;    
+    float * torqueEnable;
+
     int goalPositionSize;
     int goalCurrentSize;
-    
+    int torqueEnableSize;
+
     float * presentPosition;
     int presentPositionSize;
     float * presentCurrent;

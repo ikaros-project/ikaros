@@ -5,7 +5,11 @@
 		<module
 			class = "Constant"
 			name = "Goal_position"
-			data = "180 180 180 180 180 180"
+			data = "
+			180 180 180 180     180 180
+			180 180 180 180 180 180
+			180 180 180 180 180 180
+			180"
 		/>
 		
 		<module

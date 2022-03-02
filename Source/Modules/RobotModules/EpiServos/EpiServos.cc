@@ -31,9 +31,9 @@
 using namespace ikaros;
 
 // Dynamixel settings
-#define PROTOCOL_VERSION 2.0            // See which protocol version is used in the Dynamixel
-#define BAUDRATE1M 1000000              // XL-320 is limited to 1Mbit
-#define BAUDRATE3M 3000000              // MX servos
+#define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
+#define BAUDRATE1M 1000000   // XL-320 is limited to 1Mbit
+#define BAUDRATE3M 3000000   // MX servos
 
 // Indirect adress (Goal position)
 #define IND_ADDR_GOAL_POSITION 168
@@ -77,9 +77,8 @@ using namespace ikaros;
 #define HEAD_INDEX_IO 0
 #define PUPIL_INDEX_IO 4
 #define LEFT_ARM_INDEX_IO 6
-#define RIGHT_ARM_INDEX_IO 12 
+#define RIGHT_ARM_INDEX_IO 12
 #define BODY_INDEX_IO 18
-
 
 bool EpiServos::CommunicationPupil()
 {
@@ -527,6 +526,8 @@ void EpiServos::Init()
     Notify(msg_debug, "Connecting to %s (%s)\n", robotName.c_str(), robot[robotName].type.c_str());
 
     // Ikaros input
+
+    io(torqueEnable, torqueEnableSize, "TORQUE_ENABLE");
     io(goalPosition, goalPositionSize, "GOAL_POSITION");
     io(goalCurrent, goalCurrentSize, "GOAL_CURRENT");
 
@@ -662,39 +663,43 @@ void EpiServos::Tick()
 {
     if (simulate)
     {
+        int index = 0;
         Notify(msg_debug, "Simulate servos ´");
-        if (EpiTorsoMode)
-        {
-            // Add dynamic change depending on realtime tick.
-            float maxVel = 45.0 / 1000 * 10; // No timebase
-            if (GetTickLength() != 0)
-                maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
+        float maxVel = 45.0 / 1000 * 10; // No timebase
+        if (GetTickLength() != 0)
+            maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
 
-            int index = 0;
-            for (int i = 2; i <= 7; i++)
-            {
-                presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel);
-                presentCurrent[index] = 0; // mA
-                index++;
-            }
+        for (int i = 0; i < EPI_NR_SERVOS; i++)
+        {
+            if (EpiTorsoMode && i > 5) // skip the last servos when running in Epi torso mode
+                return;
+            printf("Simulate ID %i\n", i);
+            presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel);
+            presentCurrent[index] = 0; // mA
+            index++;
         }
         return;
     }
+    // Todo
+    // 4. Stuatus Return Level.
 
-    if (EpiTorsoMode)
-    {
-        // Todo
-        // 4. Stuatus Return Level.
+    // Avg 32ms s1000 (No threads)
+    auto headThread = std::async(std::launch::async, &EpiServos::CommunicationHead, this);   // 13 ms
+    auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); //  25 ms Head and pupil = 25
+    auto leftArmThread = std::async(std::launch::async, &EpiServos::CommunicationLeftArm, this);
+    auto rightArmThread = std::async(std::launch::async, &EpiServos::CommunicationRightArm, this);
+    auto bodyThread = std::async(std::launch::async, &EpiServos::CommunicationBody, this);
 
-        // Avg 32ms s1000 (No threads)
-        auto headThread = std::async(std::launch::async, &EpiServos::CommunicationHead, this);   // 13 ms
-        auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); //  25 ms Head and pupil = 25
-
-        if (!headThread.get())
-            Notify(msg_fatal_error, "Can not communicate with head serial port");
-        if (!pupilThread.get())
-            Notify(msg_fatal_error, "Can not communicate with pupil serial port");
-    }
+    if (!headThread.get())
+        Notify(msg_fatal_error, "Can not communicate with head serial port");
+    if (!pupilThread.get())
+        Notify(msg_fatal_error, "Can not communicate with puil serial port");
+    if (!leftArmThread.get())
+        Notify(msg_fatal_error, "Can not communicate with head left arm serial port");
+    if (!rightArmThread.get())
+        Notify(msg_fatal_error, "Can not communicate with head right arm serial port");
+    if (!bodyThread.get())
+        Notify(msg_fatal_error, "Can not communicate with head bodyserial port");
 }
 
 // A function that set importat parameters in the control table.
@@ -1926,6 +1931,11 @@ bool EpiServos::PowerOffRobot()
 
 EpiServos::~EpiServos()
 {
+    if (simulate) // no memory to return
+    {
+        return;
+    }
+
     // Torque down
     PowerOffRobot();
 
