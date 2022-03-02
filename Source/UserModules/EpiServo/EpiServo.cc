@@ -31,9 +31,9 @@
 using namespace ikaros;
 
 // Dynamixel settings
-#define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
-#define BAUDRATE1M 1000000   // XL-320 is limited to 1Mbit
-#define BAUDRATE3M 3000000   // MX servos
+#define PROTOCOL_VERSION 2.0            // See which protocol version is used in the Dynamixel
+#define BAUDRATE1M 1000000              // XL-320 is limited to 1Mbit
+#define BAUDRATE3M 3000000              // MX servos
 
 // Indirect adress (Goal position)
 #define IND_ADDR_GOAL_POSITION 168
@@ -77,8 +77,9 @@ using namespace ikaros;
 #define HEAD_INDEX_IO 0
 #define PUPIL_INDEX_IO 4
 #define LEFT_ARM_INDEX_IO 6
-#define RIGHT_ARM_INDEX_IO 13 // NOT CORRECT!!
-#define BODY_INDEX_IO 20
+#define RIGHT_ARM_INDEX_IO 12 
+#define BODY_INDEX_IO 18
+
 
 bool EpiServo::CommunicationPupil()
 {
@@ -683,7 +684,6 @@ void EpiServo::Tick()
     if (EpiTorsoMode)
     {
         // Todo
-        // 3. Clean up code
         // 4. Stuatus Return Level.
 
         // Avg 32ms s1000 (No threads)
