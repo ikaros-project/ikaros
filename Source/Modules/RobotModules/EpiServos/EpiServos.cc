@@ -20,7 +20,7 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-#include "EpiServo.h"
+#include "EpiServos.h"
 
 #include <stdio.h>
 #include <vector> // Data from dynamixel sdk
@@ -1951,4 +1951,4 @@ EpiServos::~EpiServos()
     delete groupSyncReadBody;
     delete groupSyncWritePupil;
 }
-static InitClass init("EpiServos", &EpiServos::Create, "Source/UserModules/EpiServos/");
+static InitClass init("EpiServos", &EpiServos::Create, "Source/Modules/RobotModules/EpiServos/");

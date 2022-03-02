@@ -4,7 +4,6 @@ add_subdirectory(MinimalModule)
 add_subdirectory(MyModule)
 add_subdirectory(MotorControl)
 add_subdirectory(CameraSimulate)
-add_subdirectory(EpiServo)
 
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
