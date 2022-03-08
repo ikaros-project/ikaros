@@ -59,7 +59,22 @@ public:
 
     void        Command(std::string s, float x, float y, std::string value);
 
+    std::string GetJSONData(const std::string & name, const std::string & tab);
+
+    // Current state
+
+    int         channels;
+float *         positions;
+
+float *         output;
+float *         active;
+
+    // Data
+
     json        sequence_data;
+
+    // Control  variables
+
 
     float *     state; // state vector for controls
     Timer       timer;

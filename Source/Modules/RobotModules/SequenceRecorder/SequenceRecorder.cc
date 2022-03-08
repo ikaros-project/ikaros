@@ -52,12 +52,19 @@ SetOutputForTime(float t)
 void
 SequenceRecorder::Init()
 {
+    Bind(channels, "channels");
+    Bind(positions, channels, "positions", true); // parameter size will be set by the value channels
+
+
     Bind(state, 10, "state", true);
     Bind(time_string, "time");
     Bind(end_time_string, "end_time");
     Bind(position, "position");
     Bind(mark_start, "mark_start");
     Bind(mark_end, "mark_end");
+
+    io(output, "OUTPUT");
+    io(active, "ACTIVE");
 
     /*
 
@@ -201,8 +208,6 @@ SequenceRecorder::ReduceTime()
 
 
 
-
-
 void
 SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
@@ -227,6 +232,14 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         ExtendTime();
     else if (s == "reduce_time")
         ReduceTime();
+}
+
+
+
+std::string
+SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
+{
+    return "";
 }
 
 
@@ -282,6 +295,13 @@ SequenceRecorder::Tick()
     {
         mark_start = float(sequence_data["sequences"][0]["start_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);
         mark_end = float(sequence_data["sequences"][0]["end_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);}
+
+    // Set the outputs
+
+    for(int i=0; i<channels; i++)
+    {
+        output[i] = positions[i];
+    }
 }
 
 

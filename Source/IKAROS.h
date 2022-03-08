@@ -287,6 +287,8 @@ public:
 
     virtual void    Store(const char * path);                            // Request data to be stored in directory path
     virtual void    Load(const char * path);                            // Request data to be loaded from directory path
+
+    virtual std::string GetJSONData(const std::string & name, const std::string & tab="");                 // Get JSON string for input, output or parameter, return empty string if data does not exists or not implemented
     
     virtual void    SetSizes();								// Calculate and set the sizes of unknown output arrays    (OVERRIDE IN SUBCLASSES)
     virtual void    Init()

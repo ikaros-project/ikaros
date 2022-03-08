@@ -3,7 +3,7 @@
 <class name="SequenceRecorder" description="records a sequence">
 
 	<description type="text">
-		Module that records a sequence of values and saves them into a file.
+		Module that records or plays a sequence of values. Can load and save from file.
 	</description>
 
 	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state." />
@@ -13,8 +13,11 @@
 	<parameter name="mark_start" type="float" default="0" description="Position of start mark in sequence from 0 to 1." />
 	<parameter name="end_mark" type="float" default="0" description="Position of end mark in sequence from 0 to 1." />
 
+	<parameter name="channels" type="int" default="4" description="The number of channels to record and/or play." />
+	<parameter name="positions" type="array" default="0 0 0 0" description="The number of channels to record and/or playcurrent positions for all chnnels input/output for WebUI" />
 
-	<output name="OUTPUT" size="4" description="The output positions" />
+	<output name="OUTPUT" size_param="channels" description="The output positions" />
+	<output name="ACTIVE" size_param="channels" description="Indicates that the data on the output shoukd be used, for example for torque enable." />
 
 <!--
 	<parameter name="positions" type="array" description="Positions of recorder that can be used by for example sliders to control the input." />
