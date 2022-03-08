@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<group title="MinimalModule Example">
+	
+		<module
+			class = "Constant"
+			name = "Goal_position"
+			data = "
+			180 180 180 180     180 180
+			180 180 180 180 180 180
+			180 180 180 180 180 180
+			180"
+		/>
+		
+		<module
+			class = "Constant"
+			name = "Goal_current"
+			data = "0 0 0 0 0 0"
+
+		/>
+
+		<module
+			class = "EpiServos"
+			name = "EpiServos"
+			log_level = "8"
+			robot = "EpiWhite"
+			simulate = "true"
+		/>
+
+
+        <connection  source = "Goal_position.OUTPUT"  target = "EpiServos.GOAL_POSITION" />
+        <connection  source = "Goal_current.OUTPUT"  target = "EpiServos.GOAL_CURRENT" />
+<view name="View" >
+	<plot  y = "40" width = "1001" title = "Present position" color = "" show_frame = "false" height = "381" x = "40" source = "EpiServos.PRESENT_POSITION" select = "" direction = "vertical" min = "-180" max = "180" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  y = "420" width = "1001" title = "Present current" color = "" show_frame = "false" height = "381" x = "40" source = "EpiServos.PRESENT_CURRENT" select = "" direction = "vertical" min = "-2000" max = "2000" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<slider-horizontal  x = "1040" y = "40" height = "381" show_frame = "false" width = "581" title = "Goal position" parameter = "Goal_position.data" count = "6" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "true" max = "360" show_title = "true" frame-style = ""/>
+	<slider-horizontal  x = "1040" y = "420" height = "381" show_frame = "false" width = "581" title = "Goal current" parameter = "Goal_current.data" count = "6" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "true" max = "360" show_title = "true" frame-style = ""/>
+</view>
+
+
+
+
+
+
+
+
+
+
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

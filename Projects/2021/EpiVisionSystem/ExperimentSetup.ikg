@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- This is the starting point of the experiment -->
 <!-- This is where you import the robot(s) and other specific modules that will be used in the experiment. -->
-<!-- EpiTorsorMinimal settings
+<!-- EpiTorsoMinimal settings
 
 Serial ports (servos):
 Typical:

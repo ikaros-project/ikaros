@@ -53,7 +53,7 @@ class FFMpegGrab
 	// FFmpeg related
 	AVFormatContext *input_format_context;
 	int             videoStreamId;
-	AVCodec         *input_codec;
+	const AVCodec   *input_codec;
 	AVCodecContext  *avctx;
 	AVFrame         *inputFrame;
 	AVFrame         *outputFrame;

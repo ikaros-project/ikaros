@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+
+<class name="EpiServo" description="Robot servo control module">
+
+	<description type="text">
+	This module connects to the Epi robot. The module handles the communication with servoes using Dynaxmiel SDK. 
+	It also stores configuration settings for each robots (serial port names etc.) and uses the appropiate settings depening on the robot parameter. 
+	The module also supports simulation of the servos.
+
+	The robot supports
+		EpiWhite (EpiTorso)
+		EpiBlack (Epi)
+
+	Robot types:
+		EpiTorso has 6 servoes. 
+		Epi has 19 servoes.
+
+	The order of joint (io):	
+		0 = Neck tilt
+		1 = Neck pan
+		2 = Left eye
+		3 = Right eye
+		4 = Pupil left
+		5 = Pupil right
+		6 = Left arm joint 1 (from body)
+		7 = Left arm joint 2 (from body)
+		8 = Left arm joint 3 (from body)
+		9 = Left arm joint 4 (from body)
+		10 = Left arm joint 5 (from body)
+		11 = Left hand
+		12 = Right arm joint 1 (from body)
+		13 = Right arm joint 2 (from body)
+		14 = Right arm joint 3 (from body)
+		15 = Right arm joint 4 (from body)
+		16 = Right arm joint 5 (from body)
+		17 = Right hand
+		18 = Body
+
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="EpiServo"
+			name="EpiServo"
+			robot = "EpiWhite"
+			simulate = "true"
+		/>
+	</example>
+
+
+    <parameter name="robot" type="list" values="EpiWhite/EpiGreen/EpiBlue/EpiBlack" default="EpiWhite" descrition="Robot to connect to." />
+
+	<parameter name="simulate" type="bool" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." />
+
+	<input name="TORQUE_ENABLE" description="Enable motors." />
+	<input name="GOAL_POSITION" description="Goal position of the joints in degrees." />
+	<input name="GOAL_CURRENT" description="Goal current in mA." />
+
+
+	<output name="PRESENT_POSITION" description="Present angle of the joints in degrees." size="19" />
+	<output name="PRESENT_CURRENT" description="Present current (if supported by the servo) in mA." size="19" />
+	<!-- maybe add power output -->
+
+	<link class="EpiServo" />
+
+	<author>
+		<name>Birger Johansson</name>
+		<email>birger.johansson@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+	</author>
+   <limitations>
+		Only mac support.
+   </limitations>
+   <files>
+   		<file>EpiServo.h</file>
+   		<file>EpiServo.cc</file>
+   		<file>EpiServo.ikc</file>
+   </files>
+
+</class>

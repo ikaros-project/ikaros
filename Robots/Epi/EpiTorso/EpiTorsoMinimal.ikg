@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 
-
-
 <group name="Epi" 
 
 servosIndexHead = "0"
@@ -33,7 +31,7 @@ nrServosTotal = "6"
 
 	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->
 	<!-- Feedback from neck and eyes (not pupil)-->
-	<connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "0" size = "2"/>	
+	<connection  source = "Servos.PRESENT_POSITION"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "0" size = "2"/>	
 
 	<!-- Direct eye directions with vergence effect -->
 	<module class = "Constant" name = "EyesDirection"	data = "0" />
@@ -89,9 +87,6 @@ nrServosTotal = "6"
 	<!-- but more parameters can be controlled on the servoes. -->
 	<!-- The servo used is Dynamixel XL-320 for the pupil dilation, RX28F for Eyes and MX106 for neck -->
 
-	<!-- Set torque limit of the servos. Setting value to 1 will use the most torque but the motion may be gerky. Often a lower value is better. -->
-	<module class = "Constant" name = "SERVO_TORQUE_LIMIT"	data = "0.8 0.8 0.8 0.8 0.8 0.8" />
-
 	<!-- 			Sensors		 			-->
 	<!-- ********************************* 	-->
 	<!-- ********************************* 	-->
@@ -102,8 +97,7 @@ nrServosTotal = "6"
 	<module class = "EpiVision" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg" 	VisionInput = "@VisionInputRight"/>
 
 	<!-- Actuators/Proprioception -->
-	<module class = "EpiServos" 	name = "Servos" />
-		<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
+	<module class = "EpiMotor" 	name = "Servos" />
 
 	<!-- 			Sound		 			-->
 	<!-- ********************************* 	-->

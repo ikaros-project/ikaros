@@ -1876,7 +1876,7 @@ Module::Notify(int msg, const char *format, ...)
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
-    if(kernel != NULL && msg>=log_level)
+    if(kernel != NULL && msg<=log_level)
         return kernel->Notify(-msg, message);
     else if(msg == msg_fatal_error)
     {

@@ -2,6 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(ActionCompetition)
 add_subdirectory(Dynamixel)
+add_subdirectory(EpiServos)
 add_subdirectory(Epuck)
 add_subdirectory(FadeCandy)
 add_subdirectory(GazeController)
