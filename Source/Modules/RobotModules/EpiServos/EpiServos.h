@@ -28,6 +28,60 @@
 
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
+// Dynamixel settings
+#define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
+#define BAUDRATE1M 1000000   // XL-320 is limited to 1Mbit
+#define BAUDRATE3M 3000000   // MX servos
+
+// Indirect adress
+#define IND_ADDR_TORQUE_ENABLE 168
+#define ADDR_TORQUE_ENABLE 64
+#define IND_ADDR_GOAL_POSITION 170
+#define ADDR_GOAL_POSITION 116
+#define IND_ADDR_GOAL_CURRENT 178
+#define ADDR_GOAL_CURRENT 102
+#define IND_ADDR_PRESENT_POSITION 578
+#define ADDR_PRESENT_POSITION 132
+#define IND_ADDR_PRESENT_CURRENT 586
+#define ADDR_PRESENT_CURRENT 128
+#define IND_ADDR_PRESENT_TEMPERATURE 590
+#define ADDR_PRESENT_TEMPERATURE 146
+
+// Common for the 2.0 (not XL320)
+#define ADDR_PROFILE_ACCELERATION 108
+#define ADDR_PROFILE_VELOCITY 112
+#define ADDR_P 84
+#define ADDR_I 82
+#define ADDR_D 80
+
+// ID of each dynamixel chain.
+#define HEAD_ID_MIN 2
+#define HEAD_ID_MAX 5
+
+#define ARM_ID_MIN 2
+#define ARM_ID_MAX 7
+
+#define BODY_ID_MIN 2
+#define BODY_ID_MAX 2
+
+#define PUPIL_ID_MIN 2
+#define PUPIL_ID_MAX 3
+
+#define EPI_TORSO_NR_SERVOS 6
+#define EPI_NR_SERVOS 19
+
+#define TIMER_POWER_ON 2000
+#define TIMER_POWER_OFF 2000          // Timer ramping down
+#define TIMER_POWER_OFF_EXTENDED 1000 // Timer until torque enable off
+
+#define HEAD_INDEX_IO 0
+#define PUPIL_INDEX_IO 4
+#define LEFT_ARM_INDEX_IO 6
+#define RIGHT_ARM_INDEX_IO 12
+#define BODY_INDEX_IO 18
+
+#define MAX_TEMPERATURE 55
+
 typedef struct
 {   
     std::string serialPortPupil; 
