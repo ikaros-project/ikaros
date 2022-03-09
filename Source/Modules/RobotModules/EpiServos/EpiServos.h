@@ -169,6 +169,8 @@ public:
     bool CommunicationBody();
     bool CommunicationRightArm();
     
+    bool PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
+
     bool PowerOnHead();
     bool PowerOnPupil();
     bool PowerOnLeftArm();

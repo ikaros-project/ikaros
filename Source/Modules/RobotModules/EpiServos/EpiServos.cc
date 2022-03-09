@@ -1177,6 +1177,52 @@ bool EpiServos::SetDefaultSettingServo()
     return true; // Yay we manage to set everything we needed.
 }
 
+bool EpiServos::PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler)
+{
+    Timer t;
+    //int IDMin = HEAD_ID_MIN;
+    const int nrOfServos = IDMax - IDMin + 1;
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    uint8_t dxl_error = 0;              // Dynamixel error
+    uint16_t start_p_value[4] = {0, 0, 0, 0};
+    uint32_t present_postition_value[4] = {0, 0, 0, 0};
+
+    // Get P values
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, IDMin + i, 84, &start_p_value[i], &dxl_error))
+            return false;
+    // Set P value to 0
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, IDMin + i, 84, 0, &dxl_error))
+            return false;
+    // Set torque value to 1
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, IDMin + i, 64, 1, &dxl_error))
+            return false;
+    Notify(msg_debug, "Power up servos (Head)");
+    while (t.GetTime() < TIMER_POWER_ON)
+    {
+        // Get present position
+        for (int i = 0; i < nrOfServos; i++)
+            if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, IDMin + i, 132, &present_postition_value[i], &dxl_error))
+                return false;
+        // Set goal position to present postiion
+        for (int i = 0; i < nrOfServos; i++)
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, IDMin + i, 116, present_postition_value[i], &dxl_error))
+                return false;
+        // Ramping down P
+        for (int i = 0; i < nrOfServos; i++)
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, IDMin + i, 84, int(float(start_p_value[i]) / float(TIMER_POWER_ON) * t.GetTime()), &dxl_error))
+                return false;
+    }
+    // Set P value to start value
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, IDMin + i, 84, start_p_value[i], &dxl_error))
+            return false;
+
+    return true;
+}
+
 bool EpiServos::PowerOnHead()
 {
     Timer t;
@@ -1523,11 +1569,17 @@ bool EpiServos::PowerOnBody()
 
 bool EpiServos::PowerOnRobot()
 {
-    auto headThread = std::async(std::launch::async, &EpiServos::PowerOnHead, this);
-    auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOnPupil, this);
-    auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOnLeftArm, this);
-    auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOnRightArm, this);
-    auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOnBody, this);
+    auto headThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 4, std::ref(portHandlerHead), std::ref(packetHandlerHead));
+    auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 3, std::ref(portHandlerPupil), std::ref(packetHandlerPupil));
+    auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 7, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
+    auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 7, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
+    auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 2, std::ref(portHandlerBody), std::ref(packetHandlerBody));
+
+    //auto headThread = std::async(std::launch::async, &EpiServos::PowerOnHead, this);
+    //auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOnPupil, this);
+    //auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOnLeftArm, this);
+    //auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOnRightArm, this);
+   // auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOnBody, this);
 
     if (!headThread.get())
         Notify(msg_fatal_error, "Can not communicate with head serial port");
@@ -1564,8 +1616,8 @@ bool EpiServos::PowerOffHead()
     uint32_t present_postition_value[nrOfServos] = {0, 0, 0, 0};
 
     // Get P values
-    for (int i = 0; i < HEAD_NR_SERVOS; i++)
-        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, HEAD_ID_MIN + i, 84, &start_p_value[i], &dxl_error))
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, IDMin + i, 84, &start_p_value[i], &dxl_error))
             return false;
     t.Reset();
     Notify(msg_warning, "Power off servos. If needed, support the robot while power off the servos");
