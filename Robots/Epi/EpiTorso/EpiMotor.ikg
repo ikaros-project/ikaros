@@ -88,7 +88,7 @@
         name = "EpiServos"
         log_level = "8"
         robot = "EpiWhite"
-        simulate = "true"
+        simulate = "false"
     />
     <!-- <module 
         class           = "@HeadDynamixel" 
@@ -146,7 +146,7 @@
 
         
     <module class = "Gate" name = "FeedbackPresentPositionG"/>
-        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT"/>
+        <connection source = "SCFeedbackPosition.OUTPUT"  	target = "FeedbackPresentPositionG.INPUT" sourceoffset = "@servosIndexHead"	targetoffset = "@servosIndexHead"      size = "@nrServosHead"/> 
         
         <!-- Subtract offset for pupil servos -->
         <connection source = "SCFeedbackPosition.OUTPUT"  	target = "PupilTommOffset.INPUT1"                sourceoffset = "@servosIndexPupil"      targetoffset = "0"                      size = "@nrServosPupil" />
