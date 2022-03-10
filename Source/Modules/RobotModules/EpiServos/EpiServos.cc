@@ -1180,7 +1180,6 @@ bool EpiServos::SetDefaultSettingServo()
 bool EpiServos::PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler)
 {
     Timer t;
-    //int IDMin = HEAD_ID_MIN;
     const int nrOfServos = IDMax - IDMin + 1;
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
     uint8_t dxl_error = 0;              // Dynamixel error
@@ -1570,7 +1569,7 @@ bool EpiServos::PowerOnBody()
 bool EpiServos::PowerOnRobot()
 {
     auto headThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 4, std::ref(portHandlerHead), std::ref(packetHandlerHead));
-    auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 3, std::ref(portHandlerPupil), std::ref(packetHandlerPupil));
+    auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOnPupil, this);
     auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 7, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
     auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 7, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
     auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOn, this, 2, 2, std::ref(portHandlerBody), std::ref(packetHandlerBody));
