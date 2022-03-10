@@ -163,6 +163,8 @@ public:
 
 
     // Functions for each serial port (used to threading´)
+    bool Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex);
+
     bool CommunicationHead();
     bool CommunicationPupil();
     bool CommunicationLeftArm();
@@ -176,6 +178,8 @@ public:
     bool PowerOnLeftArm();
     bool PowerOnRightArm();
     bool PowerOnBody();
+
+    bool PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
 
     bool PowerOffHead();
     bool PowerOffPupil();

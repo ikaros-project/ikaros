@@ -86,6 +86,119 @@ bool EpiServos::CommunicationPupil()
     }
     return (true);
 }
+
+bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex)
+{
+    Notify(msg_debug, "Comunication");
+
+    int index = 0;
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    bool dxl_addparam_result = false;   // addParam result
+    bool dxl_getdata_result = false;    // GetParam result
+
+    uint8_t dxl_error = 0;       // Dynamixel error
+    uint8_t param_sync_write[7]; // 7 byte sync write is not supported for the DynamixelSDK
+
+    int32_t dxl_present_position = 0;
+    int16_t dxl_present_current = 0;
+    int8_t dxl_present_temperature = 0;
+
+    // Add if for syncread
+    for (int i = IDMin; i <= IDMax; i++)
+        if (!groupSyncReadHead->addParam(i))
+            Notify(msg_fatal_error, "[ID:%03d] groupSyncRead addparam failed", i);
+
+    // Sync read
+    dxl_comm_result = groupSyncReadHead->txRxPacket();
+    // dxl_comm_result = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated.
+
+    if (dxl_comm_result != COMM_SUCCESS)
+        Notify(msg_fatal_error, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+    // Check if data is available
+    for (int i = IDMin; i <= IDMax; i++)
+    {
+        dxl_comm_result = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
+        if (dxl_comm_result != true)
+            Notify(msg_fatal_error, "[ID:%03d] groupSyncRead getdata failed", i);
+        // fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", i);
+    }
+
+    // Extract data
+    index = IOIndex;
+    for (int i = IDMin; i <= IDMax; i++)
+    {
+        dxl_present_position = groupSyncReadHead->getData(i, 634, 4);    // Present postiion
+        dxl_present_current = groupSyncReadHead->getData(i, 638, 2);     // Present current
+        dxl_present_temperature = groupSyncReadHead->getData(i, 640, 1); // Present temperature
+        // Fill IO
+        presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
+        presentCurrent[index] = dxl_present_current * 3.36;             // mA
+        // Check temp
+        if (dxl_present_temperature > MAX_TEMPERATURE)
+            Notify(msg_fatal_error, "Temperature over limit %i degrees (id %i)\n", dxl_present_temperature, i);
+        index++;
+    }
+
+    // Send (sync write)
+    index = IOIndex;
+    for (int i = IDMin; i <= IDMax; i++)
+    {
+        // We always write torque enable. If no input use torque enable = 1
+        if (torqueEnable)
+            param_sync_write[0] = (uint8_t)torqueEnable[index];
+        else
+            param_sync_write[0] = 1; // Torque on
+
+        // If no goal position input is connected send present position
+        if (goalPosition)
+        {
+            int value = goalPosition[index] / 360.0 * 4096.0;
+            param_sync_write[1] = DXL_LOBYTE(DXL_LOWORD(value));
+            param_sync_write[2] = DXL_HIBYTE(DXL_LOWORD(value));
+            param_sync_write[3] = DXL_LOBYTE(DXL_HIWORD(value));
+            param_sync_write[4] = DXL_HIBYTE(DXL_HIWORD(value));
+        }
+        else
+        {
+            Notify(msg_fatal_error, "Running module without a goal position input is not supported.");
+            return false;
+        }
+
+        if (goalCurrent)
+        {
+            // Goal current is not available on MX28 writing
+            int value = goalCurrent[index] / 3.36;
+            param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
+            param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
+        }
+        else
+        {
+            int value = 2047.0 / 3.36;
+            param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
+            param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
+        }
+        dxl_addparam_result = groupSyncWriteHead->addParam(i, param_sync_write, 7);
+
+        if (dxl_addparam_result != true)
+            Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
+
+        index++;
+    }
+
+    // Syncwrite
+    dxl_comm_result = groupSyncWriteHead->txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+        Notify(msg_fatal_error, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+    // Clear syncwrite parameter storage
+    groupSyncWriteHead->clearParam();
+    groupSyncReadHead->clearParam();
+
+    return (true);
+}
+
+
 bool EpiServos::CommunicationHead()
 {
     Notify(msg_debug, "Comunication Head");
@@ -793,11 +906,18 @@ void EpiServos::Tick()
     }
 
     // Avg 32ms s1000 (No threads)
-    auto headThread = std::async(std::launch::async, &EpiServos::CommunicationHead, this);   // 13 ms
-    auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); //  25 ms Head and pupil = 25
-    auto leftArmThread = std::async(std::launch::async, &EpiServos::CommunicationLeftArm, this);
-    auto rightArmThread = std::async(std::launch::async, &EpiServos::CommunicationRightArm, this);
+    // auto headThread = std::async(std::launch::async, &EpiServos::CommunicationHead, this);   // 13 ms
+    // auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); //  25 ms Head and pupil = 25
+    // auto leftArmThread = std::async(std::launch::async, &EpiServos::CommunicationLeftArm, this);
+    // auto rightArmThread = std::async(std::launch::async, &EpiServos::CommunicationRightArm, this);
+    // auto bodyThread = std::async(std::launch::async, &EpiServos::CommunicationBody, this);
+
+    auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, 2, 4, std::ref(portHandlerHead), std::ref(packetHandlerHead), HEAD_INDEX_IO);
+    auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this);
+    auto leftArmThread = std::async(std::launch::async, &EpiServos::Communication, this, 2, 7, std::ref(portHandlerHead), std::ref(packetHandlerHead), LEFT_ARM_INDEX_IO);
+    auto rightArmThread = std::async(std::launch::async, &EpiServos::Communication, this, 2, 7, std::ref(portHandlerHead), std::ref(packetHandlerHead), RIGHT_ARM_INDEX_IO);
     auto bodyThread = std::async(std::launch::async, &EpiServos::CommunicationBody, this);
+
 
     if (!headThread.get())
         Notify(msg_fatal_error, "Can not communicate with head serial port");
@@ -1589,7 +1709,7 @@ bool EpiServos::PowerOnRobot()
     if (!rightArmThread.get())
         Notify(msg_fatal_error, "Can not communicate with head right arm serial port");
     if (!bodyThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head bodyserial port");
+        Notify(msg_fatal_error, "Can not communicate with head body serial port");
 
     // Trying to torque up the power of the servos.
     // Dynamixel protocel 2.0
@@ -1600,6 +1720,52 @@ bool EpiServos::PowerOnRobot()
     // 2. Set goal poistion to present position
     // 3. Increase current or P (PID)
     // 4. Repeat 2,3 for 2 seconds.
+
+    return true;
+}
+
+bool EpiServos::PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler)
+{
+    Timer t;
+    const int nrOfServos = IDMax - IDMin + 1;
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    uint8_t dxl_error = 0;              // Dynamixel error
+    uint16_t start_p_value[4] = {0, 0, 0, 0};
+    uint32_t present_postition_value[4] = {0, 0, 0, 0};
+
+    // Get P values
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandler->read2ByteTxRx(portHandler, IDMin + i, 84, &start_p_value[i], &dxl_error))
+            return false;
+    t.Reset();
+    Notify(msg_warning, "Power off servos. If needed, support the robot while power off the servos");
+
+    // Ramp down p value
+    while (t.GetTime() < TIMER_POWER_OFF)
+        for (int i = 0; i < nrOfServos; i++)
+            if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, int(float(start_p_value[i]) * (float(TIMER_POWER_OFF) - t.GetTime()) / float(TIMER_POWER_OFF)), &dxl_error))
+                return false;
+    // Get present position
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandler->read4ByteTxRx(portHandler, IDMin + i, 132, &present_postition_value[i], &dxl_error))
+            return false;
+    // Set goal position to present postiion
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandler->write4ByteTxRx(portHandler, IDMin + i, 116, present_postition_value[i], &dxl_error))
+            return false;
+
+    t.Restart();
+    t.Sleep(TIMER_POWER_OFF_EXTENDED);
+
+    // Enable torque off
+    Notify(msg_debug, "Enable torque (Arm)");
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandler->write1ByteTxRx(portHandler, IDMin + i, 64, 1, &dxl_error))
+            return false;
+    // Set P value to start value
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, start_p_value[i], &dxl_error))
+            return false;
 
     return true;
 }
@@ -1951,23 +2117,23 @@ bool EpiServos::PowerOffBody()
 
 bool EpiServos::PowerOffRobot()
 {
-    // We need to take care of return value...
-    auto headThread = std::async(std::launch::async, &EpiServos::PowerOffHead, this);
+
+    auto headThread = std::async(std::launch::async, &EpiServos::PowerOff, this, 2, 4, std::ref(portHandlerHead), std::ref(packetHandlerHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOffPupil, this);
-    auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOffLeftArm, this);
-    auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOffRightArm, this);
+    auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOff, this, 2, 7, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
+    auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOff, this, 2, 7, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
     auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOffBody, this);
 
     if (!headThread.get())
         Notify(msg_fatal_error, "Can not communicate with head serial port");
     if (!pupilThread.get())
-        Notify(msg_fatal_error, "Can not communicate with pupil serial port");
+        Notify(msg_fatal_error, "Can not communicate with puil serial port");
     if (!leftArmThread.get())
         Notify(msg_fatal_error, "Can not communicate with head left arm serial port");
     if (!rightArmThread.get())
         Notify(msg_fatal_error, "Can not communicate with head right arm serial port");
     if (!bodyThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head bodyserial port");
+        Notify(msg_fatal_error, "Can not communicate with head body serial port");
 
     // Power down servos.
     // 1. Store P (PID) value
