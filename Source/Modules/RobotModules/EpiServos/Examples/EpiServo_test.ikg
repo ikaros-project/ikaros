@@ -37,7 +37,7 @@
 			simulate = "false"
 		/>
 
-        <connection  source = "Torque_enable.OUTPUT"  target = "EpiServos.TORQUE_ENABLE" />
+        <_connection  source = "Torque_enable.OUTPUT"  target = "EpiServos.TORQUE_ENABLE" />
         <connection  source = "Goal_position.OUTPUT"  target = "EpiServos.GOAL_POSITION" />
         <_connection  source = "Goal_current.OUTPUT"  target = "EpiServos.GOAL_CURRENT" />
 
