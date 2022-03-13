@@ -3846,7 +3846,7 @@ std::string root = head(data, "#");
             // Use data from module function if available
             auto module_source = rsplit(source, ".", 1);
             auto m = main_group->GetModule(module_source.at(0).c_str());
-            auto json_data = m ? m->GetJSONData(module_source.at(1)) : "";
+            auto json_data = m ? m->GetJSONData(module_source.at(1)) : ""; // FIXME: Use this function for all data
 
             if(!json_data.empty())
             {
