@@ -60,12 +60,17 @@ public:
     void        Command(std::string s, float x, float y, std::string value);
 
     std::string GetJSONData(const std::string & name, const std::string & tab);
+    void        SetTargetForTime(float t);
 
     // Current state
 
     int         channels;
+
 float *         positions;
 
+float           smoothing_time;
+float *         smoothing_start;
+float *         target;
 float *         output;
 float *         active;
 

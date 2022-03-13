@@ -41,10 +41,62 @@ make_timestamp(float t)
 
 
 
-void
-SetOutputForTime(float t)
+float
+interpolate(float t, float t1, float t2, float p1, float p2) // linear interpolation
 {
+    float alpha = (t-t1) / (t2-t1);
+    return p1 + alpha*(p2-p1);
+}
 
+
+
+void
+SequenceRecorder::SetTargetForTime(float t)
+{
+    int n = sequence_data["sequences"][0]["keypoints"].size();
+
+    if(n < 1)
+        return; // FIXME: How should the output be set in this case - to input or to last output?
+
+    // Check start of sequence
+
+    float t0 = sequence_data["sequences"][0]["keypoints"][0]["time"];
+    if(t <= t0)
+    {
+        for(int i=0; i<channels; i++)
+            target[i] = sequence_data["sequences"][0]["keypoints"][0]["point"][i];
+        return;
+    }
+
+    // Check end of sequence
+
+    float tn_1 = sequence_data["sequences"][0]["keypoints"][n-1]["time"];
+    if(t >= tn_1)
+    {
+        for(int i=0; i<channels; i++)
+            target[i] = sequence_data["sequences"][0]["keypoints"][n-1]["point"][i];
+        return;
+    }
+
+    // Find intermediate points and linearly interpolate - basic version
+
+    for(int i=0; i<n-1; i++)
+    {
+        float t1 = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        float t2 = sequence_data["sequences"][0]["keypoints"][i+1]["time"];
+        if(t1 < t && t < t2)
+        {
+
+            for(int c=0; c<channels; c++)
+            {
+                float p1 = sequence_data["sequences"][0]["keypoints"][i]["point"][c];
+                float p2 = sequence_data["sequences"][0]["keypoints"][i+1]["point"][c];
+                printf("SEGMENT: %d: %.0f %.0f %.0f::: %.0f %.0f\n", i, t1, t, t2, p1, p2);
+                target[c] = interpolate(t, t1, t2, p1, p2);
+            }
+            return;
+        }
+    }
 }
 
 
@@ -55,7 +107,7 @@ SequenceRecorder::Init()
     Bind(channels, "channels");
     Bind(positions, channels, "positions", true); // parameter size will be set by the value channels
 
-
+    Bind(smoothing_time, "smoothing_time");
     Bind(state, 10, "state", true);
     Bind(time_string, "time");
     Bind(end_time_string, "end_time");
@@ -63,8 +115,10 @@ SequenceRecorder::Init()
     Bind(mark_start, "mark_start");
     Bind(mark_end, "mark_end");
 
+    io(target, "TARGET");
     io(output, "OUTPUT");
     io(active, "ACTIVE");
+    io(smoothing_start,"SMOOTHING_START");
 
     /*
 
@@ -190,7 +244,7 @@ SequenceRecorder::SetEndMark()
 
 
 void
-SequenceRecorder::ExtendTime() // ass one second to the end of the sequence
+SequenceRecorder::ExtendTime() // add one second to the end of the sequence
 {
     float end_time = sequence_data["sequences"][0]["end_time"];
     sequence_data["sequences"][0]["end_time"] = 1000.0f+1000*int(0.001*end_time);
@@ -239,7 +293,14 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 std::string
 SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 {
-    return "";
+    if(name=="RANGES")
+        return sequence_data["ranges"].dump();
+
+    else if(name=="SEQUENCE")
+        return sequence_data["sequences"][0].dump();
+
+    else
+        return "";
 }
 
 
@@ -298,9 +359,13 @@ SequenceRecorder::Tick()
 
     // Set the outputs
 
+    SetTargetForTime(t);
+
+    // FIXME: Add smoothing here
     for(int i=0; i<channels; i++)
     {
-        output[i] = positions[i];
+        output[i] = target[i];
+        active[i] = 1;
     }
 }
 

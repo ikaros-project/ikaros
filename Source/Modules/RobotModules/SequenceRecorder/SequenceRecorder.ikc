@@ -3,9 +3,10 @@
 <class name="SequenceRecorder" description="records a sequence">
 
 	<description type="text">
-		Module that records or plays a sequence of values. Can load and save from file.
+		Module that records or plays a sequence of values.
 	</description>
 
+   	<parameter name="smoothing_time" type="float" default="200" description="Number of milliseconds to smooth the output position." />
 	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state." />
 	<parameter name="time" type="string" default="00:00:000" description="String representation of the current time." />
 	<parameter name="end_time" type="string" default="00:00:000" description="String representation of the end time." />
@@ -14,10 +15,15 @@
 	<parameter name="end_mark" type="float" default="0" description="Position of end mark in sequence from 0 to 1." />
 
 	<parameter name="channels" type="int" default="4" description="The number of channels to record and/or play." />
-	<parameter name="positions" type="array" default="0 0 0 0" description="The number of channels to record and/or playcurrent positions for all chnnels input/output for WebUI" />
+	<parameter name="positions" type="array" default="0 0 0 0" description="Current positions for all channels; input/output for WebUI" />
 
-	<output name="OUTPUT" size_param="channels" description="The output positions" />
-	<output name="ACTIVE" size_param="channels" description="Indicates that the data on the output shoukd be used, for example for torque enable." />
+	<output name="SMOOTHING_START" size_param="channels" description="Sposition to smooth from. Used only for debugging." />
+
+	<output name="TARGET" size_param="channels" description="The target positions or the interpolated keypoint positions that the output moves towards" />
+	<output name="OUTPUT" size_param="channels" description="The current output positions" />
+	<output name="ACTIVE" size_param="channels" description="Indicates that the data on the output should be used, for example for torque enable." />
+
+
 
 <!--
 	<parameter name="positions" type="array" description="Positions of recorder that can be used by for example sliders to control the input." />
