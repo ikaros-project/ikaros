@@ -1,6 +1,6 @@
 //
 //	EpiServos.h		This file is a part of the IKAROS project
-// 						
+//
 //    Copyright (C) 2012 <Author Name>
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,6 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-
 
 #ifndef EpiServo_
 #define EpiServo_
@@ -83,8 +82,8 @@
 #define MAX_TEMPERATURE 55
 
 typedef struct
-{   
-    std::string serialPortPupil; 
+{
+    std::string serialPortPupil;
     std::string serialPortHead;
     std::string serialPortBody;
     std::string serialPortLeftArm;
@@ -96,98 +95,79 @@ typedef struct
 #include <map>
 #include <iostream>
 
-
-class EpiServos: public Module
+class EpiServos : public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new EpiServos(p); }
+    static Module *Create(Parameter *p) { return new EpiServos(p); }
 
-    EpiServos(Parameter * p) : Module(p) {}
+    EpiServos(Parameter *p) : Module(p) {}
     virtual ~EpiServos();
 
-    void 		Init();
-    void 		Tick();
+    void Init();
+    void Tick();
 
-    bool        SetDefaultSettingServo();
-    bool        PowerOnRobot();
-    bool        PowerOffRobot();
+    bool SetDefaultSettingServo();
+    bool PowerOnRobot();
+    bool PowerOffRobot();
 
     // Paramteters
     int robotType = 0;
     bool simulate = false;
 
     // Ikaros IO
-    float * goalPosition;
-    float * goalCurrent;    
-    float * torqueEnable;
+    float *goalPosition;
+    float *goalCurrent;
+    float *torqueEnable;
 
     int goalPositionSize;
     int goalCurrentSize;
     int torqueEnableSize;
 
-    float * presentPosition;
+    float *presentPosition;
     int presentPositionSize;
-    float * presentCurrent;
+    float *presentCurrent;
     int presentCurrentSize;
-    
+
     bool EpiTorsoMode = false;
     bool EpiMode = false;
 
     dynamixel::PortHandler *portHandlerHead;
     dynamixel::PacketHandler *packetHandlerHead;
     dynamixel::GroupSyncRead *groupSyncReadHead;
-    dynamixel::GroupSyncWrite * groupSyncWriteHead;
+    dynamixel::GroupSyncWrite *groupSyncWriteHead;
 
     dynamixel::PortHandler *portHandlerPupil;
     dynamixel::PacketHandler *packetHandlerPupil;
     dynamixel::GroupSyncRead *groupSyncReadPupil;
-    dynamixel::GroupSyncWrite * groupSyncWritePupil;
+    dynamixel::GroupSyncWrite *groupSyncWritePupil;
 
     dynamixel::PortHandler *portHandlerLeftArm;
     dynamixel::PacketHandler *packetHandlerLeftArm;
     dynamixel::GroupSyncRead *groupSyncReadLeftArm;
-    dynamixel::GroupSyncWrite * groupSyncWriteLeftArm;
+    dynamixel::GroupSyncWrite *groupSyncWriteLeftArm;
 
     dynamixel::PortHandler *portHandlerRightArm;
     dynamixel::PacketHandler *packetHandlerRightArm;
     dynamixel::GroupSyncRead *groupSyncReadRightArm;
-    dynamixel::GroupSyncWrite * groupSyncWriteRightArm;
+    dynamixel::GroupSyncWrite *groupSyncWriteRightArm;
 
     dynamixel::PortHandler *portHandlerBody;
     dynamixel::PacketHandler *packetHandlerBody;
     dynamixel::GroupSyncRead *groupSyncReadBody;
-    dynamixel::GroupSyncWrite * groupSyncWriteBody;
+    dynamixel::GroupSyncWrite *groupSyncWriteBody;
 
     std::string robotName;
-    std::map<std::string,Robot_parameters> robot;
+    std::map<std::string, Robot_parameters> robot;
 
-
-    // Functions for each serial port (used to threading´)
+    // Functions for each serial port (used to threading)
     bool Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex);
-
-    bool CommunicationHead();
     bool CommunicationPupil();
-    bool CommunicationLeftArm();
-    bool CommunicationBody();
-    bool CommunicationRightArm();
-    
-    bool PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
 
-    bool PowerOnHead();
+    bool PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
     bool PowerOnPupil();
-    bool PowerOnLeftArm();
-    bool PowerOnRightArm();
-    bool PowerOnBody();
 
     bool PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
-
-    bool PowerOffHead();
     bool PowerOffPupil();
-    bool PowerOffLeftArm();
-    bool PowerOffRightArm();
-    bool PowerOffBody();
-
 };
 
 #endif
-

@@ -104,8 +104,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
     bool dxl_addparam_result = false;   // addParam result
     bool dxl_getdata_result = false;    // GetParam result
 
-    uint8_t dxl_error = 0;       // Dynamixel error
-    uint8_t param_sync_write[7]; // 7 byte sync write is not supported for the DynamixelSDK
+    uint8_t dxl_error = 0;              // Dynamixel error
+    uint8_t param_sync_write[7];        // 7 byte sync write is not supported for the DynamixelSDK
 
     int32_t dxl_present_position = 0;
     int16_t dxl_present_current = 0;
@@ -543,15 +543,15 @@ void EpiServos::Tick()
     auto rightArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), RIGHT_ARM_INDEX_IO);
     auto bodyThread = std::async(std::launch::async, &EpiServos::Communication, this, BODY_ID_MIN, BODY_ID_MIN, std::ref(portHandlerBody), std::ref(packetHandlerBody), RIGHT_ARM_INDEX_IO);
     if (!headThread.get())
-        Notify(msg_warning, "Can not communicate with head serial port");
+        Notify(msg_warning, "Can not communicate with head");
     if (!pupilThread.get())
-        Notify(msg_warning, "Can not communicate with puil serial port");
+        Notify(msg_warning, "Can not communicate with puil");
     if (!leftArmThread.get())
-        Notify(msg_warning, "Can not communicate with head left arm serial port");
+        Notify(msg_warning, "Can not communicate with left arm");
     if (!rightArmThread.get())
-        Notify(msg_warning, "Can not communicate with head right arm serial port");
+        Notify(msg_warning, "Can not communicate with right arm");
     if (!bodyThread.get())
-        Notify(msg_warning, "Can not communicate with head bodyserial port");
+        Notify(msg_warning, "Can not communicate with body");
 }
 
 // A function that set importat parameters in the control table.
@@ -900,6 +900,8 @@ bool EpiServos::PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandle
     if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
         return true;
 
+    Notify(msg_debug, "Power on servos");
+
     Timer t;
     const int nrOfServos = IDMax - IDMin + 1;
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
@@ -919,7 +921,6 @@ bool EpiServos::PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandle
     for (int i = 0; i < nrOfServos; i++)
         if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, IDMin + i, 64, 1, &dxl_error))
             return false;
-    Notify(msg_debug, "Power up servos (Head)");
     while (t.GetTime() < TIMER_POWER_ON)
     {
         // Get present position
@@ -974,15 +975,15 @@ bool EpiServos::PowerOnRobot()
     auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOn, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
 
     if (!headThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head serial port");
+        Notify(msg_fatal_error, "Can not power on head");
     if (!pupilThread.get())
-        Notify(msg_fatal_error, "Can not communicate with puil serial port");
+        Notify(msg_fatal_error, "Can not power on pupil");
     if (!leftArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head left arm serial port");
+        Notify(msg_fatal_error, "Can not power on left arm");
     if (!rightArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head right arm serial port");
+        Notify(msg_fatal_error, "Can not power on right arm");
     if (!bodyThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head body serial port");
+        Notify(msg_fatal_error, "Can not power on body");
 
     return true;
 }
@@ -1059,15 +1060,15 @@ bool EpiServos::PowerOffRobot()
     auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOff, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
 
     if (!headThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head");
+        Notify(msg_fatal_error, "Can not power off head");
     if (!pupilThread.get())
-        Notify(msg_fatal_error, "Can not communicate with puil");
+        Notify(msg_fatal_error, "Can not power off pupil");
     if (!leftArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head left arm");
+        Notify(msg_fatal_error, "Can not power off left arm");
     if (!rightArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head right arm");
+        Notify(msg_fatal_error, "Can not power off right arm");
     if (!bodyThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head body");
+        Notify(msg_fatal_error, "Can not power off body");
 
     // Power down servos.
     // 1. Store P (PID) value
