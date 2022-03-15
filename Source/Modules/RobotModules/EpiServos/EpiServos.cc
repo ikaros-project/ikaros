@@ -54,7 +54,10 @@ bool EpiServos::CommunicationPupil()
         {
             uint8_t param_default = torqueEnable[index];
             if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, i, 24, param_default, &dxl_error))
-                Notify(msg_fatal_error, "[ID:%03d] write1ByteTxRx failed", i);
+            {
+                Notify(msg_debug, "[ID:%03d] write1ByteTxRx failed", i);
+                return false;
+            }
         }
         if (goalPosition)
         {
@@ -63,12 +66,18 @@ bool EpiServos::CommunicationPupil()
             if (!torqueEnable)
             {
                 if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
-                    Notify(msg_fatal_error, "[ID:%03d] write2ByteTxRx failed", i);
+                {
+                    Notify(msg_debug, "[ID:%03d] write2ByteTxRx failed", i);
+                    return false;
+                }
             }
             else if ((uint8_t)torqueEnable[index] != 0)
             {
                 if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
-                    Notify(msg_fatal_error, "[ID:%03d] write2ByteTxRx failed", i);
+                {
+                    Notify(msg_debug, "[ID:%03d] write2ByteTxRx failed", i);
+                    return false;
+                }
             }
             // if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxOnly(portHandlerPupil, i, 30, param_default)) // Takes a long time 2x16ms
             //     Notify(msg_fatal_error, "[ID:%03d] write2ByteTxOnly failed", i);
@@ -105,22 +114,29 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
     // Add if for syncread
     for (int i = IDMin; i <= IDMax; i++)
         if (!groupSyncReadHead->addParam(i))
-            Notify(msg_fatal_error, "[ID:%03d] groupSyncRead addparam failed", i);
-
+        {
+            Notify(msg_debug, "[ID:%03d] groupSyncRead addparam failed", i);
+            return false;
+        }
     // Sync read
     dxl_comm_result = groupSyncReadHead->txRxPacket();
     // dxl_comm_result = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated.
 
     if (dxl_comm_result != COMM_SUCCESS)
-        Notify(msg_fatal_error, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    {
+        Notify(msg_debug, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        return false;
+    }
 
     // Check if data is available
     for (int i = IDMin; i <= IDMax; i++)
     {
         dxl_comm_result = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
         if (dxl_comm_result != true)
-            Notify(msg_fatal_error, "[ID:%03d] groupSyncRead getdata failed", i);
-        // fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", i);
+        {
+            Notify(msg_debug, "[ID:%03d] groupSyncRead getdata failed", i);
+            return false;
+        }
     }
 
     // Extract data
@@ -180,7 +196,10 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
         dxl_addparam_result = groupSyncWriteHead->addParam(i, param_sync_write, 7);
 
         if (dxl_addparam_result != true)
-            Notify(msg_fatal_error, "[ID:%03d] groupSyncWrite addparam failed", i);
+        {
+            Notify(msg_debug, "[ID:%03d] groupSyncWrite addparam failed", i);
+            return false;
+        }
 
         index++;
     }
@@ -524,15 +543,15 @@ void EpiServos::Tick()
     auto rightArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), RIGHT_ARM_INDEX_IO);
     auto bodyThread = std::async(std::launch::async, &EpiServos::Communication, this, BODY_ID_MIN, BODY_ID_MIN, std::ref(portHandlerBody), std::ref(packetHandlerBody), RIGHT_ARM_INDEX_IO);
     if (!headThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head serial port");
+        Notify(msg_warning, "Can not communicate with head serial port");
     if (!pupilThread.get())
-        Notify(msg_fatal_error, "Can not communicate with puil serial port");
+        Notify(msg_warning, "Can not communicate with puil serial port");
     if (!leftArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head left arm serial port");
+        Notify(msg_warning, "Can not communicate with head left arm serial port");
     if (!rightArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head right arm serial port");
+        Notify(msg_warning, "Can not communicate with head right arm serial port");
     if (!bodyThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head bodyserial port");
+        Notify(msg_warning, "Can not communicate with head bodyserial port");
 }
 
 // A function that set importat parameters in the control table.
@@ -1040,15 +1059,15 @@ bool EpiServos::PowerOffRobot()
     auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOff, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
 
     if (!headThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head serial port");
+        Notify(msg_fatal_error, "Can not communicate with head");
     if (!pupilThread.get())
-        Notify(msg_fatal_error, "Can not communicate with puil serial port");
+        Notify(msg_fatal_error, "Can not communicate with puil");
     if (!leftArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head left arm serial port");
+        Notify(msg_fatal_error, "Can not communicate with head left arm");
     if (!rightArmThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head right arm serial port");
+        Notify(msg_fatal_error, "Can not communicate with head right arm");
     if (!bodyThread.get())
-        Notify(msg_fatal_error, "Can not communicate with head body serial port");
+        Notify(msg_fatal_error, "Can not communicate with head body");
 
     // Power down servos.
     // 1. Store P (PID) value
