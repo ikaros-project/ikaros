@@ -33,7 +33,7 @@
 			class = "EpiServos"
 			name = "EpiServos"
 			log_level = "8"
-			robot = "EpiWhite"
+			robot = "EpiBlue"
 			simulate = "false"
 		/>
 

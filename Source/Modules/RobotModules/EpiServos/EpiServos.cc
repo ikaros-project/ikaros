@@ -221,12 +221,12 @@ void EpiServos::Init()
                          .serialPortRightArm = "",
                          .type = "EpiTorso"};
 
-    robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
-                        .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
-                        .serialPortBody = "",
-                        .serialPortLeftArm = "",
-                        .serialPortRightArm = "",
-                        .type = "EpiTorso"};
+    robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
+                        .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
+                        .serialPortBody = "/dev/cu.usbserial-FT4THV1M",
+                        .serialPortLeftArm = "/dev/cu.usbserial-FT4TFSV0",
+                        .serialPortRightArm = "/dev/cu.usbserial-FT4TCVTT",
+                        .type = "Epi"};
 
     robot["EpiGray"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
@@ -240,7 +240,7 @@ void EpiServos::Init()
                          .serialPortBody = "",
                          .serialPortLeftArm = "",
                          .serialPortRightArm = "",
-                         .type = "Epi"};
+                         .type = "EpiTorso"};
 
     robotName = GetValue("robot");
 
@@ -371,7 +371,7 @@ void EpiServos::Init()
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
     }
-    else if (EpiMode)
+    if (EpiMode)
     {
         int dxl_comm_result;
         std::vector<uint8_t> vec;
@@ -391,7 +391,7 @@ void EpiServos::Init()
             return;
         }
         // Set port baudrate
-        if (portHandlerLeftArm->setBaudRate(BAUDRATE1M))
+        if (portHandlerLeftArm->setBaudRate(BAUDRATE3M))
             Notify(msg_debug, "Succeeded to change baudrate!\n");
         else
         {
@@ -422,7 +422,7 @@ void EpiServos::Init()
             return;
         }
         // Set port baudrate
-        if (portHandlerRightArm->setBaudRate(BAUDRATE1M))
+        if (portHandlerRightArm->setBaudRate(BAUDRATE3M))
             Notify(msg_debug, "Succeeded to change baudrate!\n");
         else
         {
@@ -453,7 +453,7 @@ void EpiServos::Init()
             return;
         }
         // Set port baudrate
-        if (portHandlerBody->setBaudRate(BAUDRATE1M))
+        if (portHandlerBody->setBaudRate(BAUDRATE3M))
             Notify(msg_debug, "Succeeded to change baudrate!\n");
         else
         {
