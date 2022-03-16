@@ -110,7 +110,7 @@
 <!-- MOUTH -->
 <module class = "Constant" name = "NoLEDValue"  data = "0.5" />
 
-<module class = "Constant" name = "LedOff" data = "0´" />
+<_module class = "Constant" name = "LedOff" data = "0" />
 
 <module class = "Arbiter" name = "MouthArbiter" no_of_inputs = "2" />
     <input name = "MOUTH_COLOR"                 target = "MouthArbiter.INPUT_1" />

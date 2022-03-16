@@ -10,12 +10,12 @@
 	/>
 
 		<!-- Get position from servos -->
-        <connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
+        <connection  source = "Servos.PRESENT_POSITION"  target = "MotionRecorder.INPUT" />
        	
            
         <!-- Override system output  -->
-	    <connection  source = "MotionRecorder.ENABLE"  target = "Servos.TorqueEnableG.INPUT_2" />
-        <connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GoalPositionG.INPUT_2" />
+	    <_connection  source = "MotionRecorder.ENABLE"  target = "Servos.TorqueEnableG.INPUT_2" />
+        <_connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GoalPositionG.INPUT_2" />
 
         <!-- Save image -->
 	    <_connection  source = "MotionRecorder.TRIG_OUT"  target = "EpiLog.LOG_LEFT_EYE_FULL_RES.WRITE" />

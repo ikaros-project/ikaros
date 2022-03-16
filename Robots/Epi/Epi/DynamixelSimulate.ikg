@@ -21,7 +21,7 @@
 	<output name = "FEEDBACK_GOAL_POSITION" 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_MOVING_SPEED" 	 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_TORQUE_LIMIT" 			source = "FAKE_DATA.OUTPUT" />
-	<output name = "FEEDBACK_PRESENT_POSITION" 		source = "GOAL_POSITION_SIM.OUTPUT" />
+	<output name = "PRESENT_POSITION" 		source = "GOAL_POSITION_SIM.OUTPUT" />
 	<output name = "FEEDBACK_PRESENT_SPEED" 		source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_PRESENT_LOAD" 			source = "FAKE_DATA.OUTPUT" />
 	<output name = "FEEDBACK_PRESENT_VOLTAGE" 		source = "FAKE_DATA.OUTPUT" />

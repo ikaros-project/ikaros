@@ -10,7 +10,7 @@
 
     <output name="PTA_OUTPUT" source="PTA.OUTPUT" />
     <output name="CG_OUTPUT"  source="CG.OUTPUT" />
-    <output name="SCG_OUTPUT" source="SCG.OUTPUT" />
+    <output name="SCG_OUTPUT" source="SCG2.OUTPUT" /> <!-- SCG1?-->
 
     <!-- ********************************* PARASYMPATHETIC COMPONENT ********************************* -->
 
@@ -46,17 +46,17 @@
 
     <module
         class="Nucleus"
-        name="SCG"
+        name="SCG1"
 
     />
 
     <!-- IML => SCG -->
     
-    <connection  source = "IML.OUTPUT"  target = "SCG.EXCITATION" />
+    <connection  source = "IML.OUTPUT"  target = "SCG2.EXCITATION" />
 
     <module
         class="Nucleus"
-        name="SCG"
+        name="SCG2"
     />
 
 </group>

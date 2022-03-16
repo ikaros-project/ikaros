@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
-<group name="EpiBlack">
+<group name="EpiBlue">
 
 	<!-- Importing Epi Black -->
-	<module class = "Epi" name = "EpiBlack" 
+	<module class = "Epi" name = "EpiBlue" 
 	BodySerialDevice		= "/dev/ttyBODY"
 	HeadSerialDevice		= "/dev/ttyHEAD"
 	LeftArmSerialDevice		= "/dev/ttyLEFT_ARM"
@@ -16,7 +16,11 @@
 	LeftArmDynamixel 		= "Dynamixel"
 	RightArmDynamixel 		= "Dynamixel"
 
-	VisionInputLeft 		= "InputVideoStream"
+
+	EpiName 				= "EpiBlue" 
+
+
+	VisionInputLeft 		= "InputJPEG"
 	VisionInputRight 		= "InputJPEG"
 
 	LogData 				= "no"
@@ -30,9 +34,9 @@
 
 	<!-- Move EpiBlack -->
 	<module class = "Constant" name = "ManualServo" data = "0    0 0 0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0" />
-		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES"/>
+		<connection source = "ManualServo.OUTPUT" target = "EpiBlue.SERVO_ANGLES"/>
 	<module class = "Constant" name = "ManualServoA" data = "0    0 0 0 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0" />
-		<connection source = "ManualServo.OUTPUT" target = "EpiBlack.SERVO_ANGLES_AMPLITUDE"/>
+		<connection source = "ManualServo.OUTPUT" target = "EpiBlue.SERVO_ANGLES_AMPLITUDE"/>
 
 	<!-- Set a manual focus point -->
 	<module class = "Constant" name = "ManualFocusPoint" data = "
@@ -40,10 +44,10 @@
 	0 1 0 0.6
 	0 0 1 0
 	0 0 0 1"/>
-		<connection source = "ManualFocusPoint.OUTPUT" target = "EpiBlack.EXT_FOCUS_POINT"/>
+		<connection source = "ManualFocusPoint.OUTPUT" target = "EpiBlue.EXT_FOCUS_POINT"/>
 
 	<module class = "Constant" name = "ManualFocusPointValue" data = "0" />
-		<connection source = "ManualFocusPointValue.OUTPUT"  target = "EpiBlack.EXT_FOCUS_POINT_V"/>
+		<connection source = "ManualFocusPointValue.OUTPUT"  target = "EpiBlue.EXT_FOCUS_POINT_V"/>
 
 
 	<!-- Importing Epi Pink -->

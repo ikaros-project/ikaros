@@ -94,7 +94,7 @@ bool EpiServos::CommunicationPupil()
     return (true);
 }
 
-bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex)
+bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite)
 {
     if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
         return true;
@@ -104,8 +104,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
     bool dxl_addparam_result = false;   // addParam result
     bool dxl_getdata_result = false;    // GetParam result
 
-    uint8_t dxl_error = 0;              // Dynamixel error
-    uint8_t param_sync_write[7];        // 7 byte sync write is not supported for the DynamixelSDK
+    uint8_t dxl_error = 0;       // Dynamixel error
+    uint8_t param_sync_write[7]; // 7 byte sync write is not supported for the DynamixelSDK
 
     int32_t dxl_present_position = 0;
     int16_t dxl_present_current = 0;
@@ -113,13 +113,13 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
 
     // Add if for syncread
     for (int i = IDMin; i <= IDMax; i++)
-        if (!groupSyncReadHead->addParam(i))
+        if (!groupSyncRead->addParam(i))
         {
             Notify(msg_debug, "[ID:%03d] groupSyncRead addparam failed", i);
             return false;
         }
     // Sync read
-    dxl_comm_result = groupSyncReadHead->txRxPacket();
+    dxl_comm_result = groupSyncRead->txRxPacket();
     // dxl_comm_result = groupSyncReadHead->fastSyncReadTxRxPacket(); // Servoes probably needs to be updated.
 
     if (dxl_comm_result != COMM_SUCCESS)
@@ -131,7 +131,7 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
     // Check if data is available
     for (int i = IDMin; i <= IDMax; i++)
     {
-        dxl_comm_result = groupSyncReadHead->isAvailable(i, 634, 4 + 2 + 1);
+        dxl_comm_result = groupSyncRead->isAvailable(i, 634, 4 + 2 + 1);
         if (dxl_comm_result != true)
         {
             Notify(msg_debug, "[ID:%03d] groupSyncRead getdata failed", i);
@@ -143,9 +143,9 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
     index = IOIndex;
     for (int i = IDMin; i <= IDMax; i++)
     {
-        dxl_present_position = groupSyncReadHead->getData(i, 634, 4);    // Present postiion
-        dxl_present_current = groupSyncReadHead->getData(i, 638, 2);     // Present current
-        dxl_present_temperature = groupSyncReadHead->getData(i, 640, 1); // Present temperature
+        dxl_present_position = groupSyncRead->getData(i, 634, 4);    // Present postiion
+        dxl_present_current = groupSyncRead->getData(i, 638, 2);     // Present current
+        dxl_present_temperature = groupSyncRead->getData(i, 640, 1); // Present temperature
         // Fill IO
         presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
         presentCurrent[index] = dxl_present_current * 3.36;             // mA
@@ -193,7 +193,7 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
             param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
             param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
         }
-        dxl_addparam_result = groupSyncWriteHead->addParam(i, param_sync_write, 7);
+        dxl_addparam_result = groupSyncWrite->addParam(i, param_sync_write, 7);
 
         if (dxl_addparam_result != true)
         {
@@ -205,13 +205,13 @@ bool EpiServos::Communication(int IDMin, int IDMax, dynamixel::PortHandler *port
     }
 
     // Syncwrite
-    dxl_comm_result = groupSyncWriteHead->txPacket();
+    dxl_comm_result = groupSyncWrite->txPacket();
     if (dxl_comm_result != COMM_SUCCESS)
         Notify(msg_fatal_error, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
 
     // Clear syncwrite parameter storage
-    groupSyncWriteHead->clearParam();
-    groupSyncReadHead->clearParam();
+    groupSyncWrite->clearParam();
+    groupSyncRead->clearParam();
 
     return (true);
 }
@@ -233,12 +233,12 @@ void EpiServos::Init()
                           .serialPortRightArm = "",
                           .type = "EpiTorso"};
 
-    robot["EpiGreen"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
-                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
-                         .serialPortBody = "",
-                         .serialPortLeftArm = "",
-                         .serialPortRightArm = "",
-                         .type = "EpiTorso"};
+    robot["EpiGreen"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
+                        .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
+                        .serialPortBody = "/dev/cu.usbserial-FT4THV1M",
+                        .serialPortLeftArm = "/dev/cu.usbserial-FT4TFSV0",
+                        .serialPortRightArm = "/dev/cu.usbserial-FT4TCVTT",
+                        .type = "EpiTorso"};
 
     robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
                         .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
@@ -355,7 +355,7 @@ void EpiServos::Init()
         if (dxl_comm_result != COMM_SUCCESS)
             Notify(msg_warning, "%s\n", packetHandlerHead->getTxRxResult(dxl_comm_result));
 
-        Notify(msg_debug, "Detected Dynamixel (Head) : \n");
+        Notify(msg_debug, "Detected Dynamixel (Head): \n");
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
 
@@ -386,9 +386,13 @@ void EpiServos::Init()
         if (dxl_comm_result != COMM_SUCCESS)
             Notify(msg_warning, "%s\n", packetHandlerPupil->getTxRxResult(dxl_comm_result));
 
-        Notify(msg_debug, "Detected Dynamixel (pupil) : \n");
+        Notify(msg_debug, "Detected Dynamixel (pupil): \n");
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
+    }
+    else
+    {
+        Notify(msg_fatal_error, "Robot type is not yet implementet\n");
     }
     if (EpiMode)
     {
@@ -422,7 +426,7 @@ void EpiServos::Init()
         if (dxl_comm_result != COMM_SUCCESS)
             Notify(msg_warning, "%s\n", packetHandlerLeftArm->getTxRxResult(dxl_comm_result));
 
-        Notify(msg_debug, "Detected Dynamixel (Left arm) : \n");
+        Notify(msg_debug, "Detected Dynamixel (Left arm): \n");
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
 
@@ -453,7 +457,7 @@ void EpiServos::Init()
         if (dxl_comm_result != COMM_SUCCESS)
             Notify(msg_warning, "%s\n", packetHandlerRightArm->getTxRxResult(dxl_comm_result));
 
-        Notify(msg_debug, "Detected Dynamixel (Right arm) : \n");
+        Notify(msg_debug, "Detected Dynamixel (Right arm): \n");
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
 
@@ -484,31 +488,32 @@ void EpiServos::Init()
         if (dxl_comm_result != COMM_SUCCESS)
             Notify(msg_warning, "%s\n", packetHandlerBody->getTxRxResult(dxl_comm_result));
 
-        Notify(msg_debug, "Detected Dynamixel (Body) : \n");
+        Notify(msg_debug, "Detected Dynamixel (Body): \n");
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
-    }
-    else
-    {
-        Notify(msg_fatal_error, "Robot type is not yet implementet\n");
     }
 
     // Create dynamixel objects
     if (EpiTorsoMode || EpiMode)
     {
-        groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, 224, 4 + 2 + 1);
-        groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, 634, 4 + 2 + 1);
+        groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, 224, 1 + 4 + 2); // Torque enable, goal position, goal current
+        groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, 634, 4 + 2 + 1);   // Present poistion, presernt current, temperature
     }
     if (EpiMode)
     {
-        groupSyncWriteLeftArm = new dynamixel::GroupSyncWrite(portHandlerLeftArm, packetHandlerLeftArm, 224, 4 + 2);
+        groupSyncWriteLeftArm = new dynamixel::GroupSyncWrite(portHandlerLeftArm, packetHandlerLeftArm, 224, 1 + 4 + 2);
         groupSyncReadLeftArm = new dynamixel::GroupSyncRead(portHandlerLeftArm, packetHandlerLeftArm, 634, 4 + 2 + 1);
-        groupSyncWriteRightArm = new dynamixel::GroupSyncWrite(portHandlerRightArm, packetHandlerRightArm, 224, 4 + 2);
+        groupSyncWriteRightArm = new dynamixel::GroupSyncWrite(portHandlerRightArm, packetHandlerRightArm, 224, 1 + 4 + 2);
         groupSyncReadRightArm = new dynamixel::GroupSyncRead(portHandlerRightArm, packetHandlerRightArm, 634, 4 + 2 + 1);
-        groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody, 224, 4 + 2);
+        groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody, 224, 1 + 4 + 2);
         groupSyncReadBody = new dynamixel::GroupSyncRead(portHandlerBody, packetHandlerBody, 634, 4 + 2 + 1);
         groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read..
     }
+
+    Notify(msg_debug, "torque down servos and prepering servos for write defualt settings\n");
+    if (!PowerOffRobot())
+        Notify(msg_fatal_error, "Unable torque down servos\n");
+
     if (!SetDefaultSettingServo())
         Notify(msg_fatal_error, "Unable to write default settings on servos\n");
 
@@ -537,21 +542,37 @@ void EpiServos::Tick()
         }
         return;
     }
-    auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, std::ref(portHandlerHead), std::ref(packetHandlerHead), HEAD_INDEX_IO);
+    auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!
-    auto leftArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), LEFT_ARM_INDEX_IO);
-    auto rightArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), RIGHT_ARM_INDEX_IO);
-    auto bodyThread = std::async(std::launch::async, &EpiServos::Communication, this, BODY_ID_MIN, BODY_ID_MIN, std::ref(portHandlerBody), std::ref(packetHandlerBody), RIGHT_ARM_INDEX_IO);
+    auto leftArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, LEFT_ARM_INDEX_IO, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
+    auto rightArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, RIGHT_ARM_INDEX_IO, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), std::ref(groupSyncReadRightArm), std::ref(groupSyncWriteRightArm));
+    auto bodyThread = std::async(std::launch::async, &EpiServos::Communication, this, BODY_ID_MIN, BODY_ID_MIN, BODY_INDEX_IO, std::ref(portHandlerBody), std::ref(packetHandlerBody), std::ref(groupSyncReadBody), std::ref(groupSyncWriteBody));
+
     if (!headThread.get())
+    {
         Notify(msg_warning, "Can not communicate with head");
+        portHandlerHead->clearPort();
+    }
     if (!pupilThread.get())
+    {
         Notify(msg_warning, "Can not communicate with puil");
+        portHandlerPupil->clearPort();
+    }
     if (!leftArmThread.get())
+    {
         Notify(msg_warning, "Can not communicate with left arm");
+        portHandlerLeftArm->clearPort();
+    }
     if (!rightArmThread.get())
+    {
         Notify(msg_warning, "Can not communicate with right arm");
+        portHandlerRightArm->clearPort();
+    }
     if (!bodyThread.get())
+    {
         Notify(msg_warning, "Can not communicate with body");
+        portHandlerBody->clearPort();
+    }
 }
 
 // A function that set importat parameters in the control table.
@@ -688,41 +709,41 @@ bool EpiServos::SetDefaultSettingServo()
     }
 
     // Profile accelration
-    param_default_2Byte = 50;
+    param_default_4Byte = 50;
 
     for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
-        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_PROFILE_ACCELERATION, param_default_2Byte, &dxl_error))
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
             return false;
     if (EpiMode)
     {
         for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
-            if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_ACCELERATION, param_default_2Byte, &dxl_error))
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
                 return false;
         for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
-            if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_ACCELERATION, param_default_2Byte, &dxl_error))
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
                 return false;
         for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
-            if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, ADDR_PROFILE_ACCELERATION, param_default_2Byte, &dxl_error))
+            if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_ACCELERATION, param_default_4Byte, &dxl_error))
                 return false;
     }
 
     // Common settings for the seros
     // Profile velocity
-    param_default_2Byte = 210;
+    param_default_4Byte = 210;
 
     for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
-        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_PROFILE_VELOCITY, param_default_2Byte, &dxl_error))
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
             return false;
     if (EpiMode)
     {
         for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
-            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_VELOCITY, param_default_2Byte, &dxl_error))
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
                 return false;
         for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
-            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_VELOCITY, param_default_2Byte, &dxl_error))
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
                 return false;
         for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
-            if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_VELOCITY, param_default_2Byte, &dxl_error))
+            if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_VELOCITY, param_default_4Byte, &dxl_error))
                 return false;
     }
 
@@ -906,39 +927,41 @@ bool EpiServos::PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandle
     const int nrOfServos = IDMax - IDMin + 1;
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
     uint8_t dxl_error = 0;              // Dynamixel error
-    uint16_t start_p_value[4] = {0, 0, 0, 0};
-    uint32_t present_postition_value[4] = {0, 0, 0, 0};
+    uint16_t start_p_value[7] = {0, 0, 0, 0, 0, 0, 0};
+    uint32_t present_postition_value[7] = {0, 0, 0, 0, 0, 0, 0};
 
     // Get P values
     for (int i = 0; i < nrOfServos; i++)
-        if (COMM_SUCCESS != packetHandlerHead->read2ByteTxRx(portHandlerHead, IDMin + i, 84, &start_p_value[i], &dxl_error))
+        if (COMM_SUCCESS != packetHandler->read2ByteTxRx(portHandler, IDMin + i, 84, &start_p_value[i], &dxl_error))
             return false;
+
     // Set P value to 0
     for (int i = 0; i < nrOfServos; i++)
-        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, IDMin + i, 84, 0, &dxl_error))
+        if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, 0, &dxl_error))
             return false;
     // Set torque value to 1
     for (int i = 0; i < nrOfServos; i++)
-        if (COMM_SUCCESS != packetHandlerHead->write1ByteTxRx(portHandlerHead, IDMin + i, 64, 1, &dxl_error))
+        if (COMM_SUCCESS != packetHandler->write1ByteTxRx(portHandler, IDMin + i, 64, 1, &dxl_error))
             return false;
     while (t.GetTime() < TIMER_POWER_ON)
     {
         // Get present position
         for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandlerHead->read4ByteTxRx(portHandlerHead, IDMin + i, 132, &present_postition_value[i], &dxl_error))
+            if (COMM_SUCCESS != packetHandler->read4ByteTxRx(portHandler, IDMin + i, 132, &present_postition_value[i], &dxl_error))
                 return false;
         // Set goal position to present postiion
         for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, IDMin + i, 116, present_postition_value[i], &dxl_error))
+            if (COMM_SUCCESS != packetHandler->write4ByteTxRx(portHandler, IDMin + i, 116, present_postition_value[i], &dxl_error))
                 return false;
-        // Ramping down P
+        // Ramping up P
         for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, IDMin + i, 84, int(float(start_p_value[i]) / float(TIMER_POWER_ON) * t.GetTime()), &dxl_error))
+            if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, int(float(start_p_value[i]) / float(TIMER_POWER_ON) * t.GetTime()), &dxl_error))
                 return false;
     }
+
     // Set P value to start value
     for (int i = 0; i < nrOfServos; i++)
-        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, IDMin + i, 84, start_p_value[i], &dxl_error))
+        if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, start_p_value[i], &dxl_error))
             return false;
 
     return true;
@@ -1008,10 +1031,17 @@ bool EpiServos::PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandl
     Notify(msg_warning, "Power off servos. If needed, support the robot while power off the servos");
 
     // Ramp down p value
-    while (t.GetTime() < TIMER_POWER_OFF)
-        for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, int(float(start_p_value[i]) * (float(TIMER_POWER_OFF) - t.GetTime()) / float(TIMER_POWER_OFF)), &dxl_error))
-                return false;
+    // while (t.GetTime() < TIMER_POWER_OFF)
+    //     for (int i = 0; i < nrOfServos; i++)
+    //         if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, int(float(start_p_value[i]) * (float(TIMER_POWER_OFF) - t.GetTime()) / float(TIMER_POWER_OFF)), &dxl_error))
+    //             return false;
+    // Turn p to zero
+    for (int i = 0; i < nrOfServos; i++)
+        if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, 0, &dxl_error))
+            return false;
+
+    t.Sleep(TIMER_POWER_OFF);
+
     // Get present position
     for (int i = 0; i < nrOfServos; i++)
         if (COMM_SUCCESS != packetHandler->read4ByteTxRx(portHandler, IDMin + i, 132, &present_postition_value[i], &dxl_error))

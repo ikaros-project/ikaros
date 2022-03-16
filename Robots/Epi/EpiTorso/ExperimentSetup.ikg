@@ -63,7 +63,10 @@ VisionInputRight = "InputJPEG"
 -->
 	<!-- Importing Epi Gray-->
 
-	<module class = "EpiTorsoMinimal" name = "EpiGray" 
+	<module class = "EpiTorsoMinimal" name = "Epi" 
+	EpiName = "EpiGreen" 
+
+	
 	HeadDynamixel = "DynamixelSimulate" 
 	PupilDynamixel = "DynamixelSimulate" 
 	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 

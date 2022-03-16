@@ -39,6 +39,7 @@
 #define ADDR_GOAL_POSITION 116
 #define IND_ADDR_GOAL_CURRENT 178
 #define ADDR_GOAL_CURRENT 102
+
 #define IND_ADDR_PRESENT_POSITION 578
 #define ADDR_PRESENT_POSITION 132
 #define IND_ADDR_PRESENT_CURRENT 586
@@ -70,8 +71,8 @@
 #define EPI_NR_SERVOS 19
 
 #define TIMER_POWER_ON 2000
-#define TIMER_POWER_OFF 2000          // Timer ramping down
-#define TIMER_POWER_OFF_EXTENDED 1000 // Timer until torque enable off
+#define TIMER_POWER_OFF 5000          // Timer ramping down
+#define TIMER_POWER_OFF_EXTENDED 3000 // Timer until torque enable off
 
 #define HEAD_INDEX_IO 0
 #define PUPIL_INDEX_IO 4
@@ -160,7 +161,9 @@ public:
     std::map<std::string, Robot_parameters> robot;
 
     // Functions for each serial port (used to threading)
-    bool Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex);
+    // bool Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex);
+    bool Communication(int IDMin, int IDMax, int IOIndex, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite);
+
     bool CommunicationPupil();
 
     bool PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);

@@ -5,12 +5,12 @@
 		<module
 			class = "Constant"
 			name = "Goal_position"
-			_data = "
+			data = "
 			180 180 180 180 180 180
 			180 180 180 180 180 180
 			180 180 180 180 180 180
 			180"
-			data = "
+			_data = "
 			180 180 180 180 180 180
 			"
 		/>
@@ -18,15 +18,21 @@
 		<module
 			class = "Constant"
 			name = "Goal_current"
-			data = "0 0 0 0 0 0"
-
+			data = "
+			0 0 0 0 0 0
+			0 0 0 0 0 0
+			0 0 0 0 0 0
+			0"
 		/>
 
 		<module
 			class = "Constant"
 			name = "Torque_enable"
-			data = "0 0 0 0 0 0"
-
+			data = "
+			0 0 0 0 0 0
+			0 0 0 0 0 0
+			0 0 0 0 0 0
+			0"
 		/>
 
 		<module
@@ -42,12 +48,20 @@
         <_connection  source = "Goal_current.OUTPUT"  target = "EpiServos.GOAL_CURRENT" />
 
 <view name="Test servos" >
-	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "180" min = "-180" direction = "vertical" select = "" source = "EpiServos.PRESENT_POSITION" show_frame = "false" height = "381" x = "40" title = "Present position" color = "" width = "401" y = "40"/>
-	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "2000" min = "-2000" direction = "vertical" select = "" source = "EpiServos.PRESENT_CURRENT" show_frame = "false" height = "361" x = "40" title = "Present current" color = "" width = "401" y = "420"/>
-	<slider-horizontal  frame-style = "" show_title = "true" max = "360" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "6" parameter = "Goal_position.data" x = "440" height = "381" show_frame = "false" title = "Goal position" width = "361" y = "40"/>
-	<slider-horizontal  frame-style = "" show_title = "true" max = "360" show_values = "true" step = "0.01" min = "0" style = "" labels = "" select = "0" count = "6" parameter = "Goal_current.data" x = "440" height = "361" show_frame = "false" title = "Goal current" width = "361" y = "420"/>
-	<slider-horizontal  frame-style = "" show_title = "true" max = "1" show_values = "true" step = "1" min = "0" style = "" labels = "" select = "0" count = "6" parameter = "Torque_enable.data" x = "800" height = "381" show_frame = "false" title = "Torque enable" width = "121" y = "40"/>
+	<plot  y = "40" x = "1100" width = "1581" color = "" title = "Present position" height = "341" show_frame = "false" source = "EpiServos.PRESENT_POSITION" select = "" direction = "vertical" min = "-180" max = "180" frame-style = "" show_title = "true" style = "" buffer_size = "200"/>
+	<plot  y = "380" x = "1100" width = "1581" color = "" title = "Present current" height = "341" show_frame = "false" source = "EpiServos.PRESENT_CURRENT" select = "" direction = "vertical" min = "-2000" max = "2000" frame-style = "" show_title = "true" style = "" buffer_size = "200"/>
+	<slider-horizontal  y = "40" title = "Goal position" width = "361" height = "1161" show_frame = "false" x = "300" parameter = "Goal_position.data" count = "19" select = "0" style = "" labels = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" min = "0" step = "2" show_values = "true" max = "360" show_title = "true" frame-style = ""/>
+	<slider-horizontal  y = "40" title = "Goal current" width = "241" height = "1161" show_frame = "false" x = "680" parameter = "Goal_current.data" count = "19" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "true" max = "360" show_title = "true" frame-style = ""/>
+	<slider-horizontal  y = "40" title = "Torque enable" width = "121" height = "1161" show_frame = "false" x = "940" parameter = "Torque_enable.data" count = "19" select = "0" style = "" labels = "" min = "0" step = "1" show_values = "true" max = "1" show_title = "true" frame-style = ""/>
+	<table  x = "1080" height = "81" show_frame = "false" width = "1601" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" direction = "normal" scrollable = "false" source = "EpiServos.PRESENT_POSITION" y = "1000" label_y = "" decimals = "0" colorize = "true" title = "Present position" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "1080" height = "81" show_frame = "false" width = "1601" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" direction = "normal" scrollable = "false" source = "Goal_position.data" y = "780" label_y = "" decimals = "0" colorize = "true" title = "Goal Position" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "1080" height = "61" show_frame = "false" width = "1601" label_x = "" direction = "normal" scrollable = "false" source = "Goal_current.data" y = "880" label_y = "" decimals = "0" colorize = "true" title = "Goal Current" frame-style = "" show_title = "true" style = ""/>
+	<table  x = "1080" height = "61" show_frame = "false" width = "1601" label_x = "" direction = "normal" scrollable = "false" source = "EpiServos.PRESENT_CURRENT" y = "1100" label_y = "" decimals = "0" colorize = "true" title = "Present current" frame-style = "" show_title = "true" style = ""/>
+	<plot  y = "40" x = "1100" width = "1581" color = "" title = "Present position" height = "341" show_frame = "false" source = "EpiServos.PRESENT_POSITION" select = "" direction = "vertical" min = "-180" max = "180" frame-style = "" show_title = "true" style = "" buffer_size = "200"/>
 </view>
+
+
+
 
 
 
