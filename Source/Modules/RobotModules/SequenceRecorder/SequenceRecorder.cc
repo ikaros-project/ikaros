@@ -91,13 +91,44 @@ SequenceRecorder::SetTargetForTime(float t)
             {
                 float p1 = sequence_data["sequences"][0]["keypoints"][i]["point"][c];
                 float p2 = sequence_data["sequences"][0]["keypoints"][i+1]["point"][c];
-                printf("SEGMENT: %d: %.0f %.0f %.0f::: %.0f %.0f\n", i, t1, t, t2, p1, p2);
                 target[c] = interpolate(t, t1, t2, p1, p2);
             }
             return;
         }
     }
 }
+
+
+
+ void
+ SequenceRecorder::SetOutputForChannel(int c)
+ {
+    if(channel_mode[c][0] == 1) //locked
+    {
+        // Do not change output
+        active[c] = 1;
+    }
+
+    else if(channel_mode[c][1] == 1) //play
+     {
+        output[c] = target[c]; // SMOOTH HERE AS WELL
+        active[c] = 1;
+     }   
+
+    else if(channel_mode[c][2] == 1) //record
+     {
+        output[c] = input[c];
+        active[c] = 0;
+     }   
+
+    else if(channel_mode[c][3] == 1) //copy
+     {
+         output[c] = input[c];
+         active[c] = 0;
+     }   
+
+
+ }
 
 
 
@@ -109,16 +140,34 @@ SequenceRecorder::Init()
 
     Bind(smoothing_time, "smoothing_time");
     Bind(state, 10, "state", true);
+    int modes = 4;
+    Bind(channel_mode, modes, channels, "channel_mode", true);
     Bind(time_string, "time");
     Bind(end_time_string, "end_time");
     Bind(position, "position");
     Bind(mark_start, "mark_start");
     Bind(mark_end, "mark_end");
 
+     filename = GetValue("filename"); // FIXME: chack that file exists - or create it
+
     io(target, "TARGET");
+    io(input, "INPUT");
     io(output, "OUTPUT");
     io(active, "ACTIVE");
     io(smoothing_start,"SMOOTHING_START");
+
+
+    json points = json::array();
+    points.push_back(42);
+    points.push_back(45);   
+
+
+    json keypoint = json::object();
+
+    keypoint["x"] = 99;
+    keypoint["p"] = points;
+
+    std::string ss = keypoint.dump();
 
     /*
 
@@ -133,7 +182,7 @@ SequenceRecorder::Init()
 */
     // Load JSON
 
-    std::ifstream i("/Users/cba/ikaros/Source/Modules/RobotModules/SequenceRecorder/test_sequence.json");
+    std::ifstream i(filename);
     i >> sequence_data;
 
     std::string s = sequence_data["sequences"][0]["name"];
@@ -155,7 +204,7 @@ SequenceRecorder::~SequenceRecorder()
 void
 SequenceRecorder::Stop()
 {
-    set_one(state, 0, 8);
+    set_one(state, 0, states);
     timer.Stop();
     timer.Reset();
 }
@@ -172,7 +221,7 @@ SequenceRecorder::Play()
         return;
     }
 */
-    set_one(state, 1, 8);
+    set_one(state, 1, states); 
       timer.Start();
 }
 
@@ -181,7 +230,7 @@ SequenceRecorder::Play()
 void
 SequenceRecorder::Record()
 {
-    set_one(state, 2, 8);
+    set_one(state, 2, states); 
     timer.Start();
 }
 
@@ -190,7 +239,7 @@ SequenceRecorder::Record()
 void
 SequenceRecorder::Pause()
 {
-    set_one(state, 3, 8);
+    set_one(state, 3, states); 
     timer.Stop();
 }
 
@@ -200,7 +249,7 @@ void
 SequenceRecorder::SkipStart()
 {
     timer.Stop();
-    set_one(state, 3, 8);// Pause
+    set_one(state, 3, states);// Pause
     if(timer.GetTime() <= sequence_data["sequences"][0]["start_mark_time"])
         timer.SetTime(sequence_data["sequences"][0]["start_time"]);
     else if(timer.GetTime() <= sequence_data["sequences"][0]["end_mark_time"])
@@ -215,7 +264,7 @@ void
 SequenceRecorder::SkipEnd()
 {
     timer.Stop();
-    set_one(state, 3, 8);// Pause
+    set_one(state, 3, states);
     if(timer.GetTime() >= sequence_data["sequences"][0]["end_mark_time"])
         timer.SetTime(sequence_data["sequences"][0]["end_time"]);
     else if(timer.GetTime() >= sequence_data["sequences"][0]["start_mark_time"])
@@ -263,6 +312,16 @@ SequenceRecorder::ReduceTime()
 
 
 void
+SequenceRecorder::AddKeypoint()
+{
+    float time = timer.GetTime();
+
+
+}
+
+
+
+void
 SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
     if(s == "stop")
@@ -275,7 +334,6 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         Pause();
     else if (s == "skip_start")
         SkipStart();
-
     else if (s == "skip_end")
         SkipEnd();
     else if (s == "set_start_mark")
@@ -286,6 +344,8 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         ExtendTime();
     else if (s == "reduce_time")
         ReduceTime();
+    else if (s == "add_keypoint")
+        AddKeypoint();
 }
 
 
@@ -362,11 +422,10 @@ SequenceRecorder::Tick()
     SetTargetForTime(t);
 
     // FIXME: Add smoothing here
-    for(int i=0; i<channels; i++)
-    {
-        output[i] = target[i];
-        active[i] = 1;
-    }
+
+    print_matrix("modes", channel_mode, 4, 6, 0);
+    for(int c=0; c<channels; c++)
+        SetOutputForChannel(c);
 }
 
 
