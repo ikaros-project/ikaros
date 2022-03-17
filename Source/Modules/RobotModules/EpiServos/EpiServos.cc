@@ -24,7 +24,6 @@
 // Add mm input for pupil.
 // Test return status for servos
 // Add fast sync write feature
-// Set limits for Arms and body
 
 #include "EpiServos.h"
 

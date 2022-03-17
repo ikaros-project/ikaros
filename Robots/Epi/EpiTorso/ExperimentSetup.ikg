@@ -18,11 +18,12 @@ VisionInputRight = "InputJPEG"
 
 	<module class = "EpiTorsoMinimal" name = "Epi" 
 	
-	EpiName = "EpiGreen" 
-	_EpiName = "EpiBlue" 
+	_EpiName = "EpiGreen" 
+	EpiName = "EpiBlue" 
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
 	pupilOffset = "-20 -81"
+	simulateRobot ="true"
 	/>
 
 	<!--

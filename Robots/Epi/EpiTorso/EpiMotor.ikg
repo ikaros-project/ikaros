@@ -22,7 +22,7 @@
         name = "EpiServos"
         log_level = "8"
         robot = "@EpiName"
-        simulate = "false"
+        simulate = "@simulateRobot"
     />
    
     <module
