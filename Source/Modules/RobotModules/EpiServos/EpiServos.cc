@@ -386,7 +386,7 @@ void EpiServos::Init()
         if (dxl_comm_result != COMM_SUCCESS)
             Notify(msg_warning, "%s\n", packetHandlerPupil->getTxRxResult(dxl_comm_result));
 
-        Notify(msg_debug, "Detected Dynamixel (pupil): \n");
+        Notify(msg_debug, "Detected Dynamixel (Pupil): \n");
         for (int i = 0; i < (int)vec.size(); i++)
             Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
     }
