@@ -978,6 +978,15 @@ Module::Load(const char * path)
 }
 
 
+
+std::string 
+Module::GetJSONData(const std::string & name, const std::string & tab)
+{
+    return std::string();   // Rerurn empty string as default
+}
+
+
+
 const char * // FIXME: ***********************
 Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
@@ -3834,6 +3843,19 @@ std::string root = head(data, "#");
         
         if(root_group && !source.empty())
         {
+            // Use data from module function if available
+            auto module_source = rsplit(source, ".", 1);
+            auto m = main_group->GetModule(module_source.at(0).c_str());
+            auto json_data = m ? m->GetJSONData(module_source.at(1)) : ""; // FIXME: Use this function for all data
+
+            if(!json_data.empty())
+            {
+                socket->Send(sep.c_str());
+                std::string s = "\t\t\"" + source + "\": "+json_data;
+                socket->Send(s.c_str());
+                sep = ",\n";
+            }
+
             if(format == "") // as default, send a matrix
             {
                 Module_IO * io = root_group->GetSource(source); // FIXME: Also look for inputs here

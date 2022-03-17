@@ -56,19 +56,47 @@ public:
     void        SetEndMark();
     void        ExtendTime();
     void        ReduceTime();
+    void        AddKeypoint();
 
     void        Command(std::string s, float x, float y, std::string value);
 
+    std::string GetJSONData(const std::string & name, const std::string & tab);
+
+    void        SetTargetForTime(float t);
+    void        SetOutputForChannel(int c);
+
+    // Current state
+
+    int         channels;
+
+float *         positions;
+
+float           smoothing_time;
+float *         smoothing_start;
+float *         target;
+float *         input;
+float *         output;
+float *         active;
+
+    // Data
+
     json        sequence_data;
 
-    float *     state; // state vector for controls
+    // Control  variables
+
+    const int states = 10;
+
+    float *     state; // state of the head controller buttons
+    float **    channel_mode;
+
     Timer       timer;
     float       position;
     float       last_position; // to see if the value has been changed by WebUI
     float       mark_start;
     float       mark_end;
 
-    
+    std::string filename;
+
     std::string time_string;
     std::string end_time_string;
 
