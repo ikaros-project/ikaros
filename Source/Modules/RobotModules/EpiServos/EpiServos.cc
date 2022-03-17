@@ -234,11 +234,11 @@ void EpiServos::Init()
                           .type = "EpiTorso"};
 
     robot["EpiGreen"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
-                        .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
-                        .serialPortBody = "/dev/cu.usbserial-FT4THV1M",
-                        .serialPortLeftArm = "/dev/cu.usbserial-FT4TFSV0",
-                        .serialPortRightArm = "/dev/cu.usbserial-FT4TCVTT",
-                        .type = "EpiTorso"};
+                         .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
+                         .serialPortBody = "/dev/cu.usbserial-FT4THV1M",
+                         .serialPortLeftArm = "/dev/cu.usbserial-FT4TFSV0",
+                         .serialPortRightArm = "/dev/cu.usbserial-FT4TCVTT",
+                         .type = "EpiTorso"};
 
     robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
                         .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
@@ -806,17 +806,17 @@ bool EpiServos::SetDefaultSettingServo()
 
     // HEAD ID 2
     // Limit position max
-    param_default_4Byte = 2660;
+    param_default_4Byte = 2900;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 48, param_default_4Byte, &dxl_error))
         return false;
     // Limit position min
-    param_default_4Byte = 1460;
+    param_default_4Byte = 1000;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 52, param_default_4Byte, &dxl_error))
         return false;
 
     // HEAD ID 3
     // Limit position max
-    param_default_4Byte = 2660;
+    param_default_4Byte = 2300;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 48, param_default_4Byte, &dxl_error))
         return false;
     // Limit position min
@@ -830,13 +830,13 @@ bool EpiServos::SetDefaultSettingServo()
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 48, param_default_4Byte, &dxl_error))
         return false;
     // Limit position min
-    param_default_4Byte = 1700;
+    param_default_4Byte = 1800;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 52, param_default_4Byte, &dxl_error))
         return false;
 
     // HEAD ID 5 (Left eye)
     // Limit position max
-    param_default_4Byte = 2300;
+    param_default_4Byte = 2400;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 48, param_default_4Byte, &dxl_error))
         return false;
 
@@ -897,22 +897,133 @@ bool EpiServos::SetDefaultSettingServo()
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, param_default_1Byte, &dxl_error))
         return false;
 
-    // LEFT ARM ID 2
-    // LEFT ARM ID 3
-    // LEFT ARM ID 4
-    // LEFT ARM ID 5
-    // LEFT ARM ID 6
-    // LEFT ARM ID 7
+    if (EpiMode)
+    {
+        // LEFT ARM ID 2
+        // Limit position max
+        param_default_4Byte = 2300;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 2, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 0;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 2, 52, param_default_4Byte, &dxl_error))
+            return false;
 
-    // RIGHT ARM ID 2
-    // RIGHT ARM ID 3
-    // RIGHT ARM ID 4
-    // RIGHT ARM ID 5
-    // RIGHT ARM ID 6
-    // RIGHT ARM ID 7
+        // LEFT ARM ID 3
+        // Limit position max
+        param_default_4Byte = 3200;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 3, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 800;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 3, 52, param_default_4Byte, &dxl_error))
+            return false;
 
-    // BODY ID 2
+        // LEFT ARM ID 4
+        // Limit position max
+        param_default_4Byte = 3000;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 4, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 1000;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 4, 52, param_default_4Byte, &dxl_error))
+            return false;
 
+        // LEFT ARM ID 5
+        // Limit position max
+        param_default_4Byte = 2300;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 5, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 600;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 5, 52, param_default_4Byte, &dxl_error))
+            return false;
+
+        // LEFT ARM ID 6
+        // Limit position max
+        param_default_4Byte = 3900;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 6, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 800;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 6, 52, param_default_4Byte, &dxl_error))
+            return false;
+
+        // LEFT ARM ID 7
+        // Limit position max
+        param_default_4Byte = 4095;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 7, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 0;
+        if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 7, 52, param_default_4Byte, &dxl_error))
+            return false;
+
+        // RIGHT ARM ID 2
+        // Limit position max
+        param_default_4Byte = 4095;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 2, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 1600;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 2, 52, param_default_4Byte, &dxl_error))
+            return false;
+        // RIGHT ARM ID 3
+        // Limit position max
+        param_default_4Byte = 3300;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 3, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 900;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 3, 52, param_default_4Byte, &dxl_error))
+            return false;
+        // RIGHT ARM ID 4
+        // Limit position max
+        param_default_4Byte = 3000;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 4, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 1000;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 4, 52, param_default_4Byte, &dxl_error))
+            return false;
+        // RIGHT ARM ID 5
+        // Limit position max
+        param_default_4Byte = 3600;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 5, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 1800;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 5, 52, param_default_4Byte, &dxl_error))
+            return false;
+        // RIGHT ARM ID 6
+        // Limit position max
+        param_default_4Byte = 3900;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 6, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 800;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 6, 52, param_default_4Byte, &dxl_error))
+            return false;
+        // RIGHT ARM ID 7
+        // Limit position max
+        param_default_4Byte = 4095;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 7, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 0;
+        if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 7, 52, param_default_4Byte, &dxl_error))
+            return false;
+
+        // BODY ID 2
+        // Limit position max
+        param_default_4Byte = 3000;
+        if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, 2, 48, param_default_4Byte, &dxl_error))
+            return false;
+        // Limit position min
+        param_default_4Byte = 1000;
+        if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, 2, 52, param_default_4Byte, &dxl_error))
+            return false;
+    }
     return true; // Yay we manage to set everything we needed.
 }
 
