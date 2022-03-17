@@ -6,10 +6,11 @@ servosIndexHead = "0"
 servosIndexPupil = "4"
 servosIndexPupilLeft = "4"
 servosIndexPupilRight = "5"
-nrServosPupil = "2"
-nrServosHead = "4"
-nrServosTotal = "6"
+servosIndexLeftArm = "6"
+servosIndexRightArm = "12"
+servosIndexBody = "18"
 
+nrServosTotal = "19"
 >
 	<!-- 			Motion recorder 		-->
 	<!-- ********************************* 	-->
@@ -25,15 +26,16 @@ nrServosTotal = "6"
 	json_filename = "Actions/motion.%d.json"
 	smoothing_time = "40" 
 	max_motions = "20" 
-	torque_on_record = "0 0 1 1 1 1" 
+	torque_on_record = "0 0 1 1 0 0     1 1 0 0 0 0    0 0 0 0 0 0    0" 
 	position_data_max = "10000"
 	/>
 
 	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->
 	<!-- Feedback from neck and eyes (not pupil)-->
-	<connection  source = "Servos.PRESENT_POSITION"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "0" size = "2"/>	
+	<connection  source = "Servos.PRESENT_POSITION"  target = "MotionRecorder.INPUT"/>	
 
 	<!-- Direct eye directions with vergence effect -->
+	<!--
 	<module class = "Constant" name = "EyesDirection"	data = "0" />
 	<module class = "Constant" name = "EyesVergence"	data = "2" />
 	<module class = "Constant" name = "EyesVergenceMultiply"	data = "-1" />
@@ -47,27 +49,30 @@ nrServosTotal = "6"
 		<connection  source = "MultiplyVergence.OUTPUT" target = "EyesDirectionVergence.INPUT2"  sourceoffset = "0" targetoffset = "1" size = "1"/>	
 
 	<connection  source = "EyesDirectionVergence.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "2" size = "2"/>	
-
+-->
 	<!-- Size of pupil in mm -->
+	<!--
 	<module class = "Constant" name = "PupilInMM"	data = "10" />
 		<connection  source = "PupilInMM.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "4" size = "1"/>	
 		<connection  source = "PupilInMM.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "5" size = "1"/>	
-
+-->
 	<!-- Color of the eyes and mouth. Using the same source for both eyes. This will make the eye identical on both eyes. -->
+<!--
 	<connection  source = "EyesColorRGB.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "6" size = "3"/>	
 	<connection  source = "EyesColorRGB.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "9" size = "3"/>	
 	<connection  source = "MouthColorRGB.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "12" size = "3"/>	
-
+-->
 	<!-- Intensity of the eyes and mouth. The intensity scales the RGB for the eyes and mouth -->
+	<!--
 	<connection  source = "EyesIntensity.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "15" size = "1"/>	
 	<connection  source = "EyesIntensity.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "16" size = "1"/>	
 	<connection  source = "MouthIntensity.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "17" size = "1"/>	
-
+-->
 
 	<!-- Outputs from the motion recoder -->
 	<!-- Send Torque enable (on/off) and goal position (Pupil size in mm, the rest of the servos in degrees) of the servos.-->
-	<connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "6"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "6"/>
+	<connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "19"/>
+	<connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "19"/>
 	
 	<!-- Sending Eye color, mounth color and instensity. -->
 	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "6" targetoffset = "0" size = "3"/>
