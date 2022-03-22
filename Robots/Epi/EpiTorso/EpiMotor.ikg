@@ -36,8 +36,20 @@
 	/>
         <connection source = "EpiServos.PRESENT_POSITION" target = "SCFeedbackPosition.INPUT" />
 
-    <output name = "PRESENT_POSITION"   source = "EpiServos.PRESENT_POSITION" />
-    <output name = "PRESENT_CURRENT"    source = "EpiServos.PRESENT_CURRENT" />
+    <output name = "PRESENT_POSITION"   source = "SCFeedbackPosition.OUTPUT" />
+
+    <!-- We neede to take -->
+      <module
+		class = "ServoConnector"
+		name = "SCFeedbackCurrent"
+		connector       = "   1    2    3    4    5    6      7    8    9   10   11   12      13   14   15   16   17   18   19"
+        pre_inverted    = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0    0" 
+        post_inverted   = "   1    0    0    0    0    0      0    0    0    0    0    1       0    1    0    0    0    0    1" 
+        offset          = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0    0" 
+        output_size     = "@nrServosTotal"
+	/>
+            <connection source = "EpiServos.PRESENT_CURRENT" target = "SCFeedbackCurrent.INPUT" />
+    <output name = "PRESENT_CURRENT"    source = "SCFeedbackCurrent.OUTPUT" />
 
 <view name="Input/Feedback" >
 	<table  label_y = "" y = "40" source = "SCPosition.OUTPUT" title = "SC" x = "180" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" width = "261" frame-style = "text-align: center;" show_title = "true" style = ""/>
