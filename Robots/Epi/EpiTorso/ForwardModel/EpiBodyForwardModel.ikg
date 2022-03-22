@@ -29,13 +29,14 @@
 
     <!-- LINK 1: TRANS 1: Translation to Joint 2  --> 
     <module class = "Constant" name = "L1_T1" 
-	_data = "
+	data = "@L1_T1_data"
+    _data = "
 	1 0 0 0.200;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" 
-    data = "
+    _data = "
 	1 0 0 0.0;
 	0 1 0 0;
 	0 0 1 0;
@@ -64,13 +65,15 @@
 
      <!-- LINK 2: Translation to point between arms -->
     <module class = "Constant" name = "L2_T1" 
+    data = "@L2_T1_data"
+
 	_data = "
 	1 0 0 0.55824;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" 
-    data = "
+    _data = "
 	1 0 0 0;
 	0 1 0 0;
 	0 0 1 0;

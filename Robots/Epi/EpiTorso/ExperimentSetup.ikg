@@ -20,10 +20,41 @@ VisionInputRight = "InputJPEG"
 	
 	_EpiName = "EpiGreen" 
 	EpiName = "EpiBlue" 
+
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
 	pupilOffset = "-20 -81"
 	simulateRobot ="true"
+	
+	_EpiTorso_settings ="desc"
+	_L1_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	_L2_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 
+
+	_Epi_settings = "desc"
+	L1_T1_data = "
+	1 0 0 0.200;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	L2_T1_data = "
+	1 0 0 0.55824;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 	
+
+
 	/>
 
 	<!--
