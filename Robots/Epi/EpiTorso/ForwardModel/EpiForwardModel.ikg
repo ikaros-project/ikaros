@@ -55,19 +55,19 @@ nrServosTotal = "19"
     <module class = "Gate" name = "EpiPos"/>
 
     <module class = "Gate" name = "JointAngles_G"/>
-    	<connection source = "JointAngles_G.OUTPUT" 	target = "Body.JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexBody"	    size = "@nrServosBody" />
-	    <connection source = "JointAngles_G.OUTPUT" 	target = "Head.JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexHead"  	size = "@nrServosHead" />
-	    <connection source = "JointAngles_G.OUTPUT" 	target = "LeftArm.JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
-	    <connection source = "JointAngles_G.OUTPUT" 	target = "RightArm.JOINT_ANGLES" 		targetoffset = "0"	  sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
-	    <connection source = "JointAngles_G.OUTPUT" 	target = "Head.JOINT_ANGLES" 			targetoffset = "0"	  sourceoffset = "@servosIndexPupil"	size = "@nrServosPupil"/> ´
+    	<connection source = "JointAngles_G.OUTPUT" 	target = "Body.JOINT_ANGLES" 			targetoffset = "0"	                sourceoffset = "@servosIndexBody"	    size = "@nrServosBody" />
+        <connection source = "JointAngles_G.OUTPUT" 	target = "Head.JOINT_ANGLES" 			targetoffset = "0"	                sourceoffset = "@servosIndexHead"  	    size = "@nrServosHead" />
+	    <connection source = "JointAngles_G.OUTPUT" 	target = "Head.JOINT_ANGLES" 			targetoffset = "@servosIndexPupil"	sourceoffset = "@servosIndexPupil"	    size = "@nrServosPupil"/> 	   
+	    <connection source = "JointAngles_G.OUTPUT" 	target = "LeftArm.JOINT_ANGLES" 		targetoffset = "0"	                sourceoffset = "@servosIndexLeftArm"	size = "@nrServosLeftArm"/>  
+	    <connection source = "JointAngles_G.OUTPUT" 	target = "RightArm.JOINT_ANGLES" 		targetoffset = "0"	                sourceoffset = "@servosIndexRightArm"	size = "@nrServosRightArm"/>
 
 
     <!-- Outputs can not handle sourceoffset targetoffset. Using a dummy module to be able to use sourceoffset and targetoffset -->
 
     <!-- Exo -->    
     <module class = "DataConverter" name = "ExoPointsJoin" output_size_x = "16" output_size_y = "30" _output_size_y = "12"/>
-        <connection source = "EpiPos.OUTPUT"         target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "0"   size = "16"/> <!-- 4x4x1 -->         
-        <connection source = "PosBody.MATRIX"        target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "16"  size = "48"/> <!-- 4x4x3 -->
+        <connection source = "EpiPos.OUTPUT"         target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "0"   size = "16"/>  <!-- 4x4x1 -->         
+        <connection source = "PosBody.MATRIX"        target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "16"  size = "48"/>  <!-- 4x4x3 -->
         <connection source = "BodyHead.MATRIX"       target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "64"  size = "128"/> <!-- 4x4x8 -->
         <connection source = "BodyLeftArm.MATRIX"    target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "192" size = "144"/> <!-- 4x4x9 -->
         <connection source = "BodyRightArm.MATRIX"   target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "336" size = "144"/> <!-- 4x4x9 -->
@@ -160,8 +160,6 @@ nrServosTotal = "19"
         <connection source = "HeadFrame.OUTPUT"     target = "BodyHead.FRAME_ID_2"  delay = "0"/>
         
     <!-- Body -> Left Arm --> 
-
-
     <module class = "Transform"   name = "BodyLeftArm" />
         <connection source = "PosBody.MATRIX"       target = "BodyLeftArm.MATRIX_1"    delay = "0"/>
         <connection source = "PosBody.OBJECT_ID"    target = "BodyLeftArm.OBJECT_ID_1" delay = "0"/>
@@ -171,7 +169,6 @@ nrServosTotal = "19"
         <connection source = "LeftArmFrame.OUTPUT"  target = "BodyLeftArm.FRAME_ID_2"  delay = "0"/>
   
     <!-- Body -> Right Arm --> 
-
     <module class = "Transform"   name = "BodyRightArm" />
         <connection source = "PosBody.MATRIX"       target = "BodyRightArm.MATRIX_1"    delay = "0"/>
         <connection source = "PosBody.OBJECT_ID"    target = "BodyRightArm.OBJECT_ID_1" delay = "0"/>
