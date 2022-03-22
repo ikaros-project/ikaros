@@ -111,6 +111,8 @@
     <connection source = "MouthArbiter.OUTPUT" target = "MouthIntensity.INPUT"/>
     <input name = "MOUTH_INTENSITY" target = "MouthIntensity.SCALE" />
 
+<output name = "MOUTH_COLOR_F"      source = "MouthIntensity.OUTPUT" />
+
 <!-- Send to fadecandy -->
 <_connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "0" size = "1"/>
 <connection source = "LedOff.OUTPUT"           sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "0" size = "1"/>
