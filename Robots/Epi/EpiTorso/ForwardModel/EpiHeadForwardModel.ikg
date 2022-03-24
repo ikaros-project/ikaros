@@ -107,12 +107,13 @@
 
     <!-- LINK 3A: Joint 2 To Joint 3 Left Eye -->
     <module class = "Constant" name = "L3A_T1" 
-	data = "
-	1 0 0 0.052265;
-	0 1 0 -0.029071;
+    data = "
+    1 0 0 0.052265;
+	0 1 0 0.029071;
 	0 0 1 -0.065731;
 	0 0 0 1;
 	" />
+
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L3A_T1" />
@@ -138,12 +139,12 @@
    <!-- LINK 3B: Joint 2 To Joint 4 Right Eye -->
     <module class = "Constant" name = "L3B_T1" 
 	data = "
-    1 0 0 0.052265;
-	0 1 0 0.029071;
+	1 0 0 0.052265;
+	0 1 0 -0.029071;
 	0 0 1 -0.065731;
 	0 0 0 1;
 	" />
-
+    
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L3B_T1" />
         <connection source = "M_L2_R1.OUTPUT"       target = "M_L3B_T1.INPUT1" delay = "0"/>
