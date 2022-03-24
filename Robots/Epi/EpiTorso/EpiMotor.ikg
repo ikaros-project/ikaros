@@ -8,9 +8,9 @@
     <!-- Goal poistion -->
     <module class = "ServoConnector" name = "SCPosition"
 		connector       = "  1    2    3    4    5    6       7    8    9   10   11   12      13   14   15   16   17   18       19"
-        pre_inverted    = "  1    0    0    0    0    0       0    0    0    0    0    1       0    1    0    0    0    0        1" 
+        pre_inverted    = "  0    0    0    0    0    0       0    0    0    0    0    1       0    1    0    0    0    0        1" 
         post_inverted   = "  0    0    0    0    0    0       0    0    0    0    0    0       0    0    0    0    0    0        0" 
-        offset          = "180  180  180  180  210  210     180  180  180  180  225  180     180  180  180  180  135  180      190" 
+        offset          = "180  180  180  180  210  210     180  180  180  180  225  180     180  180  180  180  135  180      180" 
         output_size     = "@nrServosTotal"
 	/>
         <connection source = "SCPosition.OUTPUT" target = "EpiServos.GOAL_POSITION"  delay = "1"/>
@@ -30,8 +30,8 @@
 		name = "SCFeedbackPosition"
 		connector       = "   1    2    3    4    5    6      7    8    9   10   11   12      13   14   15   16   17   18      19"
         pre_inverted    = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0       0" 
-        post_inverted   = "   1    0    0    0    0    0      0    0    0    0    0    1       0    1    0    0    0    0       1" 
-        offset          = "-180 -180 -180 -180 -210 -210   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180    -190" 
+        post_inverted   = "   0    0    0    0    0    0      0    0    0    0    0    1       0    1    0    0    0    0       1" 
+        offset          = "-180 -180 -180 -180 -210 -210   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180    -180" 
         output_size     = "@nrServosTotal"
 	/>
         <connection source = "EpiServos.PRESENT_POSITION" target = "SCFeedbackPosition.INPUT" />
@@ -44,7 +44,7 @@
 		name = "SCFeedbackCurrent"
 		connector       = "   1    2    3    4    5    6      7    8    9   10   11   12      13   14   15   16   17   18   19"
         pre_inverted    = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0    0" 
-        post_inverted   = "   1    0    0    0    0    0      0    0    0    0    0    1       0    1    0    0    0    0    1" 
+        post_inverted   = "   0    0    0    0    0    0      0    0    0    0    0    1       0    1    0    0    0    0    1" 
         offset          = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0    0" 
         output_size     = "@nrServosTotal"
 	/>
