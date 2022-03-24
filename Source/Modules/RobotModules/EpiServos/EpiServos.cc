@@ -548,6 +548,10 @@ void EpiServos::Tick()
         }
         return;
     }
+
+    // Set default present position. Used when running in torso mode as body angle need to be fixed at 180
+    set_array(presentPosition,180,presentPositionSize);
+
     auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!
     auto leftArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, LEFT_ARM_INDEX_IO, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
