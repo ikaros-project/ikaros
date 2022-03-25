@@ -43,6 +43,7 @@ public:
 
     float **	input;
     float *     output;
+    float *     output_value;
 };
 
 

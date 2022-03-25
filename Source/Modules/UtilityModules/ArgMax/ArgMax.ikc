@@ -14,7 +14,8 @@
 	</example>
 
 	<input name="INPUT" description="The input" />
-	<output name="OUTPUT" description="Output with the coordinate of the maximu element" size="2" />
+	<output name="OUTPUT" description="Output with the coordinate of the maximum element" size="2" />
+	<output name="VALUE" description="Output with the vale of maximum element" size="1" />
 
 	<link class="ArgMax" />
 

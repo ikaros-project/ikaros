@@ -27,11 +27,13 @@ using namespace ikaros;
 void
 ArgMax::Init()
 {
-    size_x	= GetInputSizeX("INPUT");
-    size_y	= GetInputSizeY("INPUT");
+    size_x	        = GetInputSizeX("INPUT");
+    size_y	        = GetInputSizeY("INPUT");
 
-    input   = GetInputMatrix("INPUT");
-    output	= GetOutputArray("OUTPUT");
+    input           = GetInputMatrix("INPUT");
+    output	        = GetOutputArray("OUTPUT");
+    output_value	= GetOutputArray("VALUE");
+
 }
 
 
@@ -45,6 +47,10 @@ ArgMax::Tick()
 
     output[0] = float(x);
     output[1] = float(y);
+
+    if (output_value)
+        *output_value = input[y][x];
+
 }
 
 
