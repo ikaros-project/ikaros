@@ -38,6 +38,19 @@
 
     <output name = "PRESENT_POSITION"   source = "SCFeedbackPosition.OUTPUT" />
 
+
+    <module class = "Gate" name = "HeadPosition"/> <!-- outputs can not have source offset -->
+        <connection source = "SCFeedbackPosition.OUTPUT" target = "HeadPosition.INPUT" sourceoffset = "1" size = "1"/>
+    <output name = "PRESENT_HEAD_POSITION"   source = "HeadPosition.OUTPUT"/>
+    
+     <module class = "Gate" name = "EyePosition"/> <!-- outputs can not have source offset -->
+        <connection source = "SCFeedbackPosition.OUTPUT" target = "EyePosition.INPUT" sourceoffset = "2" size = "2"/>
+    <output name = "PRESENT_EYE_POSITION"   source = "EyePosition.OUTPUT"/>
+
+     <module class = "Gate" name = "PupilPosition"/> <!-- outputs can not have source offset -->
+        <connection source = "SCFeedbackPosition.OUTPUT" target = "PupilPosition.INPUT" sourceoffset = "2" size = "2"/>
+    <output name = "PRESENT_PUPIL_POSITION"   source = "PupilPosition.OUTPUT"/>
+
     <!-- We neede to take -->
       <module
 		class = "ServoConnector"
