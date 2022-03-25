@@ -610,6 +610,14 @@ ServerSocket::SendData(const char * buffer, long size)
 
 
 bool
+ServerSocket::Send(std::string data)
+{
+    return SendData(data.c_str(), data.size());
+}
+
+
+
+bool
 ServerSocket::Send(const char * format, ...)
 {
     if (data->new_fd == -1)
@@ -639,7 +647,7 @@ bool ServerSocket::SendBuffer()
     return SendData(buffer.c_str(),buffer.length());
 }
 
-void ServerSocket::clearBuffer()
+void ServerSocket::clearBuffer() // FIXME: what is this?
 {
     buffer.clear();
     if (buffer.empty())
