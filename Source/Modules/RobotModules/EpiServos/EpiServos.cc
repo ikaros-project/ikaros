@@ -527,8 +527,37 @@ void EpiServos::Init()
         Notify(msg_fatal_error, "Unable torque up servos\n");
 }
 
+float EpiServos::PupilMMToDegrees(float mm)
+{
+    // Quick fix
+    float minMM = 5;
+    float maxMM = 16;
+    float deltaMM = maxMM-minMM;
+
+    float minDeg = 180;
+    float maxDeg = 220;
+    float deltDeg = maxDeg-minDeg;
+
+    if (mm < minMM)
+        mm = minMM;
+    if (mm > maxMM)
+        mm = maxMM;
+
+    return ((mm-minMM)/deltaMM * deltDeg + minDeg);
+}
+
 void EpiServos::Tick()
 {
+
+    // Check limits of inputs
+    goalPosition[PUPIL_INDEX_IO] = clip(goalPosition[PUPIL_INDEX_IO], 5,16);
+    goalPosition[PUPIL_INDEX_IO+1] = clip(goalPosition[PUPIL_INDEX_IO+1], 5,16);
+    
+    // Special case. As pupil does not have any feedback we just return goal position
+    //presentPosition[PUPIL_INDEX_IO]    =     goalPosition[PUPIL_INDEX_IO];
+    //presentPosition[PUPIL_INDEX_IO+1]  =     goalPosition[PUPIL_INDEX_IO+1];
+
+
     if (simulate)
     {
         int index = 0;
@@ -539,8 +568,8 @@ void EpiServos::Tick()
 
         for (int i = 0; i < EPI_NR_SERVOS; i++)
         {
-            if (EpiTorsoMode && i > 5) // skip the last servos when running in Epi torso mode
-                return;
+            if (i > EPI_TORSO_NR_SERVOS) // skip the last servos when running in Epi torso mode
+                presentPosition[index] = 180;
             if (goalPosition)
                 presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel);
             presentCurrent[index] = 0; // mA
@@ -549,8 +578,10 @@ void EpiServos::Tick()
         return;
     }
 
-    // Set default present position. Used when running in torso mode as body angle need to be fixed at 180
-    set_array(presentPosition, 180, presentPositionSize);
+
+    // Special case for pupil uses mm instead of degrees
+    goalPosition[PUPIL_INDEX_IO]    =     PupilMMToDegrees(goalPosition[PUPIL_INDEX_IO]);
+    goalPosition[PUPIL_INDEX_IO+1]  =     PupilMMToDegrees(goalPosition[PUPIL_INDEX_IO+1]);
 
     auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!

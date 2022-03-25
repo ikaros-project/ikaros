@@ -111,6 +111,8 @@ public:
     bool PowerOnRobot();
     bool PowerOffRobot();
 
+    float PupilMMToDegrees(float mm);
+
     // Paramteters
     int robotType = 0;
     bool simulate = false;
