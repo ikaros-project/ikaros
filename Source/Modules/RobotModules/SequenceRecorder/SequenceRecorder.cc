@@ -461,7 +461,7 @@ SequenceRecorder::Tick()
 
     // FIXME: Add smoothing here
 
-    print_matrix("modes", channel_mode, 4, 19, 0); // FIXME: Remove 19!
+    print_matrix("modes", channel_mode, 4, channels, 0);
 
     for(int c=0; c<channels; c++)
         SetOutputForChannel(c);
