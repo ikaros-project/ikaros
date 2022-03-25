@@ -4,7 +4,7 @@
         epsilon = "0.05" />
 
 	<connection  source = "LowLevelMotionTrigger.OUTPUT"  target = "LowLevelMotionPlayer.TRIG" />
-	<connection  source = "Servos.FEEDBACK_PRESENT_POSITION"  target = "LowLevelMotionPlayer.INPUT" />
+	<connection  source = "Servos.PRESENT_POSITION"  target = "LowLevelMotionPlayer.INPUT" />
 <module
 			class = "MotionRecorder"
 			name = "LowLevelMotionPlayer"

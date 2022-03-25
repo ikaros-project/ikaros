@@ -1,6 +1,6 @@
 //
 //	EpiServos.h		This file is a part of the IKAROS project
-// 						
+//
 //    Copyright (C) 2012 <Author Name>
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-
 #ifndef EpiServo_
 #define EpiServo_
 
@@ -28,9 +27,64 @@
 
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
+// Dynamixel settings
+#define PROTOCOL_VERSION 2.0 // See which protocol version is used in the Dynamixel
+#define BAUDRATE1M 1000000   // XL-320 is limited to 1Mbit
+#define BAUDRATE3M 3000000   // MX servos
+
+// Indirect adress
+#define IND_ADDR_TORQUE_ENABLE 168
+#define ADDR_TORQUE_ENABLE 64
+#define IND_ADDR_GOAL_POSITION 170
+#define ADDR_GOAL_POSITION 116
+#define IND_ADDR_GOAL_CURRENT 178
+#define ADDR_GOAL_CURRENT 102
+
+#define IND_ADDR_PRESENT_POSITION 578
+#define ADDR_PRESENT_POSITION 132
+#define IND_ADDR_PRESENT_CURRENT 586
+#define ADDR_PRESENT_CURRENT 128
+#define IND_ADDR_PRESENT_TEMPERATURE 590
+#define ADDR_PRESENT_TEMPERATURE 146
+
+// Common for the 2.0 (not XL320)
+#define ADDR_PROFILE_ACCELERATION 108
+#define ADDR_PROFILE_VELOCITY 112
+#define ADDR_P 84
+#define ADDR_I 82
+#define ADDR_D 80
+
+// ID of each dynamixel chain.
+#define HEAD_ID_MIN 2
+#define HEAD_ID_MAX 5
+
+#define ARM_ID_MIN 2
+#define ARM_ID_MAX 7
+
+#define BODY_ID_MIN 2
+#define BODY_ID_MAX 2
+
+#define PUPIL_ID_MIN 2
+#define PUPIL_ID_MAX 3
+
+#define EPI_TORSO_NR_SERVOS 6
+#define EPI_NR_SERVOS 19
+
+#define TIMER_POWER_ON 2000
+#define TIMER_POWER_OFF 5000          // Timer ramping down
+#define TIMER_POWER_OFF_EXTENDED 3000 // Timer until torque enable off
+
+#define HEAD_INDEX_IO 0
+#define PUPIL_INDEX_IO 4
+#define LEFT_ARM_INDEX_IO 6
+#define RIGHT_ARM_INDEX_IO 12
+#define BODY_INDEX_IO 18
+
+#define MAX_TEMPERATURE 55
+
 typedef struct
-{   
-    std::string serialPortPupil; 
+{
+    std::string serialPortPupil;
     std::string serialPortHead;
     std::string serialPortBody;
     std::string serialPortLeftArm;
@@ -42,92 +96,81 @@ typedef struct
 #include <map>
 #include <iostream>
 
-
-class EpiServos: public Module
+class EpiServos : public Module
 {
 public:
-    static Module * Create(Parameter * p) { return new EpiServos(p); }
+    static Module *Create(Parameter *p) { return new EpiServos(p); }
 
-    EpiServos(Parameter * p) : Module(p) {}
+    EpiServos(Parameter *p) : Module(p) {}
     virtual ~EpiServos();
 
-    void 		Init();
-    void 		Tick();
+    void Init();
+    void Tick();
 
-    bool        SetDefaultSettingServo();
-    bool        PowerOnRobot();
-    bool        PowerOffRobot();
+    bool SetDefaultSettingServo();
+    bool PowerOnRobot();
+    bool PowerOffRobot();
 
     // Paramteters
     int robotType = 0;
     bool simulate = false;
 
     // Ikaros IO
-    float * goalPosition;
-    float * goalCurrent;    
-    float * torqueEnable;
+    float *goalPosition;
+    float *goalCurrent;
+    float *torqueEnable;
 
     int goalPositionSize;
     int goalCurrentSize;
     int torqueEnableSize;
 
-    float * presentPosition;
+    float *presentPosition;
     int presentPositionSize;
-    float * presentCurrent;
+    float *presentCurrent;
     int presentCurrentSize;
-    
+
     bool EpiTorsoMode = false;
     bool EpiMode = false;
 
     dynamixel::PortHandler *portHandlerHead;
     dynamixel::PacketHandler *packetHandlerHead;
     dynamixel::GroupSyncRead *groupSyncReadHead;
-    dynamixel::GroupSyncWrite * groupSyncWriteHead;
+    dynamixel::GroupSyncWrite *groupSyncWriteHead;
 
     dynamixel::PortHandler *portHandlerPupil;
     dynamixel::PacketHandler *packetHandlerPupil;
     dynamixel::GroupSyncRead *groupSyncReadPupil;
-    dynamixel::GroupSyncWrite * groupSyncWritePupil;
+    dynamixel::GroupSyncWrite *groupSyncWritePupil;
 
     dynamixel::PortHandler *portHandlerLeftArm;
     dynamixel::PacketHandler *packetHandlerLeftArm;
     dynamixel::GroupSyncRead *groupSyncReadLeftArm;
-    dynamixel::GroupSyncWrite * groupSyncWriteLeftArm;
+    dynamixel::GroupSyncWrite *groupSyncWriteLeftArm;
 
     dynamixel::PortHandler *portHandlerRightArm;
     dynamixel::PacketHandler *packetHandlerRightArm;
     dynamixel::GroupSyncRead *groupSyncReadRightArm;
-    dynamixel::GroupSyncWrite * groupSyncWriteRightArm;
+    dynamixel::GroupSyncWrite *groupSyncWriteRightArm;
 
     dynamixel::PortHandler *portHandlerBody;
     dynamixel::PacketHandler *packetHandlerBody;
     dynamixel::GroupSyncRead *groupSyncReadBody;
-    dynamixel::GroupSyncWrite * groupSyncWriteBody;
+    dynamixel::GroupSyncWrite *groupSyncWriteBody;
 
     std::string robotName;
-    std::map<std::string,Robot_parameters> robot;
+    std::map<std::string, Robot_parameters> robot;
 
+    // Functions for each serial port (used to threading)
+    // bool Communication(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, int IOIndex);
+    bool Communication(int IDMin, int IDMax, int IOIndex, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite);
 
-    // Functions for each serial port (used to threading´)
-    bool CommunicationHead();
     bool CommunicationPupil();
-    bool CommunicationLeftArm();
-    bool CommunicationBody();
-    bool CommunicationRightArm();
-    
-    bool PowerOnHead();
+
+    bool PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
     bool PowerOnPupil();
-    bool PowerOnLeftArm();
-    bool PowerOnRightArm();
-    bool PowerOnBody();
 
-    bool PowerOffHead();
+    bool PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
     bool PowerOffPupil();
-    bool PowerOffLeftArm();
-    bool PowerOffRightArm();
-    bool PowerOffBody();
-
 };
 
 #endif
-

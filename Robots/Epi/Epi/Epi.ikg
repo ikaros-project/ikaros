@@ -24,7 +24,6 @@ PupilModelA = "100"
 	<!-- import frame and id for epi robots> -->
     <?include file="EpiFrames.ikg" ?>
 
-
     <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
 ´   <module class = "Constant" name = "PositioExo" _data = "
         1 0 0 0.85
@@ -164,8 +163,8 @@ PupilModelA = "100"
 <!-- Actuators/Proprioception -->
 <module class = "EpiServos" 	name = "Servos" 		/>
 	<connection	source = "GOAL_POSITION.OUTPUT" 		target = "Servos.GOAL_POSITION" />
-	<connection	source = "SERVO_SPEED.OUTPUT" 			target = "Servos.MOVING_SPEED" />
-	<connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
+	<_connection	source = "SERVO_SPEED.OUTPUT" 			target = "Servos.MOVING_SPEED" />
+	<_connection	source = "SERVO_TORQUE_LIMIT.OUTPUT" 	target = "Servos.TORQUE_LIMIT" />
     <!--  Done by motion recorder -->
     <connection source = "SERVO_TORQUE_ENABLE.OUTPUT" 	target = "Servos.TORQUE_ENABLE" />
     <!-- Pupil override -->
@@ -173,7 +172,7 @@ PupilModelA = "100"
 
 
 <module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
-	<connection source = "Servos.FEEDBACK_PRESENT_POSITION" 	target = "ForwardModel.JOINT_ANGLES" />
+	<connection source = "Servos.PRESENT_POSITION" 	target = "ForwardModel.JOINT_ANGLES" />
 
 <!--  Low Level Motion mixer  -->
 <!-- ************************ -->
@@ -325,7 +324,7 @@ PupilModelA = "100"
     <?include file="EpiLowLevelTrigger.ikg" ?>
 
 	<!-- Log -->
-	<module class="EpiLog" name="EpiLog" active = "yes"/>
+	<_module class="EpiLog" name="EpiLog" active = "yes"/>
 
 
 <!-- Views -->

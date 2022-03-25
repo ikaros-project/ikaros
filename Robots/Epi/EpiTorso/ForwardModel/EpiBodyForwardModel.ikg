@@ -28,16 +28,15 @@
         <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" delay = "0" />
 
     <!-- LINK 1: TRANS 1: Translation to Joint 2  --> 
-    <!-- Epi torso -->
     <module class = "Constant" name = "L1_T1" 
-
-	epiData = "
+	data = "@L1_T1_data"
+    _data = "
 	1 0 0 0.200;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" 
-    epiTorsoData = "
+    _data = "
 	1 0 0 0.0;
 	0 1 0 0;
 	0 0 1 0;
@@ -66,13 +65,15 @@
 
      <!-- LINK 2: Translation to point between arms -->
     <module class = "Constant" name = "L2_T1" 
+    data = "@L2_T1_data"
+
 	_data = "
 	1 0 0 0.55824;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" 
-    data = "
+    _data = "
 	1 0 0 0;
 	0 1 0 0;
 	0 0 1 0;

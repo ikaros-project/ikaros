@@ -1,30 +1,8 @@
 <?xml version="1.0"?>
 
 <!-- This is the starting point of the experiment -->
-<!-- This is where you import the robot(s) and other specific modules that will be used in the experiment. -->
 
-<!-- EpiTorsoMinimal settings
-
-Serial ports (servos):
-Typical:
-Linux
-HeadSerialDevice = "/dev/ttyXXXX" 
-OSX: 
-HeadSerialDevice = "/dev/cu_XXXX" 
-
-Servo mode:
-The system can simulate the servos to be able to run the simulation without the robot. 
-The feedback from the servoes is very limited. The goal position sent to the simulated servos is used as feedback position. 
-The rest of the feedback channels (feedback speed, current, load etc. is just zeros).
-
-Use Robot servos:
-HeadDynamixel = "Dynamixel"
-PupilDynamixel = "Dynamixel"
-Use simlated servos:
-HeadDynamixel = "DynamixelSimulate"
-PupilDynamixel = "DynamixelSimulate"
-
-
+<!--
 Vision input mode:
 The vision input can also be simulated by instead of the camera stream read a local image from file (NoCamera.jpg).
 From video stream:
@@ -35,42 +13,47 @@ From local image:
 VisionInputLeft = "InputJPEG"
 VisionInputRight = "InputJPEG"
 -->
+
 <group name="Experimental setup">
 
-	<!-- Importing Epi Green -->
-	<!--<module class = "EpiTorsoMinimal" name = "EpiGreen" 
-	HeadDynamixel = "DynamixelSimulate" 
-	PupilDynamixel = "DynamixelSimulate" 
-	HeadSerialDevice = "/dev/cu.usbserial-FT3WI37F" 
-	PupilSerialDevice = "/dev/cu.usbserial-FT3WKHCT"
-	VisionInputLeft = "InputJPEG"
-	VisionInputRight = "InputJPEG"
-	pupilOffset = "-15 -10"
-	/>
-	-->
+	<module class = "EpiTorsoMinimal" name = "Epi" 
 
-	<!-- Importing Epi Orange-->
-<!--
-	<module class = "EpiTorsoMinimal" name = "EpiOrange" 
-	HeadDynamixel = "Dynamixel" 
-	PupilDynamixel = "Dynamixel" 
-	HeadSerialDevice = "/dev/cu.usbserial-FT3WI2K2" 
-	PupilSerialDevice = "/dev/cu.usbserial-FT3WI2WH"
-	VisionInputLeft = "InputVideoStream"
-	VisionInputRight = "InputVideoStream"
-	pupilOffset = "-15 -28"
-	/>
--->
-	<!-- Importing Epi Gray-->
-
-	<module class = "EpiTorsoMinimal" name = "EpiGray" 
-	HeadDynamixel = "DynamixelSimulate" 
-	PupilDynamixel = "DynamixelSimulate" 
-	HeadSerialDevice = "/dev/cu.usbserial-FT4TCGUT" 
-	PupilSerialDevice = "/dev/cu.usbserial-FT4TCJXI"
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
 	pupilOffset = "-20 -81"
+	simulateRobot ="false"
+	
+
+	_EpiName = "EpiRed" 
+	_L1_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	_L2_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 
+
+	
+	EpiName = "EpiBlue" 
+	L1_T1_data = "
+	1 0 0 0.200;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	L2_T1_data = "
+	1 0 0 0.55824;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 	
+
+
 	/>
 
 	<!--

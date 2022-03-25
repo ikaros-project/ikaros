@@ -5,6 +5,9 @@
 <input name = "EYE_COLOR"         target = "EyeIntensity.INPUT" />
 <input name = "EYE_INTENSITY"     target = "EyeIntensity.SCALE" />
 
+<output name = "EYE_COLOR_F"      source = "EyeIntensity.OUTPUT" />
+
+
 <!-- EYES -->
 <module class = "FadeCandy" name = "FadeCandy" start_server = "false">
     <channel name="MOUTH_TOP"       channel="0"	size="8" />
@@ -95,7 +98,7 @@
 <!-- MOUTH -->
 <module class = "Constant" name = "NoLEDValue"  data = "0.5" />
 
-<module class = "Constant" name = "LedOff" data = "0 0 0´" />
+<module class = "Constant" name = "LedOff" data = "0 0 0" />
 
 <module class = "Arbiter" name = "MouthArbiter" no_of_inputs = "2" />
     <input name = "MOUTH_COLOR"                 target = "MouthArbiter.INPUT_1" />
@@ -107,6 +110,8 @@
 <module class = "Scale" name = "MouthIntensity" />
     <connection source = "MouthArbiter.OUTPUT" target = "MouthIntensity.INPUT"/>
     <input name = "MOUTH_INTENSITY" target = "MouthIntensity.SCALE" />
+
+<output name = "MOUTH_COLOR_F"      source = "MouthIntensity.OUTPUT" />
 
 <!-- Send to fadecandy -->
 <_connection source = "MouthIntensity.OUTPUT"   sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    targetoffset = "0" size = "1"/>
