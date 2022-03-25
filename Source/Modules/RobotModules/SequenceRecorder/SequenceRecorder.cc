@@ -125,10 +125,18 @@ SequenceRecorder::SetTargetForTime(float t)
      {
          output[c] = input[c];
          active[c] = 0;
-     }   
-
+     }
 
  }
+
+
+
+
+void
+SequenceRecorder::StartRecord()
+{
+    sequence_data["sequences"][0]["keypoints"] = json::array();
+}
 
 
 
@@ -157,6 +165,7 @@ SequenceRecorder::Init()
     io(smoothing_start,"SMOOTHING_START");
 
 
+/*
     json points = json::array();
     points.push_back(42);
     points.push_back(45);   
@@ -168,7 +177,7 @@ SequenceRecorder::Init()
     keypoint["p"] = points;
 
     std::string ss = keypoint.dump();
-
+*/
     /*
 
     sequence = R"(
@@ -230,6 +239,7 @@ SequenceRecorder::Play()
 void
 SequenceRecorder::Record()
 {
+    StartRecord();
     set_one(state, 2, states); 
     timer.Start();
 }
@@ -314,9 +324,33 @@ SequenceRecorder::ReduceTime()
 void
 SequenceRecorder::AddKeypoint()
 {
+
+}
+
+
+
+void
+SequenceRecorder::PushKeypoint() // Add keypoint at the end - only works during record
+{
     float time = timer.GetTime();
 
+    json points = json::array();
+    for(int c=0; c<channels; c++)
+        points.push_back(input[c]); // FIXME: compare 'positions'  
 
+    json keypoint = json::object();
+    keypoint["time"] = time;
+    keypoint["point"] = points;
+
+    std::string kp = keypoint.dump();
+
+    //  printf("%s\n", kp.c_str());
+
+    sequence_data["sequences"][0]["keypoints"].push_back(keypoint);
+
+    std::string ss = sequence_data["sequences"][0]["keypoints"].dump();
+printf("%s\n", ss.c_str());
+    int x = 0;
 }
 
 
@@ -357,7 +391,11 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
         return sequence_data["ranges"].dump();
 
     else if(name=="SEQUENCE")
-        return sequence_data["sequences"][0].dump();
+    {
+        std::string sq = sequence_data["sequences"][0].dump();
+        printf(">>> %s\n", sq.c_str());
+        return sq;
+    }
 
     else
         return "";
@@ -423,9 +461,14 @@ SequenceRecorder::Tick()
 
     // FIXME: Add smoothing here
 
-    print_matrix("modes", channel_mode, 4, 6, 0);
+ //   print_matrix("modes", channel_mode, 4, 6, 0);
     for(int c=0; c<channels; c++)
         SetOutputForChannel(c);
+
+    // PushPoints if in recording mode
+
+    if(state[2] == 1) // record mode
+        PushKeypoint();
 }
 
 
