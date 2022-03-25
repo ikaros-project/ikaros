@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+
+<!-- This is the starting point of the experiment -->
+
+<!--
+Vision input mode:
+The vision input can also be simulated by instead of the camera stream read a local image from file (NoCamera.jpg).
+From video stream:
+VisionInputLeft = "InputVideoStream"
+VisionInputRight = "InputVideoStream"
+
+From local image:
+VisionInputLeft = "InputJPEG"
+VisionInputRight = "InputJPEG"
+-->
+
+<group name="Experimental setup">
+
+	<module class = "EpiTorsoMinimal" name = "Epi" 
+
+	VisionInputLeft = "InputJPEG"
+	VisionInputRight = "InputVideoStream"
+	pupilOffset = "-20 -81"
+	simulateRobot ="true"
+	
+
+	EpiName = "EpiRed" 
+	L1_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	L2_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 
+
+	
+	_EpiName = "EpiBlue" 
+	_L1_T1_data = "
+	1 0 0 0.200;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	_L2_T1_data = "
+	1 0 0 0.55824;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 	
+
+
+	/>
+
+
+	<!--  
+    1. Kan man lysa i ögat.
+    2. Kan man peta på ögat.
+    3. Detektera QR kod.
+	-->
+
+
+	<!-- 1. Demonstration of light reflex -->
+    <!-- Uses two system -->
+
+	<!-- Control the pupil depending on light condition -->
+
+	<module class = "Downsample" name = "D1" />
+	        <connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D1.INPUT" />
+	<module class = "Downsample" name = "D2" />
+		   <connection  source = "D1.OUTPUT"  target = "D2.INPUT" />
+	<module class = "Downsample" name = "D3" />
+		    <connection  source = "D2.OUTPUT"  target = "D3.INPUT" />
+
+
+    <module class = "GaussianFilter" name = "Gaussian" kernel_size = "5" sigma ="10" />
+        <connection  source = "D3.OUTPUT"  target = "Gaussian.INPUT" />
+
+	<module class = "ArgMax" name = "ArgMax2"/>
+        <connection  source = "Gaussian.OUTPUT"  target = "ArgMax2.INPUT" />
+
+    <!-- Pupil converter -->
+    <module
+        class = "LinearSplines"
+        name = "LightIntensityToPupilDiameter"
+        points = "
+            0.0	 16; 
+            0.5	 12;
+            1	 6"
+    />
+        <connection  source = "ArgMax2.VALUE"  target = "LightIntensityToPupilDiameter.INPUT" />
+        <connection  source = "LightIntensityToPupilDiameter.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "4" size = "1"/>
+        <connection  source = "LightIntensityToPupilDiameter.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "5" size = "1"/>
+
+
+
+<view name="Light intensity" >
+	<image  x = "140" file = "" index = "" max_y = "1" title = "Image" module = "" height = "641" flipYCanvas = "no" source = "Epi.RightEye.LOW_RES_INTENSITY" scale = "both" flipXAxis = "no" command = "" show_title = "false" scales = "no" max_x = "1" format = "gray" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "761" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
+	<image  x = "920" file = "" index = "" max_y = "1" title = "Image" module = "" height = "641" flipYCanvas = "no" source = "Gaussian.OUTPUT" scale = "both" flipXAxis = "no" command = "" show_title = "false" scales = "no" max_x = "1" format = "fire" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "761" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
+	<marker  y = "40" frame-style = "" height = "641" flipYCanvas = "no" labelPrefix = "" markerType = "circle" width = "761" flipYAxis = "no" lineWidth = "1" x = "920" title = "" labelBaseline = "middle" max_y = "40" color = "" source = "ArgMax2.OUTPUT" order = "col" selectValue = "" lineJoin = "miter" labelType = "none" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "gray" labels = "" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "0.025" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" scale_y = "0.025" min_x = "0" labelFont = "18px sans-serif" style = "" max_x = "40" show_frame = "false"/>
+	<plot  x = "140" y = "700" height = "200" show_frame = "false" width = "200" source = "ArgMax1.VALUE" select = "" direction = "vertical" min = "0" max = "1" title = "Plot" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  x = "920" y = "700" height = "421" show_frame = "false" width = "381" source = "ArgMax2.VALUE" select = "" direction = "vertical" min = "0" max = "1" title = "Max value" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  x = "1300" y = "700" height = "421" show_frame = "false" width = "381" source = "LightIntensityToPupilDiameter.OUTPUT" select = "" direction = "vertical" min = "10" max = "20" title = "Pupil mm" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+</view>
+
+
+
+
+
+
+</group>

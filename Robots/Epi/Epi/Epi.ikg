@@ -25,7 +25,7 @@ PupilModelA = "100"
     <?include file="EpiFrames.ikg" ?>
 
     <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
-´   <module class = "Constant" name = "PositioExo" _data = "
+   <module class = "Constant" name = "PositioExo" _data = "
         1 0 0 0.85
         0 1 0 0.15
         0 0 1 0.847

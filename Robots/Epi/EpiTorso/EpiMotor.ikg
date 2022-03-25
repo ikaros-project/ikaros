@@ -10,7 +10,7 @@
 		connector       = "  1    2    3    4    5    6       7    8    9   10   11   12      13   14   15   16   17   18       19"
         pre_inverted    = "  0    0    0    0    0    0       0    0    0    0    0    1       0    1    0    0    0    0        1" 
         post_inverted   = "  0    0    0    0    0    0       0    0    0    0    0    0       0    0    0    0    0    0        0" 
-        offset          = "180  180  180  180  210  210     180  180  180  180  225  180     180  180  180  180  135  180      180" 
+        offset          = "180  180  180  180    0    0     180  180  180  180  225  180     180  180  180  180  135  180      180" 
         output_size     = "@nrServosTotal"
 	/>
         <connection source = "SCPosition.OUTPUT" target = "EpiServos.GOAL_POSITION"  delay = "1"/>
@@ -31,7 +31,7 @@
 		connector       = "   1    2    3    4    5    6      7    8    9   10   11   12      13   14   15   16   17   18      19"
         pre_inverted    = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0       0" 
         post_inverted   = "   0    0    0    0    0    0      0    0    0    0    0    1       0    1    0    0    0    0       1" 
-        offset          = "-180 -180 -180 -180 -210 -210   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180    -180" 
+        offset          = "-180 -180 -180 -180    0    0   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180    -180" 
         output_size     = "@nrServosTotal"
 	/>
         <connection source = "EpiServos.PRESENT_POSITION" target = "SCFeedbackPosition.INPUT" />
@@ -48,7 +48,7 @@
     <output name = "PRESENT_EYE_POSITION"   source = "EyePosition.OUTPUT"/>
 
      <module class = "Gate" name = "PupilPosition"/> <!-- outputs can not have source offset -->
-        <connection source = "SCFeedbackPosition.OUTPUT" target = "PupilPosition.INPUT" sourceoffset = "2" size = "2"/>
+        <connection source = "SCFeedbackPosition.OUTPUT" target = "PupilPosition.INPUT" sourceoffset = "4" size = "2"/>
     <output name = "PRESENT_PUPIL_POSITION"   source = "PupilPosition.OUTPUT"/>
 
     <!-- We neede to take -->

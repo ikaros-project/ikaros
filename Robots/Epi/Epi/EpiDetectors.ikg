@@ -30,17 +30,17 @@
     <input name = "EGO_FRAME_ID"        targetmodule = "L_ChangeRotation"      target = "FRAME_ID_1" />
     <input name = "EGO_ID"      	    targetmodule = "L_ChangeRotation"      target = "FRAME_ID_2"/>
     
-    <input name = "EGO_ID"      	    targetmodule = "L_FaceEgo"           target = "OBJECT_ID_1"/>
-    <input name = "EGO_FRAME_ID"        targetmodule = "L_FaceEgo"           target = "FRAME_ID_1" />
-    <input name = "EGO_ID"      	    targetmodule = "L_FaceEgo"           target = "FRAME_ID_2"/>
-    <input name = "WORLD_ID"      	    targetmodule = "L_FaceWorld"         target = "OBJECT_ID_1"/>
-    <input name = "WORLD_FRAME_ID"      targetmodule = "L_FaceWorld"         target = "FRAME_ID_1" />
-    <input name = "WORLD_ID"      	    targetmodule = "L_FaceWorld"         target = "FRAME_ID_2"/>
-    <input name = "EGO_ID"      	    targetmodule = "L_FaceRotation"      target = "OBJECT_ID_1"/>
-    <input name = "EGO_FRAME_ID"        targetmodule = "L_FaceRotation"      target = "FRAME_ID_1" />
-    <input name = "EGO_ID"      	    targetmodule = "L_FaceRotation"      target = "FRAME_ID_2"/>
+    <input name = "EGO_ID"      	    targetmodule = "L_FaceEgo"             target = "OBJECT_ID_1"/>
+    <input name = "EGO_FRAME_ID"        targetmodule = "L_FaceEgo"             target = "FRAME_ID_1" />
+    <input name = "EGO_ID"      	    targetmodule = "L_FaceEgo"             target = "FRAME_ID_2"/>
+    <input name = "WORLD_ID"      	    targetmodule = "L_FaceWorld"           target = "OBJECT_ID_1"/>
+    <input name = "WORLD_FRAME_ID"      targetmodule = "L_FaceWorld"           target = "FRAME_ID_1" />
+    <input name = "WORLD_ID"      	    targetmodule = "L_FaceWorld"           target = "FRAME_ID_2"/>
+    <input name = "EGO_ID"      	    targetmodule = "L_FaceRotation"        target = "OBJECT_ID_1"/>
+    <input name = "EGO_FRAME_ID"        targetmodule = "L_FaceRotation"        target = "FRAME_ID_1" />
+    <input name = "EGO_ID"      	    targetmodule = "L_FaceRotation"        target = "FRAME_ID_2"/>
+    
     <!-- Right Change -->
-
     <input name = "SENSORS_POS_EGO"     targetmodule = "L_Camera_Sensor"       target = "INPUT" />
     <input name = "SENSORS_POS_EGO"     targetmodule = "R_Camera_Sensor"       target = "INPUT" />
 
@@ -396,7 +396,7 @@
         threshold 	= "auto"
         frame_id 	= "300"
         distance_unit = "m"
-                active = "no"
+        active = "no"
 
 	/>
     
