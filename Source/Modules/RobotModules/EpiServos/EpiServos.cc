@@ -226,11 +226,11 @@ void EpiServos::Init()
                          .type = "EpiTorso"};
 
     robot["EpiRed"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
-                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
-                         .serialPortBody = "",
-                         .serialPortLeftArm = "",
-                         .serialPortRightArm = "",
-                         .type = "EpiTorso"};
+                       .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+                       .serialPortBody = "",
+                       .serialPortLeftArm = "",
+                       .serialPortRightArm = "",
+                       .type = "EpiTorso"};
 
     robot["EpiYellow"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                           .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
@@ -550,7 +550,7 @@ void EpiServos::Tick()
     }
 
     // Set default present position. Used when running in torso mode as body angle need to be fixed at 180
-    set_array(presentPosition,180,presentPositionSize);
+    set_array(presentPosition, 180, presentPositionSize);
 
     auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!
@@ -617,7 +617,6 @@ bool EpiServos::SetDefaultSettingServo()
             if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
                 return false;
     }
-
     // Indirect adress (Goal position) 4 bytes. Indiret mode not used for XL-320 (pupil)
     for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
         for (int j = 0; j < 4; j++)
@@ -737,7 +736,7 @@ bool EpiServos::SetDefaultSettingServo()
                 return false;
     }
 
-    // Common settings for the seros
+    // Common settings for the servos
     // Profile velocity
     param_default_4Byte = 210;
 
@@ -813,7 +812,6 @@ bool EpiServos::SetDefaultSettingServo()
     }
 
     // Specific setting for each servos
-
     // HEAD ID 2
     // Limit position max
     param_default_4Byte = 2900;
@@ -855,57 +853,81 @@ bool EpiServos::SetDefaultSettingServo()
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 52, param_default_4Byte, &dxl_error))
         return false;
 
+    Timer t;
+    int xlTimer = 10; // Timer in ms. XL320 need this. Not sure why.
     // PUPIL ID 2 (Left pupil)
-    // Limit position max
+    // Limit position min
     param_default_2Byte = 550;
     if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, param_default_2Byte, &dxl_error))
         return false;
-    // Limit position min
-    param_default_2Byte = 801;
+    t.Sleep(xlTimer);
+
+    // Limit position max
+    param_default_2Byte = 80;
     if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, param_default_2Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // Moving speed
     param_default_2Byte = 150;
     if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 32, param_default_2Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // P
     param_default_1Byte = 100;
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, param_default_1Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // I
     param_default_1Byte = 20;
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 28, param_default_1Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // D
     param_default_1Byte = 5;
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 27, param_default_1Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
 
     // PUPIL ID 3 (Right pupil)
     // Limit position max
-    param_default_2Byte = 351;
+    param_default_2Byte = 350;
     if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, param_default_2Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // Limit position min
-    param_default_2Byte = 601;
+    param_default_2Byte = 600;
     if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, param_default_2Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // Moving speed
     param_default_2Byte = 150;
     if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 32, param_default_2Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // P
     param_default_1Byte = 100;
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, param_default_1Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // I
     param_default_1Byte = 20;
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 28, param_default_1Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
+
     // D
     param_default_1Byte = 5;
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, param_default_1Byte, &dxl_error))
         return false;
+    t.Sleep(xlTimer);
 
     if (EpiMode)
     {
