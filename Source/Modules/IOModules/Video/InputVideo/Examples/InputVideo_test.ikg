@@ -8,7 +8,6 @@
 		_frame_rate="29.97" 
 		frame_rate="30" 
 		list_devices = "yes"
-		id ="1"
 	/>
 
 	
