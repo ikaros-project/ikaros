@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+
+<group name="PupilControl" epsilon = "1"  phi = "1">
+
+
+    <input name="PTA"               target="PTA.INPUT" />
+    <input name="EW_EXCITATION"     target="EWpg.EXCITATION" />
+    <input name="EW_SHUNTING"       target="EWpg.SHUNTING_INHIBITION" />
+    <input name="IML_EXCITATION"    target="IML.EXCITATION" />
+
+    <output name="PTA_OUTPUT" source="PTA.OUTPUT" />
+    <output name="CG_OUTPUT"  source="CG.OUTPUT" />
+    <output name="SCG_OUTPUT" source="SCG2.OUTPUT" /> <!-- SCG1?-->
+
+    <!-- ********************************* PARASYMPATHETIC COMPONENT ********************************* -->
+
+    <module
+        class="PreTectalArea"
+        name="PTA"
+    />
+
+    <!-- PTA => Edinger-Westphal nucleus -->
+
+    <connection  source = "PTA.OUTPUT"  target = "EdingerWestphal_pg.EXCITATION" />
+
+    <module
+        class="Nucleus"
+        name="EdingerWestphal_pg"
+    />
+
+    <!-- Edinger-Westphal nuclei ==> Ciliar Ganglion -->
+
+    <connection  source = "EdingerWestphal_pg.OUTPUT"  target = "CG.EXCITATION" />
+
+    <module
+        class="Nucleus"
+        name="CG"
+    />
+
+    <!-- ********************************* SYMPATHETIC COMPONENT ********************************* -->
+    
+    <module
+        class="Nucleus"
+        name="IML"
+    />
+
+    <module
+        class="Nucleus"
+        name="SCG1"
+
+    />
+
+    <!-- IML => SCG -->
+    
+    <connection  source = "IML.OUTPUT"  target = "SCG2.EXCITATION" />
+
+    <module
+        class="Nucleus"
+        name="SCG2"
+    />
+
+</group>
+

@@ -20,7 +20,7 @@
 	<module
         class = "EpiServos"
         name = "EpiServos"
-        log_level = "8"
+        _log_level = "8"
         robot = "@EpiName"
         simulate = "@simulateRobot"
     />

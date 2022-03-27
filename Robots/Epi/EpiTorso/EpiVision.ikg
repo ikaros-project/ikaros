@@ -26,8 +26,10 @@
         active = "yes"
 		size_x = "640"
 		size_y = "640"
-		syncronized_tick = "false" />
-
+		syncronized_tick = "false" 
+		list_devices = "false"
+		/>
+		
 	<!-- Downsample -->
 	<module class = "Downsample" name = "LOW_RED" />
 	<module class = "Downsample" name = "LOW_GREEN" />
