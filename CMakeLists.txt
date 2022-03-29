@@ -125,7 +125,7 @@ endif (Threads_FOUND)
 # Turbo JPEG
 find_package (Jpeg-Turbo)
   if (TURBO_JPEG_FOUND)
-  	include_directories(${TURBO_JPEG_INCLUDE_DIR})
+  	include_directories(${TURBO_JPEG_INCLUDE_DIRS})
   	target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
   	else()
    		 message(FATAL_ERROR "\nIkaros require the Turbo-JPEG library. \nVisit www.ikaros-project.org for information about dependencies")
