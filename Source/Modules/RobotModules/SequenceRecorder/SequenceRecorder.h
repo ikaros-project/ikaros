@@ -56,7 +56,8 @@ public:
     void        SetEndMark();
     void        ExtendTime();
     void        ReduceTime();
-    void        AddKeypoint();
+    void        AddKeypoint(); // add keypoint at current position
+    void        PushKeypoint(); // push keypoint at the end of sequence
 
     void        Command(std::string s, float x, float y, std::string value);
 
@@ -64,6 +65,9 @@ public:
 
     void        SetTargetForTime(float t);
     void        SetOutputForChannel(int c);
+void            StartRecord();
+
+
 
     // Current state
 

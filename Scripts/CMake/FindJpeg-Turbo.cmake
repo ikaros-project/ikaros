@@ -4,12 +4,12 @@
 # Used by the ikaros kernel
 #
 # This module defines
-# TURBO_JPEG_INCLUDE_DIR
+# TURBO_JPEG_INCLUDE_DIRS
 # TURBO_JPEG_LIBRARIES
 # TURBO_JPEG_FOUND
 
 # Find header files
-find_path(TURBO_JPEG_INCLUDE_DIR
+find_path(TURBO_JPEG_INCLUDE_DIRS
   NAMES
     turbojpeg.h jpeglib.h
   PATHS
@@ -32,7 +32,7 @@ find_library(TURBO_JPEG_LIBRARIES
     lib
   )
 
-if (TURBO_JPEG_INCLUDE_DIR AND TURBO_JPEG_LIBRARIES)
-  message(STATUS "Found libjpeg-turbo: Includes: ${TURBO_JPEG_INCLUDE_DIR} Libraries: ${TURBO_JPEG_LIBRARIES}")
+if (TURBO_JPEG_INCLUDE_DIRS AND TURBO_JPEG_LIBRARIES)
+  message(STATUS "Found libjpeg-turbo: Includes: ${TURBO_JPEG_INCLUDE_DIRS} Libraries: ${TURBO_JPEG_LIBRARIES}")
   set(TURBO_JPEG_FOUND "YES" )
 endif ()

@@ -8,7 +8,7 @@
 # YARP_FOUND
 
 
-find_path(YARP_INCLUDE_DIR
+find_path(YARP_INCLUDE_DIRS
   NAMES
     yarp/os/all.h
     yarp/dev/all.h
@@ -57,9 +57,6 @@ if (YARP_OS_LIBRARY AND YARP_DEV_LIBRARY AND YARP_SIG_LIBRARY AND YARP_OS_LIBRAR
     ${YARP_INIT_LIBRARY}
   )
 
-  set(YARP_INCLUDE_DIRS
-    ${YARP_INCLUDE_DIR}
-  )
 message(STATUS "Found YARP: Includes: ${YARP_INCLUDE_DIRS} Libraries: ${YARP_LIBRARIES}")
 set(YARP_FOUND "YES" )
 endif ()

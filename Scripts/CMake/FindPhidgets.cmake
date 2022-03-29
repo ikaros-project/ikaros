@@ -3,7 +3,7 @@
 # Find the Phidgets includes and library
 #
 # This module defines
-# PHIDGETS_INCLUDE_DIR
+# PHIDGETS_INCLUDE_DIRS
 # PHIDGETS_LIBRARIES
 # PHIDGETS_FOUND
 
@@ -13,7 +13,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 find_library(PHIDGETS_LIBRARY Phidget21)
   if (PHIDGETS_INCLUDE_DIR1)
-    set(PHIDGETS_INCLUDE_DIR ${PHIDGETS_INCLUDE_DIR1} )
+    set(PHIDGETS_INCLUDE_DIRS ${PHIDGETS_INCLUDE_DIR1} )
   endif ()
   if (PHIDGETS_LIBRARY)
     set(PHIDGETS_LIBRARIES ${PHIDGETS_LIBRARY} )
@@ -22,7 +22,7 @@ endif()
 
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  find_path(PHIDGETS_INCLUDE_DIR
+  find_path(PHIDGETS_INCLUDE_DIRS
     NAMES
       phidget21.h
     PATHS
@@ -44,6 +44,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 
 if (PHIDGETS_LIBRARIES)
-  message(STATUS "Found Phidgets: Includes: ${PHIDGETS_INCLUDE_DIR} Libraries: ${PHIDGETS_LIBRARIES}")
+  message(STATUS "Found Phidgets: Includes: ${PHIDGETS_INCLUDE_DIRS} Libraries: ${PHIDGETS_LIBRARIES}")
   set(PHIDGETS_FOUND "YES" )
 endif (PHIDGETS_LIBRARIES)

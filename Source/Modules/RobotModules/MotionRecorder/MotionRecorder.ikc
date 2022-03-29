@@ -19,7 +19,7 @@
 	<parameter name="position_data_max" type="int" default="1000" description="The maximum number of datapoints that can be stored" />
     <parameter name="mode_string" type="string" default="stop" description="The current mode as a string" />
 
-    <parameter name="torque_on_REcord" type="array" description="A 1 indicates that the channel should have torque on record" />
+    <parameter name="torque_on_record" type="array" description="A 1 indicates that the channel should have torque on record" />
 
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
 	<parameter name="directory" type="string" default="motions" description="The directory where the files will be stored." />

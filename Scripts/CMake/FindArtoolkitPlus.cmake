@@ -3,17 +3,17 @@
 # Find the ArtoolkitPlus includes and library
 #
 # This module defines
-# ARTOOLKITPLUS_INCLUDE_DIR
+# ARTOOLKITPLUS_INCLUDE_DIRS
 # ARTOOLKITPLUS_LIBRARIES
 # ARTOOLKITPLUS_FOUND
 
 
-find_path(ARTOOLKITPLUS_INCLUDE_DIR
+find_path(ARTOOLKITPLUS_INCLUDE_DIRS
   NAMES
-    ARToolKitPlus.h
+    ARToolKitPlus/ARToolKitPlus.h
   PATHS
-    /usr/include/ARToolKitPlus
-    /usr/local/include/ARToolKitPlus
+    /usr/include/
+    /usr/local/include/
 )
 
 find_library(ARTOOLKITPLUS_LIBRARIES
@@ -24,7 +24,7 @@ find_library(ARTOOLKITPLUS_LIBRARIES
     /usr/lib/ARToolKitPlus
 )
 
-if (ARTOOLKITPLUS_INCLUDE_DIR AND ARTOOLKITPLUS_LIBRARIES)
-  message(STATUS "Found ArToolKitPlus: Includes: ${ARTOOLKITPLUS_INCLUDE_DIR} Libraries: ${ARTOOLKITPLUS_LIBRARIES}")
+if (ARTOOLKITPLUS_INCLUDE_DIRS AND ARTOOLKITPLUS_LIBRARIES)
+  message(STATUS "Found ArToolKitPlus: Includes: ${ARTOOLKITPLUS_INCLUDE_DIRS} Libraries: ${ARTOOLKITPLUS_LIBRARIES}")
   set(ARTOOLKITPLUS_FOUND "YES" )
 endif ()

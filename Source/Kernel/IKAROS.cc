@@ -3850,9 +3850,9 @@ std::string root = head(data, "#");
 
             if(!json_data.empty())
             {
-                socket->Send(sep.c_str());
+                socket->Send(sep);
                 std::string s = "\t\t\"" + source + "\": "+json_data;
-                socket->Send(s.c_str());
+                socket->Send(s);
                 sep = ",\n";
             }
 
@@ -3861,13 +3861,13 @@ std::string root = head(data, "#");
                 Module_IO * io = root_group->GetSource(source); // FIXME: Also look for inputs here
                 if(io)
                 {
-                    socket->Send(sep.c_str());
+                    socket->Send(sep);
                     SendJSONMatrixData(socket, source, *io->matrix[0], io->sizex, io->sizey);
                     sep = ",\n";
                 }
                 else if(bindings.count(src))
                 {
-                    socket->Send(sep.c_str());
+                    socket->Send(sep);
                     auto bs = bindings.at(src);
                     Binding * b = bs.at(0);   // Use first binding
                     switch(b->type)
@@ -3907,8 +3907,8 @@ std::string root = head(data, "#");
             {
                 if(Module_IO * io = root_group->GetSource(source))
                 {
-                    socket->Send(sep.c_str());
-                    socket->Send("\t\t\"%s:gray\": ", source.c_str());
+                    socket->Send(sep);
+                    socket->Send("\t\t\"%s:gray\": ", source.c_str()); // FIXME: Check return
                     SendColorJPEGbase64(socket, *io->matrix[0], *io->matrix[0], *io->matrix[0], io->sizex, io->sizey);
                     sep = ",\n";
                 }
@@ -3932,8 +3932,8 @@ std::string root = head(data, "#");
 
                     if(io2 && io2 && io3)
                     {
-                        socket->Send(sep.c_str());
-                        socket->Send("\t\t\"%s:rgb\": ", source.c_str());
+                        socket->Send(sep);
+                        socket->Send("\t\t\"%s:rgb\": ", source.c_str()); // FIXME: Check return
                         SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
                         sep = ",\n";
                     }
@@ -3943,8 +3943,8 @@ std::string root = head(data, "#");
             {
                 if(Module_IO * io = root_group->GetSource(source))
                 {
-                    socket->Send(sep.c_str());
-                    socket->Send("\t\t\"%s:%s\": ", source.c_str(), format.c_str());
+                    socket->Send(sep);
+                    socket->Send("\t\t\"%s:%s\": ", source.c_str(), format.c_str()); // FIXME: Check return
                     SendPseudoColorJPEGbase64(socket, *io->matrix[0], io->sizex, io->sizey, format.c_str());
                     sep = ",\n";
                 }

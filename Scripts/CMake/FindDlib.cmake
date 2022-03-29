@@ -2,7 +2,7 @@
 #
 #
 # This module defines:
-# DLIB_INCLUDE_DIR
+# DLIB_INCLUDE_DIRS
 # DLIB_LIBRARIES
 # DLIB_LIB_FOUND
 
@@ -24,7 +24,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 # Find header files
 # Can not figure out how to use the dlib::dlib alias.
 
-find_path(DLIB_INCLUDE_DIR
+find_path(DLIB_INCLUDE_DIRS
   NAMES
     dlib/image_processing.h
   PATHS
@@ -38,8 +38,8 @@ find_path(DLIB_INCLUDE_DIR
     /usr/local/lib/          # Homebrew
     /usr/lib
   )
-if (DLIB_INCLUDE_DIR AND DLIB_LIBRARIES)
-  message(STATUS "Found DLIB: Includes: ${DLIB_INCLUDE_DIR} Libraries: ${DLIB_LIBRARIES}")
+if (DLIB_INCLUDE_DIRS AND DLIB_LIBRARIES)
+  message(STATUS "Found DLIB: Includes: ${DLIB_INCLUDE_DIRS} Libraries: ${DLIB_LIBRARIES}")
   set(DLIB_LIB_FOUND "YES" )
 endif ()
 #############################################
