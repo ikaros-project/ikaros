@@ -49,7 +49,6 @@
 
 
     <parameter name="robot" type="list" values="EpiWhite/EpiGreen/EpiBlue/EpiBlack" default="EpiWhite" descrition="Robot to connect to." />
-
 	<parameter name="simulate" type="bool" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." />
 
 	<input name="GOAL_POSITION" description="Goal position of the joints in degrees." />

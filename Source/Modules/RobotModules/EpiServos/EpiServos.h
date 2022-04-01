@@ -111,7 +111,7 @@ public:
     bool PowerOnRobot();
     bool PowerOffRobot();
 
-    float PupilMMToDegrees(float mm);
+    float PupilMMToDynamixel(float mm, int min, int max);
 
     // Paramteters
     int robotType = 0;
@@ -133,6 +133,9 @@ public:
 
     bool EpiTorsoMode = false;
     bool EpiMode = false;
+
+    int AngleMinLimitPupil[2];
+    int AngleMaxLimitPupil[2];
 
     dynamixel::PortHandler *portHandlerHead;
     dynamixel::PacketHandler *packetHandlerHead;
@@ -173,6 +176,7 @@ public:
 
     bool PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler);
     bool PowerOffPupil();
+    bool AutoCalibratePupil();
 };
 
 #endif

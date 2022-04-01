@@ -54,19 +54,19 @@ bool EpiServos::CommunicationPupil()
             uint8_t param_default = torqueEnable[index];
             if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, i, 24, param_default, &dxl_error))
             {
-                Notify(msg_debug, "[ID:%03d] write1ByteTxRx failed", i);
+                Notify(msg_warning, "[ID:%03d] write1ByteTxRx failed", i);
                 return false;
             }
         }
         if (goalPosition)
         {
-            uint16_t param_default = goalPosition[index] / 360.0 * 1023.0;
+            uint16_t param_default = goalPosition[index]; // Not using degrees. 
             // Goal postiion feature/bug. If torque enable = 0 and goal position is sent. Torque enable will be 1.
             if (!torqueEnable)
             {
                 if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
                 {
-                    Notify(msg_debug, "[ID:%03d] write2ByteTxRx failed", i);
+                    Notify(msg_warning, "[ID:%03d] write2ByteTxRx failed", i);
                     return false;
                 }
             }
@@ -74,7 +74,7 @@ bool EpiServos::CommunicationPupil()
             {
                 if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
                 {
-                    Notify(msg_debug, "[ID:%03d] write2ByteTxRx failed", i);
+                    Notify(msg_warning, "[ID:%03d] write2ByteTxRx failed", i);
                     return false;
                 }
             }
@@ -268,7 +268,7 @@ void EpiServos::Init()
                          .type = "EpiTorso"};
 
     robotName = GetValue("robot");
-
+    
     // Check if robotname exist in configuration
     if (robot.find(robotName) == robot.end())
     {
@@ -516,6 +516,8 @@ void EpiServos::Init()
         groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read..
     }
 
+    AutoCalibratePupil();
+    
     Notify(msg_debug, "torque down servos and prepering servos for write defualt settings\n");
     if (!PowerOffRobot())
         Notify(msg_fatal_error, "Unable torque down servos\n");
@@ -527,15 +529,15 @@ void EpiServos::Init()
         Notify(msg_fatal_error, "Unable torque up servos\n");
 }
 
-float EpiServos::PupilMMToDegrees(float mm)
+float EpiServos::PupilMMToDynamixel(float mm, int min, int max)
 {
     // Quick fix
-    float minMM = 5;
-    float maxMM = 16;
+    float minMM = 4.2;
+    float maxMM = 19.7;
     float deltaMM = maxMM-minMM;
 
-    float minDeg = 180;
-    float maxDeg = 220;
+    float minDeg = min;
+    float maxDeg = max;
     float deltDeg = maxDeg-minDeg;
 
     if (mm < minMM)
@@ -543,7 +545,7 @@ float EpiServos::PupilMMToDegrees(float mm)
     if (mm > maxMM)
         mm = maxMM;
 
-    return ((mm-minMM)/deltaMM * deltDeg + minDeg);
+    return (-(mm-minMM)/deltaMM * deltDeg + maxDeg); // Higher goal position gives smaller pupil
 }
 
 void EpiServos::Tick()
@@ -578,11 +580,14 @@ void EpiServos::Tick()
         return;
     }
 
+    print_array("goalPosition (IN)",goalPosition,goalPositionSize);
 
     // Special case for pupil uses mm instead of degrees
-    goalPosition[PUPIL_INDEX_IO]    =     PupilMMToDegrees(goalPosition[PUPIL_INDEX_IO]);
-    goalPosition[PUPIL_INDEX_IO+1]  =     PupilMMToDegrees(goalPosition[PUPIL_INDEX_IO+1]);
+    goalPosition[PUPIL_INDEX_IO]    =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO],AngleMinLimitPupil[0],AngleMaxLimitPupil[0]);
+    goalPosition[PUPIL_INDEX_IO+1]  =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO+1],AngleMinLimitPupil[1],AngleMaxLimitPupil[1]);
 
+
+    print_array("goalPosition",goalPosition,goalPositionSize);
     auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!
     auto leftArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, LEFT_ARM_INDEX_IO, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
@@ -886,16 +891,16 @@ bool EpiServos::SetDefaultSettingServo()
 
     Timer t;
     int xlTimer = 10; // Timer in ms. XL320 need this. Not sure why.
+   
+
     // PUPIL ID 2 (Left pupil)
     // Limit position min
-    param_default_2Byte = 550;
-    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, param_default_2Byte, &dxl_error))
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, AngleMinLimitPupil[0], &dxl_error))
         return false;
     t.Sleep(xlTimer);
 
     // Limit position max
-    param_default_2Byte = 80;
-    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, param_default_2Byte, &dxl_error))
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, AngleMaxLimitPupil[0], &dxl_error))
         return false;
     t.Sleep(xlTimer);
 
@@ -924,15 +929,13 @@ bool EpiServos::SetDefaultSettingServo()
     t.Sleep(xlTimer);
 
     // PUPIL ID 3 (Right pupil)
-    // Limit position max
-    param_default_2Byte = 350;
-    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, param_default_2Byte, &dxl_error))
+    // Limit position in
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, AngleMinLimitPupil[1], &dxl_error))
         return false;
     t.Sleep(xlTimer);
 
-    // Limit position min
-    param_default_2Byte = 600;
-    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, param_default_2Byte, &dxl_error))
+    // Limit position max
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, AngleMaxLimitPupil[1], &dxl_error))
         return false;
     t.Sleep(xlTimer);
 
@@ -1282,7 +1285,79 @@ bool EpiServos::PowerOffRobot()
 
     return (true);
 }
+bool EpiServos::AutoCalibratePupil()
+{
+    int dxl_comm_result = COMM_TX_FAIL; // Communication result
+    uint8_t dxl_error = 0;              // Dynamixel error
+    Timer t;
+    int xlTimer = 10; // Timer in ms. XL320 need this. Not sure why.
 
+    // Torque off. No fancy rampiong
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 0, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 0, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+    // Reset min and max limit
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, 0, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, 0, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, 1023, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, 1023, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+
+    // Turn down max torque
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 35, 200, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 35, 200, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+    // Torque off. No fancy rampiong
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 1, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 1, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+    // Go to min pos
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 30, 0, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 30, 0, &dxl_error))
+        return false;
+    // Sleep for 300 ms
+    t.Sleep(1000);
+    // Read pressent position
+    uint16_t present_postition_value[2] = {0, 0};
+    if (COMM_SUCCESS != packetHandlerPupil->read2ByteTxRx(portHandlerPupil, 2, 37, &present_postition_value[0], &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->read2ByteTxRx(portHandlerPupil, 3, 37, &present_postition_value[1], &dxl_error))
+        return false;
+
+    AngleMinLimitPupil[0] = present_postition_value[0] + 10;
+    AngleMinLimitPupil[1] = present_postition_value[1] + 10;
+
+    AngleMaxLimitPupil[0] = AngleMinLimitPupil[0] + 280;
+    AngleMaxLimitPupil[1] = AngleMinLimitPupil[1] + 280;
+
+    Notify(msg_debug,"Position limits pupil servos (Autocalibrate): min %i %i max %i %i \n", AngleMinLimitPupil[0],AngleMinLimitPupil[1],AngleMaxLimitPupil[0],AngleMaxLimitPupil[1]);
+
+    // Torque off. No fancy rampiong
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 0, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 24, 0, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 35, 1023, &dxl_error))
+        return false;
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 35, 1023, &dxl_error))
+        return false;
+    t.Sleep(xlTimer);
+
+return true;
+}
 EpiServos::~EpiServos()
 {
     if (simulate) // no memory to return

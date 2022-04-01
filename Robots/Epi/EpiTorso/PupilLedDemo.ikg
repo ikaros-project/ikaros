@@ -18,10 +18,9 @@ VisionInputRight = "InputJPEG"
 
 	<module class = "EpiTorsoMinimal" name = "Epi" 
 
+	VisionInputRight = "InputVideoStream"
 	VisionInputLeft = "InputJPEG"
-	VisionInputRight = "InputJPEG"
-	pupilOffset = "-20 -81"
-	simulateRobot ="true"
+	simulateRobot ="false"
 	
 
 	EpiName = "EpiRed" 
@@ -73,10 +72,10 @@ VisionInputRight = "InputJPEG"
 			outputsize_y = "320"
 			min = "0"
 			max = "1" />
-	<connection  source = "SimulateImage.OUTPUT"  target = "D1.INPUT" />
+	<_connection  source = "SimulateImage.OUTPUT"  target = "D1.INPUT" />
 
 	<module class = "Downsample" name = "D1" />
-	<_connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D1.INPUT" />
+	<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D1.INPUT" />
 	<module class = "Downsample" name = "D2" />
 	<connection  source = "D1.OUTPUT"  target = "D2.INPUT" />
 	<module class = "Downsample" name = "D3" />
@@ -95,21 +94,19 @@ VisionInputRight = "InputJPEG"
 	<connection  source = "ArgMax2.VALUE"  				target = "PupilControl.PTA" />
 	<connection  source = "IML_EXCITATION.OUTPUT"  		target = "PupilControl.IML_EXCITATION" />
 
-	<module class = "Constant" name = "IML_EXCITATION" data = "0.2" />
+	<module class = "Constant" name = "IML_EXCITATION" data = "0.5" />
 
 	<module class="EyeModel" name="Eyes"
         speed = "0.2"
-		pupil_min = "4"
-		pupil_max = "16"
-		amplifier = "6" />
+		pupil_min = "4.7"
+		pupil_max = "19.7"
+		amplifier = "14" />
 
 	<connection  source = "PupilControl.CG_OUTPUT"  	target = "Eyes.PUPIL_SPHINCTER" />
 	<connection  source = "PupilControl.SCG_OUTPUT"  	target = "Eyes.PUPIL_DILATOR" />
 
 	<connection  source = "Eyes.PUPIL_DIAMETER"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "4" size = "1"/>
 	<connection  source = "Eyes.PUPIL_DIAMETER"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "5" size = "1"/>
-
-
 
 	<view name="Light intensity">
 		<image  x = "140" file = "" index = "" max_y = "1" title = "Image" module = "" height = "641" flipYCanvas = "no" source = "Epi.RightEye.LOW_RES_INTENSITY" scale = "both" flipXAxis = "no" command = "" show_title = "false" scales = "no" max_x = "1" format = "gray" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "761" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
@@ -120,15 +117,19 @@ VisionInputRight = "InputJPEG"
 		<plot  x = "1300" y = "700" height = "421" show_frame = "false" width = "381" source = "LightIntensityToPupilDiameter.OUTPUT" select = "" direction = "vertical" min = "10" max = "20" title = "Pupil mm" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
 	</view>
 
-	<view name="Pupil Control">
-		<image  w = "4" y = "0" frame-style = "" h = "4" x = "60" scales = "no" command = "" show_title = "true" width = "321" flipYAxis = "no" format = "gray" max_x = "1" scale = "both" source = "Gaussian.OUTPUT" show_frame = "false" flipYCanvas = "no" height = "241" title = "Low" max_y = "1" flipXAxis = "no" flipXCanvas = "no" min_y = "0" opacity = "1" style = "" min_x = "0" module = "" file = "" index = ""/>
-		<plot  min = "0" module = "CG_OUTPUT" source = "PupilControl.CG_OUTPUT" select = "" direction = "vertical" labels = "B" style = "" max = "1" buffer_size = "50" x = "60" height = "301" show_frame = "true" y = "260" title = "CG_OUTPUT" color = "" width = "301" show_title = "true" frame-style = ""/>
-		<plot  min = "0" module = "SCG_OUTPUT" source = "PupilControl.SCG_OUTPUT" select = "" direction = "vertical" labels = "B" style = "" max = "1" buffer_size = "50" x = "400" height = "301" show_frame = "true" y = "260" title = "SCG_OUTPUT" color = "" width = "301" show_title = "true" frame-style = ""/>
-		<slider-horizontal  frame-style = "" show_title = "true" show_values = "false" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "SimulateImage.min" title = "Min" width = "301" show_frame = "false" height = "61" y = "40" x = "420"/>
-		<slider-horizontal  frame-style = "" show_title = "true" show_values = "false" step = "0.01" max = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "SimulateImage.max" title = "Max" width = "301" show_frame = "false" height = "61" y = "120" x = "420"/>
-		<epi-head  style = "" show_title = "false" irisColor = "#88aaff" fill = "white" show_frame = "false" visibleFace = "true" visibleSource = "" gaze = "0" pupilLeftSource = "Eyes.PUPIL_DIAMETER" irisRightIntensity = "" irisLeftIntensity = "" mouthRGB = "" visibleFaceParameter = "" irisRightRGB = "" irisLeftRGB = "" height = "200" motionRecorderInput = "" headPosition = "" pupilInMM = "11" mouthIntensity = "" gazeSource = "" pupilRightSource = "Eyes.PUPIL_DIAMETER" color = "black" title = "Epi Head" mouthColor = "#000000" earColor = "#0088ff" width = "200" vergence = "0" frame-style = "" y = "40" x = "760"/>
-		<plot  x = "740" y = "260" height = "301" width = "281" title = "Plot" source = "Eyes.PUPIL_DIAMETER" select = "" min = "0" max = "20" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<view name="Pupil Control" >
+		<image  index = "" file = "" module = "" min_x = "0" style = "" max_y = "1" title = "Low" flipYCanvas = "no" height = "241" show_frame = "false" scale = "both" source = "Gaussian.OUTPUT" flipXAxis = "no" max_x = "1" format = "gray" command = "" show_title = "true" scales = "no" min_y = "0" flipXCanvas = "no" width = "321" flipYAxis = "no" h = "4" x = "60" frame-style = "" y = "0" opacity = "1" w = "4"/>
+		<plot  frame-style = "" show_title = "true" width = "301" color = "" title = "CG_OUTPUT" y = "260" show_frame = "true" height = "301" x = "60" buffer_size = "50" max = "1" style = "" labels = "B" select = "" source = "PupilControl.CG_OUTPUT" direction = "vertical" module = "CG_OUTPUT" min = "0"/>
+		<plot  frame-style = "" show_title = "true" width = "301" color = "" title = "SCG_OUTPUT" y = "260" show_frame = "true" height = "301" x = "400" buffer_size = "50" max = "1" style = "" labels = "B" select = "" source = "PupilControl.SCG_OUTPUT" direction = "vertical" module = "SCG_OUTPUT" min = "0"/>
+		<slider-horizontal  x = "420" y = "40" height = "61" show_frame = "false" width = "301" title = "Min" parameter = "SimulateImage.min" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "false" max = "1" show_title = "true" frame-style = ""/>
+		<slider-horizontal  x = "420" y = "120" height = "61" show_frame = "false" width = "301" title = "Max" parameter = "SimulateImage.max" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "false" max = "1" show_title = "true" frame-style = ""/>
+		<epi-head  x = "760" y = "40" frame-style = "" vergence = "0" width = "200" earColor = "#0088ff" mouthColor = "#000000" title = "Epi Head" color = "black" gazeSource = "" mouthIntensity = "" headPosition = "" motionRecorderInput = "" irisLeftRGB = "" irisRightRGB = "" visibleFaceParameter = "" mouthRGB = "" irisRightIntensity = "" gaze = "0" pupilLeftSource = "Eyes.PUPIL_DIAMETER" show_frame = "false" visibleSource = "" visibleFace = "true" irisLeftIntensity = "" pupilInMM = "11" height = "200" fill = "white" show_title = "false" irisColor = "#88aaff" pupilRightSource = "Eyes.PUPIL_DIAMETER" style = ""/>
+		<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "20" min = "0" direction = "vertical" select = "" source = "Eyes.PUPIL_DIAMETER" color = "" title = "Plot" width = "281" show_frame = "false" height = "301" y = "260" x = "740"/>
+		<slider-horizontal  x = "80" y = "580" height = "161" width = "901" title = "IML_EXCITATION" parameter = "IML_EXCITATION.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+		<slider-horizontal  x = "80" y = "740" height = "181" width = "901" title = "Eyes amplifier" parameter = "Eyes.amplifier" select = "0" count = "1" labels = "" min = "0" max = "20" step = "1" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 	</view>
+
+
 
 
 	<!-- Blink if to much movement? -->
