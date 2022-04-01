@@ -10,6 +10,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             {'name':'position', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'target', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'output', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'input', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'sequence', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'ranges', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
@@ -32,10 +33,10 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
 // TODO: Flip coordinate system
 // TODO: Use ranges
-// TODO: Draw output at current position
+// TODO: Draw current input at current position
 // TODO: Draw servo feedback (input) at current position
 
-    draw(sequence, f, start_time, end_time, mark_start, mark_end, target, output)
+    draw(sequence, f, start_time, end_time, mark_start, mark_end, target, output, input)
     {
         this.canvas.clearRect(0, 0, this.width, this.height);
 
@@ -108,36 +109,54 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
         // Draw target
 
+        if(target != undefined)
+        {
+            for(let c=0; c<channels;c++)
+            {
+                let pos = f*this.width;
+                this.canvas.setLineDash([]);
+                this.canvas.lineWidth = 1.0;
+                this.canvas.beginPath();
+                let y = this.height * (target[0][c]/360);
+                this.canvas.arc(pos, y, 7, 0, 2 * Math.PI, false);
+                this.canvas.strokeStyle = 'red';
+                this.canvas.stroke();
+            }
+        }
 
+   // Draw output
+
+   if(output != undefined)
+   {
         for(let c=0; c<channels;c++)
         {
             let pos = f*this.width;
             this.canvas.setLineDash([]);
             this.canvas.lineWidth = 1.0;
             this.canvas.beginPath();
-            let y = this.height * (target[c]/360);
-            this.canvas.arc(pos, y, 7, 0, 2 * Math.PI, false);
-            this.canvas.strokeStyle = 'red';
-            this.canvas.stroke();
+            let y = this.height * (output[0][c]/360);
+            this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
+            this.canvas.fillStyle = 'red';
+            this.canvas.fill();
         }
-
-
-   // Draw output
-
-
-   for(let c=0; c<channels;c++)
-   {
-       let pos = f*this.width;
-       this.canvas.setLineDash([]);
-       this.canvas.lineWidth = 1.0;
-       this.canvas.beginPath();
-       let y = this.height * (output[c]/360);
-       this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
-       this.canvas.fillStyle = 'red';
-       this.canvas.fill();
    }
 
+      // Draw input
 
+   if(input != undefined)
+   {
+        for(let c=0; c<channels;c++)
+        {
+            let pos = f*this.width;
+            this.canvas.setLineDash([]);
+            this.canvas.lineWidth = 1.0;
+            this.canvas.beginPath();
+            let y = this.height * (input[0][c]/360);
+            this.canvas.arc(pos, y, 9, 0, 2 * Math.PI, false);
+            this.canvas.strokeStyle = 'blue';
+            this.canvas.stroke();
+        }
+   }
 
 
         // Draw positions
@@ -183,13 +202,14 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let f = this.getSource("position");
             let target = this.getSource("target");
             let output = this.getSource("output");
+            let input = this.getSource("input");
             let sequence = this.getSource("sequence");
             this.data = target;
             let start_time = sequence["start_time"];
             let end_time = sequence["end_time"];
             let start_mark_time = sequence["start_mark_time"];
             let end_mark_time = sequence["end_mark_time"];
-            this.draw(sequence, f[0], start_time, end_time, start_mark_time, end_mark_time, target[0], output[0]);
+            this.draw(sequence, f[0], start_time, end_time, start_mark_time, end_mark_time, target, output, input);
         }
         catch(err)
         {

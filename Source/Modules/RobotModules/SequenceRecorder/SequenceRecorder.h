@@ -58,6 +58,9 @@ public:
     void        ReduceTime();
     void        AddKeypoint(); // add keypoint at current position
     void        PushKeypoint(); // push keypoint at the end of sequence
+    void        SetInitial();
+    void        LoadJSON(std::string filename);
+    void        StoreJSON(std::string filename);
 
     void        Command(std::string s, float x, float y, std::string value);
 
@@ -79,8 +82,10 @@ float           smoothing_time;
 float *         smoothing_start;
 float *         target;
 float *         input;
+float *         initial;
 float *         output;
 float *         active;
+float *         ready;
 
     // Data
 

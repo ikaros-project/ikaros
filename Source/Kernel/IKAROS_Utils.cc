@@ -1941,3 +1941,18 @@ void matrix::print(int decimals)
 {
     print("", decimals);
 }
+
+
+const char *
+file_exists(const char * path)
+{
+	if(path != NULL)
+	{
+		FILE * t = fopen(path, "rb");
+		bool exists = (t != NULL);
+		if(t) fclose(t);
+		return (exists ? path : NULL);
+	}
+    
+	return NULL;
+}

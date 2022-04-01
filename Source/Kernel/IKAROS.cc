@@ -3108,6 +3108,7 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
 
 // Check if class file exists and return path if valid
 
+/*
 static const char *
 file_exists(const char * path)
 {
@@ -3121,6 +3122,7 @@ file_exists(const char * path)
     
 	return NULL;
 }
+*/
 
 
 // Read class file (or included file) and merge with the current XML-tree
