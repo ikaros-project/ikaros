@@ -361,5 +361,7 @@ class Dictionary
 
     std::string time_code_string(float time);
 
+    const char * file_exists(const char * path);
+
 #endif
 
