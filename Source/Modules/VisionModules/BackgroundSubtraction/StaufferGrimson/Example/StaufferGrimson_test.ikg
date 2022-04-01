@@ -1,44 +1,24 @@
 <?xml version="1.0"?>
 
 <group title="SOM Example">
-	
-		<module
+
+	<module
 			class = "InputVideo"
-			name = "Image"
-		/>
+			name = "IN" />
 
-		<module
+	<module
 			class = "StaufferGrimson"
-			name = "StaufferGrimson"
-		/>
-		
-  
-        <connection  source = "Image.INTENSITY"  target = "StaufferGrimson.INPUT" delay="0" />
-        
+			name = "StaufferGrimson" />
 
-		<view name="Stauffer-Grimson">
-			<object class="Image" type="gray" module="StaufferGrimson" source="OUTPUT" x="0" y="0" w="3" h="2" />
-			<_object class="Image" type="gray" title="Cleaned" module="Dilate" source="OUTPUT" x="3" y="0" w="3" h="2" />
 
-            <object
-				x="0" y="2" 
-				class="Slider"
-				title="Alpha"
-				module="StaufferGrimson" parameter="alpha" min="0" max="0.01"
-			/>
-            <object
-				x="1" y="2" 
-				class="Slider"
-				title="Background %"
-				module="StaufferGrimson" parameter="T" min="0" max="1"
-			/>
-            <object
-				x="2" y="2" 
-				class="Slider"
-				title="Threshold"
-				module="StaufferGrimson" parameter="threshold" min="0" max="10"
-			/>
-		</view>
+	<connection  source = "IN.INTENSITY"  target = "StaufferGrimson.INPUT" delay="0" />
 
+
+	<view name="Stauffer-Grimson">
+		<image  x = "60" y = "20" height = "461" width = "481" title = "Image" source = "StaufferGrimson.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+		<slider-horizontal  x = "560" y = "40" height = "81" width = "261" title = "Alpha" parameter = "StaufferGrimson.alpha" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+		<slider-horizontal  x = "560" y = "140" height = "81" width = "261" title = "Background %" parameter = "StaufferGrimson.T" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+		<slider-horizontal  x = "560" y = "240" height = "81" width = "261" title = "Threshold" parameter = "StaufferGrimson.threshold" select = "0" count = "1" labels = "" min = "0" max = "10" step = "1" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	</view>
 </group>
  

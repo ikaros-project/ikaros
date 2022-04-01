@@ -3,12 +3,12 @@
 # Find the libfreenect includes and libraries
 #
 # This module defines
-# FREENECT_INCLUDE_DIR
+# FREENECT_INCLUDE_DIRS
 # FREENECT_LIBRARIES
 # FREENECT_FOUND
 
 # Find header files
-find_path(FREENECT_INCLUDE_DIR
+find_path(FREENECT_INCLUDE_DIRS
   NAMES
     libfreenect.h libfreenect_sync.h
   PATHS
@@ -44,7 +44,7 @@ if (FREENECT_LIBRARY1 AND FREENECT_LIBRARY2)
   )
 endif ()
 
-if (FREENECT_INCLUDE_DIR AND FREENECT_LIBRARIES)
-  message(STATUS "Found Freenect: Includes: ${FREENECT_INCLUDE_DIR} Libraries: ${FREENECT_LIBRARIES}")
+if (FREENECT_INCLUDE_DIRS AND FREENECT_LIBRARIES)
+  message(STATUS "Found Freenect: Includes: ${FREENECT_INCLUDE_DIRS} Libraries: ${FREENECT_LIBRARIES}")
   set(FREENECT_FOUND "YES" )
 endif ()
