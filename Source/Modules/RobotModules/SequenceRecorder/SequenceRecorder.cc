@@ -598,6 +598,14 @@ SequenceRecorder::PushKeypoint() // Add keypoint at the end - only works during 
 
 
 void
+SequenceRecorder::ClearSequence()
+{
+    sequence_data["sequences"][0]["keypoints"] = json::array();
+}
+
+
+
+void
 SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
     if(s == "stop")
@@ -630,6 +638,10 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         SetInitial();
     else if(s =="save")
             StoreJSON(filename);
+    else if(s =="load")
+            LoadJSON(filename);
+    else if(s=="clear")
+            ClearSequence();
 }
 
 

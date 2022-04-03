@@ -60,6 +60,8 @@ public:
     void        ReduceTime();
     void        AddKeypoint(); // add keypoint at current position
     void        PushKeypoint(); // push keypoint at the end of sequence
+    void        ClearSequence();    // clear currently selected sequence
+
     void        SetInitial();
     void        LoadJSON(std::string filename);
     void        StoreJSON(std::string filename);

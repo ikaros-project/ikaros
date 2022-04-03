@@ -66,64 +66,62 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
         // Draw lines
         
-                for(let c=0; c<channels;c++)
+        for(let c=0; c<channels;c++)
+        {
+            this.canvas.lineWidth = 1;
+            this.canvas.strokeStyle = "yellow";
+            let first=true;
+            for(let i=0; i<n; i++)
+            {
+                if(sequence.keypoints[i].point[c] != null)
                 {
-                    this.canvas.lineWidth = 1;
-                    this.canvas.strokeStyle = "yellow";
-                    let first=true;
-                    for(let i=0; i<n; i++)
+                    if(first)
                     {
-                        if(sequence.keypoints[i].point[c])
-                        {
-                            if(first)
-                            {
-                                first = false;
+                        first = false;
 
-                                let y = this.height * (sequence.keypoints[i].point[c]/360);
-                                let pos = this.width*sequence.keypoints[i].time/end_time;
+                        let y = this.height * (sequence.keypoints[i].point[c]/360);
+                        let pos = this.width*sequence.keypoints[i].time/end_time;
 
-                                this.canvas.setLineDash([3]);
-                                this.canvas.beginPath();
-                                this.canvas.moveTo(0, y);
-                                this.canvas.lineTo(pos, y);
-                                this.canvas.stroke();
-
-                                this.canvas.setLineDash([]);
-                                this.canvas.beginPath();
-                                this.canvas.moveTo(pos, y);
-                            }
-                            else
-                            {
-                                let pos = this.width*sequence.keypoints[i].time/end_time;
-                                let y = this.height * (sequence.keypoints[i].point[c]/360);
-                                this.canvas.lineTo(pos, y);
-                            }
-                        }
+                        this.canvas.setLineDash([3]);
+                        this.canvas.beginPath();
+                        this.canvas.moveTo(0, y);
+                        this.canvas.lineTo(pos, y);
                         this.canvas.stroke();
+
+                        this.canvas.setLineDash([]);
+                        this.canvas.beginPath();
+                        this.canvas.moveTo(pos, y);
                     }
-
-
-                    for(let i=n-1; i>=0; i--)
+                    else
                     {
-                        if(sequence.keypoints[i].point[c])
-                        {
-                            let pos = this.width*sequence.keypoints[i].time/end_time;
-                            let y = this.height * (sequence.keypoints[i].point[c]/360);
-                            this.canvas.setLineDash([3]);
-                            this.canvas.lineWidth = 1;
-                            this.canvas.beginPath();
-                            this.canvas.moveTo(99999999, y);
-                            this.canvas.lineTo(pos, y);
-                            this.canvas.stroke();
-                            break;
-                        }
+                        let pos = this.width*sequence.keypoints[i].time/end_time;
+                        let y = this.height * (sequence.keypoints[i].point[c]/360);
+                        this.canvas.lineTo(pos, y);
                     }
-       
+                }
+                this.canvas.stroke();
+            }
+
+
+            for(let i=n-1; i>=0; i--)
+            {
+                if(sequence.keypoints[i].point[c])
+                {
+                    let pos = this.width*sequence.keypoints[i].time/end_time;
+                    let y = this.height * (sequence.keypoints[i].point[c]/360);
+                    this.canvas.setLineDash([3]);
+                    this.canvas.lineWidth = 1;
+                    this.canvas.beginPath();
+                    this.canvas.moveTo(99999999, y);
+                    this.canvas.lineTo(pos, y);
+                    this.canvas.stroke();
+                    break;
+                }
+            }
         }
 
         // Draw points
     
-
         this.canvas.fillStyle = "yellow";
         for(let c=0; c<channels;c++)
         {
