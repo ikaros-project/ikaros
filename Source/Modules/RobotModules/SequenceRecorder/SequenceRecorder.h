@@ -54,6 +54,8 @@ public:
     void        SkipEnd();
     void        SetStartMark();
     void        SetEndMark();
+    void        GoToPreviousKeypoint();
+    void        GoToNextKeypoint();
     void        ExtendTime();
     void        ReduceTime();
     void        AddKeypoint(); // add keypoint at current position
@@ -82,6 +84,7 @@ float           smoothing_time;
 float *         smoothing_start;
 float *         target;
 float *         input;
+float *         default_output; // value for initial from okc file if set
 float *         initial;
 float *         output;
 float *         active;

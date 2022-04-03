@@ -13,11 +13,11 @@
 			class = "SequenceRecorder"
 			name = "SR"
 			channels = "6"
+			default_output = "42 0 0 0 0 0"
+
 		 	_x="20" _y="100"
 
 
-
-            _filename = "/Users/cba/ikaros/Source/Modules/RobotModules/SequenceRecorder/test_sequence.json"
        		filename = "test.json"
    
 

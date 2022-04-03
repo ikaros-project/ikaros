@@ -17,6 +17,7 @@
 	<parameter name="end_mark" type="float" default="0" description="Position of end mark in sequence from 0 to 1." />
 
 	<parameter name="channels" type="int" default="4" description="The number of channels to record and/or play." />
+	<parameter name="default_output" type="array" description="Default outputs to be used when not defined in any other way." />
 	<parameter name="positions" type="array" default="0 0 0 0" description="Current positions for all channels; input/output for WebUI" />
 
 	<output name="SMOOTHING_START" size_param="channels" description="Sposition to smooth from. Used only for debugging." />
@@ -26,6 +27,7 @@
 	<output name="TARGET" size_param="channels" description="The target positions or the interpolated keypoint positions that the output moves towards" />
 	<output name="OUTPUT" size_param="channels" description="The current output positions" />
 	<output name="ACTIVE" size_param="channels" description="Indicates that the data on the output should be used, for example for torque enable." />
+	<output name="READY" size="1" description="Indicates that the sequence recorder is read, i.e. that initial position is set." />
 
 
 
