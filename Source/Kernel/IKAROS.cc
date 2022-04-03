@@ -1292,6 +1292,15 @@ Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 
 
 void
+Module::Bind(float * & v, int * size, const char * n)
+{
+    // TODO: check type here
+    v = GetArray(n, *size, false);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_array, v, *size, 1));
+}
+
+
+void
 Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
 {
     // TODO: check type here

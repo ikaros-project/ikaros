@@ -348,7 +348,10 @@ public:
     void            Bind(float & v, const char * n);                        // Bind a floating point value to a name
     void            Bind(int & v, const char * n);                          // Bind int OR list value to name
     void            Bind(bool & v, const char * n);                         // Bind boolean
+
     void            Bind(float * & v, int size, const char * n, bool fixed_size = false);              //  // Creates and binds array; also gets the array size; uses the supplied size instead if fixed_size = true.
+    void            Bind(float * & v, int * size, const char * n); // inconsistent naming - fix me
+
     void            Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size = false); // Creates and binds matrix; also gets the matrix size; uses the supplied size instead if fixed_size = true.
     void            Bind(std::string & v, const char * n);                  // Bind string
 
