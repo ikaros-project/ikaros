@@ -110,6 +110,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
                             let pos = this.width*sequence.keypoints[i].time/end_time;
                             let y = this.height * (sequence.keypoints[i].point[c]/360);
                             this.canvas.setLineDash([3]);
+                            this.canvas.lineWidth = 1;
                             this.canvas.beginPath();
                             this.canvas.moveTo(99999999, y);
                             this.canvas.lineTo(pos, y);
@@ -122,18 +123,22 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
         // Draw points
     
+
+        this.canvas.fillStyle = "yellow";
         for(let c=0; c<channels;c++)
         {
             for(let i=0; i<n; i++)
             {
-                let pos = this.width*sequence.keypoints[i].time/end_time;
-                this.canvas.setLineDash([]);
-                //this.canvas.lineWidth = 1.0;
-                this.canvas.beginPath();
-                let y = this.height * (sequence.keypoints[i].point[c]/360);
-                this.canvas.arc(pos, y, 3, 0, 2 * Math.PI, false);
-                this.canvas.fill();
-            }
+                if(sequence.keypoints[i].point[c] != null)
+                {
+                    let pos = this.width*sequence.keypoints[i].time/end_time;
+                    this.canvas.setLineDash([]);
+                    //this.canvas.lineWidth = 1.0;
+                    this.canvas.beginPath();
+                    let y = this.height * (sequence.keypoints[i].point[c]/360);
+                    this.canvas.arc(pos, y, 3, 0, 2 * Math.PI, false);
+                    this.canvas.fill();
+            }   }
         }
 
         // Draw target
@@ -150,7 +155,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
                 this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
                 this.canvas.moveTo(pos-8, y);
                 this.canvas.lineTo(pos+8, y);
-                this.canvas.fillStyle = 'yellow';
+                this.canvas.fillStyle = 'black';
                 this.canvas.fill();
             }
         }
@@ -170,7 +175,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             this.canvas.lineTo(pos+15-8, y+4);
             this.canvas.lineTo(pos+15-8, y-4);
             this.canvas.lineTo(pos+15, y);
-            this.canvas.fillStyle = 'yellow';
+            this.canvas.fillStyle = 'black';
             this.canvas.fill();
         }
    }
@@ -241,13 +246,14 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let target = this.getSource("target");
             let output = this.getSource("output");
             let input = this.getSource("input");
+            let active = this.getSource("active");
             let sequence = this.getSource("sequence");
             this.data = target;
             let start_time = sequence["start_time"];
             let end_time = sequence["end_time"];
             let start_mark_time = sequence["start_mark_time"];
             let end_mark_time = sequence["end_mark_time"];
-            this.draw(sequence, f[0], start_time, end_time, start_mark_time, end_mark_time, target, output, input);
+            this.draw(sequence, f[0], start_time, end_time, start_mark_time, end_mark_time, target, output, input, active);
         }
         catch(err)
         {
