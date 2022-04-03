@@ -325,7 +325,7 @@ public:
     const char *    GetList(const char * n);                          // Get list of values for parameter
     const char *    GetDefault(const char * n);                          // Get default value for parameter
 	const char *    GetValue(const char * n);                            // Search through XML for parameter and return its value or NULL
-    float           GetFloatValue(const char * n, float d=0);            // Search through XML for parameter and return its value as a float or default value d if not found
+    float           GetFloatValue(const char * n, float d=0, bool deprecation_warning=false);            // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValue(const char * n, int d=0);                // Search through XML for parameter and return its value as a float or default value d if not found
     bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not found
