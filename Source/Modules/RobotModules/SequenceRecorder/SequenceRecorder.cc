@@ -49,7 +49,7 @@ interpolate(float t, float t1, float t2, float p1, float p2) // linear interpola
 }
 
 
-
+/*
 void
 SequenceRecorder::SetTargetForTime(float t)
 {
@@ -106,6 +106,76 @@ SequenceRecorder::SetTargetForTime(float t)
             // else don't change output
             return;
         }
+    }
+}*/
+
+
+
+void
+SequenceRecorder::SetTargetForTime(float t)
+{
+    int n = sequence_data["sequences"][0]["keypoints"].size();
+
+    // Handle empty sequence data
+    if(n < 1)
+        return; // FIXME: How should the output be set in this case - to input or to last output?
+
+    // Find intermediate points and linearly interpolate
+    // Calculate the position for each channel independently
+
+    for(int c=0; c<channels; c++)
+    {
+        float p_left = 0;
+        float p_right = 0;
+        if(initial)
+        {
+            p_left = initial[c];
+            p_right = initial[c];
+        }
+        float time_left = 0;
+        float time_right = sequence_data["sequences"][0]["end_time"];
+
+        // Start with the value in the first (non-null) keypoint 
+
+        for(int ix=0; ix<n; ix++)
+            if(!sequence_data["sequences"][0]["keypoints"][ix]["point"][c].is_null())
+            {
+                p_left = sequence_data["sequences"][0]["keypoints"][ix]["point"][c];
+                break;
+            }
+
+
+        // Interate to keypoint just before the current time to find left keypoint
+
+        int ix = 0;
+        for( ; ix<n; ix++)
+        {
+            if(sequence_data["sequences"][0]["keypoints"][ix]["time"] > t)
+                break; // we have passed the current time and possibly found the left value
+            if(!sequence_data["sequences"][0]["keypoints"][ix]["point"][c].is_null())
+            {
+                // Store candidate left point and time
+                p_left = sequence_data["sequences"][0]["keypoints"][ix]["point"][c]; 
+                time_left = sequence_data["sequences"][0]["keypoints"][ix]["time"];
+            }
+        }
+    
+        p_right = p_left; // in case there are no more valid keypoints
+
+        // time_right is the en of the equence already
+
+        // Search for right keypoint
+
+        for( ; ix<n; ix++)
+        {
+          if(!sequence_data["sequences"][0]["keypoints"][ix]["point"][c].is_null())
+            {
+                p_right = sequence_data["sequences"][0]["keypoints"][ix]["point"][c];
+                time_right = sequence_data["sequences"][0]["keypoints"][ix]["time"];
+                break;
+            }
+        }
+        target[c] = interpolate(t, time_left, time_right, p_left, p_right);
     }
 }
 
@@ -174,8 +244,6 @@ SequenceRecorder::LoadJSON(std::string filename)
     }
 
 
-
-
     std::ifstream i(filename);
     i >> sequence_data;
     std::string s = sequence_data["sequences"][0]["name"];
@@ -184,14 +252,12 @@ SequenceRecorder::LoadJSON(std::string filename)
 }
 
 
-
 void        
 SequenceRecorder::StoreJSON(std::string filename)
 {
-
+    std::ofstream file(filename);
+    file << sequence_data;
 }
-
-
 
 
 void
@@ -201,14 +267,23 @@ SequenceRecorder::Init()
     Bind(positions, channels, "positions", true); // parameter size will be set by the value channels
 
     Bind(smoothing_time, "smoothing_time");
+
     Bind(state, 10, "state", true);
     int modes = 4;
+
     Bind(channel_mode, modes, channels, "channel_mode", true);
     Bind(time_string, "time");
     Bind(end_time_string, "end_time");
     Bind(position, "position");
     Bind(mark_start, "mark_start");
     Bind(mark_end, "mark_end");
+
+    int do_size = 0;
+    Bind(default_output, &do_size, "default_output");
+    if(do_size == channels)
+        initial = default_output;
+    else if(do_size != 0)
+        Notify(msg_warning,"Incorrect size for initial_data; does not match number of channels");
 
      filename = GetValue("filename"); // FIXME: check that file exists - or create it
 
@@ -218,7 +293,6 @@ SequenceRecorder::Init()
     io(active, "ACTIVE");
     io(smoothing_start,"SMOOTHING_START");
     io(ready, "READY");
-    initial = NULL;
 
     for(int c=0; c<channels; c++)
         set_one_row(channel_mode, 3, c, 4, channels);
@@ -330,6 +404,53 @@ SequenceRecorder::SetEndMark()
 
 
 void
+SequenceRecorder::GoToPreviousKeypoint()
+{
+    float t = timer.GetTime();
+    int n = sequence_data["sequences"][0]["keypoints"].size();
+    float end_time = sequence_data["sequences"][0]["end_time"];
+    float kpt_last = 0;
+    for(int i=0; i<n; i++)
+    {
+        float kpt = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        if(kpt >= t)
+        {
+            timer.SetTime(kpt_last);
+            position = end_time? kpt_last/end_time : 0; //Fix me: use set time function
+            return;
+        }
+        else
+            kpt_last = kpt;
+    }
+    timer.SetTime(kpt_last);
+    position = end_time? kpt_last/end_time : 0;
+}
+
+
+
+void
+SequenceRecorder::GoToNextKeypoint()
+{
+    float t = timer.GetTime();
+    int n = sequence_data["sequences"][0]["keypoints"].size();
+    float end_time = sequence_data["sequences"][0]["end_time"];
+    float kpt = 0;
+    for(int i=0; i<n; i++)
+    {
+        kpt = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        if(kpt > t)
+        {
+            timer.SetTime(kpt);
+            position = end_time? kpt/end_time : 0;
+            return;
+        }
+    }
+    timer.SetTime(kpt);
+    position = end_time? kpt/end_time : 0;
+}
+
+
+void
 SequenceRecorder::ExtendTime() // add one second to the end of the sequence
 {
     float end_time = sequence_data["sequences"][0]["end_time"];
@@ -351,6 +472,9 @@ SequenceRecorder::ReduceTime()
 void
 SequenceRecorder::AddKeypoint()
 {
+    if(!initial)
+        return;
+
     float time = timer.GetTime();
 
     // Create the point data array
@@ -360,7 +484,7 @@ SequenceRecorder::AddKeypoint()
     {
         if(channel_mode[c][0] == 1) //locked
         {
-            points.push_back(nullptr); // Do not record locked channel
+            points.push_back(nullptr); // Do not record locked channel???
         }
 
         else if(channel_mode[c][1] == 1) //play - use current target which contains interpolated value already //FIXME: CHECK THIS
@@ -386,14 +510,16 @@ SequenceRecorder::AddKeypoint()
 
     int n = sequence_data["sequences"][0]["keypoints"].size();
     json kp;
+    int kpi = 0;
     float min_dist = 9999999;
-    for(int i=0; i<n-1; i++)
+    for(int i=0; i<n; i++)
     {
         float t = sequence_data["sequences"][0]["keypoints"][i]["time"];
         if(abs(t-time) < min_dist)
         {
             min_dist = abs(t-time);
             kp = sequence_data["sequences"][0]["keypoints"][i];
+            kpi = i;
         }
     }
     // Insert or merge keypoint
@@ -401,52 +527,54 @@ SequenceRecorder::AddKeypoint()
     if(kp.is_null()) // no data - just insert new keypoint at the end of list
     {
         json keypoint;
-        keypoint["time"] = time;
+        keypoint["time"] = int(time);
         keypoint["point"] = points;
         sequence_data["sequences"][0]["keypoints"].push_back(keypoint);
-            printf("%s\n", sequence_data.dump().c_str());
+    //        printf("%s\n", sequence_data.dump().c_str());
         return;
     }
 
     // See if keypoints can be merged
 
-    if(min_dist < 10) // 10 ms window // FIXME: should use a constant
+    if(min_dist < 0.5*float(GetTickLength())) // half the ticklength
     {
         for(int c=0; c<channels; c++)
         {
+//            printf("%s\n", points[c].dump().c_str());
             if(!points[c].is_null())
-                    kp[c] = points[c]; // replace value in closest keypoint
+                    //kp["points"][c] = points[c]; // replace value in closest keypoint
+                    sequence_data["sequences"][0]["keypoints"][kpi]["point"][c] = points[c];
         }
-        printf("%s\n", sequence_data.dump().c_str());
+//        printf("%s\n", sequence_data.dump().c_str());
         return;
     }
 
     // Insert new keypoint at the correct place in the list
 
     json keypoint;
-    keypoint["time"] = time;
+    keypoint["time"] = int(time);
     keypoint["point"] = points;
 
     // FIND INSERT POINT LOOP
 
-    for(int i=0; i<n-1; i++)
+    for(int i=0; i<n; i++)
     {
         float t = sequence_data["sequences"][0]["keypoints"][i]["time"];
         if(time < t) // insert before this
         {
             //INSERT BEFORE THIS
             sequence_data["sequences"][0]["keypoints"].insert(sequence_data["sequences"][0]["keypoints"].begin() + i, keypoint);
-            printf("%s\n", sequence_data.dump().c_str());
+    //        printf("INSERT: %s\n", sequence_data.dump().c_str());
             return;
         }
     }
     // Insert last
 
     json keypoint_l;
-    keypoint_l["time"] = time;
+    keypoint_l["time"] = int(time);
     keypoint_l["point"] = points;
     sequence_data["sequences"][0]["keypoints"].push_back(keypoint_l);
-    printf("%s\n", sequence_data.dump().c_str());
+//    printf("%s\n", sequence_data.dump().c_str());
 }
 
 
@@ -488,6 +616,10 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         SetStartMark();
     else if (s == "set_end_mark")
         SetEndMark();
+    else if (s == "step_forward")
+        GoToNextKeypoint();
+    else if (s == "step_backward")
+        GoToPreviousKeypoint();
     else if (s == "extend_time")
         ExtendTime();
     else if (s == "reduce_time")
@@ -496,7 +628,8 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         AddKeypoint();
     else if(s == "set_initial")
         SetInitial();
-
+    else if(s =="save")
+            StoreJSON(filename);
 }
 
 
@@ -537,6 +670,8 @@ SequenceRecorder::SetInitial() // Manual setting of initial position
 void
 SequenceRecorder::Tick()
 {
+    float t = timer.GetTime();
+
     // Set initial position if not set already - this is used as output when no data is available
 
     if(!initial && norm1(input, channels) != 0)
@@ -547,54 +682,67 @@ SequenceRecorder::Tick()
         //FIXME: Set smoothing start also
     }
 
-    *ready = initial ? 1 : 0; 
-    if(!initial)
-        return; // Do nothing until initial is set
+    *ready = initial ? 1 : 0;
 
-// Check if position has been changed from WebUI - should use command in the future
+    // Check if position has been changed from WebUI - should use command in the future
 
-    if(position != last_position) 
-    {
-            Pause();
-            float end_time = sequence_data["sequences"][0]["end_time"];
-            timer.SetTime(position*end_time);
-            last_position = position;
-    }
-
-    // Set position
-
-    float t = timer.GetTime();
-    float end_time = sequence_data["sequences"][0]["end_time"];
-    position = end_time? t/end_time : 0;
-    last_position = position;
-    
-    if(state[1]) // handle play mode
-    {
-        if(state[8] && t >= float(sequence_data["sequences"][0]["end_mark_time"])) // loop
+        if(position != last_position) 
         {
-            timer.SetTime(float(sequence_data["sequences"][0]["start_mark_time"]));
+                Pause();
+                float end_time = sequence_data["sequences"][0]["end_time"];
+                timer.SetTime(position*end_time);
+                last_position = position;
         }
-        else if(position >= 1 || end_time == 0)
-        {   
-            timer.SetTime(sequence_data["sequences"][0]["end_time"]);
-            Pause();
-    }   }
 
-    else if(state[2]) // handle record mode
+        // Set position
+
+ 
+        float end_time = sequence_data["sequences"][0]["end_time"];
+        position = end_time? t/end_time : 0;
+        last_position = position;
+        
+        if(initial) // Do nothing until initial is set
     {
-        if(position >= 1 || end_time == 0) // extend recoding if at end
-            sequence_data["sequences"][0]["end_time"] = t;
 
+        if(state[1]) // handle play mode
+        {
+            if(state[8] && t >= float(sequence_data["sequences"][0]["end_mark_time"])) // loop
+            {
+                timer.SetTime(float(sequence_data["sequences"][0]["start_mark_time"]));
+            }
+            else if(position >= 1 || end_time == 0)
+            {   
+                timer.SetTime(sequence_data["sequences"][0]["end_time"]);
+                Pause();
+        }   }
+
+        else if(state[2]) // handle record mode
+        {
+            if(position >= 1 || end_time == 0) // extend recoding if at end
+                sequence_data["sequences"][0]["end_time"] = t;
+
+        }
+
+        // Set outputs
+
+        SetTargetForTime(t);
+
+        // FIXME: Add smoothing here
+
+        for(int c=0; c<channels; c++)
+            SetOutputForChannel(c);
+
+        // AddPoints if in recording mode
+
+        if(state[2] == 1) // record mode
+            AddKeypoint();
     }
 
-   // Set position again
+// Set position again
 
-    t = timer.GetTime();
     end_time = sequence_data["sequences"][0]["end_time"];
     position = end_time? t/end_time : 0;
     last_position = position;
-
-// Set parameters and outputs
 
     time_string = make_timestamp(timer.GetTime());
     end_time_string  = make_timestamp(sequence_data["sequences"][0]["end_time"]);
@@ -604,19 +752,6 @@ SequenceRecorder::Tick()
         mark_start = float(sequence_data["sequences"][0]["start_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);
         mark_end = float(sequence_data["sequences"][0]["end_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);}
 
-    // Set the outputs
-
-    SetTargetForTime(t);
-
-    // FIXME: Add smoothing here
-
-    for(int c=0; c<channels; c++)
-        SetOutputForChannel(c);
-
-    // AddPoints if in recording mode
-
-    if(state[2] == 1) // record mode
-        AddKeypoint();
 }
 
 
