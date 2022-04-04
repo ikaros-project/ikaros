@@ -99,6 +99,7 @@ include_directories(Source/Modules/)
 
 # Add sub directory
 add_subdirectory(Source)
+add_subdirectory(Projects)
 
 # Crete a binary with source files
 add_executable(ikaros ${SOURCE})
