@@ -580,14 +580,11 @@ void EpiServos::Tick()
         return;
     }
 
-    print_array("goalPosition (IN)",goalPosition,goalPositionSize);
-
     // Special case for pupil uses mm instead of degrees
     goalPosition[PUPIL_INDEX_IO]    =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO],AngleMinLimitPupil[0],AngleMaxLimitPupil[0]);
     goalPosition[PUPIL_INDEX_IO+1]  =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO+1],AngleMinLimitPupil[1],AngleMaxLimitPupil[1]);
 
 
-    print_array("goalPosition",goalPosition,goalPositionSize);
     auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!
     auto leftArmThread = std::async(std::launch::async, &EpiServos::Communication, this, ARM_ID_MIN, ARM_ID_MAX, LEFT_ARM_INDEX_IO, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
