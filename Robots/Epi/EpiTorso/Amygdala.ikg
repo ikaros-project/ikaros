@@ -1,0 +1,14 @@
+<group name="Amygdala" description="minimal amygdala model">
+
+    <input name="CS" target="Amygdala.CS" />
+    <input name="US" target="Amygdala.US" />
+
+    <output name="CR" source="Amygdala.CR" />
+
+    <module
+        class="Delta"
+        name="Amygdala"
+    />
+
+</group>
+

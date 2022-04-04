@@ -4,8 +4,8 @@
 
 
     <input name="PTA"               target="PTA.INPUT" />
-    <input name="EW_EXCITATION"     target="EWpg.EXCITATION" />
-    <input name="EW_SHUNTING"       target="EWpg.SHUNTING_INHIBITION" />
+    <input name="EW_EXCITATION"     target="EdingerWestphal_pg.EXCITATION" />
+    <input name="EW_SHUNTING"       target="EdingerWestphal_pg.SHUNTING_INHIBITION" />
     <input name="IML_EXCITATION"    target="IML.EXCITATION" />
 
     <output name="PTA_OUTPUT" source="PTA.OUTPUT" />
