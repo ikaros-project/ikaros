@@ -598,7 +598,7 @@ void EpiServos::Tick()
     }
     if (!pupilThread.get())
     {
-        Notify(msg_warning, "Can not communicate with puil");
+        Notify(msg_warning, "Can not communicate with pupil");
         portHandlerPupil->clearPort();
     }
     if (!leftArmThread.get())
@@ -1307,10 +1307,10 @@ bool EpiServos::AutoCalibratePupil()
         return false;
     t.Sleep(xlTimer);
 
-    // Turn down max torque
-    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 35, 200, &dxl_error))
+    // Turn down torue limit
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 35, 500, &dxl_error))
         return false;
-    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 35, 200, &dxl_error))
+    if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 35, 500, &dxl_error))
         return false;
     t.Sleep(xlTimer);
     // Torque off. No fancy rampiong
