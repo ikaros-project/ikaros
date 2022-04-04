@@ -1109,9 +1109,9 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
 
 
 float
-Module::GetFloatValue(const char * n, float d)
+Module::GetFloatValue(const char * n, float d, bool deprecation_warning)
 {
-    if(d != 0)
+    if(d != 0 && deprecation_warning)
         Notify(msg_warning, "Default value for GetFloatValue(\"%s\") is deprecated and should be specified in IKC file instead.", n);
 
     return string_to_float(GetValue(n), d);
@@ -1292,6 +1292,15 @@ Module::Bind(float * & v, int size, const char * n, bool fixed_size)
 
 
 void
+Module::Bind(float * & v, int * size, const char * n)
+{
+    // TODO: check type here
+    v = GetArray(n, *size, false);
+    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_array, v, *size, 1));
+}
+
+
+void
 Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
 {
     // TODO: check type here
@@ -1399,7 +1408,8 @@ Module::GetOutputArray(const char * name, bool required)
             else
                 return i->data[0];
         }
-    Notify(msg_warning, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning NULL.\n", name, GetName(), GetClassName());
+    if(required)
+        Notify(msg_warning, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning NULL.\n", name, GetName(), GetClassName());
     return NULL;
 }
 
@@ -2475,8 +2485,8 @@ Kernel::InitModules()
     {
         m->Bind(m->log_level, "log_level");
         m->Init();
-        m->power=m->GetOutputArray("POWER");
-        m->power_coefficient = m->GetFloatValue("power_coefficient", 1.0);
+        m->power=m->GetOutputArray("POWER", false);
+        m->power_coefficient = m->GetFloatValue("power_coefficient", 1.0, false);
     }
 }
 

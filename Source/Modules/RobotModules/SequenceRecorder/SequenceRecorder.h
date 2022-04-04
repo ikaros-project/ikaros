@@ -54,10 +54,14 @@ public:
     void        SkipEnd();
     void        SetStartMark();
     void        SetEndMark();
+    void        GoToPreviousKeypoint();
+    void        GoToNextKeypoint();
     void        ExtendTime();
     void        ReduceTime();
     void        AddKeypoint(); // add keypoint at current position
     void        PushKeypoint(); // push keypoint at the end of sequence
+    void        ClearSequence();    // clear currently selected sequence
+
     void        SetInitial();
     void        LoadJSON(std::string filename);
     void        StoreJSON(std::string filename);
@@ -82,6 +86,7 @@ float           smoothing_time;
 float *         smoothing_start;
 float *         target;
 float *         input;
+float *         default_output; // value for initial from okc file if set
 float *         initial;
 float *         output;
 float *         active;
