@@ -20,6 +20,11 @@
 	<parameter name="default_output" type="array" description="Default outputs to be used when not defined in any other way." />
 	<parameter name="positions" type="array" default="0 0 0 0" description="Current positions for all channels; input/output for WebUI" />
 
+	<parameter name="current_sequence" type="int" default="0" description="Index of the currently selected sequence" />
+	<parameter name="sequence_names" type="string" default="Sequence A" description="List of names for the different sequences" />
+
+
+
 	<output name="SMOOTHING_START" size_param="channels" description="Sposition to smooth from. Used only for debugging." />
 
 	<input name="INPUT" description="The current input positions to record" />
