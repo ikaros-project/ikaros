@@ -26,9 +26,11 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'camera_pos', 'default': "2,2,2.4", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'camera_target', 'default': "0,0,0", 'type': 'string', 'control': 'textedit' },
 
-			{ 'name': 'title', 'default': "", 'type': 'string', 'control': 'textedit' },
-			{ 'name': 'show_title', 'default': true, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'show_frame', 'default': true, 'type': 'bool', 'control': 'checkbox' }
+			{ 'name': "FRAME", 'control': 'header' },
+            { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+            { 'name': 'show_frame', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+            { 'name': 'style', 'default': "", 'type': 'string', 'control': 'textedit' },
+            { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' }
 		]
 	};
 	static html() {
@@ -224,6 +226,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	update() {
 
+		this.updateFrame();
 		if (!(this.data = this.getSource('matrix'))) {
 			console.log("No 3D data from ikaros")
 			return;
