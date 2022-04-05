@@ -14,16 +14,15 @@ VisionInputLeft = "InputJPEG"
 VisionInputRight = "InputJPEG"
 -->
 
-<group name="Experimental setup">
+<group name="Pupil demo for HT-dagarna 2022">
 
 	<module class = "EpiTorsoMinimal" name = "Epi" 
 
 	VisionInputRight = "InputJPEG"
 	VisionInputLeft = "InputJPEG"
 	simulateRobot ="true"
-	
 
-	EpiName = "EpiRed" 
+		EpiName = "EpiRed" 
 	L1_T1_data = "
 	1 0 0 0;
 	0 1 0 0;
@@ -53,44 +52,45 @@ VisionInputRight = "InputJPEG"
 	" />
 
 
-	<!--  
-    1. Kan man lysa i ögat.
-    2. Kan man peta på ögat.
-    3. Detektera QR kod.
-	-->
+	 <module class   = "InputVideo" name = "CAMERA"	 size_x  = "640" size_y  =  "480" />
 
 
-	<!-- 1. Demonstration of light reflex -->
-	<!-- Uses two system -->
-
-	<!-- Control the pupil depending on light condition -->
-
-	<module
-			class = "Randomizer"
-			name = "SimulateImage"
-			outputsize_x = "320"
-			outputsize_y = "320"
-			min = "0"
-			max = "1" />
-	<_connection  source = "SimulateImage.OUTPUT"  target = "D1.INPUT" />
-
+	<!-- Downsample image and send the brighest pixel values to the pupil model -->
+	<!-- -->
 	<module class = "Downsample" name = "D1" />
-	<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D1.INPUT" />
+		<_connection  source = "Epi.RightEye.INTENSITY"  target = "D1.INPUT" />
+		<connection  source = "CAMERA.INTENSITY"  target = "D1.INPUT" />
 	<module class = "Downsample" name = "D2" />
-	<connection  source = "D1.OUTPUT"  target = "D2.INPUT" />
+		<connection  source = "D1.OUTPUT"  target = "D2.INPUT" />
 	<module class = "Downsample" name = "D3" />
-	<connection  source = "D2.OUTPUT"  target = "D3.INPUT" />
+		<connection  source = "D2.OUTPUT"  target = "D3.INPUT" />
+	<module class = "GaussianFilter" name = "GaussianRight" kernel_size = "5" sigma ="10" />
+		<connection  source = "D3.OUTPUT"  target = "GaussianRight.INPUT" />
 
-	<module class = "GaussianFilter" name = "Gaussian" kernel_size = "5" sigma ="10" />
-	<connection  source = "D3.OUTPUT"  target = "Gaussian.INPUT" />
+	<module class = "Downsample" name = "D_R1" />
+		<connection  source = "CAMERA.INTENSITY"  target = "D_R1.INPUT" />
+	<module class = "Downsample" name = "D_R2" />
+		<connection  source = "D_R1.OUTPUT"  target = "D_R2.INPUT" />
+	<module class = "Downsample" name = "D_R3" />
+		<connection  source = "D_R2.OUTPUT"  target = "D_R3.INPUT" />
+	<module class = "GaussianFilter" name = "GaussianLeft" kernel_size = "5" sigma ="10" />
+		<connection  source = "D_R3.OUTPUT"  target = "GaussianLeft.INPUT" />
 
-	<module class = "ArgMax" name = "ArgMax2"/>
-	<connection  source = "Gaussian.OUTPUT"  target = "ArgMax2.INPUT" />
+	<module class = "ArgMax" name = "ArgMaxCombine"/>
+		<connection  source = "GaussianRight.OUTPUT"  target = "ArgMaxCombine.INPUT" />
+		<connection  source = "GaussianLeft.OUTPUT"  target = "ArgMaxCombine.INPUT" />
+
+	<!-- only for marker in webUI-->
+	<module class = "ArgMax" name = "ArgMaxLeft"/>
+		<connection  source = "GaussianLeft.OUTPUT"  target = "ArgMaxLeft.INPUT" />
+	<!-- only for marker in webUI-->
+	<module class = "ArgMax" name = "ArgMaxRight"/>
+		<connection  source = "GaussianRight.OUTPUT"  target = "ArgMaxRight.INPUT" />
 
 	<!-- Pupil model -->
 	
 	<!-- Amygdala LC-->
- <!-- ********************************* LOCUS COERULEUS *********************************   -->
+	 <!-- ********************************* LOCUS COERULEUS *********************************   -->
 
     <module
         class="Nucleus"
@@ -130,8 +130,8 @@ VisionInputRight = "InputJPEG"
 
 	<!-- Light reflex etc -->
 	<module class="PupilControl" name="PupilControl"/>
-	<connection  source = "ArgMax2.VALUE"  				target = "PupilControl.PTA" />
-	<_connection  source = "IML_EXCITATION.OUTPUT"  		target = "PupilControl.IML_EXCITATION" />
+	<connection  source = "ArgMaxCombine.VALUE"  				target = "PupilControl.PTA" />
+	<_connection  source = "IML_EXCITATION.OUTPUT"  			target = "PupilControl.IML_EXCITATION" />
 
 	<_module class = "Constant" name = "IML_EXCITATION" data = "0.5" />
 
@@ -147,33 +147,8 @@ VisionInputRight = "InputJPEG"
 	<connection  source = "Eyes.PUPIL_DIAMETER"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "4" size = "1"/>
 	<connection  source = "Eyes.PUPIL_DIAMETER"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "5" size = "1"/>
 
-	<view name="Light intensity">
-		<image  x = "140" file = "" index = "" max_y = "1" title = "Image" module = "" height = "641" flipYCanvas = "no" source = "Epi.RightEye.LOW_RES_INTENSITY" scale = "both" flipXAxis = "no" command = "" show_title = "false" scales = "no" max_x = "1" format = "gray" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "761" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
-		<image  x = "920" file = "" index = "" max_y = "1" title = "Image" module = "" height = "641" flipYCanvas = "no" source = "Gaussian.OUTPUT" scale = "both" flipXAxis = "no" command = "" show_title = "false" scales = "no" max_x = "1" format = "fire" y = "40" frame-style = "" flipXCanvas = "no" min_y = "0" opacity = "1" width = "761" flipYAxis = "no" min_x = "0" style = "" show_frame = "false"/>
-		<marker  y = "40" frame-style = "" height = "641" flipYCanvas = "no" labelPrefix = "" markerType = "circle" width = "761" flipYAxis = "no" lineWidth = "1" x = "920" title = "" labelBaseline = "middle" max_y = "40" color = "" source = "ArgMax2.OUTPUT" order = "col" selectValue = "" lineJoin = "miter" labelType = "none" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "gray" labels = "" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "0.025" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" scale_y = "0.025" min_x = "0" labelFont = "18px sans-serif" style = "" max_x = "40" show_frame = "false"/>
-		<plot  x = "140" y = "700" height = "200" show_frame = "false" width = "200" source = "ArgMax1.VALUE" select = "" direction = "vertical" min = "0" max = "1" title = "Plot" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-		<plot  x = "920" y = "700" height = "421" show_frame = "false" width = "381" source = "ArgMax2.VALUE" select = "" direction = "vertical" min = "0" max = "1" title = "Max value" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-		<plot  x = "1300" y = "700" height = "421" show_frame = "false" width = "381" source = "LightIntensityToPupilDiameter.OUTPUT" select = "" direction = "vertical" min = "10" max = "20" title = "Pupil mm" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-	</view>
-
-	<view name="Pupil Control" >
-		<image  index = "" file = "" module = "" min_x = "0" style = "" max_y = "1" title = "Low" flipYCanvas = "no" height = "241" show_frame = "false" scale = "both" source = "Gaussian.OUTPUT" flipXAxis = "no" max_x = "1" format = "gray" command = "" show_title = "true" scales = "no" min_y = "0" flipXCanvas = "no" width = "321" flipYAxis = "no" h = "4" x = "60" frame-style = "" y = "0" opacity = "1" w = "4"/>
-		<plot  frame-style = "" show_title = "true" width = "301" color = "" title = "CG_OUTPUT" y = "260" show_frame = "true" height = "301" x = "60" buffer_size = "50" max = "1" style = "" labels = "B" select = "" source = "PupilControl.CG_OUTPUT" direction = "vertical" module = "CG_OUTPUT" min = "0"/>
-		<plot  frame-style = "" show_title = "true" width = "301" color = "" title = "SCG_OUTPUT" y = "260" show_frame = "true" height = "301" x = "400" buffer_size = "50" max = "1" style = "" labels = "B" select = "" source = "PupilControl.SCG_OUTPUT" direction = "vertical" module = "SCG_OUTPUT" min = "0"/>
-		<slider-horizontal  x = "420" y = "40" height = "61" show_frame = "false" width = "301" title = "Min" parameter = "SimulateImage.min" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "false" max = "1" show_title = "true" frame-style = ""/>
-		<slider-horizontal  x = "420" y = "120" height = "61" show_frame = "false" width = "301" title = "Max" parameter = "SimulateImage.max" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.01" show_values = "false" max = "1" show_title = "true" frame-style = ""/>
-		<epi-head  x = "760" y = "40" frame-style = "" vergence = "0" width = "200" earColor = "#0088ff" mouthColor = "#000000" title = "Epi Head" color = "black" gazeSource = "" mouthIntensity = "" headPosition = "" motionRecorderInput = "" irisLeftRGB = "" irisRightRGB = "" visibleFaceParameter = "" mouthRGB = "" irisRightIntensity = "" gaze = "0" pupilLeftSource = "Eyes.PUPIL_DIAMETER" show_frame = "false" visibleSource = "" visibleFace = "true" irisLeftIntensity = "" pupilInMM = "11" height = "200" fill = "white" show_title = "false" irisColor = "#88aaff" pupilRightSource = "Eyes.PUPIL_DIAMETER" style = ""/>
-		<plot  frame-style = "" style = "" show_title = "true" buffer_size = "50" max = "20" min = "0" direction = "vertical" select = "" source = "Eyes.PUPIL_DIAMETER" color = "" title = "Plot" width = "281" show_frame = "false" height = "301" y = "260" x = "740"/>
-		<slider-horizontal  x = "80" y = "580" height = "161" width = "901" title = "IML_EXCITATION" parameter = "IML_EXCITATION.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-		<slider-horizontal  x = "80" y = "740" height = "181" width = "901" title = "Eyes amplifier" parameter = "Eyes.amplifier" select = "0" count = "1" labels = "" min = "0" max = "20" step = "1" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-	</view>
-
-
-
-	 <module
-			class   = "InputVideo" name = "CAMERA"			
-            size_x  = "640"
-            size_y  =  "480" />
+	<!-- Marker tracker part (Stimuli) -->
+	<!-- Only uses right eye -->
 
     <module
 			class   = "MarkerTracker" name = "MarkerTracker"
@@ -188,57 +163,53 @@ VisionInputRight = "InputJPEG"
 			max_markers = "1"
 	/>
 
-    <connection  source = "CAMERA.INTENSITY"  target = "MarkerTracker.INPUT" delay="0" />
+		<_connection  source = "Epi.RightEye.INTENSITY"  		target = "MarkerTracker.INPUT" />
+		<connection  source = "CAMERA.INTENSITY"  				target = "MarkerTracker.INPUT" />
+
+	<module class = "MTPupilDemo" name = "MTPupilDemo" />
+        <connection  source = "MarkerTracker.OBJECT_ID"  		target = "MTPupilDemo.ID" delay="0"/>
+	    <connection  source = "MarkerTracker.IMAGE_POSITION"  	target = "MTPupilDemo.IMAGE_POS" delay="0" />
 
 
-	<module class="LinearSplines" name="LeftImgToRelAngle" points = "
+	<module class="LinearSplines" name="RightImgToRelAngle" points = "
 	    	0	    -22.5		0		-21.5; 
             0.5		0		0.5		0;
             1		22.5		1		21.5"
 	/>
-    <connection  source = "MTPupilDemo.ROBOT_OUTPUT"  target = "LeftImgToRelAngle.INPUT" delay="0" />
-
-
-    <view name="Main view">
-        <image  x = "160" y = "20" height = "561" width = "621" title = "Image" source = "CAMERA.INTENSITY" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-        <marker  x = "160" y = "20" height = "561" width = "621" title = "" source = "MarkerTracker.IMAGE_POSITION" order = "col" select = "0" selectValue = "" count = "0" markerType = "circle" size = "0.02" color = "" fill = "gray" lineWidth = "1" lineCap = "butt" lineJoin = "miter" labelType = "none" labels = "" labelFont = "18px sans-serif" labelDecimals = "2" labelPrefix = "" labelPostfix = "" labelAlign = "center" labelBaseline = "middle" labelOffsetX = "0" labelOffsetY = "0" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = "" scale_x = "1" scale_y = "1"/>
-        <table  x = "120" y = "580" height = "141" width = "1441" title = "Default Title" source = "MarkerTracker.MARKERS" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "true" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
-        <table  x = "780" y = "20" height = "81" width = "201" title = "Number of markers" source = "MarkerTracker.MARKER_COUNT" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-    </view>
-
-		<module
-			class = "MTPupilDemo"
-			name = "MTPupilDemo"
-		/>
-		
-        <connection  source = "MarkerTracker.OBJECT_ID"  target = "MTPupilDemo.ID" />
-	    <connection  source = "MarkerTracker.IMAGE_POSITION"  target = "MTPupilDemo.IMAGE_POS" delay="0" />
-
-	<connection  source = "LeftImgToRelAngle.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+    <connection  source = "MTPupilDemo.ROBOT_OUTPUT"  target = "RightImgToRelAngle.INPUT" delay="0" />
 	
+	
+	
+	<!-- Override head joints -->
+	<connection  source = "RightImgToRelAngle.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+	<!-- Override LEDs -->
+	<connection  source = "MTPupilDemo.ROBOT_EYE_LED_OUTPUT"  target = "Epi.LED.EYE_COLOR" sourceoffset = "0" targetoffset = "0" size = "3"/>
+	<connection  source = "MTPupilDemo.ROBOT_EYE_LED_OUTPUT"  target = "Epi.LED.EYE_INTENSITY" sourceoffset = "3" targetoffset = "0" size = "1"/>
+	<_connection  source = "SR.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "@servosIndexEyesIntensity" 	targetoffset = "0" size = "1"/>
 
-<view name="View" >
-	<table  style = "" show_title = "false" frame-style = "" title = "MT ID" colorize = "true" direction = "normal" scrollable = "false" decimals = "4" y = "20" label_y = "" source = "MTID.OUTPUT" width = "200" label_x = "" x = "40" show_frame = "false" height = "200"/>
-	<table  style = "" show_title = "false" frame-style = "" title = "Default Title" colorize = "true" direction = "normal" scrollable = "false" decimals = "4" y = "20" label_y = "" source = "MarkerTracker.OBJECT_ID" width = "221" label_x = "" x = "340" show_frame = "false" height = "361"/>
-	<slider-horizontal  x = "40" y = "220" height = "200" show_frame = "false" width = "200" title = "Sliders" parameter = "MTID.data" count = "1" select = "0" style = "" labels = "" min = "85" step = "1" show_values = "true" max = "100" show_title = "false" frame-style = ""/>
-	<table  style = "" show_title = "false" frame-style = "" title = "Default Title" colorize = "true" direction = "normal" scrollable = "false" decimals = "4" y = "20" label_y = "" source = "MarkerTracker.IMAGE_POSITION" width = "221" label_x = "" x = "580" show_frame = "false" height = "361"/>
-	<table  style = "" show_title = "false" frame-style = "" title = "Default Title" colorize = "true" direction = "normal" scrollable = "false" decimals = "4" y = "20" label_y = "" source = "LeftImgToRelAngle.OUTPUT" width = "221" label_x = "" x = "820" show_frame = "false" height = "361"/>
-	<plot  x = "60" y = "500" height = "201" width = "461" title = "Plot" source = "MTPupilDemo.OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-	<plot  x = "520" y = "500" height = "201" width = "461" title = "Plot" source = "Amygdala.CR" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+
+<view name="Pupil Control" >
+	<rectangle  frame-style = "" style = "" title = "Pupil regulation" frame_width = "1" frame_color = "" background = "" label = "" show_title = "true" width = "601" show_frame = "false" height = "321" y = "560" x = "400"/>
+	<rectangle  frame-style = "" style = "" title = "Constriction" frame_width = "1" frame_color = "" background = "" label = "" show_title = "true" width = "1161" show_frame = "false" height = "261" y = "20" x = "60"/>
+	<rectangle  frame-style = "" style = "" title = "Dilation" frame_width = "1" frame_color = "" background = "" label = "" show_title = "true" width = "1161" show_frame = "false" height = "261" y = "280" x = "60"/>
+	<image  w = "4" scales = "no" show_title = "true" command = "" x = "60" width = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" min_y = "0" opacity = "1" y = "40" frame-style = "" format = "fire" max_x = "1" scale = "both" source = "GaussianLeft.OUTPUT" flipXAxis = "no" title = "Left" max_y = "1" show_frame = "false" flipYCanvas = "no" height = "241" style = "" min_x = "0" module = "" file = "" index = ""/>
+	<plot  min = "0" module = "CG_OUTPUT" direction = "vertical" source = "PupilControl.CG_OUTPUT" select = "" labels = "B" style = "" max = "1" buffer_size = "50" height = "241" show_frame = "false" x = "960" y = "40" title = "CG_OUTPUT" color = "" width = "261" show_title = "true" frame-style = ""/>
+	<plot  min = "0" module = "SCG_OUTPUT" direction = "vertical" source = "PupilControl.SCG_OUTPUT" select = "" labels = "B" style = "" max = "1" buffer_size = "50" height = "241" show_frame = "false" x = "960" y = "300" title = "SCG_OUTPUT" color = "" width = "261" show_title = "true" frame-style = ""/>
+	<epi-head  style = "" pupilRightSource = "Epi.Servos.PRESENT_PUPIL_POSITION" pupilInMM = "11" irisColor = "#88aaff" show_title = "false" fill = "white" irisLeftIntensity = "" height = "261" show_frame = "false" visibleSource = "" visibleFace = "true" pupilLeftSource = "Epi.Servos.PRESENT_PUPIL_POSITION" gaze = "0" irisRightIntensity = "" mouthRGB = "Epi.LED.MOUTH_COLOR_F" visibleFaceParameter = "" irisRightRGB = "Epi.LED.EYE_COLOR_F" irisLeftRGB = "Epi.LED.EYE_COLOR_F" headPosition = "Epi.Servos.PRESENT_HEAD_POSITION" motionRecorderInput = "" frame-style = "" y = "580" vergence = "0" earColor = "#0088ff" width = "221" mouthColor = "#000000" mouthIntensity = "" gazeSource = "Epi.Servos.PRESENT_EYE_POSITION" title = "Epi Head" color = "black" x = "740"/>
+	<plot  y = "600" width = "321" color = "" title = "Pupil diameter (mm)" x = "400" height = "241" show_frame = "false" source = "Eyes.PUPIL_DIAMETER" select = "" direction = "vertical" min = "0" max = "20" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<slider-horizontal  frame-style = "" show_title = "true" max = "20" show_values = "false" step = "1" min = "0" style = "" labels = "" select = "0" count = "1" parameter = "Eyes.amplifier" x = "400" show_frame = "false" height = "61" width = "601" title = "Eyes amplifier (used to increase pupil response)" y = "840"/>
+	<image  w = "4" scales = "no" show_title = "true" command = "" x = "380" width = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" min_y = "0" opacity = "1" y = "40" frame-style = "" format = "fire" max_x = "1" scale = "both" source = "GaussianRight.OUTPUT" flipXAxis = "no" title = "Right" max_y = "1" show_frame = "false" flipYCanvas = "no" height = "241" style = "" min_x = "0" module = "" file = "" index = ""/>
+	<marker  show_frame = "false" max_x = "40" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "0.025" scales = "no" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "0.025" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "gray" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "ArgMaxLeft.OUTPUT" title = "" max_y = "40" labelBaseline = "middle" lineWidth = "1" x = "60" flipYCanvas = "no" height = "221" labelPrefix = "" color = "" markerType = "circle" flipYAxis = "no" width = "321" y = "60" frame-style = "" order = "col"/>
+	<marker  show_frame = "false" max_x = "40" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "0.025" scales = "no" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "0.025" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "gray" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "ArgMaxRight.OUTPUT" title = "" max_y = "40" labelBaseline = "middle" lineWidth = "1" x = "380" flipYCanvas = "no" height = "221" labelPrefix = "" color = "" markerType = "circle" flipYAxis = "no" width = "321" y = "60" frame-style = "" order = "col"/>
+	<plot  y = "40" width = "261" color = "" title = "Brigtest pixel value" x = "700" height = "241" show_frame = "false" source = "ArgMaxCombine.VALUE" select = "" direction = "vertical" min = "0" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<image  w = "4" scales = "no" show_title = "true" command = "" x = "60" width = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" min_y = "0" opacity = "1" y = "300" frame-style = "" format = "gray" max_x = "1" scale = "both" source = "CAMERA.INTENSITY" flipXAxis = "no" title = "Left eye" max_y = "1" show_frame = "false" flipYCanvas = "no" height = "241" style = "" min_x = "0" module = "" file = "" index = ""/>
+	<marker  y = "320" frame-style = "" height = "221" flipYCanvas = "no" labelPrefix = "" markerType = "circle" width = "321" flipYAxis = "no" lineWidth = "1" x = "60" title = "" labelBaseline = "middle" max_y = "1" color = "" source = "MarkerTracker.IMAGE_POSITION" order = "col" selectValue = "" lineJoin = "miter" labelType = "value" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "gray" labels = "" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "1" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" scale_y = "1" min_x = "0" labelFont = "18px sans-serif" style = "" max_x = "1" show_frame = "false"/>
+	<table  x = "280" height = "61" show_frame = "false" width = "81" label_x = "" direction = "normal" scrollable = "false" source = "MarkerTracker.OBJECT_ID" y = "340" label_y = "" decimals = "4" colorize = "true" title = "Marker ID" frame-style = "" show_title = "true" style = ""/>
+	<plot  x = "380" y = "300" height = "241" show_frame = "false" width = "321" source = "MTPupilDemo.OUTPUT" select = "" direction = "vertical" min = "-1" max = "1" title = "Emotional value of stimulus" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  x = "700" y = "300" height = "241" show_frame = "false" width = "261" source = "Amygdala.CR" select = "" direction = "vertical" min = "0" max = "60" title = "Amygdala output" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
 </view>
 
 
-
-
-
-
-	<!-- Blink if to much movement? -->
-
-
-	<!-- Simple blink model -->
-
-
-	<!-- Detect QR codes -->
 
 
 

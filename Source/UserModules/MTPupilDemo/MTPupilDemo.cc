@@ -31,14 +31,17 @@
 #define MATH_EASY_VALUE 0.2 
 #define MATH_HARD 86
 #define MATH_HARD_VALUE 0.5
-#define EMOTION_NEG 53
-#define EMOTION_NEG_VALUE 0.5
-#define EMOTION_NEU 88
+#define EMOTION_NEG 52
+#define EMOTION_NEG_VALUE -0.5
+#define EMOTION_NEU 53
 #define EMOTION_NEU_VALUE 0
-#define EMOTION_POS 89
+#define EMOTION_POS 54
 #define EMOTION_POS_VALUE 0.5
 #define NOVELTY 90
 #define NOVELTY_VALUE 0.5
+#define SUN 51 // not implemented
+#define SUN_VALUE 0.5
+
 
 #define ROBOT_TILT_INDEX 0
 #define ROBOT_PAN_INDEX 1
@@ -52,6 +55,11 @@ void MTPupilDemo::Init()
     io(img_pos_array, img_pos_array_size, "IMAGE_POS");
     io(output_array, output_array_size, "OUTPUT");
     io(robot_output_array, robot_output_array_size, "ROBOT_OUTPUT");
+
+    io(eye_led_output_array, eye_led_output_array_size, "ROBOT_EYE_LED_OUTPUT");
+
+    blinkTimer.Restart();
+
 }
 
 MTPupilDemo::~MTPupilDemo()
@@ -60,11 +68,8 @@ MTPupilDemo::~MTPupilDemo()
 
 void MTPupilDemo::Tick()
 {
-    print_array("id_array", id_array, id_array_size);
-    print_array("img_pos_array", img_pos_array, img_pos_array_size);
     int id = *id_array;
     reset_array(output_array,output_array_size);
-    printf("ID %i\n",id);
     switch (id)
     {
     case MATH_EASY:
@@ -96,10 +101,38 @@ void MTPupilDemo::Tick()
     }
     // Simple tracking? Track marker for a while.
     robot_output_array[ROBOT_TILT_INDEX] = img_pos_array[1];
-    robot_output_array[ROBOT_PAN_INDEX] =  img_pos_array[0];
-    robot_output_array[ROBOT_EYE_INDEX] =  img_pos_array[0];
+    robot_output_array[ROBOT_PAN_INDEX] =  1-img_pos_array[0];
+    robot_output_array[ROBOT_EYE_INDEX] =  1-img_pos_array[0];
+    robot_output_array[ROBOT_EYE_INDEX+1] =  1-img_pos_array[0];
 
-    print_array("output", output_array, output_array_size);
+
+    // LED
+    eye_led_output_array[0] = 0.3;
+    eye_led_output_array[1] = 0.1;
+    eye_led_output_array[2] = 0.7;
+
+    if (id == EMOTION_POS)
+    {
+        eye_led_output_array[0] = 1;
+        eye_led_output_array[1] = 0;
+        eye_led_output_array[2] = 0;
+    }
+
+    // Blinking
+    // Make someting smart here
+    bool blink;
+    if (blinkTimer.GetTime() > 1000)
+        blink = true;
+    if (blinkTimer.GetTime() > 1100)
+    {
+        blink = false;
+        blinkTimer.Restart();
+    }
+    if (blink)
+        eye_led_output_array[3] = 0.001;
+    else
+        eye_led_output_array[3] = 1;
+
 }
 
 // Install the module. This code is executed during start-up.

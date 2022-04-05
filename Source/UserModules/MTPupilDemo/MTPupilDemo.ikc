@@ -26,7 +26,10 @@
 	<input name="IMAGE_POS" description="The first input" />
 
 	<output name="OUTPUT" description="The first output" size="1" />
-	<output name="ROBOT_OUTPUT" description="The first output" size="3" />
+	<output name="ROBOT_OUTPUT" description="Tilt/Pab/left/right" size="4" />
+	<output name="ROBOT_EYE_LED_OUTPUT" description="RGBI of eye" size="4" />
+
+
 
 	<link class="MTPupilDemo" />
 

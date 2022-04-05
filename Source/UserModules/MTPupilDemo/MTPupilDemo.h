@@ -50,6 +50,12 @@ public:
 
     float *     robot_output_array;
     int         robot_output_array_size;
+
+    float *     eye_led_output_array;
+    int         eye_led_output_array_size;
+    
+    Timer blinkTimer;
+
 };
 
 #endif
