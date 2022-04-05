@@ -179,7 +179,7 @@ static json create_sequence(int index)
 void
 SequenceRecorder::LoadJSON(std::string filename)
 {
-//    if(!file_exists(filename.c_str()))
+    if(!check_file_exists(filename.c_str()))
     {
         json data ;
         data["channels"] = channels;
@@ -188,14 +188,7 @@ SequenceRecorder::LoadJSON(std::string filename)
           for(int i=0; i<9; i++)
             data["sequences"].push_back(create_sequence(i));  
 
-        sequence_names = "";
-        std::string sep = "";
-for(auto s : data["sequences"])
-    {
-        std::string name = s["name"];
-        sequence_names += sep + name;
-        sep = ",";
-    }
+
         std::ofstream file(filename);
         file << data;               
     }
@@ -204,6 +197,17 @@ for(auto s : data["sequences"])
     i >> sequence_data;
     std::string s = sequence_data["sequences"][current_sequence]["name"];
     int sz = sequence_data["sequences"][current_sequence]["keypoints"].size();
+
+
+    sequence_names = "";
+    std::string sep = "";
+
+    for(auto s : sequence_data["sequences"])
+    {
+        std::string name = s["name"];
+        sequence_names += sep + name;
+        sep = ",";
+    }
 }
 
 
@@ -217,11 +221,13 @@ SequenceRecorder::StoreJSON(std::string filename)
 
 
 
-
 void
 SequenceRecorder::Init()
 {
     Bind(channels, "channels");
+
+    SetOutputSize("INPUT", channels); // Make sure that there is an input for every channel even if they are not connected
+
     Bind(positions, channels, "positions", true); // parameter size will be set by the value channels
 
     Bind(smoothing_time, "smoothing_time");
@@ -238,6 +244,7 @@ SequenceRecorder::Init()
 
     Bind(sequence_names, "sequence_names");
     Bind(current_sequence, "current_sequence");
+    Bind(internal_control, channels, "internal_control", true);
 
     int do_size = 0;
     Bind(default_output, &do_size, "default_output");
@@ -426,6 +433,21 @@ SequenceRecorder::ReduceTime()
     float end_time = sequence_data["sequences"][current_sequence]["end_time"];
     end_time = -1000.0f+1000*int(0.001*end_time+0.99999);
      sequence_data["sequences"][current_sequence]["end_time"] = end_time > 0 ? end_time: 0;
+}
+
+
+
+void
+SequenceRecorder::LockChannel(int c)
+{
+    if(c < 0)
+        return;
+    if(c >= channels)
+        return;
+    if(internal_control[c])
+        output[c] = positions[c];
+    else
+        output[c] = input[c]; // Make sure output is at the present servo position
 }
 
 
@@ -635,6 +657,8 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
             ClearSequence();
     else if(s=="delete")
         DeleteKeypoints();
+    else if(s=="lock")
+        LockChannel(y);
 
 }
 
@@ -692,23 +716,27 @@ SequenceRecorder::Tick()
 
     // Check if position has been changed from WebUI - should use command in the future
 
-        if(position != last_position) 
-        {
-                Pause();
-                float end_time = sequence_data["sequences"][current_sequence]["end_time"];
-                timer.SetTime(position*end_time);
-                last_position = position;
-        }
-
-        // Set position
-
- 
-        float end_time = sequence_data["sequences"][current_sequence]["end_time"];
-        position = end_time? t/end_time : 0;
-        last_position = position;
-        
-        if(initial) // Do nothing until initial is set
+    if(position != last_position) 
     {
+            Pause();
+            float end_time = sequence_data["sequences"][current_sequence]["end_time"];
+            timer.SetTime(position*end_time);
+            last_position = position;
+    }
+
+    // Set position
+
+    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
+    position = end_time? t/end_time : 0;
+    last_position = position;
+    
+    if(initial) // Do nothing until initial is set
+    {
+        // Set inputs from parameters for internal channels
+
+        for(int c=0; c<channels; c++)
+            if(internal_control[c])
+                input[c] = positions[c];
 
         if(state[1]) // handle play mode
         {
@@ -758,6 +786,11 @@ SequenceRecorder::Tick()
         mark_start = float(sequence_data["sequences"][current_sequence]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence]["end_time"]);
         mark_end = float(sequence_data["sequences"][current_sequence]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence]["end_time"]);}
 
+    // Set positions parameter for exterbally controlled channels
+
+    for(int c=0; c<channels; c++)
+            if(internal_control[c] == 0)
+                positions[c] = output[c];
 }
 
 

@@ -58,6 +58,7 @@ public:
     void        GoToNextKeypoint();
     void        ExtendTime();
     void        ReduceTime();
+    void        LockChannel(int c);
     void        AddKeypoint(); // add keypoint at current position
     void        PushKeypoint(); // push keypoint at the end of sequence
     void        ClearSequence();    // clear currently selected sequence
@@ -87,6 +88,8 @@ float *         smoothing_start;
 float *         target;
 float *         input;
 float *         default_output; // value for initial from okc file if set
+float *         internal_control;
+
 float *         initial;
 float *         output;
 float *         active;

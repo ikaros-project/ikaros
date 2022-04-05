@@ -389,6 +389,8 @@ public:
 
     void                DelayOutputs();
 
+    void                SetInputSize(const char * name, int size); // Experiment
+    
     Module_IO *         GetModule_IO(Module_IO * list, const char * name);
     void                AllocateOutputs(); // Allocate memory for outputs
 

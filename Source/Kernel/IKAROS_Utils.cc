@@ -1944,7 +1944,7 @@ void matrix::print(int decimals)
 
 
 const char *
-file_exists(const char * path)
+check_file_exists(const char * path)
 {
 	if(path != NULL)
 	{

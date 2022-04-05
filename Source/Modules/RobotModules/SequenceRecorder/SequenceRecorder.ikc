@@ -18,6 +18,8 @@
 
 	<parameter name="channels" type="int" default="4" description="The number of channels to record and/or play." />
 	<parameter name="default_output" type="array" description="Default outputs to be used when not defined in any other way." />
+	<parameter name="internal_control" type="array" description="A 1 indicates that the parameter sliders should be used to set the values to be recorded and not the input." />
+
 	<parameter name="positions" type="array" default="0 0 0 0" description="Current positions for all channels; input/output for WebUI" />
 
 	<parameter name="current_sequence" type="int" default="0" description="Index of the currently selected sequence" />
