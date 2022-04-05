@@ -49,65 +49,6 @@ interpolate(float t, float t1, float t2, float p1, float p2) // linear interpola
 }
 
 
-/*
-void
-SequenceRecorder::SetTargetForTime(float t)
-{
-    int n = sequence_data["sequences"][0]["keypoints"].size();
-
-    // Handle empty sequence data
-    if(n < 1)
-        return; // FIXME: How should the output be set in this case - to input or to last output?
-
-    // Check start of sequence
-
-    float t0 = sequence_data["sequences"][0]["keypoints"][0]["time"];
-    if(t <= t0)
-    {
-        for(int i=0; i<channels; i++)
-        {
-            if(!sequence_data["sequences"][0]["keypoints"][0]["point"][i].is_null())
-                target[i] = sequence_data["sequences"][0]["keypoints"][0]["point"][i];
-            else
-                target[i] = initial[i];
-        }
-        return;
-    }
-
-    // Check end of sequence
-
-    float tn_1 = sequence_data["sequences"][0]["keypoints"][n-1]["time"];
-    if(t >= tn_1)
-    {
-        for(int i=0; i<channels; i++)
-            if(!sequence_data["sequences"][0]["keypoints"][n-1]["point"][i].is_null())
-                target[i] = sequence_data["sequences"][0]["keypoints"][n-1]["point"][i];
-            // FIXME: else search for last viable non-null value or use initial - only necessary if we jumped directly to the end
-        return;
-    }
-
-    // Find intermediate points and linearly interpolate - basic version - could add s-curves here later
-
-    for(int i=0; i<n-1; i++)
-    {
-        float t1 = sequence_data["sequences"][0]["keypoints"][i]["time"];
-        float t2 = sequence_data["sequences"][0]["keypoints"][i+1]["time"];
-        if(t1 < t && t < t2)
-        {
-
-            for(int c=0; c<channels; c++)
-            if(!sequence_data["sequences"][0]["keypoints"][i]["point"][c].is_null() && !sequence_data["sequences"][0]["keypoints"][i+1]["point"][c].is_null())
-            {
-
-                float p1 = sequence_data["sequences"][0]["keypoints"][i]["point"][c];
-                float p2 = sequence_data["sequences"][0]["keypoints"][i+1]["point"][c];
-                target[c] = interpolate(t, t1, t2, p1, p2);
-            }
-            // else don't change output
-            return;
-        }
-    }
-}*/
 
 
 
@@ -219,36 +160,42 @@ SequenceRecorder::StartRecord()
 
 
 
+static json create_sequence(int index)
+{
+    json sq;
+
+    sq["name"] = "Sequence "+std::string(1,65+index);
+    sq["start_time"] = 0;
+    sq["start_mark_time"] = 0;
+    sq["end_mark_time"] = 1000;
+    sq["end_time"] = 1000;
+    sq["keypoints"] = json::array();
+
+    return sq;
+}
+
+
+
 void
 SequenceRecorder::LoadJSON(std::string filename)
 {
-    if(!file_exists(filename.c_str()))
+//    if(!file_exists(filename.c_str()))
     {
         json data ;
-        json sq_a;
-
-        sq_a["name"] = "Sequence A";
-        sq_a["start_time"] = 0;
-        sq_a["start_mark_time"] = 0;
-        sq_a["end_mark_time"] = 1000;
-        sq_a["end_time"] = 1000;
-        sq_a["keypoints"] = json::array();
-
         data["channels"] = channels;
         // data["ranges"] // FIXME: yes do!
           data["sequences"] = json::array();
-          data["sequences"].push_back(sq_a);  
+          for(int i=0; i<9; i++)
+            data["sequences"].push_back(create_sequence(i));  
 
         std::ofstream file(filename);
         file << data;               
     }
 
-
     std::ifstream i(filename);
     i >> sequence_data;
     std::string s = sequence_data["sequences"][0]["name"];
     int sz = sequence_data["sequences"][0]["keypoints"].size();
-
 }
 
 
@@ -258,6 +205,9 @@ SequenceRecorder::StoreJSON(std::string filename)
     std::ofstream file(filename);
     file << sequence_data;
 }
+
+
+
 
 
 void
@@ -606,6 +556,36 @@ SequenceRecorder::ClearSequence()
 
 
 void
+SequenceRecorder::DeleteKeypoints()
+{
+    float start_mark_time = float(sequence_data["sequences"][0]["start_mark_time"]);
+    float end_mark_time = float(sequence_data["sequences"][0]["end_mark_time"]);
+    int n = sequence_data["sequences"][0]["keypoints"].size();
+    for(int i=0; i<n; i++)
+    {
+        float t = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        if(start_mark_time <= t && t<=end_mark_time)
+        {
+            int number_of_deleted_points = 0;
+            for(int c=0; c<channels; c++)
+            {
+                if(channel_mode[c][2] == 1)
+                {
+                    sequence_data["sequences"][0]["keypoints"][i]["point"][c] = nullptr;
+                    number_of_deleted_points++;
+                }
+            }
+            if(number_of_deleted_points == channels)
+            {
+                // FIXME: Delete the complete keypoint (i) if possible during iterations
+            }
+        }
+    }
+}
+
+
+
+void
 SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
     if(s == "stop")
@@ -642,6 +622,9 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
             LoadJSON(filename);
     else if(s=="clear")
             ClearSequence();
+    else if(s=="delete")
+        DeleteKeypoints();
+
 }
 
 
