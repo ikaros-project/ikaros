@@ -72,7 +72,7 @@ public:
     std::string GetJSONData(const std::string & name, const std::string & tab);
 
     void        SetTargetForTime(float t);
-    void        SetOutputForChannel(int c);
+    void        SetOutputForChannel(int c); 
 void            StartRecord();
 
 
