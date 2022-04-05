@@ -55,7 +55,7 @@ interpolate(float t, float t1, float t2, float p1, float p2) // linear interpola
 void
 SequenceRecorder::SetTargetForTime(float t)
 {
-    int n = sequence_data["sequences"][0]["keypoints"].size();
+    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
 
     // Handle empty sequence data
     if(n < 1)
@@ -74,14 +74,14 @@ SequenceRecorder::SetTargetForTime(float t)
             p_right = initial[c];
         }
         float time_left = 0;
-        float time_right = sequence_data["sequences"][0]["end_time"];
+        float time_right = sequence_data["sequences"][current_sequence]["end_time"];
 
         // Start with the value in the first (non-null) keypoint 
 
         for(int ix=0; ix<n; ix++)
-            if(!sequence_data["sequences"][0]["keypoints"][ix]["point"][c].is_null())
+            if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
             {
-                p_left = sequence_data["sequences"][0]["keypoints"][ix]["point"][c];
+                p_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c];
                 break;
             }
 
@@ -91,13 +91,13 @@ SequenceRecorder::SetTargetForTime(float t)
         int ix = 0;
         for( ; ix<n; ix++)
         {
-            if(sequence_data["sequences"][0]["keypoints"][ix]["time"] > t)
+            if(sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"] > t)
                 break; // we have passed the current time and possibly found the left value
-            if(!sequence_data["sequences"][0]["keypoints"][ix]["point"][c].is_null())
+            if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
             {
                 // Store candidate left point and time
-                p_left = sequence_data["sequences"][0]["keypoints"][ix]["point"][c]; 
-                time_left = sequence_data["sequences"][0]["keypoints"][ix]["time"];
+                p_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c]; 
+                time_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"];
             }
         }
     
@@ -109,10 +109,10 @@ SequenceRecorder::SetTargetForTime(float t)
 
         for( ; ix<n; ix++)
         {
-          if(!sequence_data["sequences"][0]["keypoints"][ix]["point"][c].is_null())
+          if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
             {
-                p_right = sequence_data["sequences"][0]["keypoints"][ix]["point"][c];
-                time_right = sequence_data["sequences"][0]["keypoints"][ix]["time"];
+                p_right = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c];
+                time_right = sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"];
                 break;
             }
         }
@@ -155,7 +155,7 @@ SequenceRecorder::SetTargetForTime(float t)
 void
 SequenceRecorder::StartRecord()
 {
-//    sequence_data["sequences"][0]["keypoints"] = json::array();
+//    sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
 }
 
 
@@ -188,14 +188,22 @@ SequenceRecorder::LoadJSON(std::string filename)
           for(int i=0; i<9; i++)
             data["sequences"].push_back(create_sequence(i));  
 
+        sequence_names = "";
+        std::string sep = "";
+for(auto s : data["sequences"])
+    {
+        std::string name = s["name"];
+        sequence_names += sep + name;
+        sep = ",";
+    }
         std::ofstream file(filename);
         file << data;               
     }
 
     std::ifstream i(filename);
     i >> sequence_data;
-    std::string s = sequence_data["sequences"][0]["name"];
-    int sz = sequence_data["sequences"][0]["keypoints"].size();
+    std::string s = sequence_data["sequences"][current_sequence]["name"];
+    int sz = sequence_data["sequences"][current_sequence]["keypoints"].size();
 }
 
 
@@ -227,6 +235,9 @@ SequenceRecorder::Init()
     Bind(position, "position");
     Bind(mark_start, "mark_start");
     Bind(mark_end, "mark_end");
+
+    Bind(sequence_names, "sequence_names");
+    Bind(current_sequence, "current_sequence");
 
     int do_size = 0;
     Bind(default_output, &do_size, "default_output");
@@ -274,7 +285,7 @@ SequenceRecorder::Stop()
 void
 SequenceRecorder::Play()
 {
-    if(sequence_data["sequences"][0]["end_mark_time"] == 0)
+    if(sequence_data["sequences"][current_sequence]["end_mark_time"] == 0)
     /*
     {
         Pause(); // pause immediately to prevent time from running 
@@ -311,12 +322,12 @@ SequenceRecorder::SkipStart()
 {
     timer.Stop();
     set_one(state, 3, states);// Pause
-    if(timer.GetTime() <= sequence_data["sequences"][0]["start_mark_time"])
-        timer.SetTime(sequence_data["sequences"][0]["start_time"]);
-    else if(timer.GetTime() <= sequence_data["sequences"][0]["end_mark_time"])
-        timer.SetTime(sequence_data["sequences"][0]["start_mark_time"]);
+    if(timer.GetTime() <= sequence_data["sequences"][current_sequence]["start_mark_time"])
+        timer.SetTime(sequence_data["sequences"][current_sequence]["start_time"]);
+    else if(timer.GetTime() <= sequence_data["sequences"][current_sequence]["end_mark_time"])
+        timer.SetTime(sequence_data["sequences"][current_sequence]["start_mark_time"]);
     else
-        timer.SetTime(sequence_data["sequences"][0]["end_mark_time"]);
+        timer.SetTime(sequence_data["sequences"][current_sequence]["end_mark_time"]);
 }
 
 
@@ -326,12 +337,12 @@ SequenceRecorder::SkipEnd()
 {
     timer.Stop();
     set_one(state, 3, states);
-    if(timer.GetTime() >= sequence_data["sequences"][0]["end_mark_time"])
-        timer.SetTime(sequence_data["sequences"][0]["end_time"]);
-    else if(timer.GetTime() >= sequence_data["sequences"][0]["start_mark_time"])
-        timer.SetTime(sequence_data["sequences"][0]["end_mark_time"]);
+    if(timer.GetTime() >= sequence_data["sequences"][current_sequence]["end_mark_time"])
+        timer.SetTime(sequence_data["sequences"][current_sequence]["end_time"]);
+    else if(timer.GetTime() >= sequence_data["sequences"][current_sequence]["start_mark_time"])
+        timer.SetTime(sequence_data["sequences"][current_sequence]["end_mark_time"]);
     else
-        timer.SetTime(sequence_data["sequences"][0]["start_mark_time"]);
+        timer.SetTime(sequence_data["sequences"][current_sequence]["start_mark_time"]);
 }
 
 
@@ -339,7 +350,7 @@ SequenceRecorder::SkipEnd()
 void
 SequenceRecorder::SetStartMark()
 {
-    sequence_data["sequences"][0]["start_mark_time"] = timer.GetTime();
+    sequence_data["sequences"][current_sequence]["start_mark_time"] = timer.GetTime();
 }
 
 
@@ -347,7 +358,7 @@ SequenceRecorder::SetStartMark()
 void
 SequenceRecorder::SetEndMark()
 {
-    sequence_data["sequences"][0]["end_mark_time"] = timer.GetTime();
+    sequence_data["sequences"][current_sequence]["end_mark_time"] = timer.GetTime();
 
 }
 
@@ -357,12 +368,12 @@ void
 SequenceRecorder::GoToPreviousKeypoint()
 {
     float t = timer.GetTime();
-    int n = sequence_data["sequences"][0]["keypoints"].size();
-    float end_time = sequence_data["sequences"][0]["end_time"];
+    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
+    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
     float kpt_last = 0;
     for(int i=0; i<n; i++)
     {
-        float kpt = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        float kpt = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(kpt >= t)
         {
             timer.SetTime(kpt_last);
@@ -382,12 +393,12 @@ void
 SequenceRecorder::GoToNextKeypoint()
 {
     float t = timer.GetTime();
-    int n = sequence_data["sequences"][0]["keypoints"].size();
-    float end_time = sequence_data["sequences"][0]["end_time"];
+    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
+    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
     float kpt = 0;
     for(int i=0; i<n; i++)
     {
-        kpt = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        kpt = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(kpt > t)
         {
             timer.SetTime(kpt);
@@ -403,8 +414,8 @@ SequenceRecorder::GoToNextKeypoint()
 void
 SequenceRecorder::ExtendTime() // add one second to the end of the sequence
 {
-    float end_time = sequence_data["sequences"][0]["end_time"];
-    sequence_data["sequences"][0]["end_time"] = 1000.0f+1000*int(0.001*end_time);
+    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
+    sequence_data["sequences"][current_sequence]["end_time"] = 1000.0f+1000*int(0.001*end_time);
 }
 
 
@@ -412,9 +423,9 @@ SequenceRecorder::ExtendTime() // add one second to the end of the sequence
 void
 SequenceRecorder::ReduceTime()
 {
-    float end_time = sequence_data["sequences"][0]["end_time"];
+    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
     end_time = -1000.0f+1000*int(0.001*end_time+0.99999);
-     sequence_data["sequences"][0]["end_time"] = end_time > 0 ? end_time: 0;
+     sequence_data["sequences"][current_sequence]["end_time"] = end_time > 0 ? end_time: 0;
 }
 
 
@@ -458,17 +469,17 @@ SequenceRecorder::AddKeypoint()
     }
     // Find closest keypoint
 
-    int n = sequence_data["sequences"][0]["keypoints"].size();
+    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
     json kp;
     int kpi = 0;
     float min_dist = 9999999;
     for(int i=0; i<n; i++)
     {
-        float t = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        float t = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(abs(t-time) < min_dist)
         {
             min_dist = abs(t-time);
-            kp = sequence_data["sequences"][0]["keypoints"][i];
+            kp = sequence_data["sequences"][current_sequence]["keypoints"][i];
             kpi = i;
         }
     }
@@ -479,7 +490,7 @@ SequenceRecorder::AddKeypoint()
         json keypoint;
         keypoint["time"] = int(time);
         keypoint["point"] = points;
-        sequence_data["sequences"][0]["keypoints"].push_back(keypoint);
+        sequence_data["sequences"][current_sequence]["keypoints"].push_back(keypoint);
     //        printf("%s\n", sequence_data.dump().c_str());
         return;
     }
@@ -493,7 +504,7 @@ SequenceRecorder::AddKeypoint()
 //            printf("%s\n", points[c].dump().c_str());
             if(!points[c].is_null())
                     //kp["points"][c] = points[c]; // replace value in closest keypoint
-                    sequence_data["sequences"][0]["keypoints"][kpi]["point"][c] = points[c];
+                    sequence_data["sequences"][current_sequence]["keypoints"][kpi]["point"][c] = points[c];
         }
 //        printf("%s\n", sequence_data.dump().c_str());
         return;
@@ -509,11 +520,11 @@ SequenceRecorder::AddKeypoint()
 
     for(int i=0; i<n; i++)
     {
-        float t = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        float t = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(time < t) // insert before this
         {
             //INSERT BEFORE THIS
-            sequence_data["sequences"][0]["keypoints"].insert(sequence_data["sequences"][0]["keypoints"].begin() + i, keypoint);
+            sequence_data["sequences"][current_sequence]["keypoints"].insert(sequence_data["sequences"][current_sequence]["keypoints"].begin() + i, keypoint);
     //        printf("INSERT: %s\n", sequence_data.dump().c_str());
             return;
         }
@@ -523,7 +534,7 @@ SequenceRecorder::AddKeypoint()
     json keypoint_l;
     keypoint_l["time"] = int(time);
     keypoint_l["point"] = points;
-    sequence_data["sequences"][0]["keypoints"].push_back(keypoint_l);
+    sequence_data["sequences"][current_sequence]["keypoints"].push_back(keypoint_l);
 //    printf("%s\n", sequence_data.dump().c_str());
 }
 
@@ -542,7 +553,7 @@ SequenceRecorder::PushKeypoint() // Add keypoint at the end - only works during 
     keypoint["time"] = time;
     keypoint["point"] = points;
 
-    sequence_data["sequences"][0]["keypoints"].push_back(keypoint);
+    sequence_data["sequences"][current_sequence]["keypoints"].push_back(keypoint);
 }
 
 
@@ -550,7 +561,7 @@ SequenceRecorder::PushKeypoint() // Add keypoint at the end - only works during 
 void
 SequenceRecorder::ClearSequence()
 {
-    sequence_data["sequences"][0]["keypoints"] = json::array();
+    sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
 }
 
 
@@ -558,12 +569,12 @@ SequenceRecorder::ClearSequence()
 void
 SequenceRecorder::DeleteKeypoints()
 {
-    float start_mark_time = float(sequence_data["sequences"][0]["start_mark_time"]);
-    float end_mark_time = float(sequence_data["sequences"][0]["end_mark_time"]);
-    int n = sequence_data["sequences"][0]["keypoints"].size();
+    float start_mark_time = float(sequence_data["sequences"][current_sequence]["start_mark_time"]);
+    float end_mark_time = float(sequence_data["sequences"][current_sequence]["end_mark_time"]);
+    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
     for(int i=0; i<n; i++)
     {
-        float t = sequence_data["sequences"][0]["keypoints"][i]["time"];
+        float t = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(start_mark_time <= t && t<=end_mark_time)
         {
             int number_of_deleted_points = 0;
@@ -571,7 +582,7 @@ SequenceRecorder::DeleteKeypoints()
             {
                 if(channel_mode[c][2] == 1)
                 {
-                    sequence_data["sequences"][0]["keypoints"][i]["point"][c] = nullptr;
+                    sequence_data["sequences"][current_sequence]["keypoints"][i]["point"][c] = nullptr;
                     number_of_deleted_points++;
                 }
             }
@@ -637,7 +648,7 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 
     else if(name=="SEQUENCE")
     {
-        std::string sq = sequence_data["sequences"][0].dump();
+        std::string sq = sequence_data["sequences"][current_sequence].dump();
     //    printf(">>> %s\n", sq.c_str());
         return sq;
     }
@@ -684,7 +695,7 @@ SequenceRecorder::Tick()
         if(position != last_position) 
         {
                 Pause();
-                float end_time = sequence_data["sequences"][0]["end_time"];
+                float end_time = sequence_data["sequences"][current_sequence]["end_time"];
                 timer.SetTime(position*end_time);
                 last_position = position;
         }
@@ -692,7 +703,7 @@ SequenceRecorder::Tick()
         // Set position
 
  
-        float end_time = sequence_data["sequences"][0]["end_time"];
+        float end_time = sequence_data["sequences"][current_sequence]["end_time"];
         position = end_time? t/end_time : 0;
         last_position = position;
         
@@ -701,20 +712,20 @@ SequenceRecorder::Tick()
 
         if(state[1]) // handle play mode
         {
-            if(state[8] && t >= float(sequence_data["sequences"][0]["end_mark_time"])) // loop
+            if(state[8] && t >= float(sequence_data["sequences"][current_sequence]["end_mark_time"])) // loop
             {
-                timer.SetTime(float(sequence_data["sequences"][0]["start_mark_time"]));
+                timer.SetTime(float(sequence_data["sequences"][current_sequence]["start_mark_time"]));
             }
             else if(position >= 1 || end_time == 0)
             {   
-                timer.SetTime(sequence_data["sequences"][0]["end_time"]);
+                timer.SetTime(sequence_data["sequences"][current_sequence]["end_time"]);
                 Pause();
         }   }
 
         else if(state[2]) // handle record mode
         {
             if(position >= 1 || end_time == 0) // extend recoding if at end
-                sequence_data["sequences"][0]["end_time"] = t;
+                sequence_data["sequences"][current_sequence]["end_time"] = t;
 
         }
 
@@ -735,17 +746,17 @@ SequenceRecorder::Tick()
 
 // Set position again
 
-    end_time = sequence_data["sequences"][0]["end_time"];
+    end_time = sequence_data["sequences"][current_sequence]["end_time"];
     position = end_time? t/end_time : 0;
     last_position = position;
 
     time_string = make_timestamp(timer.GetTime());
-    end_time_string  = make_timestamp(sequence_data["sequences"][0]["end_time"]);
+    end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence]["end_time"]);
 
-    if(float(end_time = sequence_data["sequences"][0]["end_time"]) != 0)
+    if(float(end_time = sequence_data["sequences"][current_sequence]["end_time"]) != 0)
     {
-        mark_start = float(sequence_data["sequences"][0]["start_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);
-        mark_end = float(sequence_data["sequences"][0]["end_mark_time"])/float(end_time = sequence_data["sequences"][0]["end_time"]);}
+        mark_start = float(sequence_data["sequences"][current_sequence]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence]["end_time"]);
+        mark_end = float(sequence_data["sequences"][current_sequence]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence]["end_time"]);}
 
 }
 

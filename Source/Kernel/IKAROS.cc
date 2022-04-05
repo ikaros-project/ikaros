@@ -3857,15 +3857,19 @@ std::string root = head(data, "#");
         {
             // Use data from module function if available
             auto module_source = rsplit(source, ".", 1);
-            auto m = main_group->GetModule(module_source.at(0).c_str());
-            auto json_data = m ? m->GetJSONData(module_source.at(1)) : ""; // FIXME: Use this function for all data
-
-            if(!json_data.empty())
+            if(GroupElement * g = root_group->GetGroup(module_source.at(0)))
             {
-                socket->Send(sep);
-                std::string s = "\t\t\"" + source + "\": "+json_data;
-                socket->Send(s);
-                sep = ",\n";
+                std::string json_data;
+                if(g->module)
+                    json_data = g->module->GetJSONData(module_source.at(1)); //  : ""
+
+                if(!json_data.empty())
+                {
+                    socket->Send(sep);
+                    std::string s = "\t\t\"" + source + "\": "+json_data;
+                    socket->Send(s);
+                    sep = ",\n";
+                }
             }
 
             if(format == "") // as default, send a matrix

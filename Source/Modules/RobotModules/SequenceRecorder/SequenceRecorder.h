@@ -92,6 +92,9 @@ float *         output;
 float *         active;
 float *         ready;
 
+int             current_sequence;
+std::string     sequence_names;
+
     // Data
 
     json        sequence_data;
