@@ -642,7 +642,7 @@ SequenceRecorder::DeleteKeypointsInRange(float t0, float t1)
             if(number_of_null_points == channels)
             {
                 // FIXME: Delete the complete keypoint (i) if possible during iterations
-                printf("Delete %f - %f, %f\n", t0, t1, t);
+                //printf("Delete %f - %f, %f\n", t0, t1, t);
             }
         }
     }
