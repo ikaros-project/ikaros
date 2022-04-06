@@ -155,6 +155,7 @@ SequenceRecorder::SetTargetForTime(float t)
 void
 SequenceRecorder::StartRecord()
 {
+    last_record_position = position;
 //    sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
 }
 
@@ -453,12 +454,12 @@ SequenceRecorder::LockChannel(int c)
 
 
 void
-SequenceRecorder::AddKeypoint()
+SequenceRecorder::AddKeypoint(float time)
 {
     if(!initial)
         return;
 
-    float time = timer.GetTime();
+    // float time = timer.GetTime();
 
     // Create the point data array
 
@@ -519,7 +520,7 @@ SequenceRecorder::AddKeypoint()
 
     // See if keypoints can be merged
 
-    if(min_dist < 0.5*float(GetTickLength())) // half the ticklength
+    if(min_dist < 0.0005*float(GetTickLength())) // half the ticklength
     {
         for(int c=0; c<channels; c++)
         {
@@ -602,7 +603,7 @@ SequenceRecorder::DeleteKeypoints()
             int number_of_deleted_points = 0;
             for(int c=0; c<channels; c++)
             {
-                if(channel_mode[c][2] == 1)
+                if(channel_mode[c][2] == 1) // record mode
                 {
                     sequence_data["sequences"][current_sequence]["keypoints"][i]["point"][c] = nullptr;
                     number_of_deleted_points++;
@@ -616,6 +617,36 @@ SequenceRecorder::DeleteKeypoints()
     }
 }
 
+
+
+void
+SequenceRecorder::DeleteKeypointsInRange(float t0, float t1)
+{
+    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
+    for(int i=0; i<n; i++)
+    {
+        float t = float(sequence_data["sequences"][current_sequence]["keypoints"][i]["time"]);
+        if(t0 < t && t<=t1)
+        {
+            int number_of_null_points = 0;
+            for(int c=0; c<channels; c++)
+            {
+                if(channel_mode[c][2] == 1) // record mode
+                {
+                    sequence_data["sequences"][current_sequence]["keypoints"][i]["point"][c] = nullptr;
+                }
+                if(sequence_data["sequences"][current_sequence]["keypoints"][i]["point"][c].is_null())
+                    number_of_null_points++;
+            }
+        
+            if(number_of_null_points == channels)
+            {
+                // FIXME: Delete the complete keypoint (i) if possible during iterations
+                printf("Delete %f - %f, %f\n", t0, t1, t);
+            }
+        }
+    }
+}
 
 
 void
@@ -646,7 +677,7 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
     else if (s == "reduce_time")
         ReduceTime();
     else if (s == "add_keypoint")
-        AddKeypoint();
+        AddKeypoint(timer.GetTime());
     else if(s == "set_initial")
         SetInitial();
     else if(s =="save")
@@ -769,7 +800,12 @@ SequenceRecorder::Tick()
         // AddPoints if in recording mode
 
         if(state[2] == 1) // record mode
-            AddKeypoint();
+        {
+            DeleteKeypointsInRange(last_record_position+0.001, t);
+            //printf(">>> %f - %f\n", last_record_position, t);
+            last_record_position = t;
+            AddKeypoint(t);
+        }
     }
 
 // Set position again
@@ -778,7 +814,7 @@ SequenceRecorder::Tick()
     position = end_time? t/end_time : 0;
     last_position = position;
 
-    time_string = make_timestamp(timer.GetTime());
+    time_string = make_timestamp(t); // timer.GetTime()
     end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence]["end_time"]);
 
     if(float(end_time = sequence_data["sequences"][current_sequence]["end_time"]) != 0)
