@@ -160,6 +160,7 @@ void
 SequenceRecorder::StartRecord()
 {
     last_record_position = position;
+    start_record = true;
 //    sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
 }
 
@@ -315,7 +316,7 @@ SequenceRecorder::Record()
 {
     StartRecord();
     set_one(state, 2, states); 
-    timer.Start();
+    //timer.Start();
 }
 
 
@@ -475,12 +476,12 @@ SequenceRecorder::AddKeypoint(float time)
             points.push_back(nullptr); // Do not record locked channel???
         }
 
-        else if(channel_mode[c][1] == 1) //play - use current target which contains interpolated value already //FIXME: CHECK THIS
+        else if(channel_mode[c][1] == 1) //play - use null to indicate nodata
         {
-            points.push_back(target[c]);
+            points.push_back(nullptr); // was target[c]
         }   
 
-        else if(channel_mode[c][2] == 1) //record - store current input - OR POSSIBLY SLIDERS - HOW?
+        else if(channel_mode[c][2] == 1) //record - store current input (or sliders)
         {
             points.push_back(input[c]);
         }   
@@ -524,7 +525,7 @@ SequenceRecorder::AddKeypoint(float time)
 
     // See if keypoints can be merged
 
-    if(min_dist < 0.0005*float(GetTickLength())) // half the ticklength
+    if(min_dist < 0.5*float(GetTickLength())) // half the ticklength
     {
         for(int c=0; c<channels; c++)
         {
@@ -534,6 +535,7 @@ SequenceRecorder::AddKeypoint(float time)
                     sequence_data["sequences"][current_sequence]["keypoints"][kpi]["point"][c] = points[c];
         }
 //        printf("%s\n", sequence_data.dump().c_str());
+        printf("Merge at %f (%f)\n", time, min_dist);
         return;
     }
 
@@ -735,6 +737,12 @@ SequenceRecorder::SetInitial() // Manual setting of initial position
 void
 SequenceRecorder::Tick()
 {
+    if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
+    {                // FIXME: May want to jump to closest keypoint if dense recording is used
+        timer.Start();
+        start_record = false;
+    }
+
     float t = timer.GetTime();
 
     // Set initial position if not set already - this is used as output when no data is available

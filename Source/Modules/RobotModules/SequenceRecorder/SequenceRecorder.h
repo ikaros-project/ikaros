@@ -95,6 +95,7 @@ float *         initial;
 float *         output;
 float *         active;
 float *         ready;
+bool            start_record;
 
 int             current_sequence;
 std::string     sequence_names;
