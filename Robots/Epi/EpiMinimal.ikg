@@ -1,9 +1,21 @@
 <?xml version="1.0"?>
 
-<group name="Epi" 
+<group name="Epi"
+ervosIndexHead = "0"
+servosIndexPupil = "4"
+servosIndexPupilLeft = "4"
+servosIndexPupilRight = "5"
+servosIndexLeftArm = "6"
+servosIndexRightArm = "12"
+servosIndexBody = "18"
+servosIndexEyesRGB = "19"
+servosIndexEyesIntensity = "22"
+servosIndexMouthRGB = "23"
+servosIndexMouthIntensity = "26"
+servosIndexSound = "27"
+nrServosTotal = "19"
 
 >
-
 
 	<!-- import frame and id for epi robots> -->
     <?include file="EpiFrames.ikg" ?>

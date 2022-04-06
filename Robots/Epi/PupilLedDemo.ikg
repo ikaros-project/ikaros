@@ -16,7 +16,7 @@ VisionInputRight = "InputJPEG"
 
 <group name="Pupil demo for HT-dagarna 2022">
 
-	<module class = "EpiTorsoMinimal" name = "Epi" 
+	<module class = "EpiMinimal" name = "Epi" 
 
 	VisionInputRight = "InputVideoStream"
 	VisionInputLeft = "InputJPEG"
