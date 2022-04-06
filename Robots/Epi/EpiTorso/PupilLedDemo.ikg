@@ -18,11 +18,11 @@ VisionInputRight = "InputJPEG"
 
 	<module class = "EpiTorsoMinimal" name = "Epi" 
 
-	VisionInputRight = "InputJPEG"
+	VisionInputRight = "InputVideoStream"
 	VisionInputLeft = "InputJPEG"
-	simulateRobot ="true"
+	simulateRobot ="false"
 
-		EpiName = "EpiRed" 
+	EpiName = "EpiRed" 
 	L1_T1_data = "
 	1 0 0 0;
 	0 1 0 0;
@@ -49,17 +49,18 @@ VisionInputRight = "InputJPEG"
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
-	" />
+	" 
+	/>
 
 
-	 <module class   = "InputVideo" name = "CAMERA"	 size_x  = "640" size_y  =  "480" />
+	 <_module class   = "InputVideo" name = "CAMERA"	 size_x  = "640" size_y  =  "480" />
 
 
 	<!-- Downsample image and send the brighest pixel values to the pupil model -->
 	<!-- -->
 	<module class = "Downsample" name = "D1" />
-		<_connection  source = "Epi.RightEye.INTENSITY"  target = "D1.INPUT" />
-		<connection  source = "CAMERA.INTENSITY"  target = "D1.INPUT" />
+		<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D1.INPUT" />
+		<_connection  source = "CAMERA.INTENSITY"  target = "D1.INPUT" />
 	<module class = "Downsample" name = "D2" />
 		<connection  source = "D1.OUTPUT"  target = "D2.INPUT" />
 	<module class = "Downsample" name = "D3" />
@@ -68,7 +69,8 @@ VisionInputRight = "InputJPEG"
 		<connection  source = "D3.OUTPUT"  target = "GaussianRight.INPUT" />
 
 	<module class = "Downsample" name = "D_R1" />
-		<connection  source = "CAMERA.INTENSITY"  target = "D_R1.INPUT" />
+		<connection  source = "Epi.LeftEye.LOW_RES_INTENSITY"  target = "D_R1.INPUT" />
+				<_connection  source = "CAMERA.INTENSITY"  target = "D_R1.INPUT" />
 	<module class = "Downsample" name = "D_R2" />
 		<connection  source = "D_R1.OUTPUT"  target = "D_R2.INPUT" />
 	<module class = "Downsample" name = "D_R3" />
@@ -163,8 +165,8 @@ VisionInputRight = "InputJPEG"
 			max_markers = "1"
 	/>
 
-		<_connection  source = "Epi.RightEye.INTENSITY"  		target = "MarkerTracker.INPUT" />
-		<connection  source = "CAMERA.INTENSITY"  				target = "MarkerTracker.INPUT" />
+		<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  		target = "MarkerTracker.INPUT" />
+		<_connection  source = "CAMERA.INTENSITY"  				target = "MarkerTracker.INPUT" />
 
 	<module class = "MTPupilDemo" name = "MTPupilDemo" />
         <connection  source = "MarkerTracker.OBJECT_ID"  		target = "MTPupilDemo.ID" delay="0"/>
@@ -202,7 +204,7 @@ VisionInputRight = "InputJPEG"
 	<marker  show_frame = "false" max_x = "40" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "0.025" scales = "no" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "0.025" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "gray" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "ArgMaxLeft.OUTPUT" title = "" max_y = "40" labelBaseline = "middle" lineWidth = "1" x = "60" flipYCanvas = "no" height = "221" labelPrefix = "" color = "" markerType = "circle" flipYAxis = "no" width = "321" y = "60" frame-style = "" order = "col"/>
 	<marker  show_frame = "false" max_x = "40" style = "" labelFont = "18px sans-serif" min_x = "0" scale_y = "0.025" scales = "no" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "0.025" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "gray" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "none" lineJoin = "miter" selectValue = "" source = "ArgMaxRight.OUTPUT" title = "" max_y = "40" labelBaseline = "middle" lineWidth = "1" x = "380" flipYCanvas = "no" height = "221" labelPrefix = "" color = "" markerType = "circle" flipYAxis = "no" width = "321" y = "60" frame-style = "" order = "col"/>
 	<plot  y = "40" width = "261" color = "" title = "Brigtest pixel value" x = "700" height = "241" show_frame = "false" source = "ArgMaxCombine.VALUE" select = "" direction = "vertical" min = "0" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
-	<image  w = "4" scales = "no" show_title = "true" command = "" x = "60" width = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" min_y = "0" opacity = "1" y = "300" frame-style = "" format = "gray" max_x = "1" scale = "both" source = "CAMERA.INTENSITY" flipXAxis = "no" title = "Left eye" max_y = "1" show_frame = "false" flipYCanvas = "no" height = "241" style = "" min_x = "0" module = "" file = "" index = ""/>
+	<image  w = "4" scales = "no" show_title = "true" command = "" x = "60" width = "321" flipYAxis = "no" h = "4" flipXCanvas = "no" min_y = "0" opacity = "1" y = "300" frame-style = "" format = "gray" max_x = "1" scale = "both" source = "Epi.RightEye.LOW_RES_INTENSITY" flipXAxis = "no" title = "Left eye" max_y = "1" show_frame = "false" flipYCanvas = "no" height = "241" style = "" min_x = "0" module = "" file = "" index = ""/>
 	<marker  y = "320" frame-style = "" height = "221" flipYCanvas = "no" labelPrefix = "" markerType = "circle" width = "321" flipYAxis = "no" lineWidth = "1" x = "60" title = "" labelBaseline = "middle" max_y = "1" color = "" source = "MarkerTracker.IMAGE_POSITION" order = "col" selectValue = "" lineJoin = "miter" labelType = "value" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "gray" labels = "" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "1" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" scale_y = "1" min_x = "0" labelFont = "18px sans-serif" style = "" max_x = "1" show_frame = "false"/>
 	<table  x = "280" height = "61" show_frame = "false" width = "81" label_x = "" direction = "normal" scrollable = "false" source = "MarkerTracker.OBJECT_ID" y = "340" label_y = "" decimals = "4" colorize = "true" title = "Marker ID" frame-style = "" show_title = "true" style = ""/>
 	<plot  x = "380" y = "300" height = "241" show_frame = "false" width = "321" source = "MTPupilDemo.OUTPUT" select = "" direction = "vertical" min = "-1" max = "1" title = "Emotional value of stimulus" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
