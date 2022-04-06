@@ -147,6 +147,8 @@ SequenceRecorder::SetTargetForTime(float t)
      {
          output[c] = input[c];
          active[c] = 0;
+         if(internal_control[c] == 1)
+            active[c] = 1;
      }
  }
 
