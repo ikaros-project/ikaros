@@ -228,8 +228,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
         }
 
         // eyes
-        this.drawEye(22.5, 72.5, gaze[0], pupil[0], iLRGB, iLI);
-        this.drawEye(85, 72.5, gaze[1], pupil[1], iRRGB, iRI);
+        this.drawEye(22.5, 72.5, gaze[1], pupil[1], iLRGB, iLI);
+        this.drawEye(85, 72.5, gaze[0], pupil[0], iRRGB, iRI);
 
     }
 
