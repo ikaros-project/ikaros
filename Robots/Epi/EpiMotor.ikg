@@ -51,7 +51,6 @@
         <connection source = "SCFeedbackPosition.OUTPUT" target = "PupilPosition.INPUT" sourceoffset = "4" size = "2"/>
     <output name = "PRESENT_PUPIL_POSITION"   source = "PupilPosition.OUTPUT"/>
 
-    <!-- We neede to take -->
       <module
 		class = "ServoConnector"
 		name = "SCFeedbackCurrent"
