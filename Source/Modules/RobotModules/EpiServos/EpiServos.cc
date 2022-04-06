@@ -857,11 +857,11 @@ bool EpiServos::SetDefaultSettingServo()
 
     // HEAD ID 3
     // Limit position max
-    param_default_4Byte = 2300;
+    param_default_4Byte = 2400;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 48, param_default_4Byte, &dxl_error))
         return false;
     // Limit position min
-    param_default_4Byte = 1500;
+    param_default_4Byte = 1100;
     if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 52, param_default_4Byte, &dxl_error))
         return false;
 
@@ -964,11 +964,11 @@ bool EpiServos::SetDefaultSettingServo()
     {
         // LEFT ARM ID 2
         // Limit position max
-        param_default_4Byte = 2300;
+        param_default_4Byte = 3200;
         if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 2, 48, param_default_4Byte, &dxl_error))
             return false;
         // Limit position min
-        param_default_4Byte = 0;
+        param_default_4Byte = 600;
         if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 2, 52, param_default_4Byte, &dxl_error))
             return false;
 
@@ -1024,11 +1024,11 @@ bool EpiServos::SetDefaultSettingServo()
 
         // RIGHT ARM ID 2
         // Limit position max
-        param_default_4Byte = 4095;
+        param_default_4Byte = 3200;
         if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 2, 48, param_default_4Byte, &dxl_error))
             return false;
         // Limit position min
-        param_default_4Byte = 1600;
+        param_default_4Byte = 600;
         if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 2, 52, param_default_4Byte, &dxl_error))
             return false;
         // RIGHT ARM ID 3
