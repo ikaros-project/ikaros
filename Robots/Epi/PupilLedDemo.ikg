@@ -69,7 +69,8 @@ VisionInputRight = "InputJPEG"
 		<connection  source = "D3.OUTPUT"  target = "GaussianRight.INPUT" />
 
 	<module class = "Downsample" name = "D_R1" />
-		<connection  source = "Epi.LeftEye.LOW_RES_INTENSITY"  target = "D_R1.INPUT" />
+		<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D_R1.INPUT" />
+		<_connection  source = "Epi.LeftEye.LOW_RES_INTENSITY"  target = "D_R1.INPUT" />
 				<_connection  source = "CAMERA.INTENSITY"  target = "D_R1.INPUT" />
 	<module class = "Downsample" name = "D_R2" />
 		<connection  source = "D_R1.OUTPUT"  target = "D_R2.INPUT" />
@@ -180,15 +181,22 @@ VisionInputRight = "InputJPEG"
 	/>
     <connection  source = "MTPupilDemo.ROBOT_OUTPUT"  target = "RightImgToRelAngle.INPUT" delay="0" />
 	
-	
-	
 	<!-- Override head joints -->
-	<connection  source = "RightImgToRelAngle.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+	<_connection  source = "RightImgToRelAngle.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+	<module class = "Average" name = "Average" type = "SMA" window_size = "10"/>
+	<connection  source = "RightImgToRelAngle.OUTPUT"  target = "Average.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+
+	<connection  source = "Average.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+
+
 	<!-- Override LEDs -->
 	<connection  source = "MTPupilDemo.ROBOT_EYE_LED_OUTPUT"  target = "Epi.LED.EYE_COLOR" sourceoffset = "0" targetoffset = "0" size = "3"/>
 	<connection  source = "MTPupilDemo.ROBOT_EYE_LED_OUTPUT"  target = "Epi.LED.EYE_INTENSITY" sourceoffset = "3" targetoffset = "0" size = "1"/>
 	<_connection  source = "SR.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "@servosIndexEyesIntensity" 	targetoffset = "0" size = "1"/>
 
+	<module name = "MouthRGBI" class ="Constant" data = "0 0 1 1" />
+	<connection  source = "MouthRGBI.OUTPUT"  target = "Epi.LED.MOUTH_COLOR" sourceoffset = "0" targetoffset = "0" size = "3"/>
+	<connection  source = "MouthRGBI.OUTPUT"  target = "Epi.LED.MOUTH_INTENSITY" sourceoffset = "3" targetoffset = "0" size = "1"/>
 
 <view name="Pupil Control" >
 	<rectangle  frame-style = "" style = "" title = "Pupil regulation" frame_width = "1" frame_color = "" background = "" label = "" show_title = "true" width = "601" show_frame = "false" height = "321" y = "560" x = "400"/>

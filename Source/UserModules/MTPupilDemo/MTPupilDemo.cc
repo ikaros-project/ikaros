@@ -69,28 +69,37 @@ MTPupilDemo::~MTPupilDemo()
 void MTPupilDemo::Tick()
 {
     int id = *id_array;
+    bool higherBlinkProb = false;
+
     reset_array(output_array,output_array_size);
     switch (id)
     {
     case MATH_EASY:
         *output_array = MATH_EASY_VALUE;
+        higherBlinkProb = true;
         break;
     case MATH_HARD:
         *output_array = MATH_HARD_VALUE;
+        higherBlinkProb = true;
         break;
     case EMOTION_NEG:
         *output_array = EMOTION_NEG_VALUE;
+        higherBlinkProb = true;
         break;
     case EMOTION_NEU:
         *output_array = EMOTION_NEU_VALUE;
+        higherBlinkProb = true;
         break;
     case EMOTION_POS:
         *output_array = EMOTION_POS_VALUE;
+        higherBlinkProb = true;
         break;
     case NOVELTY:
         *output_array = NOVELTY_VALUE;
+        higherBlinkProb = true;
         break;
     default:
+        higherBlinkProb = false;
         break;
     }
 
@@ -100,12 +109,17 @@ void MTPupilDemo::Tick()
        img_pos_array[1] = 0.5; 
     }
     // Simple tracking? Track marker for a while.
+    // Make this better.
+    // if (higherBlinkProb) // in simple tracking mode
+    // {
+    //     float delta
+    // }
     robot_output_array[ROBOT_TILT_INDEX] = img_pos_array[1];
     robot_output_array[ROBOT_PAN_INDEX] =  1-img_pos_array[0];
     robot_output_array[ROBOT_EYE_INDEX] =  1-img_pos_array[0];
-    robot_output_array[ROBOT_EYE_INDEX+1] =  1-img_pos_array[0];
+    robot_output_array[ROBOT_EYE_INDEX+1] = 1-img_pos_array[0];
 
-
+    
     // LED
     eye_led_output_array[0] = 0.3;
     eye_led_output_array[1] = 0.1;
@@ -119,20 +133,27 @@ void MTPupilDemo::Tick()
     }
 
     // Blinking
-    // Make someting smart here
+    // Blink in interval of 4-10 sec
     bool blink;
-    if (blinkTimer.GetTime() > 1000)
+    if (blinkTimer.GetTime() > TimeToNextBlink)
         blink = true;
-    if (blinkTimer.GetTime() > 1100)
+    if (blinkTimer.GetTime() > TimeToNextBlink + 200)
     {
         blink = false;
         blinkTimer.Restart();
+        TimeToNextBlink = random(4000.0,10000.0);
     }
     if (blink)
-        eye_led_output_array[3] = 0.001;
+        eye_led_output_array[3] = 0;
     else
         eye_led_output_array[3] = 1;
 
+    if (higherBlinkProb)
+        eye_led_output_array[3] = 0;
+    else
+        eye_led_output_array[3] = 1;
+
+    
 }
 
 // Install the module. This code is executed during start-up.

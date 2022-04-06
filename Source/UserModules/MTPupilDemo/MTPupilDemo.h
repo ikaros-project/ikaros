@@ -55,7 +55,7 @@ public:
     int         eye_led_output_array_size;
     
     Timer blinkTimer;
-
+    float TimeToNextBlink = 0;
 };
 
 #endif
