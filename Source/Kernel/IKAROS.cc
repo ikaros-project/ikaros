@@ -1374,6 +1374,25 @@ Module::DelayOutputs()
         i->DelayOutputs();
 }
 
+
+void
+Module::SetInputSize(const char * name, int size)
+{
+    for (Module_IO * i = input_list; i != NULL; i = i->next)
+        if(equal_strings(name, i->name.c_str()))
+        {
+            if(i->data == NULL)
+            {
+                Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) does not exist. Cannot set size.\n", name, GetName(), GetClassName());
+                return;
+            }
+            else
+                i->data[0] = create_array(size);
+        }
+}
+
+
+
 float *
 Module::GetInputArray(const char * name, bool required)
 {
@@ -3120,7 +3139,7 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
 
 /*
 static const char *
-file_exists(const char * path)
+check_file_exists(const char * path)
 {
 	if(path != NULL)
 	{
@@ -3162,12 +3181,12 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
     append_string(include_file, class_name, PATH_MAX);
     append_string(include_file, ".ikg", PATH_MAX);
     
-	const char * filename = file_exists(include_file);
+	const char * filename = check_file_exists(include_file);
     
     if (!filename && classes.find(class_name)==classes.end())
         Notify(msg_warning, "Group ikg for \"%s\" could not be found with path %s. HINT: Check if path is correct relative to including file.\n", class_name, include_file);
     else if(classes.count(class_name))
-        filename = (filename ? filename : file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
+        filename = (filename ? filename : check_file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
 
 	if(!filename)
 	{

@@ -58,10 +58,12 @@ public:
     void        GoToNextKeypoint();
     void        ExtendTime();
     void        ReduceTime();
-    void        AddKeypoint(); // add keypoint at current position
+    void        LockChannel(int c);
+    void        AddKeypoint(float time); // add keypoint at time t
     void        PushKeypoint(); // push keypoint at the end of sequence
     void        ClearSequence();    // clear currently selected sequence
     void        DeleteKeypoints(); // Delete all points within the selection time window for channels in record mode   
+    void        DeleteKeypointsInRange(float t0, float t1);
     void        SetInitial();
     void        LoadJSON(std::string filename);
     void        StoreJSON(std::string filename);
@@ -71,7 +73,7 @@ public:
     std::string GetJSONData(const std::string & name, const std::string & tab);
 
     void        SetTargetForTime(float t);
-    void        SetOutputForChannel(int c);
+    void        SetOutputForChannel(int c); 
 void            StartRecord();
 
 
@@ -86,7 +88,9 @@ float           smoothing_time;
 float *         smoothing_start;
 float *         target;
 float *         input;
-float *         default_output; // value for initial from okc file if set
+float *         default_output; // value for initial from ikg3 file if set
+float *         internal_control;
+
 float *         initial;
 float *         output;
 float *         active;
@@ -94,9 +98,6 @@ float *         ready;
 
 int             current_sequence;
 std::string     sequence_names;
-
-    // Data
-
     json        sequence_data;
 
     // Control  variables
@@ -108,6 +109,7 @@ std::string     sequence_names;
 
     Timer       timer;
     float       position;
+    float       last_record_position;
     float       last_position; // to see if the value has been changed by WebUI
     float       mark_start;
     float       mark_end;
