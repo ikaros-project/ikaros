@@ -1,6 +1,20 @@
 <?xml version="1.0"?>
 
-<group name="Epi" 
+<!-- This is the starting point of the experiment -->
+
+<!--
+Vision input mode:
+The vision input can also be simulated by instead of the camera stream read a local image from file (NoCamera.jpg).
+From video stream:
+VisionInputLeft = "InputVideoStream"
+VisionInputRight = "InputVideoStream"
+
+From local image:
+VisionInputLeft = "InputJPEG"
+VisionInputRight = "InputJPEG"
+-->
+
+<group name="Experimental setup"
 
 servosIndexHead = "0"
 servosIndexPupil = "4"
@@ -9,236 +23,93 @@ servosIndexPupilRight = "5"
 servosIndexLeftArm = "6"
 servosIndexRightArm = "12"
 servosIndexBody = "18"
-servosIndexEyesRGB = "21"
+servosIndexEyesRGB = "19"
 servosIndexEyesIntensity = "22"
-servosIndexMouthRGB = "25"
+servosIndexMouthRGB = "23"
 servosIndexMouthIntensity = "26"
 servosIndexSound = "27"
-
-
-
 nrServosTotal = "19"
+
 >
 
+	<module class = "EpiTorsoMinimal" name = "Epi" 
 
-	<!-- import frame and id for epi robots> -->
-    <?include file="EpiFrames.ikg" ?>
-
-
-    <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
-´   <module class = "Constant" name = "ManualPosition" data = "0.0 0.0 0.0"/>
-´   <module class = "Constant" name = "ManualRotation" data = "0 0 0"/>
-	<module class = "RotationConverter" name = "PositioExo" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix" />
-	        <connection source = "ManualPosition.OUTPUT"    target = "PositioExo.INPUT"    delay = "0"/>
-	<module class = "RotationConverter" name = "RotationExo" angle_unit = "degrees" input_format  = "axayaz" output_format  = "matrix" />
-	        <connection source = "ManualRotation.OUTPUT"    target = "RotationExo.INPUT"    delay = "0"/>
-
-´   <_module class = "Constant" name = "PositioExo" _data = "
-        1 0 0 0.85
-        0 1 0 0.15
-        0 0 1 0.847
-        0 0 0 1;" 
-		data = "
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1;"
-		/>
-
-    <_module class = "Constant" name = "RotationExo" _data = "
-        0 -1 0 0
-        1 0 0 0
-        0 0 1 0
-        0 0 0 1;"
-		data = "
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1;"
-		 />
-
-    <!-- Multiply position and rotation-->
-   <module class="Transform"   name="EpiPositionExo" />
-        <connection source = "PositioExo.OUTPUT"    target = "EpiPositionExo.MATRIX_1"    delay = "0"/>
-        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_1" delay = "0"/>
-        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_1"  delay = "0"/>
-        <connection source = "RotationExo.OUTPUT"   target = "EpiPositionExo.MATRIX_2"    delay = "0"/>
-        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_2" delay = "0"/>
-        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_2"  delay = "0"/>
-
-	<connection source = "EpiPositionExo.MATRIX"    target = "ForwardModel.EPI_POSITION"  delay = "0"/>
-
-
-	<!-- 			Forward model 	    	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-
-	<module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
-		<_connection source = "Servos.PRESENT_POSITION" 	sourceoffset = "0" targetoffset = "1" size = "4" target = "ForwardModel.JOINT_ANGLES" /> <!-- Head only -->
-		<connection source = "Servos.PRESENT_POSITION" target = "ForwardModel.JOINT_ANGLES" />
-
-	<!-- 			Motion recorder 		-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
+	VisionInputLeft = "InputJPEG"
+	VisionInputRight = "InputVideoStream"
+	simulateRobot ="false"
 	
-	<!-- This module controls the robot. The motion recoder can record movments of the head, eyes, pupils size and colors of the eyes and mouth. -->
-	<!-- In the future this model will named something else as it does not only record motion but any data. -->
-	<!--
-	<module
-	class = "MotionRecorder"
-	name = "MotionRecorder"
-	filename = "Actions/motion.%d.mot"
-	json_filename = "Actions/motion.%d.json"
-	smoothing_time = "40" 
-	max_motions = "20" 
-	torque_on_record = "0 0 1 1 0 0     1 1 0 0 0 0    0 0 0 0 0 0    0" 
-	position_data_max = "10000"
-	/> -->
 
-	<!-- Connection all the channels that should be recorded by the motionrecorder. Not only motion but also LEDs etc. -->
-	<!-- Feedback from neck and eyes (not pupil)-->
-	<!--<connection  source = "Servos.PRESENT_POSITION"  target = "MotionRecorder.INPUT"/>	-->
+	EpiName = "EpiRed" 
+	L1_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	L2_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 
+
+	
+	_EpiName = "EpiBlue" 
+	_L1_T1_data = "
+	1 0 0 0.200;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	_L2_T1_data = "
+	1 0 0 0.55824;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 	
+
+
+
+	/>
+
+
+
 
 	<!-- Channel 0-19 Joint of Epi, 20-22 RGB Left eye, 23 Left eye itensity, 24-25 RGB Right eye, 26 Right eye itensity, 27 sound-->
 	<module
 			class = "SequenceRecorder"
 			name = "SR"
 			channels = "28"
-		 	_x="20" _y="100"
-
-            filename = "test_sequence.json"
-   
+            filename       = "motion_sequence.json"
             smoothing_time = "0"
-            max_motions="20"
-            _auto_save="yes"
-            _record_on_trig = "true"
-            output_size = "4"
+			default_output   	= "0 0 0 0 0 0  0 0 0 0 0 0   0 0 0 0 0 0  0  0 0 0 0   0 0 0 0   0"
+			internal_control 	= "0 0 0 0 1 1  0 0 0 0 0 1   0 0 0 0 0 1  0  1 1 1 1   1 1 1 1   1"
+			state 				= "0 2 1 1 1 1  1 1 1 1 1 1   1 1 1 1 1 1  1  1 1 1 1   1 1 1 1   1"
+
+
 		/>
-	<connection  source = "Servos.PRESENT_POSITION" sourceoffset = "0" targetoffset = "0" 							size = "@nrServosTotal" target = "SR.INPUT"/>	
-	<connection  source = "EyesColorRGB.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexEyesRGB" 		size = "3" target = "SR.INPUT"/>	
-	<connection  source = "EyesIntensity.OUTPUT" 	sourceoffset = "0" targetoffset = "@servosIndexEyesIntensity" 	size = "1" target = "SR.INPUT"/>	
-	<connection  source = "MouthColorRGB.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexMouthRGB" 		size = "3" target = "SR.INPUT"/>	
-	<connection  source = "MouthIntensity.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexMouthIntensity" 	size = "1" target = "SR.INPUT"/>	
-	<connection  source = "SoundTrigger.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexSound" 			size = "1" target = "SR.INPUT"/>	
+
+	<!-- Something is strange here! Adding lines after EPI.Servos mixes up the channels...-->
+	<connection  source = "Epi.Servos.PRESENT_POSITION" sourceoffset = "0" targetoffset = "0" 							size = "@nrServosTotal" target = "SR.INPUT"/>	
+	<_connection  source = "Epi.EyesColorRGB.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexEyesRGB" 		size = "3" target = "SR.INPUT"/>	
+	<_connection  source = "Epi.EyesIntensity.OUTPUT" 	sourceoffset = "0" targetoffset = "@servosIndexEyesIntensity" 	size = "1" target = "SR.INPUT"/>	
+	<_connection  source = "Epi.MouthColorRGB.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexMouthRGB" 		size = "3" target = "SR.INPUT"/>	
+	<_connection  source = "Epi.MouthIntensity.OUTPUT" 	sourceoffset = "0" targetoffset = "@servosIndexMouthIntensity" 	size = "1" target = "SR.INPUT"/>	
+	<_connection  source = "Epi.SoundTrigger.OUTPUT"  	sourceoffset = "0" targetoffset = "@servosIndexSound" 			size = "1" target = "SR.INPUT"/>	
 
 	<!-- sound is not correct. -->
 
+	
 	<input name="INPUT" description="The current input positions to record" />
-		<connection  source = "SR.ACTIVE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "19"/>
-		<connection  source = "SR.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "19"/>
+		<connection  source = "SR.ACTIVE"  target = "Epi.Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "19"/>
+		<connection  source = "SR.OUTPUT"  target = "Epi.Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "19"/>
 	
-
-	<!-- Direct eye directions with vergence effect -->
-	<!--
-	<module class = "Constant" name = "EyesDirection"	data = "0" />
-	<module class = "Constant" name = "EyesVergence"	data = "2" />
-	<module class = "Constant" name = "EyesVergenceMultiply"	data = "-1" />
-	<module class = "Multiply" name = "MultiplyVergence"/>
-		<connection  source = "EyesVergence.OUTPUT"  target = "MultiplyVergence.INPUT1"/>	
-		<connection  source = "EyesVergenceMultiply.OUTPUT"  target = "MultiplyVergence.INPUT2"/>	
-	<module class = "Add" name = "EyesDirectionVergence"/>
-		<connection  source = "EyesDirection.OUTPUT"	target = "EyesDirectionVergence.INPUT1"  sourceoffset = "0" targetoffset = "0" size = "1"/>	
-		<connection  source = "EyesDirection.OUTPUT"  	target = "EyesDirectionVergence.INPUT1"  sourceoffset = "0" targetoffset = "1" size = "1"/>	
-		<connection  source = "EyesVergence.OUTPUT"  	target = "EyesDirectionVergence.INPUT2"  sourceoffset = "0" targetoffset = "0" size = "1"/>	
-		<connection  source = "MultiplyVergence.OUTPUT" target = "EyesDirectionVergence.INPUT2"  sourceoffset = "0" targetoffset = "1" size = "1"/>	
-
-	<connection  source = "EyesDirectionVergence.OUTPUT"  target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "2" size = "2"/>	
--->
-	<!-- Size of pupil in mm -->
-	<!--
-	<module class = "Constant" name = "PupilInMM"	data = "10" />
-		<connection  source = "PupilInMM.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "4" size = "1"/>	
-		<connection  source = "PupilInMM.OUTPUT"  	target = "MotionRecorder.INPUT"  sourceoffset = "0" targetoffset = "5" size = "1"/>	
--->
-
-	<!-- Outputs from the motion recoder -->
-	<!-- Send Torque enable (on/off) and goal position (Pupil size in mm, the rest of the servos in degrees) of the servos.-->
-	<!--<connection  source = "MotionRecorder.ENABLE"  target = "Servos.TORQUE_ENABLE" sourceoffset = "0" targetoffset = "0" size = "19"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "Servos.GOAL_POSITION" sourceoffset = "0" targetoffset = "0" size = "19"/>
-	-->
 	<!-- Sending Eye color, mounth color and instensity. -->
-	<!--
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "6" targetoffset = "0" size = "3"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_COLOR" 		sourceoffset = "12" targetoffset = "0" size = "3"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "15" targetoffset = "0" size = "1"/>
-	<connection  source = "MotionRecorder.OUTPUT"  target = "LED.MOUTH_INTENSITY" 	sourceoffset = "17" targetoffset = "0" size = "1"/>
--->
+	<connection  source = "SR.OUTPUT"  target = "Epi.LED.EYE_COLOR" 		sourceoffset = "@servosIndexEyesRGB" 			targetoffset = "0" size = "3"/>
+	<connection  source = "SR.OUTPUT"  target = "Epi.LED.MOUTH_COLOR" 		sourceoffset = "@servosIndexMouthRGB" 			targetoffset = "0" size = "3"/>
+	<connection  source = "SR.OUTPUT"  target = "Epi.LED.EYE_INTENSITY" 	sourceoffset = "@servosIndexEyesIntensity" 		targetoffset = "0" size = "1"/>
+	<connection  source = "SR.OUTPUT"  target = "Epi.LED.MOUTH_INTENSITY" 	sourceoffset = "@servosIndexMouthIntensity" 	targetoffset = "0" size = "1"/>
 
-	<!-- Sending Eye color, mounth color and instensity. -->
-	
-	<connection  source = "SR.OUTPUT"  target = "LED.EYE_COLOR" 		sourceoffset = "@servosIndexEyesRGB" 		targetoffset = "0" size = "3"/>
-	<connection  source = "SR.OUTPUT"  target = "LED.MOUTH_COLOR" 		sourceoffset = "@servosIndexMouthRGB" 			targetoffset = "0" size = "3"/>
-	<connection  source = "SR.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "@servosIndexEyesIntensity" 	targetoffset = "0" size = "1"/>
-	<connection  source = "SR.OUTPUT"  target = "LED.MOUTH_INTENSITY" 	sourceoffset = "@servosIndexMouthIntensity" 	targetoffset = "0" size = "1"/>
-
-
-	<!-- 			Motor control 			-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- Servo paramters format -->
-	<!-- The data sent to servos is stored in an array -->
-	<!-- [NeckTilt, NeckPan, LeftEye, RightEye, LeftPupil, RightPupil] -->
-	<!-- In this minimal epiTorso version only Goal position, torque limit and torque enable can be sent to servos -->
-	<!-- but more parameters can be controlled on the servoes. -->
-	<!-- The servo used is Dynamixel XL-320 for the pupil dilation, RX28F for Eyes and MX106 for neck -->
-
-	<!-- 			Sensors		 			-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- The camera in the eyes are sending a network stream of h.264 that can be decoded using the ffmpeg library. 
-	By setting the VisionInputLeft/Right variable a local image can be used instead of the viseo stream. -->
-	<module class = "EpiVision" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg" 	VisionInput = "@VisionInputLeft"/>
-	<module class = "EpiVision" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg" 	VisionInput = "@VisionInputRight"/>
-
-	<!-- Actuators/Proprioception -->
-	<module class = "EpiMotor" 	name = "Servos" />
-
-	<!-- 			Sound		 			-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- The robot can "speak" by playing mp3 files. -->
-	<!-- You can have multiple sounds that can be triggered seperatly. -->
-
-	<module
-	    class = "SoundOutput"
-		name = "SoundOutput"
-		sounds  = "Sounds/ok2.mp3"
-        command = "afplay" 
-	/>	
-		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
-	<module class = "Constant" name = "SoundTrigger" data = "0" />
-
-	<!-- 			LED			 			-->
-	<!--	 ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- ********************************* 	-->
-	<!-- The color and intensity of both the eyes and mounth can be controlled. -->
-	<!-- Theese modules are connected to the motion recorder. -->
-
-	<!-- Eye Color RGB-->
-	<module class = "Constant" name = "EyesColorRGB" data = "0.8 0.7 0.1" />
-
-	<!-- Mouth Color RGB -->
-	<module class = "Constant" name = "MouthColorRGB" data = "0.8 0.7 0.1" />
-
-	<!-- Intensity -->
-	<module class = "Constant" name = "EyesIntensity" data = "0.6" />
-	<module class = "Constant" name = "MouthIntensity" data = "0.6" />
-	
-	<!-- This line imports a seperate ikc file with all the LED connections. -->
-	<module class = "EpiLed" name = "LED" />
-
-
-
-	<!-- Speeking -->
-	<module class =	"FunctionGenerator" name =	"Speek" type =	"sin" frequency =	"10"
-		offset      =	"0.5" amplitude =	"0" shift =	"0.1" />
-	<connection source = "Speek.OUTPUT"  target = "LED.SPEEKING" />
 <view name="Main view" >
 	<rectangle  style = "background-color:#eee;" show_title = "false" frame-style = "" width = "361" title = "Default Title" frame_width = "1" frame_color = "" background = "" label = "" x = "1460" show_frame = "false" height = "501" y = "20"/>
 	<rectangle  style = "background-color:#eee;" show_title = "false" frame-style = "" width = "541" title = "Default Title" frame_width = "1" frame_color = "" background = "" label = "" x = "920" show_frame = "false" height = "921" y = "20"/>
@@ -258,16 +129,16 @@ nrServosTotal = "19"
 	<button  commandUp = "" xindex = "0" x = "240" value = "1" style = "" enableSource = "" command = "SR.set_start_mark" show_title = "false" icon = "" type = "push" y = "820" frame-style = "" yindex = "0" valueUp = "0" parameter = "" label = "[" height = "41" show_frame = "false" background = "" radioGroup = "" title = "Title" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "0" x = "280" value = "1" style = "" enableSource = "" command = "SR.set_end_mark" show_title = "false" icon = "" type = "push" y = "820" frame-style = "" yindex = "0" valueUp = "0" parameter = "" label = "]" height = "41" show_frame = "false" background = "" radioGroup = "" title = "Title" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "0" x = "320" value = "1" style = "" enableSource = "" command = "SR.crop" show_title = "false" icon = "" type = "push" frame-style = "" y = "820" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "crop" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
-	<key-points  target = "SR.TARGET" style = "" show_title = "false" label = "" height = "261" show_frame = "true" playhead = "SR.playhead" input = "Servos.PRESENT_POSITION" y = "480" frame-style = "" sequence = "SR.SEQUENCE" max = "1" fraction = "SR.position" frame_width = "1" color = "" title = "Default Title" min = "0" active = "" module = "" mark_end = "SR.mark_end" width = "881" mark_start = "SR.mark_start" background = "" output = "SR.OUTPUT" position = "SR.position" frame_color = "" ranges = "SR.RANGES" x = "20"/>
+	<key-points  target = "SR.TARGET" style = "" show_title = "false" label = "" height = "261" show_frame = "true" playhead = "SR.playhead" input = "Servos.PRESENT_POSITION" y = "480" frame-style = "" sequence = "SR.SEQUENCE" max = "1" fraction = "SR.position" frame_width = "1" color = "" title = "Default Title" min = "0" active = "" module = "" mark_end = "SR.mark_end" width = "881" mark_start = "SR.mark_start" background = "" position = "SR.position" output = "SR.OUTPUT" frame_color = "" ranges = "SR.RANGES" x = "20"/>
 	<button  commandUp = "" xindex = "0" x = "420" value = "1" style = "" enableSource = "" command = "SR.add_keypoint" show_title = "false" icon = "" type = "push" frame-style = "" y = "820" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "▲" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
 	<button  commandUp = "" xindex = "0" x = "460" value = "1" style = "" enableSource = "" command = "SR.delete_keypoint" show_title = "false" icon = "" type = "push" frame-style = "" y = "820" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "✕" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
 	<text  x = "780" title = "Default Title" width = "101" show_title = "false" parameter = "SR.end_time" show_frame = "false" strings = "" height = "21" text = "" separator = "" frame-style = "" select_source = "" style = "font-size:12px;text-align:right;line-height:20px;" y = "740" postfix = "" prefix = ""/>
 	<button  commandUp = "" xindex = "0" x = "880" value = "1" style = "" enableSource = "" command = "SR.extend_time" show_title = "false" icon = "" type = "push" frame-style = "" y = "740" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "▶︎" height = "21" show_frame = "false" width = "21" color = "" title = "Title" radioGroup = "" background = ""/>
 	<button  commandUp = "" xindex = "0" x = "760" value = "1" style = "" enableSource = "" command = "SR.reduce_time" show_title = "false" icon = "" type = "push" frame-style = "" y = "740" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "◀︎" height = "21" show_frame = "false" width = "21" color = "" title = "Title" radioGroup = "" background = ""/>
-	<slider-horizontal  frame-style = "" show_title = "false" max = "360" show_values = "true" step = "0.01" min = "0" style = "" labels = "Neck pan" select = "0" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "100"/>
-	<slider-horizontal  frame-style = "" show_title = "false" max = "360" show_values = "true" step = "0.01" min = "0" style = "" labels = "Neck tilt" select = "1" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "60"/>
-	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Left eye" select = "2" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "140"/>
-	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Right eye" select = "3" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "180"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "55" show_values = "true" step = "1" min = "-55" style = "" labels = "Neck pan" select = "1" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "100"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "50" show_values = "true" step = "1" min = "-50" style = "" labels = "Neck tilt" select = "0" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "60"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "25" show_values = "true" step = "1" min = "-25" style = "" labels = "Left eye" select = "2" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "140"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "25" show_values = "true" step = "1" min = "-25" style = "" labels = "Right eye" select = "3" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "180"/>
 	<button  commandUp = "" xindex = "1" x = "1320" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "60" frame-style = "" yindex = "0" valueUp = "0" parameter = "SR.channel_mode" label = "►" height = "41" show_frame = "false" background = "" radioGroup = "channel_1_mode" title = "Play Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "0" x = "1280" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "60" frame-style = "" yindex = "0" valueUp = "0" parameter = "SR.channel_mode" label = "🔒" height = "41" show_frame = "false" background = "" radioGroup = "channel_1_mode" title = "Hold Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "60" frame-style = "" yindex = "0" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_1_mode" title = "Copy Mode" color = "" width = "41"/>
@@ -284,8 +155,8 @@ nrServosTotal = "19"
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "100" frame-style = "" yindex = "1" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_2_mode" title = "Copy Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "140" frame-style = "" yindex = "2" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_3_mode" title = "Copy Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "180" frame-style = "" yindex = "3" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_4_mode" title = "Copy Mode" color = "" width = "41"/>
-	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Left pupil" select = "4" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "220"/>
-	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Right pupil" select = "5" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "260"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "20" show_values = "true" step = "1" min = "5" style = "" labels = "Left pupil (mm)" select = "4" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "220"/>
+	<slider-horizontal  frame-style = "" show_title = "false" max = "20" show_values = "true" step = "1" min = "5" style = "" labels = "Right pupil (mm)" select = "5" count = "1" parameter = "SR.positions" x = "920" show_frame = "false" height = "41" width = "361" title = "Sliders" y = "260"/>
 	<button  commandUp = "" xindex = "0" x = "1280" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "220" frame-style = "" yindex = "4" valueUp = "0" parameter = "SR.channel_mode" label = "🔒" height = "41" show_frame = "false" background = "" radioGroup = "channel_5_mode" title = "Hold Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "0" x = "1280" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "260" frame-style = "" yindex = "5" valueUp = "0" parameter = "SR.channel_mode" label = "🔒" height = "41" show_frame = "false" background = "" radioGroup = "channel_6_mode" title = "Hold Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "1" x = "1320" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "220" frame-style = "" yindex = "4" valueUp = "0" parameter = "SR.channel_mode" label = "►" height = "41" show_frame = "false" background = "" radioGroup = "channel_5_mode" title = "Play Mode" color = "" width = "41"/>
@@ -361,10 +232,8 @@ nrServosTotal = "19"
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "740" frame-style = "" yindex = "16" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_17_mode" title = "Copy Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "780" frame-style = "" yindex = "17" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_18_mode" title = "Copy Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1400" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "840" frame-style = "" yindex = "18" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_19_mode" title = "Copy Mode" color = "" width = "41"/>
-	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "false" show_axis = "true" width = "881" robot_data = "" show_ground_grid = "true" show_stats = "false" point_size = "0.1" show_frame = "false" point_color = "black" robot = "EpiBlack" show_models = "true" show_points = "false" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" x = "20" views = "Home" show_lines = "false" matrix = "ForwardModel.EXO_POINTS" 
-	models = "Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis" height = "461" 
-	_models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Axis" y = "0" style = "" frame-style = ""/>
-	<epi-head  mouthRGB = "LED.MOUTH_COLOR_F" title = "Epi Head" color = "black" vergence = "-0.05" irisLeftRGB = "LED.EYE_COLOR_F" pupilLeftSource = "Servos.PRESENT_PUPIL_POSITION" gaze = "-2.22" irisRightIntensity = "" pupilInMM = "11.46" gazeSource = "Servos.PRESENT_EYE_POSITION" mouthIntensity = "" x = "660" y = "40" frame-style = "" earColor = "#0088ff" mouthColor = "#000000" width = "221" visibleFaceParameter = "" irisRightRGB = "LED.EYE_COLOR_F" pupilRightSource = "Servos.PRESENT_PUPIL_POSITION" pupil = "0.5" motionRecorderInput = "" headPosition = "Servos.PRESENT_HEAD_POSITION" height = "221" visibleFace = "true" show_frame = "true" visibleSource = "" irisLeftIntensity = "" fill = "white" irisColor = "#88aaff" show_title = "false" style = ""/>
+	<canvas3d  camera_pos = "2,2,2.4" camera_target = "0,0,0" line_color = "blue" title = "Epi" show_title = "false" show_axis = "true" width = "881" robot_data = "" show_ground_grid = "true" point_size = "0.1" show_frame = "false" point_color = "black" models = "None,TorsoHead,None,None,Head1,Head2,Eye,Eye,None,LaserBeam,LaserBeam,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Axis" line = "0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" x = "20" frame-style = "" y = "0" show_stats = "false" views = "Home" style = "" show_lines = "false" _models = "Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis" height = "461" matrix = "Epi.ForwardModel.EXO_POINTS" robot = "EpiBlack" show_models = "true" show_points = "false"/>
+	<epi-head  mouthRGB = "Epi.LED.MOUTH_COLOR_F" title = "Epi Head" color = "black" vergence = "-0.05" irisLeftRGB = "Epi.LED.EYE_COLOR_F" pupilLeftSource = "Epi.Servos.PRESENT_PUPIL_POSITION" gaze = "-2.22" irisRightIntensity = "" pupilInMM = "11.46" gazeSource = "Epi.Servos.PRESENT_EYE_POSITION" mouthIntensity = "" x = "660" y = "40" frame-style = "" earColor = "#0088ff" mouthColor = "#000000" width = "221" visibleFaceParameter = "" irisRightRGB = "Epi.LED.EYE_COLOR_F" pupilRightSource = "Epi.Servos.PRESENT_PUPIL_POSITION" pupil = "0.5" motionRecorderInput = "" headPosition = "Epi.Servos.PRESENT_HEAD_POSITION" height = "221" visibleFace = "true" show_frame = "false" visibleSource = "" irisLeftIntensity = "" fill = "white" irisColor = "#88aaff" show_title = "false" style = ""/>
 	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Eyes (red)" select = "19" count = "1" parameter = "SR.positions" x = "1460" show_frame = "false" height = "41" width = "181" title = "Sliders" y = "80"/>
 	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Mouth (red)" select = "23" count = "1" parameter = "SR.positions" x = "1460" show_frame = "false" height = "41" width = "181" title = "Sliders" y = "260"/>
 	<slider-horizontal  frame-style = "" show_title = "false" max = "1" show_values = "true" step = "0.01" min = "0" style = "" labels = "Eyes intensity" select = "22" count = "1" parameter = "SR.positions" x = "1460" show_frame = "false" height = "41" width = "181" title = "Sliders" y = "200"/>
@@ -412,12 +281,14 @@ nrServosTotal = "19"
 	<button  commandUp = "" xindex = "3" x = "1760" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "340" frame-style = "" yindex = "25" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_26_mode" title = "Copy Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1760" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "380" frame-style = "" yindex = "26" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_27_mode" title = "Copy Mode" color = "" width = "41"/>
 	<button  commandUp = "" xindex = "3" x = "1760" value = "1" style = "" enableSource = "" command = "" show_title = "false" icon = "" type = "radio" y = "440" frame-style = "" yindex = "27" valueUp = "0" parameter = "SR.channel_mode" label = "=" height = "41" show_frame = "false" background = "" radioGroup = "channel_28_mode" title = "Copy Mode" color = "" width = "41"/>
-	<table  width = "141" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body, Eyes (red), Eyes (green), Eyes (blue), Eyes (intensity), Mouth (red), Mouth (green), Mouth (blue),  Mouth (intensity),  Sound" show_frame = "false" height = "61" x = "1480" direction = "flip x/y" scrollable = "false" source = "SR.OUTPUT" y = "860" label_y = "" decimals = "2" colorize = "true" title = "DEBUG OUTPUT" frame-style = "" show_title = "true" style = ""/>
+	<table  width = "201" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body, Eyes (red), Eyes (green), Eyes (blue), Eyes (intensity), Mouth (red), Mouth (green), Mouth (blue),  Mouth (intensity),  Sound" show_frame = "false" height = "41" x = "1480" direction = "flip x/y" scrollable = "false" source = "SR.OUTPUT" y = "900" label_y = "" decimals = "2" colorize = "true" title = "DEBUG OUTPUT" frame-style = "" show_title = "true" style = ""/>
 	<button  commandUp = "" xindex = "0" x = "540" value = "1" style = "" enableSource = "" command = "SR.clear" show_title = "false" icon = "" type = "push" frame-style = "" y = "820" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "clear" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
 	<button  commandUp = "" xindex = "0" x = "800" value = "1" style = "" enableSource = "" command = "SR.load" show_title = "false" icon = "" type = "push" frame-style = "" y = "820" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "load" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
 	<button  commandUp = "" xindex = "0" x = "840" value = "1" style = "" enableSource = "" command = "SR.save" show_title = "false" icon = "" type = "push" frame-style = "" y = "820" playhead = "SR.playhead" yindex = "0" valueUp = "0" parameter = "" label = "save" height = "41" show_frame = "false" width = "41" color = "" title = "Title" radioGroup = "" background = ""/>
-	<drop-down-menu  frame-style = "" index = "0" title = "Menu" width = "181" list_parameter = "SR.sequence_names" labelWidth = "50" label = "" parameter = "SR.current_sequence" list = "Sequence A" show_title = "false" show_frame = "false" height = "41" x = "600" style = "" y = "820"/>
+	<drop-down-menu  frame-style = "" index = "0" title = "Menu" width = "181" list_parameter = "SR.sequence_names" labelWidth = "50" label = "" parameter = "SR.current_sequence" show_title = "false" list = "Sequence A" x = "600" show_frame = "false" height = "41" style = "" y = "820"/>
 </view>
+
+
 
 
 

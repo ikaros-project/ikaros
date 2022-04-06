@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+
+<group name="Epi" 
+
+>
+
+
+	<!-- import frame and id for epi robots> -->
+    <?include file="EpiFrames.ikg" ?>
+
+
+    <!-- Where is Epi in allocentric coordinate system and what is the rotation  -->
+´   <module class = "Constant" name = "ManualPosition" data = "0.0 0.0 0.0"/>
+´   <module class = "Constant" name = "ManualRotation" data = "0 0 0"/>
+	<module class = "RotationConverter" name = "PositioExo" angle_unit = "degrees" input_format  = "xyz" output_format  = "matrix" />
+	        <connection source = "ManualPosition.OUTPUT"    target = "PositioExo.INPUT"    delay = "0"/>
+	<module class = "RotationConverter" name = "RotationExo" angle_unit = "degrees" input_format  = "axayaz" output_format  = "matrix" />
+	        <connection source = "ManualRotation.OUTPUT"    target = "RotationExo.INPUT"    delay = "0"/>
+
+´   <_module class = "Constant" name = "PositioExo" _data = "
+        1 0 0 0.85
+        0 1 0 0.15
+        0 0 1 0.847
+        0 0 0 1;" 
+		data = "
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1;"
+		/>
+
+    <_module class = "Constant" name = "RotationExo" _data = "
+        0 -1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1;"
+		data = "
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1;"
+		 />
+
+    <!-- Multiply position and rotation-->
+   <module class="Transform"   name="EpiPositionExo" />
+        <connection source = "PositioExo.OUTPUT"    target = "EpiPositionExo.MATRIX_1"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_1" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_1"  delay = "0"/>
+        <connection source = "RotationExo.OUTPUT"   target = "EpiPositionExo.MATRIX_2"    delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.OBJECT_ID_2" delay = "0"/>
+        <connection source = "ExoID.OUTPUT"         target = "EpiPositionExo.FRAME_ID_2"  delay = "0"/>
+
+	<connection source = "EpiPositionExo.MATRIX"    target = "ForwardModel.EPI_POSITION"  delay = "0"/>
+
+
+	<!-- 			Forward model 	    	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+
+	<module class = "ForwardModel/EpiForwardModel" 	name = "ForwardModel" 	/>
+		<_connection source = "Servos.PRESENT_POSITION" 	sourceoffset = "0" targetoffset = "1" size = "4" target = "ForwardModel.JOINT_ANGLES" /> <!-- Head only -->
+		<connection source = "Servos.PRESENT_POSITION" target = "ForwardModel.JOINT_ANGLES" />
+
+
+	<!-- 			Motor control 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- Servo paramters format -->
+	<!-- The data sent to servos is stored in an array -->
+	<!-- [NeckTilt, NeckPan, LeftEye, RightEye, LeftPupil, RightPupil] -->
+	<!-- In this minimal epiTorso version only Goal position, torque limit and torque enable can be sent to servos -->
+	<!-- but more parameters can be controlled on the servoes. -->
+	<!-- The servo used is Dynamixel XL-320 for the pupil dilation, RX28F for Eyes and MX106 for neck -->
+
+	<!-- 			Sensors		 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- The camera in the eyes are sending a network stream of h.264 that can be decoded using the ffmpeg library. 
+	By setting the VisionInputLeft/Right variable a local image can be used instead of the viseo stream. -->
+	<module class = "EpiVision" name = "LeftEye"  VisionStream = "http://lefteye.local:8080/stream/video.h264"    filename = "NoCamera.jpg" 	VisionInput = "@VisionInputLeft"/>
+	<module class = "EpiVision" name = "RightEye" VisionStream = "http://Righteye.local:8080/stream/video.h264"   filename = "NoCamera.jpg" 	VisionInput = "@VisionInputRight"/>
+
+	<!-- Actuators/Proprioception -->
+	<module class = "EpiMotor" 	name = "Servos" />
+
+	<!-- 			Sound		 			-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- The robot can "speak" by playing mp3 files. -->
+	<!-- You can have multiple sounds that can be triggered seperatly. -->
+
+	<module
+	    class = "SoundOutput"
+		name = "SoundOutput"
+		sounds  = "Sounds/ok2.mp3"
+        command = "afplay" 
+	/>	
+		<connection  source = "SoundTrigger.OUTPUT"  target = "SoundOutput.INPUT" />
+	<module class = "Constant" name = "SoundTrigger" data = "0" />
+
+	<!-- 			LED			 			-->
+	<!--	 ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- ********************************* 	-->
+	<!-- The color and intensity of both the eyes and mounth can be controlled. -->
+	<!-- Theese modules are connected to the motion recorder. -->
+
+	<!-- Eye Color RGB-->
+	<module class = "Constant" name = "EyesColorRGB" data = "0.8 0.7 0.1" />
+
+	<!-- Mouth Color RGB -->
+	<module class = "Constant" name = "MouthColorRGB" data = "0.8 0.7 0.1" />
+
+	<!-- Intensity -->
+	<module class = "Constant" name = "EyesIntensity" data = "0.6" />
+	<module class = "Constant" name = "MouthIntensity" data = "0.6" />
+	
+	<!-- This line imports a seperate ikc file with all the LED connections. -->
+	<module class = "EpiLed" name = "LED" />
+
+
+
+	<!-- Speeking -->
+	<module class =	"FunctionGenerator" name =	"Speek" type =	"sin" frequency =	"10"
+		offset      =	"0.5" amplitude =	"0" shift =	"0.1" />
+	<connection source = "Speek.OUTPUT"  target = "LED.SPEEKING" />
+
+
+
+</group>
