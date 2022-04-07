@@ -479,9 +479,14 @@ MarkerTracker::Tick()
 		copy_array(edges[i], &markers[i][marker_corners], 8);
 	}
 	
+	// HACK
+	if (image_position[0][0] == 0)
+		image_position[0][0]  = 0.3;
 	
+	if (image_position[0][1] == 0)
+		image_position[0][1]  = 0.8;
 	
-	
+
 }
 
 
