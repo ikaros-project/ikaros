@@ -504,12 +504,21 @@ void EpiServos::Init()
                         .serialPortRightArm = "",
                         .type = "EpiTorso"};
 
+    robot["EpiOrange"] = {.serialPortPupil = "/dev/cu.usbserial-FT3WI2WH",
+                         .serialPortHead = "/dev/cu.usbserial-FT3WI2K2",
+                         .serialPortBody = "",
+                         .serialPortLeftArm = "",
+                         .serialPortRightArm = "",
+                         .type = "EpiTorso"};
+
     robot["EpiBlack"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                          .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
                          .serialPortBody = "",
                          .serialPortLeftArm = "",
                          .serialPortRightArm = "",
                          .type = "Epi"};
+
+
 
     robotName = GetValue("robot");
 
