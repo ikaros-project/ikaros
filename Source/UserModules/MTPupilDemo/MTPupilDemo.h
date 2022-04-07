@@ -56,6 +56,10 @@ public:
     
     Timer blinkTimer;
     float TimeToNextBlink = 0;
+
+    Timer markerTimer;
+    float trackPos[2];
+
 };
 
 #endif

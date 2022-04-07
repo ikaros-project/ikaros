@@ -77,64 +77,87 @@ void MTPupilDemo::Tick()
     case MATH_EASY:
         *output_array = MATH_EASY_VALUE;
         higherBlinkProb = true;
+        markerTimer.Restart();
         break;
     case MATH_HARD:
         *output_array = MATH_HARD_VALUE;
         higherBlinkProb = true;
+        markerTimer.Restart();
         break;
     case EMOTION_NEG:
         *output_array = EMOTION_NEG_VALUE;
         higherBlinkProb = true;
+        markerTimer.Restart();
         break;
     case EMOTION_NEU:
         *output_array = EMOTION_NEU_VALUE;
         higherBlinkProb = true;
+        markerTimer.Restart();
         break;
     case EMOTION_POS:
         *output_array = EMOTION_POS_VALUE;
         higherBlinkProb = true;
+        markerTimer.Restart();
         break;
     case NOVELTY:
         *output_array = NOVELTY_VALUE;
         higherBlinkProb = true;
+        markerTimer.Restart();
+
         break;
     default:
         higherBlinkProb = false;
         break;
     }
 
-    if (id == 0)
-    {
-       img_pos_array[0] = 0.5; 
-       img_pos_array[1] = 0.5; 
-    }
-    // Simple tracking? Track marker for a while.
+
+    trackPos[0] = img_pos_array[0];
+    trackPos[1] = img_pos_array[1];
+    
+            // Simple tracking? Track marker for a while.
     // Make this better.
     // if (higherBlinkProb) // in simple tracking mode
     // {
     //     float delta
     // }
-    robot_output_array[ROBOT_TILT_INDEX] = img_pos_array[1];
-    robot_output_array[ROBOT_PAN_INDEX] =  1-img_pos_array[0];
-    robot_output_array[ROBOT_EYE_INDEX] =  1-img_pos_array[0];
-    robot_output_array[ROBOT_EYE_INDEX+1] = 1-img_pos_array[0];
+    bool track = markerTimer.GetTime() < 2000;
 
+    // if (track) // Look at maker for one second
+    // {
+    //     printf("Tracking!\n");
+        robot_output_array[ROBOT_TILT_INDEX] = trackPos[1];
+        robot_output_array[ROBOT_PAN_INDEX] =  (1-trackPos[0]);
+        // robot_output_array[ROBOT_EYE_INDEX] =  1-trackPos[0];
+        // robot_output_array[ROBOT_EYE_INDEX+1] = 1-trackPos[0];
+        //robot_output_array[ROBOT_PAN_INDEX] =  0.5;
+        robot_output_array[ROBOT_EYE_INDEX] =  0.5;
+        robot_output_array[ROBOT_EYE_INDEX+1] = 0.5;
+   
+    // }
+    // else
+    // {
+    //     printf("Not Tracking!\n");
+    //     robot_output_array[ROBOT_TILT_INDEX] =  0.5;
+    //     robot_output_array[ROBOT_PAN_INDEX] =  0.5;
+    //     robot_output_array[ROBOT_EYE_INDEX] =  0.5;
+    //     robot_output_array[ROBOT_EYE_INDEX+1] = 0.5;
+            
+    // }
     
     // LED
-    eye_led_output_array[0] = 0.3;
-    eye_led_output_array[1] = 0.1;
-    eye_led_output_array[2] = 0.7;
+    eye_led_output_array[0] = 0.4;
+    eye_led_output_array[1] = 0.3;
+    eye_led_output_array[2] = 0.2;
 
-    if (id == EMOTION_POS)
-    {
-        eye_led_output_array[0] = 1;
-        eye_led_output_array[1] = 0;
-        eye_led_output_array[2] = 0;
-    }
+    if (markerTimer.GetTime() < 2000) // Look at maker for one second
+        eye_led_output_array[3] = 1;
+    else
+        eye_led_output_array[3] = 0.8; // Default intensity
+    
 
     // Blinking
     // Blink in interval of 4-10 sec
-    bool blink;
+    bool blink = false;
     if (blinkTimer.GetTime() > TimeToNextBlink)
         blink = true;
     if (blinkTimer.GetTime() > TimeToNextBlink + 200)
@@ -145,13 +168,12 @@ void MTPupilDemo::Tick()
     }
     if (blink)
         eye_led_output_array[3] = 0;
-    else
-        eye_led_output_array[3] = 1;
 
-    if (higherBlinkProb)
-        eye_led_output_array[3] = 0;
-    else
-        eye_led_output_array[3] = 1;
+
+    // if (higherBlinkProb)
+    //     eye_led_output_array[3] = 0;
+    // else
+    //     eye_led_output_array[3] = 1;
 
     
 }
