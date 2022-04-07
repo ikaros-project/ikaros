@@ -37,6 +37,13 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 // TODO: Draw current input at current position
 // TODO: Draw servo feedback (input) at current position
 
+    draw_recordning()
+    {
+        this.canvas.fillStyle = 'red';
+        this.canvas.fillRect(0, 0, this.width, this.height);
+    }
+
+
     draw(sequence, f, start_time, end_time, mark_start, mark_end, target, output, input, active)
     {
         this.canvas.fillStyle = '#aaa';
@@ -246,6 +253,12 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let input = this.getSource("input");
             let active = this.getSource("active");
             let sequence = this.getSource("sequence");
+
+            if(Object.keys(sequence).length == 0) // RECORDING
+            {
+                this.draw_recordning();
+                return;
+            }
             this.data = target;
             let start_time = sequence["start_time"];
             let end_time = sequence["end_time"];
