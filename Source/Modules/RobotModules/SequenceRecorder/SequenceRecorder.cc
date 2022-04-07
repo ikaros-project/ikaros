@@ -76,9 +76,17 @@ SequenceRecorder::SetTargetForTime(float t)
         float time_left = 0;
         float time_right = sequence_data["sequences"][current_sequence]["end_time"];
 
+    // Memory variables
+
+    static int last_index = 0;
+    static float last_time = 0;
+    int start_index = 0;
+    if(t > last_time)
+        start_index = last_index;
+
         // Start with the value in the first (non-null) keypoint 
 
-        for(int ix=0; ix<n; ix++)
+        for(int ix=start_index; ix<n; ix++)
             if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
             {
                 p_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c];
@@ -98,6 +106,8 @@ SequenceRecorder::SetTargetForTime(float t)
                 // Store candidate left point and time
                 p_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c]; 
                 time_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"];
+                last_index = ix;
+                last_time = time_left;
             }
         }
     
@@ -460,11 +470,25 @@ SequenceRecorder::LockChannel(int c)
 
 void
 SequenceRecorder::AddKeypoint(float time)
-{
+{   
+/*
+    {
+        json points = json::array();
+        for(int c=0; c<channels; c++)
+                points.push_back(nullptr);
+
+            json keypoint;
+            keypoint["time"] = int(time);
+            keypoint["point"] = points;
+
+        sequence_data["sequences"][current_sequence]["keypoints"].push_back(keypoint);
+        return;
+    }
+*/  
+
+
     if(!initial)
         return;
-
-    // float time = timer.GetTime();
 
     // Create the point data array
 
@@ -495,13 +519,24 @@ SequenceRecorder::AddKeypoint(float time)
             points.push_back(nullptr);
         }
     }
+
+    // Memory variables
+
+    static int last_index = 0;
+    static float last_time = 0;
+    int start_index = 0;
+    if(time > last_time)
+        start_index = last_index;
+
     // Find closest keypoint
 
     int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
     json kp;
     int kpi = 0;
     float min_dist = 9999999;
-    for(int i=0; i<n; i++)
+    float min_dist_last = 9999999;
+
+    for(int i=start_index; i<n; i++)
     {
         float t = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(abs(t-time) < min_dist)
@@ -509,7 +544,12 @@ SequenceRecorder::AddKeypoint(float time)
             min_dist = abs(t-time);
             kp = sequence_data["sequences"][current_sequence]["keypoints"][i];
             kpi = i;
+            if(min_dist > min_dist_last) // not decreasing distance - we have found the best match
+                break;
+            min_dist_last = min_dist;
         }
+        else
+            break;
     }
     // Insert or merge keypoint
 
@@ -534,8 +574,11 @@ SequenceRecorder::AddKeypoint(float time)
                     //kp["points"][c] = points[c]; // replace value in closest keypoint
                     sequence_data["sequences"][current_sequence]["keypoints"][kpi]["point"][c] = points[c];
         }
-//        printf("%s\n", sequence_data.dump().c_str());
-        printf("Merge at %f (%f)\n", time, min_dist);
+
+        // store position flor next time the function is called
+        last_index = kpi;
+        last_time = int(time);
+
         return;
     }
 
@@ -547,24 +590,32 @@ SequenceRecorder::AddKeypoint(float time)
 
     // FIND INSERT POINT LOOP
 
-    for(int i=0; i<n; i++)
+    for(int i=start_index; i<n; i++)
     {
         float t = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
         if(time < t) // insert before this
         {
             //INSERT BEFORE THIS
             sequence_data["sequences"][current_sequence]["keypoints"].insert(sequence_data["sequences"][current_sequence]["keypoints"].begin() + i, keypoint);
-    //        printf("INSERT: %s\n", sequence_data.dump().c_str());
+ 
+            last_index = i;
+            last_time = int(time);
+
             return;
         }
     }
+
+
+
     // Insert last
 
     json keypoint_l;
     keypoint_l["time"] = int(time);
     keypoint_l["point"] = points;
     sequence_data["sequences"][current_sequence]["keypoints"].push_back(keypoint_l);
-//    printf("%s\n", sequence_data.dump().c_str());
+
+    last_index = n;
+    last_time = int(time);
 }
 
 
@@ -591,6 +642,10 @@ void
 SequenceRecorder::ClearSequence()
 {
     sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
+    sequence_data["sequences"][current_sequence]["start_time"] = 0;
+    sequence_data["sequences"][current_sequence]["start_mark_time"] = 0;
+    sequence_data["sequences"][current_sequence]["end_mark_time"] = 1000;
+    sequence_data["sequences"][current_sequence]["end_time"] = 1000;
 }
 
 
@@ -700,7 +755,6 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 }
 
 
-
 std::string
 SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 {
@@ -709,6 +763,11 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 
     else if(name=="SEQUENCE")
     {
+        int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
+        if(n>100) // state[2] ||  // 400 = 10 s
+        {
+            return "{}"; //Minimal JSON
+        }
         std::string sq = sequence_data["sequences"][current_sequence].dump();
     //    printf(">>> %s\n", sq.c_str());
         return sq;
