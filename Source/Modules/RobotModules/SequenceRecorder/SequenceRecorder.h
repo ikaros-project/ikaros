@@ -56,6 +56,9 @@ public:
     void        SetEndMark();
     void        GoToPreviousKeypoint();
     void        GoToNextKeypoint();
+    void        GoToTime(float time);   // set up current target and left and right interpolation sources
+    void        Trig(int id);
+
     void        ExtendTime();
     void        ReduceTime();
     void        LockChannel(int c);
@@ -66,7 +69,7 @@ public:
     void        DeleteKeypointsInRange(float t0, float t1);
     void        SetInitial();
     void        LoadJSON(std::string filename);
-    void        StoreJSON(std::string filename);
+    void        StoreJSON(std::string filename);  
 
     void        Command(std::string s, float x, float y, std::string value);
 
@@ -107,6 +110,16 @@ std::string     sequence_names;
 
     float *     state; // state of the head controller buttons
     float **    channel_mode;
+
+    float *     left_time;
+    float *     right_time;
+    float *     left_position;
+    float *     right_position;
+    int *       left_index;
+    int *       right_index;
+
+    float           last_time;
+    float           last_index;
 
     Timer       timer;
     float       position;
