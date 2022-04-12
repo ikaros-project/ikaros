@@ -80,7 +80,7 @@
 #define RIGHT_ARM_INDEX_IO 12
 #define BODY_INDEX_IO 18
 
-#define MAX_TEMPERATURE 55
+#define MAX_TEMPERATURE 65
 
 typedef struct
 {
