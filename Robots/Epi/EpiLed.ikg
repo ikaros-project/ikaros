@@ -176,4 +176,13 @@
 <_connection source = "MouthIntensity.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"    targetoffset = "7" size = "1"/>
 <connection source = "LedOff.OUTPUT"   sourceoffset = "2" target = "FadeCandy.MOUTH_BOTTOM_BLUE"    targetoffset = "7" size = "1"/>
 
+<view name="View" >
+	<epi-head  style = "" show_title = "false" irisColor = "#88aaff" fill = "white" show_frame = "false" visibleFace = "true" visibleSource = "" gaze = "0" pupilLeftSource = "" irisRightIntensity = "" irisLeftIntensity = "" mouthRGB = "Epi.LED.MOUTH_COLOR_F" visibleFaceParameter = "" irisRightRGB = "Epi.LED.EYE_COLOR_F" irisLeftRGB = "Epi.LED.EYE_COLOR_F" height = "521" motionRecorderInput = "" headPosition = "" pupilInMM = "11" mouthIntensity = "" gazeSource = "" pupilRightSource = "" color = "black" title = "Epi Head" mouthColor = "#000000" earColor = "#0088ff" width = "541" vergence = "0" frame-style = "" y = "40" x = "120"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "40" label_y = "" source = "Epi.LED.EYE_COLOR_F" title = "Eye RGB" label_x = "" width = "181" show_frame = "false" height = "61" x = "700"/>
+	<table  frame-style = "" style = "" show_title = "true" colorize = "true" decimals = "1" scrollable = "false" direction = "normal" y = "100" label_y = "" source = "Epi.LED.MouthIntensity.OUTPUT" title = "Mouth RGB" label_x = "" width = "181" show_frame = "false" height = "61" x = "700"/>
+</view>
+
+
+
+
 </group>

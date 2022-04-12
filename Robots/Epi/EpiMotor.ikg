@@ -16,7 +16,7 @@
         <connection source = "SCPosition.OUTPUT" target = "EpiServos.GOAL_POSITION"  delay = "1"/>
 
 
-    <!-- Dynamxiels -->
+    <!-- Dynamixel -->
 	<module
         class = "EpiServos"
         name = "EpiServos"
@@ -63,13 +63,17 @@
             <connection source = "EpiServos.PRESENT_CURRENT" target = "SCFeedbackCurrent.INPUT" />
     <output name = "PRESENT_CURRENT"    source = "SCFeedbackCurrent.OUTPUT" />
 
+
 <view name="Input/Feedback" >
-	<table  label_y = "" y = "40" source = "SCPosition.OUTPUT" title = "SC" x = "180" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" width = "261" frame-style = "text-align: center;" show_title = "true" style = ""/>
-	<text  y = "20" style = "text-align: center;" x = "180" text = "INPUT" height = "21" show_frame = "true" show_title = "false" width = "261" title = "INPUT" frame-style = "" parameter = "" prefix = "" postfix = "" separator = "" strings = "" select_source = ""/>
-	<table  label_y = "" y = "40" source = "SCFeedbackPosition.OUTPUT" title = "SC" x = "580" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "" width = "101" frame-style = "text-align: center;" show_title = "true" style = ""/>
-	<table  label_y = "" y = "40" source = "EpiServos.PRESENT_CURRENT" title = "Goal current" x = "780" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "" width = "101" frame-style = "text-align: center;" show_title = "true" style = ""/>
-	<text  y = "20" style = "text-align: center;" x = "460" text = "Feedback" height = "21" show_frame = "true" show_title = "false" width = "421" title = "INPUT" frame-style = "" parameter = "" prefix = "" postfix = "" separator = "" strings = "" select_source = ""/>
-	<table  label_y = "" y = "40" source = "EpiServos.PRESENT_POSITION" title = "Present position" x = "460" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "" width = "121" frame-style = "text-align: center;" show_title = "true" style = ""/>
+	<table  style = "" show_title = "true" frame-style = "text-align: center;" width = "261" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "SCPosition.OUTPUT" x = "180" title = "SC"/>
+	<text  select_source = "" prefix = "" parameter = "" separator = "" frame-style = "" title = "INPUT" width = "261" show_title = "false" strings = "" show_frame = "true" height = "21" text = "INPUT" postfix = "" y = "20" style = "text-align: center;" x = "180"/>
+	<table  style = "" show_title = "true" frame-style = "text-align: center;" width = "101" label_x = "" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "SCFeedbackPosition.OUTPUT" x = "580" title = "SC"/>
+	<table  style = "" show_title = "true" frame-style = "text-align: center;" width = "101" label_x = "" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "EpiServos.PRESENT_CURRENT" x = "780" title = "Goal current"/>
+	<text  select_source = "" prefix = "" parameter = "" separator = "" frame-style = "" title = "INPUT" width = "421" show_title = "false" strings = "" show_frame = "true" height = "21" text = "Feedback" postfix = "" y = "20" style = "text-align: center;" x = "460"/>
+	<table  style = "" show_title = "true" frame-style = "text-align: center;" width = "121" label_x = "" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "EpiServos.PRESENT_POSITION" x = "460" title = "Present position"/>
+	<text  x = "180" y = "520" height = "101" width = "701" title = "Default Title" parameter = "" text = "Goal position and present position are not the actual position sent to servos. The SC module is adding to goal position to have goal position at  0 degrees to 180 degrees on the servos. This reson for this was to make sure the servo rotate in the angle." prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
 </view>
+
+
 
 </group>
