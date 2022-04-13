@@ -178,11 +178,10 @@ VisionInputRight = "InputJPEG"
 
 
 	<module class = "Constant" name = "MarkerOffset" data ="0.2 -0.3"/>
-ß
+	
 	<module class = "Add" name = "AddMarkerOffset" />
 	<connection  source = "MarkerOffset.OUTPUT"  target = "AddMarkerOffset.INPUT1"/>
 	<connection  source = "MarkerTracker.IMAGE_POSITION"  target = "AddMarkerOffset.INPUT2"/>
-ß
 	<connection  source = "AddMarkerOffset.OUTPUT"  target = "AverageTarget.INPUT"/>
 
 	<module class = "Average" name = "AverageTarget" type = "EMA" window_size = "40"/>
