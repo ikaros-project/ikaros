@@ -60,7 +60,7 @@ bool EpiServos::CommunicationPupil()
         }
         if (goalPosition)
         {
-            uint16_t param_default = goalPosition[index]; // Not using degrees. 
+            uint16_t param_default = goalPosition[index]; // Not using degrees.
             // Goal postiion feature/bug. If torque enable = 0 and goal position is sent. Torque enable will be 1.
             if (!torqueEnable)
             {
@@ -233,12 +233,12 @@ void EpiServos::Init()
                        .type = "EpiTorso"};
 
     robot["EpiOrange"] = {.serialPortPupil = "/dev/cu.usbserial-FT3WI2WH",
-                         .serialPortHead = "/dev/cu.usbserial-FT3WI2K2",
-                         .serialPortBody = "",
-                         .serialPortLeftArm = "",
-                         .serialPortRightArm = "",
-                         .type = "EpiTorso"};
-                         
+                          .serialPortHead = "/dev/cu.usbserial-FT3WI2K2",
+                          .serialPortBody = "",
+                          .serialPortLeftArm = "",
+                          .serialPortRightArm = "",
+                          .type = "EpiTorso"};
+
     robot["EpiYellow"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                           .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
                           .serialPortBody = "",
@@ -275,7 +275,7 @@ void EpiServos::Init()
                          .type = "EpiTorso"};
 
     robotName = GetValue("robot");
-    
+
     // Check if robotname exist in configuration
     if (robot.find(robotName) == robot.end())
     {
@@ -524,7 +524,7 @@ void EpiServos::Init()
     }
 
     AutoCalibratePupil();
-    
+
     Notify(msg_debug, "torque down servos and prepering servos for write defualt settings\n");
     if (!PowerOffRobot())
         Notify(msg_fatal_error, "Unable torque down servos\n");
@@ -541,32 +541,30 @@ float EpiServos::PupilMMToDynamixel(float mm, int min, int max)
     // Quick fix
     float minMM = 4.2;
     float maxMM = 19.7;
-    float deltaMM = maxMM-minMM;
+    float deltaMM = maxMM - minMM;
 
     float minDeg = min;
     float maxDeg = max;
-    float deltDeg = maxDeg-minDeg;
+    float deltDeg = maxDeg - minDeg;
 
     if (mm < minMM)
         mm = minMM;
     if (mm > maxMM)
         mm = maxMM;
 
-    return (-(mm-minMM)/deltaMM * deltDeg + maxDeg); // Higher goal position gives smaller pupil
+    return (-(mm - minMM) / deltaMM * deltDeg + maxDeg); // Higher goal position gives smaller pupil
 }
 
 void EpiServos::Tick()
 {
 
     // Check limits of inputs
-    goalPosition[PUPIL_INDEX_IO] = clip(goalPosition[PUPIL_INDEX_IO], 5,16);
-    goalPosition[PUPIL_INDEX_IO+1] = clip(goalPosition[PUPIL_INDEX_IO+1], 5,16);
-    
-    // Special case. As pupil does not have any feedback we just return goal position
-    //presentPosition[PUPIL_INDEX_IO]    =     goalPosition[PUPIL_INDEX_IO];
-    //presentPosition[PUPIL_INDEX_IO+1]  =     goalPosition[PUPIL_INDEX_IO+1];
-    
+    goalPosition[PUPIL_INDEX_IO] = clip(goalPosition[PUPIL_INDEX_IO], 5, 16);
+    goalPosition[PUPIL_INDEX_IO + 1] = clip(goalPosition[PUPIL_INDEX_IO + 1], 5, 16);
 
+    // Special case. As pupil does not have any feedback we just return goal position
+    // presentPosition[PUPIL_INDEX_IO]    =     goalPosition[PUPIL_INDEX_IO];
+    // presentPosition[PUPIL_INDEX_IO+1]  =     goalPosition[PUPIL_INDEX_IO+1];
 
     if (simulate)
     {
@@ -578,21 +576,21 @@ void EpiServos::Tick()
         if (GetTickLength() != 0)
             maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
 
-       for (int i = 0; i < EPI_NR_SERVOS; i++)
-            if (i < EPI_TORSO_NR_SERVOS) 
+        for (int i = 0; i < EPI_NR_SERVOS; i++)
+            if (i < EPI_TORSO_NR_SERVOS)
             {
                 if (goalPosition)
                     presentPosition[i] = presentPosition[i] + 0.9 * (clip(goalPosition[i] - presentPosition[i], -maxVel, maxVel)); // adding some smoothing to prevent oscillation in simulation mode
             }
             else
                 presentPosition[i] = 180;
-        
+
         // Create fake feedback in simulation mode
         if (GetTick() < 10)
         {
             set_array(presentPosition, 180, presentPositionSize);
-            presentPosition[PUPIL_INDEX_IO]    =     12;
-            presentPosition[PUPIL_INDEX_IO+1]  =     12;        
+            presentPosition[PUPIL_INDEX_IO] = 12;
+            presentPosition[PUPIL_INDEX_IO + 1] = 12;
         }
         return;
     }
@@ -601,9 +599,8 @@ void EpiServos::Tick()
     set_array(presentPosition, 180, presentPositionSize);
 
     // Special case for pupil uses mm instead of degrees
-    goalPosition[PUPIL_INDEX_IO]    =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO],AngleMinLimitPupil[0],AngleMaxLimitPupil[0]);
-    goalPosition[PUPIL_INDEX_IO+1]  =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO+1],AngleMinLimitPupil[1],AngleMaxLimitPupil[1]);
-
+    goalPosition[PUPIL_INDEX_IO] = PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO], AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
+    goalPosition[PUPIL_INDEX_IO + 1] = PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO + 1], AngleMinLimitPupil[1], AngleMaxLimitPupil[1]);
 
     auto headThread = std::async(std::launch::async, &EpiServos::Communication, this, HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
     auto pupilThread = std::async(std::launch::async, &EpiServos::CommunicationPupil, this); // Special!
@@ -908,7 +905,6 @@ bool EpiServos::SetDefaultSettingServo()
 
     Timer t;
     int xlTimer = 10; // Timer in ms. XL320 need this. Not sure why.
-   
 
     // PUPIL ID 2 (Left pupil)
     // Limit position min
@@ -1359,7 +1355,7 @@ bool EpiServos::AutoCalibratePupil()
     AngleMaxLimitPupil[0] = AngleMinLimitPupil[0] + 280;
     AngleMaxLimitPupil[1] = AngleMinLimitPupil[1] + 280;
 
-    Notify(msg_debug,"Position limits pupil servos (Autocalibrate): min %i %i max %i %i \n", AngleMinLimitPupil[0],AngleMinLimitPupil[1],AngleMaxLimitPupil[0],AngleMaxLimitPupil[1]);
+    Notify(msg_debug, "Position limits pupil servos (Autocalibrate): min %i %i max %i %i \n", AngleMinLimitPupil[0], AngleMinLimitPupil[1], AngleMaxLimitPupil[0], AngleMaxLimitPupil[1]);
 
     // Torque off. No fancy rampiong
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 0, &dxl_error))
@@ -1373,7 +1369,7 @@ bool EpiServos::AutoCalibratePupil()
         return false;
     t.Sleep(xlTimer);
 
-return true;
+    return true;
 }
 EpiServos::~EpiServos()
 {
