@@ -565,27 +565,40 @@ void EpiServos::Tick()
     // Special case. As pupil does not have any feedback we just return goal position
     //presentPosition[PUPIL_INDEX_IO]    =     goalPosition[PUPIL_INDEX_IO];
     //presentPosition[PUPIL_INDEX_IO+1]  =     goalPosition[PUPIL_INDEX_IO+1];
+    
 
 
     if (simulate)
     {
-        int index = 0;
         Notify(msg_debug, "Simulate servos");
+
+        reset_array(presentCurrent, presentCurrentSize); // 0 mA
+
         float maxVel = 45.0 / 1000 * 10; // No timebase
         if (GetTickLength() != 0)
             maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
 
-        for (int i = 0; i < EPI_NR_SERVOS; i++)
+       for (int i = 0; i < EPI_NR_SERVOS; i++)
+            if (i < EPI_TORSO_NR_SERVOS) 
+            {
+                if (goalPosition)
+                    presentPosition[i] = presentPosition[i] + 0.9 * (clip(goalPosition[i] - presentPosition[i], -maxVel, maxVel)); // adding some smoothing to prevent oscillation in simulation mode
+            }
+            else
+                presentPosition[i] = 180;
+        
+        // Create fake feedback in simulation mode
+        if (GetTick() < 10)
         {
-            if (i > EPI_TORSO_NR_SERVOS) // skip the last servos when running in Epi torso mode
-                presentPosition[index] = 180;
-            if (goalPosition)
-                presentPosition[index] = presentPosition[index] + clip(goalPosition[index] - presentPosition[index], -maxVel, maxVel);
-            presentCurrent[index] = 0; // mA
-            index++;
+            set_array(presentPosition, 180, presentPositionSize);
+            presentPosition[PUPIL_INDEX_IO]    =     12;
+            presentPosition[PUPIL_INDEX_IO+1]  =     12;        
         }
         return;
     }
+
+    // Set defualt output
+    set_array(presentPosition, 180, presentPositionSize);
 
     // Special case for pupil uses mm instead of degrees
     goalPosition[PUPIL_INDEX_IO]    =     PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO],AngleMinLimitPupil[0],AngleMaxLimitPupil[0]);
