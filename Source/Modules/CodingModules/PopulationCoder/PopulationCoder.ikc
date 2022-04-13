@@ -25,7 +25,12 @@
 
 	<link class="PopulationCoder" />
 
-    
+    <view name="View" >
+		<grid  x = "20" y = "100" height = "141" width = "1361" title = "" source = ".OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "fire" colorTable = "" lineWidth = "5" shape = "circle" size = "0.9" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+		<table  x = "20" y = "20" height = "81" width = "1361" title = "OUTPUT" source = ".OUTPUT" label_x = "" label_y = "" direction = "normal" decimals = "4" colorize = "true" scrollable = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	</view>
+
+
     
 	<created>2016</created>
 	

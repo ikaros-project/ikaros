@@ -41,10 +41,13 @@ PopulationCoder::Init()
 {
     size_x          =   GetIntValue("size");
     size_y          =   GetInputSize("INPUT");
-    sigma			=   GetIntValue("sigma");
-    min             =   GetFloatValue("min");
-    max             =   GetFloatValue("max");
-    
+    // sigma			=   GetIntValue("sigma");
+    // min             =   GetFloatValue("min");
+    // max             =   GetFloatValue("max");
+    Bind(sigma, "sigma");
+    Bind(min, "min");
+    Bind(max, "max");
+
     input = GetInputArray("INPUT");
     amplitude = GetInputArray("AMPLITUDE");
     output = GetOutputMatrix("OUTPUT");
