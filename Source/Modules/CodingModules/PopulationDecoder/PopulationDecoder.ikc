@@ -13,7 +13,6 @@
 		/>
 	</example>
 
-	<parameter name="sigma" type="float" default="1" description="The width of the gaussian" />
 	<parameter name="min" type="float" default="0.0" description="Minimum value to be coded" />
 	<parameter name="max" type="float" default="1.0" description="Maximum value to be coded" />
 
