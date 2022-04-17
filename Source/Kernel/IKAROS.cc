@@ -92,7 +92,7 @@ public:
     
                                     Element(GroupElement * parent, XMLElement * xml_node=NULL);
     const std::string &             GetAttribute(const std::string & a) const; // FIXME: Remove
-    virtual std::string             GetValue(const std::string & a) const;
+    virtual std::string             GetValue(const std::string & a, const std::string & path="") const;
     std::string                     operator[](const std::string & a) const;
     void                            PrintAttributes(int d=0); // const
     std::string                     JSONAttributeString(int d=0); // const
@@ -170,7 +170,9 @@ public:
 
                                 GroupElement(GroupElement * parent, XMLElement * xml_node=NULL);
                                 ~GroupElement();
-    virtual std::string         GetValue(const std::string & name) const;
+
+    virtual std::string         GetValue(const std::string & name, const std::string & path="");
+
     GroupElement *              GetGroup(const std::string & name);
     Module *                    GetModule(const std::string & name);
     Module_IO *                 GetSource(const std::string & name);
@@ -206,7 +208,7 @@ Element::GetAttribute(const std::string & a) const // get attribute verbatim // 
 // Together with the corresponding function for GroupElement
 
 std::string
-Element::GetValue(const std::string & name) const
+Element::GetValue(const std::string & name, const std::string & path) const
 {
     if(name.empty())
         return empty_string;
@@ -430,24 +432,88 @@ GroupElement::~GroupElement()
     printf("ERROR GROUP GOING OUT OF SCOPE - SHOULD NEVER HAPPEN!!!\n");
 }
 
+
+/*
+
+    PARAMETER COMMENTS:
+
+        - If a parameter value is set by its default in ikc file, it is possible to override it by outer groups or command values
+
+*/
+
 std::string
-GroupElement::GetValue(const std::string & a) const
+GroupElement::GetValue(const std::string & name, const std::string & path)
 {
-    if(parameters.count(a))
+    // 1. No name: return empty string
+
+    if(name.empty())
+        return "";
+
+    // 2. Has path: get in that group instead
+
+    if(!path.empty())
     {
-        const auto & p = parameters.at(a);
+        const auto g = GetGroup(path);
+        if(!g)
+            return "";
+        else
+        {
+            std::string new_name = name;
+            if(name[0] == '@')
+                new_name = GetValue(name.substr(1));
+
+            return g->Element::GetValue(new_name); //Handles indirection
+    }   }
+
+    // 3. Check for parameter renaming
+
+    if(parameters.count(name))
+    {
+        const auto & p = parameters.at(name);
         if(p->attributes.count("name"))
         {
             auto new_name = p->attributes.at("name");
-            if(new_name == a)
+            if(new_name == name)
                 Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself: %s", new_name.c_str());
             else
                 return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
         }
     }
 
-    return Element::GetValue(a);
+    // 4. Check that attribute exists otherwise look for inherited value
+
+    if(!attributes.count(name))
+    {
+        if(!parent)
+            return "";
+        else 
+            return parent->GetValue(name);
+    }
+
+    // 5. Process value
+
+    std::string value = attributes.at(name);
+
+    // Return empty value if not indirection
+
+    if(value.empty() || value[0]!='@')
+        return value;
+
+    // 6. Handle indirection
+
+    value = value.substr(1);
+
+    // If value value contains a path, split into path and value
+
+    if (value.find('.') != std::string::npos )
+    {
+        auto pv = rsplit(value, ".", 1);
+        return  GetValue(pv[1], pv[0]);
+    }
+
+    return Element::GetValue("@"+value); // FIXME '@' +value ????
 }
+
 
 
 GroupElement *
@@ -455,6 +521,16 @@ GroupElement::GetGroup(const std::string & name)
 {
     if(name.empty())
         return this;
+
+    // Check if we neet to start at top group
+
+    if(name[0]=='.')
+    {
+        GroupElement * g = this;
+        while(g->parent)
+            g = g->parent;
+        return g->GetGroup(name.substr(1));
+    }
 
     // We need to substitute all variables in this scope relative to the current group element
     std::string p;
@@ -1088,6 +1164,7 @@ Module::GetDefault(const char * n)
     
     return NULL; // No default value was found
 }
+
 
 
 const char *
@@ -2781,6 +2858,34 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
 }
 
 
+    void
+    Module::PrintAttributes()
+    {
+        printf("\nAttributes of module: %s\n", full_instance_name);
+
+        GroupElement * g = group;
+        int d = 0;
+        while(g)
+        {
+            for(auto a : g->attributes)
+            {
+                std::string val = a.second.c_str();
+                std::string eval = "(null)";
+                const char * v = GetValue(a.first.c_str());
+                if(v)
+                    eval = v;
+                if(val == eval)
+                    printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
+                else
+                    printf((std::string(d+1, '\t')+"\t%s = \"%s\"=> \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str(),GetValue(a.first.c_str()));
+            }
+            g = (GroupElement *)g->parent;
+            if(g)
+                printf("INHERITS:\n");
+        }
+    }
+
+
 bool
 Module::SetParameter(const char * parameter_name, int x, int y, float value)
 {
@@ -3299,7 +3404,9 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
                 xml_node->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
             GroupElement * g = new GroupElement(group);
 
-            if(group->groups.count(n))
+            if(!n)
+                Notify(msg_fatal_error, "Group name required");
+            else if(group->groups.count(n))
                 Notify(msg_fatal_error, "Duplicate group name \"%s\".", n);
             else
                 group->groups.insert( { n, BuildGroup(g, xml_node) });

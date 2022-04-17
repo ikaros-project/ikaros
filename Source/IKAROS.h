@@ -361,6 +361,8 @@ public:
     XMLElement *        xml;
     GroupElement *      group;
 
+    void            PrintAttributes();
+
 //private:
     const char *		class_name;
     const char *		instance_name;
@@ -608,7 +610,9 @@ public:
     GroupElement    *    main_group;     // 2.0 main group
     long                 session_id;     // 2.0 temporary
     
-    std::map<std::string, std::vector<Binding *>>  bindings;   // 2.0
+    std::map<std::string, std::vector<Binding *>>   bindings;   // 2.0
+    std::map<std::string, std::string>              attributes; // 2.0 - attribute value set in the xml-file with full path
+
     std::map<std::string, Module *>     module_map; // 2.0
     std::vector <Module *>              _modules;   // 2.0
 
