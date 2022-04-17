@@ -1,10 +1,7 @@
 <?xml version = "1.0"?>
-
 <group name = "Epi Servos" >
-	
-    <input name = "GOAL_POSITION"   target = "SCPosition.INPUT" /> 
-    <input name = "TORQUE_ENABLE"   target = "EpiServos.TORQUE_ENABLE" /> 
-
+    <input name = "GOAL_POSITION"   target = "SCPosition.INPUT" />
+    <input name = "TORQUE_ENABLE"   target = "EpiServos.TORQUE_ENABLE" />
     <!-- Goal poistion -->
     <module class = "ServoConnector" name = "SCPosition"
 		connector       = "  1    2    3    4    5    6       7    8    9   10   11   12      13   14   15   16   17   18       19"
@@ -13,18 +10,15 @@
         offset          = "180  180  180  180    0    0     180  180  180  180  225  180     180  180  180  180  135  180      180" 
         output_size     = "@nrServosTotal"
 	/>
-        <connection source = "SCPosition.OUTPUT" target = "EpiServos.GOAL_POSITION"  delay = "1"/>
-
-
-    <!-- Dynamxiels -->
-	<module
+    <connection source = "SCPosition.OUTPUT" target = "EpiServos.GOAL_POSITION"  delay = "1"/>
+    <!-- Dynamixel -->
+    <module
         class = "EpiServos"
         name = "EpiServos"
         _log_level = "8"
         robot = "@EpiName"
         simulate = "@simulateRobot"
     />
-   
     <module
 		class = "ServoConnector"
 		name = "SCFeedbackPosition"
@@ -34,24 +28,21 @@
         offset          = "-180 -180 -180 -180    0    0   -180 -180 -180 -180 -225 -180    -180 -180 -180 -180 -135 -180    -180" 
         output_size     = "@nrServosTotal"
 	/>
-        <connection source = "EpiServos.PRESENT_POSITION" target = "SCFeedbackPosition.INPUT" />
-
+    <connection source = "EpiServos.PRESENT_POSITION" target = "SCFeedbackPosition.INPUT" />
     <output name = "PRESENT_POSITION"   source = "SCFeedbackPosition.OUTPUT" />
-
-
-    <module class = "Gate" name = "HeadPosition"/> <!-- outputs can not have source offset -->
-        <connection source = "SCFeedbackPosition.OUTPUT" target = "HeadPosition.INPUT" sourceoffset = "1" size = "1"/>
+    <module class = "Gate" name = "HeadPosition"/>
+    <!-- outputs can not have source offset -->
+    <connection source = "SCFeedbackPosition.OUTPUT" target = "HeadPosition.INPUT" sourceoffset = "1" size = "1"/>
     <output name = "PRESENT_HEAD_POSITION"   source = "HeadPosition.OUTPUT"/>
-    
-     <module class = "Gate" name = "EyePosition"/> <!-- outputs can not have source offset -->
-        <connection source = "SCFeedbackPosition.OUTPUT" target = "EyePosition.INPUT" sourceoffset = "2" size = "2"/>
+    <module class = "Gate" name = "EyePosition"/>
+    <!-- outputs can not have source offset -->
+    <connection source = "SCFeedbackPosition.OUTPUT" target = "EyePosition.INPUT" sourceoffset = "2" size = "2"/>
     <output name = "PRESENT_EYE_POSITION"   source = "EyePosition.OUTPUT"/>
-
-     <module class = "Gate" name = "PupilPosition"/> <!-- outputs can not have source offset -->
-        <connection source = "SCFeedbackPosition.OUTPUT" target = "PupilPosition.INPUT" sourceoffset = "4" size = "2"/>
+    <module class = "Gate" name = "PupilPosition"/>
+    <!-- outputs can not have source offset -->
+    <connection source = "SCFeedbackPosition.OUTPUT" target = "PupilPosition.INPUT" sourceoffset = "4" size = "2"/>
     <output name = "PRESENT_PUPIL_POSITION"   source = "PupilPosition.OUTPUT"/>
-
-      <module
+    <module
 		class = "ServoConnector"
 		name = "SCFeedbackCurrent"
 		connector       = "   1    2    3    4    5    6      7    8    9   10   11   12      13   14   15   16   17   18   19"
@@ -60,16 +51,15 @@
         offset          = "   0    0    0    0    0    0      0    0    0    0    0    0       0    0    0    0    0    0    0" 
         output_size     = "@nrServosTotal"
 	/>
-            <connection source = "EpiServos.PRESENT_CURRENT" target = "SCFeedbackCurrent.INPUT" />
+    <connection source = "EpiServos.PRESENT_CURRENT" target = "SCFeedbackCurrent.INPUT" />
     <output name = "PRESENT_CURRENT"    source = "SCFeedbackCurrent.OUTPUT" />
-
-<view name="Input/Feedback" >
-	<table  label_y = "" y = "40" source = "SCPosition.OUTPUT" title = "SC" x = "180" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" width = "261" frame-style = "text-align: center;" show_title = "true" style = ""/>
-	<text  y = "20" style = "text-align: center;" x = "180" text = "INPUT" height = "21" show_frame = "true" show_title = "false" width = "261" title = "INPUT" frame-style = "" parameter = "" prefix = "" postfix = "" separator = "" strings = "" select_source = ""/>
-	<table  label_y = "" y = "40" source = "SCFeedbackPosition.OUTPUT" title = "SC" x = "580" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "" width = "101" frame-style = "text-align: center;" show_title = "true" style = ""/>
-	<table  label_y = "" y = "40" source = "EpiServos.PRESENT_CURRENT" title = "Goal current" x = "780" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "" width = "101" frame-style = "text-align: center;" show_title = "true" style = ""/>
-	<text  y = "20" style = "text-align: center;" x = "460" text = "Feedback" height = "21" show_frame = "true" show_title = "false" width = "421" title = "INPUT" frame-style = "" parameter = "" prefix = "" postfix = "" separator = "" strings = "" select_source = ""/>
-	<table  label_y = "" y = "40" source = "EpiServos.PRESENT_POSITION" title = "Present position" x = "460" show_frame = "false" height = "461" colorize = "true" decimals = "1" scrollable = "false" direction = "flip x/y" label_x = "" width = "121" frame-style = "text-align: center;" show_title = "true" style = ""/>
-</view>
-
+    <view name="Input/Feedback" >
+        <table  style = "" show_title = "true" frame-style = "text-align: center;" width = "261" label_x = "Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "SCPosition.OUTPUT" x = "180" title = "SC"/>
+        <text  select_source = "" prefix = "" parameter = "" separator = "" frame-style = "" title = "INPUT" width = "261" show_title = "false" strings = "" show_frame = "true" height = "21" text = "INPUT" postfix = "" y = "20" style = "text-align: center;" x = "180"/>
+        <table  style = "" show_title = "true" frame-style = "text-align: center;" width = "101" label_x = "" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "SCFeedbackPosition.OUTPUT" x = "580" title = "SC"/>
+        <table  style = "" show_title = "true" frame-style = "text-align: center;" width = "101" label_x = "" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "EpiServos.PRESENT_CURRENT" x = "780" title = "Goal current"/>
+        <text  select_source = "" prefix = "" parameter = "" separator = "" frame-style = "" title = "INPUT" width = "421" show_title = "false" strings = "" show_frame = "true" height = "21" text = "Feedback" postfix = "" y = "20" style = "text-align: center;" x = "460"/>
+        <table  style = "" show_title = "true" frame-style = "text-align: center;" width = "121" label_x = "" direction = "flip x/y" scrollable = "false" colorize = "true" show_frame = "false" height = "461" decimals = "1" y = "40" label_y = "" source = "EpiServos.PRESENT_POSITION" x = "460" title = "Present position"/>
+        <text  x = "180" y = "520" height = "101" width = "701" title = "Default Title" parameter = "" text = "Goal position and present position are not the actual position sent to servos. The SC module is adding to goal position to have goal position at  0 degrees to 180 degrees on the servos. This reson for this was to make sure the servo rotate in the angle." prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+    </view>
 </group>

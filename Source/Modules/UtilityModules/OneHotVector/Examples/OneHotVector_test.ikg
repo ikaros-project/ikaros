@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<group title="OneHotVector Example">
+    <module
+			class = "Constant"
+			name = "Signal"
+			data = "1"
+		/>
+    <module
+			class = "OneHotVector"
+			name = "OneHotVector"
+		/>
+    <connection source = "Signal.OUTPUT" target = "OneHotVector.INPUT" />
+    <view name="View" >
+        <table  x = "40" height = "61" show_frame = "false" width = "241" label_x = "" direction = "normal" scrollable = "false" source = "Signal.OUTPUT" y = "40" label_y = "" decimals = "4" colorize = "true" title = "Input" frame-style = "" show_title = "true" style = ""/>
+        <slider-horizontal  x = "40" y = "100" height = "41" show_frame = "false" width = "241" title = "Sliders" parameter = "Signal.data" count = "1" select = "0" style = "" labels = "" min = "-1" step = "1" show_values = "true" max = "10" show_title = "false" frame-style = ""/>
+        <table  x = "360" height = "61" show_frame = "false" width = "761" label_x = "" direction = "normal" scrollable = "false" source = "OneHotVector.OUTPUT" y = "40" label_y = "" decimals = "1" colorize = "true" title = "Output" frame-style = "" show_title = "true" style = ""/>
+        <slider-horizontal  x = "360" y = "100" height = "41" show_frame = "false" width = "761" title = "Value" parameter = "OneHotVector.value" count = "1" select = "0" style = "" labels = "" min = "0" step = "1" show_values = "true" max = "10" show_title = "false" frame-style = ""/>
+    </view>
+    <module class = "Logger" name = "Logger" />
+</group>

@@ -76,6 +76,7 @@ add_subdirectory(Text)
 add_subdirectory(Threshold)
 add_subdirectory(Transform)
 add_subdirectory(TruncateArray)
+add_subdirectory(OneHotVector)
 
 add_subdirectory(And)
 add_subdirectory(Or)
