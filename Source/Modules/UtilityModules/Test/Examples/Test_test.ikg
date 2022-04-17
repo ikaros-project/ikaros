@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!-- 
+
+    Example xml file for Test module
+ 
+-->
+
+<group myrobot="EpiRed" name="Epi">
+
+	<group name="EpiBlue"
+		earcolor = "Blue"
+	/>
+
+	<group name="EpiRed"
+		earcolor = "Red"
+	/>
+
+
+	<module
+		class 	= "Test"
+		name 	= "Test"
+		ears 	= "@.@myrobot.earcolor"
+		ears2 	= "@Epi.@myrobot.earcolor"
+
+		attribute = "earcolor"
+		fancy 	= "@Epi.@myrobot.@attribute"
+		dandy 	= "@Epi.EpiRed.@attribute"
+	/>
+	
+	
+    <module class = "Logger" name = "Logger" />
+</group>
+
