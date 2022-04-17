@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<class name="Test" description="print parameter values">
+<class name="Test" description="print parameter values on start-up">
 
 	<description type="text">
 
@@ -18,9 +18,9 @@
 	</author>
 
    <files>
-   		<file>Constant.h</file>
-   		<file>Constant.cc</file>
-   		<file>Constant.ikc</file>
+   		<file>Test.h</file>
+   		<file>Test.cc</file>
+   		<file>Test.ikc</file>
    </files>
 
 </class>

@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
 
-<!-- 
+<!--
 
-    Example xml file for Test module
-
-	This module prints the values for all parameters during intialization and can be used to test
-	that parameter resolution works correctly
+    Kernel Test - Refering to attributes in external groups with indirection
  
 -->
 
@@ -36,4 +33,3 @@
 	
     <module class = "Logger" name = "Logger" />
 </group>
-
