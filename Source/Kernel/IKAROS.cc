@@ -2649,7 +2649,15 @@ Kernel::Init()
     InitModules();
     
     webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
-    socket =  new ServerSocket(port);
+    try
+    {
+        socket =  new ServerSocket(port);
+    }
+    catch (const SocketException& e)
+    {
+        Notify(msg_fatal_error,"Ikaros is unable to start a webserver on port %i. Make sure no other ikaros process is running and try again.\n",port);
+    }
+    
 }
 
 
