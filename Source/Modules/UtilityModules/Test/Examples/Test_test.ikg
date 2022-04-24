@@ -9,11 +9,18 @@
  
 -->
 
-<group parameter_set_to_use="ParameterSetA" name="OuterGroup" attribute_to_use="color" >
+<group parameter_set_to_use="ParameterSetA" name="OuterGroup" attribute_to_use="color" p0="5" >
+
+	<!--
+
+		Test of parameter indirection
+
+	-->
 
 	<group
 		name="ParameterSetA"
 		color = "Blue"
+		size = "10m"
 	/>
 
 	<group
@@ -26,14 +33,57 @@
 		class 	= "Test"
 		name 	= "Test"
 
-		p1 	= "@.@parameters_to_use.color"
-		p2 	= "@OuterGroup.@parameter_set_to_use.color"
+		p01__7 = "7"
+		p02__5 = "@p0"		_02 ="ERROR"
+		p03__7 = "@p01__7"		_03 ="ERROR"
+		p04__7 = "@p03__7"		_04 ="ERROR"
 
-		p3 	= "@OuterGroup.@parameter_set_to_use.@attribute_to_use"
-		p4 	= "@OuterGroup.ParameterSetA.@attribute_to_use"
+		
+		p05__Blue 	= "@OuterGroup.ParameterSetA.color"
+		p06__ParameterSetA 	= "@OuterGroup.parameter_set_to_use"
+		p07__Blue 	= "@OuterGroup.@parameter_set_to_use.color"
+		p08__null 	= "@OuterGroup.parameter_set_to_use.color"
+		p09__Blue	= "@OuterGroup.ParameterSetA.@attribute_to_use"
+		p10__Blue 	= "@OuterGroup.@parameter_set_to_use.@attribute_to_use"
+		p11__Blue	= "@OuterGroup.@parameter_set_to_use.color"
+
+		p12__Blue	= "@.ParameterSetA.color"
+		p13__Blue = "@.@parameter_set_to_use.color"
+		p14__10m 	= "@.@parameter_set_to_use.size"
 	/>
 	
-	
+	<!--
+
+		Test of parameter renaming
+
+	-->
+
+	<parameter name="p0" target="p30" comment="should set p30 to 5 from outer group" />
+
+
+	<module
+		class 	= "Test"
+		name 	= "Test2"
+
+		p31 = "@p30"
+	/>
+
+	<group name="InnerGroup">
+
+		<parameter name="p0" target="p40" comment="should set p40 to 5 from outer group" />
+
+		<module
+			class 	= "Test"
+			name 	= "Test3"
+
+			p41 = "@p40"
+		/>
+
+	</group>
+
+
+
+
     <module class = "Logger" name = "Logger" />
 </group>
 

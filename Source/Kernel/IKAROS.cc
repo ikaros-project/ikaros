@@ -88,7 +88,7 @@ class Element
 {
 public:
     GroupElement * parent;
-    std::unordered_map<std::string, std::string> attributes;
+    std::map<std::string, std::string> attributes;
     
                                     Element(GroupElement * parent, XMLElement * xml_node=NULL);
     const std::string &             GetAttribute(const std::string & a) const; // FIXME: Remove
@@ -511,7 +511,8 @@ GroupElement::GetValue(const std::string & name, const std::string & path)
         return  GetValue(pv[1], pv[0]);
     }
 
-    return Element::GetValue("@"+value); // FIXME '@' +value ????
+    return GetValue(value);
+
 }
 
 
@@ -2881,7 +2882,7 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
             }
             g = (GroupElement *)g->parent;
             if(g)
-                printf("INHERITS:\n");
+                printf("Inerits:\n");
         }
     }
 
