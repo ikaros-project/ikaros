@@ -1772,8 +1772,6 @@ controller = {
                 console.log("console.update: no state - setting pause");
                 controller.run_mode = 'pause';
             }
-            controller.ikg_file_name = "Ikaros - "+response.attributes["ikg-file-name"].replace(".ikg", "");
-            document.title = controller.ikg_file_name;
             controller.session_id = session_id;
             controller.tick = response.iteration;
             nav.init(response);
