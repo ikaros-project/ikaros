@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<class name="DeepLearning" description="imports and runs deep learning models from Keras">
+
+	<description type="text">
+		Module for importing and running trained deep learning models from Keras.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="DeepLearning"
+			name="DeepLearning"
+		/>
+	</example>
+
+	<input name="INPUT" description="Input"/>
+	<output name="OUTPUT" description="The output"/>
+
+	<link class="DeepLearning" />
+
+	<author>
+		<name>Amandus Krantz</name>
+		<email>amandus.krantz@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/AmandusKrantz</homepage>
+	</author>
+
+   <files>
+   		<file>DeepLearning.h</file>
+   		<file>DeepLearning.cc</file>
+   		<file>DeepLearning.ikc</file>
+   </files>
+
+</class>

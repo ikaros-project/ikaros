@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<group title="DeepLearning">
+	
+		<module
+			class = "DeepLearning"
+			name = "DeepLearning"
+		/>
+
+		<view name="View">
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
