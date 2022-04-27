@@ -412,6 +412,8 @@ namespace ikaros
 
 
 	vector	closest_point_on_line_segment(vector & A, vector & B, vector & P); // temporary version
+
+	float relu(float input);
 }	
 
 #endif
