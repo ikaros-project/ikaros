@@ -22,6 +22,7 @@
 //	Created July 13, 2001
 //
 // Before 2.0: 4500 lines
+// New paramater handling: 4400 lines
 
 #include <stdlib.h>
 #include <string>
