@@ -171,6 +171,11 @@ public:
                                 GroupElement(GroupElement * parent, XMLElement * xml_node=NULL);
                                 ~GroupElement();
 
+    std::string                 GetParameter(const std::string & name);
+    std::string                 EvaluateValue(const std::string & value);
+    std::string                 GetDefault(const std::string & name);
+
+
     virtual std::string         GetValue(const std::string & name, const std::string & path="");
 
     GroupElement *              GetGroup(const std::string & name);
@@ -442,6 +447,178 @@ GroupElement::~GroupElement()
 */
 
 std::string
+GroupElement::GetDefault(const std::string & name)
+{
+    return ""; // FIXME GET THE CORRECT DEFAULT VALUE HERE FROM LOCAL PARAMETER DECLARATION
+}
+
+
+// Search for value in this and outer groups taking into account parameter renaming and default values
+
+std::string
+GroupElement::GetParameter(const std::string & name)
+{
+    if(name.empty())
+        return "";
+
+    if(attributes.count(name)) // local definition
+        return attributes[name];
+
+    if(parameters.count(name) && parameters[name]->attributes.count("name")) // parameter renaming
+        return GetAttribute(parameters[name]->attributes["name"]);
+
+    std::string value;
+    if(parent && ((value = parent->GetParameter(name)) != "")) // inherited definition
+        return value;
+
+    return GetDefault(name); // get default value
+}
+
+/*
+
+    Evaluate the (retrieved parameter) value in the context of the current group
+    Could add all kinds of expressions in the future to get rid of set_size variants etc
+*/
+
+std::string
+GroupElement::EvaluateValue(const std::string & value) // remove const ****
+{
+    if(value=="")
+        return "";
+
+    if(value[0]=='.') // Evaluate in context of top group
+    {
+        auto p = this;
+        while(p->parent)
+            p = p->parent;
+        return p->EvaluateValue(value.substr(1));
+    }
+    auto p = value.find('.');
+
+    if(p == std::string::npos) // Evaluate single value
+    {
+        if(value[0]=='@')
+            return GetValue(value.substr(1));
+        else
+            return value;
+    }
+
+// Evaluate part of path
+
+    auto p1 = value.substr(0, p);
+    auto p2 = value.substr(p+1);
+
+    if(p1[0]=='@')
+        p1 = GetValue(p1.substr(1));
+
+
+    auto * g = GetGroup(p1);
+    if(!g)
+        return p1+"."+p2;
+
+    return g->EvaluateValue(p2);
+}
+
+
+std::string
+GroupElement::GetValue(const std::string & name, const std::string & path)
+{
+    return EvaluateValue(GetParameter(name));
+}
+
+
+/*
+// 2. 
+
+
+    // A. Process left hand attribute name
+
+
+    // 2. Check for parameter renaming if attribute does not exist
+
+    // 3. Look for inherited
+
+    if(!attributes.count(name))
+    {
+
+    }
+
+    // 2. Check for parameter renaming
+
+    if(parameters.count(name))
+    {
+        const auto & p = parameters.at(name);
+        if(p->attributes.count("name"))
+        {
+            auto new_name = p->attributes.at("name");
+            if(new_name == name)
+                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself: %s", new_name.c_str());
+            else
+                return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
+        }
+    }
+
+    // 4. Check that attribute exists otherwise look for inherited value
+
+    if(!attributes.count(name))
+    {
+        if(!parent)
+            return "";
+        else 
+            return parent->GetValue(name);
+    }
+
+
+
+
+
+
+    // 2. Has path: get in that group instead
+
+    if(!path.empty())
+    {
+        const auto g = GetGroup(path);
+        if(!g)
+            return "";
+        else
+        {
+            std::string new_name = name;
+            if(name[0] == '@')
+                new_name = GetValue(name.substr(1));
+
+            return g->Element::GetValue(new_name); //Handles indirection
+    }   }
+
+
+    // 5. Process value
+
+    std::string value = attributes.at(name);
+
+    // Return empty value if not indirection
+
+    if(value.empty() || value[0]!='@')
+        return value;
+
+    // 6. Handle indirection
+
+    value = value.substr(1);
+
+    // If value value contains a path, split into path and value
+
+    if (value.find('.') != std::string::npos )
+    {
+        auto pv = rsplit(value, ".", 1);
+        return  GetValue(pv[1], pv[0]);
+    }
+
+    return GetValue(value);
+
+}
+*/
+
+
+/*
+std::string
 GroupElement::GetValue(const std::string & name, const std::string & path)
 {
     // 1. No name: return empty string
@@ -514,7 +691,7 @@ GroupElement::GetValue(const std::string & name, const std::string & path)
     return GetValue(value);
 
 }
-
+*/
 
 
 GroupElement *
@@ -523,7 +700,7 @@ GroupElement::GetGroup(const std::string & name)
     if(name.empty())
         return this;
 
-    // Check if we neet to start at top group
+    // Check if we need to start at top group
 
     if(name[0]=='.')
     {
@@ -533,6 +710,7 @@ GroupElement::GetGroup(const std::string & name)
         return g->GetGroup(name.substr(1));
     }
 
+    // FIXME: Each part of the path should be evaluated in its relative context; see EvaluateValue
     // We need to substitute all variables in this scope relative to the current group element
     std::string p;
     std::string sep;
@@ -1171,7 +1349,8 @@ Module::GetDefault(const char * n)
 const char *
 Module::GetValue(const char * n)	// This function implements attribute inheritance with renaming through the parameter element
 {
-    std::string r = group->GetValue(n);
+    return create_string(group->GetValue(n).c_str()); // FIXME: leaks, but will be changed to const & std::string later
+/*
     if(!r.empty())
         return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
     else
@@ -1183,6 +1362,7 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
     }
        
    return GetDefault(n);
+   */
 }
 
 
@@ -3535,6 +3715,8 @@ Kernel::ReadXML()
     
     std::time_t result = std::time(nullptr);
     main_group->attributes.insert({ "session-id", std::to_string(result) });
+    main_group->attributes.insert({ "ikg-file-name", std::string(ikc_file_name) });
+
     session_id = result; // temporary, get from top level group
     
     BuildGroup(main_group, xml);

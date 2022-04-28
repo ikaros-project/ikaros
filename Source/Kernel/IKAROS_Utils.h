@@ -52,7 +52,7 @@ std::string                     join(const std::string & separator, const std::v
 bool starts_with(const std::string &s, const std::string & start);
 
 std::string head(std::string & s, const std::string & delimiter); // return string before delimiter and remove it from s
-std::string cut(std::string & s, const std::string & delimiter); // cut of string at delimiter and return the rest
+std::string cut(std::string & s, const std::string & delimiter); // cut off string at delimiter and return the rest
 std::string rcut(std::string & s, const std::string & delimiter);// search for delimeter from the end instead
 
 std::string ltrim(const std::string &s);
