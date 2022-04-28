@@ -173,7 +173,6 @@ public:
 
     std::string                 GetParameter(const std::string & name);
     std::string                 EvaluateValue(const std::string & value);
-    std::string                 GetDefault(const std::string & name);
 
 
     virtual std::string         GetValue(const std::string & name, const std::string & path="");
@@ -434,23 +433,8 @@ GroupElement::GroupElement(GroupElement * parent, XMLElement * xml_node) : Eleme
 
 GroupElement::~GroupElement()
 {
-    printf("ERROR GROUP GOING OUT OF SCOPE - SHOULD NEVER HAPPEN!!!\n");
 }
 
-
-/*
-
-    PARAMETER COMMENTS:
-
-        - If a parameter value is set by its default in ikc file, it is possible to override it by outer groups or command values
-
-*/
-
-std::string
-GroupElement::GetDefault(const std::string & name)
-{
-    return ""; // FIXME GET THE CORRECT DEFAULT VALUE HERE FROM LOCAL PARAMETER DECLARATION
-}
 
 
 // Search for value in this and outer groups taking into account parameter renaming and default values
@@ -465,13 +449,20 @@ GroupElement::GetParameter(const std::string & name)
         return attributes[name];
 
     if(parameters.count(name) && parameters[name]->attributes.count("name")) // parameter renaming
-        return GetAttribute(parameters[name]->attributes["name"]);
+    {
+        auto v = GetAttribute(parameters[name]->attributes["name"]);
+        if(v != "")
+            return v;
+    }
 
     std::string value;
     if(parent && ((value = parent->GetParameter(name)) != "")) // inherited definition
         return value;
 
-    return GetDefault(name); // get default value
+    if(parameters.count(name) && parameters[name]->attributes.count("default")) // default values
+        return parameters[name]->attributes["default"];
+
+    return "";
 }
 
 /*
@@ -527,173 +518,6 @@ GroupElement::GetValue(const std::string & name, const std::string & path)
 }
 
 
-/*
-// 2. 
-
-
-    // A. Process left hand attribute name
-
-
-    // 2. Check for parameter renaming if attribute does not exist
-
-    // 3. Look for inherited
-
-    if(!attributes.count(name))
-    {
-
-    }
-
-    // 2. Check for parameter renaming
-
-    if(parameters.count(name))
-    {
-        const auto & p = parameters.at(name);
-        if(p->attributes.count("name"))
-        {
-            auto new_name = p->attributes.at("name");
-            if(new_name == name)
-                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself: %s", new_name.c_str());
-            else
-                return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
-        }
-    }
-
-    // 4. Check that attribute exists otherwise look for inherited value
-
-    if(!attributes.count(name))
-    {
-        if(!parent)
-            return "";
-        else 
-            return parent->GetValue(name);
-    }
-
-
-
-
-
-
-    // 2. Has path: get in that group instead
-
-    if(!path.empty())
-    {
-        const auto g = GetGroup(path);
-        if(!g)
-            return "";
-        else
-        {
-            std::string new_name = name;
-            if(name[0] == '@')
-                new_name = GetValue(name.substr(1));
-
-            return g->Element::GetValue(new_name); //Handles indirection
-    }   }
-
-
-    // 5. Process value
-
-    std::string value = attributes.at(name);
-
-    // Return empty value if not indirection
-
-    if(value.empty() || value[0]!='@')
-        return value;
-
-    // 6. Handle indirection
-
-    value = value.substr(1);
-
-    // If value value contains a path, split into path and value
-
-    if (value.find('.') != std::string::npos )
-    {
-        auto pv = rsplit(value, ".", 1);
-        return  GetValue(pv[1], pv[0]);
-    }
-
-    return GetValue(value);
-
-}
-*/
-
-
-/*
-std::string
-GroupElement::GetValue(const std::string & name, const std::string & path)
-{
-    // 1. No name: return empty string
-
-    if(name.empty())
-        return "";
-
-    // 2. Has path: get in that group instead
-
-    if(!path.empty())
-    {
-        const auto g = GetGroup(path);
-        if(!g)
-            return "";
-        else
-        {
-            std::string new_name = name;
-            if(name[0] == '@')
-                new_name = GetValue(name.substr(1));
-
-            return g->Element::GetValue(new_name); //Handles indirection
-    }   }
-
-    // 3. Check for parameter renaming
-
-    if(parameters.count(name))
-    {
-        const auto & p = parameters.at(name);
-        if(p->attributes.count("name"))
-        {
-            auto new_name = p->attributes.at("name");
-            if(new_name == name)
-                Kernel().Notify(msg_fatal_error, "A parameter cannot be mapped onto itself: %s", new_name.c_str());
-            else
-                return GetValue(new_name); // Can be called multiple times in principle, but a bad idea
-        }
-    }
-
-    // 4. Check that attribute exists otherwise look for inherited value
-
-    if(!attributes.count(name))
-    {
-        if(!parent)
-            return "";
-        else 
-            return parent->GetValue(name);
-    }
-
-    // 5. Process value
-
-    std::string value = attributes.at(name);
-
-    // Return empty value if not indirection
-
-    if(value.empty() || value[0]!='@')
-        return value;
-
-    // 6. Handle indirection
-
-    value = value.substr(1);
-
-    // If value value contains a path, split into path and value
-
-    if (value.find('.') != std::string::npos )
-    {
-        auto pv = rsplit(value, ".", 1);
-        return  GetValue(pv[1], pv[0]);
-    }
-
-    return GetValue(value);
-
-}
-*/
-
-
 GroupElement *
 GroupElement::GetGroup(const std::string & name)
 {
@@ -734,36 +558,6 @@ GroupElement::GetGroup(const std::string & name)
         return g->GetGroup(tail);
     
     return nullptr;
-/*
-
-    // FIXME: Each part of the path should be evaluated in its relative context; see EvaluateValue
-    // We need to substitute all variables in this scope relative to the current group element
-    std::string p;
-    std::string sep;
-    for(auto s : split(name, "."))
-    {
-        if(s[0] == '@')
-            p += sep + GetValue(s.substr(1));
-        else
-            p += sep + s;
-        sep = ".";
-    }
-    
-    auto n = split(p, ".", 1);
-    
-    if(groups.count(n[0]))
-    {
-        if(n.size() == 1)
-            return groups.at(n[0]);
-
-        return groups.at(n[0])->GetGroup(n[1]);
-    }
-    
-    if(parent && parent->GetValue("name") == n[0])
-        return parent->GetGroup(n[1]);
-    
-    return nullptr;
-*/
 }
 
 
@@ -1319,7 +1113,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     return nullptr; // No list value was found
 }
 
-
+/*
 const char * // FIXME: ***********************
 Module::GetDefault(const char * n)
 {
@@ -1370,7 +1164,7 @@ Module::GetDefault(const char * n)
     
     return nullptr; // No default value was found
 }
-
+*/
 
 
 const char *
@@ -1380,19 +1174,6 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
     if(v.empty())
         return nullptr;
     return create_string(v.c_str()); // FIXME: leaks, but will be changed to const & std::string later
-/*
-    if(!r.empty())
-        return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
-    else
-    {
-        std::string ss = std::string(instance_name)+"."+std::string(n);
-        r = group->GetValue(ss.c_str());
-        if(!r.empty())
-            return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
-    }
-       
-   return GetDefault(n);
-   */
 }
 
 

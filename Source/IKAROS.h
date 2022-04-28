@@ -323,7 +323,7 @@ public:
     // Get values from parameters in XML tree - implements the semantics of the ikc file format
     
     const char *    GetList(const char * n);                          // Get list of values for parameter
-    const char *    GetDefault(const char * n);                          // Get default value for parameter ******** does this work=???
+    //const char *    GetDefault(const char * n);                          // Get default value for parameter ******** does this work=???
 
 	const char *    GetValue(const char * n);                            // Search through XML for parameter and return its value or NULL
     float           GetFloatValue(const char * n, float d=0, bool deprecation_warning=false);            // Search through XML for parameter and return its value as a float or default value d if not found
