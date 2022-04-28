@@ -90,7 +90,7 @@ public:
     GroupElement * parent;
     std::map<std::string, std::string> attributes;
     
-                                    Element(GroupElement * parent, XMLElement * xml_node=NULL);
+                                    Element(GroupElement * parent, XMLElement * xml_node=nullptr);
     const std::string &             GetAttribute(const std::string & a) const; // FIXME: Remove
     virtual std::string             GetValue(const std::string & a, const std::string & path="") const;
     std::string                     operator[](const std::string & a) const;
@@ -101,7 +101,7 @@ public:
 class ParameterElement: public Element
 {
 public:
-    ParameterElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    ParameterElement(GroupElement * parent, XMLElement * xml_node=nullptr);
     
     void Print(int d=0);
     std::string JSONString(int d=0);
@@ -110,7 +110,7 @@ public:
 class InputElement: public Element
 {
 public:
-    InputElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    InputElement(GroupElement * parent, XMLElement * xml_node=nullptr);
     std::string     MapTarget(std::string name);
     void            Print(int d=0);
     std::string     JSONString(int d=0);
@@ -120,7 +120,7 @@ public:
 class OutputElement: public Element
 {
 public:
-    OutputElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    OutputElement(GroupElement * parent, XMLElement * xml_node=nullptr);
 
     std::string     MapSource(std::string name);
     void            Print(int d=0);
@@ -130,7 +130,7 @@ public:
 class ConnectionElement: public Element
 {
 public:
-    ConnectionElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    ConnectionElement(GroupElement * parent, XMLElement * xml_node=nullptr);
     
     void            Print(int d=0);
     std::string     JSONString(int d=0);
@@ -139,7 +139,7 @@ public:
 class ViewObjectElement: public Element
 {
 public:
-    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=nullptr);
 
     void            Print(int d=0);
     std::string     JSONString(int d=0);
@@ -149,7 +149,7 @@ public:
 class ViewElement: public Element
 {
 public:
-    ViewElement(GroupElement * parent, XMLElement * xml_node=NULL);
+    ViewElement(GroupElement * parent, XMLElement * xml_node=nullptr);
     std::vector<ViewObjectElement> objects;
 
     void            Print(int d=0);
@@ -168,7 +168,7 @@ public:
     std::vector<ViewElement> views;
     Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove and use ClassElement ******
 
-                                GroupElement(GroupElement * parent, XMLElement * xml_node=NULL);
+                                GroupElement(GroupElement * parent, XMLElement * xml_node=nullptr);
                                 ~GroupElement();
 
     std::string                 GetParameter(const std::string & name);
@@ -194,7 +194,7 @@ Element::Element(GroupElement * parent, XMLElement * xml_node)
     if(!xml_node)
         return;
     
-    for(XMLAttribute * attr=xml_node->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+    for(XMLAttribute * attr=xml_node->attributes; attr!=nullptr; attr = (XMLAttribute *)attr->next)
         attributes.insert({ attr->name, attr->value });
 }
 
@@ -481,7 +481,7 @@ GroupElement::GetParameter(const std::string & name)
 */
 
 std::string
-GroupElement::EvaluateValue(const std::string & value) // remove const ****
+GroupElement::EvaluateValue(const std::string & value)
 {
     if(value=="")
         return "";
@@ -704,11 +704,37 @@ GroupElement::GetGroup(const std::string & name)
 
     if(name[0]=='.')
     {
-        GroupElement * g = this;
+        auto * g = this;
         while(g->parent)
             g = g->parent;
         return g->GetGroup(name.substr(1));
     }
+
+    std::string head = name;
+    std::string tail = "";
+
+    if(auto p = name.find('.') != std::string::npos) // Multiple step path
+    {
+        head = name.substr(0, p);
+        tail = name.substr(p+1);
+    }
+
+    if(head[0]=='@')
+        head = GetValue(head.substr(1));
+
+    GroupElement * g = nullptr;
+    if(groups.count(head))
+        g = groups[head];
+    else if(parent && parent->GetValue("name") == head)
+        g = parent; 
+
+    if(tail.empty())
+        return g;
+    else if(g)
+        return g->GetGroup(tail);
+    
+    return nullptr;
+/*
 
     // FIXME: Each part of the path should be evaluated in its relative context; see EvaluateValue
     // We need to substitute all variables in this scope relative to the current group element
@@ -736,7 +762,8 @@ GroupElement::GetGroup(const std::string & name)
     if(parent && parent->GetValue("name") == n[0])
         return parent->GetGroup(n[1]);
     
-    return NULL;
+    return nullptr;
+*/
 }
 
 
@@ -745,7 +772,7 @@ GroupElement::GetModule(const std::string & name) // Get module from full or par
 {
     if(auto g = GetGroup(name))
         return g->module;
-    return NULL;
+    return nullptr;
 }
 
 
@@ -759,16 +786,16 @@ GroupElement::GetSource(const std::string & name) // FIXME: simplify when source
             return g->module->GetModule_IO(g->module->output_list, source[1].c_str());
 
         if(!g->outputs.count(source[1]))
-            return NULL;
+            return nullptr;
 
         auto output = g->outputs.at(source[1]);
         if(!output)
-            return NULL;
+            return nullptr;
 
         auto n = output->MapSource(name);
         return g->GetSource(n);
     }
-    return NULL;
+    return nullptr;
 }
 
 
@@ -1035,17 +1062,17 @@ Module_IO::Allocate()
 {
     if(sizex == unknown_size || sizey == unknown_size)
     {
-        if(module != NULL && !optional)
+        if(module != nullptr && !optional)
             return module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
 
     }
     if(sizex*sizey <= 0)
     {
-        if(module != NULL && !optional)
+        if(module != nullptr && !optional)
             return module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
     }
     
-    if(module != NULL) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
+    if(module != nullptr) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
     data	=   new float * [max_delay];
     matrix  =   new float ** [max_delay];
     for (int d=0; d<max_delay; d++)
@@ -1063,8 +1090,8 @@ Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, 
     next = nxt;
     module = m;
     name = n;
-    data = NULL;
-    matrix = NULL;
+    data = nullptr;
+    matrix = nullptr;
     size = x*y;
     sizex = x;
     sizey = y;
@@ -1089,7 +1116,7 @@ Module_IO::SetSize(int x, int y)
         return;
     if(size != unknown_size && s != size)
     {
-        if(module != NULL)
+        if(module != nullptr)
             module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name.c_str(), module->GetName(), module->GetClassName(), size, s);
         return;
     }
@@ -1097,12 +1124,12 @@ Module_IO::SetSize(int x, int y)
         return;
     if(s == 0)
         return;
-    if(module != NULL)
+    if(module != nullptr)
         module->Notify(msg_debug, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name.c_str(), module->instance_name, module->GetClassName(), s, max_delay);
     sizex = x;
     sizey = y;
     size = x*y;
-    if(module != NULL && module->kernel != NULL)
+    if(module != nullptr && module->kernel != nullptr)
         module->kernel->NotifySizeChange();
 }
 
@@ -1125,7 +1152,7 @@ Module::~Module()
 void
 Module::AddInput(const char * name, bool optional, bool allow_multiple_connections)
 {
-    if(GetModule_IO(input_list, name) != NULL)
+    if(GetModule_IO(input_list, name) != nullptr)
     {
         Notify(msg_warning, "Input \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
@@ -1137,7 +1164,7 @@ Module::AddInput(const char * name, bool optional, bool allow_multiple_connectio
 void
 Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
 {
-    if(GetModule_IO(output_list, name) != NULL)
+    if(GetModule_IO(output_list, name) != nullptr)
     {
         Notify(msg_warning, "Output \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
@@ -1248,10 +1275,10 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     const char * module_name = GetName();
     
     // loop up the group hierarchy
-    for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
+    for (XMLElement * parent = xml->GetParentElement(); parent != nullptr; parent = parent->GetParentElement())
     {
         // Look for parameter element that redefines the attribute name
-        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
+        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != nullptr; parameter = parameter->GetNextElement("parameter"))
         {
             if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
             {
@@ -1266,7 +1293,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
                 const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if(tm == NULL || (equal_strings(tm, module_name)))
+                if(tm == nullptr || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
                     const char * d = kernel->GetXMLAttribute(parameter, "values");
@@ -1275,10 +1302,10 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
                     
                     // the parameter element redefines our parameter name; get the new name
                     const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if(newname == NULL)
+                    if(newname == nullptr)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
-                        return NULL;
+                        return nullptr;
                     }
                     // we have the new name; set it and see if it is defined in the current group element
                     n = newname;
@@ -1289,7 +1316,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
         module_name = kernel->GetXMLAttribute(parent, "name"); // FIXME: check if this will ever happen with the new GetXMLAttribute call
     }
-    return NULL; // No list value was found
+    return nullptr; // No list value was found
 }
 
 
@@ -1299,16 +1326,16 @@ Module::GetDefault(const char * n)
     const char * module_name = GetName();
     
     // loop up the group hierarchy
-    for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
+    for (XMLElement * parent = xml->GetParentElement(); parent != nullptr; parent = parent->GetParentElement())
     {
         // Look for parameter element that redefines the attribute name
-        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
+        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != nullptr; parameter = parameter->GetNextElement("parameter"))
         {
             if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
             {
                 const char * d = kernel->GetXMLAttribute(parameter, "default");
                 if(d)
-                    return (*d != '\0' ? d : NULL); // return NULL if default is an empty string
+                    return (*d != '\0' ? d : nullptr); // return nullptr if default is an empty string
             }
             
             const char * t = kernel->GetXMLAttribute(parameter, "target");
@@ -1317,19 +1344,19 @@ Module::GetDefault(const char * n)
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
                 const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if(tm == NULL || (equal_strings(tm, module_name)))
+                if(tm == nullptr || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
                     const char * d = kernel->GetXMLAttribute(parameter, "default");
                     if(d)
-                        return (*d != '\0' ? d : NULL); // return NULL if default is an empty string;
+                        return (*d != '\0' ? d : nullptr); // return nullptr if default is an empty string;
                     
                     // the parameter element redefines our parameter name; get the new name
                     const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if(newname == NULL)
+                    if(newname == nullptr)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
-                        return NULL;
+                        return nullptr;
                     }
                     // we have the new name; set it and see if it is defined in the current group element
                     n = newname;
@@ -1341,7 +1368,7 @@ Module::GetDefault(const char * n)
         module_name = kernel->GetXMLAttribute(parent, "name");
     }
     
-    return NULL; // No default value was found
+    return nullptr; // No default value was found
 }
 
 
@@ -1349,7 +1376,10 @@ Module::GetDefault(const char * n)
 const char *
 Module::GetValue(const char * n)	// This function implements attribute inheritance with renaming through the parameter element
 {
-    return create_string(group->GetValue(n).c_str()); // FIXME: leaks, but will be changed to const & std::string later
+    auto v = group->GetValue(n);
+    if(v.empty())
+        return nullptr;
+    return create_string(v.c_str()); // FIXME: leaks, but will be changed to const & std::string later
 /*
     if(!r.empty())
         return create_string(r.c_str()); // FIXME: leaks, but will be changed to const & std::string later
@@ -1392,7 +1422,7 @@ bool
 Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
 {
     const char * v = GetValue(n);
-    if(v == NULL)
+    if(v == nullptr)
         return d;
     else
         return string_to_bool(v);
@@ -1471,7 +1501,7 @@ Module::GetIntArray(const char * n, int & size, bool fixed_size)
     int data_size = 0;
 
     const char * v = GetValue(n);
-    if(v == NULL)
+    if(v == nullptr)
     {
         if(requested_size > 0)
         {
@@ -1484,7 +1514,7 @@ Module::GetIntArray(const char * n, int & size, bool fixed_size)
         else
         {
             size = 0;
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -1597,7 +1627,7 @@ void
 Module::Bind(std::string & v, const char * n)
 {
     // TODO: check type here
-    auto x = GetValue(n);   // FIXME: temoprary; GetValue should never return NULL
+    auto x = GetValue(n);   // FIXME: temoprary; GetValue should never return nullptr
     if(!x)
         v = std::string("");
     else
@@ -1611,24 +1641,24 @@ Module::Bind(std::string & v, const char * n)
 Module_IO *
 Module::GetModule_IO(Module_IO * list, const char * name)
 {
-    for (Module_IO * i = list; i != NULL; i = i->next)
+    for (Module_IO * i = list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
             return i;
-    return NULL;
+    return nullptr;
 }
 
 
 void
 Module::AllocateOutputs()
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         i->Allocate();
 }
 
 void
 Module::DelayOutputs()
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         i->DelayOutputs();
 }
 
@@ -1636,10 +1666,10 @@ Module::DelayOutputs()
 void
 Module::SetInputSize(const char * name, int size)
 {
-    for (Module_IO * i = input_list; i != NULL; i = i->next)
+    for (Module_IO * i = input_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
-            if(i->data == NULL)
+            if(i->data == nullptr)
             {
                 Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) does not exist. Cannot set size.\n", name, GetName(), GetClassName());
                 return;
@@ -1654,90 +1684,90 @@ Module::SetInputSize(const char * name, int size)
 float *
 Module::GetInputArray(const char * name, bool required)
 {
-    for (Module_IO * i = input_list; i != NULL; i = i->next)
+    for (Module_IO * i = input_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
-            if(i->data == NULL)
+            if(i->data == nullptr)
             {
                 if(required && !i->optional)
-                    Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
-                return NULL;
+                    Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
+                return nullptr;
             }
             else
                 return i->data[0];
         }
-    Notify(msg_warning, "Input array \"%s\" of module \"%s\" (%s) does not exist. Returning NULL.\n", name, GetName(), GetClassName());
-    return NULL;
+    Notify(msg_warning, "Input array \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    return nullptr;
 }
 
 float *
 Module::GetOutputArray(const char * name, bool required)
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
-            if(i->data == NULL)
+            if(i->data == nullptr)
             {
                 if(required && !i->optional)
-                    Notify(msg_fatal_error, "Output array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
-                return NULL;
+                    Notify(msg_fatal_error, "Output array \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
+                return nullptr;
             }
             else
                 return i->data[0];
         }
     if(required)
-        Notify(msg_warning, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning NULL.\n", name, GetName(), GetClassName());
-    return NULL;
+        Notify(msg_warning, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    return nullptr;
 }
 
 float **
 Module::GetInputMatrix(const char * name, bool required)
 {
-    for (Module_IO * i = input_list; i != NULL; i = i->next)
+    for (Module_IO * i = input_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
-            if(i->matrix == NULL)
+            if(i->matrix == nullptr)
             {
                 if(required && !i->optional)
-                    Notify(msg_fatal_error, "Input matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
-                return NULL;
+                    Notify(msg_fatal_error, "Input matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
+                return nullptr;
             }
             else
                 return i->matrix[0];
         }
-    Notify(msg_warning, "Input matrix \"%s\" of module \"%s\" (%s) does not exist. Returning NULL.\n", name, GetName(), GetClassName());
-    return NULL;
+    Notify(msg_warning, "Input matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    return nullptr;
 }
 
 float **
 Module::GetOutputMatrix(const char * name, bool required)
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
-            if(i->matrix == NULL)
+            if(i->matrix == nullptr)
             {
                 if(required && !i->optional)
-                    Notify(msg_fatal_error, "Output matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
-                return NULL;
+                    Notify(msg_fatal_error, "Output matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
+                return nullptr;
             }
             else
                 return i->matrix[0];
         }
-    Notify(msg_warning, "Output matrix \"%s\" of module \"%s\" (%s) does not exist. Returning NULL.\n", name, GetName(), GetClassName());
-    return NULL;
+    Notify(msg_warning, "Output matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    return nullptr;
 }
 
 int
 Module::GetInputSize(const char * input_name)
 {
     // Find the Module_IO for this input
-    for (Module_IO * i = input_list; i != NULL; i = i->next)
+    for (Module_IO * i = input_list; i != nullptr; i = i->next)
         if(equal_strings(input_name, i->name.c_str()))
         {
             if(i->size != unknown_size)
                 return i->size;
-            else if(kernel != NULL)
+            else if(kernel != nullptr)
                 return kernel->CalculateInputSize(i);
             else
                 break;
@@ -1750,12 +1780,12 @@ int
 Module::GetInputSizeX(const char * input_name) // TODO: also used internally so cannot be removed
 {
     // Find the Module_IO for this input
-    for (Module_IO * i = input_list; i != NULL; i = i->next)
+    for (Module_IO * i = input_list; i != nullptr; i = i->next)
         if(equal_strings(input_name, i->name.c_str()))
         {
             if(i->sizex != unknown_size)
                 return i->sizex;
-            else if(kernel != NULL)
+            else if(kernel != nullptr)
                 return kernel->CalculateInputSizeX(i);
             else
                 break;
@@ -1768,12 +1798,12 @@ int
 Module::GetInputSizeY(const char * input_name) // TODO: also used internally so cannot be removed
 {
     // Find the Module_IO for this input
-    for (Module_IO * i = input_list; i != NULL; i = i->next)
+    for (Module_IO * i = input_list; i != nullptr; i = i->next)
         if(equal_strings(input_name, i->name.c_str()))
         {
             if(i->sizex != unknown_size)	// Yes, sizeX is correct
                 return i->sizey;
-            else if(kernel != NULL)
+            else if(kernel != nullptr)
                 return kernel->CalculateInputSizeY(i);
             else
                 break;
@@ -1785,7 +1815,7 @@ Module::GetInputSizeY(const char * input_name) // TODO: also used internally so 
 int
 Module::GetOutputSize(const char * name)
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
             if(i->size > 0)
@@ -1805,7 +1835,7 @@ Module::GetOutputSize(const char * name)
 int
 Module::GetOutputSizeX(const char * name)
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
             if(i->sizex > 0)
@@ -1826,7 +1856,7 @@ Module::GetOutputSizeX(const char * name)
 int
 Module::GetOutputSizeY(const char * name)
 {
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
         {
             if(i->sizey > 0)
@@ -1921,16 +1951,16 @@ Module::SetOutputSize(const char * name, int x, int y)
         Notify(msg_warning, "Attempting to set negative size of %s.%s \n", this->instance_name, name);
         return;
     }
-    for (Module_IO * i = output_list; i != NULL; i = i->next)
+    for (Module_IO * i = output_list; i != nullptr; i = i->next)
         if(equal_strings(name, i->name.c_str()))
             i->SetSize(x, y);
 }
 
 Module::Module(Parameter * p)
 {
-    input_list = NULL;
-    output_list = NULL;
-    bindings = NULL;
+    input_list = nullptr;
+    output_list = nullptr;
+    bindings = nullptr;
     timer = new Timer();
     time = 0;
     ticks = 0;
@@ -1947,7 +1977,7 @@ Module::Module(Parameter * p)
 
 	// Compute full name
     std::vector<std::string> path;
-    for (GroupElement * g = group; g->parent != NULL; g = g->parent) // Skip the outermost group name
+    for (GroupElement * g = group; g->parent != nullptr; g = g->parent) // Skip the outermost group name
         path.push_back(g->GetAttribute("name"));
     std::string s = join(".", path, true);
     full_instance_name = create_string(s.c_str());
@@ -1960,7 +1990,7 @@ Module::AddIOFromIKC()
 	if(!xml->GetParentElement())
         return;
     
-    for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != NULL; e = e->GetNextElement("input"))
+    for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != nullptr; e = e->GetNextElement("input"))
     {
         const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
         bool multiple = (amc ? string_to_bool(amc) : true); // True is defaut value
@@ -1972,7 +2002,7 @@ Module::AddIOFromIKC()
             AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt), multiple);
     }
     
-    for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
+    for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != nullptr; e = e->GetNextElement("output"))
     {
         const char * opt = kernel->GetXMLAttribute(e, "optional");
         if(!opt)
@@ -2077,7 +2107,7 @@ Module::SetSizes()  // FIXME: remove xml access, use output elements
 		const char * sizearg;
 		const char * sizeargy;
         const char * arg;
-		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
+		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != nullptr; e = e->GetNextElement("output"))
         {
             const char * output_name = kernel->GetXMLAttribute(e, "name");
 
@@ -2136,7 +2166,7 @@ Module::SetSizes()  // FIXME: remove xml access, use output elements
 bool
 Module::Notify(int msg)
 {
-    if(kernel != NULL)
+    if(kernel != nullptr)
         kernel->Notify(msg, "\n");
     else if(msg == msg_fatal_error)
     {
@@ -2163,7 +2193,7 @@ Module::Notify(int msg, const char *format, ...)
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
-    if(kernel != NULL && msg<=log_level)
+    if(kernel != nullptr && msg<=log_level)
         return kernel->Notify(-msg, message);
     else if(msg == msg_fatal_error)
     {
@@ -2193,7 +2223,7 @@ Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio,
 
 Connection::~Connection()
 {
-    if(source_io != NULL && source_io->module != NULL)
+    if(source_io != nullptr && source_io->module != nullptr)
         source_io->module->Notify(msg_debug, "    Deleting Connection.\n");
     delete next;
 }
@@ -2210,7 +2240,7 @@ Connection::Propagate(long long tick)
         return;
     if(tick % target_io->module->period != target_io->module->phase)
         return;
-    if(source_io != NULL && source_io->module != NULL)
+    if(source_io != nullptr && source_io->module != nullptr)
         source_io->module->Notify(msg_debug, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
     for (int i=0; i<size; i++)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
@@ -2221,7 +2251,7 @@ ThreadGroup::ThreadGroup(Kernel * k)
 {
     period = 1;
     phase = 0;
-    thread = NULL;
+    thread = nullptr;
 }
 
 
@@ -2229,7 +2259,7 @@ ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
 {
     period = period_;
     phase = phase_;
-    thread = NULL;
+    thread = nullptr;
 }
 
 
@@ -2253,7 +2283,7 @@ ThreadGroup_Tick(void *group, bool high_priority)
             std::cout << "Failed to setschedparam: " << std::strerror(errno) << '\n';
     }
     ((ThreadGroup *)group)->Tick();
-    return NULL;
+    return nullptr;
 }
 
 void
@@ -2275,7 +2305,7 @@ ThreadGroup::Stop(long long tick)
     {
         thread->join();
         delete thread;
-        thread = NULL;
+        thread = nullptr;
     }
 }
 
@@ -2300,19 +2330,19 @@ ThreadGroup::Tick()
 
 Kernel::Kernel()
 {
-    options                 = NULL;
+    options                 = nullptr;
     useThreads              = false; // FIXE: Should be set to true
     max_ticks               = -1;
     tick_length             = 0;
     
     log_level               = log_level_info;
-    ikaros_dir              = NULL;
-    ikc_dir                 = NULL;
-    ikc_file_name           = NULL;
+    ikaros_dir              = nullptr;
+    ikc_dir                 = nullptr;
+    ikc_file_name           = nullptr;
 
     tick                    = 0;
-    xmlDoc                  = NULL;
-    connections             = NULL;
+    xmlDoc                  = nullptr;
+    connections             = nullptr;
     module_count            = 0;
     period_count            = 0;
     phase_count             = 0;
@@ -2321,13 +2351,13 @@ Kernel::Kernel()
     terminate			    = false;
     sizeChangeFlag          = false;
     
-    logfile                 = NULL;
+    logfile                 = nullptr;
     timer		            = new Timer();
     
     // ------------ WebUI part --------------
     
-    webui_dir               = NULL;
-    xml                     = NULL;
+    webui_dir               = nullptr;
+    xml                     = nullptr;
     ui_state                = ui_state_pause;
     master_id               = 0;
     tick_is_running         = false;
@@ -2354,10 +2384,10 @@ Kernel::SetOptions(Options * opt)
     
     // Compute ikaros root path
     
-    ikaros_dir = NULL;
+    ikaros_dir = nullptr;
     if(is_absolute_path(IKAROSPATH))
         ikaros_dir = create_string(IKAROSPATH);
-    else if(options->GetBinaryDirectory() != NULL)
+    else if(options->GetBinaryDirectory() != nullptr)
         ikaros_dir = create_formatted_string("%s%s", options->GetBinaryDirectory(), IKAROSPATH);
     else
         Notify(msg_fatal_error, "The Ikaros root directory could not be established. Please set an absolute IKAROSPATH in IKAROS_System.h\n");
@@ -2374,7 +2404,7 @@ Kernel::SetOptions(Options * opt)
 
     // Fix module paths
     for(auto c : classes)
-        if(c.second->path != NULL && c.second->path[0] != '/')
+        if(c.second->path != nullptr && c.second->path[0] != '/')
         {
             const char * t = c.second->path;
             c.second->path = create_formatted_string("%s%s", ikaros_dir, c.second->path);
@@ -2461,10 +2491,10 @@ Kernel::JSONString()
 bool
 Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
 {
-    if(path == NULL)
+    if(path == nullptr)
         return Notify(msg_fatal_error, "Path to ikc file is missing for class \"%s\".\n", name);
     
-    char * path_to_ikc_file = NULL;
+    char * path_to_ikc_file = nullptr;
     
     // Test for backward compatibility and remove initial paths if needed
     
@@ -2494,7 +2524,7 @@ Kernel::Run()
 {
     first_request = true;
 
-    if(socket == NULL)
+    if(socket == nullptr)
         return;
 
     chdir(ikc_dir);
@@ -2550,7 +2580,7 @@ Kernel::PrintTiming()
 void
 Kernel::Propagate()
 {
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
         c->Propagate(tick);
 }
 
@@ -2559,7 +2589,7 @@ Kernel::CheckNAN()
 {
     for (Module * & m : _modules)
     {
-        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
+        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
         {
             for(int j=0; j<i->sizex*i->sizey; j++)
             {
@@ -2579,12 +2609,12 @@ Kernel::CheckInputs()
 {
     for (Module * & m : _modules)
     {
-        for (Module_IO * i = m->input_list; i != NULL; i = i->next)
+        for (Module_IO * i = m->input_list; i != nullptr; i = i->next)
             if(i->size == unknown_size)
             {
                 // Check if connected
                 bool connected = false;
-                for (Connection * c = connections; c != NULL; c = c->next)
+                for (Connection * c = connections; c != nullptr; c = c->next)
                     if(c->target_io == i)
                         connected = true;
                 if(connected)
@@ -2602,12 +2632,12 @@ Kernel::CheckOutputs()
 {
     for (Module * & m : _modules)
     {
-        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
+        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
             if(i->size == unknown_size)
             {
                 // Check if connected
                 bool connected = false;
-                for (Connection * c = connections; c != NULL; c = c->next)
+                for (Connection * c = connections; c != nullptr; c = c->next)
                     if(c->source_io == i)
                         connected = true;
                 if(connected)
@@ -2621,13 +2651,13 @@ Kernel::CheckOutputs()
 void
 Kernel::InitInputs()
 {
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
     {
         if(c->source_io->size == unknown_size)
         {
             Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
         }
-        else if(c->target_io->data != NULL && c->target_io->allow_multiple == false)
+        else if(c->target_io->data != nullptr && c->target_io->allow_multiple == false)
         {
             Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->module->GetClassName());
         }
@@ -2635,7 +2665,7 @@ Kernel::InitInputs()
         {
             Notify(msg_debug, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             // already connected to 0 or longer delay?
-            if(c->target_io->data != NULL)
+            if(c->target_io->data != nullptr)
             {
                 Notify(msg_fatal_error, "Failed to connect zero-delay connection from \"%s\" of module \"%s\" (%s) because target is already connected.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
             }
@@ -2799,7 +2829,7 @@ Kernel::Init()
  //           Notify(msg_fatal_error, "Duplicate module name \"%s\".", m->GetFullName()); // Would be good to find this out before module creation
     }
 
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
     {
         //module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
         if(c->delay == 0)
@@ -2925,7 +2955,7 @@ Kernel::Store()
     char * p = options->GetArgument('S');
     char * s = p;
     
-    if(p == NULL)
+    if(p == nullptr)
         s = ikc_dir;
     else if(p[0] != '/') // not absolute path
         s = create_formatted_string("%s%s", ikc_dir, p);
@@ -2949,7 +2979,7 @@ Kernel::Load()
     char * p = options->GetArgument('L');
     char * s = p;
     
-    if(p == NULL)
+    if(p == nullptr)
         s = ikc_dir;
     else if(p[0] != '/') // not absolute path
         s = create_formatted_string("%s%s", ikc_dir, p);
@@ -2986,7 +3016,7 @@ Kernel::GetModule(const char * n)
     for (Module * & m : _modules)
         if(equal_strings(n, m->instance_name))
             return m;
-    return NULL;
+    return nullptr;
 }
 
 
@@ -2996,7 +3026,7 @@ Kernel::GetModuleFromFullName(const char * n)
     for (Module * & m : _modules)
         if(equal_strings(n, m->full_instance_name))
             return m;
-    return NULL;
+    return nullptr;
 }
 
 
@@ -3016,9 +3046,9 @@ Kernel::GetSource(Module_IO * &io, GroupElement * group, const char * source_mod
 const char *
 Kernel::GetXMLAttribute(XMLElement * e, const char * attribute) // FIXME: DELETE
 {
-    const char * value = NULL;
+    const char * value = nullptr;
     
-    while(e != NULL && e->IsElement())
+    while(e != nullptr && e->IsElement())
         if((value = e->GetAttribute(attribute)))
              return value;
         else
@@ -3027,7 +3057,7 @@ Kernel::GetXMLAttribute(XMLElement * e, const char * attribute) // FIXME: DELETE
     if((value = options->GetValue(attribute)))
         return value;
     
-    return NULL;
+    return nullptr;
 }
 
 
@@ -3156,7 +3186,7 @@ Kernel::CalculateInputSize(Module_IO * i)
     // The size is the sum of the sizes of all outputs connected to this input
     // The input size is unspecified if one of the outputs has unknown size
     int s = 0;
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
     {
         if(c->target_io == i)
         {
@@ -3180,7 +3210,7 @@ Kernel::CalculateInputSizeX(Module_IO * i)
     // For matrices, there can only be one input
     // The input size is unspecified if one of the outputs has unknown size
     int s = 0;
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
     {
         if(c->target_io == i)
         {
@@ -3205,7 +3235,7 @@ Kernel::CalculateInputSizeY(Module_IO * i)
     // For matrices, there can only be one input
     // The input size is unspecified if one of the outputs has unknown size
     int s = 0;
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
     {
         if(c->target_io == i)
         {
@@ -3321,7 +3351,7 @@ Kernel::SortModules()
 void
 Kernel::CalculateDelays()
 {
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
     {
         if(c->delay > c->source_io->max_delay)
             c->source_io->max_delay = c->delay;
@@ -3377,7 +3407,7 @@ Kernel::Notify(int msg, const char * format, ...)
     if(message[strlen(message)-1] != '\n')
         printf("\n");
     fflush(stdout);
-    if(logfile != NULL)
+    if(logfile != nullptr)
         fprintf(logfile, "%5lld: %s", tick, message);	// Print in both places
     return false;
 }
@@ -3407,7 +3437,7 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
     {
 		char * d = create_string(dstring);
         char * p = strtok(d, ",");
-        while (p != NULL)
+        while (p != nullptr)
         {
             int a, b, n;
             n = sscanf(p, "%d:%d", &a, &b);
@@ -3419,7 +3449,7 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
                 connections = new Connection(connections, sio, s_offset, tio, t_offset, size, i+extra_delay, is_active);
                 c++;
             }
-            p = strtok(NULL, ",");
+            p = strtok(nullptr, ",");
         }
 		destroy_string(d);
     }
@@ -3435,15 +3465,15 @@ Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, in
 static const char *
 check_file_exists(const char * path)
 {
-	if(path != NULL)
+	if(path != nullptr)
 	{
 		FILE * t = fopen(path, "rb");
-		bool exists = (t != NULL);
+		bool exists = (t != nullptr);
 		if(t) fclose(t);
-		return (exists ? path : NULL);
+		return (exists ? path : nullptr);
 	}
     
-	return NULL;
+	return nullptr;
 }
 */
 
@@ -3459,7 +3489,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
     // THREE ALTERNATIVES:
     //  Global path - starts with /
     //  Local path  - does not start with /
-    //  No path     - path is NULL or equals ""
+    //  No path     - path is nullptr or equals ""
 
     char include_file[PATH_MAX] ="";
     const char * path = xml_node->GetAttribute("path"); // FIXME: use GetValue with variables, inheritance etc
@@ -3496,13 +3526,13 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 
 	XMLDocument * cDoc = new XMLDocument(filename);
 	XMLElement * cgroup = cDoc->xml;
-	cDoc->xml = NULL;
+	cDoc->xml = nullptr;
 	delete cDoc;
 	
 	// 1. Replace the module element with the group element of the included file
 	
 	cgroup->next = xml_node->next;
-	if(xml_node->prev == NULL)
+	if(xml_node->prev == nullptr)
 		xml_node->GetParentElement()->content = cgroup;
 	else
 		xml_node->prev->next = cgroup;
@@ -3510,23 +3540,23 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 	
 	// 2. Copy attributes
     
-	for(XMLNode * n = xml_node->attributes; n != NULL; n=n->next)
+	for(XMLNode * n = xml_node->attributes; n != nullptr; n=n->next)
 		cgroup->SetAttribute(((XMLAttribute *)n)->name, ((XMLAttribute *)n)->value);
     delete xml_node->attributes;
-	xml_node->attributes = NULL;
+	xml_node->attributes = nullptr;
 	
 	// 3. Copy elements
 	
 	XMLNode * last = cgroup->content;
-	if(last == NULL)
+	if(last == nullptr)
 		cgroup->content = xml_node->content;
 	else
 	{
-		while (last->next != NULL)
+		while (last->next != nullptr)
 			last = last->next;
 		last->next = xml_node->content;
 	}
-	xml_node->content = NULL;
+	xml_node->content = nullptr;
 	
 	// 4. Build the class group
 	
@@ -3534,7 +3564,7 @@ Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char 
 	
 	// 5. Delete original element and replace it with the newly merged group
 	
-	xml_node->next = NULL;
+	xml_node->next = nullptr;
 	delete xml_node;
 	
 	return cgroup;
@@ -3554,18 +3584,18 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
 
     // Add attributes to group element
     
-    for(XMLAttribute * attr=group_xml->attributes; attr!=NULL; attr = (XMLAttribute *)attr->next)
+    for(XMLAttribute * attr=group_xml->attributes; attr!=nullptr; attr = (XMLAttribute *)attr->next)
         group->attributes.insert({ attr->name, attr->value });
     
-    for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
+    for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != nullptr; xml_node = xml_node->GetNextElement())
     {
         if(xml_node->IsElement("link"))    // Link to code
         {
             const char * class_name = GetXMLAttribute(group_xml, "class");
             Parameter * parameter = new Parameter(this, xml_node, group);
-            Module * m = classes.count(class_name) ? classes.at(class_name)->CreateModule(parameter) : NULL;
+            Module * m = classes.count(class_name) ? classes.at(class_name)->CreateModule(parameter) : nullptr;
             delete parameter;
-            if(m == NULL)
+            if(m == nullptr)
                 Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
             else if(useThreads && m->phase != 0)
                 Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
@@ -3626,7 +3656,7 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         else if(xml_node->IsElement("view"))
         {
             ViewElement v(group, xml_node);
-            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != NULL; xml_obj = xml_obj->GetNextElement()) // WAS "object"
+            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != nullptr; xml_obj = xml_obj->GetNextElement()) // WAS "object"
             {
                 ViewObjectElement o((GroupElement *)&v, xml_obj); // FIXME: is this correct?
                 o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason
@@ -3651,7 +3681,7 @@ Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remov
         auto source = c["source"]; // FIXME: use count and at instead
         auto target = c["target"];
         try {
-            Module_IO * source_io = NULL;
+            Module_IO * source_io = nullptr;
             if(starts_with(source, "."))
                 source_io = main_group->GetSource(source.substr(1));
             else
@@ -3696,11 +3726,11 @@ Kernel::ReadXML()
         return Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
 
     xmlDoc = new XMLDocument(ikc_file_name, false);
-    if(xmlDoc->xml == NULL)
+    if(xmlDoc->xml == nullptr)
         return Notify(msg_fatal_error, "Could not read (or find) \"%s\".\n", ikc_file_name);
 
     XMLElement * xml = xmlDoc->xml->GetElement("group");
-    if(xml == NULL)
+    if(xml == nullptr)
         return Notify(msg_fatal_error, "Did not find <group> element in IKG/XML file \"%s\".\n", ikc_file_name);
     
     // Set default parameters
@@ -3709,7 +3739,7 @@ Kernel::ReadXML()
 
     // 2.0 create top group
     
-    main_group = new GroupElement(NULL);
+    main_group = new GroupElement(nullptr);
     
     // set session id
     
@@ -3788,7 +3818,7 @@ Kernel::CalculateChecksum()
     int target_checksum = std::stoi(c);
     int checksum = 1;
     for (Module * & m : _modules)
-        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
+        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
             checksum *= i->sizex * i->sizey;
 
     if(checksum == target_checksum)
@@ -3818,18 +3848,18 @@ Kernel::ListModulesAndConnections()
     {
         //        Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
         Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
-        for (Module_IO * i = m->input_list; i != NULL; i = i->next)
+        for (Module_IO * i = m->input_list; i != nullptr; i = i->next)
             if(i->data)
-                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]));
+                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name.c_str(), i->sizex, i->sizey, (i->data == nullptr ? nullptr : i->data[0]));
             else
                 Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name.c_str());
-        for (Module_IO * i = m->output_list; i != NULL; i = i->next)
-            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name.c_str(), i->sizex, i->sizey, (i->data == NULL ? NULL : i->data[0]), i->max_delay);
+        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
+            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name.c_str(), i->sizex, i->sizey, (i->data == nullptr ? nullptr : i->data[0]), i->max_delay);
         Notify(msg_print, "\n");
     }
     Notify(msg_print, "Connections:\n");
     Notify(msg_print, "\n");
-    for (Connection * c = connections; c != NULL; c = c->next)
+    for (Connection * c = connections; c != nullptr; c = c->next)
         if(c->delay == 0)
             Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
                    c->source_io->module->instance_name, c->source_io->name.c_str(), 0, c->source_io->size-1,
@@ -4015,7 +4045,7 @@ static bool
 SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey, std::string type)
 {
     long  size;
-    unsigned char * jpeg = NULL;
+    unsigned char * jpeg = nullptr;
 
     if(type == "red")
         jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_red);
@@ -4065,7 +4095,7 @@ checkNumber(float x)
 static bool
 SendJSONArrayData(ServerSocket * socket, const std::string & source, float * array, int size)
 {
-    if (array == NULL)
+    if (array == nullptr)
         return false;
     
     socket->fillBuffer("\t\t\"" + source + "\":\n\t\t[\n");
@@ -4083,7 +4113,7 @@ SendJSONArrayData(ServerSocket * socket, const std::string & source, float * arr
 static bool
 SendJSONMatrixData(ServerSocket * socket, const std::string & source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead
 {
-    if (matrix == NULL)
+    if (matrix == nullptr)
         return false;
     
     int k = 0;
@@ -4592,5 +4622,5 @@ void *
 Kernel::StartHTTPThread(Kernel * k)
 {
     k->HandleHTTPThread();
-    return NULL;
+    return nullptr;
 }
