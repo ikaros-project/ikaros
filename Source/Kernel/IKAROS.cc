@@ -536,8 +536,8 @@ GroupElement::GetGroup(const std::string & name)
 
     std::string head = name;
     std::string tail = "";
-
-    if(auto p = name.find('.') != std::string::npos) // Multiple step path
+    auto p = name.find('.');
+    if(p  != std::string::npos) // Multiple step path
     {
         head = name.substr(0, p);
         tail = name.substr(p+1);
@@ -2953,7 +2953,7 @@ Kernel::SendCommand(const char * command, float x, float y, std::string value)
 {
     std::string c = command;
     auto s = rsplit(c, ".", 1);
-    if(auto * g = main_group->GetGroup(s[0]))
+    if(auto * g = main_group->GetGroup(s[0])) // FIXME: Error of group not found
         if(Module * m = g->module)
             m->Command(s[1], x, y, value);
 }
