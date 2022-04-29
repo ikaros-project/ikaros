@@ -583,8 +583,6 @@ public:
     void        ListProfiling();
     void        PrintTiming();           // Print total timing information
     
-    // FIXME: make following variables private again when WebUI-code has been merged with kernel
-
     long long           tick;             // Updated every iteration
     long long           max_ticks;        // Max iterations, stop after these many ticks
     

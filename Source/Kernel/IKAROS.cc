@@ -167,7 +167,7 @@ public:
     std::unordered_map<std::string, OutputElement *> outputs;
     std::vector<ConnectionElement> connections;
     std::vector<ViewElement> views;
-    Module * module; // if this group is a 'class'; in this case goups should be empty // FIXME: remove and use ClassElement ******
+    Module * module; // if this group is a 'class'; in this case goups should be empty 
 
                                 GroupElement(GroupElement * parent, XMLElement * xml_node=nullptr);
                                 ~GroupElement();

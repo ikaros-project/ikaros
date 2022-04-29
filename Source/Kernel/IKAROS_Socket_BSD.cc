@@ -88,52 +88,6 @@ Socket::~Socket()
 }
 
 
-
-/*
-
-bool
-Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
-{
-    data->sd = -1;
-    struct sockaddr_in localAddr, servAddr;
-    struct hostent *h;
-	
-    if ((h = gethostbyname(hostname)) == NULL)  // FIXME: use getaddrinfo instead
-        return false;  // unkown host
-	
-    servAddr.sin_family = h->h_addrtype;
-    memcpy((char *) &servAddr.sin_addr.s_addr, h->h_addr_list[0], h->h_length);
-    servAddr.sin_port = htons(port);
-	
-    if ((data->sd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-        return false; // cannot open socket
-	
-    localAddr.sin_family = AF_INET;
-    localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    localAddr.sin_port = htons(0);
-	
-    if (bind(data->sd, (struct sockaddr *) &localAddr, sizeof(localAddr)) < 0)
-        return false; // cannot open port
-	
-    if (connect(data->sd, (struct sockaddr *) &servAddr, sizeof(servAddr)) <0)
-        return false; // cannot connect
-
-    if(size == -1) // default to use size of string
-    {
-        if (write(data->sd, request, strlen(request)) <0)
-            return false; // cannot send data
-	}
-    else
-    {
-        if (write(data->sd, request, size) <0)
-            return false; // cannot send data
-    }
-
-    return data->sd != -1;
-}
-
-*/
-
 bool
 Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
