@@ -3416,9 +3416,11 @@ Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * cu
         else if(xml_node->IsElement("parameter"))
         {
             auto * p = new ParameterElement(group, xml_node);
-            group->parameter_list.push_back(p);
+            group->parameter_list.push_back(p); // onlye used to print parameters
             if(const char * target = xml_node->GetAttribute("target"))
                 group->parameters.insert( { target, p }); // parameter do not have targets in classes
+            else if(const char * name = xml_node->GetAttribute("name")) // ***********
+                group->parameters.insert( { name, p }); // normal class parameter without renaming *******
         }
         
         else if(xml_node->IsElement("input"))
