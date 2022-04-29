@@ -451,7 +451,7 @@ GroupElement::GetParameter(const std::string & name)
 
     if(parameters.count(name) && parameters[name]->attributes.count("name")) // parameter renaming
     {
-        auto v = GetAttribute(parameters[name]->attributes["name"]);
+        auto v = GetParameter(parameters[name]->attributes["name"]);
         if(v != "")
             return v;
     }
