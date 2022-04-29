@@ -9,14 +9,14 @@
  
 -->
 
-<group parameter_set_to_use="ParameterSetA" name="OuterGroup" attribute_to_use="color" p0="5" >
+
+<group parameter_set_to_use="ParameterSetA" name="OuterGroup" attribute_to_use="color" p0="777" color="Red">
 
 	<!--
 
 		Test of parameter indirection
 
 	-->
-
 	<group
 		name="ParameterSetA"
 		color = "Blue"
@@ -32,24 +32,18 @@
 	<module
 		class 	= "Test"
 		name 	= "Test"
-
-		p01__7 = "7"
-		p02__5 = "@p0"		_02 ="ERROR"
-		p03__7 = "@p01__7"		_03 ="ERROR"
-		p04__7 = "@p03__7"		_04 ="ERROR"
-
 		
-		p05__Blue 	= "@OuterGroup.ParameterSetA.color"
-		p06__ParameterSetA 	= "@OuterGroup.parameter_set_to_use"
-		p07__Blue 	= "@OuterGroup.@parameter_set_to_use.color"
-		p08__null 	= "@OuterGroup.parameter_set_to_use.color"
-		p09__Blue	= "@OuterGroup.ParameterSetA.@attribute_to_use"
-		p10__Blue 	= "@OuterGroup.@parameter_set_to_use.@attribute_to_use"
-		p11__Blue	= "@OuterGroup.@parameter_set_to_use.color"
+		p1 		= "1"
+		p2		= "@p1"
+		p3		= "@p0"
 
-		p12__Blue	= "@.ParameterSetA.color"
-		p13__Blue = "@.@parameter_set_to_use.color"
-		p14__10m 	= "@.@parameter_set_to_use.size"
+		p4		= "@parameter_set_to_use"
+		p5 		= "@attribute_to_use"
+
+		p6 		= "OuterGroup.@parameter_set_to_use.@color"
+		p7 		= ".@parameter_set_to_use.@color"
+
+
 	/>
 	
 	<!--
@@ -58,7 +52,7 @@
 
 	-->
 
-	<parameter name="p0" target="p30" comment="should set p30 to 5 from outer group" />
+	<parameter name="p0" target="p30" comment="should set p30 to 5 from outer group or to default if not set anywere else" default="47" />
 
 
 	<module
@@ -86,4 +80,3 @@
 
     <module class = "Logger" name = "Logger" />
 </group>
-
