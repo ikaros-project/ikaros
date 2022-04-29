@@ -1114,58 +1114,7 @@ Module::GetList(const char * n) // TODO: Check that this complicated procedure i
     return nullptr; // No list value was found
 }
 
-/*
-const char * // FIXME: ***********************
-Module::GetDefault(const char * n)
-{
-    const char * module_name = GetName();
-    
-    // loop up the group hierarchy
-    for (XMLElement * parent = xml->GetParentElement(); parent != nullptr; parent = parent->GetParentElement())
-    {
-        // Look for parameter element that redefines the attribute name
-        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != nullptr; parameter = parameter->GetNextElement("parameter"))
-        {
-            if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
-            {
-                const char * d = kernel->GetXMLAttribute(parameter, "default");
-                if(d)
-                    return (*d != '\0' ? d : nullptr); // return nullptr if default is an empty string
-            }
-            
-            const char * t = kernel->GetXMLAttribute(parameter, "target");
-            if(equal_strings(t, n))
-            {                
-                // we have found our parameter
-                // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if(tm == nullptr || (equal_strings(tm, module_name)))
-                {
-                    // use default if it exists
-                    const char * d = kernel->GetXMLAttribute(parameter, "default");
-                    if(d)
-                        return (*d != '\0' ? d : nullptr); // return nullptr if default is an empty string;
-                    
-                    // the parameter element redefines our parameter name; get the new name
-                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if(newname == nullptr)
-                    {
-                        Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
-                        return nullptr;
-                    }
-                    // we have the new name; set it and see if it is defined in the current group element
-                    n = newname;
-                }
-            }
-        }
-        
-        // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = kernel->GetXMLAttribute(parent, "name");
-    }
-    
-    return nullptr; // No default value was found
-}
-*/
+
 
 
 const char *
