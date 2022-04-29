@@ -510,6 +510,8 @@ SequenceRecorder::GoToTime(float time)
             auto & point = keypoints[i]["point"];
             if(!point[c].is_null())
             {
+                //std::string s = keypoints[i]["time"];
+                //printf(">> %s<<\n", s.c_str());
                 float t = keypoints[i]["time"];
                 if(t<time && found)
                     break;
