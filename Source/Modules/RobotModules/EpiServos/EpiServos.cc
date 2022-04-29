@@ -568,7 +568,15 @@ void EpiServos::Tick()
 
     if (simulate)
     {
-        Notify(msg_debug, "Simulate servos");
+        Notify(msg_warning, "Simulate servos");
+
+        // Check if input is nan. 
+        for (int i = 0; i < EPI_NR_SERVOS; i++)
+            if (std::isnan(goalPosition[i]))
+            {
+                Notify(msg_warning,"EpiServo module input is NAN\n");
+                return;
+            }
 
         reset_array(presentCurrent, presentCurrentSize); // 0 mA
 
