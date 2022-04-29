@@ -273,7 +273,7 @@ public:
     
     
     void    Print();
-private:
+//private:
     bool    option[256];
     char *  argument[256];
     

@@ -3529,6 +3529,12 @@ Kernel::ReadXML()
     main_group->attributes.insert({ "session-id", std::to_string(result) });
     main_group->attributes.insert({ "ikg-file-name", std::string(ikc_file_name) });
 
+    // Set command line attributes // FIXME: use map instead
+
+    for(int i=0; i<32; i++)
+        if(options->attribute[i])
+            main_group->attributes.insert({ options->attribute[i], options->value[i] });
+
     session_id = result; // temporary, get from top level group
     
     BuildGroup(main_group, xml);
