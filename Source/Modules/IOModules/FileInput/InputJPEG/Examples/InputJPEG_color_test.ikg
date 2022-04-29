@@ -10,7 +10,7 @@
 
 <group title = "JPEG">
     
-	<module class = "InputJPEG" name = "IN" filename = "/Users/cba/ikaros/Examples/Media/colors.jpg" iterations = "1000" />
+	<module class = "InputJPEG" name = "IN" filename = "../../../../../../Examples/Media/colorrobot.jpg" iterations = "1000" />
 	<module  class = "OutputRawImage" name = "REDOUT" scale = "1.0" suppress = "1" offset = "0" filename = "R.raw" />
 	<module  class = "OutputRawImage" name = "GREENOUT" scale = "1.0" suppress = "1" offset = "0" filename = "G.raw" />
 	<module  class = "OutputRawImage" name = "BLUEOUT" scale = "1.0" suppress = "1" offset = "0" filename = "B.raw" />

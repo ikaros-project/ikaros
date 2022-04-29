@@ -479,8 +479,8 @@ GroupElement::GetParameter(const std::string & name)
 std::string
 GroupElement::EvaluateValue(const std::string & value)
 {
-    if(value=="")
-        return "";
+    if(value.find('@') == std::string::npos) // do not evaluate string without @ sign.
+        return value;
 
     if(value[0]=='.') // Evaluate in context of top group
     {
