@@ -4282,17 +4282,17 @@ Kernel::DoSendFile(std::string file)
         if(file[0] == '/')
             file = file.erase(0,1); // Remove initial slash
 
-        if(socket->SendFile(file.c_str(), ikc_dir))  // Check IKC-directory first to allow files to be overriden
+        if(socket->SendFile(file, ikc_dir))  // Check IKC-directory first to allow files to be overriden
             return;
 
-        if(socket->SendFile(file.c_str(), webui_dir))   // Now look in WebUI directory
+        if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
             return;
 
         if(socket->SendFile(file, std::string(webui_dir)+"Images/"))   // Now look in WebUI/Images directory
             return;
       
         file = "error." + rcut(file, ".");
-        if(socket->SendFile(("error." + rcut(file, ".")).c_str(), webui_dir)) // Try to send error file
+        if(socket->SendFile("error." + rcut(file, "."), webui_dir)) // Try to send error file
             return;
 
         DoSendError();
