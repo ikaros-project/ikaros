@@ -84,7 +84,7 @@
 			<table title="time" source="MotionRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
 
             <button label = "Off" command="MotionRecorder.off" x="10" y="121" height="41" width="101" />
-            <button label = "Stop" command="MotionRecorder.stop" x="10" y="161" height="41" width="101"  />
+            <button label = "Stop " command="MotionRecorder.stop" x="10" y="161" height="41" width="101"  />
             <button label = "Record" command="MotionRecorder.record" x="10" y="201" height="41" width="101"  />
             <button label = "Play"  command="MotionRecorder.play" x="10" y="241" height="41" width="101"  />
 

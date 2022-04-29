@@ -1,12 +1,12 @@
 [
 	{
-		"channels": 2
-		"timebase": 50
-		"inerpolation": "linear"
-		"units": "ms"
-		"loop": "no"
-		"start": 0
-		"stop": 550
+		"channels": 2,
+		"timebase": 50,
+		"interpolation": "linear",
+		"units": "ms",
+		"loop": "no",
+		"start": 0,
+		"stop": 550,
 		"motion":
 		[
 			{"t" : 0	"p": [0.0000, 0.0000]},
