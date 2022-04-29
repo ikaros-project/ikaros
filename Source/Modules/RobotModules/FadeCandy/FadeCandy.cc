@@ -41,7 +41,7 @@ FadeCandy::FadeCandy(Parameter * p):
     fcserver_pid = -1;
 	const char * c = GetValue("command");
 	startServer = GetBoolValue("start_server");
-    if(strlen(c) != 0 and startServer)
+    if(c && strlen(c) != 0 && startServer)
     {
         char * cmd = create_formatted_string("%s%s", GetClassPath(), GetValue("command"));
 
