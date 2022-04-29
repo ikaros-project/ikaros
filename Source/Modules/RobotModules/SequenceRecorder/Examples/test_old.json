@@ -4,13 +4,31 @@
     "sequences": [
         {
             "end_mark_time": 1000,
-            "end_time": 1000,
-            "keypoints": [],
-            "name": "Sequence A",
-            "start_mark_time": 0,
-            "start_time": 0
-        },
-        {
+            "end_time": 4649.98486328125,
+            "keypoints": [
+                {
+                    "point": [
+                        0.0,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                    ],
+                    "time": 0.0
+                },
+                {
+                    "point": [
+                        100.0,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                    ],
+                    "time": 2500.0
+                }
+            ],
             "end_mark_time": 1000,
             "end_time": 1000,
             "keypoints": [],
