@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+
+    <module
+        class="Constant"
+        name="Objects"
+        data = "
+            1 1 0 0; 
+            0 0 1 1
+        "
+    />
+
+    <module
+        class="Constant"
+        name="Features"
+        data = "
+            1 0 1 0 0 0 0 0;
+            0 1 0 1 0 0 0 0;
+            0 0 0 0 1 0 1 0;
+            0 0 0 0 0 1 0 1
+        "
+    />
+
+	<module
+		class = "Perception"
+		name = "Perception"
+        alpha = "0.05"
+        period = "1"
+	/>
+	
+	<connection  source = "Objects.OUTPUT"  target = "Perception.ENVIRONMENT" />
+	<connection  source = "Features.OUTPUT"  target = "Perception.FEATURES" />
+
+    <view name="Percetion View" >
+        <bar-graph  frame-style = "" show_title = "true" max = "1" min = "0" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "Perception.OUTPUT" lineJoin = "" width = "200" lineWidth = "1" color = "" title = "Perception" show_frame = "false" height = "200" y = "20" x = "20"/>
+        <bar-graph  frame-style = "" show_title = "true" max = "1" min = "0" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "Perception.LOCATION_OUT" lineJoin = "" width = "200" lineWidth = "1" color = "" title = "Location Out" show_frame = "false" height = "200" y = "220" x = "20"/>
+        <grid  x = "20" y = "420" height = "61" width = "201" title = "Objects" source = "Objects.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+        <grid  x = "20" y = "480" height = "101" width = "201" title = "Features" source = "Features.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+    </view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
