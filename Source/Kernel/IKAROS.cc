@@ -451,9 +451,13 @@ GroupElement::GetParameter(const std::string & name)
 
     if(parameters.count(name) && parameters[name]->attributes.count("name")) // parameter renaming
     {
-        auto v = GetParameter(parameters[name]->attributes["name"]);
-        if(v != "")
-            return v;
+        auto n = parameters[name]->attributes["name"];
+        if(n != name)
+        {
+            auto v = GetParameter(n);
+            if(v != "")
+                return v;
+        }
     }
 
     std::string value;
@@ -1059,13 +1063,29 @@ Module::Load(const char * path)
 std::string 
 Module::GetJSONData(const std::string & name, const std::string & tab)
 {
-    return std::string();   // Rerurn empty string as default
+    return std::string();   // Return empty string as default
 }
 
 
 
+/*
+std::string
+Module::GetList(const std::string & name)
+{
+    if(group->parameters.count(name))
+    {
+        return "A/B";
+    }
+
+    return "X/Y";
+
+}
+*/
+
+
+
 const char * // FIXME: ***********************
-Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
+Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetValue
 {
     const char * module_name = GetName();
     
