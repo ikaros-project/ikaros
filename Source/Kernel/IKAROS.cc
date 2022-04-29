@@ -4287,7 +4287,10 @@ Kernel::DoSendFile(std::string file)
 
         if(socket->SendFile(file.c_str(), webui_dir))   // Now look in WebUI directory
             return;
-        
+
+        if(socket->SendFile(file, std::string(webui_dir)+"Images/"))   // Now look in WebUI/Images directory
+            return;
+      
         file = "error." + rcut(file, ".");
         if(socket->SendFile(("error." + rcut(file, ".")).c_str(), webui_dir)) // Try to send error file
             return;
