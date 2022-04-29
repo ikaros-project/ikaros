@@ -24,6 +24,20 @@
 #include "SoundOutput.h"
 
 #include <unistd.h>
+#include <spawn.h>
+
+extern char **environ;
+
+
+/*
+    / USE THIS FUNCTIONS INSTEAD
+
+    pid_t pid;
+    char *argv[] = {"sh", "-c", cmd, NULL};
+    int status;
+    printf("Run command: %s\n", cmd);
+    status = posix_spawn(&pid, "/bin/sh", NULL, NULL, argv, environ);
+*/
 
 using namespace ikaros;
 
@@ -34,7 +48,7 @@ Sound::Play(const char * command)
     timer->Restart();
     frame = 0;
     char * argv[5] = { (char *)command, (char *)sound_path.c_str(), NULL };
-    if(!(pid = vfork()))
+    if(!(pid = vfork())) // FIXME: change to posix_spawn
         execvp(command, argv);
 }
 
