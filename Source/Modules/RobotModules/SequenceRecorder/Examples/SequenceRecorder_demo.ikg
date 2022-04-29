@@ -31,8 +31,8 @@
             output_size = "4"
 		/>
 
-    
 		<connection source = "RobotFeedback.OUTPUT"  target = "SR.INPUT" />
+
 <view name="Controls" >
 	<rectangle  style = "background-color:#eee;" show_title = "false" frame-style = "" width = "881" title = "Default Title" frame_width = "1" frame_color = "" background = "" label = "" x = "20" show_frame = "true" height = "141" y = "400"/>
 	<rectangle  style = "background-color:#adf;" show_title = "true" frame-style = "" width = "881" title = "Robot" frame_width = "1" frame_color = "" background = "" label = "" x = "20" show_frame = "true" height = "261" y = "820"/>

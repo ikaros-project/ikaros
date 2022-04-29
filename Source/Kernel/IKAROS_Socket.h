@@ -91,7 +91,7 @@ class ServerSocket
 		bool				Send(std::string data);
 		bool				Send(const float *, int sizex, int sizey);
 		bool				SendFile(const char * filename, const char * path="", Dictionary * header = NULL); // FIXME: add header automatically based on file type
-
+		bool				SendFile(const std::string & filename, const std::string & path="");
 		void				fillBuffer(std::string s);
 		bool				SendBuffer();
 		void 				clearBuffer();

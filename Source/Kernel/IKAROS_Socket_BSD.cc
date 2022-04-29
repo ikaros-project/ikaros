@@ -734,6 +734,14 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
 
 
 bool
+ServerSocket::SendFile(const std::string & filename, const std::string & path)
+{
+    return SendFile(filename.c_str(), path.c_str());
+}
+
+
+
+bool
 ServerSocket::Close()
 {
     if (data->new_fd == -1) return true;	// Connection already closed
