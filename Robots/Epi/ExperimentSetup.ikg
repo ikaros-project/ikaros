@@ -36,35 +36,9 @@ nrServosTotal = "19">
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
 	simulateRobot ="true"
+	_EpiName = "EpiRed" 
 	
-	EpiName = "EpiOrange" 
-	L1_T1_data = "
-	1 0 0 0;
-	0 1 0 0;
-	0 0 1 0;
-	0 0 0 1;
-	"
-	L2_T1_data = "
-	1 0 0 0;
-	0 1 0 0;
-	0 0 1 0;
-	0 0 0 1;
-	" 
-
-	
-	_EpiName = "EpiBlue" 
-	_L1_T1_data = "
-	1 0 0 0.200;
-	0 1 0 0;
-	0 0 1 0;
-	0 0 0 1;
-	"
-	_L2_T1_data = "
-	1 0 0 0.55824;
-	0 1 0 0;
-	0 0 1 0;
-	0 0 0 1;
-	" />
+ />
 
 
 
