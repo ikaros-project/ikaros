@@ -665,7 +665,7 @@ std::string GroupElement::JSONString(int d)
     else
         s += tab2 + "\"is_group\": true,\n";
 
-    s += tab2 + "\"attributes\":\n" + tab2 + "{\n"; // FIXME: make nicer!
+    s += tab2 + "\"attributes\":\n" + tab2 + "{\n";
     s += JSONAttributeString(d+2);
     s += "\n" + tab2 + "},\n";
     
