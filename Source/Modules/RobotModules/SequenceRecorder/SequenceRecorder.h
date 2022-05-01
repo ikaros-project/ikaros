@@ -62,6 +62,8 @@ public:
     void        ExtendTime();
     void        ReduceTime();
     void        LockChannel(int c);
+
+    void        LinkKeypoints();
     void        AddKeypoint(float time); // add keypoint at time t
     void        PushKeypoint(); // push keypoint at the end of sequence
     void        ClearSequence();    // clear currently selected sequence

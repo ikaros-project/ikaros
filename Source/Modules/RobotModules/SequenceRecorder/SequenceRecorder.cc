@@ -51,6 +51,161 @@ interpolate(float t, float t1, float t2, float p1, float p2) // linear interpola
 
 
 
+static int
+find_index_for_time(json & keypoints, float t)
+{
+    int n = keypoints.size();
+
+    // binary search for nearest keypoint
+    int low = 0;
+    int high = n-1;
+    int i = 0;
+    while (low <= high)
+    {
+
+        i = (low + high) / 2;
+        if ((float)(keypoints[i]["time"]) > t)
+            high = i - 1;
+        else if ((float)(keypoints[i]["time"]) < t)
+            low = i + 1;
+        else
+        {
+            low = i+1;
+            break;
+        }
+    }
+
+    return low;
+}
+
+
+
+static int
+find_upper_index_for_time(json & keypoints, float t)
+{
+    int n = keypoints.size();
+
+    // binary search for nearest keypoint
+    int low = 0;
+    int high = n-1;
+    int i = 0;
+    while (low < high)
+    {
+
+        i = (low + high) / 2;
+        if ((float)(keypoints[i]["time"]) > t)
+            high = i - 1;
+        else if ((float)(keypoints[i]["time"]) < t)
+            low = i + 1;
+        else
+        {
+            low = i+1;
+            break;
+        }
+    }
+
+    return low;
+}
+
+
+
+
+void
+SequenceRecorder::SetTargetForTime(float t)
+{
+    //printf("%f\n", t);
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+    int i = find_index_for_time(keypoints, t);
+
+
+    // Check if no keypoints: use default output as target
+
+    if(n==0)
+    {
+        for(int c=0; c<channels; c++)
+            target[c] = default_output[c];
+        return;
+    }
+
+    // Check if index is zero OR there is only one keypoint: use first keypoint
+
+    if(i == 0 || n==1)
+    {
+        for(int c=0; c<channels; c++)
+        if(keypoints[0]["point"][c].is_null())
+            target[c] = default_output[c];
+        else
+            target[c] = keypoints[0]["point"][c];
+
+        return;
+    }
+
+    // Check if we are at or after the last keypoint: use last keypoint
+
+    if(i > n-1)
+    {
+        for(int c=0; c<channels; c++)
+        if(keypoints[n-1]["point"][c].is_null())
+            target[c] = default_output[c];
+        else
+            target[c] = keypoints[n-1]["point"][c];
+
+        return;
+    }
+
+    // Do normal interpolation
+
+    for(int c=0; c<channels; c++)
+    {
+    
+        // Process left point
+
+        auto & kp_left = keypoints[i-1];
+        float time_left = keypoints[i-1]["time"];
+        float point_left = default_output[c];
+    
+
+        if(!kp_left["point"][c].is_null()) //keypoint has data
+        {
+            point_left = kp_left["point"][c];
+        }
+        else if(!kp_left["link_left"][c].is_null()) // use linked keypoint if it exists
+        {
+            int l = kp_left["link_left"][c];
+            if(l!=-1 && !keypoints[l]["point"][c].is_null()) // check that linked keypoint has data - as should be the case
+            {
+                point_left = keypoints[l]["point"][c];
+                time_left = keypoints[l]["time"];
+            }
+        }
+
+        auto & kp_right = keypoints[i];
+        float time_right = keypoints[i]["time"];
+        float point_right = default_output[c];
+    
+
+        if(!kp_right["point"][c].is_null()) //keypoint has data
+        {
+            point_right = kp_right["point"][c];
+        }
+        else if(!kp_right["link_right"][c].is_null()) // use linked keypoint if it exists
+        {
+            int l = kp_right["link_right"][c];
+            if(l!=-1 && !keypoints[l]["point"][c].is_null()) // check that linked keypoint has data - as should be the case
+            {
+                point_right = keypoints[l]["point"][c];
+                time_right = keypoints[l]["time"];
+            }
+        }
+
+        target[c] = interpolate(t, time_left, time_right, point_left, point_right);
+    }
+}
+
+
+
+/*
 void
 SequenceRecorder::SetTargetForTime(float t)
 {
@@ -138,7 +293,7 @@ SequenceRecorder::SetTargetForTime(float t)
     last_index = index_final;
     last_time = time_final;
 }
-
+*/
 
 
  void
@@ -218,8 +373,10 @@ SequenceRecorder::LoadJSON(std::string filename)
         file << data;               
     }
 
-    std::ifstream i(filename);
-    i >> sequence_data;
+    std::ifstream ifs(filename);
+    sequence_data = json::parse(ifs);
+
+
     std::string s = sequence_data["sequences"][current_sequence]["name"];
     int sz = sequence_data["sequences"][current_sequence]["keypoints"].size();
 
@@ -239,6 +396,8 @@ SequenceRecorder::LoadJSON(std::string filename)
 void        
 SequenceRecorder::StoreJSON(std::string filename)
 {
+    LinkKeypoints(); // TEST **********
+
     std::ofstream file(filename);
     file << sequence_data;
 }
@@ -321,6 +480,7 @@ SequenceRecorder::Stop()
     set_one(state, 0, states);
     timer.Stop();
     timer.Reset();
+    LinkKeypoints(); // at end of recording
 }
 
 
@@ -356,6 +516,7 @@ SequenceRecorder::Pause()
 {
     set_one(state, 3, states); 
     timer.Stop();
+    LinkKeypoints(); // at end of recording
 }
 
 
@@ -458,6 +619,11 @@ SequenceRecorder::GoToNextKeypoint()
 void
 SequenceRecorder::GoToTime(float time)
 {
+    SetTargetForTime(time);
+    return;
+
+    // OLD STUFF
+
     int first_index = 0;
     if(time > last_time) // start search at last position
     {
@@ -572,9 +738,52 @@ SequenceRecorder::LockChannel(int c)
 
 
 void
+SequenceRecorder::LinkKeypoints()
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+
+    int left_link[channels];
+    int right_link[channels];
+
+    for(int c=0; c<channels; c++)
+    {
+        left_link[c] = -1;
+        right_link[c] = -1;
+    }
+
+    // left to right sweep
+
+    for(int i=0; i<n; i++)
+    {
+        for(int c=0; c<channels; c++)
+            if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
+                left_link[c] = i;
+        for(int c=0; c<channels; c++)
+            keypoints[i]["link_left"][c] = left_link[c];
+    }
+
+    // right to left sweep
+
+    for(int i=n-1; i>0; i--)
+    {
+        for(int c=0; c<channels; c++)
+            if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
+                right_link[c] = i;
+        for(int c=0; c<channels; c++)
+            keypoints[i]["link_right"][c] = right_link[c];
+    }
+
+}
+
+
+
+void
 SequenceRecorder::AddKeypoint(float time)
 {   
     auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+
     long tl = GetTickLength();
     float qtime = tl*(int(time)/tl); // Quantized time
 
@@ -593,33 +802,61 @@ SequenceRecorder::AddKeypoint(float time)
         else // default
             points.push_back(nullptr);
 
-    // Find position in list
+    int i = find_index_for_time(keypoints, time);
+    if(n>0 && i<n)
+    {
+        // Find position in list
+        int i = find_index_for_time(keypoints, time);
 
-    int n = keypoints.size();
-    for(int i=0; i<n; i++)
-    {   float t = keypoints[i]["time"];
+        //printf(">>>%d\n", i);
+        if(i==0) // insert first
+        {
+            json keypoint;
+            keypoint["time"] = qtime;
+            keypoint["point"] = points;
+            keypoints.insert(keypoints.begin(), keypoint);
+            //printf("INSERT FIRST\n");
+            return;
+        }
+
+        float t = keypoints[i-1]["time"];
         if(qtime == t) // merge
         {
             for(int c=0; c<channels; c++)
             if(!points[c].is_null())
-                keypoints[i]["point"][c] = points[c];
+                keypoints[i-1]["point"][c] = points[c];
+            //printf("MERGED AT %d\n", i-1);
             return;
         }
-        else if(qtime < t) // insert before
+        else if(qtime < keypoints[i]["time"]) // insert before
         {
-             json keypoint;
+            json keypoint;
             keypoint["time"] = qtime;
             keypoint["point"] = points;
             keypoints.insert(keypoints.begin() + i, keypoint);
+            //printf("INSERT BEFORE %d\n", i);
             return;
         }
     }
 
-    // unsert last
+    // Check if we are editing last - handle that separately
+
+    if(n>0 && i==n && keypoints[n-1]["time"] == qtime)
+    {
+            for(int c=0; c<channels; c++)
+            if(!points[c].is_null())
+                keypoints[n-1]["point"][c] = points[c];
+            //printf("MERGED AT LAST\n");
+            return;
+    }
+
+    // insert last - also for first keypoint to be inserted
+
     json keypoint;
     keypoint["time"] = qtime;
     keypoint["point"] = points;
     keypoints.push_back(keypoint);
+            //printf("INSERT LAST\n");
 }
 
 
@@ -983,6 +1220,9 @@ SequenceRecorder::Tick()
 
     // Set position
 
+    int s = sequence_data["sequences"].size();
+    auto x = sequence_data["sequences"][current_sequence];
+
     float end_time = sequence_data["sequences"][current_sequence]["end_time"];
     position = end_time? t/end_time : 0;
     last_position = position;
@@ -1017,7 +1257,6 @@ SequenceRecorder::Tick()
         // Set outputs
 
         GoToTime(t);
-        //SetTargetForTime(t);
 
         // FIXME: Add smoothing here
 
@@ -1028,7 +1267,7 @@ SequenceRecorder::Tick()
 
         if(state[2] == 1) // record mode
         {
-            DeleteKeypointsInRange(last_record_position+0.001, t);
+            // DeleteKeypointsInRange(last_record_position+0.001, t); // *******************
             //printf(">>> %f - %f\n", last_record_position, t);
             last_record_position = t;
             AddKeypoint(t);
