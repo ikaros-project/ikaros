@@ -6,8 +6,15 @@
 		Module that records or plays a sequence of values.
 	</description>
 
+	<parameter name="max_sequences" type="int" default="64" description="The maximum number of different behaviors that can be recorded" />
+
+	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior; lower number priority" size_param="max_sequences" optional="yes" />
+
+	<output name="PLAYING" description="A single 1 while a behavior is playing" size_param="max_sequences" />
+	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_sequences" />
+
    	<parameter name="smoothing_time" type="float" default="200" description="Number of milliseconds to smooth the output position." />
-	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state." />
+	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state. Only for output to control buttons." />
 	<parameter name="channel_mode" type="matrix" _default="" description="Mode for each channel: lock, play, record, etc." />
 
 	<parameter name="time" type="string" default="00:00:000" description="String representation of the current time." />
@@ -39,17 +46,13 @@
 
 
 <!--
-	<parameter name="positions" type="array" description="Positions of recorder that can be used by for example sliders to control the input." />
-	<parameter name="output_size" type="int" description="Requested output size. Can be larger than connected input." />
 
-	<parameter name="max_motions" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
+	OLD ELEMENTS
+	
+	<parameter name="max_sequences" type="int" default="10" description="The maximum number of different behaviors that can be recorded" />
 	<parameter name="current_motion" type="int" default="0" description="The behavior that will be recorded" />
-	<parameter name="position_data_max" type="int" default="1000" description="The maximum number of datapoints that can be stored" />
-    <parameter name="mode_string" type="string" default="stop" description="The current mode as a string" />
-
 	<parameter name="filename" type="string" default="motion.%02d.dat" description="The name(s) of the files where the data will be stored." />
-	<parameter name="directory" type="string" default="motions" description="The directory where the files will be stored." />
-	<parameter name="torque" type="array" default="0.2" description="Initial torque used during play. Single value or array of values for each servo." />
+	<parameter name="directory" type="string" default="motions" description="The directory where the files will be stored." />/>
     <parameter name="smoothing_time" type="float" default="100" description="Number of ticks to smooth the output position and torque." />
 
 	<parameter name="auto_load" type="bool" default="yes" description="Load all saved behaviors on start-up" />
@@ -57,23 +60,7 @@
 
 	<parameter name="record_on_trig" type="bool" default="false" description="Start record on trig input." />
 
-	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior" size_param="max_motions" optional="yes" />
-	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_motions" />
     <output name="TRIG_OUT" description="A single 1 for one tick when a behavior is started" size="1" />
-
-	<input name="INPUT" description="Position data from the servos" />
-
-    <output name="MODE" description="off/stop/play/record mode for each channel coded as a matrix" size_set_x="INPUT" size_y= "4" />
-    <output name="OUTPUT" description="Position data to the servos" size_param="output_size" />
-	<output name="TORQUE" description="Current torque for the motors" size_param="output_size" />
-	<output name="ENABLE" description="Enable the motors" size_param="output_size" />
-
-    <output name="KEYPOINTS" description="The keypoint vectors" size_param_x="output_size" size_param_y="position_data_max" />
-    <output name="TIMESTAMPS" description="Timestamp in ms for each keypoint" size_x="1" size_param_y="position_data_max" />
-    <output name="LENGTHS" description="Lenghts of the recording" size_param="max_motions" />
-
-	<output name="STATE" description="State is 1 when the module records" size="1" />
-	<output name="TIME" description="Current record or play position" size="1" />
 -->
 
 	<link class="SequenceRecorder" />

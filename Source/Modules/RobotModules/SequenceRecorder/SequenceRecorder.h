@@ -79,36 +79,42 @@ public:
 
     void        SetTargetForTime(float t);
     void        SetOutputForChannel(int c); 
-void            StartRecord();
+    void            StartRecord();
 
 
 
     // Current state
 
-    int         channels;
+    int             channels;
+    int             max_sequences;
 
-float *         positions;
+    float *         trig;
+    float *         playing;
+    float *         completed;
 
-float           smoothing_time;
-float *         smoothing_start;
-float *         target;
-float *         input;
-float *         default_output; // value for initial from ikg3 file if set
-float *         internal_control;
+    float *         positions;
 
-float *         initial;
-float *         output;
-float *         active;
-float *         ready;
-bool            start_record;
+    float           smoothing_time;
+    float *         smoothing_start;
 
-int             current_sequence;
-std::string     sequence_names;
+    float *         target;
+    float *         input;
+    float *         default_output; // value for initial from ikg3 file if set
+    float *         internal_control;
+
+    float *         initial;
+    float *         output;
+    float *         active;
+    float *         ready;
+    bool            start_record;
+
+    int             current_sequence;
+    std::string     sequence_names;
     json        sequence_data;
 
     // Control  variables
 
-    const int states = 10;
+    const int states = 8;
 
     float *     state; // state of the head controller buttons
     float **    channel_mode;

@@ -27,8 +27,6 @@
 
 using namespace ikaros;
 
-
-
 std::string
 make_timestamp(float t)
 {
@@ -190,6 +188,7 @@ SequenceRecorder::SetTargetForTime(float t)
     else if(channel_mode[c][1] == 1) //play
      {
         output[c] = target[c]; // SMOOTH HERE AS WELL
+        positions[c] = target[c];
         active[c] = 1;
      }   
 
@@ -217,7 +216,6 @@ SequenceRecorder::StartRecord()
 {
     last_record_position = position;
     start_record = true;
-//    sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
 }
 
 
@@ -226,7 +224,7 @@ static json create_sequence(int index)
 {
     json sq;
 
-    sq["name"] = "Sequence "+std::string(1,65+index);
+    sq["name"] = "Sequence "+std::string(1,65+index / 8)+std::string(1,49+index % 8);
     sq["start_time"] = 0;
     sq["start_mark_time"] = 0;
     sq["end_mark_time"] = 1000;
@@ -247,7 +245,7 @@ SequenceRecorder::LoadJSON(std::string filename)
         data["channels"] = channels;
         // data["ranges"] // FIXME: yes do!
           data["sequences"] = json::array();
-          for(int i=0; i<9; i++)
+          for(int i=0; i<max_sequences; i++)
             data["sequences"].push_back(create_sequence(i));  
 
 
@@ -278,7 +276,7 @@ SequenceRecorder::LoadJSON(std::string filename)
 void        
 SequenceRecorder::StoreJSON(std::string filename)
 {
-    LinkKeypoints(); // TEST **********
+    LinkKeypoints();
 
     std::ofstream file(filename);
     file << sequence_data;
@@ -307,6 +305,7 @@ SequenceRecorder::Init()
     Bind(mark_start, "mark_start");
     Bind(mark_end, "mark_end");
 
+    Bind(max_sequences, "max_sequences");
     Bind(sequence_names, "sequence_names");
     Bind(current_sequence, "current_sequence");
     Bind(internal_control, channels, "internal_control", true);
@@ -319,6 +318,10 @@ SequenceRecorder::Init()
         Notify(msg_warning,"Incorrect size for initial_data; does not match number of channels");
 
      filename = GetValue("filename"); // FIXME: check that file exists - or create it
+
+    io(trig, "TRIG");
+    io(playing, "PLAYING");
+    io(completed, "COMPLETED");
 
     io(target, "TARGET");
     io(input, "INPUT");
@@ -359,10 +362,12 @@ SequenceRecorder::~SequenceRecorder()
 void
 SequenceRecorder::Stop()
 {
+    bool was_recoding = state[2] > 0;
     set_one(state, 0, states);
     timer.Stop();
     timer.Reset();
-    LinkKeypoints(); // at end of recording
+    if(was_recoding)
+        LinkKeypoints(); // at end of recording
 }
 
 
@@ -370,15 +375,9 @@ SequenceRecorder::Stop()
 void
 SequenceRecorder::Play()
 {
-    if(sequence_data["sequences"][current_sequence]["end_mark_time"] == 0)
-    /*
-    {
-        Pause(); // pause immediately to prevent time from running 
-        return;
-    }
-*/
+    //if(sequence_data["sequences"][current_sequence]["end_mark_time"] == 0)
     set_one(state, 1, states); 
-      timer.Start();
+     timer.Start();
 }
 
 
@@ -388,7 +387,6 @@ SequenceRecorder::Record()
 {
     StartRecord();
     set_one(state, 2, states); 
-    //timer.Start();
 }
 
 
@@ -396,9 +394,11 @@ SequenceRecorder::Record()
 void
 SequenceRecorder::Pause()
 {
+    bool was_recoding = state[2] > 0;
     set_one(state, 3, states); 
     timer.Stop();
-    LinkKeypoints(); // at end of recording
+    if(was_recoding)
+        LinkKeypoints(); // at end of recording
 }
 
 
@@ -454,23 +454,17 @@ void
 SequenceRecorder::GoToPreviousKeypoint()
 {
     float t = timer.GetTime();
-    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
-    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
-    float kpt_last = 0;
-    for(int i=0; i<n; i++)
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int i = find_index_for_time(keypoints, t);
+    if(i > 0)
     {
-        float kpt = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
-        if(kpt >= t)
-        {
-            timer.SetTime(kpt_last);
-            position = end_time? kpt_last/end_time : 0; //Fix me: use set time function
-            return;
-        }
-        else
-            kpt_last = kpt;
+        float kpt = sequence_data["sequences"][current_sequence]["keypoints"][i-1]["time"];
+        if(kpt == t && i>1)
+            kpt = sequence_data["sequences"][current_sequence]["keypoints"][i-2]["time"];
+        timer.SetTime(kpt);
+        float end_time = sequence_data["sequences"][current_sequence]["end_time"];
+        position = end_time? kpt/end_time : 0; //Fix me: use set time function
     }
-    timer.SetTime(kpt_last);
-    position = end_time? kpt_last/end_time : 0;
 }
 
 
@@ -479,21 +473,16 @@ void
 SequenceRecorder::GoToNextKeypoint()
 {
     float t = timer.GetTime();
-    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
-    float end_time = sequence_data["sequences"][current_sequence]["end_time"];
-    float kpt = 0;
-    for(int i=0; i<n; i++)
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+    int i = find_index_for_time(keypoints, t);
+    if(i < n)
     {
-        kpt = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
-        if(kpt > t)
-        {
-            timer.SetTime(kpt);
-            position = end_time? kpt/end_time : 0;
-            return;
-        }
+        float kpt = sequence_data["sequences"][current_sequence]["keypoints"][i]["time"];
+        timer.SetTime(kpt);
+        float end_time = sequence_data["sequences"][current_sequence]["end_time"];
+        position = end_time? kpt/end_time : 0; //Fix me: use set time function
     }
-    timer.SetTime(kpt);
-    position = end_time? kpt/end_time : 0;
 }
 
 
@@ -745,8 +734,13 @@ SequenceRecorder::DeleteKeypointsInRange(float t0, float t1)
 void
 SequenceRecorder::Trig(int id)
 {
+    int m = sequence_data["sequences"].size();
+    if(id<0 || id>=m)
+    {
+        Notify(msg_warning, "Sequence %d does not exist", id);
+        return;
+    }
     Stop();
-    printf("START >>>>> %d\n", id);
     current_sequence = id;
     Play();
 }
@@ -781,7 +775,10 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
     else if (s == "reduce_time")
         ReduceTime();
     else if (s == "add_keypoint")
+    {
         AddKeypoint(timer.GetTime());
+        LinkKeypoints();
+    }
     else if(s == "set_initial")
         SetInitial();
     else if(s =="save")
@@ -813,7 +810,6 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
             return "{}"; //Minimal JSON
         }
         std::string sq = sequence_data["sequences"][current_sequence].dump();
-    //    printf(">>> %s\n", sq.c_str());
         return sq;
     }
 
@@ -918,8 +914,6 @@ SequenceRecorder::Tick()
 
         if(state[2] == 1) // record mode
         {
-            // DeleteKeypointsInRange(last_record_position+0.001, t); // *******************
-            //printf(">>> %f - %f\n", last_record_position, t);
             last_record_position = t;
             AddKeypoint(t);
         }
