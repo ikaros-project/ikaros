@@ -80,36 +80,6 @@ find_index_for_time(json & keypoints, float t)
 
 
 
-static int
-find_upper_index_for_time(json & keypoints, float t)
-{
-    int n = keypoints.size();
-
-    // binary search for nearest keypoint
-    int low = 0;
-    int high = n-1;
-    int i = 0;
-    while (low < high)
-    {
-
-        i = (low + high) / 2;
-        if ((float)(keypoints[i]["time"]) > t)
-            high = i - 1;
-        else if ((float)(keypoints[i]["time"]) < t)
-            low = i + 1;
-        else
-        {
-            low = i+1;
-            break;
-        }
-    }
-
-    return low;
-}
-
-
-
-
 void
 SequenceRecorder::SetTargetForTime(float t)
 {
@@ -205,95 +175,7 @@ SequenceRecorder::SetTargetForTime(float t)
 
 
 
-/*
-void
-SequenceRecorder::SetTargetForTime(float t)
-{
-    // Memory variables
 
-    static int last_index = 0;
-    static float last_time = 0;
-
-
-    return;
-    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
-
-    // Handle empty sequence data
-    if(n < 1)
-        return; // FIXME: How should the output be set in this case - to input or to last output?
-
-    // Find intermediate points and linearly interpolate
-    // Calculate the position for each channel independently
-
-
-    int start_index = 0;
-    if(t > last_time)
-        start_index = last_index;
-
-    float index_final = 0;
-    float time_final = 0;
-
-    for(int c=0; c<channels; c++)
-    {
-        float p_left = 0;
-        float p_right = 0;
-        if(initial)
-        {
-            p_left = initial[c];
-            p_right = initial[c];
-        }
-        float time_left = 0;
-        float time_right = sequence_data["sequences"][current_sequence]["end_time"];
-
-        // Start with the value in the first (non-null) keypoint 
-
-        for(int ix=start_index; ix<n; ix++)
-            if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
-            {
-                p_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c];
-                break;
-            }
-
-
-        // Interate to keypoint just before the current time to find left keypoint
-
-        int ix = start_index;
-        for( ; ix<n; ix++)
-        {
-            if(sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"] > t)
-                break; // we have passed the current time and possibly found the left value
-            if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
-            {
-                // Store candidate left point and time
-                p_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c]; 
-                time_left = sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"];
-            }
-        }
-    
-        p_right = p_left; // in case there are no more valid keypoints
-
-        // time_right is the en of the equence already
-
-        // Search for right keypoint
-
-        for( ; ix<n; ix++)
-        {
-          if(!sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c].is_null())
-            {
-                p_right = sequence_data["sequences"][current_sequence]["keypoints"][ix]["point"][c];
-                time_right = sequence_data["sequences"][current_sequence]["keypoints"][ix]["time"];
-                break;
-            }
-        }
-    index_final = ix;
-    time_final = time_left;
-
-        target[c] = interpolate(t, time_left, time_right, p_left, p_right);
-    }
-    last_index = index_final;
-    last_time = time_final;
-}
-*/
 
 
  void
@@ -620,85 +502,7 @@ void
 SequenceRecorder::GoToTime(float time)
 {
     SetTargetForTime(time);
-    return;
 
-    // OLD STUFF
-
-    int first_index = 0;
-    if(time > last_time) // start search at last position
-    {
-        first_index = last_index;
-    }
-
-    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
-    int n = keypoints.size();
-    json kp;
-    for(int c=0; c<channels; c++)
-    {
-        // Search from left
-
-        left_time[c] = 0;
-        left_position[c] = initial[c];
-        left_index[c] = 0;
-        bool found = false;
-    
-        for(int i=first_index; i<n; i++)
-        {
-            auto & point = keypoints[i]["point"];
-            if(!point[c].is_null())
-            {
-                float t = keypoints[i]["time"];
-                if(t>time && found)
-                    break;
-
-                left_position[c] = point[c];
-
-                if(t>time)
-                    break;
-                else
-                {
-                    left_time[c] = t;
-                    left_index[c] = i;
-                    found = true;
-                }
-            }
-        }
-
-        // Search from right
-
-        right_time[c] = maxfloat;
-        right_position[c] = initial[c];
-        right_index[c] = n-1;
-        found = false;
-
-        for(int i=n-1; i>=0; i--)
-        {
-            auto & point = keypoints[i]["point"];
-            if(!point[c].is_null())
-            {
-                //std::string s = keypoints[i]["time"];
-                //printf(">> %s<<\n", s.c_str());
-                float t = keypoints[i]["time"];
-                if(t<time && found)
-                    break;
-
-                right_position[c] = point[c];
-
-                if(t<time)
-                    break;
-                else
-                {
-                    right_time[c] = t;
-                    right_index[c] = i;
-                    found = true;
-                }
-            }
-        }
-
-        // Set position and target
-
-        target[c] = interpolate(time, left_time[0], right_time[c], left_position[c], right_position[c]);
-    }
 }
 
 
@@ -859,158 +663,6 @@ SequenceRecorder::AddKeypoint(float time)
             //printf("INSERT LAST\n");
 }
 
-
-
-/*
-void
-SequenceRecorder::AddKeypoint(float time)
-{   
-    // Memory variables
-
-    static int last_index = 0;
-    static float last_time = 0;
-
-    if(!initial)
-        return;
-
-auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
-
-    // Create the point data array
-
-    json points = json::array();
-    for(int c=0; c<channels; c++)
-    {
-        if(channel_mode[c][0] == 1) //locked
-        {
-            points.push_back(nullptr); // Do not record locked channel???
-        }
-
-        else if(channel_mode[c][1] == 1) //play - use null to indicate nodata
-        {
-            points.push_back(nullptr); // was target[c]
-        }   
-
-        else if(channel_mode[c][2] == 1) //record - store current input (or sliders)
-        {
-            points.push_back(input[c]);
-        }   
-
-        else if(channel_mode[c][3] == 1) //copy - do not record this channel but use null
-        {
-            points.push_back(nullptr);
-        }
-       else // default
-        {
-            points.push_back(nullptr);
-        }
-    }
-
-    // Memory variables
-
-    int start_index = 0;
-    if(time > last_time)
-        start_index = last_index;
-
-    // Find closest keypoint
-
-    int n = keypoints.size();
-    json kp;
-    int kpi = 0;
-    float min_dist = 9999999;
-    float min_dist_last = 9999999;
-
-    for(int i=start_index; i<n; i++)
-    {
-        float t = keypoints[i]["time"];
-        if(abs(t-time) < min_dist)
-        {
-            min_dist = abs(t-time);
-            kp = keypoints[i];
-            kpi = i;
-            if(min_dist > min_dist_last) // not decreasing distance - we have found the best match
-                break;
-            min_dist_last = min_dist;
-        }
-        else
-            break;
-    }
-    // Insert or merge keypoint
-
-    if(kp.is_null()) // no data - just insert new keypoint at the end of list
-    {
-        json keypoint;
-        keypoint["time"] = int(time);
-        keypoint["point"] = points;
-        keypoints.push_back(keypoint);
-        return;
-    }
-
-    // See if keypoints can be merged
-
-    if(min_dist < 0.5*float(GetTickLength())) // half the ticklength
-    {
-        for(int c=0; c<channels; c++)
-        {
-            if(!points[c].is_null())
-                    keypoints[kpi]["point"][c] = points[c];
-        }
-
-        // store position flor next time the function is called
-        last_index = kpi;
-        last_time = int(time);
-        return;
-    }
-
-    // Insert new keypoint at the correct place in the list
-
-    json keypoint;
-    keypoint["time"] = int(time);
-    keypoint["point"] = points;
-
-    // FIND INSERT POINT LOOP
-
-    for(int i=start_index; i<n; i++)
-    {
-        float t = keypoints[i]["time"];
-        if(time < t) // insert before this
-        {
-            //INSERT BEFORE THIS
-            keypoints.insert(sequence_data["sequences"][current_sequence]["keypoints"].begin() + i, keypoint);
- 
-            last_index = i;
-            last_time = int(time);
-            return;
-        }
-    }
-
-    // Insert last
-
-    json keypoint_l;
-    keypoint_l["time"] = int(time);
-    keypoint_l["point"] = points;
-    keypoints.push_back(keypoint_l);
-
-    last_index = n;
-    last_time = int(time);
-}*/
-
-
-
-void
-SequenceRecorder::PushKeypoint() // Add keypoint at the end - only works during record - and for all channels
-{
-    float time = timer.GetTime();
-
-    json points = json::array();
-    for(int c=0; c<channels; c++)
-        points.push_back(input[c]); // FIXME: compare 'positions'  
-
-    json keypoint;
-    keypoint["time"] = time;
-    keypoint["point"] = points;
-
-    sequence_data["sequences"][current_sequence]["keypoints"].push_back(keypoint);
-}
 
 
 
@@ -1206,6 +858,7 @@ SequenceRecorder::Tick()
         //FIXME: Set smoothing start also
     }
 
+
     *ready = initial ? 1 : 0;
 
     // Check if position has been changed from WebUI - should use command in the future
@@ -1220,13 +873,10 @@ SequenceRecorder::Tick()
 
     // Set position
 
-    int s = sequence_data["sequences"].size();
-    auto x = sequence_data["sequences"][current_sequence];
-
     float end_time = sequence_data["sequences"][current_sequence]["end_time"];
     position = end_time? t/end_time : 0;
     last_position = position;
-    
+
     if(initial) // Do nothing until initial is set
     {
         // Set inputs from parameters for internal channels
@@ -1253,7 +903,8 @@ SequenceRecorder::Tick()
                 sequence_data["sequences"][current_sequence]["end_time"] = t;
 
         }
-
+        
+ 
         // Set outputs
 
         GoToTime(t);
