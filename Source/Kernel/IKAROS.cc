@@ -1935,7 +1935,7 @@ Module::Notify(int msg)
 bool
 Module::Notify(int msg, const char *format, ...)
 {
-    if(msg > GetIntValue("log_level"))
+    if(msg > log_level) // Module log level
         return false;
     char 	message[512];
     sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
@@ -1944,7 +1944,7 @@ Module::Notify(int msg, const char *format, ...)
     va_start(args, format);
     vsnprintf(&message[n], 512, format, args);
     va_end(args);
-    if(kernel != nullptr && msg<=log_level)
+    if(kernel != nullptr && msg<=log_level) 
         return kernel->Notify(-msg, message);
     else if(msg == msg_fatal_error)
     {
@@ -1992,7 +1992,7 @@ Connection::Propagate(long long tick)
     if(tick % target_io->module->period != target_io->module->phase)
         return;
     if(source_io != nullptr && source_io->module != nullptr)
-        source_io->module->Notify(msg_debug, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
+        source_io->module->kernel->Notify(msg_debug, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
     for (int i=0; i<size; i++)
         target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
 }
