@@ -90,7 +90,6 @@ bool EpiServos::CommunicationPupil()
         }
         // XL 320 has no current position mode. Ignores goal current input
         // No feedback from pupils. Also no temperature check. Bad idea?
-        Timer t;
         index++;
     }
     return (true);
