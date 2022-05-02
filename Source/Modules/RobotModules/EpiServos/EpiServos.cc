@@ -37,6 +37,7 @@ using namespace ikaros;
 
 bool EpiServos::CommunicationPupil()
 {
+  
     int index = 0;
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
     bool dxl_addparam_result = false;   // addParam result
@@ -55,6 +56,7 @@ bool EpiServos::CommunicationPupil()
             if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, i, 24, param_default, &dxl_error))
             {
                 Notify(msg_warning, "[ID:%03d] write1ByteTxRx failed", i);
+                portHandlerPupil->clearPort();
                 return false;
             }
         }
@@ -64,22 +66,22 @@ bool EpiServos::CommunicationPupil()
             // Goal postiion feature/bug. If torque enable = 0 and goal position is sent. Torque enable will be 1.
             if (!torqueEnable)
             {
-                if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
+                if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
                 {
                     Notify(msg_warning, "[ID:%03d] write2ByteTxRx failed", i);
+                    portHandlerPupil->clearPort();
                     return false;
                 }
             }
             else if ((uint8_t)torqueEnable[index] != 0)
             {
-                if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error)) // Takes a long time 31ms. 2x16ms?
+                if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
                 {
                     Notify(msg_warning, "[ID:%03d] write2ByteTxRx failed", i);
+                    portHandlerPupil->clearPort();
                     return false;
                 }
             }
-            // if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxOnly(portHandlerPupil, i, 30, param_default)) // Takes a long time 2x16ms
-            //     Notify(msg_fatal_error, "[ID:%03d] write2ByteTxOnly failed", i);
         }
         else
         {
@@ -88,6 +90,7 @@ bool EpiServos::CommunicationPupil()
         }
         // XL 320 has no current position mode. Ignores goal current input
         // No feedback from pupils. Also no temperature check. Bad idea?
+        Timer t;
         index++;
     }
     return (true);
@@ -115,6 +118,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
         if (!groupSyncRead->addParam(i))
         {
             Notify(msg_debug, "[ID:%03d] groupSyncRead addparam failed", i);
+            groupSyncWrite->clearParam();
+            groupSyncRead->clearParam();
             return false;
         }
     // Sync read
@@ -124,6 +129,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
     if (dxl_comm_result != COMM_SUCCESS)
     {
         Notify(msg_debug, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        groupSyncWrite->clearParam();
+        groupSyncRead->clearParam();
         return false;
     }
 
@@ -134,6 +141,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
         if (dxl_comm_result != true)
         {
             Notify(msg_debug, "[ID:%03d] groupSyncRead getdata failed", i);
+            groupSyncWrite->clearParam();
+            groupSyncRead->clearParam();
             return false;
         }
     }
@@ -176,6 +185,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
         else
         {
             Notify(msg_fatal_error, "Running module without a goal position input is not supported.");
+            groupSyncWrite->clearParam();
+            groupSyncRead->clearParam();
             return false;
         }
 
@@ -197,6 +208,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
         if (dxl_addparam_result != true)
         {
             Notify(msg_debug, "[ID:%03d] groupSyncWrite addparam failed", i);
+            groupSyncWrite->clearParam();
+            groupSyncRead->clearParam();
             return false;
         }
 
@@ -206,7 +219,12 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
     // Syncwrite
     dxl_comm_result = groupSyncWrite->txPacket();
     if (dxl_comm_result != COMM_SUCCESS)
-        Notify(msg_fatal_error, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    {
+        Notify(msg_debug, "%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        groupSyncWrite->clearParam();
+        groupSyncRead->clearParam();
+        return false;
+    }
 
     // Clear syncwrite parameter storage
     groupSyncWrite->clearParam();
@@ -570,11 +588,11 @@ void EpiServos::Tick()
     {
         Notify(msg_warning, "Simulate servos");
 
-        // Check if input is nan. 
+        // Check if input is nan.
         for (int i = 0; i < EPI_NR_SERVOS; i++)
             if (std::isnan(goalPosition[i]))
             {
-                Notify(msg_warning,"EpiServo module input is NAN\n");
+                Notify(msg_warning, "EpiServo module input is NAN\n");
                 return;
             }
 
@@ -1103,11 +1121,11 @@ bool EpiServos::SetDefaultSettingServo()
 
         // BODY ID 2
         // Limit position max
-        param_default_4Byte = 3000;
+        param_default_4Byte = 3900;
         if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, 2, 48, param_default_4Byte, &dxl_error))
             return false;
         // Limit position min
-        param_default_4Byte = 1000;
+        param_default_4Byte = 100;
         if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, 2, 52, param_default_4Byte, &dxl_error))
             return false;
     }
@@ -1363,7 +1381,7 @@ bool EpiServos::AutoCalibratePupil()
     AngleMaxLimitPupil[0] = AngleMinLimitPupil[0] + 280;
     AngleMaxLimitPupil[1] = AngleMinLimitPupil[1] + 280;
 
-    Notify(msg_debug, "Position limits pupil servos (Autocalibrate): min %i %i max %i %i \n", AngleMinLimitPupil[0], AngleMinLimitPupil[1], AngleMaxLimitPupil[0], AngleMaxLimitPupil[1]);
+    Notify(msg_debug, "Position limits pupil servos (auto calibrate): min %i %i max %i %i \n", AngleMinLimitPupil[0], AngleMinLimitPupil[1], AngleMaxLimitPupil[0], AngleMaxLimitPupil[1]);
 
     // Torque off. No fancy rampiong
     if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 24, 0, &dxl_error))
