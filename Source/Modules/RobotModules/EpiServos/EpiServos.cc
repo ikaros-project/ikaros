@@ -37,6 +37,10 @@ using namespace ikaros;
 
 bool EpiServos::CommunicationPupil()
 {
+
+    // Change this function.
+    // No need to have torque enable.
+    // Only goal position and use sync write.
   
     int index = 0;
     int dxl_comm_result = COMM_TX_FAIL; // Communication result
