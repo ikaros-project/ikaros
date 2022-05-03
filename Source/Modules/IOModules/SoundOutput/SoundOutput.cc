@@ -23,7 +23,6 @@
 
 #include "SoundOutput.h"
 
-#include <unistd.h>
 #include <spawn.h>
 
 extern char **environ;
