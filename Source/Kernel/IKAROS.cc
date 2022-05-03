@@ -1447,7 +1447,7 @@ Module::GetInputArray(const char * name, bool required)
             else
                 return i->data[0];
         }
-    Notify(msg_warning, "Input array \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    Notify(msg_debug, "Input array \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
     return nullptr;
 }
 
@@ -1466,8 +1466,8 @@ Module::GetOutputArray(const char * name, bool required)
             else
                 return i->data[0];
         }
-    if(required)
-        Notify(msg_warning, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+
+    Notify(msg_debug, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
     return nullptr;
 }
 
@@ -1486,7 +1486,7 @@ Module::GetInputMatrix(const char * name, bool required)
             else
                 return i->matrix[0];
         }
-    Notify(msg_warning, "Input matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    Notify(msg_debug, "Input matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
     return nullptr;
 }
 
@@ -1505,7 +1505,7 @@ Module::GetOutputMatrix(const char * name, bool required)
             else
                 return i->matrix[0];
         }
-    Notify(msg_warning, "Output matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
+    Notify(msg_debug, "Output matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
     return nullptr;
 }
 

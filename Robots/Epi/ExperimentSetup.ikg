@@ -35,7 +35,7 @@ nrServosTotal = "19">
 
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
-	simulateRobot ="true"
+	_simulateRobot ="true"
 	_EpiName = "EpiRed" 
 	
  />
