@@ -28,19 +28,7 @@
 
 extern char **environ;
 
-
-/*
-    / USE THIS FUNCTIONS INSTEAD
-
-    pid_t pid;
-    char *argv[] = {"sh", "-c", cmd, NULL};
-    int status;
-    printf("Run command: %s\n", cmd);
-    status = posix_spawn(&pid, "/bin/sh", NULL, NULL, argv, environ);
-*/
-
 using namespace ikaros;
-
 
 void
 Sound::Play(const char * command)
@@ -48,11 +36,10 @@ Sound::Play(const char * command)
     timer->Restart();
     frame = 0;
     char * argv[5] = { (char *)command, (char *)sound_path.c_str(), NULL };
-    if(!(pid = vfork())) // FIXME: change to posix_spawn
-        execvp(command, argv);
+    pid_t pid;
+    extern char **environ;
+    int status = posix_spawn(&pid, (char *) command, NULL, NULL, argv, NULL);
 }
-
-
 
 bool
 Sound::UpdateVolume(float * rms)
@@ -82,15 +69,15 @@ SoundOutput::CreateSound(std::string sound_path)
 
     // Get amplitudes using ffprobe
 
-    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0", sound_path.c_str());
-    float t, l, r;
-    FILE * fp = popen(command_line, "r"); 
-    while(fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
-    {
-        sound.time.push_back(t);
-        sound.left.push_back(l);
-        sound.right.push_back(r);
-    }
+    // char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0", sound_path.c_str());
+    // float t, l, r;
+    // FILE * fp = popen(command_line, "r"); 
+    // while(fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
+    // {
+    //     sound.time.push_back(t);
+    //     sound.left.push_back(l);
+    //     sound.right.push_back(r);
+    // }
 
     return sound;
 }
@@ -108,9 +95,8 @@ SoundOutput::Init()
     volume = GetOutputArray("VOLUME");
     command = GetValue("command");
     for(auto sound_name: split(GetValue("sounds"), ","))
-        sound.push_back(CreateSound(trim(sound_name)));
+        sound.push_back(CreateSound(this->kernel->ikc_dir + trim(sound_name)));
 }
-
 
 
 void

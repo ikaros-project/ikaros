@@ -13,7 +13,7 @@
 		/>
 	</example>
 
-    <parameter name="command" type="string" default="afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" />
+    <parameter name="command" type="string" default="/usr/bin/afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" />
     <parameter name="sounds" type="string" default="" description="comma separated list of sound file names (including path)." />
     
     <input name="INPUT" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
