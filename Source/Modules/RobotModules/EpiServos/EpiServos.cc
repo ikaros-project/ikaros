@@ -21,8 +21,6 @@
 //
 
 // TODO:
-// Add mm input for pupil.
-// Test return status for servos
 // Add fast sync write feature
 
 #include "EpiServos.h"
@@ -37,7 +35,6 @@ using namespace ikaros;
 
 bool EpiServos::CommunicationPupil()
 {
-
     // Change this function.
     // No need to have torque enable.
     // Only goal position and use sync write.
@@ -232,7 +229,6 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
     // Clear syncwrite parameter storage
     groupSyncWrite->clearParam();
     groupSyncRead->clearParam();
-
     return (true);
 }
 
@@ -854,7 +850,7 @@ bool EpiServos::SetDefaultSettingServo()
     }
 
     // I
-    param_default_2Byte = 0;
+    param_default_2Byte = 500;
     for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_I, param_default_2Byte, &dxl_error))
             return false;
