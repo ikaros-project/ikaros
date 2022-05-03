@@ -345,7 +345,7 @@ void EpiServos::Init()
     simulate = GetBoolValue("simulate");
     if (simulate)
     {
-        Notify(msg_warning, "Simulate servos");
+        Notify(msg_print, "Simulate servos");
         return;
     }
 
@@ -585,8 +585,6 @@ void EpiServos::Tick()
 
     if (simulate)
     {
-        Notify(msg_warning, "Simulate servos");
-
         // Check if input is nan.
         for (int i = 0; i < EPI_NR_SERVOS; i++)
             if (std::isnan(goalPosition[i]))
