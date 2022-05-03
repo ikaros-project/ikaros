@@ -28,7 +28,9 @@
         <connection source = "L1_R1_C.OUTPUT"   target = "L1_R1.INPUT" delay = "0" />
 
     <!-- LINK 1: TRANS 1: Translation to Joint 2  --> 
-    <module class = "Constant" name = "L1_T1" data = "Body.ForwardModel.Epi.Settings.@EpiName.@Body_L1_T1_data"/>
+    <_module class = "Constant" name = "L1_T1" data = "Body.ForwardModel.Epi.Settings.@EpiName.@Body_L1_T1_data"/>
+    <module class = "Constant" name = "L1_T1" data = ".Epi.Settings.@type.@Body_L1_T1_data"/>
+    <_module class = "Constant" name = "L1_T1" data = "Body.ForwardModel.Epi.Settings.@type.@Body_L1_T1_data"/>
 
     <!-- Multiply -->
     <module class = "MatrixMultiply"   name = "M_L1_R1" />
@@ -51,7 +53,7 @@
         <connection source = "L1_R2.OUTPUT"     target = "M_L1_R2.INPUT2" delay = "0"/>
 
      <!-- LINK 2: Translation to point between arms -->
-    <module class = "Constant" name = "L2_T1" data = "Body.ForwardModel.Epi.Settings.@EpiName.@Body_L2_T1_data"/>
+    <module class = "Constant" name = "L2_T1" data = ".Epi.Settings.@type.@Body_L2_T1_data"/>
     <!-- TORSO base to tile joint 103.825 mm -->
 
     <!-- 3 mm is missing -->

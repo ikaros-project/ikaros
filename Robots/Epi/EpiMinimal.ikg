@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <group name="Epi"
-ervosIndexHead = "0"
+servosIndexHead = "0"
 servosIndexPupil = "4"
 servosIndexPupilLeft = "4"
 servosIndexPupilRight = "5"
@@ -138,10 +138,38 @@ nrServosTotal = "19"
 	<epi-head  mouthRGB = "LED.MOUTH_COLOR_F" title = "Epi Head" color = "black" vergence = "-0.05" irisLeftRGB = "LED.EYE_COLOR_F" pupilLeftSource = "Servos.PRESENT_PUPIL_POSITION" gaze = "-2.22" irisRightIntensity = "" pupilInMM = "11.46" gazeSource = "Servos.PRESENT_EYE_POSITION" mouthIntensity = "" x = "1380" y = "20" frame-style = "" earColor = "#0088ff" mouthColor = "#000000" width = "361" visibleFaceParameter = "" irisRightRGB = "LED.EYE_COLOR_F" pupilRightSource = "Servos.PRESENT_PUPIL_POSITION" pupil = "0.5" motionRecorderInput = "" headPosition = "Servos.PRESENT_HEAD_POSITION" height = "421" visibleFace = "true" show_frame = "false" visibleSource = "" irisLeftIntensity = "" fill = "white" irisColor = "#88aaff" show_title = "false" style = ""/>
 </view>
 
- <group  name = "Settings">
 
-	<group  name = "EpiBlue"
+
+
+<group  name = "EpiBlue"		
+	robotType = "Full"
+/>
+<group  name = "EpiRed"
+	robotType = "Torso"
+/>
+<group  name = "EpiOrange"
+	robotType = "Torso"
+/>
+
+<!-- Settings for robot types -->
+ <group  name = "Settings" type = ".Epi.@EpiName.@robotType">
+
+<!-- <module
+		class 	= "Test"
+		name 	= "Test"
 		
+		p1 		= "type"
+		p2 		= "@type"
+		p3 		= "Settings.EpiBlue.@robotType"
+		p4 		= ".Epi.EpiBlue.@robotType"
+		p5		= ".Epi.Settings.@type.@Body_L1_T1_data"		
+		p6		= ".Epi.Settings.type.@Body_L1_T1_data"		
+
+	/> -->
+
+	<group  name = "Full"
+	
+		models_robot_view = ""
 		Body_L1_T1_data = "
 		1 0 0 0.55824;
 		0 1 0 0;
@@ -154,10 +182,11 @@ nrServosTotal = "19"
 		0 1 0 0;
 		0 0 1 0;
 		0 0 0 1;"
-
+	
 	/>
-	<group  name = "EpiRed"
+	<group  name = "Torso"
 
+		models_robot_view = ""
 		Body_L1_T1_data = "
 		1 0 0 0;
 		0 1 0 0;
@@ -166,14 +195,14 @@ nrServosTotal = "19"
 		" 
 
 		Body_L2_T1_data = "
-		1 0 0 0.55824;
+		1 0 0 0;
 		0 1 0 0;
 		0 0 1 0;
 		0 0 0 1;"
 	/>
 </group>
-    <!-- TORSO base to tile joint 103.825 mm -->
 
+    <!-- TORSO base to tile joint 103.825 mm -->
     <!-- 3 mm is m-->
 
 
