@@ -81,11 +81,9 @@ find_index_for_time(json & keypoints, float t)
 void
 SequenceRecorder::SetTargetForTime(float t)
 {
-    //printf("%f\n", t);
     auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
     int n = keypoints.size();
     int i = find_index_for_time(keypoints, t);
-
 
     // Check if no keypoints: use default output as target
 
@@ -170,9 +168,6 @@ SequenceRecorder::SetTargetForTime(float t)
         target[c] = interpolate(t, time_left, time_right, point_left, point_right);
     }
 }
-
-
-
 
 
 
@@ -312,10 +307,8 @@ SequenceRecorder::Init()
 
     int do_size = 0;
     Bind(default_output, &do_size, "default_output");
-    if(do_size == channels)
-        initial = default_output;
-    else if(do_size != 0)
-        Notify(msg_warning,"Incorrect size for initial_data; does not match number of channels");
+    if(do_size == !channels)
+        Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels");
 
      filename = GetValue("filename"); // FIXME: check that file exists - or create it
 
@@ -328,7 +321,6 @@ SequenceRecorder::Init()
     io(output, "OUTPUT");
     io(active, "ACTIVE");
     io(smoothing_start,"SMOOTHING_START");
-    io(ready, "READY");
 
     for(int c=0; c<channels; c++)
         set_one_row(channel_mode, 3, c, 4, channels);
@@ -701,6 +693,23 @@ SequenceRecorder::DeleteKeypoints()
 
 
 void
+SequenceRecorder::DeleteKeypointAtIndex(int i)
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+    if(i <0 || i>=n)
+        return;
+
+    for(int c=0; c<channels; c++)
+    {
+        if(channel_mode[c][2] == 1) // record mode
+            keypoints[i]["point"][c] = nullptr;
+    }
+}
+
+
+
+void
 SequenceRecorder::DeleteKeypointsInRange(float t0, float t1)
 {
     int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
@@ -708,24 +717,7 @@ SequenceRecorder::DeleteKeypointsInRange(float t0, float t1)
     {
         float t = float(sequence_data["sequences"][current_sequence]["keypoints"][i]["time"]);
         if(t0 < t && t<=t1)
-        {
-            int number_of_null_points = 0;
-            for(int c=0; c<channels; c++)
-            {
-                if(channel_mode[c][2] == 1) // record mode
-                {
-                    sequence_data["sequences"][current_sequence]["keypoints"][i]["point"][c] = nullptr;
-                }
-                if(sequence_data["sequences"][current_sequence]["keypoints"][i]["point"][c].is_null())
-                    number_of_null_points++;
-            }
-        
-            if(number_of_null_points == channels)
-            {
-                // FIXME: Delete the complete keypoint (i) if possible during iterations
-                //printf("Delete %f - %f, %f\n", t0, t1, t);
-            }
-        }
+            DeleteKeypointAtIndex(i);
     }
 }
 
@@ -779,8 +771,8 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         AddKeypoint(timer.GetTime());
         LinkKeypoints();
     }
-    else if(s == "set_initial")
-        SetInitial();
+//   else if(s == "set_initial")
+//        SetInitial();
     else if(s =="save")
             StoreJSON(filename);
     else if(s =="load")
@@ -820,20 +812,6 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 
 
 void
-SequenceRecorder::SetInitial() // Manual setting of initial position
-{
-    if(!initial)
-        initial = copy_array(create_array(channels), input, channels);
-    else
-        copy_array(initial, input, channels);
-    copy_array(target, input, channels);
-    copy_array(output, input, channels);
-    //FIXME: Set smoothing start also
-}
-
-
-
-void
 SequenceRecorder::Tick()
 {
     if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
@@ -845,17 +823,6 @@ SequenceRecorder::Tick()
     float t = timer.GetTime();
 
     // Set initial position if not set already - this is used as output when no data is available
-
-    if(!initial && norm1(input, channels) != 0)
-    {
-        initial = copy_array(create_array(channels), input, channels);
-        copy_array(target, input, channels);
-        copy_array(output, input, channels);
-        //FIXME: Set smoothing start also
-    }
-
-
-    *ready = initial ? 1 : 0;
 
     // Check if position has been changed from WebUI - should use command in the future
 
@@ -873,50 +840,47 @@ SequenceRecorder::Tick()
     position = end_time? t/end_time : 0;
     last_position = position;
 
-    if(initial) // Do nothing until initial is set
+    // Set inputs from parameters for internal channels
+
+    for(int c=0; c<channels; c++)
+        if(internal_control[c])
+            input[c] = positions[c];
+
+    if(state[1]) // handle play mode
     {
-        // Set inputs from parameters for internal channels
-
-        for(int c=0; c<channels; c++)
-            if(internal_control[c])
-                input[c] = positions[c];
-
-        if(state[1]) // handle play mode
+        if(state[8] && t >= float(sequence_data["sequences"][current_sequence]["end_mark_time"])) // loop
         {
-            if(state[8] && t >= float(sequence_data["sequences"][current_sequence]["end_mark_time"])) // loop
-            {
-                timer.SetTime(float(sequence_data["sequences"][current_sequence]["start_mark_time"]));
-            }
-            else if(position >= 1 || end_time == 0)
-            {   
-                timer.SetTime(sequence_data["sequences"][current_sequence]["end_time"]);
-                Pause();
-        }   }
-
-        else if(state[2]) // handle record mode
-        {
-            if(position >= 1 || end_time == 0) // extend recoding if at end
-                sequence_data["sequences"][current_sequence]["end_time"] = t;
-
+            timer.SetTime(float(sequence_data["sequences"][current_sequence]["start_mark_time"]));
         }
-        
- 
-        // Set outputs
+        else if(position >= 1 || end_time == 0)
+        {   
+            timer.SetTime(sequence_data["sequences"][current_sequence]["end_time"]);
+            Pause();
+    }   }
 
-        GoToTime(t);
+    else if(state[2]) // handle record mode
+    {
+        if(position >= 1 || end_time == 0) // extend recoding if at end
+            sequence_data["sequences"][current_sequence]["end_time"] = t;
 
-        // FIXME: Add smoothing here
+    }
+    
+    // Set outputs
 
-        for(int c=0; c<channels; c++)
-            SetOutputForChannel(c);
+    GoToTime(t);
 
-        // AddPoints if in recording mode
+    // FIXME: Add smoothing here
 
-        if(state[2] == 1) // record mode
-        {
-            last_record_position = t;
-            AddKeypoint(t);
-        }
+    for(int c=0; c<channels; c++)
+        SetOutputForChannel(c);
+
+    // AddPoints if in recording mode
+
+    if(state[2] == 1) // record mode
+    {
+        DeleteKeypointsInRange(last_record_position+0.00001, t);
+        last_record_position = t;
+        AddKeypoint(t);
     }
 
 // Set position again
@@ -933,7 +897,7 @@ SequenceRecorder::Tick()
         mark_start = float(sequence_data["sequences"][current_sequence]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence]["end_time"]);
         mark_end = float(sequence_data["sequences"][current_sequence]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence]["end_time"]);}
 
-    // Set positions parameter for exterbally controlled channels
+    // Set positions parameter for externally controlled channels
 
     for(int c=0; c<channels; c++)
             if(internal_control[c] == 0)

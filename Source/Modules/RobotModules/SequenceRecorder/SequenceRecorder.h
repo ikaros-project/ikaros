@@ -65,11 +65,12 @@ public:
 
     void        LinkKeypoints();
     void        AddKeypoint(float time); // add keypoint at time t
-    void        PushKeypoint(); // push keypoint at the end of sequence
+
     void        ClearSequence();    // clear currently selected sequence
+    void        DeleteKeypointAtIndex(int i);
     void        DeleteKeypoints(); // Delete all points within the selection time window for channels in record mode   
     void        DeleteKeypointsInRange(float t0, float t1);
-    void        SetInitial();
+
     void        LoadJSON(std::string filename);
     void        StoreJSON(std::string filename);  
 
@@ -102,10 +103,9 @@ public:
     float *         default_output; // value for initial from ikg3 file if set
     float *         internal_control;
 
-    float *         initial;
     float *         output;
     float *         active;
-    float *         ready;
+
     bool            start_record;
 
     int             current_sequence;
