@@ -27,7 +27,7 @@
 
 using namespace ikaros;
 
-std::string
+static std::string
 make_timestamp(float t)
 {
     char buff[100];
@@ -36,6 +36,13 @@ make_timestamp(float t)
     int t_min = int(t/60000);
     snprintf(buff, 100, "%02d:%02d:%03d", t_min, t_s, t_ms);
     return buff;     
+}
+
+
+static inline float
+quantize(float time, long q)
+{
+    return q*(int(time+q/2)/q);
 }
 
 
@@ -307,8 +314,8 @@ SequenceRecorder::Init()
 
     int do_size = 0;
     Bind(default_output, &do_size, "default_output");
-    if(do_size == !channels)
-        Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels");
+    if(do_size !=channels)
+        Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
 
      filename = GetValue("filename"); // FIXME: check that file exists - or create it
 
@@ -566,11 +573,12 @@ SequenceRecorder::LinkKeypoints()
 void
 SequenceRecorder::AddKeypoint(float time)
 {   
+
     auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
     int n = keypoints.size();
 
-    long tl = GetTickLength();
-    float qtime = tl*(int(time)/tl); // Quantized time
+    float qtime = quantize(time, GetTickLength());
+        printf(">>> add: %f => %f\n", time, qtime);
 
     // Create the point data array
 
@@ -587,20 +595,19 @@ SequenceRecorder::AddKeypoint(float time)
         else // default
             points.push_back(nullptr);
 
-    int i = find_index_for_time(keypoints, time);
+    int i = find_index_for_time(keypoints, qtime);
     if(n>0 && i<n)
     {
         // Find position in list
-        int i = find_index_for_time(keypoints, time);
+        int i = find_index_for_time(keypoints, qtime);
 
-        //printf(">>>%d\n", i);
         if(i==0) // insert first
         {
             json keypoint;
             keypoint["time"] = qtime;
             keypoint["point"] = points;
             keypoints.insert(keypoints.begin(), keypoint);
-            //printf("INSERT FIRST\n");
+            printf("INSERT FIRST\n");
             return;
         }
 
@@ -610,7 +617,7 @@ SequenceRecorder::AddKeypoint(float time)
             for(int c=0; c<channels; c++)
             if(!points[c].is_null())
                 keypoints[i-1]["point"][c] = points[c];
-            //printf("MERGED AT %d\n", i-1);
+            printf("MERGED AT %d\n", i-1);
             return;
         }
         else if(qtime < keypoints[i]["time"]) // insert before
@@ -619,7 +626,7 @@ SequenceRecorder::AddKeypoint(float time)
             keypoint["time"] = qtime;
             keypoint["point"] = points;
             keypoints.insert(keypoints.begin() + i, keypoint);
-            //printf("INSERT BEFORE %d\n", i);
+            printf("INSERT BEFORE %d\n", i);
             return;
         }
     }
@@ -695,6 +702,7 @@ SequenceRecorder::DeleteKeypoints()
 void
 SequenceRecorder::DeleteKeypointAtIndex(int i)
 {
+    printf(">>> delete: %d\n", i);
     auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
     int n = keypoints.size();
     if(i <0 || i>=n)
@@ -710,15 +718,29 @@ SequenceRecorder::DeleteKeypointAtIndex(int i)
 
 
 void
-SequenceRecorder::DeleteKeypointsInRange(float t0, float t1)
+SequenceRecorder::DeleteKeypointsInRange(float t0, float t1) // FIXME: Needs further testing for different quantizations ***
 {
-    int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+
+    /*
     for(int i=0; i<n; i++)
     {
-        float t = float(sequence_data["sequences"][current_sequence]["keypoints"][i]["time"]);
-        if(t0 < t && t<=t1)
+        float t = float(keypoints[i]["time"]);
+        if(t0 < t && t<t1)
+        {
             DeleteKeypointAtIndex(i);
+            printf("--- Deleting: %d", i);
+        }
     }
+    */
+
+    int i0 = find_index_for_time(keypoints, t0);
+    int i1 = find_index_for_time(keypoints, t1);
+//    printf("%d - %d\n\n", i0, i1);
+    for(int i = i0; i< i1; i++)
+        DeleteKeypointAtIndex(i);
+        // printf("--- Deleting: %d", i);
 }
 
 
@@ -878,7 +900,7 @@ SequenceRecorder::Tick()
 
     if(state[2] == 1) // record mode
     {
-        DeleteKeypointsInRange(last_record_position+0.00001, t);
+        DeleteKeypointsInRange(quantize(last_record_position, GetTickLength()), quantize(t, GetTickLength()));
         last_record_position = t;
         AddKeypoint(t);
     }
