@@ -15,7 +15,7 @@
 			class = "SequenceRecorder"
 			name = "SR"
 			channels = "6"
-			default_output = "0 0 0 0 0 0 "
+			default_output = "0 0 0 0 0 0"
 			internal_control = "1 1 1 1 1 1"
 
 		 	_x="20" _y="100"
@@ -97,7 +97,6 @@
 	<slider-horizontal  y = "1040" title = "Sliders" width = "561" height = "41" show_frame = "false" x = "20" parameter = "RobotFeedback.data" count = "1" select = "5" style = "" labels = "Right Pupil" min = "0" step = "0.01" show_values = "true" max = "360" show_title = "false" frame-style = ""/>
 	<button  background = "" radioGroup = "" title = "Title" color = "" width = "41" show_frame = "false" height = "41" label = "del" parameter = "" valueUp = "0" playhead = "SR.playhead" yindex = "0" y = "420" frame-style = "" icon = "" command = "SR.delete" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "360" xindex = "0" commandUp = ""/>
 	<button  background = "" radioGroup = "" title = "Title" color = "" width = "41" show_frame = "false" height = "41" label = "K" parameter = "" valueUp = "0" playhead = "SR.playhead" yindex = "0" y = "420" frame-style = "" icon = "" command = "SR.make_keypoints" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "500" xindex = "0" commandUp = ""/>
-	<grid  show_frame = "false" min_x = "0" valueHigh = "1" min_y = "0" flipXCanvas = "no" fill = "gray" blue = "" size = "1" flipXAxis = "no" labels = "" style = "" valueLow = "0" min = "0" green = "" scales = "no" labelWidth = "100" max = "1" parameter = "" red = "" max_x = "1" shape = "circle" source = "SR.READY" color = "" title = "" max_y = "1" height = "41" flipYCanvas = "no" flipYAxis = "no" width = "41" x = "860" lineWidth = "1" frame-style = "" y = "840" colorTable = "red,green" command = "" show_title = "false"/>
 	<button  background = "" radioGroup = "" title = "Title" color = "" width = "41" show_frame = "false" height = "41" label = "load" parameter = "" valueUp = "0" playhead = "SR.playhead" yindex = "0" y = "420" frame-style = "" icon = "" command = "SR.load" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "800" xindex = "0" commandUp = ""/>
 	<button  background = "" radioGroup = "" title = "Title" color = "" width = "41" show_frame = "false" height = "41" label = "save" parameter = "" valueUp = "0" playhead = "SR.playhead" yindex = "0" y = "420" frame-style = "" icon = "" command = "SR.save" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "840" xindex = "0" commandUp = ""/>
 	<button  background = "" radioGroup = "" title = "Title" color = "" width = "41" show_frame = "false" height = "41" label = "clear" parameter = "" valueUp = "0" playhead = "SR.playhead" yindex = "0" y = "420" frame-style = "" icon = "" command = "SR.clear" show_title = "false" type = "push" enableSource = "" style = "" value = "1" x = "540" xindex = "0" commandUp = ""/>
