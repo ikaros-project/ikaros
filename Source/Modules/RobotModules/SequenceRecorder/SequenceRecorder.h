@@ -89,6 +89,9 @@ public:
     int             channels;
     int             max_sequences;
 
+    float *         range_min;
+    float *         range_max;
+    
     float *         trig;
     float *         trig_last;
     int             trig_size;

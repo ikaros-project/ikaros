@@ -245,7 +245,16 @@ SequenceRecorder::LoadJSON(std::string filename)
     {
         json data ;
         data["channels"] = channels;
-        // data["ranges"] // FIXME: yes do!
+
+        data["ranges"] = json::array();
+        for(int c=0; c<channels; c++)
+        {
+            json range = json::array();
+            range.push_back(range_min[c]);
+            range.push_back(range_max[c]);
+            data["ranges"].push_back(range);
+        }
+
           data["sequences"] = json::array();
           for(int i=0; i<max_sequences; i++)
             data["sequences"].push_back(create_sequence(i));  
@@ -294,6 +303,16 @@ SequenceRecorder::Init()
     SetOutputSize("INPUT", channels); // Make sure that there is an input for every channel even if they are not connected
 
     Bind(positions, channels, "positions", true); // parameter size will be set by the value channels
+
+    int ranges;
+    Bind(range_min, &ranges, "range_min");
+    if(ranges != channels)
+        Notify(msg_fatal_error, "Min range not set for correct number of channels.");
+
+
+    Bind(range_max, &ranges, "range_max");
+    if(ranges != channels)
+        Notify(msg_fatal_error, "Max range not set for correct number of channels.");
 
     Bind(smoothing_time, "smoothing_time");
 

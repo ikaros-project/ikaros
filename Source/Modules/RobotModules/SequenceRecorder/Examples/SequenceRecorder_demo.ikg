@@ -24,8 +24,11 @@
 			name = "SR"
 			channels = "6"
 			default_output = "0 0 0 0 0 0"
-			internal_control = "1 1 1 1 1 1"
+			range_min = "-180 180 -180 0 0 0"
+			range_max = "180 180 180 360 360 1"
 
+			internal_control = "1 1 1 1 1 1"
+			
 		 	_x="20" _y="100"
 
 
@@ -41,7 +44,7 @@
 
 		<connection source = "RobotFeedback.OUTPUT"  target = "SR.INPUT" />
 		<connection source = "Triggers.OUTPUT"  target = "SR.TRIG" />
-		
+
 <view name="Controls" >
 	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "141" label = "" show_frame = "true" show_title = "false" style = "background-color:#eee;" title = "Default Title" width = "881" x = "20" y = "400"/>
 	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "261" label = "" show_frame = "true" show_title = "true" style = "background-color:#adf;" title = "Robot" width = "881" x = "20" y = "820"/>
