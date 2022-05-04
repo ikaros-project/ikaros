@@ -319,7 +319,9 @@ SequenceRecorder::Init()
 
      filename = GetValue("filename"); // FIXME: check that file exists - or create it
 
-    io(trig, "TRIG");
+    io(trig, trig_size, "TRIG");
+    trig_last = create_array(trig_size);
+
     io(playing, "PLAYING");
     io(completed, "COMPLETED");
 
@@ -836,13 +838,27 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 void
 SequenceRecorder::Tick()
 {
+    long tl = GetTickLength();
+    reset_array(playing, max_sequences);
+    reset_array(completed, max_sequences);
+
+    // Check trig input
+
+    for(int s=0; s<trig_size; s++)
+        if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
+            Trig(s);
+        copy_array(trig_last, trig, trig_size);
+
+    float t = timer.GetTime();
+
+
     if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
     {                // FIXME: May want to jump to closest keypoint if dense recording is used
         timer.Start();
         start_record = false;
     }
 
-    float t = timer.GetTime();
+
 
     // Set initial position if not set already - this is used as output when no data is available
 
@@ -870,6 +886,7 @@ SequenceRecorder::Tick()
 
     if(state[1]) // handle play mode
     {
+        set_one(playing, current_sequence, max_sequences);
         if(state[8] && t >= float(sequence_data["sequences"][current_sequence]["end_mark_time"])) // loop
         {
             timer.SetTime(float(sequence_data["sequences"][current_sequence]["start_mark_time"]));
@@ -877,6 +894,7 @@ SequenceRecorder::Tick()
         else if(position >= 1 || end_time == 0)
         {   
             timer.SetTime(sequence_data["sequences"][current_sequence]["end_time"]);
+            set_one(completed, current_sequence, max_sequences);
             Pause();
     }   }
 
@@ -884,9 +902,8 @@ SequenceRecorder::Tick()
     {
         if(position >= 1 || end_time == 0) // extend recoding if at end
             sequence_data["sequences"][current_sequence]["end_time"] = t;
-
     }
-    
+
     // Set outputs
 
     GoToTime(t);
@@ -900,7 +917,7 @@ SequenceRecorder::Tick()
 
     if(state[2] == 1) // record mode
     {
-        DeleteKeypointsInRange(quantize(last_record_position, GetTickLength()), quantize(t, GetTickLength()));
+        DeleteKeypointsInRange(quantize(last_record_position, tl), quantize(t, tl));
         last_record_position = t;
         AddKeypoint(t);
     }

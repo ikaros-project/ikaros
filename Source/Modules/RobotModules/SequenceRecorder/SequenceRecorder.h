@@ -90,6 +90,9 @@ public:
     int             max_sequences;
 
     float *         trig;
+    float *         trig_last;
+    int             trig_size;
+
     float *         playing;
     float *         completed;
 
