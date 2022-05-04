@@ -599,7 +599,7 @@ SequenceRecorder::AddKeypoint(float time)
     int n = keypoints.size();
 
     float qtime = quantize(time, GetTickLength());
-        printf(">>> add: %f => %f\n", time, qtime);
+    ///printf(">>> add: %f => %f\n", time, qtime);
 
     // Create the point data array
 
@@ -628,7 +628,7 @@ SequenceRecorder::AddKeypoint(float time)
             keypoint["time"] = qtime;
             keypoint["point"] = points;
             keypoints.insert(keypoints.begin(), keypoint);
-            printf("INSERT FIRST\n");
+            ///printf("INSERT FIRST\n");
             return;
         }
 
@@ -638,7 +638,7 @@ SequenceRecorder::AddKeypoint(float time)
             for(int c=0; c<channels; c++)
             if(!points[c].is_null())
                 keypoints[i-1]["point"][c] = points[c];
-            printf("MERGED AT %d\n", i-1);
+            ///printf("MERGED AT %d\n", i-1);
             return;
         }
         else if(qtime < keypoints[i]["time"]) // insert before
@@ -647,7 +647,7 @@ SequenceRecorder::AddKeypoint(float time)
             keypoint["time"] = qtime;
             keypoint["point"] = points;
             keypoints.insert(keypoints.begin() + i, keypoint);
-            printf("INSERT BEFORE %d\n", i);
+            ///printf("INSERT BEFORE %d\n", i);
             return;
         }
     }
@@ -723,7 +723,7 @@ SequenceRecorder::DeleteKeypoints()
 void
 SequenceRecorder::DeleteKeypointAtIndex(int i)
 {
-    printf(">>> delete: %d\n", i);
+    //(">>> delete: %d\n", i);
     auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
     int n = keypoints.size();
     if(i <0 || i>=n)
