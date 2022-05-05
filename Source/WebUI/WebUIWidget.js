@@ -380,7 +380,7 @@ class WebUIWidget extends HTMLElement
 */
 
         // Default onclick function - send click coordinate if command is set
-
+/*
         this.onclick = function (evt)
         {
             return;
@@ -398,7 +398,8 @@ class WebUIWidget extends HTMLElement
                 alert("!");
             }
          }
-        
+ */
+
         this.updateStyle(this, this.parameters['style']);
         this.updateStyle(this.parentNode, this.parameters['frame-style']);
         this.readCSSvariables();

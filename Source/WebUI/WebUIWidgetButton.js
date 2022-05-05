@@ -15,8 +15,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
             {'name': "CONTROL", 'control':'header'},
 
-            { 'name': 'type', 'default': "push", 'type': 'string', 'control': 'menu', 'values': "push,toggle,radio" },
+            { 'name': 'type', 'default': "push", 'type': 'string', 'control': 'menu', 'values': "push,toggle,radio,multi" },
             { 'name':'radioGroup', 'default':"", 'type':'string', 'control': 'textedit'},
+            { 'name':'multiGroup', 'default':"", 'type':'string', 'control': 'textedit'},
 
 
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -109,6 +110,19 @@ class WebUIWidgetButton extends WebUIWidgetControl
                     this.parentElement.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
                 if(p.command)
                     this.parentElement.send_command(p.command, p.value, p.xindex, p.yindex);
+            }
+
+            else if(p.type=="multi")
+            {
+                let buttons = document.getElementsByTagName("webui-widget-button");
+                for(let b of buttons)
+                {
+                    if(b.parameters.multiGroup == p.multiGroup)
+                        if(b.firstElementChild!=this)
+                        {
+                            b.firstElementChild.dispatchEvent(new Event('mousedown'));
+                        }
+                }
             }
     }
 
