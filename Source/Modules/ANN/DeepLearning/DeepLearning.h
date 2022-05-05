@@ -1,5 +1,5 @@
 //
-//	MinimalModule.h		This file is a part of the IKAROS project
+//	DeepLearning.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2022 Amandus Krantz
 //
