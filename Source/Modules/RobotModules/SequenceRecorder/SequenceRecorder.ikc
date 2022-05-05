@@ -16,7 +16,9 @@
    	<parameter name="smoothing_time" type="float" default="200" description="Number of milliseconds to smooth the output position." />
 	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state. Only for output to control buttons." />
 	<parameter name="channel_mode" type="matrix" _default="" description="Mode for each channel: lock, play, record, etc." />
+	<parameter name="interpolation" type="matrix" _default="1 1 1 1 1 1" description="Type of interpolation for each channel: 0 = none; 1 = linear" />
 
+	
 	<parameter name="time" type="string" default="00:00:000" description="String representation of the current time." />
 	<parameter name="end_time" type="string" default="00:00:000" description="String representation of the end time." />
 	<parameter name="position" type="float" default="0" description="Position in sequence from 0 to 1." />
@@ -41,7 +43,7 @@
 	<output name="TARGET" size_param="channels" description="The target positions or the interpolated keypoint positions that the output moves towards" />
 	<output name="OUTPUT" size_param="channels" description="The current output positions" />
 	<output name="ACTIVE" size_param="channels" description="Indicates that the data on the output should be used, for example for torque enable." />
-	<output name="READY" size="1" description="Indicates that the sequence recorder is read, i.e. that initial position is set." />
+	<output name="CAN_PLAY" size_param="channels" description="A one ona channel indicates that there is data to be played. Used to enable play buttons" />
 
 
 
