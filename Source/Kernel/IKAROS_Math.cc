@@ -3809,7 +3809,7 @@ namespace ikaros
 // REctified Linear Unit activation function
     float relu(float input)
     {
-        return max(input, 0.0)
+        return max(input, 0.0);
     }
 
 }
