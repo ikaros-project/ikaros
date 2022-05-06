@@ -35,6 +35,8 @@ nrServosTotal = "19">
 
 	VisionInputLeft = "InputJPEG"
 	VisionInputRight = "InputJPEG"
+
+	
 	_simulateRobot ="true"
 	_EpiName = "EpiRed" 
 	
@@ -52,8 +54,10 @@ nrServosTotal = "19">
             smoothing_time 		= "0"
 			default_output 		= "0 0 0 0 0 0  0 0 0 0 0 0   0 0 0 0 0 0  0  0 0 0 0   0 0 0 0   0"
 			internal_control 	= "0 0 0 0 1 1  0 0 0 0 0 1   0 0 0 0 0 1  0  1 1 1 1   1 1 1 1   1"
-			state			 	= "0 2 1 1 1 1  1 1 1 1 1 1   1 1 1 1 1 1  1  1 1 1 1   1 1 1 1   1" />
-
+			state			 	= "0 2 1 1 1 1  1 1 1 1 1 1   1 1 1 1 1 1  1  1 1 1 1   1 1 1 1   1" 
+			range_min 			= "-180 -180 -180 -180 10 10   -180 -180 -180 -180 -180 -180   -180 -180 -180 -180 -180 -180   -180  0 0 0 0  0 0 0 0  0"
+			range_max 			= " 180  180  180  180 20 20    180  180  180  180  180  180    180  180  180  180  180  180    180  1 1 1 1  1 1 1 1  1"
+		/>
 
 	<connection  source = "Epi.Servos.PRESENT_POSITION" sourceoffset = "0" targetoffset = "0" size = "@nrServosTotal" target = "SR.INPUT"/>
 
