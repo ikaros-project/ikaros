@@ -337,12 +337,15 @@ join(const std::string & separator, const std::vector<std::string> & v, bool rev
 
 
 bool
-starts_with(const std::string & s, const std::string & start)
+starts_with(const std::string & s, const std::string & start) // waiting for C++20
 {
     return start.length() <= s.length() && equal(start.begin(), start.end(), s.begin()); // more efficient than find
 }
 
-
+bool ends_with(const std::string & s, const std::string & end) // waiting for C++20
+{
+    return  s.size() >= end.size() && s.compare(end.size() - end.size(), end.size(), end) == 0;
+}
 
 std::string
 head(std::string & s, const std::string & delimiter)

@@ -50,6 +50,7 @@ const std::vector<std::string>  rsplit(const std::string & str, const std::strin
 std::string                     join(const std::string & separator, const std::vector<std::string> & v, bool reverse =false);    // Pyhon-like join
 
 bool starts_with(const std::string &s, const std::string & start);
+bool ends_with(const std::string &s, const std::string &end);
 
 std::string head(std::string & s, const std::string & delimiter); // return string before delimiter and remove it from s
 std::string cut(std::string & s, const std::string & delimiter); // cut off string at delimiter and return the rest
