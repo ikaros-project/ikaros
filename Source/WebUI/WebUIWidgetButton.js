@@ -15,7 +15,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
             {'name': "CONTROL", 'control':'header'},
 
-            { 'name': 'type', 'default': "push", 'type': 'string', 'control': 'menu', 'values': "push,toggle,radio,multi" },
+            { 'name': 'type', 'default': "push", 'type': 'string', 'control': 'menu', 'values': "push,toggle,radio,multi,input,open" },
             { 'name':'radioGroup', 'default':"", 'type':'string', 'control': 'textedit'},
             { 'name':'multiGroup', 'default':"", 'type':'string', 'control': 'textedit'},
 
@@ -23,6 +23,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            
+            {'name':'file_names', 'default':"", 'type':'source', 'control': 'textedit'},
+        
 //            {'name':'state', 'default':"0", 'type':'int', 'control': 'textedit'},
             {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
             {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
@@ -48,12 +51,17 @@ class WebUIWidgetButton extends WebUIWidgetControl
     requestData(data_set)
     {
         data_set.add(this.parameters.parameter);
+        if(this.parameters.file_names)
+        data_set.add(this.parameters.file_names);
         if(this.parameters.enableSource)
             data_set.add(this.parameters.enableSource);
     }
 
+
+
     button_down(evt)
     {
+        let thisbutton = this;
         let p = this.parentElement.parameters;
 
 
@@ -124,6 +132,23 @@ class WebUIWidgetButton extends WebUIWidgetControl
                         }
                 }
             }
+            else if(p.type=="input")
+            {
+                let text = prompt(p.title);
+                if(text)
+                    this.parentElement.send_command(p.command, text, p.xindex, p.yindex);
+            }
+
+
+            else if(p.type=="open")
+            {
+                let callback = function (selected_item)
+                {
+                    thisbutton.parentElement.send_command(p.command, selected_item, p.xindex, p.yindex);
+                }
+
+                dialog.showOpenDialog(this.file_names, callback, p.title);
+            }
     }
 
 
@@ -160,6 +185,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     update(d)
     {
+        if(this.parameters.file_names)
+            this.firstChild.file_names = this.getSource("file_names");
         if(this.parameters.icon)
             this.firstChild.innerHTML = "<img src='"+this.parameters.icon+"' class='button-icon'>"; // ' style='width: 70%;height: 70%;object-fit: contain;'
         else
