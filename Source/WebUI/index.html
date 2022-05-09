@@ -34,6 +34,7 @@
 <script src="WebUIWidgetCanvas3D.js"></script>
 <script src="WebUIWidgetKeyPoints.js"></script>
 <script src="WebUIWidgetEpiHead.js"></script>
+<script src="WebUIWidgetControlGrid.js"></script>
 
 <!-- three.js -->
 <script src="js/three.min.js"></script>
@@ -43,6 +44,25 @@
 
 </head>
 <body>
+
+    <dialog id="openDialog">
+
+            <p id="openDialogTitle"></p>
+            <select size="14" id="openDialogItems" style="width:100%">
+              </select>
+            <menu>
+              <button  onclick="dialog.cancelOpen()">Cancel</button>
+              <button onclick="dialog.confirmOpen()">Open</button>
+            </menu>
+
+        </dialog>
+      
+    
+          </div>
+        </div>
+      </div>
+
+      
 	<header>
 
         <div  class="breadcrumbs">
@@ -177,6 +197,7 @@
                                 <option value="slider-horizontal">Slider</option>
                                 <option value="switch">Check Box</option>
                                 <option value="drop-down-menu">Drop Down Menu</option>
+                                <option value="control-grid">Control Grid</option>
                                 <option value="canvas3d">Canvas3D</option>
                                 <option value="epi-head">EpiHead</option>
                             </select>

@@ -176,6 +176,55 @@ function toggleSystem()
 
 
 
+/*
+ *
+ * Dialog Scrips
+ *
+ *
+ */
+
+dialog = {
+    confirmOpen: function()
+    {
+        let sel = document.getElementById("openDialogItems");
+        let text= sel.options[sel.selectedIndex].text;
+        dialog.window.close(text);
+            if(dialog.callback)
+                dialog.callback(text);
+    },
+        
+    cancelOpen: function()
+    {
+        dialog.window.close(null);
+
+    },
+
+    showOpenDialog: function (file_list, callback, message)
+    {
+        dialog.callback = callback;
+        dialog.window = document.getElementById('openDialog');
+        let sel = document.getElementById('openDialogItems');
+        sel.innerHTML = '';
+        if(file_list)
+            for(i of file_list.split(","))
+            {
+                var opt = document.createElement('option');
+                opt.value = i;
+                opt.innerHTML = i;
+                document.getElementById('openDialogItems').appendChild(opt);
+            }
+            if(message)
+            {
+                document.getElementById('openDialogTitle').innerText = message;
+            }
+        dialog.window.showModal();
+    }
+}
+
+
+
+
+
 
 /*
  *
@@ -1118,7 +1167,7 @@ interaction = {
             newObject.widget = new webui_widgets.constructors['webui-widget-text'];
             newObject.widget.element = newObject; // FIXME: why not also below??
             newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
-            newObject.widget.parameters['text'] = "\""+"webui-widget-"+w['class']+"\" not found.";
+            newObject.widget.parameters['text'] = "\""+"webui-widget-"+w['class']+"\" not found. Is it included in index.html?";
         }
         else
         {

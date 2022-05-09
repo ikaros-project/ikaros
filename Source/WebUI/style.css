@@ -25,6 +25,53 @@ html, body {
     overflow:hidden;
 }
 
+dialog::backdrop {
+    background: none;
+  }
+  
+  #openDialog {
+      margin:auto;
+      background-color:#fff;
+      width:500px; 
+      padding:20px 0  0 0;
+      border:1px solid #bbb;
+      border-radius:12px;
+      box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  }
+
+ 
+
+  #openDialog p {
+      font-family:Arial;
+      font-size:10pt;
+      padding:10px 20px 20px 20px;
+  }
+  
+  #openDialog button {
+      height:26px;
+      width:80px;
+      font-size:12px;
+  
+  }
+  
+  #openDialog menu {
+      text-align:right;
+      padding-right:20px;
+      padding-top: 20px;
+      height:60px;
+  }
+  
+  #openDialog select {
+  overflow: hidden;
+      outline: none;
+      font-size:14px;
+      padding: 10px 10px 0px 10px;
+  }
+  
+  #openDialog select option:nth-child(odd) { 
+  background: #efefef; 
+  }
+
 body {
     display: flex;
     flex-direction: column;
