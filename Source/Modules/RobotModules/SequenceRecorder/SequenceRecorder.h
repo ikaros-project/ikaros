@@ -71,8 +71,9 @@ public:
     void        DeleteKeypoints(); // Delete all points within the selection time window for channels in record mode   
     void        DeleteKeypointsInRange(float t0, float t1);
 
-    void        LoadJSON(std::string filename);
-    void        StoreJSON(std::string filename);  
+    void        New(); // Create new sequence
+    bool        Open(const std::string & name); // Open sequence file
+    void        Save(const std::string & name); // Sabe sequence file under supplied name
 
     void        Command(std::string s, float x, float y, std::string value);
 
@@ -80,10 +81,12 @@ public:
 
     void        SetTargetForTime(float t);
     void        SetOutputForChannel(int c); 
-    void            StartRecord();
+    void        StartRecord();
 
+    void        UpdateSequenceNames();
+    void        Rename(const std::string & new_name); // Renames the selected sequence
 
-
+   
     // Current state
 
     int             channels;
@@ -91,7 +94,7 @@ public:
 
     float *         range_min;
     float *         range_max;
-    
+
     float *         trig;
     float *         trig_last;
     int             trig_size;
@@ -116,7 +119,8 @@ public:
 
     int             current_sequence;
     std::string     sequence_names;
-    json        sequence_data;
+    std::string     file_names;
+    json            sequence_data;
 
     // Control  variables
 
@@ -142,6 +146,7 @@ public:
     float       mark_start;
     float       mark_end;
 
+    std::string directory;
     std::string filename;
 
     std::string time_string;

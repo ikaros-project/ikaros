@@ -6,6 +6,9 @@
 		Module that records or plays a sequence of values.
 	</description>
 
+	<parameter name="directory" type="string" default="Sequences" description="Directory for sequence files" />
+	<parameter name="filename" type="string" default="sequence.json" description="Default name for sequence file" />
+
 	<parameter name="max_sequences" type="int" default="64" description="The maximum number of different behaviors that can be recorded" />
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior; lower number priority" size_param="max_sequences" optional="yes" />
@@ -33,7 +36,7 @@
 
 	<parameter name="current_sequence" type="int" default="0" description="Index of the currently selected sequence" />
 	<parameter name="sequence_names" type="string" default="Sequence A" description="List of names for the different sequences" />
-
+	<parameter name="file_names" type="string" default="" description="List of file names for sequence files in the current directory" />
 
 
 	<output name="SMOOTHING_START" size_param="channels" description="Sposition to smooth from. Used only for debugging." />

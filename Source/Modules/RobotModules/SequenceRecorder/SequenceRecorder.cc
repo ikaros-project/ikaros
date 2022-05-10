@@ -25,6 +25,11 @@
 #include <iostream>
 #include <fstream>
 
+#include <fstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
 using namespace ikaros;
 
 static std::string
@@ -222,6 +227,31 @@ SequenceRecorder::StartRecord()
 
 
 
+void
+SequenceRecorder::Rename(const std::string & new_name)
+{
+    sequence_data["sequences"][current_sequence]["name"] = new_name;
+    UpdateSequenceNames();
+}
+
+
+
+void
+SequenceRecorder::UpdateSequenceNames()
+{
+    sequence_names = "";
+    std::string sep = "";
+
+    for(auto s : sequence_data["sequences"])
+    {
+        std::string name = s["name"];
+        sequence_names += sep + name;
+        sep = ",";
+    }
+}
+
+
+
 static json create_sequence(int index)
 {
     json sq;
@@ -238,59 +268,89 @@ static json create_sequence(int index)
 
 
 
+
+
 void
-SequenceRecorder::LoadJSON(std::string filename)
+SequenceRecorder::New()
 {
-    if(!check_file_exists(filename.c_str()))
+    sequence_data = json(); // in case it is not empty
+    sequence_data["type"] = "Ikaros Sequence Data";
+    sequence_data["channels"] = channels;
+    sequence_data["ranges"] = json::array();
+    for(int c=0; c<channels; c++)
     {
-        json data ;
-        data["channels"] = channels;
-
-        data["ranges"] = json::array();
-        for(int c=0; c<channels; c++)
-        {
-            json range = json::array();
-            range.push_back(range_min[c]);
-            range.push_back(range_max[c]);
-            data["ranges"].push_back(range);
-        }
-
-          data["sequences"] = json::array();
-          for(int i=0; i<max_sequences; i++)
-            data["sequences"].push_back(create_sequence(i));  
-
-
-        std::ofstream file(filename);
-        file << data;               
+        json range = json::array();
+        range.push_back(range_min[c]);
+        range.push_back(range_max[c]);
+        sequence_data["ranges"].push_back(range);
     }
-
-    std::ifstream ifs(filename);
-    sequence_data = json::parse(ifs);
-
-
-    std::string s = sequence_data["sequences"][current_sequence]["name"];
-    int sz = sequence_data["sequences"][current_sequence]["keypoints"].size();
-
-
-    sequence_names = "";
-    std::string sep = "";
-
-    for(auto s : sequence_data["sequences"])
+    sequence_data["sequences"] = json::array();
+    for(int i=0; i<max_sequences; i++)
     {
-        std::string name = s["name"];
-        sequence_names += sep + name;
-        sep = ",";
+            sequence_data["sequences"].push_back(create_sequence(i)); 
     }
 }
 
 
-void        
-SequenceRecorder::StoreJSON(std::string filename)
-{
-    LinkKeypoints();
 
-    std::ofstream file(filename);
-    file << sequence_data;
+bool
+SequenceRecorder::Open(const std::string & name)
+{
+    if(filename.empty())
+        return false;
+
+    filename = name;
+    auto path = directory+"/"+filename;
+
+    if(!check_file_exists(path.c_str()))
+    {
+        Notify(msg_warning, "File \"%s\" does not exist.", path.c_str());
+        return false;
+    }
+
+    try
+    {
+        std::ifstream ifs(path);
+        json data = json::parse(ifs);
+
+        // Validate
+
+        if(sequence_data["type"].is_null() || data["type"] != "Ikaros Sequence Data. Cannot be opended.")
+            return Notify(msg_warning, "File has wrong format.");
+
+        if(sequence_data["channels"].is_null() || data["channels"] != channels)
+            return Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opended.");
+
+       // Data is ok
+
+        sequence_data = data;
+        UpdateSequenceNames();
+    }
+
+    catch(const std::exception& e)
+    {
+        return Notify(msg_warning, "Sequence file could not be loaded.");
+    }
+    return true;
+}
+
+
+void        
+SequenceRecorder::Save(const std::string &  name)
+{   
+    if(ends_with(name, ".json"))
+        filename = name;
+    else    
+        filename = name + ".json";
+    auto path = directory+"/"+filename;
+
+    LinkKeypoints(); // FIXME: maybe not necessary here
+
+    std::ofstream file(path);
+    file << std::setw(4) << sequence_data << std::endl;  
+
+    if(file_names.find(filename) == std::string::npos)
+        file_names += ","+filename;
 }
 
 
@@ -328,6 +388,10 @@ SequenceRecorder::Init()
 
     Bind(max_sequences, "max_sequences");
     Bind(sequence_names, "sequence_names");
+    Bind(file_names, "file_names");
+
+    file_names = "";
+
     Bind(current_sequence, "current_sequence");
     Bind(internal_control, channels, "internal_control", true);
 
@@ -336,7 +400,8 @@ SequenceRecorder::Init()
     if(do_size !=channels)
         Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
 
-     filename = GetValue("filename"); // FIXME: check that file exists - or create it
+     directory = GetValue("directory");
+     filename = GetValue("filename");
 
     io(trig, trig_size, "TRIG");
     trig_last = create_array(trig_size);
@@ -365,7 +430,25 @@ SequenceRecorder::Init()
         right_index[c] = INT_MAX;
     }
 
-    LoadJSON(filename);
+    if(!filename.empty() && check_file_exists((directory+"/"+filename).c_str()))
+    {
+         if(!Open(filename))
+            New();
+    }
+    else
+        New();
+
+    // Get files indirectory
+
+        std::string fsep = "";
+        for(auto& p: fs::recursive_directory_iterator("."))
+    {   auto pp = p.path();
+        if(pp.extension() == ".json")
+        {
+            file_names += fsep + std::string(pp.filename());
+            fsep = ",";
+        }
+    }
 
     Stop();
 }
@@ -816,10 +899,7 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
     }
 //   else if(s == "set_initial")
 //        SetInitial();
-    else if(s =="save")
-            StoreJSON(filename);
-    else if(s =="load")
-            LoadJSON(filename);
+
     else if(s=="clear")
             ClearSequence();
     else if(s=="delete")
@@ -828,6 +908,17 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         LockChannel(y);
     else if(s=="trig")
         Trig(x);
+    else if(s=="rename")
+        Rename(value);
+
+    else if(s=="new")
+        New();
+    else if(s=="open")
+        Open(value);
+    else if(s =="save")
+        Save(filename);
+    else if(s=="saveas")
+        Save(value);
 }
 
 
