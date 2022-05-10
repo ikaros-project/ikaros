@@ -64,6 +64,10 @@ public:
     void        LockChannel(int c);
 
     void        LinkKeypoints();
+    void        StoreChannelMode();
+    void        LoadChannelMode();
+    
+
     void        AddKeypoint(float time); // add keypoint at time t
 
     void        ClearSequence();    // clear currently selected sequence
@@ -86,7 +90,6 @@ public:
     void        UpdateSequenceNames();
     void        Rename(const std::string & new_name); // Renames the selected sequence
 
-   
     // Current state
 
     int             channels;
@@ -109,7 +112,7 @@ public:
 
     float *         target;
     float *         input;
-    float *         default_output; // value for initial from ikg3 file if set
+    float *         default_output; // value for initial from ikg file if set
     float *         internal_control;
 
     float *         output;
@@ -155,33 +158,7 @@ public:
     void        SetOutputForTime(float t); // time in ms
 
 /*
-    void        ToggleMode(int x, int y);
-
-    float *     trig;
-    float *     trig_last;
-    int         trig_size;
-    float *     trig_out;
-    
-
-    float *     completed;
-
-    float *     input;
-    float *     output;
-
-    float *     positions;
-
     int         smoothing_time; // for torque and position
-    float *     stop_position;
-    float *     start_position;
-    float *     start_torque;
-    float *     enable;
-
-    const char * file_name;
-    const char * json_file_name;
-    const char * directory;
-
-    bool        record_on_trig;
-    bool        auto_save;
 */
 
 };

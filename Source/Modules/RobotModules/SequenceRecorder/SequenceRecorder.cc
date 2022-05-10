@@ -296,7 +296,7 @@ SequenceRecorder::New()
 bool
 SequenceRecorder::Open(const std::string & name)
 {
-    if(filename.empty())
+     if(filename.empty())
         return false;
 
     filename = name;
@@ -315,8 +315,8 @@ SequenceRecorder::Open(const std::string & name)
 
         // Validate
 
-        if(sequence_data["type"].is_null() || data["type"] != "Ikaros Sequence Data. Cannot be opended.")
-            return Notify(msg_warning, "File has wrong format.");
+        if(sequence_data["type"].is_null() || data["type"] != "Ikaros Sequence Data")
+            return Notify(msg_warning, "File has wrong format. Cannot be opended.");
 
         if(sequence_data["channels"].is_null() || data["channels"] != channels)
             return Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opended.");
@@ -325,6 +325,8 @@ SequenceRecorder::Open(const std::string & name)
 
         sequence_data = data;
         UpdateSequenceNames();
+        LoadChannelMode();
+        current_sequence = 0;
     }
 
     catch(const std::exception& e)
@@ -333,6 +335,7 @@ SequenceRecorder::Open(const std::string & name)
     }
     return true;
 }
+
 
 
 void        
@@ -345,6 +348,7 @@ SequenceRecorder::Save(const std::string &  name)
     auto path = directory+"/"+filename;
 
     LinkKeypoints(); // FIXME: maybe not necessary here
+    StoreChannelMode();
 
     std::ofstream file(path);
     file << std::setw(4) << sequence_data << std::endl;  
@@ -670,6 +674,39 @@ SequenceRecorder::LinkKeypoints()
             keypoints[i]["link_right"][c] = right_link[c];
     }
 
+}
+
+
+
+void
+SequenceRecorder::StoreChannelMode()
+{
+    json cm =  json::array();
+    for(int c=0; c<channels; c++)
+    {
+        json modes = json::array();
+        for(int m=0; m<4; m++)
+            modes.push_back(channel_mode[c][m]);
+        cm.push_back(modes);
+    }
+    sequence_data["channel_mode"] = cm;
+}
+
+
+
+void
+SequenceRecorder::LoadChannelMode()
+{
+    try
+    {
+        for(int c=0; c<channels; c++)
+            for(int m=0; m<4; m++)
+                channel_mode[c][m] = sequence_data["channel_mode"][c][m];
+    }
+    catch(const std::exception& e)
+    {
+        return; // ignore error
+    }
 }
 
 
