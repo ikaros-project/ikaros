@@ -344,7 +344,7 @@ starts_with(const std::string & s, const std::string & start) // waiting for C++
 
 bool ends_with(const std::string & s, const std::string & end) // waiting for C++20
 {
-    return  s.size() >= end.size() && s.compare(end.size() - end.size(), end.size(), end) == 0;
+    return  s.size() >= end.size() && s.compare(s.size() - end.size(), end.size(), end) == 0;
 }
 
 std::string
