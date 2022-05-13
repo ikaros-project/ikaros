@@ -2859,11 +2859,17 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
 bool
 Module::SetParameter(const char * parameter_name, int x, int y, float value)
 {
+    if(x<0 || y<0)
+        return Notify(msg_warning, "Index for parameter %s out of range (<0)", parameter_name);
+
     std::string name = std::string(full_instance_name)+"."+std::string(parameter_name);
     if(!kernel->bindings.count(name))
         return Notify(msg_warning, "Could not find binding. \"%s\" does not exist\n", name.c_str());
 
     Binding * b = kernel->bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
+
+    if(x>=b->size_x || y>=b->size_y)
+        return Notify(msg_warning, "Index for parameter %s out of range", name.c_str());
 
     if(b->type == bind_float)
         *((float *)(b->value)) = value;
@@ -2883,15 +2889,18 @@ Module::SetParameter(const char * parameter_name, int x, int y, float value)
 bool // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
 Kernel::SetParameter(const char * name, int x, int y, float value)
 {
-    // OLD with variable substitution
-    //auto * m = GetModule(group_name);
-    //m->SetParameter(parameter_name, select_x, select_y, value);
+    if(x<0 || y<0)
+        return Notify(msg_warning, "Index for parameter %s out of range (<0)", name);
 
     // New with bidnings, but without variable substitution - can't have both
     
     if(bindings.count(name))
     {
         Binding * b = bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
+
+    if(x>=b->size_x || y>=b->size_y)
+        return Notify(msg_warning, "Index for parameter %s out of range", name);
+
         if(b->type == bind_float)
             *((float *)(b->value)) = value;
         else if(b->type == bind_int || b->type == bind_list)
@@ -4208,6 +4217,7 @@ Kernel::DoCommand(std::string uri, std::string args)
 void
 Kernel::DoControl(std::string uri, std::string args)
 {
+    //printf(">>> %s %s\n", uri.c_str(), args.c_str());
     char module_name[255];
     char parameter[255];
     int x, y;
@@ -4314,7 +4324,7 @@ void
 Kernel::HandleHTTPRequest()
 {
     std::string uri = socket->header.Get("URI");
-    //printf(">>>%s\n", uri.c_str());
+    //printf(">>>%s\n", uri.c_str()); // FIXME: use flag again
     if(uri.empty())
     {
         Notify(msg_warning, "No URI");
