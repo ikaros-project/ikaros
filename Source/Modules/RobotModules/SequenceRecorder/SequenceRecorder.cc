@@ -315,10 +315,10 @@ SequenceRecorder::Open(const std::string & name)
 
         // Validate
 
-        if(sequence_data["type"].is_null() || data["type"] != "Ikaros Sequence Data")
+        if(data["type"].is_null() || data["type"] != "Ikaros Sequence Data")
             return Notify(msg_warning, "File has wrong format. Cannot be opended.");
 
-        if(sequence_data["channels"].is_null() || data["channels"] != channels)
+        if(data["channels"].is_null() || data["channels"] != channels)
             return Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opended.");
 
        // Data is ok
@@ -407,6 +407,8 @@ SequenceRecorder::Init()
      directory = GetValue("directory");
      filename = GetValue("filename");
 
+    fs::create_directory(directory); // Only works if not a path // FIXME: make recursive later
+
     io(trig, trig_size, "TRIG");
     trig_last = create_array(trig_size);
 
@@ -442,10 +444,10 @@ SequenceRecorder::Init()
     else
         New();
 
-    // Get files indirectory
+    // Get files in directory
 
         std::string fsep = "";
-        for(auto& p: fs::recursive_directory_iterator("."))
+        for(auto& p: fs::recursive_directory_iterator(directory)) // FIXME: should NOT be recursive
     {   auto pp = p.path();
         if(pp.extension() == ".json")
         {
