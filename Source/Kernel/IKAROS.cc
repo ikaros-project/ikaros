@@ -2878,7 +2878,7 @@ Module::SetParameter(const char * parameter_name, int x, int y, float value)
     else if(b->type == bind_bool)
         *((bool *)(b->value)) = (value > 0);
     else if(b->type == bind_array)
-        ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+        ((float *)(b->value))[x] = value;
     else if(b->type == bind_matrix)
        ((float **)(b->value))[y][x] = value;
     
@@ -2932,7 +2932,7 @@ Kernel::SendCommand(const char * command, float x, float y, std::string value)
 {
     std::string c = command;
     auto s = rsplit(c, ".", 1);
-    if(auto * g = main_group->GetGroup(s[0])) // FIXME: Error of group not found
+    if(auto * g = main_group->GetGroup(s[0])) // FIXME: Error if group not found
         if(Module * m = g->module)
             m->Command(s[1], x, y, value);
 }
