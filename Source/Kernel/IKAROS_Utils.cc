@@ -28,7 +28,7 @@
 #include <ctype.h>
 #include <cstring>
 #include <algorithm>
-
+#include <stdexcept>
 
 #if defined USE_VDSP
 #include <Accelerate/Accelerate.h>
