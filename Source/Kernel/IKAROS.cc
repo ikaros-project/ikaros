@@ -2868,7 +2868,7 @@ Module::SetParameter(const char * parameter_name, int x, int y, float value)
 
     Binding * b = kernel->bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
 
-    if(x>=b->size_x || y>=b->size_y)
+    if((b->type == bind_array || b->type == bind_matrix) && (x>=b->size_x || y>=b->size_y))
         return Notify(msg_warning, "Index for parameter %s out of range", name.c_str());
 
     if(b->type == bind_float)
@@ -2897,9 +2897,6 @@ Kernel::SetParameter(const char * name, int x, int y, float value)
     if(bindings.count(name))
     {
         Binding * b = bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
-
-    if(x>=b->size_x || y>=b->size_y)
-        return Notify(msg_warning, "Index for parameter %s out of range", name);
 
         if(b->type == bind_float)
             *((float *)(b->value)) = value;
