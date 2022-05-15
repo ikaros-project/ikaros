@@ -66,7 +66,7 @@ public:
     void        LinkKeypoints();
     void        StoreChannelMode();
     void        LoadChannelMode();
-    
+
 
     void        AddKeypoint(float time); // add keypoint at time t
 
@@ -127,10 +127,13 @@ public:
 
     // Control  variables
 
-    const int states = 8;
+    int             states = 8;
+    int             modes = 4;
 
     float *     state; // state of the head controller buttons
     float **    channel_mode;
+    bool        loop;
+    bool        shuffle;
 
     float *     left_time;
     float *     right_time;

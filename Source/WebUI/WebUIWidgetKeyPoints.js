@@ -45,7 +45,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
     draw_recordning()
     {
-        this.canvas.fillStyle = 'red';
+        this.canvas.fillStyle = '#333';
         this.canvas.fillRect(0, 0, this.width, this.height);
     }
 
@@ -66,7 +66,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
         // Draw keypoint locations
 
-        if(this.width/n>5)
+        if(this.width/n>10) // only draw if there is space
             for(let i=0; i<n; i++)
             {
                 let pos = this.width*sequence.keypoints[i].time/end_time;
@@ -135,117 +135,122 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             }
         }
 
+
         // Draw points
+
+        if(n<100)
+        {
     
-        this.canvas.fillStyle = "yellow";
-        for(let c=0; c<channels;c++)
-        {
-            for(let i=0; i<n; i++)
+            this.canvas.fillStyle = "yellow";
+            for(let c=0; c<channels;c++)
             {
-                if(sequence.keypoints[i].point[c] != null)
+                for(let i=0; i<n; i++)
                 {
-                    let pos = this.width*sequence.keypoints[i].time/end_time;
+                    if(sequence.keypoints[i].point[c] != null)
+                    {
+                        let pos = this.width*sequence.keypoints[i].time/end_time;
+                        this.canvas.setLineDash([]);
+                        //this.canvas.lineWidth = 1.0;
+                        this.canvas.beginPath();
+                        let y = this.height * map(sequence.keypoints[i].point[c],ranges[c][0],ranges[c][1])
+                        this.canvas.arc(pos, y, 3, 0, 2 * Math.PI, false);
+                        this.canvas.fill();
+                }   }
+            }
+
+            // Draw target
+
+            if(target != undefined)
+            {
+                for(let c=0; c<channels;c++)
+                {
+                    let pos = f*this.width;
                     this.canvas.setLineDash([]);
-                    //this.canvas.lineWidth = 1.0;
+                    this.canvas.lineWidth = 5.0;
                     this.canvas.beginPath();
-                    let y = this.height * map(sequence.keypoints[i].point[c],ranges[c][0],ranges[c][1])
-                    this.canvas.arc(pos, y, 3, 0, 2 * Math.PI, false);
+                    let y = this.height * map(target[0][c],ranges[c][0],ranges[c][1])
+                    this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
+                    this.canvas.moveTo(pos-8, y);
+                    this.canvas.lineTo(pos+8, y);
+                    this.canvas.fillStyle = 'black';
                     this.canvas.fill();
-            }   }
-        }
+                }
+            }
 
-        // Draw target
+    // Draw output
 
-        if(target != undefined)
-        {
+    if(output != undefined)
+    {
             for(let c=0; c<channels;c++)
             {
                 let pos = f*this.width;
                 this.canvas.setLineDash([]);
-                this.canvas.lineWidth = 5.0;
+                this.canvas.lineWidth = 1.0;
                 this.canvas.beginPath();
-                let y = this.height * map(target[0][c],ranges[c][0],ranges[c][1])
-                this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
-                this.canvas.moveTo(pos-8, y);
-                this.canvas.lineTo(pos+8, y);
+                let y = this.height * map(output[0][c],ranges[c][0],ranges[c][1])
+                this.canvas.moveTo(pos+15, y);
+                this.canvas.lineTo(pos+15-8, y+4);
+                this.canvas.lineTo(pos+15-8, y-4);
+                this.canvas.lineTo(pos+15, y);
                 this.canvas.fillStyle = 'black';
                 this.canvas.fill();
             }
-        }
+    }
 
-   // Draw output
+        // Draw input
 
-   if(output != undefined)
-   {
-        for(let c=0; c<channels;c++)
-        {
-            let pos = f*this.width;
+    if(input != undefined)
+    {
+            for(let c=0; c<channels;c++)
+            {
+                let pos = f*this.width;
+                this.canvas.setLineDash([]);
+                this.canvas.lineWidth = 1.0;
+                this.canvas.beginPath();
+                let y = this.height * map(input[0][c],ranges[c][0],ranges[c][1])
+                // this.canvas.arc(pos, y, 9, 0, 2 * Math.PI, false);
+                this.canvas.moveTo(pos-5, y);
+                this.canvas.lineTo(pos-5-8, y+4);
+                this.canvas.lineTo(pos-5-8, y-4);
+                this.canvas.lineTo(pos-5, y);
+                this.canvas.fillStyle = 'white';
+                this.canvas.fill();
+            }
+    }
+        
+
+            // Draw positions
+
+            this.canvas.lineWidth = 2;
+            this.setColor(0);
             this.canvas.setLineDash([]);
-            this.canvas.lineWidth = 1.0;
             this.canvas.beginPath();
-            let y = this.height * map(output[0][c],ranges[c][0],ranges[c][1])
-            this.canvas.moveTo(pos+15, y);
-            this.canvas.lineTo(pos+15-8, y+4);
-            this.canvas.lineTo(pos+15-8, y-4);
-            this.canvas.lineTo(pos+15, y);
-            this.canvas.fillStyle = 'black';
-            this.canvas.fill();
-        }
-   }
-
-      // Draw input
-
-   if(input != undefined)
-   {
-        for(let c=0; c<channels;c++)
-        {
-            let pos = f*this.width;
-            this.canvas.setLineDash([]);
-            this.canvas.lineWidth = 1.0;
-            this.canvas.beginPath();
-            let y = this.height * map(input[0][c],ranges[c][0],ranges[c][1])
-            // this.canvas.arc(pos, y, 9, 0, 2 * Math.PI, false);
-            this.canvas.moveTo(pos-5, y);
-            this.canvas.lineTo(pos-5-8, y+4);
-            this.canvas.lineTo(pos-5-8, y-4);
-            this.canvas.lineTo(pos-5, y);
-            this.canvas.fillStyle = 'white';
-            this.canvas.fill();
-        }
-   }
-
-
-        // Draw positions
-
-        this.canvas.lineWidth = 2;
-        this.setColor(0);
-        this.canvas.setLineDash([]);
-        this.canvas.beginPath();
-        this.canvas.moveTo(f*this.width, 0);
-        this.canvas.lineTo(f*this.width, this.height);
-        this.canvas.closePath();
-        this.canvas.stroke();
-
-        if(mark_start != 0)
-        {
-            this.setColor(1);
-            this.canvas.setLineDash([3]);
-            this.canvas.beginPath();
-            this.canvas.moveTo(mark_start/end_time*this.width, 0);
-            this.canvas.lineTo(mark_start/end_time*this.width, this.height);
+            this.canvas.moveTo(f*this.width, 0);
+            this.canvas.lineTo(f*this.width, this.height);
             this.canvas.closePath();
             this.canvas.stroke();
-        }
 
-        if(mark_end != 0)
-        {
-            this.setColor(2);
-            this.canvas.setLineDash([3]);
-            this.canvas.beginPath();
-            this.canvas.moveTo(mark_end/end_time*this.width, 0);
-            this.canvas.lineTo(mark_end/end_time*this.width, this.height);
-            this.canvas.closePath();
-            this.canvas.stroke();
+            if(mark_start != 0)
+            {
+                this.setColor(1);
+                this.canvas.setLineDash([3]);
+                this.canvas.beginPath();
+                this.canvas.moveTo(mark_start/end_time*this.width, 0);
+                this.canvas.lineTo(mark_start/end_time*this.width, this.height);
+                this.canvas.closePath();
+                this.canvas.stroke();
+            }
+
+            if(mark_end != 0)
+            {
+                this.setColor(2);
+                this.canvas.setLineDash([3]);
+                this.canvas.beginPath();
+                this.canvas.moveTo(mark_end/end_time*this.width, 0);
+                this.canvas.lineTo(mark_end/end_time*this.width, this.height);
+                this.canvas.closePath();
+                this.canvas.stroke();
+            }
         }
     }
 

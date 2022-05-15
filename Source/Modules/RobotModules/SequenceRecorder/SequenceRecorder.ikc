@@ -13,11 +13,11 @@
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior; lower number priority" size_param="max_sequences" optional="yes" />
 
-	<output name="PLAYING" description="A single 1 while a behavior is playing" size_param="max_sequences" />
-	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_param="max_sequences" />
+	<output name="PLAYING" description="A single 1 while a behavior is playing" size_x="8" size_y="8" />
+	<output name="COMPLETED" description="A single 1 for one tick when a behavior is completed" size_x="8" size_y="8" />
 
    	<parameter name="smoothing_time" type="float" default="200" description="Number of milliseconds to smooth the output position." />
-	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0 0 0" description="State array used to remember control button state. Only for output to control buttons." />
+	<parameter name="state" type="array" default="1 0 0 0 0 0 0 0 0" description="State array used to remember control button state. Only for output to control buttons." />
 	<parameter name="channel_mode" type="matrix" _default="" description="Mode for each channel: lock, play, record, etc." />
 	<parameter name="interpolation" type="matrix" _default="1 1 1 1 1 1" description="Type of interpolation for each channel: 0 = none; 1 = linear" />
 

@@ -289,6 +289,8 @@ SequenceRecorder::New()
     {
             sequence_data["sequences"].push_back(create_sequence(i)); 
     }
+
+    UpdateSequenceNames();
 }
 
 
@@ -380,8 +382,9 @@ SequenceRecorder::Init()
 
     Bind(smoothing_time, "smoothing_time");
 
-    Bind(state, 10, "state", true);
-    int modes = 4;
+    Bind(state, states, "state", true);
+    Bind(loop, "loop");
+    Bind(shuffle,  "shuffle");
 
     Bind(channel_mode, modes, channels, "channel_mode", true);
     Bind(time_string, "time");
@@ -447,7 +450,7 @@ SequenceRecorder::Init()
     // Get files in directory
 
         std::string fsep = "";
-        for(auto& p: fs::recursive_directory_iterator(directory)) // FIXME: should NOT be recursive
+        for(auto& p: fs::directory_iterator(directory)) // was recursive_directory_iterator
     {   auto pp = p.path();
         if(pp.extension() == ".json")
         {
@@ -946,7 +949,7 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
     else if(s=="lock")
         LockChannel(y);
     else if(s=="trig")
-        Trig(x);
+        Trig(8*y+x);
     else if(s=="rename")
         Rename(value);
 
@@ -970,7 +973,7 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
     else if(name=="SEQUENCE")
     {
         int n = sequence_data["sequences"][current_sequence]["keypoints"].size();
-        if(n>400) // state[2] ||  // 400 = 10 s
+        if(n>400) // 400 = 10 s
         {
             return "{}"; //Minimal JSON
         }
@@ -1036,7 +1039,7 @@ SequenceRecorder::Tick()
     if(state[1]) // handle play mode
     {
         set_one(playing, current_sequence, max_sequences);
-        if(state[8] && t >= float(sequence_data["sequences"][current_sequence]["end_mark_time"])) // loop
+        if(loop && t >= float(sequence_data["sequences"][current_sequence]["end_mark_time"])) // loop
         {
             timer.SetTime(float(sequence_data["sequences"][current_sequence]["start_mark_time"]));
         }
