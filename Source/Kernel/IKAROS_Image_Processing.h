@@ -26,7 +26,7 @@
 namespace ikaros
 {
     float **    im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x=1, int stride_y=1);
-float ** 	    spanned_im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x, int stride_y, int block_x, int block_y, int span_x, int span_y);
+    float ** 	spanned_im2row(float ** result, float ** source, int result_size_x, int result_size_y, int source_size_x, int source_size_y, int kernel_size_x, int kernel_size_y, int stride_x, int stride_y, int block_x, int block_y, int span_x, int span_y);
 	float ** 	spanned_row2im(float **out, float **in, int out_x, int out_y,int in_x, int in_y,int rf_x, int rf_y,int inc_x, int inc_y,int blk_x, int blk_y,int spn_x, int spn_y);
     float **	convolve(float ** result, float ** source, float ** kernel, int rsizex, int rsizey, int ksizex, int ksizey, float bias = 0.0); // ksizex and ksizey must be odd for BLAS calls to work // TODO: Check that it works otherwise as well
 	float **	box_filter(float ** r, float ** a, int sizex, int sizey, int boxsize, bool scale = false, float ** t = 0);

@@ -379,7 +379,7 @@ recode(char * s)	    // Replace %20 and others with a space - no longer used - r
 
 // https://www.codeguru.com/cpp/cpp/algorithms/strings/article.php/c12759/URI-Encoding-and-Decoding.htm
 
-const char HEX2DEC[256] =
+const signed char HEX2DEC[256] =
 {
     /*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
     /* 0 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,

@@ -12,15 +12,6 @@
 
 # Specific parameters for different OS
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-
 # Find one header file and lib
 #############################################
 
@@ -41,6 +32,34 @@ find_path(DYNAMIXEL_INCLUDE_DIRS
     /usr/local/lib
     /usr/lib
   )
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+# Find one header file and lib 
+#############################################
+# Tested in a rasberry
+
+# Find header files
+find_path(DYNAMIXEL_INCLUDE_DIRS
+  NAMES
+    dynamixel_sdk.h
+  PATHS
+    /usr/local/include/dynamixel_sdk/
+    /usr/include
+  )
+
+# Find lib file
+  find_library(DYNAMIXEL_LIBRARIES
+  NAMES
+    libdxl_sbc_cpp.so
+  PATHS
+    /usr/local/lib
+    /usr/lib
+  )
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 if (DYNAMIXEL_INCLUDE_DIRS AND DYNAMIXEL_LIBRARIES)
   message(STATUS "Found Dynamixel SDK: Includes: ${DYNAMIXEL_INCLUDE_DIRS} Libraries: ${DYNAMIXEL_LIBRARIES}")

@@ -41,6 +41,8 @@ extern "C"
 
 #ifdef LINUX
 //#define	MAXFLOAT	3.402823466e+38f
+#include <cstring>
+
 #ifdef USE_BLAS
 extern "C"
 {
