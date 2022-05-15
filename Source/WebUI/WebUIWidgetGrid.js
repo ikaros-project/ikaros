@@ -13,6 +13,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'label_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
