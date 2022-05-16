@@ -255,6 +255,14 @@ void EpiServos::Init()
                           .serialPortLeftArm = "",
                           .serialPortRightArm = "",
                           .type = "EpiTorso"};
+    robot["EpiOrangeDemo"] = {.serialPortPupil = "/dev/ttyUSB0",
+                          .serialPortHead = "/dev/ttyUSB1",
+                          .serialPortBody = "",
+                          .serialPortLeftArm = "",
+                          .serialPortRightArm = "",
+                          .type = "EpiTorso"};
+
+                          
 
     robot["EpiYellow"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
                           .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
