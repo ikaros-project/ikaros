@@ -147,9 +147,14 @@ nrServosTotal = "19"
 <group  name = "EpiRed"
 	robotType = "Torso"
 />
+<group  name = "EpiRedDemo"
+	robotType = "Torso"
+/>
 <group  name = "EpiOrange"
 	robotType = "Torso"
 />
+
+
 
 <!-- Settings for robot types -->
  <group  name = "Settings" type = ".Epi.@EpiName.@robotType">
