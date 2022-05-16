@@ -64,11 +64,17 @@ public:
     void        LockChannel(int c);
 
     void        LinkKeypoints();
+    void        DeleteEmptyKeypoints();
+
     void        StoreChannelMode();
     void        LoadChannelMode();
 
 
     void        AddKeypoint(float time); // add keypoint at time t
+    void        DeleteKeypoint(float time); // delete a single keypoint at time t (or close to it)
+
+
+    void        Crop(); // Remove points outside the selected area, and let the sequence start at t=0
 
     void        ClearSequence();    // clear currently selected sequence
     void        DeleteKeypointAtIndex(int i);

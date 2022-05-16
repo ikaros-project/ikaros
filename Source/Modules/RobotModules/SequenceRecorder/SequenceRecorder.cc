@@ -692,6 +692,31 @@ SequenceRecorder::LinkKeypoints()
 
 
 void
+SequenceRecorder::DeleteEmptyKeypoints()
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    auto it = keypoints.begin();
+    while(it != keypoints.end()) 
+    {
+        int e=0;
+        for(int c=0; c<channels; c++)
+            if(!(*it)["point"][c].is_null())
+                e++;
+
+        if(e==0)
+        {
+            it = keypoints.erase(it);
+        } 
+        else
+        {
+            it++;
+        }
+    }
+}
+
+
+
+void
 SequenceRecorder::StoreChannelMode()
 {
     json cm =  json::array();
@@ -807,7 +832,6 @@ SequenceRecorder::AddKeypoint(float time)
 
 
 
-
 void
 SequenceRecorder::ClearSequence()
 {
@@ -819,6 +843,20 @@ SequenceRecorder::ClearSequence()
     sequence_data["sequences"][current_sequence]["start_mark_time"] = 0;
     sequence_data["sequences"][current_sequence]["end_mark_time"] = 1000;
     sequence_data["sequences"][current_sequence]["end_time"] = 1000;
+}
+
+
+
+void
+SequenceRecorder::DeleteKeypoint(float time)
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+    int i = max(0, find_index_for_time(keypoints, time)-1);
+    
+    float t = keypoints[i]["time"];
+    if(abs(t-time) < GetTickLength()/2)
+        DeleteKeypointAtIndex(i);
 }
 
 
@@ -947,9 +985,13 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         AddKeypoint(timer.GetTime());
         LinkKeypoints();
     }
-//   else if(s == "set_initial")
-//        SetInitial();
-
+    else if(s == "delete_keypoint")
+    {
+        DeleteKeypoint(timer.GetTime());
+        DeleteEmptyKeypoints();
+        LinkKeypoints();
+        // Cleanup
+    }
     else if(s=="clear")
             ClearSequence();
     else if(s=="delete")
