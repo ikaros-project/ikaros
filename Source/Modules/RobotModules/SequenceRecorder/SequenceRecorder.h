@@ -113,6 +113,8 @@ public:
     float *         target;
     float *         input;
     float *         default_output; // value for initial from ikg file if set
+    float *         left_output;    // Value to use to the left of first keypoint
+    float *         right_output;   // value to use to the right of the last keypoint
     float *         internal_control;
 
     float *         output;

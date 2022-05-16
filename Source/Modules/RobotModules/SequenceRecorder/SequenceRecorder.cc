@@ -112,7 +112,7 @@ SequenceRecorder::SetTargetForTime(float t)
     {
         for(int c=0; c<channels; c++)
         if(keypoints[0]["point"][c].is_null())
-            target[c] = default_output[c];
+            target[c] = left_output[c];
         else
             target[c] = keypoints[0]["point"][c];
 
@@ -125,7 +125,7 @@ SequenceRecorder::SetTargetForTime(float t)
     {
         for(int c=0; c<channels; c++)
         if(keypoints[n-1]["point"][c].is_null())
-            target[c] = default_output[c];
+            target[c] = right_output[c];
         else
             target[c] = keypoints[n-1]["point"][c];
 
@@ -141,7 +141,7 @@ SequenceRecorder::SetTargetForTime(float t)
 
         auto & kp_left = keypoints[i-1];
         float time_left = keypoints[i-1]["time"];
-        float point_left = default_output[c];
+        float point_left = left_output[c];
     
 
         if(!kp_left["point"][c].is_null()) //keypoint has data
@@ -160,7 +160,7 @@ SequenceRecorder::SetTargetForTime(float t)
 
         auto & kp_right = keypoints[i];
         float time_right = keypoints[i]["time"];
-        float point_right = default_output[c];
+        float point_right = right_output[c];
     
 
         if(!kp_right["point"][c].is_null()) //keypoint has data
@@ -328,6 +328,7 @@ SequenceRecorder::Open(const std::string & name)
         sequence_data = data;
         UpdateSequenceNames();
         LoadChannelMode();
+        LinkKeypoints(); // Just in case...
         current_sequence = 0;
     }
 
@@ -406,6 +407,8 @@ SequenceRecorder::Init()
     Bind(default_output, &do_size, "default_output");
     if(do_size !=channels)
         Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
+    left_output = copy_array(create_array(channels), default_output, channels);
+    right_output = copy_array(create_array(channels), default_output, channels);
 
      directory = GetValue("directory");
      filename = GetValue("filename");
@@ -663,7 +666,10 @@ SequenceRecorder::LinkKeypoints()
     {
         for(int c=0; c<channels; c++)
             if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
+            {
                 left_link[c] = i;
+                right_output[c] = keypoints[i]["point"][c]; // candidate rightmost output
+            }
         for(int c=0; c<channels; c++)
             keypoints[i]["link_left"][c] = left_link[c];
     }
@@ -674,11 +680,13 @@ SequenceRecorder::LinkKeypoints()
     {
         for(int c=0; c<channels; c++)
             if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
+            {
                 right_link[c] = i;
+                left_output[c] = keypoints[i]["point"][c]; //candidate leftmost output
+            }
         for(int c=0; c<channels; c++)
             keypoints[i]["link_right"][c] = right_link[c];
     }
-
 }
 
 
