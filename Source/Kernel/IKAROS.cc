@@ -2112,6 +2112,7 @@ Kernel::Kernel()
     ui_state                = ui_state_pause;
     master_id               = 0;
     tick_is_running         = false;
+    handling_request        = false;
     sending_ui_data         = false;
     debug_mode              = false;
     isRunning               = false;
@@ -2290,7 +2291,12 @@ Kernel::Run()
         {
             Timer::Sleep(10); // Wait 10ms to avoid wasting cycles if there are no requests
         }
-        
+    
+        while(sending_ui_data)
+            {}
+        while(handling_request)
+            {}
+
         if (isRunning)
         {
             tick_is_running = true; // Flag that state changes are not allowed
@@ -2313,6 +2319,8 @@ Kernel::Run()
             else if (ui_state == ui_state_realtime)
             {
                 while(sending_ui_data)
+                    {}
+                while(handling_request)
                     {}
             }
         }
@@ -4380,7 +4388,13 @@ Kernel::HandleHTTPThread()
         if (socket->GetRequest(true))
         {
             if (equal_strings(socket->header.Get("Method"), "GET"))
+            {
+                while(tick_is_running)
+                    {}
+                handling_request = true;
                 HandleHTTPRequest();
+                handling_request = false;
+            }
             socket->Close();
         }
     }
