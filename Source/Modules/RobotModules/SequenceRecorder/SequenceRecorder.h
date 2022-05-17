@@ -103,6 +103,7 @@ public:
 
     float *         range_min;
     float *         range_max;
+    float *         interpolation;
 
     float *         trig;
     float *         trig_last;
