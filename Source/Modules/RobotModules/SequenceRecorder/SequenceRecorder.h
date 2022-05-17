@@ -77,7 +77,7 @@ public:
     void        Crop(); // Remove points outside the selected area, and let the sequence start at t=0
 
     void        ClearSequence();    // clear currently selected sequence
-    void        DeleteKeypointAtIndex(int i);
+    void        ClearKeypointAtIndex(int i, bool all=false); // nortmally only clears point in record mode, set all to true to clear all
     void        DeleteKeypoints(); // Delete all points within the selection time window for channels in record mode   
     void        DeleteKeypointsInRange(float t0, float t1);
 

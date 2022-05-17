@@ -845,14 +845,44 @@ SequenceRecorder::AddKeypoint(float time)
 void
 SequenceRecorder::ClearSequence()
 {
-        static int last_index = 0;
-    static float last_time = 0;
-
     sequence_data["sequences"][current_sequence]["keypoints"] = json::array();
     sequence_data["sequences"][current_sequence]["start_time"] = 0;
     sequence_data["sequences"][current_sequence]["start_mark_time"] = 0;
     sequence_data["sequences"][current_sequence]["end_mark_time"] = 1000;
     sequence_data["sequences"][current_sequence]["end_time"] = 1000;
+}
+
+
+
+void
+SequenceRecorder::Crop()
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+
+    if(n<1)
+        return;
+    float start_mark_time = sequence_data["sequences"][current_sequence]["start_mark_time"] ;
+    float end_mark_time = sequence_data["sequences"][current_sequence]["end_mark_time"] ;
+
+
+    for(int i=0; i<n; i++)
+        if(float(keypoints[i]["time"]) < start_mark_time || float(keypoints[i]["time"])>end_mark_time)
+            ClearKeypointAtIndex(i, true);
+
+    DeleteEmptyKeypoints();
+
+    // Retime keypoints
+
+    float start_time = keypoints[0]["time"];
+    n = keypoints.size();
+    for(int i=0; i<n; i++)
+        keypoints[i]["time"] = float(keypoints[i]["time"])-start_time;
+
+    sequence_data["sequences"][current_sequence]["start_mark_time"] = 0;
+    sequence_data["sequences"][current_sequence]["end_mark_time"] = float(sequence_data["sequences"][current_sequence]["end_mark_time"]) - start_time;
+
+    LinkKeypoints();
 }
 
 
@@ -866,7 +896,7 @@ SequenceRecorder::DeleteKeypoint(float time)
     
     float t = keypoints[i]["time"];
     if(abs(t-time) < GetTickLength()/2)
-        DeleteKeypointAtIndex(i);
+        ClearKeypointAtIndex(i);
 }
 
 
@@ -891,18 +921,19 @@ SequenceRecorder::DeleteKeypoints()
                     number_of_deleted_points++;
                 }
             }
-            if(number_of_deleted_points == channels)
-            {
-                // FIXME: Delete the complete keypoint (i) if possible during iterations
-            }
         }
     }
+
+    // Clean up
+
+    DeleteEmptyKeypoints();
+    LinkKeypoints();
 }
 
 
 
 void
-SequenceRecorder::DeleteKeypointAtIndex(int i)
+SequenceRecorder::ClearKeypointAtIndex(int i, bool all)
 {
     //(">>> delete: %d\n", i);
     auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
@@ -912,7 +943,7 @@ SequenceRecorder::DeleteKeypointAtIndex(int i)
 
     for(int c=0; c<channels; c++)
     {
-        if(channel_mode[c][2] == 1) // record mode
+        if(channel_mode[c][2] == 1 || all) // record mode or all-flag set
             keypoints[i]["point"][c] = nullptr;
     }
 }
@@ -931,7 +962,7 @@ SequenceRecorder::DeleteKeypointsInRange(float t0, float t1) // FIXME: Needs fur
         float t = float(keypoints[i]["time"]);
         if(t0 < t && t<t1)
         {
-            DeleteKeypointAtIndex(i);
+            ClearKeypointAtIndex(i);
             printf("--- Deleting: %d", i);
         }
     }
@@ -941,7 +972,7 @@ SequenceRecorder::DeleteKeypointsInRange(float t0, float t1) // FIXME: Needs fur
     int i1 = find_index_for_time(keypoints, t1);
 //    printf("%d - %d\n\n", i0, i1);
     for(int i = i0; i< i1; i++)
-        DeleteKeypointAtIndex(i);
+        ClearKeypointAtIndex(i);
         // printf("--- Deleting: %d", i);
 }
 
@@ -1002,6 +1033,8 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         LinkKeypoints();
         // Cleanup
     }
+    else if(s == "crop")
+            Crop();
     else if(s=="clear")
             ClearSequence();
     else if(s=="delete")
@@ -1022,6 +1055,7 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
     else if(s=="saveas")
         Save(value);
 }
+
 
 
 std::string
