@@ -177,7 +177,10 @@ SequenceRecorder::SetTargetForTime(float t)
             }
         }
 
-        target[c] = interpolate(t, time_left, time_right, point_left, point_right);
+        if(interpolation[c]==0)
+            target[c] = point_left;
+        else // 1 = linear interpolation
+            target[c] = interpolate(t, time_left, time_right, point_left, point_right);
     }
 }
 
@@ -381,7 +384,14 @@ SequenceRecorder::Init()
     if(ranges != channels)
         Notify(msg_fatal_error, "Max range not set for correct number of channels.");
 
+    int ints;
+    Bind(interpolation, &ints, "interpolation");
+    if(ints != channels)
+        Notify(msg_fatal_error, "Interpolation not set for correct number of channels.");
+
+
     Bind(smoothing_time, "smoothing_time");
+
 
     Bind(state, states, "state", true);
     Bind(loop, "loop");
