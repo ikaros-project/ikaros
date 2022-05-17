@@ -180,7 +180,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
                         if(this.element_labels)
                         {
-                            let lbl = this.element_labels[i+rows*j];
+                            let lbl = this.element_labels[i*rows+j];
                             if(lbl)
                             {
                                 this.canvas.fillStyle = "black";
@@ -225,7 +225,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
                     if(this.element_labels)
                     {
-                        let lbl = this.element_labels[i+rows*j];
+                        let lbl = this.element_labels[i*rows+j];
                         if(lbl)
                         {
                             this.canvas.fillStyle = "black";
