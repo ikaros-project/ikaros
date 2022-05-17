@@ -64,11 +64,17 @@ public:
     void        LockChannel(int c);
 
     void        LinkKeypoints();
+    void        DeleteEmptyKeypoints();
+
     void        StoreChannelMode();
     void        LoadChannelMode();
 
 
     void        AddKeypoint(float time); // add keypoint at time t
+    void        DeleteKeypoint(float time); // delete a single keypoint at time t (or close to it)
+
+
+    void        Crop(); // Remove points outside the selected area, and let the sequence start at t=0
 
     void        ClearSequence();    // clear currently selected sequence
     void        DeleteKeypointAtIndex(int i);
@@ -97,6 +103,7 @@ public:
 
     float *         range_min;
     float *         range_max;
+    float *         interpolation;
 
     float *         trig;
     float *         trig_last;
@@ -113,6 +120,8 @@ public:
     float *         target;
     float *         input;
     float *         default_output; // value for initial from ikg file if set
+    float *         left_output;    // Value to use to the left of first keypoint
+    float *         right_output;   // value to use to the right of the last keypoint
     float *         internal_control;
 
     float *         output;

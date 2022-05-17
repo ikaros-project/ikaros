@@ -112,7 +112,7 @@ SequenceRecorder::SetTargetForTime(float t)
     {
         for(int c=0; c<channels; c++)
         if(keypoints[0]["point"][c].is_null())
-            target[c] = default_output[c];
+            target[c] = left_output[c];
         else
             target[c] = keypoints[0]["point"][c];
 
@@ -125,7 +125,7 @@ SequenceRecorder::SetTargetForTime(float t)
     {
         for(int c=0; c<channels; c++)
         if(keypoints[n-1]["point"][c].is_null())
-            target[c] = default_output[c];
+            target[c] = right_output[c];
         else
             target[c] = keypoints[n-1]["point"][c];
 
@@ -141,7 +141,7 @@ SequenceRecorder::SetTargetForTime(float t)
 
         auto & kp_left = keypoints[i-1];
         float time_left = keypoints[i-1]["time"];
-        float point_left = default_output[c];
+        float point_left = left_output[c];
     
 
         if(!kp_left["point"][c].is_null()) //keypoint has data
@@ -160,7 +160,7 @@ SequenceRecorder::SetTargetForTime(float t)
 
         auto & kp_right = keypoints[i];
         float time_right = keypoints[i]["time"];
-        float point_right = default_output[c];
+        float point_right = right_output[c];
     
 
         if(!kp_right["point"][c].is_null()) //keypoint has data
@@ -177,7 +177,10 @@ SequenceRecorder::SetTargetForTime(float t)
             }
         }
 
-        target[c] = interpolate(t, time_left, time_right, point_left, point_right);
+        if(interpolation[c]==0)
+            target[c] = point_left;
+        else // 1 = linear interpolation
+            target[c] = interpolate(t, time_left, time_right, point_left, point_right);
     }
 }
 
@@ -328,6 +331,7 @@ SequenceRecorder::Open(const std::string & name)
         sequence_data = data;
         UpdateSequenceNames();
         LoadChannelMode();
+        LinkKeypoints(); // Just in case...
         current_sequence = 0;
     }
 
@@ -380,7 +384,14 @@ SequenceRecorder::Init()
     if(ranges != channels)
         Notify(msg_fatal_error, "Max range not set for correct number of channels.");
 
+    int ints;
+    Bind(interpolation, &ints, "interpolation");
+    if(ints != channels)
+        Notify(msg_fatal_error, "Interpolation not set for correct number of channels.");
+
+
     Bind(smoothing_time, "smoothing_time");
+
 
     Bind(state, states, "state", true);
     Bind(loop, "loop");
@@ -406,6 +417,8 @@ SequenceRecorder::Init()
     Bind(default_output, &do_size, "default_output");
     if(do_size !=channels)
         Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
+    left_output = copy_array(create_array(channels), default_output, channels);
+    right_output = copy_array(create_array(channels), default_output, channels);
 
      directory = GetValue("directory");
      filename = GetValue("filename");
@@ -663,7 +676,10 @@ SequenceRecorder::LinkKeypoints()
     {
         for(int c=0; c<channels; c++)
             if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
+            {
                 left_link[c] = i;
+                right_output[c] = keypoints[i]["point"][c]; // candidate rightmost output
+            }
         for(int c=0; c<channels; c++)
             keypoints[i]["link_left"][c] = left_link[c];
     }
@@ -674,11 +690,38 @@ SequenceRecorder::LinkKeypoints()
     {
         for(int c=0; c<channels; c++)
             if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
+            {
                 right_link[c] = i;
+                left_output[c] = keypoints[i]["point"][c]; //candidate leftmost output
+            }
         for(int c=0; c<channels; c++)
             keypoints[i]["link_right"][c] = right_link[c];
     }
+}
 
+
+
+void
+SequenceRecorder::DeleteEmptyKeypoints()
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    auto it = keypoints.begin();
+    while(it != keypoints.end()) 
+    {
+        int e=0;
+        for(int c=0; c<channels; c++)
+            if(!(*it)["point"][c].is_null())
+                e++;
+
+        if(e==0)
+        {
+            it = keypoints.erase(it);
+        } 
+        else
+        {
+            it++;
+        }
+    }
 }
 
 
@@ -799,7 +842,6 @@ SequenceRecorder::AddKeypoint(float time)
 
 
 
-
 void
 SequenceRecorder::ClearSequence()
 {
@@ -811,6 +853,20 @@ SequenceRecorder::ClearSequence()
     sequence_data["sequences"][current_sequence]["start_mark_time"] = 0;
     sequence_data["sequences"][current_sequence]["end_mark_time"] = 1000;
     sequence_data["sequences"][current_sequence]["end_time"] = 1000;
+}
+
+
+
+void
+SequenceRecorder::DeleteKeypoint(float time)
+{
+    auto & keypoints = sequence_data["sequences"][current_sequence]["keypoints"];
+    int n = keypoints.size();
+    int i = max(0, find_index_for_time(keypoints, time)-1);
+    
+    float t = keypoints[i]["time"];
+    if(abs(t-time) < GetTickLength()/2)
+        DeleteKeypointAtIndex(i);
 }
 
 
@@ -939,9 +995,13 @@ SequenceRecorder::Command(std::string s, float x, float y, std::string value)
         AddKeypoint(timer.GetTime());
         LinkKeypoints();
     }
-//   else if(s == "set_initial")
-//        SetInitial();
-
+    else if(s == "delete_keypoint")
+    {
+        DeleteKeypoint(timer.GetTime());
+        DeleteEmptyKeypoints();
+        LinkKeypoints();
+        // Cleanup
+    }
     else if(s=="clear")
             ClearSequence();
     else if(s=="delete")

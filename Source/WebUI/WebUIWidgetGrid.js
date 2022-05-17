@@ -177,6 +177,19 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
                         this.canvas.fill();
                         this.canvas.stroke();
+
+                        if(this.element_labels)
+                        {
+                            let lbl = this.element_labels[i*rows+j];
+                            if(lbl)
+                            {
+                                this.canvas.fillStyle = "black";
+                                this.canvas.textBaseline = "middle";
+                                this.canvas.textAlign = "center";
+                                this.canvas.font = '24px Arial';
+                                this.canvas.fillText(lbl, ls+dx*j+dx/2, dy*i+dy/2, sx-20);
+                            }
+                        }
                     }
                 }
         }
@@ -209,6 +222,19 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
                     this.canvas.fill();
                     this.canvas.stroke();
+
+                    if(this.element_labels)
+                    {
+                        let lbl = this.element_labels[i*rows+j];
+                        if(lbl)
+                        {
+                            this.canvas.fillStyle = "black";
+                            this.canvas.textBaseline = "middle";
+                            this.canvas.textAlign = "center";
+                            this.canvas.font = '24px Arial';
+                            this.canvas.fillText(lbl, ls+dx*j+dx/2, dy*i+dy/2, sx-20);
+                        }
+                    }
                 }
             }
         }
@@ -234,6 +260,13 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+        }
+
+        if(this.parameters.label_parameter)
+        {
+            let l = this.getSource('label_parameter');
+            if(l)
+                this.element_labels = l.split(',');
         }
     }
 };

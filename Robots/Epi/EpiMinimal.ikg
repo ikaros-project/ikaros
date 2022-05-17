@@ -101,8 +101,8 @@ nrServosTotal = "19"
 	<module
 	    class = "SoundOutput"
 		name = "SoundOutput"
-		sounds  = "Sounds/OK.mp3, Sounds/ok2.mp3, Sounds/agree_1.wav, Sounds/agree_2.wav, Sounds/agree_3.wav, Sounds/agree_4.wav, Sounds/agree_5.wav, Sounds/confused_1.wav, Sounds/confused_2.wav, Sounds/confused_3.wav, Sounds/confused_4.wav, Sounds/confused_5.wav, Sounds/disagree_1.wav, Sounds/disagree_2.wav, Sounds/disagree_3.wav, Sounds/disagree_4.wav, Sounds/disagree_5.wav, Sounds/disgusted_1.wav, Sounds/disgusted_2.wav, Sounds/disgusted_3.wav, Sounds/disgusted_4.wav, Sounds/disgusted_5.wav, Sounds/pleased_1.wav, Sounds/pleased_2.wav, Sounds/pleased_3.wav, Sounds/pleased_4_med_2.wav, Sounds/pleased_5.wav"
-        command = "afplay" 
+		sounds  = "Sounds/OK.mp3, Sounds/ok2.mp3, Sounds/agree_1.wav, Sounds/agree_2.wav, Sounds/agree_3.wav, Sounds/agree_4.wav, Sounds/agree_5.wav, Sounds/confused_1.wav, Sounds/confused_2.wav, Sounds/confused_3.wav, Sounds/confused_4.wav, Sounds/confused_5.wav, Sounds/disagree_1.wav, Sounds/disagree_2.wav, Sounds/disagree_3.wav, Sounds/disagree_4.wav, Sounds/disagree_5.wav, Sounds/disgusted_1.wav, Sounds/disgusted_2.wav, Sounds/disgusted_3.wav, Sounds/disgusted_4.wav, Sounds/disgusted_5.wav, Sounds/pleased_1.wav, Sounds/pleased_2.wav, Sounds/pleased_3.wav, Sounds/pleased_4_med_2.wav, Sounds/pleased_5.wav,Sounds/Jokes/WhyDidTheRobotSneeze.wav,Sounds/Jokes/WhyDidTheRobotSneezeB.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiver.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiverB.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacation.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacationB.wav,HiIAmARobot.HowOldAmI_low.wav,HiIAmARobot.HowOldAmI_high.wav"
+        command = "/usr/bin/afplay" 
 	/>	
 
 	<!-- 			LED			 			-->
@@ -147,25 +147,17 @@ nrServosTotal = "19"
 <group  name = "EpiRed"
 	robotType = "Torso"
 />
+<group  name = "EpiRedDemo"
+	robotType = "Torso"
+/>
 <group  name = "EpiOrange"
 	robotType = "Torso"
 />
 
+
+
 <!-- Settings for robot types -->
  <group  name = "Settings" type = ".Epi.@EpiName.@robotType">
-
-<!-- <module
-		class 	= "Test"
-		name 	= "Test"
-		
-		p1 		= "type"
-		p2 		= "@type"
-		p3 		= "Settings.EpiBlue.@robotType"
-		p4 		= ".Epi.EpiBlue.@robotType"
-		p5		= ".Epi.Settings.@type.@Body_L1_T1_data"		
-		p6		= ".Epi.Settings.type.@Body_L1_T1_data"		
-
-	/> -->
 
 	<group  name = "Full"
 	
