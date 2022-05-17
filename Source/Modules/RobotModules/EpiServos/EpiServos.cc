@@ -848,7 +848,7 @@ bool EpiServos::SetDefaultSettingServo()
     }
 
     // I
-    param_default_2Byte = 500;
+    param_default_2Byte = 300;
     for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_I, param_default_2Byte, &dxl_error))
             return false;
