@@ -1,5 +1,5 @@
 //
-//	DeepLearning.h		This file is a part of the IKAROS project
+//	layers.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2022 Amandus Krantz
 //
@@ -21,25 +21,43 @@
 //
 
 
-#ifndef DeepLearning_
-#define DeepLearning_
+#ifndef layer_
+#define layer_
 
-#include "IKAROS.h"
-#include "H5Cpp.h"
-#include "layer.h"
-
-class DeepLearning: public Module
+class Layer
 {
-public:
-    static Module * Create(Parameter * p) { return new DeepLearning(p); }
+    public:
+        Layer(std::string name);
+        virtual ~Layer();
 
-    DeepLearning(Parameter * p) : Module(p) {}
-    virtual ~DeepLearning() {}
 
-    void 		Init();
-    void 		Tick();
-    void                readWeights();
+        std::vector<float> bias;
 };
+
+class LayerDense : Public Layer
+{
+    public:
+        LayerDense(): Layer () {}
+
+        void load_from_file(std::ifstream &fin);
+};
+
+class ActivationLayer : Public Layer
+{
+    public:
+        std::string activation_type;
+
+        void load_from_file(std::ifstream &fin);
+
+};
+
+/* TODO:
+ * Layers
+ * - LayerConv2D
+ * Activation functions
+ * - ReLU
+ * - Sigmoid
+ */
 
 #endif
 

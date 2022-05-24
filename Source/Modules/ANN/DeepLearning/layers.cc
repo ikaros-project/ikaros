@@ -1,6 +1,6 @@
 //
-//	DeepLearning.h		This file is a part of the IKAROS project
-// 						
+//	layer.cc		This file is a part of the IKAROS project
+//
 //    Copyright (C) 2022 Amandus Krantz
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -21,25 +21,9 @@
 //
 
 
-#ifndef DeepLearning_
-#define DeepLearning_
-
-#include "IKAROS.h"
-#include "H5Cpp.h"
 #include "layer.h"
 
-class DeepLearning: public Module
-{
-public:
-    static Module * Create(Parameter * p) { return new DeepLearning(p); }
+using namespace ikaros;
 
-    DeepLearning(Parameter * p) : Module(p) {}
-    virtual ~DeepLearning() {}
 
-    void 		Init();
-    void 		Tick();
-    void                readWeights();
-};
-
-#endif
 

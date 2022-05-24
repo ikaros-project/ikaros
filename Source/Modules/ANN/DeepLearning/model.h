@@ -1,5 +1,5 @@
 //
-//	DeepLearning.h		This file is a part of the IKAROS project
+//	model.h		This file is a part of the IKAROS project
 // 						
 //    Copyright (C) 2022 Amandus Krantz
 //
@@ -21,24 +21,19 @@
 //
 
 
-#ifndef DeepLearning_
-#define DeepLearning_
+#ifndef model_
+#define model_
 
-#include "IKAROS.h"
-#include "H5Cpp.h"
-#include "layer.h"
-
-class DeepLearning: public Module
+class Model
 {
 public:
-    static Module * Create(Parameter * p) { return new DeepLearning(p); }
+    Model(const std::string &finput);
+    ~Model();
 
-    DeepLearning(Parameter * p) : Module(p) {}
-    virtual ~DeepLearning() {}
+private:
+    void load_from_file(const std::string &fin);
 
-    void 		Init();
-    void 		Tick();
-    void                readWeights();
+    std::vector<Layer *> m_layers; // layers in model
 };
 
 #endif
