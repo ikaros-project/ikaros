@@ -212,14 +212,14 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			LoadModels++;
 
 			if (LoadModels < a.length) // put the next load in the callback
-				loader.load('/Models/glTF/' + name[LoadModels] + '.glb', callback.bind(this));
+				loader.load('/Models/glb/' + name[LoadModels] + '.glb', callback.bind(this));
 		};
 
 		// Instantiate a loader
 		var loader = new THREE.GLTFLoader(manager);
 
 		// Load a glTF resource
-		loader.load('/Models/glTF/' + name[0] + '.glb', callback.bind(this))
+		loader.load('/Models/glb/' + name[0] + '.glb', callback.bind(this))
 		console.log("Loaded fine")
 
 	}
