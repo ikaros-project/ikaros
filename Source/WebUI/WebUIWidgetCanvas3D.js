@@ -80,33 +80,46 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Scene
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.Color(0xa0a0a0);
+		this.scene.background = new THREE.Color(0xe0e0e0);
 
 		// Fog
-		this.scene.fog = new THREE.Fog(0xa0a0a0, 0.01, 20);
+		this.scene.fog = new THREE.Fog( 0xe0e0e0, 1, 8 );
 
-		var light = new THREE.HemisphereLight(0xffffff, 0x444444);
-		light.position.set(0, 20, 0);
-		this.scene.add(light);
+		//const light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.5 );
+		//light.position.set(0, 20, 0);
+		//this.scene.add(light);
 
-		var light = new THREE.DirectionalLight(0xFFFFFF);
-		light.position.set(6, 10, 2);
-		light.castShadow = true;
-		//Set up shadow properties for the light
-		light.shadow.mapSize.width = 4096;  // default
-		light.shadow.mapSize.height = 4096; // default
-		//light.shadow.camera.near = 0.5;    // default
-		//light.shadow.camera.far = 50;     // default
-		//light.shadow.camera.top = 180;
-		//light.shadow.camera.bottom = - 100;
-		//light.shadow.camera.left = - 120;
-		//light.shadow.camera.right = 120;
-		this.scene.add(light);
-		//this.scene.add(new THREE.CameraHelper(light.shadow.camera));
+		const spotLight = new THREE.SpotLight( 0xffffff, 0.5 );
+		spotLight.angle = Math.PI / 5;
+		spotLight.penumbra = 0.2;
+		spotLight.position.set( 2, 3, 3 );
+		spotLight.castShadow = true;
+		spotLight.shadow.camera.near = 3;
+		spotLight.shadow.camera.far = 10;
+		spotLight.shadow.mapSize.width = 1024;
+		spotLight.shadow.mapSize.height = 1024;
+		this.scene.add( spotLight );
+		this.scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
+
+		const dirLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+		dirLight.position.set( 0, 2, 0 );
+		dirLight.castShadow = true;
+		dirLight.shadow.camera.near = 1;
+		dirLight.shadow.camera.far = 10;
+
+		dirLight.shadow.camera.right = 1;
+		dirLight.shadow.camera.left = - 1;
+		dirLight.shadow.camera.top	= 1;
+		dirLight.shadow.camera.bottom = - 1;
+
+		dirLight.shadow.mapSize.width = 1024;
+		dirLight.shadow.mapSize.height = 1024;
+		this.scene.add( dirLight );
+		this.scene.add(new THREE.CameraHelper(dirLight.shadow.camera));
 
 		// Camera
-		//this.camera = new THREE.PerspectiveCamera();
-		this.camera = new THREE.OrthographicCamera();
+		this.camera = new THREE.PerspectiveCamera();
+		//this.camera = new THREE.OrthographicCamera();
 
 		this.cameraTarget = new THREE.Vector3(this.parameters.camera1, this.parameters.camera2, this.parameters.camera3);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
@@ -116,13 +129,14 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.scene.add(this.axisHelper);
 
 		// Ground
-		var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(100, 100), new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false }));
+		var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25), new THREE.MeshPhongMaterial({ color: 0xa0adaf, shininess: 150 }));
 		mesh.rotation.x = - Math.PI / 2;
 		mesh.receiveShadow = true;
 		this.scene.add(mesh);
 
+
 		// Grid
-		this.grid = new THREE.GridHelper(100, 100, 0x000000, 0x000000);
+		this.grid = new THREE.GridHelper(25, 25, 0x000000, 0x000000);
 		this.grid.material.opacity = 0.2;
 		this.grid.material.transparent = true;
 		this.scene.add(this.grid);
@@ -144,17 +158,21 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.renderer.gammaInput = true;
 		this.renderer.gammaOutput = true;
-		this.renderer.shadowMap.enabled = true;
+		//this.renderer.shadowMap.enabled = true;
 		//this.renderer.shadowMap.cullFace = THREE.CullFaceBack;
 
 		this.controls = new THREE.OrbitControls(this.camera, this.canvas.canvas);
-		this.controls.target.set(0, 10, 0);
-		this.controls.zoomSpeed = 0.1;
+		//this.controls.target.set( 0, 0.5, 0 );
+		this.controls.enablePan = true;
+		this.controls.enableDamping = true;
+		this.controls.minDistance = 0.5;
+		this.controls.maxDistance = 4;
 		this.controls.update();
 
 		// Set camera position
-		this.camera.position.set(2, 2, -1);
-		this.cameraTarget.set(0, 0.5, 0);
+		this.camera.position.set(1, 1, 1);
+		this.controls.update();
+		this.cameraTarget.set(0, 0.3, 0);
 
 		function render(o) {
 			o.camera.lookAt(o.cameraTarget);
@@ -496,7 +514,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		else
 			this.grid.visible = false
 
-		// If we change the area in edit mode
+		// If we change the area in edit mode. Only work in perspective camera
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.updateProjectionMatrix();
@@ -504,25 +522,25 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		if (this.toBool(this.FixedView)) {
 			switch (this.parameters.views) {
 				case "Top":
-					this.camera.position.set(0, 2, 0);
+					this.camera.position.set(0, 1, 0);
 					break;
 				case "Bottom":
-					this.camera.position.set(0, -2, 0);
+					this.camera.position.set(0, -1, 0);
 					break;
 				case "Front":
-					this.camera.position.set(2, 0, 0);
+					this.camera.position.set(1, 0, 0);
 					break;
 				case "Back":
-					this.camera.position.set(-2, 0, 0);
+					this.camera.position.set(-1, 0, 0);
 					break;
 				case "Left":
-					this.camera.position.set(0, 0, 2);
+					this.camera.position.set(0, 0, 1);
 					break;
 				case "Right":
-					this.camera.position.set(0, 0, -2);
+					this.camera.position.set(0, 0, -1);
 					break;
 				case "Home":
-					this.camera.position.set(2, 2, 2);
+					this.camera.position.set(1, 1, 1);
 					break;
 				default:
 					this.EpiColor = 0x000000
