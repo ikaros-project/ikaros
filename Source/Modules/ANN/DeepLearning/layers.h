@@ -21,8 +21,8 @@
 //
 
 
-#ifndef layer_
-#define layer_
+#ifndef LAYER
+#define LAYER
 
 class Layer
 {
@@ -30,8 +30,11 @@ class Layer
         Layer(std::string name);
         virtual ~Layer();
 
+        virtual matrix compute_output() = 0;
+        virtual void load_weights(const std::ifstream &fin) = 0;
 
-        std::vector<float> bias;
+        vector bias;
+        matrix weights;
 };
 
 class LayerDense : Public Layer
@@ -39,24 +42,24 @@ class LayerDense : Public Layer
     public:
         LayerDense(): Layer () {}
 
-        void load_from_file(std::ifstream &fin);
+        load_weights(std::ifstream &fin);
 };
 
-class ActivationLayer : Public Layer
+class ActivationReLU : Public ActivationLayer
 {
     public:
-        std::string activation_type;
+        float ** compute_output();
+};
 
-        void load_from_file(std::ifstream &fin);
-
+class ActivationSigmoid  Public ActivationLayer
+{
+    public:
+        float ** compute_output();
 };
 
 /* TODO:
  * Layers
  * - LayerConv2D
- * Activation functions
- * - ReLU
- * - Sigmoid
  */
 
 #endif

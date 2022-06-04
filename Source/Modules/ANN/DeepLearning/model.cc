@@ -25,3 +25,6 @@
 
 using namespace ikaros;
 
+void Model::load_from_file(const std::string &fin) {
+    // read hdf5 file here
+}

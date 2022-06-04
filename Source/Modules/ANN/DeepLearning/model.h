@@ -30,10 +30,12 @@ public:
     Model(const std::string &finput);
     ~Model();
 
-private:
-    void load_from_file(const std::string &fin);
+    vector predict();
 
-    std::vector<Layer *> m_layers; // layers in model
+private:
+    void load_from_file(const std::string &fin); // load model from file
+
+    std::vector<Layer *> layers; // layers in model
 };
 
 #endif
