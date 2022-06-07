@@ -172,9 +172,9 @@ nrServosTotal = "19"
 		Body_L2_T1_data = "
 		1 0 0 0.244;
 		0 1 0 0;
-		0 0 1 0;
+		0 0 1 0.023;
 		0 0 0 1;"
-	
+
 	/>
 	<group  name = "Torso"
 

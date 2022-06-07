@@ -45,13 +45,13 @@
     <!-- LINK 1: TRANS 1: Translation Origo to Joint 1 --> 
 
     <module class = "Constant" name = "L1_T1" 
-	_data = "
-	1 0 0 0.065038;
+	data = "
+	1 0 0 0.021;
 	0 1 0 0;
 	0 0 1 0;
 	0 0 0 1;
 	" 
-    data = "
+    _data = "
 	1 0 0 0.103825;
 	0 1 0 0;
 	0 0 1 0;
