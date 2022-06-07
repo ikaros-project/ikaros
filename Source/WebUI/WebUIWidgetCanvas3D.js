@@ -35,27 +35,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	};
 	static html() {
 		return `
-			<script type="x-shader/x-vertex" id="vertexshader">
-			attribute float size;
-			attribute vec3 customColor;
-			varying vec3 vColor;
-			void main() {
-				vColor = customColor;
-				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-				gl_PointSize = size * ( 300.0 / -mvPosition.z );
-				gl_Position = projectionMatrix * mvPosition;
-			}
-			</script>
 
-			<script type="x-shader/x-fragment" id="fragmentshader">
-			uniform vec3 color;
-			uniform sampler2D texture;
-			varying vec3 vColor;
-			void main() {
-				gl_FragColor = vec4( color * vColor, 1.0 );
-				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
-			}
-			</script>
 			<div id = "demo"></div>
 			<canvas></canvas>
         `;
@@ -77,6 +57,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.canvas = this.canvasElement.getContext("webgl");
 
 		this.models_loaded = false;
+
 
 		// Scene
 		//this.scene = new THREE.Scene();
