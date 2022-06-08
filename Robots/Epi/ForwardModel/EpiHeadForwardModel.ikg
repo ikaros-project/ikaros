@@ -51,12 +51,7 @@
 	0 0 1 0;
 	0 0 0 1;
 	" 
-    _data = "
-	1 0 0 0.103825;
-	0 1 0 0;
-	0 0 1 0;
-	0 0 0 1;
-	" />
+    />
 
     <!-- LINK 1: JOINT 2: Rotation Y  --> 
     <!-- This is a temporary module. Select will do this in the future -->
