@@ -982,7 +982,7 @@ interaction = {
             interaction.generateGrid(2*interaction.grid_spacing);
     },
     decreaseGrid() {
-        if(interaction.grid_spacing > 10)
+        if(interaction.grid_spacing > 5)
             interaction.generateGrid(0.5*interaction.grid_spacing);
     },
     drawArrow(context, arrow)
@@ -1496,8 +1496,8 @@ interaction = {
         interaction.selectedObject.widget.parameters['y'] = newTop;
     },
     setSize: function (dx, dy) {
-        let newWidth = interaction.sizegrid*Math.round((interaction.startX + dx)/interaction.sizegrid)+1;
-        let newHeight = interaction.sizegrid*Math.round((interaction.startY + dy)/interaction.sizegrid)+1;
+        let newWidth = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing)+1;
+        let newHeight = interaction.grid_spacing*Math.round((interaction.startY + dy)/interaction.grid_spacing)+1;
         interaction.selectedObject.style.width = newWidth + 'px';
         interaction.selectedObject.style.height = newHeight + 'px';
         

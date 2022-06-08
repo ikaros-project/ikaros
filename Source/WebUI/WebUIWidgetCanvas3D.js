@@ -14,8 +14,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'point_color', 'default': "black", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'point_size', 'default': "0.15", 'type': 'string', 'control': 'textedit' },
 
-			{ 'name': 'show_axis', 'default': true, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'show_ground_grid', 'default': true, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_axis', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_ground_grid', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'show_stats', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 
 			{ 'name': 'robot_data', 'default': "", 'type': 'source', 'control': 'textedit' },
@@ -35,27 +35,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	};
 	static html() {
 		return `
-			<script type="x-shader/x-vertex" id="vertexshader">
-			attribute float size;
-			attribute vec3 customColor;
-			varying vec3 vColor;
-			void main() {
-				vColor = customColor;
-				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-				gl_PointSize = size * ( 300.0 / -mvPosition.z );
-				gl_Position = projectionMatrix * mvPosition;
-			}
-			</script>
 
-			<script type="x-shader/x-fragment" id="fragmentshader">
-			uniform vec3 color;
-			uniform sampler2D texture;
-			varying vec3 vColor;
-			void main() {
-				gl_FragColor = vec4( color * vColor, 1.0 );
-				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
-			}
-			</script>
 			<div id = "demo"></div>
 			<canvas></canvas>
         `;
@@ -65,7 +45,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	// 1. Take care of different color formats
 
 	updateAll() {
-		console.log("Uppdate all")
+		//console.log("Uppdate all")
 		this.FixedView = true;
 	}
 
@@ -78,35 +58,58 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		this.models_loaded = false;
 
+
 		// Scene
-		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.Color(0xa0a0a0);
-
+		//this.scene = new THREE.Scene();
+		//this.scene.background = new THREE.Color(0xe0e0e0);
+		
 		// Fog
-		this.scene.fog = new THREE.Fog(0xa0a0a0, 0.01, 20);
+		//this.scene.fog = new THREE.Fog( 0xe0e0e0, 1, 8 );
 
-		var light = new THREE.HemisphereLight(0xffffff, 0x444444);
-		light.position.set(0, 20, 0);
-		this.scene.add(light);
+		this.scene = new THREE.Scene();
+		//this.scene.background = new THREE.Color( 0xa0a0a0 );
+		//this.scene.fog = new THREE.Fog( 0xa0a0a0, 10, 50 );
 
-		var light = new THREE.DirectionalLight(0xFFFFFF);
-		light.position.set(6, 10, 2);
-		light.castShadow = true;
-		//Set up shadow properties for the light
-		light.shadow.mapSize.width = 4096;  // default
-		light.shadow.mapSize.height = 4096; // default
-		//light.shadow.camera.near = 0.5;    // default
-		//light.shadow.camera.far = 50;     // default
-		//light.shadow.camera.top = 180;
-		//light.shadow.camera.bottom = - 100;
-		//light.shadow.camera.left = - 120;
-		//light.shadow.camera.right = 120;
-		this.scene.add(light);
-		//this.scene.add(new THREE.CameraHelper(light.shadow.camera));
+
+//		const light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.5 );
+//		light.position.set(0, 20, 0);
+//		this.scene.add(light);
+
+		//this.scene.add( new THREE.AmbientLight( 0xffffff, 0.3 ) );
+
+		const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+		hemiLight.position.set( 0, 20, 0 );
+		this.scene.add( hemiLight );
+
+		const spotLight = new THREE.SpotLight( 0xffffff, 1 );
+		spotLight.angle = Math.PI / 5;
+		//spotLight.penumbra = 0.2;
+		spotLight.position.set( 1, 3, 3 );
+		spotLight.castShadow = true;
+		
+		spotLight.shadow.camera.near = 3;
+		spotLight.shadow.camera.far = 10;
+		spotLight.shadow.mapSize.width = 2048;
+		spotLight.shadow.mapSize.height = 2048;
+		spotLight.shadowBias = -0.002;
+		this.scene.add( spotLight );
+		//this.scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
+
+		// const dirLight = new THREE.DirectionalLight( 0xffffff );
+		// dirLight.position.set( - 3, 10,  10 );
+		// dirLight.castShadow = true;
+		// dirLight.shadow.camera.top = 4;
+		// dirLight.shadow.camera.bottom = - 4;
+		// dirLight.shadow.camera.left = - 4;
+		// dirLight.shadow.camera.right = 4;
+		// dirLight.shadow.camera.near = 0.1;
+		// dirLight.shadow.camera.far = 40;
+		// dirLight.shadowBias = -0.0002;
+		// this.scene.add( dirLight );
+		// this.scene.add(new THREE.CameraHelper(dirLight.shadow.camera));
 
 		// Camera
-		//this.camera = new THREE.PerspectiveCamera();
-		this.camera = new THREE.OrthographicCamera();
+		this.camera = new THREE.PerspectiveCamera();
 
 		this.cameraTarget = new THREE.Vector3(this.parameters.camera1, this.parameters.camera2, this.parameters.camera3);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
@@ -116,13 +119,29 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.scene.add(this.axisHelper);
 
 		// Ground
-		var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(100, 100), new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false }));
-		mesh.rotation.x = - Math.PI / 2;
-		mesh.receiveShadow = true;
-		this.scene.add(mesh);
+		// var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25), new THREE.MeshPhongMaterial({ color: 0xa0adaf, shininess: 0 }));
+		// mesh.rotation.x = - Math.PI / 2;
+		// mesh.receiveShadow = true;
+		// this.scene.add(mesh);
+
+		// const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 200, 200 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
+		// mesh.rotation.x = - Math.PI / 2;
+		// mesh.receiveShadow = true;
+		// this.scene.add( mesh );
+
+		const ground = new THREE.Mesh(
+			new THREE.PlaneGeometry( 9, 9, 1, 1 ),
+			new THREE.ShadowMaterial( { color: 0x000000, opacity: 0.25, side: THREE.DoubleSide } )
+		);
+
+		ground.rotation.x = - Math.PI / 2; // rotates X/Y to X/Z
+		//ground.position.y = - 1;
+		ground.receiveShadow = true;
+		this.scene.add( ground );
+
 
 		// Grid
-		this.grid = new THREE.GridHelper(100, 100, 0x000000, 0x000000);
+		this.grid = new THREE.GridHelper(200, 200, 0x000000, 0x000000);
 		this.grid.material.opacity = 0.2;
 		this.grid.material.transparent = true;
 		this.scene.add(this.grid);
@@ -139,22 +158,30 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvas.canvas });
 		//this.renderer.setClearColor(this.scene.fog.color);
-		this.renderer.setClearColor(0xffff00, .5);
+		//this.renderer.setClearColor(0xffff00, .5);
+		this.renderer.setClearColor( 0x263238 );
+
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
-		this.renderer.gammaInput = true;
-		this.renderer.gammaOutput = true;
+		//this.renderer.gammaInput = true;
+		//this.renderer.gammaOutput = true;
 		this.renderer.shadowMap.enabled = true;
 		//this.renderer.shadowMap.cullFace = THREE.CullFaceBack;
+		this.renderer.shadowMapType = THREE.PCFSoftShadowMap
+
 
 		this.controls = new THREE.OrbitControls(this.camera, this.canvas.canvas);
-		this.controls.target.set(0, 10, 0);
-		this.controls.zoomSpeed = 0.1;
+		//this.controls.target.set( 0, 0.5, 0 );
+		this.controls.enablePan = true;
+		this.controls.enableDamping = true;
+		this.controls.minDistance = 0.5;
+		this.controls.maxDistance = 4;
 		this.controls.update();
 
-		// Set camera position
-		this.camera.position.set(2, 2, -1);
-		this.cameraTarget.set(0, 0.5, 0);
+		// Set camera position while loading
+		this.camera.position.set(1, 2, 1);
+		this.controls.update();
+		this.cameraTarget.set(0, 0.3, 0);
 
 		function render(o) {
 			o.camera.lookAt(o.cameraTarget);
@@ -212,14 +239,14 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			LoadModels++;
 
 			if (LoadModels < a.length) // put the next load in the callback
-				loader.load('/Models/glTF/' + name[LoadModels] + '.glb', callback.bind(this));
+				loader.load('/Models/glb/' + name[LoadModels] + '.glb', callback.bind(this));
 		};
 
 		// Instantiate a loader
 		var loader = new THREE.GLTFLoader(manager);
 
 		// Load a glTF resource
-		loader.load('/Models/glTF/' + name[0] + '.glb', callback.bind(this))
+		loader.load('/Models/glb/' + name[0] + '.glb', callback.bind(this))
 		console.log("Loaded fine")
 
 	}
@@ -496,7 +523,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		else
 			this.grid.visible = false
 
-		// If we change the area in edit mode
+		// If we change the area in edit mode. Only work in perspective camera
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.updateProjectionMatrix();
@@ -507,22 +534,22 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					this.camera.position.set(0, 2, 0);
 					break;
 				case "Bottom":
-					this.camera.position.set(0, -2, 0);
+					this.camera.position.set(0, -1, 0);
 					break;
 				case "Front":
-					this.camera.position.set(2, 0, 0);
+					this.camera.position.set(0, 2, 2);
 					break;
 				case "Back":
-					this.camera.position.set(-2, 0, 0);
+					this.camera.position.set(0, 2, -2);
 					break;
 				case "Left":
-					this.camera.position.set(0, 0, 2);
+					this.camera.position.set(2, 2, 0);
 					break;
 				case "Right":
-					this.camera.position.set(0, 0, -2);
+					this.camera.position.set(-2, 2, 0);
 					break;
 				case "Home":
-					this.camera.position.set(2, 2, 2);
+					this.camera.position.set(1, 2, 1);
 					break;
 				default:
 					this.EpiColor = 0x000000

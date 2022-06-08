@@ -116,7 +116,6 @@ const int    unknown_size   =    -1;
 
 class Module;
 class Kernel;
-class WebUI;
 class GroupElement;
 
 
@@ -236,7 +235,7 @@ public:
     friend class Kernel;
     friend class Connection;
     friend class Module;
-    friend class WebUI;
+
 };
 
 
@@ -403,7 +402,6 @@ public:
     friend class ThreadGroup;
 
     friend Module *        CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);
-    friend class WebUI;
 };
 
 
@@ -429,7 +427,6 @@ public:
     void Propagate(long long tick);
     
     friend class Kernel;
-    friend class WebUI;
 };
 
 
@@ -663,7 +660,6 @@ public:
     friend class Module;
     friend class Module_IO;
     friend class ThreadGroup;
-    friend class WebUI;
 };
 
 
