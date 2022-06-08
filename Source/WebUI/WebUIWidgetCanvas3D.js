@@ -22,9 +22,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'robot', 'default': "EpiBlack", 'type': 'string', 'control': 'menu', 'values': "EpiBlue,EpiGreen,EpiBlack,EpiWhite" },
 
 
-			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'values': "Home, Top,Bottom, Front, Back, Left, Right" },
-			{ 'name': 'camera_pos', 'default': "2,2,2.4", 'type': 'string', 'control': 'textedit' },
-			{ 'name': 'camera_target', 'default': "0,0,0", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'values': "Home, Top, Bottom, Front, Back, Left, Right" },
+			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'look_at_Y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'look_at_Z', 'default': "0", 'type': 'float', 'control': 'textedit' },
 
 			{ 'name': "FRAME", 'control': 'header' },
             { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
@@ -35,23 +36,17 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	};
 	static html() {
 		return `
-
-
-		
 		<div id = "demo"></div>
-		<canvas>			
-		</canvas>
+		<canvas></canvas>
+		
 		<section id="loading-screen">
-		<div id="loader">
-		</div>
-		</div>
-	</section>
+			<div id="loader"></div>
+		</section>
         `;
 	}
 
 	updateAll() {
-		//console.log("Uppdate all")
-		//this.FixedView = true;
+		this.FixedView = true;
 	}
 
 	init() {
@@ -85,9 +80,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Camera
 		this.camera = new THREE.PerspectiveCamera();
-		this.cameraTarget = new THREE.Vector3(this.parameters.camera1, this.parameters.camera2, this.parameters.camera3);
+		this.cameraTarget = new THREE.Vector3(this.parameters.look_at_X, this.parameters.look_at_Y, this.parameters.look_at_Z);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
-
+		this.camera.position.set(0,0,0);
+		
 		// Axis
 		this.axisHelper = new THREE.AxesHelper(5);
 		this.scene.add(this.axisHelper);
@@ -119,18 +115,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvas.canvas });
-		//this.renderer.setClearColor(this.scene.fog.color);
-		//this.renderer.setClearColor(0xffff00, .5);
 		this.renderer.setClearColor( 0x263238 );
-
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
-		//this.renderer.gammaInput = true;
-		//this.renderer.gammaOutput = true;
 		this.renderer.shadowMap.enabled = true;
 		//this.renderer.shadowMap.cullFace = THREE.CullFaceBack;
 		this.renderer.shadowMapType = THREE.PCFSoftShadowMap
-
 
 		this.controls = new THREE.OrbitControls(this.camera, this.canvas.canvas);
 		this.controls.enablePan = true;
@@ -138,12 +128,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.controls.minDistance = 0.5;
 		this.controls.maxDistance = 4;
 		this.controls.update();
-
-		// Set camera position while loading
-		this.camera.position.set(1, 2, 1);
-		this.controls.update();
 		
-
 		function render(o) {
 			o.camera.lookAt(o.cameraTarget);
 			o.renderer.render(o.scene, o.camera);
@@ -172,36 +157,33 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	}
 
 	LoadModel(a, name, m) {
-		console.log('Loading models')
+		//console.log('Loading models')
 		var manager = new THREE.LoadingManager();
 
 		//var manager = new THREE.LoadingManager();
 		manager.onProgress = function (item, loaded, total) {
-			console.log(" Progress", item, loaded, total);
+			//console.log(" Progress", item, loaded, total);
 
 		};
 		manager.onLoad = function (item, loaded, total) {
 			console.log("Everything is loaded");
+			// Remove loading screen
 			const loadingScreen = document.getElementById( 'loading-screen' );
 			loadingScreen.classList.add( 'fade-out' );
-			
-			// optional: remove loader from DOM via event listener
 			loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
-
-
 		};
 		// Remove loader when transition done
 		function onTransitionEnd( event ) {
 			event.target.remove();
 		}
-		
+
 		manager.onError = function (item, loaded, total) {
 			console.log(" Error", item, loaded, total);
 		};
 		var LoadModels = 0;
 
 		const callback = function (gltf) {
-			console.log("Callback: Loading " + LoadModels + " Name: " + name[LoadModels]);
+			//console.log("Callback: Loading " + LoadModels + " Name: " + name[LoadModels]);
 
 			a[LoadModels] = gltf.scene
 			gltf.scene.traverse(function (child) {
@@ -223,7 +205,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Load a glTF resource
 		loader.load('/Models/glb/' + name[0] + '.glb', callback.bind(this))
-		console.log("Loaded fine")
+		//console.log("Loaded fine")
 
 	}
 
@@ -265,7 +247,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 			// Load models at first update or change of models array
 			if (!this.models_loaded) {
-				console.log('Loading models')
+				//console.log('Loading models')
 				this.model_objects = new Array(this.nrOfModels) // Do I need to delete memory?
 				this.LoadModel(this.model_objects, this.modelNames, this.data);
 				this.models_loaded = true;
@@ -502,47 +484,51 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// If we change the area in edit mode. Only work in perspective camera
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
+
+		// update the camera position. This should only be made if parameter is updated.
+		//this.camera.position.set(this.parameters.camera_X,this.parameters.camera_Y,this.parameters.camera_Z);
+
+		// update the camera look at
+		this.cameraTarget.set(this.parameters.look_at_X, this.parameters.look_at_Y, this.parameters.look_at_Z);
 		this.camera.updateProjectionMatrix();
 
-		console.log(this.models_loaded)
-		if (!this.models_loaded)
-			this.cameraTarget.set(100, 0.3, 0);
-		else
-			this.cameraTarget.set(0, 0.3, 0);
-	
-
-		// if (this.toBool(this.FixedView)) {
-		// 	switch (this.parameters.views) {
-		// 		case "Top":
-		// 			this.camera.position.set(0, 2, 0);
-		// 			break;
-		// 		case "Bottom":
-		// 			this.camera.position.set(0, -1, 0);
-		// 			break;
-		// 		case "Front":
-		// 			this.camera.position.set(0, 2, 2);
-		// 			break;
-		// 		case "Back":
-		// 			this.camera.position.set(0, 2, -2);
-		// 			break;
-		// 		case "Left":
-		// 			this.camera.position.set(2, 2, 0);
-		// 			break;
-		// 		case "Right":
-		// 			this.camera.position.set(-2, 2, 0);
-		// 			break;
-		// 		case "Home":
-		// 			this.camera.position.set(1, 2, 1);
-		// 			break;
-		// 		default:
-		// 			this.EpiColor = 0x000000
-		// 	}
-		// }
+		if (this.toBool(this.FixedView)) {
+			switch (this.parameters.views) {
+				case "Top":
+					this.camera.position.set(0, 2, 0);
+					break;
+				case "Bottom":
+					this.camera.position.set(0, -1, 0);
+					break;
+				case "Front":
+					this.camera.position.set(0, 2, 2);
+					break;
+				case "Back":
+					this.camera.position.set(0, 2, -2);
+					break;
+				case "Left":
+					this.camera.position.set(2, 2, 0);
+					break;
+				case "Right":
+					this.camera.position.set(-2, 2, 0);
+					break;
+				case "Home":
+					this.camera.position.set(0.5, 1.5, 1.5);
+					break;
+				default:
+					this.EpiColor = 0x000000
+			}
+		}
 		// var t0 = performance.now();
 		// var t1 = performance.now();
 		// console.log("Update took " + (t1 - t0) + " milliseconds.");
 
+
+
 		this.FixedView = false;
+
+
+
 
 	};
 	
