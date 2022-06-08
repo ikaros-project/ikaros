@@ -36,52 +36,41 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	static html() {
 		return `
 
-			<div id = "demo"></div>
-			<canvas></canvas>
+
+		
+		<div id = "demo"></div>
+		<canvas>			
+		</canvas>
+		<section id="loading-screen">
+		<div id="loader">
+		</div>
+		</div>
+	</section>
         `;
 	}
 
-	// TODO
-	// 1. Take care of different color formats
-
 	updateAll() {
 		//console.log("Uppdate all")
-		this.FixedView = true;
+		//this.FixedView = true;
 	}
 
 	init() {
 
-		this.points_loaded = false;
 
+
+
+		this.points_loaded = false;
 		this.canvasElement = this.querySelector('canvas');
 		this.canvas = this.canvasElement.getContext("webgl");
-
 		this.models_loaded = false;
 
-
 		// Scene
-		//this.scene = new THREE.Scene();
-		//this.scene.background = new THREE.Color(0xe0e0e0);
-		
-		// Fog
-		//this.scene.fog = new THREE.Fog( 0xe0e0e0, 1, 8 );
-
 		this.scene = new THREE.Scene();
-		//this.scene.background = new THREE.Color( 0xa0a0a0 );
-		//this.scene.fog = new THREE.Fog( 0xa0a0a0, 10, 50 );
+		
+		// Light
+		this.scene.add( new THREE.AmbientLight( 0xffffff, 0.8 ) );
 
-
-//		const light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.5 );
-//		light.position.set(0, 20, 0);
-//		this.scene.add(light);
-
-		//this.scene.add( new THREE.AmbientLight( 0xffffff, 0.3 ) );
-
-		const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-		hemiLight.position.set( 0, 20, 0 );
-		this.scene.add( hemiLight );
-
-		const spotLight = new THREE.SpotLight( 0xffffff, 1 );
+		const spotLight = new THREE.SpotLight( 0xffffff, 0.5 );
 		spotLight.angle = Math.PI / 5;
 		//spotLight.penumbra = 0.2;
 		spotLight.position.set( 1, 3, 3 );
@@ -89,28 +78,13 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		
 		spotLight.shadow.camera.near = 3;
 		spotLight.shadow.camera.far = 10;
-		spotLight.shadow.mapSize.width = 2048;
-		spotLight.shadow.mapSize.height = 2048;
+		spotLight.shadow.mapSize.width = 4096;
+		spotLight.shadow.mapSize.height = 4096;
 		spotLight.shadowBias = -0.002;
 		this.scene.add( spotLight );
-		//this.scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
-
-		// const dirLight = new THREE.DirectionalLight( 0xffffff );
-		// dirLight.position.set( - 3, 10,  10 );
-		// dirLight.castShadow = true;
-		// dirLight.shadow.camera.top = 4;
-		// dirLight.shadow.camera.bottom = - 4;
-		// dirLight.shadow.camera.left = - 4;
-		// dirLight.shadow.camera.right = 4;
-		// dirLight.shadow.camera.near = 0.1;
-		// dirLight.shadow.camera.far = 40;
-		// dirLight.shadowBias = -0.0002;
-		// this.scene.add( dirLight );
-		// this.scene.add(new THREE.CameraHelper(dirLight.shadow.camera));
 
 		// Camera
 		this.camera = new THREE.PerspectiveCamera();
-
 		this.cameraTarget = new THREE.Vector3(this.parameters.camera1, this.parameters.camera2, this.parameters.camera3);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 
@@ -119,26 +93,14 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.scene.add(this.axisHelper);
 
 		// Ground
-		// var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25), new THREE.MeshPhongMaterial({ color: 0xa0adaf, shininess: 0 }));
-		// mesh.rotation.x = - Math.PI / 2;
-		// mesh.receiveShadow = true;
-		// this.scene.add(mesh);
-
-		// const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 200, 200 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-		// mesh.rotation.x = - Math.PI / 2;
-		// mesh.receiveShadow = true;
-		// this.scene.add( mesh );
-
 		const ground = new THREE.Mesh(
 			new THREE.PlaneGeometry( 9, 9, 1, 1 ),
 			new THREE.ShadowMaterial( { color: 0x000000, opacity: 0.25, side: THREE.DoubleSide } )
 		);
-
 		ground.rotation.x = - Math.PI / 2; // rotates X/Y to X/Z
-		//ground.position.y = - 1;
+		ground.position.y = 0;
 		ground.receiveShadow = true;
 		this.scene.add( ground );
-
 
 		// Grid
 		this.grid = new THREE.GridHelper(200, 200, 0x000000, 0x000000);
@@ -171,7 +133,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 
 		this.controls = new THREE.OrbitControls(this.camera, this.canvas.canvas);
-		//this.controls.target.set( 0, 0.5, 0 );
 		this.controls.enablePan = true;
 		this.controls.enableDamping = true;
 		this.controls.minDistance = 0.5;
@@ -181,7 +142,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Set camera position while loading
 		this.camera.position.set(1, 2, 1);
 		this.controls.update();
-		this.cameraTarget.set(0, 0.3, 0);
+		
 
 		function render(o) {
 			o.camera.lookAt(o.cameraTarget);
@@ -213,12 +174,27 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	LoadModel(a, name, m) {
 		console.log('Loading models')
 		var manager = new THREE.LoadingManager();
+
+		//var manager = new THREE.LoadingManager();
 		manager.onProgress = function (item, loaded, total) {
 			console.log(" Progress", item, loaded, total);
+
 		};
 		manager.onLoad = function (item, loaded, total) {
 			console.log("Everything is loaded");
+			const loadingScreen = document.getElementById( 'loading-screen' );
+			loadingScreen.classList.add( 'fade-out' );
+			
+			// optional: remove loader from DOM via event listener
+			loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+
+
 		};
+		// Remove loader when transition done
+		function onTransitionEnd( event ) {
+			event.target.remove();
+		}
+		
 		manager.onError = function (item, loaded, total) {
 			console.log(" Error", item, loaded, total);
 		};
@@ -528,33 +504,40 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.updateProjectionMatrix();
 
-		if (this.toBool(this.FixedView)) {
-			switch (this.parameters.views) {
-				case "Top":
-					this.camera.position.set(0, 2, 0);
-					break;
-				case "Bottom":
-					this.camera.position.set(0, -1, 0);
-					break;
-				case "Front":
-					this.camera.position.set(0, 2, 2);
-					break;
-				case "Back":
-					this.camera.position.set(0, 2, -2);
-					break;
-				case "Left":
-					this.camera.position.set(2, 2, 0);
-					break;
-				case "Right":
-					this.camera.position.set(-2, 2, 0);
-					break;
-				case "Home":
-					this.camera.position.set(1, 2, 1);
-					break;
-				default:
-					this.EpiColor = 0x000000
-			}
-		}
+		console.log(this.models_loaded)
+		if (!this.models_loaded)
+			this.cameraTarget.set(100, 0.3, 0);
+		else
+			this.cameraTarget.set(0, 0.3, 0);
+	
+
+		// if (this.toBool(this.FixedView)) {
+		// 	switch (this.parameters.views) {
+		// 		case "Top":
+		// 			this.camera.position.set(0, 2, 0);
+		// 			break;
+		// 		case "Bottom":
+		// 			this.camera.position.set(0, -1, 0);
+		// 			break;
+		// 		case "Front":
+		// 			this.camera.position.set(0, 2, 2);
+		// 			break;
+		// 		case "Back":
+		// 			this.camera.position.set(0, 2, -2);
+		// 			break;
+		// 		case "Left":
+		// 			this.camera.position.set(2, 2, 0);
+		// 			break;
+		// 		case "Right":
+		// 			this.camera.position.set(-2, 2, 0);
+		// 			break;
+		// 		case "Home":
+		// 			this.camera.position.set(1, 2, 1);
+		// 			break;
+		// 		default:
+		// 			this.EpiColor = 0x000000
+		// 	}
+		// }
 		// var t0 = performance.now();
 		// var t1 = performance.now();
 		// console.log("Update took " + (t1 - t0) + " milliseconds.");
