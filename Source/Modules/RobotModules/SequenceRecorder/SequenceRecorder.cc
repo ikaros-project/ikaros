@@ -419,6 +419,11 @@ SequenceRecorder::Init()
         Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
     left_output = copy_array(create_array(channels), default_output, channels);
     right_output = copy_array(create_array(channels), default_output, channels);
+    for(int c=0; c<channels; c++)
+        if(internal_control[c])
+            positions[c] = default_output[c];
+
+    
 
      directory = GetValue("directory");
      filename = GetValue("filename");
