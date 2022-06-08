@@ -606,15 +606,18 @@ void EpiServos::Tick()
         if (GetTickLength() != 0)
             maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
 
-        for (int i = 0; i < EPI_NR_SERVOS; i++)
-            if (i < EPI_TORSO_NR_SERVOS)
-            {
+        if (EpiMode)
+        {
+            for (int i = 0; i < EPI_NR_SERVOS; i++)
                 if (goalPosition)
                     presentPosition[i] = presentPosition[i] + 0.9 * (clip(goalPosition[i] - presentPosition[i], -maxVel, maxVel)); // adding some smoothing to prevent oscillation in simulation mode
-            }
-            else
-                presentPosition[i] = 180;
-
+        }
+        else
+        {
+            for (int i = 0; i < EPI_TORSO_NR_SERVOS; i++)
+                if (goalPosition)
+                    presentPosition[i] = presentPosition[i] + 0.9 * (clip(goalPosition[i] - presentPosition[i], -maxVel, maxVel)); // adding some smoothing to prevent oscillation in simulation mode
+        }   
         // Create fake feedback in simulation mode
         if (GetTick() < 10)
         {
