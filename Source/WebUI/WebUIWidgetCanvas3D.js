@@ -18,10 +18,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'show_ground_grid', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'show_stats', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 
-			{ 'name': 'robot_data', 'default': "", 'type': 'source', 'control': 'textedit' },
-			{ 'name': 'robot', 'default': "EpiBlack", 'type': 'string', 'control': 'menu', 'values': "EpiBlue,EpiGreen,EpiBlack,EpiWhite" },
-
-
 			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'values': "Home, Top, Bottom, Front, Back, Left, Right" },
 			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'look_at_Y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
@@ -36,6 +32,27 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	};
 	static html() {
 		return `
+		<script type="x-shader/x-vertex" id="vertexshader">
+			attribute float size;
+			attribute vec3 customColor;
+			varying vec3 vColor;
+			void main() {
+				vColor = customColor;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_PointSize = size * ( 300.0 / -mvPosition.z );
+				gl_Position = projectionMatrix * mvPosition;
+			}
+			</script>
+			<script type="x-shader/x-fragment" id="fragmentshader">
+			uniform vec3 color;
+			uniform sampler2D texture;
+			varying vec3 vColor;
+			void main() {
+				gl_FragColor = vec4( color * vColor, 1.0 );
+				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+			}
+			</script>
+
 		<div id = "demo"></div>
 		<canvas></canvas>
 		
@@ -166,7 +183,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		};
 		manager.onLoad = function (item, loaded, total) {
-			console.log("Everything is loaded");
+			//console.log("Everything is loaded");
 			// Remove loading screen
 			const loadingScreen = document.getElementById( 'loading-screen' );
 			loadingScreen.classList.add( 'fade-out' );
@@ -236,7 +253,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			//console.log('Models')
 			this.modelNames = this.parameters.models.split(',');
 
-			if (this.lastmodels != this.parameters.models) // Remove object is list changed
+			if (this.lastmodels != this.parameters.models) // Remove object if list changed
 			{
 				if (this.model_objects)
 					for (var i = 0; i < this.nrOfModels; i++)
@@ -248,7 +265,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			// Load models at first update or change of models array
 			if (!this.models_loaded) {
 				//console.log('Loading models')
-				this.model_objects = new Array(this.nrOfModels) // Do I need to delete memory?
+				this.model_objects = new Array(this.nrOfModels) 
 				this.LoadModel(this.model_objects, this.modelNames, this.data);
 				this.models_loaded = true;
 			}
@@ -260,43 +277,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				this.model_objects[i].matrix.copy(this.mat[i])
 			}
 
-			// Special case Epi model.
-			// Check color Epi
-			switch (this.parameters.robot) {
-				case "EpiWhite":
-					this.EpiColor = 0xFFFFFF
-					break;
-				case "EpiGreen":
-					this.EpiColor = 0x00FF00
-					break;
-				case "EpiBlue":
-					this.EpiColor = 0x0000FF
-					break;
-				case "EpiBlack":
-					this.EpiColor = 0x000000
-					break;
-				default:
-					this.EpiColor = 0x000000
-			}
 
-			// Find Ear model to change color 
-			if (this.model_objects[i])
-				this.model_objects[i].traverse((child) => {
-					if (child.parent.name == "Ear_v2") // EAR
-						child.children[0].children[0].material.color.setHex(this.EpiColor);
-					if (child.name == "EyeLedDimmer")  // LED
-						child.material.color.setHex(this.EpiColor);
-					if (child.name == "Pupil_v1") {
-						child.children[0].visible = false
-						child.children[0].material.color.setHex(0x0000FF);
-						//child.children[0].scale.set(1,2,2)
-						child.children[1].visible = true
-						child.children[1].material.color.setHex(0x000000);
-						var a = new THREE.Vector3(0, 1, 0);
-						//child.children[1].scale.set(a)
-						//this.parameter.robot_pupil_mm
-					}
-				})
 			//console.log('Updated models')
 
 		}
@@ -326,9 +307,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					colors.push(0, 0, 0);
 					sizes.push(0)
 				}
-				geometry.addAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
-				geometry.addAttribute('customColor', new THREE.Float32BufferAttribute(colors, 3));
-				geometry.addAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
+				geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(colors, 3));
+				geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
 
 				var material = new THREE.ShaderMaterial({
 					uniforms: {
@@ -344,7 +325,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 				this.particles = new THREE.Points(geometry, material);
 				this.scene.add(this.particles);
-				//console.log('Created poitns')
 
 			}
 
@@ -386,7 +366,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				this.particles.geometry.attributes.position.needsUpdate = true;
 				this.particles.geometry.attributes.customColor.needsUpdate = true;
 				this.particles.geometry.attributes.size.needsUpdate = true;
-
 			}
 			this.particles.visible = true;
 		}
@@ -401,7 +380,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Line
 		if (this.toBool(this.parameters.show_lines)) {
 			this.l = this.parameters.line.split(',');
-
+			//console.log('Lines')
 
 			if (!this.lines_loaded) {
 				this.lines_loaded = true;
@@ -414,9 +393,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				for (var i = 0; i < this.vertices.length; i++) {
 					colors.push(0, 0, 0);
 				}
-				geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-				geometry.addAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
+				geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
 				geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
 
 
@@ -424,10 +402,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				this.scene.add(this.linesObject);
 			}
 			else {
-				//console.log('Updated Line')
 				// Calculate point color
 				this.lColors = this.parameters.line_color.toLowerCase().split(',');
 				var colors = this.linesObject.geometry.attributes.color.array;
+
 				// Update position from an array 16xi
 				var cIndex = 0;
 
@@ -452,6 +430,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 				this.linesObject.geometry.attributes.position.needsUpdate = true;
 				this.linesObject.visible = true;
+				//console.log('Updated Line')
+
 			}
 		}
 		else  // Hide 
@@ -516,7 +496,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					this.camera.position.set(0.5, 1.5, 1.5);
 					break;
 				default:
-					this.EpiColor = 0x000000
+					
 			}
 		}
 		// var t0 = performance.now();
