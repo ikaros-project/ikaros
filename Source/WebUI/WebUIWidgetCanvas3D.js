@@ -27,7 +27,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
             { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'show_frame', 'default': false, 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'style', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' }
+            { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' },
+			{'name':'show_loading', 'default':false, 'type':'bool', 'control': 'checkbox'},
+
 		]
 	};
 	static html() {
@@ -55,22 +57,15 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		<div id = "demo"></div>
 		<canvas></canvas>
-		
-		<section id="loading-screen">
-			<div id="loader"></div>
-		</section>
         `;
 	}
 
 	updateAll() {
 		this.FixedView = true;
+
 	}
 
 	init() {
-
-
-
-
 		this.points_loaded = false;
 		this.canvasElement = this.querySelector('canvas');
 		this.canvas = this.canvasElement.getContext("webgl");
@@ -177,22 +172,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		//console.log('Loading models')
 		var manager = new THREE.LoadingManager();
 
-		//var manager = new THREE.LoadingManager();
 		manager.onProgress = function (item, loaded, total) {
-			//console.log(" Progress", item, loaded, total);
-
+			console.log(" Progress", item, loaded, total);
 		};
 		manager.onLoad = function (item, loaded, total) {
-			//console.log("Everything is loaded");
-			// Remove loading screen
-			const loadingScreen = document.getElementById( 'loading-screen' );
-			loadingScreen.classList.add( 'fade-out' );
-			loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+			console.log("Everything is loaded");
 		};
-		// Remove loader when transition done
-		function onTransitionEnd( event ) {
-			event.target.remove();
-		}
 
 		manager.onError = function (item, loaded, total) {
 			console.log(" Error", item, loaded, total);
@@ -264,6 +249,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 			// Load models at first update or change of models array
 			if (!this.models_loaded) {
+				this.widget_loading(true)
 				//console.log('Loading models')
 				this.model_objects = new Array(this.nrOfModels) 
 				this.LoadModel(this.model_objects, this.modelNames, this.data);
@@ -286,6 +272,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				if (this.model_objects)
 					for (var i = 0; i < this.nrOfModels; i++)
 						this.model_objects[i].visible = false;
+
+		// Remove loading screen
+		if (this.models_loaded)
+			this.widget_loading(false)
 
 		//console.log("updated")
 
