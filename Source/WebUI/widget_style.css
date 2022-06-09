@@ -241,19 +241,24 @@ webui-widget-table td {
     }
 }
 
-/* Overlay not used. Should it be removed? */
-#WidgetOverlay
+#overlay-screen
 {       
-    display: none; /* disable overlay */ 
-    position: absolute;
-    top:0; 
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.253);
-    border: 1px solid black;
+    overflow: hidden;
+	margin: 0;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	z-index: 20000;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #1A2327;
+	opacity: 0.6;
+ 	transition: 1s opacity;
 }
 
-#WidgetOverlayText{
+#overlay{
     display: flex;
     justify-content: center;
     align-items: center;
@@ -261,4 +266,7 @@ webui-widget-table td {
     color: white;
     padding: 10px;
     height: auto;
+}
+#overlay-screen.fade-out {
+    opacity: 0;
 }

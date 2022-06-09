@@ -477,14 +477,46 @@ class WebUIWidget extends HTMLElement
             this.get("/command/"+command+"/"+index_x+"/"+index_y+"/"+value);
     }
 
-    // Only implemented in widgetTable.
+    widget_loading(state)
+    {
+        if (state && !this.loading)
+        {
+            console.log("Add Loading")
+            this.insertAdjacentHTML("afterbegin", '<section id="loading-screen"><div id="loader"></div></section>')
+            this.loading = true;
+
+        }
+        if (!state && this.loading)
+        {
+            console.log("Remove Loading")
+            this.querySelector('#loading-screen').classList.add( 'fade-out' );
+			this.querySelector('#loading-screen').addEventListener( 'transitionend', onTransitionEnd );
+            this.loading = false;
+
+        }
+        function onTransitionEnd( event ) {
+			event.target.remove();
+		}
+    }
+
     widget_overlay(state, text = "")
     {
-        this.div.children[1].children[0].innerHTML = text;
-        if(state)
-            this.div.children[1].style.display = "block"
-        else
-            this.div.children[1].style.display = "none"
+        if (state && !this.overlay)
+        {
+            console.log("Add overlay")
+            this.insertAdjacentHTML("afterbegin", '<section id="overlay-screen"><div id="overlay">' + text + '</div></section>')
+            this.overlay = true;
+        }
+        if (!state && this.overlay)
+        {
+            console.log("Remove overlay")
+            this.querySelector('#overlay-screen').classList.add( 'fade-out' );
+			this.querySelector('#overlay-screen').addEventListener( 'transitionend', onTransitionEnd );
+            this.overlay = false;
+        }
+        function onTransitionEnd( event ) {
+			event.target.remove();
+		}
     }
 };
 
