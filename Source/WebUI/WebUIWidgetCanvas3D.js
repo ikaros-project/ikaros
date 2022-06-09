@@ -28,7 +28,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
             { 'name': 'show_frame', 'default': false, 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'style', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' },
-			{'name':'show_loading', 'default':false, 'type':'bool', 'control': 'checkbox'},
 
 		]
 	};

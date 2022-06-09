@@ -18,9 +18,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'},
 
-            {'name':'show_loading', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_overlay', 'default':false, 'type':'bool', 'control': 'checkbox'}
-
         ]};
 
     init()
@@ -123,9 +120,6 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
     update()
     {
-
-        this.widget_loading(this.parameters.show_loading)
-        this.widget_overlay(this.parameters.show_overlay, "Overlay text")
 
         if(this.data = this.getSource('source'))
         {
