@@ -76,16 +76,15 @@ nrServosTotal = "19">
 
 	<module class = "OneHotVector" name = "OneHotVector" output_size = "34" />
 		<connection  source = "OneHotVector.OUTPUT"  target = "Epi.SoundOutput.INPUT"/>
-
 <view name="Record view redesigned" >
 	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "1131" label = "" show_frame = "true" show_title = "false" style = "background-color:#666;" title = "" width = "2321" x = "0" y = "50"/>
 	<key-points  active = "" background = "" color = "" fraction = "SR.position" frame-style = "box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;" frame_color = "" frame_width = "1" height = "911" input = "Servos.PRESENT_POSITION" label = "" mark_end = "SR.mark_end" mark_start = "SR.mark_start" max = "1" min = "0" module = "" output = "SR.OUTPUT" playhead = "SR.playhead" position = "SR.position" ranges = "SR.RANGES" sequence = "SR.SEQUENCE" show_frame = "true" show_title = "false" style = "" target = "SR.TARGET" title = "Default Title" width = "751" x = "730" y = "50"/>
-	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "251" label = "" show_frame = "false" show_title = "false" style = "background-color:#ddd;" title = "" width = "371" x = "360" y = "660"/>
+	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "251" label = "" show_frame = "true" show_title = "false" style = "background-color:#ddd;" title = "" width = "371" x = "360" y = "660"/>
 	<rectangle  background = "" frame-style = "box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;" frame_color = "" frame_width = "1" height = "51" label = "" show_frame = "true" show_title = "false" style = "background-color:#eee;" title = "Default Title" width = "1961" x = "-40" y = "0"/>
-	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "51" label = "" show_frame = "false" show_title = "false" style = "background-color:#ddd;" title = "Body" width = "731" x = "0" y = "910"/>
-	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "251" label = "" show_frame = "false" show_title = "false" style = "background-color:#ddd;" title = "" width = "361" x = "0" y = "660"/>
-	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "361" label = "" show_frame = "false" show_title = "false" style = "background-color:#ddd;" title = "LED and Sounds" width = "731" x = "0" y = "50"/>
-	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "251" label = "" show_frame = "false" show_title = "false" style = "background-color:#ddd;" title = "Head" width = "731" x = "0" y = "410"/>
+	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "51" label = "" show_frame = "true" show_title = "false" style = "background-color:#ddd;" title = "Body" width = "731" x = "0" y = "910"/>
+	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "251" label = "" show_frame = "true" show_title = "false" style = "background-color:#ddd;" title = "" width = "361" x = "0" y = "660"/>
+	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "361" label = "" show_frame = "true" show_title = "false" style = "background-color:#ddd;" title = "LED and Sounds" width = "731" x = "0" y = "50"/>
+	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "251" label = "" show_frame = "true" show_title = "false" style = "background-color:#ddd;" title = "Head" width = "731" x = "0" y = "410"/>
 	<button  background = "" color = "" command = "SR.stop" commandUp = "" enableSource = "" file_names = "" frame-style = "" height = "31" icon = "stop.png" label = "Button" multiGroup = "" parameter = "SR.state" radioGroup = "control" show_frame = "false" show_title = "false" style = "" title = "Title" type = "radio" value = "1" valueUp = "0" width = "61" x = "460" xindex = "0" y = "10" yindex = "0"/>
 	<button  background = "" color = "" command = "SR.play" commandUp = "" enableSource = "" file_names = "" frame-style = "" height = "31" icon = "play.png" label = "Button" multiGroup = "" parameter = "SR.state" radioGroup = "control" show_frame = "false" show_title = "false" style = "" title = "Title" type = "radio" value = "1" valueUp = "0" width = "51" x = "520" xindex = "1" y = "10" yindex = "0"/>
 	<button  background = "" color = "" command = "SR.record" commandUp = "" enableSource = "" file_names = "" frame-style = "" height = "31" icon = "record.png" label = "Button" multiGroup = "" parameter = "SR.state" radioGroup = "control" show_frame = "false" show_title = "false" style = "" title = "Title" type = "radio" value = "1" valueUp = "0" width = "61" x = "630" xindex = "2" y = "10" yindex = "0"/>
@@ -279,6 +278,7 @@ nrServosTotal = "19">
 	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "31" label = "Head" show_frame = "false" show_title = "false" style = "" title = "" width = "141" x = "360" y = "420"/>
 	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "31" label = "Color and Sound" show_frame = "false" show_title = "false" style = "" title = "" width = "141" x = "350" y = "60"/>
 </view>
+
 
 
 <view name="Playback view" >
