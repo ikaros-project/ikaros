@@ -235,8 +235,8 @@ bool EpiServos::Communication(int IDMin, int IDMax, int IOIndex, dynamixel::Port
 void EpiServos::Init()
 {
     // Robots configurations
-    robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
-                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+    robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WV4A",
+                         .serialPortHead = "/dev/cu.usbserial-FT6S4JL9",
                          .serialPortBody = "",
                          .serialPortLeftArm = "",
                          .serialPortRightArm = "",
@@ -263,18 +263,18 @@ void EpiServos::Init()
                           .serialPortRightArm = "",
                           .type = "EpiTorso"};              
 
-    robot["EpiYellow"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
-                          .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+    robot["EpiYellow"] = {.serialPortPupil = "/dev/cu.usbserial-FT6S4IFI",
+                          .serialPortHead = "/dev/cu.usbserial-FT6RW7PH",
                           .serialPortBody = "",
                           .serialPortLeftArm = "",
                           .serialPortRightArm = "",
                           .type = "EpiTorso"};
 
-    robot["EpiGreen"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
-                         .serialPortHead = "/dev/cu.usbserial-FT4THUNJ",
-                         .serialPortBody = "/dev/cu.usbserial-FT4THV1M",
-                         .serialPortLeftArm = "/dev/cu.usbserial-FT4TFSV0",
-                         .serialPortRightArm = "/dev/cu.usbserial-FT4TCVTT",
+    robot["EpiGreen"] = {.serialPortPupil = "/dev/cu.usbserial-FT6S4JMH",
+                         .serialPortHead = "/dev/cu.usbserial-FT66WT6W",
+                          .serialPortBody = "",
+                          .serialPortLeftArm = "",
+                          .serialPortRightArm = "",
                          .type = "EpiTorso"};
 
     robot["EpiBlue"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WS1F",
