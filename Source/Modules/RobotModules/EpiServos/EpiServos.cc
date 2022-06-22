@@ -291,8 +291,8 @@ void EpiServos::Init()
                         .serialPortRightArm = "",
                         .type = "EpiTorso"};
 
-    robot["EpiBlack"] = {.serialPortPupil = "/dev/cu.usbserial-FT4TCJXI",
-                         .serialPortHead = "/dev/cu.usbserial-FT4TCGUT",
+    robot["EpiBlack"] = {.serialPortPupil = "/dev/cu.usbserial-FT1SEOJY",
+                         .serialPortHead = "/dev/cu.usbserial-FT3WHSCR",
                          .serialPortBody = "",
                          .serialPortLeftArm = "",
                          .serialPortRightArm = "",
