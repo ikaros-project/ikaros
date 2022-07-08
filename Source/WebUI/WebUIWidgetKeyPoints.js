@@ -49,7 +49,94 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         this.canvas.fillRect(0, 0, this.width, this.height);
     }
 
+
+
     draw(sequence, f, start_time, end_time, mark_start, mark_end, target, output, input, active, ranges)
+    {
+        if(ranges==undefined)
+            return;
+
+        let n = sequence.keypoints.length;
+        let inc = 1;
+        while(inc*this.width/n < 10) // min average dist between keypoints
+            inc *= 2;
+                
+        let channels = n != 0 ? sequence.keypoints[0].point.length : 0;
+
+
+        this.canvas.fillStyle = '#aaa';
+        this.canvas.strokeStyle = "yellow";
+        this.canvas.lineWidth = 0.75; 
+        this.canvas.setLineDash([0]);
+        this.canvas.fillRect(0, 0, this.width, this.height);
+
+        // Draw lines
+
+        for(let c=0; c<channels;c++)
+        {
+            let first=true;
+            this.canvas.beginPath();
+            for(let i=0; i<n; i+=inc)
+            {
+                if(sequence.keypoints[i].point[c] != null)
+                {
+                    if(first) // first keypoint detected, draw dotted start line and start path
+                    {
+                        first = false;
+                        let y = this.height * map(sequence.keypoints[i].point[c],ranges[c][0],ranges[c][1]);
+                        let pos = this.width*sequence.keypoints[i].time/end_time;
+                        this.canvas.beginPath();
+                        this.canvas.setLineDash([3]);
+                        this.canvas.moveTo(0, y);
+                        this.canvas.lineTo(pos, y);
+                        this.canvas.stroke();
+                        this.canvas.setLineDash([]);
+                        this.canvas.beginPath();
+                        this.canvas.moveTo(pos, y);
+                    }
+                    else // add remaining key points
+                    {
+                        let pos = this.width*sequence.keypoints[i].time/end_time;
+                        let y = this.height * map(sequence.keypoints[i].point[c],ranges[c][0],ranges[c][1])
+                        this.canvas.lineTo(pos, y);
+                    }
+                }
+            }
+            this.canvas.stroke();
+
+            // draw end dotted end line
+            this.canvas.setLineDash([3]);
+            for(let i=n-1; i>=0; i--)
+            {
+                if(sequence.keypoints[i].point[c])
+                {
+                    let pos = this.width*sequence.keypoints[i].time/end_time;
+                    let y = this.height * map(sequence.keypoints[i].point[c],ranges[c][0],ranges[c][1])
+                    this.canvas.beginPath();
+                    this.canvas.moveTo(99999999, y);
+                    this.canvas.lineTo(pos, y);
+                    this.canvas.stroke();
+                    break;
+                }
+            }
+            this.canvas.setLineDash([]);
+        } // draw lines
+
+
+        // Draw current position
+
+        this.canvas.beginPath();
+        this.canvas.moveTo(f*this.width, 0);
+        this.canvas.lineTo(f*this.width, this.height);
+        this.canvas.lineWidth = 2;
+        this.canvas.strokeStyle = "red";
+   
+        this.canvas.stroke();
+    }
+
+
+/*
+    draw_old(sequence, f, start_time, end_time, mark_start, mark_end, target, output, input, active, ranges)
     {
         if(ranges==undefined)
             return;
@@ -62,11 +149,12 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         this.canvas.lineWidth = 0.25;
 
         let n = sequence.keypoints.length;
+        let inc = 1;
         let channels = n != 0 ? sequence.keypoints[0].point.length : 0;
 
         // Draw keypoint locations
 
-        if(this.width/n>10) // only draw if there is space
+
             for(let i=0; i<n; i++)
             {
                 let pos = this.width*sequence.keypoints[i].time/end_time;
@@ -118,7 +206,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             }
 
 
-            for(let i=n-1; i>=0; i--)
+            for(let i=n-1; i>=0; i--) // FIXME:
             {
                 if(sequence.keypoints[i].point[c])
                 {
@@ -219,7 +307,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     }
         
 
-            // Draw positions
+            // Draw current position
 
             this.canvas.lineWidth = 2;
             this.setColor(0);
@@ -253,6 +341,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             }
         }
     }
+*/
 
     update(d)
     {
@@ -267,6 +356,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let active = this.getSource("active");
             let sequence = this.getSource("sequence");
             let ranges = this.getSource("ranges");
+
 
             if(Object.keys(sequence).length == 0) // RECORDING
             {
