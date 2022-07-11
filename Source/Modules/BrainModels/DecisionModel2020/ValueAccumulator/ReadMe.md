@@ -13,7 +13,7 @@ Implements a valueaccumulator
 |Name|Description|Optional|
 |:----|:-----------|:-------|
 |INDEX|The spatial attention index as a one-hot vector. Also sets the size of the internal state and output.|No|
-|INPUT|Usually a single input. If there are several they will be summed.|No|
+|INPUT|Value to be accumulated. Usually a single input. If there are several they will be summed.|No|
 
 <br><br>
 
