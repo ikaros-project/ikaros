@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Multiplies two inputs
+Multiplies two inputs per element.
 
 <br><br>
 
