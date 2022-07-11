@@ -4,7 +4,7 @@
 <br><br>
 ## Short description
 
-Reads a text file
+Reads a CSV-like text file. The output can be static as an array or matrix, or dynamically by row.
 
 <br><br>
 
