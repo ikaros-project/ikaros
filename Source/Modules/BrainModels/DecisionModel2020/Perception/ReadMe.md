@@ -32,8 +32,8 @@ Implements a perception
 |Name|Description|Type|Default value|
 |:----|:-----------|:----|:-------------|
 |interval|How often should the gaze shift|int|0|
-|alpha||float|0|
-|beta||float|0|
+|alpha|not used|float|0|
+|beta|not used|float|0|
 |phi|Top-down spatial attention gain|float|0|
 
 <br><br>
