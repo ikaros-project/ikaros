@@ -330,7 +330,7 @@ InputFile::CountLines(FILE * file)
     skip_comment_lines(file);
     fscanf(file, "%*s\n");
     
-    int line_count = -1;
+    int line_count = 0; //-1;
     
     while(!feof(file))
     {
