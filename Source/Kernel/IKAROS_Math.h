@@ -98,6 +98,11 @@ namespace ikaros
 	int *		random_unique(int *r, int low, int high, int size);
     
 	float		gaussian_noise(float mean, float sigma);
+
+	float 		binomial_trial(float prob); // 1 if random() < prob
+	float 		binomial_sample(int n, float prob); // counts successes
+	int 		multinomial_trial(float *prob, int size); // return ix of high
+	float *		multinomial_sample(int n, float *prob, int size); // return ix of high
 	
 	bool		zero(float * a, int size);
 	bool		zero(float ** a, int sizex, int sizey);
