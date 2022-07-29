@@ -28,7 +28,7 @@ Calculates softmax
 
 |Name|Description|Type|Default value|
 |:----|:-----------|:----|:-------------|
-|type|Scale factor|list|polynomial|
+|type|Scale factor: polynomial/exponential|list|polynomial|
 |exponenet|Exponent|float|2|
 
 <br><br>
