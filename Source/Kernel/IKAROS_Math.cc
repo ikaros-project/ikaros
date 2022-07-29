@@ -326,7 +326,72 @@ namespace ikaros
 		
 		return mean+sigma*y1;
 	}
-	
+
+	// MARK: -
+    // MARK: distro samplers
+    float binomial_trial(float prob)
+    {
+        if(random(0., 1.0) < prob) return 1.;
+        return 0;
+    }
+    
+    float binomial_sample(int n, float prob)
+    {
+        
+        // Basic error checking.
+        if (n <= 0) {
+            return 0;
+        } else if (prob >= 1) {
+            return n;
+        } else if (prob <= 0) {
+            return 0;
+        }
+
+        float successes = 0;
+        for (int i = 0; i < n; i++) 
+        {
+            if (binomial_trial(prob) > 0.f) 
+                successes += 1.f;
+        }
+        return successes;
+    }
+
+    int multinomial_trial(float *prob, int size)
+    {
+            // Basic error checking:
+        if (prob == 0 || size == 0) {
+            return -1;
+        }
+
+        float* tmp = create_array(size);
+        
+        int maxits = 10;
+        
+        
+        for(int j = 0; j<maxits; j++){
+            float remainingSum = 1.0;
+            int remainingTrials = 1;
+            for (int i = 0; i < size; i++) {
+                
+                tmp[i] = binomial_sample(remainingTrials, prob[i] / remainingSum);
+                if(tmp[i] > 0) return i; 
+        
+                //remainingSum -= prob[i];
+                //remainingTrials -= tmp[i];
+        
+                // Due to floating-point, even if the probabilities appear to sum to 1.0 the remainingSum
+                // may go ever so slightly negative on the last iteration. In this case, remainingTrials will
+                // also be 0. (But remainingTrials may go to 0 before the last possible iteration)
+                //if (remainingSum <= 0 || remainingTrials == 0 || tmp[i] > 0) {
+                //break;
+                //}
+            }
+        } // safety stop
+        printf("multinomial_trial: shouldnt happen\n");
+        return size-1;
+    
+    }
+
 	
 	// MARK: -
     // MARK: sgn
