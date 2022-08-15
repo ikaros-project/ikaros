@@ -28,7 +28,8 @@
 #include <string.h>  // memset
 #include <algorithm> // find
 #include <stdexcept> // std::invalid_argument
-
+#include <numeric> // std::iota
+#include <random> // std::shuffle
 // includes for image processing (JPEG)
 
 #include <stdio.h>
@@ -331,7 +332,8 @@ namespace ikaros
     // MARK: distro samplers
     float binomial_trial(float prob)
     {
-        if(random(0., 1.0) < prob) return 1.;
+        float p = random(0., 1.0);
+        if(p < prob) {return 1.;}
         return 0;
     }
     
@@ -340,11 +342,11 @@ namespace ikaros
         
         // Basic error checking.
         if (n <= 0) {
-            return 0;
+            return -1;
         } else if (prob >= 1) {
-            return n;
+            return -2;
         } else if (prob <= 0) {
-            return 0;
+            return -3;
         }
 
         float successes = 0;
@@ -365,16 +367,22 @@ namespace ikaros
 
         float* tmp = create_array(size);
         
-        int maxits = 10;
-        
+        int maxits = 100;
+        // shuffle probs to avoid place bias
+        std::vector<int> shuf(size) ; // 
+        std::iota (std::begin(shuf), std::end(shuf), 0); // Fill with 0, 1, ..., 99.
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(shuf), std::end(shuf), rng);
         
         for(int j = 0; j<maxits; j++){
-            float remainingSum = 1.0;
+            
             int remainingTrials = 1;
             for (int i = 0; i < size; i++) {
+                int ix = shuf[i];
                 
-                tmp[i] = binomial_sample(remainingTrials, prob[i] / remainingSum);
-                if(tmp[i] > 0) return i; 
+                tmp[i] = binomial_sample(remainingTrials, prob[ix] );
+                if(tmp[i] > 0) return ix; 
+                // else if (tmp[i]<0){printf("==ix: %i, prob: %f==\n", ix, prob[ix]);}
         
                 //remainingSum -= prob[i];
                 //remainingTrials -= tmp[i];
@@ -1534,6 +1542,15 @@ namespace ikaros
 #endif
 		return r;
 	}
+
+    float *
+	multiply(float * r, float * a, float * b, float alpha, int size) 
+    {
+        for (int i=0; i<size; i++)
+			r[i] = alpha * a[i] * b[i];
+
+		return r;
+    }
 	
 	float **
 	multiply(float ** r, float ** a, float ** b, int sizex, int sizey)
@@ -3558,6 +3575,23 @@ namespace ikaros
         // TODO check if vector op exists
         for (int i=0; i < size; ++i)
             r[i] = exp(a[i]);
+        float s=0;
+        for (int i=0; i < size; ++i)
+            s += r[i];
+        if(s>0)
+            for (int i=0; i < size; ++i)
+                r[i] = r[i]/s;
+        else
+            reset_array(r, size);
+        return r;
+    }
+
+    float *
+    soft_max_pw(float *r, float *a, float pw, int size)
+    {
+        // TODO check if vector op exists
+        for (int i=0; i < size; ++i)
+            r[i] = pow(a[i], pw);
         float s=0;
         for (int i=0; i < size; ++i)
             s += r[i];

@@ -256,6 +256,7 @@ namespace ikaros
 	float *		multiply(float * r, float * a, float alpha, int size);
     float **    multiply(float ** r, float ** a, float alpha, int sizex, int sizey);
 	float *		multiply(float * r, float * a, int size);
+	float * 	multiply(float * r, float * a, float * b, float alpha, int size); 
 	float **	multiply(float ** r, float ** a, int sizex, int sizey);
 	float *		multiply(float * r, float * a, float * b, int size);
 	float **	multiply(float ** r, float ** a, float ** b, int sizex, int sizey);
@@ -392,7 +393,8 @@ namespace ikaros
 
 
 	// mark - TAT additions
-	float *		soft_max(float *r, float * a, int size);
+	float *		soft_max(float *r, float * a, int size); // use exp - vuln to overflow
+	float *		soft_max_pw(float *r, float *a, float pw, int size); // safer for overflow
 	float **		multiply(float **r, float *a, float *b, int sizex, int sizey); //tat
 	float ** multiply(float **r, float *a, float **b, int sizex, int sizey); // tat
 	float **	multiply_t(float ** r, float ** a, float ** b, int sizex, int sizey, int n); // matrix x  matrix' tat
