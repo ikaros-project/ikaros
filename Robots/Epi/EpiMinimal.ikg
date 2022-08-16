@@ -147,6 +147,21 @@ nrServosTotal = "19"
 <group  name = "EpiRed"
 	robotType = "Torso"
 />
+<group  name = "EpiWhite"
+	robotType = "Torso"
+/>
+<group  name = "EpiYellow"
+	robotType = "Torso"
+/>
+<group  name = "EpiGray"
+	robotType = "Torso"
+/>
+<group  name = "EpiBlack"
+	robotType = "Torso"
+/>
+<group  name = "EpiGreen"
+	robotType = "Torso"
+/>
 <group  name = "EpiRedDemo"
 	robotType = "Torso"
 />
