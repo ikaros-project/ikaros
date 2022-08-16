@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<group title="TimedStop Example">
+	
+		
+
+		<module
+			class = "TimedStop"
+			name = "TimedStopInstance"
+			time  = "5"
+			message  = "stopped after 5 sec"
+		/>
+		
+        
+		
+</group>
+ 
+
+ 

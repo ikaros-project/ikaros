@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="Stop" description="Stops execution">
+
+	<description type="text">
+		Stops execution when input value is less than threshold
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Stop"
+			name="Stop"
+			termination_criterion = "0.01"
+			comparator = "less"
+			select = "0"
+			wait="1"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="termination_criterion" type="float" default="0.0" description="Termination threshold" />
+	<parameter name="comparator" type="list" default="less" values="less/greater/equal" description="Comparator function used to check if termination criterion is met" />
+	<parameter name="select" type="int" default="0" description="Index to select in input" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+	<parameter name="wait" type="int" default="1" description="Cycles to wait before checking input"/>
+	<input name="INPUT" description="The input" />
+
+
+	<module class="Stop" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Stop.h</file>
+   		<file>Stop.cc</file>
+   		<file>Stop.ikc</file>
+   </files>
+
+</group>
+

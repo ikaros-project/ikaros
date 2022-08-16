@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="TimedStop" description="Halts execution after given time">
+
+	<description type="text">
+		Module that stops execution after a set time and prints a given string
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="TimedStop"
+			name="TimedStop"
+			time = "300"
+			message = "Stop"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="time" type="float" default="1" description="The time in seconds after which to halt execution" />
+	<parameter name="message" type="string" default="Hello" description="The message to print after execution" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	
+
+	<module class="TimedStop" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>TimedStop.h</file>
+   		<file>TimedStop.cc</file>
+   		<file>TimedStop.ikc</file>
+   </files>
+
+</group>
+
