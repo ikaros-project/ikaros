@@ -3,7 +3,7 @@
 <group name="Stop" description="Stops execution">
 
 	<description type="text">
-		Stops execution when input value is less than threshold
+		Stops execution when input value is in given relationship to threshold
 	</description>
 
 	<example description="A simple example">
@@ -26,7 +26,7 @@
 	<input name="INPUT" description="The input" />
 
 
-	<module class="Stop" />
+	<link class="Stop" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

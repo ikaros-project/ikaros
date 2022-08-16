@@ -22,7 +22,7 @@
 
 	
 
-	<module class="TimedStop" />
+	<link class="TimedStop" />
 
 	<author>
 		<name>Trond Arild Tjöstheim</name>

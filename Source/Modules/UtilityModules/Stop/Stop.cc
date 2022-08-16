@@ -136,6 +136,6 @@ Stop::LessEqual(float a, float b)
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("Stop", &Stop::Create, "Source/UserModules/Stop/");
+static InitClass init("Stop", &Stop::Create, "Source/Modules/UtilityModules/Stop/");
 
 

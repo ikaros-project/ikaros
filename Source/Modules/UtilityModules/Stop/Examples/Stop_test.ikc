@@ -22,19 +22,14 @@
 			debug="no"
 		/>
 		
-      
-        <connection sourcemodule = "singen" source = "OUTPUT" targetmodule = "StopInstance" target = "INPUT" />
+		<connection source = "singen.OUTPUT"  target = "StopInstance.INPUT" />
+        
 
-		<view name="View">
-			<object class="Plot " 
-				module="singen" 
-				source="OUTPUT" 
-				x="0" y="0" w="1" h="1"
-				min="-1"
-				max="1"
-			/>
-			
-		</view>
+<view name="View" >
+	
+	<plot  x = "180" y = "20" height = "200" width = "200" title = "Plot" source = "singen.OUTPUT" select = "" min = "0" max = "1" buffer_size = "50" direction = "vertical" color = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+</view>
+
 
 </group>
  

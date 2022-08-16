@@ -73,6 +73,6 @@ TimedStop::Tick()
 
 // Install the module. This code is executed during start-up.
 
-static InitClass init("TimedStop", &TimedStop::Create, "Source/UserModules/TimedStop/");
+static InitClass init("TimedStop", &TimedStop::Create, "Source/Modules/UtilityModules/TimedStop/");
 
 
