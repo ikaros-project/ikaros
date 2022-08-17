@@ -45,6 +45,7 @@ ValueAccumulator::Init()
     rt_sum = create_array(size);
     io(choice_count, "CHOICE-COUNT");
     io(choice_probability, "CHOICE-PROBABILITY");
+    io(choice_ix, "CHOICE_IX");
 }
 
 
@@ -97,6 +98,8 @@ ValueAccumulator::Tick()
                 rt_mean[i] = 0;
         reset_array(state, size);
         set_one(choice, c, size);
+        choice_ix[0] = c;
+        printf( "chosen: %i\n", c);
         reaction_time = 0;
     }
     else

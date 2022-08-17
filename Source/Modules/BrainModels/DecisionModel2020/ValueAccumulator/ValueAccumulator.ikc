@@ -30,6 +30,7 @@
 	<output name="RT-MEAN" description="Mean response time for each of the choices" size_set="INDEX" />
 	<output name="CHOICE-COUNT" description="Number of choices of each alternative" size_set="INDEX" />
 	<output name="CHOICE-PROBABILITY" description="Probability of choosing each alternative" size_set="INDEX" />
+	<output name="CHOICE_IX" description="Index of chosen locus" size="1" />
 
 	<link class="ValueAccumulator" />
 

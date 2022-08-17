@@ -53,6 +53,7 @@ public:
     float *     rt_sum;
     float *     choice_count;
     float *     choice_probability;
+    float *     choice_ix;
 
 				ValueAccumulator(Parameter * p) : Module(p) {};
     virtual		~ValueAccumulator() {};
