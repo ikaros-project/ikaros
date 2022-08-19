@@ -70,8 +70,27 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         this.canvas.setLineDash([0]);
         this.canvas.fillRect(0, 0, this.width, this.height);
 
+        // Draw selection
+
+        try {
+            if(mark_start >= 0 && mark_end >= mark_start)
+            {
+                this.canvas.fillStyle = '#888';
+                this.canvas.fillRect(mark_start/end_time*this.width, 0, mark_end/end_time*this.width-mark_start/end_time*this.width, this.height);
+
+            }
+        }
+        catch(err)
+        {
+            // this.draw();
+        }
+
+        
         // Draw lines
 
+        this.canvas.strokeStyle = "yellow";
+        this.canvas.lineWidth = 0.75; 
+        this.canvas.setLineDash([0]);
         for(let c=0; c<channels;c++)
         {
             let first=true;
@@ -123,16 +142,51 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         } // draw lines
 
 
+       // draw selection
+
+       if(mark_start != 0)
+       {
+           this.setColor(1);
+           this.canvas.setLineDash([3]);
+           this.canvas.beginPath();
+           this.canvas.moveTo(mark_start/end_time*this.width, 0);
+           this.canvas.lineTo(mark_start/end_time*this.width, this.height);
+       }
+   
+ 
+        
         // Draw current position
 
         this.canvas.beginPath();
+        this.canvas.setLineDash([]);
         this.canvas.moveTo(f*this.width, 0);
         this.canvas.lineTo(f*this.width, this.height);
         this.canvas.lineWidth = 2;
         this.canvas.strokeStyle = "red";
    
         this.canvas.stroke();
-    }
+
+        // Draw target
+
+        if(target != undefined)
+        {
+            for(let c=0; c<channels;c++)
+            {
+                let pos = f*this.width;
+                this.canvas.setLineDash([]);
+                this.canvas.lineWidth = 5.0;
+                this.canvas.beginPath();
+                let y = this.height * map(target[0][c],ranges[c][0],ranges[c][1])
+                this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
+                this.canvas.moveTo(pos-8, y);
+                this.canvas.lineTo(pos+8, y);
+                this.canvas.fillStyle = 'black';
+                this.canvas.fill();
+            }
+        } // draw target
+
+
+}
 
 
 /*
