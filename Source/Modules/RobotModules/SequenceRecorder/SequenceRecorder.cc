@@ -407,6 +407,7 @@ SequenceRecorder::Init()
     Bind(max_sequences, "max_sequences");
     Bind(sequence_names, "sequence_names");
     Bind(file_names, "file_names");
+    Bind(filename, "filename");
 
     file_names = "";
 
