@@ -276,6 +276,7 @@ static json create_sequence(int index)
 void
 SequenceRecorder::New()
 {
+    filename = "untitled.json";
     sequence_data = json(); // in case it is not empty
     sequence_data["type"] = "Ikaros Sequence Data";
     sequence_data["channels"] = channels;
