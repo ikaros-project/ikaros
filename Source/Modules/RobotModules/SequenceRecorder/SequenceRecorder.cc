@@ -276,7 +276,7 @@ static json create_sequence(int index)
 void
 SequenceRecorder::New()
 {
-    filename = "untitled.json";
+    filename = "untitled"+std::to_string(untitled_count++)+".json";
     sequence_data = json(); // in case it is not empty
     sequence_data["type"] = "Ikaros Sequence Data";
     sequence_data["channels"] = channels;
@@ -429,6 +429,7 @@ SequenceRecorder::Init()
 
      directory = GetValue("directory");
      filename = GetValue("filename");
+     untitled_count = 1;
 
     fs::create_directory(directory); // Only works if not a path // FIXME: make recursive later
 

@@ -164,6 +164,7 @@ public:
     std::string directory;
     std::string filename;
 
+    int         untitled_count;
     std::string time_string;
     std::string end_time_string;
 
