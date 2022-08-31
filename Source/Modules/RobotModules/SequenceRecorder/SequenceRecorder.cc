@@ -371,7 +371,7 @@ SequenceRecorder::Init()
 {
     Bind(channels, "channels");
 
-    SetOutputSize("INPUT", channels); // Make sure that there is an input for every channel even if they are not connected
+    SetInputSize("INPUT", channels); // Make sure that there is an input for every channel even if they are not connected
 
     Bind(positions, channels, "positions", true); // parameter size will be set by the value channels
 
