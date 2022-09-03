@@ -70,7 +70,7 @@ EyelidAnimation::Tick()
 void shuteye(float* r, float a, int sz){
   // a: 0-1 degree of shut
   // diodes indexed clockwise from 0 degrees; 0-sz/2 bottom; sz/2-sz top
-  color[] retval = new color[sz];
+  float retval = new color[sz];
   
   // translate degree to colors for shuteye
   color dark = #666666;
