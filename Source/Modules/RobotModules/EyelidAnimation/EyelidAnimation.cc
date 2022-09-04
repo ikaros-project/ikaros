@@ -37,6 +37,8 @@ EyelidAnimation::Init()
 {
     Bind(size, "size");
 	Bind(debugmode, "debug");    
+    Bind(light, "light");
+    Bind(dark, "dark");
 
     input_array = GetInputArray("INPUT");
     //input_array_size = GetInputSize("INPUT");
@@ -77,8 +79,8 @@ EyelidAnimation::shuteye(float* r, float a, int sz){
     float *retval = r;
 
     // translate degree to colors for shuteye
-    float dark = 0.2; //#666666;
-    float light = 0.9; //#bbbbbb;
+    //float dark = 0.2; //#666666;
+    //float light = 0.9; //#bbbbbb;
     for(int i=0; i < sz; i++) retval[i] = light;
     // 0 - all light
     if(a >= 0 && a < 0.2) return; // retval;

@@ -53,6 +53,8 @@ public:
     // parameter values
 
     float       size;
+    float       light;
+    float       dark;
 	bool       	debugmode;
 };
 
