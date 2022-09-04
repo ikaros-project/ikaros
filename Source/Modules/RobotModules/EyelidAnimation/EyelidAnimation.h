@@ -36,6 +36,8 @@ public:
     void 		Init();
     void 		Tick();
 
+    void shuteye(float* r, float a, int sz);
+
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
@@ -50,7 +52,7 @@ public:
 
     // parameter values
 
-    float       parameter;
+    float       size;
 	bool       	debugmode;
 };
 

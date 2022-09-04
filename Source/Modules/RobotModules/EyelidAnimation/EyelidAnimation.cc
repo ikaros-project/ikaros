@@ -35,11 +35,11 @@ using namespace ikaros;
 void
 EyelidAnimation::Init()
 {
-    Bind(parameter, "size");
+    Bind(size, "size");
 	Bind(debugmode, "debug");    
 
     input_array = GetInputArray("INPUT");
-    input_array_size = GetInputSize("INPUT");
+    //input_array_size = GetInputSize("INPUT");
 
     output_array = GetOutputArray("OUTPUT");
     output_array_size = GetOutputSize("OUTPUT");
@@ -61,43 +61,49 @@ EyelidAnimation::~EyelidAnimation()
 void
 EyelidAnimation::Tick()
 {
+    shuteye(output_array, input_array[0], size);
 	if(debugmode)
 	{
 		// print out debug info
 	}
 }
 
-void shuteye(float* r, float a, int sz){
+void 
+EyelidAnimation::shuteye(float* r, float a, int sz){
   // a: 0-1 degree of shut
   // diodes indexed clockwise from 0 degrees; 0-sz/2 bottom; sz/2-sz top
-  float retval = new color[sz];
+  //float retval = new color[sz];
+  float *retval = r;
   
   // translate degree to colors for shuteye
-  color dark = #666666;
-  color light = #bbbbbb;
+  float dark = 0.5; //#666666;
+  float light = 0.8; //#bbbbbb;
   for(int i=0; i < sz; i++) retval[i] = light;
   // 0 - all light
-  if(a >= 0 && a < 0.2) return retval;
+  if(a >= 0 && a < 0.2) return; // retval;
   else if(a >= 0.2 && a < 0.4){
     // 0.25 - 2,3 and 8,9 dark
-    int[] ix = {1,2,7,8};
-    for (int i=0; i<ix.length; i++) retval[ix[i]] = dark;
+    int ix[] = {1,2,7,8};
+    int ixlength = 4;
+    for (int i=0; i<ixlength; i++) retval[ix[i]] = dark;
   }
   else if(a >= 0.4 && a < 0.6){
     // 0.5 - 1234 and 789a
-    int[] ix = {0,1,2,3,6,7,8,9};
-    for (int i=0; i<ix.length; i++) retval[ix[i]] = dark;
+    int ix[] = {0,1,2,3,6,7,8,9};
+    int ixlength = 8;
+    for (int i=0; i<ixlength; i++) retval[ix[i]] = dark;
   }
   else if(a >= 0.6 && a < 0.8){
     // 0.75 - 012345 and 789a
-    int[] ix = {11,0,1,2,3,4, 6,7,8,9};
-    for (int i=0; i<ix.length; i++) retval[ix[i]] = dark;
+    int ix[] = {11,0,1,2,3,4, 6,7,8,9};
+    int ixlength = 10;
+    for (int i=0; i<ixlength; i++) retval[ix[i]] = dark;
   }
   else if (a >= 0.8){
     // 1 - all dark
     for (int i=0; i<sz; i++) retval[i] = dark;
   }
-  return retval;
+  //return retval;
   
 }
 

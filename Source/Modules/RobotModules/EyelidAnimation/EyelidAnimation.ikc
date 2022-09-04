@@ -14,17 +14,17 @@
 		<module
 			class="EyelidAnimation"
 			name="EyelidAnimation"
-			parameter1 = "3.14"
+			size = "12"
 			debug = "true"
 		/>
 	</example>
 
-	<parameter name="parameter1" type="float" default="7.0" description="The first parameter" />
+	<parameter name="size" type="int" default="12" description="Number of LEDs in eye" />
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
-	<input name="INPUT" description="The first input" />
+	<input name="INPUT" description="Degree to which eyelid is shut" size="1" />
 
-	<output name="OUTPUT" description="The first output" size_set="INPUT" />
+	<output name="OUTPUT" description="The first output" size_param="size" />
 
 	<link class="EyelidAnimation" />
 

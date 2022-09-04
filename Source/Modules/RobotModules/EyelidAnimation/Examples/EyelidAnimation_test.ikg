@@ -10,8 +10,8 @@
 		/>
 		<module
 		  class       =   "FunctionGenerator"
-		  name        =   "SquareGen"
-		  type        =   "square"
+		  name        =   "SinGen"
+		  type        =   "sine"
 		  frequency  =  "0.001"
 		  offset      =   "0.0"
 		  amplitude   =   "1"
@@ -26,11 +26,11 @@
 		/>
 		
         <connection source = "MyConstant.OUTPUT" target = "EyelidAnimationInstance.INPUT1" />
-        <connection source = "SquareGen.OUTPUT"  target = "EyelidAnimationInstance.INPUT2" />
+        <connection source = "SinGen.OUTPUT"  target = "EyelidAnimationInstance.INPUT2" />
 
 		<view name="View">
 			<plot 
-				source="SquareGen.OUTPUT" 
+				source="SinGen.OUTPUT" 
 				
 				x="0" y="0" width="100" height="100"
 				min="0"
