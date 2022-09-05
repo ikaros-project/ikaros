@@ -117,7 +117,6 @@ EyelidAnimation::shuteye(float* r, float a, int sz){
 int* 
 EyelidAnimation::addmod(int *r, int *a, int inc, int mod, int sz)
 {
-    printf("inc: %i, mod: %i\n", inc, mod);
     for(int i=0; i< sz; i++){
         r[i] = (a[i] + inc) % mod;
         if (r[i] < 0) r[i] = mod + r[i];
