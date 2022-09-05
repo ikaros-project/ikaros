@@ -37,12 +37,14 @@ public:
     void 		Tick();
 
     void shuteye(float* r, float a, int sz);
+    int *addmod(int *r, int *a, int inc, int mod, int sz);
 
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
     float *     input_array;
     int         input_array_size;
+    float *     rotate;
 
     float *     output_array;
     int         output_array_size;

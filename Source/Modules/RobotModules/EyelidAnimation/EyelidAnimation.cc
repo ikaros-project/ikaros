@@ -41,6 +41,7 @@ EyelidAnimation::Init()
     Bind(dark, "dark");
 
     input_array = GetInputArray("INPUT");
+    io(rotate, "ROTATE");
     //input_array_size = GetInputSize("INPUT");
 
     output_array = GetOutputArray("OUTPUT");
@@ -88,18 +89,21 @@ EyelidAnimation::shuteye(float* r, float a, int sz){
         // 0.25 - 2,3 and 8,9 dark
         int ix[] = {1,2,7,8};
         int ixlength = 4;
+        addmod(ix, ix, rotate[0], sz, ixlength);
         for (int i=0; i<ixlength; i++) retval[ix[i]] = dark;
     }
     else if(a >= 0.4 && a < 0.6){
         // 0.5 - 1234 and 789a
         int ix[] = {0,1,2,3,6,7,8,9};
         int ixlength = 8;
+        addmod(ix, ix, rotate[0], sz, ixlength);
         for (int i=0; i<ixlength; i++) retval[ix[i]] = dark;
     }
     else if(a >= 0.6 && a < 0.8){
         // 0.75 - 012345 and 789a
-        int ix[] = {11,0,1,2,3,4, 6,7,8,9};
+        int ix[] = {11,0,1,2,3,4, 6,7,8,9}; // 5, 10 light
         int ixlength = 10;
+        addmod(ix, ix, rotate[0], sz, ixlength);
         for (int i=0; i<ixlength; i++) retval[ix[i]] = dark;
     }
     else if (a >= 0.8){
@@ -110,6 +114,15 @@ EyelidAnimation::shuteye(float* r, float a, int sz){
 
 }
 
+int* 
+EyelidAnimation::addmod(int *r, int *a, int inc, int mod, int sz)
+{
+    for(int i=0; i< sz; i++){
+        r[i] = (a[i] + inc) % mod;
+        if (r[i] < 0) r[i] = mod + r[i];
+    }
+    return r;
+}
 // Install the module. This code is executed during start-up.
 
 static InitClass init("EyelidAnimation", &EyelidAnimation::Create, "Source/Modules/RobotModules/EyelidAnimation/");

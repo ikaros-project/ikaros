@@ -25,6 +25,7 @@
 	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="INPUT" description="Degree to which eyelid is shut" size="1" />
+	<input name="ROTATE" description="Rotate integer number of diodes clockwise (pos) or counterclockw (neg)" size="1" />
 
 	<output name="OUTPUT" description="The first output" size_param="size" />
 
