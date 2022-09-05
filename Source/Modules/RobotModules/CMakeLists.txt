@@ -1,5 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
+add_subdirectory(EyelidAnimation)
 add_subdirectory(ActionCompetition)
 add_subdirectory(Dynamixel)
 add_subdirectory(EpiServos)
