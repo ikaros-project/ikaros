@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+
+<group title="EyelidAnimation Example">
+	
+		<module
+			class = "Ones"
+			name = "Mouth"
+			size_x  = "8"
+			size_y = "1"
+			value="0.2"
+			
+		/>
+		<_module
+		  class       =   "FunctionGenerator"
+		  name        =   "ShutEye"
+		  type        =   "sin"
+		  frequency  =  "0.5"
+		  offset      =   "0.5"
+		  amplitude   =   "0.5"
+		  shift       =   "0.0"
+		/>
+
+		<module
+		class = "Constant"
+		name = "ShutEye"
+		data = "0.5"
+		/>
+
+		<module
+		class = "Constant"
+		name = "Rotate"
+		data = "0"
+		/>
+		<connection source = "Rotate.OUTPUT"  target = "Negate.INPUT" delay="0" />
+		<module
+		class = "Scale"
+		name = "Negate"
+		factor = "-1"
+		/>
+
+
+		<connection source = "ShutEye.OUTPUT"  target = "Eyelid_l.INPUT" />
+		<connection source = "Rotate.OUTPUT"  target = "Eyelid_l.ROTATE" />
+		<module
+			class = "EyelidAnimation"
+			name = "Eyelid_l"
+			size  = "12"
+			
+		/>
+
+		<connection source = "ShutEye.OUTPUT"  target = "Eyelid_r.INPUT" />
+		<connection source = "Negate.OUTPUT"  target = "Eyelid_r.ROTATE" />
+		<module
+			class = "EyelidAnimation"
+			name = "Eyelid_r"
+			size  = "12"
+			
+		/>
+		<!-- This line imports a seperate ikc file with all the LED connections. -->
+		<!--module class = "EpiLed" name = "LED" /-->
+		<connection source = "Mouth.OUTPUT"  sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_RED"	    />		
+		<connection source = "Mouth.OUTPUT"  sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_RED"	    />		
+
+		<connection source = "Mouth.OUTPUT"  sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_GREEN"	    />		
+		<connection source = "Mouth.OUTPUT"  sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_GREEN"	    />		
+		
+		<connection source = "Mouth.OUTPUT"  sourceoffset = "0" target = "FadeCandy.MOUTH_TOP_BLUE"	    />		
+		<connection source = "Mouth.OUTPUT"  sourceoffset = "0" target = "FadeCandy.MOUTH_BOTTOM_BLUE"	    />		
+		<module class = "FadeCandy" name = "FadeCandy" start_server = "true">
+			<channel name="MOUTH_TOP"       channel="0"	size="8" />
+			<channel name="MOUTH_BOTTOM"    channel="1"	size="8" />
+			<channel name="LEFT_EYE"        channel="2"	size="12" />
+			<channel name="RIGHT_EYE"       channel="3"	size="12" />
+		</module>
+		<!-- Send to fadecandy -->
+<connection source = "Eyelid_l.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_RED"	    />
+<connection source = "Eyelid_l.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_GREEN"	    />
+<connection source = "Eyelid_l.OUTPUT"  sourceoffset = "0" target = "FadeCandy.LEFT_EYE_BLUE"	    />
+
+<connection source = "Eyelid_r.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_RED"	    />
+<connection source = "Eyelid_r.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_GREEN"	/>
+<connection source = "Eyelid_r.OUTPUT"  sourceoffset = "0" target = "FadeCandy.RIGHT_EYE_BLUE"	/>
+
+        
+        
+
+
+<view name="View" >
+	<plot  buffer_size = "50" color = "" direction = "vertical" frame-style = "" height = "201" max = "2" min = "0" select = "" show_frame = "false" show_title = "true" source = "ShutEye.OUTPUT" style = "" title = "ShutEye out" width = "201" x = "0" y = "0"/>
+	<plot  buffer_size = "50" color = "red, green, blue" direction = "vertical" frame-style = "" height = "241" max = "1" min = "0" select = "" show_frame = "false" show_title = "true" source = "Eyelid.OUTPUT" style = "" title = "Eyelid out" width = "201" x = "0" y = "320"/>
+	<epi-head  _visibleSource = "Enable.OUTPUT" color = "black" earColor = "#0088ff" fill = "white" frame-style = "" gaze = "0" gazeSource = "G.OUTPUT" headPosition = "" height = "300" irisColor = "#88aaff" irisLeftBlue = "EyelidAnimationInstance.OUTPUT" irisLeftGreen = "EyelidAnimationInstance.OUTPUT" irisLeftIntensity = "" irisLeftRGB = "" irisLeftRed = "EyelidAnimationInstance.OUTPUT" irisRightBlue = "EyelidAnimationInstance.OUTPUT" irisRightGreen = "EyelidAnimationInstance.OUTPUT" irisRightIntensity = "" irisRightRGB = "" irisRightRed = "EyelidAnimationInstance.OUTPUT" label = "Epi" motionRecorderInput = "" mouthColor = "#000000" mouthIntensity = "" mouthRGB = "" offsetSource = "Wave.OUTPUT" pupilInMM = "11" pupilLeftSource = "P.OUTPUT" pupilRightSource = "P.OUTPUT" show_frame = "true" show_title = "false" style = "" title = "Epi Head" vergence = "0" visibleFace = "true" visibleFaceParameter = "" visibleSource = "" width = "300" x = "220" y = "20"/>
+	<grid  blue = "" color = "" colorTable = "" command = "" fill = "gray" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" frame-style = "" green = "" height = "101" labelWidth = "100" label_parameter = "" labels = "" lineWidth = "1" max = "1" max_x = "1" max_y = "1" min = "0" min_x = "0" min_y = "0" parameter = "" red = "" scales = "no" shape = "rectangle" show_frame = "false" show_title = "true" size = "1" source = "Eyelid.OUTPUT" style = "" title = "Eyelid output" valueHigh = "1" valueLow = "0" width = "201" x = "0" y = "200"/>
+	<slider-horizontal  count = "1" frame-style = "" height = "81" labels = "" max = "1" min = "0" parameter = "ShutEye.data" select = "0" show_frame = "false" show_title = "true" show_values = "true" step = "0.2" style = "" title = "Shuteye" width = "301" x = "220" y = "320"/>
+	<slider-horizontal  count = "1" frame-style = "" height = "81" labels = "" max = "2" min = "-2" parameter = "Rotate.data" select = "0" show_frame = "false" show_title = "true" show_values = "true" step = "1" style = "" title = "Rotation" width = "301" x = "220" y = "400"/>
+</view>
+
+
+
+
+
+
+
+
+
+</group>
+ 

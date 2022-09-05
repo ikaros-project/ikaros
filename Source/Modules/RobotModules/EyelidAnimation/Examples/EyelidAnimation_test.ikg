@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group title="EyelidAnimation Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "1 2"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen"
+		  type        =   "sin"
+		  frequency  =  "0.1"
+		  offset      =   "0.5"
+		  amplitude   =   "0.5"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "EyelidAnimation"
+			name = "EyelidAnimationInstance"
+			size  = "12"
+			
+		/>
+		
+        
+        <connection source = "SinGen.OUTPUT"  target = "EyelidAnimationInstance.INPUT" />
+
+
+	<view name="View" >
+	<plot  buffer_size = "50" color = "" direction = "vertical" frame-style = "" height = "201" max = "2" min = "0" select = "" show_frame = "false" show_title = "true" source = "SinGen.OUTPUT" style = "" title = "Singen out" width = "201" x = "0" y = "0"/>
+	<plot  buffer_size = "50" color = "red, green, blue" direction = "vertical" frame-style = "" height = "241" max = "1" min = "0" select = "" show_frame = "false" show_title = "true" source = "EyelidAnimationInstance.OUTPUT" style = "" title = "Eyelid out" width = "201" x = "0" y = "320"/>
+	<epi-head  _visibleSource = "Enable.OUTPUT" color = "black" earColor = "#0088ff" fill = "white" frame-style = "" gaze = "0" gazeSource = "G.OUTPUT" headPosition = "" height = "300" irisColor = "#88aaff" irisLeftBlue = "EyelidAnimationInstance.OUTPUT" irisLeftGreen = "EyelidAnimationInstance.OUTPUT" irisLeftIntensity = "" irisLeftRGB = "" irisLeftRed = "EyelidAnimationInstance.OUTPUT" irisRightBlue = "EyelidAnimationInstance.OUTPUT" irisRightGreen = "EyelidAnimationInstance.OUTPUT" irisRightIntensity = "" irisRightRGB = "" irisRightRed = "EyelidAnimationInstance.OUTPUT" label = "Epi" motionRecorderInput = "" mouthColor = "#000000" mouthIntensity = "" mouthRGB = "" offsetSource = "Wave.OUTPUT" pupilInMM = "11" pupilLeftSource = "P.OUTPUT" pupilRightSource = "P.OUTPUT" show_frame = "true" show_title = "false" style = "" title = "Epi Head" vergence = "0" visibleFace = "true" visibleFaceParameter = "" visibleSource = "" width = "300" x = "220" y = "20"/>
+	<grid  blue = "" color = "" colorTable = "" command = "" fill = "gray" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" frame-style = "" green = "" height = "101" labelWidth = "100" label_parameter = "" labels = "" lineWidth = "1" max = "1" max_x = "1" max_y = "1" min = "0" min_x = "0" min_y = "0" parameter = "" red = "" scales = "no" shape = "rectangle" show_frame = "false" show_title = "true" size = "1" source = "EyelidAnimationInstance.OUTPUT" style = "" title = "Eyelid output" valueHigh = "1" valueLow = "0" width = "201" x = "0" y = "200"/>
+</view>
+
+
+
+
+</group>
+ 

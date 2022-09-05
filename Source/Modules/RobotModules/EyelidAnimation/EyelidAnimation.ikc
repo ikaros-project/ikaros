@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="EyelidAnimation" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "EyelidAnimation" to the name of your new module in
+		EyelidAnimation.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="EyelidAnimation"
+			name="EyelidAnimation"
+			size = "12"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="size" type="int" default="12" description="Number of LEDs in eye" />
+	<parameter name="light" type="float" default="0.9" description="Light value" />
+	<parameter name="dark" type="float" default="0.2" description="Dark value" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="Degree to which eyelid is shut" size="1" />
+	<input name="ROTATE" description="Rotate integer number of diodes clockwise (pos) or counterclockw (neg)" size="1" />
+
+	<output name="OUTPUT" description="The first output" size_param="size" />
+
+	<link class="EyelidAnimation" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>EyelidAnimation.h</file>
+   		<file>EyelidAnimation.cc</file>
+   		<file>EyelidAnimation.ikc</file>
+   </files>
+
+</group>
+
