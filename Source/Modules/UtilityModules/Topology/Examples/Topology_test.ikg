@@ -13,9 +13,9 @@
 			debug="yes"
 			
 		/>
-		<_module
+		<module
 			class = "Topology"
-			name = "TopologyInstance"
+			name = "OneToOne"
 			type="one-to-one"
 			tensor_size_x="3"
 			tensor_size_y="3"
@@ -23,9 +23,9 @@
 			debug="yes"
 			
 		/>
-		<_module
+		<module
 			class = "Topology"
-			name = "TopologyInstance"
+			name = "NN2D"
 			type="nearest-neighbor_2D"
 			tensor_size_x="3"
 			tensor_size_y="3"
@@ -34,9 +34,9 @@
 			
 		/>
 
-		<_module
+		<module
 			class = "Topology"
-			name = "TopologyInstance"
+			name = "Circle"
 			type="circle"
 			tensor_size_x="3"
 			tensor_size_y="1"
@@ -46,7 +46,7 @@
 		/>
 		<module
 			class = "Topology"
-			name = "TopologyInstance"
+			name = "Random"
 			type="random"
 			tensor_size_x="3"
 			tensor_size_y="3"
@@ -60,9 +60,14 @@
 
 
 <view name="View" >
-	<table  x = "220" height = "241" show_frame = "false" width = "421" label_x = "" direction = "normal" scrollable = "false" source = "TopologyInstance.OUTPUT" y = "160" label_y = "" decimals = "0" colorize = "true" title = "Topology" frame-style = "" show_title = "true" style = ""/>
-	<image  x = "0" y = "160" height = "200" width = "200" title = "Topology" source = "TopologyInstance.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "200" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" scale = "both" scales = "no" show_frame = "false" show_title = "true" source = "OneToOne.OUTPUT" style = "" title = "Topology" width = "200" x = "0" y = "160"/>
+	<grid  x = "220" y = "160" height = "200" width = "200" title = "" source = "OneToOne.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" label_parameter = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "80" y = "120" height = "200" width = "200" title = "One to one" source = "OneToOne.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" label_parameter = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "80" y = "320" height = "200" width = "200" title = "Nearest neighbor 2D" source = "NN2D.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" label_parameter = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "80" y = "520" height = "200" width = "200" title = "Circle" source = "Circle.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" label_parameter = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<grid  x = "80" y = "740" height = "200" width = "200" title = "Random" source = "Random.OUTPUT" red = "" green = "" blue = "" min = "0" max = "1" labels = "" label_parameter = "" labelWidth = "100" command = "" parameter = "" valueHigh = "1" valueLow = "0" color = "" fill = "gray" colorTable = "" lineWidth = "1" shape = "rectangle" size = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
 </view>
+
 
 
 

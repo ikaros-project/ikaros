@@ -206,13 +206,14 @@ Topology::SetCircle()
             output_matrix[j][0] = 1;
         else
             output_matrix[j][j+1] = 1;
+    }
     
 }
 
 void
 Topology::SetDonut()
 {
-
+    return;
 }
 
 void
