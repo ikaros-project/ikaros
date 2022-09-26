@@ -12,7 +12,7 @@
             class = "InputJPEG" 
             name = "IN"
             filename = "../../../../../../../Examples/Media/grayrobot.jpg"
-            iterations = "5" 
+            _iterations = "1" 
         />
 		
 		<module 
@@ -26,19 +26,19 @@
 
 		<connection  source = "IN.INTENSITY"  target = "Canny1.INPUT" delay="0" />
 
-		<view name = "V1">
-			<object class="Image" module="IN" source="INTENSITY" x="0" y="0" />
+<view name="V1" >
+	<image  x = "20" y = "20" height = "200" width = "200" title = "In" source = "IN.INTENSITY" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "260" height = "200" width = "200" title = "Output" source = "Canny1.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "460" height = "200" width = "200" title = "Maxima" source = "Canny1.MAXIMA" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "240" y = "260" height = "200" width = "200" title = "Edges" source = "Canny1.EDGES" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "660" height = "200" width = "200" title = "dx" source = "Canny1.dx" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "240" y = "660" height = "200" width = "200" title = "dy" source = "Canny1.dy" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "20" y = "860" height = "200" width = "200" title = "Image" source = "Canny1.dGx" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<image  x = "240" y = "860" height = "200" width = "200" title = "Image" source = "Canny1.dGy" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+</view>
 
-			<object class="Image" module="Canny1" source="dGx" x="0" y="2"  />
-			<object class="Image" module="Canny1" source="dGy" x="1" y="2"  />
 
-			<object class="Image" module="Canny1" source="dx" x="1" y="0" />
-			<object class="Image" module="Canny1" source="dy" x="2" y="0"  />
 
-			<object class="Image" module="Canny1" source="EDGES" x="0" y="1" />
-			<object class="Image" module="Canny1" source="MAXIMA" x="1" y="1" />
-			<object class="Image" module="Canny1" source="OUTPUT" x="2" y="1"  />
-		</view>
     <module class = "Logger" name = "Logger" />
 </group>
 
