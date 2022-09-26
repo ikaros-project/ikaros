@@ -255,6 +255,7 @@ SpikingPopulation::Tick()
         threshold_gteq(output_spikes, output_array, threshold, population_size);
         float **output_tiled = create_matrix(population_size, population_size);
         tile(output_tiled[0], output_spikes, population_size, population_size);
+        // if this scales down spike amplitude below threshold, will be missed below
         multiply(int_exc_syn_tmp, output_tiled, population_size, population_size);
         composed_ext_syn_length += population_size;
 
@@ -407,13 +408,13 @@ SpikingPopulation::TimeStep_Iz( float *a_a, // tau recovery
         // sum up 
         for(int i = 0; i < e_syn_x; i++)
         {
-            if(e_syn[j][i] >= threshold)
-                inputvlt[j] += e_syn[j][i];
+            //if(e_syn[j][i] >= threshold) // TAT 2022-09-26: removed since spikes already gated above; result is scaled by synaptic weights
+            inputvlt[j] += e_syn[j][i];
         }
         for(int i = 0; i< i_syn_x; i++)
         {
-            if(i_syn[j][i] >= threshold)
-                inputvlt[j]-= i_syn[j][i];
+            //if(i_syn[j][i] >= threshold)
+            inputvlt[j]-= i_syn[j][i];
         }
     }
     //float *tmp = create_array(population_size);
