@@ -223,7 +223,7 @@ Topology::SetRandom()
     {
     	for(int i=0; i<output_array_size_x; i++)
         {
-            if(random(0.f, 1.f) > rnd_limit)
+            if(random(0.f, 1.f) < rnd_limit)
                 if(i!=j || (i==j && self_conn)) 
                     output_matrix[j][i] = 1;
         }

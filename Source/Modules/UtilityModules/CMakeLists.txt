@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(Topology)
 add_subdirectory(Stop)
 add_subdirectory(TimedStop)
 add_subdirectory(GrowthDecay)
