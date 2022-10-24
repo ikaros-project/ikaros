@@ -33,6 +33,37 @@
 using json = nlohmann::json; 
 
 
+class Keypoint
+{   
+    public:
+        float               time;
+        std::vector<int>    link_left;
+        std::vector<int>    link_right;
+        //std::vector<bool>   valid;          // the corresponding point is valid (=not undefined)
+        std::vector<float>  point; 
+
+        Keypoint() {};
+        Keypoint(json & k);
+};
+
+
+
+class Sequence
+{
+    public:
+        Sequence() {};
+        Sequence(int index);
+        Sequence(json & s);
+
+        float                   start_time;
+        float                   end_time;
+        float                   start_mark_time;
+        float                   end_mark_time;
+        std::string             name;
+        std::vector<Keypoint>   keypoints;
+};
+
+
 class SequenceRecorder: public Module
 {
 public:
@@ -67,7 +98,7 @@ public:
     void        DeleteEmptyKeypoints();
 
     void        StoreChannelMode();
-    void        LoadChannelMode();
+    //void        LoadChannelMode();
 
 
     void        AddKeypoint(float time); // add keypoint at time t
@@ -132,7 +163,12 @@ public:
     int             current_sequence;
     std::string     sequence_names;
     std::string     file_names;
-    json            sequence_data;
+//    json            sequence_data;
+
+    std::string     type;
+    
+    std::vector<Sequence>    sequences;
+    
 
     // Control  variables
 
