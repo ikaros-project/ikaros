@@ -6,9 +6,11 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name': "IMAGE", 'control':'header'},
             {'name':'title', 'default':"Image", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'opacity_source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'index', 'default':"", 'type':'opacity_source', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
                 
@@ -63,6 +65,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             data_set.add(this.parameters.source+":"+this.parameters.format);
         if(this.parameters.index)
             data_set.add(this.parameters.index);
+        if(this.parameters.opacity_source)
+            data_set.add(this.parameters.opacity_source);
     }
 
     updateFrame()
@@ -159,6 +163,9 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         try
         {
+            let o = this.getSource('opacity_source');
+            if(o)
+            this.canvas.canvas.style.opacity = o;
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //

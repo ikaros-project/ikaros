@@ -642,124 +642,27 @@
     </view>
 
 
-    <view name="Images">
 
-        <image
-            x="20" y="20"
-            width="201"
-            height="201"
-            module=""
-            source="InputVideoFile.INTENSITY"
-            title = "Moving Image"
-        />
- 
-        <image
-            x="240" y="20"
-            width="201"
-            height="201"
-            source="InputVideoFile.INTENSITY"
-            title = "Moving Image"
-            format = "fire"
-        />
- 
-        <image
-            x="460" y="20"
-            width="201"
-            height="201"
-            source="InputVideoFile.INTENSITY"
-            title = "Moving Image"
-            format = "spectrum"
-        />
- 
-        <image
-            x="680" y="20"
-            width="201"
-            height="201"
-            source="InputVideoFile.INTENSITY"
-            title = "Moving Image"
-            _format = "green"
-        />
- 
-        <image
-            x="10" y="240"
-            _width="1280"
-            _height="720"
-            width="640"
-            height="360"
-            source="InputVideoFile.RED+GREEN+BLUE"
-            title = "Moving Colors"
-            format = "rgb"
-            file = ""
-            style = ""
-        />
 
-       <image
-            x="20" y="600"
-            width="201"
-            height="201"
-            title = "Fixed Image"
-            file = "bike.png"
-        />
-        
-       <image
-            x="240" y="600"
-            width="201"
-            height="201"
-            title = "Fixed Image"
-            file = "bike.png"
-            flipXCanvas = "yes"
-        />
-        
-       <image
-            x="480" y="600"
-            width="201"
-            height="201"
-            title = "Fixed Image"
-            file = "bike.png"
-            flipYCanvas = "yes"
-        />
-        
-       <image
-            x="700" y="600"
-            width="201"
-            height="201"
-            title = "Fixed Image"
-            file = "bike.png"
-            flipXCanvas = "yes"
-            flipYCanvas = "yes"
-        />
-        
+<view name="Images" >
+	<image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "InputVideoFile.INTENSITY" style = "" title = "Moving Image" width = "201" x = "20" y = "20"/>
+	<image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "fire" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "InputVideoFile.INTENSITY" style = "" title = "Moving Image" width = "201" x = "240" y = "20"/>
+	<image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "spectrum" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "InputVideoFile.INTENSITY" style = "" title = "Moving Image" width = "201" x = "460" y = "20"/>
+	<image  _format = "green" command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "InputVideoFile.INTENSITY" style = "" title = "Moving Image" width = "201" x = "680" y = "20"/>
+	<image  _height = "720" _width = "1280" command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "rgb" frame-style = "" height = "360" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "InputVideoFile.RED+GREEN+BLUE" style = "" title = "Moving Colors" width = "640" x = "10" y = "240"/>
+	<image  command = "" file = "bike.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "WaveR.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "20" y = "600"/>
+	<image  command = "" file = "bike.png" flipXAxis = "no" flipXCanvas = "yes" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "240" y = "600"/>
+	<image  command = "" file = "bike.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "yes" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "480" y = "600"/>
+	<image  command = "" file = "bike.png" flipXAxis = "no" flipXCanvas = "yes" flipYAxis = "no" flipYCanvas = "yes" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "700" y = "600"/>
+	<image  command = "" file = "bike.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "yes" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "20" y = "820"/>
+	<image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "fire" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "yes" show_frame = "false" show_title = "false" source = "InputVideoFile.INTENSITY" style = "" title = "Moving image with scales" width = "201" x = "240" y = "820"/>
+	<image  command = "" file = "a.png,b.png,c.png,d.png,e.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "Index.OUTPUT" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Image Sequence" width = "201" x = "20" y = "1000"/>
+	<bar-graph  auto = "false" color = "" direction = "vertical" fill = "" frame-style = "" height = "200" labels = "" lineCap = "" lineJoin = "" lineWidth = "1" max = "1" min = "0" show_frame = "false" show_title = "true" source = "WaveR.OUTPUT" style = "" title = "Bar Graph" transpose = "false" width = "200" x = "920" y = "600"/>
+	<image  command = "" file = "brain.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "460" y = "860"/>
+	<image  command = "" file = "region.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "201" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "WaveR.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "Fixed Image" width = "201" x = "460" y = "860"/>
+</view>
 
-       <image
-            x="20" y="820"
-            width="201"
-            height="201"
-            title = "Fixed Image"
-            file = "bike.png"
-            scales = "yes"
-        />
-        
 
-       <image
-            x="240" y="820"
-            width="201"
-            height="201"
-            source="InputVideoFile.INTENSITY"
-            title = "Moving image with scales"
-            format = "fire"
-            scales = "yes"
-        />
-
-       <image
-            x="20" y="1000"
-            width="201"
-            height="201"
-            title = "Image Sequence"
-            file = "a.png,b.png,c.png,d.png,e.png"
-            index = "Index.OUTPUT"
-        />
-
-    </view>
 
     <view name="Bar Graphs">
         <bar-graph
@@ -986,7 +889,7 @@
         class = "FunctionGenerator"
         name = "WaveR"
         type = "sin"
-        frequency = "0.01"
+        frequency = "0.1"
         amplitude = "0.5"
         offset = "0.5"
     />
