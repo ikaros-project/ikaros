@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="EPuck2" description="minimal example module">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "EPuck2" to the name of your new module in
+		EPuck2.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="EPuck2"
+			name="EPuck2"
+			parameter1 = "3.14"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="parameter1" type="float" default="7.0" description="The first parameter" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="MOTORS" description="The input to stepper motors" optional="YES" />
+
+	<output name="CAMERA" description="The camera output" />
+
+	<link class="EPuck2" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>EPuck2.h</file>
+   		<file>EPuck2.cc</file>
+   		<file>EPuck2.ikc</file>
+   </files>
+
+</group>
+
