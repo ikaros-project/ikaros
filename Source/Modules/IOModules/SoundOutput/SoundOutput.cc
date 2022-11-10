@@ -1,7 +1,7 @@
 //
 //	SoundOutput.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2013-2021 Christian Balkenius
+//    Copyright (C) 2013-2022 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -41,9 +41,9 @@ Sound::Play(const char * command)
 }
 
 bool
-Sound::UpdateVolume(float * rms)
+Sound::UpdateVolume(float * rms, float lag)
 {
-    float rt = 0.001*timer->GetTime();
+    float rt = 0.001*(timer->GetTime() - lag);
     while(frame < time.size() && time[frame] < rt)
         frame++;
 
@@ -68,16 +68,29 @@ SoundOutput::CreateSound(std::string sound_path)
 
     // Get amplitudes using ffprobe
 
-    // char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0", sound_path.c_str());
-    // float t, l, r;
-    // FILE * fp = popen(command_line, "r"); 
-    // while(fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
-    // {
-    //     sound.time.push_back(t);
-    //     sound.left.push_back(l);
-    //     sound.right.push_back(r);
-    // }
-
+    int err = 0;
+    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0", sound_path.c_str());
+    float t, l, r;
+    FILE * fp = popen(command_line, "r"); 
+    if(fp != NULL)
+    {
+        while(fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
+        {
+            sound.time.push_back(t);
+            sound.left.push_back(l);
+            sound.right.push_back(r);
+        }
+        err = pclose(fp);
+    }
+    if(err != 0) // Command failed - fake 1s output
+    {
+            sound.time.push_back(0);
+            sound.left.push_back(-15);
+            sound.right.push_back(-15);
+            sound.time.push_back(1);
+            sound.left.push_back(-15);
+            sound.right.push_back(-15);
+    }
     return sound;
 }
 
@@ -93,6 +106,9 @@ SoundOutput::Init()
     rms = GetOutputArray("RMS");
     volume = GetOutputArray("VOLUME");
     command = GetValue("command");
+    Bind(scale_volume, "scale_volume");
+    Bind(lag, "lag");
+
     for(auto sound_name: split(GetValue("sounds"), ","))
         sound.push_back(CreateSound(this->kernel->ikc_dir + trim(sound_name)));
 }
@@ -112,12 +128,15 @@ SoundOutput::Tick()
 
     // Update volume
 
+    rms[0] = -50; // dB with no signal
+    rms[1] = -50;
+
     if(current_sound != -1)
-        if(!sound[current_sound].UpdateVolume(rms))
+        if(!sound[current_sound].UpdateVolume(rms, lag))
             current_sound = -1;
 
-    volume[0] = pow(10, 0.1*rms[0]); // convert to linear volume scale
-    volume[1] = pow(10, 0.1*rms[1]);
+    volume[0] = scale_volume * pow(10, 0.1*rms[0]); // convert to linear volume scale
+    volume[1] = scale_volume * pow(10, 0.1*rms[1]);
 
     // Store last input
 

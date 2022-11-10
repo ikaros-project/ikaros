@@ -31,9 +31,16 @@
             <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "R2D2" frame-style = "" yindex = "0" valueUp = "0" xindex = "5" value = "1" x = "660" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
             <bar-graph  frame-style = "" show_title = "true" min = "-100" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "SoundOutput.RMS" title = "VU" color = "" max = "5" transpose = "false" lineJoin = "" lineWidth = "1" width = "200" show_frame = "false" auto = "false" height = "200" y = "20" x = "780"/>
             <bar-graph  x = "780" y = "240" height = "200" width = "200" title = "VOLUME" source = "SoundOutput.VOLUME" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "0.03" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-        </view>
+       	    <slider-horizontal  x = "1000" y = "240" height = "200" width = "200" title = "Scale Volume Output" parameter = "SoundOutput.scale_volume" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+   	    	<slider-horizontal  count = "1" frame-style = "" height = "200" labels = "" max = "500" min = "-500" parameter = "SoundOutput.lag" select = "0" show_frame = "false" show_title = "true" show_values = "true" step = "0.01" style = "" title = "Lag" width = "200" x = "1000" y = "460"/>
+ </view>
 
 
     <module class = "Logger" name = "Logger" />
 </group>
  
+
+
+
+
+
