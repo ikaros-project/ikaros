@@ -69,7 +69,7 @@ SoundOutput::CreateSound(std::string sound_path)
     // Get amplitudes using ffprobe
 
     int err = 0;
-    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0", sound_path.c_str());
+    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null", sound_path.c_str());
     float t, l, r;
     FILE * fp = popen(command_line, "r"); 
     if(fp != NULL)
