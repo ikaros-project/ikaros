@@ -24,7 +24,9 @@
 #define EPuck2_
 
 #include "IKAROS.h"
-
+#include <opencv/cv.hpp>
+//class Mat;
+//class VideoCapture;
 class EPuck2: public Module
 {
 public:
@@ -39,14 +41,20 @@ public:
     // pointers to inputs and outputs
     // and integers to represent their sizes
 
-    float *     input_array;
-    int         input_array_size;
+    
+    float *     input_motors;
+    int         motor_size;
 
-    float *     output_array;
-    int         output_array_size;
+    float **    camera_grey;
+    int         camera_x;
+    int         camera_y;
 
     // internal data storage
     float *     internal_array;
+    int device_index;
+    cv::Mat *image;
+    cv::VideoCapture *camera;
+
 
     // parameter values
 

@@ -25,12 +25,12 @@
 //
 
 #include "EPuck2.h"
-
+#include <iostream>
 // use the ikaros namespace to access the math library
 // this is preferred to using math.h
 
 using namespace ikaros;
-
+//using namespace cv;
 
 void
 EPuck2::Init()
@@ -38,14 +38,19 @@ EPuck2::Init()
     Bind(parameter, "parameter1");
 	Bind(debugmode, "debug");    
 
-    input_array = GetInputArray("INPUT");
-    input_array_size = GetInputSize("INPUT");
-
-    output_array = GetOutputArray("OUTPUT");
-    output_array_size = GetOutputSize("OUTPUT");
-
-
+    // io(torqueEnable, torqueEnableSize, "TORQUE_ENABLE");
+    io(input_motors, motor_size, "MOTORS");
+    io(camera_grey, camera_x, camera_y, "CAMERA_GREY");
     internal_array = create_array(10);
+
+    device_index = 0;
+    camera = new cv::VideoCapture(device_index);
+    if(!camera->isOpened()) {
+		std::cout << "EPuck2: Cannot open the video device" << std::endl;
+		//exit(1);
+	}
+    image = new cv::Mat();
+
 }
 
 
@@ -54,6 +59,8 @@ EPuck2::~EPuck2()
 {
     // Destroy data structures that you allocated in Init.
     destroy_array(internal_array);
+    // delete camera;
+    // delete image;
 }
 
 
@@ -61,6 +68,21 @@ EPuck2::~EPuck2()
 void
 EPuck2::Tick()
 {
+    camera->read(*image);
+    if(image->empty()) {
+        std::cerr << "frame not grabbed properly" << std::endl;
+        //return -1;
+    }
+    else {
+        cv::Mat E = (*image)(cv::Range(1, 3), cv::Range(1,3));
+        std::cout << "E = " << std::endl << " " << E << "\n" << "\n";
+        std::vector<uchar> array;
+        if (image->isContinuous()) {
+            // array.assign(mat.datastart, mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
+            array.assign(image->data, image->data + image->total()*image->channels());
+        }
+
+    }
 	if(debugmode)
 	{
 		// print out debug info

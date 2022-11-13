@@ -14,7 +14,7 @@
 		<module
 			class="EPuck2"
 			name="EPuck2"
-			parameter1 = "3.14"
+			
 			debug = "true"
 		/>
 	</example>
@@ -24,7 +24,7 @@
 
 	<input name="MOTORS" description="The input to stepper motors" optional="YES" />
 
-	<output name="CAMERA" description="The camera output" />
+	<output name="CAMERA_GREY" description="The camera output" size_x="640"  size_y="480"/>
 
 	<link class="EPuck2" />
 
