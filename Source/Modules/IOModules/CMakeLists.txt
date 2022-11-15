@@ -6,6 +6,7 @@ add_subdirectory(FileOutput)
 add_subdirectory(Network)
 add_subdirectory(Video)
 add_subdirectory(SoundOutput)
+add_subdirectory(EpiVoice)
 add_subdirectory(TouchBoard)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<class name="SoundOutput" description="plays a sound file">
+
+	<description type="text">
+        Plays one or several named emotion sound files depending on the different inputs. Requires that a command to play sounds is available that can be started from the system() call. The default is the afplay command available in OS X. On Linux, this can be replaced with the "play" command. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time. In this case, the volume is sent to the VOLUME output.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SoundOutput"
+			name="SoundOutput"
+		/>
+	</example>
+
+    <parameter name="command" type="string" default="/usr/bin/afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" />
+
+    <parameter name="directory" type="string" default="" description="path to the sound file directory." />
+    <parameter name="sounds" type="string" default="" description="comma separated list of sound file names (only the stem)." />
+ 	<parameter name="variants" type="int" default="10" description="the number of variant of each sound -selected at random." />
+	<parameter name="intensities" type="int" default="3" description="the number of intensity variants of each sound - selected by the intensity input." />
+
+    <parameter name="scale_volume" type="float" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
+    <parameter name="lag" type="float" default="100.0" description="Lag in ms before the sound starts. Used to correct timiing of volume output for better animations." />
+
+    <input name="INPUT" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
+    <input name="INTENSITY" description="The intensity of the sound (emotion). 0-1." />
+
+    <output name="RMS" size="2" description="precalculated approximate volume (dB) of the current sound being played at relativey low temporal resolution. Can be used for VU-meter or other animation (left and right)." />
+    <output name="VOLUME" size="2" description="precalculated approximate volume of the current sound being played at relativey low temporal resolution. Linear version of VU (left and right)." />
+   
+	<link class="SoundOutput" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>SoundOutput.h</file>
+   		<file>SoundOutput.cc</file>
+   		<file>SoundOutput.ikc</file>
+   </files>
+
+</class>
+
+
