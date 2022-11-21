@@ -16,7 +16,7 @@
     <module class="FunctionGenerator" name="Wave12" type = "sin" frequency = "0.21" amplitude = "1.0" offset = "1.0"/>
     <module class="FunctionGenerator" name="Wave13" type = "sin" frequency = "0.22" amplitude = "1.0" offset = "1.0"/>
 
-<view name="Pupil Visualization" >
+<view name="Pupil Brain Visualization" >
 	<image  command = "" file = "brain_layers/amygdala.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "Wave1.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "amygdala" width = "960" x = "40" y = "40"/>
 	<image  command = "" file = "brain_layers/cerebellum.png" title = "cerebellum" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "Wave12.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = ""  width = "960" x = "40" y = "40"/>
 	<image  command = "" file = "brain_layers/visual_cortex.png"  title = "visual_cortex" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "Wave3.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
