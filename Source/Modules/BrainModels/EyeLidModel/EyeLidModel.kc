@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<class name="EyeLidModel" description="models an eye">
+
+	<description type="text">
+        Model of the upper and lower eye lid"
+    </description>
+
+	<example description="A simple example">
+		<module
+			class="EyeLidModel"
+			name="EyeLidModel"
+		/>
+	</example>
+    
+    <input name="UPPER_OPEN" description="Upper eye lid open (0-1) [levator palpebrae superioris]" optional="yes" />
+    <input name="UPPER_OPEN_2" description="Upper eye lid open (0-1) [superior tarsal muscle]" optional="yes" />
+	<input name="UPPER_CLOSE" description="Upper eye lid close (0-1) [orbicularis oculi]" optional="yes" />
+
+    <input name="LOWER_OPEN" description="Lower eye lid open (0-1) [inferior rectus, inferior palpebral]" optional="yes" />
+    <input name="LOWER_CLOSE" description="Lower eye lid close (0-1) [?]" optional="yes" />
+
+     <output name="UPPER_OUT" size="1" description="Upper eye lid position" />
+    <output name="LOWER_OUT" size="1" description="Lower eye lid position" />
+
+	<link class="EyeLidModel" />
+    
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EyeLidModel.h</file>
+   		<file>EyeLidModel.cc</file>
+   		<file>EyeLidModel.ikc</file>
+   </files>
+
+</class>

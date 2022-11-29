@@ -1,0 +1,65 @@
+<group name="Startle" description="startle response circuitry">
+
+
+
+    <module name="VNC"          description = "ventral coichlear nucleus"           class="Nucleus" />
+    <module name="VLTg"         description = "ventrolateral tegmental nucleus"     class="Nucleus" />
+
+    <group name="PnC"           description="caudal pontine nucleus" >
+        <module name="Giant"    description = "Giant cells"                         class="Nucleus" />
+        <module name="GlyT2"    description = "GlyT2 cells"                         class="Nucleus" />
+        <connection source="GlyT2.OUTPUT" target="Giant.INHIBITION" />
+    </group>
+
+    <module name="SIN"          description = "spinal interneurons"                 class="Nucleus" />
+    <module name="M"            description = "spinal motorn eurons"                class="Nucleus" />
+
+
+    <module name="IC"           description = "inferior colliculus"                 class="Nucleus" />
+    <module name="SC"           description = "superior colliculus"                 class="Nucleus" />
+    <module name="VLTg"         description = "ventrolateral tegmental nucleus"     class="Nucleus" />
+    <module name="SN"           description = "substantioa nigra"                   class="Nucleus" />
+
+    <group name="AMY"           description="amygdala" >
+        <module name="Ce"       description = "central amygdala"                    class="Nucleus" />
+        <module name="BLA"      description = "basolateral area"                    class="Nucleus" />
+
+        <connection source="BLA.OUTPUT" target="CE.INPUT" />
+    </group>
+        <module name="VP"           description = "ventral pallidum"                    class="Nucleus" />
+        <module name="NAcc"         description = "nucleus accumbens"                   class="Nucleus" />
+
+
+    <module name="VTA"          description = "ventral tegmental area"              class="Nucleus" />
+    <module name="mPFC"         description = "medial prefrontal cortex"            class="Nucleus" />
+    <module name="HPC"          description = "hippocampus"                         class="Nucleus" />
+
+    <!-- Auditory to motor path -->
+
+    <connection source = "VCN.OUTPUT"   target = "PnC.Giant.EXCITATION" />
+    <connection source = "VCN.OUTPUT"   target = "VLTg.EXCITATION" />
+    <connection source = "VLTg.OUTPUT"       target = "PnC.Giant.EXCITATION" />
+    <connection source = "PnC.Giant.OUTPUT"  target = "M.EXCITATION" />
+    <connection source = "PnC.Giant.OUTPUT"  target = "SIN.EXCITATION" />
+    <connection source = "SIN.OUTPUT"  target = "M.EXCITATION" />
+
+    <!-- Amygdala to reticular formation -->
+
+    <connection source = "AMY.Ce.OUTPUT"  target = "PnC.GlyT2.EXCITATION" />
+
+    <!-- PPI pathway -->
+
+    <connection source = "VCN.OUTPUT"   target = "IC.EXCITATION" />
+    <connection source = "IC.OUTPUT"   target = "SC.EXCITATION" />
+    <connection source = "SC.OUTPUT"   target = "PPTg.EXCITATION" />
+    <connection source = "PPTg.OUTPUT"   target = "PnC.GlyT2.EXCITATION" />
+
+    <connection source = "SN.OUTPUT"   target = "PPTg.INHIBITION" />
+    <connection source = "VP.OUTPUT"   target = "PPTg.INHIBITION" />
+    <connection source = "NAcc.OUTPUT"   target = "VP.INHIBITION" />
+
+    <connection source = "VTA.OUTPUT"   target = "NAcc.INHIBITION" />
+    <connection source = "mPFC.OUTPUT"   target = "NAcc.EXCITATION" />
+    <connection source = "HPC.OUTPUT"   target = "NAcc.EXCITATION" />
+</group>
+
