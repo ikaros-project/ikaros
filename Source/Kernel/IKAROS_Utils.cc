@@ -865,7 +865,8 @@ float *
 set_one(float * a, int index, int size)
 {
     reset_array(a, size);
-    a[index] = 1;
+    if(0 <= index && index < size)
+        a[index] = 1;
     return a;
 }
 
