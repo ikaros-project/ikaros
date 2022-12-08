@@ -361,6 +361,8 @@ namespace ikaros
 	void		float_to_byte(unsigned char * r, float * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 	void		byte_to_float(float * r, unsigned char * a, float min, float max, long size);	// min, max of float; byte is always 0-255
 
+	int			map_to_bin(float x, int bins, float range_low=0.0, float range_high=1.0); // Map float between range_low and range_hight (inclusive) to 0..bins-1
+
 	int         string_to_int(const char * s, int d=0);  // convert to int; use d if char is NULL
 	float		string_to_float(const char * s, float d=0.0); // convert to float; use d if char is NULL
 
@@ -412,7 +414,7 @@ namespace ikaros
     bool        equal(float *a, float *b, int size, float tolerance);
     bool        equal(float *a, float b, int size, float tolerance);
     bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
-	 void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
+	void		map(float *r, float *i, float lo_src, float hi_src, float lo_trg, float hi_trg, int size);
 	float *		threshold_gteq(float *r, float *a, float threshold, float size);
 	float *		threshold_gt(float *r, float *a, float threshold, float size);
 	float *		threshold_lt(float *r, float *a, float threshold, float size);

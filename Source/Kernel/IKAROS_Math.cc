@@ -2841,6 +2841,19 @@ namespace ikaros
 		return int(::lroundf(x));
 	}
 */
+
+    int 
+    map_to_bin(float x, int bins, float range_low, float range_high)
+    {
+        int y = floor(float(bins)*(x-range_low)/(range_high-range_low));
+        if(y<0)
+            return 0;
+        else if(y>bins-1)
+            return bins-1;
+        else
+            return y;
+    }
+
 	void
 	float_to_byte(unsigned char * r, float * a, float min, float max, long size)
 	{
