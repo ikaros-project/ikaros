@@ -25,8 +25,6 @@
 
 #include <spawn.h>
 
-extern char **environ;
-
 using namespace ikaros;
 
 void
@@ -36,7 +34,7 @@ Sound::Play(const char * command)
     frame = 0;
     char * argv[5] = { (char *)command, (char *)sound_path.c_str(), NULL };
     pid_t pid;
-    extern char **environ;
+
     int status = posix_spawn(&pid, (char *) command, NULL, NULL, argv, NULL);
 }
 
@@ -99,13 +97,23 @@ SoundOutput::CreateSound(std::string sound_path)
 void
 SoundOutput::Init()
 {
-    input = GetInputArray("INPUT");
-    size = GetInputSize("INPUT");
-    last_input = create_array(size);
+    trig = GetInputArray("TRIG");
+    size = GetInputSize("TRIG");
+    last_trig = create_array(size);
+    queued_sound = -1;
     current_sound = -1;
+    last_sound = -1;
+    inhibition = GetInputArray("INHIBITION");
+
+    playing = GetOutputArray("PLAYING");
+    completed = GetOutputArray("COMPLETED");
+    active = GetOutputArray("ACTIVE");
+
     rms = GetOutputArray("RMS");
     volume = GetOutputArray("VOLUME");
+    
     command = GetValue("command");
+
     Bind(scale_volume, "scale_volume");
     Bind(lag, "lag");
 
@@ -117,12 +125,20 @@ SoundOutput::Init()
 void
 SoundOutput::Tick()
 {
-    // Check for trig
+    // Check for trig and queue sound
 
     for(int i=0; i<size; i++)
-        if(input[i] == 1 && last_input[i] == 0 && i < sound.size())
+        if(trig[i] == 1 && last_trig[i] == 0 && i < sound.size())
         {
-            current_sound = i;
+                queued_sound = i;
+        }
+
+    // Start play if sound in queue and no inhibition
+
+        if(current_sound == -1 && queued_sound != -1 && (!inhibition || *inhibition == 0))
+        {
+            current_sound = queued_sound;
+            queued_sound = -1;
             sound[current_sound].Play(command);
         }
 
@@ -138,9 +154,37 @@ SoundOutput::Tick()
     volume[0] = scale_volume * pow(10, 0.1*rms[0]); // convert to linear volume scale
     volume[1] = scale_volume * pow(10, 0.1*rms[1]);
 
-    // Store last input
+    // Set playing status outputs
 
-    copy_array(last_input, input, size);
+    
+    if(current_sound == -1)
+    {
+        reset_array(playing, size);
+        *active = 0;
+    }
+    else
+    {
+        set_one(playing, current_sound, size);
+        *active = 1;
+    }
+
+    // Set completed status
+
+    if((current_sound != last_sound) && (last_sound != -1))
+    {
+        set_one(completed, last_sound, size);
+    }
+    else
+    {
+        reset_array(completed, size);
+    }
+
+
+
+    // Store last trig and sound
+
+    copy_array(last_trig, trig, size);
+    last_sound = current_sound;
 }
 
 

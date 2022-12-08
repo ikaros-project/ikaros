@@ -53,9 +53,14 @@ class Sound
 class SoundOutput: public Module
 {
 public:
-    float * input;
-    float * last_input;
+    float * trig;
+    float * last_trig;
     int     size;
+    float * inhibition;
+
+    float * playing;
+    float * completed;
+    float * active;
 
     float * rms;
     float * volume;
@@ -66,7 +71,9 @@ public:
     const char *  command;
     
     std::vector<Sound> sound;
+    int queued_sound;
     int current_sound;
+    int last_sound;
 
 
     static Module * Create(Parameter * p) { return new SoundOutput(p); }
