@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="EpiVoice Example" name="EpiSound">
+<group title="EpiVoice Example" name="EpiVoice">
 	
 		<module
 			class = "Constant"
@@ -9,39 +9,43 @@
 		/>
 
 		<module
+			class = "Constant"
+			name = "Intensity"
+			data  = "0.5"
+		/>
+
+		<module
 			class = "EpiVoice"
 			name = "EpiVoice"
-            directory = "Sounds/"
-			sounds  = " Sounds/seen.aiff,
-                        Sounds/clang.mp3,
-                        Sounds/shot.mp3,
-                        Sounds/soda.mp3,
-                        Sounds/wreee.mp3,
-                        Sounds/r2d2.mp3"
+            directory = "EmotionSounds/"
+			sounds  = "agree,bored,confused,disagree,disgusted,pleased"
+            intensities = "3"
+            variations = "5"
 		/>
 		
-        <connection  source = "MyConstant.OUTPUT"  target = "EpiVoice.INPUT" />
+        <connection  source = "MyConstant.OUTPUT"  target = "EpiVoice.TRIG" />
+        <connection  source = "Intensity.OUTPUT"  target = "EpiVoice.INTENSITY" />
 
         <view name="View" >
             <bar-graph  w = "3" source = "MyConstant.OUTPUT" direction = "vertical" lineCap = "" module = "MyConstant" transpose = "false" max = "1" color = "" title = "Sound Triggers" fill = "" x = "60" lineWidth = "1" width = "701" lineJoin = "" min = "0" height = "201" show_frame = "false" style = "" auto = "false" show_title = "true" y = "20" frame-style = "" labels = ""/>
-            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "seen" frame-style = "" yindex = "0" valueUp = "0" xindex = "0" value = "1" x = "60" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
-            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "clang" frame-style = "" yindex = "0" valueUp = "0" xindex = "1" value = "1" x = "180" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
-            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "shot" frame-style = "" yindex = "0" valueUp = "0" xindex = "2" value = "1" x = "300" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
-            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "soda" frame-style = "" yindex = "0" valueUp = "0" xindex = "3" value = "1" x = "420" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
-            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "wree" frame-style = "" yindex = "0" valueUp = "0" xindex = "4" value = "1" x = "540" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
-            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "MyConstant.data" label = "R2D2" frame-style = "" yindex = "0" valueUp = "0" xindex = "5" value = "1" x = "660" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
-            <bar-graph  frame-style = "" show_title = "true" min = "-100" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "EpiVoice.RMS" title = "VU" color = "" max = "5" transpose = "false" lineJoin = "" lineWidth = "1" width = "200" show_frame = "false" auto = "false" height = "200" y = "20" x = "780"/>
-            <bar-graph  x = "780" y = "240" height = "200" width = "200" title = "VOLUME" source = "EpiVoice.VOLUME" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "0.03" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-       	    <slider-horizontal  x = "1000" y = "240" height = "200" width = "200" title = "Scale Volume Output" parameter = "EpiVoice.scale_volume" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
-   	    	<slider-horizontal  count = "1" frame-style = "" height = "200" labels = "" max = "500" min = "-500" parameter = "EpiVoice.lag" select = "0" show_frame = "false" show_title = "true" show_values = "true" step = "0.01" style = "" title = "Lag" width = "200" x = "1000" y = "460"/>
+    	<button  command = "" commandUp = "" enableSource = "" frame-style = "" label = "agree" parameter = "MyConstant.data" show_frame = "false" show_title = "false" style = "" title = "Title" value = "1" valueUp = "0" x = "60" xindex = "0" y = "240" yindex = "0" color = "" background = "" icon = "" type = "push" radioGroup = "" multiGroup = "" file_names = ""/>
+	<button  command = "" commandUp = "" enableSource = "" frame-style = "" label = "bored" parameter = "MyConstant.data" show_frame = "false" show_title = "false" style = "" title = "Title" value = "1" valueUp = "0" x = "180" xindex = "1" y = "240" yindex = "0" color = "" background = "" icon = "" type = "push" radioGroup = "" multiGroup = "" file_names = ""/>
+	<button  command = "" commandUp = "" enableSource = "" frame-style = "" label = "confused" parameter = "MyConstant.data" show_frame = "false" show_title = "false" style = "" title = "Title" value = "1" valueUp = "0" x = "300" xindex = "2" y = "240" yindex = "0" color = "" background = "" icon = "" type = "push" radioGroup = "" multiGroup = "" file_names = ""/>
+	<button  command = "" commandUp = "" enableSource = "" frame-style = "" label = "disagree" parameter = "MyConstant.data" show_frame = "false" show_title = "false" style = "" title = "Title" value = "1" valueUp = "0" x = "420" xindex = "3" y = "240" yindex = "0" color = "" background = "" icon = "" type = "push" radioGroup = "" multiGroup = "" file_names = ""/>
+	<button  command = "" commandUp = "" enableSource = "" frame-style = "" label = "digusted" parameter = "MyConstant.data" show_frame = "false" show_title = "false" style = "" title = "Title" value = "1" valueUp = "0" x = "540" xindex = "4" y = "240" yindex = "0" color = "" background = "" icon = "" type = "push" radioGroup = "" multiGroup = "" file_names = ""/>
+	<button  command = "" commandUp = "" enableSource = "" frame-style = "" label = "pleased" parameter = "MyConstant.data" show_frame = "false" show_title = "false" style = "" title = "Title" value = "1" valueUp = "0" x = "660" xindex = "5" y = "240" yindex = "0" color = "" background = "" icon = "" type = "push" radioGroup = "" multiGroup = "" file_names = ""/>
+    <bar-graph  frame-style = "" show_title = "true" min = "-100" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "EpiVoice.RMS" title = "VU" color = "" max = "5" transpose = "false" lineJoin = "" lineWidth = "1" width = "200" show_frame = "false" auto = "false" height = "200" y = "20" x = "780"/>
+    <bar-graph  x = "780" y = "240" height = "200" width = "200" title = "VOLUME" source = "EpiVoice.VOLUME" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "0.03" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+    <slider-horizontal  x = "1000" y = "240" height = "200" width = "200" title = "Scale Volume Output" parameter = "EpiVoice.scale_volume" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+    <slider-horizontal  count = "1" frame-style = "" height = "200" labels = "" max = "500" min = "-500" parameter = "EpiVoice.lag" select = "0" show_frame = "false" show_title = "true" show_values = "true" step = "0.01" style = "" title = "Lag" width = "200" x = "1000" y = "460"/>
+    <slider-horizontal  x = "60" y = "360" height = "81" width = "181" title = "Intensity" parameter = "Intensity.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+
  </view>
 
 
     <module class = "Logger" name = "Logger" />
 </group>
  
-
-
 
 
 

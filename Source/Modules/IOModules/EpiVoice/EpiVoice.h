@@ -1,7 +1,7 @@
 //
 //	EpiVoice.h		This file is a part of the IKAROS project
 // 						
-//    Copyright (C) 2014-2022 Christian Balkenius
+//    Copyright (C) 2022 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -29,15 +29,16 @@
 #include <vector>
 #include <string>
 
-class EpiSound
+class EmotionSound
 {
     public:
-        EpiSound(const std::string & s) : sound_path(s) { timer = new Timer(); };
+        EmotionSound(const std::string & s) : sound_path(s) { timer = new Timer(); };
 
         void    Play(const char * command);
         bool    UpdateVolume(float * rms, float lag=0);  // returns true if still playing
 
         std::string sound_path;
+
         std::vector<float> time;
         std::vector<float> left;
         std::vector<float> right;
@@ -53,27 +54,30 @@ class EpiSound
 class EpiVoice: public Module
 {
 public:
-    float * input;
-    float * last_input;
+    float * trig;
     float * intensity;
-
+    float * last_trig;
     int     size;
-    int     variants;
-    int     intensities;
+    float * inhibition;
+
+    float * playing;
+    float * completed;
+    float * active;
 
     float * rms;
     float * volume;
     
     float   scale_volume;
     float   lag;
+    int intensities;
+    int variants;                                                       
 
     const char *  command;
-
-    std::string directory;
     
-    std::vector<EpiSound> sound;
-
+    std::vector<EmotionSound> sound;
+    int queued_sound;
     int current_sound;
+    int last_sound;
 
 
     static Module * Create(Parameter * p) { return new EpiVoice(p); }
@@ -81,7 +85,7 @@ public:
     EpiVoice(Parameter * p) : Module(p) {}
     virtual ~EpiVoice() {}
 
-    EpiSound       CreateSound(std::string sound_name);
+    EmotionSound       CreateSound(std::string sound_name);
 
     void 		Init();
     void 		Tick();

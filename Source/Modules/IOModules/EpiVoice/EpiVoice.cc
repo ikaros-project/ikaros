@@ -1,7 +1,7 @@
 //
 //	EpiVoice.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2013-2022 Christian Balkenius
+//    Copyright (C) 2022 Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -19,29 +19,27 @@
 //
 //    See http://www.ikaros-project.org/ for more information.
 //
-
+//    Based on module SoundOutput
 
 #include "EpiVoice.h"
 
 #include <spawn.h>
 
-extern char **environ;
-
 using namespace ikaros;
 
 void
-EpiSound::Play(const char * command)
+EmotionSound::Play(const char * command)
 {
     timer->Restart();
     frame = 0;
     char * argv[5] = { (char *)command, (char *)sound_path.c_str(), NULL };
     pid_t pid;
-    extern char **environ;
+
     int status = posix_spawn(&pid, (char *) command, NULL, NULL, argv, NULL);
 }
 
 bool
-EpiSound::UpdateVolume(float * rms, float lag)
+EmotionSound::UpdateVolume(float * rms, float lag)
 {
     float rt = 0.001*(timer->GetTime() - lag);
     while(frame < time.size() && time[frame] < rt)
@@ -61,15 +59,15 @@ EpiSound::UpdateVolume(float * rms, float lag)
 
 
 
-EpiSound
+EmotionSound
 EpiVoice::CreateSound(std::string sound_path)
 {
-    EpiSound sound(sound_path);
+    EmotionSound sound(sound_path);
 
     // Get amplitudes using ffprobe
 
     int err = 0;
-    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0", sound_path.c_str());
+    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null", sound_path.c_str());
     float t, l, r;
     FILE * fp = popen(command_line, "r"); 
     if(fp != NULL)
@@ -99,42 +97,68 @@ EpiVoice::CreateSound(std::string sound_path)
 void
 EpiVoice::Init()
 {
-    input = GetInputArray("INPUT");
-    size = GetInputSize("INPUT");
-    last_input = create_array(size);
+    trig = GetInputArray("TRIG");
+    size = GetInputSize("TRIG");
+    last_trig = create_array(size);
+    queued_sound = -1;
     current_sound = -1;
+    last_sound = -1;
+    inhibition = GetInputArray("INHIBITION");
+    intensity = GetInputArray("INTENSITY");
+
+    playing = GetOutputArray("PLAYING");
+    completed = GetOutputArray("COMPLETED");
+    active = GetOutputArray("ACTIVE");
+
     rms = GetOutputArray("RMS");
     volume = GetOutputArray("VOLUME");
+    
     command = GetValue("command");
+
     Bind(scale_volume, "scale_volume");
     Bind(lag, "lag");
-    Bind(directory, "directory");
 
-    Bind(intensities, "intensities");
-    Bind(variants, "variants");
+    intensities = GetIntValue("intensities");
+    variants = GetIntValue("variants");
 
+
+    std::string dir = GetValue("directory");
+
+    int xxx = 0;
     for(auto sound_name: split(GetValue("sounds"), ","))
-    {
-
-        for(int i=0; i<intensities; i++)
+        for(int i=0; i<intensities; i++ )
             for(int v=0; v<variants; v++)
             {
-                printf("## %s ### %d %d >>%s<<\n", directory.c_str(), v, i, trim(sound_name).c_str());
-                //sound.push_back(CreateSound(this->kernel->ikc_dir + trim(sound_name)));
+                std::string full_sound_name = std::string(this->kernel->ikc_dir) + dir + "/" + trim(sound_name) + "_" + std::to_string(i+1) + "_" + std::to_string(v+1) + ".wav";
+                printf("Processing %3d: %s\n", xxx++, full_sound_name.c_str());
+                sound.push_back(CreateSound(full_sound_name));
             }
-    }
 }
 
 
 void
 EpiVoice::Tick()
 {
-    // Check for trig
+    // Check for trig and queue sound
 
     for(int i=0; i<size; i++)
-        if(input[i] == 1 && last_input[i] == 0 && i < sound.size())
+        if(trig[i] == 1 && last_trig[i] == 0 && i < sound.size())
         {
-            current_sound = i;
+                int v = random(variants);
+                int j = 0;
+                if(intensity)
+                    j = map_to_bin(*intensity, intensities); 
+
+                queued_sound = i *variants * intensities + variants * j + v;
+
+        }
+
+    // Start play if sound in queue and no inhibition
+
+        if(current_sound == -1 && queued_sound != -1 && (!inhibition || *inhibition == 0))
+        {
+            current_sound = queued_sound;
+            queued_sound = -1;
             sound[current_sound].Play(command);
         }
 
@@ -150,9 +174,37 @@ EpiVoice::Tick()
     volume[0] = scale_volume * pow(10, 0.1*rms[0]); // convert to linear volume scale
     volume[1] = scale_volume * pow(10, 0.1*rms[1]);
 
-    // Store last input
+    // Set playing status outputs
 
-    copy_array(last_input, input, size);
+    
+    if(current_sound == -1)
+    {
+        reset_array(playing, size);
+        *active = 0;
+    }
+    else
+    {
+        set_one(playing, current_sound, size);
+        *active = 1;
+    }
+
+    // Set completed status
+
+    if((current_sound != last_sound) && (last_sound != -1))
+    {
+        set_one(completed, last_sound, size);
+    }
+    else
+    {
+        reset_array(completed, size);
+    }
+
+
+
+    // Store last trig and sound
+
+    copy_array(last_trig, trig, size);
+    last_sound = current_sound;
 }
 
 
