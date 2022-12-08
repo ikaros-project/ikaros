@@ -22,10 +22,10 @@
     <parameter name="lag" type="float" default="100.0" description="Lag in ms before the sound starts. Used to correct timing of volume output for better animations." />
     
 	<input name="TRIG" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
-	<input name="INHIBITION" description="No new sound is started while this input > 0. A single triggering input will be queued and start when the inhibition is removed." />
+	<input name="INHIBITION" optional="yes" description="No new sound is started while this input > 0. A single triggering input will be queued and start when the inhibition is removed." />
 
     <output name="PLAYING" size_set="TRIG" description="Set to 1 while a sound is playing, otherwise 0." />
-    <output name="COMPLETED" size_set="TRIG" description="Element for each sound set to 1 for one tick after a sound has complted playing." />
+    <output name="COMPLETED" size_set="TRIG" description="Element for each sound set to 1 for one tick after a sound has completed playing." />
 
     <output name="ACTIVE" size="1" description="Set to 1 while a sound is playing, otherwise 0." />
 
