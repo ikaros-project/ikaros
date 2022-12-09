@@ -62,6 +62,9 @@ public:
     float * completed;
     float * active;
 
+    float * attribute1;
+    float * attribute2;
+
     float * rms;
     float * volume;
     

@@ -112,6 +112,9 @@ EpiSpeech::Init()
     last_sound = -1;
     inhibition = GetInputArray("INHIBITION");
 
+    attribute1 = GetInputArray("ATTRIBUTE1");
+    attribute2 = GetInputArray("ATTRIBUTE2");
+
     playing = GetOutputArray("PLAYING");
     completed = GetOutputArray("COMPLETED");
     active = GetOutputArray("ACTIVE");
