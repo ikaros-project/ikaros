@@ -7,7 +7,7 @@ add_subdirectory(Network)
 add_subdirectory(Video)
 add_subdirectory(SoundOutput)
 add_subdirectory(EpiVoice)
-
+add_subdirectory(EpiSpeech)
 add_subdirectory(TouchBoard)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
