@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="EpiSpeech Example">
+<group name="EpiSpeech" title="EpiSpeech Example">
 	
 		<module
 			class = "Constant"
@@ -39,7 +39,9 @@
 	<connection  source = "Attribute2.OUTPUT"  target = "EpiSpeech.ATTRIBUTE2" />
 
 
-        <view name="View" >
+	<view name="Controls" >
+	<text  x = "60" y = "360" height = "101" width = "101" title = "Attribute 1" parameter = "" text = "" prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+
             <bar-graph  w = "3" source = "Command.OUTPUT" direction = "vertical" lineCap = "" module = "Command" transpose = "false" max = "1" color = "" title = "Sound Triggers" fill = "" x = "60" lineWidth = "1" width = "701" lineJoin = "" min = "0" height = "201" show_frame = "false" style = "" auto = "false" show_title = "true" y = "20" frame-style = "" labels = ""/>
             <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-1" frame-style = "" yindex = "0" valueUp = "0" xindex = "0" value = "1" x = "60" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
             <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-2" frame-style = "" yindex = "0" valueUp = "0" xindex = "1" value = "1" x = "180" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
@@ -68,5 +70,8 @@
 
     <module class = "Logger" name = "Logger" />
 </group>
+
+
+
 
 
