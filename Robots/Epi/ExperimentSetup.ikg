@@ -71,7 +71,7 @@ nrServosTotal = "19">
 	<connection  source = "SR.OUTPUT"  target = "OneHotVector.INPUT" 	sourceoffset = "@servosIndexSound" 				targetoffset = "0" size = "1"/>
 
 	<module class = "OneHotVector" name = "OneHotVector" output_size = "34" />
-		<connection  source = "OneHotVector.OUTPUT"  target = "Epi.SoundOutput.INPUT"/>
+		<connection  source = "OneHotVector.OUTPUT"  target = "Epi.SoundOutput.TRIG"/>
 
 <view name="Record view" >
 	<rectangle  background = "" frame-style = "" frame_color = "" frame_width = "1" height = "51" label = "" show_frame = "true" show_title = "false" style = "background-color:#ddd;" title = "Default Title" width = "1911" x = "0" y = "0"/>

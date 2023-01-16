@@ -19,8 +19,11 @@
         uv4l = "true"
 		info = "false"
         active = "yes"
-		size_x = "640"
-		size_y = "640"
+		_size_x = "640"
+		_size_y = "640"
+		size_x = "1280"
+		size_y = "720"
+
 		syncronized_tick = "false" 
 		list_devices = "false"
 		/>
@@ -34,9 +37,10 @@
     <connection source = "EYE.BLUE"      target = "LOW_BLUE.INPUT" delay="0" />
     <connection source = "EYE.INTENSITY" target = "LOW_INTENSITY.INPUT" delay="0" />
     <view name="View" >
-        <image  style = "" show_frame = "false" min_x = "0" opacity = "1" index = "" file = "" module = "" height = "261" flipYCanvas = "no" scales = "no" command = "" show_title = "true" w = "4" frame-style = "" y = "20" max_x = "1" format = "rgb" scale = "both" source = "EYE.RED+GREEN+BLUE" x = "400" title = "Full resolution" max_y = "1" h = "4" min_y = "0" flipXCanvas = "no" flipYAxis = "no" width = "301" flipXAxis = "no"/>
-        <image  style = "" show_frame = "false" min_x = "0" opacity = "1" index = "" file = "" module = "" height = "261" flipYCanvas = "no" scales = "no" command = "" show_title = "true" w = "4" frame-style = "" y = "20" scale = "both" source = "EYE.INTENSITY" max_x = "1" format = "gray" x = "60" title = "Full resolution" max_y = "1" h = "4" min_y = "0" flipXCanvas = "no" flipYAxis = "no" width = "321" flipXAxis = "no"/>
-        <image  style = "" show_frame = "false" min_x = "0" opacity = "1" index = "" file = "" module = "" height = "261" flipYCanvas = "no" scales = "no" command = "" show_title = "true" w = "4" frame-style = "" y = "300" max_x = "1" format = "rgb" scale = "both" source = "LOW_RED.OUTPUT+LOW_GREEN.OUTPUT+LOW_BLUE.OUTPUT" x = "400" title = "Low resolution" max_y = "1" h = "4" min_y = "0" flipXCanvas = "no" flipYAxis = "no" width = "301" flipXAxis = "no"/>
-        <image  style = "" show_frame = "false" min_x = "0" opacity = "1" index = "" file = "" module = "" height = "261" flipYCanvas = "no" scales = "no" command = "" show_title = "true" w = "4" frame-style = "" y = "300" scale = "both" source = "LOW_INTENSITY.OUTPUT" max_x = "1" format = "gray" x = "60" title = "Low resolution" max_y = "1" h = "4" min_y = "0" flipXCanvas = "no" flipYAxis = "no" width = "321" flipXAxis = "no"/>
+        <image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "rgb" frame-style = "" h = "4" height = "360" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "true" source = "EYE.RED+GREEN+BLUE" style = "" title = "Full resolution" w = "4" width = "640" x = "760" y = "20"/>
+        <image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" h = "4" height = "360" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "true" source = "EYE.INTENSITY" style = "" title = "Full resolution" w = "4" width = "640" x = "60" y = "20"/>
+        <image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "rgb" frame-style = "" h = "4" height = "360" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "true" source = "LOW_RED.OUTPUT+LOW_GREEN.OUTPUT+LOW_BLUE.OUTPUT" style = "" title = "Low resolution" w = "4" width = "640" x = "760" y = "400"/>
+        <image  command = "" file = "" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" h = "4" height = "360" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "1" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "true" source = "LOW_INTENSITY.OUTPUT" style = "" title = "Low resolution" w = "4" width = "640" x = "60" y = "400"/>
     </view>
+
 </group>
