@@ -218,7 +218,7 @@ public:
     int size_x(int dim) { return cols(); }
     int size_y(int dim) { return rows(); }
 
-    template <typename... Args>  
+    template <typename... Args>
     matrix & 
     resize(Args... new_shape)
     {
@@ -229,12 +229,13 @@ public:
         std::vector<int> v{static_cast<int>(new_shape)...};
 
         for(int i=0; i<shape_.size(); i++)
-            if(v[i] > shape_[i])
+            if(v[i] > max_size_[i])
                 throw std::out_of_range("New size larger than allocated space");
         #endif
         shape_ = v;
         return *this;
     } 
+
 
     matrix & push_row(matrix & r) { return *this; } // add row last in matrix *********
     matrix pop_row()  { return *this; } // return and remove last row *********
@@ -249,8 +250,8 @@ public:
         #endif
         matrix r = *this;
         int new_offset = i;
-        for(int d=shape_.size()-1; d>0; d--)
-            new_offset *= shape_[d];
+        for(int d=stride_.size()-1; d>0; d--)
+            new_offset *= stride_[d];
         r.offset_ += new_offset;
         r.shape_ = {shape_.begin()+1, shape_.end()};
         r.stride_ = {stride_.begin()+1, stride_.end()};
@@ -439,15 +440,15 @@ public:
    
 
     template <typename... Args> int 
-    compute_index(Args... indices) const // Compute the location of an elemnt in the data - TODO: DOES NOT WORK FOR SUBMATRICES
+    compute_index(Args... indices) const
     {
         std::vector<int> v{static_cast<int>(indices)...};
         int index = 0;
         int stride = 1;
-        for (int i = shape_.size() - 1; i >= 0; --i)
+        for (int i = stride_.size() - 1; i >= 0; --i)
         {
             index += v[i] * stride;
-            stride *= shape_[i];
+            stride *= stride_[i];
         }
         return index;
     }
@@ -455,13 +456,13 @@ public:
     
 
     int
-    compute_index(std::vector<int> & v) const   // ****SUBMATRICES??? RESIZED???  STRIDES??
+    compute_index(std::vector<int> & v) const 
     {
         int index = 0;
         int stride = 1;
-        for (int i = shape_.size() - 1; i >= 0; --i) {
+        for (int i = stride_.size() - 1; i >= 0; --i) {
             index += v[i] * stride;
-            stride *= shape_[i];
+            stride *= stride_[i];
         }
         return index;
     }
