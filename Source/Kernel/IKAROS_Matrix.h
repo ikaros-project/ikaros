@@ -7,6 +7,7 @@
 #include <vector>
 #include <initializer_list>
 #include <variant>
+#include <iterator>
 
 // #define NO_MATRIX_CHECKS   // Define to remove checks of matrix size and index ranges
 
@@ -37,10 +38,28 @@ namespace ikaros
     };
 
 
+// Matrix Iterator
+
+class matrix;
+
+class MatrixIterator
+{
+    public:
+        matrix &    m;
+        int         index;
+
+
+};
+
+
+
 // Matrix class
 
 class matrix {
 public:
+
+
+
     std::shared_ptr<std::vector<float>> data_;      // The raw data for the matrix, shared by submatrices
     int offset_;                                    // offset to first element of the matrix
     std::vector<int> shape_;                        // size of each dimension of the matrix
@@ -110,7 +129,8 @@ public:
 
     matrix(std::initializer_list<InitList>  list): // Main creator function from initializer list
         offset_(0),
-        data_(std::make_shared<std::vector<float>>())   // INIT SIZE **********
+        size_(0),
+        data_(std::make_shared<std::vector<float>>())
     {
         init(shape_, data_, list);
         stride_ = shape_;
@@ -123,7 +143,7 @@ public:
 
     template <typename... Args> // Main creator function from matrix sizes as arguments
     matrix(Args... shape):
-        matrix(std::vector<int>({shape...}))  // std::string(), ***************
+        matrix(std::vector<int>({shape...}))
     {}
 
 
@@ -154,7 +174,7 @@ public:
     void
     set_labels(int dimension, Args... labels)
     {
-        labels_[dimension] = {labels...};
+        labels_.at(dimension) = {labels...};
     }
 
 
@@ -219,13 +239,14 @@ public:
     int size(int dim) { return shape_.at(dim); }
     int rows() { return size(0); } // FIXME: count from the back
     int cols() { return size(1); }
-    int size_x(int dim) { return cols(); } // FIXME: count from the back
+    int size_x(int dim) { return cols(); } // FIXME: count from the back ************************
     int size_y(int dim) { return rows(); }
 
     template <typename... Args>
     matrix & 
     resize(Args... new_shape)
     {
+
         #ifndef NO_MATRIX_CHECKS
         if (sizeof...(new_shape) != shape_.size())
             throw std::invalid_argument("Number of indices must match matrix rank");
@@ -241,39 +262,38 @@ public:
     }
 
 
-    // Push & pop - only 2D matrix
+    // Push & pop
 
     matrix & 
-    push(const matrix & r)
+    push(const matrix & m)
     {
         #ifndef NO_MATRIX_CHECKS
-        if(rank() != r.rank()+1)
+        if(rank() != m.rank()+1)
         throw std::out_of_range("Incompatible matrix sizes");
-        for(int i=0; i<r.shape_.size(); i++)
-            if(shape_[i+1] != r.shape_[i])
+        for(int i=0; i<m.shape_.size(); i++)
+            if(shape_[i+1] != m.shape_[i])
                 throw std::out_of_range("Pushed matrix has wrong shape");
 
         if(shape_[0] >= max_size_[0])
-            throw std::out_of_range("No room for additional rows");
+            throw std::out_of_range("No room for additional element");
         #endif
         if(shape_[0] < max_size_[0])
-            return (*this)[shape_[0]++].copy(r);
+            return (*this)[shape_[0]++].copy(m);
         else
             return *this;
     }
 
 
-    matrix
-    pop() // return and remove last row *********
+   matrix &
+    pop(matrix & m) // pop the last element from m and copy to the current matrix; sizes must match
     {
-            return *this;
-    }
-
-
-    void
-    pop(matrix & m) // last row popped from m to current matrix *********
-    {
-
+        #ifndef NO_MATRIX_CHECKS
+        if(m.shape_[0] == 0)
+            throw std::out_of_range("Nothing to pop");
+        #endif
+        copy(m[m.shape_[0]-1]);
+        m.shape_[0]--;
+        return *this;
     }
 
 
@@ -336,17 +356,15 @@ public:
         if(size_ != 1)
             throw std::out_of_range("Not a matrix element");
         #endif
-        //std::cout << offset_ << " = " << v << std::endl;
         data_->at(offset_) = v;
         return  v;
     }
 
 
 
-    matrix & copy(float v) // Set all element of the matrix to a value // FIX ME: USE APPLY INSTEAD ************
+    matrix & copy(float v) // Set all element of the matrix to a value
     {
-        traverse(&matrix::assign_element, v);
-        return  *this;
+        return apply([=](float x) {return v;});
     }
 
 
@@ -359,7 +377,7 @@ public:
         //std::copy_n(m.data_->begin()+offset_, m.size_, data_->begin()+offset_);
         for(int i=0; i<m.size_; i++)
             data_->at(offset_+i) = m.data_->at(m.offset_+i);
-        // TODO: must be updated for proper submatices ***
+        // TODO: must be updated for proper submatices
         return *this;
     }
  
@@ -461,6 +479,8 @@ void
         return *this;
     }
 
+    // Element-wise function
+
 
     matrix & add(float c) { return apply([c](float x)->float {return x+c;}); }
     matrix & subtract(float c) { return add(-c); }
@@ -478,34 +498,36 @@ void
     matrix & divide(matrix A, matrix B)   { return apply(A, B, [](float x, float y)->float {return x/y;}); }
 
 
-    void
+    bool
     print_(int depth=0)
     {
-        if(rank()== 0)
-        {
+        if(rank()== 0) // empty matrix or scalar
+        { 
             if(size_ == 0)
-                std::cout << "[]" << std::endl;
+                std::cout << "{}";
             else if(size_ == 1)
                 std::cout << data_->at(offset_);
+            return true;
         }
-        else if(rank() == 1)
-        {
-            std::cout << indent(depth) << "[";
-            std::string sep;
-            for (int i=0; i< shape_.back(); i++)
-            {
-                std::cout << sep << data_->at(offset_+i);
-                sep = ", ";
-            }
-            std::cout << "]" << std::endl;
-        }
+
+        std::string sep;
+        bool t;
+        if(!labels_.at(0).empty())
+            std::cout << "\n"<< indent(depth)  << "{";
         else
-        {   
-            std::cout << indent(depth) << "[" << std::endl;
-            for(int i=0; i<shape_[0]; i++)
-                (*this)[i].print_(depth+1);
-            std::cout << indent(depth) << "]" << std::endl;
-    }   }
+            std::cout << "\n"<< indent(depth) << "{";
+        for(int i=0; i<shape_.at(0); i++)
+        {
+            std::cout << sep;
+            t = (*this)[i].print_(depth+1);
+            sep = ", ";
+        }
+        if(t)
+            std::cout << "}";
+        else
+                    std::cout << "\n" << indent(depth) << "}";
+        return false;
+    }
 
 
     void 
@@ -582,7 +604,7 @@ void
         return s;
     }
 
-   
+
 
     template <typename... Args> int 
     compute_index(Args... indices) const
@@ -599,13 +621,13 @@ void
     }
 
     
-
     int
     compute_index(std::vector<int> & v) const 
     {
         int index = 0;
         int stride = 1;
-        for (int i = stride_.size() - 1; i >= 0; --i) {
+        for (int i = stride_.size() - 1; i >= 0; --i)
+        {
             index += v[i] * stride;
             stride *= stride_[i];
         }
@@ -613,34 +635,94 @@ void
     }
 
 
-/*
-    void
-    compute_indices(int index, const std::vector<int>& shape, std::vector<int>& indices) const  // ****SUBMATRICES??? RESIZED???  STRIDES??
+    matrix &
+    matmul(matrix & A, matrix & B) // Compute matrix multiplication A*B and put result in current matrix
     {
-        int rank = shape.size();
-        indices.resize(rank);
-        for (int i = rank - 1; i >= 0; --i) {
-        indices[i] = index % shape[i];
-        index /= shape[i];
+            #ifndef NO_MATRIX_CHECKS
+            if(rank() != 2 || A.rank() !=2 || B.rank() != 2)
+                throw std::invalid_argument("Multiplication requires two-dimensional matrices");
+
+            if(A.cols() != B.rows())
+                throw std::invalid_argument("Matrices are not compatible for multiplication");
+            #endif
+        if(rows() != A.rows() || cols() != B.cols())
+                throw std::invalid_argument("Result matrix does not have size " + std::to_string(A.rows()) + "x" + std::to_string(B.cols()));
+
+        if(this == &A || this == &B)
+                throw std::invalid_argument("Result cannot be assigned to A or B");
+		reset();
+        for(int j=0; j<A.rows(); j++)
+            for(int i=0; i< B.cols(); i++)
+                for(int k=0; k<B.rows(); k++)
+                    (*this)(j, i) += A(j,k) *B(k,i);
+        return *this;
     }
-*/
 
 
+    matrix &
+    corr(matrix & I, matrix & K) // correlation of I and K
+    {
+            #ifndef NO_MATRIX_CHECKS
+            if(rank() != 2 || I.rank() !=2 || K.rank() != 2)
+                throw std::invalid_argument("Convolution requires two-dimensional matrices");
 
-    /* Addiitonal function 
-    
-    matrix & origin(int...)        // create proper submatrix
-    matrix & size(int ...)         // set size of poper submatrix; same as resize
+            if(I.cols() < K.cols() || I.rows() < K.rows())
+                throw std::invalid_argument("K must fit in I");
+            #endif
 
-    M.origin(1,2).size(10, 20);     // defines a matrix view / window
-                                    // Can we handle negative origins?
-    matrix & radius(int...)         // Set up a window centered on origin
-    
-    
-    
-    */
+            int rr = I.rows()-K.rows()+1;
+            int rc = I.cols()-K.cols()+1;
 
+        if(rows() != rr || cols() != rc)
+                throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc));
 
+        if(this == &I || this == &K)
+                throw std::invalid_argument("Result cannot be assigned to I or K");
+		reset();
+
+        for(int j=0; j<rows(); j++)
+            for(int i=0; i<cols(); i++)
+                for(int k=0; k<K.rows(); k++)
+                 for(int l=0; l<K.cols(); l++)
+                    (*this)(j,i) += I(j+k,i+l) * K(k,l);   
+        return *this;   
+    }
+
+    matrix &
+    conv(matrix & I, matrix & K) // Convolution of I and K
+    {
+            #ifndef NO_MATRIX_CHECKS
+            if(rank() != 2 || I.rank() !=2 || K.rank() != 2)
+                throw std::invalid_argument("Convolution requires two-dimensional matrices");
+
+            if(I.cols() < K.cols() || I.rows() < K.rows())
+                throw std::invalid_argument("K must fit in I");
+            #endif
+
+            int Ir = I.rows();
+            int Ic = I.cols();
+            int Kr = K.rows();
+            int Kc = K.cols();
+            int r = Ir-Kr+1;
+            int c = Ic-Kc+1;
+
+        if(rows() != r || cols() != c)
+                throw std::invalid_argument("Result matrix does not have size " + std::to_string(r) + "x" + std::to_string(c));
+
+        if(this == &I || this == &K)
+                throw std::invalid_argument("Result cannot be assigned to I or K");
+		reset();
+
+        for(int j=0; j<r; j++)
+            for(int i=0; i<c; i++)
+                for(int k=0; k<Kr; k++)
+                 for(int l=0; l<Kc; l++)
+                    (*this)(j,i) += I(j+k,i+l) * K(Kr-k-1,Kc-l-1);   
+        return *this;   
+    }
 };
+
+
+
 };
 #endif
