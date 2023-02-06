@@ -75,15 +75,15 @@ Fuse::Fuse(Parameter * p):
     {
         char nm[64];
 
-        sprintf(nm, "MATRIX_%d", i+1);
+        snprintf(nm, 64, "MATRIX_%d", i+1);
         input_matrix_name[i] = create_string(nm);
         AddInput(input_matrix_name[i]);
 
-        sprintf(nm, "OBJECT_ID_%d", i+1);
+        snprintf(nm, 64, "OBJECT_ID_%d", i+1);
         input_object_id_name[i] = create_string(nm);
         AddInput(input_object_id_name[i]);
 
-        sprintf(nm, "FRAME_ID_%d", i+1);
+        snprintf(nm, 64, "FRAME_ID_%d", i+1);
         input_frame_id_name[i] = create_string(nm);
         AddInput(input_frame_id_name[i]);
     }

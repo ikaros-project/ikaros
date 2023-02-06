@@ -268,7 +268,7 @@ OutputJPEG::Tick()
     // Set file name
 
     char fn[256];
-    sprintf(fn, file_name, offset + cur_image);
+    snprintf(fn, 256, file_name, offset + cur_image);
 
     if(suppress > cur_image)
     {

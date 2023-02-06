@@ -56,7 +56,7 @@ SaliencyMap::SaliencyMap(Parameter * p):
     for (int i=0; i<no_of_inputs; i++)
     {
         char nm[32];
-        sprintf(nm, "INPUT%d", i);
+        snprintf(nm, 32, "INPUT%d", i);
         AddInput(create_string(nm));		// FIXME: Important to allocate new string here!!! ***
     }
 
@@ -152,7 +152,7 @@ SaliencyMap::Init()
     for (int i=0; i<no_of_inputs; i++)
     {
         char name[32];
-        sprintf(name, "INPUT%d", i);
+        snprintf(name, 32, "INPUT%d", i);
         input[i] = GetInputMatrix(name);
         incorrect_sizes |= (input_size_x != GetInputSizeX(name) || input_size_y != GetInputSizeY(name));
         gain[i] = 1.0 / (float(no_of_inputs)*float(sqr(1+2*integration_radius)));	// Estimate of maximum if all channels are 1
@@ -165,7 +165,7 @@ SaliencyMap::Init()
         for (int i=0; i<no_of_inputs; i++)
         {
             char name[32];
-            sprintf(name, "INPUT%d", i);
+            snprintf(name, 32, "INPUT%d", i);
             Notify(msg_fatal_error, "Size of \"%s\" is %d x %d.\n", name, GetInputSizeX(name), GetInputSizeY(name));
         }
     }

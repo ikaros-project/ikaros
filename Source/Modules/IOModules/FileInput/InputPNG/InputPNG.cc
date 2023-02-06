@@ -98,7 +98,7 @@ InputPNG::SetSizes()
 	png_infop end_info;
 //	png_bytep *row_p;	     
 
-	sprintf(fn, file_name, cur_image);
+	snprintf(fn, 256, file_name, cur_image);
 
 	// Open and check if it actually is a PNG file
 
@@ -239,7 +239,7 @@ InputPNG::Tick()
 	png_infop end_info;
 	png_bytep *row_p;	     
 	
-	sprintf(fn, file_name, cur_image);
+	snprintf(fn, 256, file_name, cur_image);
 	
 	// Open and check if it actually is a PNG file
 	

@@ -319,7 +319,7 @@ void
 OutputPNG::Tick()
 {
     char fn[256];
-    sprintf(fn, file_name, offset + cur_image);
+    snprintf(fn, 256, file_name, offset + cur_image);
 
     // If we are using a gating signal from outside, we're looking for it here
     if ((writesig != NULL) && ((!writesig[0]) > 0.0)) {

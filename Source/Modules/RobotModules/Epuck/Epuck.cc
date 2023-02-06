@@ -579,7 +579,7 @@ Epuck::SetSpeed()
     // ASCII MODE
 
     char buf[256];
-    sprintf(buf, "D,%d,%d\n", L, R);
+    snprintf(buf, 256, "D,%d,%d\n", L, R);
     s->SendString(buf);
     
     // If we flush the message is remove before it has ben sent

@@ -88,7 +88,7 @@ InputRawImage::Tick()
 {
     float scale = 1.0/255.0;
     char fn[256];
-    sprintf(fn, file_name, cur_image);
+    snprintf(fn, 256, file_name, cur_image);
     file = fopen(fn, "rb");
 
     Notify(msg_debug, "Reading  \"%s\"\n", fn);

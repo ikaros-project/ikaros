@@ -198,7 +198,7 @@ NetworkCamera::NetworkCamera(Parameter * p):
 
     char msg[1024];
     
-    sprintf(msg, "GET /axis-cgi/mjpg/video.cgi?deltatime=1&showlength=1&resolution=%dx%d&req_fps=%d&compression=%d HTTP/1.1\r\n\r\n", size_x, size_y, fps, compression);
+    snprintf(msg, 1024, "GET /axis-cgi/mjpg/video.cgi?deltatime=1&showlength=1&resolution=%dx%d&req_fps=%d&compression=%d HTTP/1.1\r\n\r\n", size_x, size_y, fps, compression);
     
     if (!socket->SendRequest(host_ip, host_port, msg))
     {

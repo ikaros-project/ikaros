@@ -111,7 +111,7 @@ InputJPEG::GetImageSize(int & x, int & y)
     struct my_error_mgr jerr;
     FILE * infile;
     char fn[256];
-    sprintf(fn, file_name, cur_image);
+    snprintf(fn, 256, file_name, cur_image);
 
     if ((infile = fopen(fn, "rb")) == NULL)
     {
@@ -170,7 +170,7 @@ InputJPEG::Tick()
         JSAMPARRAY buffer;			/* Output row buffer */
         int row_stride;				/* physical row width in output buffer */
         char fn[256];
-        sprintf(fn, file_name, cur_image);
+        snprintf(fn, 256, file_name, cur_image);
 
         if ((infile = fopen(fn, "rb")) == NULL)
         {
