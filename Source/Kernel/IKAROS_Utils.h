@@ -145,7 +145,7 @@ void        Deserialize2d(FILE *afile, float **adata, int si, int sj);
 void        Deserialize4d(FILE *afile, float ****adata, int si, int sj, int sk, int sl);
 
 
-
+/*
 // Vector
 
 class matrix;
@@ -214,7 +214,7 @@ class matrix
         float **    data;
         bool        owns_data;
 };
-
+*/
 
 
 // Delay Line

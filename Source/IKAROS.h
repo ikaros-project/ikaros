@@ -41,6 +41,7 @@
 #include "Kernel/IKAROS_Socket.h"
 #include "Kernel/IKAROS_Utils.h"
 #include "Kernel/IKAROS_Math.h"
+#include "Kernel/IKAROS_Matrix.h"
 #include "Kernel/IKAROS_Image_Processing.h"
 #include "Kernel/IKAROS_Serial.h"
 #include "Kernel/IKAROS_XML.h"
@@ -276,7 +277,7 @@ public:
     void            io(float ** & m, int & size_x, int & size_y, const char * name);   // Replaces all matrix functions above
     void            io(float * & a, int *& size, const char * name);   // Replaces all array functions above for variable array size
     void            io(float ** & m, int *& size_x, int *& size_y, const char * name);   // Replaces all matrix functions above for variable matrix size
-    void            io(matrix & m, std::string name, bool required=true); // Get input or output matrix
+   // void            io(ikaros::matrix & m, std::string name, bool required=true); // Get input or output matrix
 
     void            StoreArray(const char * path, const char * name, float * a, int size);
     void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);

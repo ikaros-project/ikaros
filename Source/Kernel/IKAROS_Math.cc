@@ -3889,7 +3889,7 @@ namespace ikaros
 
 
 
-
+/*
 
     vector
     closest_point_on_line_segment(vector & A, vector & B, vector & P)
@@ -3917,6 +3917,6 @@ namespace ikaros
             return x;
         }
     }
-
+*/
 }
 

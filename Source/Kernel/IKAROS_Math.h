@@ -420,7 +420,7 @@ namespace ikaros
 	float *		threshold_lt(float *r, float *a, float threshold, float size);
 
 
-	vector	closest_point_on_line_segment(vector & A, vector & B, vector & P); // temporary version
+	//vector	closest_point_on_line_segment(vector & A, vector & B, vector & P); // temporary version
 }	
 
 #endif

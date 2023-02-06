@@ -1669,7 +1669,7 @@ Module::io(float ** & m, int & size_x, int & size_y, const char * name)
 }
 
 
-
+/*
 void
 Module::io(matrix & m, std::string name, bool required)
 {
@@ -1691,7 +1691,7 @@ Module::io(matrix & m, std::string name, bool required)
  //   else
  //       return matrix(); // FIXME: throw exception if required
 }
-
+*/
 
 
 void
@@ -1938,7 +1938,7 @@ Module::Notify(int msg, const char *format, ...)
     if(msg > log_level) // Module log level
         return false;
     char 	message[512];
-    sprintf(message, "%s (%s): ", GetFullName(), GetClassName());
+    snprintf(message, 512, "%s (%s): ", GetFullName(), GetClassName());
     size_t n = strlen(message);
     va_list args;
     va_start(args, format);

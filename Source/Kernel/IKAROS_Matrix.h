@@ -1,3 +1,10 @@
+//
+// IKAROS_matrix.h - new multidimensional matrix class
+// Christian Balkenius 2023-02-05
+//
+
+
+
 #ifndef IKAROS_MATRIX
 #define IKAROS_MATRIX
 
@@ -8,24 +15,73 @@
 #include <initializer_list>
 #include <variant>
 #include <iterator>
+#include <numeric>
 
 // #define NO_MATRIX_CHECKS   // Define to remove checks of matrix size and index ranges
 
-namespace ikaros 
+namespace ikaros
 {
-
 // Utility functions
 
-    static std::string
-    indent(int level, std::string sep="  ")
+    auto tab = [](int d){ return std::string(3*d, ' ');};
+
+    static void 
+    print_attribute_value(const std::string & name, int value, int indent=0)
     {
-        std::string s;
-        for (int i = 0; i < level; ++i)
-            s += sep;
-        return s;
+        std::cout << name << " = " << value <<  std::endl;
     }
 
+    static void 
+    print_attribute_value(const std::string & name, const std::string & value, int indent=0)
+    {
+        std::cout << name << " = " << value <<  std::endl;
+    }
 
+    static void 
+    print_attribute_value(const std::string & name, const std::vector<int> & values, int indent=0, int max_items=0)
+    {
+                std::cout << name << " = ";
+        int s = values.size();
+        if(max_items>0 && s>max_items)
+            s = max_items;
+
+        for(int i=0; i<s; i++)
+            std::cout << values.at(i) << " ";
+        if(values.size() >= max_items && max_items>0)
+            std::cout << "..." << std::endl;
+        std::cout << std::endl;
+    }
+   
+    static void 
+    print_attribute_value(const std::string name, std::vector<float> & values, int indent=0, int max_items=0)
+    {
+                std::cout << name << " = ";
+        int s = values.size();
+        if(max_items>0 && s>max_items && max_items>0)
+            s = max_items;
+
+        for(int i=0; i<s; i++)
+            std::cout << values.at(i) << " ";
+        if(values.size() >= max_items)
+            std::cout << "..." << std::endl;
+        std::cout << std::endl;
+    }
+
+    static void
+    print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent=0, int max_items=0)
+    {
+        std::cout << name << " = " << std::endl;
+        for(auto d : values)
+        {
+            std::cout << tab(1);
+            if(d.empty())
+                std::cout << "none" << std::endl;
+            else
+                for(auto s : d)
+                    std::cout << s << " ";
+        }
+        std::cout << std::endl;
+    }
 
     // Recursive initalizer_list
 
@@ -37,42 +93,170 @@ namespace ikaros
         InitList(std::initializer_list<InitList> d) { value=d;}
     };
 
-
-// Matrix Iterator
-
 class matrix;
 
-class MatrixIterator
-{
-    public:
-        matrix &    m;
-        int         index;
 
+// Matrix info class
 
-};
-
-
-
-// Matrix class
-
-class matrix {
+class matrix_info {
 public:
-
-
-
-    std::shared_ptr<std::vector<float>> data_;      // The raw data for the matrix, shared by submatrices
     int offset_;                                    // offset to first element of the matrix
     std::vector<int> shape_;                        // size of each dimension of the matrix
     std::vector<int> stride_;                       // stride for jumping to the next row - necessary for submatrices
     std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
-
     int size_;                                      // the size of the data, is different from data_.size() for submatrices
-
     std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
     std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
+
+    int calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
+    {
+        if(shape_.empty())
+            return 0;
+        else
+            return reduce(shape_.begin(), shape_.end(), 1, std::multiplies<>());
+    }
+
+    matrix_info() {};
+
+    matrix_info(std::vector<int> shape):
+        offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), labels_(shape.size()) // NOTE: Actual initialization order depends on order in class definition
+    {}
+
+    void
+    print(std::string n="") const // print matrix info; n overrides name if set (useful during debugging) // FIXME: Mmove partially to matrix_info + print_data
+    {
+        print_attribute_value("name", n.empty() ? name_ : n);
+        print_attribute_value("rank", shape_.size());
+        print_attribute_value("shape", shape_);
+        print_attribute_value("stride", stride_);
+        print_attribute_value("max_size", max_size_);
+        print_attribute_value("size", size_);
+        print_attribute_value("offeset", offset_);
+        print_attribute_value("labels", labels_);
+    }
+};
+
+
+class matrix {
+public:
+
+struct iterator
+{
+public:
+    matrix *    matrix_;
+    int         index_;
+
+    using iterator_category = std::forward_iterator_tag;
+    /*
+    using difference_type   = std::ptrdiff_t;
+    using value_type        = matrix;
+    using pointer           = matrix*;
+    using reference         = matrix&;
+    */
+
+    iterator(matrix & m) : matrix_(&m), index_(0) {}
+    iterator(matrix & m, int i) : matrix_(&m), index_(i) {}
+
+    matrix operator*() { return (*matrix_)[index_]; };
+    
+    //pointer operator->() { return m_ptr; }
+
+    iterator& operator++() { index_++; return *this; }  
+    iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
+
+    friend bool operator== (const iterator& a, const iterator& b) { return a.index_ == b.index_; };
+    friend bool operator!= (const iterator& a, const iterator& b){  return !(a == b); };
+
+};
+
+
+    std::shared_ptr<matrix_info> info_;             // The description of the matrix, can be shared by different matrices
+    std::shared_ptr<std::vector<float>> data_;      // The raw data for the matrix, shared by submatrices
+    std::vector<float *> row_pointers_;             // used for backward compatibility with old float ** matrices - deprecated
+
+    // iterator
+
+    iterator begin() { return iterator(*this, 0); }
+    iterator end()   { return iterator(*this, info_->shape_[0]); }
+
     // Initialization
     
+        matrix(std::vector<int> shape): 
+        info_(std::make_shared<matrix_info>(shape)),
+        data_(std::make_shared<std::vector<float>>(info_->calculate_size()))
+    {}
+
+
+    template <typename... Args> // Main creator function from matrix sizes as arguments
+    matrix(Args... shape):
+        matrix(std::vector<int>({shape...}))
+    {}
+
+
+    matrix(int cols, float *data):
+        matrix(cols)
+    {
+        
+    }
+
+
+    matrix(int rows, int cols, float **data)
+    {
+    
+    }
+
+
+
+
+    matrix
+    operator[](int i) // submatrix operator; returns a submatrix with rank()-1
+    {
+        //std::cout << "op[" << i << "]" << std::endl;
+        #ifndef NO_MATRIX_CHECKS
+        if(i<0 || i>= info_->shape_.front())
+            throw std::out_of_range("Index out of range");
+        #endif
+        matrix r = *this;
+        r.info_ = std::make_shared<matrix_info>(this->info_->shape_);
+        *r.info_ = *info_;
+        int new_offset = i;
+        for(int d=info_->stride_.size()-1; d>0; d--)
+            new_offset *= info_->stride_.at(d);
+        r.info_->offset_ += new_offset;
+        r.info_->shape_ = {info_->shape_.begin()+1, info_->shape_.end()};
+        r.info_->stride_ = {info_->stride_.begin()+1, info_->stride_.end()};
+        r.info_->max_size_ = {info_->max_size_.begin()+1, info_->max_size_.end()};
+        r.info_->size_ = r.info_->calculate_size();
+        if(r.info_->size_==0)
+            r.info_->size_ = 1;
+
+        if(info_->labels_.at(0).size() > i)
+            r.info_->name_ += std::string(".") + info_->labels_.at(0).at(i); // [0][i];
+        else
+            r.info_->name_ += "["+std::to_string(i)+"]";
+        r.info_->labels_.erase(r.info_->labels_.begin());
+
+        return r;
+    }
+
+
+    void
+    info(std::string n="") const // print matrix info; n overrides name if set (useful during debugging) // FIXME: Mmove partially to matrix_info + print_data
+    {
+        info_->print(n);
+        print_attribute_value("data size", data_->size());
+        print_attribute_value("data", *data_, 0, 40);
+    }
+
+
+    void
+    test_fill() // test function that fillls the elements with consecutive numbers - will be removed in the future
+    {
+        for(int i=0; i<data_->size(); i++)
+            (*data_)[i] = float(i);
+    }
+
 
     void
     init(std::vector<int> & shape, std::shared_ptr<std::vector<float>> data, std::initializer_list<InitList> list, int depth=0) // internal initialization function
@@ -113,46 +297,208 @@ public:
     }
 
 
-    matrix(std::vector<int> shape): 
-        offset_(0),
-        shape_(shape), 
-        stride_(shape),
-        max_size_(shape_),
-        size_(calculate_size()),
-        data_((new std::vector<float>))
-    {
-        data_->resize(size_);
-        labels_.resize(shape_.size());
-    }
-
-
-
     matrix(std::initializer_list<InitList>  list): // Main creator function from initializer list
-        offset_(0),
-        size_(0),
-        data_(std::make_shared<std::vector<float>>())
+
+        data_(std::make_shared<std::vector<float>>()),
+        info_(std::make_shared<matrix_info>())
     {
-        init(shape_, data_, list);
-        stride_ = shape_;
-        max_size_ = shape_;
-        size_ = calculate_size();
-        data_->resize(size_);
-        labels_.resize(shape_.size());
+        info_->offset_ = 0;
+        info_->size_ = 0;
+        init(info_->shape_, data_, list);
+        info_->stride_ = info_->shape_;
+        info_->max_size_ = info_->shape_;
+        info_->size_ = info_->calculate_size();
+        data_->resize(info_->size_);
+        info_->labels_.resize(info_->shape_.size());
     }
 
 
-    template <typename... Args> // Main creator function from matrix sizes as arguments
-    matrix(Args... shape):
-        matrix(std::vector<int>({shape...}))
-    {}
+    matrix &
+    set_name(std::string n)
+    {
+        info_->name_ = n;
+        return *this;
+    }
 
 
+    template <typename... Args>
     void
-    test_fill() // test function that fillls the elements with consecutive numbers - will be removed in the future
+    set_labels(int dimension, Args... labels)
     {
-        for(int i=0; i<data_->size(); i++)
-            (*data_)[i] = float(i);
+        info_->labels_.at(dimension) = {labels...};
     }
+
+
+
+    const int rank() const 
+    {
+        return info_->shape_.size();
+    }
+
+
+    bool
+    print_(int depth=0)
+    {
+        if(rank()== 0) // empty matrix or scalar
+        { 
+            if(info_->size_ == 0)
+                std::cout << "{}";
+            else if(info_->size_ == 1)
+                std::cout << data_->at(info_->offset_);
+            return true;
+        }
+
+        std::string sep;
+        bool t;
+        if(!info_->labels_.at(0).empty())
+            std::cout << "\n"<< tab(depth)  << "{";
+        else
+            std::cout << "\n"<< tab(depth) << "{";
+        for(int i=0; i<info_->shape_.at(0); i++)
+        {
+            std::cout << sep;
+            t = (*this)[i].print_(depth+1);
+            sep = ", ";
+        }
+        if(t)
+            std::cout << "}";
+        else
+                    std::cout << "\n" << tab(depth) << "}";
+        return false;
+    }
+
+
+    void 
+    print(std::string n="")  // print matrix; n overrides name if set (useful during debugging)
+    {
+        if(!n.empty())
+            std::cout << n << " = ";
+        else if(!info_->name_.empty())
+            std::cout << info_->name_ << " = ";
+        print_();
+        std::cout << std::endl;
+    };
+
+
+
+matrix &
+    apply(std::function< float(float) > f) // Apply a lambda to elements of a matrix
+    {
+        if(rank() == 0)
+            (*data_)[info_->offset_] = f((*data_)[info_->offset_]);
+        else
+            for(int i=0; i<info_->shape_.front(); i++)
+                (*this)[i].apply(f);
+        return *this;
+    }
+
+
+    matrix &
+    apply(matrix A, std::function<float(float, float)> f) // e = f(A[], x)
+    {
+        if(rank() == 0)
+            (*data_)[info_->offset_] = f((*data_)[info_->offset_], (*A.data_)[info_->offset_]);
+        else
+            for(int i=0; i<info_->shape_[0]; i++)
+            {
+                matrix X = (*this)[i];
+                X.apply(A[i], f);
+            }
+        return *this;
+    }
+
+
+    matrix &
+    apply(matrix A, matrix B, std::function<float(float, float)> f) // e[] = f(A[], B[])
+    {
+        if(rank() == 0)
+            (*data_)[info_->offset_] = f((*A.data_)[info_->offset_], (*B.data_)[info_->offset_]);
+        else
+            for(int i=0; i<info_->shape_[0]; i++)
+            {
+                matrix X = (*this)[i];
+                X.apply(A[i], B[i], f);
+            }
+        return *this;
+    }
+
+
+
+    float
+    dot(matrix A)
+    {
+        float s = 0;
+        if(rank() == 0)
+            return (*data_)[info_->offset_] * (*A.data_)[info_->offset_];
+        else
+            for(int i=0; i<info_->shape_[0]; i++)
+                s += (*this)[i].dot(A[i]);
+        return s;
+    }
+
+
+
+    matrix & 
+    copy(float v) // Set all element of the matrix to a value
+    {
+        return apply([=](float x) {return v;});
+    }
+
+
+    matrix & 
+    copy(matrix m)  // asign matrix or submatrix - copy data
+    {
+        #ifndef NO_MATRIX_CHECKS
+            if(info_->shape_ != m.info_->shape_)
+                throw std::out_of_range("Assignment requires matrices of the same size");
+        #endif 
+        //std::copy_n(m.data_->begin()+offset_, m.size_, data_->begin()+offset_);
+        for(int i=0; i<m.info_->size_; i++)
+            data_->at(info_->offset_+i) = m.data_->at(m.info_->offset_+i);
+        // TODO: must be updated for proper submatices
+        return *this;
+    }
+ 
+
+
+    operator float & ()
+    {
+        #ifndef NO_MATRIX_CHECKS
+        if(info_->size_ != 1)
+            throw std::out_of_range("Not a matrix element");
+        #endif
+        //std::cout << "*" << offset_ << "**" << (*data_)[offset_] << std::endl;
+        return (*data_)[info_->offset_];
+    }
+
+
+    operator float * ()  // Get pointer to data in a row
+    { 
+        return &(*data_).data()[info_->offset_];
+    };
+
+
+
+    operator float ** ()  // Get pointer to data in a row
+    { 
+        if(rank() != 2)
+            throw std::out_of_range("Matrix must be two-dimensional");
+
+        if(row_pointers_.empty())
+            for(int i=0; i<info_->shape_.front(); i++)
+                row_pointers_.push_back(&(*this)(i,0));
+
+        return &row_pointers_[0];
+    };
+
+
+    float * 
+    data() // Get pointer to the underlying data. Works for all sizes and for submatrices
+    {
+            return &data_->data()[info_->offset_];
+    }     
+
+
 
 
     matrix &
@@ -162,21 +508,7 @@ public:
     }
 
 
-    matrix &
-    set_name(std::string n)
-    {
-        name_ = n;
-        return *this;
-    }
-
-
-    template <typename... Args>
-    void
-    set_labels(int dimension, Args... labels)
-    {
-        labels_.at(dimension) = {labels...};
-    }
-
+  
 
     template <typename... Args>
     void
@@ -189,17 +521,26 @@ public:
         std::vector<int> v{static_cast<int>(indices)...};
         for (int i = 0; i < v.size(); ++i)
         {
-            if (v[i] < 0 || v[i] >= shape_[i]) 
+            if (v[i] < 0 || v[i] >= info_->shape_[i]) 
                 throw std::out_of_range("Index out of range");
         }
     }
+
+
+    void
+    check_same_size(matrix & A)
+    {
+        if(info_->shape_ != A.info_-> shape_)
+            throw std::invalid_argument("Matrix sizes must match");
+    }
+
 
 
     template <typename... Args>
     float& operator()(Args... indices)
     {
         #ifndef NO_MATRIX_CHECKS
-        if (sizeof...(indices) != shape_.size())
+        if (sizeof...(indices) != info_->shape_.size())
         throw std::invalid_argument("Number of indices must match matrix rank");
 
         check_bounds(indices...);
@@ -214,7 +555,7 @@ public:
     const float& operator()(Args... indices) const 
     {
         #ifndef NO_MATRIX_CHECKS
-        if (sizeof...(indices) != shape_.size())
+        if (sizeof...(indices) != info_->shape_.size())
             throw std::invalid_argument("Number of indices must match matrix rank"); // TODO nove to check bounds
             check_bounds(indices...);
         #endif
@@ -226,20 +567,17 @@ public:
 
     const std::vector<int>& shape() const
     { 
-        return shape_; 
+        return info_->shape_; 
     }
 
 
-    const int rank() const 
-    {
-        return shape_.size();
-    }
 
 
-    int size(int dim) { return shape_.at(dim); }
+
+    int size(int dim) { return info_->shape_.at(dim); }
     int rows() { return size(0); } // FIXME: count from the back
     int cols() { return size(1); }
-    int size_x(int dim) { return cols(); } // FIXME: count from the back ************************
+    int size_x(int dim) { return cols(); }
     int size_y(int dim) { return rows(); }
 
     template <typename... Args>
@@ -248,16 +586,47 @@ public:
     {
 
         #ifndef NO_MATRIX_CHECKS
-        if (sizeof...(new_shape) != shape_.size())
+        if (sizeof...(new_shape) != info_->shape_.size())
             throw std::invalid_argument("Number of indices must match matrix rank");
 
         std::vector<int> v{static_cast<int>(new_shape)...};
 
-        for(int i=0; i<shape_.size(); i++)
-            if(v[i] > max_size_[i])
+        for(int i=0; i<info_->shape_.size(); i++)
+            if(v[i] > info_->max_size_[i])
                 throw std::out_of_range("New size larger than allocated space");
         #endif
-        shape_ = v;
+        info_->shape_ = v;
+        return *this;
+    }
+
+
+    template <typename... Args>
+    matrix & 
+    realloc(Args... new_shape)
+    {
+        matrix m(std::vector<int>({new_shape...}));
+        m.info_->name_ = info_->name_;
+        info_ = m.info_;
+        data_ = m.data_;
+        return *this;
+    }
+
+
+    template <typename... Args>
+    matrix & 
+    reshape(Args... new_shape)
+    {
+        int n = 1;
+        for(int i : {new_shape...})
+            n *= i;
+        
+        if(n != data_->size())
+            throw std::out_of_range("Incompatible matrix sizes");
+
+        info_->shape_ = std::vector<int>({new_shape...});
+        info_->stride_ = info_->shape_;
+        info_->max_size_ = info_->shape_;
+        info_->labels_.resize(info_->shape_.size());
         return *this;
     }
 
@@ -270,70 +639,40 @@ public:
         #ifndef NO_MATRIX_CHECKS
         if(rank() != m.rank()+1)
         throw std::out_of_range("Incompatible matrix sizes");
-        for(int i=0; i<m.shape_.size(); i++)
-            if(shape_[i+1] != m.shape_[i])
+        for(int i=0; i<m.info_->shape_.size(); i++)
+            if(info_->shape_[i+1] != m.info_->shape_[i])
                 throw std::out_of_range("Pushed matrix has wrong shape");
 
-        if(shape_[0] >= max_size_[0])
+        if(info_->shape_[0] >= info_->max_size_[0])
             throw std::out_of_range("No room for additional element");
         #endif
-        if(shape_[0] < max_size_[0])
-            return (*this)[shape_[0]++].copy(m);
+        if(info_->shape_[0] < info_->max_size_[0])
+            return (*this)[info_->shape_[0]++].copy(m);
         else
             return *this;
     }
 
 
-   matrix &
+    matrix &
     pop(matrix & m) // pop the last element from m and copy to the current matrix; sizes must match
     {
         #ifndef NO_MATRIX_CHECKS
-        if(m.shape_[0] == 0)
+        if(m.info_->shape_[0] == 0)
             throw std::out_of_range("Nothing to pop");
         #endif
-        copy(m[m.shape_[0]-1]);
-        m.shape_[0]--;
+        copy(m[m.info_->shape_[0]-1]);
+        m.info_->shape_[0]--;
         return *this;
-    }
-
-
-    matrix
-    operator[](int i) // submatrix operator; returns a submatrix with rank()-1
-    {
-        //std::cout << "op[" << i << "]" << std::endl;
-        #ifndef NO_MATRIX_CHECKS
-        if(i<0 || i>= shape_.front())
-            throw std::out_of_range("Index out of range");
-        #endif
-        matrix r = *this;
-        int new_offset = i;
-        for(int d=stride_.size()-1; d>0; d--)
-            new_offset *= stride_.at(d);
-        r.offset_ += new_offset;
-        r.shape_ = {shape_.begin()+1, shape_.end()};
-        r.stride_ = {stride_.begin()+1, stride_.end()};
-        r.max_size_ = {max_size_.begin()+1, max_size_.end()};
-        r.size_ = r.calculate_size();
-        if(r.size_==0)
-            r.size_ = 1;
-
-        if(labels_.at(0).size() > i)
-            r.name_ += std::string(".") + labels_.at(0).at(i); // [0][i];
-        else
-            r.name_ += "["+std::to_string(i)+"]";
-        r.labels_.erase(r.labels_.begin());
-
-        return r;
     }
 
 
     matrix operator[](std::string n)
     {
-        if(labels_.empty())
+        if(info_->labels_.empty())
             throw  std::out_of_range("No labels found in matrix");
 
         int i=0;
-        for(auto l : labels_.at(0))
+        for(auto l : info_->labels_.at(0))
         {
             if(l == n)
                 return (*this)[i];
@@ -353,132 +692,13 @@ public:
     float operator=(float v) // Set all element of the matrix to a value
     {
         #ifndef NO_MATRIX_CHECKS
-        if(size_ != 1)
+        if(info_->size_ != 1)
             throw std::out_of_range("Not a matrix element");
         #endif
-        data_->at(offset_) = v;
-        return  v;
+        data_->at(info_->offset_) = v;
+        return  v; 
     }
-
-
-
-    matrix & copy(float v) // Set all element of the matrix to a value
-    {
-        return apply([=](float x) {return v;});
-    }
-
-
-    matrix & copy(matrix m)  // asign matrix or submatrix - copy data
-    {
-        #ifndef NO_MATRIX_CHECKS
-            if(shape_ != m.shape_)
-                throw std::out_of_range("Assignment requires matrices of the same size");
-        #endif 
-        //std::copy_n(m.data_->begin()+offset_, m.size_, data_->begin()+offset_);
-        for(int i=0; i<m.size_; i++)
-            data_->at(offset_+i) = m.data_->at(m.offset_+i);
-        // TODO: must be updated for proper submatices
-        return *this;
-    }
- 
-
-
-    operator float & ()
-    {
-        #ifndef NO_MATRIX_CHECKS
-        if(size_ != 1)
-            throw std::out_of_range("Not a matrix element");
-        #endif
-        //std::cout << "*" << offset_ << "**" << (*data_)[offset_] << std::endl;
-        return (*data_)[offset_];
-    }
-
-
-    operator float * ()  // Get pointer to data in a row
-    { 
-        return &(*data_).data()[offset_];
-    };
-
-
-    float * 
-    data() // Get pointer to the underlying data. Works for all sizes and for submatrices
-    {
-            return &data_->data()[offset_];
-    }     
-
-
-
-void
-    negate_element()
-    {
-        (*data_)[offset_] = -(*data_)[offset_];
-    }
-
-    void
-    assign_element(float x) // old value, parameter, operation, lambda
-    {
-        (*data_)[offset_] = x;
-    }
-
-    matrix &
-    traverse(void (matrix::*f)(float) = nullptr, float value=0, int final_level=0, int depth=0) // traverse n, nn1, n1n, nnn
-    {
-        if(rank() == final_level)
-        {
-            if(f!=nullptr)
-                (this->*f)(value);
-            return *this;
-        }
-
-        for(int i=0; i<shape_.at(0); i++)
-        {
-            (*this)[i].traverse(f, value, final_level, depth+1);
-        }
-        return *this;
-    }
-
-
-    matrix &
-    apply(std::function< float(float) > f) // Apply a lambda to elements of a matrix
-    {
-        if(rank() == 0)
-            (*data_)[offset_] = f((*data_)[offset_]);
-        else
-            for(int i=0; i<shape_.front(); i++)
-                (*this)[i].apply(f);
-        return *this;
-    }
-
-
-    matrix &
-    apply(matrix A, std::function<float(float, float)> f) // e = f(A[], x)
-    {
-        if(rank() == 0)
-            (*data_)[offset_] = f((*data_)[offset_], (*A.data_)[offset_]);
-        else
-            for(int i=0; i<shape_[0]; i++)
-            {
-                matrix X = (*this)[i];
-                X.apply(A[i], f);
-            }
-        return *this;
-    }
-
-
-    matrix &
-    apply(matrix A, matrix B, std::function<float(float, float)> f) // e[] = f(A[], B[])
-    {
-        if(rank() == 0)
-            (*data_)[offset_] = f((*A.data_)[offset_], (*B.data_)[offset_]);
-        else
-            for(int i=0; i<shape_[0]; i++)
-            {
-                matrix X = (*this)[i];
-                X.apply(A[i], B[i], f);
-            }
-        return *this;
-    }
-
+    
     // Element-wise function
 
 
@@ -487,122 +707,15 @@ void
     matrix & multiply(float c) { return apply([c](float x)->float {return x*c;});  }
     matrix & divide(float c) { return multiply(1/c); }
 
-    matrix & add(matrix A)      { return apply(A, [](float x, float y)->float {return x+y;}); }
-    matrix & subtract(matrix A) { return apply(A, [](float x, float y)->float {return x-y;}); }
-    matrix & multiply(matrix A) { return apply(A, [](float x, float y)->float {return x*x;}); }
-    matrix & divide(matrix A)   { return apply(A, [](float x, float y)->float {return x/y;}); }
+    matrix & add(matrix A)      { check_same_size(A); return apply(A, [](float x, float y)->float {return x+y;}); }
+    matrix & subtract(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x-y;}); }
+    matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*x;}); }
+    matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }
 
-    matrix & add(matrix A, matrix B)      { return apply(A, B, [](float x, float y)->float {return x+y;}); }
-    matrix & subtract(matrix A, matrix B) { return apply(A, B, [](float x, float y)->float {return x-y;}); }
-    matrix & multiply(matrix A, matrix B) { return apply(A, B, [](float x, float y)->float {return x*x;}); }
-    matrix & divide(matrix A, matrix B)   { return apply(A, B, [](float x, float y)->float {return x/y;}); }
-
-
-    bool
-    print_(int depth=0)
-    {
-        if(rank()== 0) // empty matrix or scalar
-        { 
-            if(size_ == 0)
-                std::cout << "{}";
-            else if(size_ == 1)
-                std::cout << data_->at(offset_);
-            return true;
-        }
-
-        std::string sep;
-        bool t;
-        if(!labels_.at(0).empty())
-            std::cout << "\n"<< indent(depth)  << "{";
-        else
-            std::cout << "\n"<< indent(depth) << "{";
-        for(int i=0; i<shape_.at(0); i++)
-        {
-            std::cout << sep;
-            t = (*this)[i].print_(depth+1);
-            sep = ", ";
-        }
-        if(t)
-            std::cout << "}";
-        else
-                    std::cout << "\n" << indent(depth) << "}";
-        return false;
-    }
-
-
-    void 
-    print(std::string n="")  // print matrix; n overrides name if set (useful during debugging)
-    {
-        if(!n.empty())
-            std::cout << n << " = ";
-        else if(!name_.empty())
-            std::cout << name_ << " = ";
-        print_();
-        std::cout << std::endl;
-    };
-
-
-    void
-    info(std::string n="") const // print matrix info; n overrides name if set (useful during debugging)
-    {
-        std::cout << "name = \"" << (n.empty() ? name_ : n )<< "\"" << std::endl;
-        std::cout << "rank = " << shape_.size() <<  std::endl;
-
-        std::cout << "shape = ";
-        for(auto s : shape_)    
-            std::cout << s << " " ;
-        std::cout<< std::endl;
-
-        std::cout << "stride = ";
-        for(auto s : stride_)    
-            std::cout << s << " " ;
-        std::cout<< std::endl;
-
-        std::cout << "max_size = ";
-        for(auto s : max_size_)    
-            std::cout << s << " " ;
-        std::cout<< std::endl;
-
-        std::cout << "size = " << size_ << std::endl;
-        std::cout << "offset = " << offset_ << std::endl;
-        std::cout << "data size = " << data_->size() << std::endl;
-        std::cout << "data = ";
-        int s = data_->size();
-        if(s>40)
-            s = 40;
-
-        for(int i=0; i<s; i++)
-            std::cout << data_->at(i) << " ";
-        if(data_->size() >= 40)
-            std::cout << "..." << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "labels = " << std::endl;
-        for(auto d : labels_)
-        {
-            std::cout << indent(1);
-            if(d.empty())
-                std::cout << "none";
-            else
-                for(auto s : d)
-                    std::cout << s << " ";
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }
-
-
-    int
-    calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
-    {
-        if(shape_.empty())
-            return 0;
-
-        int s = 1;
-        for (int dim : shape_)
-            s *= dim;
-        return s;
-    }
+    matrix & add(matrix A, matrix B)      { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x+y;}); }
+    matrix & subtract(matrix A, matrix B) { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x-y;}); }
+    matrix & multiply(matrix A, matrix B) { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x*y;}); }
+    matrix & divide(matrix A, matrix B)   { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x/y;}); }
 
 
 
@@ -612,24 +725,10 @@ void
         std::vector<int> v{static_cast<int>(indices)...};
         int index = 0;
         int stride = 1;
-        for (int i = stride_.size() - 1; i >= 0; --i)
+        for (int i = info_->stride_.size() - 1; i >= 0; --i)
         {
             index += v[i] * stride;
-            stride *= stride_[i];
-        }
-        return index;
-    }
-
-    
-    int
-    compute_index(std::vector<int> & v) const 
-    {
-        int index = 0;
-        int stride = 1;
-        for (int i = stride_.size() - 1; i >= 0; --i)
-        {
-            index += v[i] * stride;
-            stride *= stride_[i];
+            stride *= info_->stride_[i];
         }
         return index;
     }
@@ -720,9 +819,47 @@ void
                     (*this)(j,i) += I(j+k,i+l) * K(Kr-k-1,Kc-l-1);   
         return *this;   
     }
+
+   friend std::ostream& operator<<(std::ostream& os, const matrix & m)
+    {
+        if(m.rank() == 0)
+        {
+            if(m.info_->size_ == 0)
+                os << "{}";
+            else if(m.info_->size_ == 1)
+                os << m.data_->at(m.info_->offset_);
+        }
+        else
+            os << "{...}";
+        return os;
+    }
+
+
+    // Math Functions
+
+    float matrank() { throw std::logic_error("Not implemented"); return 0; }
+    float trace() { throw std::logic_error("Not implemented"); return 0; }
+    float det() { throw std::logic_error("Not implemented"); return 0; }
+    matrix & inv(const matrix & m) { throw std::logic_error("Not implemented"); return *this; }
+    matrix & pinv(const matrix & m) { throw std::logic_error("Not implemented"); return *this; }
+    matrix & transpose(const matrix & m) { throw std::logic_error("Not implemented"); return *this; }
+    matrix & eig(const matrix & m) { throw std::logic_error("Not implemented"); return *this; }
+    // lu
+    // chol
+    // mldivide
+    // svd
+    // pca
+
+    // operator==
+    // operator!=
+    // operator<
+    // operator>
+    // operator<=
+    // operator  
+};  
+
+
 };
 
 
-
-};
 #endif

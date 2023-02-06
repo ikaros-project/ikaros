@@ -1692,7 +1692,7 @@ Dictionary::GetKey(Dictionary::Iterator i)
 }
 
 
-
+/*
 vector::vector():
 size(0),
 data(nullptr),
@@ -1734,7 +1734,7 @@ vector::vector(std::initializer_list<float> d)
         data[i++] = value;
 }
 
-
+*/
 
 /*
 vector &
@@ -1747,7 +1747,7 @@ vector::operator=(const vector & v)
 }
 */
 
-
+/*
 vector::~vector()
 {}
 
@@ -1945,7 +1945,7 @@ void matrix::print(int decimals)
 {
     print("", decimals);
 }
-
+*/
 
 const char *
 check_file_exists(const char * path)
