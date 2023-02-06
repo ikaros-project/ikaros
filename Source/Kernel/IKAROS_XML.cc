@@ -813,7 +813,7 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
 
     if (Match("<"))
     {
-        sprintf(errbuf, "Start tag <%s> not terminated", element_name);
+        snprintf(errbuf, 1024, "Start tag <%s> not terminated", element_name);
         throw errbuf;
     }
 
@@ -908,7 +908,7 @@ XMLDocument::ParseElement(XMLNode * parent)
 
     if (!Match("</"))
     {
-        sprintf(errbuf, "End tag </%s> expected", name);
+        snprintf(errbuf, 1024, "End tag </%s> expected", name);
         throw errbuf;
     }
 
@@ -916,7 +916,7 @@ XMLDocument::ParseElement(XMLNode * parent)
 
     if (strcmp(name, buffer))
     {
-        sprintf(errbuf, "Start tag <%s> at line %d does not match end tag </%s>", name, start_line, buffer);
+        snprintf(errbuf, 1024, "Start tag <%s> at line %d does not match end tag </%s>", name, start_line, buffer);
         throw errbuf;
     }
 
