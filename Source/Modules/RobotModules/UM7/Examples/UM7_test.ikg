@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<group title="UM7 Example">
+	
+		<module
+			class = "UM7"
+			name = "UM7"
+			port = "/dev/cu.usbserial-AU04OEIL"
+		/>
+
+<view name="View" >
+	<plot  buffer_size = "50" color = "" direction = "vertical" frame-style = "" height = "341" max = "180" min = "-180" select = "" show_frame = "false" show_title = "true" source = "UM7.ROLL" style = "" title = "Roll" width = "701" x = "20" y = "20"/>
+	<plot  buffer_size = "50" color = "" direction = "vertical" frame-style = "" height = "341" max = "90" min = "-90" select = "" show_frame = "false" show_title = "true" source = "UM7.PITCH" style = "" title = "Pitch" width = "701" x = "20" y = "360"/>
+	<table  colorize = "false" decimals = "0" direction = "normal" frame-style = "" height = "341" label_x = "" label_y = "" scrollable = "false" show_frame = "false" show_title = "false" source = "UM7.ROLL" style = "" title = "Default Title" width = "301" x = "720" y = "20"/>
+	<table  colorize = "false" decimals = "0" direction = "normal" frame-style = "" height = "341" label_x = "" label_y = "" scrollable = "false" show_frame = "false" show_title = "false" source = "UM7.PITCH" style = "" title = "Default Title" width = "301" x = "720" y = "360"/>
+	<plot  buffer_size = "50" color = "" direction = "vertical" frame-style = "" height = "341" max = "360" min = "-360" select = "" show_frame = "false" show_title = "true" source = "UM7.YAW" style = "" title = "Yay" width = "701" x = "20" y = "700"/>
+	<table  colorize = "false" decimals = "0" direction = "normal" frame-style = "" height = "341" label_x = "" label_y = "" scrollable = "false" show_frame = "false" show_title = "false" source = "UM7.YAW" style = "" title = "Default Title" width = "301" x = "720" y = "700"/>
+</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

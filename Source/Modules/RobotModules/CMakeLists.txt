@@ -12,6 +12,7 @@ add_subdirectory(SequenceRecorder)
 add_subdirectory(Phidgets)
 add_subdirectory(ServoConnector)
 add_subdirectory(SSC32)
+add_subdirectory(UM7)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
