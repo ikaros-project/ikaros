@@ -218,7 +218,7 @@ Serial::SendString(const char *sendbuf)
 int
 Serial::ReceiveUntil(char *rcvbuf, int length, char c)
 {
-	return ReceiveUntil(rcvbuf, c, length);
+	return ReceiveUntil(rcvbuf, length, c, 100);
 }
 
 int
