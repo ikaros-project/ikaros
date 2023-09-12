@@ -6,8 +6,8 @@
 			class = "Randomizer"
 			name = "R"
 			outputsize = "10"
-			minimum = "0"
-			maximum = "1"
+			min = "0"
+			max = "1"
 		/>
 
 		<module
@@ -15,8 +15,8 @@
 			name = "R2"
 			outputsize_x = "3"
 			outputsize_y = "5"
-			minimum = "0"
-			maximum = "1"
+			min = "0"
+			max = "1"
 		/>
 
 		<view name="V1">
