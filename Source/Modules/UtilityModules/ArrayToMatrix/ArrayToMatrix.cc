@@ -28,10 +28,12 @@ using namespace ikaros;
 ArrayToMatrix::ArrayToMatrix(Parameter *p):
     Module(p)
 {
-    input = new float * [channels];
-    output = new float ** [channels];
     Bind(arrayLength, "array_length");
     Bind(channels, "channels");
+    
+    input = new float * [channels];
+    output = new float ** [channels];
+    
 
     for(int i=1; i <= channels; i++)
     {
@@ -111,6 +113,14 @@ ArrayToMatrix::Init()
 void
 ArrayToMatrix::Tick()
 {
+    for(int c=0; c < channels; c++){
+        if(output[c] && output[c][0] && input[c]) {
+            copy_array(output[c][0], input[c], inputSizeX);
+        } else {
+            printf("Null pointer encountered in channel: %d\n", c);
+            continue; // or return, depending on how you want to handle this case
+        }
+    }
     if(debug_mode)
     {    
         for(int i=0; i < channels; i++)
@@ -119,9 +129,6 @@ ArrayToMatrix::Tick()
         }
     }
 
-    
-    for(int c=0; c < channels; c++)
-        copy_array(output[c][0], input[c], inputSizeX);
 }
 
 static InitClass init("ArrayToMatrix", &ArrayToMatrix::Create, "Source/Modules/UtilityModules/ArrayToMatrix/");
