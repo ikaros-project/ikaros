@@ -15,6 +15,7 @@ find_path(FREENECT_INCLUDE_DIRS
     /usr/include/libfreenect
     /usr/local/include/libfreenect
     /opt/local/include/libfreenect
+    /opt/homebrew/include/libfreenect
   )
 
 # Finding libs
@@ -25,6 +26,7 @@ find_library(FREENECT_LIBRARY1
     /usr/include/libfreenect
     /usr/local/include/libfreenect
     /opt/local/include/libfreenect
+    /opt/homebrew/lib
   )
 
 # Finding libs
@@ -35,6 +37,7 @@ find_library(FREENECT_LIBRARY2
     /usr/include/libfreenect
     /usr/local/include/libfreenect
     /opt/local/include/libfreenect
+    /opt/homebrew/lib
   )
 
 if (FREENECT_LIBRARY1 AND FREENECT_LIBRARY2)
