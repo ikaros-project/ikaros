@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<class name="MirrorDemo" description="minimal example module">
+
+	<description type="text">
+		Minimal module that can be used as a start for a new module.
+		Simply change all occurrences of "MirrorDemo" to the name of your new module in
+		MirrorDemo.cc, MirrorDemo.h and MirrorDemo.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MirrorDemo"
+			name="MirrorDemo"
+		/>
+	</example>
+
+	<link class="MirrorDemo" />
+
+
+	<input name="INPUT" description="DEPTH IMGAGE" />
+
+	<output name="OUTPUT" description="Nearest Point" size="3" />	
+	
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>MirrorDemo.h</file>
+   		<file>MirrorDemo.cc</file>
+   		<file>MirrorDemo.ikc</file>
+   </files>
+
+</class>

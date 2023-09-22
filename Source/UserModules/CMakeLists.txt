@@ -5,6 +5,7 @@ add_subdirectory(MyModule)
 add_subdirectory(MotorControl)
 add_subdirectory(CameraSimulate)
 add_subdirectory(MTPupilDemo)
+add_subdirectory(MirrorDemo)
 
 
 
