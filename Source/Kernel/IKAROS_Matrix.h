@@ -25,7 +25,7 @@ namespace ikaros
 {
 // Utility functions
 
-    auto tab = [](int d){ return std::string(3*d, ' ');};
+    inline auto tab = [](int d){ return std::string(3*d, ' ');};
 
     static void 
     print_attribute_value(const std::string & name, int value, int indent=0)
