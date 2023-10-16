@@ -16,6 +16,8 @@
 #include <variant>
 #include <iterator>
 #include <numeric>
+#include <functional>
+#include <memory>
 
 // #define NO_MATRIX_CHECKS   // Define to remove checks of matrix size and index ranges
 
