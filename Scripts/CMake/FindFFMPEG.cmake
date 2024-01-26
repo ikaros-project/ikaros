@@ -20,6 +20,7 @@ find_path(FFMPEG_INCLUDE_DIR1
       /usr/include/x86_64-linux-gnu/libavformat
       /usr/include/i386-linux-gnu/libavformat
       /usr/include/arm-linux-gnueabihf/libavformat
+      /opt/homebrew/include/
     )
 
 find_path(FFMPEG_INCLUDE_DIR2
@@ -34,6 +35,7 @@ find_path(FFMPEG_INCLUDE_DIR2
     /usr/include/x86_64-linux-gnu/libavutil
     /usr/include/i386-linux-gnu/libavutil
     /usr/include/arm-linux-gnueabihf/libavutil
+    /opt/homebrew/include/
   )
 
 find_path(FFMPEG_INCLUDE_DIR3
@@ -48,6 +50,7 @@ find_path(FFMPEG_INCLUDE_DIR3
     /usr/include/x86_64-linux-gnu/libavcodec
     /usr/include/i386-linux-gnu/libavcodec
     /usr/include/arm-linux-gnueabihf/libavcodec
+    /opt/homebrew/include/
   )
 
 find_path(FFMPEG_INCLUDE_DIR4
@@ -62,6 +65,7 @@ find_path(FFMPEG_INCLUDE_DIR4
     /usr/include/x86_64-linux-gnu/libswscale
     /usr/include/i386-linux-gnu/libswscale
     /usr/include/arm-linux-gnueabihf/libswscale
+    /opt/homebrew/include/
   )
 
 find_path(FFMPEG_INCLUDE_DIR5
@@ -76,6 +80,7 @@ find_path(FFMPEG_INCLUDE_DIR5
     /usr/include/x86_64-linux-gnu/libavdevice
     /usr/include/i386-linux-gnu/libavdevice
     /usr/include/arm-linux-gnueabihf/libavdevice
+    /opt/homebrew/include/
   )
 
 if (FFMPEG_INCLUDE_DIR1 AND FFMPEG_INCLUDE_DIR2 AND FFMPEG_INCLUDE_DIR3 AND FFMPEG_INCLUDE_DIR4 AND FFMPEG_INCLUDE_DIR5)
@@ -96,6 +101,7 @@ find_library(FFMPEG_LIBRARY1
     /usr/lib
     /usr/lib/x86_64-linux-gnu
     /usr/lib/arm-linux-gnueabihf
+    /opt/homebrew/lib/
   )
 
 find_library(FFMPEG_LIBRARY2
@@ -106,6 +112,7 @@ find_library(FFMPEG_LIBRARY2
     /usr/lib
     /usr/lib/x86_64-linux-gnu
     /usr/lib/arm-linux-gnueabihf
+    /opt/homebrew/lib/
   )
 
 find_library(FFMPEG_LIBRARY3
@@ -116,9 +123,10 @@ find_library(FFMPEG_LIBRARY3
     /usr/lib
     /usr/lib/x86_64-linux-gnu
     /usr/lib/arm-linux-gnueabihf
+    /opt/homebrew/lib/
   )
 
-find_library(FFMPEG_LIBRARY4
+   find_library(FFMPEG_LIBRARY4
   NAMES
     swscale
   PATHS
@@ -126,9 +134,10 @@ find_library(FFMPEG_LIBRARY4
     /usr/lib
     /usr/lib/x86_64-linux-gnu
     /usr/lib/arm-linux-gnueabihf
-  )
+    /opt/homebrew/lib/
+   )
 
-find_library(FFMPEG_LIBRARY5
+   find_library(FFMPEG_LIBRARY5
   NAMES
     swresample
   PATHS
@@ -136,6 +145,7 @@ find_library(FFMPEG_LIBRARY5
     /usr/lib
     /usr/lib/x86_64-linux-gnu
     /usr/lib/arm-linux-gnueabihf
+    /opt/homebrew/lib/
   )
 
 find_library(FFMPEG_LIBRARY6
@@ -146,6 +156,8 @@ find_library(FFMPEG_LIBRARY6
     /usr/lib
     /usr/lib/x86_64-linux-gnu
     /usr/lib/arm-linux-gnueabihf
+    /opt/homebrew/lib/
+
   )
 
 find_library(FFMPEG_LIBRARY7
