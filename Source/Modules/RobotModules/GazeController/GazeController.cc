@@ -54,10 +54,10 @@ GazeController::Init()
     input = GetInputArray("INPUT"); // Assume 4x4
     output = GetOutputArray("OUTPUT");
     
-    output[neckPan]     = 0.5;
-    output[neckTilt]    = 0.5;
-    output[camL]        = 0.5;
-    output[camR]        = 0.5;
+    output[neckPan]     = 0;
+    output[neckTilt]    = 0;
+    output[camL]        = 0;
+    output[camR]        = 0;
     
     view_side = GetOutputMatrix("VIEW_SIDE");
     view_top  = GetOutputMatrix("VIEW_TOP");

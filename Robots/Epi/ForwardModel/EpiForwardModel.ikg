@@ -64,14 +64,16 @@ nrServosTotal = "19"
 
     <!-- Outputs can not handle sourceoffset targetoffset. Using a dummy module to be able to use sourceoffset and targetoffset -->
 
+    <module class = "Constant" name = "Additional3DPointForWEBUI"     data = "1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1;" />
+
     <!-- Exo -->    
-    <module class = "DataConverter" name = "ExoPointsJoin" output_size_x = "16" output_size_y = "30" _output_size_y = "12"/>
+    <module class = "DataConverter" name = "ExoPointsJoin" output_size_x = "16" output_size_y = "31" _output_size_y = "12"/>
         <connection source = "EpiPos.OUTPUT"         target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "0"   size = "16"/>  <!-- 4x4x1 -->         
         <connection source = "PosBody.MATRIX"        target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "16"  size = "48"/>  <!-- 4x4x3 -->
         <connection source = "BodyHead.MATRIX"       target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "64"  size = "128"/> <!-- 4x4x8 -->
         <connection source = "BodyLeftArm.MATRIX"    target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "192" size = "144"/> <!-- 4x4x9 -->
         <connection source = "BodyRightArm.MATRIX"   target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "336" size = "144"/> <!-- 4x4x9 -->
-
+        <connection source = "Additional3DPointForWEBUI.OUTPUT"     target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "480" size = "13"/>  <!-- 4x4x1 --> <!-- Adding additional point to visualize in webUI -->
 
     <!-- Forward models -->
     <!-- Unit is m -->
