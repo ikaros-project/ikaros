@@ -73,7 +73,7 @@ nrServosTotal = "19"
         <connection source = "BodyHead.MATRIX"       target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "64"  size = "128"/> <!-- 4x4x8 -->
         <connection source = "BodyLeftArm.MATRIX"    target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "192" size = "144"/> <!-- 4x4x9 -->
         <connection source = "BodyRightArm.MATRIX"   target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "336" size = "144"/> <!-- 4x4x9 -->
-        <connection source = "Additional3DPointForWEBUI.OUTPUT"     target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "480" size = "13"/>  <!-- 4x4x1 --> <!-- Adding additional point to visualize in webUI -->
+        <connection source = "Additional3DPointForWEBUI.OUTPUT"     target = "ExoPointsJoin.INPUT" sourceoffset = "0"      targetoffset = "480" size = "16"/>  <!-- 4x4x1 --> <!-- Adding additional point to visualize in webUI -->
 
     <!-- Forward models -->
     <!-- Unit is m -->
