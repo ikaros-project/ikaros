@@ -55,8 +55,10 @@ ValueAccumulator::Tick()
 {
     reset_array(choice, size);
 
-    // Apply update rule
+    // force no negative values
+    threshold_gteq(input, input, 0.f, input_size);
 
+    // Apply update rule
     float E = sum(input, input_size);
 
  //   printf("%f\t%f\n", E*index[0], E*index[1]);
