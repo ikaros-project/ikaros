@@ -14,9 +14,9 @@
 	</example>
 	
 	<link class="InputVideoStream" />
-	
-	<parameter name="size_x" type="int" default="640" description="Size of the image" />
-	<parameter name="size_y" type="int" default="480" description="Size of the image" />
+
+	<parameter name="size_x" type="int" default="1280" description="Size of the image" />
+	<parameter name="size_y" type="int" default="720" description="Size of the image" />
 	<parameter name="url" type="string" description="Stream adress" />
 	<parameter name="info" type="string" description="Print info about stream" />
 	<parameter name="syncronized_framegrabber" default="false" type="bool" description="The framegrabber (grabs and decodes frame) is either syncronized with the tick or run as fast/slow as it can. This is usefull when grabbing live streams where the last frame is more important than get all frames." />

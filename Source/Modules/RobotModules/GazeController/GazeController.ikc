@@ -13,11 +13,11 @@
 		/>
 	</example>
 
-	<parameter name="A" type="float" default="0.077" description="Distance from origin to tilt joint" />
-	<parameter name="B" type="float" default="0.120" description="Distance from tilt joint to eye plane" />
-	<parameter name="C" type="float" default="0.060" description="Distance from pan joint to eye center" />
-	<parameter name="D" type="float" default="0.060" description="Distance between the eyes" />
-	<parameter name="E" type="float" default="0.040" description="Distance from eye joint to focal point" />
+	<parameter name="A" type="float" default="0.107" description="Distance from origin to tilt joint (0.965 for full body Epi)" />
+	<parameter name="B" type="float" default="0.111" description="Distance from tilt joint to eye plane" />
+	<parameter name="C" type="float" default="0.066" description="Distance from pan joint to eye center" />
+	<parameter name="D" type="float" default="0.059" description="Distance between the eyes" />
+	<parameter name="E" type="float" default="0.016" description="Distance from eye joint to focal point" />
     
 	<parameter name="target" type="array" default="0.5 0 0.89" description="Manual target" />
 	<parameter name="target_override" type="bool" default="no" description="Manual targeting override" />

@@ -1,7 +1,7 @@
 # CMake script for the ikaros project. www.ikaros-project.org
 
 # Set cmake version
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5.0)
 
 # To use elseif
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
@@ -14,6 +14,28 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
    	message( STATUS "Detected APPLE system")
 	add_definitions(-DMAC_OS_X)
+ 
+  # Detect if the system using x86 or arm64 (intel or apple silicon)
+  execute_process(COMMAND uname -m
+  OUTPUT_VARIABLE UNAME_CMAKE_OSX_ARCHITECTURES
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  
+  #message(STATUS ${UNAME_CMAKE_OSX_ARCHITECTURES})
+  
+  if(${UNAME_CMAKE_OSX_ARCHITECTURES} STREQUAL "arm64")
+    message(STATUS "Detected apple silicon")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+
+  else()
+    message(STATUS "Detected intel")
+    # Using default flag
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x86_64")
+  endif()
+
+  # ARM64 flag
+  #if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+  #endif()
 
  	# Set compiler
 	set(CMAKE_C_COMPILER "clang")

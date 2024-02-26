@@ -9,7 +9,7 @@
 
 
 <!-- EYES -->
-<module class = "FadeCandy" name = "FadeCandy" start_server = "true">
+<module class = "FadeCandy" name = "FadeCandy" start_server = "false">
     <channel name="MOUTH_TOP"       channel="0"	size="8" />
     <channel name="MOUTH_BOTTOM"    channel="1"	size="8" />
     <channel name="LEFT_EYE"        channel="2"	size="12" />

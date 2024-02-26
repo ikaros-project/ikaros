@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<group title="MinimalModule Example">
+	
+		<module
+			class = "MinimalModule"
+			name = "MinimalModule"
+		/>
+
+		<view name="View">
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 

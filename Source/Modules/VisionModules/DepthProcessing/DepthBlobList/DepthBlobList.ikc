@@ -17,7 +17,7 @@
     <parameter name="tilt" type="float" default="0" description="tilt angle (temporary)" />
 
 	<input name="INPUT" description="The input image" />
-	<input name="POSITION" description="The position of the sensor in the gloabl coordinate system" />
+	<input name="POSITION" description="The position of the sensor in the global coordinate system" />
 
 	<output name="GRID" description="Grid data" size_x="100" size_y="100" />
 	<output name="BACKGROUND" description="Background to subtract" size_x="100" size_y="100" />
