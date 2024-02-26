@@ -94,12 +94,15 @@ Stop::Tick()
          std::cout << '\r'
             << std::setw(4) 
             << std::setprecision(3) 
-            << percentage << " \% complete ---" << std::flush;
+            << percentage << " \% complete ---\n" << std::flush;
     }
     complete_perc  = (this->*CompareInverse)((percentage-complete_perc), tolerance) ? percentage : complete_perc;
 
-    if((counter > wait) && (this->*Compare)(abs(input_array[select]), termination_criterion))
-        Notify(msg_terminate, "Stop: Terminated because criterion was met.");
+    if((counter > wait) && (this->*Compare)(abs(input_array[select]), termination_criterion)){
+        bool result = Notify(msg_terminate, "Stop: Terminated because criterion was met.");
+    }
+    
+
     counter++;
 }
 
