@@ -24,7 +24,7 @@
 //	2002-01-17	Support for UNIX, Mac and DOS end of line tokens added
 //	2012-11-04	Support for static output added
 
-#define DEBUG_INPUTFILE
+// #define DEBUG_INPUTFILE
 
 #include "InputFile.h"
 
