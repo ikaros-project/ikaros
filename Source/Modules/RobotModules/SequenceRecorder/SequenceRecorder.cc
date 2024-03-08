@@ -889,6 +889,7 @@ SequenceRecorder::Crop()
 
     sequence_data["sequences"][current_sequence]["start_mark_time"] = 0;
     sequence_data["sequences"][current_sequence]["end_mark_time"] = float(sequence_data["sequences"][current_sequence]["end_mark_time"]) - start_time;
+    sequence_data["sequences"][current_sequence]["end_time"] = float(sequence_data["sequences"][current_sequence]["end_mark_time"]);
 
     LinkKeypoints();
 }
