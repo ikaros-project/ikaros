@@ -1,6 +1,8 @@
 Ikaros ReadMe
 =============
 
+We are transitioning to version 3 of Ikaros. All information may not be up to date.
+
 This is the public distribution of the Ikaros kernel together with a number of functional modules. This version is mainly intended for potential developers and not for more general use. The current distribution includes versions for OS X and Linux.
 
 To install, follow the [installation instructions](https://github.com/ikaros-project/ikaros/wiki/Installing "Ikaros 2.0")
