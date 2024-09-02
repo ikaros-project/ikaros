@@ -1,0 +1,21 @@
+<group _tag="Group" filename="../Source/Modules/TestModules/sptst4.ikg" name="Untitled" stop="-1" webui_port="8000">
+   <connection _tag="connection" delay_range="1" source="c1.OUTPUT" source_range="" target="sp1.DIRECT_IN" target_range=""/>
+   <module _tag="module" _x="100.000000" _y="100.000000" class="Constant" description="outputs a constant value" name="c1" value="11, 12, 13, 14, 15, 16">
+      <output _tag="output" description="The output" name="OUTPUT" size="data.size"/>
+      <parameter _tag="parameter" default="11, 12, 13, 14, 15, 16" description="output from module" name="data" type="matrix" value="11, 12, 13, 14, 15, 16"/>
+   </module>
+   <module _tag="module" _x="240.000000" _y="96.000000" class="SpikingPopulation" description="Simulates a population of spiking neurons" name="sp1" population_size="6.000000" substeps="2.000000" threshold="30.000000">
+      <input _tag="input" description="The excitatory input" flatten="yes" name="EXCITATION" optional="yes"/>
+      <input _tag="input" description="The excitatory input" flatten="yes" name="INHIBITION" optional="yes"/>
+      <input _tag="input" description="The direct current input" flatten="yes" name="DIRECT_IN" optional="yes"/>
+      <output _tag="output" description="The output" name="OUTPUT" size="@population_size"/>
+      <parameter _tag="parameter" control="textedit" default="1" description="Number of units in population" name="population_size" type="int" value="6.000000"/>
+      <parameter _tag="parameter" control="textedit" default="2" description="Number of substeps when calculating voltage" name="substeps" type="int" value="2.000000"/>
+      <parameter _tag="parameter" default="Izhikevich" name="model_type" options="Izhikevich" type="options" value="Izhikevich"/>
+      <parameter _tag="parameter" default="regular_spiking" name="neuron_type" options="regular_spiking, intrinsically_bursting, chattering, fast_spiking, low_threshold, resonator" type="options" value="regular_spiking"/>
+      <parameter _tag="parameter" control="textedit" default="30" description="Threshold value for firing" name="threshold" type="float" value="30.000000"/>
+      <parameter _tag="parameter" default="false" name="debugmode" type="bool" value="false"/>
+   </module>
+   <widget _index_="0.000000" _tag="widget" _x="432.000000" _y="96.000000" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200.000000" labels="" lineCap="" lineJoin="" lineWidth="1.000000" max="100.000000" min="-100.000000" name="Widget_5" show_frame="false" show_title="true" source="sp1.OUTPUT" style="" title="SP1" transpose="false" width="200.000000"/>
+   <widget _index_="2.000000" _tag="widget" _x="48.000000" _y="288.000000" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200.000000" labels="" lineCap="" lineJoin="" lineWidth="1.000000" max="10.000000" min="0.000000" name="Widget_6" show_frame="false" show_title="true" source="c1.OUTPUT" style="" title="C1" transpose="false" width="200.000000"/>
+</group>

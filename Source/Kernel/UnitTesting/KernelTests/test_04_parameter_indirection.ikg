@@ -1,0 +1,45 @@
+<group name="Test_11"  
+    check_sum = "225373" 
+    description="Test parameter indirection"
+
+    aa = "abc/def:ghi"
+    bb = "false"
+    cc = "333"
+    dd = "FourFourFour"
+    ee = "5"
+    ff1 = "C"
+    ff2 = "B" 
+    ff3 = "A" 
+
+    xdata = "8, 8, 8"
+    xmdata = "9, 9; 9, 9"
+
+    xx = "10"
+    yy = "11"
+
+>
+
+    <module 
+        name="Test" 
+        class="KernelTestModule"
+
+        a = "@aa"
+        b = "@bb"
+        c = "@cc"
+        d = "@dd"
+        e = "@ee"
+        f1 = "@ff1"
+        f2 = "@ff2" 
+        f3 = "@ff3" 
+
+        data = "@xdata"
+        mdata = "@xmdata"
+
+        x = "@xx"
+        y = "@yy"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+</group>
+

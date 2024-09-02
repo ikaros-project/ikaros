@@ -1,0 +1,42 @@
+<class name="KernelTestModule" description="tests all parameter and io-functionality">
+
+	<parameter name="a" type="string" default="3" description="parameter a" />
+	<parameter name="b" type="bool" default="true" description="parameter b" />
+	<parameter name="c" type="number" default="6" description="parameter c" />	
+	<parameter name="d" type="string" default="text" description="parameter d" />
+	<parameter name="e" type="matrix" default="4,5,6;4,3,2;9,8,7" description="parameter e" />
+	
+	<parameter name="f1" type="number" default="B" options="A,B,C" description="parameter f1" />
+	<parameter name="f2" type="string" default="B" options="A,B,C" description="parameter f2" />
+	<parameter name="f3" type="bool" default="B" options="A,B,C" description="parameter f3" />
+
+	<parameter name="g" type="rate" default="0.1"  description="parameter g" />
+
+	<parameter name="data" type="matrix" default="1, 2, 3, 4"  description="parameter data" />
+	<parameter name="mdata" type="matrix" default="1, 2; 3, 4"  description="parameter data" />
+
+	<parameter name="x" type="number" default="7" description="parameter x" />
+	<parameter name="y" type="number" default="9" description="parameter y" />
+
+
+	<input name="INPUT" />
+
+	<!-- Test different froms of simple size expressions -->
+
+	<output name="OUTPUT" description="The output. Copy of input." size="INPUT.size"/>
+
+	<output name="OUTPUT1" description="The output" size="13"/>
+	<output name="OUTPUT2" description="The output" size="4,5"/>
+	<output name="OUTPUT3" description="The output" size="4,5,6"/>
+
+	<output name="OUTPUT4" description="The output" size="@z"/>
+	<output name="OUTPUT5" description="The output" size="@y,@x"/>
+
+	<output name="OUTPUT6" description="The output" size="3*@z+2"/>
+	<output name="OUTPUT7" description="The output" size="2"/>
+
+	<output name="OUTPUT8" description="The output" size="data.size"/>
+	<output name="OUTPUT9" description="The output" size="INPUT.size"/>
+
+</class>
+

@@ -4,10 +4,37 @@
  *  Extensions of string
  */
 
+function isEmpty(obj) 
+{
+    if(obj)
+        for (const prop in obj) {
+        if (Object.hasOwn(obj, prop)) {
+            return false;
+        }
+        }
+
+    return true;
+  }
+
+
 String.prototype.rsplit = function(sep, maxsplit) {
     var split = this.split(sep || /\s+/);
     return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
 }
+
+function toURLParams(obj)
+{
+    s = "";
+    sep = "";
+    const keys = Object.keys(obj)
+    keys.forEach((key) => {
+        s+= sep+`${key}=${obj[key]}`;
+        sep="&";
+    });
+
+    return encodeURIComponent(s);
+}
+
 
 
 function setType(x, t)
@@ -87,8 +114,6 @@ function resetCookies()
  *
  */
 
-
-
 function copyToClipboard(text) // FIXME: uses deprecated functions
 {
     if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
@@ -145,9 +170,9 @@ function displayAside(d)
 
 function toggleInspector()
 {
-    displayAside('widget_inspector');
+    displayAside('widget_inspector_edit');
     return;
-    var x = document.getElementById('widget_inspector');
+    var x = document.getElementById('widget_inspector_edit');
     var s = window.getComputedStyle(x, null);
     if (s.display === 'none') {
         x.style.display = 'block';
@@ -171,10 +196,6 @@ function toggleSystem()
         hideAside();
     }
 }
-
-
-
-
 
 /*
  *
@@ -206,7 +227,7 @@ dialog = {
         let sel = document.getElementById('openDialogItems');
         sel.innerHTML = '';
         if(file_list)
-            for(i of file_list.split(","))
+            for(i of file_list) // FIXME: TEST was .split(",")
             {
                 var opt = document.createElement('option');
                 opt.value = i;
@@ -268,25 +289,41 @@ nav = {
         e.stopPropagation();
     },
     buildList: function(group, name) {
+        if(isEmpty(group))
+            return "";
+
         let s = "";
-            s = "<li data-name='"+name+"/"+group.attributes.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.attributes.name + "</span>"; // FIXME: or title
+            s = "<li data-name='"+name+"/"+group.name+"'  class='group-closed' onclick='return nav.toggleGroup(event)'><span onclick='return nav.navClick(event)'>" + group.name + "</span>"; // FIXME: or title
         if(group.views)
         {
             s +=  "<ul>"
+            
             for(i in group.views)
             {
                 if(!group.views[i].name)
                     group.views[i].name = "View #"+i;
-                s += "<li data-name='"+name+"/"+group.attributes.name+"#"+group.views[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.views[i].name + "</span></li>";
+                s += "<li class='view' data-name='"+name+"/"+group.name+"#"+group.views[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.views[i].name + "</span></li>";
             }
             s += "</ul>";
         }
+
+        if(group.modules)
+        {
+            s +=  "<ul>"
+            for(i in group.modules)
+            {
+                if(!group.modules[i].name)
+                    group.modules[i].name = "Module #"+i;
+                s += "<li data-name='"+name+"/"+group.name+"#"+group.modules[i].name+"'>-&nbsp" + "<span  onclick='return nav.navClick(event)'>"+ group.modules[i].name + "</span></li>";
+            }
+
+            s += "</ul>";
+        }        
         if(group.groups)
         {
             s +=  "<ul>"
             for(i in group.groups)
-                s += nav.buildList(group.groups[i], name+"/"+group.attributes.name);
-            s += "</ul>";
+                s += nav.buildList(group.groups[i], name+"/"+group.name);
         }
         s += "</li>";
         return s;
@@ -309,7 +346,7 @@ inspector = {
     webui_object: null,
     
     init: function () {
-        inspector.inspector = document.getElementById('widget_inspector');
+        inspector.inspector = document.getElementById('widget_inspector_edit');
         inspector.table = document.getElementById('i_table');
     },
     remove: function () {
@@ -496,47 +533,49 @@ module_inspector = {
 
         let m = module_inspector.module;
         
-        if(m.parameters.groups.length > 0) // add group
+        if(m.parameters.class = undefined) // add group
         {
             module_inspector.addHeader("GROUP");
-            module_inspector.addRow("name", m.parameters.attributes.name);
+            module_inspector.addRow("name", m.parameters.name);
             for(let p in m.parameters.parameters)
                 if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
                 {
                     let row = module_inspector.table.insertRow(-1);
-                    let value = m.parameters.attributes[p];
-                    module_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                    let value = m.parameters[p];
+                    module_inspector.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["value"]);
                 }
 
             module_inspector.addHeader("SUBGROUPS");
             module_inspector.addRow("modules", m.parameters.groups.length);
-            module_inspector.addRow("connections", m.parameters.connections.length);
+            module_inspector.addRow("connections", m.parameters.connections ? m.parameters.connections.length : "0");
 
             module_inspector.addHeader("APPEARANCE");
-            module_inspector.addRow("x", m.parameters.attributes._x);
-            module_inspector.addRow("y", m.parameters.attributes._y);
-            module_inspector.addRow("color", m.parameters.attributes._color);
-            module_inspector.addRow("text_color", m.parameters.attributes._text_color);
-            module_inspector.addRow("shape", m.parameters.attributes._shape);
+            module_inspector.addRow("x", m.parameters._x);
+            module_inspector.addRow("y", m.parameters._y);
+            module_inspector.addRow("color", m.parameters._color);
+            module_inspector.addRow("text_color", m.parameters._text_color);
+            module_inspector.addRow("shape", m.parameters._shape);
         }
         
         else // add module
         {
-            module_inspector.addHeader("MODULE (not live)");
-            module_inspector.addRow("name", m.parameters.attributes.name);
-            module_inspector.addRow("class", m.parameters.attributes.class);
+            module_inspector.addHeader("MODULE");
+            module_inspector.addRow("name", m.parameters.name);
+            module_inspector.addRow("class", m.parameters.class);
+            module_inspector.addRow("loglevel", "-");
 
+            if(m.parameters.parameters)
             for(let p of m.parameters.parameters)
-                module_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                module_inspector.addRow(p.name, p["value"]); // FIXME: Show actual parameter values later
 
-            module_inspector.addRow("description", m.parameters.attributes.description);
+            module_inspector.addRow("description", m.parameters.description);
 
             module_inspector.addHeader("APPEARANCE");
-            module_inspector.addRow("x", m.parameters.attributes._x);
-            module_inspector.addRow("y", m.parameters.attributes._y);
-            module_inspector.addRow("color", m.parameters.attributes._color);
-            module_inspector.addRow("text_color", m.parameters.attributes._text_color);
-            module_inspector.addRow("shape", m.parameters.attributes._shape);
+            module_inspector.addRow("x", m.parameters._x);
+            module_inspector.addRow("y", m.parameters._y);
+            module_inspector.addRow("color", m.parameters._color);
+            module_inspector.addRow("text_color", m.parameters._text_color);
+            module_inspector.addRow("shape", m.parameters._shape);
         }
     },
     select: function (obj)
@@ -555,22 +594,22 @@ module_inspector = {
 }
 
 
-module_edit_inspector = {
+module_inspector_edit = {
     inspector: null,
     table: null,
     list: null,
     webui_object: null,
     
     init: function () {
-        module_edit_inspector.inspector = document.getElementById('module_edit_inspector');
-        module_edit_inspector.table = document.getElementById('mei_table');
+        module_inspector_edit.inspector = document.getElementById('module_inspector_edit');
+        module_inspector_edit.table = document.getElementById('mei_table');
     },
     remove: function () {
-        while(module_edit_inspector.table.rows.length)
-            module_edit_inspector.table.deleteRow(-1);
+        while(module_inspector_edit.table.rows.length)
+            module_inspector_edit.table.deleteRow(-1);
     },
     addHeader(title) {
-        row = module_edit_inspector.table.insertRow(-1);
+        row = module_inspector_edit.table.insertRow(-1);
         cell = row.insertCell(0);
         cell.innerText = title;
         cell.setAttribute("colspan", 2);
@@ -578,7 +617,7 @@ module_edit_inspector = {
     },
     addRow(attribute, value) {
         value = value!=undefined ? value : "";
-        row = module_edit_inspector.table.insertRow(-1);
+        row = module_inspector_edit.table.insertRow(-1);
         cell1 = row.insertCell(0);
         cell2 = row.insertCell(1);
         cell1.innerText = attribute;
@@ -588,60 +627,60 @@ module_edit_inspector = {
     //    let widget = webui_object.widget;
     //    let parameters = widget.parameters;
 
-        module_edit_inspector.module = module;
-   //     module_edit_inspector.parameter_template = widget.parameter_template;
+        module_inspector_edit.module = module;
+   //     module_inspector_edit.parameter_template = widget.parameter_template;
 
         // Add header info
 
-        let m = module_edit_inspector.module;
+        let m = module_inspector_edit.module;
         
-        if(m.parameters.groups.length > 0) // add group
+        if(m.parameters.class == undefined) // add group
         {
-            module_edit_inspector.addHeader("GROUP");
-            module_edit_inspector.addRow("name", m.parameters.attributes.name);
+            module_inspector_edit.addHeader("GROUP");
+            module_inspector_edit.addRow("name", m.parameters.name);
             for(let p in m.parameters.parameters)
                 if(p != "parameters" && p != "views" && p!= "groups" && p!= "connections" && p!= "name" && p[0] != "_")
                 {
-                    let row = module_edit_inspector.table.insertRow(-1);
-                    let value = m.parameters.attributes[p];
-                    module_edit_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                    let row = module_inspector_edit.table.insertRow(-1);
+                    let value = m.parameters[p];
+                    module_inspector_edit.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["default"]);
                 }
 
-            module_edit_inspector.addHeader("SUBGROUPS");
-            module_edit_inspector.addRow("modules", m.parameters.groups.length);
-            module_edit_inspector.addRow("connections", m.parameters.connections.length);
+            module_inspector_edit.addHeader("SUBGROUPS");
+            module_inspector_edit.addRow("modules", m.parameters.groups.length);
+            module_inspector_edit.addRow("connections", m.parameters.connections.length);
 
-            module_edit_inspector.addHeader("APPEARANCE");
-            module_edit_inspector.addRow("x", m.parameters.attributes._x);
-            module_edit_inspector.addRow("y", m.parameters.attributes._y);
-            module_edit_inspector.addRow("color", m.parameters.attributes._color);
-            module_edit_inspector.addRow("text_color", m.parameters.attributes._text_color);
-            module_edit_inspector.addRow("shape", m.parameters.attributes._shape);
+            module_inspector_edit.addHeader("APPEARANCE");
+            module_inspector_edit.addRow("x", m.parameters._x);
+            module_inspector_edit.addRow("y", m.parameters._y);
+            module_inspector_edit.addRow("color", m.parameters._color);
+            module_inspector_edit.addRow("text_color", m.parameters._text_color);
+            module_inspector_edit.addRow("shape", m.parameters._shape);
         }
         
         else // add module
         {
-            module_edit_inspector.addHeader("MODULE (edit, not live)");
-            module_edit_inspector.addRow("name", m.parameters.attributes.name);
-            module_edit_inspector.addRow("class", m.parameters.attributes.class);
+            module_inspector_edit.addHeader("MODULE (edit, not live)");
+            module_inspector_edit.addRow("name", m.parameters.name);
+            module_inspector_edit.addRow("class", m.parameters.class);
 
             for(let p of m.parameters.parameters)
-                module_edit_inspector.addRow(p.name, m.parameters.attributes[p.name] ? m.parameters.attributes[p.name].toString() : p["default"]);
+                module_inspector_edit.addRow(p.name, m.parameters[p.name] ? m.parameters[p.name].toString() : p["default"]);
 
-            module_edit_inspector.addRow("description", m.parameters.attributes.description);
+            module_inspector_edit.addRow("description", m.parameters.description);
 
-            module_edit_inspector.addHeader("APPEARANCE");
-            module_edit_inspector.addRow("x", m.parameters.attributes._x);
-            module_edit_inspector.addRow("y", m.parameters.attributes._y);
-            module_edit_inspector.addRow("color", m.parameters.attributes._color);
-            module_edit_inspector.addRow("text_color", m.parameters.attributes._text_color);
-            module_edit_inspector.addRow("shape", m.parameters.attributes._shape);
+            module_inspector_edit.addHeader("APPEARANCE");
+            module_inspector_edit.addRow("x", m.parameters._x);
+            module_inspector_edit.addRow("y", m.parameters._y);
+            module_inspector_edit.addRow("color", m.parameters._color);
+            module_inspector_edit.addRow("text_color", m.parameters._text_color);
+            module_inspector_edit.addRow("shape", m.parameters._shape);
         }
     },
     select: function (obj)
     {
-        module_edit_inspector.remove();
-        module_edit_inspector.add(obj);
+        module_inspector_edit.remove();
+        module_inspector_edit.add(obj);
     },
     update: function (attr_value)
     {
@@ -717,55 +756,61 @@ group_inspector = {
         // Add header info
 
         let m = group_inspector.module;
-        if(m.groups.length > 0) // add group
+        if(m.groups && m.groups.length > 0) // add group
         {
             group_inspector.addHeader("GROUP");
-            group_inspector.addRow("name", m.attributes.name);
-            group_inspector.addRow("log level", m.attributes.log_level);
-            group_inspector.addRow("inputs", m.inputs.length);
-            group_inspector.addRow("outputs", m.outputs.length);
-            group_inspector.addRow("parameters", m.parameters.length);
-            group_inspector.addRow("views", m.views.length); 
+            group_inspector.addRow("name", m.name);
+            group_inspector.addRow("log level", m.log_level);
+            group_inspector.addRow("inputs", m.inputs.length || 0);
+            group_inspector.addRow("outputs", m.outputs.length || 0);
+            group_inspector.addRow("parameters", m.parameters.length || 0);
+            group_inspector.addRow("views", m.views.length || 0); 
 
             for(let p in m.parameters)
             {
                 let row = group_inspector.table.insertRow(-1);
-                let value = m.attributes[p];
-                group_inspector.addRow(p.name, m.attributes[p.name] ? m.attributes[p.name].toString() : p["default"]);
+                let value = m[p];
+                group_inspector.addRow(p.name, m[p.name] ? m[p.name].toString() : p["default"]);
             }
 
             group_inspector.addHeader("SUBGROUPS");
-            group_inspector.addRow("modules", m.groups.length);
-            group_inspector.addRow("connections", m.connections.length);
+
+            if(m.groups) {
+                group_inspector.addRow("modules", m.groups.length || 0);
+            }
+            if(m.connections)
+            {
+                group_inspector.addRow("connections", m.connections.length || 0);
+            }
             group_inspector.addSelectionList(['A','B','C'], function () {interaction.addModule()});
             //group_inspector.addButton("", "Add module", function () {interaction.addModule()});
-            group_inspector.addButton("", "Copy as XML", function () {alert("Not implemented yet")});
+            //group_inspector.addButton("", "Copy as XML", function () {alert("Not implemented yet")});
 
             group_inspector.addHeader("APPEARANCE");
-            group_inspector.addRow("x", m.attributes._x);
-            group_inspector.addRow("y", m.attributes._y);
-            group_inspector.addRow("color", m.attributes._color);
-            group_inspector.addRow("text_color", m.attributes._text_color);
-            group_inspector.addRow("shape", m.attributes._shape);
+            group_inspector.addRow("x", m._x);
+            group_inspector.addRow("y", m._y);
+            group_inspector.addRow("color", m._color);
+            group_inspector.addRow("text_color", m._text_color);
+            group_inspector.addRow("shape", m._shape);
         }
         
         else // add module
         {
             group_inspector.addHeader("MODULE (edit, not live)");
-            group_inspector.addRow("name", m.attributes.name);
-            group_inspector.addRow("class", m.attributes.class);
+            group_inspector.addRow("name", m.name);
+            group_inspector.addRow("class", m.class);
 
             for(let p of m.parameters)
-                group_inspector.addRow(p.name, m.attributes[p.name] ? m.attributes[p.name].toString() : p["default"]);
+                group_inspector.addRow(p.name, m[p.name] ? m[p.name].toString() : p["default"]);
 
-            group_inspector.addRow("description", m.attributes.description);
+            group_inspector.addRow("description", m.description);
 
             group_inspector.addHeader("APPEARANCE");
-            group_inspector.addRow("x", m.attributes._x);
-            group_inspector.addRow("y", m.attributes._y);
-            group_inspector.addRow("color", m.attributes._color);
-            group_inspector.addRow("text_color", m.attributes._text_color);
-            group_inspector.addRow("shape", m.attributes._shape);
+            group_inspector.addRow("x", m._x);
+            group_inspector.addRow("y", m._y);
+            group_inspector.addRow("color", m._color);
+            group_inspector.addRow("text_color", m._text_color);
+            group_inspector.addRow("shape", m._shape);
         }
     },
     select: function (obj)
@@ -793,7 +838,6 @@ webui_widgets = {
     }
 };
 
-
 /*
  *
  * Interaction scripts for Main Area
@@ -814,33 +858,72 @@ interaction = {
     view_mode: false, // view or groups
 
     group_inspector: undefined,
+    group_inspector_edit: undefined,
+
     module_inspector: undefined,
-    module_edit_inspector: undefined,
-    view_inspector: undefined,
-    widget_inspector: undefined,
+    module_inspector_edit: undefined,
+
+    view_inspector_edit: undefined,
+
+    widget_inspector_edit: undefined,
+
     system_inspector: undefined,
 
     main: undefined,
     currentView: undefined,
     currentViewName: undefined,
+    currentViewRoot: undefined,
+
     currentInspector: undefined,
 
     io_pos: {},
 
     init: function () {
         interaction.getClasses();
+        interaction.getFiles();
         interaction.main = document.querySelector('main');
-        interaction.widget_inspector = document.querySelector('#widget_inspector');
+        interaction.widget_inspector_edit = document.querySelector('#widget_inspector_edit');
         interaction.system_inspector = document.querySelector('#system_inspector');
-        interaction.view_inspector = document.querySelector('#view_inspector');
+        interaction.view_inspector_edit = document.querySelector('#view_inspector_edit');
         interaction.module_inspector = document.querySelector('#module_inspector');
-        interaction.module_edit_inspector = document.querySelector('#module_edit_inspector');
+        interaction.module_inspector_edit = document.querySelector('#module_inspector_edit');
         interaction.group_inspector = document.querySelector('#group_inspector');
+        interaction.group_inspector_view = document.querySelector('#group_inspector_view');
         main.dataset.mode = "run";
         window.addEventListener("resize", interaction.windowResize);
+
+        // Move to view edit later
+
+        let vn = document.querySelector('#view_name');
+        if(vn)
+        {
+            vn.addEventListener("keypress", function(evt) {
+            if(evt.keyCode == 13)
+            {
+                evt.target.blur();
+                evt.preventDefault();
+
+                let new_view_name = document.querySelector('#view_name').innerText;
+                let n = interaction.currentViewName;
+                let path = interaction.currentViewName.replaceAll("#","/");
+                controller.get("renameview"+encodeURIComponent(path+"?name="+new_view_name), controller.update);
+                controller.views[interaction.currentViewName].name = new_view_name;
+                let new_full_name = interaction.currentViewName.split("#")[0]+"/"+new_view_name;
+                controller.views[new_full_name] = controller.views[interaction.currentViewName];
+                delete controller.views[interaction.currentViewName];
+                interaction.currentViewName = new_full_name;
+
+                nav.populate(nav.navigator);
+
+                controller.selectView(interaction.currentViewName);
+
+                return;
+            }
+        });
+        }
     },
     getClasses() {
-        fetch('/classes')
+        fetch('/classes', {method: 'GET', headers: {"Client-Id": controller.client_id}})
         .then(response => {
             if (!response.ok) {
                 throw new Error("HTTP error " + response.status);
@@ -852,6 +935,21 @@ interaction = {
         })
         .catch(function () {
             console.log("Could not get class list from server.");
+        })
+    },
+    getFiles() {
+        fetch('/files', {method: 'GET', headers: {"Client-Id": controller.client_id}})
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("HTTP error " + response.status);
+            }
+            return response.json();
+        })
+        .then(json => {
+            interaction.filelist = json.files || [];
+        })
+        .catch(function () {
+            console.log("Could not get file list from server.");
         })
     },
     toggleSystemMode: function() {
@@ -879,7 +977,7 @@ interaction = {
                 interaction.deselectObject();
                 let main = document.querySelector('main');
                 main.dataset.mode = "edit";
-                displayAside('view_inspector');
+                displayAside('view_inspector_edit');
                 interaction.main.addEventListener('mousemove', interaction.stopEvents, true);
                 interaction.main.addEventListener('mouseout', interaction.stopEvents, true);
                 interaction.main.addEventListener('mouseover', interaction.stopEvents, true);
@@ -948,7 +1046,7 @@ interaction = {
     backgroundClick() {
         interaction.deselectObject();
         if(interaction.edit_mode && interaction.view_mode)
-            displayAside('view_inspector')
+            displayAside('view_inspector_edit')
         else if(interaction.edit_mode && !interaction.view_mode)
             displayAside('group_inspector')
         else
@@ -956,11 +1054,11 @@ interaction = {
     },
     removeAllObjects() {
         let main = document.querySelector('main');
-        let nodes = document.querySelectorAll(".frame");
+        let nodes = main.querySelectorAll(".frame");
         for (var i = 0; i < nodes.length; i++)
             main.removeChild(nodes[i]);
 
-        nodes = document.querySelectorAll(".module");
+        nodes = main.querySelectorAll(".module");
         for (var i = 0; i < nodes.length; i++)
             main.removeChild(nodes[i]);
     },
@@ -1067,6 +1165,7 @@ interaction = {
         context.lineWidth = 50;
         context.beginPath();
 
+        if(interaction.currentView.connections)
         for(let c of interaction.currentView.connections)
         {
             try
@@ -1102,31 +1201,84 @@ interaction = {
             }
         }
     },
+
+    addNewView()
+    {
+        let vkeys = Object.keys(controller.views);
+        let c = vkeys.length;
+
+        let new_view_name = "Untitled "+c;
+        let g = controller.getGroup(interaction.currentViewName);
+
+        g.views[new_view_name] = {"name": new_view_name, "widgets": []};
+
+        nav.init(controller.network);
+
+        controller.views = {};
+        controller.buildViewDictionary(controller.network, "");
+  /*      
+        let v = getCookie('current_view');
+        if(Object.keys(controller.views).includes(v))
+            controller.selectView(v);
+        else
+            controller.selectView(Object.keys(controller.views)[0]);
+*/
+        let uri = g.name+"?name="+new_view_name;
+        interaction.currentViewName = interaction.currentViewName+"#"+new_view_name;
+        interaction.addView(interaction.currentViewName);
+
+        let path = interaction.currentViewName;
+        path = path.substr(1, path.length - 1);
+        path = path.replaceAll("/",".");
+        controller.get("addview/"+encodeURIComponent(uri), controller.update);
+    },
     deleteWidget()
     {
         let w = interaction.selectedObject;
+        let index = w.widget.parameters["_index_"];
         interaction.deselectObject();
         interaction.removeAllObjects();
-        interaction.currentView.objects = interaction.currentView.objects.filter(e => e!==w.widget.parameters); // delete from view
+        interaction.currentView.widgets = interaction.currentView.widgets.filter(e => e!==w.widget.parameters);
         interaction.addView(interaction.currentViewName);
+
+
+        let path = interaction.currentViewName;
+        path = path.substr(1, path.length - 1);
+        path = path.replaceAll("/",".");
+        path = path.replaceAll("#","/");
+        controller.get("delwidget/"+encodeURIComponent(path+"?index="+index), controller.update);
     },
     widgetToFront()
     {
         let w = interaction.selectedObject;
+        let index = w.widget.parameters["_index_"];
         interaction.deselectObject();
         interaction.removeAllObjects();
-        interaction.currentView.objects = interaction.currentView.objects.filter(e => e!==w.widget.parameters); // delete from view
-        interaction.currentView.objects.push(w.widget.parameters);
+        interaction.currentView.widgets = interaction.currentView.widgets.filter(e => e!==w.widget.parameters);
+        interaction.currentView.widgets.push(w.widget.parameters);
         interaction.addView(interaction.currentViewName);
+
+        let path = interaction.currentViewName;
+        path = path.substr(1, path.length - 1);
+        path = path.replaceAll("/",".");
+        path = path.replaceAll("#","/");
+        controller.get("widgettofront/"+encodeURIComponent(path+"?index="+index), controller.update);
     },
     widgetToBack()
     {
         let w = interaction.selectedObject;
+        let index = w.widget.parameters["_index_"];
         interaction.deselectObject();
         interaction.removeAllObjects();
-        interaction.currentView.objects = interaction.currentView.objects.filter(e => e!==w.widget.parameters); // delete from view
-        interaction.currentView.objects.unshift(w.widget.parameters);
+        interaction.currentView.widgets = interaction.currentView.widgets.filter(e => e!==w.widget.parameters);
+        interaction.currentView.widgets.unshift(w.widget.parameters);
         interaction.addView(interaction.currentViewName);
+
+        let path = interaction.currentViewName;
+        path = path.substr(1, path.length - 1);
+        path = path.replaceAll("/",".");
+        path = path.replaceAll("#","/");
+        controller.get("widgettoback/"+encodeURIComponent(path+"?index="+index), controller.update);
     },
     duplicateWidget()
     {
@@ -1135,8 +1287,21 @@ interaction = {
         dup_parameters.x = parseInt(dup_parameters.x) + 20;
         dup_parameters.y = parseInt(dup_parameters.y) + 20;
         let dup = interaction.addWidget(dup_parameters);
-        interaction.currentView.objects.push(dup.widget.parameters);
+        interaction.currentView.widgets.push(dup.widget.parameters);
         interaction.selectObject(dup);
+
+        let s = "?";
+        let sep = "";
+        for (const [key, value] of Object.entries(dup.widget.parameters)) {
+            s += sep+key+"="+value;
+            sep ="&";
+          }
+
+        let path = interaction.currentViewName;
+        path = path.substr(1, path.length - 1);
+        path = path.replaceAll("/",".");
+        path = path.replaceAll("#","/")+s;
+        controller.get("addwidget/"+encodeURIComponent(path), controller.update);
     },
     addNewWidget()
     {
@@ -1144,8 +1309,37 @@ interaction = {
         let widget_class = widget_select.options[widget_select.selectedIndex].value;
         let w = interaction.addWidget({'class': widget_class, 'x': interaction.curnewpos, 'y': interaction.curnewpos, 'height': 200, 'width': 200});
         interaction.curnewpos += 20;
-        interaction.currentView.objects.push(w.widget.parameters);
+        if(!interaction.currentView.widgets)
+        interaction.currentView.widgets = [];
+        interaction.currentView.widgets.push(w.widget.parameters);
         interaction.selectObject(w);
+
+        let s = "?";
+        let sep = "";
+        for (const [key, value] of Object.entries(w.widget.parameters)) {
+            s += sep+key+"="+value;
+            sep ="&";
+          }
+          let path = interaction.currentViewName;
+          path = path.replaceAll("/",".");
+          path = path.replaceAll("#","/")+s;
+          path = path.substr(1, path.length - 1);
+          controller.get("addwidget/"+encodeURIComponent(path), controller.update);
+    },
+    setWidgetParameter(p) // in kernel
+    {
+        let w = interaction.selectedObject;
+        let s = "?";
+        let sep = "";
+        for (const [key, value] of Object.entries(w.widget.parameters)) {
+            s += sep+key+"="+value;
+            sep ="&";
+          }
+          let path = interaction.currentViewName;
+          path = path.substr(1, path.length - 1);
+          path = path.replaceAll("/",".");
+          path = path.replaceAll("#","/")+s;
+        controller.get("setwidgetparams/"+encodeURIComponent(path), controller.update);
     },
     addWidget(w)
     {
@@ -1157,6 +1351,7 @@ interaction = {
         newTitle.innerHTML = "TITLE";
         newObject.appendChild(newTitle);
 
+        let index = interaction.main.querySelectorAll(".widget").length;
         interaction.main.appendChild(newObject);
         newObject.addEventListener('mousedown', interaction.startDrag, false);
 
@@ -1166,13 +1361,14 @@ interaction = {
             console.log("Internal Error: No constructor found for "+"webui-widget-"+w['class']);
             newObject.widget = new webui_widgets.constructors['webui-widget-text'];
             newObject.widget.element = newObject; // FIXME: why not also below??
-            newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
+            newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(1).join('.');   // get group name - temporary ugly solution
             newObject.widget.parameters['text'] = "\""+"webui-widget-"+w['class']+"\" not found. Is it included in index.html?";
+            newObject.widget.parameters['_index_'] = index;
         }
         else
         {
             newObject.widget = new webui_widgets.constructors["webui-widget-"+w['class']];
-            newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(2).join('.');   // get group name - temporary ugly solution
+            newObject.widget.groupName = this.currentViewName.split('#')[0].split('/').slice(1).join('.');   // get group name - temporary ugly solution
             // Add default parameters from CSS - possibly...
             for(let k in newObject.widget.parameters)
             if(w[k] === undefined)
@@ -1186,6 +1382,7 @@ interaction = {
             }
 
             newObject.widget.parameters = w;
+            newObject.widget.parameters['_index_'] = index;
         }
 
         newObject.widget.setAttribute('class', 'widget');
@@ -1230,16 +1427,18 @@ interaction = {
         let yinc = 17;
         let outinc = 116;
         
+        if(module.inputs)
         for(let a of module.inputs)
         {
-            interaction.io_pos[module.attributes.name+"."+a.name] = {'x': x, 'y': y};
+            interaction.io_pos[module.name+"."+a.name] = {'x': x, 'y': y};
             y += yinc;
         }
 
         x += outinc;
+        if(module.outputs)
         for(let a of module.outputs)
         {
-            interaction.io_pos[module.attributes.name+"."+a.name] = {'x': x, 'y': y};
+            interaction.io_pos[module.name+"."+a.name] = {'x': x, 'y': y};
             y += yinc;
         }
     },
@@ -1259,7 +1458,11 @@ interaction = {
         interaction.main_increment_y = 50;
 
         interaction.module_pos = {}
-        let v = interaction.currentView.groups;
+        let v = interaction.currentView.groups || [];
+        let m = interaction.currentView.modules || [];
+
+        v = [...v,...m]
+
         if(v)
         {
             let scale = 2*Math.PI/v.length;
@@ -1271,12 +1474,12 @@ interaction = {
                 else
                     newObject.setAttribute("class", "module");
 
-                newObject.innerHTML = "<div class='title'>"+v[i].attributes.name+"</div";
+                newObject.innerHTML = "<div class='title'>"+v[i].name+"</div";
                 interaction.main.appendChild(newObject);
 
                 // Add inputs & outputs
                 
-                for(let a of v[i].inputs)
+                for(let a of v[i].inputs || [])
                 {
                     let io = document.createElement("div");
                     io.setAttribute("class","input");
@@ -1284,7 +1487,7 @@ interaction = {
                     newObject.appendChild(io);
                 }
                 
-                for(let a of v[i].outputs)
+                for(let a of v[i].outputs || [])
                 {
                     let io = document.createElement("div");
                     io.setAttribute("class","output");
@@ -1294,28 +1497,28 @@ interaction = {
                 
                 newObject.parameters = v[i];
                 
-                if(!newObject.parameters.attributes._x)
+                if(!newObject.parameters._x)
                 {
-                    newObject.parameters.attributes._x = interaction.main_position_x;
-                    newObject.parameters.attributes._y = interaction.main_position_y;
+                    newObject.parameters._x = interaction.main_position_x;
+                    newObject.parameters._y = interaction.main_position_y;
                     interaction.main_position_x += interaction.main_increment_x;
                     interaction.main_position_y += interaction.main_increment_y;
 
-                    //newObject.parameters.attributes._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
-                    //newObject.parameters.attributes._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
+                    //newObject.parameters._x = interaction.main_center-interaction.main_radius*Math.cos(scale*i);
+                    //newObject.parameters._y = interaction.main_center+interaction.main_radius*Math.sin(scale*i);
                 }
                 
-                interaction.module_pos[v[i].attributes.name] = {'x':newObject.parameters.attributes._x, 'y': newObject.parameters.attributes._y};
-                interaction.calculateIOPositions(v[i], newObject.parameters.attributes._x, newObject.parameters.attributes._y);
+                interaction.module_pos[v[i].name] = {'x':newObject.parameters._x, 'y': newObject.parameters._y};
+                interaction.calculateIOPositions(v[i], newObject.parameters._x, newObject.parameters._y);
 
-                newObject.style.top = (newObject.parameters.attributes._y)+"px";
-                newObject.style.left = (newObject.parameters.attributes._x)+"px";
+                newObject.style.top = (newObject.parameters._y)+"px";
+                newObject.style.left = (newObject.parameters._x)+"px";
  
-                if(newObject.parameters.attributes._text_color)
-                    newObject.style.color = newObject.parameters.attributes._text_color;
+                if(newObject.parameters._text_color)
+                    newObject.style.color = newObject.parameters._text_color;
 
-                if(newObject.parameters.attributes._color)
-                    newObject.style.backgroundColor = newObject.parameters.attributes._color;
+                if(newObject.parameters._color)
+                    newObject.style.backgroundColor = newObject.parameters._color;
                 
                 newObject.addEventListener('mousedown', interaction.startDragModule, true);
             }
@@ -1355,7 +1558,7 @@ interaction = {
         else
         {
             let vw = controller.views[viewName];
-            if(vw && vw.views[0])
+            if(vw && vw.views && vw.views[0])
             {
                 viewPath += "#"+vw.views[0].name;
                 h+= "<div class='bread' onclick='controller.selectView(\""+viewPath+"\")'>"+vw.views[0].name+"</div>";
@@ -1373,6 +1576,8 @@ interaction = {
         
         interaction.deselectObject();
         interaction.currentViewName = viewName;
+        let view_name = document.querySelector("#view_name");
+        view_name.innerText = viewName.split('#')[1];
         interaction.currentView = controller.views[viewName];
         interaction.removeAllObjects();
 
@@ -1382,21 +1587,25 @@ interaction = {
         let main = document.querySelector('main');
         
         // Build widget view
-        
-        let v = interaction.currentView.objects; // FIXME: objects should be called widgets
+        if(!interaction.currentView.widgets)
+            interaction.currentView.widgets = [];
+
+        let v = interaction.currentView.widgets;
         if(v)
         {
             interaction.view_mode = true;
             for(let i=0; i<v.length; i++)
+            {
                 interaction.addWidget(v[i]);
+            }
             if(interaction.edit_mode)
-                displayAside('view_inspector');
+                displayAside('view_inspector_edit');
             else
                 hideAside();
             return;
         }
 
-        // Build group view - experimental
+        // Build group view
 
         interaction.view_mode = false;
         this.buildGroupView();
@@ -1414,7 +1623,7 @@ interaction = {
             interaction.selectedObject.className = interaction.selectedObject.className.replace(/resized/,'');
             interaction.releaseElement();
             interaction.selectedObject = null;
-            displayAside('widget_inspector');
+            displayAside('widget_inspector_edit');
         }
     },
     releaseElement: function(evt) {
@@ -1435,7 +1644,7 @@ interaction = {
         //document.querySelector('#selected').innerText = interaction.selectedObject.dataset.name;
         
         inspector.select(obj);
-        displayAside('widget_inspector');
+        displayAside('widget_inspector_edit');
     },
     startDrag: function (evt) {
         // do nothing in run mode
@@ -1494,6 +1703,8 @@ interaction = {
         // Update view data
         interaction.selectedObject.widget.parameters['x'] = newLeft;
         interaction.selectedObject.widget.parameters['y'] = newTop;
+
+        interaction.selectedObject.widget.parameterChangeNotification();
     },
     setSize: function (dx, dy) {
         let newWidth = interaction.grid_spacing*Math.round((interaction.startX + dx)/interaction.grid_spacing)+1;
@@ -1506,6 +1717,8 @@ interaction = {
         interaction.selectedObject.widget.parameters['height'] = newHeight;
         
         interaction.selectedObject.widget.updateAll();
+
+        interaction.selectedObject.widget.parameterChangeNotification();
     },
 
     changeStylesheet: function() {
@@ -1547,11 +1760,13 @@ interaction = {
         interaction.selectedObject.style.left = newLeft + 'px';
         interaction.selectedObject.style.top = newTop + 'px';
         // Update view data
-        interaction.selectedObject.parameters.attributes._x = newLeft;
-        interaction.selectedObject.parameters.attributes._y = newTop;
+        interaction.selectedObject.parameters._x = newLeft;
+        interaction.selectedObject.parameters._y = newTop;
         let module_name = interaction.selectedObject.firstElementChild.innerText;
         interaction.module_pos[module_name] = {'x':newLeft , 'y': newTop};
-        interaction.calculateIOPositions(interaction.selectedObject.parameters, interaction.selectedObject.parameters.attributes._x, interaction.selectedObject.parameters.attributes._y);
+        interaction.calculateIOPositions(interaction.selectedObject.parameters, interaction.selectedObject.parameters._x, interaction.selectedObject.parameters._y);
+
+        module_inspector.select(interaction.selectedObject);
     },
     selectModule: function(obj) {
         interaction.deselectObject()
@@ -1559,8 +1774,8 @@ interaction = {
         interaction.selectedObject.className += ' selected';
         if(interaction.edit_mode)
         {
-            module_edit_inspector.select(obj);
-            displayAside('module_edit_inspector');
+            module_inspector_edit.select(obj);
+            displayAside('module_inspector_edit');
         }
         else
         {
@@ -1569,6 +1784,7 @@ interaction = {
         }
       },
     releaseModule: function(evt) {
+        
         interaction.main.removeEventListener('mousemove',interaction.moveModule,true);
         interaction.main.removeEventListener('mouseup',interaction.releaseModule,true);
         interaction.selectedObject.className = interaction.selectedObject.className.replace(/dragged/,'');
@@ -1623,9 +1839,8 @@ controller = {
         controller.send_stamp = Date.now();
         var last_request = url;
         xhr = new XMLHttpRequest();
-        //console.log("controller.get: "+url);
         xhr.open("GET", url, true);
-
+        xhr.setRequestHeader("Client-Id", controller.client_id);
         xhr.onload = function(evt)
         {
             if(!xhr.response)   // empty response is ignored
@@ -1657,6 +1872,29 @@ controller = {
         controller.commandQueue.push(command);
     },
 
+    new: function () {
+        controller.queueCommand('new');
+    },
+
+    openCallback: function(x)
+    {
+        //controller.queueCommand('open');
+        controller.get("open?file="+x, controller.update);
+    },
+
+    open: function () {
+
+        dialog.showOpenDialog(interaction.filelist, controller.openCallback, "Select file to open");
+    },
+
+    save: function () {
+        controller.get("save", controller.update);
+    },
+
+    saveas: function () {
+        alert("SAVE AS coming soon");
+    },
+
     stop: function () {
         controller.run_mode = 'stop';
         controller.get("stop", controller.update); // do not request data -  stop immediately
@@ -1681,17 +1919,40 @@ controller = {
     start: function () {
         controller.play();  // FIXME: possibly start selected mode play/fast-forward/realtime
     },
-    
+
+    getGroup(path)
+    {
+        let p = path.split("/");
+        let g = [controller.network];
+        for(let i in p)
+        {
+            // Find group named p[i]
+
+            for(let gi in g)
+            {
+                if(g[gi].name == p[i])
+                {
+                    g = g[gi];
+                }
+
+                if(i == p.length-1)
+                {
+                    return g;
+                }
+            }
+        }
+        return null;
+    },
     buildViewDictionary: function(group, name) {
-        controller.views[name+"/"+group.attributes.name] = group;
+        controller.views[name+"/"+group.name] = group;
 
         if(group.views)
             for(i in group.views)
-                controller.views[name+"/"+group.attributes.name+"#"+group.views[i].name] = group.views[i];
+                controller.views[name+"/"+group.name+"#"+group.views[i].name] = group.views[i];
 
         if(group.groups)
             for(i in group.groups)
-                controller.buildViewDictionary(group.groups[i], name+"/"+group.attributes.name);
+                controller.buildViewDictionary(group.groups[i], name+"/"+group.name);
     },
 
     selectView: function(view) {
@@ -1762,7 +2023,7 @@ controller = {
         // Set system info from package
         try
         {
-            document.querySelector("#iteration").innerText = response.iteration;
+            document.querySelector("#tick").innerText = response.tick;
             document.querySelector("#state").innerText = controller.run_mode; // +response.state+" "+" "+response.has_data;
             document.querySelector("#total_time").innerText = secondsToHMS(response.total_time);
             document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
@@ -1799,26 +2060,94 @@ controller = {
             console.log("controller.setSystemInfo: incorrect package received form ikaros.")
         }
     },
-    
 
 
     update(response, session_id, package_type)
     {
+        if(isEmpty(response)){
+            console.log("ERROR: empty response");
+            return;
+        }
 
         controller.ping = Date.now() - controller.send_stamp;
+        controller.defer_reconnect(); // we are still on line
 
+        if(package_type == "network")
+        {
+            document.querySelector("header").style.display="block"; // Show page when network is loaded
+            document.querySelector("#load").style.display="none";
+
+            //console.log(">>> controller.update: network received");
+            controller.session_id = session_id;
+            controller.tick = response.iteration;
+            nav.init(response);
+            controller.network = response;
+            controller.views = {};
+            controller.buildViewDictionary(response, "");
+            
+            let v = getCookie('current_view');
+            if(Object.keys(controller.views).includes(v))
+                controller.selectView(v);
+            else
+                controller.selectView(Object.keys(controller.views)[0]);
+        }
+
+        else if(controller.session_id != session_id) // new session
+        {
+            //console.log(">>> new session");
+            session_id = session_id;
+            controller.get("network", controller.update);
+            return;
+        }
+
+        else if(package_type == "data")
+        {
+            //console.log(">>> controller.update: data received");
+            controller.setSystemInfo(response);
+            if(response.has_data)
+                controller.updateImages(response.data);
+        }
+        else
+        {
+            //console.log(">>> controller.update: unkown package type");
+        }
+
+
+        if(response.log)
+        {
+            let logElement = document.querySelector('.log');
+            response.log.forEach((element) => logElement.innerHTML += "<p>"+element+"</p>\n");
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+          return;
+
+
+        controller.ping = Date.now() - controller.send_stamp;
+/*
+        if(controller.session_id != session_id) // new session
+        {
+            console.log(">>> controller.update: new session.");
+            //controller.get("update", controller.update);
+            return;
+        }
+*/
         if(!response)
         {
-            console.log("controller.update: empty response.");
+            console.log(">>> controller.update: empty response.");
+        }
+        if(response == {})
+        {
+            console.log(">>> controller.update: empty dict response.");
         }
         else if(controller.session_id != session_id) // new session
         {
-            console.log("controller.update: new session. state="+['stop','pause','step','play','realtime'][response.state]);
+            console.log(">>> controller.update: new session. state="+['stop','pause','step','play','realtime'][response.state]);
             if(response.state)
                 controller.run_mode = ['stop','pause','step','play','realtime'][response.state];
             else
             {
-                console.log("console.update: no state - setting pause");
+                //console.log(">>> controller.update: no state - setting pause");
                 controller.run_mode = 'pause';
             }
             controller.session_id = session_id;
@@ -1833,7 +2162,6 @@ controller = {
                 controller.selectView(v);
             else
                 controller.selectView(Object.keys(controller.views)[0]);
-            
         }
         else if(package_type == "data") // same session - a new data package
         {
@@ -1875,107 +2203,19 @@ controller = {
             catch(err)
             {}
 
-        let group_path = interaction.currentViewName.split('#')[0].split('/').slice(2).join('.');
-        let data_string = group_path+"#"; // should be added to names to support multiple clients
+        let group_path = interaction.currentViewName.split('#')[0].split('/').toSpliced(0,1).join('.');
+        let data_string = ""; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)
         {
             data_string += (sep + s);
-            sep = "#"
+            sep = ","
          }
 
         
          while(controller.commandQueue.length>0)
-            controller.get(controller.commandQueue.shift()+"?id="+controller.client_id+"&data="+encodeURIComponent(data_string), controller.update);
-        controller.queueCommand('update');
-    },
-
-    copyView: function() // TODO: Remove default parameters
-    {
-        copyToClipboard(controller.viewToXML(interaction.currentView));
-    },
-
-    connectionToXML: function(connection, indent="")
-    {
-        let text = indent+"<connection "
-        for(let p in connection)
-            text += p+' = "'+connection[p]+'" ';
-        text += "/>\n";
-        return text;
-    },
-
-    viewToXML: function(view, indent="")
-    {
-        let text = indent + '<view name="'+view.name+'"';
-        for(let a in view)
-            if(!['name', 'objects'].includes(a))
-                text += ' ' + a + ' = "'+view[a]+'"';
-        text += ' >\n';
-        
-        for(let w in view.objects)
-        {
-            text += '\t'+indent + '<'+view.objects[w].class+' ';
-
-            for(let a in view.objects[w])
-                if(!['class'].includes(a))
-                    text += ' '+ a + ' = "'+view.objects[w][a]+'"';
-
-            text += '/>\n';
-        }
-        text += indent + '</view>\n';
-        return text;
-    },
-
-    moduleToXML: function(module, indent="")
-    {
-        let text = indent + '<module\n';
-        for(let a in module.attributes)
-            text += indent + '\t' + a + ' = "'+module.attributes[a]+'"\n';
-        text += indent+'>\n';
-
-         for(let v in module.views)
-            text += controller.viewToXML(module.views[v], indent+"\t");
-
-        text += indent + '</module>\n';
-        return text;
-    },
-
-    groupToXML: function(group, indent="")
-    {
-        let text = indent + '<group\n';
-        for(let a in group.attributes)
-            text += indent + '\t' + a + ' = "'+group.attributes[a]+'"\n';
-        text += indent+'>\n';
-
-        for(let g in group.groups)
-            if(group.groups[g].is_group)
-                text += controller.groupToXML(group.groups[g], indent+"\t");
-            else
-                text += controller.moduleToXML(group.groups[g], indent+"\t");
-
-        for(let c in group.connections)
-            text += controller.connectionToXML(group.connections[c], indent+"\t");
-         for(let v in group.views)
-            text += controller.viewToXML(group.views[v], indent+"\t");
-        text += indent + '</group>\n';
-        return text;
-    },
-
-    saveNetwork: function()
-    {
-        function download(filename, text) {
-            var element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-            element.setAttribute('download', filename);
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-        }
-
-        download("network.ikg", '<?xml version="1.0" encoding="UTF-8"?>\n'+controller.groupToXML(controller.network));
+            controller.get(controller.commandQueue.shift()+group_path+"?data="+encodeURIComponent(data_string), controller.update); // FIXME: ADD id in header; "?id="+controller.client_id+
+        controller.queueCommand('update/');
     }
 }
-
-
 

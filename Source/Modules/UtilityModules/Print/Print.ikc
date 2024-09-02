@@ -1,0 +1,4 @@
+<class name="Add" description="prints its input to the console each tick; alias is used as label if set on connetion">
+	<input name="INPUT" description="The input to be printed." flatten="no"  use_alias="yes" />
+</class>
+

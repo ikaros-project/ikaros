@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-
-<group>
-    <output name="Y" sourcemodule="C" source="OUTPUT" />
-    <module class="Constant" name="C" data="1" />
-</group>
-

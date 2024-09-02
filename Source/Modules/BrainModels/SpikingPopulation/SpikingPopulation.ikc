@@ -1,91 +1,16 @@
-<?xml version="1.0"?>
-
 <class name="SpikingPopulation" description="Simulates a population of spiking neurons">
+	<parameter name="population_size" type="int" default="1" description="Number of units in population" />
+	<parameter name="substeps" type="int" default="2" description="Number of substeps when calculating voltage" />
+	<parameter name="model_type" type="options" options="Izhikevich" default="Izhikevich" />
+	<parameter name="neuron_type" type="options" options="regular_spiking, intrinsically_bursting, chattering, fast_spiking, low_threshold, resonator" default="regular_spiking" />
+	<parameter name="threshold" type="float" default="30" description="Threshold value for firing" />
+	<parameter name="debugmode" type="bool" default="false" />
 
-	<description type="text">
-		Module that simulates a population of spiking neurons.
-		Equations are based on Izhikevich
-	</description>
-
-	<example description="A simple example">
-		<module
-			class="SpikingPopulation"
-			name="SpikingPopulation"
-			model_type = "Izhikevich"
-			neuron_type = "pyramidal"
-			population_size = "100"
-			substeps = "2"
-			threshold = "30"
-			debug = "true"
-		/>
-	</example>
-
-	<parameter name="model_type" type="list" default="Izhikevich" values="Izhikevich" description="Spiking model to use" />
-	<parameter name="neuron_type" type="list" 
-		default="regular_spiking" 
-		values="regular_spiking/intrinsically_bursting/chattering/fast_spiking/low_threshold/resonator" 
-		description="Type of neuron to use" />
-	<parameter name="population_size" type="int" default="50" description="Number of neurons in population" />
-	<parameter name="substeps" type="int" default="2" description="Number of substeps per update for numerical stability" />
-	<parameter name="threshold" type="float" default="30" description="Firing threshold for neurons" />
-	<parameter name="adenosine_factor" type="float" default="1" description="Adenosine cost of action potentials per tick" />
-	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
-	<parameter name="synapse_max" type="float" default="1" description="max random value for synapes" />
-	<parameter name="synapse_min" type="float" default="1" description="min random value for synapes" />
+	<input name="EXCITATION" description="The excitatory input" optional="yes" flatten="yes" />
+	<input name="INHIBITION" description="The excitatory input" optional="yes" flatten="yes" />
+	<input name="DIRECT_IN" description="The direct current input" optional="yes" flatten="yes" />
+	<input name="INTERNAL_TOPOLOGY" description="The internal topology input" optional="yes" flatten="no" />
+	<input name="EXCITATION_TOPOLOGY" description="The excitatory topology input" optional="yes" flatten="no" />
 	
-	<input name="DIRECT_IN" optional="yes" description="Direct current input" size_param="population_size" />
-	<input name="EXCITATION" optional="yes" description="Synaptic exhitation input" />
-	<input name="INHIBITION" optional="yes" description="Synaptic inhibition input" />
-	<input name="EXCITATION_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
-	<input name="INHIBITION_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
-	<input name="INTERNAL_TOPOLOGY" optional="yes" description="Optional external topology overrides topology settings" />
-
-
-	<output name="OUTPUT" description="The first output" size_param="population_size" />
-	<output name="ADENO_OUTPUT" size="1" description="Scalar indicating amount of adenosine produced every tick" />
-
-	<link class="SpikingPopulation" />
-
-	<author>
-		<name>Trond Arild Tjöstheim</name>
-		<email>trond_arild.tjostheim@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage></homepage>
-	</author>
-
-   <files>
-   		<file>SpikingPopulation.h</file>
-   		<file>SpikingPopulation.cc</file>
-   		<file>SpikingPopulation.ikc</file>
-   </files>
-	<view name="Spiking population View">
-		<plot
-            class = "plot"
-            show_title = "true"
-            show_frame = "true"
-            x = "0"
-            y = "0"
-            height = "200"
-            width = "200"
-            source = ".OUTPUT"
-            min = "-100" max = "100"
-            title = "Spikes"
-            buffer_size = "50"
-            direction = "vertical"
-        />
-		<plot
-            class = "plot"
-            show_title = "true"
-            show_frame = "true"
-            x = "200"
-            y = "0"
-            height = "200"
-            width = "200"
-            source = ".ADENOSINE"
-            min = "0" max = "2"
-            title = "Adenosine"
-            buffer_size = "50"
-            direction = "vertical"
-        />
-	</view>
+	<output name="OUTPUT" description="The output" size="@population_size"/>
 </class>

@@ -1,0 +1,9 @@
+<group description="Group that be imported as a test: group should not have a name. It is set in the importing group.">
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+
+</group>
+
+
+
+

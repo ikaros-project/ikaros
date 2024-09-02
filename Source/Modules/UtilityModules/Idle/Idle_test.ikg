@@ -1,0 +1,7 @@
+<group filename="/Users/cba/ikaros-3/Source/Modules/UtilityModules/Idle/Idle_test.ikg" log_level="5" name="Idle" stop="-1" webui_port="8000">
+   <module class="Idle" description="does nothing for the specified time" duration="0.02" log_level="5" name="Idle">
+      <parameter description="idle time in seconds" name="duration" type="float" value="0.02"/>
+   </module>
+   <module class="Logger" description="logs start to Ikaros site" log_level="5" name="Logger">
+   </module>
+</group>

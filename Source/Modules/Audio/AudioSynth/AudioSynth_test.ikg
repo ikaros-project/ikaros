@@ -1,0 +1,34 @@
+<group filename="/Users/trond/code/ikaros-3/UserData/Synth_C.ikg" log_level="5" name="Untitled" stop="-1" webui_port="8000">
+   <connection delay="1" source="synth.OUTPUT" target="out.INPUT"/>
+   <connection delay="1" source="shape.OUTPUT" target="synth.WAVESHAPE"/>
+   <connection delay="1" source="freq.OUTPUT" target="synth.FREQUENCY"/>
+   <connection delay="1" source="ampl.OUTPUT" target="synth.AMPLITUDE"/>
+   <module _x="384" _y="240" class="AudioSynth" description="A versatile audio synthesizer module" log_level="5" name="synth">
+      <input description="Waveshape control (0.0-1.0)" name="WAVESHAPE"/>
+      <input description="Frequency control (0.0-1.0, maps to piano keys A0 to C8)" name="FREQUENCY"/>
+      <input description="Amplitude control (0.0-1.0)" name="AMPLITUDE"/>
+      <input description="Trigger input (1 = on, 0 = off)" name="TRIGGER"/>
+      <output description="Audio output" name="OUTPUT" size="@sample_rate*0.1"/>
+      <parameter control="textedit" default="44100" description="Sample rate of the audio output" name="sample_rate" type="int" value="44100"/>
+   </module>
+   <module _x="648" _y="240" class="OutputAudio" description="Plays audio received as input" log_level="5" name="out">
+      <input description="Audio buffer to play" name="INPUT"/>
+      <parameter control="textedit" default="44100" description="Sample rate of the audio" name="sample_rate" type="int" value="44100"/>
+      <parameter control="textedit" default="4096" description="Size of the audio buffer" name="buffer_size" type="int" value="4096"/>
+   </module>
+   <module _x="120" _y="216" class="Constant" data="0.5" description="outputs a constant value" log_level="5" name="shape">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0.5"/>
+   </module>
+   <module _x="120" _y="264" class="Constant" data="0.5" description="outputs a constant value" log_level="5" name="freq">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0.5"/>
+   </module>
+   <module _x="120" _y="336" class="Constant" description="outputs a constant value" log_level="5" name="ampl">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="1, 2, 3, 4, 5, 6"/>
+   </module>
+   <widget _index_="0" _x="144" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_11" parameter="shape.data" select="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="shape" width="200"/>
+   <widget _index_="2" _x="360" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_12" parameter="freq.data" select="0" show_frame="false" show_title="true" show_values="true" source="freq.data" step="0.01" style="" title="freq" width="200"/>
+   <widget _index_="4" _x="576" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_13" parameter="ampl.data" select="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="amp" width="200"/>
+</group>

@@ -1,180 +1,94 @@
-//
-//    main.cc		The main code for the IKAROS project
-//
-//    Copyright (C) 2001-2021  Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//    See http://www.ikaros-project.org/ for more information.
-//
-//	Created: August 8, 2001
-//
-//	The main function in IKAROS does two things:
-//
-//	1. It installs all modules and the kernel
-//	2. It calls the kernel to start execution
+// Ikaros 3.0
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <new>
-#include <stdexcept>
 #include <string>
-#include <iostream>
 
-// Kernel
+#include "ikaros.h"
+#include "dictionary.h"
 
-#include "IKAROS.h"
 using namespace ikaros;
-
-
-void PrintInfo();
-
-void
-PrintInfo()
-{
-    printf("\n");
-    printf("Usage:\n");
-    printf("\n");
-    printf("\tikaros [-W#][-p][-P][-t][-T][-b#][-r#][-v][-q][-x][-X][-m][-l][-i][-a][file]\n\n");
-    
-    printf("\t-r    run; don't wait for webui\n");
-    printf("\t-t#   set timebase in milliseconds for realtime mode\n");
-    printf("\t-s#   stop after # ticks\n");
-    printf("\t-w#   set port for webui; default is 8000\n");
-    
-    printf("\t-S#   store + optional path to storage directory\n");
-    printf("\t-L#   load + optional path to storage directory\n");
-
-    printf("\t-v    verbose mode\n");
-    printf("\t-q    quiet mode\n");
-    
-    printf("\t-p    profile (>= 1 ms)\n");
-    printf("\t-P    profile (>= 0.01 ms)\n");
-    printf("\t-m    list modules and connections\n");
-    printf("\t-c    list installed classes\n");
-    printf("\t-l    list scheduling and thread allocation\n");
-    printf("\t-i    list installed functionality sockets, timer etc, type of target system\n");
-    printf("\t-a    list all; implies -m, -i and -l\n");
-    
-    printf("\t-z#   seed random number generator\n");
-
-    printf("\n");
-    printf("Examples:\n");
-    printf("\n");
-    printf("\tAssuming the current path is the /Bin in the Ikaros directory,\n");
-    printf("\tan example can be run like this:\n");
-    printf("\n");
-    printf("\t\t./ikaros  ../Examples/example.ikc\n");
-    printf("\n");
-    printf("\tThis example will wait for a request from the Web browser at\n");
-    printf("\tthe default port (8000).\n");
-    printf("\n");
-    printf("\tConnect from a browser on this computer with the URL \"http://127.0.0.1:8000/\".\n");
-    printf("\tUse the URL \"http://<servername>:8000/\" from other computers.\n");
-    printf("\n");
-}
-
-
-
-
 
 int
 main(int argc, char *argv[])
 {
-    if (argc == 1)
-    {
-        PrintInfo();
-        return 0;
-    }
-
-    Options * options = new Options(argc, argv);
-
-    if (options->GetOption('v'))
-        options->Print();
-
-    // Create and Init kernel
-
-    Kernel & k = kernel();    // Get global kernel
-    k.SetOptions(options);
-    
+    bool debug_mode = false;
+#if DEBUG
+    debug_mode = true;
+#endif
     try
+    { 
+        Kernel & k = kernel();
+        options o;
+
+        //o.add_option("l", "loglevel", "what to print to the log");
+        //o.add_option("q", "quiet", "do not print log to terminal; equal to loglevel=0");
+        //o.add_option("c", "lagcutoff", "reset lag and restart timing if it exceed this value", "10s");
+
+        o.add_option("b", "batch_mode", "start automatically and quit when execution terminates");
+        o.add_option("d", "tick_duration", "duration of each tick");
+        o.add_option("i", "info", "print model info");
+        o.add_option("r", "real_time", "run in real-time mode");
+        o.add_option("S", "start", " start-up automatically without waiting for commands from WebUI");
+        o.add_option("s", "stop", "stop Ikaros after this tick", "-1");
+        o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
+        o.add_option("h", "help", "list command line options");
+        o.add_option("x", "experimental", "run with experimental features");
+
+        o.parse_args(argc, argv);
+        if(o.is_set("help"))
+        {
+            o.print_help();
+            return 0;
+        }
+
+        k.webui_dir = o.ikaros_root+"/Source/WebUI/";   // FIXME: Use consistent file paths without "/" at end
+        k.user_dir = o.ikaros_root+"/UserData/";    // FIXME: Use consistent file paths without "/" at end
+        k.ScanClasses(o.ikaros_root+"/Source/Modules");
+        k.ScanClasses(o.ikaros_root+"/Source/UserModules"); // FIXME: Can probably be removed here
+
+        std::filesystem::current_path(k.user_dir);
+
+        if(o.is_set("batch_mode"))
+            o.set("start");
+
+#if DEBUG
+        std::cout << "Ikaros 3.0 Starting (Debug)\n" << std::endl;
+#else
+        std::cout << "Ikaros 3.0 Starting\n" << std::endl;
+#endif
+
+        k.options_ = o;
+        k.InitSocket(o.get_long("webui_port"));
+
+        while(k.run_mode != run_mode_quit)
+        {
+            try
+            {
+                k.Run();
+                if(k.run_mode < run_mode_quit) // Restart requested
+                {
+                    k.Save();
+                    k.Clear();
+                }
+            }
+            catch(fatal_error & e)
+            {
+                std::cerr << "Ikaros:: Fatal error: " << e.what() << std::endl;
+                if(o.is_set("batch_mode"))
+                    exit(1);
+                else
+                    k.New(); // Try again...
+            }
+        }
+    }
+    catch(...)
     {
-        k.ListInfo();
-
-        k.Init();
-        if(k.fatal_error_occurred)
-            return 1;
-
-        k.ListClasses();
-        k.ListModulesAndConnections();
-        k.CalculateChecksum();
-        k.ListScheduling();
-        k.ListThreads();
-        k.ListWarningsAndErrors();
-        k.ListBindings();
-
-//       k.Notify(msg_print, "Starting Ikaros WebUI server.\n");
-//        k.Notify(msg_print, "Connect from a browser on this computer with the URL \"http://localhost:%d/\".\n", k.port);
-//        k.Notify(msg_print, "Use the URL \"http://<servername>:%d/\" from other computers.\n", k.port);
-
-        k.Load();
-        k.Run();
-        k.Store();
-        
-        k.PrintTiming();
-        k.ListProfiling();
-
-        delete options;    
+        // This should not happen since only fatal_exceptions should make it this far
+        std::cerr << "Ikaros: Internal Error" << std::endl;
+        exit(1);
     }
 
-    // Catch Exceptions and Terminate Execution
+        std::cout << "\nIkaros 3.0 Ended" << std::endl;
 
-    catch(std::runtime_error)
-    {
-        return 1;
-    }
-    
-    catch (std::bad_alloc&)
-    {
-        k.Notify(msg_exception, "Could not allocate memory. Program terminates.\n");
-        return 1;	// MEMORY ERROR
-    }
-
-    catch (SerialException se)
-    {
-        k.Notify(msg_exception, "Serial Exception: %s (%s, %d). Program terminates.\n", se.device, se.string, se.internal_reference);
-    }
-
-    catch (SocketException ex)
-    {
-        k.Notify(msg_exception, "Socket(%d): %s\n", ex.internal_reference, ex.string);
-        return 3;	// SOCKET ERROR
-    }
-
-    catch (int i)
-    {
-        //	k.Init();
-        k.Notify(msg_exception, "%d. Program terminates.\n", i);
-        return i;	// OTHER ERROR
-    }
-
-    for (Module * m: k._modules)
-        delete m;
-    delete &k;
     return 0;
 }
-
 

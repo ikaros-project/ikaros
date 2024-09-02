@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-
 <class name="Nucleus" description="implements a nucleus">
 
 	<description type="text">
@@ -8,13 +6,6 @@
         If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
 	</description>
 
-	<example description="A simple example">
-		<module
-			class="Nucleus"
-			name="Nucleus"
-		/>
-	</example>
-    
     <parameter name="alpha" type="float" default="0" description="bias term / offset level" />
     <parameter name="beta" type="float" default="1" description="activity scaling" />
 
@@ -26,27 +17,10 @@
 
     <parameter name="epsilon" type="float" default="0.1" description="time constant" />
 
-	<input name="EXCITATION" description="The excitatory input" optional="yes" />
-	<input name="INHIBITION" description="The inhibitory input" optional="yes" />
-	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" />
+	<input name="EXCITATION" description="The excitatory input" optional="yes" flatten="yes" />
+	<input name="INHIBITION" description="The inhibitory input" optional="yes" flatten="yes" />
+	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" flatten="yes" />
 
 	<output name="OUTPUT" description="The output from the nucleus" size="1" />
-
-	<link class="Nucleus" />
-
-    
-    
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
-
-   <files>
-   		<file>Nucleus.h</file>
-   		<file>Nucleus.cc</file>
-   		<file>Nucleus.ikc</file>
-   </files>
-
 </class>
+

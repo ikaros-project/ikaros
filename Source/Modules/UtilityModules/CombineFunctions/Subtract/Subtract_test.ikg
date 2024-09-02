@@ -1,0 +1,83 @@
+<group name="Test">
+	<module class = "Constant" name = "Constant1" data="1, 1; 3, 4" />
+	<module class = "Constant" name = "Constant2" data="8, 9; 10, 11" />
+	<module class = "Subtract" name = "Subtract" />
+
+	<_module class = "Print" name = "Print" />
+	<module class = "Logger" name = "Logger" />	
+
+	<connection  source = "Constant1.OUTPUT"  	target = "Subtract.INPUT1" />
+	<connection  source = "Constant2.OUTPUT"  	target = "Subtract.INPUT2" />		<!-- NO recurrent connection-->
+
+	<_connection  source = "Subtract.OUTPUT"  target = "Print.INPUT" />
+
+	<view name="View">
+
+		<widget
+			class = "table"
+			height = "300"
+			title = "A"
+			width = "300"
+			source = "Constant1.OUTPUT"
+			y = "20"
+			x = "40"
+			decimals = "4"
+			colorize = "true"
+			show_title = "true"
+			show_frame = "true"
+		/>
+
+		<widget
+			class = "table"
+			height = "300"
+			title = "B"
+			width = "300"
+			source = "Constant2.OUTPUT"
+			y = "20"
+			x = "360"
+			decimals = "4"
+			colorize = "true"
+			show_title = "true"
+			show_frame = "true"
+		/>
+
+		<widget
+			class = "table"
+			height = "300"
+			title = "Sum"
+			width = "300"
+			source = "Subtract.OUTPUT"
+			y = "360"
+			x = "40"
+			decimals = "4"
+			colorize = "true"
+			show_title = "true"
+			show_frame = "true"
+		/>
+
+		<widget 
+			class = "slider-horizontal"
+			frame-style = "" 
+			show_title = "false" 
+			show_values = "true" 
+			step = "0" 
+			max = "100" 
+			min = "0" 
+			style = "" 
+			labels = "" 
+			select = "0" 
+			count = "1" 
+			parameter = "Constant1.data" 
+			title = "Sliders" 
+			width = "300" 
+			show_frame = "false" 
+			height = "50" 
+			y = "360" 
+			x = "360"
+		/>
+
+	</view>
+
+</group>
+
+

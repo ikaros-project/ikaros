@@ -1,0 +1,58 @@
+<group name="Test">
+	<module class = "Oscillator" name = "Oscillator" type="sin" frequency="1" />
+	<module class = "SCN" name = "SCN" frequency="2.0" />
+
+	<module class = "Logger" name = "Logger"/>
+
+	<connection  source = "Oscillator.OUTPUT"  	target = "SCN.INPUT" />
+
+	<view name="View">
+		<bar-graph
+			class = "bar-graph"
+			height = "300"
+			title = "SCN.DIFF"
+			width = "300"
+			source = "SCN.DIFF"
+			y = "20"
+			x = "20"
+			decimals = "1"
+			min = "-2"
+			max = "2"
+			colorize = "true"
+			show_title = "true"
+			show_frame = "true"
+		/>
+
+		<plot
+			class = "plot"
+			height = "200"
+			title = "Osc Out"
+			width = "600"
+			source = "Oscillator.OUTPUT"
+			y = "340"
+			x = "40"
+			decimals = "1"
+			min = "-1"
+			colorize = "true"
+			show_title = "true"
+			show_frame = "true"
+		/>
+
+		<plot
+			class = "plot"
+			height = "200"
+			title = "SCN Out"
+			width = "600"
+			source = "SCN.OUTPUT"
+			y = "340"
+			x = "40"
+			decimals = "1"
+			min = "-1"
+			colorize = "true"
+			show_title = "true"
+			show_frame = "true"
+			color = "red"
+		/>
+	</view>
+</group>
+

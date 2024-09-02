@@ -1,131 +1,93 @@
-//
-//	FunctionGenerator.cc		This file is a part of the IKAROS project
-//
-//
-//    Copyright (C) 2005 Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//	Created: 2005-02-15
-//
-
-
-
-#include "FunctionGenerator.h"
+#include "ikaros.h"
+#include <cmath>
 
 using namespace ikaros;
 
-void
-FunctionGenerator::Init()
+class FunctionGenerator : public Module
 {
-    Bind(type, "type");
-    
-    Bind(offset, "offset");
-    Bind(amplitude, "amplitude");
-    Bind(frequency, "frequency");
-    Bind(shift, "shift");
-    Bind(duty, "duty");
-    
-    Bind(basetime, "basetime");
-    Bind(tickduty, "tickduty");
-    
-    output = GetOutputArray("OUTPUT");
-    size = GetOutputSize("OUTPUT");
+public:
+    parameter size;
+    parameter type;
+    parameter offset;
+    parameter amplitude;
+    parameter frequency;
+    parameter shift;
+    parameter duty;
+    parameter basetime;
+    parameter tickduty;
+    parameter sample_rate;
 
-    t = 0;
-}
+    int t;
+    matrix output;
 
+    void Init()
+    {
+        Bind(size, "size");
+        Bind(type, "type");
+        Bind(offset, "offset");
+        Bind(amplitude, "amplitude");
+        Bind(frequency, "frequency");
+        Bind(shift, "shift");
+        Bind(duty, "duty");
+        Bind(basetime, "basetime");
+        Bind(tickduty, "tickduty");
+        Bind(sample_rate, "sample_rate");
 
+        Bind(output, "OUTPUT");
 
-// Functions
+        t = 0;
+    }
 
-static float
-triangle(float t)
-{
-    float v =  2*(t/(2*pi)-trunc(t/(2*pi)));
-    if (v<1.0)
-        return v;
-    else
-        return 2-v;
-}
+    static float triangle(float t)
+    {
+        float v = 2 * (t / (2 * M_PI) - trunc(t / (2 * M_PI)));
+        return (v < 1.0) ? v : 2 - v;
+    }
 
+    static float ramp(float t)
+    {
+        return t / (2 * M_PI) - trunc(t / (2 * M_PI));
+    }
 
+    static float square(float t, float d)
+    {
+        float v = t / (2 * M_PI) - trunc(t / (2 * M_PI));
+        return (v < d) ? 1 : 0;
+    }
 
-static float
-ramp(float t)
-{
-    float v =  t/(2*pi)-trunc(t/(2*pi));
-    return v;
-}
+    static float ticksquare(int tick, int basetime, int duty)
+    {
+        return ((tick % basetime) < duty) ? 1 : 0;
+    }
 
-
-
-static float
-square(float t, float d)
-{
-    float v =  t/(2*pi)-trunc(t/(2*pi));
-    if (v<d)
-        return 1;
-    else
-        return 0;
-}
-
-
-
-static float
-ticksquare(int tick, int basetime, int duty)
-{
-    if ((tick % basetime) < duty)
-        return 1;
-    else
-        return 0;
-}
-
-
-
-void
-FunctionGenerator::Tick()
-{
-    for(int i=0; i<size; i++)
-        switch (type)
+    void Tick()
+    {
+        for (int i = 0; i < size; i++)
         {
-            case 0:
-                output[i] = offset+amplitude*sin(frequency*(float(t)+shift));
-                break;
-
-            case 1:
-                output[i] = offset+amplitude*triangle(frequency*(float(t)+shift));
-                break;
-
-            case 2:
-                output[i] = offset+amplitude*ramp(frequency*(float(t)+shift));
-                break;
-
-            case 3:
-                output[i] = offset+amplitude*square(frequency*(float(t)+shift), duty);
-                break;
-
-            case 4:
-                output[i] = offset+amplitude*ticksquare(t, basetime, tickduty);
-                break;
-
-            default:
-                output[i] = 0;
+            float time = (float(t) + i) / sample_rate;
+            switch (type.as_int())
+            {
+                case 0:
+                    output[i] = offset + amplitude * sin(frequency * (time + shift));
+                    break;
+                case 1:
+                    output[i] = offset + amplitude * triangle(frequency * (time + shift));
+                    break;
+                case 2:
+                    output[i] = offset + amplitude * ramp(frequency * (time + shift));
+                    break;
+                case 3:
+                    output[i] = offset + amplitude * square(frequency * (time + shift), duty);
+                    break;
+                case 4:
+                    output[i] = offset + amplitude * ticksquare(t + i, basetime, tickduty);
+                    break;
+                default:
+                    output[i] = 0;
+            }
         }
-    t++;
-}
+        t += size;
+    }
+};
 
-static InitClass init("FunctionGenerator", &FunctionGenerator::Create, "Source/Modules/UtilityModules/FunctionGenerator/");
-
+INSTALL_CLASS(FunctionGenerator);

@@ -1,0 +1,43 @@
+<group filename="Source/Modules/TestModules/Test5.ikg" name="Brain" stop="-1" webui_port="8000">
+   <group _x="100" _y="350" name="Amydala">
+      <group _x="100" _y="100" name="Lateral">
+      </group>
+      <group _x="100" _y="300" name="Central">
+         <connection source="Constant.OUTPUT" target="TestGroup.T_INPUT"/>
+         <connection source="C_A_INPUT_1" target="TestGroup.T_INPUT"/>
+         <connection source="C_A_INPUT_2" target="TestGroup.T_INPUT"/>
+         <connection source="Constant.OUTPUT" target="123.INPUT"/>
+         <connection source="789.OUTPUT" target="123.INPUT"/>
+         <group _x="400" _y="150" name="TestGroup">
+            <input _x="10" _y="10" name="T_INPUT"/>
+         </group>
+         <group _x="400" _y="300" name="ExtraGroup">
+            <input _x="10" _y="10" name="E_INPUT"/>
+         </group>
+         <input _x="10" _y="10" name="C_A_INPUT_1"/>
+         <input _x="10" _y="50" name="C_A_INPUT_2"/>
+         <module _x="600" _y="550" class="Scale" description="does nothing for the specified time" duration="1" name="123">
+            <input description="The  input" name="INPUT"/>
+            <output description="The output" name="OUTPUT" size="INPUT.size"/>
+            <parameter default="1" name="factor" type="float" value="1"/>
+         </module>
+         <module _x="50" _y="200" class="Constant" description="does nothing for the specified time" duration="1" name="Constant">
+            <output description="The output" name="OUTPUT" size="data.size"/>
+            <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="1, 2, 3, 4, 5, 6"/>
+         </module>
+         <module _x="50" _y="450" class="Scale" description="does nothing for the specified time" duration="1" name="789">
+            <input description="The  input" name="INPUT"/>
+            <output description="The output" name="OUTPUT" size="INPUT.size"/>
+            <parameter default="1" name="factor" type="float" value="1"/>
+         </module>
+         <output _x="600" _y="300" name="GROUP_OUTPUT" size="1"/>
+         <output _x="600" _y="100" name="X_OUTPUT" size="2"/>
+         <output _x="600" _y="200" name="C_A_OUTPUT" size="1"/>
+         <widget _x="500" _y="400" class="Plot" name="WIDGET-ABC"/>
+      </group>
+   </group>
+   <group _x="100" _y="30" name="BasalGanglia">
+   </group>
+   <input _x="100" _y="100" name="INPUT"/>
+   <output _x="300" _y="100" name="OUTPUT" size="1"/>
+</group>

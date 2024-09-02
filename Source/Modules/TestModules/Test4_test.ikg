@@ -1,0 +1,5 @@
+<group filename="/Users/cba/ikaros-3/Source/Modules/TestModules/Test4_test.ikg" log_level="5" name="Test" q="333" start="true" stop="10" webui_port="8000">
+   <group log_level="5" name="Inner" result="@x+@Test.q" x="10" y="20" z="50">
+      <parameter default="1.2" name="result" type="float" value="333"/>
+   </group>
+</group>

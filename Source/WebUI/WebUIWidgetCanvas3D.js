@@ -18,7 +18,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'show_ground_grid', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'show_stats', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 
-			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'values': "Home, Top, Bottom, Front, Back, Left, Right" },
+			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'options': "Home, Top, Bottom, Front, Back, Left, Right" },
 			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'look_at_Y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'look_at_Z', 'default': "0", 'type': 'float', 'control': 'textedit' },

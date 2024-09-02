@@ -43,6 +43,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
 
     slider_moved(value, index=0)
     {
+        this.is_active = true;
         this.send_control_change(this.parameters.parameter, value, this.parameters.select + index);
     }
 
@@ -119,12 +120,19 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             slider.index = i++;
             slider.oninput = function (){
                 this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
-            }
+            };
+            slider.onmouseup = function() { this.is_active = false ;};
         }
     }
 
     update()
     {
+        if(this.parameters.show_values)
+            for(let value of this.querySelectorAll(".slider_value"))
+                value.innerText = value.parentNode.children[1].value;
+            
+        if(this.is_active) // Do not redraw from data while being tracked
+            return;
          try {
             let d = this.getSource("parameter");
             if(d)
@@ -137,9 +145,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
                     slider.value = d[0][i++];
             }
 
-            if(this.parameters.show_values)
-                for(let value of this.querySelectorAll(".slider_value"))
-                    value.innerText = value.parentNode.children[1].value;
+
         }
         catch(err)
         {
@@ -147,7 +153,6 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
         }
     }
 };
-
 
 
 webui_widgets.add('webui-widget-slider-horizontal', WebUIWidgetSliderHorizontal);

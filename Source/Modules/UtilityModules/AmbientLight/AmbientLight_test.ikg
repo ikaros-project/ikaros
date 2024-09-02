@@ -1,0 +1,7 @@
+
+   <group name="View">
+      <module class="AmbientLight"name="IrradianceWinter" month="1" />
+      <module class="AmbientLight"name="IrradianceSummer" month="6" />
+
+      <module class="Logger" description="logs start to Ikaros site" name="Logger" />
+</group>

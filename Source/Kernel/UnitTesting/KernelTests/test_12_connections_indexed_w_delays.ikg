@@ -1,0 +1,27 @@
+<group name="Test_1" description="Test indexed conection ranges with delays" check_sum="8651" >
+	<module class = "Constant" name = "Constant" data="1,2;3,4" />
+
+    <module class = "Print" name = "P1" />
+    <module class = "Print" name = "P2" />	
+    <module class = "Print" name = "P3" />	
+    <module class = "Print" name = "P4" />	
+    <module class = "Print" name = "P5" />
+    <module class = "Print" name = "P6" />	
+    <module class = "Print" name = "P7" />	
+    <module class = "Print" name = "P8" />	
+
+    <connection  source = "Constant.OUTPUT"  	        target = "P1.INPUT" delay="10:20" />              <!-- [OK] Copy output size to input -->
+    <connection  source = "Constant.OUTPUT[0:2][0:2]"  	target = "P2.INPUT[0:4]" delay="10:20" />         <!-- [OK] Explicit version of the above -->
+
+    <connection  source = "Constant.OUTPUT[0][0:2]"     target = "P3.INPUT[0:2]" delay="10:20"  />         <!-- [OK] Copy output to input one dimensional input of size 4 -->
+    <connection  source = "Constant.OUTPUT"  	        target = "P4.INPUT[]" delay="10:20"  />            <!-- [OK] Copy output to input one dimensional input of size 4 -->
+
+    <connection  source = "Constant.OUTPUT[0]"  	    target = "P5.INPUT" delay="10:20"  />              <!-- [OK] Copy row 0 to inputof size 2 -->
+    <connection  source = "Constant.OUTPUT[][]"  	    target = "P6.INPUT[][]" delay="10:20"  />          <!-- [OK] Copy output to 2x2 input -->
+    <connection  source = "Constant.OUTPUT"  	        target = "P7.INPUT" delay="10:20"  />              <!-- [OK] Copy output to 2x2 input -->
+
+    <!-- P8,INPUT not connected [OK] -->
+
+    <module class = "Logger" name = "Logger" />	
+</group>
+

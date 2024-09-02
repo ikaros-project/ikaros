@@ -1,116 +1,69 @@
-//
-//		Nucleus.cc		This file is a part of the IKAROS project
-//				
-//
-//    Copyright (C) 2016 Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-
-
-#include "Nucleus.h"
+#include "ikaros.h"
 
 using namespace ikaros;
 
-void
-Nucleus::Init()
+class Nucleus: public Module
 {
-    Bind(alpha, "alpha");
-    Bind(beta, "beta");
+    parameter   alpha;      // parameters
+    parameter   beta;
+    parameter   phi;
+    parameter   chi;
+    parameter   psi;
+    parameter   scale;
+    parameter   epsilon;
 
-    Bind(phi, "phi");
-    Bind(chi, "chi");
-    Bind(psi, "psi");
-    
-    Bind(scale, "scale");
-    Bind(epsilon, "epsilon");
+    float       x;          // internal state
 
-    io(excitation, excitation_size, "EXCITATION");
-    io(inhibition, inhibition_size, "INHIBITION");
-    io(shunting_inhibition, shunting_inhibition_size, "SHUNTING_INHIBITION");
-    io(output, "OUTPUT");
+    matrix      excitation; // io
+    matrix      inhibition;
+    matrix      shunting_inhibition;
+    matrix      output;
 
-    x = 0;
-}
-
-
-
-void
-Nucleus::Tick()
-{
-    
-    Notify(msg_trace, "Test from %s\n", GetFullName());
-    
-    if(scale)
+    void Init()
     {
-        if(excitation_size > 0)
-            phi_scale = 1.0/float(excitation_size);
+        Bind(alpha, "alpha");
+        Bind(beta, "beta");
 
-        if(inhibition_size > 0)
-            chi_scale = 1.0/float(excitation_size);
+        Bind(phi, "phi");
+        Bind(chi, "chi");
+        Bind(psi, "psi");
 
-        if(shunting_inhibition_size > 0)
-            psi_scale = 1.0/float(shunting_inhibition_size);
-    }
-    else
-    {
-        phi_scale = 1.0;
-        chi_scale = 1.0;
-        psi_scale = 1.0;
+        Bind(scale, "scale");
+        Bind(epsilon, "epsilon"); // FIXME: Change to rate parameter
+
+        Bind(excitation, "EXCITATION");
+        Bind(inhibition, "INHIBITION");
+        Bind(shunting_inhibition, "SHUNTING_INHIBITION");
+        Bind(output, "OUTPUT");
+
+        x = 0;
     }
 
-    float a = 0;
-    float s = 1;
+    static double max(double x, double y) { return x>y ? x : y; } // std::max does not work since it is a template function that requitres identical types of x and y
     
-    if(shunting_inhibition)
-        s = 1/(1+psi*psi_scale*sum(shunting_inhibition, shunting_inhibition_size));
-
-    if(excitation)
-        a += phi * phi_scale * s * sum(excitation, excitation_size);
-
-     if(inhibition)
-        a -= chi * chi_scale * sum(inhibition, inhibition_size);
-
-     x += epsilon * (a - x);
     
-    // Activation function with
-    // f(x) = 0 if x <= 0
-    // f(x) = 1 if x = 1
-    // f(x) -> 2 as x -> inf
-    // S-shaped from 0+
-    // derivative: 4x / (x^2+1)^2
-    
-    switch(1)
+    void Tick()
     {
-        case 0:
-            if(x < 0)
-                *output = 0;
-            else
-                *output = 2*x*x/(1+x*x);
-            break;
-            
-        case 1:
-            if(x < 0)
-                *output = 0;
-            else
-                *output = alpha + beta * atan(x)/tan(1);
-            break;
+        float a = 0;
+        float s = 1;
+
+        if(scale)
+        {
+            s = 1/(1+psi * shunting_inhibition.average());
+            a += phi * s * excitation.average();
+            a -= chi * inhibition.average();
+        }
+        else
+        {
+            s = 1/(1+psi*shunting_inhibition.sum());
+            a += phi * s * excitation.sum();
+            a -= chi * inhibition.sum();
+        }
+
+        x += epsilon * (a - x);
+        output = max(0, alpha + beta * atan(x)/tan(1));
     }
+};
 
-}
-
-static InitClass init("Nucleus", &Nucleus::Create, "Source/Modules/BrainModels/Nucleus/");
-
+INSTALL_CLASS(Nucleus)
 

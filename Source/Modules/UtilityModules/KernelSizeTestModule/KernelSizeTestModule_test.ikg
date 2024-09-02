@@ -1,0 +1,4 @@
+<group name="Test">
+	<module class = "KernelSizeTestModule" name = "KernelSizeTestModule" size="2" />
+</group>
+

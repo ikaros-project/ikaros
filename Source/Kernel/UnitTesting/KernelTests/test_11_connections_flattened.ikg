@@ -1,0 +1,27 @@
+<group name="Test_2" description="Test flattened conection ranges" check_sum="1405" >
+
+	<module class = "Constant" name = "Constant1" data="1,2;3,4" />
+	<module class = "Constant" name = "Constant2" data="8,9;-8,-9" />
+
+    <group name="T">
+        <input name="INPUT1" flatten="yes" />
+        <input name="INPUT2" flatten="yes" />
+        <input name="INPUT3" flatten="yes" />
+        <input name="INPUT4" flatten="yes" />
+        <input name="INPUT5" flatten="yes" />
+    </group>	
+
+	<connection  source = "Constant1.OUTPUT"  	target = "T.INPUT1" />
+	<connection  source = "Constant2.OUTPUT"  	target = "T.INPUT2" />
+
+	<connection  source = "Constant1.OUTPUT"  	target = "T.INPUT3" />
+	<connection  source = "Constant2.OUTPUT"  	target = "T.INPUT3" />
+
+	<connection  source = "Constant1.OUTPUT[0]"  	target = "T.INPUT4"  />
+	<connection  source = "Constant2.OUTPUT[1]"  	target = "T.INPUT4"  />
+
+    <!-- INPUT5 not connected -->
+
+    <module class = "Logger" name = "Logger" />	
+</group>
+

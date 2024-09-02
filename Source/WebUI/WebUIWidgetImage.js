@@ -19,21 +19,21 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
             {'name': "STYLE", 'control':'header'},
 
-            {'name':'format', 'default':"gray", 'type':'string', 'control': 'menu', 'values': "gray,fire,spectrum,red,green,blue,rgb"},
-            {'name':'scale', 'default':"both", 'type':'string', 'control': 'menu', 'values': "none,width,height,both"},
+            {'name':'format', 'default':"gray", 'type':'string', 'control': 'menu', 'options': "gray,fire,spectrum,red,green,blue,rgb"},
+            {'name':'scale', 'default':"both", 'type':'string', 'control': 'menu', 'options': "none,width,height,both"},
             {'name':'opacity', 'default':1, 'min': 0, 'max':1, 'type':'float', 'control': 'slider'},
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no", 'class':'true'},
+            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no", 'class':'true'},
             {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             
             {'name': "FRAME", 'control':'header'},
             

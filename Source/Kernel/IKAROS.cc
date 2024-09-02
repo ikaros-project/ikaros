@@ -1,4140 +1,2982 @@
-//
-//	  IKAROS.cc		Kernel code for the IKAROS project
-//
-//    Copyright (C) 2001-2022  Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//    See http://www.ikaros-project.org/ for more information.
-//
-//	Created July 13, 2001
-//
-// Before 2.0: 4500 lines
-// New paramater handling: 4400 lines
+// Ikaros 3.0
 
-#include <stdlib.h>
-#include <string>
-#include <stdio.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <ctime>
-#include <iostream>
-#include <unistd.h>
-#include <exception> // for std::bad_alloc
-#include <new>
-
-// Kernel 2.0
-
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <regex>
-#include <thread>
-
-#include <sys/resource.h>
-#include <sys/times.h>
-
-#include "IKAROS.h"
-#include "Kernel/IKAROS_ColorTables.h"
+#include "ikaros.h"
 
 using namespace ikaros;
+using namespace std::chrono;
+using namespace std::literals;
 
-bool        global_fatal_error = false;	// Must be global because it is used before the kernel is created
-bool        global_terminate = false;	// Used to flag that CTRL-C has been received
-int         global_error_count = 0;
-int         global_warning_count = 0;
-
-static std::string empty_string = "";
-
-//#include "IKAROS_Malloc_Debug.h"
-#ifndef USING_MALLOC_DEBUG
-void* operator new (std::size_t size) noexcept(false)
+namespace ikaros
 {
-    void *p=calloc(size, sizeof(char)); 
-    if(p==0) // did calloc succeed?
-        throw std::bad_alloc();
-    return p;
-}
-
-void operator delete (void *p) throw()
-{
-    free(p); 
-}
-#endif
-
-
-//
-// Group (2.0)
-//
-
-static int group_number = 0;
-
-class GroupElement;
-
-class Element
-{
-public:
-    GroupElement * parent;
-    std::map<std::string, std::string> attributes;
-    
-                                    Element(GroupElement * parent, XMLElement * xml_node=nullptr);
-    const std::string &             GetAttribute(const std::string & a) const; // FIXME: Remove
-    virtual std::string             GetValue(const std::string & a, const std::string & path="") const;
-    std::string                     operator[](const std::string & a) const;
-    void                            PrintAttributes(int d=0); // const
-    std::string                     JSONAttributeString(int d=0); // const
-};
-
-class ParameterElement: public Element
-{
-public:
-    ParameterElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-    
-    void Print(int d=0);
-    std::string JSONString(int d=0);
-};
-
-class InputElement: public Element
-{
-public:
-    InputElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-    std::string     MapTarget(std::string name);
-    void            Print(int d=0);
-    std::string     JSONString(int d=0);
-
-};
-
-class OutputElement: public Element
-{
-public:
-    OutputElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-
-    std::string     MapSource(std::string name);
-    void            Print(int d=0);
-    std::string     JSONString(int d=0);
-};
-
-class ConnectionElement: public Element
-{
-public:
-    ConnectionElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-    
-    void            Print(int d=0);
-    std::string     JSONString(int d=0);
-};
-
-class ViewObjectElement: public Element
-{
-public:
-    ViewObjectElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-
-    void            Print(int d=0);
-    std::string     JSONString(int d=0);
-
-};
-
-class ViewElement: public Element
-{
-public:
-    ViewElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-    std::vector<ViewObjectElement> objects;
-
-    void            Print(int d=0);
-    std::string     JSONString(int d=0);
-};
-
-class GroupElement : public Element
-{
-public:
-    std::unordered_map<std::string, GroupElement *> groups;
-    std::unordered_map<std::string, ParameterElement *> parameters;
-    std::vector<ParameterElement *> parameter_list;
-    std::vector<InputElement> inputs;
-    std::unordered_map<std::string, OutputElement *> outputs;
-    std::vector<ConnectionElement> connections;
-    std::vector<ViewElement> views;
-    Module * module; // if this group is a 'class'; in this case goups should be empty 
-
-                                GroupElement(GroupElement * parent, XMLElement * xml_node=nullptr);
-                                ~GroupElement();
-
-    std::string                 GetParameter(const std::string & name);
-    std::string                 EvaluateValue(const std::string & value);
-
-
-    virtual std::string         GetValue(const std::string & name, const std::string & path="");
-
-    GroupElement *              GetGroup(const std::string & name);
-    Module *                    GetModule(const std::string & name);
-    Module_IO *                 GetSource(const std::string & name);
-    std::vector<Module_IO *>    GetTargets(const std::string & name); // A single Connect can result in many connections
-    void                        Print(int d=0);
-    std::string                 JSONString(int d=0);
-    void                        CreateDefaultView();
-};
-
-Element::Element(GroupElement * parent, XMLElement * xml_node)
-{
-    this->parent = parent;
-
-    if(!xml_node)
-        return;
-    
-    for(XMLAttribute * attr=xml_node->attributes; attr!=nullptr; attr = (XMLAttribute *)attr->next)
-        attributes.insert({ attr->name, attr->value });
-}
-
-const std::string &
-Element::GetAttribute(const std::string & a) const // get attribute verbatim // TODO: REMOVE so that it is not used by accident
-{
-    if(attributes.count(a))
-        return attributes.at(a);
-    else
-        return empty_string;
-};
-
-
-// GetValue or the equivalent [] should be used for all access to parameters
-// It takes care of variable substitutions, parameter substitution, and inheritance
-// Together with the corresponding function for GroupElement
-
-std::string
-Element::GetValue(const std::string & name, const std::string & path) const
-{
-    if(name.empty())
-        return empty_string;
-
-    if(attributes.count(name))
+    std::string  validate_identifier(std::string s)
     {
-        std::string value;  // We need to substitute all variables in this scope relative to the current element
-        std::string sep;
-        for(auto s : split(attributes.at(name), "."))
+        static std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
+        if(s.empty())
+            throw exception("Identifier cannot be empty string");
+        if('0' <= s[0] && s[0] <= '9')
+            throw exception("Identifier cannot start with a number: "+s);
+        for(auto c : s)
+            if(legal.find(c) == std::string::npos)
+                throw exception("Illegal character in identifier: "+s);
+        return s;
+    }
+
+    long new_session_id()
+    {
+        return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    }
+
+
+// CircularBuffer
+
+    CircularBuffer::CircularBuffer(matrix &  m,  int size):
+        index_(0),
+        buffer_(std::vector<matrix>(size))
+    {
+        for(int i=0; i<size;i++)
         {
-            if(s[0] == '@')
-                value += sep + GetValue(s.substr(1));
+            buffer_[i].copy(m);
+            buffer_[i].reset(); // FIXME: use other function
+        }
+    }
+
+    void 
+    CircularBuffer::rotate(matrix &  m)
+    {
+        buffer_[index_].copy(m);
+        index_ = ++index_ % buffer_.size();
+    }
+
+    matrix & 
+    CircularBuffer::get(int i) // Get output with delay i
+    {
+        return buffer_[(buffer_.size()+index_-i) % buffer_.size()];
+    }
+
+
+
+// Parameter
+
+    parameter::parameter(dictionary info):
+        info_(info), 
+        type(no_type), 
+        has_options(info_.contains("options"))
+    {
+        std::string type_string = info_["type"];
+
+        if(type_string=="float" || type_string=="int" || type_string=="double")  // Temporary
+            type_string = "number";
+
+        auto type_index = std::find(parameter_strings.begin(), parameter_strings.end(), type_string);
+        if(type_index == parameter_strings.end())
+            throw exception("Unkown parameter type: "+type_string+".");
+
+        type = parameter_type(std::distance(parameter_strings.begin(), type_index));
+
+        // Init shared pointers
+        switch(type)
+        {
+            case number_type:
+            case rate_type:
+            case bool_type:
+                number_value = std::make_shared<double>(0); 
+                break;
+
+            case string_type: 
+                string_value = std::make_shared<std::string>(""); 
+                break;
+
+            case matrix_type: 
+                matrix_value = std::make_shared<matrix>(); 
+                break;
+
+            default: 
+                break;
+        } 
+    }
+
+
+
+    parameter::parameter(const std::string type, const std::string options):
+        parameter(options.empty() ? dictionary({{"type", type}}) : dictionary({{"type", type},{"options", options}}))
+    {}
+
+
+    void 
+    parameter::operator=(parameter & p) // this shares data with p 
+    {
+        info_ = p.info_;
+        type = p.type;
+        has_options = p.has_options;
+
+        number_value = p.number_value;
+        matrix_value = p.matrix_value;
+        string_value = p.string_value;
+    }
+
+
+
+    double 
+    parameter::operator=(double v) // FIXME: handle matrix type as well
+    {
+        if(has_options)
+        {
+            auto options = split(info_["options"],",");
+            int c = options.size();
+            if(v > c-1)
+                v = c-1;
+            switch(type)
+            {
+                case number_type:
+                case rate_type:
+                case bool_type:
+                    *number_value = double(v);
+                    break;
+                case string_type:
+                    *string_value = options[round(v)];
+                    break;
+                default:
+                    break; // FIXME: error?
+            }
+            return v;
+        }
+
+        switch(type)
+        {
+            case number_type:
+            case rate_type:
+            case bool_type:
+                *number_value = double(v);
+                break;
+            case string_type:
+                    *string_value = std::to_string(v);
+                break;
+            default:
+                break; // FIXME: error?
+        }
+        return v;
+    }
+
+    std::string 
+    parameter::operator=(std::string v)
+    {
+        double val = 0;
+        if(has_options)
+        {
+            auto options = split(info_["options"],",");
+            auto it = std::find(options.begin(), options.end(), v);
+            if(it != options.end())
+                val = std::distance(options.begin(), it);
             else
-                value += sep + s;
-            sep = ".";
+                throw exception("Invalid parameter value");
         }
-        return value;
-    }
+        else if(is_number(v))
+            val = stod(v);
 
-    if(parent)
-        return parent->GetValue(name);
-    else
-        return empty_string;
-}
-
-std::string
-Element::operator[](const std::string & a) const // same as get value
-{
-    return GetValue(a);
-};
-
-void
-Element::PrintAttributes(int d)
-{
-    for(auto a : attributes)
-        printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
-}
-
-std::string
-Element::JSONAttributeString(int d)
-{
-    std::string b;
-    std::string s;
-    for(auto a : attributes)
-    {
-        std::string value = std::regex_replace(a.second, std::regex("\\s+"), " "); // JSON does not allow line breaks in attribute values
-        s += b + std::string(d, '\t') + "\"" + a.first + "\": \"" + value + "\"";
-        b = ",\n";
-    }
-    return s;
-}
-
-
-ParameterElement::ParameterElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
-
-void ParameterElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"\tPARAMETER: "+GetAttribute("name")).c_str());
-    PrintAttributes(d);
-};
-
-std::string ParameterElement::JSONString(int d)
-{
-    std::string s = std::string(d, '\t')+"{\n";
-    s += JSONAttributeString(d+1);
-    s += "\n" + std::string(d, '\t')+"}";
-    return s;
-};
-
-
-InputElement::InputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
-
-std::string InputElement::MapTarget(std::string name)
-{
-    // TEMPORARY: will be removed when all targetmodule attributes have been removed
-    auto t = attributes["target"];
-    if(attributes["targetmodule"] != "")
-    {
-        t = attributes["targetmodule"]+"."+t;
-        Kernel().Notify(msg_warning, "Attribute targetmodule=\"%s\" is deprecated in inputs.", attributes["targetmodule"].c_str());
-    }
-    
-    auto target = rsplit(name, ".", 1);
-    auto new_target = rsplit(t, ".", 1);    // t = attributes["target"] later
-    
-    return (new_target[0]!="" ? new_target[0] : target[0])+"."+(new_target[1]!="" ? new_target[1] : target[1]);
-}
-
-void InputElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"\tINPUT: "+GetAttribute("name")).c_str());
-    PrintAttributes(d);
-};
-
-std::string InputElement::JSONString(int d)
-{
-    std::string s = std::string(d, '\t')+"{\n";
-    s += JSONAttributeString(d+1);
-    s += "\n" + std::string(d, '\t')+"}";
-    return s;
-};
-
-
-OutputElement::OutputElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
-
-std::string
-OutputElement::MapSource(std::string name)
-{
-    // TEMPORARY: will be removed when all sourcemodule attributes have been removed
-    auto s = attributes["source"];
-    if(attributes["sourcemodule"] != "")
-    {
-        s = attributes["sourcemodule"]+"."+s;
-        Kernel().Notify(msg_warning, "Attribute sourcemodule=\"%s\" is deprecated in inputs.", attributes["sourcemodule"].c_str());
-    }
-
-    auto source = rsplit(name, ".", 1);
-    auto new_source = rsplit(s, ".", 1);    // s = attributes["source"] later
-
-    return (new_source[0]!="" ? new_source[0] : source[0])+"."+(new_source[1]!="" ? new_source[1] : source[1]);
-}
-
-void
-OutputElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"\tOUTPUT: "+GetAttribute("name")).c_str());
-    PrintAttributes(d);
-};
-
-std::string
-OutputElement::JSONString(int d)
-{
-    std::string s = std::string(d, '\t')+"{\n";
-    s += JSONAttributeString(d+1);
-    s += "\n" + std::string(d, '\t')+"}";
-    return s;
-};
-
-
-ConnectionElement::ConnectionElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
-
-void ConnectionElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"\tCONNECTION: ").c_str());
-    PrintAttributes(d);
-}
-
-std::string ConnectionElement::JSONString(int d)
-{
-    std::string s = std::string(d, '\t')+"{\n";
-    s += JSONAttributeString(d+1);
-    s += "\n" + std::string(d, '\t')+"}";
-    return s;
-};
-
-
-ViewObjectElement::ViewObjectElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
-
-void ViewObjectElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"\tOBJECT: ").c_str());
-    PrintAttributes(d);
-}
-
-std::string ViewObjectElement::JSONString(int d)
-{
-    std::string tab = std::string(d, '\t');
-    std::string s = tab + "{\n";
-    s += JSONAttributeString(d+1);
-    s += "\n" + tab+"}";
-    return s;
-};
-
-
-ViewElement::ViewElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node) {};
-
-void ViewElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"\tVIEW: ").c_str());
-    PrintAttributes(d);
-    printf("%s\n", (std::string(d, '\t')+"\tOBJECTS: ").c_str());
-    for(auto o : objects)
-        o.Print(d+1);
-}
-
-std::string ViewElement::JSONString(int d)
-{
-    std::string tab = std::string(d, '\t');
-    std::string tab2 = std::string(d+1, '\t');
-    std::string b;
-    std::string s = tab+"{\n";
-    if(attributes.size())
-        s += JSONAttributeString(d+1) + ",\n";
-    
-    if(objects.size())
-    {
-        s += tab2 + "\"objects\":\n" + tab2 + "[\n";
-        for(auto o : objects)
+        switch(type)
         {
-            s += b + o.JSONString(d+2);
-            b = ",\n";
+            case number_type:
+            case rate_type:
+                *number_value = val;
+                break;
+
+            case bool_type:
+                if(has_options)
+                    *number_value = (val!=0 ? 1 : 0);
+                else
+                    *number_value = is_true(v);
+                break;
+
+            case string_type:
+                *string_value = v;
+                break;
+
+            case matrix_type:
+                *matrix_value = v;
+                break;
+
+            default:
+                break; // FIXME: error? Handle matrix with single element
         }
-        s += "\n";
-        s += tab2 + "]";
+        return v;
     }
-    else
-        s += tab2 + "\"objects\": []";
-    
-    s += "\n" + std::string(d, '\t')+"}";
-    return s;
-};
 
 
-GroupElement::GroupElement(GroupElement * parent, XMLElement * xml_node) : Element(parent, xml_node)
-{
-};
-
-
-GroupElement::~GroupElement()
-{
-}
-
-
-
-// Search for value in this and outer groups taking into account parameter renaming and default values
-
-std::string
-GroupElement::GetParameter(const std::string & name)
-{
-    if(name.empty())
-        return "";
-
-    if(attributes.count(name)) // local definition
-        return attributes[name];
-
-    if(parameters.count(name) && parameters[name]->attributes.count("name")) // parameter renaming
+    parameter::operator matrix & ()
     {
-        auto n = parameters[name]->attributes["name"];
-        if(n != name)
+        if(matrix_value) 
+            return *matrix_value;
+        else
+            throw exception("Not a matrix value.");
+    }
+
+
+    parameter::operator std::string()
+    {
+        if(string_value)
+            return  *string_value;
+
+        if(has_options)
         {
-            auto v = GetParameter(n);
-            if(v != "")
-                return v;
+            int index = int(*number_value);
+            auto options = split(info_["options"],","); // FIXME: Check trim in split
+            if(index < 0 || index>= options.size())
+                return std::to_string(index)+" (OUT-OF-RANGE)";
+            else
+                return options[index];
+        } 
+
+        switch(type)
+        {
+            case no_type: throw exception("Uninitialized or unbound parameter.");
+            case number_type: if(number_value) return std::to_string(*number_value);
+            case bool_type: if(number_value) return (*number_value>0 ? "true" : "false");
+            case rate_type: if(number_value) return std::to_string(*number_value);
+            case string_type: if(string_value) return *string_value;
+            case matrix_type: return matrix_value->json();
+            default:  throw exception("Type conversion error for parameter.");
         }
     }
 
-    std::string value;
-    if(parent && ((value = parent->GetParameter(name)) != "")) // inherited definition
-        return value;
 
-    if(parameters.count(name) && parameters[name]->attributes.count("default")) // default values
-        return parameters[name]->attributes["default"];
-
-    return "";
-}
-
-/*
-
-    Evaluate the (retrieved parameter) value in the context of the current group
-    Could add all kinds of expressions in the future to get rid of set_size variants etc
-*/
-
-std::string
-GroupElement::EvaluateValue(const std::string & value)
-{
-    if(value.find('@') == std::string::npos) // do not evaluate string without @ sign.
-        return value;
-
-    if(value[0]=='.') // Evaluate in context of top group
+    parameter::operator double()
     {
-        auto p = this;
-        while(p->parent)
-            p = p->parent;
-        return p->EvaluateValue(value.substr(1));
+        if(type==rate_type)
+            return *number_value * kernel().tick_duration;
+        if(number_value) 
+            return *number_value;
+        else if(string_value) 
+        {
+            if(has_options)
+            {
+                auto options = split(info_["options"],","); // FIXME: Check trim in split
+            auto it = std::find(options.begin(), options.end(), *string_value);
+            if(it != options.end())
+                return std::distance(options.begin(), it);
+            else
+                return 0;
+            }
+            else
+                return stod(*string_value); // FIXME: may fail ************
+        }
+        else if(matrix_value)
+            return 0;// FIXME check 1x1 matrix ************
+        else
+            throw exception("Type conversion error. Parameter does not have a type. Bind?");
     }
-    auto p = value.find('.');
 
-    if(p == std::string::npos) // Evaluate single value
+
+    int
+    parameter::as_int()
     {
-        if(value[0]=='@')
+        switch(type)
+        {
+            case no_type: throw exception("Uninitialized_parameter.");
+            case number_type: if(number_value) return *number_value;
+            case rate_type: if(number_value) return *number_value;    // FIXME: Take care of time base
+            case bool_type: if(number_value) return *number_value;
+            case string_type: if(string_value) return stoi(*string_value); // FIXME: Check that it is a number
+            case matrix_type: throw exception("Could not convert matrix to int"); // FIXME check 1x1 matrix
+            default: ;
+        }
+        throw exception("Type conversion error for  parameter");
+    }
+
+
+    const char* 
+    parameter::c_str() const noexcept
+    {
+        if(string_value)
+            return string_value->c_str();
+        else
+            return NULL;
+    }
+
+
+    void 
+        parameter::print(std::string name)
+    {
+        if(!name.empty())
+            std::cout << name << " = ";
+        if(type == no_type)
+            std::cout <<"not initialized" << std::endl;
+        else
+            std::cout << std::string(*this) << std::endl;
+    }
+
+
+    void 
+    parameter::info()
+    {
+        std::cout << "type: " << type << std::endl;
+        std::cout << "default: " << info_["default"] << std::endl;
+        std::cout << "has_options: " << has_options << std::endl;
+        std::cout << "options: " << info_["options"] << std::endl;
+        std::cout << "value: " << std::string(*this) << std::endl;
+    }
+
+    std::string 
+    parameter::json()
+    {
+        switch(type)     // FIXME: remove if statements and use exception handling
+        {
+            case number_type:    if(number_value)   return "[["+std::to_string(*number_value)+"]]";
+            case bool_type:     if(number_value)    return (*number_value!=0 ? "[[true]]" : "[[false]]");
+            case rate_type:     if(number_value)    return "[["+std::to_string(*number_value)+"]]";
+            case string_type:   if(string_value)    return "\""+*string_value+"\"";
+            case matrix_type:   if(matrix_value)    return matrix_value->json();
+            default:            throw exception("Cannot convert parameter to string");
+        }
+    }
+
+
+    std::ostream& operator<<(std::ostream& os, parameter p) // FIXME: Handle options
+    {
+        switch(p.type)
+        {
+            case number_type:    if(p.number_value) os <<  *p.number_value; break; // FIXME: Is string conversion sufficient?
+            case bool_type:     if(p.number_value) os <<  (*p.number_value == 0 ? "false" : "true"); break;
+            case rate_type:    if(p.number_value) os <<  *p.number_value; break; 
+            case string_type:   if(p.string_value) os <<  *p.string_value; break;
+            case matrix_type:   if(p.matrix_value) os <<  *p.matrix_value; break;
+            default:            throw exception("Cannot convert parameter to string for printing");
+        }
+
+        return os;
+    }
+
+
+// Component
+
+    void 
+    Component::print()
+    {
+        std::cout << "Component: " << info_["name"]  << '\n';
+    }
+
+        void 
+        Component::info()
+        {
+            std::cout << "Component: " << info_["name"]  << '\n';
+            std::cout << "Path: " << path_  << '\n';
+            std::cout << "Path: " << info_  << '\n';
+        }
+
+    bool 
+    Component::BindParameter(parameter & p,  std::string & name) // Handle parameter sharing
+    {
+        std::string bind_to = GetValue(name+".bind");
+        if(bind_to.empty())
+            return false;
+        else
+            return LookupParameter(p, bind_to);
+    }
+
+
+
+    bool 
+    Component::ResolveParameter(parameter & p,  std::string & name)
+    {
+        //std::cout << "ResolveParameter: " << name << std::endl;
+        try
+        {
+            // Look for binding
+            std::string bind_to = GetBind(name);
+            if(!bind_to.empty())
+            {
+                if(LookupParameter(p, bind_to)) // FIXME: Not working
+                    return true;
+            }
+
+            std::string value = LookupKey(name);
+            if(value.empty())
+            {
+                SetParameter(name, p.info_["default"]);
+                return true;
+            }
+
+            // Evaluate if numerical expression
+
+            if(p.type==number_type && !p.has_options)
+            {
+                    SetParameter(name, std::to_string(EvaluateNumericalExpression(value))); //FIXME: HANDLE DEFAULTVALUES ALSO
+                    return true;
+            }
+
+            // Lookup normal value in current component-context
+
+            value = GetValue(name);
+            if(value.empty())  // ****************** this does not work for string that are allowed to be empty
+            {
+                SetParameter(name, p.info_["default"]);
+                return true;
+            }
+                
+            SetParameter(name, value);
+            return true;
+        }
+        catch(exception & e)
+        {
+            Notify(msg_fatal_error, e.message);
+        }
+        catch(std::exception & e)
+        {
+            Notify(msg_fatal_error, "ERROR: Could not resolve parameter \""s +name + "\" .", name);  
+        }
+        return false;
+    }
+
+
+
+    bool 
+    Component::KeyExists(const std::string & key)
+    {        
+        if(info_.contains(key))
+            return true;
+        if(parent_)
+            return parent_->KeyExists(key);
+        else
+            return false;
+    }
+
+
+    std::string 
+    Component::LookupKey(const std::string & key)
+    {        
+        if(info_.contains(key))
+            return info_[key];
+        if(parent_)
+            return parent_->LookupKey(key);
+        else
+            return ""; // throw exception("Name not found"); // throw not_found_exception instead
+    }
+
+
+
+    static std::string
+    exchange_before_dot(const std::string& original, const std::string& replacement)
+    {
+        size_t pos = original.find('.');
+        if(pos == std::string::npos) // No dot found, replace the whole string
+            return replacement;
+     else  // Replace up to the first dot
+            return replacement + original.substr(pos);
+    }
+
+
+
+    static std::string
+    before_dot(const std::string& original)
+    {
+        size_t pos = original.find('.');
+        if(pos == std::string::npos)
+            return original;
+     else 
+            return original.substr(0,pos);
+    }
+
+
+//
+// GetValue
+//
+// Get value of a key/variable in the context of this component (ignores current parameter values)
+// Throws and exception if value cannot be found
+// Does not handle default values - this is done by parameters
+
+    std::string 
+    Component::GetValue(const std::string & path) 
+    {     
+        if(path.empty())
+            return ""; // throw exception("Name not found"); // throw not_found_exception instead
+
+        if(path[0]=='@')
+            return GetValue(exchange_before_dot(path, LookupKey( before_dot(path).substr(1))));
+        
+        if(path[0]=='.')
+            return kernel().components.begin()->second->GetValue(path.substr(1)); // Absolute path // FIXME: Scary - main_group -
+
+        size_t pos = path.find('.');
+        if(pos != std::string::npos)
+        {
+            std::string head = path.substr(0, pos);
+            std::string tail = path.substr(pos + 1);
+
+            if(head[0]=='@')
+                head = LookupKey(head.substr(1));
+
+            std::string local_path = path_+'.'+head;
+            if(kernel().components.count(local_path))
+                return kernel().components[local_path]->GetValue(tail);
+            else if(std::string(parent_->info_["name"]) == head)
+                return parent_->GetValue(tail);
+            else
+                return ""; // throw exception("Name not found"); // throw not_found_exception instead 
+        }
+
+        std::string value = LookupKey(path);
+        if(value.find('@') != std::string::npos && value.find('.') != std::string::npos) // A new indirect 'path' - start over
+            return GetValue(value);
+        else if(value.find('@') != std::string::npos) // A new indirect 'key' - start over
             return GetValue(value.substr(1));
         else
             return value;
     }
 
-// Evaluate part of path
-
-    auto p1 = value.substr(0, p);
-    auto p2 = value.substr(p+1);
-
-    if(p1[0]=='@')
-        p1 = GetValue(p1.substr(1));
 
 
-    auto * g = GetGroup(p1);
-    if(!g)
-        return p1+"."+p2;
-
-    return g->EvaluateValue(p2);
-}
-
-
-std::string
-GroupElement::GetValue(const std::string & name, const std::string & path)
-{
-    return EvaluateValue(GetParameter(name));
-}
-
-
-GroupElement *
-GroupElement::GetGroup(const std::string & name)
-{
-    if(name.empty())
-        return this;
-
-    // Check if we need to start at top group
-
-    if(name[0]=='.')
+    std::string 
+    Component::GetBind(const std::string & name)
     {
-        auto * g = this;
-        while(g->parent)
-            g = g->parent;
-        return g->GetGroup(name.substr(1));
+        if(info_.contains(name))
+            return ""; // Value set in attribute - do not bind
+        if(info_.contains(name+".bind")) 
+            return info_[name+".bind"];
+        if(parent_)
+            return parent_->GetBind(name);
+        return "";
     }
 
-    std::string head = name;
-    std::string tail = "";
-    auto p = name.find('.');
-    if(p  != std::string::npos) // Multiple step path
+
+
+    std::string 
+    Component::SubstituteVariables(const std::string & s)
     {
-        head = name.substr(0, p);
-        tail = name.substr(p+1);
+        std::string var; 
+        std::string sep;
+        for(auto c : split(s, "."))
+        {
+            if(c[0] == '@')
+                var += sep + GetValue(c.substr(1));
+            else
+                var += sep + c;
+            sep = ".";
+        }
+        return var;
     }
 
-    if(head[0]=='@')
-        head = GetValue(head.substr(1));
 
-    GroupElement * g = nullptr;
-    if(groups.count(head))
-        g = groups[head];
-    else if(parent && parent->GetValue("name") == head)
-        g = parent; 
-
-    if(tail.empty())
-        return g;
-    else if(g)
-        return g->GetGroup(tail);
-    
-    return nullptr;
-}
-
-
-Module *
-GroupElement::GetModule(const std::string & name) // Get module from full or partial name relative to this group
-{
-    if(auto g = GetGroup(name))
-        return g->module;
-    return nullptr;
-}
-
-
-Module_IO *
-GroupElement::GetSource(const std::string & name) // FIXME: simplify when sourcemodule is no longer used
-{
-    auto source = rsplit(name, ".", 1);
-    if(GroupElement * g = GetGroup(source[0]))
+    void Component::Bind(parameter & p, std::string name)
     {
-        if(g->module)
-            return g->module->GetModule_IO(g->module->output_list, source[1].c_str());
-
-        if(!g->outputs.count(source[1]))
-            return nullptr;
-
-        auto output = g->outputs.at(source[1]);
-        if(!output)
-            return nullptr;
-
-        auto n = output->MapSource(name);
-        return g->GetSource(n);
-    }
-    return nullptr;
-}
-
-
-std::vector<Module_IO *>
-GroupElement::GetTargets(const std::string & name) // FIXME: simplify when targetmodule is no longer used
-{
-    std::vector<Module_IO *> tios;
-    auto target = rsplit(name, ".", 1);
-
-    GroupElement * g = GetGroup(target[0]);
-    if(!g)
-        return tios; // empty vector
-    
-    if(g && g->module)
-    {
-        if(auto tio = g->module->GetModule_IO(g->module->input_list, target[1].c_str()))
-            tios.push_back(tio);
+        Kernel & k = kernel();
+        std::string pname = path_+"."+name;
+        if(k.parameters.count(pname))
+            p = kernel().parameters[pname];
         else
-            g->module->Notify(msg_fatal_error, "Module \"%s\" has no input named \"%s\".\n", g->module->GetFullName(), target[1].c_str());
-        return tios;
-    }
-    
-    for (auto & input : g->inputs) // we need to loop because there can be more than one input statement with the same name for multiple connections
-        if(input["name"] == target[1])
-        {
-            auto n = input.MapTarget(name);
-            auto targets = g->GetTargets(n);
-            tios.insert(tios.end(), targets.begin(), targets.end());
-        }
+            throw exception("Cannot bind to \""+name+"\"");
+    };
 
-    return tios;
-}
 
-void
-GroupElement::Print(int d)
-{
-    printf("%s\n", (std::string(d, '\t')+"GROUP:"+GetAttribute("name")).c_str());
-    if(module)
-        printf("%s\n", (std::string(d, '\t')+"MODULE:"+std::string(module->GetFullName())).c_str());
-
-    printf("%s\n", (std::string(d, '\t')+"\tATTRIBUTES:").c_str());
-    PrintAttributes(d+1);
-
-    printf("%s\n", (std::string(d, '\t')+"\tPARAMETERS:").c_str());
-    for(auto p : parameters)
-        p.second->Print(d+1);
-
-    printf("%s\n", (std::string(d, '\t')+"\tCONNECTIONS:").c_str());
-    for(auto c : connections)
-        c.Print(d+1);
-
-    for(auto g : groups)
-        g.second->Print(d+1);
-    
-    printf("\n");
-};
-
-std::string GroupElement::JSONString(int d)
-{
-    std::string b;
-    std::string tab = std::string(d, '\t');
-    std::string tab2 = std::string(d+1, '\t');
-    
-    std::string s = tab + "{\n";
-
-    if(module)
-        s += tab2 + "\"is_group\": false,\n";
-    else
-        s += tab2 + "\"is_group\": true,\n";
-
-    s += tab2 + "\"attributes\":\n" + tab2 + "{\n";
-    s += JSONAttributeString(d+2);
-    s += "\n" + tab2 + "},\n";
-    
-    if(parameter_list.size())
+    void Component::Bind(matrix & m, std::string n) // Bind input, output or parameter
     {
-        s += tab2 + "\"parameters\":\n" + tab2 + "[\n";
-        for(auto p : parameter_list)
+        std::string name = path_+"."+n;
+        try
         {
-            s += b + p->JSONString(d+2);
-            b = ",\n";
-        }
-        s += "\n";
-        s += tab2 + "]";
-    }
-    else
-        s += tab2 + "\"parameters\": []";
-    
-    s += ",\n";
-
-    if(inputs.size())
-    {
-        b = "";
-        s += tab2 + "\"inputs\":\n" + tab2 + "[\n";
-        for(auto p : inputs)
-        {
-            s += b + p.JSONString(d+2);
-            b = ",\n";
-        }
-        s += "\n";
-        s += tab2 + "]";
-    }
-    else
-        s += tab2 + "\"inputs\": []";
-    
-    s += ",\n";
-    
-    if(outputs.size())
-    {
-        b = "";
-        s += tab2 + "\"outputs\":\n" + tab2 + "[\n";
-        for(auto p : outputs) // FIXME: not empty when there are no outputs; instead null pointer in second???
-        {
-            if(p.second)
-            {
-            s += b + p.second->JSONString(d+2);
-            b = ",\n";
-            }
+            Kernel & k = kernel();
+            if(k.buffers.count(name))
+                m = k.buffers[name];
+            else if(k.buffers.count(name))
+                m = k.buffers[name];
+            else if(k.parameters.count(name))
+                m = (matrix &)(k.parameters[name]);
+            else if(k.parameters.count(name))
+                throw exception("Cannot bind to attribute \""+name+"\". Define it as a parameter!");
             else
-                kernel().Notify(msg_fatal_error, "Internal Eror – Empty output structure.");
+                throw exception("Input, output or parameter named \""+name+"\" does not exist");
         }
-
-        s += "\n";
-        s += tab2 + "]";
-    }
-    else
-        s += tab2 + "\"outputs\": []";
-    
-    s += ",\n";
-    
-    if(connections.size())
-    {
-        b = "";
-        s += tab2 + "\"connections\":\n" + tab2 + "[\n";
-        for(auto c : connections)
+        catch(exception e)
         {
-            s += b + c.JSONString(d+2);
-            b = ",\n";
+            throw exception("Bind:\""+name+"\" failed. "+e.message);
         }
-        s += "\n";
-        s += tab2 + "]";
     }
-    else
-        s += tab2 + "\"connections\": []";
-    
-    s += ",\n";
 
-    if(views.size())
+    void Component::AddInput(dictionary parameters)
     {
-        b = "";
-        s += tab2 + "\"views\":\n" + tab2 + "[\n";
-        for(auto v : views)
+        std::string input_name = path_+"."+validate_identifier(parameters["name"]);
+        kernel().AddInput(input_name, parameters);
+    }
+
+    void Component::AddOutput(dictionary parameters)
+    {
+        std::string output_name = path_+"."+validate_identifier(parameters["name"]);
+        kernel().AddOutput(output_name, parameters);
+      };
+
+    void Component::AddOutput(std::string name, int size, std::string description)
+    {
+        dictionary o = {
+            {"name", name},
+            {"size", std::to_string(size)},
+            {"description", description},
+            {"_tag", "output"}
+        };
+        list(info_["outputs"]).push_back(o);
+        AddOutput(o);
+    }
+
+    void Component::ClearOutputs()
+    {
+       info_["outputs"] = list(); 
+    }
+
+
+    void Component::AddParameter(dictionary parameters)
+    {
+        try
+        {         
+            std::string parameter_name = path_+"."+validate_identifier(parameters["name"]);
+            kernel().AddParameter(parameter_name, parameters);
+        }
+        catch(const std::exception& e)
         {
-            s += b + v.JSONString(d+2);
-            b = ",\n";
+            throw exception("While adding parameter \""+std::string(parameters["name"])+"\": "+ e.what());
         }
-        s += "\n";
-        s += tab2 + "]";
     }
-    else
-        s += tab2 + "\"views\": []";
-    
-    s += ",\n";
 
-    if(groups.size())
+
+    void Component::SetParameter(std::string name, std::string value)
     {
-        s += tab2 + "\"groups\":\n" + tab2 + "[\n";
-        b = "";
-        for(auto g : groups)
+        std::string parameter_name = path_+"."+validate_identifier(name);
+        kernel().SetParameter(parameter_name, value);
+    }
+
+
+    bool Component::LookupParameter(parameter & p, const std::string & name)
+    {
+        Kernel & k = kernel();
+        if(k.parameters.count(path_+"."+name))
         {
-            s += b + g.second->JSONString(d+2);
-            b = ",\n";
+            p = k.parameters[path_+"."+name];
+            return true;
         }
-        s += "\n";
-        s += tab2 + "]\n";
-    }
-    else
-        s += tab2 + "\"groups\": []\n";
-
-    s += tab + "}";
-    
-    return s;
-}
-
-
-void
-GroupElement::CreateDefaultView()
-{
-    if(!outputs.size())
-        return;
-    
-    auto * v = new ViewElement(this);
-
-    int margin = 20;
-    int x = 20;
-    int y = 20;
-    int w = 201;
-    int h = 201;
-
-    for(auto output : outputs)
-    {
-        auto * o = new ViewObjectElement((GroupElement *)v);    // FIXME: parent should be ViewElement not GroupElement
-
-        v->attributes["name"] = "View";
-        
-        o->attributes["class"] = "plot";
-        o->attributes["source"] = "."+output.first;
-        o->attributes["title"] = "."+output.first;
-        o->attributes["x"] = std::to_string(x);
-        o->attributes["y"] = std::to_string(y);
-        o->attributes["width"] = std::to_string(w);
-        o->attributes["height"] = std::to_string(h);
-     
-        v->objects.push_back(*o);
-        
-        x += w+margin;
-        if(x > 3*w)
-        {
-            x = 20;
-            y += h+margin;
-        }
-    }
-    
-    views.push_back(*v);
-}
-
-
-//
-// ModuleClass
-//
-
-ModuleClass::ModuleClass(const char * n, ModuleCreator mc, const char * p)
-{
-    name = n;
-    module_creator = mc;
-    path = create_string(p);
-}
-
-ModuleClass::~ModuleClass()
-{
-    delete path;
-}
-
-
-const char *
-ModuleClass::GetClassPath()
-{
-    return path;
-}
-
-Module *
-ModuleClass::CreateModule(Parameter * p)
-{
-    Module * m = (*module_creator)(p);
-    if(!m->input_list && !m->output_list)
-        m->AddIOFromIKC();
-        if(m->GetBoolValue("power_output"))
-        m->AddOutput("POWER", false, 1, 1); // TEST *******
-    return m;
-}
-
-bool
-Module_IO::Allocate()
-{
-    if(sizex == unknown_size || sizey == unknown_size)
-    {
-        if(module != nullptr && !optional)
-            return module->Notify(msg_fatal_error, "Attempting to allocate io (\"%s\") with unknown size for module \"%s\" (%s). Check that all required inputs are connected.\n", name.c_str(), module->GetName(), module->GetClassName());
-
-    }
-    if(sizex*sizey <= 0)
-    {
-        if(module != nullptr && !optional)
-            return module->Notify(msg_fatal_error, "Internal error while trying to allocate data of size 0.\n");
-    }
-    
-    if(module != nullptr) module->Notify(msg_debug, "Allocating data of size %d.\n", size);
-    data	=   new float * [max_delay];
-    matrix  =   new float ** [max_delay];
-    for (int d=0; d<max_delay; d++)
-    {
-        matrix[d] = create_matrix(sizex, sizey);
-        data[d] = matrix[d][0];
-    }
-    return true;
-}
-
-Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt, bool multiple)
-{
-    optional = opt;
-    allow_multiple = multiple;
-    next = nxt;
-    module = m;
-    name = n;
-    data = nullptr;
-    matrix = nullptr;
-    size = x*y;
-    sizex = x;
-    sizey = y;
-    max_delay = 1;
-}
-
-Module_IO::~Module_IO()
-{
-    if(matrix)
-        for (int d=0; d<max_delay; d++)
-            destroy_matrix(matrix[d]);
-    delete [] data;
-    delete [] matrix;
-    delete next;
-}
-
-void
-Module_IO::SetSize(int x, int y)
-{
-    int s = x*y;
-    if(x == unknown_size)
-        return;
-    if(size != unknown_size && s != size)
-    {
-        if(module != nullptr)
-            module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name.c_str(), module->GetName(), module->GetClassName(), size, s);
-        return;
-    }
-    if(s == size)
-        return;
-    if(s == 0)
-        return;
-    if(module != nullptr)
-        module->Notify(msg_debug, "Allocating memory for input/output \"%s\" of module \"%s\" (%s) with size %d and max_delay = %d (in SetSize).\n", name.c_str(), module->instance_name, module->GetClassName(), s, max_delay);
-    sizex = x;
-    sizey = y;
-    size = x*y;
-    if(module != nullptr && module->kernel != nullptr)
-        module->kernel->NotifySizeChange();
-}
-
-void
-Module_IO::DelayOutputs()
-{
-    for (int d=max_delay-1; d>0; d--)
-        copy_matrix(matrix[d], matrix[d-1], sizex, sizey);
-}
-
-Module::~Module()
-{
-    Notify(msg_debug, "    Deleting Module \"%s\".\n", instance_name);
-	destroy_string(full_instance_name);
-    delete timer;
-    delete input_list;
-    delete output_list;
-}
-
-void
-Module::AddInput(const char * name, bool optional, bool allow_multiple_connections)
-{
-    if(GetModule_IO(input_list, name) != nullptr)
-    {
-        Notify(msg_warning, "Input \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
-        return;
-    }
-    input_list = new Module_IO(input_list, this, name, unknown_size, 1, optional, allow_multiple_connections);
-    Notify(msg_trace, "  Adding input \"%s\".\n", name);
-}
-
-void
-Module::AddOutput(const char * name, bool optional, int sizeX, int sizeY)
-{
-    if(GetModule_IO(output_list, name) != nullptr)
-    {
-        Notify(msg_warning, "Output \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
-        return;
-    }
-    output_list = new Module_IO(output_list, this, name, sizeX, sizeY, optional);
-    Notify(msg_trace, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
-}
-
-const char *
-Module::GetName()
-{
-    return instance_name;
-}
-
-const char *
-Module::GetFullName()
-{
-	return full_instance_name;
-}
-
-const char *
-Module::GetClassName()
-{
-    return class_name;
-}
-
-const char *
-Module::GetClassPath()
-{
-    char * s = create_string(kernel->GetClassPath(GetClassName()));
-    unsigned long p = strlen(s)-1;
-    while(s[p] != '/')
-        s[p--] = '\0';
-    return s;
-}
-
-long
-Module::GetTickLength()
-{
-    return kernel->GetTickLength();
-}
-
-
-long
-Module::GetTick()
-{
-    return kernel->GetTick();
-}
-
-
-void
-StoreArray(const char * path, const char * name, float * a, int size)
-{
-    store_array(path, name, a, size);
-}
-
-
-void
-StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
-{
-    store_matrix(path, name, m, size_x, size_y);
-}
-
-
-bool
-LoadArray(const char * path, const char * name, float * a, int size)
-{
-    return load_array(path, name, a, size);
-
-}
-
-
-bool
-LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y)
-{
-    return load_matrix(path, name, m, size_x, size_y);
-}
-
-
-void
-Module::Store(const char * path)
-{
-    // will implement default store behavior later
-//    printf("Store: %s\n", path);
-}
-
-
-void
-Module::Load(const char * path)
-{
-    // will implement default load behavior later
-//    printf("Load: %s\n", path);
-}
-
-
-
-std::string 
-Module::GetJSONData(const std::string & name, const std::string & tab)
-{
-    return std::string();   // Return empty string as default
-}
-
-
-
-/*
-std::string
-Module::GetList(const std::string & name)
-{
-    if(group->parameters.count(name))
-    {
-        return "A/B";
-    }
-
-    return "X/Y";
-
-}
-*/
-
-
-
-const char * // FIXME: ***********************
-Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetValue
-{
-    const char * module_name = GetName();
-    
-    // loop up the group hierarchy
-    for (XMLElement * parent = xml->GetParentElement(); parent != nullptr; parent = parent->GetParentElement())
-    {
-        // Look for parameter element that redefines the attribute name
-        for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != nullptr; parameter = parameter->GetNextElement("parameter"))
-        {
-            if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
-            {
-                const char * d = kernel->GetXMLAttribute(parameter, "values");
-                if(d)
-                    return d;
-            }
-            
-            const char * t = kernel->GetXMLAttribute(parameter, "target");
-            if(equal_strings(t, n))
-            {                
-                // we have found our parameter
-                // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = kernel->GetXMLAttribute(parameter, "module");
-                if(tm == nullptr || (equal_strings(tm, module_name)))
-                {
-                    // use default if it exists
-                    const char * d = kernel->GetXMLAttribute(parameter, "values");
-                    if(d)
-                        return d;
-                    
-                    // the parameter element redefines our parameter name; get the new name
-                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
-                    if(newname == nullptr)
-                    {
-                        Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
-                        return nullptr;
-                    }
-                    // we have the new name; set it and see if it is defined in the current group element
-                    n = newname;
-                }
-            }
-        }
-        
-        // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = kernel->GetXMLAttribute(parent, "name"); // FIXME: check if this will ever happen with the new GetXMLAttribute call
-    }
-    return nullptr; // No list value was found
-}
-
-
-
-
-const char *
-Module::GetValue(const char * n)	// This function implements attribute inheritance with renaming through the parameter element
-{
-    auto v = group->GetValue(n);
-    if(v.empty())
-        return nullptr;
-    return create_string(v.c_str()); // FIXME: leaks, but will be changed to const & std::string later
-}
-
-
-float
-Module::GetFloatValue(const char * n, float d, bool deprecation_warning)
-{
-    if(d != 0 && deprecation_warning)
-        Notify(msg_warning, "Default value for GetFloatValue(\"%s\") is deprecated and should be specified in IKC file instead.", n);
-
-    return string_to_float(GetValue(n), d);
-}
-
-int
-Module::GetIntValue(const char * n, int d)
-{
-    if(d != 0)
-        Notify(msg_warning, "Default value for GetIntValue(\"%s\") is deprecated and should be specified in IKC file instead.", n);
-    
-    if(GetList(n))
-        return GetIntValueFromList(n);
-    else
-        return string_to_int(GetValue(n), d);
-}
-
-
-bool
-Module::GetBoolValue(const char * n, bool d) // TODO: Use above default
-{
-    const char * v = GetValue(n);
-    if(v == nullptr)
-        return d;
-    else
-        return string_to_bool(v);
-}
-
-static int
-findindex(const char * name, const char * list)
-{
-    int ix = 0;
-    int lp = 0;
-    while (true)
-    {
-        // try to match name in list
-        int np = 0;
-        while (list[lp] && list[lp] != '/'  && name[np] == list[lp])
-        {
-            np++;
-            lp++;
-        }
-        // name matches, return index
-        if((list[lp] == '/' || list[lp] == 0) && name[np] == 0)
-            return ix;
-        // skip to next name
-        ix++;
-        while (list[lp] && list[lp] != '/')
-            lp++;
-        // no match
-        if(list[lp] == 0)
-            return -1;
-        // prepare for next match
-        lp++;
-    }
-}
-
-
-int
-Module::GetIntValueFromList(const char * n, const char * list)
-{
-    const char * l = GetList(n);
-    if(!l)
-        l = list;
-    if(!l)
-    {
-        Notify(msg_warning, "List values not defined for \"%s\".\n", n);
-        return 0;
-    }
-    const char * v = GetValue(n);
-    if(!v)
-        return 0;
-    else
-    {
-        int ix = findindex(v, l);
-        
-        if(ix == -1)
-        {
-            Notify(msg_warning, "List value \"%s\" is not defined. Using default value.\n", v);
-            return 0;
-        }
+        else if(parent_)
+            return parent_->LookupParameter(p, name);
         else
-            return ix;
-    }
-}
-
-
-float *
-Module::GetArray(const char * n, int & size, bool fixed_size)
-{
-    return create_array(GetValue(n), size, fixed_size);
-}
-
-
-int *
-Module::GetIntArray(const char * n, int & size, bool fixed_size)
-{
-    int requested_size = size;
-    int data_size = 0;
-
-    const char * v = GetValue(n);
-    if(v == nullptr)
-    {
-        if(requested_size > 0)
-        {
-            size = requested_size;
-            int * a = new int [size];
-            for(int i=0; i<size; i++)
-                a[i] = 0;
-            return a;
-        }
-        else
-        {
-            size = 0;
-            return nullptr;
-        }
-    }
-
-    const char * vv = v;
-    
-    // Count values
-    
-    while(*v != '\0')
-    {
-        int x;
-        for (; isspace(*v) && *v != '\0'; v++) ;
-        if(sscanf(v, "%d", &x)!=-1)
-            data_size++;
-        for (; !isspace(*v) && *v != '\0'; v++) ;
-    }
-    
-    if(size == 0)
-    {
-        requested_size = data_size;
-        size = data_size;
-    }
-    
-    int d = 0;
-    int * a = new int[requested_size];
-    v = vv;
-    
-    for (int i=0; i<requested_size;i++)
-    {
-        for (; isspace(*v) && *v != '\0'; v++) ;
-        if(i >= requested_size || (sscanf(v, "%d", &a[i])==-1))
-            a[i] = d;
-        d = a[i]; // save last as default value
-        for (; !isspace(*v) && *v != '\0'; v++) ;
-    }
-    
-    return a;
-}
-
-
-float **
-Module::GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size)
-{
-    return create_matrix(GetValue(n), sizex, sizey, fixed_size);
-}
-
-
-void
-Module::Bind(float & v, const char * n)
-{
-    // TODO: check type here
-    v = GetFloatValue(n);
-    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_float, &v, 0, 0));
-}
-
-
-void
-Module::Bind(float * & v, int size, const char * n, bool fixed_size)
-{
-    // TODO: check type here
-    v = GetArray(n, size, fixed_size);
-    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_array, v, size, 1));
-}
-
-
-void
-Module::Bind(float * & v, int * size, const char * n)
-{
-    // TODO: check type here
-    v = GetArray(n, *size, false);
-    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_array, v, *size, 1));
-}
-
-
-void
-Module::Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size)
-{
-    // TODO: check type here
-    v = GetMatrix(n, sizex, sizey, fixed_size);
-    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_matrix, v, sizex, sizey));
-}
-
-
-void
-Module::Bind(int & v, const char * n)
-{
-    // TODO: check type here
-    if(GetList(n))
-    {
-        v = GetIntValueFromList(n);
-        kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_list, &v, 0, 0));
-    }
-    else
-    {
-        v = GetIntValue(n);
-        kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_int, &v, 0, 0));
-    }
-}
-
-
-void
-Module::Bind(bool & v, const char * n)
-{
-    // TODO: check type here
-    v = GetBoolValue(n);
-    kernel->bindings[std::string(full_instance_name)+"."+std::string(n)].push_back(new Binding(this, n, bind_bool, &v, 0, 0));
-}
-
-
-void
-Module::Bind(std::string & v, const char * n)
-{
-    // TODO: check type here
-    auto x = GetValue(n);   // FIXME: temoprary; GetValue should never return nullptr
-    if(!x)
-        v = std::string("");
-    else
-        v = std::string(x);
-    auto p = std::string(full_instance_name)+"."+std::string(n);
-    auto b = new Binding(this, n, bind_string, &v, 0, 0);
-    kernel->bindings[p].push_back(b);
-}
-
-
-Module_IO *
-Module::GetModule_IO(Module_IO * list, const char * name)
-{
-    for (Module_IO * i = list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-            return i;
-    return nullptr;
-}
-
-
-void
-Module::AllocateOutputs()
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        i->Allocate();
-}
-
-void
-Module::DelayOutputs()
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        i->DelayOutputs();
-}
-
-
-void
-Module::SetInputSize(const char * name, int size)
-{
-    for (Module_IO * i = input_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->data == nullptr)
-            {
-                Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) does not exist. Cannot set size.\n", name, GetName(), GetClassName());
-                return;
-            }
-            else
-                i->data[0] = create_array(size);
-        }
-}
-
-
-
-float *
-Module::GetInputArray(const char * name, bool required)
-{
-    for (Module_IO * i = input_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->data == nullptr)
-            {
-                if(required && !i->optional)
-                    Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
-                return nullptr;
-            }
-            else
-                return i->data[0];
-        }
-    Notify(msg_debug, "Input array \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
-    return nullptr;
-}
-
-float *
-Module::GetOutputArray(const char * name, bool required)
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->data == nullptr)
-            {
-                if(required && !i->optional)
-                    Notify(msg_fatal_error, "Output array \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
-                return nullptr;
-            }
-            else
-                return i->data[0];
-        }
-
-    Notify(msg_debug, "Output array  \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
-    return nullptr;
-}
-
-float **
-Module::GetInputMatrix(const char * name, bool required)
-{
-    for (Module_IO * i = input_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->matrix == nullptr)
-            {
-                if(required && !i->optional)
-                    Notify(msg_fatal_error, "Input matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
-                return nullptr;
-            }
-            else
-                return i->matrix[0];
-        }
-    Notify(msg_debug, "Input matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
-    return nullptr;
-}
-
-float **
-Module::GetOutputMatrix(const char * name, bool required)
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->matrix == nullptr)
-            {
-                if(required && !i->optional)
-                    Notify(msg_fatal_error, "Output matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning nullptr.\n", name, GetName(), GetClassName());
-                return nullptr;
-            }
-            else
-                return i->matrix[0];
-        }
-    Notify(msg_debug, "Output matrix \"%s\" of module \"%s\" (%s) does not exist. Returning nullptr.\n", name, GetName(), GetClassName());
-    return nullptr;
-}
-
-int
-Module::GetInputSize(const char * input_name)
-{
-    // Find the Module_IO for this input
-    for (Module_IO * i = input_list; i != nullptr; i = i->next)
-        if(equal_strings(input_name, i->name.c_str()))
-        {
-            if(i->size != unknown_size)
-                return i->size;
-            else if(kernel != nullptr)
-                return kernel->CalculateInputSize(i);
-            else
-                break;
-        }
-    Notify(msg_fatal_error, "Cannot calculate input size for \"%s\" of module \"%s\" (%s).\n", input_name, instance_name, class_name);
-    return unknown_size;
-}
-
-int
-Module::GetInputSizeX(const char * input_name) // TODO: also used internally so cannot be removed
-{
-    // Find the Module_IO for this input
-    for (Module_IO * i = input_list; i != nullptr; i = i->next)
-        if(equal_strings(input_name, i->name.c_str()))
-        {
-            if(i->sizex != unknown_size)
-                return i->sizex;
-            else if(kernel != nullptr)
-                return kernel->CalculateInputSizeX(i);
-            else
-                break;
-        }
-    Notify(msg_fatal_error, "Cannot calculate input x size for \"%s\" of module \"%s\" (%s).\n", input_name, instance_name, class_name);
-    return unknown_size;
-}
-
-int
-Module::GetInputSizeY(const char * input_name) // TODO: also used internally so cannot be removed
-{
-    // Find the Module_IO for this input
-    for (Module_IO * i = input_list; i != nullptr; i = i->next)
-        if(equal_strings(input_name, i->name.c_str()))
-        {
-            if(i->sizex != unknown_size)	// Yes, sizeX is correct
-                return i->sizey;
-            else if(kernel != nullptr)
-                return kernel->CalculateInputSizeY(i);
-            else
-                break;
-        }
-    Notify(msg_fatal_error, "Cannot calculate input y size for \"%s\" of module \"%s\" (%s).\n", input_name, instance_name, class_name);
-    return unknown_size;
-}
-
-int
-Module::GetOutputSize(const char * name)
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->size > 0)
-            {
-                return i->size;
-            }
-            else
-            {
-                Notify(msg_fatal_error, "Output size not set for %s.%s \n", this->instance_name, name);
-                return 1;
-            }
-        }
-    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
-    return 0;
-}
-
-int
-Module::GetOutputSizeX(const char * name)
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->sizex > 0)
-            {
-                return  i->sizex;
-            }
-            else
-            {
-                Notify(msg_fatal_error, "Output size x not set for %s.%s \n", this->instance_name, name);
-                return 1;
-            }
-        }
-
-    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
-    return 0;
-}
-
-int
-Module::GetOutputSizeY(const char * name)
-{
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-        {
-            if(i->sizey > 0)
-            {
-                return  i->sizey;
-            }
-            else
-            {
-                Notify(msg_fatal_error, "Output size y not set for %s.%s \n", this->instance_name, name);
-                return 1;
-            }
-        }
-
-    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
-    return 0;
-}
-
-
-void
-Module::io(float * & a, const char * name)
-{
-    if((a = GetOutputArray(name, false)))
-        return;
-    else if((a = GetInputArray(name, false)))
-        return;
-}
-
-
-void
-Module::io(float * & a, int & size, const char * name)
-{
-    if((a = GetOutputArray(name, false)))
-        size = GetOutputSize(name);
-    else if((a = GetInputArray(name, false)))
-        size = GetInputSize(name);
-    else
-        size = 0;
-}
-
-
-void
-Module::io(float ** & m, int & size_x, int & size_y, const char * name)
-{
-    if((m = GetOutputMatrix(name, false)))
-    {
-        size_x = GetOutputSizeX(name);
-        size_y = GetOutputSizeY(name);
-    }
-    else if((m = GetInputMatrix(name, false)))
-    {
-        size_x = GetInputSizeX(name);
-        size_y = GetInputSizeY(name);
-   }
-    else
-    {
-        size_x = 0;
-        size_y = 0;
-    }
-}
-
-
-/*
-void
-Module::io(matrix & m, std::string name, bool required)
-{
-    float ** data;
-    if((data = GetOutputMatrix(name.c_str(), required)))
-    {
-        m.size_x = GetOutputSizeX(name.c_str());
-        m.size_y = GetOutputSizeY(name.c_str());
-        m.data = data;
-        return;
-    }
-    else if ((data = GetInputMatrix(name.c_str(), required)))
-    {
-        m.size_x = GetInputSizeX(name.c_str());
-        m.size_y = GetInputSizeY(name.c_str());
-        m.data = data;
-        return;
-    }
- //   else
- //       return matrix(); // FIXME: throw exception if required
-}
-*/
-
-
-void
-Module::SetOutputSize(const char * name, int x, int y)
-{
-    if(x < -1 || y < -1)
-    {
-        Notify(msg_warning, "Attempting to set negative size of %s.%s \n", this->instance_name, name);
-        return;
-    }
-    for (Module_IO * i = output_list; i != nullptr; i = i->next)
-        if(equal_strings(name, i->name.c_str()))
-            i->SetSize(x, y);
-}
-
-Module::Module(Parameter * p)
-{
-    input_list = nullptr;
-    output_list = nullptr;
-    bindings = nullptr;
-    timer = new Timer();
-    time = 0;
-    ticks = 0;
-    kernel = p->kernel;
-    xml = p->xml;
-    group = p->group;
-    log_level = kernel->log_level;
-    instance_name = kernel->GetXMLAttribute(xml, "name"); // GetValue("name");
-    class_name = kernel->GetXMLAttribute(xml, "class");
-    period = (GetValue("period") ? GetIntValue("period") : 1);
-    phase = (GetValue("phase") ? GetIntValue("phase") : 0);
-	active = GetBoolValue("active", true);
-    high_priority = GetBoolValue("high_priority", false);
-
-	// Compute full name
-    std::vector<std::string> path;
-    for (GroupElement * g = group; g->parent != nullptr; g = g->parent) // Skip the outermost group name
-        path.push_back(g->GetAttribute("name"));
-    std::string s = join(".", path, true);
-    full_instance_name = create_string(s.c_str());
-}
-
-
-void
-Module::AddIOFromIKC()
-{
-	if(!xml->GetParentElement())
-        return;
-    
-    for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != nullptr; e = e->GetNextElement("input"))
-    {
-        const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
-        bool multiple = (amc ? string_to_bool(amc) : true); // True is defaut value
-
-        const char * opt = kernel->GetXMLAttribute(e, "optional");
-        if(!opt)
-            AddInput(kernel->GetXMLAttribute(e, "name"), false, multiple);
-        else
-            AddInput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt), multiple);
-    }
-    
-    for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != nullptr; e = e->GetNextElement("output"))
-    {
-        const char * opt = kernel->GetXMLAttribute(e, "optional");
-        if(!opt)
-            AddOutput(kernel->GetXMLAttribute(e, "name"), false);
-        else
-            AddOutput(kernel->GetXMLAttribute(e, "name"), string_to_bool(opt));
-    }
-}
-
-// Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
-//
-
-int
-Module::GetSizeXFromList(const char * sizearg)
-{
-    int sx = unknown_size;
-
-    char * l = create_string(sizearg);
-    char * ll = l;
-
-    // strip blanks
-
-    int i=0, j=0;
-    while(l[j] != 0)
-    {
-        if(l[j] == ' ')
-            j++;
-        else
-            l[i++]=l[j++];
-    }
-    l[i] = 0;
-    
-    char * s = l;
-    char * input;
-    input = strsep(&s, ",");
-    while(input)
-    {
-        int new_sx = GetInputSizeX(input);
-        if(sx == unknown_size )
-            sx = new_sx;
-        else if(new_sx != unknown_size && new_sx != sx)
-        {
-            Notify(msg_warning, "Incompatible sizes for set_size_x, using max(%s)", sizearg);
-            sx = max(sx, new_sx);
-        }
-        input = strsep(&s, ",");
-    }
-    destroy_string(ll);
-    
-    return sx;
-}
-
-
-int
-Module::GetSizeYFromList(const char * sizearg)
-{
-    int sy = unknown_size;
-
-    char * l = create_string(sizearg);
-    char * ll = l;
-
-    // strip blanks
-
-    int i=0, j=0;
-    while(l[j] != 0)
-    {
-        if(l[j] == ' ')
-            j++;
-        else
-            l[i++]=l[j++];
-    }
-    l[i] = 0;
-
-    char * s = l;
-    char * input;
-    input = strsep(&s, ",");
-    while(input)
-    {
-        int new_sy = GetInputSizeY(input);
-        if(sy == unknown_size )
-            sy = new_sy;
-        else if(new_sy != unknown_size && new_sy != sy)
-        {
-            Notify(msg_warning, "Incompatible sizes for set_size_y, using max(%s)", sizearg);
-            sy = max(sy, new_sy);
-        }
-        input = strsep(&s, ",");
-    }
-    destroy_string(ll);
-    
-    return sy;
-}
-
-
-// Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
-
-void
-Module::SetSizes()  // FIXME: remove xml access, use output elements
-{
-	if(xml->GetParentElement())
-	{
-		const char * sizearg;
-		const char * sizeargy;
-        const char * arg;
-		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != nullptr; e = e->GetNextElement("output"))
-        {
-            const char * output_name = kernel->GetXMLAttribute(e, "name");
-
-            // First get simple attributes
-            
-            int sx = unknown_size;
-            int sy = unknown_size;
-
-            if((sx == unknown_size) && (sizearg = e->GetAttribute("size_param_x")) && (arg = GetValue(sizearg)))
-                sx = string_to_int(arg);
-            
-            if((sy == unknown_size) && (sizearg = e->GetAttribute("size_param_y")) && (arg = GetValue(sizearg)))
-                sy = string_to_int(arg);
-            
-            if((sx == unknown_size) && (sizearg = e->GetAttribute("size_param")) && (arg = GetValue(sizearg)))
-            {
-                sx = string_to_int(arg);
-                sy = 1;
-            }
-            
-            if((sx == unknown_size) && (sizearg = e->GetAttribute("size_x")))
-                sx = string_to_int(sizearg);
-            
-            if((sy == unknown_size) && (sizearg = e->GetAttribute("size_y")))
-                sy = string_to_int(sizearg);
-            
-            if((sx == unknown_size) && (sizearg = e->GetAttribute("size")))
-            {
-                sx = string_to_int(sizearg);
-                sy = 1;
-            }
-            
-			if((sx == unknown_size) && (sy == unknown_size) && (sizearg = e->GetAttribute("size_set"))) // Set output size x & y from one or multiple inputs
-            {
-                sx = GetSizeXFromList(sizearg);
-                sy = GetSizeYFromList(sizearg);
-			}
-            
-			else if((sx == unknown_size) && (sizearg = e->GetAttribute("size_set_x")) && (sizeargy = e->GetAttribute("size_set_y"))) // Set output size x from one or multiple different inputs for both x and y
-			{
-                sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
-                sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
-			}
-            
-			else if((sx == unknown_size) && (sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
-                sx = GetSizeXFromList(sizearg);
-            
-			else if((sy == unknown_size) && (sizearg = e->GetAttribute("size_set_y"))) // Set output size y from one or multiple inputs
-                sy = GetSizeYFromList(sizearg);
-            
-            SetOutputSize(output_name, sx, sy);
-        }
-	}
-}
-
-bool
-Module::Notify(int msg)
-{
-    if(kernel != nullptr)
-        kernel->Notify(msg, "\n");
-    else if(msg == msg_fatal_error)
-    {
-        global_fatal_error = true;
-        global_error_count++;
-    }
-    else if(msg == msg_warning)
-    {
-//        global_warning_count++;
-    }
-    return false;
-}
-
-
-bool
-Module::Notify(int msg, const char *format, ...)
-{
-    if(msg > log_level) // Module log level
-        return false;
-    char 	message[512];
-    snprintf(message, 512, "%s (%s): ", GetFullName(), GetClassName());
-    size_t n = strlen(message);
-    va_list args;
-    va_start(args, format);
-    vsnprintf(&message[n], 512, format, args);
-    va_end(args);
-    if(kernel != nullptr && msg<=log_level) 
-        return kernel->Notify(-msg, message);
-    else if(msg == msg_fatal_error)
-    {
-        global_fatal_error = true;
-        if(message[strlen(message)-1] == '\n')
-            message[strlen(message)-1] = '\0';
-        printf("IKAROS: ERROR: %s\n", message);
-        global_error_count++;
-    }
-    return false;
-}
-
-Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a)
-{
-    if(d == 0 && !a)
-        kernel().Notify(msg_warning, "Zero-delay connection from \"%s\" of module \"%s\" to \"%s\" of module \"%s\" cannot be inactivated. Will be active.", sio->name.c_str(), sio->module->GetName(), tio->name.c_str(), tio->module->GetName());
-
-    source_io = sio;
-    source_offset = so;
-    target_io = tio;
-    target_offset = to;
-    size = s;
-    delay = d;
-    active = a;
-    next = n;
-}
-
-Connection::~Connection()
-{
-    if(source_io != nullptr && source_io->module != nullptr)
-        source_io->module->Notify(msg_debug, "    Deleting Connection.\n");
-    delete next;
-}
-
-void
-Connection::Propagate(long long tick)
-{
-    if(!active)
-        return;
-    if(delay == 0)
-        return;
-    // Return if both modules will not start in this tick - necessary when using threads
-    if(tick % source_io->module->period != source_io->module->phase)
-        return;
-    if(tick % target_io->module->period != target_io->module->phase)
-        return;
-    if(source_io != nullptr && source_io->module != nullptr)
-        source_io->module->kernel->Notify(msg_debug, "  Propagating %s.%s -> %s.%s (%p -> %p) size = %d\n", source_io->module->GetName(), source_io->name.c_str(), target_io->module->GetName(), target_io->name.c_str(), source_io->data, target_io->data, size);
-    for (int i=0; i<size; i++)
-        target_io->data[0][i+target_offset] = source_io->data[delay-1][i+source_offset];
-}
-
-
-ThreadGroup::ThreadGroup(Kernel * k)
-{
-    period = 1;
-    phase = 0;
-    thread = nullptr;
-}
-
-
-ThreadGroup::ThreadGroup(Kernel * k, int period_, int phase_)
-{
-    period = period_;
-    phase = phase_;
-    thread = nullptr;
-}
-
-
-ThreadGroup::~ThreadGroup()
-{
-//    delete thread;
-//    delete next;  // FIXME: do this correctly
-}
-
-static void *
-ThreadGroup_Tick(void *group, bool high_priority)
-{
-    if (high_priority)     // Set high priority of the thread
-    {
-        sched_param sch;
-        int policy;
-        pthread_t t = pthread_self();
-        pthread_getschedparam(t, &policy, &sch);
-        sch.sched_priority = 80;
-        if (pthread_setschedparam(t, SCHED_FIFO, &sch))
-            std::cout << "Failed to setschedparam: " << std::strerror(errno) << '\n';
-    }
-    ((ThreadGroup *)group)->Tick();
-    return nullptr;
-}
-
-void
-ThreadGroup::Start(long long tick)
-{
-    // Test if group should be started
-    if(tick % period == phase)
-    {
-
-        thread = new std::thread(ThreadGroup_Tick, (void *)this, high_priority);
-    }
-}
-
-void
-ThreadGroup::Stop(long long tick)
-{
-    // Test if group should be joined
-    if((tick + 1) % period == phase)
-    {
-        thread->join();
-        delete thread;
-        thread = nullptr;
-    }
-}
-
-void
-ThreadGroup::Tick()
-{
-    for (Module * m: _modules)
-    {
-        m->timer->Restart();
-        if(m->active)
-            m->Tick();
-            float time_used = m->timer->GetTime();
-        m->time += time_used;
-        m->ticks += 1;
-    
-        // Set power usage output here
-        if(m->power)
-            *(m->power) = time_used / m->GetTickLength();
-    }
-}
-
-
-Kernel::Kernel()
-{
-    options                 = nullptr;
-    useThreads              = false; // FIXE: Should be set to true
-    max_ticks               = -1;
-    tick_length             = 0;
-    
-    log_level               = log_level_info;
-    ikaros_dir              = nullptr;
-    ikc_dir                 = nullptr;
-    ikc_file_name           = nullptr;
-
-    tick                    = 0;
-    xmlDoc                  = nullptr;
-    connections             = nullptr;
-    module_count            = 0;
-    period_count            = 0;
-    phase_count             = 0;
-    end_of_file_reached     = false;
-    fatal_error_occurred	= false;
-    terminate			    = false;
-    sizeChangeFlag          = false;
-    
-    logfile                 = nullptr;
-    timer		            = new Timer();
-    
-    // ------------ WebUI part --------------
-    
-    webui_dir               = nullptr;
-    xml                     = nullptr;
-    ui_state                = ui_state_pause;
-    master_id               = 0;
-    tick_is_running         = false;
-    handling_request        = false;
-    sending_ui_data         = false;
-    debug_mode              = false;
-    isRunning               = false;
-    idle_time               = 0;
-    time_usage              = 0;
-}
-
-
-void
-Kernel::SetOptions(Options * opt)
-{
-    options             = opt;
-    useThreads          = options->GetOption('t') || options->GetOption('T');
-    max_ticks           = string_to_int(options->GetArgument('s'), -1);
-    tick_length         = string_to_int(options->GetArgument('r'), 0);
-
-    if(options->GetOption('q'))
-        log_level = log_level_off;
-    if(options->GetOption('v'))
-        log_level = log_level_trace;
-    
-    // Compute ikaros root path
-    
-    ikaros_dir = nullptr;
-    if(is_absolute_path(IKAROSPATH))
-        ikaros_dir = create_string(IKAROSPATH);
-    else if(options->GetBinaryDirectory() != nullptr)
-        ikaros_dir = create_formatted_string("%s%s", options->GetBinaryDirectory(), IKAROSPATH);
-    else
-        Notify(msg_fatal_error, "The Ikaros root directory could not be established. Please set an absolute IKAROSPATH in IKAROS_System.h\n");
-    
-    // Compute ikc path and name
-                        
-   ikc_dir = options->GetFileDirectory();
-   ikc_file_name =  options->GetFileName();
-                        
-    // Seed random number generator
-                        
-    if(options->GetOption('z'))
-        srandom(string_to_int(options->GetArgument('z')));
-
-    // Fix module paths
-    for(auto c : classes)
-        if(c.second->path != nullptr && c.second->path[0] != '/')
-        {
-            const char * t = c.second->path;
-            c.second->path = create_formatted_string("%s%s", ikaros_dir, c.second->path);
-            destroy_string((char *)t);
-        }
-    
-    // WebUI Part
-    
-    port = PORT;
-    if (options->GetOption('w'))
-        port = string_to_int(options->GetArgument('w'), PORT);
-    
-    if (options->GetOption('W')) // TODO: Use log-level for this instead?
-    {
-        port = string_to_int(options->GetArgument('W'), PORT);
-        Notify(msg_debug, "Setting up WebUI port at %d in debug mode\n", port);
-        debug_mode = true;
-    }
-    
-    if(options->GetOption('r'))
-    {
-        ui_state = ui_state_realtime;
-        isRunning = true;
-        Notify(msg_debug, "Setting real-time mode.\n");
-    }
-    
-    if (options->GetOption('R'))
-    {
-        port = string_to_int(options->GetArgument('R'), PORT);
-        Notify(msg_debug, "Setting up WebUI port at %d\n", port);
-        if(options->GetOption('r'))
-        {
-            ui_state = ui_state_realtime;
-            Notify(msg_debug, "Setting real-time mode.\n");
-        }
-        else
-        {
-//          ui_state = ui_state_play;
-            Notify(msg_debug, "Setting play mode.\n");
-        }
-        isRunning = true;
-    }
-}
-
-
-Kernel::~Kernel()
-{
-    return; // TODO: fix this later
-/*
-    Notify(msg_debug, "Deleting Kernel.\n");
-    Notify(msg_debug, "  Deleting Connections.\n");
-    delete connections;
-    Notify(msg_debug, "  Deleting Modules.\n");
-//    delete modules; // FIXME: delete
-    Notify(msg_debug, "  Deleting Thread Groups.\n");
-//    delete threadGroups;  // FIXME: delete
-    Notify(msg_debug, "  Deleting Classes.\n");
-//    delete classes;
-    
-    delete timer;
-    delete xmlDoc;
-    delete ikaros_dir;
-    
-    Notify(msg_debug, "Deleting Kernel Complete.\n");
-    if(logfile) fclose(logfile);
-    
-#ifdef USE_MALLOC_DEBUG
-    dump_memory();  // dump blocks that are still allocated
-#endif
-*/
-}
-
-
-std::string
-Kernel::JSONString()
-{
-    if(main_group)
-        return main_group->JSONString();
-    else
-        return "{}";
-}
-
-
-bool
-Kernel::AddClass(const char * name, ModuleCreator mc, const char * path)
-{
-    if(path == nullptr)
-        return Notify(msg_fatal_error, "Path to ikc file is missing for class \"%s\".\n", name);
-    
-    char * path_to_ikc_file = nullptr;
-    
-    // Test for backward compatibility and remove initial paths if needed
-    
-    if(ikaros_dir)
-        path_to_ikc_file = create_formatted_string("%s%s%s.ikc", ikaros_dir, path, name); // absolute path
-    else
-        path_to_ikc_file = create_formatted_string("%s%s.ikc", path, name); // relative path
-
-    classes.insert({ name, new ModuleClass(name, mc, path_to_ikc_file)} );
-    
-    destroy_string(path_to_ikc_file);
-    return true;
-}
-
-bool
-Kernel::Terminate()
-{
-    if(max_ticks != -1 && tick >= max_ticks)
-        return !Notify(msg_debug, "Max ticks reached.\n");
-
-    return end_of_file_reached || fatal_error_occurred  || global_fatal_error || terminate || global_terminate;
-}
-
-
-void
-Kernel::Run()
-{
-    first_request = true;
-
-    if(socket == nullptr)
-        return;
-
-    chdir(ikc_dir);
-
-    timer->Restart();
-    tick = 0;
-    httpThread = new std::thread(Kernel::StartHTTPThread, this);
-
-    while (!Terminate())
-    {
-        if (!isRunning)
-        {
-            Timer::Sleep(10); // Wait 10ms to avoid wasting cycles if there are no requests
-        }
-    
-        while(sending_ui_data)
-            {}
-        while(handling_request)
-            {}
-
-        if (isRunning)
-        {
-            tick_is_running = true; // Flag that state changes are not allowed
-            Tick();
-            tick_is_running = false;
-            
-            // Calculate idle_time
-            
-            if(tick_length > 0)
-            {
-                idle_time = (float(tick*tick_length) - timer->GetTime()) / float(tick_length);
-                time_usage = 1 - idle_time;
-            }
-
-            if (tick_length > 0)
-            {
-                lag = timer->WaitUntil(float(tick*tick_length));
-                if (lag > 0.1) Notify(msg_warning, "Lagging %.2f ms at tick = %ld\n", lag, tick);
-            }
-            else if (ui_state == ui_state_realtime)
-            {
-                while(sending_ui_data)
-                    {}
-                while(handling_request)
-                    {}
-            }
-        }
-    }
-}
-
-
-void
-Kernel::PrintTiming()
-{
-    total_time = timer->GetTime()/1000; // in seconds
-    if(max_ticks != 0)
-        Notify(msg_print, "Stop (%ld ticks, %.2f s, %.2f ticks/s, %.3f s/tick)\n", tick, total_time, float(tick)/total_time, total_time/float(tick));
-}
-
-void
-Kernel::Propagate()
-{
-    for (Connection * c = connections; c != nullptr; c = c->next)
-        c->Propagate(tick);
-}
-
-void
-Kernel::CheckNAN()
-{
-    for (Module * & m : _modules)
-    {
-        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
-        {
-            for(int j=0; j<i->sizex*i->sizey; j++)
-            {
-                float v = i->matrix[0][0][j];
-                if((v) != (v))
-                {
-                    Notify(msg_fatal_error, "NAN in output \"%s\" of module \"%s\" (%s).\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
-                    break;
-                }
-            }
-        }
-    }
-}
-
-void
-Kernel::CheckInputs()
-{
-    for (Module * & m : _modules)
-    {
-        for (Module_IO * i = m->input_list; i != nullptr; i = i->next)
-            if(i->size == unknown_size)
-            {
-                // Check if connected
-                bool connected = false;
-                for (Connection * c = connections; c != nullptr; c = c->next)
-                    if(c->target_io == i)
-                        connected = true;
-                if(connected)
-                {
-                    Notify(msg_fatal_error, "Size of input \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
-                }
-                else
-                    i->size = 0; // ok if not connected
-            }
-    }
-}
-
-void
-Kernel::CheckOutputs()
-{
-    for (Module * & m : _modules)
-    {
-        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
-            if(i->size == unknown_size)
-            {
-                // Check if connected
-                bool connected = false;
-                for (Connection * c = connections; c != nullptr; c = c->next)
-                    if(c->source_io == i)
-                        connected = true;
-                if(connected)
-                {
-                    Notify(msg_fatal_error, "Size of output \"%s\" of module \"%s\" (%s) could not be resolved.\n", i->name.c_str(), i->module->instance_name, i->module->GetClassName());
-                }
-            }
-    }
-}
-
-void
-Kernel::InitInputs()
-{
-    for (Connection * c = connections; c != nullptr; c = c->next)
-    {
-        if(c->source_io->size == unknown_size)
-        {
-            Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
-        }
-        else if(c->target_io->data != nullptr && c->target_io->allow_multiple == false)
-        {
-            Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->module->GetClassName());
-        }
-        else if(c->delay == 0)
-        {
-            Notify(msg_debug, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
-            // already connected to 0 or longer delay?
-            if(c->target_io->data != nullptr)
-            {
-                Notify(msg_fatal_error, "Failed to connect zero-delay connection from \"%s\" of module \"%s\" (%s) because target is already connected.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
-            }
-            else
-            {
-                c->target_io->data = new float * [1];
-                c->target_io->data[0] = c->source_io->data[0];
-                c->target_io->matrix = new float ** [1];
-                c->target_io->matrix[0] = c->source_io->matrix[0];
-                c->target_io->sizex = c->source_io->sizex;
-                c->target_io->sizey = c->source_io->sizey;
-                c->target_io->size = c->source_io->size;
-                c->target_io->max_delay = 0;
-            }
-        }
-        else if(c->target_io && c->size == unknown_size)
-        {
-            // Check that this connection does not interfere with zero-delay connection
-            if(c->target_io->max_delay == 0)
-            {
-                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
-            }
-            // First connection to this target: initialize
-            if(c->target_io->size == unknown_size)	// start calculation with size 0
-                c->target_io->size = 0;
-            int target_offset = c->target_io->size;
-            c->target_io->size += c->source_io->size;
-            // Target not used previously: ok to connect anything
-            if(c->target_io->sizex == unknown_size)
-            {
-                Notify(msg_debug, "New connection.\n");
-                c->target_io->sizex = c->source_io->sizex;
-                c->target_io->sizey = c->source_io->sizey;
-            }
-            // Connect one dimensional output
-            else if(c->target_io->sizey == 1 && c->source_io->sizey == 1)
-            {
-                Notify(msg_debug, "Adding additional connection.\n");
-                c->target_io->sizex = c->target_io->size;
-            }
-            // Collapse matrix to array
-            else
-            {
-                Notify(msg_debug, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
-                c->target_io->sizex = c->target_io->size;
-                c->target_io->sizey = 1;
-            }
-            // Set connection variables
-            c->target_offset = target_offset;
-            c->size = c->source_io->size;
-            // Allocate input memory and reset
-            Notify(msg_debug, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
-            c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
-            c->target_io->Allocate();
-        }
-        else if(c->target_io) // fixed offset connection
-        {
-            Notify(msg_debug, "Adding fixed offset connection.\n");
-            // Check that this connection does not interfere with zero-delay connection
-            if(c->target_io->max_delay == 0)
-                Notify(msg_fatal_error, "Failed to connect from \"%s\" of module \"%s\" (%s) because target is already connected with zero-delay.\n", c->source_io->name.c_str(), c->source_io->module->instance_name, c->source_io->module->GetClassName());
-
-            // First connection to this target: initialize
-            if(c->target_io->size == unknown_size)    // start calculation with size 0
-                c->target_io->size = max(c->target_io->size, c->target_offset+c->size);
-
-            // Target not used previously: ok to connect anything
-            if(c->target_io->sizex == unknown_size)
-            {
-                Notify(msg_debug, "New connection.\n");
-                c->target_io->sizex = c->target_io->size;
-                c->target_io->sizey = 1;
-            }
-            // Connect one dimensional output
-            else if(c->target_io->sizey == 1 && c->source_io->sizey == 1)
-            {
-                Notify(msg_debug, "Adding additional connection.\n");
-                c->target_io->sizex = max(c->target_io->sizex, c->target_offset+c->size);
-                c->target_io->size = c->target_io->sizex; // FIXME: Test if this breaks something
-            }
-            // Collapse matrix to array
-            else
-            {
-                Notify(msg_debug, "Multiple connections to \"%s.%s\" with different no of rows. Input flattened.\n", c->target_io->module->instance_name, c->target_io->name.c_str());
-                c->target_io->sizex = c->target_io->size;
-                c->target_io->sizey = 1;
-            }
-            // Set connection variables
-            // Allocate input memory and reset
-            Notify(msg_debug, "Allocating memory for input \"%s\" of module \"%s\" with size %d (%dx%d).\n", c->target_io->name.c_str(), c->target_io->module->instance_name, c->target_io->size, c->target_io->sizex, c->target_io->sizey);
-            c->target_io->SetSize(c->target_io->sizex, c->target_io->sizey);
-            c->target_io->Allocate();
-        }
-    }
-}
-
-void
-Kernel::InitOutputs()
-{
-    do
-    {
-        sizeChangeFlag = false;
-        for (Module * & m : _modules)
-            m->SetSizes();
-        if(sizeChangeFlag)
-            Notify(msg_debug, "InitOutput: Iteration with changes\n");
-        else
-            Notify(msg_debug, "InitOutput: Iteration with no changes\n");
-    }
-    while (sizeChangeFlag);
-}
-
-void
-Kernel::AllocateOutputs()
-{
-    for (Module * & m : _modules)
-        m->AllocateOutputs();
-}
-
-void
-Kernel::InitModules()
-{
-    for (Module * & m : _modules)
-    {
-        m->Bind(m->log_level, "log_level");
-        m->Init();
-        m->power=m->GetOutputArray("POWER", false);
-        m->power_coefficient = m->GetFloatValue("power_coefficient", 1.0, false);
-    }
-}
-
-
-
-void
-Kernel::NotifySizeChange()
-{
-    sizeChangeFlag = true;
-}
-
-void
-Kernel::Init()
-{
-    // Get system statistics // FIXME: move this to somewhere else
-    cpu_cores = std::thread::hardware_concurrency();
-
-    if(options->GetFilePath())
-        ReadXML();
-    else
-        Notify(msg_print, "Running without input file.\n");
-    
-    if(fatal_error_occurred)
-        return;
-
-    // Fill data structures
- 
-    for (Module * & m : _modules)
-    {
- //       if(!module_map.count(m->GetFullName()))
-             module_map.insert({ m->GetFullName(), m });
- //       else
- //           Notify(msg_fatal_error, "Duplicate module name \"%s\".", m->GetFullName()); // Would be good to find this out before module creation
-    }
-
-    for (Connection * c = connections; c != nullptr; c = c->next)
-    {
-        //module_map[c->source_io->module->GetFullName()]->outgoing_connection.insert(c->target_io->module->GetFullName());
-        if(c->delay == 0)
-        {
-            module_map[c->source_io->module->GetFullName()]->connects_to_with_zero_delay.push_back(c->target_io->module);
-            module_map[c->target_io->module->GetFullName()]->connects_from_with_zero_delay.push_back(c->source_io->module);
-        }
-    }
-
-    SortModules();
-    if(fatal_error_occurred)
-    {
-        ListModulesAndConnections(); // May cause crash but will be helpful if it works!
-        return;
-    }
-    CalculateDelays();
-    InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
-    AllocateOutputs();
-    InitInputs();		// Calculate the input sizes and allocate memory for the inputs or connect 0-delays
-    CheckOutputs();
-    CheckInputs();
-    if(fatal_error_occurred)
-    {
-        ListModulesAndConnections();
-        return;
-    }
-
-    InitModules();
-    
-    webui_dir = create_formatted_string("%s%s", ikaros_dir, WEBUIPATH);
-    try
-    {
-        socket =  new ServerSocket(port);
-    }
-    catch (const SocketException& e)
-    {
-        Notify(msg_fatal_error,"Ikaros is unable to start a webserver on port %i. Make sure no other ikaros process is running and try again.\n",port);
-    }
-    
-}
-
-
-// This function may need to be linked with 'librt' on Linux
-// Calculates CPU usage for this process
-
-void
-Kernel::CalculateCPUUsage()
-{
-    double cpu = 0;
-    struct rusage rusage;
-    if(getrusage(RUSAGE_SELF, &rusage) != -1)
-        cpu = (double)(1000.0*rusage.ru_utime.tv_sec) + (double)rusage.ru_utime.tv_usec / 1000.0;
-    float time = timer->GetTime();
-    float tdiff = time - last_cpu_time;
-    if(tdiff > 0)
-        cpu_usage = (cpu-last_cpu)/(float(cpu_cores)*tdiff);
-
-    last_cpu_time = time;
-    last_cpu = cpu;
-}
-
-
-
-void
-Kernel::Tick()
-{
-    Notify(msg_debug, "   Kernel::Tick()\n");
-    Propagate();
-    DelayOutputs();
-  
-    if(useThreads) // TODO: Threads are always used - remove other alternatives
-    {
-        for (auto & g : _threadGroups)
-            g->Start(tick);
-        for (auto & g : _threadGroups)
-            g->Stop(tick);
-    }
-    else if(log_level < log_level_debug)
-    {
-        for (auto & m : _modules)
-            if(tick % m->period == m->phase)
-            {
-                m->timer->Restart();
-                if(m->active)
-                    m->Tick();
-                m->time += m->timer->GetTime();
-                m->ticks += 1;
-            }
-    }
-    else
-    {
-        for (auto & m : _modules)
-            if(tick % m->period == m->phase)
-            {
-                m->timer->Restart();
-                if(m->active)
-                {
-                    Notify(msg_debug, "%s::Tick (%s) Start\n", m->GetName(), m->GetClassName());
-                    m->Tick();
-                    Notify(msg_debug, "%s::Tick (%s) End\n", m->GetName(), m->GetClassName());
-                }
-                m->time += m->timer->GetTime();
-                m->ticks += 1;
-            }
-        
-    }
- 
-#ifdef NANCHECK
-        CheckNAN();
-#endif
-
-    tick++;
-    CalculateCPUUsage();
-}
-
-
-void
-Kernel::Store()
-{
-    if(!options->GetOption('S'))
-        return;
-    
-    char * p = options->GetArgument('S');
-    char * s = p;
-    
-    if(p == nullptr)
-        s = ikc_dir;
-    else if(p[0] != '/') // not absolute path
-        s = create_formatted_string("%s%s", ikc_dir, p);
-
-    for (Module * & m : _modules)
-    {
-        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
-        m->Store(sp);
-        destroy_string(sp);
-    }
-}
-
-
-
-void
-Kernel::Load()
-{
-    if(!options->GetOption('L'))
-        return;
-    
-    char * p = options->GetArgument('L');
-    char * s = p;
-    
-    if(p == nullptr)
-        s = ikc_dir;
-    else if(p[0] != '/') // not absolute path
-        s = create_formatted_string("%s%s", ikc_dir, p);
-    
-    for(Module * & m : _modules)
-    {
-        char * sp = create_formatted_string("%s%s", ikc_dir, m->GetFullName());
-        m->Load(sp);
-        destroy_string(sp);
-    }
-}
-
-
-void
-Kernel::DelayOutputs()
-{
-    for (Module * & m : _modules)
-        m->DelayOutputs();
-}
-
-
-void
-Kernel::AddModule(Module * m)
-{
-    if(!m) return;
-    m->kernel = this;
-    _modules.push_back(m);
-}
-
-
-Module *
-Kernel::GetModule(const char * n)
-{
-    for (Module * & m : _modules)
-        if(equal_strings(n, m->instance_name))
-            return m;
-    return nullptr;
-}
-
-
-Module *
-Kernel::GetModuleFromFullName(const char * n)
-{
-    for (Module * & m : _modules)
-        if(equal_strings(n, m->full_instance_name))
-            return m;
-    return nullptr;
-}
-
-
-// io, k->main_group, module, source
-// FIXME: maybe get inputs as well for WebUI
-
-bool // TODO: Rewrite
-Kernel::GetSource(Module_IO * &io, GroupElement * group, const char * source_module_name, const char * source_name)
-{
-    if((io = group->GetSource(source_name)))
-        return true;
-    else
-        return false;
-}
-
-
-const char *
-Kernel::GetXMLAttribute(XMLElement * e, const char * attribute) // FIXME: DELETE
-{
-    const char * value = nullptr;
-    
-    while(e != nullptr && e->IsElement())
-        if((value = e->GetAttribute(attribute)))
-             return value;
-        else
-            e = (XMLElement *)(e->parent);
-
-    if((value = options->GetValue(attribute)))
-        return value;
-    
-    return nullptr;
-}
-
-
-bool
-Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name)    // FIXME: this function should probably be removed
-{
-    std::string name = std::string(source_module_name)+"."+std::string(source_name);
-    if(!bindings.count(name))
-        return Notify(msg_warning, "Could not find binding. \"%s\" does not exist\n", name.c_str());
-
-    Binding * b = bindings.at(name).at(0);  // FIXME: allow iteraction over vector
-    type = b->type;
-    value_ptr = b->value;
-    sx = b->size_x;
-    sy = b->size_y;
-    return true;
-}
-
-
-    void
-    Module::PrintAttributes()
-    {
-        printf("\nAttributes of module: %s\n", full_instance_name);
-
-        GroupElement * g = group;
-        int d = 0;
-        while(g)
-        {
-            for(auto a : g->attributes)
-            {
-                std::string val = a.second.c_str();
-                std::string eval = "(null)";
-                const char * v = GetValue(a.first.c_str());
-                if(v)
-                    eval = v;
-                if(val == eval)
-                    printf((std::string(d+1, '\t')+"\t%s = \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str());
-                else
-                    printf((std::string(d+1, '\t')+"\t%s = \"%s\"=> \"%s\"\n").c_str(), a.first.c_str(), a.second.c_str(),GetValue(a.first.c_str()));
-            }
-            g = (GroupElement *)g->parent;
-            if(g)
-                printf("Inerits:\n");
-        }
-    }
-
-
-bool
-Module::SetParameter(const char * parameter_name, int x, int y, float value)
-{
-    if(x<0 || y<0)
-        return Notify(msg_warning, "Index for parameter %s out of range (<0)", parameter_name);
-
-    std::string name = std::string(full_instance_name)+"."+std::string(parameter_name);
-    if(!kernel->bindings.count(name))
-        return Notify(msg_warning, "Could not find binding. \"%s\" does not exist\n", name.c_str());
-
-    Binding * b = kernel->bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
-
-    if((b->type == bind_array || b->type == bind_matrix) && (x>=b->size_x || y>=b->size_y))
-        return Notify(msg_warning, "Index for parameter %s out of range", name.c_str());
-
-    if(b->type == bind_float)
-        *((float *)(b->value)) = value;
-    else if(b->type == bind_int || b->type == bind_list)
-        *((int *)(b->value)) = (int)value;
-    else if(b->type == bind_bool)
-        *((bool *)(b->value)) = (value > 0);
-    else if(b->type == bind_array)
-        ((float *)(b->value))[x] = value;
-    else if(b->type == bind_matrix)
-       ((float **)(b->value))[y][x] = value;
-    
-    return true;
-}
-
-
-bool // FIXME: ***************************** PARAMETER INHERITANCE MISSING ********************, remove XML
-Kernel::SetParameter(const char * name, int x, int y, float value)
-{
-    if(x<0 || y<0)
-        return Notify(msg_warning, "Index for parameter %s out of range (<0)", name);
-
-    // New with bidnings, but without variable substitution - can't have both
-    
-    if(bindings.count(name))
-    {
-        Binding * b = bindings.at(name).at(0);  // FIXME: allow iteration over vector of bindings
-
-        if(b->type == bind_float)
-            *((float *)(b->value)) = value;
-        else if(b->type == bind_int || b->type == bind_list)
-            *((int *)(b->value)) = (int)value;
-        else if(b->type == bind_bool)
-            *((bool *)(b->value)) = (value > 0);
-        else if(b->type == bind_array)
-        {
-            if(x < 0 || x >= b->size_x)
-                return Notify(msg_warning, "Parameter index x out of range for %s\"", name);
-            ((float *)(b->value))[x] = value;
-        }
-        else if(b->type == bind_matrix)
-        {
-            if(x < 0 || x >= b->size_x)
-                return Notify(msg_warning, "Parameter index x out of range for \"%s\"", name);
-            if(y < 0 || y >= b->size_y)
-                return Notify(msg_warning, "Parameter index y out of range for \"%s\"", name);
-           ((float **)(b->value))[y][x] = value;
-        }
-    }
-
-    return true;
-}
-
-
-void
-Kernel::SendCommand(const char * command, float x, float y, std::string value)
-{
-    std::string c = command;
-    auto s = rsplit(c, ".", 1);
-    if(auto * g = main_group->GetGroup(s[0])) // FIXME: Error if group not found
-        if(Module * m = g->module)
-            m->Command(s[1], x, y, value);
-}
-
-
-int
-Kernel::CalculateInputSize(Module_IO * i)
-{
-    // The input size has not yet been determined; use the connection list to calculate it
-    // Scan through the connection list to find the size of the input
-    // The size is the sum of the sizes of all outputs connected to this input
-    // The input size is unspecified if one of the outputs has unknown size
-    int s = 0;
-    for (Connection * c = connections; c != nullptr; c = c->next)
-    {
-        if(c->target_io == i)
-        {
-            if(c->source_io->size == unknown_size)
-                return unknown_size;
-            else if(c->target_offset>0 || c->size>0) // offset connection
-                s = max(s, c->target_offset + c->size);
-            else
-                s += c->source_io->size;
-        }
-    }
-    return s;
-}
-
-
-int
-Kernel::CalculateInputSizeX(Module_IO * i)
-{
-    // The input size has not yet been determined; use the connection list to calculate it
-    // Scan through the connection list to find the size of the input
-    // For matrices, there can only be one input
-    // The input size is unspecified if one of the outputs has unknown size
-    int s = 0;
-    for (Connection * c = connections; c != nullptr; c = c->next)
-    {
-        if(c->target_io == i)
-        {
-            if(c->source_io->sizex == unknown_size)
-                return unknown_size;
-            else if(c->target_offset>0 || c->size>0) // offset connection
-                s = max(s, c->target_offset + c->size);
-            else if(s == 0)
-                s =  c->source_io->sizex;
-            else
-                return CalculateInputSize(i);
-        }
-    }
-    return s;
-}
-
-int
-Kernel::CalculateInputSizeY(Module_IO * i)
-{
-    // The input size has not yet been determined; use the connection list to calculate it
-    // Scan through the connection list to find the size of the input
-    // For matrices, there can only be one input
-    // The input size is unspecified if one of the outputs has unknown size
-    int s = 0;
-    for (Connection * c = connections; c != nullptr; c = c->next)
-    {
-        if(c->target_io == i)
-        {
-            if(c->source_io->sizey == unknown_size)
-                return unknown_size;
-            else if(s == 0)
-                s =  c->source_io->sizey;
-            else
-                return 1;
-        }
-    }
-    return s;
-}
-
-/*
-    Partition Graph:
-
-    For all unassigned modules:
-    1. Recursively mark all connected modules
-    2. Assign all marked modules to new group
-*/
-
-void
-Kernel::MarkSubgraph(Module * m)  // recursively mark all connected modules
-{
-    m->mark = 3;
-    for(auto & n : m->connects_to_with_zero_delay)
-        if(n->mark != 3)
-            MarkSubgraph(n);
-    for(auto & n : m->connects_from_with_zero_delay)
-        if(n->mark != 3)
-            MarkSubgraph(n);
-}
-
-
-
-bool
-Kernel::CreateThreadGroups(std::deque<Module *> & sorted_modules)
-{
-    for(auto & m : sorted_modules)
-        if(m->mark < 3)
-        {
-            ThreadGroup * tg = new ThreadGroup(this, m->period, m->phase);
-            _threadGroups.push_back(tg);
-            MarkSubgraph(m);
-            for(auto & m :sorted_modules)
-                if(m->mark == 3)
-                {
-                    if(tg->period != m->period || tg->phase != m->phase)
-                        Notify(msg_fatal_error, "Module period and phase does not match rest of subgraph (%s).", m->GetFullName());
-
-                    tg->_modules.push_back(m);
-                    m->mark = 4;
-                    if (m->high_priority  && !tg->high_priority) // thread group priority
-                        tg->high_priority = true;
-                }
-        }
-    return true;
-}
-
-
-
-/*
-Topological Sort:
-
-L ← Empty list that will contain the sorted nodes
-while there are unmarked nodes do
-    select an unmarked node n
-    visit(n)
-
- function visit(node n)
-    if n has a permanent mark (2) then return
-    if n has a temporary mark (1) then stop   (not a DAG)
-    mark n temporarily
-    for each node m with an edge from n to m do
-        visit(m)
-    mark n permanently (2)
-    add n to head of L
-*/
-
-bool
-Kernel::Visit(std::deque<Module *> & sorted_modules, Module * n)
-{
-    if(n->mark == 2)
-        return true;
-
-    if(n->mark == 1)
-        return Notify(msg_fatal_error, "Network contains zero-connection loop at %s", n->GetFullName());
- 
-    n->mark = 1;
-    for(auto & m : n->connects_to_with_zero_delay)
-        if(!Visit(sorted_modules, m))
             return false;
-    
-    n->mark = 2;
-    sorted_modules.push_front(n);
-    return true;
-}
-
-
-void
-Kernel::SortModules()
-{
-    std::deque<Module *> sorted_modules;
-    for(auto & m : _modules)
-        if(!m->mark && !Visit(sorted_modules, m))
-            return; // fail
-
-    CreateThreadGroups(sorted_modules);
-}
-
-
-void
-Kernel::CalculateDelays()
-{
-    for (Connection * c = connections; c != nullptr; c = c->next)
-    {
-        if(c->delay > c->source_io->max_delay)
-            c->source_io->max_delay = c->delay;
     }
-}
 
+//
+// GetComponent
+//
+// sensitive to variables and indirection
+// does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
+//
 
-bool
-Kernel::Notify(int msg, const char * format, ...)
-{
-    switch (abs(msg))
+    Component * Component::GetComponent(const std::string & s) 
     {
-        case msg_fatal_error:
-            fatal_error_occurred = true;
-            break;
-        case msg_end_of_file:
-            end_of_file_reached = true;
-            break;
-        case msg_terminate:
-            terminate = true;
-            break;
-        default:
-            break;
-    }
-    if(msg > log_level)
-        return false;
-    char 	message[512];
-    int n = 0;
-    switch (abs(msg))
-    {
-        case msg_fatal_error:
-            n = snprintf(message, 512, "ERROR: ");
-            global_error_count++;
-            break;
-        case msg_end_of_file:
-            n = snprintf(message, 512, "END-OF-FILE: ");
-            break;
-        case msg_terminate:
-            n = snprintf(message, 512, "TERMINATE. ");
-            break;
-        case msg_warning:
-            n = snprintf(message, 512, "WARNING: ");
-            global_warning_count++;
-            break;
-        default:
-            break;
-    }
-    va_list 	args;
-    va_start(args, format);
-    vsnprintf(&message[n], 512-n, format, args);
-    va_end(args);
-    printf("IKAROS: %s", message);
-    if(message[strlen(message)-1] != '\n')
-        printf("\n");
-    fflush(stdout);
-    if(logfile != nullptr)
-        fprintf(logfile, "%5lld: %s", tick, message);	// Print in both places
-    return false;
-}
-
-
-// Create one or several connections with different delays between two ModuleIOs
-
-int
-Kernel::Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const std::string & delay, int extra_delay, bool is_active)
-{
-    int c = 0;
-    char * dstring = create_string(delay.c_str());
-    
-    if(!dstring || (!strchr(dstring, ':') && !strchr(dstring, ',')))
-    {
-        int d = string_to_int(dstring, 1);
-        if(d == 0 && (s_offset > 0 || t_offset > 0 || size >= 0))
+        std::string path = SubstituteVariables(s);
+        try
         {
-            Notify(msg_fatal_error, "delay=\"0\" cannot be combined with range attributes in connections."); // TODO: print module and connection names as well
-            return 0;
+            if(path.empty()) // this
+                return this;
+            if(path[0]=='.') // global
+                return kernel().components.at(path.substr(1));
+            if(kernel().components.count(path_+"."+peek_head(path,"."))) // inside
+                return kernel().components[path_+"."+peek_head(path,".")]->GetComponent(peek_tail(path,"."));
+            if(peek_rtail(peek_rhead(path_,"."),".") == peek_head(path,".") && parent_) // parent
+                return parent_->GetComponent(peek_tail(path,"."));
+            throw exception("Component does not exist.");
         }
-        connections = new Connection(connections, sio, s_offset, tio, t_offset, size, d+extra_delay, is_active);
-        c++;
+        catch(const std::exception& e)
+        {
+            throw exception("Component \""+path+"\" does not exist.");
+        }
     }
 
-    else // parse delay string for multiple delays
+
+    std::string 
+    Component::Evaluate(const std::string & s, bool is_string)
     {
-		char * d = create_string(dstring);
-        char * p = strtok(d, ",");
-        while (p != nullptr)
+        if(s.empty())
+            return "";
+
+    if(!expression::is_expression(s) || is_string)
+    {
+        if(s[0]=='@') // Handle indirection (unless expresson)
         {
-            int a, b, n;
-            n = sscanf(p, "%d:%d", &a, &b);
-            if(n==1)
-                b = a;
+            if(s.find('.')==std::string::npos)
+                return GetValue(s.substr(1));
             
-            for(int i=a; i<=b; i++)
-            {
-                connections = new Connection(connections, sio, s_offset, tio, t_offset, size, i+extra_delay, is_active);
-                c++;
-            }
-            p = strtok(nullptr, ",");
+            std::string component_path = peek_rhead(s.substr(1), ".");
+            std::string variable_name = SubstituteVariables(peek_rtail(s, "."));
+            return GetComponent(component_path)->GetValue(variable_name);
         }
-		destroy_string(d);
+        else
+            return s;
     }
-    
-    destroy_string(dstring);
-    return c;
-}
+
+        // Handle mathematical expression
+
+        if(!expression::is_expression(s) || is_string)
+            return s;
+
+         expression e = expression(s);
+            std::map<std::string, std::string> vars;
+            for(auto v : e.variables())
+            {
+                std::string value = Evaluate(v);
+                if(value.empty())
+                    throw exception("Variable \""+v+"\" not defined.");
+                vars[v] = value;
+        }
+        return std::to_string(expression(s).evaluate(vars));
+    }
 
 
-// Check if class file exists and return path if valid
 
+    std::string
+    Component::EvaluateVariable(const std::string & s)
+    {
+        parameter p;
+        if(LookupParameter(p, s.substr(1)))
+            return p;
+        else
+            return Evaluate(s); // FIXME: Should probably not use full evaluation
+
+    }
+
+
+    double 
+    Component::EvaluateNumericalExpression(std::string & s)
+    {
+        expression e = expression(s);
+        std::map<std::string, std::string> vars;
+        for(auto v : e.variables())
+            vars[v] = EvaluateVariable(v);
+        return expression(s).evaluate(vars);
+    }
+
+
+    std::vector<int> 
+    Component::EvaluateSizeList(std::string & s) // return list of size from size list in string
+    {
+        //s = Evaluate(s, true); // FIXME: evaluate as string for s should probably be used in more places
+        std::vector<int> shape;
+        for(std::string e : split(s, ","))
+        {
+            if(ends_with(e, ".size")) // special case: use shape function on input and push each dimension on list
+            {
+                auto & x = rsplit(e, ".", 1);
+                matrix m;
+                Bind(m, x.at(0));
+                for(auto d : m.shape())
+                    shape.push_back(d);
+            }
+            else
+            {
+                int d = EvaluateNumericalExpression(e);
+                if(d>0)
+                    shape.push_back(d);
+            }
+        }
+        return shape;
+    }
+
+
+
+// NEW EVALUATION FUNCTIONS
 /*
-static const char *
-check_file_exists(const char * path)
-{
-	if(path != nullptr)
-	{
-		FILE * t = fopen(path, "rb");
-		bool exists = (t != nullptr);
-		if(t) fclose(t);
-		return (exists ? path : nullptr);
-	}
-    
-	return nullptr;
-}
+    double 
+    Component::EvaluateNumber(std::string v)
+    {
+        return stod(v); // FIXME: Add full parsing of expressions and variables *************
+    }
 */
 
-
-// Read class file (or included file) and merge with the current XML-tree
-
-XMLElement * 
-Kernel::BuildClassGroup(GroupElement * group, XMLElement * xml_node, const char * class_name, const char * current_filename)
-{
- //   char * name = create_string(GetXMLAttribute(xml_node, "name"));
-//    printf("BuildClassGroup: %s\n", name);
-    
-    // THREE ALTERNATIVES:
-    //  Global path - starts with /
-    //  Local path  - does not start with /
-    //  No path     - path is nullptr or equals ""
-
-    char include_file[PATH_MAX] ="";
-    const char * path = xml_node->GetAttribute("path"); // FIXME: use GetValue with variables, inheritance etc
-    if(path) //  && path[0]=='/'
+    bool 
+    Component::EvaluateBool(std::string v)
     {
-        if(path[0]=='/') // gloabl path
-            copy_string(include_file, ikaros_dir, PATH_MAX);
-        append_string(include_file, path, PATH_MAX);
-    }
-    if(path && include_file[strlen(include_file)-1] != '/')
-        append_string(include_file, "/", PATH_MAX);
-    
-    append_string(include_file, class_name, PATH_MAX);
-    append_string(include_file, ".ikg", PATH_MAX);
-    
-	const char * filename = check_file_exists(include_file);
-    
-    if (!filename && classes.find(class_name)==classes.end())
-        Notify(msg_warning, "Group ikg for \"%s\" could not be found with path %s. HINT: Check if path is correct relative to including file.\n", class_name, include_file);
-    else if(classes.count(class_name))
-        filename = (filename ? filename : check_file_exists(classes.at(class_name)->GetClassPath())); // not found in path, search built in classes // FIXME: crashes if class_name does not exist
-
-	if(!filename)
-	{
-		Notify(msg_warning, "Class ikc for \"%s\" could not be found.\n", class_name);
-		return xml_node;
-	}
-
-    if(equal_strings(filename, current_filename))
-    {
-        Notify(msg_fatal_error, "Class ikc for \"%s\" can not include itself. Check that <link> is used to set the code class.\n", class_name);
-        return xml_node;
+        return false;
     }
 
-	XMLDocument * cDoc = new XMLDocument(filename);
-	XMLElement * cgroup = cDoc->xml;
-	cDoc->xml = nullptr;
-	delete cDoc;
-	
-	// 1. Replace the module element with the group element of the included file
-	
-	cgroup->next = xml_node->next;
-	if(xml_node->prev == nullptr)
-		xml_node->GetParentElement()->content = cgroup;
-	else
-		xml_node->prev->next = cgroup;
-	cgroup->parent = xml_node->parent;
-	
-	// 2. Copy attributes
-    
-	for(XMLNode * n = xml_node->attributes; n != nullptr; n=n->next)
-		cgroup->SetAttribute(((XMLAttribute *)n)->name, ((XMLAttribute *)n)->value);
-    delete xml_node->attributes;
-	xml_node->attributes = nullptr;
-	
-	// 3. Copy elements
-	
-	XMLNode * last = cgroup->content;
-	if(last == nullptr)
-		cgroup->content = xml_node->content;
-	else
-	{
-		while (last->next != nullptr)
-			last = last->next;
-		last->next = xml_node->content;
-	}
-	xml_node->content = nullptr;
-	
-	// 4. Build the class group
-	
-	BuildGroup(group, cgroup, class_name, filename);
-	
-	// 5. Delete original element and replace it with the newly merged group
-	
-	xml_node->next = nullptr;
-	delete xml_node;
-	
-	return cgroup;
-}
 
-
-// Parse XML for a group
-//
-// FIXME: names of should never be inherited!!!
-//
-
-GroupElement *
-Kernel::BuildGroup(GroupElement * group, XMLElement * group_xml, const char * current_class, const char * current_filename)
-{
-    if(!group_xml->GetActualAttribute("name"))
-        group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
-
-    // Add attributes to group element
-    
-    for(XMLAttribute * attr=group_xml->attributes; attr!=nullptr; attr = (XMLAttribute *)attr->next)
-        group->attributes.insert({ attr->name, attr->value });
-    
-    for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != nullptr; xml_node = xml_node->GetNextElement())
+    std::string 
+    Component::EvaluateString(std::string v)
     {
-        if(xml_node->IsElement("link"))    // Link to code
-        {
-            const char * class_name = GetXMLAttribute(group_xml, "class");
-            Parameter * parameter = new Parameter(this, xml_node, group);
-            Module * m = classes.count(class_name) ? classes.at(class_name)->CreateModule(parameter) : nullptr;
-            delete parameter;
-            if(m == nullptr)
-                Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
-            else if(useThreads && m->phase != 0)
-                Notify(msg_fatal_error, "phase != 0 not yet supported in threads.");
-            xml_node->aux = (void *)m;
-            group->module = m;  // FIXME: test if correct
-            AddModule(m);
-        }
-        
-        else if(xml_node->IsElement("module"))	// Add module
-        {
-            char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
-            GroupElement * subgroup = new GroupElement(group);
-            xml_node = BuildClassGroup(subgroup, xml_node, class_name, current_filename); // TODO: merge with line above
-            auto n = xml_node->GetActualAttribute("name");
-            if(group->groups.count(n))
-                Notify(msg_fatal_error, "Duplicate module name \"%s\".", n);
-            else
-                group->groups.insert({ n, subgroup });
-            destroy_string(class_name);
-        }
-        else if(xml_node->IsElement("group"))	// Add group
-        {
-            auto n = xml_node->GetActualAttribute("name");
-            if(!n)
-                xml_node->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
-            GroupElement * g = new GroupElement(group);
+        return "";
+    }
 
-            if(!n)
-                Notify(msg_fatal_error, "Group name required");
-            else if(group->groups.count(n))
-                Notify(msg_fatal_error, "Duplicate group name \"%s\".", n);
-            else
-                group->groups.insert( { n, BuildGroup(g, xml_node) });
+
+
+    std::string 
+    Component::EvaluateMatrix(std::string v)
+    {
+        return "";
+    }
+
+
+
+    int 
+    Component::EvaluateOptions(std::string v, std::vector<std::string> & options)
+    {
+        return 0;
+    }
+
+
+    Component::Component():
+        parent_(nullptr),
+        info_(kernel().current_component_info),
+        path_(kernel().current_component_path)
+    {
+              // FIXME: Make sure there are empty lists. None of this should be necessary when dictionary is fixed
+
+        if(info_["inputs"].is_null())
+            info_["inputs"] = list();
+
+        if(info_["outputs"].is_null())
+            info_["outputs"] = list();
+
+        if(info_["parameters"].is_null())
+            info_["parameters"] = list();
+
+        if(info_["groups"].is_null())
+            info_["groups"] = list();
+
+        if(info_["modules"].is_null())
+            info_["modules"] = list();
+
+        for(auto p: info_["parameters"])
+            AddParameter(p);
+
+        for(auto input: info_["inputs"])
+            AddInput(input);
+
+        for(auto output: info_["outputs"])
+            AddOutput(output);
+
+        if(!info_.contains("log_level"))
+            info_["log_level"] = "5";
+
+    // Set parent
+
+        auto p = path_.rfind('.');
+        if(p != std::string::npos)
+            parent_ = kernel().components.at(path_.substr(0, p));
+    }
+
+
+    bool
+    Component::Notify(int msg, std::string message, std::string path)
+    {
+        int ll = msg_warning;
+        if(info_.contains("log_level"))
+            ll = info_["log_level"];
+
+        if(msg <= ll) 
+             return kernel().Notify(msg, message);
+        return true;
+    }
+
+
+
+    Module::Module()
+    {
+  
+    }
+
+    INSTALL_CLASS(Module)
+
+// The following lines will create the kernel the first time it is accessed by one of the components
+
+    Kernel& kernel()
+    {
+        static Kernel * kernelInstance = new Kernel();
+        return *kernelInstance;
+    }
+
+
+    bool
+    Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional buffers
+    {
+    Trace("\t\t\tComponent::InputReady");
+        Kernel& k = kernel();
+
+        std::string n = d["name"];   // ["attributes"]
+        if(ingoing_connections.count(path_))
+            for(auto & c : ingoing_connections.at(path_)) // +'.'+n
+                if(k.buffers.at(c->source).rank()==0)
+                    return false;
+        return true;
+    }
+
+
+    void 
+    Component::SetSourceRanges(const std::string & name, const std::vector<Connection *> & ingoing_connections) // FIXME:REMOVE
+    {
+        for(auto & c : ingoing_connections) // Copy source size to source_range if not set
+        {
+            if(c->source_range.empty())
+                c->source_range = kernel().buffers[c->source].get_range();
+            else if(c->source_range.rank() != kernel().buffers[c->source].rank())
+                throw exception("Explicitly set source range dimensionality does not match source.");
+        }
+    }
+
+
+    int 
+    Component::SetInputSize_Flat(dictionary d, input_map ingoing_connections)
+    {
+        Trace("\t\t\t\t\tComponent::SetInputSize_Flat");
+
+        std::string name = d.at("name");
+        std::string full_name = path_ +"."+ name;
+        
+        if(!ingoing_connections.count(full_name)) // Not connected
+            return 1;
+
+        //SetSourceRanges(d.at("name"), ingoing_connections.at(full_name));
+
+        int begin_index = 0;
+        int end_index = 0;
+        int flattened_input_size = 0;
+        for(auto & c : ingoing_connections.at(full_name))
+        {
+            c->flatten_ = true;
+
+         range output_matrix = kernel().buffers[c->source].get_range();  //**NEW  // FIXME: automatic matrix to range conection
+            c->Resolve(output_matrix);  //**NEW  
+
+            int s = c->source_range.size() * c->delay_range_.trim().b_[0];
+            end_index = begin_index + s;
+            c->target_range = range(begin_index, end_index);
+            begin_index += s;
+            flattened_input_size += s;
+
+            //int delay_size = c->delay_range_.trim().b_[0];  // FIXME: extent/size function
+           // if(delay_size > 1)
+            //    flattened_input_size *= delay_size;
+                std::cout << flattened_input_size << std::endl;
         }
     
-        else if(xml_node->IsElement("parameter"))
+        if(flattened_input_size != 0)
         {
-            auto * p = new ParameterElement(group, xml_node);
-            group->parameter_list.push_back(p); // onlye used to print parameters
-            if(const char * target = xml_node->GetAttribute("target"))
-                group->parameters.insert( { target, p }); // parameter do not have targets in classes
-            else if(const char * name = xml_node->GetAttribute("name")) // ***********
-                group->parameters.insert( { name, p }); // normal class parameter without renaming *******
-        }
-        
-        else if(xml_node->IsElement("input"))
-            group->inputs.push_back(InputElement(group, xml_node));
-            
-        else if(xml_node->IsElement("output"))
-        {
-            if(const char * name = xml_node->GetAttribute("name"))
-                group->outputs.insert( { name, new OutputElement(group, xml_node) }); // LOOK HERE!
-            else
-                Notify(msg_fatal_error, "Output element does not have a name.");
+            kernel().buffers[full_name].realloc(flattened_input_size); 
+          Trace("\t\t\t\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size));
         }
 
-        else if(xml_node->IsElement("connection"))
-             group->connections.push_back(ConnectionElement(group, xml_node));
-     
-        else if(xml_node->IsElement("view"))
+        if(d.is_set("use_alias"))
         {
-            ViewElement v(group, xml_node);
-            for(XMLElement * xml_obj = xml_node->GetContentElement(); xml_obj != nullptr; xml_obj = xml_obj->GetNextElement()) // WAS "object"
+            begin_index = 0;
+            for(auto & c : ingoing_connections.at(full_name))
             {
-                ViewObjectElement o((GroupElement *)&v, xml_obj); // FIXME: is this correct?
-                o.attributes.insert({ "class", xml_obj->name }); // FIXME: WHY??? Needed for widgets to work for some reason
-                v.objects.push_back(o);
+                int s = c->source_range.size() * c->delay_range_.trim().b_[0];
+                if(c->alias_.empty())
+                    kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
+                else
+                    kernel().buffers[d.at(full_name)].push_label(0, c->alias_, s);
             }
-            group->views.push_back(v);
         }
+        return 0;
     }
-    
-    if(group->views.empty())
-        group->CreateDefaultView();
-    
-    return group;
-}
 
 
-void
-Kernel::ConnectModules(GroupElement * group, std::string indent) // FIXME: remove indent
-{
-    for(auto & c : group->connections)
+    int 
+    Component::SetInputSize_Index(dictionary d, input_map ingoing_connections)
     {
-        auto source = c["source"]; // FIXME: use count and at instead
-        auto target = c["target"];
-        try {
-            Module_IO * source_io = nullptr;
-            if(starts_with(source, "."))
-                source_io = main_group->GetSource(source.substr(1));
-            else
-                source_io = group->GetSource(source);
 
-            if(!source_io)
-                Notify(msg_fatal_error, "Connection source %s not found.\n", source.c_str());
+       Trace("\t\t\t\t\tComponent::SetInputSize_Index " + std::string(d["name"]));
 
-            int cnt = 0;
-            if(starts_with(target, "."))
-                for(auto target_io : main_group->GetTargets(target.substr(1)))
-                    cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
-            else
-                for(auto target_io : group->GetTargets(target))
-                    cnt += Connect(source_io, string_to_int(c["sourceoffset"]), target_io, string_to_int(c["targetoffset"]), string_to_int(c["size"], unknown_size), c["delay"], 0, string_to_bool(c["active"], true));
+        range input_size;
+        std::string name = d.at("name");
+        std::string full_name = path_ +"."+ name;
 
-            if(cnt == 0)
-                Notify(msg_fatal_error, "Connection target %s not found.\n", target.c_str());
+        if(!ingoing_connections.count(full_name)) // Not connected
+            return 1;
+
+        for(auto c : ingoing_connections.at(full_name))
+        {
+            range output_matrix = kernel().buffers[c->source].get_range();  // FIXME: automatic matrix to range conection
+            if(output_matrix.empty())
+                return 0;
+            input_size.extend(c->Resolve(output_matrix));
+        }
+        kernel().buffers[full_name].realloc(input_size.extent());
+      Trace("\t\t\t\t\tComponent::SetInputSize Alloc" + std::string(input_size));
+
+        // Set alias if requested and there is only a single input
+
+        if(d.is_set("use_alias"))
+        {
+            auto ic = ingoing_connections.at(full_name);
+            if(ic.size() == 1 && !ic[0]->alias_.empty())
+                kernel().buffers[name].set_name(ic[0]->alias_);
+        }
+
+        return 1;
+
+/*
+
+            SetSourceRanges(name, ingoing_connections);
+            int max_delay = 0;
+            bool first_ingoing_connection = true;
+            for(auto & c : ingoing_connections) // STEP 0b: copy source_range to target_range if not set
+            {
+                if(!c->delay_range_.empty() && c->delay_range_.trim().b_[0] > max_delay)
+                    max_delay = c->delay_range_.trim().b_[0];
+
+                if(c->target_range.empty())
+                {
+                    if(!first_ingoing_connection)
+                        throw exception("Target ranges must be set explicitly for multiple connections to \""+name+"\".");
+                    c->target_range = c->source_range;
+                }
+                else
+                {
+                    int si = c->source_range.rank()-1;
+                
+                    for(int ti = c->target_range.rank()-1; ti>=0; ti--, si--)
+                        if(c->target_range.b_[ti] == 0)
+                        {
+                            c->target_range.inc_[ti] = c->source_range.inc_[si]; // FIXME: Is this correct? Or should it shrink?
+                            c->target_range.a_[ti] = c->source_range.a_[si];
+                            c->target_range.b_[ti] = c->source_range.b_[si];
+                            c->target_range.index_[ti] = c->target_range.a_[si]; // FIXME: Check if this is necesary
+                        }
+                }
+
+                if(c->delay_range_.size() > 1) // Add extra dimension to input if connection is a delay range with more than one delay
+                    c->target_range.push_front(0, c->delay_range_.trim().b_[0]);
+
+                first_ingoing_connection = false;
+            }
+
+        range r;
+
+        for(auto & c : ingoing_connections)  // STEP 1: Calculate range extent
+            r |= c->target_range;
+
+        kernel().buffers[name].realloc(r.extent());  // STEP 2: Set input size // FIXME: Check empty input
+          Trace("\t\t\t\t\t\tComponent::SetInputSize_Index Alloc "+std::string(r));
+
+        // Set alias
+
+        if(!use_alias)
+            return 0;
+
+        if(ingoing_connections.size() == 1 && !ingoing_connections[0]->alias_.empty())
+        {
+            kernel().buffers[name].set_name(ingoing_connections[0]->alias_);
+        }
+        else
+        {
+            // Handle multiple dimensions
+        }
+        return 0;
+
+        */
+    }
+
+
+// ****************************** COMPONENT Sizes ******************************
+
+
+    int 
+    Component::SetInputSize(dictionary d, input_map ingoing_connections)
+    {
+        Trace("\t\t\t\tComponent::SetInputSize " + std::string(d["name"]));
+
+        if(d.is_set("flatten"))
+            SetInputSize_Flat(d, ingoing_connections);
+        else
+            SetInputSize_Index(d, ingoing_connections);
+        return 0;
+    }
+
+
+
+    int
+    Component::SetInputSizes(input_map ingoing_connections)
+    {
+        Kernel& k = kernel();
+
+        Trace("\t\t\t\tComponent::SetInputSizes");
+
+        // Set input sizes (if possible)
+
+        for(auto d : info_["inputs"])
+            if(k.buffers[path_+"."+std::string(d["name"])].empty())
+                if(InputsReady(d, ingoing_connections))
+                    SetInputSize(d, ingoing_connections);
+        return 0;
+    }
+
+
+    int 
+    Component::SetOutputSize(dictionary d, input_map ingoing_connections)
+    {
+       Trace("\t\t\t\tComponent::SetOutputSize " + std::string(d["name"]));
+
+        if(d.contains("size"))
+            throw fatal_error("Output in group can not have size attribute.");
+
+        range output_size; // FIXME: rename output_range
+        std::string name = d.at("name");
+        std::string full_name = path_ +"."+ name;
+
+        if(!ingoing_connections.count(full_name))
+            return 0;
+
+        for(auto c : ingoing_connections.at(full_name))
+        {
+            range output_matrix = kernel().buffers[c->source].get_range();  // FIXME: automatic matrix to range conection
+            
+            if(output_matrix.empty())
+                return 0;
+            
+            output_size.extend(c->Resolve(output_matrix));
+        }
+        kernel().buffers[full_name].realloc(output_size.extent()); // FIXME: realloc with range argument
+      Trace("\t\t\t\t\tComponent::SetOutputSize Alloc" + std::string(output_size));
+
+        return 1;
+    }
+
+
+    int 
+    Component::SetOutputSizes(input_map ingoing_connections)
+    {
+        Trace("\t\tComponent::SetOutputSizes");
+        for(auto & d : info_["outputs"])
+            SetOutputSize(d, ingoing_connections);
+
+        return 0;
+    }
+
+
+    int
+    Component::SetSizes(input_map ingoing_connections)
+    {
+        Trace("\tComponent::SetSizes");
+        SetInputSizes(ingoing_connections);
+        SetOutputSizes(ingoing_connections);
+
+        return 0;
+    }
+
+
+// ****************************** MODULE Sizes ******************************
+
+    int 
+    Module::SetOutputSize(dictionary d, input_map ingoing_connections)
+    {
+        try
+        {
+            std::string size ;
+            
+            if(d.contains("size"))
+                size = std::string(d["size"]);  // FIXME: Get string
+
+            if(size.empty())
+             size = LookupKey("size");
+
+            if(size.empty())
+                throw fatal_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
+            std::vector<int> shape = EvaluateSizeList(size);
+            matrix o;
+            Bind(o, d.at("name"));
+            o.realloc(shape);
+            return 0;
+        }
+        catch(const std::invalid_argument & e)
+        {
+            Notify(msg_fatal_error, e.what());
+            throw fatal_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
         }
         catch(...)
         {
-            Notify(msg_fatal_error, "Could not connect %s to %s.\n", source.c_str(), target.c_str());
+            throw fatal_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
         }
     }
 
-    for(auto & g : group->groups) // Connect in subgroups
-        ConnectModules(g.second, indent+"\t");
-}
 
-
-bool
-Kernel::ReadXML()
-{
-    if(ikc_file_name[0] == 0)
-        return Notify(msg_fatal_error, "Empty file name.\n");
-
-    char path[PATH_MAX];
-    copy_string(path, ikc_dir, PATH_MAX);
-    append_string(path, ikc_file_name, PATH_MAX);
-    Notify(msg_print, "Running \"%s\".\n", ikc_file_name);
-    if(chdir(ikc_dir) < 0)
-        return Notify(msg_fatal_error, "The directory \"%s\" could not be found.\n", ikc_dir);
-
-    xmlDoc = new XMLDocument(ikc_file_name, false);
-    if(xmlDoc->xml == nullptr)
-        return Notify(msg_fatal_error, "Could not read (or find) \"%s\".\n", ikc_file_name);
-
-    XMLElement * xml = xmlDoc->xml->GetElement("group");
-    if(xml == nullptr)
-        return Notify(msg_fatal_error, "Did not find <group> element in IKG/XML file \"%s\".\n", ikc_file_name);
-    
-    // Set default parameters
-    
-    xml->SetAttribute("log_level", create_formatted_string("%d", log_level)); // FIXME: period???
-
-    // 2.0 create top group
-    
-    main_group = new GroupElement(nullptr);
-    
-    // set session id
-    
-    std::time_t result = std::time(nullptr);
-    main_group->attributes.insert({ "session-id", std::to_string(result) });
-    main_group->attributes.insert({ "ikg-file-name", std::string(ikc_file_name) });
-
-    // Set command line attributes // FIXME: use map instead
-
-    for(int i=0; i<32; i++)
-        if(options->attribute[i])
-            main_group->attributes.insert({ options->attribute[i], options->value[i] });
-
-    session_id = result; // temporary, get from top level group
-    
-    BuildGroup(main_group, xml);
-    if(fatal_error_occurred)
-        return false;
-    
-    ConnectModules(main_group);
-
-#ifdef XML_PRINT
-    xmlDoc->Print(stdout);
-#endif
-    
-    return true;
-}
-
-
-void
-Kernel::ListInfo()
-{
-    if(!options->GetOption('i') && !options->GetOption('a')) return;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Ikaros version %s\n", VERSION);
-    Notify(msg_print, "\n");
-    Notify(msg_print, "%s\n", PLATFORM);
-#ifdef POSIX
-    Notify(msg_print, "POSIX\n");
-#endif
-#ifdef USE_BSD_SOCKET
-    Notify(msg_print, "BSD-socket\n");
-#endif
-#ifdef USE_THREADS
-    Notify(msg_print, "threads\n");
-#endif
-#ifdef USE_BLAS
-    Notify(msg_print, "BLAS\n");
-#endif
-#ifdef USE_QUICKTIME
-    Notify(msg_print, "Quicktime\n");
-#endif
-#ifdef USE_VIMAGE
-    Notify(msg_print, "vImage\n");
-#endif
-#ifdef USE_VFORCE
-    Notify(msg_print, "vForce\n");
-#endif
-#ifdef USE_VDSP
-    Notify(msg_print, "vDSP\n");
-#endif
-#ifdef USE_MPI
-    Notify(msg_print, "MPI\n");
-#endif
-    Notify(msg_print, "\n");
-    Notify(msg_print, "ikc file name: %s\n", ikc_file_name);
-    Notify(msg_print, "ikc file directory: %s\n", ikc_dir);
-    Notify(msg_print, "ikaros root directory: %s\n", ikaros_dir);
-}
-
-
-void
-Kernel::CalculateChecksum()
-{
-    if(_modules.empty())
-        return;
-
-    std::string c = main_group->GetValue("checksum");
-    if(c.empty())
-        return;
-
-    int target_checksum = std::stoi(c);
-    int checksum = 1;
-    for (Module * & m : _modules)
-        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
-            checksum *= i->sizex * i->sizey;
-
-    if(checksum == target_checksum)
-        Notify(msg_print, "Checksum match (%d).", checksum);
-    else
-        Notify(msg_print, "Checksum mismatch: %d != %d.\n", checksum, target_checksum);
-}
-
-
-void
-Kernel::ListModulesAndConnections()
-{
-    if(!options->GetOption('m') && !options->GetOption('a')) return;
-    
-    if(_modules.empty())
+    int 
+    Module::SetOutputSizes(input_map ingoing_connections)
     {
-        Notify(msg_print, "\n");
-        Notify(msg_print, "No Modules.\n");
-        Notify(msg_print, "\n");
-        return;
+        if(!InputsReady(info_, ingoing_connections))
+            return 0; // Cannot set size yet
+
+        for(auto & d : info_["outputs"])
+            SetOutputSize(d, ingoing_connections);
+
+        return 0;
     }
-    
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Modules:\n");
-    Notify(msg_print, "\n");
-    for (Module * & m : _modules)
+
+
+
+    int 
+    Module::SetSizes(input_map ingoing_connections)
     {
-        //        Notify(msg_print, "  %s (%s) [%d, %d]:\n", m->name, m->class_name, m->period, m->phase);
-        Notify(msg_print, "  %s (%s) [%d, %d, %s]:\n", m->GetFullName(), m->class_name, m->period, m->phase, m->active ? "active" : "inactive");
-        for (Module_IO * i = m->input_list; i != nullptr; i = i->next)
-            if(i->data)
-                Notify(msg_print, "    %-10s\t(Input) \t%6d%6d\t%12p\n", i->name.c_str(), i->sizex, i->sizey, (i->data == nullptr ? nullptr : i->data[0]));
+            Trace("\tModule::SetSizes");
+            SetInputSizes(ingoing_connections);
+            SetOutputSizes(ingoing_connections);
+            return 0;
+    }   
+
+
+    void
+    Component::CalculateCheckSum(long & check_sum, prime & prime_number) // Calculates a value that depends on all parameters and output sizes; used for integrity testing of kernel and module
+    {
+
+        // Iterate over all outputs
+
+        for(auto & d : info_["outputs"])
+        {
+            matrix output;
+            Bind(output, d["name"]);
+            for(long d : output.shape())
+                check_sum += prime_number.next() * d;
+        } 
+
+        // Iterate over all inputs
+
+        for(auto & d : info_["inputs"])
+        {
+            matrix input;
+            Bind(input, d["name"]);
+            for(long d : input.shape())
+                check_sum += prime_number.next() * d;
+        } 
+
+
+        // Iterate obver all parameters
+    
+        for(auto & d : info_["parameters"])
+        {
+            parameter p;
+            Bind(p, d["name"]);
+            //std::cout << "Parameter: " << d["name"] << std::endl;
+
+            if(p.type == string_type)
+                check_sum += prime_number.next() * character_sum(p);
             else
-                Notify(msg_print, "    %-10s\t(Input) \t           no connection\n", i->name.c_str());
-        for (Module_IO * i = m->output_list; i != nullptr; i = i->next)
-            Notify(msg_print, "    %-10s\t(Output)\t%6d%6d\t%12p\t(%d)\n", i->name.c_str(), i->sizex, i->sizey, (i->data == nullptr ? nullptr : i->data[0]), i->max_delay);
-        Notify(msg_print, "\n");
+            if(p.type == matrix_type)
+                check_sum += prime_number.next() * p.matrix_value->size();
+            else
+                check_sum += prime_number.next() *  p.as_int(); // FIXME: convert to long later 
+        }
+
+        // std::cout << "Check sum: " << check_sum << std::endl;
     }
-    Notify(msg_print, "Connections:\n");
-    Notify(msg_print, "\n");
-    for (Connection * c = connections; c != nullptr; c = c->next)
-        if(c->delay == 0)
-            Notify(msg_print, "  %s.%s[%d..%d] == %s.%s[%d..%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name.c_str(), 0, c->source_io->size-1,
-                   c->target_io->module->instance_name, c->target_io->name.c_str(), 0, c->source_io->size-1,
-                   c->delay,
-                   c->active ? "" : "[inactive]");
-        else if(c->size > 1)
-            Notify(msg_print, "  %s.%s[%d..%d] -> %s.%s[%d..%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset, c->source_offset+c->size-1,
-                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset, c->target_offset+c->size-1,
-                   c->delay,
-                   c->active ? "" : "[inactive]");
+
+    // Connection
+
+    Connection::Connection(std::string s, std::string t, range & delay_range, std::string alias)
+    {
+        source = peek_head(s, "[");
+        source_range = range(peek_tail(s, "[", true));
+        target = peek_head(t, "[");
+        target_range = range(peek_tail(t, "[", true));
+        delay_range_ = delay_range;
+        flatten_ = false;
+        alias_ = alias;
+    }
+
+
+    range 
+    Connection::Resolve(const range & source_output)
+    {
+        if(source_output.empty())
+            return 0;
+            // throw exception("Cannot resolve connection. Source output is empty."); //  FIXME: What is correct here? ************
+
+        source_range.extend(source_output.rank());
+        source_range.fill(source_output);
+        range reduced_source = source_range.strip().trim();
+
+        if(target_range.empty())
+            target_range = reduced_source;
         else
-            Notify(msg_print, "  %s.%s[%d] -> %s.%s[%d] (%d) %s\n",
-                   c->source_io->module->instance_name, c->source_io->name.c_str(), c->source_offset,
-                   c->target_io->module->instance_name, c->target_io->name.c_str(), c->target_offset,
-                   c->delay,
-                   c->active ? "" : "[inactive]");
-    Notify(msg_print, "\n");
-}
+        {
+            int j=0;
+            for(int i=0; i<target_range.rank()-1; i++)    // CHECK EMPTY DIMENSION
+                if(target_range.empty(i) && j<reduced_source.rank())
+                {
+                    target_range.a_[i] = reduced_source.a_[j];
+                    target_range.b_[i] = reduced_source.b_[j];
+                    target_range.inc_[i] = reduced_source.inc_[j];
 
+                    reduced_source.a_[j] = 0;  // mark as used
+                    reduced_source.b_[j] = 0;
+                    reduced_source.inc_[j] = 0;
+                    j++;
+                }
 
-void
-Kernel::ListBindings()
-{
-    return;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Bindings:\n");
-    Notify(msg_print, "\n");
-    for(auto b : bindings)
-        Notify(msg_print, "\t%s\n", b.first.c_str());
-}
+            int s = 1;
+            for(int i=0; i<reduced_source.rank(); i++)
+            {
+                int si = reduced_source.size(i);
+                s *= (si >0?si:1);
+            }
 
+            if(target_range.empty(target_range.rank()-1) && j<reduced_source.rank())
+            {
+                target_range.a_[target_range.rank()-1] = 0; // Check that dim is empty first
+                target_range.b_[target_range.rank()-1] = s;
+                target_range.inc_[target_range.rank()-1] = 1;
+            }
+        }
+            int delay_size = delay_range_.trim().b_[0];
+            if(delay_size > 1)
+                target_range.push_front(0, delay_size);
 
-void
-Kernel::ListThreads()
-{
-    if(!options->GetOption('T') && !(options->GetOption('a') && options->GetOption('t'))) return;
-    Notify(msg_print, "\n");
-    Notify(msg_print,"ThreadManagers:\n");
-    Notify(msg_print, "\n");
-    int i=0;
-    for(ThreadGroup * tg : _threadGroups)
-    {
-        Notify(msg_print, "ThreadManager %d [Period:%d, Phase:%d, High_priority:%d]\n", i++, tg->period, tg->phase, tg->high_priority);
-        for(Module * m : tg->_modules)
-            Notify(msg_print, "\t Module: %s\n", m->GetFullName());
-        i++;
+        if(delay_size*source_range.size() != target_range.size())
+            throw exception("Connection could not be resolved");
+
+        return target_range;
     }
-    Notify(msg_print, "\n");
-}
 
 
-void
-Kernel::ListWarningsAndErrors()
-{
-    if(global_warning_count > 1)
-        printf("IKAROS: %d WARNINGS.\n", global_warning_count);
-    else if(global_warning_count == 1)
-        printf("IKAROS: %d WARNING.\n", global_warning_count);
-    
-    if(global_error_count > 1)
-        printf("IKAROS: %d ERRORS.\n", global_error_count);
-    else if(global_error_count == 1)
-        printf("IKAROS: %d ERROR.\n", global_error_count);
-}
 
-
-void
-Kernel::ListScheduling()
-{
-    if(!options->GetOption('l') && !options->GetOption('a')) return;
-
-    if(_modules.empty())
-        return;
-    
-    Notify(msg_print, "Scheduling:\n");
-    Notify(msg_print, "\n");
-    for (int t=0; t<period_count; t++)
+    void 
+    Connection::Tick()
     {
-        int tm = 0;
-        for (Module * & m : _modules)
-            if(t % m->period == m->phase)
-                Notify(msg_print,"  %02d.%02d: %s (%s)\n", t, tm++, m->GetName(), m->GetClassName());
-    }
-    
-    Notify(msg_print, "\n");
-    Notify(msg_print, "\n");
-}
+        auto & k = kernel();
 
+        if(delay_range_.is_delay_0())
+        {
+            k.buffers[target].copy(k.buffers[source], target_range, source_range);
+            //std::cout << source << " =0=> " << target << std::endl; 
+        }
+        else if(delay_range_.empty() || delay_range_.is_delay_1())
+        {
+            //std::cout << source << " =1=> " << target << std::endl; 
+            k.buffers[target].copy(k.buffers[source], target_range, source_range);
+        }
 
-void
-Kernel::ListClasses()
-{
-    if(!options->GetOption('c') && !options->GetOption('a')) return;
-    int i = 0;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Classes:\n");
-    
-    for(auto & c: classes)
+        else if(flatten_) // Copy flattened delayed values
+        {
+            //std::cout << source << " =F=> " << target << std::endl; 
+            matrix ctarget = k.buffers[target];
+            int target_offset = target_range.a_[0];
+            for(int i=delay_range_.a_[0]; i<delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
+            {   
+                matrix s = k.circular_buffers[source].get(i);
+
+                for(auto ix=source_range; ix.more(); ix++)
+                {
+                    int source_index = s.compute_index(ix.index());
+                    ctarget[target_offset++] = (*(s.data_))[source_index];
+                }
+            }
+        }
+
+        else if(delay_range_.a_[0]+1 == delay_range_.b_[0]) // Copy indexed delayed value with single delay
+        {
+            //std::cout << source << " =D=> " << target << std::endl;
+            matrix s = k.circular_buffers[source].get(delay_range_.a_[0]);
+            k.buffers[target].copy(s, target_range, source_range);
+        }
+
+        else // Copy indexed delayed values with more than one element
+        {
+            //std::cout << source << " =DD=> " << target << std::endl;
+            for(int i=delay_range_.a_[0]; i<delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
+            {   
+                matrix s = k.circular_buffers[source].get(i);
+                int target_ix = i - delay_range_.a_[0]; // trim!
+                range tr = target_range.tail();
+                matrix t = k.buffers[target][target_ix];
+                t.copy(s, tr, source_range);
+
+            }
+        }
+    };
+
+    void
+    Connection::Print()
     {
-        Notify(msg_print, "\t%s\n", c.first.c_str());
-        i++;
+        std::cout << "\t" << source <<  delay_range_.curly() <<  std::string(source_range) << " => " << target  << std::string(target_range);
+        if(!alias_.empty())
+            std::cout << " \"" << alias_ << "\"";
+        std::cout << '\n'; 
     }
-    Notify(msg_print, "No of classes: %d.\n", i);
-}
-
-
-void
-Kernel::ListProfiling()
-{
-    if(!options->GetOption('p') && !options->GetOption('P')) return;
-    // Calculate Total Time
-    float total_module_time = 0;
-    float non_listed_modules = 0;
-    float limit = (options->GetOption('p') ? 1.0 : 0.01);
-    for (Module * & m : _modules)
-        total_module_time += m->time;
-    Notify(msg_print, "\n");
-    Notify(msg_print, "Time (ms):\n");
-    Notify(msg_print, "-------------------\n");
-    Notify(msg_print, "Modules: %10.2f\n", total_module_time);
-    Notify(msg_print, "Other:   %10.2f\n", 1000*total_time-total_module_time);
-    Notify(msg_print, "-------------------\n");
-    Notify(msg_print, "Total:   %10.2f\n", 1000*total_time);
-    Notify(msg_print, "\n");
-    if(total_module_time == 0)
-        return;
-    Notify(msg_print, "Time in Each Module:\n");
-    Notify(msg_print, "\n");
-    Notify(msg_print, "%-20s%-20s%10s%10s%10s\n", "Module", "Class", "Count", "Avg (ms)", "Time %");
-    Notify(msg_print, "----------------------------------------------------------------------\n");
-    for (Module * & m : _modules)
-        if(m->ticks > 0 && m->time/m->ticks >= limit)
-            Notify(msg_print, "%-20s%-20s%10.0f%10.2f%10.1f\n", m->GetName(), m->GetClassName(), m->ticks, (m->time/m->ticks), 100*(m->time/total_module_time));
-        else
-            non_listed_modules += (m->time/m->ticks);
-//            Notify(msg_print, "%-20s%-20s%       ---f\n", m->GetName(), m->GetClassName());
-    Notify(msg_print, "----------------------------------------------------------------------\n");
-    if(useThreads)
-        Notify(msg_print, "Note: Time is real-time, not time in thread.\n");
-    if(non_listed_modules > 0)
-        Notify(msg_print, "Additional modules used on average %0.2f ms together per tick\n", non_listed_modules);
-    Notify(msg_print, "\n");
-}
-
-
-// The following lines will create the kernel the first time it is accessed by one of the modules
-
-Kernel& kernel()
-{
-    static Kernel * kernelInstance = new Kernel();
-    return * kernelInstance;
-}
-
-
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------
-// WebUI STARTS HERE
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-static bool
-SendColorJPEGbase64(ServerSocket * socket, float * r, float * g, float * b, int sizex, int sizey) // Compress image to jpg and send from memory after base64 encoding
-{
-    long  size;
-    unsigned char * jpeg = (unsigned char *)create_jpeg(size, r, g, b, sizex, sizey, 90);
-
-    size_t input_length = size;
-    size_t output_length;
-    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
-    
-    socket->Send("\"data:image/jpeg;base64,");
-    bool ok = socket->SendData(jpeg_base64, output_length);
-    socket->Send("\"");
-    
-    destroy_jpeg((char *)jpeg);
-    free(jpeg_base64);
-    return ok;
-}
-
-
-static bool
-SendPseudoColorJPEGbase64(ServerSocket * socket, float * m, int sizex, int sizey, std::string type)
-{
-    long  size;
-    unsigned char * jpeg = nullptr;
-
-    if(type == "red")
-        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_red);
-
-    else if(type == "green")
-        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_green);
-
-    else if(type == "blue")
-        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_blue);
-
-    else if(type == "fire")
-        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_fire);
-
-    else if(type == "spectrum")
-        jpeg = (unsigned char *)create_jpeg(size, m, sizex, sizey, LUT_spectrum);
-
-    else
-        return false;
-    
-    size_t input_length = size;
-    size_t output_length;
-    char * jpeg_base64 = base64_encode(jpeg, input_length, &output_length);
-    
-    socket->Send("\"data:image/jpeg;base64,");
-    bool ok = socket->SendData(jpeg_base64, output_length);
-    socket->Send("\"");
-    
-    destroy_jpeg((char *)jpeg);
-    free(jpeg_base64);
-    return ok;
-}
-
-
 
 
 std::string
-checkNumber(float x)
+Connection::Info()
 {
-    if(std::isfinite(x)) // Check data
-        return std::to_string(x);
-    else
-        return "\"NAN\"";
+    std::string s = source + delay_range_.curly() +  std::string(source_range) + " => " + target  + std::string(target_range);
+        if(!alias_.empty())
+            s+=  " \"" + alias_ + "\"";
+    return s;
 }
 
+// Class
 
-
-static bool
-SendJSONArrayData(ServerSocket * socket, const std::string & source, float * array, int size)
-{
-    if (array == nullptr)
-        return false;
-    
-    socket->fillBuffer("\t\t\"" + source + "\":\n\t\t[\n");
-    socket->fillBuffer("\t\t[" + checkNumber(array[0]));
-    for (int i=1; i<size; i++)
-        socket->fillBuffer("," + checkNumber(array[i]));
-    socket->fillBuffer("]\n\t]");
-    socket->SendBuffer();
-    socket->clearBuffer();
-    return true;
-}
-
-
-
-static bool
-SendJSONMatrixData(ServerSocket * socket, const std::string & source, float * matrix, int sizex, int sizey)  // FIXME: use float ** instead
-{
-    if (matrix == nullptr)
-        return false;
-    
-    int k = 0;
-
-    socket->fillBuffer("\t\t\"" + source + "\":\n\t\t[\n");
-    for (int j=0; j<sizey; j++)
+    Class::Class(std::string n, std::string p) : module_creator(nullptr), name(n), path(p),info_(p)
     {
-        socket->fillBuffer("\t\t\t[" + checkNumber(matrix[k++]));
-        for (int i=1; i<sizex; i++)
-            socket->fillBuffer("," + checkNumber(matrix[k++]));
-        if (j<sizey-1)
-            socket->fillBuffer("],\n");
+        //   info_ = dictionary(path);
+    }
+
+    Class::Class(std::string n, ModuleCreator mc) : module_creator(mc), name(n)
+    {
+        //   info_ = dictionary(path);
+    }
+
+
+    void 
+    Class::Print()
+    {
+        std::cout << name << ": " << path  << '\n';
+    }
+
+    // Request
+
+    Request::Request(std::string  uri, long sid, std::string b):
+        body(b)
+    {
+        url = uri;
+        session_id = sid;
+        uri.erase(0, 1);
+        std::string params = tail(uri, "?");
+        //std::cout << params << std::endl;
+        command = head(uri, "/"); 
+        component_path = uri;
+        parameters.parse_url(params);
+    }
+
+bool operator==(Request & r, const std::string s)
+{
+    return r.command == s;
+}
+
+// Kernel
+
+    void
+    Kernel::Clear()
+    {
+        //std::cout << "Kernel::Clear" << std::endl;
+        // FIXME: retain persistent components
+        //for(auto [_,c] : components)
+        //    delete c;
+        components.clear();
+        connections.clear();
+        buffers.clear();   
+        max_delays.clear();
+        circular_buffers.clear();
+        parameters.clear();
+
+        tick = -1;
+        //run_mode = run_mode_pause;
+        tick_is_running = false;
+        tick_time_usage = 0;
+        tick_duration = 1; // default value
+        actual_tick_duration = tick_duration;
+        idle_time = 0;
+        stop_after = -1;
+        shutdown = false;
+        info_ = dictionary();
+        info_["filename"] = ""; //EMPTY FILENAME
+
+        session_id = new_session_id();
+    }
+
+
+    void
+    Kernel::New()
+    {
+        //std::cout << "Kernel::New" << std::endl;
+        Notify(msg_print, "New file");
+    
+        Clear();
+        Pause();
+        dictionary d;
+
+        d["_tag"] = "group";
+        d["name"] = "Untitled";
+        d["groups"] = list();
+        d["modules"] = list();
+        d["widgets"] = list();
+        d["connections"] = list();       
+        d["inputs"] = list();            
+        d["outputs"] = list();            
+        d["parameters"] = list();           
+        d["stop"] = "-1";
+        // d["webui_port"] = "8000";
+
+        SetCommandLineParameters(d);
+        d["filename"] = "";
+        BuildGroup(d);
+        info_ = d;
+        session_id = new_session_id(); 
+        SetUp(); // FIXME: Catch exceptions if new failes
+    }
+
+
+    void
+    Kernel::Tick()
+    {
+        tick_is_running = true; // Flag that state changes are not allowed
+        tick++;
+        //std::cout <<" Tick: " << GetTick() << std::endl;
+
+
+            for(auto & task_group : tasks)
+                for(auto & task: task_group)
+                    task->Tick();
+
+/*
+        }
         else
-            socket->fillBuffer("]\n\t\t]");
-    }
-    socket->SendBuffer();
-    socket->clearBuffer();
-    return true;
-}
-
-
-
-
-void
-Kernel::DoSendData(std::string uri, std::string args)
-{    
-    sending_ui_data = true; // must be set while main thread is still running
-    while(tick_is_running)
-        {}
-
-std::string data = cut(args, "data=");
-std::string root = head(data, "#");
-
-    Dictionary header;
-    header.Set("Session-Id", std::to_string(session_id).c_str()); // FIXME: GetValue("session_id")
-    header.Set("Package-Type", "data");
-    header.Set("Content-Type", "application/json");
-    header.Set("Cache-Control", "no-cache");
-    header.Set("Cache-Control", "no-store");
-    header.Set("Pragma", "no-cache");
-    header.Set("Expires", "0");
-    
-    socket->SendHTTPHeader(&header);
-    
-    socket->Send("{\n");
-    socket->Send("\t\"state\": %d,\n", ui_state);
-    
-    if(max_ticks > 0)
-    {
-        socket->Send("\t\"iteration\": \"%d / %d\",\n", GetTick(), max_ticks);
-        socket->Send("\t\"progress\": %f,\n", float(tick)/float(max_ticks));
-    }
-    else
-    {
-        socket->Send("\t\"iteration\": %lld,\n", GetTick());
-        socket->Send("\t\"progress\": 0,\n");
-    }
-
-    // Timing information
-    
-    float total_time = timer->GetTime()/1000.0; // in seconds
-
-    socket->Send("\t\"timestamp\": %ld,\n", Timer::GetRealTime());
-    socket->Send("\t\"total_time\": %.2f,\n", total_time);
-    socket->Send("\t\"ticks_per_s\": %.2f,\n", float(tick)/total_time);
-    socket->Send("\t\"timebase\": %d,\n", tick_length);
-    socket->Send("\t\"timebase_actual\": %.0f,\n", tick > 0 ? 1000*float(total_time)/float(tick) : 0);
-    socket->Send("\t\"lag\": %.0f,\n", lag);
-    socket->Send("\t\"cpu_cores\": %d,\n", cpu_cores);
-    socket->Send("\t\"time_usage\": %.3f,\n", time_usage);  // TODO: move to kernel from WebUI
-    socket->Send("\t\"cpu_usage\": %.3f", cpu_usage);
-
-    socket->Send(",\n\t\"data\":\n\t{\n");
-    std::string sep = "";
-
-    while(!data.empty())
-    {
-        std::string source = head(data, "#");
-        std::string  format = rcut(source, ":");
-
-        auto root_group = main_group->GetGroup(root);
-        
-        std::string src = source;
-        if(!root.empty())    // FIXME: Empty or Not empty?
-            src = root+"."+src;
-        
-        if(root_group && !source.empty())
         {
-            // Use data from module function if available
-            auto module_source = rsplit(source, ".", 1);
-            if(GroupElement * g = root_group->GetGroup(module_source.at(0)))
-            {
-                std::string json_data;
-                if(g->module)
-                    json_data = g->module->GetJSONData(module_source.at(1)); //  : ""
 
-                if(!json_data.empty())
+            for(auto & m : components)
+                try
                 {
-                    socket->Send(sep);
-                    std::string s = "\t\t\"" + source + "\": "+json_data;
-                    socket->Send(s);
-                    sep = ",\n";
+                    //std::cout <<" Tick: " << m.second->info_["name"] << std::endl;
+                    if(m.second != nullptr)  // Allow classes without code
+                        m.second->Tick();   
                 }
+                catch(const empty_matrix_error& e)
+                {
+                    throw std::out_of_range(m.first+"."+e.message+" (Possibly an empty matrix or an input that is not connected).");  
+                }
+                catch(const std::exception& e)
+                {
+                    throw exception(m.first+". "+std::string(e.what()));
+                }
+        }
+*/
+        RotateBuffers();
+        Propagate();
+
+        CalculateCPUUsage();
+        tick_is_running = false; // Flag that state changes are allowed again
+    }
+
+
+    bool 
+    Kernel::Terminate()
+    {
+        if(stop_after!= -1 &&  tick >= stop_after)
+        {
+            if(options_.is_set("batch_mode"))
+                run_mode = run_mode_quit;
+            else
+                run_mode = run_mode_pause;
+            
+        }
+        return (stop_after!= -1 &&  tick >= stop_after);
+    }
+
+
+    void 
+    Kernel::ScanClasses(std::string path) // FIXME: Add error handling
+    {
+        if(!std::filesystem::exists(path))
+        {
+            std::cout << "Could not scan for classes \""+path+"\". Directory not found." << std::endl;
+            return;
+        }
+        for(auto& p: std::filesystem::recursive_directory_iterator(path))
+            if(std::string(p.path().extension())==".ikc")
+            {
+                std::string name = p.path().stem();
+                classes[name].path = p.path();
+                classes[name].info_ = dictionary(p.path());
+            }
+    }
+
+
+    void 
+    Kernel::ScanFiles(std::string path, bool system)
+    {
+        if(!std::filesystem::exists(path))
+        {
+            std::cout << "Could not scan for files in \""+path+"\". Directory not found." << std::endl;
+            return;
+        }
+        for(auto& p: std::filesystem::recursive_directory_iterator(path))
+            if(std::string(p.path().extension())==".ikg")
+            {
+                std::string name = p.path().stem();
+
+                if(system)
+                     system_files[name] = p.path();
+                else
+                     user_files[name] = p.path(); 
+            }
+    }
+
+
+    void 
+    Kernel::ListClasses()
+    {
+        std::cout << "\nClasses:" << std::endl;
+        for(auto & c : classes)
+            c.second.Print();
+    }
+
+
+    void 
+    Kernel::ResolveParameter(parameter & p,  std::string & name)
+    {
+        std::size_t i = name.rfind(".");
+        if(i == std::string::npos)
+            return; // FIXME: Is this an error?
+
+        auto c = components.at(name.substr(0, i));
+        std::string parameter_name = name.substr(i+1, name.size());
+        c->ResolveParameter(p, parameter_name);
+    }
+
+
+    void 
+    Kernel::ResolveParameters() // Find and evaluate value or default // FIXME: return success
+    {
+        bool ok = true;
+        for (auto p=parameters.rbegin(); p!=parameters.rend(); p++) // Reverse order equals outside in in groups
+        {
+            std::size_t i = p->first.rfind(".");
+            // Find component and parameter_name and resolve
+            i = p->first.rfind(".");
+            if(i != std::string::npos)
+            {
+                auto c = components.at(p->first.substr(0, i));
+                std::string parameter_name = p->first.substr(i+1, p->first.size());
+                  ok &= c->ResolveParameter(p->second, parameter_name);
+            }
+        }
+        if(!ok)
+            throw fatal_error("All parameters could not be resolved");
+    }
+
+/*
+    range 
+    Component::ResolveConnection(const range & output, range & source, range & target, range & delay_range)
+    {
+        source.extend(output.rank());
+        source.fill(output);
+        range reduced_source = source.strip().trim();
+
+        if(target.empty())
+            target = reduced_source;
+        else
+        {
+            int j=0;
+            for(int i=0; i<target.rank()-1; i++)    // CHECK EMPTY DIMENSION
+                if(target.empty(i) && j<reduced_source.rank())
+                {
+                    target.a_[i] = reduced_source.a_[j];
+                    target.b_[i] = reduced_source.b_[j];
+                    target.inc_[i] = reduced_source.inc_[j];
+
+                    reduced_source.a_[j] = 0;  // mark as used
+                    reduced_source.b_[j] = 0;
+                    reduced_source.inc_[j] = 0;
+                    j++;
+                }
+
+            int s = 1;
+            for(int i=0; i<reduced_source.rank(); i++)
+            {
+                int si = reduced_source.size(i);
+                s *= (si >0?si:1);
             }
 
-            if(format == "") // as default, send a matrix
+            if(target.empty(target.rank()-1) && j<reduced_source.rank())
             {
-                Module_IO * io = root_group->GetSource(source); // FIXME: Also look for inputs here
-                if(io)
-                {
-                    socket->Send(sep);
-                    SendJSONMatrixData(socket, source, *io->matrix[0], io->sizex, io->sizey);
-                    sep = ",\n";
-                }
-                else if(bindings.count(src))
-                {
-                    socket->Send(sep);
-                    auto bs = bindings.at(src);
-                    Binding * b = bs.at(0);   // Use first binding
-                    switch(b->type)
-                    {
-                        case data_source_int:
-                        case data_source_list:
-                            socket->Send("\t\t\"%s\": [[%d]]", source.c_str(), *(int *)(b->value));
-                            break;
-
-                        case data_source_bool:
-                            socket->Send("\t\t\"%s\": [[%d]]", source.c_str(), int(*(bool *)(b->value)));
-                            break;
-
-                        case data_source_float:
-                            socket->Send("\t\t\"%s\": [[%f]]", source.c_str(), *(float *)(b->value));
-                            break;
-
-                        case data_source_string:
-                            socket->Send("\t\t\"%s\": \"%s\"", source.c_str(), ((std::string *)(b->value))->c_str());
-                            break;
-         
-                        case data_source_matrix:
-                            SendJSONMatrixData(socket, source, *(float **)(b->value), b->size_x, b->size_y);
-                            break;
-                            
-                        case data_source_array:
-                            SendJSONArrayData(socket, source, (float *)(b->value), b->size_x);
-                            break;
-                            
-                        default:
-                            socket->Send("\"ERRROR_type_is\": %d", b->type);
-                    }
-                    sep = ",\n";
-                }
+                target.a_[target.rank()-1] = 0; // Check that dim is empty first
+                target.b_[target.rank()-1] = s;
+                target.inc_[target.rank()-1] = 1;
             }
-            else if(format == "gray" && source[0])
-            {
-                if(Module_IO * io = root_group->GetSource(source))
-                {
-                    socket->Send(sep);
-                    socket->Send("\t\t\"%s:gray\": ", source.c_str()); // FIXME: Check return
-                    SendColorJPEGbase64(socket, *io->matrix[0], *io->matrix[0], *io->matrix[0], io->sizex, io->sizey);
-                    sep = ",\n";
-                }
-            }
-            else if(format == "rgb" && !source.empty())
-            {
-                auto a = rsplit(source, ".", 1); // separate out outputs
-                auto o = split(a[1], "+"); // split channel names
-                
-                if(o.size() == 3)
-                {
-                    auto c1 = a[0]+"."+o[0];
-                    auto c2 = a[0]+"."+o[1];
-                    auto c3 = a[0]+"."+o[2];
+        }
+            int delay_size = delay_range.trim().b_[0];
+            if(delay_size > 1)
+                c->target_range.push_front(0, delay_size);
 
-                    Module_IO * io1 = root_group->GetSource(c1);
-                    Module_IO * io2 = root_group->GetSource(c2);
-                    Module_IO * io3 = root_group->GetSource(c3);
-                    
-                    // TODO: check that all outputs have the same size
+        if(source.size() == target.size())
+            throw exception("Connection could not be resolved");
 
-                    if(io2 && io2 && io3)
-                    {
-                        socket->Send(sep);
-                        socket->Send("\t\t\"%s:rgb\": ", source.c_str()); // FIXME: Check return
-                        SendColorJPEGbase64(socket, *io1->matrix[0], *io2->matrix[0], *io3->matrix[0], io1->sizex, io1->sizey);
-                        sep = ",\n";
-                    }
-                }
-            }
-            else if(source[0] && (format == "fire" || format == "spectrum" || format == "red" || format == "green" || format == "blue"))
+        return c->target_range;
+    }
+*/
+
+
+    void 
+    Kernel::CalculateSizes()    
+    {
+        try 
+        {
+        // Build input table
+        std::map<std::string,std::vector<Connection *>> ingoing_connections; 
+        for(auto & c : connections)
+            ingoing_connections[c.target].push_back(&c);
+
+        // Loop enough for all sizes to be calculated // FIXME: Restore progress calculation *******************
+        for(int i=0; i<components.size(); i++)
+            for(auto & [n, c] : components)
+                c->SetSizes(ingoing_connections);
+        }
+        catch(fatal_error & e)
+        {
+            Notify(msg_fatal_error, e.message);
+            throw fatal_error("Could not calculate input and output sizes.");
+        }
+        catch(...)
+        {
+            throw fatal_error("Could not calculate input and output sizes.");
+        }
+    }
+
+
+    void 
+    Kernel::CalculateDelays()
+    {
+        for(auto & c : connections)
+        {
+            if(!max_delays.count(c.source))
+                max_delays[c.source] = 0;
+            if(c.delay_range_.extent()[0] > max_delays[c.source])
             {
-                if(Module_IO * io = root_group->GetSource(source))
-                {
-                    socket->Send(sep);
-                    socket->Send("\t\t\"%s:%s\": ", source.c_str(), format.c_str()); // FIXME: Check return
-                    SendPseudoColorJPEGbase64(socket, *io->matrix[0], io->sizex, io->sizey, format.c_str());
-                    sep = ",\n";
-                }
+                max_delays[c.source] = c.delay_range_.extent()[0];
             }
         }
     }
-    socket->Send("\n\t}");
 
-    if(tick_is_running) // new tick has started during sending
+
+    void 
+    Kernel::InitCircularBuffers()
     {
-        socket->Send(",\n\t\"has_data\": 0\n"); // there may be data but it cannot be trusted
+        for(auto it : max_delays)
+        {
+            if(it.second <= 1)
+                continue;
+          if(buffers.count(it.first))
+                circular_buffers.emplace(it.first, CircularBuffer(buffers[it.first], it.second)); // FIXME: Change to initialization list in C++20
+        }
     }
-    else
+
+
+    void 
+    Kernel::RotateBuffers()
     {
-        socket->Send(",\n\t\"has_data\": 1\n");
+        for(auto & it : circular_buffers)
+            it.second.rotate(buffers[it.first]);
     }
-    socket->Send("}\n");
+
+
+    void 
+    Kernel::ListComponents()
+    {
+        std::cout << "\nComponents:" << std::endl;
+        for(auto & m : components)
+            m.second->print();
+    }
+
+
+    void 
+    Kernel::ListConnections()
+    {
+        std::cout << "\nConnections:" << std::endl;
+        for(auto & c : connections)
+            c.Print();
+    }
+
+
+    void 
+    Kernel::ListInputs()
+    {
+        std::cout << "\nInputs:" << std::endl;
+        for(auto & i : buffers)
+            std::cout << "\t" << i.first <<  i.second.shape() << std::endl;
+    }
+
+
+   void Kernel::ListOutputs()
+    {
+        std::cout << "\nOutputs:" << std::endl;
+        for(auto & o : buffers)
+            std::cout  << "\t" << o.first << o.second.shape() << std::endl;
+    }
+
+
+    void 
+    Kernel::ListBuffers()
+    {
+        std::cout << "\nBuffers:" << std::endl;
+        for(auto & i : buffers)
+            std::cout << "\t" << i.first <<  i.second.shape() << std::endl;
+    }
+
+
+    void 
+    Kernel::ListCircularBuffers()
+    {
+        std::cout << "\nCircularBuffers:" << std::endl;
+        for(auto & i : circular_buffers)
+            std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << std::endl;
+    }
+
+
+   void 
+   Kernel::ListParameters()
+    {
+        std::cout << "\nParameters:" << std::endl;
+        for(auto & p : parameters)
+            std::cout  << "\t" << p.first << ": " << p.second << std::endl;
+    }
+
+
+    void 
+    Kernel::PrintLog()
+    {
+        for(auto & s : log)
+            std::cout << "IKAROS: " << s.level_ << ": " << s.message_ << std::endl;
+        log.clear();
+    }
+
+
+    Kernel::Kernel():
+        tick(0),
+        run_mode(run_mode_pause),
+        tick_is_running(false),
+        tick_time_usage(0),
+        actual_tick_duration(0), // FIME: Use desired tick duration here
+        idle_time(0),
+        stop_after(-1),
+        tick_duration(1),
+        shutdown(false),
+        session_id(new_session_id())
+    {
+        cpu_cores = std::thread::hardware_concurrency();
+    }
+
+    // Functions for creating the network
+
+    void 
+    Kernel::AddInput(std::string name, dictionary parameters) // FIXME: use name as argument insteas of parameters
+    {
+        buffers[name] = matrix().set_name(parameters["name"]);
+    }
+
+    void 
+    Kernel::AddOutput(std::string name, dictionary parameters)
+    {
+        buffers[name] = matrix().set_name(parameters["name"]);
+    }
+
+    void 
+    Kernel::AddParameter(std::string name, dictionary params)
+    {
+         parameters.emplace(name, parameter(params));
+    }
+
+
+    void 
+    Kernel::SetParameter(std::string name, std::string value)
+    {
+        if(!parameters.count(name))
+            throw exception("Parameter \""+name+"\" could not be set because it doees not exist.");
+
+        try
+        {
+            parameters[name] = value;
+            parameters[name].info_["value"] = value;
+        }
+        catch(...)
+        {
+            throw exception("Parameter \""+name+"\" could not be set. Check that parameter exist and that the data type and value is correct.");
+        }
+    }
+
+
+    void 
+    Kernel::AddGroup(dictionary info, std::string path)
+    {
+        current_component_info = info;
+        current_component_path = path;
+
+        if(components.count(current_component_path)> 0)
+            throw exception("Module or group named \""+current_component_path+"\" already exists.");
+
+        components[current_component_path] = new Group(); // Implicit argument passing as for components
+    }
+
+
+    void 
+    Kernel::AddModule(dictionary info, std::string path)
+    {
+        current_component_info = info;
+        current_component_path = path+"."+std::string(info["name"]);
+
+        if(components.count(current_component_path)> 0)
+            throw exception("Module or group with this name already exists. \""+std::string(info["name"])+"\".");
+
+        std::string classname = info["class"];
+        if(!classes.count(classname))
+            throw exception("Class \""+classname+"\" does not exist.");
+
+if(classes[classname].path.empty())
+        throw fatal_error("Class file \""+classname+".ikc\" could not be found.");
+
+         info.merge(dictionary(classes[classname].path));  // merge with class data structure
+
+        if(classes[classname].module_creator == nullptr)
+        {
+            if(info.is_not_set("no_code"))
+             std::cout << "Class \""<< classname << "\" has no installed code. Creating group." << std::endl; // throw exception("Class \""+classname+"\" has no installed code. Check that it is included in CMakeLists.txt."); // TODO: Check that this works for classes that are allowed to have no code
+            info["_tag"]="module";
+            BuildGroup(info, path); // FIXME: This is probably not working correctly
+        }
+        else
+            components[current_component_path] = classes[classname].module_creator();
+    }
+
+
+    void 
+    Kernel::AddConnection(dictionary info, std::string path)
+    {
+         std::string souce = path+"."+std::string(info["source"]);   // FIXME: Look for global paths later - string conversion should not be necessary
+         std::string target = path+"."+std::string(info["target"]);
+
+         std::string delay_range = info.contains("delay") ? info["delay"] : "";// FIXME: return "" if name not in dict - or use containts *********
+         std::string alias = info.contains("alias") ? info["alias"] : "";// FIXME: return "" if name not in dict - or use containts *********
+
+        if(delay_range.empty() || delay_range=="null")  // FIXME: return "" if name not in dict - or use contains *********
+            delay_range = "[1]";
+        else if(delay_range[0] != '[')
+            delay_range = "["+delay_range+"]";
+        range r(delay_range);
+        connections.push_back(Connection(souce, target, r, alias));
+    }
+
+
+
+    void Kernel::LoadExternalGroup(dictionary d)
+    {
+        std::string path = d["external"];
+        dictionary external(path);
+        external["name"] = d["name"]; // FIXME: Just in case - check for errors later
+        d.merge(external);
+        
+    }
+
+
+
+    void 
+    Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level, FIXME: rename AddGroup later
+    {
+        if(!d.contains("name"))
+            throw fatal_error("Groups must have a name.");
+
+        std::string name = validate_identifier(d["name"]);
+        if(!path.empty())
+            name = path+"."+name;
+
+        if(d.contains("external"))
+            LoadExternalGroup(d);
+
+
+        AddGroup(d, name);
+
+        for(auto g : d["groups"])
+            BuildGroup(g, name);
+        for(auto m : d["modules"])
+            AddModule(m, name);
+        for(auto c : d["connections"])
+            AddConnection(c, name);
+
+        if(d["widgets"].is_null())
+            d["widgets"] = list();
+
+        // FIX OTHER THINGS HERE
+    }
+
+
+    void 
+    Kernel::InitComponents()
+    {
+        //std::cout << "Running Kernel::InitComponents()" << std::endl;
+        // Call Init for all modules (after CalcalateSizes and Allocate)
+        for(auto & c : components)
+            try
+            {
+                c.second->Init();
+            }
+            catch(const fatal_error& e)
+            {
+                throw fatal_error(u8"Fatal error. Init failed for \""+c.second->path_+"\": "+std::string(e.what()));
+            }
+            catch(const std::exception& e)
+            {
+                throw fatal_error(u8"Init failed for "+c.second->path_+": "+std::string(e.what()));
+            }
+    }
+
+
+    void 
+    Kernel::SetCommandLineParameters(dictionary & d) // Add command line arguments - will override XML - probably not correct ******************
+    {
     
-    sending_ui_data = false;
-}
+        for(auto & x : options_.d)
+            d[x.first] = x.second;
 
+        d["filename"] = options_.filename;
 
-void
-Kernel::Pause()
-{
-    isRunning = false;
-    while(tick_is_running)
-        ;
-}
+        if(d.contains("stop"))
+            stop_after = d["stop"];
 
-
-
-long
-get_client_id(std::string & args)
-{
-    std::string id_string =  head(args, "&");
-    std::string id_number = cut(id_string, "id=");
-
-    try
-    {
-        return stol(id_number);
+        if(d.contains("tick_duration"))
+            tick_duration = d["tick_duration"];
     }
-    catch(const std::invalid_argument)
+
+
+    void 
+    Kernel::LoadFile()
     {
-        return 0;
+            //std::cout << "Kernel::LoadFile" << std::endl;
+            try
+            {
+                dictionary d = dictionary(options_.filename);
+                SetCommandLineParameters(d);
+                BuildGroup(d);
+                info_ = d;
+                session_id = new_session_id(); 
+                SetUp();
+                Notify(msg_print, u8"Loaded "s+options_.filename);
+
+                CalculateCheckSum();
+                //ListBuffers();
+                //ListConnections();
+            }
+            catch(const exception& e)
+            {
+                Notify(msg_fatal_error, e.message);
+                Notify(msg_fatal_error, u8"Load file failed for "s+options_.filename);
+                //CalculateCheckSum();
+                throw fatal_error("Load failed");
+                //New(); // FIXME: New in main - not here
+            }
     }
-}
+
+
+    void 
+    Kernel::CalculateCheckSum()
+    {
+        if(!info_.contains("check_sum"))
+            return;
+
+        long correct_check_sum = info_["check_sum"];
+        long calculated_check_sum = 0;
+        prime prime_number;
+
+        // Iterate over task lists to test partitioning
+
+        calculated_check_sum += prime_number.next() * tasks.size();
+        for(auto & t : tasks)
+            calculated_check_sum += prime_number.next() * t.size();
+
+        // Iterate over components
+        
+        for(auto & [n,c] : components)      
+            c->CalculateCheckSum(calculated_check_sum, prime_number);
+        if(correct_check_sum == calculated_check_sum)
+            std::cout << "Correct Check Sum: " << calculated_check_sum << std::endl;
+        else
+        {
+            std::string msg = "Incorrect Check Sum: "+std::to_string(calculated_check_sum)+" != "+std::to_string(correct_check_sum);
+            Notify(msg_fatal_error, msg);
+            if(info_.is_set("batch_mode"))
+                exit(calculated_check_sum); // Return checksum if incorrect
+        }
+    }
+
+
+     dictionary 
+     Kernel::GetModuleInstantiationInfo()
+     {
+        dictionary d;
+        d["Constant"] = "1";
+        d["Print"] = "2";
+        return d;
+     }
+
+
+    void 
+    Kernel::Save() // Simple save function in present file
+    {
+        //std::cout << "Kernel::Save" << std::endl;
+        std::string data = xml();
+
+        //std::cout << data << std::endl;
+
+        std::ofstream file;
+        std::string filename = add_extension(info_["filename"], ".ikg");
+        file.open (filename);
+        file << data;
+        file.close();
+    }
 
 
 
-void
-Kernel::DoSendNetwork(std::string uri, std::string args)
-{
-        std::string s = JSONString();
+    void 
+    Kernel::Propagate()
+    {
+
+         for(auto & c : connections)
+            if(c.delay_range_.is_delay_0())
+                continue;
+            else
+                c.Tick();
+
+   /*
+         for(auto & c : connections)
+        {
+            if(c.delay_range_.empty() || c.delay_range_.is_delay_0())
+            {
+                // Do not handle here. Handled in Connection.Tick()
+            }
+
+            else if(c.delay_range_.empty() || c.delay_range_.is_delay_1())
+                buffers[c.target].copy(buffers[c.source], c.target_range, c.source_range);
+
+            else if(c.flatten_) // Copy flattened delayed values
+            {
+                matrix target = buffers[c.target];
+                int target_offset = c.target_range.a_[0];
+                for(int i=c.delay_range_.a_[0]; i<c.delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
+                {   
+                    matrix s = circular_buffers[c.source].get(i);
+
+                    for(auto ix=c.source_range; ix.more(); ix++)
+                    {
+                        int source_index = s.compute_index(ix.index());
+                        target[target_offset++] = (*(s.data_))[source_index];
+                    }
+                }
+            }
+
+            else if(c.delay_range_.a_[0]+1 == c.delay_range_.b_[0]) // Copy indexed delayed value with single delay
+            {
+                matrix s = circular_buffers[c.source].get(c.delay_range_.a_[0]);
+                buffers[c.target].copy(s, c.target_range, c.source_range);
+            }
+
+            else // Copy indexed delayed values with more than one element
+            {
+                for(int i=c.delay_range_.a_[0]; i<c.delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
+                {   
+                    matrix s = circular_buffers[c.source].get(i);
+                    int target_ix = i - c.delay_range_.a_[0]; // trim!
+                    range tr = c.target_range.tail();
+                    matrix t = buffers[c.target][target_ix];
+                    t.copy(s, tr, c.source_range);
+
+                }
+            }
+        }
+    */
+    }
+
+
+
+    void
+    Kernel::InitSocket(long port)
+    {
+        try
+        {
+            socket =  new ServerSocket(port);
+        }
+        catch (const SocketException& e)
+        {
+            throw fatal_error("Ikaros is unable to start a webserver on port "+std::to_string(port)+". Make sure no other ikaros process is running and try again.");
+        }
+        httpThread = new std::thread(Kernel::StartHTTPThread, this);
+    }
+
+
+    void 
+    Kernel::PruneConnections()
+    {
+        for (auto it = connections.begin(); it != connections.end(); ) 
+        {
+            if(buffers.count(it->source) && buffers.count(it->target))
+                it++;
+            else
+            {
+                Notify(msg_print, u8"Pruning "  + it->source + "=>" + it->target);
+                it = connections.erase(it);
+            }
+        }
+    }
+
+
+/*************************
+ * 
+ *  Task sorting
+ * 
+ *************************/
+
+
+
+    bool 
+    Kernel::dfsCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack) 
+    {
+        if(recStack.find(node) != recStack.end())
+            return true;
+
+        if(visited.find(node) != visited.end())
+            return false;
+
+        visited.insert(node);
+        recStack.insert(node);
+
+        if(graph.find(node) != graph.end()) 
+            for (const std::string& neighbor : graph.at(node)) 
+                if(dfsCycleCheck(neighbor, graph, visited, recStack)) 
+                    return true;
+        recStack.erase(node);
+        return false;
+    }
+
+
+
+    bool 
+    Kernel::hasCycle(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
+    {
+        std::unordered_map<std::string, std::vector<std::string>> graph;
+        for (const auto& edge : edges)
+            graph[edge.first].push_back(edge.second);
+
+        std::unordered_set<std::string> visited;
+        std::unordered_set<std::string> recStack;
+
+        for (const std::string& node : nodes)
+            if(visited.find(node) == visited.end() &&  (dfsCycleCheck(node, graph, visited, recStack)))
+                    return true;
+
+        return false;
+    }
+
+    void 
+    Kernel::dfsSubgroup(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::vector<std::string>& component) 
+    {
+        visited.insert(node);
+        component.push_back(node);
+
+        if(graph.find(node) != graph.end()) 
+        {
+            for (const std::string& neighbor : graph.at(node)) 
+            {
+                if(visited.find(neighbor) == visited.end()) 
+                    dfsSubgroup(neighbor, graph, visited, component);
+            }
+        }
+    }
+
+
+    std::vector<std::vector<std::string>> 
+    Kernel::findSubgraphs(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
+    {
+        std::unordered_map<std::string, std::vector<std::string>> graph;
+        for (const auto& edge : edges) 
+        {
+            graph[edge.first].push_back(edge.second);
+            graph[edge.second].push_back(edge.first);
+        }
+
+        std::unordered_set<std::string> visited;
+        std::vector<std::vector<std::string>> components;
+
+        for (const std::string& node : nodes) 
+        {
+            if(visited.find(node) == visited.end()) 
+            {
+                std::vector<std::string> component;
+                dfsSubgroup(node, graph, visited, component);
+                components.push_back(component);
+            }
+        }
+
+        return components;
+    }
+
+
+    void 
+    Kernel::topologicalSortUtil(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::stack<std::string>& Stack) 
+    {
+        visited.insert(node);
+
+        if(graph.find(node) != graph.end()) 
+        {
+            for (const std::string& neighbor : graph.at(node)) 
+            {
+                if(visited.find(neighbor) == visited.end())
+                    topologicalSortUtil(neighbor, graph, visited, Stack);
+            }
+        }
+        Stack.push(node);
+    }
+
+
+
+    std::vector<std::string> 
+    Kernel::topologicalSort(const std::vector<std::string>& component, const std::unordered_map<std::string, std::vector<std::string>>& graph) 
+    {
+        std::unordered_set<std::string> visited;
+        std::stack<std::string> Stack;
+
+        for (const std::string& node : component) 
+            if(visited.find(node) == visited.end())
+                topologicalSortUtil(node, graph, visited, Stack);
+
+        std::vector<std::string> sortedSubgraph;
+        while (!Stack.empty()) 
+        {
+            sortedSubgraph.push_back(Stack.top());
+            Stack.pop();
+        }
+
+        return sortedSubgraph;
+    }
+
+
+    std::vector<std::vector<std::string>>
+    Kernel::sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges)
+    {
+        if(hasCycle(nodes, edges)) 
+            throw fatal_error("Network has zero-delay loops");
+        else 
+        {
+
+            std::vector<std::vector<std::string>> components = findSubgraphs(nodes, edges);
+
+            // Rebuild the original graph for directed edges
+            std::unordered_map<std::string, std::vector<std::string>> graph;
+            for (const auto& edge : edges) {
+                graph[edge.first].push_back(edge.second);
+            }
+
+            std::vector<std::vector<std::string>>  result;
+
+            for (const auto& component : components) {
+                std::vector<std::string> sortedSubgraph = topologicalSort(component, graph);
+                result.push_back(sortedSubgraph);
+                for (const auto& node : sortedSubgraph) {
+                }
+                std::cout << std::endl;
+            }
+
+            return result;
+        }
+    }
+
+
+
+    void
+    Kernel::SortTasks()
+    {
+        std::vector<std::string> nodes;
+        std::vector<std::pair<std::string, std::string>> arcs;
+        std::map<std::string, Task *> task_map;
+
+        for(auto & [s,c] : components)
+        {
+            nodes.push_back(s);
+            task_map[s] = c; // Save in task map
+        }
+
+        for(auto & c : connections) // ONLY ZERO CONNECTIONS
+        if(c.delay_range_.is_delay_0())
+            {
+                std::string s = peek_rhead(c.source,".");
+                std::string t = peek_rhead(c.target,".");
+                std::string cc = "CON("+s+","+t+")"; // Connection node name
+
+                nodes.push_back(cc);
+                arcs.push_back({s, cc});
+                arcs.push_back({cc, t});
+                task_map[cc] = &c; // Save in task map
+            }
+/*
+       for(auto & s : nodes)
+            std::cout <<  "NODE: " << s << std::endl;
+       for(const auto [s,t] : arcs)
+            std::cout <<  "ARC: " << s << "->" << t << std::endl;
+*/
+        auto r = sort(nodes, arcs);
+/*
+        for(auto s : r)
+        {
+            for(auto ss: s)
+                std::cout << ss << " ";
+                std::cout  << std::endl;
+        }
+        std::cout  << std::endl;
+*/
+        // Fill task list
+
+        tasks.clear();
+        for(auto s : r)
+        {
+            std::vector<Task *> task_list;
+            bool priority_task = false;
+            for(auto ss: s)
+            {
+                if(task_map[ss]->Priority())
+                    priority_task = true;
+                task_list.push_back(task_map[ss]); // Get task pointer here
+            }
+            if(priority_task)
+                tasks.insert(tasks.begin(), task_list);
+            else
+                tasks.push_back(task_list);
+
+        }
+    }
+
+
+
+    void
+    Kernel::RunTasks()
+    {
+        for(auto & task_group : tasks)
+            for(auto & task: task_group)
+                task->Tick();
+    }
+
+
+
+    void
+    Kernel::SetUp()
+    {
+        try
+        {
+            SortTasks();
+            ResolveParameters();
+            PruneConnections();
+            CalculateDelays();
+            CalculateSizes();
+            InitCircularBuffers();
+            InitComponents();
+
+            if(info_.is_set("info"))
+            {
+                ListParameters();
+                ListComponents();
+                ListConnections();
+                //ListInputs();
+                //ListOutputs();
+                ListBuffers();
+                ListCircularBuffers();
+            }
+
+            PrintLog();
+        }
+        catch(exception & e)
+        {
+            Notify(msg_fatal_error, e.message);
+            Notify(msg_fatal_error, "SetUp Failed");
+            throw fatal_error("SetUp Failed");
+        }
+    }
+
+
+    void
+    Kernel::Run()
+    {
+        if(options_.filename.empty())
+            New();
+        else
+            LoadFile();
+
+        // Check start-up arguments
+
+        if(info_.is_set("start"))
+        {
+            if(info_.is_set("realtime"))
+                run_mode = run_mode_restart_realtime;
+            else
+                run_mode = run_mode_restart_play;
+        }
+        
+        timer.Restart();
+        tick = -1; // To make first tick 0 after increment
+
+        if(run_mode == run_mode_restart_realtime)
+            Realtime();
+        else if(run_mode == run_mode_restart_play)
+            Play();
+        else
+            Pause();
+
+            // Main loop
+            while(run_mode > run_mode_quit)  // Not quit or restart
+            {
+                while (!Terminate() && run_mode > run_mode_quit)
+                {
+                    while(sending_ui_data)
+                        {}
+                    while(handling_request)
+                        {}
+
+                    if(run_mode == run_mode_realtime)
+                        lag = timer.WaitUntil(double(tick+1)*tick_duration);
+                    else if(run_mode == run_mode_play)
+                    {
+                        timer.SetTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode
+                        Sleep(0.01);
+                    }
+                    else
+                        Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
+
+                    // Run_mode may have changed during the delay - needs to be checked again
+
+                    if(run_mode == run_mode_realtime || run_mode == run_mode_play) 
+                    {
+                        actual_tick_duration = intra_tick_timer.GetTime();
+                        intra_tick_timer.Restart();
+                        try
+                        {
+                            Tick();
+                        }
+                        catch(std::exception & e)
+                        {
+                            //std::cout << e.what() << std::endl;
+                            Notify(msg_fatal_error, (e.what()));
+                            return;
+                        }
+                        tick_time_usage = intra_tick_timer.GetTime();
+                        idle_time = tick_duration - tick_time_usage;
+                    }                    
+                }
+                Sleep(0.1);
+            }
+        }
+
+        bool
+        Kernel::Notify(int msg, std::string message, std::string path)
+        {
+            log.push_back(Message(msg, message, path));
+            if(msg <= msg_fatal_error)
+            {
+                    std::cout << "ikaros: " << message << std::endl;
+                    run_mode = run_mode_quit;
+            }
+            return true;
+        }
+
+    //
+    //  Serialization
+    //
+
+    std::string 
+    Component::json()
+    {
+        return info_.json();
+    }
+
+
+    std::string 
+    Component::xml()
+    {
+        return info_.xml("group");
+    }
+
+
+    std::string 
+    Kernel::json()
+    {
+        return info_.json();
+    }
+
+
+    std::string 
+    Kernel::xml()
+    {
+        if(components.empty())
+            return "";
+        else
+            return components.begin()->second->xml();
+    }
+
+
+
+    //
+    // WebUI
+    //
+
+
+    void
+    Kernel::SendImage(matrix & image, std::string & format) // Compress image to jpg and send from memory after base64 encoding
+    {
+        long size = 0;
+        unsigned char * jpeg = nullptr;
+        size_t output_length = 0 ;
+        
+        if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
+            jpeg = (unsigned char *)create_color_jpeg(size, image, 90);
+
+        else if(format=="gray" && image.rank() == 2)
+            jpeg = (unsigned char *)create_gray_jpeg(size, image, 0, 1, 90);
+
+        else if(image.rank() == 2) // taking our chances with the format...
+            jpeg = (unsigned char *)create_pseudocolor_jpeg(size, image, 0, 1, format, 90);
+
+            if(!jpeg)
+            {
+                socket->Send("\"\"");
+                return;
+            }
+
+        char * jpeg_base64 = base64_encode(jpeg, size, &output_length);
+        socket->Send("\"data:image/jpeg;base64,");
+        bool ok = socket->SendData(jpeg_base64, output_length);
+        socket->Send("\"");
+        destroy_jpeg(jpeg);
+        free(jpeg_base64);
+    }
+
+
+
+    void
+    Kernel::Stop()
+    {
+        while(tick_is_running)
+            {}
+
+        run_mode = run_mode_stop;
+        tick = -1;
+        timer.Pause();
+        timer.SetPauseTime(0);
+    }
+
+
+
+    void
+    Kernel::Pause()
+    {
+        while(tick_is_running)
+            {}
+
+        if(run_mode == run_mode_stop)
+        {
+            run_mode = run_mode_restart_pause;
+        }
+        else
+        {
+            run_mode = run_mode_pause;
+            timer.Pause();
+            timer.SetPauseTime(GetTime()+tick_duration);
+        }
+    }
+
+
+
+    void
+    Kernel::Realtime()
+    {
+        while(tick_is_running)
+            {}
+
+        if(run_mode == run_mode_stop)
+        {
+            run_mode = run_mode_restart_realtime;
+        }
+        else
+        {
+     
+            Pause();
+            timer.Continue();
+            run_mode = run_mode_realtime;
+        }
+    }
+
+
+
+    void
+    Kernel::Play()
+    {
+        while(tick_is_running)
+            {}
+
+        if(run_mode == run_mode_stop)
+        {
+            run_mode = run_mode_restart_play;
+        }
+        else
+        {
+            run_mode = run_mode_play;
+            timer.Continue();
+        }
+    }
+
+
+    void
+    Kernel::DoSendDataHeader()
+    {
+        Dictionary header;
+        header.Set("Session-Id", std::to_string(session_id).c_str());
+        header.Set("Package-Type", "data");
+        header.Set("Content-Type", "application/json");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        header.Set("Expires", "0");
+        socket->SendHTTPHeader(&header);
+    }
+
+
+    void
+    Kernel::DoSendDataStatus()
+    {
+        std::string nm = std::string(info_["filename"]);
+        if(nm.find("/") != std::string::npos)
+            nm = rtail(nm,"/");
+
+        socket->Send("\t\"file\": \"%s\",\n", nm.c_str());
+
+#if DEBUG
+        socket->Send("\t\"debug\": true,\n");
+#else
+        socket->Send("\t\"debug\": false,\n");
+#endif
+
+        socket->Send("\t\"state\": %d,\n", run_mode);
+        if(stop_after != -1)
+        {
+            socket->Send("\t\"tick\": \"%d / %d\",\n", tick, stop_after);
+            socket->Send("\t\"progress\": %f,\n", double(tick)/double(stop_after));
+        }
+        else
+        {
+            socket->Send("\t\"progress\": 0,\n");
+        }
+
+        // Timing information
+
+        double uptime = uptime_timer.GetTime();
+        double total_time = GetTime();
+
+        socket->Send("\t\"timestamp\": %ld,\n", GetTimeStamp()); // duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count()
+        socket->Send("\t\"uptime\": %.2f,\n", uptime);
+        socket->Send("\t\"tick_duration\": %f,\n", tick_duration);
+        socket->Send("\t\"cpu_cores\": %d,\n", cpu_cores);
+    
+        switch(run_mode)
+        {
+            case run_mode_stop:
+                socket->Send("\t\"tick\": \"-\",\n");
+                socket->Send("\t\"time\": \"-\",\n");
+                socket->Send("\t\"ticks_per_s\": \"-\",\n");
+                socket->Send("\t\"actual_duration\": \"-\",\n");
+                socket->Send("\t\"lag\": \"-\",\n");
+                socket->Send("\t\"time_usage\": 0,\n");
+                socket->Send("\t\"cpu_usage\": 0,\n"); 
+                break;
+
+            case run_mode_pause:
+                socket->Send("\t\"tick\": %lld,\n", GetTick());
+                socket->Send("\t\"time\": %.2f,\n", GetTime());
+                socket->Send("\t\"ticks_per_s\": \"-\",\n");
+                socket->Send("\t\"actual_duration\": \"-\",\n");
+                socket->Send("\t\"lag\": \"-\",\n");
+                socket->Send("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
+                socket->Send("\t\"cpu_usage\": %f,\n", cpu_usage);  
+                break;
+
+            case run_mode_realtime:
+            default:
+                socket->Send("\t\"tick\": %lld,\n", GetTick());
+                socket->Send("\t\"time\": %.2f,\n", GetTime());
+                socket->Send("\t\"ticks_per_s\": %.2f,\n", tick>0 ? double(tick)/total_time: 0);
+                socket->Send("\t\"actual_duration\": %f,\n", actual_tick_duration);
+                socket->Send("\t\"lag\": %f,\n", lag);
+                socket->Send("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
+                socket->Send("\t\"cpu_usage\": %f,\n", cpu_usage);
+                break;
+        }
+
+    }
+
+
+    void
+    Kernel::DoSendLog(Request & request)
+    {
+    socket->Send(",\n\"log\": [");
+    std::string sep;
+    for(auto line : log)
+    {
+        socket->Send(sep +line.json());
+        sep = ",";
+    }
+    socket->Send("]");
+    log.clear();
+    }
+
+
+    void
+    Kernel::DoSendData(Request & request)
+    {    
+        //std::cout << "DoSendData: state = " << run_mode << std::endl;
+        sending_ui_data = true; // must be set while main thread is still running
+        while(tick_is_running)
+            {}
+
+        DoSendDataHeader();
+
+        socket->Send("{\n");
+
+        DoSendDataStatus();
+
+        socket->Send("\t\"data\":\n\t{\n");
+
+        std::string data = request.parameters["data"];  // FIXME: Check that it exists ******** or return ""
+        std::string root;
+            if(request.parameters.contains("root"))
+                root = std::string(request.parameters["root"]);
+
+        std::string sep = "";
+        bool sent = false;
+
+        while(!data.empty())
+        {
+            std::string source = head(data, ",");
+            std::string format = rtail(source, ":");
+            std::string source_with_root = root +"."+source; // request.component_path
+
+            if(buffers.count(source_with_root))
+            {
+                if(format.empty())
+                {
+                    sent = socket->Send(sep + "\t\t\"" + source + "\": "+buffers[source_with_root].json());
+                }
+                else if(format=="rgb")
+                { 
+                        sent = socket->Send(sep + "\t\t\"" + source + ":"+format+"\": ");
+                        SendImage(buffers[source_with_root], format);
+                }
+                else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
+                { 
+                        sent = socket->Send(sep + "\t\t\"" + source + ":"+format+"\": ");
+                        SendImage(buffers[source_with_root], format);
+                }
+            }
+            else if(parameters.count(source_with_root))
+            {
+                sent = socket->Send(sep + "\t\t\"" + source + "\": "+parameters[source_with_root].json());
+            }
+            if(sent)
+                sep = ",\n";
+        }
+
+        socket->Send("\n\t}");
+        DoSendLog(request);
+        socket->Send(",\n\t\"has_data\": "+std::to_string(!tick_is_running)+"\n"); // new tick has started during sending; there may be data but it cannot be trusted
+        socket->Send("}\n");
+
+        sending_ui_data = false;
+    }
+
+
+    void
+    Kernel::DoNew(Request & request)
+    {
+        Pause(); // Probably not necessary
+        New();
+        DoUpdate(request);
+    }
+
+
+    void
+    Kernel::DoOpen(Request & request)
+    {
+        std::string file = request.parameters["file"];
+        std::string where = request.parameters["where"];
+        Stop();
+        Clear();
+        if(where == "system")
+            options_.filename = system_files.at(file);
+        else
+            options_.filename = user_files.at(file);
+        LoadFile();
+        DoUpdate(request);
+    }
+
+
+    void
+    Kernel::DoSave(Request & request)
+    {
+        //std::cout << "SAVE: " << request.body << std::endl;
+
+        dictionary d = parse_json(request.body);
+        std::filesystem::path path = std::string(d["filename"]);
+        std::string filename = path.filename();
+        d["filename"] = null(); // FIXME: remove propery later
+        std::string data = d.xml("group");
+        std::ofstream file;
+        file.open (filename);
+        file << data;
+        file.close();
+        Clear();
+        options_.filename = filename;
+        LoadFile();
+        std::string s = "{\"status\":\"ok\"}"; 
+        Dictionary rtheader;
+        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
+        rtheader.Set("Package-Type", "network"); // FIXME: wrong packade type
+        rtheader.Set("Content-Type", "application/json");
+        rtheader.Set("Content-Length", int(s.size()));
+        socket->SendHTTPHeader(&rtheader);
+        socket->SendData(s.c_str(), int(s.size()));
+    }
+
+
+    void
+    Kernel::DoSaveAs(Request & request)
+    {
+    }
+
+
+    void
+    Kernel::DoQuit(Request & request)
+    {
+        Notify(msg_print, "quit");
+        Stop();
+        run_mode = run_mode_quit;
+        DoUpdate(request);
+    }
+
+
+    void
+    Kernel::DoStop(Request & request)
+    {
+        Notify(msg_print, "stop");
+        Stop();
+        DoUpdate(request);
+    }
+
+
+    void
+    Kernel::DoSendFile(std::string file)
+    {
+        //std::this_thread::sleep_for(milliseconds(200));
+
+        if(file[0] == '/')
+            file = file.erase(0,1); // Remove initial slash
+
+        // if(socket->SendFile(file, ikc_dir))  // Check IKC-directory first to allow files to be overriden
+        //    return;
+
+        if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
+            return;
+        /*
+        if(socket->SendFile(file, std::string(webui_dir)+"Images/"))   // Now look in WebUI/Images directory
+            return;
+        
+        file = "error." + rcut(file, ".");
+        if(socket->SendFile("error." + rcut(file, "."), webui_dir)) // Try to send error file
+            return;
+
+        DoSendError();
+        */
+    }
+
+
+    void
+    Kernel::DoSendNetwork(Request & request)
+    {
+        std::string s = json(); 
         Dictionary rtheader;
         rtheader.Set("Session-Id", std::to_string(session_id).c_str());
         rtheader.Set("Package-Type", "network");
@@ -4142,268 +2984,532 @@ Kernel::DoSendNetwork(std::string uri, std::string args)
         rtheader.Set("Content-Length", int(s.size()));
         socket->SendHTTPHeader(&rtheader);
         socket->SendData(s.c_str(), int(s.size()));
-}
+    }
 
 
-
-void
-Kernel::DoStop(std::string uri, std::string args)
-{
+    void
+    Kernel::DoPause(Request & request)
+    {
+        Notify(msg_print, "pause");
         Pause();
-        ui_state = ui_state_stop;
-        Notify(msg_terminate, "Sent by WebUI.\n");
-        DoSendData(uri, args);
-}
+        DoSendData(request);
+    }
 
 
-
-void
-Kernel::DoPause(std::string uri, std::string args)
-{
-    Pause();
-    ui_state = ui_state_pause;
-    master_id = get_client_id(args);
-    DoSendData(uri, args);
-}
-
-
-
-void
-Kernel::DoStep(std::string uri, std::string args)
-{
-    Pause();
-    ui_state = ui_state_pause;
-    master_id = get_client_id(args);
-    Tick();
-    DoSendData(uri, args);
-}
-
-
-
-
-void
-Kernel::DoPlay(std::string uri, std::string args)
-{
+    void
+    Kernel::DoStep(Request & request)
+    {
+        Notify(msg_print, "step");
         Pause();
-        ui_state = ui_state_play;
-        master_id = get_client_id(args);
+        run_mode = run_mode_pause;
         Tick();
-    DoSendData(uri, args);
-}
-
-
-
-
-void
-Kernel::DoRealtime(std::string uri, std::string args)
-{
-    ui_state = ui_state_realtime;
-    master_id = get_client_id(args);
-    isRunning = true;
-    DoSendData(uri, args);
-}
-
-
-
-void
-Kernel::DoCommand(std::string uri, std::string args)
-{
-    float x, y;
-    char command[255];
-    char value[1024]; // FIXME: no range chacks
-    int c = sscanf(uri.c_str(), "/command/%[^/]/%f/%f/%[^/]", command, &x, &y, value);
-    if(c == 4)
-        SendCommand(command, x, y, value);
-    DoSendData(uri, args);
-}
-
-
-
-void
-Kernel::DoControl(std::string uri, std::string args)
-{
-    //printf(">>> %s %s\n", uri.c_str(), args.c_str());
-    char module_name[255];
-    char parameter[255];
-    int x, y;
-    float value;
-    int c = sscanf(uri.c_str(), "/control/%[^/]/%d/%d/%f", parameter, &x, &y, &value);
-    if(c == 4)
-
-        SetParameter(parameter, x, y, value); // TODO: check if groups are handled correctly
-    DoSendData(uri, args);
-}
-
-
-
-
-void
-Kernel::DoUpdate(std::string uri, std::string args)
-{
-    if(args.empty() || first_request) // not a data request - send view data
-    {
-        first_request = false;
-            DoSendNetwork(uri, args);
+        timer.SetPauseTime(GetTime()+tick_duration);
+        DoSendData(request);
     }
-    else if(ui_state == ui_state_play && master_id == get_client_id(args))
+
+
+
+
+    void
+    Kernel::DoRealtime(Request & request)
     {
-        Pause();
-        Tick();
-        DoSendData(uri, args);
+        Notify(msg_print, "realtime");
+        Realtime();
+        DoSendData(request);
     }
-    else 
-        DoSendData(uri, args);
-}
 
 
-
-void
-Kernel::DoGetLog(std::string uri, std::string args)
-{
-    if (logfile)
-        socket->SendFile("logfile", webui_dir);
-    else
-        socket->Send("ERROR - No logfile found\n");
-}
-
-
-
-
-void
-Kernel::DoSendClasses(std::string uri, std::string args)
-{
-    Dictionary header;
-    header.Set("Content-Type", "text/json");
-    header.Set("Cache-Control", "no-cache");
-    header.Set("Cache-Control", "no-store");
-    header.Set("Pragma", "no-cache");
-    socket->SendHTTPHeader(&header);
-    socket->Send("{\"classes\":[\n\t\"");
-    std::string s = "";
-    for(auto & c: classes)
+    void
+    Kernel::DoPlay(Request & request)
     {
-        socket->Send(s.c_str());
-        socket->Send(c.first.c_str());
-        s = "\",\n\t\"";
+        Notify(msg_print, "play");
+        Play();
+        DoSendData(request);
     }
-    socket->Send("\"\n]\n}\n");
-}
+
+
+    void
+    Kernel::DoCommand(Request & request)
+    {
+        if(!components.count(request.component_path))
+            {
+                Notify(msg_warning, "Component '"+request.component_path+"' could not be found.");
+                DoSendData(request);
+                return;
+            }
+
+        if(!request.body.empty()) // FIXME: Move to request and check content-type first
+        {
+            request.parameters = parse_json(request.body);
+        }
+
+        if(!request.parameters.contains("command"))
+        {
+                Notify(msg_warning, "No command specified for  '"+request.component_path+"'.");
+                DoSendData(request);
+                return;
+        }
+
+        components.at(request.component_path)->Command(request.parameters["command"], request.parameters);
+        DoSendData(request);
+    }
 
 
 
-void
-Kernel::DoSendFile(std::string file)
-{
-        if(file[0] == '/')
-            file = file.erase(0,1); // Remove initial slash
+    void
+    Kernel::DoControl(Request & request)
+    {
+        try
+        {
+            std::string root;
+         
+            if(request.parameters.contains("root"))
+                root= std::string(request.parameters["root"]);
 
-        if(socket->SendFile(file, ikc_dir))  // Check IKC-directory first to allow files to be overriden
-            return;
+            if(!parameters.count(request.component_path))
+            {
+                Notify(msg_warning, "Parameter '"+request.component_path+"' could not be found.");
+                DoSendData(request);
+                return;
+            }
 
-        if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
-            return;
+            parameter & p = parameters.at(request.component_path);
+            if(p.type == matrix_type)
+            {
+                int x = 0;
+                int y = 0;
+                double value = 1;
 
-        if(socket->SendFile(file, std::string(webui_dir)+"Images/"))   // Now look in WebUI/Images directory
-            return;
-      
-        file = "error." + rcut(file, ".");
-        if(socket->SendFile("error." + rcut(file, "."), webui_dir)) // Try to send error file
-            return;
+                if(request.parameters.contains("x"))
+                    x = request.parameters["x"];
 
-        DoSendError();
-}
+                if(request.parameters.contains("y"))
+                    y = request.parameters["y"];
+                
+                if(request.parameters.contains("value"))
+                    value = request.parameters["value"];
+                    
+                if(p.matrix_value->rank() == 1)
+                    (*p.matrix_value)(x)= value;
+                else if(p.matrix_value->rank() == 2)
+                    (*p.matrix_value)(x,y)= value;
+                else
+                    ;   // FIXME: higher dimensional parameter
+            }
+            else
+            {
+                p = std::string(request.parameters["value"]);
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            DoSendData(request);
+        }
+    }
+
+/*
+    void
+    Kernel::AddWidget(Request & request) // FIXME: Local exception handling
+    {
+        std::cout << "AddWidget: " << std::endl;
+        auto view = GetView(request);
+        if(view["widgets"].is_null())
+            view["widgets"] = list();
+
+        list u = list(view["widgets"]);
+        u.push_back(request.parameters);
 
 
-void
-Kernel::DoSendError()
-{
+        DoSendData(request);
+    }
+
+
+    void
+    Kernel::DeleteWidget(Request & request)
+    {
+        //std::cout << "DeleteWidget: "  << std::endl;
+
+        int index = std::stoi(request.parameters["index"]);
+        list view = list(GetView(request)["widgets"]);
+        view.erase(index);
+
+        int i=0;
+        for(auto & w : view)
+            w["_index_"] = i++;
+
+        DoSendData(request);
+    }
+
+
+    void
+    Kernel::SetWidgetParameters(Request & request)
+    {
+        //std::cout << "SetWidgetParameters: " << std::endl;
+
+        int index = request.parameters.get_int("_index_");
+        //list u = list(GetView(request)["widgets"]);
+        //u[index] = request.parameters;
+
+        DoSendData(request);
+    }
+
+
+    void
+    Kernel::WidgetToFront(Request & request)
+    {
+        //std::cout << "SetWidgetToFront: " << std::endl;
+
+        int index = request.parameters.get_int("index");
+
+        //list u = list(GetView(request)["widgets"]);
+
+        dictionary d = u[index];
+        u.erase(index);
+        u.push_back(d);
+    
+        int i=0;
+        for(auto & item : u)
+            item["_index_"] = i++;
+
+
+        DoSendData(request);
+     }
+
+
+
+    void
+    Kernel::WidgetToBack(Request & request)
+    {
+        //std::cout << "SetWidgetToBack: " << std::endl;
+
+        int index = request.parameters.get_int("index");
+
+        list u = list(GetView(request)["widgets"]);
+
+        dictionary d = u[index];
+        u.erase(index);
+        u.insert_front(d);
+
+        int i=0;
+        for(auto & item : u)
+            item["_index_"] = i++;
+
+        DoSendData(request);
+    }
+    void
+    Kernel::RenameView(Request & request)
+    {
+        std::cout << "RenameView: " << std::endl;
+
+        dictionary u = GetView(request);
+        u["name"] = request.parameters["name"];
+
+        DoSendData(request);
+    }
+*/
+
+/*
+    void
+    Kernel::DoAddGroup(Request & request)
+    {
+        //std::cout << "DoAddGroup: *** " << std::endl;
+
+        DoSendData(request);
+    }
+
+
+    void
+    Kernel::DoAddModule(Request & request)
+    {
+       // std::cout << "DoAddModule: *** " << std::endl;
+
+        DoSendData(request);
+    }
+
+
+    
+
+    void
+    Kernel::DoSetAttribute(Request & request)
+    {
+       // std::cout << "DoSetAttribute: " << std::endl;
+
+        DoSendData(request);
+    }
+
+
+    void
+    Kernel::DoAddConnection(Request & request)
+    {
+        //std::cout << "DoAddConnection: " << std::endl;
+
+        DoSendData(request);
+    }
+
+
+    void
+    Kernel::DoSetRange(Request & request)
+    {
+        //std::cout << "DoSetRange: " << std::endl;
+
+        DoSendData(request);
+    }
+*/
+
+    void
+    Kernel::DoUpdate(Request & request)
+    {
+        if(request.session_id != session_id) // request.parameters.empty() ||  ( WAS not a data request - send network)
+        {
+            DoSendNetwork(request);
+        }
+        /*
+        else if(run_mode == run_mode_play && session_id == request.session_id)
+        {
+            Pause();
+            Tick();
+            DoSendData(request);
+        }
+        */
+        else 
+            DoSendData(request);
+    }
+
+
+    void
+    Kernel::DoNetwork(Request & request)
+    {
+        DoSendNetwork(request);
+    }
+
+
+    void
+    Kernel::DoSendClasses(Request & request)
+    {
+        Dictionary header;
+        header.Set("Content-Type", "text/json");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        socket->Send("{\"classes\":[\n\t\"");
+        std::string s = "";
+        for(auto & c: classes)
+        {
+            socket->Send(s.c_str());
+            socket->Send(c.first.c_str());
+            s = "\",\n\t\"";
+        }
+        socket->Send("\"\n]\n}\n");
+    }
+
+
+
+    void
+    Kernel::DoSendClassInfo(Request & request)
+    {
+        Dictionary header;
+        header.Set("Content-Type", "text/json");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        socket->Send("{\n");
+        std::string s = "";
+        for(auto & c: classes)
+        {
+            socket->Send(s);
+            socket->Send("\""+c.first+"\": ");
+            socket->Send(c.second.info_.json());
+            s = ",\n\t";
+        }
+        socket->Send("\n}\n");
+    }
+
+
+
+    void
+    Kernel::DoSendFileList(Request & request)
+    {
+        // Scan for files
+
+        system_files.clear();
+        user_files.clear();
+        ScanFiles(options_.ikaros_root+"/Source/Modules");
+        ScanFiles(options_.ikaros_root+"/UserData", false);
+
+        // Send result
+
+        Dictionary header;
+        header.Set("Content-Type", "text/json");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+        std::string sep;
+    socket->Send("{\"system_files\":[\n\t\"");
+        for(auto & f: system_files)
+        {
+            socket->Send(sep);
+            socket->Send(f.first);
+            sep = "\",\n\t\"";
+        }
+    socket->Send("\"\n],\n");
+    
+    sep = "";
+    socket->Send("\"user_files\":[\n\t\"");
+        for(auto & f: user_files)
+        {
+            socket->Send(sep);
+            socket->Send(f.first);
+            sep = "\",\n\t\"";
+        }
+    socket->Send("\"\n]\n");
+
+    socket->Send("}\n");
+    }
+
+
+    void
+    Kernel::DoSendError()
+    {
     Dictionary header;
     header.Set("Content-Type", "text/plain");
     socket->SendHTTPHeader(&header);
     socket->Send("ERROR\n");
-}
-
-
-
-void
-Kernel::HandleHTTPRequest()
-{
-    std::string uri = socket->header.Get("URI");
-    //printf(">>>%s\n", uri.c_str()); // FIXME: use flag again
-    if(uri.empty())
-    {
-        Notify(msg_warning, "No URI");
-        return;
     }
 
-    std::string args = cut(uri, "?");
 
-    // SELECT METHOD
+    void
+    Kernel::HandleHTTPRequest()
+    {
+        long sid = 0;
+        const char * sids = socket->header.Get("Session-Id");
+        if(sids)
+            sid = atol(sids);
 
-    if(uri == "/update")
-        DoUpdate(uri, args);
+        Request request(socket->header.Get("URI"), sid, socket->body);
 
-    else if(uri == "/pause")
-        DoPause(uri, args);
+        //if(request.url != "/update/?data=")
+        //std::cout << request.url << std::endl;
 
-    else if(uri == "/step")
-        DoStep(uri, args);
+        if(request == "network")
+            DoNetwork(request);
 
+        else if(request == "update")
+            DoUpdate(request);
 
-    else if(uri == "/play")
-        DoPlay(uri, args);
+        // Run mode commands
 
-    else if(uri == "/realtime")
-        DoRealtime(uri, args);
+        else if(request == "quit")
+            DoQuit(request);
+        else if(request == "stop")
+            DoStop(request);
+        else if(request == "pause")
+            DoPause(request);
+        else if(request == "step")
+            DoStep(request);
+        else if(request == "play")
+            DoPlay(request);
+        else if(request == "realtime")
+            DoRealtime(request);
 
-    else if(uri == "/stop")
-        DoStop(uri, args);
+        // File handling commands
 
-    else if(uri == "/getlog")
-        DoGetLog(uri, args);
-    
-    else if(uri == "/classes") 
-        DoSendClasses(uri, args);
+        else if(request == "new")
+            DoNew(request);
+        else if(request == "open")
+            DoOpen(request);
+        else if(request == "save")
+            DoSave(request);
+        else if(request == "saveas")
+            DoSaveAs(request);
 
-    else if(uri == "/")
-       DoSendFile("index.html");
+        // Start up commands
 
-    else if(starts_with(uri, "/command/"))
-        DoCommand(uri, args);
-        
-    else if(starts_with(uri, "/control/"))
-        DoControl(uri, args);
+        else if(request == "classes") 
+            DoSendClasses(request);
+        else if(request == "classinfo") 
+            DoSendClassInfo(request);
+        else if(request == "files") 
+            DoSendFileList(request);
+        else if(request == "")
+            DoSendFile("index.html");
 
-    else 
-        DoSendFile(uri);
-}
+        // Control commands
 
+        else if(request == "command")
+            DoCommand(request);
+        else if(request == "control")
+            DoControl(request);
+        else 
+            DoSendFile(request.url);
+    }
 
 
 void
-Kernel::HandleHTTPThread()
+Kernel::CalculateCPUUsage() // In percent
 {
-    while(!Terminate())
+    double cpu = 0;
+    struct rusage rusage;
+    if(getrusage(RUSAGE_SELF, &rusage) != -1)
+        cpu = double(rusage.ru_utime.tv_sec) + double(rusage.ru_utime.tv_usec) / 1000000.0;
+    if(actual_tick_duration > 0)
+        cpu_usage = (cpu-last_cpu)/double(cpu_cores)*actual_tick_duration;
+    last_cpu = cpu;
+}
+
+
+    void
+    Kernel::HandleHTTPThread()
     {
-        if (socket->GetRequest(true))
+        while(!shutdown)
         {
-            if (equal_strings(socket->header.Get("Method"), "GET"))
+            if(socket != nullptr && socket->GetRequest(true))
             {
-                while(tick_is_running)
-                    {}
-                handling_request = true;
-                HandleHTTPRequest();
-                handling_request = false;
+                if(equal_strings(socket->header.Get("Method"), "GET"))
+                {
+                    while(tick_is_running)
+                        {}
+                    handling_request = true;
+                    HandleHTTPRequest();
+                    handling_request = false;
+                }
+                else if(equal_strings(socket->header.Get("Method"), "PUT")) // JSON Data
+                {
+                    while(tick_is_running)
+                        {}
+                    handling_request = true;
+                    HandleHTTPRequest();
+                    handling_request = false;
+                }
+                socket->Close();
             }
-            socket->Close();
         }
     }
-}
 
 
-void *
-Kernel::StartHTTPThread(Kernel * k)
-{
+    void *
+    Kernel::StartHTTPThread(Kernel * k)
+    {
     k->HandleHTTPThread();
     return nullptr;
+    }
+
+}; // namespace ikaros
+
+
+
+Kernel::~Kernel()
+{
+    if(socket)
+    {
+        shutdown=true;
+        while(handling_request)
+            {}
+        Sleep(0.1);
+        delete socket; 
+    }
 }
+

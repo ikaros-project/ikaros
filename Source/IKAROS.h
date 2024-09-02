@@ -1,53 +1,59 @@
-//
-//  IKAROS.h        Kernel code for the IKAROS project
-//
-//
-//    Copyright (C) 2001-2022  Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//    See http://www.ikaros-project.org/ for more information.
-//
-//    Created July 13, 2001
-//
+// Ikaros 3.0
 
 #ifndef IKAROS
 #define IKAROS
 
+#include <stdexcept>
 #include <string>
 #include <map>
 #include <set>
-#include <deque>
-#include <thread>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <algorithm>
+#include <iostream> 
+#include <vector>
+#include <string>
 #include <unordered_map>
-#include <atomic> 
+#include <unordered_set>
+#include <stack>
 
-#define VERSION "2.0"
 
-#include "IKAROS_System.h"
-#include "Kernel/IKAROS_Timer.h"
-#include "Kernel/IKAROS_Socket.h"
-#include "Kernel/IKAROS_Utils.h"
-#include "Kernel/IKAROS_Math.h"
-#include "Kernel/IKAROS_Matrix.h"
-#include "Kernel/IKAROS_Image_Processing.h"
-#include "Kernel/IKAROS_Serial.h"
-#include "Kernel/IKAROS_XML.h"
+
+using namespace std::literals;
+
+#define INSTALL_CLASS(class_name)  static InitClass init_##class_name(#class_name, []() { return new class_name(); });
+
+#include "Kernel/exceptions.h"
+#include "Kernel/utilities.h"
+#include "Kernel/dictionary.h"
+#include "Kernel/options.h"
+#include "Kernel/range.h"
+#include "Kernel/expression.h"
+#include "Kernel/maths.h"
+#include "Kernel/matrix.h"
+#include "Kernel/socket.h"
+#include "Kernel/timing.h"
+#include "Kernel/socket.h"
+#include "Kernel/deprecated.h"
+#include "Kernel/image_file_formats.h"
+#include "Kernel/serial.h"
+
+namespace ikaros {
+
+const int run_mode_restart_pause = -2;
+const int run_mode_restart_play = -3;
+const int run_mode_restart_realtime = -4;
+const int run_mode_quit = 0;
+const int run_mode_stop = 1;        // Kernel does not run and accepts open/save/save_as/pause/realtime
+const int run_mode_pause = 2;       // Kernel is paused and accepts stop/step/realtime
+const int run_mode_play = 3;        // Kernel runs as fast as possible
+const int run_mode_realtime = 4;    // Kernel runs in real-time mode
+const int run_mode_restart = 5;     // Kernel is restarting
 
 // Messages to use with Notify
 
+const int    msg_quiet		    =    0;
 const int    msg_exception		=    1;
 const int    msg_end_of_file	=    2;
 const int    msg_terminate		=    3;
@@ -57,628 +63,517 @@ const int    msg_print			=    6;
 const int    msg_debug          =    7;
 const int    msg_trace          =    8;
 
-// Log level for Notify
 
-const int    log_level_off		=    0;
-const int    log_level_fatal	=    3;
-const int    log_level_error	=    4;
-const int    log_level_warning	=    5;
-const int    log_level_info		=    6;
-const int    log_level_debug	=    7;
-const int    log_level_trace	=    8;
+using tick_count = long long int;
 
-// Binding constants - type constants
+std::string  validate_identifier(std::string s);
 
-const int   bind_float    = 0;
-const int   bind_int      = 1;
-const int   bind_bool     = 2;
-const int   bind_list     = 3;
-const int   bind_array    = 4;
-const int   bind_matrix   = 5;
-const int   bind_string   = 6;
+class Task         // Component or Connection
+{
+public:
+    virtual void Tick() = 0;
+    virtual std::string Info() = 0;
+    virtual bool Priority() { return false; }
+};
 
-// WebUI constants
-
-#ifndef     WEBUIPATH
-#define     WEBUIPATH    "Source/WebUI/"
-#endif
-
-#define        PORT 8000
-
-const int ui_state_stop = 0;
-const int ui_state_pause = 1;
-const int ui_state_step = 2;
-const int ui_state_play = 3;
-const int ui_state_realtime = 4;
-
-const int data_source_float = bind_float;
-const int data_source_int = bind_int;
-const int data_source_bool = bind_bool;
-const int data_source_list = bind_list;
-const int data_source_array = bind_array;
-const int data_source_matrix = bind_matrix;
-const int data_source_string = bind_string;
-
-const int data_source_gray_image = data_source_string + 1;
-const int data_source_red_image = data_source_string + 2;
-const int data_source_green_image = data_source_string + 3;
-const int data_source_blue_image = data_source_string + 4;
-const int data_source_fire_image = data_source_string + 5;
-const int data_source_spectrum_image = data_source_string + 6; // not used
-const int data_source_rgb_image = data_source_string + 7;
-const int data_source_bmp_image = data_source_string + 8;
-
-
-// Size constant
-
-const int    unknown_size   =    -1;
-
-// Forward declarations
-
+class Component;
 class Module;
+class Connection;
 class Kernel;
-class GroupElement;
 
+using input_map = const std::map<std::string,std::vector<Connection *>> &;
 
+Kernel& kernel();
 
 //
-// Parameter is used during the creation of a module to set internal values
+// CIRCULAR BUFFER__
 //
 
-class Parameter
+class CircularBuffer
 {
 public:
-    Kernel * kernel;
-    XMLElement * xml;   // TODO: remove this and all dependencies
-    GroupElement * group;
+    std::vector<matrix> buffer_;
+    int                 index_;
+
+    CircularBuffer() {}
+    CircularBuffer(matrix &  m,  int size);
+    void rotate(matrix &  m);
+    matrix & get(int i);
+};
+
+//
+// PARAMETERS // TODO: add bracket notation to set any type p(x,y) etc
+//
+
+enum parameter_type 
+{
+     no_type=0, 
+     number_type,
+     rate_type,
+     bool_type, 
+     string_type, 
+     matrix_type, 
+
+};
+
+static std::vector<std::string> parameter_strings = 
+{
+    "none", 
+    "number",
+    "rate",
+    "bool", 
+    "string", 
+    "matrix", 
+}; 
+
+
+
+class parameter
+{
+private:
+public:
+    dictionary                      info_;
+    bool                            has_options;
+    parameter_type                  type;
+    std::shared_ptr<double>         number_value;
+    std::shared_ptr<matrix>         matrix_value;
+    std::shared_ptr<std::string>    string_value;
+
+    parameter(): type(no_type), has_options(false) {}
+    parameter(dictionary info);
+    parameter(const std::string type, const std::string options="");
+
+    void operator=(parameter & p); // this shares data with p
+    double operator=(double v);
+    std::string operator=(std::string v);
+
+    operator matrix & ();
+    operator std::string();
+    operator double();
+
+    void print(std::string name="");
+    void info();
+
+    int as_int();
+    const char* c_str() const noexcept;
+
+    std::string json();    
     
-    Parameter(Kernel * k, XMLElement * x, GroupElement * g)
-    {
-        kernel = k;
-        xml = x;
-        group = g;
-    }
-    
-    ~Parameter()
-    {
+    friend std::ostream& operator<<(std::ostream& os, parameter p);
+    // Method to compare string_value with a string literal
+    bool compare_string(const std::string& value) const {
+        // Check if string_value is non-null and compare
+        return string_value && *string_value == value;
     }
 };
 
 
-
 //
-// Binding is used to bind a name to a variable
+// MESSAGE
 //
 
-/*
- Binding types:          sent as
- OUTPUT  float **    [[]]
- matrix  float **    [[]]
- float   float *     [[]]
- int     int *       [[]]
- bool    bool *      [[]]     0/1
- */
-
-class Binding
+class Message
 {
-public:
-    Module *        module;
-    const char *    name;
-    void *          value;
-    int             size_x; // size for scalar [float, int, bool] = (0, 0) for array = (n, 1), for matrix = (n, m)
-    int             size_y;
-    int             type;
-    
-    Binding(Module * m, const char * n, int t, void * v, int sx, int sy) :
-        module(m), name(n), value(v), size_x(sx), size_y(sy), type(t)
-    { }
-    
-    ~Binding()
-    { }
+    public:
+
+        int         level_;
+        std::string message_;
+        std::string path_;
+
+        Message(int level, std::string message, std::string path=""):
+            level_(level),
+            message_(message),
+            path_(path)
+        {}
+
+        std::string json()
+        {
+            return "[\""+std::to_string(level_)+"\",\""+message_+"\",\""+path_+"\"]";
+        }
 };
 
-
-
 //
-// Class is used to hold pointers to module creators
+// COMPONENT
 //
 
-typedef Module * (*ModuleCreator)(Parameter *);
-
-
-
-class ModuleClass
+class Component : public Task
 {
 public:
+    Component *     parent_;
+    dictionary      info_;
+    std::string     path_;
+
+    Component();
+
+    virtual ~Component() {};
+
+    std::string Info() { return info_["name"]; }
+
+    bool Notify(int msg, std::string message, std::string path=""); // Path to componenet with problem
+
+    // Shortcut function for messages and logging
+
+
+    bool Print(std::string message) { return Notify(msg_print, message); }
+    bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
+    bool Debug(std::string message) { return Notify(msg_debug, message); }
+    bool Trace(std::string message) { return Notify(msg_trace, message); }
+
+    void AddInput(dictionary parameters);
+    void AddOutput(dictionary parameters);
+    void AddOutput(std::string name, int size, std::string description=""); // Must be called from creator function and not from Init
+    void ClearOutputs();    // Must be called from creator function and not from Init
+    void AddParameter(dictionary parameters);
+    void SetParameter(std::string name, std::string value);
+    bool BindParameter(parameter & p,  std::string & name);
+    bool ResolveParameter(parameter & p,  std::string & name);
+    void Bind(parameter & p, std::string n);   // Bind to parameter in global parameter table
+    void Bind(matrix & m, std::string n); // Bind to input or output in global parameter table, or matrix parameter
+
+    virtual void Tick() {}
+    virtual void Init() {}
+
+    virtual void Command(std::string command_name, dictionary & parameters) {
+        std::cout << "Received command: \n";
+        parameters.print();
+
+    } // Used to send commands and arbitrary data structures to modules
+
+    void print();
+    void info();
+    std::string json();
+    std::string xml();
+
+    bool KeyExists(const std::string & key);  // Check if a key exist here or in any parent; this means that LookupKey will succeed
+    std::string LookupKey(const std::string & key); // Look up value in dictionary with inheritance
+    std::string GetValue(const std::string & name);    // Get value of a attribute/variable in the context of this component
+    std::string GetBind(const std::string & name);
+    std::string SubstituteVariables(const std::string & s);
+    Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
+
+    std::string Evaluate(const std::string & s, bool is_string=false);     // Evaluate an expression in the current context
+    std::string EvaluateVariable(const std::string & s);
+    bool LookupParameter(parameter & p, const std::string & name);
+    
+    double EvaluateNumericalExpression(std::string & s);
+
+    std::vector<int> EvaluateSizeList(std::string & s);
+    //std::vector<int> EvaluateSize(std::string & s);
+
+   // double EvaluateNumber(std::string v);
+    bool EvaluateBool(std::string v);
+    std::string EvaluateString(std::string v);
+    std::string EvaluateMatrix(std::string v);
+    int EvaluateOptions(std::string v, std::vector<std::string> & options);
+
+    bool InputsReady(dictionary d, input_map ingoing_connections);
+
+    void SetSourceRanges(const std::string & name, const std::vector<Connection *> & ingoing_connections);
+    int SetInputSize_Flat(dictionary d, input_map ingoing_connections);
+    int SetInputSize_Index(dictionary d, input_map ingoing_connections);
+
+    void ResolveConnection(const range & output, range & source, range & target); // Move to connection
+
+    virtual int SetInputSize(dictionary d, input_map ingoing_connections);
+    virtual int SetInputSizes(input_map & ingoing_connections);
+
+    virtual int SetOutputSize(dictionary d, input_map ingoing_connections);
+    virtual int SetOutputSizes(input_map & ingoing_connections); // Uses the size attribute
+
+    virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
+
+    void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer sizes
+
+};
+
+typedef std::function<Module *()> ModuleCreator;
+
+class Group : public Component
+{
+};
+
+//
+// MODULE
+//
+
+class Module : public Component
+{
+public:
+    Module();
+    ~Module() {}
+
+    //int SetInputSize(std::string name, input_map ingoing_connections);
+    int SetOutputSize(dictionary d, input_map ingoing_connections);
+
+    //int SetInputSizes(input_map ingoing_connections);
+    int SetOutputSizes(input_map ingoing_connections); // Uses the size attribute
+    int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
+};
+
+//
+// CONNECTION
+//
+
+class Connection: public Task
+{
+public:
+    std::string source;             // FIXME: Add undescore to names ****
+    range       source_range;
+    std::string target;
+    range       target_range;
+    range       delay_range_;
+    std::string alias_;
+    bool        flatten_;
+
+    Connection(std::string s, std::string t, range & delay_range, std::string alias="");
+
+    range Resolve(const range & source_output);
+
+    void Tick();
+    void Print();
+
+    std::string Info(); // FIXME: Make consistent with other classes
+};
+
+//
+// CLASS
+//
+
+class Class
+{
+public:
+    dictionary      info_;
     ModuleCreator   module_creator;
-    const char *    name;
-    const char *    path;
-    
-    ModuleClass(const char * n, ModuleCreator mc, const char * p);
-    ~ModuleClass();
-    
-    void            SetClassPath(const char * class_name);
-    const char *	GetClassPath();
-    Module *    CreateModule(Parameter * p);
-};
-
-
-
-//
-// Module_IO is used internally by Module and Kernel to represent the input and output connections of a module
-//
-// data: matrix[***], optional, allow_multiple, module, name, max_delay
-// methods: delay_output - could be a matrix function => no methods
-
-class Module_IO
-{
-public:
-    int                 sizex;        // no of columns    *** made public for WebUI ***
-    int                 sizey;        // no of rows
-    float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes for delays
-    bool                optional;
-    bool                allow_multiple;
-//private:
-    Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt=false, bool multiple=true);      // Create output from module m with name n and size x and y (default x=unkwon_size, y=1)
-    ~Module_IO();                                                                                                   // Deletes the data
-    
-    bool                Allocate();
-    void                SetSize(int x, int y=1);
-    void                DelayOutputs();
-    
-    Module_IO   *   next;
-    Module      *   module;
     std::string     name;
-    float       **  data;        // Array for delays
-    int             size;        // should equal sizex*sizey
-    int             max_delay;   // maximum number of arrays/matrices
-    
-    friend class Kernel;
-    friend class Connection;
-    friend class Module;
+    std::string     path;
+    std::map<std::string, std::string>  parameters;
 
+    Class() {};
+    Class(std::string n, std::string p);
+    Class(std::string n, ModuleCreator mc);
+
+    void Print();
 };
 
 
 //
-// Module is the base class for all modules
-//
-// Bind(io_matrix_or_variable, "name") should replace all GetValue and GetInput/Output and get_size
-
-class GroupElement;
-
-class Module
-{
-public:
-    const char *    GetName();                                // Get the name of the module assigned during creation
-    const char *    GetFullName();                            // Get the name of the module with all enclosing groups
-    const char *    GetClassName();
-    const char *	GetClassPath();
-
-    long            GetTickLength();                           // Get length of tick in ms for real time mode
-    long            GetTick();
-    
-    float *    GetInputArray(const char * name, bool required=true);                  // Get a pointer to the input array of this module with a certain name
-    float *    GetOutputArray(const char * name, bool required=true);                 // Get a pointer to the output array of this module with a certain name
-    
-    float **   GetInputMatrix(const char * name, bool required=true);                // Get a pointer to the input matrix of this module with a certain name
-    float **   GetOutputMatrix(const char * name, bool required=true);               // Get a pointer to the output matrix of this module with a certain name
-    
-    int        GetInputSize(const char * input_name);               // Get the size of an input array (size_x * size_y if two-dimensional)
-    int        GetInputSizeX(const char * name);                    // Get the horizontal size of an input array
-    int        GetInputSizeY(const char * name);                    // Get the vertical size of an input array (1 if one-dimensional)
-    
-    int        GetOutputSize(const char * name);                    // Get the size of an output array (size_x * size_y if two-dimensional)
-    int        GetOutputSizeX(const char * name);                   // Get the horizontal size of an output array
-    int        GetOutputSizeY(const char * name);                   // Get the vertical size of an output array (1 if one-dimensional)
-
-    void            io(float * & a, const char * name);   // When size is known
-    void            io(float * & a, int & size, const char * name);   // Replaces all array functions above
-    void            io(float ** & m, int & size_x, int & size_y, const char * name);   // Replaces all matrix functions above
-    void            io(float * & a, int *& size, const char * name);   // Replaces all array functions above for variable array size
-    void            io(float ** & m, int *& size_x, int *& size_y, const char * name);   // Replaces all matrix functions above for variable matrix size
-   // void            io(ikaros::matrix & m, std::string name, bool required=true); // Get input or output matrix
-
-    void            StoreArray(const char * path, const char * name, float * a, int size);
-    void            StoreMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
-
-    bool            LoadArray(const char * path, const char * name, float * a, int size);
-    bool            LoadMatrix(const char * path, const char * name, float ** m, int size_x, int size_y);
-
-    virtual void    Store(const char * path);                            // Request data to be stored in directory path
-    virtual void    Load(const char * path);                            // Request data to be loaded from directory path
-
-    virtual std::string GetJSONData(const std::string & name, const std::string & tab="");                 // Get JSON string for input, output or parameter, return empty string if data does not exists or not implemented
-    
-    virtual void    SetSizes();								// Calculate and set the sizes of unknown output arrays    (OVERRIDE IN SUBCLASSES)
-    virtual void    Init()
-    {}            // Init memory for internal data                        (OVERRIDE IN SUBCLASSES)
-    virtual void    Tick()
-    {}            // Update state of the module                            (OVERRIDE IN SUBCLASSES)
-    
-    bool            Notify(int msg);                    // Send message to the kernel (for example terminate or error, using constants defined above)
-    bool            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
-
-    // zero connections in both directions
-
-    //std::set<std::string> outgoing_connection;  // only one entry even if there are multiple connections
-    std::vector<Module *> connects_to_with_zero_delay;
-    std::vector<Module *> connects_from_with_zero_delay;
-
-    int             mark;
-
-//protected:
-    void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
-    void            AddOutput(const char * name, bool optional=false, int size_x=unknown_size, int size_y=1);    // Allocate output
-    void            AddIOFromIKC();
-    void            SetOutputSize(const char * name, int size_x, int size_y=1);    // Set the output size for an output of unknown size; it is an error to change the output size
-    
-    int             GetSizeXFromList(const char * sizearg);
-    int             GetSizeYFromList(const char * sizearg);
-    
-    Module(Parameter * p);        // Creates the module and possibly init connections from ikc file (MUST BE CALLED FROM SUBCLASS CREATOR)
-    
-    virtual            ~Module();
-    
-    // Get values from parameters in XML tree - implements the semantics of the ikc file format
-    
-    const char *    GetList(const char * n);                          // Get list of values for parameter
- // std::string     GetList(const std::string & name);                          // Get list of values for parameter
- 
-	const char *    GetValue(const char * n);                            // Search through XML for parameter and return its value or NULL
-    float           GetFloatValue(const char * n, float d=0, bool deprecation_warning=false);            // Search through XML for parameter and return its value as a float or default value d if not found
-    int             GetIntValue(const char * n, int d=0);                // Search through XML for parameter and return its value as a float or default value d if not found
-    bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
-    int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not found
-    float *         GetArray(const char * n, int & size, bool fixed_size=false);		// Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
-    float **        GetMatrix(const char * n, int & sizex, int & sizey, bool fixed_size=false);	// Search through XML for parameter and return its value as a matrix; fixed_size=true uses supplied size rathrer than data size
-    int *           GetIntArray(const char * n, int & size, bool fixed_size=false);  // Search through XML for parameter and return its value as an array; fixed_size=true uses supplied size rathrer than data size
-
-    // New way to get inputs and outputs
-/*
-    void            Bind(float *, const char * n, int & size) {}                        // output
-    void            Bind(float **, const char * n, int & sizex, int & sizey) {}         // output
-    void            Bind(const float *, const char * n, int & size) {}                  // input
-    void            Bind(const float **, const char * n, int & sizex, int & sizey) {}   // input
-  */  
-//     void           Bind(matrix & m, std:string name) {};
-    
-    // Bind values to names and get values from XML tree if possible
-    // FIXME: bind with read-only flag to replace all the getter functions
-    
-    void            Bind(float & v, const char * n);                        // Bind a floating point value to a name
-    void            Bind(int & v, const char * n);                          // Bind int OR list value to name
-    void            Bind(bool & v, const char * n);                         // Bind boolean
-
-    void            Bind(float * & v, int size, const char * n, bool fixed_size = false);              //  // Creates and binds array; also gets the array size; uses the supplied size instead if fixed_size = true.
-    void            Bind(float * & v, int * size, const char * n); // inconsistent naming - fix me
-
-    void            Bind(float ** & v, int & sizex, int & sizey, const char * n, bool fixed_size = false); // Creates and binds matrix; also gets the matrix size; uses the supplied size instead if fixed_size = true.
-    void            Bind(std::string & v, const char * n);                  // Bind string
-
-    bool            SetParameter(const char * parameter_name, int x, int y, float value);
-    virtual void    Command(std::string s, float x=0, float y=0, std::string value="") {};     // Receive a command, with optional x,y position and value
-
-    XMLElement *        xml;
-    GroupElement *      group;
-
-    void            PrintAttributes();
-
-//private:
-    const char *		class_name;
-    const char *		instance_name;
-	char *				full_instance_name;
-
-    Kernel *            kernel;
-
-    Module_IO    *      input_list;        // List of inputs
-    Module_IO    *      output_list;       // List of outputs
-    Binding      *      bindings;          // FIXME: remove
-
-    // Exposed as parameters
-
-    int                 period;           // How often should the module tick
-    int                 phase;            // Phase when the module ticks
-    bool                active;           // If false, will not call Tick()
-    int                 log_level;
-    bool                high_priority;
-
-    Timer *             timer;            // Statistics variables
-    float               time;
-    float *             power;      // Current power usage (in % or W if coefficient set)
-    float               power_coefficient;
-
-    float               ticks;
-
-    void                DelayOutputs();
-
-    void                SetInputSize(const char * name, int size); // Experiment
-    
-    Module_IO *         GetModule_IO(Module_IO * list, const char * name);
-    void                AllocateOutputs(); // Allocate memory for outputs
-
-    friend class Kernel;
-    friend class Module_IO;
-    friend class Connection;
-    friend class ThreadGroup;
-
-    friend Module *        CreateModule(ModuleClass * c, const char * class_name, const char * n, Parameter * p);
-};
-
-
-//
-// Connection is used internally by Kernel to store pointers to data in Module_IO that are copied during Propagate()
+// REQUEST
 //
 
-class Connection
-{                            // Connection contains info about data flow between modules
-public:
-    Connection        *    next;                // Next connection in list
-    Module_IO         *    source_io;
-    int                    source_offset;
-    Module_IO         *    target_io;
-    int                    target_offset;
-    int                    size;                // The size of the data to be copied
-    int                    delay;
-    bool                   active;              // When false, data should not be propagated
-    
-    Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d, bool a); // int d = 1, bool a = true
-    ~Connection();
-    
-    void Propagate(long long tick);
-    
-    friend class Kernel;
-};
+struct Request
+    {
+        long       session_id;
+        dictionary parameters;
+        std::string url;
+        std::string command; 
+        std::string component_path;
+        std::string body;
 
+        Request(std::string  uri, long sid=0, std::string body="");  // Add client id later
+    };
+
+    bool operator==(Request & r, const std::string s);
 
 //
-// ThreadGroup contains a linked list of modules that are executed in the same thread
-//
-
-class ThreadGroup
-{
-public:
-    std::vector<Module *> _modules;
-    
-    int             period;                     // How often should the thread be started
-    int             phase;                      // Phase when the thread should start
-    bool            high_priority = false;              // Priority of the thread group
-    std::thread *   thread;
-    
-    ThreadGroup(Kernel * k);
-    ThreadGroup(Kernel * k, int period, int phase);
-    ~ThreadGroup();
-    
-    void        Start(long long tick);
-    void        Stop(long long tick);
-    void        Tick();
-};
-
-
-
-//
-// Kernel is the main object and points to data structures for modules and connections
+// KERNEL
 //
 
 class Kernel
 {
 public:
-    // --------------- WebUI Part ---------------
+    dictionary                              info_;
+    options                                 options_;
+    std::string                             webui_dir;
+    std::string                             user_dir;
+    std::map<std::string, Class>            classes;
+    std::map<std::string, std::string>      system_files; // ikg-files
+    std::map<std::string, std::string>      user_files;   // ikg-files  
+    std::map<std::string, Component *>      components;
+    std::vector<Connection>                 connections;
+    std::map<std::string, matrix>           buffers;                // IO-structure    
+    std::map<std::string, int>              max_delays;             // Maximum delay needed for each output
+    std::map<std::string, CircularBuffer>   circular_buffers;       // Circular circular_buffers for delayed buffers
+    std::map<std::string, parameter>        parameters;
+
+    std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
+
+    long                                    session_id;
+    //bool                                  is_running;
+    std::atomic<bool>                       tick_is_running;
+    std::atomic<bool>                       sending_ui_data;
+    std::atomic<bool>                       handling_request;
+    std::atomic<bool>                       shutdown;
+    int                                     run_mode;
+
+    dictionary                              current_component_info; // Implivit parameters to create Component
+    std::string                             current_component_path;
+
+    double                                  idle_time;         
+    int                                     cpu_cores;
+    double                                  cpu_usage;
+    double                                  last_cpu;
+
+    Timer                                   uptime_timer;   // Measues kernel uptime
+    Timer                                   timer;          // Main timer
+    Timer                                   intra_tick_timer;
+    bool                                    start;          // Start automatically                   
+
+    // Timing parameters and functions
+    double                                  tick_duration;  // Desired actual or simulated duration for each tick
+    double                                  actual_tick_duration;   // actual time between ticks in real time
+    double                                  tick_time_usage;        // Time used to execute each tick in real time
+    tick_count                              tick;
+    tick_count                              stop_after;
+    double                                  lag;            // Lag of a tick in real-time mode
+    double                                  lag_min;        // Largest negative lag
+    double                                  lag_max;        // Largest positive lag
+    double                                  lag_sum;        // Sum |lag|
+
+    ServerSocket *                          socket;
+    std::vector<Message>                    log;
+    std::thread *                           httpThread;
+
+    Kernel();
+    ~Kernel();
+
+    void Clear();        // Remove all non-persistent data and reset kernel variables - // FIXME: Init???
+
+    static void *   StartHTTPThread(Kernel * k);
+    tick_count GetTick() { return tick; }
+    double GetTickDuration() { return tick_duration; } // Time for each tick in seconds (s)
+    double GetTime() { return (run_mode == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time dending on mode)
+    double GetRealTime() { return (run_mode == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration; }
+    double GetNominalTime() { return static_cast<double>(tick)*tick_duration; } 
+    double GetLag() { return (run_mode == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0; }
+    void CalculateCPUUsage();
+
+    bool Notify(int msg, std::string message, std::string path="");
+
+    bool Print(std::string message) { return Notify(msg_print, message); }
+    bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
+    bool Debug(std::string message) { return Notify(msg_debug, message); }
+    bool Trace(std::string message) { return Notify(msg_trace, message); }
+
+    bool Terminate();
+    void ScanClasses(std::string path);
+    void ScanFiles(std::string path, bool system=true);
+
+    void ListClasses();
+    void ResolveParameter(parameter & p,  std::string & name);
+
+    void ResolveParameters(); // Find and evaluate value or default
+    void CalculateSizes();
+    void CalculateDelays();
+    void InitCircularBuffers();
+    void RotateBuffers();
+    void ListComponents();
+    void ListConnections();
+    void ListInputs();
+    void ListOutputs();
+    void ListBuffers();
+    void ListCircularBuffers();
+    void ListParameters();
+    void PrintLog();
+
+    // Functions for creating the network
+
+    void AddInput(std::string name, dictionary parameters=dictionary());
+    void AddOutput(std::string name, dictionary parameters=dictionary());
+    void AddParameter(std::string name, dictionary params=dictionary());
+    void SetParameter(std::string name, std::string value);
+    void AddGroup(dictionary info, std::string path);
+    void AddModule(dictionary info, std::string path);
+    void AddConnection(dictionary info, std::string path); // std::string souce, std::string target, std::string delay_range, std::string alias
+    void LoadExternalGroup(dictionary d);
+    void BuildGroup(dictionary d, std::string path="");
+
+    void AllocateInputs();
+    void InitComponents();
+    void PruneConnections();
+    void SortTasks();
+    void RunTasks();
+    void SetUp();
+    void SetCommandLineParameters(dictionary & d);
+    void LoadFile();
+    void Save();
+
+    std::string json();
+    std::string xml();
+
+    void InitSocket(long port);
+
+    void New();
+    void Pause();
+    void Stop();
+    void Play();
+    void Realtime();
+    void Restart(); // Save and reload
+
+    void CalculateCheckSum();
+    dictionary GetModuleInstantiationInfo(); // Used for profiling
+
+    void DoNew(Request & request);
+    void DoOpen(Request & request);
+    void DoSave(Request & request);
+    void DoSaveAs(Request & request);
+
+    void DoQuit(Request & request);
+    void DoStop(Request & request);
+    void DoPause(Request & request);
+    void DoStep(Request & request);
+    void DoPlay(Request & request);
+    void DoRealtime(Request & request);
     
-    char *          webui_dir;
-    int             port;
-    ServerSocket *  socket;
-    XMLElement *    xml;
-    bool            debug_mode;
-    bool            isRunning;
-    int             ui_state;
-    int             iterations_per_runstep;
-    float           idle_time;
-    float           time_usage;
-    bool            first_request;
-    long            master_id;
-
-    std::atomic<bool> tick_is_running;
-    std::atomic<bool> sending_ui_data;
-    std::atomic<bool> handling_request;
+    void DoCommand(Request & request);
+    void DoControl(Request & request);
     
-    void            SendXML();
-    void            ReadXML(XMLDocument * xmlDoc);
-    void            SendUIData(std::string args);
-    void            Pause();
+    void DoSendNetwork(Request & request);
 
+    void DoSendDataHeader();
+    void DoSendDataStatus();
 
-    void DoStop(std::string uri, std::string args);
-    void DoPause(std::string uri, std::string args);
-    void DoStep(std::string uri, std::string args);
-    void DoPlay(std::string uri, std::string args);
-    void DoRealtime(std::string uri, std::string args);
-    void DoCommand(std::string uri, std::string args);
-    void DoControl(std::string uri, std::string args);
-    void DoSendNetwork(std::string uri, std::string args);
-    void DoSendData(std::string uri, std::string args);
-    void DoUpdate(std::string uri, std::string args);
-    void DoGetLog(std::string uri, std::string args);
-    void DoSendClasses(std::string uri, std::string args);
+    void DoSendData(Request & request);
+    void DoUpdate(Request & request);
+
+    void DoNetwork(Request & request);
+    void DoSendLog(Request & request);
+    void DoSendClasses(Request & request);
+    void DoSendClassInfo(Request & request);
+    void DoSendFileList(Request & request);
     void DoSendFile(std::string file);
     void DoSendError();
+    void SendImage(matrix & image, std::string & format);
 
     void HandleHTTPRequest();
     void HandleHTTPThread();
-    
-    std::thread *   httpThread;
-    static void *   StartHTTPThread(Kernel * k);
+    void Tick();
+    void Propagate();
+    void Run();
 
-    // --------------- Kernel Part ---------------
-    
-    FILE *          logfile;
-    const char *    ikaros_dir;
-    char *          ikc_dir;
-    char *          ikc_file_name;
-    
-    Options *       options;
-    
-    Kernel();
-    ~Kernel();
-    
-    void        SetOptions(Options * opt);
-    bool        AddClass(const char * name, ModuleCreator mcc, const char * path = NULL);    // Add a new class of modules to the kernel
-    
-    bool        Notify(int msg, const char * format, ...);  // Always returns false
-    
-    bool        Terminate();                                // True if the simulation should end
-    void        Run();                                      // Run the simulation until kernel receives notification; for example end-of-file from a module
-    
-    void        Init();                                     // Call Init() for all modules
-    void        Tick();                                     // Call Tick() for all modules
-    
-    void        Store();                                    // Call Store() for all modules
-    void        Load();                                     // Call Load() for all modules
-    
-    void        AddModule(Module * m);                      // Add a module to the simulation
-    Module *    GetModule(const char * n);                  // Find a module based on its name
-    Module *    GetModuleFromFullName(const char * n);
+    // TASK SORTING
 
-    const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batch and command line values
-
-    bool        GetSource(Module_IO * &io, GroupElement * group, const char * source_module_name, const char * source_name);
-    bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-    bool        SetParameter(const char * name, int x, int y, float value); // returns false on failure
-    void        SendCommand(const char * command, float x, float y, std::string value);
-    
-    int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, int s_offset, const char * tm_name, const char * t_name, int t_offset, int size=unknown_size, const char * delay = NULL, int extra_delay = 0, bool is_active = true);
-    int         Connect(Module_IO * sio, int s_offset, Module_IO * tio, int t_offset, int size, const std::string & delay, int extra_delay, bool is_active);
-    
-    XMLElement *	BuildClassGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL, const char * current_filename = NULL);
-    GroupElement *  BuildGroup(GroupElement * group, XMLElement * xml, const char * current_class = NULL, const char * current_filename = NULL);
-    void            ConnectModules(GroupElement * group, std::string indent="");
-    bool			ReadXML();
-
-    std::string JSONString();
-
-    long long        GetTick()
-    {
-        return tick;
-    }
-
-    long        GetTickLength()
-    {
-        return tick_length;
-    }
-
-    const char *	GetClassPath(const char * class_name)
-    {
-        return classes.at(class_name)->path;
-    }
-
-    void        ListInfo();
-    void        CalculateChecksum();
-    void        ListModulesAndConnections();
-    void        ListBindings();
-    void        ListScheduling();
-    void        ListThreads();
-    void        ListClasses();
-    void        ListWarningsAndErrors();
-    void        ListProfiling();
-    void        PrintTiming();           // Print total timing information
-    
-    long long           tick;             // Updated every iteration
-    long long           max_ticks;        // Max iterations, stop after these many ticks
-    
-    long                tick_length;      // Desired length (in ms) of each tick
-    Timer *             timer;            // Global timer
-    float               total_time;       // Total execution time at termination
-
-    float               actual_tick_length; // Actual lengt of a tick in real-time mode
-    float               lag;                // Lag of a tick in real-time mode
-    
-    int                 cpu_cores;
-    double              cpu_usage;
-    double              last_cpu;
-    float               last_cpu_time;
-    
-    void                CalculateCPUUsage();
-    
-    std::unordered_map<std::string, ModuleClass *> classes;
-    
-    int                  log_level;        // Global log level
-    
-    XMLDocument     *    xmlDoc;
-    
-    GroupElement    *    main_group;     // 2.0 main group
-    long                 session_id;     // 2.0 temporary
-    
-    std::map<std::string, std::vector<Binding *>>   bindings;   // 2.0
-    std::map<std::string, std::string>              attributes; // 2.0 - attribute value set in the xml-file with full path
-
-    std::map<std::string, Module *>     module_map; // 2.0
-    std::vector <Module *>              _modules;   // 2.0
-
-    Connection      *    connections;    // List of connections
-    bool                 useThreads;
-
-    std::vector<ThreadGroup *>  _threadGroups;
-
-    // Execution Control
-    
-    int         module_count;
-    int         period_count;
-    int         phase_count;
-    
-    bool        end_of_file_reached;                        // Flags set on notification from modules
-    bool        fatal_error_occurred;
-    bool        terminate;
-    
-    bool        sizeChangeFlag;
-    
-    void        CheckInputs();                                // Check that memory for all connected inputs have been allocated
-    void        CheckOutputs();                               // Check that all outputs are correctly set
-    
-    void        MarkSubgraph(Module * m);
-    bool        CreateThreadGroups(std::deque<Module *> & sorted_modules);
-
-    bool        Visit(std::deque<Module *> & sorted_modules, Module * n); // Returns false if not a DAG
-    void        SortModules();                               // Sort modules using topological sort
-    
-    void        CalculateDelays();                            // Calculate the maximum delay from each output
-    
-    void        InitInputs();                                 // Allocate memory for inputs in all modules
-    void        InitOutputs();                                // Calculate and set output sizes that were not set at module creation; called by Init()
-    void        AllocateOutputs();                            // Allocate memory for outputs
-    void        InitModules();                                // Init all modules; called by Init()
-    
-    int         CalculateInputSize(Module_IO * i);            // Calculate the size of the input using connections to it
-    int         CalculateInputSizeX(Module_IO * i);           // Calculate the size of the input using connections to it
-    int         CalculateInputSizeY(Module_IO * i);           // Calculate the size of the input using connections to it
-    
-    void        NotifySizeChange();
-    
-    void        Propagate();                                    // Copy output data to input for all modules
-    void        DelayOutputs();
-    
-    void        CheckNAN();                             // Test for NANs in module outputs
-    
-    friend class Module;
-    friend class Module_IO;
-    friend class ThreadGroup;
+    bool dfsCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack);
+    bool hasCycle(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges);
+    void dfsSubgroup(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::vector<std::string>& component) ;
+    std::vector<std::vector<std::string>> findSubgraphs(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges);
+    void topologicalSortUtil(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::stack<std::string>& Stack);
+    std::vector<std::string>  topologicalSort(const std::vector<std::string>& component, const std::unordered_map<std::string, std::vector<std::string>>& graph);
+    std::vector<std::vector<std::string>> sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges);
 };
 
-
-// Global reference to static kernel instance
-
-Kernel & kernel();
-
-// Initialization class
+//
+// INITIALIZATION CLASS
+//
 
 class InitClass
 {
 public:
-    InitClass(const char * name, ModuleCreator mcc, const char * path = NULL)
+    InitClass(const char * name, ModuleCreator mc)
     {
-        kernel().AddClass(name, mcc, path);
+        kernel().classes[name].name = name;
+        kernel().classes[name].module_creator = mc;
     }
 };
 
+}; // namespace ikaros
 #endif
-
-

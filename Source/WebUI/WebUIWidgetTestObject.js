@@ -13,8 +13,8 @@ class WebUIWidgetTestObject extends WebUIWidgetCanvas
             {'name':'blue', 'default':32, 'type':'int', 'min':0, 'max':255, 'control': 'slider'},
             {'name':'enjoy', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'count', 'default':0, 'type':'int', 'min':0, 'max':12, 'control': 'number'},
-            {'name':'blend', 'default':'absolute', 'type':'string', 'control': 'menu', 'values': "absolute,monochrome,mix"},
-            {'name':'direction', 'default':'all', 'type':'string-öh', 'min':0, 'max':2, 'control': 'menu', 'values': "all,horizontal,vertical"}
+            {'name':'blend', 'default':'absolute', 'type':'string', 'control': 'menu', 'options': "absolute,monochrome,mix"},
+            {'name':'direction', 'default':'all', 'type':'string-öh', 'min':0, 'max':2, 'control': 'menu', 'options': "all,horizontal,vertical"}
         ]};
 
 

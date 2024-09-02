@@ -1,8 +1,4 @@
-<?xml version="1.0"?>
-
-<group>
-	
-    <module class = "Logger" name = "Logger" />
-    <module class = "Logger" name = "Logger" />
+<group name="Logger_Test">
+	<module class = "Logger" name = "Logger" />	
 </group>
- 
+

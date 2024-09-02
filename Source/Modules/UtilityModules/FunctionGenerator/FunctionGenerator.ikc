@@ -1,50 +1,14 @@
-<?xml version="1.0"?>
-
-<class name="FunctionGenerator" description="functions of times">
-
-	<description type="text">
-		Module that produces a function of time as its output.
-        ramp: get an inverse ramp by setting offset=1 and amplitude=-1.
-	</description>
-
-	<example description="Example">
-		<module
-			class="FunctionGenerator"
-			name="FunctionGenerator"
-            type = "sin"
-            frequency = "0.314"
-            offset = "0.5"
-            amplitude = "0.4"
-            shift = "0.1"
-		/>
-	</example>
-
-    <parameter name="size" type="int" default="1" description="Number of outputs (that will contain the same value)" />
+<class name="FunctionGenerator" description="Generates functions">
+    <parameter name="size" type="int" default="4096" description="Size of the output buffer" />
+    <parameter name="type" type="int" default="0" description="Function type: 0=sine, 1=triangle, 2=ramp, 3=square, 4=ticksquare" />
+    <parameter name="offset" type="float" default="0.0" description="DC offset" />
+    <parameter name="amplitude" type="float" default="1.0" description="Amplitude of the function" />
+    <parameter name="frequency" type="float" default="440.0" description="Frequency of the function" />
+    <parameter name="shift" type="float" default="0.0" description="Phase shift" />
+    <parameter name="duty" type="float" default="0.5" description="Duty cycle for square wave" />
+    <parameter name="basetime" type="int" default="100" description="Base time for ticksquare function" />
+    <parameter name="tickduty" type="int" default="50" description="Duty cycle for ticksquare function" />
+    <parameter name="sample_rate" type="float" default="44100" description="Sample rate of the audio" />
     
-    <parameter name="type" type="list" values="sin/triangle/ramp/square/ticksquare" defult="sin" description="Function selector" />
-    <parameter name="offset" type="float" default="0.0" description="A constant value added to the output" />
-    <parameter name="amplitude" type="float" default="1.0" description="The amplitide of the signal" />
-    <parameter name="frequency" type="float" default="0.15707963267949" description="Frequency of the signal." />
-    <parameter name="shift" type="float" default="0.0" description="Temporal shift of the function" />
-    <parameter name="duty" type="float" default="0.5" description="Duty cycle of the square wave" />
-    <parameter name="basetime" type="int" default="2" description="Length of a cycle in ticks for ticksqare" />
-    <parameter name="tickduty" type="int" default="1" description="Duty cycle of the ticksqare wave in ticks" />
-    
-	<output name="OUTPUT" description="The time dependent output signal(s)" size_param="size" />
-
-	<link class="FunctionGenerator" />
-
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
-
-   <files>
-   		<file>FunctionGenerator.h</file>
-   		<file>FunctionGenerator.cc</file>
-   		<file>FunctionGenerator.ikc</file>
-   </files>
-
+    <output name="OUTPUT" description="Generated audio function" size="@size" />
 </class>

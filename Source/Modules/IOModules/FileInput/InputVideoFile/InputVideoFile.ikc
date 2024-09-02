@@ -23,13 +23,26 @@
 	<parameter name="loop" type="bool" default="no" description="Loop playback" />
 	<parameter name="info" type="bool" default="no" description="Printing information about the video stream" />
 
-    <output name="RED" description="The red channel." />
-	<output name="GREEN" description="The green channel." />
-	<output name="BLUE" description="The blue channel." />
-	<output name="INTENSITY" description="The intensity channel." />
+    <_output name="RED" description="The red channel." size="@size_y,@size_x"/>
+	<_output name="GREEN" description="The green channel." size="@size_y,@size_x" />
+	<_output name="BLUE" description="The blue channel." size="@size_y,@size_x" />
+	<_output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x" />
+	<_output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
+
+	<output name="RED" description="The red channel." size="108,148"/>
+	<output name="GREEN" description="The green channel." size="108,148"/>
+	<output name="BLUE" description="The blue channel." size="108,148"/>
+	<output name="INTENSITY" description="The intensity channel." size="108,148" />
+	<output name="OUTPUT" description="RGB image." size="3, 108,148"/>
+
+	<__output name="RED" description="The red channel." size="@size_y,@size_x"/>
+	<__output name="GREEN" description="The green channel." size="@size_y,@size_x"/>
+	<__output name="BLUE" description="The blue channel." size="@size_y,@size_x"/>
+	<__output name="INTENSITY" description="The intensity channel." siz__="@size_y,@size_x" />
+	<__output name="OUTPUT" description="RGB image." size="3,@size_y,@s__ze_x"/>
+
 	<output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
 
-	
     
     <author>
 		<name>Birger Johansson</name>

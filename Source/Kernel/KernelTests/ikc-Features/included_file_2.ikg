@@ -1,6 +1,0 @@
-<!-- This is not an XML-file since there is no single root element -->
-<!-- This file must be included in a proper XML document using <?include ?> -->
-
-<module class = "Randomizer" name = "module_in_file_2_A" />
-<module class = "Randomizer" name = "module_in_file_2_B" />
-

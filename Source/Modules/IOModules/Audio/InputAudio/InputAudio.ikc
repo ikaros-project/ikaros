@@ -1,0 +1,5 @@
+<class name="InputAudio" description="records sound from the default input device">
+    <parameter name="samplingrate" type="int" default="44100" description="Sampling rate in Hz" />
+	<parameter name="buffersize" type="int" default="4096" description="Size of output buffer" />
+    <output name="OUTPUT" description="The recorded audio samples" size="@buffersize" />
+</class>

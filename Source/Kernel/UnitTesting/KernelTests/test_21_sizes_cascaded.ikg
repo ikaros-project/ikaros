@@ -1,0 +1,31 @@
+<group name="Test" description="Test of deeper cascaded size calculations" check_sum="13462" >
+
+	<module class = "Constant" name = "Constant1" data="0, 1,2;0, 3,4" />
+	<module class = "Constant" name = "Constant2" data="0, 8,9;0, -8,-9" />
+    <module class = "Add" name = "Add" />
+    <module class = "Add" name = "Add2" />
+    <module class = "Add" name = "Add3" />
+    <module class = "Add" name = "Add4" />
+    <module class = "Add" name = "Add5" />
+    <module class = "Print" name = "Print" />	
+    <module class = "Logger" name = "Logger" />
+
+	<connection  source = "Constant1.OUTPUT"  	target = "Add.INPUT1" />
+	<connection  source = "Constant2.OUTPUT"  	target = "Add.INPUT2" />
+
+	<connection  source = "Add.OUTPUT"  	target = "Add2.INPUT1" />
+	<connection  source = "Add.OUTPUT"  	target = "Add2.INPUT2" />
+
+	<connection  source = "Add2.OUTPUT"  	target = "Add3.INPUT1" />
+	<connection  source = "Add2.OUTPUT"  	target = "Add3.INPUT2" />
+
+	<connection  source = "Add3.OUTPUT"  	target = "Add4.INPUT1" />
+	<connection  source = "Add3.OUTPUT"  	target = "Add4.INPUT2" />
+
+	<connection  source = "Add4.OUTPUT"  	target = "Add5.INPUT1" />
+	<connection  source = "Add4.OUTPUT"  	target = "Add5.INPUT2" />
+
+	<connection  source = "Add5.OUTPUT"  	target = "Print.INPUT" />
+
+</group>
+

@@ -10,7 +10,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_module', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'values': "col,row"},
+            {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
             {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
@@ -20,23 +20,23 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,quare"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
+            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
+            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
             
             {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no,invisible", 'class':'true'},
+            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
             {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
 
             {'name': "FRAME", 'control':'header'},
 

@@ -1,0 +1,111 @@
+{
+"Mapping": [
+
+{"StartingPosition": [156, 212],"GoalPosition": [132, 183],"OvershotGoal": [1, 0],"MaxCurrent": [483, 120],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [188, 0]},
+{"StartingPosition": [133, 182],"GoalPosition": [175, 158],"OvershotGoal": [1, 0],"MaxCurrent": [423, 80],"MinMovingCurrent": [20, 3],"MinCurrentForTorque": [84, 0]},
+{"StartingPosition": [178, 158],"GoalPosition": [167, 214],"OvershotGoal": [0, 0],"MaxCurrent": [174, 77],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [6, 0]},
+{"StartingPosition": [168, 213],"GoalPosition": [214, 167],"OvershotGoal": [1, 0],"MaxCurrent": [547, 97],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [339, 0]},
+{"StartingPosition": [215, 167],"GoalPosition": [188, 207],"OvershotGoal": [0, 0],"MaxCurrent": [493, 53],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [131, 0]},
+{"StartingPosition": [185, 207],"GoalPosition": [150, 175],"OvershotGoal": [1, 0],"MaxCurrent": [292, 114],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [84, 0]},
+
+{"StartingPosition": [179, 153],"GoalPosition": [153, 198],"OvershotGoal": [0, 0],"MaxCurrent": [218, 194],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [0, 0]},
+{"StartingPosition": [152, 197],"GoalPosition": [179, 218],"OvershotGoal": [0, 1],"MaxCurrent": [157, 67],"MinMovingCurrent": [16, 3],"MinCurrentForTorque": [26, 0]},
+{"StartingPosition": [180, 218],"GoalPosition": [192, 204],"OvershotGoal": [1, 0],"MaxCurrent": [440, 53],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [231, 0]},
+{"StartingPosition": [194, 204],"GoalPosition": [155, 199],"OvershotGoal": [0, 1],"MaxCurrent": [433, 43],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [33, 0]},
+{"StartingPosition": [152, 198],"GoalPosition": [122, 194],"OvershotGoal": [1, 0],"MaxCurrent": [604, 30],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [430, 0]},
+{"StartingPosition": [119, 194],"GoalPosition": [164, 153],"OvershotGoal": [1, 0],"MaxCurrent": [520, 70],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [0, 0]},
+{"StartingPosition": [168, 153],"GoalPosition": [136, 198],"OvershotGoal": [0, 0],"MaxCurrent": [57, 43],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [16, 0]},
+{"StartingPosition": [134, 198],"GoalPosition": [155, 174],"OvershotGoal": [0, 1],"MaxCurrent": [366, 94],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [23, 0]},
+{"StartingPosition": [157, 173],"GoalPosition": [230, 185],"OvershotGoal": [1, 1],"MaxCurrent": [577, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [443, 0]}
+]
+}
+
+{"StartingPosition": [212, 168],"GoalPosition": [143, 172],"OvershotGoal": [1, 0],"MaxCurrent": [514, 30],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [151, 0]},
+{"StartingPosition": [142, 168],"GoalPosition": [138, 168],"OvershotGoal": [0, 0],"MaxCurrent": [151, 30],"MinMovingCurrent": [3, 30],"MinCurrentForTorque": [73, 0]},
+
+{"StartingPosition": [191, 210],"GoalPosition": [143, 188],"OvershotGoal": [1, 0],"MaxCurrent": [346, 157],"MinMovingCurrent": [3, 20],"MinCurrentForTorque": [184, 40]},
+{"StartingPosition": [142, 190],"GoalPosition": [154, 163],"OvershotGoal": [0, 0],"MaxCurrent": [332, 57],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [16, 0]},
+{"StartingPosition": [157, 162],"GoalPosition": [205, 153],"OvershotGoal": [1, 0],"MaxCurrent": [463, 268],"MinMovingCurrent": [26, 3],"MinCurrentForTorque": [252, 94]},
+{"StartingPosition": [204, 156],"GoalPosition": [136, 158],"OvershotGoal": [1, 0],"MaxCurrent": [554, 30],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [288, 0]},
+
+{"StartingPosition": [203, 208],"GoalPosition": [159, 173],"OvershotGoal": [1, 0],"MaxCurrent": [446, 97],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [63, 0]},
+{"StartingPosition": [155, 173],"GoalPosition": [171, 153],"OvershotGoal": [0, 0],"MaxCurrent": [114, 53],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [6, 0]},
+{"StartingPosition": [169, 153],"GoalPosition": [149, 189],"OvershotGoal": [0, 0],"MaxCurrent": [47, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [20, 0]},
+{"StartingPosition": [146, 188],"GoalPosition": [154, 161],"OvershotGoal": [0, 0],"MaxCurrent": [278, 63],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [33, 0]},
+{"StartingPosition": [153, 161],"GoalPosition": [184, 201],"OvershotGoal": [0, 0],"MaxCurrent": [117, 67],"MinMovingCurrent": [13, 3],"MinCurrentForTorque": [127, 0]},
+{"StartingPosition": [187, 200],"GoalPosition": [186, 168],"OvershotGoal": [0, 0],"MaxCurrent": [30, 84],"MinMovingCurrent": [30, 30],"MinCurrentForTorque": [73, 30]},
+{"StartingPosition": [187, 170],"GoalPosition": [182, 210],"OvershotGoal": [0, 1],"MaxCurrent": [285, 107],"MinMovingCurrent": [30, 3],"MinCurrentForTorque": [174, 0]},
+{"StartingPosition": [184, 210],"GoalPosition": [144, 173],"OvershotGoal": [0, 0],"MaxCurrent": [225, 60],"MinMovingCurrent": [13, 3],"MinCurrentForTorque": [16, 0]},
+{"StartingPosition": [142, 172],"GoalPosition": [124, 185],"OvershotGoal": [1, 0],"MaxCurrent": [618, 97],"MinMovingCurrent": [3, 10],"MinCurrentForTorque": [366, 0]}
+]
+}
+
+{"StartingPosition": [138, 159],"GoalPosition": [212, 166],"OvershotGoal": [0, 0],"MaxCurrent": [362, 80],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [309, 3]},
+{"StartingPosition": [241, 167],"GoalPosition": [188, 157],"OvershotGoal": [0, 0],"MaxCurrent": [544, 171],"MinMovingCurrent": [30, 23],"MinCurrentForTorque": [53, 0]},
+{"StartingPosition": [189, 157],"GoalPosition": [207, 215],"OvershotGoal": [1, 0],"MaxCurrent": [500, 36],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [188, 0]},
+
+{"StartingPosition": [215, 190],"GoalPosition": [145, 189],"OvershotGoal": [1, 0],"MaxCurrent": [504, 30],"MinMovingCurrent": [6, 30],"MinCurrentForTorque": [47, 0]},
+{"StartingPosition": [145, 190],"GoalPosition": [188, 213],"OvershotGoal": [1, 1],"MaxCurrent": [621, 80],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [10, 0]},
+{"StartingPosition": [189, 212],"GoalPosition": [202, 196],"OvershotGoal": [1, 0],"MaxCurrent": [554, 63],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [151, 0]},
+{"StartingPosition": [200, 196],"GoalPosition": [141, 198],"OvershotGoal": [1, 0],"MaxCurrent": [483, 30],"MinMovingCurrent": [3, 30],"MinCurrentForTorque": [53, 0]},
+{"StartingPosition": [141, 196],"GoalPosition": [146, 165],"OvershotGoal": [0, 0],"MaxCurrent": [319, 94],"MinMovingCurrent": [3, 13],"MinCurrentForTorque": [20, 0]},
+
+{"StartingPosition": [145, 180],"GoalPosition": [224, 182],"OvershotGoal": [0, 0],"MaxCurrent": [295, 30],"MinMovingCurrent": [13, 6],"MinCurrentForTorque": [57, 0]},
+{"StartingPosition": [225, 181],"GoalPosition": [161, 179],"OvershotGoal": [0, 0],"MaxCurrent": [574, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [20, 0]},
+
+
+{"StartingPosition": [125, 207],"GoalPosition": [228, 176],"OvershotGoal": [1, 1],"MaxCurrent": [594, 110],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [339, 0]},
+{"StartingPosition": [229, 176],"GoalPosition": [150, 157],"OvershotGoal": [1, 1],"MaxCurrent": [524, 127],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [127, 0]},
+
+{"StartingPosition": [203, 211],"GoalPosition": [148, 174],"OvershotGoal": [1, 0],"MaxCurrent": [426, 80],"MinMovingCurrent": [30, 3],"MinCurrentForTorque": [60, 0]},
+{"StartingPosition": [145, 173],"GoalPosition": [177, 181],"OvershotGoal": [1, 1],"MaxCurrent": [255, 47],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [100, 0]},
+{"StartingPosition": [178, 181],"GoalPosition": [115, 159],"OvershotGoal": [0, 0],"MaxCurrent": [191, 70],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [70, 0]},
+{"StartingPosition": [111, 158],"GoalPosition": [203, 158],"OvershotGoal": [1, 0],"MaxCurrent": [645, 30],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [117, 0]},
+{"StartingPosition": [199, 159],"GoalPosition": [157, 208],"OvershotGoal": [1, 0],"MaxCurrent": [406, 184],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [47, 0]},
+{"StartingPosition": [152, 208],"GoalPosition": [165, 179],"OvershotGoal": [0, 0],"MaxCurrent": [127, 107],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [23, 0]},
+{"StartingPosition": [163, 178],"GoalPosition": [211, 200],"OvershotGoal": [1, 0],"MaxCurrent": [504, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [194, 0]},
+{"StartingPosition": [209, 199],"GoalPosition": [173, 215],"OvershotGoal": [1, 1],"MaxCurrent": [477, 43],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [0, 0]},
+{"StartingPosition": [169, 215],"GoalPosition": [162, 153],"OvershotGoal": [1, 0],"MaxCurrent": [53, 114],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [40, 33]}
+]
+}
+
+{"StartingPosition": [113, 178],"GoalPosition": [219, 181],"OvershotGoal": [0, 0],"MaxCurrent": [702, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [90, 0]},
+
+{"StartingPosition": [124, 215],"GoalPosition": [150, 160],"OvershotGoal": [1, 1],"MaxCurrent": [618, 144],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [0, 0]},
+{"StartingPosition": [148, 159],"GoalPosition": [174, 194],"OvershotGoal": [1, 1],"MaxCurrent": [225, 107],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [70, 0]},
+{"StartingPosition": [175, 194],"GoalPosition": [124, 187],"OvershotGoal": [1, 0],"MaxCurrent": [574, 77],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [295, 0]},
+
+{"StartingPosition": [234, 180],"GoalPosition": [192, 218],"OvershotGoal": [1, 1],"MaxCurrent": [487, 77],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [40, 0]},
+{"StartingPosition": [188, 218],"GoalPosition": [230, 207],"OvershotGoal": [1, 0],"MaxCurrent": [440, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [423, 0]},
+{"StartingPosition": [233, 206],"GoalPosition": [166, 210],"OvershotGoal": [1, 0],"MaxCurrent": [588, 30],"MinMovingCurrent": [3, 30],"MinCurrentForTorque": [50, 0]},
+{"StartingPosition": [162, 207],"GoalPosition": [132, 201],"OvershotGoal": [0, 0],"MaxCurrent": [73, 30],"MinMovingCurrent": [6, 20],"MinCurrentForTorque": [53, 30]},
+{"StartingPosition": [130, 204],"GoalPosition": [215, 190],"OvershotGoal": [1, 1],"MaxCurrent": [594, 90],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [292, 0]},
+{"StartingPosition": [214, 190],"GoalPosition": [173, 214],"OvershotGoal": [1, 1],"MaxCurrent": [551, 107],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [6, 0]},
+{"StartingPosition": [169, 214],"GoalPosition": [145, 204],"OvershotGoal": [1, 0],"MaxCurrent": [248, 40],"MinMovingCurrent": [10, 3],"MinCurrentForTorque": [57, 0]},
+{"StartingPosition": [146, 203],"GoalPosition": [143, 178],"OvershotGoal": [0, 0],"MaxCurrent": [30, 107],"MinMovingCurrent": [3, 13],"MinCurrentForTorque": [57, 84]},
+{"StartingPosition": [143, 180],"GoalPosition": [121, 218],"OvershotGoal": [1, 0],"MaxCurrent": [571, 57],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [490, 0]}
+]
+}
+
+{"StartingPosition": [190, 201],"GoalPosition": [234, 155],"OvershotGoal": [1, 0],"MaxCurrent": [598, 168],"MinMovingCurrent": [3, 23],"MinCurrentForTorque": [208, 0]},
+{"StartingPosition": [233, 155],"GoalPosition": [234, 159],"OvershotGoal": [1, 0],"MaxCurrent": [30, 30],"MinMovingCurrent": [30, 30],"MinCurrentForTorque": [204, 0]},
+{"StartingPosition": [233, 156],"GoalPosition": [228, 184],"OvershotGoal": [0, 0],"MaxCurrent": [588, 218],"MinMovingCurrent": [30, 3],"MinCurrentForTorque": [393, 0]},
+{"StartingPosition": [228, 183],"GoalPosition": [149, 161],"OvershotGoal": [1, 0],"MaxCurrent": [517, 124],"MinMovingCurrent": [23, 3],"MinCurrentForTorque": [60, 0]},
+
+{"StartingPosition": [225, 196],"GoalPosition": [135, 217],"OvershotGoal": [1, 1],"MaxCurrent": [581, 47],"MinMovingCurrent": [13, 3],"MinCurrentForTorque": [53, 0]},
+{"StartingPosition": [136, 216],"GoalPosition": [164, 157],"OvershotGoal": [0, 1],"MaxCurrent": [440, 36],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [0, 0]},
+{"StartingPosition": [164, 157],"GoalPosition": [195, 183],"OvershotGoal": [1, 0],"MaxCurrent": [577, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [84, 0]},
+
+{"StartingPosition": [194, 184],"GoalPosition": [175, 171],"OvershotGoal": [1, 1],"MaxCurrent": [184, 218],"MinMovingCurrent": [20, 10],"MinCurrentForTorque": [40, 0]},
+
+{"StartingPosition": [136, 161],"GoalPosition": [212, 160],"OvershotGoal": [1, 0],"MaxCurrent": [517, 30],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [241, 0]},
+
+
+{"StartingPosition": [150, 176],"GoalPosition": [135, 171],"OvershotGoal": [1, 0],"MaxCurrent": [604, 30],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [80, 0]},
+{"StartingPosition": [136, 170],"GoalPosition": [166, 215],"OvershotGoal": [1, 1],"MaxCurrent": [339, 124],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [0, 0]},
+{"StartingPosition": [166, 215],"GoalPosition": [159, 166],"OvershotGoal": [0, 0],"MaxCurrent": [30, 100],"MinMovingCurrent": [3, 23],"MinCurrentForTorque": [6, 73]},
+{"StartingPosition": [158, 167],"GoalPosition": [137, 179],"OvershotGoal": [1, 1],"MaxCurrent": [504, 107],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [40, 0]},
+{"StartingPosition": [139, 179],"GoalPosition": [171, 191],"OvershotGoal": [1, 0],"MaxCurrent": [319, 60],"MinMovingCurrent": [3, 3],"MinCurrentForTorque": [63, 0]},
+{"StartingPosition": [172, 191],"GoalPosition": [185, 200],"OvershotGoal": [1, 0],"MaxCurrent": [70, 30],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [50, 10]},
+{"StartingPosition": [186, 197],"GoalPosition": [184, 200],"OvershotGoal": [1, 0],"MaxCurrent": [30, 30],"MinMovingCurrent": [30, 30],"MinCurrentForTorque": [50, 6]},
+{"StartingPosition": [186, 199],"GoalPosition": [145, 179],"OvershotGoal": [1, 0],"MaxCurrent": [342, 87],"MinMovingCurrent": [6, 3],"MinCurrentForTorque": [40, 0]},

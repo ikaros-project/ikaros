@@ -1,0 +1,28 @@
+<group name="Test_3"  check_sum = "12557" description="Test error messages for incorrect parameter types">
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+
+    <module 
+        name="Test" 
+        class="KernelTestModule"
+
+        a = "XXX"
+        b = "QQQ"
+        c = "xxx"
+        d = "XXX OK IS STRING"   
+        e = "XXX"
+        f = "XXX" 
+        g = "XXX"
+
+        data = "XXX"
+        mdata = "XXX"
+
+        x = "XXX"
+        y = "XXX"
+        
+    />
+
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+
+</group>
+

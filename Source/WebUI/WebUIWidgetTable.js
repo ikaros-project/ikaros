@@ -8,7 +8,7 @@ class WebUIWidgetTable extends WebUIWidget {
             { 'name': "STYLE", 'control': 'header' },
             { 'name': 'label_x', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'label_y', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'direction', 'default': "normal", 'type': 'string', 'control': 'menu', 'values': "normal,flip x/y" },
+            { 'name': 'direction', 'default': "normal", 'type': 'string', 'control': 'menu', 'options': "normal,flip x/y" },
             { 'name': 'decimals', 'default': 4, 'type': 'int', 'control': 'textedit' },
             { 'name': 'colorize', 'default': true, 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' },
@@ -135,8 +135,27 @@ class WebUIWidgetTable extends WebUIWidget {
         else {
             if (this.data = this.getSource('source')) {
 
+                if(!Array.isArray(this.data))
+                {
+                    this.tData[0][0].innerHTML = "Not a 2D matrix";
+                    return;
+                }
+
+                if(!Array.isArray(this.data[0]))
+                {
+                    this.tData[0][0].innerHTML = "Not a 2D matrix";
+                    return;
+                }
+
+                if(typeof this.data[0][0] != 'number')
+                {
+                    this.tData[0][0].innerHTML = "Not a 2D matrix";
+                    return;
+                }
+
                 let size_y = this.data.length;
                 let size_x = this.data[0].length;
+
 
                 for (let j = 0; j < size_y; j++)
                     for (let i = 0; i < size_x; i++)

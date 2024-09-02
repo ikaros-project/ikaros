@@ -1,0 +1,5 @@
+<class name="Max" description="calculates the max of all elements in the input">
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output with the Max" size="1" />
+</class>
+

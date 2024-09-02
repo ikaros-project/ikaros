@@ -1,0 +1,22 @@
+<class name="ForceCheck" description="Checking the used current and increase it step by step to reach the target. Reduce the current with too much restance is met">
+	<parameter name="GainConstant" type= "double" default= "8.5" description="Gain constant for how much current should increased in relation to distance from goal position" />
+    <parameter name="SmoothFactor" type= "double" default= "0.7" description="Determines the influence of present current to goal current"/>
+	<parameter name="ErrorThreshold" type= "double" default= "10" description="Threshold for position error (in degrees) for when the current should be reduced to avoid overshooting"/>
+	<input name="GoalPositionIn" description="The goal position of the servomotors in degrees" size="19"/>
+	<input name="PresentPosition" description="The present position of the servomotors in degrees"/>
+	<input name="PresentCurrent" description="The present current from the servomotors in mA" />
+	<input name="CurrentLimit" description="The present current from the servomotors in mA"/>
+	<output name="CurrentOutput" description="Goal current in mA to be sent to the servos (only in current-based (position) control mode)" />
+	<output name="GoalPositionOut" description="The goal position of the servomotors in degrees"/>
+	<author>
+		<name>Pierre Klintefors</name>
+		<email>Pierre.Klintefors@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+	</author>
+	<files>
+   		<file>ForceCheck.cc</file>
+   		<file>ForceCheck.ikc</file>
+   </files>
+   
+</class>
+

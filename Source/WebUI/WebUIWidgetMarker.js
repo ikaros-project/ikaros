@@ -10,47 +10,47 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_module', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'values': "col,row"},
+            {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
             {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'selectValue', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
             {'name': "MARKER STYLE", 'control':'header'},
 
-            {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'values': "none,circle,cross"}, // dot, square, rectangle?
+            {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'options': "none,circle,cross"}, // dot, square, rectangle?
             {'name':'size', 'default':0.02, 'type':'float', 'control': 'textedit'},
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
             {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'values': "butt,round,square"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'values': "miter,round,bevel"},
+            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
+            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "LABEL STYLE", 'control':'header'},
 
-            {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'values': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
+            {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'options': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'labelFont', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
             {'name':'labelDecimals', 'default':2, 'type':'int', 'control': 'textedit'},
             {'name':'labelPrefix', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'labelPostfix', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelAlign', 'default':"center", 'type':'string', 'control': 'menu', 'values': "left, center, right"},
-            {'name':'labelBaseline', 'default':"middle", 'type':'string', 'control': 'menu', 'values': "top, bottom, middle, alphabetic, hanging"},
+            {'name':'labelAlign', 'default':"center", 'type':'string', 'control': 'menu', 'options': "left, center, right"},
+            {'name':'labelBaseline', 'default':"middle", 'type':'string', 'control': 'menu', 'options': "top, bottom, middle, alphabetic, hanging"},
             {'name':'labelOffsetX', 'default':"0", 'type':'float', 'control': 'textedit'},
             {'name':'labelOffsetY', 'default':"0", 'type':'float', 'control': 'textedit'},
 
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no,invisible", 'class':'true'},
+            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
             {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'values': "yes,no"},
+            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
 
             {'name': "FRAME", 'control':'header'},
 

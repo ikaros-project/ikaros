@@ -1,0 +1,33 @@
+<group start="true" name = "Example" title="InputVideo Example">
+
+	<module
+		class="InputVideo" 
+		name="InputVideo" 
+		_frame_rate="30" 
+		list_devices = "yes"
+		size_x = "640"
+		size_y = "480"
+		_size_x = "1280"
+		_size_y = "720"
+	/>
+	<widget class="image" 
+		max_x = "1"
+		title = "Output"
+		width = "381"
+		flipYCanvas = "no"
+		x = "60"
+		source = "InputVideo.OUTPUT"
+		format = "rgb"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		h = "4"
+		height = "321"
+		max_y = "1"
+		y = "60"
+		flipXAxis = "no"
+		scale = "both"
+		class = "image"
+		scales = "no"
+		w = "4"
+		/>	
+</group>

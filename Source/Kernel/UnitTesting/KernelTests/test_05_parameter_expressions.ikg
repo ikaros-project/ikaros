@@ -1,0 +1,91 @@
+<group name="Test"  
+    check_sum = "470111" 
+    description="Test parameter expressions"
+
+    aa = "abc/def:ghi"
+    bb = "false"
+    cc = "333"
+    dd = "FourFourFour"
+    ee = "5"
+    ff1 = "C"
+    ff2 = "B" 
+    ff3 = "A" 
+
+    xdata = "8, 8, 8"
+    xmdata = "9, 9; 9, 9"
+
+    xx = "10"
+    yy = "11"
+
+>
+
+    <module 
+        name="Test" 
+        class="KernelTestModule"
+
+        a = "@aa"
+        b = "@bb"
+        c = "@cc+1000"
+        d = "@dd"
+        e = "@ee"
+        f1 = "@ff1"
+        f2 = "@ff2" 
+        f3 = "@ff3" 
+
+        data = "@xdata"
+        mdata = "@xmdata"
+
+        x = "5*10+1"
+        y = "888-38/2"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+
+<!--
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+
+    <module 
+        name="TestModuleParameters" 
+        class="KernelTestModule"
+
+        a = "abc/def:ghi"
+        b = "true"
+        c = "333"
+        d = "FourFourFour"
+        _e = "5, 5, 5; 5, 5, 5"
+        f = "C" 
+        g = "@g1"
+        g1 = "@g2"
+        g2 = "22222222"
+
+        data = "8, 8, 8"
+        mdata = "9, 9; 9, 9"
+
+        x = "10"
+        y = "11"
+
+        target = ".Test"
+        target_value = "c"
+
+        p = "@target.@target_value"
+        
+    />
+
+  <module 
+        name="TestIndirection" 
+        class="KernelTestModule"
+    />
+
+
+  <module 
+        name="TestInheritance" 
+        class="KernelTestModule"
+    />
+
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+-->
+
+</group>
+

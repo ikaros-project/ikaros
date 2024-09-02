@@ -1,0 +1,20 @@
+<group name="Test">
+	<module class = "Protocol" name = "Protocol" />
+
+	<module class = "OutputFile" name = "OutputFile" filename="protocol_output.tsv"  format="tsv" />
+	<module class = "Logger" name = "Logger" />	
+
+	<connection  source = "Protocol.STIMULUS" target = "OutputFile.INPUT" alias="CS" />
+	<connection  source = "Protocol.REWARD" target = "OutputFile.INPUT"  alias="Rew" />
+
+	<group name="Subgroup">
+
+		<group name="Subsubgroup">
+
+			<module name="C" class="Constant" data="7" />
+
+		</group>
+
+	</group>
+</group>
+

@@ -1,59 +1,81 @@
-//
-//	Oscillator.cc		This file is a part of the IKAROS project
-//
-//    Copyright (C) 2019 Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//    See http://www.ikaros-project.org/ for more information.
-//
-//  This example is intended as a starting point for writing new Ikaros modules
-//  The example includes most of the calls that you may want to use in a module.
-//  If you prefer to start with a clean example, use he module MinimalModule instead.
-//
+#include "ikaros.h"
 
-#include "Oscillator.h"
-
-// use the ikaros namespace to access the math library
-// this is preferred to using math.h
+#include <math.h>
 
 using namespace ikaros;
 
-
-void
-Oscillator::Init()
+class Oscillator: public Module
 {
-    input = GetInputArray("INPUT");
-    output = GetOutputArray("OUTPUT");
+    parameter   osc_type;
+    matrix      frequency;
+    parameter   sample_rate;
+    matrix      input;
+    matrix      output;
+    double       modulator = 0;
 
-    Bind(input_gain, "input_gain");
-    Bind(alpha, "alpha");
-}
+    void Init()
+    {
+        Bind(osc_type, "type");
+        Bind(frequency, "frequency");
+        Bind(sample_rate, "sample_rate");
+        Bind(input, "INPUT");
+        Bind(output, "OUTPUT");
+
+        //if(input.connected() && frequency.shape() != output.shape())
+        //    throw exception("INPUT must have the same size as frequency");
+
+    }
 
 
+    float func(float time, float freq)
+    {
+        if(input.connected())
+            freq += 50*input(0);
+    
+        switch(osc_type.as_int())
+        {
+            case 0: return sin(2*M_PI*time*freq);
+            case 1: return sin(2*M_PI*time*freq) > 0 ? 1 : 0;
+            default: return 0;
+        }
+    }
 
-void
-Oscillator::Tick()
-{
-	
-}
+    void Tick()
+    {
+        float time = kernel().GetNominalTime();
 
+        // If no buffer is used, apply function to every element of the output
 
+        if(sample_rate==0)
+        {
+            output.apply(frequency, [=](float x, float f) {return func(time, f);});
+            return;
+        }
 
-// Install the module. This code is executed during start-up.
+        // // Iterate over all parameters and fill the buffer for each
 
-static InitClass init("Oscillator", &Oscillator::Create, "Source/Modules/UtilityModules/Oscillator/");
+        double sr = sample_rate;
+        double sx = output.size_x();
+        double time_increment = kernel().GetTickDuration()/double(output.size_x()); // Dimension of the last dimension that holds the buffer
 
+        if(output.rank() == 2)
+        {
+            for(int row=0; row<output.size_y(); row++) // Iterate over fist dimension
+                for(int i=0; i<output.size_x(); i++) // Fill buffer
+                    output(row, i) = func(time+double(i)*time_increment, frequency(row));
+            return;
+        }
+        
+        if(output.rank() == 3)
+        {
+            for(int row=0; row<output.size(0); row++) // Iterate over fist dimension
+                for(int col=0; col<output.size(1); col++) // Iterate over second dimension
+                for(int i=0; i<output.size(2); i++) // Fill buffer
+                    output(row, col, i) = func(time+double(i)*time_increment, frequency(row, col));
+            return;
+        }
+    }
+};
+
+INSTALL_CLASS(Oscillator)
 

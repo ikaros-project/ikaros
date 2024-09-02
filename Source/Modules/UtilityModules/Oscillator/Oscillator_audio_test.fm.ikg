@@ -1,0 +1,27 @@
+<group filename="/Users/cba/ikaros-3/Source/Modules/UtilityModules/Oscillator/Oscillator_audio_test.fm.ikg" info="true" log_level="5" name="OscTest" stop="-1" tick_duration="0.1" webui_port="8000">
+   <connection source="Modulator.OUTPUT" target="Oscillator.INPUT"/>
+   <connection source="Oscillator.OUTPUT[0][0:2205]" target="audio.INPUT[0:2205]"/>
+   <module class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="440" log_level="5" name="Oscillator" sample_rate="22050" type="sin">
+      <description/>
+      <input description="Frequency modulation added to base frequency" name="INPUT"/>
+      <output description="The output" name="OUTPUT" size="frequency.size,@sample_rate*@tick_duration"/>
+      <parameter default="sin" name="type" options="sin, square" type="number" value="sin"/>
+      <parameter default="1" description="frequency in Hz" name="frequency" type="matrix" value="440"/>
+      <parameter default="0" description="samples/s; default 0 means 1/tick_duration" name="sample_rate" type="rate" value="22050"/>
+   </module>
+   <module class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="2" log_level="5" name="Modulator" type="square">
+      <description/>
+      <input description="Frequency modulation added to base frequency" name="INPUT"/>
+      <output description="The output" name="OUTPUT" size="frequency.size,@sample_rate*@tick_duration"/>
+      <parameter default="sin" name="type" options="sin, square" type="number" value="sin"/>
+      <parameter default="1" description="frequency in Hz" name="frequency" type="matrix" value="0.5"/>
+      <parameter default="0" description="samples/s; default 0 means 1/tick_duration" name="sample_rate" type="rate" value="0"/>
+   </module>
+   <module _x="336" _y="96" buffer_size="2205" class="OutputAudio" description="Plays audio received as input" log_level="5" name="audio" sample_rate="22050">
+      <input description="Audio buffer to play" name="INPUT"/>
+      <parameter default="44100" description="Sample rate of the audio" name="sample_rate" type="int" value="22050"/>
+      <parameter default="4096" description="Size of the audio buffer" name="buffer_size" type="int" value="2205"/>
+   </module>
+   <module class="Logger" description="logs start to Ikaros site" log_level="5" name="Logger">
+   </module>
+</group>

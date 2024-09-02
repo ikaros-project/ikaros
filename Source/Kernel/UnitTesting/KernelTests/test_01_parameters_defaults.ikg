@@ -1,0 +1,11 @@
+<group name="Test_2"  check_sum = "58387" description="Test default parameters">
+
+    <module 
+        name="Test" 
+        class="KernelTestModule"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+</group>
+

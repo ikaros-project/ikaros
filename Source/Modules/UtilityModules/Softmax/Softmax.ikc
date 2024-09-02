@@ -1,39 +1,4 @@
-<?xml version="1.0"?>
-
-<class name="Softmax" description="calculates softmax">
-
-	<description type="text">
-		Module used to calculate the softmax over its input.
-	</description>
-
-	<example description="Example">
-		<module
-			class="Softmax"
-			name="Softmax"
-		/>
-	</example>
-
-	<parameter name="type" type="list" values="polynomial/exponential" default="polynomial" description="Scale factor" />
-	<parameter name="exponenet" type="float" default="2" description="Exponent" />
-    
-	<input name="INPUT" description="The input" />
-	<output name="OUTPUT" description="The output" size_set="INPUT" />
-
-	<link class="Softmax" />
-
-    
-    
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
-
-   <files>
-   		<file>Softmax.h</file>
-   		<file>Softmax.cc</file>
-   		<file>Softmax.ikc</file>
-   </files>
-
+<class name="Softmax" description="outputs the softmax of the input">
+	<input name="INPUT" description="The input"/>
+	<output name="OUTPUT" description="The output" size="INPUT.size"/>
 </class>

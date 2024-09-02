@@ -1,0 +1,39 @@
+
+<group name="example" title="InputVideoFile Example">
+	
+		<module
+			class = "InputVideoFile"
+			name = "InputVideoFile"
+            filename = "ikaros.mp4"
+            _filename = "../../../../../Examples/Media/ikaros.mp4"
+			loop = "true"
+			size_x = "148"
+			size_y = "108"
+
+		/>
+		
+	<widget class="image" 
+
+		max_x = "1"
+		title = "Intensity"
+		width = "381"
+		flipYCanvas = "no"
+		x = "460"
+		source = "InputVideoFile.INTENSITY"
+		format = "gray"
+		flipYAxis = "no"
+		flipXCanvas = "no"
+		h = "4"
+		height = "321"
+		max_y = "1"
+		y = "60"
+		flipXAxis = "no"
+		scale = "both"
+		class = "image"
+		scales = "no"
+		w = "4"
+		/>
+		
+	
+</group>
+ 

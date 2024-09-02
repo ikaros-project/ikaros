@@ -1,0 +1,32 @@
+<group name="Test_11"  
+    check_sum = "180331" 
+    description="Test parameter inheritance"
+    
+    a = "abc/def:ghi"
+    b = "false"
+    c = "333"
+    d = "FourFourFour"
+    e = "5"
+    f1 = "C"
+    f2 = "B" 
+    f3 = "A" 
+
+    data = "8, 8, 8"
+    mdata = "9, 9; 9, 9"
+
+    x = "10"
+    y = "11"    
+>
+
+    <module 
+        name="Test" 
+        class="KernelTestModule"
+
+
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+
+</group>
+
