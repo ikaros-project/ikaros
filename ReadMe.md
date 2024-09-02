@@ -1,4 +1,4 @@
-# ikaros-3
+# ikaros
 
 Ikaros is an open framework for system-level brain modeling and real-time robot control. Ikaros supports the design and implementation of large-scale computation models using a flow programming paradigm.
 
@@ -8,11 +8,7 @@ Ikaros 2 is described in the article [Ikaros: A framework for controlling robots
 
 Version 3 is completely rewritten in modern C++ and includes a number of new features.
 
-This version is currently in development and not ready for use.
-
-For now, please use the [previous version](https://github.com/ikaros-project/ikaros) instead.
-
-## Ikaros 3 Status - 28 August, 2024
+## Ikaros tatus - 2 September, 2024
 
 | Component | State | Comments |
 | ----|----|----|
