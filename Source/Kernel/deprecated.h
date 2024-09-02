@@ -2,8 +2,8 @@
 //	deprecated.h		Various compatibility utilities for the IKAROS project - will be removed in the future
 //
 
-#ifndef DEPRECATED
-#define DEPRECATED
+#ifndef DEPRECATED_
+#define DEPRECATED_
 
 #include <stddef.h> // for NULL
 #include <string>
