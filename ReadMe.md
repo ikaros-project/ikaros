@@ -7,6 +7,7 @@ More than 100 persons  contributed to the code base of earlier versions and over
 Ikaros 2 is described in the article [Ikaros: A framework for controlling robots with system-level brain models](https://journals.sagepub.com/doi/full/10.1177/1729881420925002).
 
 Version 3 is completely rewritten in modern C++ and includes a number of new features.
+Up to date information is available in the [wiki](https://github.com/ikaros-project/ikaros/wiki).
 
 ## Ikaros Status - 3 September, 2024
 
