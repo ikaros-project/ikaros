@@ -1,0 +1,57 @@
+<group name="Test" real_time="true" start="true" stop="-1" tick_duration="0.5" webui_port="8000">
+   <connection source="Limit.OUTPUT" target="ForceCheck.CurrentLimit"/>
+   <connection delay_range="1" source="ForceCheck.CurrentOutput" source_range="" target="Add.INPUT2" target_range=""/>
+   <connection delay_range="1" source="Constant1.OUTPUT" source_range="" target="Add.INPUT1" target_range=""/>
+   <connection delay_range="1" source="Add.OUTPUT" source_range="" target="ForceCheck.PresentCurrent" target_range=""/>
+   <connection delay_range="1" source="Position.OUTPUT" source_range="" target="ForceCheck.PresentPosition" target_range=""/>
+   <connection delay_range="1" source="GoalPos.OUTPUT" source_range="" target="ForceCheck.GoalPositionIn" target_range=""/>
+   <module _x="72.000000" _y="240.000000" class="Constant" data="1,1" description="outputs a constant value" name="Constant1">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="1,1"/>
+   </module>
+   <module _x="72.000000" _y="48.000000" class="Constant" data="800; 1100" description="outputs a constant value" name="Limit">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="800; 1100"/>
+   </module>
+   <module _x="72" _y="96" class="Constant" data="15, 13" description="outputs a constant value" name="Position">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="15, 13"/>
+   </module>
+   <module _x="72.000000" _y="144.000000" class="Constant" data="15, 13" description="outputs a constant value" name="GoalPos">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="15, 13"/>
+   </module>
+   <module _x="72.000000" _y="144.000000" class="Constant" data="15, 13" description="outputs a constant value" name="StartingPos">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="15, 13"/>
+   </module>
+   <module _x="312.000000" _y="72.000000" class="ForceCheck" description="Checks current level" name="ForceCheck">
+      <files>
+         <file/>
+         <file/>
+      </files>
+      <input description="The first input" name="PresentCurrent"/>
+      <input description="The second input" name="CurrentLimit"/>
+      <input description="The second input" name="PresentPosition"/>
+      <input description="Goal position" name="GoalPositionIn"/>
+      <output description="The output" name="CurrentOutput" size="PresentCurrent.size"/>
+      <output description="Goal position output" name="GoalPositionOut"/>
+   </module>
+   <module _x="0.000000" _y="288.000000" class="Logger" description="logs start to Ikaros site" name="Logger">
+   </module>
+   <module _x="192.000000" _y="264.000000" class="Add" description="adds two inputs" name="Add">
+      <input description="The first input" name="INPUT1"/>
+      <input description="The second input" name="INPUT2"/>
+      <output description="The output" name="OUTPUT" size="INPUT1.size"/>
+   </module>
+   <view name="View">
+      <widget class="table" colorize="true" decimals="4" height="300" show_frame="true" show_title="true" source="ForceCheck.GoalPosition" title="A" width="300" x="40" y="20"/>
+      <widget class="table" colorize="true" decimals="4" height="300" show_frame="true" show_title="true" source="ForceCheck.PresentCurrent" title="B" width="300" x="360" y="20"/>
+      <widget class="table" colorize="true" decimals="4" height="300" show_frame="true" show_title="true" source="ForceCurrent.CurrentOutput" title="Sum" width="300" x="40" y="360"/>
+   </view>
+   <widget _index_="0" _x="24.000000" _y="408.000000" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="73.000000" label_x="" label_y="" name="Widget_8" scrollable="false" show_frame="false" show_title="true" source="ForceCheck.GoalPosition" style="" title="GoalPosition" width="193.000000"/>
+   <widget _index_="2" _x="456.000000" _y="408.000000" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="73.000000" label_x="" label_y="" name="Widget_9" scrollable="false" show_frame="false" show_title="true" source="ForceCheck.CurrentOutput" style="" title="GoalCurrent" width="217.000000"/>
+   <widget _index_="4" _x="264.000000" _y="408.000000" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="73.000000" label_x="" label_y="" name="Widget_10" scrollable="false" show_frame="false" show_title="true" source="ForceCheck.CurrentLimit" style="" title="PresentCurrent" width="169.000000"/>
+   <widget _index_="6" _x="792.000000" _y="48.000000" class="slider-horizontal" count="2" frame-style="" height="145.000000" labels="Motor 1, Motor 2" max="200" min="0" name="Widget_18" parameter="Position.data" select="0" show_frame="false" show_title="true" show_values="true" step="1" style="" title="Position" width="241.000000"/>
+   <widget _index_="8" _x="840.000000" _y="288.000000" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="73.000000" label_x="" label_y="" name="Widget_19" scrollable="false" show_frame="false" show_title="true" source="Position.OUTPUT" style="" title="Position" width="193.000000"/>
+</group>

@@ -1,0 +1,32 @@
+<group log_level="5" name="Untitled" real_time="true" start="true" stop="-1" webui_port="8000">
+   <module NumberTransitions="10" RunSequence="True" _x="48" _y="48" class="ServoControlTuning" description="Robot servo control module" log_level="7" name="ServoTuning" robot="EpiGray">
+      <author>
+         <affiliation/>
+         <email/>
+         <name/>
+      </author>
+      <description type="text"/>
+      <files>
+         <file/>
+         <file/>
+      </files>
+      <limitations/>
+      <link class="ServoControlTuning"/>
+      <output description="Goal position and present position of the seleected servo" name="Position" size="2"/>
+      <output description="Goal Current and present current of the selected servo" name="Current" size="2"/>
+      <parameter control="slider" data="100,0,1000,500, 0,0, 180" default="100,0,1000,500, 0,0, 180" description="The control parameters in the dynamixel. Parameters:P, I , D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position" name="ServoParameters" type="matrix" value="100,0,1000,500, 0,0, 180"/>
+      <parameter control="slider" data="1300, 1750, 1830, 1780, 600, 800, 1000, 600, 800, 0, 600, 900, 1000, 1800, 800, 0, 100" default="1300, 1750, 1830, 1780, 600, 800, 1000, 600, 800, 0, 600, 900, 1000, 1800, 800, 0, 100" description="The minimum limit of the position of the servos. Not including pupils" name="MinLimitPosition" type="matrix" value="1300, 1750, 1830, 1780, 600, 800, 1000, 600, 800, 0, 600, 900, 1000, 1800, 800, 0, 100"/>
+      <parameter control="slider" data="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900" default="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900" description="The maximum limit of the position of the servos. Not including pupils " name="MaxLimitPosition" type="matrix" value="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900"/>
+      <parameter control="menu" default="NeckTilt" description="The servo to tune" name="Servo" options="NeckTilt, NeckPan, LeftEye, RightEye, PupilLeft, PupilRight, ArmJoint1, ArmJoint2, ArmJoint3, ArmJoint4, ArmJoint5, Hand, Body" type="string" value="NeckTilt"/>
+      <parameter control="menu" description="The robot to tune" name="robot" options="EpiGray, EpiBlack, EpiWhite, EpiBlue, EpiYellow, EpiRed, EpiOrange, EpiGreen" type="string" value="EpiGray"/>
+      <parameter control="checkbox" default="false" description="Save the parameters to a json file" name="Save" type="bool" value="false"/>
+      <parameter control="checkbox" default="false" description="Runs a sequence of motor transitions" name="RunSequence" type="bool" value="True"/>
+      <parameter control="textedit" default="10" description="Number of transitions to make" name="NumberTransitions" type="number" value="10.000000"/>
+   </module>
+   <widget _index_="0" _x="720" _y="360" class="slider-horizontal" count="6" frame-style="" height="529" labels="P, I , D, Goal Current, Profile Acceleration, Profile Velocity" max="2000" min="0" name="Widget_4" parameter="ServoTuning.ServoParameters" select="0" show_frame="false" show_title="true" show_values="true" source="" step="1" style="" title="Parameters" width="385"/>
+   <widget _index_="2" _x="720" _y="264" class="slider-horizontal" count="1" frame-style="" height="97" labels="" max="300" min="0" name="Widget_5" parameter="ServoTuning.ServoParameters" select="6" show_frame="false" show_title="true" show_values="true" source="" step="1" style="" title="Goal Position" width="385"/>
+   <widget _index_="4" _x="48" _y="120" buffer_size="50" class="plot" color="blue, green" direction="vertical" frame-style="" height="409" max="300" min="0" name="Widget_6" select="" show_frame="false" show_title="true" source="ServoTuning.Position" style="" title="Position" width="673"/>
+   <widget _index_="6" _x="48" _y="528" buffer_size="50" class="plot" color="blue, green" direction="vertical" frame-style="" height="457" max="2000" min="0" name="Widget_7" select="" show_frame="false" show_title="true" source="ServoTuning.Current" style="" title="Current" width="673"/>
+   <widget _index_="8" _x="720" _y="120" class="drop-down-menu" frame-style="" height="145" index="0" label="" labelWidth="50" list="NeckTilt, NeckPan, LeftEye, RightEye, LeftPupil, RightPupil, LeftArmJoint1, LeftArmJoint2, LeftArmJoint3, LeftArmJoint4, LeftArmJoint5,RightArmJoint1, RightArmJoint2, LeftArmJoint3, RightArmJoint4, RightArmJoint5, LeftHand, RightHand, Body" list_parameter="" max="" min="" name="Widget_8" parameter="ServoTuning.Servo" select="" show_frame="false" show_title="true" source="ServoTuning.Servo" style="" title="Select servo" width="385"/>
+   <widget _index_="10" _x="792" _y="888" background="green" class="button" color="blue" command="" commandUp="" enableSource="" file_names="" frame-style="" height="49" icon="" label="Save Parameter Settings" max="1" min="" multiGroup="" name="Widget_9" parameter="ServoTuning.RunSequence" radioGroup="" select="" show_frame="false" show_title="false" source="" style="" title="Save Settings" type="push" value="1" valueUp="0" width="241" xindex="0" yindex="0"/>
+</group>
