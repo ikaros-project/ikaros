@@ -8,7 +8,7 @@ Ikaros 2 is described in the article [Ikaros: A framework for controlling robots
 
 Version 3 is completely rewritten in modern C++ and includes a number of new features.
 
-## Ikaros tatus - 2 September, 2024
+## Ikaros Status - 3 September, 2024
 
 | Component | State | Comments |
 | ----|----|----|
@@ -22,7 +22,7 @@ Version 3 is completely rewritten in modern C++ and includes a number of new fea
 | Expressions       |<div style="color:green">🟢 OK |  |
 | XML               |<div style="color:green">🟢 OK | |
 | Kernel            |<div style="color:green">🟢 OK |
-| Exception handling    |<div style="color:#c60">🟡 Partial | sometimes quits instead of stops |
+| Exception handling    |<div style="color:#c60">🟡 Partial | mostly ready |
 | Shared dict       |<div style="color:green">🟢  OK |  |
 | Scheduler         |<div style="color:#green">🟢 OK | single thread |
 | Task sorting      |<div style="color:green">🟢 OK |  |
@@ -62,7 +62,7 @@ All parameters can be set in the root element of the ikg-file as well.
 
 ## Timing
 
-Timing is set by the *real-time* flag together with the desired *tickduation*. Tickduation defaults to 1 s.
+Timing is set by the *real-time* flag together with the desired *tick_duation*. Tick_duration defaults to 1 s.
 
 All times are set in seconds as a double.
 
@@ -76,6 +76,8 @@ The following functions should be used for all timing calculations and work both
 | GetTickDuration() | double  | tickduration | tickduration
 | GetTime() | double  | GetRealtime() | tick * tickduration
 | GetRealTime() | double  | timer.GetTime() | tick * tickduration
+  GetNominalTime() | double | tick * tickduration | tick * tickduration 
 | GetLag()  | double  | tick * tickduration - timer.GetTime() | 0
+
 
 GetLag() returns the lag at the time of calling and can be used to adjust for jitter within a module. It is not necessarily the same as the *lag* value in the kernel.
