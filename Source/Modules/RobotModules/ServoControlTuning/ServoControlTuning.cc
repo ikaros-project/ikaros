@@ -127,6 +127,10 @@ class ServoControlTuning : public Module
     
     int goalPosition;
     int goalCurrent;
+    tick_count tick;
+
+   
+    
  
     
 
@@ -175,9 +179,7 @@ class ServoControlTuning : public Module
 
     bool CommunicationPupil(int position)
     {
-        // Change this function.
-        // No need to have torque enable.
-        // Only goal position and use sync write.
+        
         int dxl_comm_result = COMM_TX_FAIL; // Communication result
         bool dxl_addparam_result = false;   // addParam result
         bool dxl_getdata_result = false;    // GetParam result
@@ -296,7 +298,7 @@ class ServoControlTuning : public Module
         
 
         position[0] = dxl_present_position / 4095.0 * 360.0; // degrees
-        current[0] = dxl_present_current * 3.36;   // mA
+        current[0] = abs(dxl_present_current) * 3.36;   // mA
         
     
 
@@ -353,7 +355,14 @@ class ServoControlTuning : public Module
             param_sync_write[14] = DXL_HIBYTE(DXL_LOWORD(val));
             param_sync_write[15] = DXL_LOBYTE(DXL_HIWORD(val));
             param_sync_write[16] = DXL_HIBYTE(DXL_HIWORD(val));
+            parameterIndex++;
 
+            if(!runSequence){
+                val = parameterValues[parameterIndex] / 360.0 * 4096.0;
+            }
+            else{
+                val = goalPosition;
+            }
             //Goal position
             std::cout << "Goal position: " << (int)parameterValues[parameterIndex] << std::endl;
             val = parameterValues[parameterIndex] / 360.0 * 4096.0;
@@ -362,6 +371,7 @@ class ServoControlTuning : public Module
             param_sync_write[18] = DXL_HIBYTE(DXL_LOWORD(val));
             param_sync_write[19] = DXL_LOBYTE(DXL_HIWORD(val));
             param_sync_write[20] = DXL_HIBYTE(DXL_HIWORD(val));
+            parameterIndex++;
           
 
         }
@@ -409,7 +419,16 @@ class ServoControlTuning : public Module
         return true;
     }
 
-
+    bool ReachedGoal(int present_position, int goal_position, int margin){   
+            if (abs(present_position - goal_position) > margin){
+                Notify(msg_debug, "Not reached goal");
+                return false;
+            }
+        
+            std::cout << "Reached goal" << std::endl;
+            return true;
+        }
+        
 
     void Init()
     {
@@ -505,8 +524,8 @@ class ServoControlTuning : public Module
                                 {1, 1, 1, 1, 0, 1, 1, 0, 1}};
         dynamixelParameters.set_name("DynamixelParameters");
         dynamixelParameters.set_labels(0, "P", "I", "D", 
-                                        "Goal Current", "Profile Acceleration", "Profile Velocity", 
-                                        "Present Position", "Present Current",  "Goal Position");
+                                        "Goal Current", "Present Current", "Profile Acceleration", "Profile Velocity", 
+                                        "Present Position",  "Goal Position");
         dynamixelParameters.set_labels(1, "Adress", "Byte Length", "Write");
 
         
@@ -894,6 +913,7 @@ class ServoControlTuning : public Module
         int idMax;
         int addressRead = INDIRECTADDRESS_FOR_READ;
         int addressWrite = INDIRECTADDRESS_FOR_WRITE;
+        int directAddress;
 
         int byteLength;
         std::string parameterName;
@@ -939,7 +959,7 @@ class ServoControlTuning : public Module
             {   
                 // Disable Dynamixel Torque :
                 // Indirect address would not accessible when the torque is already enabled
-                dxl_comm_result = packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, ADDR_TORQUE_ENABLE, 0, &dxl_error);
+                dxl_comm_result = packetHandlers[p]->write1ByteTxRx(portHandlers[p], id, ADDR_TORQUE_ENABLE, 0, &dxl_error);
                 if (dxl_comm_result != COMM_SUCCESS)
                 {
                     packetHandlers[p]->getTxRxResult(dxl_comm_result);
@@ -963,7 +983,7 @@ class ServoControlTuning : public Module
                 Notify(msg_debug,"Indirect addresses Torque enable set for all servos" );
                 
                 // present temperature
-                dxl_comm_result = packetHandlers[p]->write1ByteTxRx(portHandlers[p], id, addressRead, ADDR_PRESENT_TEMPERATURE, &dxl_error);
+                dxl_comm_result = packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, ADDR_PRESENT_TEMPERATURE, &dxl_error);
                 if (dxl_comm_result != COMM_SUCCESS) {
                     std::cout << "Failed to set present temperature for servo ID: " << id 
                             << " of port:" << portHandlers[p]->getPortName() 
@@ -982,13 +1002,17 @@ class ServoControlTuning : public Module
                 for (int param = 0; param < dynamixelParameters.cols(); param++) {
                     byteLength = dynamixelParameters(1, param);
                     parameterName = dynamixelParameters.labels(0)[param];
-             
                     for (int byte = 0; byte < byteLength; byte++) {
+                        directAddress = dynamixelParameters(0, param) + byte;
+                        
                         // Writing Indirect Addresses
                         if (parameterName != "Present Current" && parameterName != "Present Position") { // Present current and present position is not used for writing
-                            std::cout << "Setting indirect writing address for " << parameterName << " for servo ID: " << id << " of port:" << portHandlers[p]->getPortName() << std::endl;
+                            std::cout << "Setting indirect reading address for " 
+                            << parameterName << " indirect address: "
+                            << addressWrite << " direct address: " 
+                            << directAddress <<std::endl;
                             if (byteLength == 2) {
-                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressWrite, dynamixelParameters(0, param) + byte, &dxl_error)) {
+                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressWrite, directAddress, &dxl_error)) {
                                     std::cout << "Failed to set indirect writing address for " << parameterName
                                             << " for servo ID: " << id
                                             << " of port:" << portHandlers[p]->getPortName()
@@ -999,7 +1023,7 @@ class ServoControlTuning : public Module
                             }
 
                             if (byteLength == 4) {
-                                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, addressWrite, dynamixelParameters(0, param) + byte, &dxl_error)) {
+                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressWrite, directAddress, &dxl_error)) {
                                     std::cout << "Failed to set indirect writing address for " << parameterName
                                             << " for servo ID: " << id
                                             << " of port:" << portHandlers[p]->getPortName()
@@ -1011,15 +1035,15 @@ class ServoControlTuning : public Module
                             // Increment address after each byte
                             addressWrite += 2;
                         }
-                        else {// Only present position and present current
-                            std::cout << "Setting indirect reading address for " << parameterName
-                                        << " for servo ID: " << id
-                                        << " indirect address: " << addressRead
-                                        << " direct address: " << dynamixelParameters(0, param) + byte <<std::endl;
+                        else {// Only present position and present current is used for reading
+                            std::cout << "Setting indirect reading address for " 
+                            << parameterName << " indirect address: "
+                            << addressRead << " direct address: " 
+                            << directAddress <<std::endl;
                             // Reading Indirect Addresses
                             if (byteLength == 2) {
                                 
-                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, dynamixelParameters(0, param) + byte, &dxl_error)) {
+                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, directAddress, &dxl_error)) {
                                     std::cout << "Failed to set indirect reading address for " << dynamixelParameters.labels()[param]
                                             << " for servo ID: " << id
                                             << " of port:" << portHandlers[p]->getPortName()
@@ -1030,10 +1054,7 @@ class ServoControlTuning : public Module
                             }
 
                             if (byteLength == 4) {
-                                std::cout << "Setting indirect reading address for " << dynamixelParameters.labels()[param]
-                                        << " for servo ID: " << id
-                                        << " of port:" << portHandlers[p]->getPortName() << std::endl;
-                                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, addressRead, dynamixelParameters(0, param) + byte, &dxl_error)) {
+                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, directAddress, &dxl_error)) {
                                     std::cout << "Failed to set indirect reading address for " << dynamixelParameters.labels()[param]
                                             << " for servo ID: " << id
                                             << " of port:" << portHandlers[p]->getPortName()
@@ -1043,7 +1064,7 @@ class ServoControlTuning : public Module
                                 }
                             }
                             // Increment address after each byte
-                        addressRead += 2;
+                            addressRead += 2;
 
                         }
                        
@@ -1227,13 +1248,13 @@ class ServoControlTuning : public Module
     
     void CheckIndirectAddressSettings(int idMin, int idMax) {
         uint16_t read_address_value_2bytes;
-        uint16_t read_indir_address_value_2bytes;
+        uint16_t read_indirect_data_value_2bytes;
         uint32_t read_address_value_4bytes;
-        uint32_t read_indir_address_value_4bytes;
+        uint32_t read_indirect_data_value_4bytes;
         uint8_t dxl_error = 0;
         int dxl_comm_result;
         int expected_address_value[dynamixelParameters.cols()];
-        int indirect_address = INDIRECTDATA_FOR_WRITE +1;
+        int indirect_data_address = INDIRECTADDRESS_FOR_WRITE +2;
 
         for (int p = 0; p < portHandlers.size(); p++) {
             std::cout << "Checking port: " << portHandlers[p]->getPortName() << std::endl;
@@ -1257,21 +1278,21 @@ class ServoControlTuning : public Module
                                         << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
                                 return;
                             }
-                            dxl_comm_result = packetHandlers[p]->read2ByteTxRx(portHandlers[p], id, indirect_address, &read_indir_address_value_2bytes, &dxl_error);
+                            dxl_comm_result = packetHandlers[p]->read2ByteTxRx(portHandlers[p], id, indirect_data_address, &read_indirect_data_value_2bytes, &dxl_error);
                             if (dxl_comm_result != COMM_SUCCESS) {
-                                std::cout << "Failed to read indirect address at " << indirect_address
+                                std::cout << "Failed to read indirect data at " << indirect_data_address
                                         << " for servo ID: " << id
                                         << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
                                         << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
                                 return;
                             }
-                            if (read_address_value_2bytes != read_indir_address_value_2bytes) {
+                            if (read_address_value_2bytes != read_indirect_data_value_2bytes) {
                                 std::cout << "Address at " << address << " = " << read_address_value_2bytes << std::endl;
-                                std::cout << "Indirect Address at " << indirect_address << " = " << read_indir_address_value_2bytes << std::endl;
+                                std::cout << "Indirect data at " << indirect_data_address << " = " << read_indirect_data_value_2bytes << std::endl;
                                 std::cout << "Indirect address does not match the expected value." << std::endl;
                             }
                             else {
-                                std::cout << "Indirect Address at " << indirect_address << "matches the expected value." << std::endl;
+                                std::cout << "Indirect data at " << indirect_data_address << " matches the expected value." << std::endl;
                             }
                             
                         }
@@ -1285,9 +1306,9 @@ class ServoControlTuning : public Module
                                         << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
                                 return;
                             }
-                            dxl_comm_result = packetHandlers[p]->read4ByteTxRx(portHandlers[p], id, indirect_address, &read_indir_address_value_4bytes, &dxl_error);
+                            dxl_comm_result = packetHandlers[p]->read4ByteTxRx(portHandlers[p], id, indirect_data_address, &read_indirect_data_value_4bytes, &dxl_error);
                             if (dxl_comm_result != COMM_SUCCESS) {
-                                std::cout << "Failed to read indirect address at " << indirect_address
+                                std::cout << "Failed to read indirect address at " << indirect_data_address
                                         << " for servo ID: " << id
                                         << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
                                         << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
@@ -1295,16 +1316,16 @@ class ServoControlTuning : public Module
                             }
 
                          
-                            if (read_address_value_4bytes != read_indir_address_value_4bytes) {
+                            if (read_address_value_4bytes != read_indirect_data_value_4bytes) {
                                 std::cout << "Address at " << address << " = " << read_address_value_4bytes << std::endl;
-                                std::cout << "Indirect Address at " << indirect_address << " = " << read_indir_address_value_4bytes << std::endl;
-                                std::cout << "Indirect address does not match the expected value." << std::endl;
+                                std::cout << "Indirect data at " << indirect_data_address << " = " << read_indirect_data_value_4bytes << std::endl;
+                                std::cout << "Indirect data does not match the expected value." << std::endl;
                             }
                             else {
-                                std::cout << "Indirect Address at " << indirect_address << "matches the expected value." << std::endl;
+                                std::cout << "Indirect Address at " << indirect_data_address << "matches the expected value." << std::endl;
                             }
                         }
-                        indirect_address += byteLength;
+                        indirect_data_address += byteLength;
                         
                        
                     
@@ -1435,23 +1456,32 @@ class ServoControlTuning : public Module
         std::cout << "Servo to tune: " << servoToTune << std::endl;
         std::cout << "Servo to tune name: " << servoToTuneName << std::endl;
 
+        if (ReachedGoal(position[0], goalPosition, 5 )&& tick> 0){
+            Notify(msg_debug, "Reached goal position\n");
+            transitionIndex++;
+
+        }
+
 
         if (runSequence)
-        {
-            goalPosition = servoTransitions[0][transitionIndex];
+        {   
+            Notify(msg_debug, "Starting moving sequence\n");
+            std::cout << "Transition index: " << transitionIndex << std::endl;
+            goalPosition = servoTransitions[transitionIndex];
         }
         else
         {
-            goalPosition = servoParameters[0];
+            goalPosition = servoParameters[servoParameters.size() - 1];
             
      
         }
-        position[0]= goalPosition;
         
-        goalCurrent = servoParameters[1];
+        
+        goalCurrent = servoParameters[3];
         current[1] = goalCurrent;
+        position[1] = goalPosition;
 
-        if (transitionIndex > numberTransitions)
+        if (transitionIndex == numberTransitions)
         {
             transitionIndex = 0;
             Notify(msg_debug, "Restarting the transition sequence\n");
@@ -1518,8 +1548,7 @@ class ServoControlTuning : public Module
                 portHandlerBody->clearPort();
             }
         }
-        transitionIndex++;
-        
+        tick++;
     }
 
     // A function that set importat parameters in the control table.
