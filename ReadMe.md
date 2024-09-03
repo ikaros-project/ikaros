@@ -60,24 +60,3 @@ Version 3 is completely rewritten in modern C++ and includes a number of new fea
 
 All parameters can be set in the root element of the ikg-file as well.
 
-## Timing
-
-Timing is set by the *real-time* flag together with the desired *tick_duation*. Tick_duration defaults to 1 s.
-
-All times are set in seconds as a double.
-
-On Mac OS the timing error is below 0.2 microseconds.
-
-The following functions should be used for all timing calculations and work both in real-time and simulated time.
-
- Function | return type |Real-time | Simulated time  |
-| ----|----|----|----|
-| GetTick() | tick_count  |tick | tick |
-| GetTickDuration() | double  | tickduration | tickduration
-| GetTime() | double  | GetRealtime() | tick * tickduration
-| GetRealTime() | double  | timer.GetTime() | tick * tickduration
-  GetNominalTime() | double | tick * tickduration | tick * tickduration 
-| GetLag()  | double  | tick * tickduration - timer.GetTime() | 0
-
-
-GetLag() returns the lag at the time of calling and can be used to adjust for jitter within a module. It is not necessarily the same as the *lag* value in the kernel.
