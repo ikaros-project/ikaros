@@ -8,6 +8,8 @@ Ikaros 2 is described in the article [Ikaros: A framework for controlling robots
 
 Version 3 is completely rewritten in modern C++ and includes a number of new features.
 
+Up to date information is available in the [wiki](https://github.com/ikaros-project/ikaros/wiki).
+
 ## Ikaros Status - 3 September, 2024
 
 | Component | State | Comments |
