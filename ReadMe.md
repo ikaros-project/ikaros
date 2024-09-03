@@ -24,7 +24,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Expressions       |<div style="color:green">🟢 OK |  |
 | XML               |<div style="color:green">🟢 OK | |
 | Kernel            |<div style="color:green">🟢 OK |
-| Exception handling    |<div style="color:#c60">🟡 Partial | mostly ready |
+| Exception handling |<div style="color:green">🟢 OK | needs better messages |
 | Shared dict       |<div style="color:green">🟢  OK |  |
 | Scheduler         |<div style="color:#green">🟢 OK | single thread |
 | Task sorting      |<div style="color:green">🟢 OK |  |
@@ -40,7 +40,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Encryption        |<div style="color:#e00">🔴 Pending |  |
 | Editing           |<div style="color:green">🟢 OK  | |
 | Sockets           |<div style="color:green">🟢 OK |  |
-| UtilityModules    |<div style="color:#c60">🟡 Partial | 16 modules |
+| UtilityModules    |<div style="color:#c60">🟡 Partial | 17 modules |
 | Named Dimensions  |<div style="color:green">🟢 OK |  |
 
 ## Basic Start-up Parameters
