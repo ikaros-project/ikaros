@@ -41,12 +41,11 @@
         
 
 	<parameter name="ServoParameters" type="matrix" 
-	description="The control parameters in the dynamixel. Parameters:P, I , D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position"
+	description="The control parameters in the dynamixel. Parameters: Goal Position, Goal Current, P, I, D, Profile Acceleration, Profile Velocity"
 	control="slider"
-	default="100,0,1000,500, 0,0, 180"
-
+	default="180,200,180,0,1000,0,0"
+	data="180,200,180,0,1000,0,0"
 	/>
-	
 	<parameter name="MinLimitPosition" type="matrix" description="The minimum limit of the position of the servos. Not including pupils"
 	control="slider"
 	default="1300, 1750, 1830, 1780, 600, 800, 1000, 600, 800, 0, 600, 900, 1000, 1800, 800, 0, 100"
