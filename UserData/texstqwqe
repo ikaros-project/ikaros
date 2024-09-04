@@ -1,0 +1,6 @@
+<group log_level="5" name="Untitled" stop="-1" webui_port="8000">
+   <module _x="100" _y="100" class="Constant" data="1" description="outputs a constant value" log_level="5" name="C">
+      <output description="The output" name="OUTPUT" size="data.size"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix"/>
+   </module>
+</group>

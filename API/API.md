@@ -92,6 +92,23 @@ This example HTTP fragment shows to build a simple web client to Ikaros using HT
     </div>
 ```
 
+## A Minimal Python Client
+
+The Python script below send a command to an Ikaros module A.B.C with a command named 'command_name' and two parameters x and text.
+
+```Python
+import requests
+import json
+
+url = 'http://127.0.0.1:8000/command/A.B.C/'
+data = { 'command': "command_name",  'x': '42',  'text': 'my message to the module'}
+headers = {'Content-Type': 'application/json'}
+
+response = requests.put(url, headers=headers, data=json.dumps(data))
+````
+
+A larger example with error handling can be found in the file _API/ikaros_api_put.py_.
+
 ## API Requests used Interally by BrainStudio and WebUI
 
 ### /
