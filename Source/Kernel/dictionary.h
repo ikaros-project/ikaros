@@ -137,7 +137,6 @@ namespace ikaros
         value(const dictionary & d) { value_ = d; }
 
         value & operator =(bool v) { value_ = v; return *this; }
-        value & operator =(int v) { value_ = double(v); return *this; }
         value & operator =(double v) { value_ = double(v); return *this; }
         value & operator =(null n) { value_ = null(); return *this; };
         value & operator =(const std::string & s) { value_ = s; return *this; }
@@ -169,7 +168,7 @@ namespace ikaros
         std::string json() const;
         std::string xml(std::string name, int depth=0, std::string exclude = "");
 
-        operator double ();
+        operator double ();                                        // FIXME: Add other types - both from and to
         operator list ();
         operator dictionary ();
 
