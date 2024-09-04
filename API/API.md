@@ -21,7 +21,7 @@ component (a group or a modul) or a prameter.  There can be zero or  multiple at
 
 The command should be URL encoded if it include non-ascii characters.
 
-In the future, parameters will also be accepted as JSON in the body of a HTTP request.
+Parameters are also  accepted as JSON in the body of a HTTP PUT request (See examples below).
 
 Each command has its own set of possible parameters.
 
