@@ -38,10 +38,22 @@
 
             
   
-        
+    <parameter name="ParametersToTune" type="string"
+	description="The names of the control parameters include in the tuning" 
+	data="P, I, D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position" 
+	control="textedit" 
+	default="P, I , D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position" 
+	/>
 
-	<parameter name="ServoParameters" type="matrix" 
-	description="The control parameters in the dynamixel. Parameters:P, I , D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position"
+	<parameter name="ParametersToRead" type="string"
+	description="The names of the control parameters to read values from" 
+	data="Present Current, Present Position" 
+	control="textedit" 
+	default="Present Current, Present Position" 
+	/>
+
+	<parameter name="ParameterValues" type="matrix" 
+	description="The values of the control parameters in the dynamixel"
 	control="slider"
 	default="100,0,1000,500, 0,0, 180"
 
@@ -57,7 +69,10 @@
 	default="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900"
 	data="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900"
 	/>
-	<parameter name="Servo" type="string" description="The servo to tune" control="menu" options="NeckTilt, NeckPan, LeftEye, RightEye, PupilLeft, PupilRight, ArmJoint1, ArmJoint2, ArmJoint3, ArmJoint4, ArmJoint5, Hand, Body" default="NeckTilt"/>
+	<parameter name="Servo" type="string" description="The servo to tune" control="menu" 
+	options="NeckTilt, NeckPan, LeftEye, RightEye, LeftPupil, RightPupil, LeftArmJoint1, LeftArmJoint2, LeftArmJoint3, LeftArmJoint4, LeftArmJoint5, LeftHand, RightArmJoint1, RightArmJoint2, LeftArmJoint3, RightArmJoint4, RightArmJoint5, RightHand, Body" 
+	default="NeckTilt"
+	/>
 
 	<parameter name="robot" type="string" description="The robot to tune" control="menu" options= "EpiGray, EpiBlack, EpiWhite, EpiBlue, EpiYellow, EpiRed, EpiOrange, EpiGreen" />
 
