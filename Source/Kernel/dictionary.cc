@@ -122,6 +122,17 @@ namespace ikaros
             return os;
         }
 
+    int list::get_index(const std::string& str) {
+        int index = 0;
+        for (const auto& val : *list_) {
+            if (val.equals(str)) {
+                return index;
+            }
+            index++;
+        }
+        return -1; // string not found
+    }
+
 // dictionary
 
 
@@ -431,8 +442,8 @@ namespace ikaros
                 return std::string(std::get<dictionary>(value_));
             else if(std::holds_alternative<null>(value_))
                 return "null";
-            else
-                return "*"; // FIXME: Throw exception
+
+           throw std::runtime_error("Unknown variant");
         }
 
         bool 
@@ -482,12 +493,16 @@ namespace ikaros
         }
 
           
-        value::operator double ()                                          // FIXME: Add other types - both from and to
+        value::operator double ()
         { 
+            if(std::holds_alternative<double>(value_))
+                return std::get<double>(value_);
             if(std::holds_alternative<std::string>(value_))
                 return std::stod(std::get<std::string>(value_));
-            else
-                return 0; // FIXME: throw?
+            else  if(std::holds_alternative<null>(value_))
+                return 0;
+
+            throw std::runtime_error("Cannot convert to double");
         }
 
           
@@ -521,6 +536,13 @@ namespace ikaros
         if(std::holds_alternative<dictionary>(value_))
             return value(std::get<dictionary>(value_).copy());    
         return value();
+    }
+
+    bool value::equals(const std::string& str) const {
+    if (std::holds_alternative<std::string>(value_)) {
+        return std::get<std::string>(value_) == str;
+    }
+    return false;
     }
 
     std::string parse_string(const std::string& s, size_t& pos)
@@ -700,5 +722,7 @@ value parse_json(const std::string& json_str)
     size_t pos = 0;
     return parse_value(json_str, pos);
 }
+
+
 
 };

@@ -75,7 +75,7 @@ namespace ikaros
         int get_int(std::string s);
         bool is_set(std::string s);    // Returns true if set and true, and false if not set or not set to true, bool or string
         bool is_not_set(std::string s);    // Negation of is_set
-        int get_index(std::string key); // Returns the index of the key in the dictionary
+        int get_index(const std::string key); // Returns the index of the key in the dictionary
 
         std::string json() const;
         std::string xml(std::string name, int depth=0, std::string exclude = "");
@@ -119,6 +119,7 @@ namespace ikaros
         friend std::ostream& operator<<(std::ostream& os, const list & v);
 
         list copy() const;
+        int get_index(const std::string &str);// Returns the index of the key in the dictionary
 
         void print() const { std::cout << this->json() << std::endl; };
     };
@@ -137,6 +138,7 @@ namespace ikaros
         value(const dictionary & d) { value_ = d; }
 
         value & operator =(bool v) { value_ = v; return *this; }
+        value & operator =(int v) { value_ = double(v); return *this; }
         value & operator =(double v) { value_ = double(v); return *this; }
         value & operator =(null n) { value_ = null(); return *this; };
         value & operator =(const std::string & s) { value_ = s; return *this; }
@@ -150,7 +152,7 @@ namespace ikaros
         bool is_true();
 
         int as_int()            { return double(*this); };  // FIXME: CHECK THIS ONE
-
+        bool equals(const std::string& str) const;
         value & operator[] (const char * s); // Captures literals as argument ***************
         value & operator[] (const std::string & s);
         value & at(const std::string & s); // throws if not dictionary or non-existent attribute
@@ -168,7 +170,7 @@ namespace ikaros
         std::string json() const;
         std::string xml(std::string name, int depth=0, std::string exclude = "");
 
-        operator double ();                                        // FIXME: Add other types - both from and to
+        operator double ();
         operator list ();
         operator dictionary ();
 
@@ -183,4 +185,3 @@ namespace ikaros
 
 
 #endif
-
