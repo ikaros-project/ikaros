@@ -439,6 +439,9 @@ public:
     void Clear();        // Remove all non-persistent data and reset kernel variables - // FIXME: Init???
 
     static void *   StartHTTPThread(Kernel * k);
+
+    // FIXME: Add mutexes for functions called by modules
+
     tick_count GetTick() { return tick; }
     double GetTickDuration() { return tick_duration; } // Time for each tick in seconds (s)
     double GetTime() { return (run_mode == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time dending on mode)
