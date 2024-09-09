@@ -108,6 +108,9 @@ namespace ikaros
         const_iterator cbegin() const { return list_->cbegin(); }
         const_iterator cend() const { return list_->cend(); }
 
+        iterator erase(const_iterator pos) const { return list_->erase(pos); }
+        iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
+
         value & operator[] (int i);
         int size() { return list_->size(); };
         list & push_back(const value & v) { list_->push_back(v); return *this; };
@@ -150,7 +153,11 @@ namespace ikaros
         bool is_null()          { return std::holds_alternative<null>(value_); }
         bool is_true();
 
-        int as_int()            { return double(*this); };  // FIXME: CHECK THIS ONE
+        bool as_bool()              { return double(*this) != 0; };
+        int as_int()                { return double(*this); };
+        float as_float()            { return double(*this); };
+        double as_double()          { return double(*this); };
+        std::string as_string()     { return std::string(*this); };
 
         value & operator[] (const char * s); // Captures literals as argument ***************
         value & operator[] (const std::string & s);
