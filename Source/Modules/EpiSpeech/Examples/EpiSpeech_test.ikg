@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<group name="EpiSpeech" title="EpiSpeech Example">
+	
+		<module
+			class = "Constant"
+			name = "Command"
+			data  = "0 0 0 0 0 0"
+		/>
+
+		<module
+			class = "Constant"
+			name = "Attribute1"
+			data  = "0 0 0"
+		/>
+
+				<module
+			class = "Constant"
+			name = "Attribute2"
+			data  = "0.5"
+		/>
+		<module
+			class = "Constant"
+			name = "Inhibition"
+			data  = "0"
+		/>
+
+		<module
+			class = "EpiSpeech"
+			name = "EpiSpeech"
+			text  = "one,two,three,111, robotic beings rule the world, the humans are dead."
+			voice = "Noelle (Enhanced)"
+		/>
+		
+        <connection  source = "Command.OUTPUT"  target = "EpiSpeech.TRIG" />
+        <connection  source = "Inhibition.OUTPUT"  target = "EpiSpeech.INHIBITION" />
+
+	<connection  source = "Attribute1.OUTPUT"  target = "EpiSpeech.ATTRIBUTE1" />
+	<connection  source = "Attribute2.OUTPUT"  target = "EpiSpeech.ATTRIBUTE2" />
+
+
+	<view name="Controls" >
+	<text  x = "60" y = "360" height = "101" width = "101" title = "Attribute 1" parameter = "" text = "" prefix = "" postfix = "" separator = "" strings = "" select_source = "" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+
+            <bar-graph  w = "3" source = "Command.OUTPUT" direction = "vertical" lineCap = "" module = "Command" transpose = "false" max = "1" color = "" title = "Sound Triggers" fill = "" x = "60" lineWidth = "1" width = "701" lineJoin = "" min = "0" height = "201" show_frame = "false" style = "" auto = "false" show_title = "true" y = "20" frame-style = "" labels = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-1" frame-style = "" yindex = "0" valueUp = "0" xindex = "0" value = "1" x = "60" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-2" frame-style = "" yindex = "0" valueUp = "0" xindex = "1" value = "1" x = "180" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-3" frame-style = "" yindex = "0" valueUp = "0" xindex = "2" value = "1" x = "300" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-4" frame-style = "" yindex = "0" valueUp = "0" xindex = "3" value = "1" x = "420" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-5" frame-style = "" yindex = "0" valueUp = "0" xindex = "4" value = "1" x = "540" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <button  commandUp = "" title = "Title" command = "" y = "240" parameter = "Command.data" label = "phrase-6" frame-style = "" yindex = "0" valueUp = "0" xindex = "5" value = "1" x = "660" show_frame = "false" enableSource = "" show_title = "false" style = ""/>
+            <bar-graph  frame-style = "" show_title = "true" min = "-100" lineCap = "" fill = "" style = "" labels = "" direction = "vertical" source = "EpiSpeech.RMS" title = "VU" color = "" max = "5" transpose = "false" lineJoin = "" lineWidth = "1" width = "200" show_frame = "false" auto = "false" height = "200" y = "20" x = "780"/>
+            <bar-graph  x = "780" y = "240" height = "200" width = "200" title = "VOLUME" source = "EpiSpeech.VOLUME" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "0.03" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+       	    <slider-horizontal  x = "1000" y = "240" height = "200" width = "200" title = "Scale Volume Output" parameter = "EpiSpeech.scale_volume" select = "0" count = "1" labels = "" min = "0" max = "10" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+   	    	<slider-horizontal  count = "1" frame-style = "" height = "200" labels = "" max = "500" min = "-500" parameter = "EpiSpeech.lag" select = "0" show_frame = "false" show_title = "true" show_values = "true" step = "0.01" style = "" title = "Lag" width = "200" x = "1000" y = "460"/>
+
+	<bar-graph  auto = "false" color = "" direction = "vertical" fill = "" frame-style = "" height = "201" labels = "" lineCap = "" lineJoin = "" lineWidth = "1" max = "1" min = "0" module = "Command" show_frame = "false" show_title = "true" source = "EpiSpeech.PLAYING" style = "" title = "Playing" transpose = "false" w = "3" width = "701" x = "60" y = "480"/>
+	<bar-graph  auto = "false" color = "" direction = "vertical" fill = "" frame-style = "" height = "201" labels = "" lineCap = "" lineJoin = "" lineWidth = "1" max = "1" min = "0" module = "Command" show_frame = "false" show_title = "true" source = "EpiSpeech.COMPLETED" style = "" title = "Completed" transpose = "false" w = "3" width = "701" x = "60" y = "700"/>
+	<bar-graph  auto = "false" color = "" direction = "vertical" fill = "" frame-style = "" height = "201" labels = "" lineCap = "" lineJoin = "" lineWidth = "1" max = "1" min = "0" module = "Command" show_frame = "false" show_title = "true" source = "EpiSpeech.ACTIVE" style = "" title = "Active" transpose = "false" w = "3" width = "181" x = "780" y = "600"/>
+	<switch  x = "60" y = "920" height = "41" width = "101" title = "Switch Title" label = "Inhibition" parameter = "Inhibition.data" single_trig = "true" value = "1" xindex = "0" yindex = "0" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+
+	<switch  frame-style = "" height = "21" label = "red" parameter = "Attribute1.data" show_frame = "false" show_title = "false" single_trig = "true" style = "" title = "Red" value = "1" width = "101" x = "60" xindex = "0" y = "400" yindex = "0"/>
+	<switch  frame-style = "" height = "21" label = "green" parameter = "Attribute1.data" show_frame = "false" show_title = "false" single_trig = "true" style = "" title = "Green" value = "1" width = "101" x = "60" xindex = "1" y = "420" yindex = "0"/>
+	<switch  frame-style = "" height = "21" label = "blue" parameter = "Attribute1.data" show_frame = "false" show_title = "false" single_trig = "true" style = "" title = "Blue" value = "1" width = "101" x = "60" xindex = "2" y = "440" yindex = "0"/>
+	<slider-horizontal  x = "420" y = "360" height = "121" width = "101" title = "Attribute 2" parameter = "Attribute2.data" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+
+
+ </view>
+
+
+    <module class = "Logger" name = "Logger" />
+</group>
+
+
+
+
+
