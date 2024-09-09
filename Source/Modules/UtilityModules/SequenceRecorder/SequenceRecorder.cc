@@ -835,7 +835,7 @@ SequenceRecorder::LinkKeypoints()
 void
 SequenceRecorder::DeleteEmptyKeypoints()
 {
-    auto keypoints = list(sequence_data["sequences"][current_sequence.as_int()]["keypoints"]);
+    list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
     auto it = keypoints.begin();
     while(it != keypoints.end()) 
     {
@@ -894,7 +894,7 @@ void
 SequenceRecorder::AddKeypoint(float time)
 {   
 
-    auto keypoints = list(sequence_data["sequences"][current_sequence.as_int()]["keypoints"]); // FIXME: OR type list for auto concersion if it works
+    list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
     int n = keypoints.size();
 
     float qtime = quantize(time, kernel().GetTickDuration());
