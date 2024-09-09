@@ -349,6 +349,7 @@ std::string rtrim(const std::string &ss)
     return s;
 }
 
+/*
 // trim from both ends (in place)
 std::string trim(const std::string &ss)
 {
@@ -357,7 +358,7 @@ std::string trim(const std::string &ss)
     s = rtrim(s);
     return s;
 }
-
+*/
 
 
 

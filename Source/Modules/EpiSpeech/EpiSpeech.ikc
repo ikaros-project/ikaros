@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<class name="EpiSpeech" description="reads a text using Apple's speech synthesis">
+
+	<description type="text">
+        Plays one or several named sound files. Requires that a command to play sounds is available that can be started from the posix_spawn() call. The default is the afplay command available in OS X. On Linux, 
+		this can be replaced with the "play" command. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time. 
+		In this case, the volume is sent to the VOLUME output.
+
+		A sound is triggered when its corresponding input goes from 0 to 1. While a sound is playing, a second sound can be cueued. It will play when the first has completed. If inhibition is 1, no sound will 
+		start playing but it is still possible to queue a sound that will be played when the inhibition is removed.
+
+		The interface for EpiSpeech is meant to be similar to that for SequenceRecorder.
+
+		The ACTIVE output can be connected to the INHIBITION of another sound module to prevent multiple sounds from being played at the same time. If both modules are triggered at the same times, their sounds 
+		will play after each other.
+	</description>
+
+    <parameter name="command" type="string" default="/usr/bin/afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" />
+    <parameter name="speech_command" type="string" default="/usr/bin/say" description="the command used to produce a sound file from a text, The dafult is the OS X command say" />
+    <parameter name="voice" type="string" default="Noelle (Enhanced)" description="voice to be used. This voice must be installed and the module will silently fail if it is not." />
+    <parameter name="text" type="string" default="hello there,yes,no" description="comma separated list of texts to say." />
+    <parameter name="scale_volume" type="float" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
+    <parameter name="lag" type="float" default="100.0" description="Lag in ms before the sound starts. Used to correct timing of volume output for better animations." />
+    
+	<input name="TRIG" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
+	<input name="INHIBITION" description="No new sound is started while this input > 0. A single triggering input will be queued and start when the inhibition is removed." />
+
+	<input name="ATTRIBUTE1" optional="yes" description="Data to phrase as a feature vector or a float value." />
+	<input name="ATTRIBUTE2" optional="yes" description="Data to phrase as a feature vector or a float value" />
+
+    <output name="PLAYING" size_set="TRIG" description="Set to 1 while a sound is playing, otherwise 0." />
+    <output name="COMPLETED" size_set="TRIG" description="Element for each sound set to 1 for one tick after a sound has complted playing." />
+
+    <output name="ACTIVE" size="1" description="Set to 1 while a sound is playing, otherwise 0." />
+
+    <output name="RMS" size="2" description="precalculated approximate volume (dB) of the current sound being played at relativey low temporal resolution. Can be used for VU-meter or other animation (left and right)." />
+    <output name="VOLUME" size="2" description="precalculated approximate volume of the current sound being played at relativey low temporal resolution. Linear version of VU (left and right)." />
+
+
+
+	<link class="EpiSpeech" />
+
+	<author>
+		<name>Christian Balkenius</name>
+		<email>christian.balkenius@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
+	</author>
+
+   <files>
+   		<file>EpiSpeech.h</file>
+   		<file>EpiSpeech.cc</file>
+   		<file>EpiSpeech.ikc</file>
+   </files>
+
+</class>
+
+
