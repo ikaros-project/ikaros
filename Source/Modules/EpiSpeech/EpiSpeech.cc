@@ -11,7 +11,7 @@ class SpeechSound
         SpeechSound(const std::string & s) : sound_path(s) { timer = new Timer(); };
 
         void    Play(const std::string & command);
-        bool    UpdateVolume(matrix rms, float lag=0);  // returns true if still playing
+        bool    UpdateVolume(matrix rms, double lag=0);  // returns true if still playing
 
         std::string sound_path;
         std::vector<float> time;
@@ -31,7 +31,6 @@ class EpiSpeech: public Module
 public:
     matrix trig;
     matrix last_trig;
-    //int     size; = trig.size()
     matrix inhibition;
 
     matrix playing;
@@ -58,10 +57,6 @@ public:
     int last_sound;
 
 
-    // static Module * Create(Parameter * p) { return new EpiSpeech(p); }
-
-    // EpiSpeech(Parameter * p) : Module(p) {}
-
     virtual ~EpiSpeech() {}
 
     SpeechSound       CreateSound(std::string text, std::string path, int id=0);
@@ -84,9 +79,9 @@ SpeechSound::Play(const std::string & command)
 }
 
 bool
-SpeechSound::UpdateVolume(matrix rms, float lag)
+SpeechSound::UpdateVolume(matrix rms, double lag)
 {
-    float rt = 0.001*(timer->GetTime() - lag);
+    float rt = (timer->GetTime() - lag); // 0.001*
     while(frame < time.size() && time[frame] < rt)
         frame++;
 
@@ -171,6 +166,7 @@ EpiSpeech::Init()
        Bind(speech_command, "speech_command");
 
     Bind(scale_volume, "scale_volume");
+    Bind(text, "text");
 
     int id = 0;
     for(auto t: split(std::string(text), ","))
@@ -191,7 +187,7 @@ EpiSpeech::Tick()
 
     // Start play if sound in queue and no inhibition
 
-        if(current_sound == -1 && queued_sound != -1 && (!inhibition || inhibition == 0))   // FIXME: PROBABLY NOT WORKING
+        if(current_sound == -1 && queued_sound != -1 && (!inhibition .connected()|| inhibition == 0))   // FIXME: PROBABLY NOT WORKING
         {
             current_sound = queued_sound;
             queued_sound = -1;

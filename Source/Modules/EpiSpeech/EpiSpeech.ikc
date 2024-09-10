@@ -20,17 +20,17 @@
     <parameter name="speech_command" type="string" default="/usr/bin/say" description="the command used to produce a sound file from a text, The dafult is the OS X command say" />
     <parameter name="voice" type="string" default="Noelle (Enhanced)" description="voice to be used. This voice must be installed and the module will silently fail if it is not." />
     <parameter name="text" type="string" default="hello there,yes,no" description="comma separated list of texts to say." />
-    <parameter name="scale_volume" type="float" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
-    <parameter name="lag" type="float" default="100.0" description="Lag in ms before the sound starts. Used to correct timing of volume output for better animations." />
+    <parameter name="scale_volume" type="number" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
+    <parameter name="lag" type="number" default="100.0" description="Lag in seconds before the sound starts. Used to correct timing of volume output for better animations." />
     
 	<input name="TRIG" description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." />
 	<input name="INHIBITION" description="No new sound is started while this input > 0. A single triggering input will be queued and start when the inhibition is removed." />
 
-	<input name="ATTRIBUTE1" optional="yes" description="Data to phrase as a feature vector or a float value." />
-	<input name="ATTRIBUTE2" optional="yes" description="Data to phrase as a feature vector or a float value" />
+	<input name="ATTRIBUTE1" optional="yes" description="Data to phrase as a feature vector or a number value." />
+	<input name="ATTRIBUTE2" optional="yes" description="Data to phrase as a feature vector or a number value" />
 
-    <output name="PLAYING" size_set="TRIG" description="Set to 1 while a sound is playing, otherwise 0." />
-    <output name="COMPLETED" size_set="TRIG" description="Element for each sound set to 1 for one tick after a sound has complted playing." />
+    <output name="PLAYING" size="TRIG.size" description="Set to 1 while a sound is playing, otherwise 0." />
+    <output name="COMPLETED" size="TRIG.size" description="Element for each sound set to 1 for one tick after a sound has complted playing." />
 
     <output name="ACTIVE" size="1" description="Set to 1 while a sound is playing, otherwise 0." />
 
