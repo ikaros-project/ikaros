@@ -228,7 +228,7 @@ namespace ikaros
 
         switch(type)
         {
-            case no_type: throw exception("Uninitialized or unbound parameter.");
+            case no_type: throw exception("Uninitialized or unbound parameter. Bind() may not be called in Init().");
             case number_type: if(number_value) return std::to_string(*number_value);
             case bool_type: if(number_value) return (*number_value>0 ? "true" : "false");
             case rate_type: if(number_value) return std::to_string(*number_value);
