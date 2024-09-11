@@ -690,6 +690,7 @@ let controller =
     new() 
     {
         controller.queueCommand('new');
+        network.tainted = true;
     },
 
     openCallback(filename, where)
@@ -850,6 +851,7 @@ let controller =
             document.querySelector("#file").innerText = response.file;
             document.querySelector("#tick").innerText = (Number.isInteger(response.tick) && response.tick >= 0 ?  response.tick : "-");
             document.querySelector("#state").innerHTML = controller.run_mode + (network.tainted ? " <span style='color:red'>&#9679;</span>" : "");
+
             document.querySelector("#uptime").innerText = secondsToHMS(response.uptime);
             document.querySelector("#time").innerText = secondsToHMS(response.time);
             document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;

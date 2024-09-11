@@ -1484,7 +1484,7 @@ bool operator==(Request & r, const std::string s)
         Notify(msg_print, "New file");
     
         Clear();
-        Pause();
+
         dictionary d;
 
         d["_tag"] = "group";
@@ -1503,6 +1503,8 @@ bool operator==(Request & r, const std::string s)
         d["filename"] = ""; // Ignore filename at command line 
         BuildGroup(d);
         info_ = d;
+
+        run_mode = run_mode_stop;
         session_id = new_session_id(); // FIXME: Probably not necessary - din in clear
         SetUp(); // FIXME: Catch exceptions if new fails
     }
@@ -1827,7 +1829,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::PrintLog()
     {
         for(auto & s : log)
-            std::cout << "IKAROS: " << s.level_ << ": " << s.message_ << std::endl;
+            std::cout << "ikaros: " << s.level_ << ": " << s.message_ << std::endl;
         log.clear();
     }
 
@@ -2031,19 +2033,14 @@ if(classes[classname].path.empty())
     void 
     Kernel::LoadFile()
     {
-            std::cout << "Kernel::LoadFile" << std::endl;
             try
             {
                 dictionary d = dictionary(options_.filename);
                 SetCommandLineParameters(d);
-                std::cout << "Kernel::LoadFile BuildGroup" << std::endl;
                 BuildGroup(d);
-                std::cout << "Kernel::LoadFile BuildGroup: COMPLETE" << std::endl;
                 info_ = d;
                 session_id = new_session_id();
-                std::cout << "Kernel::LoadFile SetUp" << std::endl;
                 SetUp();
-                std::cout << "Kernel::LoadFile SetUp: COMPLETE" << std::endl;
                 Notify(msg_print, u8"Loaded "s+options_.filename);
 
                 CalculateCheckSum();
@@ -2057,9 +2054,7 @@ if(classes[classname].path.empty())
                 Notify(msg_fatal_error, u8"Load file failed for "s+options_.filename);
                 //CalculateCheckSum();
                 throw fatal_error("Load failed");
-                //New(); // FIXME: New in main - not here
             }
-        std::cout << "Kernel::LoadFile COMPLETE" << std::endl;
     }
 
 
@@ -2109,7 +2104,6 @@ if(classes[classname].path.empty())
     void 
     Kernel::Save() // Simple save function in present file from kernel data
     {
-        std::cout << "Kernel::Save" << std::endl;
         std::string data = xml();
 
         //std::cout << data << std::endl;
@@ -2369,7 +2363,6 @@ if(classes[classname].path.empty())
                 result.push_back(sortedSubgraph);
                 for (const auto& node : sortedSubgraph) {
                 }
-                std::cout << std::endl;
             }
 
             return result;
@@ -2403,22 +2396,9 @@ if(classes[classname].path.empty())
                 arcs.push_back({cc, t});
                 task_map[cc] = &c; // Save in task map
             }
-/*
-       for(auto & s : nodes)
-            std::cout <<  "NODE: " << s << std::endl;
-       for(const auto [s,t] : arcs)
-            std::cout <<  "ARC: " << s << "->" << t << std::endl;
-*/
+
         auto r = sort(nodes, arcs);
-/*
-        for(auto s : r)
-        {
-            for(auto ss: s)
-                std::cout << ss << " ";
-                std::cout  << std::endl;
-        }
-        std::cout  << std::endl;
-*/
+
         // Fill task list
 
         tasks.clear();
@@ -2457,21 +2437,14 @@ if(classes[classname].path.empty())
     {
         try
         {
-            std::cout << "SetUp: SortTasks" << std::endl;
+
             SortTasks();
-            std::cout << "SetUp: ResolveParameters" << std::endl;
             ResolveParameters();
-            std::cout << "SetUp: PruneConnections" << std::endl;
             PruneConnections();
-            std::cout << "SetUp: CalculateDelays" << std::endl;
             CalculateDelays();
-            std::cout << "SetUp: CalculateSizes" << std::endl;
             CalculateSizes();
-            std::cout << "SetUp: InitCircularBuffers" << std::endl;
             InitCircularBuffers();
-            std::cout << "SetUp: InitComponents" << std::endl;
             InitComponents();
-            std::cout << "SetUp: COMPLETE" << std::endl;
 
             if(info_.is_set("info"))
             {
@@ -2767,7 +2740,7 @@ if(classes[classname].path.empty())
         socket->Send("\t\"debug\": false,\n");
 #endif
 
-        socket->Send("\t\"state\": %d,\n", run_mode);
+            socket->Send("\t\"state\": %d,\n", run_mode);
         if(stop_after != -1)
         {
             socket->Send("\t\"tick\": \"%d / %d\",\n", tick, stop_after);
@@ -2907,9 +2880,8 @@ if(classes[classname].path.empty())
     void
     Kernel::DoNew(Request & request)
     {
-        Pause(); // Probably not necessary
         New();
-        DoUpdate(request);
+        DoUpdate(request);  // FIXME: OR SEND NETWORK
     }
 
 
@@ -2945,10 +2917,9 @@ if(classes[classname].path.empty())
             return;
         }
 
-
-        std::filesystem::path path = std::string(d["filename"]);
-        std::string filename = path.filename();
-        d["filename"] = null(); // FIXME: remove propery later ************** WHY? ************
+        //std::filesystem::path path = std::string(d["filename"]);
+        std::string filename = add_extension(std::string(d["filename"]), ".ikg");
+        d["filename"] = ""; // Do not include filename in file
         std::string data = d.xml("group");
         std::ofstream file;
         file.open (filename);
@@ -2958,25 +2929,9 @@ if(classes[classname].path.empty())
         options_.filename = filename;
         needs_reload = true;
 
-
-        //LoadFile();
-
-
-
-        // std::string s = "{\"status\":\"ok\"}"; 
-
-        /*
-        Dictionary rtheader;
-        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
-        rtheader.Set("Package-Type", "network"); // FIXME: wrong packade type *************
-        rtheader.Set("Content-Type", "application/json");
-        rtheader.Set("Content-Length", int(s.size()));
-        socket->SendHTTPHeader(&rtheader);
-        socket->SendData(s.c_str(), int(s.size()));
-        */
+        info_ = d;
 
         DoUpdate(request);
-        std::cout << "Save: COMPLETE" << '\n';
     }
 
 
