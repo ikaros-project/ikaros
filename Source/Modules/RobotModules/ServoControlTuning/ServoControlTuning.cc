@@ -254,8 +254,6 @@ class ServoControlTuning : public Module
         }
       
 
-      
-
         // Sync read
         dxl_comm_result = groupSyncRead->txRxPacket();
 
@@ -286,7 +284,7 @@ class ServoControlTuning : public Module
 
       
 
-        //iterate through all the dxl_read_data
+        //iterate through all the dxl read data
         dxl_present_temperature = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ, 1); // Present temperature    
         byte_increment += 1;
         dxl_present_current = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ + byte_increment, 2); // Present current
@@ -304,18 +302,11 @@ class ServoControlTuning : public Module
         std::cout << "Position (degrees): " << dxl_present_position / 4095.0 * 360.0 << std::endl;
         std::cout << "Current (mA): " << abs(dxl_present_current) * 3.36 << std::endl;
 
-        // dxl_comm_result = packetHandler->read4ByteTxRx(portHandlerHead, ID, ADDR_PRESENT_POSITION, &dxl_present_position, &dxl_error);
-        // if (dxl_comm_result != COMM_SUCCESS) {
-        //     std::cout << "Failed to get present position! Result: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
-        // } else if (dxl_error != 0) {
-        //     std::cout << "Error getting present position! Error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
-        // }
-        // else{
-        //     std::cout << "Present position with reading functiton: " << dxl_present_position << std::endl;
-        // }
+    
 
         position[0] = dxl_present_position / 4095.0 * 360.0; // degrees
         current[0] = abs(dxl_present_current) * 3.36; // mA
+        
         // Send (sync write)
         index = IOIndex;
         param_sync_write[0] = 1; // Torque on
@@ -325,16 +316,14 @@ class ServoControlTuning : public Module
         
             int paramIndex = 1;
             for (int i = 0; i < parameterValues.size(); i++)
-            {
-             
+            {   
                 if(parameterToTune[i].equals("Goal Position")){
-
                     //Goal position
                     if(!runSequence){
-                        val = parameterValues[i] / 360.0 * 4096.0;
+                        val = parameterValues[i] / 360.0 * 4096.0; //Takes value from WebUI
                     }
                     else{
-                        val = goalPosition / 360.0 * 4096.0;
+                        val = goalPosition / 360.0 * 4096.0; //Takes value from servoTransitions
                     }
                     std::cout << "Goal position: " << val * 360 /4096 << std::endl;
                 }
@@ -396,16 +385,7 @@ class ServoControlTuning : public Module
             groupSyncRead->clearParam();
             return false;
         }
-        //read goal current
-        dxl_comm_result = packetHandler->read2ByteTxRx(portHandler, ID, ADDR_GOAL_CURRENT, &dxl_goal_current, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS) {
-            std::cout << "Failed to get goal current! Result: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
-        } else if (dxl_error != 0) {
-            std::cout << "Error getting goal current! Error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
-        }
-        else{
-            std::cout << "dxl Goal current: " << dxl_goal_current << std::endl;
-        }
+       
 
         groupSyncWrite->clearParam();
         groupSyncRead->clearParam();
