@@ -30,8 +30,8 @@
 #define INDIRECTADDRESS_FOR_READ       578                  
 #define INDIRECTDATA_FOR_WRITE         224
 #define INDIRECTDATA_FOR_READ          634
-#define LEN_INDIRECTDATA_FOR_WRITE     21 // Torque Enable(1) + P(2) + I(2) + D(2)  + Goal current(2)+ Profile Acceleration (4) + Profile Velocity (4) +  Goal Position(4) 
-#define LEN_INDIRECTDATA_FOR_READ      7 //27 // Present Temperature(1)+ P(2) + I(2) + D(2)  + Goal current(2)+ Present Current (2) Profile Acceleration (4) + Profile Velocity (4) +  Goal Position(4) + Present Position(4) 
+//#define LEN_INDIRECTDATA_FOR_WRITE     25 // Torque Enable(1) + P(2) + I(2) + D(2)  + Goal current(2)+ Profile Acceleration (4) + Profile Velocity (4) +  Goal Position(4) 
+//#define LEN_INDIRECTDATA_FOR_READ      5 //27 // Present Temperature(1)+ P(2) + I(2) + D(2)  + Goal current(2)+ Present Current (2) Profile Acceleration (4) + Profile Velocity (4) +  Goal Position(4) + Present Position(4) 
 
 
 // ID of each dynamixel chain.
@@ -74,8 +74,10 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
 #include "json.hpp"
+#include <string>
+#include <algorithm>
+
 
 using json = nlohmann::json;
 
@@ -129,10 +131,13 @@ class ServoControlTuning : public Module
     dictionary servoIDs;
     dictionary parameterAddresses;
     dictionary parameterBytes;
+    dictionary parameterTable;
     std::map<std::string, int> servoIndices;
     int servoIndex;
     
     int servoToTune;
+    int len_read_data;
+    int len_write_data;
 
 
     
@@ -218,7 +223,7 @@ class ServoControlTuning : public Module
         return (true);
     }
 
-    bool Communication(int ID, int IOIndex, matrix parameterValues, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite)
+    bool Communication(int ID, int IOIndex, matrix parameterValues, list parameterToTune, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite)
     {   
         Notify(msg_debug, "Communication\n");
         if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
@@ -230,32 +235,26 @@ class ServoControlTuning : public Module
         bool dxl_getdata_result = false;    // GetParam result
 
         uint8_t dxl_error = 0;       // Dynamixel error
-        uint8_t param_sync_write[LEN_INDIRECTDATA_FOR_WRITE]; //
+        uint8_t param_sync_write[len_write_data]; //
         uint8_t dxl_present_temperature = 0;
+        uint8_t dxl_torque_enable = 0;
 
-    
-        uint16_t dxl_P = 0;
-        uint16_t dxl_I = 0;
-        uint16_t dxl_D = 0;
-        uint16_t dxl_goal_current = 0;
         int16_t dxl_present_current = 0;
-        uint32_t dxl_profile_acceleration = 0;
-        uint32_t dxl_profile_velocity = 0;
-        uint32_t dxl_goal_position = 0;
+        uint16_t dxl_goal_current = 0;
         uint32_t dxl_present_position = 0;
         int byte_increment = 0;
         int val;
 
-        
-       
         if (!groupSyncRead->addParam(ID))
         {
-            std::cout << "Add param failed" << std::endl;
+            std::cout << "Add param for syncread failed" << std::endl;
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
         }
-    
+      
+
+      
 
         // Sync read
         dxl_comm_result = groupSyncRead->txRxPacket();
@@ -266,7 +265,7 @@ class ServoControlTuning : public Module
             std::cout << "Communication Error: " 
             << groupSyncRead->getPacketHandler()->getTxRxResult(dxl_comm_result) 
             << std::endl;
-            // Optionally show the packet error if applicabl
+            // Optionally show the packet error if applicable
             std::cout << "Packet Error: " 
             << groupSyncRead->getPacketHandler()->getRxPacketError(dxl_error) 
             << std::endl;
@@ -275,9 +274,8 @@ class ServoControlTuning : public Module
             return false;
         }
 
-
         // Check if data is available
-        dxl_comm_result = groupSyncRead->isAvailable(ID, INDIRECTDATA_FOR_READ, LEN_INDIRECTDATA_FOR_READ);
+        dxl_comm_result = groupSyncRead->isAvailable(ID, INDIRECTDATA_FOR_READ, len_read_data);
         if (!dxl_comm_result)
         {
             std::cout << "Data not available" << std::endl;
@@ -286,96 +284,84 @@ class ServoControlTuning : public Module
             return false;
         }
 
-        // GroupSyncWrite: Torque Enable(2) + P(2) + I(2) + D(2)  + Goal current(2)+ Profile Acceleration (4) + Profile Velocity (4) +  Goal Position(4) 
-        // GroupSyncRead: Present Temperature(2)+ P(2) + I(2) + D(2)  + Goal current(2)+ Present Current (2) Profile Acceleration (4) + Profile Velocity (4) +  Goal Position(4) + Present Position(4) 
-        
-        
+      
 
         //iterate through all the dxl_read_data
-
         dxl_present_temperature = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ, 1); // Present temperature    
         byte_increment += 1;
         dxl_present_current = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ + byte_increment, 2); // Present current
         byte_increment += 2;
+        std::cout << "adress for present position data = " << INDIRECTDATA_FOR_READ + byte_increment << std::endl;
         dxl_present_position = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ + byte_increment, 4); // Present position
-        byte_increment += 4;
+        
 
-        
-        // std::cout << "dxl_present_position: " << dxl_present_position /4095.0 * 360.0 << std::endl;
-        // std::cout << "dxl_present_current: " << dxl_present_current * 3.36 << std::endl;
-        // std::cout << "dxl_present_temperature: " << dxl_present_temperature << std::endl;
-        
+        std::cout << "Present position (raw): " << dxl_present_position << std::endl;
+        std::cout << "Present current (raw): " << dxl_present_current << std::endl;
+        std::cout << "Present temperature (raw): " << dxl_present_temperature << std::endl;
+
+       
+
+        std::cout << "Position (degrees): " << dxl_present_position / 4095.0 * 360.0 << std::endl;
+        std::cout << "Current (mA): " << abs(dxl_present_current) * 3.36 << std::endl;
+
+        // dxl_comm_result = packetHandler->read4ByteTxRx(portHandlerHead, ID, ADDR_PRESENT_POSITION, &dxl_present_position, &dxl_error);
+        // if (dxl_comm_result != COMM_SUCCESS) {
+        //     std::cout << "Failed to get present position! Result: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+        // } else if (dxl_error != 0) {
+        //     std::cout << "Error getting present position! Error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+        // }
+        // else{
+        //     std::cout << "Present position with reading functiton: " << dxl_present_position << std::endl;
+        // }
 
         position[0] = dxl_present_position / 4095.0 * 360.0; // degrees
-        current[0] = abs(dxl_present_current) * 3.36;   // mA
-        
-    
-
+        current[0] = abs(dxl_present_current) * 3.36; // mA
         // Send (sync write)
         index = IOIndex;
-    
         param_sync_write[0] = 1; // Torque on
 
         if (parameterValues.connected())
         {   
-            //P, I , D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position
-            int parameterIndex = 0;
+        
+            int paramIndex = 1;
+            for (int i = 0; i < parameterValues.size(); i++)
+            {
+             
+                if(parameterToTune[i].equals("Goal Position")){
 
-            // P
-            val = parameterValues[parameterIndex];
-            param_sync_write[1] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[2] = DXL_HIBYTE(DXL_LOWORD(val));
-            parameterIndex++;
-
-            // I   
-            val = parameterValues[parameterIndex];
-            param_sync_write[3] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[4] = DXL_HIBYTE(DXL_LOWORD(val));
-            parameterIndex++;
-
-            // D
-            val = parameterValues[parameterIndex];
-            param_sync_write[5] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[6] = DXL_HIBYTE(DXL_LOWORD(val));
-            parameterIndex++;    
-
-            //Goal current
-            val = parameterValues[parameterIndex] / 3.36;
-            param_sync_write[7] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[8] = DXL_HIBYTE(DXL_LOWORD(val));
-            parameterIndex++;
-
-            // Profile Acceleration
-            val = parameterValues[parameterIndex];
-            param_sync_write[9] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[10] = DXL_HIBYTE(DXL_LOWORD(val));
-            param_sync_write[11] = DXL_LOBYTE(DXL_HIWORD(val));
-            param_sync_write[12] = DXL_HIBYTE(DXL_HIWORD(val));
-            parameterIndex++;
-
-            // Profile Velocity
-            val = parameterValues[parameterIndex];
-            param_sync_write[13] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[14] = DXL_HIBYTE(DXL_LOWORD(val));
-            param_sync_write[15] = DXL_LOBYTE(DXL_HIWORD(val));
-            param_sync_write[16] = DXL_HIBYTE(DXL_HIWORD(val));
-            parameterIndex++;
-
-            //Goal position
-            if(!runSequence){
-                val = parameterValues[parameterIndex] / 360.0 * 4096.0;
+                    //Goal position
+                    if(!runSequence){
+                        val = parameterValues[i] / 360.0 * 4096.0;
+                    }
+                    else{
+                        val = goalPosition / 360.0 * 4096.0;
+                    }
+                    std::cout << "Goal position: " << val * 360 /4096 << std::endl;
+                }
+                else if (parameterToTune[i].equals("Goal Current")){
+                    val = parameterValues[i] / 3.36;
+                    std::cout << "Goal current: " << val << std::endl;
+                }
+                else if (parameterToTune[i].equals("Goal PWM")){
+                    val = parameterValues[i] /0.11299; // 0.11299 is the unit scale from percentage to goal PWM 
+                    std::cout << "Goal PWM: " << val << std::endl;
+                }
+                else{
+                    val = parameterValues[i];
+                }
+                                
+                if (parameterTable[parameterToTune[i]]["Bytes"] == 2){
+                    param_sync_write[paramIndex] = DXL_LOBYTE(DXL_LOWORD(val));
+                    param_sync_write[paramIndex + 1] = DXL_HIBYTE(DXL_LOWORD(val));
+                }
+                else if (parameterTable[parameterToTune[i]]["Bytes"] == 4){
+                    param_sync_write[paramIndex] = DXL_LOBYTE(DXL_LOWORD(val));
+                    param_sync_write[paramIndex + 1] = DXL_HIBYTE(DXL_LOWORD(val));
+                    param_sync_write[paramIndex + 2] = DXL_LOBYTE(DXL_HIWORD(val));
+                    param_sync_write[paramIndex + 3] = DXL_HIBYTE(DXL_HIWORD(val));
+                }
+                paramIndex += parameterTable[parameterToTune[i]]["Bytes"];
             }
-            else{
-                val = goalPosition / 360.0 * 4096.0;;
-            }
-
-            param_sync_write[17] = DXL_LOBYTE(DXL_LOWORD(val));
-            param_sync_write[18] = DXL_HIBYTE(DXL_LOWORD(val));
-            param_sync_write[19] = DXL_LOBYTE(DXL_HIWORD(val));
-            param_sync_write[20] = DXL_HIBYTE(DXL_HIWORD(val));
-            parameterIndex++;
-          
-
         }
         else
         {
@@ -385,10 +371,7 @@ class ServoControlTuning : public Module
             return false;
         }
 
-      
-      
-
-        dxl_addparam_result = groupSyncWrite->addParam(ID, param_sync_write );
+        dxl_addparam_result = groupSyncWrite->addParam(ID, param_sync_write);
         if (!dxl_addparam_result)
         {
             Notify(msg_fatal_error, "Add param failed\n");
@@ -399,8 +382,6 @@ class ServoControlTuning : public Module
             groupSyncRead->clearParam();
             return false;
         }
-
-        
 
         // Syncwrite
         dxl_comm_result = groupSyncWrite->txPacket();
@@ -414,6 +395,16 @@ class ServoControlTuning : public Module
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
+        }
+        //read goal current
+        dxl_comm_result = packetHandler->read2ByteTxRx(portHandler, ID, ADDR_GOAL_CURRENT, &dxl_goal_current, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS) {
+            std::cout << "Failed to get goal current! Result: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+        } else if (dxl_error != 0) {
+            std::cout << "Error getting goal current! Error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+        }
+        else{
+            std::cout << "dxl Goal current: " << dxl_goal_current << std::endl;
         }
 
         groupSyncWrite->clearParam();
@@ -430,128 +421,8 @@ class ServoControlTuning : public Module
             std::cout << "Reached goal" << std::endl;
             return true;
         }
+
     
-
-
-
-
-    void SaveParameterValuesAsJson_old(int ID, matrix parameterValues, const std::string& robotType, const std::string servoChain, list parameternames) {
-            // Construct the filename
-        std::string filename = "ServoParameters" + robotType + ".json";
-        
-        // Read the existing JSON file content
-        std::ifstream infile(filename);
-        std::stringstream buffer;
-        bool fileExists = infile.good();
-        bool fileIsEmpty = infile.peek() == std::ifstream::traits_type::eof();
-
-        if (fileExists && !fileIsEmpty) {
-            // Read the whole content of the file into a buffer
-            buffer << infile.rdbuf();
-            infile.close();
-        }
-        std::string fileContent = buffer.str();
-
-        // Prepare to open the file in output mode (overwrite mode)
-        std::ofstream file(filename);
-        if (!file.is_open()) {
-            std::cerr << "Could not open file" << std::endl;
-            return;
-        }
-
-        // Initialize JSON content if file is empty
-        if (!fileExists || fileIsEmpty) {
-            file << "{\n \""<< robotType << "\": {\n";
-        } else {
-            // Find the servo chain in the existing file content
-            size_t chainPos = fileContent.find("\"" + servoChain + "\": [");
-            if (chainPos != std::string::npos) {
-                // Find the specific servo ID within the servo chain
-                size_t idPos = fileContent.find("\"servoID\": " + std::to_string(ID), chainPos);
-                if (idPos != std::string::npos) {
-                    // Overwrite the parameter values for the existing ID
-                    size_t startPos = fileContent.find("{", idPos);
-                    size_t endPos = fileContent.find("}", idPos);
-                    
-                    std::stringstream newServoJson;
-                    newServoJson << "      {\n";
-                    newServoJson << "        \"servoID\": " << ID << ",\n";
-
-                    // Add new parameter values
-                    for (size_t i = 0; i < parameternames.size(); ++i) {
-                        std::string parameterName = parameternames[i];
-                        float parameterValue = parameterValues[i];
-                        newServoJson << "        \"" << parameterName << "\": " << parameterValue;
-                        if (i < parameternames.size() - 1) {
-                            newServoJson << ",\n";
-                        } else {
-                            newServoJson << "\n";
-                        }
-                    }
-                    newServoJson << "      }";
-
-                    // Replace the old JSON object with the new one
-                    fileContent.replace(startPos, endPos - startPos + 1, newServoJson.str());
-                } else {
-                    // If servo ID is not found, append new servo data to the existing chain
-                    size_t insertPos = fileContent.find("]", chainPos);
-                    std::stringstream newServoJson;
-                    newServoJson << ",\n      {\n";
-                    newServoJson << "        \"servoID\": " << ID << ",\n";
-
-                    // Add new parameter values
-                    for (size_t i = 0; i < parameternames.size(); ++i) {
-                        std::string parameterName = parameternames[i];
-                        float parameterValue = parameterValues[i];
-                        newServoJson << "        \"" << parameterName << "\": " << parameterValue;
-                        if (i < parameternames.size() - 1) {
-                            newServoJson << ",\n";
-                        } else {
-                            newServoJson << "\n";
-                        }
-                    }
-                    newServoJson << "      }";
-
-                    fileContent.insert(insertPos, newServoJson.str());
-                }
-            } else {
-                // If the servo chain is not found, append a new servo chain
-                size_t insertPos = fileContent.find_last_of("}");
-                std::stringstream newServoChainJson;
-                newServoChainJson << "    \"" << servoChain << "\": [\n";
-                newServoChainJson << "      {\n";
-                newServoChainJson << "        \"servoID\": " << ID << ",\n";
-
-                // Add new parameter values
-                for (size_t i = 0; i < parameternames.size(); ++i) {
-                    std::string parameterName = parameternames[i];
-                    float parameterValue = parameterValues[i];
-
-                    newServoChainJson << "        \"" << parameterName << "\": " << parameterValue;
-                    if (i < parameternames.size() - 1) {
-                        newServoChainJson << ",\n";
-                    } else {
-                        newServoChainJson << "\n";
-                    }
-                }
-                newServoChainJson << "      }\n";
-                newServoChainJson << "    ]\n";
-
-                fileContent.insert(insertPos, newServoChainJson.str());
-            }
-        }
-
-        // Close the JSON object properly
-        if (!fileExists || fileIsEmpty) {
-            fileContent.append("  }\n}");
-        }
-
-        // Write the updated JSON data to the file
-        file << fileContent;
-        file.close();
-    }
-
-
     void SaveParameterValuesAsJson(int ID, matrix parameterValues, const std::string& robotType, const std::string& servoChain, list parameternames) {
         // Construct the filename
         std::string filename = "ServoParameters" + robotType + ".json";
@@ -608,27 +479,25 @@ class ServoControlTuning : public Module
     }
 
     
-    list StringSplit(std::string str, std::string delimiter)
-    {
+        // Helper function to trim whitespace from both ends
+    static inline std::string trim(const std::string& str) {
+        auto start = str.find_first_not_of(" \t\n\r\f\v");
+        auto end = str.find_last_not_of(" \t\n\r\f\v");
+        return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
+    }
+
+    list StringSplit(const std::string& str, const std::string& delimiter) {
         list result;
         size_t pos = 0;
-        std::string token;
-        while ((pos = str.find(delimiter)) != std::string::npos)
-        {
-            token = str.substr(0, pos);
-            result.push_back(token);
-            str.erase(0, pos + delimiter.length());
+        size_t prev = 0;
+        while ((pos = str.find(delimiter, prev)) != std::string::npos) {
+            result.push_back(trim(str.substr(prev, pos - prev)));
+            prev = pos + delimiter.length();
         }
-        result.push_back(trim(str));
+        result.push_back(trim(str.substr(prev)));
         return result;
     }
 
-    // Helper function to trim whitespace from both ends
-    static inline std::string trim(const std::string& str) {
-        auto start = str.find_first_not_of(' ');
-        auto end = str.find_last_not_of(' ');
-        return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
-    }
 
     // Helper function to convert string to lowercase
     static inline std::string toLowerCase(const std::string& str) {
@@ -638,13 +507,18 @@ class ServoControlTuning : public Module
         return result;
     }
         
-    matrix CreateDynamixelParameters(list parameter_lst, dictionary controlTable){
+    matrix CreateDynamixelParameterMatrix(list parameter_lst, dictionary controlTable){
         matrix result(2, parameter_lst.size());
-        std::cout << "CreateDynamixelParameters\n";
+        std::cout << "CreateDynamixelParameterMatrix\n";
         for (int i=0; i<parameter_lst.size(); i++){
             std::string parameter = parameter_lst[i];
-            parameter = toLowerCase(trim(parameter)); // Normalize search key
+            if (!controlTable.contains(parameter)){
 
+                Notify(msg_fatal_error, "Parameter not found in control table: " + parameter);
+                continue;
+            }
+            parameter = toLowerCase(trim(parameter)); // Normalize search key
+           
             // Normalize all dictionary keys for comparison
             for (const auto& [key, value] : controlTable) {
                 if (toLowerCase(trim(key)) == parameter) {
@@ -654,21 +528,42 @@ class ServoControlTuning : public Module
                     
                     break;
                 }
+
             } 
         }
         return result;
     }
 
-    int get_index(list& values, const std::string& target) {
-        for (int i = 0; i < values.size(); ++i) {
-   
-            if (values[i].equals(target)) {
-                return i; // Return the index if a match is found
-            }
-        }
-        return -1; // Return -1 if no match is found
-    }
+    void CalculateByteLengths(dictionary controlTable, list readingParameters, list tuningParameters){
+        len_read_data = 1; // Present temperature
+        len_write_data = 1; // Torque enable
+        for (int i=0; i<readingParameters.size(); i++){
+            std::string parameter = readingParameters[i];
+            parameter = toLowerCase(trim(parameter)); // Normalize search key
 
+            // Normalize all dictionary keys for comparison
+            for (const auto& [key, value] : controlTable) {
+                if (toLowerCase(trim(key)) == parameter) {
+                    //insert value into two different rows
+                    len_read_data += controlTable[key]["Bytes"];
+                    break;
+                }
+            } 
+        }
+        for(int i=0; i<tuningParameters.size(); i++){
+            std::string parameter = tuningParameters[i];
+            parameter = toLowerCase(trim(parameter)); // Normalize search key
+
+            // Normalize all dictionary keys for comparison
+            for (const auto& [key, value] : controlTable) {
+                if (toLowerCase(trim(key)) == parameter) {
+                    //insert value into two different rows
+                    len_write_data += controlTable[key]["Bytes"];
+                    break;
+                }
+            } 
+        }        
+    }
 
     void Init()
     {
@@ -753,21 +648,6 @@ class ServoControlTuning : public Module
         
         Notify(msg_debug, "Connecting to " + robotName + " " + robot[robotName].type + "\n");
 
-   
-
-        // //Add all addresses to the dynamixelParameters one row with adresses and one with bytelength
-        // dynamixelParameters = {{ADDR_P, ADDR_I, ADDR_D, 
-        //                         ADDR_GOAL_CURRENT, ADDR_PRESENT_CURRENT,
-        //                         ADDR_PROFILE_ACCELERATION, ADDR_PROFILE_VELOCITY, 
-        //                         ADDR_PRESENT_POSITION, ADDR_GOAL_POSITION},
-        //                         {2, 2, 2, 2, 2, 4, 4, 4, 4}};
-        // dynamixelParameters.set_name("DynamixelParameters");
-        // dynamixelParameters.set_labels(0, "P", "I", "D", 
-        //                                 "Goal Current", "Present Current", "Profile Acceleration", "Profile Velocity", 
-        //                                 "Present Position",  "Goal Position");
-        // dynamixelParameters.set_labels(1, "Address", "Byte Length");
-
-        
         // Ikaros input
         Bind(servoParameters, "ParameterValues");
         Bind(parametersToTune, "ParametersToTune");
@@ -786,11 +666,7 @@ class ServoControlTuning : public Module
 
         servoParameters.set_labels(0, parametersToTune);
 
-        
 
-        
-     
-       
         std::string sID = R"({"NeckTilt": 2, "NeckPan": 3, "LeftEye": 4, "RightEye": 5, "LeftPupil": 2, "RightPupil": 3, "LeftArmJoint1": 2, "LeftArmJoint2": 3, "LeftArmJoint3": 4, "LeftArmJoint4": 5, "LeftArmJoint5": 6, "LeftHand": 7,"RightArmJoint1": 2, "RightArmJoint2": 3, "RightArmJoint3": 4, "RightArmJoint4": 5, "RightArmJoint5": 6, "RightHand": 7, "Body": 2})";
         servoIDs = parse_json(sID);
 
@@ -910,10 +786,9 @@ class ServoControlTuning : public Module
                                     }
                                     }
                                     )" ;
-        dictionary parameterTable = parse_json(sTable);  
         
-     
-    
+        parameterTable = parse_json(sTable);  
+        
         servoIndices = {
         {"NeckTilt", 0},
         {"NeckPan", 1},
@@ -934,7 +809,7 @@ class ServoControlTuning : public Module
         {"RightArmJoint5", 16},
         {"RightHand", 17},
         {"Body", 18}
-    };
+        };
 
         
         servoToTune = servoIDs[servoToTuneName];
@@ -943,32 +818,38 @@ class ServoControlTuning : public Module
         readingList = StringSplit(parametersToRead, ",");
 
        
-
         //combine the two lists
 
         for (int i = 0; i < tuningList.size(); i++)
         {
-            parameter_lst.push_back(tuningList[i]);
+            parameter_lst.push_back(trim(tuningList[i]));
         }
         for (int i = 0; i < readingList.size(); i++)
         {
-            parameter_lst.push_back(readingList[i]);
+            parameter_lst.push_back(trim(readingList[i]));
         }
         
-        dynamixelParameters = CreateDynamixelParameters(parameter_lst, parameterTable);
+        dynamixelParameters = CreateDynamixelParameterMatrix(parameter_lst, parameterTable);
+
         
         
 
         dynamixelParameters.set_name("DynamixelParameters");
-        dynamixelParameters.set_labels(0, "Position P Gain", "Position I Gain", "Position D Gain", "Goal Current", "Profile Acceleration", "Profile Velocity",  "Goal Position", "Present Current",
-                                        "Present Position");
         dynamixelParameters.set_labels(1, "Address", "Bytes");
 
+
+        parameter_lst.print();
+
+        
+        CalculateByteLengths(parameterTable, readingList, tuningList);
+        std::cout << "len_read_data: " << len_read_data << std::endl;
+        std::cout << "len_write_data: " << len_write_data << std::endl;
         
         
         std::cout << "ServoToTuneName: " << servoToTuneName << std::endl;
         std::cout << "servoToTune: " << servoToTune << std::endl;
         std::cout << "servoIndex: " << servoIndex << std::endl;
+        std::cout << "Parameter to tune: " << parametersToTune << std::endl;
 
 
         servoTransitions = GenerateServoTransitions(numberTransitions, minLimitPosiiton[servoIndex], maxLimitPosition[servoIndex]);
@@ -1162,18 +1043,18 @@ class ServoControlTuning : public Module
         // Create dynamixel objects
         if (EpiTorsoMode || EpiMode)
         {
-            groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, INDIRECTDATA_FOR_WRITE, LEN_INDIRECTDATA_FOR_WRITE); // Torque enable, goal position, goal current, P, I, D, Profile acceleration, Profile velocity
-            groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, INDIRECTDATA_FOR_READ,LEN_INDIRECTDATA_FOR_READ );   // Present poistion, present current, temperature, goal current
+            groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, INDIRECTDATA_FOR_WRITE, len_write_data); // Torque enable, goal position, goal current, P, I, D, Profile acceleration, Profile velocity
+            groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, INDIRECTDATA_FOR_READ,len_read_data );   // Present poistion, present current, temperature, goal current
             
         }
         if (EpiMode)
         {
-            groupSyncWriteLeftArm = new dynamixel::GroupSyncWrite(portHandlerLeftArm, packetHandlerLeftArm, INDIRECTADDRESS_FOR_WRITE, LEN_INDIRECTDATA_FOR_WRITE);
-            groupSyncReadLeftArm = new dynamixel::GroupSyncRead(portHandlerLeftArm, packetHandlerLeftArm, INDIRECTDATA_FOR_READ, LEN_INDIRECTDATA_FOR_READ);
-            groupSyncWriteRightArm = new dynamixel::GroupSyncWrite(portHandlerRightArm, packetHandlerRightArm, INDIRECTADDRESS_FOR_WRITE, LEN_INDIRECTDATA_FOR_WRITE);
-            groupSyncReadRightArm = new dynamixel::GroupSyncRead(portHandlerRightArm, packetHandlerRightArm, INDIRECTDATA_FOR_READ, LEN_INDIRECTDATA_FOR_READ);
-            groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody, INDIRECTADDRESS_FOR_WRITE, LEN_INDIRECTDATA_FOR_WRITE);
-            groupSyncReadBody = new dynamixel::GroupSyncRead(portHandlerBody, packetHandlerBody, INDIRECTDATA_FOR_READ, LEN_INDIRECTDATA_FOR_READ);
+            groupSyncWriteLeftArm = new dynamixel::GroupSyncWrite(portHandlerLeftArm, packetHandlerLeftArm, INDIRECTADDRESS_FOR_WRITE, len_write_data);
+            groupSyncReadLeftArm = new dynamixel::GroupSyncRead(portHandlerLeftArm, packetHandlerLeftArm, INDIRECTDATA_FOR_READ, len_read_data);
+            groupSyncWriteRightArm = new dynamixel::GroupSyncWrite(portHandlerRightArm, packetHandlerRightArm, INDIRECTADDRESS_FOR_WRITE, len_write_data);
+            groupSyncReadRightArm = new dynamixel::GroupSyncRead(portHandlerRightArm, packetHandlerRightArm, INDIRECTDATA_FOR_READ, len_read_data);
+            groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody, INDIRECTADDRESS_FOR_WRITE, len_write_data);
+            groupSyncReadBody = new dynamixel::GroupSyncRead(portHandlerBody, packetHandlerBody, INDIRECTDATA_FOR_READ, len_read_data);
             groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read..
         }
         
@@ -1208,7 +1089,7 @@ class ServoControlTuning : public Module
         
 
         
-        std::cout << "after check" << std::endl;
+
         //std::exit(1);
         if (!PowerOnRobot())
             Notify(msg_fatal_error, "Unable torque up servos\n");
@@ -1240,7 +1121,7 @@ class ServoControlTuning : public Module
         matrix Positions(numTransitions, 1);
         float maxLimit = maxLimitRev * 360 / 4095; // Convert to degrees
         float minLimit = minLimitRev * 360 / 4095; // Convert to degrees
- 
+  
        
         // calculate the middle position
         float middle = (maxLimit + minLimit) / 2;
@@ -1281,7 +1162,7 @@ class ServoControlTuning : public Module
         int directAddress;
 
         int byteLength;
-        std::string parameterName;
+        value parameterName;
 
         Notify(msg_debug, "Setting control table on servos\n");
 
@@ -1364,15 +1245,15 @@ class ServoControlTuning : public Module
                 addressWrite = INDIRECTADDRESS_FOR_WRITE +2; // Reset to base address for each servo
 
                 printf("Setting control table for servo ID: %d\n", id);
-                for (int param = 0; param < dynamixelParameters.cols(); param++) {
+                for (int param = 0; param < parameter_lst.size(); param++) {
                     byteLength = dynamixelParameters(1, param);
-                    parameterName = dynamixelParameters.labels(0)[param];
+                    parameterName = parameter_lst[param];
                     for (int byte = 0; byte < byteLength; byte++) {
                         directAddress = dynamixelParameters(0, param) + byte;
                         
                         // Writing Indirect Addresses
-                        if (parameterName != "Present Current" && parameterName != "Present Position") { // Present current and present position is not used for writing
-                            std::cout << "Setting indirect reading address for " 
+                        if (!parameterName.equals("Present Current") && !parameterName.equals("Present Position")) { // Present current and present position is not used for writing
+                            std::cout << "Setting indirect writing address for " 
                             << parameterName << " indirect address: "
                             << addressWrite << " direct address: " 
                             << directAddress <<std::endl;
@@ -1427,8 +1308,6 @@ class ServoControlTuning : public Module
 
         return true; // Yay we manage to set everything we needed.
     }
-
-
 
     bool SetPupilParameters(){
         Notify(msg_debug, "Settting parameters for pupils (servo XL320)\n");
@@ -1821,7 +1700,7 @@ class ServoControlTuning : public Module
         }
         else
         {
-            goalPosition = servoParameters[servoParameters.size() - 1];
+            goalPosition = servoParameters[tuningList.get_index("Goal Position")];
             
      
         }
@@ -1867,26 +1746,26 @@ class ServoControlTuning : public Module
         {   
             
             Notify(msg_debug, "Compare parameter with strings method works");
-            auto headThread = Communication(servoToTune, HEAD_INDEX_IO,servoParameters, portHandlerHead, packetHandlerHead, groupSyncReadHead, groupSyncWriteHead);
+            auto headThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune, HEAD_INDEX_IO,servoParameters, tuningList, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
             if (save){
                 std::string servoChain ="Head";
                 SaveParameterValuesAsJson(servoToTune, servoParameters, robot[robotName].type,servoChain, tuningList);
                 save = false;
             }
-            if (!headThread)
-        {
-            Notify(msg_warning,"Can not communicate with head");
-            portHandlerHead->clearPort();
-        }
+        if (!headThread.get())
+            {
+                Notify(msg_warning, "Can not communicate with head");
+                portHandlerLeftArm->clearPort();
+            }
             
         }
         
         
         if(EpiMode)
         {
-            auto leftArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , LEFT_ARM_INDEX_IO, servoParameters, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
-            auto rightArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , RIGHT_ARM_INDEX_IO,servoParameters, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), std::ref(groupSyncReadRightArm), std::ref(groupSyncWriteRightArm));
-            auto bodyThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , BODY_INDEX_IO,servoParameters, std::ref(portHandlerBody), std::ref(packetHandlerBody), std::ref(groupSyncReadBody), std::ref(groupSyncWriteBody));
+            auto leftArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , LEFT_ARM_INDEX_IO, servoParameters, tuningList, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
+            auto rightArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , RIGHT_ARM_INDEX_IO,servoParameters, tuningList, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), std::ref(groupSyncReadRightArm), std::ref(groupSyncWriteRightArm));
+            auto bodyThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , BODY_INDEX_IO,servoParameters, tuningList,std::ref(portHandlerBody), std::ref(packetHandlerBody), std::ref(groupSyncReadBody), std::ref(groupSyncWriteBody));
         
             if (!leftArmThread.get())
             {

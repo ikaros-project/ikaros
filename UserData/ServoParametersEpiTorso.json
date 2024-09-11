@@ -2,23 +2,22 @@
     "EpiTorso": {
         "Head": [
             {
-                " Goal Current": 500.0,
-                " Position D Gain": 1000.0,
-                " Position I Gain": 0.0,
-                " Profile Acceleration": 0.0,
-                " Profile Velocity": 0.0,
+
                 "Goal Position": 155.0,
                 "Position P Gain": 116.0,
                 "servoID": 3
             },
             {
-                " Goal Current": 500.0,
-                " Position D Gain": 847.0,
-                " Position I Gain": 0.0,
-                " Profile Acceleration": 0.0,
-                " Profile Velocity": 0.0,
-                "Goal Position": 190.0,
-                "Position P Gain": 100.0,
+                "Feedforward 1st Gain": 0.0,
+                "Feedforward 2nd Gain": 0.0,
+                "Goal Current": 200.0,
+                "Goal PWM": 100.0,
+                "Goal Position": 180.0,
+                "Position D Gain": 0.0,
+                "Position I Gain": 0.0,
+                "Position P Gain": 80.0,
+                "Profile Acceleration": 0.0,
+                "Profile Velocity": 0.0,
                 "servoID": 2
             }
         ]
