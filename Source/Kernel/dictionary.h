@@ -157,7 +157,6 @@ namespace ikaros
         int as_int()            { return double(*this); };  // FIXME: CHECK THIS ONE
         bool equals(const std::string& str) const;
         bool as_bool()              { return double(*this) != 0; };
-        int as_int()                { return double(*this); };
         float as_float()            { return double(*this); };
         double as_double()          { return double(*this); };
         std::string as_string()     { return std::string(*this); };
