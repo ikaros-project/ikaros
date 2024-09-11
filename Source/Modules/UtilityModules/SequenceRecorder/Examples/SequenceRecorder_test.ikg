@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+
+<group title="SequenceRecorder">
+
+        <module
+            class = "Constant"
+            name = "Joints"
+            data = "0.5 0.5"
+        />
+
+        <module
+            class = "FunctionGenerator"
+            name = "J0"
+        />
+        
+        <module
+            class = "FunctionGenerator"
+            name = "J1"
+        />
+        
+        <module
+            class = "Gate"
+            name = "J"
+        />
+        
+        <connection  source = "J0.OUTPUT"  target = "J.INPUT" />
+        <connection  source = "J1.OUTPUT"  target = "J.INPUT" />
+
+		<module
+			class = "SequenceRecorder"
+			name = "SequenceRecorder"
+            mask = "1 1 1 1"
+            torque = "0.25 0.25 0.25 0.25"
+            filename = "motions/motion.%d.mot"
+            json_filename = "motions/motion.%d.json"
+            smoothing_time = "0"
+            max_motions="20"
+            _auto_save="yes"
+            _record_on_trig = "true"
+            output_size = "4"
+		/>
+
+        <connection  source = "Joints.OUTPUT"  target = "SequenceRecorder.INPUT" />
+
+		<view name="Old View">
+            <grid
+                x = "10"
+                y = "10"
+                width = "121"
+                height = "41"
+                source = "STATE"
+                module = "SequenceRecorder"
+                max = "7"
+                labels = "state"
+                labelWidth = "50"
+                fill = "custom"
+                colorTable = "yellow, black, red, green, purple, brown, pink, maroon"
+                lineWidth = "1"
+                shape = "circle"
+                size = "1"
+                scales = "no"
+            />
+
+            <text
+                width = "121"
+                height = "41"
+                x="10"
+                y = "40"
+                parameter = "SequenceRecorder.mode_string"
+            />
+    <!--
+            <plot module="SequenceRecorder" source="OUTPUT" min="-360" max="360" color="red" select="0, 1" x="130" y="0" width="800" height="501" />
+    -->
+            <table title="time" source="SequenceRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
+    <!--
+			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
+-->
+			<!-- key-points module="SequenceRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" / -->
+            
+            <plot source="SequenceRecorder.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="130" y="0" width="800" height="301" />
+
+            <grid source="SequenceRecorder.MODE" labels="off, stop, play, record" shape="circle" size="0.75" fill="custom" colorTable="white,green" command="SequenceRecorder.toggle" x="130" y="350" width="800" height="101" />
+			<grid source="SequenceRecorder.ENABLE" labels="torque" shape="circle" size="1" fill="custom" colorTable="white,red" x="130" y="451" width="800" height="41" />
+
+			<table title="time" source="SequenceRecorder.TIME" decimals="0" x="10" y="81" width="101" height="41" />
+
+            <button label = "Off" command="SequenceRecorder.off" x="10" y="121" height="41" width="101" />
+            <button label = "Stop" command="SequenceRecorder.stop" x="10" y="161" height="41" width="101"  />
+            <button label = "Record" command="SequenceRecorder.record" x="10" y="201" height="41" width="101"  />
+            <button label = "Play"  command="SequenceRecorder.play" x="10" y="241" height="41" width="101"  />
+
+            <button label = "Load" command="SequenceRecorder.load" x="10" y="361" height="41" width="101"  />
+            <button label = "Save" command="SequenceRecorder.save" x="10" y="401" height="41" width="101"  />
+
+            <drop-down-menu title="motion" list="motion 0, motion 1, motion 2, motion 3, motion 4, motion 5, motion 6, motion 7, motion 8, motion 9, motion 10, motion 11, motion 12, motion 13, motion 14, motion 15, motion 16, motion 17, motion 18, motion 19"  parameter="SequenceRecorder.current_motion" x="10" y="311" width="121" height="41" />
+
+            <switch label=" Rec on trig" parameter="SequenceRecorder.record_on_trig" x="10" y="461" width="101" height="41" />
+
+            <slider-vertical title = "Positions" parameter="SequenceRecorder.positions" count="4" min="-360" max="360" x="130" y="510" height="100" width="200" />
+
+            <plot source="Joints.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="430" y="510" width="400" height="301" />
+		</view>
+
+    <module class = "Logger" name = "Logger" />
+</group>
+ 
+

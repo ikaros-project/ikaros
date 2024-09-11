@@ -108,6 +108,9 @@ namespace ikaros
         const_iterator cbegin() const { return list_->cbegin(); }
         const_iterator cend() const { return list_->cend(); }
 
+        iterator erase(const_iterator pos) const { return list_->erase(pos); }
+        iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
+
         value & operator[] (int i);
         int size() { return list_->size(); };
         list & push_back(const value & v) { list_->push_back(v); return *this; };

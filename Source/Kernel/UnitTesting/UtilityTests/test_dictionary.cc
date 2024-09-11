@@ -9,23 +9,34 @@
 #include <string>
 #include <iostream>
 
-#include "../dictionary.h"
-#include "../xml.h"
-#include "../xml.cc"
-#include "../dictionary.cc"
-#include "../utilities.cc"
+#include "../../dictionary.h"
+#include "../../xml.h"
+#include "../../xml.cc"
+#include "../../dictionary.cc"
+#include "../../utilities.cc"
 
 using namespace ikaros;
+
 
 int
 main()
 {
+    dictionary d;
+
+    d["x"] = 12;
+    
+    int x = d["x"];
+
+    std::cout << x << std::endl;
+
+    std::cout << "********" << std::endl;
+/**
     std::string s =  R"({"name": "John Doe", "age": 30, "is_student": false, "scores": [85.5, 90.2, 78], "address": {"city": "New York", "zip": "10001"}})";
   
     dictionary d = parse_json(s);
     d.print();
 
-/**
+
     dictionary d;
     dictionary e;
 

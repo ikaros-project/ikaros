@@ -2,9 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #add_subdirectory(EnergyMeter)
 add_subdirectory(Logger)
 add_subdirectory(Idle)
-add_subdirectory(KernelTestModule)
-add_subdirectory(KernelSizeTestModule)
-
 add_subdirectory(Constant)
 add_subdirectory(Randomizer)
 
@@ -20,6 +17,7 @@ add_subdirectory(OutputFile)
 
 add_subdirectory(AmbientLight)
 
+add_subdirectory(SequenceRecorder)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

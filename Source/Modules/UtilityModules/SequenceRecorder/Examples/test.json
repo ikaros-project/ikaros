@@ -1,0 +1,78 @@
+{
+    "channels": 6,
+    "ranges": null,
+    "sequences": [
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence A",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence B",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence C",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence D",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence E",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence F",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence G",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence H",
+            "start_mark_time": 0,
+            "start_time": 0
+        },
+        {
+            "end_mark_time": 1000,
+            "end_time": 1000,
+            "keypoints": [],
+            "name": "Sequence I",
+            "start_mark_time": 0,
+            "start_time": 0
+        }
+    ]
+}

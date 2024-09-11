@@ -242,6 +242,8 @@ function resetCookies()
     setCookie('current_view', "");
 }
 
+
+
 let dialog = 
 {
     window: null,
@@ -3102,6 +3104,7 @@ const brainstudio =
         main.init();
 
         document.onkeydown = function (evt){ main.keydown(evt) };
+
     }
 }
 

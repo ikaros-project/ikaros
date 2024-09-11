@@ -21,7 +21,7 @@ component (a group or a modul) or a prameter.  There can be zero or  multiple at
 
 The command should be URL encoded if it include non-ascii characters.
 
-In the future, parameters will also be accepted as JSON in the body of a HTTP request.
+Parameters are also  accepted as JSON in the body of a HTTP PUT request (See examples below).
 
 Each command has its own set of possible parameters.
 
@@ -91,6 +91,23 @@ This example HTTP fragment shows to build a simple web client to Ikaros using HT
         <button onclick=fetch('/command/module?command=doSomething&value=31');">Send command</button>
     </div>
 ```
+
+## A Minimal Python Client
+
+The Python script below send a command to an Ikaros module A.B.C with a command named 'command_name' and two parameters x and text.
+
+```Python
+import requests
+import json
+
+url = 'http://127.0.0.1:8000/command/A.B.C/'
+data = { 'command': "command_name",  'x': '42',  'text': 'my message to the module'}
+headers = {'Content-Type': 'application/json'}
+
+response = requests.put(url, headers=headers, data=json.dumps(data))
+````
+
+A larger example with error handling can be found in the file _API/ikaros_api_put.py_.
 
 ## API Requests used Interally by BrainStudio and WebUI
 
