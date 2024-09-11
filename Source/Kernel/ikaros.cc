@@ -2929,6 +2929,7 @@ if(classes[classname].path.empty())
         options_.filename = filename;
         needs_reload = true;
 
+        d["filename"] = filename;
         info_ = d;
 
         DoUpdate(request);
