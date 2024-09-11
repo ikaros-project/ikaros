@@ -108,7 +108,7 @@ class ServoControlTuning : public Module
     parameter servoToTuneName;
     parameter numberTransitions;
     parameter runSequence;
-    matrix minLimitPosiiton;
+    matrix minLimitPosition;
     matrix maxLimitPosition;
     parameter parametersToTune;
     parameter parametersToRead;
@@ -320,11 +320,14 @@ class ServoControlTuning : public Module
                 if(parameterToTune[i].equals("Goal Position")){
                     //Goal position
                     if(!runSequence){
-                        val = parameterValues[i] / 360.0 * 4096.0; //Takes value from WebUI
+                        val = clip(parameterValues[i], minLimitPosition[servoIndex], maxLimitPosition[servoIndex]) ; //Takes value from WebUI
                     }
                     else{
-                        val = goalPosition / 360.0 * 4096.0; //Takes value from servoTransitions
+                        val = clip(goalPosition, minLimitPosition[servoIndex], maxLimitPosition[servoIndex]); //Takes value from servoTransitions
                     }
+
+                    val = val / 360.0 * 4096.0; // convert to raw value
+                    
                     std::cout << "Goal position: " << val * 360 /4096 << std::endl;
                 }
                 else if (parameterToTune[i].equals("Goal Current")){
@@ -632,7 +635,7 @@ class ServoControlTuning : public Module
         Bind(servoParameters, "ParameterValues");
         Bind(parametersToTune, "ParametersToTune");
         Bind(parametersToRead, "ParametersToRead");
-        Bind(minLimitPosiiton, "MinLimitPosition");
+        Bind(minLimitPosition, "MinLimitPosition");
         Bind(maxLimitPosition, "MaxLimitPosition");
         Bind(servoToTuneName, "Servo");
         Bind(numberTransitions, "NumberTransitions");
@@ -640,6 +643,9 @@ class ServoControlTuning : public Module
         Bind(current, "Current");
         Bind(runSequence, "RunSequence");
         Bind(save, "Save");
+
+        minLimitPosition.print();
+        maxLimitPosition.print();
 
         position.set_labels(0, "Present Position", "Goal Position");
         current.set_labels(0, "Present Current", "Goal Current");
@@ -832,7 +838,7 @@ class ServoControlTuning : public Module
         std::cout << "Parameter to tune: " << parametersToTune << std::endl;
 
 
-        servoTransitions = GenerateServoTransitions(numberTransitions, minLimitPosiiton[servoIndex], maxLimitPosition[servoIndex]);
+        servoTransitions = GenerateServoTransitions(numberTransitions, minLimitPosition[servoIndex], maxLimitPosition[servoIndex]);
         servoTransitions.set_name("ServoTransitions");
        
 
@@ -1096,11 +1102,10 @@ class ServoControlTuning : public Module
         return (-(mm - minMM) / deltaMM * deltDeg + maxDeg); // Higher goal position gives smaller pupil
     }
 
-    matrix GenerateServoTransitions(int numTransitions, int minLimitRev, int maxLimitRev)
+    matrix GenerateServoTransitions(int numTransitions, int minLimit, int maxLimit)
     {
         matrix Positions(numTransitions, 1);
-        float maxLimit = maxLimitRev * 360 / 4095; // Convert to degrees
-        float minLimit = minLimitRev * 360 / 4095; // Convert to degrees
+        
   
        
         // calculate the middle position
@@ -1423,7 +1428,7 @@ class ServoControlTuning : public Module
             for (int id = idMin; id <= idMax; id++) 
             {
                 //min and max limits
-                param_default_4Byte = minLimitPosiiton[maxMinPositionLimitIndex[i]];
+                param_default_4Byte = minLimitPosition[maxMinPositionLimitIndex[i]];
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
                     std::cout << "Failed to set indirect address for min position limit for servo ID: " 
                     << id << " of port:" 
@@ -1680,7 +1685,7 @@ class ServoControlTuning : public Module
         }
         else
         {
-            goalPosition = servoParameters[tuningList.get_index("Goal Position")];
+            goalPosition = clip(servoParameters[tuningList.get_index("Goal Position")], minLimitPosition[servoIndex], maxLimitPosition[servoIndex]);
             
      
         }
@@ -1765,6 +1770,10 @@ class ServoControlTuning : public Module
         }
         tick++;
         previousGoalPosition = servoParameters[tuningList.get_index("Goal Position")];
+        std::cout << "Goal position after tick: " << goalPosition << std::endl;
+
+        
+
     }
 
     // A function that set importat parameters in the control table.
