@@ -816,7 +816,20 @@ header button:active, aside button:active {
     object-fit: contain;
 }
 
+.transport_button:disabled {
 
+    pointer-events: :none;
+    cursor: not-allowed;
+    color: #555;
+    border-color: #555; 
+    background-color: #00000000;
+}
+
+.transport_button:disabled:active {
+
+    pointer-events: :none;
+    cursor: not-allowed;
+}
 /*
  * Footers
  */

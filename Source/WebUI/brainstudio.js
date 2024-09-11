@@ -737,14 +737,8 @@ let controller =
     
     pause() // Save and at set at step 0 if not running
     {
-        if(network.tainted)
-            {
-                if(network.network.filename=="")
-                    controller.saveas();
-                else
-                    controller.save();  // FIXME: Save should call saveas instead ********
-                return;
-            }
+        if(network.tainted) // Should never happen
+            return;
 
         main.setViewMode(); // FIXME: Probably not necessary
         controller.queueCommand('pause');
@@ -752,14 +746,8 @@ let controller =
     
     step()
     {
-        if(network.tainted)
-        {
-            if(network.network.filename=="")
-                controller.saveas();
-            else
-                controller.save();  // FIXME: Save should call saveas instead ********
+        if(network.tainted) // Should never happen
             return;
-        }
         
         document.querySelector("#state").innerText = "step";
         main.setViewMode(); // FIXME: Probably not necessary
@@ -768,14 +756,8 @@ let controller =
     
     play()
     {
-        if(network.tainted)
-        {
-            if(network.network.filename=="")
-                controller.saveas();
-            else
-                controller.save();  // FIXME: Save should call saveas instead ********
+        if(network.tainted) // Should never happen
             return;
-        }
     
         main.setViewMode() // FIXME: Probably not necessary
         controller.queueCommand('play');
@@ -783,17 +765,10 @@ let controller =
     
     realtime()// ********************* HERE
     {
-        if(network.tainted)
-            {
-                if(network.network.filename=="")
-                    controller.saveas();
-                else
-                    controller.save();  // FIXME: Save should call saveas instead ********
-                return;
-            }
+        if(network.tainted) // Should never happen
+            return;
             
-
-            main.setViewMode(); // FIXME: Probably not necessary
+        main.setViewMode(); // FIXME: Probably not necessary
         controller.queueCommand('realtime');
     },
 
@@ -874,7 +849,7 @@ let controller =
 
             document.querySelector("#file").innerText = response.file;
             document.querySelector("#tick").innerText = (Number.isInteger(response.tick) && response.tick >= 0 ?  response.tick : "-");
-            document.querySelector("#state").innerText = controller.run_mode;
+            document.querySelector("#state").innerHTML = controller.run_mode + (network.tainted ? " <span style='color:red'>&#9679;</span>" : "");
             document.querySelector("#uptime").innerText = secondsToHMS(response.uptime);
             document.querySelector("#time").innerText = secondsToHMS(response.time);
             document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
@@ -901,6 +876,15 @@ let controller =
 
             controller.tick = response.tick;
             controller.run_mode = ['quit', 'stop','pause','play','realtime','restart'][response.state];
+
+            if(network.tainted)
+            {
+                document.querySelectorAll(".transport_button").forEach((b) => { b.disabled = true; });
+            }
+            else
+            {
+                document.querySelectorAll(".transport_button").forEach((b) => { b.disabled = false; });
+            }
         }
         catch(err)
         {
