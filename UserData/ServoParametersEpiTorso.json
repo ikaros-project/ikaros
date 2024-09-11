@@ -2,9 +2,16 @@
     "EpiTorso": {
         "Head": [
             {
-
-                "Goal Position": 155.0,
-                "Position P Gain": 116.0,
+                "Feedforward 1st Gain": 0.0,
+                "Feedforward 2nd Gain": 0.0,
+                "Goal Current": 284.0,
+                "Goal PWM": 95.0,
+                "Goal Position": 243.0,
+                "Position D Gain": 157.0,
+                "Position I Gain": 0.0,
+                "Position P Gain": 21.0,
+                "Profile Acceleration": 0.0,
+                "Profile Velocity": 0.0,
                 "servoID": 3
             },
             {
