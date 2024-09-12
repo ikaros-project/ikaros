@@ -1444,16 +1444,21 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Clear()
     {
-        //std::cout << "Kernel::Clear" << std::endl;
+        std::cout << "Kernel::Clear" << std::endl;
         // FIXME: retain persistent components
-        //for(auto [_,c] : components)
-        //    delete c;
+
+    
+        for(auto [_,c] : components) // components contains pointers so nee need to be explcitly deleted
+            // if(NOT PERSISTENT)
+                delete c;
         components.clear();
+
         connections.clear();
         buffers.clear();   
         max_delays.clear();
         circular_buffers.clear();
         parameters.clear();
+        tasks.clear();
 
         tick = -1;
         //run_mode = run_mode_pause;
@@ -1464,9 +1469,10 @@ bool operator==(Request & r, const std::string s)
         idle_time = 0;
         stop_after = -1;
         shutdown = false;
-        info_ = dictionary();
-        info_["filename"] = ""; //EMPTY FILENAME
+        //info_ = dictionary();
+        //info_["filename"] = ""; //EMPTY FILENAME
 
+        needs_reload = true;
         session_id = new_session_id();
     }
 
@@ -1478,7 +1484,7 @@ bool operator==(Request & r, const std::string s)
         Notify(msg_print, "New file");
     
         Clear();
-        Pause();
+
         dictionary d;
 
         d["_tag"] = "group";
@@ -1494,11 +1500,13 @@ bool operator==(Request & r, const std::string s)
         // d["webui_port"] = "8000";
 
         SetCommandLineParameters(d);
-        d["filename"] = "";
+        d["filename"] = ""; // Ignore filename at command line 
         BuildGroup(d);
         info_ = d;
-        session_id = new_session_id(); 
-        SetUp(); // FIXME: Catch exceptions if new failes
+
+        run_mode = run_mode_stop;
+        session_id = new_session_id(); // FIXME: Probably not necessary - din in clear
+        SetUp(); // FIXME: Catch exceptions if new fails
     }
 
 
@@ -1507,7 +1515,7 @@ bool operator==(Request & r, const std::string s)
     {
         tick_is_running = true; // Flag that state changes are not allowed
         tick++;
-        //std::cout <<" Tick: " << GetTick() << std::endl;
+        Trace("Tick: " +std::to_string(GetTick()));
 
 
             for(auto & task_group : tasks)
@@ -1821,7 +1829,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::PrintLog()
     {
         for(auto & s : log)
-            std::cout << "IKAROS: " << s.level_ << ": " << s.message_ << std::endl;
+            std::cout << "ikaros: " << s.level_ << ": " << s.message_ << std::endl;
         log.clear();
     }
 
@@ -1836,7 +1844,8 @@ bool operator==(Request & r, const std::string s)
         stop_after(-1),
         tick_duration(1),
         shutdown(false),
-        session_id(new_session_id())
+        session_id(new_session_id()),
+        needs_reload(true)
     {
         cpu_cores = std::thread::hardware_concurrency();
     }
@@ -2024,20 +2033,20 @@ if(classes[classname].path.empty())
     void 
     Kernel::LoadFile()
     {
-            //std::cout << "Kernel::LoadFile" << std::endl;
             try
             {
                 dictionary d = dictionary(options_.filename);
                 SetCommandLineParameters(d);
                 BuildGroup(d);
                 info_ = d;
-                session_id = new_session_id(); 
+                session_id = new_session_id();
                 SetUp();
                 Notify(msg_print, u8"Loaded "s+options_.filename);
 
                 CalculateCheckSum();
                 //ListBuffers();
                 //ListConnections();
+                needs_reload = false;
             }
             catch(const exception& e)
             {
@@ -2045,9 +2054,9 @@ if(classes[classname].path.empty())
                 Notify(msg_fatal_error, u8"Load file failed for "s+options_.filename);
                 //CalculateCheckSum();
                 throw fatal_error("Load failed");
-                //New(); // FIXME: New in main - not here
             }
     }
+
 
 
     void 
@@ -2093,9 +2102,8 @@ if(classes[classname].path.empty())
 
 
     void 
-    Kernel::Save() // Simple save function in present file
+    Kernel::Save() // Simple save function in present file from kernel data
     {
-        //std::cout << "Kernel::Save" << std::endl;
         std::string data = xml();
 
         //std::cout << data << std::endl;
@@ -2105,6 +2113,7 @@ if(classes[classname].path.empty())
         file.open (filename);
         file << data;
         file.close();
+        needs_reload = true;
     }
 
 
@@ -2354,7 +2363,6 @@ if(classes[classname].path.empty())
                 result.push_back(sortedSubgraph);
                 for (const auto& node : sortedSubgraph) {
                 }
-                std::cout << std::endl;
             }
 
             return result;
@@ -2388,22 +2396,9 @@ if(classes[classname].path.empty())
                 arcs.push_back({cc, t});
                 task_map[cc] = &c; // Save in task map
             }
-/*
-       for(auto & s : nodes)
-            std::cout <<  "NODE: " << s << std::endl;
-       for(const auto [s,t] : arcs)
-            std::cout <<  "ARC: " << s << "->" << t << std::endl;
-*/
+
         auto r = sort(nodes, arcs);
-/*
-        for(auto s : r)
-        {
-            for(auto ss: s)
-                std::cout << ss << " ";
-                std::cout  << std::endl;
-        }
-        std::cout  << std::endl;
-*/
+
         // Fill task list
 
         tasks.clear();
@@ -2442,6 +2437,7 @@ if(classes[classname].path.empty())
     {
         try
         {
+
             SortTasks();
             ResolveParameters();
             PruneConnections();
@@ -2639,6 +2635,11 @@ if(classes[classname].path.empty())
         tick = -1;
         timer.Pause();
         timer.SetPauseTime(0);
+
+        // FIXME: CLEAR AND MARK FOR RELOAD ********************
+
+        Clear(); // Delete all modules
+        needs_reload = true;
     }
 
 
@@ -2649,9 +2650,11 @@ if(classes[classname].path.empty())
         while(tick_is_running)
             {}
 
-        if(run_mode == run_mode_stop)
+        if(needs_reload)
         {
-            run_mode = run_mode_restart_pause;
+            Clear();
+            LoadFile();
+            run_mode = run_mode_pause;
         }
         else
         {
@@ -2669,9 +2672,12 @@ if(classes[classname].path.empty())
         while(tick_is_running)
             {}
 
-        if(run_mode == run_mode_stop)
+
+        if(needs_reload)
         {
-            run_mode = run_mode_restart_realtime;
+            Clear();
+            LoadFile();
+            run_mode = run_mode_realtime;
         }
         else
         {
@@ -2690,9 +2696,11 @@ if(classes[classname].path.empty())
         while(tick_is_running)
             {}
 
-        if(run_mode == run_mode_stop)
+        if(needs_reload)
         {
-            run_mode = run_mode_restart_play;
+            Clear();
+            LoadFile();
+            run_mode = run_mode_play;
         }
         else
         {
@@ -2732,7 +2740,7 @@ if(classes[classname].path.empty())
         socket->Send("\t\"debug\": false,\n");
 #endif
 
-        socket->Send("\t\"state\": %d,\n", run_mode);
+            socket->Send("\t\"state\": %d,\n", run_mode);
         if(stop_after != -1)
         {
             socket->Send("\t\"tick\": \"%d / %d\",\n", tick, stop_after);
@@ -2872,9 +2880,8 @@ if(classes[classname].path.empty())
     void
     Kernel::DoNew(Request & request)
     {
-        Pause(); // Probably not necessary
         New();
-        DoUpdate(request);
+        DoUpdate(request);  // FIXME: OR SEND NETWORK
     }
 
 
@@ -2895,36 +2902,37 @@ if(classes[classname].path.empty())
 
 
     void
-    Kernel::DoSave(Request & request)
+    Kernel::DoSave(Request & request) // Save data received from WebUI
     {
-        //std::cout << "SAVE: " << request.body << std::endl;
+        dictionary d;
+        try
+        {
+        
+             d = parse_json(request.body);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            std::cout << "SAVE FAILED FOR:\n" << request.body << std::endl;
+            return;
+        }
 
-        dictionary d = parse_json(request.body);
-        std::filesystem::path path = std::string(d["filename"]);
-        std::string filename = path.filename();
-        d["filename"] = null(); // FIXME: remove propery later
+        //std::filesystem::path path = std::string(d["filename"]);
+        std::string filename = add_extension(std::string(d["filename"]), ".ikg");
+        d["filename"] = ""; // Do not include filename in file
         std::string data = d.xml("group");
         std::ofstream file;
         file.open (filename);
         file << data;
         file.close();
-        Clear();
+        //Clear();
         options_.filename = filename;
-        LoadFile();
-        std::string s = "{\"status\":\"ok\"}"; 
-        Dictionary rtheader;
-        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
-        rtheader.Set("Package-Type", "network"); // FIXME: wrong packade type
-        rtheader.Set("Content-Type", "application/json");
-        rtheader.Set("Content-Length", int(s.size()));
-        socket->SendHTTPHeader(&rtheader);
-        socket->SendData(s.c_str(), int(s.size()));
-    }
+        needs_reload = true;
 
+        d["filename"] = filename;
+        info_ = d;
 
-    void
-    Kernel::DoSaveAs(Request & request)
-    {
+        DoUpdate(request);
     }
 
 
@@ -3001,7 +3009,7 @@ if(classes[classname].path.empty())
     {
         Notify(msg_print, "step");
         Pause();
-        run_mode = run_mode_pause;
+        run_mode = run_mode_pause; // FIXME: Probably not necessary
         Tick();
         timer.SetPauseTime(GetTime()+tick_duration);
         DoSendData(request);
@@ -3423,8 +3431,6 @@ if(classes[classname].path.empty())
             DoOpen(request);
         else if(request == "save")
             DoSave(request);
-        else if(request == "saveas")
-            DoSaveAs(request);
 
         // Start up commands
 

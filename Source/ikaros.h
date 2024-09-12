@@ -398,6 +398,7 @@ public:
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
 
     long                                    session_id;
+    bool                                    needs_reload;
     //bool                                  is_running;
     std::atomic<bool>                       tick_is_running;
     std::atomic<bool>                       sending_ui_data;
@@ -518,7 +519,6 @@ public:
     void DoNew(Request & request);
     void DoOpen(Request & request);
     void DoSave(Request & request);
-    void DoSaveAs(Request & request);
 
     void DoQuit(Request & request);
     void DoStop(Request & request);
