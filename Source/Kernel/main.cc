@@ -80,10 +80,15 @@ main(int argc, char *argv[])
             }
         }
     }
+    catch(std::exception & e)
+    {
+        std::cerr << std::string(e.what()) << std::endl;
+        exit(1);
+    }
     catch(...)
     {
         // This should not happen since only fatal_exceptions should make it this far
-        std::cerr << "Ikaros: Internal Error" << std::endl;
+        std::cout << "Ikaros: Internal Error" << std::endl;
         exit(1);
     }
 
@@ -91,4 +96,5 @@ main(int argc, char *argv[])
 
     return 0;
 }
+
 
