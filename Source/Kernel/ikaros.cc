@@ -1480,7 +1480,6 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::New()
     {
-        //std::cout << "Kernel::New" << std::endl;
         Notify(msg_print, "New file");
     
         Clear();
@@ -2474,28 +2473,30 @@ if(classes[classname].path.empty())
         if(options_.filename.empty())
             New();
         else
+        {
             LoadFile();
 
-        // Check start-up arguments
+            // Check start-up arguments
 
-        if(info_.is_set("start"))
-        {
-            if(info_.is_set("realtime"))
-                run_mode = run_mode_restart_realtime;
+            if(info_.is_set("start"))
+            {
+                if(info_.is_set("realtime"))
+                    run_mode = run_mode_restart_realtime;
+                else
+                    run_mode = run_mode_restart_play;
+            }
+            
+            timer.Restart();
+            tick = -1; // To make first tick 0 after increment
+
+            if(run_mode == run_mode_restart_realtime)
+                Realtime();
+            else if(run_mode == run_mode_restart_play)
+                Play();
             else
-                run_mode = run_mode_restart_play;
+                Pause();
         }
         
-        timer.Restart();
-        tick = -1; // To make first tick 0 after increment
-
-        if(run_mode == run_mode_restart_realtime)
-            Realtime();
-        else if(run_mode == run_mode_restart_play)
-            Play();
-        else
-            Pause();
-
             // Main loop
             while(run_mode > run_mode_quit)  // Not quit or restart
             {
