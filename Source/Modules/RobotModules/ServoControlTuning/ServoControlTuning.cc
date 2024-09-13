@@ -102,10 +102,7 @@ typedef struct
 
 class ServoControlTuning : public Module
 {
-    // Paramteters
-    int robotType = 0;
-    matrix servoParameters;
-    parameter servoToTuneName;
+    // Parameters
     parameter numberTransitions;
     parameter runSequence;
     matrix minLimitPosition;
@@ -113,6 +110,8 @@ class ServoControlTuning : public Module
     parameter parametersToTune;
     parameter parametersToRead;
     parameter save;
+    matrix parameterValues;
+    parameter servoToTuneName;
 
     // Ikaros IO
     bool torqueEnable = true;
@@ -121,6 +120,8 @@ class ServoControlTuning : public Module
    
 
     matrix dynamixelParameters;
+    matrix servoParameters;
+    
 
     bool EpiTorsoMode = false;
     bool EpiMode = false;
@@ -131,16 +132,14 @@ class ServoControlTuning : public Module
     dictionary servoIDs;
     dictionary parameterAddresses;
     dictionary parameterBytes;
-    dictionary parameterTable;
+    dictionary servoControlTable;
     std::map<std::string, int> servoIndices;
     int servoIndex;
     
     int servoToTune;
+    int previousServoToTune;
     int len_read_data;
     int len_write_data;
-
-
-    
 
     matrix servoTransitions;
     int transitionIndex = 0;
@@ -154,6 +153,16 @@ class ServoControlTuning : public Module
     list tuningList;
     list readingList;
     list parameter_lst;
+    
+    
+    
+    enum ServoChain {HEAD, PUPIL, LEFT_ARM, RIGHT_ARM, BODY};
+    ServoChain servoChain = HEAD;
+    matrix headData;
+    matrix pupilData;
+    matrix bodyData;
+    matrix leftArmData;
+    matrix rightArmData;
 
    
 
@@ -223,7 +232,7 @@ class ServoControlTuning : public Module
         return (true);
     }
 
-    bool Communication(int ID, int IOIndex, matrix parameterValues, list parameterToTune, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite)
+    bool Communication(int ID, matrix parameterValues, list parameterToTune, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite)
     {   
         Notify(msg_debug, "Communication\n");
         if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
@@ -289,7 +298,6 @@ class ServoControlTuning : public Module
         byte_increment += 1;
         dxl_present_current = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ + byte_increment, 2); // Present current
         byte_increment += 2;
-        std::cout << "adress for present position data = " << INDIRECTDATA_FOR_READ + byte_increment << std::endl;
         dxl_present_position = groupSyncRead->getData(ID, INDIRECTDATA_FOR_READ + byte_increment, 4); // Present position
         
 
@@ -308,7 +316,6 @@ class ServoControlTuning : public Module
         current[0] = abs(dxl_present_current) * 3.36; // mA
         
         // Send (sync write)
-        index = IOIndex;
         param_sync_write[0] = 1; // Torque on
 
         if (parameterValues.connected())
@@ -342,17 +349,17 @@ class ServoControlTuning : public Module
                     val = parameterValues[i];
                 }
                                 
-                if (parameterTable[parameterToTune[i]]["Bytes"] == 2){
+                if (servoControlTable[parameterToTune[i]]["Bytes"] == 2){
                     param_sync_write[paramIndex] = DXL_LOBYTE(DXL_LOWORD(val));
                     param_sync_write[paramIndex + 1] = DXL_HIBYTE(DXL_LOWORD(val));
                 }
-                else if (parameterTable[parameterToTune[i]]["Bytes"] == 4){
+                else if (servoControlTable[parameterToTune[i]]["Bytes"] == 4){
                     param_sync_write[paramIndex] = DXL_LOBYTE(DXL_LOWORD(val));
                     param_sync_write[paramIndex + 1] = DXL_HIBYTE(DXL_LOWORD(val));
                     param_sync_write[paramIndex + 2] = DXL_LOBYTE(DXL_HIWORD(val));
                     param_sync_write[paramIndex + 3] = DXL_HIBYTE(DXL_HIWORD(val));
                 }
-                paramIndex += parameterTable[parameterToTune[i]]["Bytes"];
+                paramIndex += servoControlTable[parameterToTune[i]]["Bytes"];
             }
         }
         else
@@ -410,6 +417,16 @@ class ServoControlTuning : public Module
         // Construct the filename
         std::string filename = "ServoParameters" + robotType + ".json";
 
+        //get the path to current .cc file
+        std::string path = __FILE__;
+
+        // Remove the filename from the path
+        path = path.substr(0, path.find_last_of("/\\"));
+
+        // Add the filename to the path
+        filename = path + "/" + filename;
+        
+
         // Initialize JSON object
         nlohmann::json jsonData;
 
@@ -432,7 +449,7 @@ class ServoControlTuning : public Module
                 // Update the parameter values
                 for (size_t i = 0; i < parameternames.size(); ++i) {
                     std::string parameterName = parameternames[i];
-                    float parameterValue = parameterValues[i];
+                    int parameterValue = (int)parameterValues[i];
                     servo[parameterName] = parameterValue;
                 }
                 break;
@@ -445,7 +462,7 @@ class ServoControlTuning : public Module
             newServo["servoID"] = ID;
             for (size_t i = 0; i < parameternames.size(); ++i) {
                 std::string parameterName = parameternames[i];
-                float parameterValue = parameterValues[i];
+                int parameterValue = (int)parameterValues[i];
                 newServo[parameterName] = parameterValue;
             }
             servoChainData.push_back(newServo);
@@ -459,6 +476,7 @@ class ServoControlTuning : public Module
         }
         outfile << jsonData.dump(4); // Pretty print with an indent of 4 spaces
         outfile.close();
+        std::cout << "Saved parameter values to: " << filename << std::endl;
     }
 
     
@@ -492,7 +510,6 @@ class ServoControlTuning : public Module
         
     matrix CreateDynamixelParameterMatrix(list parameter_lst, dictionary controlTable){
         matrix result(2, parameter_lst.size());
-        std::cout << "CreateDynamixelParameterMatrix\n";
         for (int i=0; i<parameter_lst.size(); i++){
             std::string parameter = parameter_lst[i];
             if (!controlTable.contains(parameter)){
@@ -513,6 +530,69 @@ class ServoControlTuning : public Module
                 }
 
             } 
+        }
+        return result;
+    }
+
+    bool JsonFileExists(std::string robotType){
+         // Construct the filename
+        std::string filename = "ServoParameters" + robotType + ".json";
+        std::string path = __FILE__;
+        // Remove the filename from the path
+        path = path.substr(0, path.find_last_of("/\\"));
+        filename = path + "/" + filename;
+        return std::filesystem::exists(filename);
+    }
+    
+    matrix ReadJsonToMatrix(int minID, int maxID, std::string robotType, std::string servoChain, list parameterToTune){       
+        matrix result(maxID - 1, parameterToTune.size());// all servo chains start from ID 2
+        
+        // Construct the filename
+        std::string filename = "ServoParameters" + robotType + ".json";
+        std::string path = __FILE__;
+        // Remove the filename from the path
+        path = path.substr(0, path.find_last_of("/\\"));
+        filename = path + "/" + filename;
+        
+        // Initialize JSON object
+        nlohmann::json jsonData;
+
+        // Check if the file exists before attempting to open it
+        std::ifstream infile(filename);
+        if (!std::filesystem::exists(filename)) {
+            Notify(msg_warning, "File does not exist: " + filename);
+            //return empty matrix
+            return result;
+        }
+
+        // Read existing JSON data if the file exists
+        if (infile.is_open() && infile.peek() != std::ifstream::traits_type::eof()) {
+            infile >> jsonData;
+            infile.close();
+        }
+        else{
+            return result;
+        }
+        // print jsondata
+  
+
+        nlohmann::json& robotData = jsonData[robotType];
+        nlohmann::json& servoChainData = robotData[servoChain];
+
+        
+            // Check if the servo ID 
+        for (auto& chain : servoChainData) {
+            int i = 0;
+            for (int ID = minID; ID < maxID; ID++){
+                if (chain["servoID"] == ID) {
+                    for (size_t j = 0; j < parameterToTune.size(); ++j) {
+                        std::string parameterName = parameterToTune[j];
+                        int parameterValue = chain[parameterName];
+                        result(i, j) = parameterValue;
+                    }
+                }
+                i++;
+            }
         }
         return result;
     }
@@ -546,6 +626,65 @@ class ServoControlTuning : public Module
                 }
             } 
         }        
+    }
+
+    std::string EnumToString(ServoChain chain)
+    {
+        switch (chain)
+        {
+        case HEAD:
+            return "Head";
+        case LEFT_ARM:
+            return "LeftArm";
+        case RIGHT_ARM:
+            return "RightArm";
+        case BODY:
+            return "Body";
+        default:
+            return "Unknown";
+        }
+    }
+
+    matrix SelectServoChainData(){
+        matrix parameters;
+        if (servoToTuneName.compare_string("NeckTilt") || servoToTuneName.compare_string("NeckPan")||
+            servoToTuneName.compare_string("LeftEye")|| servoToTuneName.compare_string("RightEye"))
+            
+        {
+            servoChain = HEAD;
+            parameters.copy(headData[servoToTune-2]); // all servo chains start from ID 2
+        }
+        else if (servoToTuneName.compare_string("LeftPupil")|| servoToTuneName.compare_string("RightPupil"))
+        {
+            servoChain = PUPIL;
+            parameters.copy(pupilData[servoToTune-2]);
+
+        }
+        else if (servoToTuneName.compare_string("LeftArmJoint1")|| servoToTuneName.compare_string("LeftArmJoint2")||
+                servoToTuneName.compare_string("LeftArmJoint3")|| servoToTuneName.compare_string("LeftArmJoint4")||
+                servoToTuneName.compare_string("LeftArmJoint5")|| servoToTuneName.compare_string("LeftHand"))
+        {
+            servoChain = LEFT_ARM;
+            parameters.copy(leftArmData[servoToTune-2]);
+        }
+        else if (servoToTuneName.compare_string("RightArmJoint1")|| servoToTuneName.compare_string("RightArmJoint2")||
+                servoToTuneName.compare_string("RightArmJoint3")|| servoToTuneName.compare_string("RightArmJoint4")||
+                servoToTuneName.compare_string("RightArmJoint5")|| servoToTuneName.compare_string("RightHand"))
+        {
+            servoChain = RIGHT_ARM;
+            parameters.copy(rightArmData[servoToTune-2]);
+        }
+        else if (servoToTuneName.compare_string("Body") == 0)
+        {
+            servoChain = BODY;
+            parameters.copy(bodyData[servoToTune-2]);
+        }
+        else
+        {
+            // Handle unknown servoToTuneName
+            Notify(msg_fatal_error, "Unknown servoToTuneName: " + (std::string)servoToTuneName);
+        }
+        return parameters;
     }
 
     void Init()
@@ -632,7 +771,7 @@ class ServoControlTuning : public Module
         Notify(msg_debug, "Connecting to " + robotName + " " + robot[robotName].type + "\n");
 
         // Ikaros input
-        Bind(servoParameters, "ParameterValues");
+        Bind(parameterValues, "ParameterValues");
         Bind(parametersToTune, "ParametersToTune");
         Bind(parametersToRead, "ParametersToRead");
         Bind(minLimitPosition, "MinLimitPosition");
@@ -644,14 +783,16 @@ class ServoControlTuning : public Module
         Bind(runSequence, "RunSequence");
         Bind(save, "Save");
 
-        minLimitPosition.print();
-        maxLimitPosition.print();
+
 
         position.set_labels(0, "Present Position", "Goal Position");
         current.set_labels(0, "Present Current", "Goal Current");
 
-        servoParameters.set_labels(0, parametersToTune);
+        
 
+        //copy the robot parameters to the servoparamets
+
+      
 
         std::string sID = R"({"NeckTilt": 2, "NeckPan": 3, "LeftEye": 4, "RightEye": 5, "LeftPupil": 2, "RightPupil": 3, "LeftArmJoint1": 2, "LeftArmJoint2": 3, "LeftArmJoint3": 4, "LeftArmJoint4": 5, "LeftArmJoint5": 6, "LeftHand": 7,"RightArmJoint1": 2, "RightArmJoint2": 3, "RightArmJoint3": 4, "RightArmJoint4": 5, "RightArmJoint5": 6, "RightHand": 7, "Body": 2})";
         servoIDs = parse_json(sID);
@@ -773,7 +914,7 @@ class ServoControlTuning : public Module
                                     }
                                     )" ;
         
-        parameterTable = parse_json(sTable);  
+        servoControlTable = parse_json(sTable);  
         
         servoIndices = {
         {"NeckTilt", 0},
@@ -800,9 +941,14 @@ class ServoControlTuning : public Module
         
         servoToTune = servoIDs[servoToTuneName];
         servoIndex = servoIndices[servoToTuneName];
+
+        
+
         tuningList = StringSplit(parametersToTune, ",");
         readingList = StringSplit(parametersToRead, ",");
 
+
+        
        
         //combine the two lists
 
@@ -815,19 +961,36 @@ class ServoControlTuning : public Module
             parameter_lst.push_back(trim(readingList[i]));
         }
         
-        dynamixelParameters = CreateDynamixelParameterMatrix(parameter_lst, parameterTable);
-
-        
-        
-
+        dynamixelParameters = CreateDynamixelParameterMatrix(parameter_lst, servoControlTable);
         dynamixelParameters.set_name("DynamixelParameters");
         dynamixelParameters.set_labels(1, "Address", "Bytes");
 
 
-        parameter_lst.print();
+        if (JsonFileExists(robot[robotName].type)){
+            std::cout << "File exists\n";
+
+            headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX,robot[robotName].type, "Head", tuningList);
+            headData.print();
+
+            
+            if (EpiMode){
+                bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body", tuningList);
+                leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "LeftArm", tuningList);
+                rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "RightArm", tuningList);
+            }
+            else{
+                Notify(msg_warning, "Robot type not supported");
+            }
+            servoParameters = SelectServoChainData();
+            servoParameters.set_labels(0, parametersToTune);
+            servoParameters.set_name("ServoParameters");
+            parameterValues.copy(servoParameters);
+        }
+
+
 
         
-        CalculateByteLengths(parameterTable, readingList, tuningList);
+        CalculateByteLengths(servoControlTable, readingList, tuningList);
         std::cout << "len_read_data: " << len_read_data << std::endl;
         std::cout << "len_write_data: " << len_write_data << std::endl;
         
@@ -1238,10 +1401,10 @@ class ServoControlTuning : public Module
                         
                         // Writing Indirect Addresses
                         if (!parameterName.equals("Present Current") && !parameterName.equals("Present Position")) { // Present current and present position is not used for writing
-                            std::cout << "Setting indirect writing address for " 
-                            << parameterName << " indirect address: "
-                            << addressWrite << " direct address: " 
-                            << directAddress <<std::endl;
+                            // std::cout << "Setting indirect writing address for " 
+                            // << parameterName << " indirect address: "
+                            // << addressWrite << " direct address: " 
+                            // << directAddress <<std::endl;
                             
                             if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressWrite, directAddress, &dxl_error)) {
                                 std::cout << "Failed to set indirect writing address for " << parameterName
@@ -1256,10 +1419,10 @@ class ServoControlTuning : public Module
                             addressWrite += 2;
                         }
                         else {// Only present position and present current is used for reading
-                            std::cout << "Setting indirect reading address for " 
-                            << parameterName << " indirect address: "
-                            << addressRead << " direct address: " 
-                            << directAddress <<std::endl;
+                            // std::cout << "Setting indirect reading address for " 
+                            // << parameterName << " indirect address: "
+                            // << addressRead << " direct address: " 
+                            // << directAddress <<std::endl;
                             // Reading Indirect Addresses
                             
                             if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, directAddress, &dxl_error)) {
@@ -1658,14 +1821,46 @@ class ServoControlTuning : public Module
     
     void Tick()
     {   
-        std::cout << "Run sequence: " << runSequence << std::endl;
         
-        int servoToTune = servoIDs[servoToTuneName];   
-        std::cout << "Servo to tune: " << servoToTune << std::endl;
-        std::cout << "Servo to tune name: " << servoToTuneName << std::endl;
+        
+        std::cout << "\n Run sequence: " << runSequence << std::endl;
+        std::cout << "Save: " << save << std::endl;
+        
+        int servoToTune = servoIDs[servoToTuneName];
+        std::cout << "Servo to tune: " << servoToTuneName << std::endl;   
+        
+        if (servoToTune != previousServoToTune && tick > 0 && JsonFileExists(robot[robotName].type))
+        {
+            Notify(msg_debug, "Servo to tune changed\n");
+            runSequence = false;
+             
+            switch (servoChain)
+            {
+            case HEAD:
+                servoParameters.copy(headData[servoToTune-2]);
+                break;
+            case PUPIL:
+                servoParameters.copy(pupilData[servoToTune-2]);
+                break;
+            case LEFT_ARM:
+                servoParameters.copy(leftArmData[servoToTune-2]);
+                break;
+            case RIGHT_ARM:
+                servoParameters.copy(rightArmData[servoToTune-2]);
+                break;
+            case BODY:
+                servoParameters.copy(bodyData[servoToTune-2]);
+                break;
+            }
+            parameterValues.copy(servoParameters);
+        }
+        
+        
+           
+        
        
 
-        if (previousGoalPosition != servoParameters[tuningList.get_index("Goal Position")])
+        if (previousGoalPosition != parameterValues[tuningList.get_index("Goal Position")])
         {
             Notify(msg_debug, "Goal position changed\n");
             runSequence = false;
@@ -1680,13 +1875,12 @@ class ServoControlTuning : public Module
                 Notify(msg_debug, "Reached goal position\n");
                 Sleep(1);
                 transitionIndex++;
-
-        }
+            }
         }
         else
         {
-            goalPosition = clip(servoParameters[tuningList.get_index("Goal Position")], minLimitPosition[servoIndex], maxLimitPosition[servoIndex]);
-            
+            goalPosition = clip(parameterValues[tuningList.get_index("Goal Position")], minLimitPosition[servoIndex], maxLimitPosition[servoIndex]);
+            std::cout << "Goal position: " << goalPosition << std::endl;
      
         }
         
@@ -1698,7 +1892,7 @@ class ServoControlTuning : public Module
         }
         
         
-        goalCurrent = servoParameters[3];
+        goalCurrent = parameterValues[3];
         current[1] = goalCurrent;
         position[1] = goalPosition;
 
@@ -1729,14 +1923,9 @@ class ServoControlTuning : public Module
         
         if(servoToTuneName.compare_string("NeckTilt") || servoToTuneName.compare_string("NeckPan") || servoToTuneName.compare_string("LeftEye") || servoToTuneName.compare_string("RightEye"))
         {   
+            servoChain =HEAD;
+            auto headThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune,parameterValues, tuningList, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
             
-            Notify(msg_debug, "Compare parameter with strings method works");
-            auto headThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune, HEAD_INDEX_IO,servoParameters, tuningList, std::ref(portHandlerHead), std::ref(packetHandlerHead), std::ref(groupSyncReadHead), std::ref(groupSyncWriteHead));
-            if (save){
-                std::string servoChain ="Head";
-                SaveParameterValuesAsJson(servoToTune, servoParameters, robot[robotName].type,servoChain, tuningList);
-                save = false;
-            }
         if (!headThread.get())
             {
                 Notify(msg_warning, "Can not communicate with head");
@@ -1745,34 +1934,50 @@ class ServoControlTuning : public Module
             
         }
         
-        
-        if(EpiMode)
-        {
-            auto leftArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , LEFT_ARM_INDEX_IO, servoParameters, tuningList, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
-            auto rightArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , RIGHT_ARM_INDEX_IO,servoParameters, tuningList, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), std::ref(groupSyncReadRightArm), std::ref(groupSyncWriteRightArm));
-            auto bodyThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune , BODY_INDEX_IO,servoParameters, tuningList,std::ref(portHandlerBody), std::ref(packetHandlerBody), std::ref(groupSyncReadBody), std::ref(groupSyncWriteBody));
-        
-            if (!leftArmThread.get())
+        if(EpiMode){
+            if(servoToTuneName.compare_string("LeftArmJoint1") || servoToTuneName.compare_string("LeftArmJoint2") || servoToTuneName.compare_string("LeftArmJoint3") || servoToTuneName.compare_string("LeftArmJoint4") || servoToTuneName.compare_string("LeftArmJoint5") || servoToTuneName.compare_string("LeftHand") )
             {
-                Notify(msg_warning, "Can not communicate with left arm");
-                portHandlerLeftArm->clearPort();
+                auto leftArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune, parameterValues, tuningList, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm), std::ref(groupSyncReadLeftArm), std::ref(groupSyncWriteLeftArm));
+                if (!leftArmThread.get())
+                {
+                    Notify(msg_warning, "Can not communicate with left arm");
+                    portHandlerLeftArm->clearPort();
+                }
+                servoChain =LEFT_ARM;
+            
+
             }
-            if (!rightArmThread.get())
+            else if(servoToTuneName.compare_string("RightArmJoint1") || servoToTuneName.compare_string("RightArmJoint2") || servoToTuneName.compare_string("RightArmJoint3") || servoToTuneName.compare_string("RightArmJoint4") || servoToTuneName.compare_string("RightArmJoint5") || servoToTuneName.compare_string("RightHand"))
             {
-                Notify(msg_warning, "Can not communicate with right arm");
-                portHandlerRightArm->clearPort();
+                Notify(msg_debug, "Compare parameter with strings method works");
+                auto rightArmThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune, parameterValues, tuningList, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm), std::ref(groupSyncReadRightArm), std::ref(groupSyncWriteRightArm));
+                if (!rightArmThread.get())
+                {
+                    Notify(msg_warning, "Can not communicate with right arm");
+                    portHandlerRightArm->clearPort();
+                }
+                servoChain =RIGHT_ARM;
+             
             }
-            if (!bodyThread.get())
-            {
-                Notify(msg_warning, "Can not communicate with body");
-                portHandlerBody->clearPort();
+            else if(servoToTuneName.compare_string("Body")){
+                auto bodyThread = std::async(std::launch::async, &ServoControlTuning::Communication, this, servoToTune, parameterValues, tuningList, std::ref(portHandlerBody), std::ref(packetHandlerBody), std::ref(groupSyncReadBody), std::ref(groupSyncWriteBody));
+                if (!bodyThread.get())
+                {
+                    Notify(msg_warning, "Can not communicate with body");
+                    portHandlerBody->clearPort();
+                }
+                servoChain =BODY;
+                
             }
+            
+        }
+        if (save){   
+                SaveParameterValuesAsJson(servoToTune, parameterValues, robot[robotName].type, EnumToString(servoChain), tuningList);
+                save = false;
         }
         tick++;
-        previousGoalPosition = servoParameters[tuningList.get_index("Goal Position")];
-        std::cout << "Goal position after tick: " << goalPosition << std::endl;
-
-        
+        previousGoalPosition = parameterValues[tuningList.get_index("Goal Position")];
+        previousServoToTune = servoToTune;
 
     }
 
