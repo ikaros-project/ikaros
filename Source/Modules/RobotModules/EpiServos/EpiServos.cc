@@ -88,6 +88,13 @@
 // This must be after ikaros.h
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
+#include "json.hpp"
+#include <string>
+#include <algorithm>
+
+
+using json = nlohmann::json;
+
 using namespace ikaros;
 typedef struct
 {
@@ -150,6 +157,12 @@ class EpiServos : public Module
 
     std::string robotName;
     std::map<std::string, Robot_parameters> robot;
+
+    matrix headData;
+    matrix bodyData;
+    matrix leftArmData;
+    matrix rightArmData;
+    matrix servoParameters;
 
     
 
@@ -331,6 +344,94 @@ class EpiServos : public Module
         return true;
     }
 
+   
+    bool ParameterJsonFileExists(std::string robotType){
+         // Construct the filename
+        std::string filename = "ServoParameters" + robotType + ".json";
+        std::string path = __FILE__;
+        // Remove the filename from the path
+        path = path.substr(0, path.find_last_of("/\\"));
+        filename = path + "/" + filename;
+        return std::filesystem::exists(filename);
+    }
+    
+    matrix ReadJsonToMatrix(int minID, int maxID, std::string robotType, std::string servoChain){       
+        int numParameters = 0;
+        std::string tunedParameters;
+        // Construct the filename
+        std::string filename = "ServoParameters" + robotType + ".json";
+        std::string path = __FILE__;
+        // Remove the filename from the path
+        path = path.substr(0, path.find_last_of("/\\"));
+        filename = path + "/" + filename;
+        
+        // Initialize JSON object
+        nlohmann::json jsonData;
+
+        std::ifstream infile(filename);
+
+        // Read existing JSON data if the file exists
+        if (infile.is_open() && infile.peek() != std::ifstream::traits_type::eof()) {
+            infile >> jsonData;
+            infile.close();
+        }
+       
+  
+        nlohmann::json& robotData = jsonData[robotType];
+        nlohmann::json& servoChainData = robotData[servoChain];
+
+        
+        // Determine the number of parameters
+        for (auto& chain : servoChainData) {
+            if (chain.contains("servoID")) {
+                numParameters = chain.size();
+                break;
+            }
+        }
+
+        // Initialize the result matrix
+        matrix result(maxID - minID + 1, numParameters); // all servo chains start from ID 2
+
+        // Check if the servo ID 
+        for (auto& chain : servoChainData) {
+            int i = 0;
+            for (int ID = minID; ID <= maxID; ID++){
+                if (chain["servoID"] == ID) {
+                    //loop through all keys of the chain
+                    int paramIndex = 0;
+                    for (auto& it : chain.items()) {
+                        //only add to tuned parameter the one time
+                        if (ID == minID){
+                            tunedParameters += "\"" + it.key() + "\", ";
+   
+                        } 
+                        result(ID - minID, paramIndex) = it.value();
+                        paramIndex++;
+                    }
+                }
+                i++;
+                
+            }  
+            
+        }
+        result.set_labels(0, tunedParameters);
+        return result;
+    }
+
+    void CreateParameterMatrices(){
+        headData;
+        bodyData;
+        leftArmData;
+        rightArmData;
+        headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX,robot[robotName].type, "Head");
+
+        if (EpiMode){
+            bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body");
+            leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "LeftArm");
+            rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "RightArm");
+        }
+        
+    }
 
     void Init()
     {
@@ -653,6 +754,10 @@ class EpiServos : public Module
             groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read..
         }
 
+     
+        headData= ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX, robot[robotName].type, "Head");
+        headData.info();
+
         AutoCalibratePupil();
 
         Notify(msg_debug, "torque down servos and prepering servos for write defualt settings\n");
@@ -803,6 +908,7 @@ class EpiServos : public Module
         uint16_t p_gain_head = 100;
         uint16_t i_gain_head = 10;
         uint16_t d_gain_head = 1200;
+        uint16_t goal_pwm = 30;
         
         uint16_t p_gain_arm = 100;
         uint16_t i_gain_arm = 0;
