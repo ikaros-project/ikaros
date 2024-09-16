@@ -282,7 +282,6 @@ public:
     virtual int SetOutputSizes(input_map & ingoing_connections); // Uses the size attribute
 
     virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
-    virtual void SetSizes() {} // Function meant to be overridden in subclasses when the size atribute is not sufficient
 
     void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer sizes
 
