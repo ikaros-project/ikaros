@@ -1147,6 +1147,7 @@ namespace ikaros
     {
         Trace("\tComponent::SetSizes");
         SetInputSizes(ingoing_connections);
+        SetSizes(); // Function that sets output sizes that can be overriden in subclasses
         SetOutputSizes(ingoing_connections);
 
         return 0;
