@@ -15,5 +15,7 @@ namespace ikaros
 	double clip(double x, double low, double high);
 };
 
+	const double pi = 3.14159265358979323846;  // Awaiting C++20
+
 #endif
 

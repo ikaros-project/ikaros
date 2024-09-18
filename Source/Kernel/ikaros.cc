@@ -158,7 +158,7 @@ namespace ikaros
     }
 
     std::string 
-    parameter::operator=(std::string v)
+    parameter::operator=(std::string v) // FIXME: Check this function for all type combinations
     {
         double val = 0;
         if(has_options)
@@ -167,6 +167,11 @@ namespace ikaros
             auto it = std::find(options.begin(), options.end(), v);
             if(it != options.end())
                 val = std::distance(options.begin(), it);
+            else if(is_number(v))
+                {
+                    val = stod(v);
+                    v = options.at(int(val));
+                }
             else
                 throw exception("Invalid parameter value");
         }
@@ -1480,7 +1485,6 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::New()
     {
-        //std::cout << "Kernel::New" << std::endl;
         Notify(msg_print, "New file");
     
         Clear();
@@ -1631,6 +1635,12 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::ResolveParameters() // Find and evaluate value or default // FIXME: return success
     {
+        // All all componenets to initialize parameters programmatically
+
+        for(auto & m : components)
+            m.second->SetParameters();
+
+        // resolve
         bool ok = true;
         for (auto p=parameters.rbegin(); p!=parameters.rend(); p++) // Reverse order equals outside in in groups
         {
@@ -1647,57 +1657,6 @@ bool operator==(Request & r, const std::string s)
         if(!ok)
             throw fatal_error("All parameters could not be resolved");
     }
-
-/*
-    range 
-    Component::ResolveConnection(const range & output, range & source, range & target, range & delay_range)
-    {
-        source.extend(output.rank());
-        source.fill(output);
-        range reduced_source = source.strip().trim();
-
-        if(target.empty())
-            target = reduced_source;
-        else
-        {
-            int j=0;
-            for(int i=0; i<target.rank()-1; i++)    // CHECK EMPTY DIMENSION
-                if(target.empty(i) && j<reduced_source.rank())
-                {
-                    target.a_[i] = reduced_source.a_[j];
-                    target.b_[i] = reduced_source.b_[j];
-                    target.inc_[i] = reduced_source.inc_[j];
-
-                    reduced_source.a_[j] = 0;  // mark as used
-                    reduced_source.b_[j] = 0;
-                    reduced_source.inc_[j] = 0;
-                    j++;
-                }
-
-            int s = 1;
-            for(int i=0; i<reduced_source.rank(); i++)
-            {
-                int si = reduced_source.size(i);
-                s *= (si >0?si:1);
-            }
-
-            if(target.empty(target.rank()-1) && j<reduced_source.rank())
-            {
-                target.a_[target.rank()-1] = 0; // Check that dim is empty first
-                target.b_[target.rank()-1] = s;
-                target.inc_[target.rank()-1] = 1;
-            }
-        }
-            int delay_size = delay_range.trim().b_[0];
-            if(delay_size > 1)
-                c->target_range.push_front(0, delay_size);
-
-        if(source.size() == target.size())
-            throw exception("Connection could not be resolved");
-
-        return c->target_range;
-    }
-*/
 
 
     void 
@@ -2474,28 +2433,30 @@ if(classes[classname].path.empty())
         if(options_.filename.empty())
             New();
         else
+        {
             LoadFile();
 
-        // Check start-up arguments
+            // Check start-up arguments
 
-        if(info_.is_set("start"))
-        {
-            if(info_.is_set("realtime"))
-                run_mode = run_mode_restart_realtime;
+            if(info_.is_set("start"))
+            {
+                if(info_.is_set("realtime"))
+                    run_mode = run_mode_restart_realtime;
+                else
+                    run_mode = run_mode_restart_play;
+            }
+            
+            timer.Restart();
+            tick = -1; // To make first tick 0 after increment
+
+            if(run_mode == run_mode_restart_realtime)
+                Realtime();
+            else if(run_mode == run_mode_restart_play)
+                Play();
             else
-                run_mode = run_mode_restart_play;
+                Pause();
         }
         
-        timer.Restart();
-        tick = -1; // To make first tick 0 after increment
-
-        if(run_mode == run_mode_restart_realtime)
-            Realtime();
-        else if(run_mode == run_mode_restart_play)
-            Play();
-        else
-            Pause();
-
             // Main loop
             while(run_mode > run_mode_quit)  // Not quit or restart
             {
@@ -3112,8 +3073,9 @@ if(classes[classname].path.empty())
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
-            DoSendData(request);
+
         }
+    DoSendData(request);
     }
 
 /*

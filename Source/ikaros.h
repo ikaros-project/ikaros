@@ -32,6 +32,7 @@ using namespace std::literals;
 #include "Kernel/expression.h"
 #include "Kernel/maths.h"
 #include "Kernel/matrix.h"
+#include "Kernel/h_matrix.h"
 #include "Kernel/socket.h"
 #include "Kernel/timing.h"
 #include "Kernel/socket.h"
@@ -230,6 +231,7 @@ public:
     void Bind(parameter & p, std::string n);   // Bind to parameter in global parameter table
     void Bind(matrix & m, std::string n); // Bind to input or output in global parameter table, or matrix parameter
 
+    virtual void SetParameters() {} // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
     virtual void Tick() {}
     virtual void Init() {}
 
