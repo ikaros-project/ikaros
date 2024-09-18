@@ -426,6 +426,9 @@ class ServoControlTuning : public Module
         // Add the filename to the path
         filename = path + "/" + filename;
         
+        std::string EpiServosPath; 
+        EpiServosPath= path.substr(0, path.find_last_of("/\\")) + "/EpiServos/" + "ServoParameters" + robotType + ".json";
+       
 
         // Initialize JSON object
         nlohmann::json jsonData;
@@ -441,6 +444,7 @@ class ServoControlTuning : public Module
         nlohmann::json& robotData = jsonData[robotType];
         nlohmann::json& servoChainData = robotData[servoChain];
 
+        int parameterValue;
         // Check if the servo ID already exists
         bool servoExists = false;
         for (auto& servo : servoChainData) {
@@ -449,7 +453,12 @@ class ServoControlTuning : public Module
                 // Update the parameter values
                 for (size_t i = 0; i < parameternames.size(); ++i) {
                     std::string parameterName = parameternames[i];
-                    int parameterValue = (int)parameterValues[i];
+                    if (parameterName == "Goal Position"){
+                        parameterValue = 180; // Default value
+                    }
+                    else{
+                        parameterValue = (int)parameterValues[i];
+                    }
                     servo[parameterName] = parameterValue;
                 }
                 break;
@@ -462,7 +471,12 @@ class ServoControlTuning : public Module
             newServo["servoID"] = ID;
             for (size_t i = 0; i < parameternames.size(); ++i) {
                 std::string parameterName = parameternames[i];
-                int parameterValue = (int)parameterValues[i];
+                if (parameterName == "Goal Position"){
+                    parameterValue = 180; // Default value
+                }
+                else{
+                    parameterValue = (int)parameterValues[i];
+                }
                 newServo[parameterName] = parameterValue;
             }
             servoChainData.push_back(newServo);
@@ -470,12 +484,15 @@ class ServoControlTuning : public Module
 
         // Write the updated JSON data back to the file
         std::ofstream outfile(filename);
+        std::ofstream outfileEpiServos(EpiServosPath);
         if (!outfile.is_open()) {
             std::cerr << "Could not open file for writing: " << filename << std::endl;
             return;
         }
         outfile << jsonData.dump(4); // Pretty print with an indent of 4 spaces
         outfile.close();
+        outfileEpiServos << jsonData.dump(4);
+        outfileEpiServos.close();
         std::cout << "Saved parameter values to: " << filename << std::endl;
     }
 
@@ -686,9 +703,114 @@ class ServoControlTuning : public Module
         }
         return parameters;
     }
+    bool SetServoSettings() {
+        uint32_t param_default_4Byte;
+        uint16_t param_default_2Byte;
+        uint8_t param_default_1Byte;
+        uint8_t dxl_error = 0;
+        int default_value = 0;
+    
+        matrix data;
+      
 
+        int dxl_comm_result = COMM_TX_FAIL;
+        int idMin;
+        int idMax;
+        int directAddress;
+
+        int byteLength;
+        value parameterName;
+
+        Notify(msg_debug, "Setting control table on servos\n");
+
+        //loop through all portHandlers
+        for (int p = 0; p < portHandlers.size(); p++) {
+
+            // Ensure p is within the valid range
+            if (p < 0 || p >= portHandlers.size() || p >= packetHandlers.size()) {
+                std::cout << "Invalid index for portHandlers or packetHandlers: " << p << std::endl;
+                return false;
+            }
+
+            // Ensure pointers are not null
+            if (!portHandlers[p] || !packetHandlers[p]) {
+                std::cout << "Null pointer encountered in portHandlers or packetHandlers at index: " << p << std::endl;
+                return false;
+            }
+            //switch statement for different p values. 
+            switch (p) {
+                case 0:
+                idMin = HEAD_ID_MIN;
+                idMax = HEAD_ID_MAX;
+                data = headData;
+                break;
+                //same for p==1 and p==2 (right and left arm)
+                case 1:
+                idMin = ARM_ID_MIN;
+                idMax = ARM_ID_MAX;
+                data = leftArmData;
+                break;
+                case 2:
+                idMin = ARM_ID_MIN;
+                idMax = ARM_ID_MAX;
+                data = rightArmData;
+                break;
+                case 3:
+                idMin = BODY_ID_MIN;
+                idMax = BODY_ID_MAX;
+                data = bodyData;
+                break;
+            }
+         
+    
+            //Write settings from json file to the servos            
+            for (int id = idMin; id <= idMax; id++) {
+                printf("Setting control table for servo ID: %d\n", id);
+                for (int param = 0; param < parameter_lst.size(); param++) {
+                    parameterName = parameter_lst[param];
+                    byteLength = servoControlTable[parameterName]["Bytes"];
+                    for (int byte = 0; byte < byteLength; byte++) {
+                        directAddress = servoControlTable[parameterName]["Address"] + byte;    
+                        //Writing settings to the servos
+                        if (!parameterName.equals("Present Current") && !parameterName.equals("Present Position")) { // Present current and present position is not used for writing
+                            // 2 bytes parameters
+                            if (byteLength==2){
+                                param_default_2Byte = data(id-2, param);
+                                if(parameterName.equals("Goal PWM"))
+                                    param_default_2Byte =  data(id-2, param)/0.11299;
+                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, directAddress, param_default_2Byte, &dxl_error)) {
+                                    std::cout << "Failed to set " << parameterName
+                                            << " for servo ID: " << id
+                                            << " of port:" << portHandlers[p]->getPortName()
+                                            << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
+                                            << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                    return false;
+                                }
+                            }
+                            if (byteLength==4){
+                                param_default_4Byte = data(id-2, param);
+                                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, directAddress, param_default_4Byte, &dxl_error)) {
+                                    std::cout << "Failed to set " << parameterName
+                                            << " for servo ID: " << id
+                                            << " of port:" << portHandlers[p]->getPortName()
+                                            << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
+                                            << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                    return false;
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+        
+            }
+
+        }
+        return true;
+    }
     void Init()
     {
+       
         
         // Robots configurations
         robot["EpiWhite"] = {.serialPortPupil = "/dev/cu.usbserial-FT66WV4A",
@@ -966,29 +1088,7 @@ class ServoControlTuning : public Module
         dynamixelParameters.set_labels(1, "Address", "Bytes");
 
 
-        if (JsonFileExists(robot[robotName].type)){
-            std::cout << "File exists\n";
-
-            headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX,robot[robotName].type, "Head", tuningList);
-            headData.print();
-
-            
-            if (EpiMode){
-                bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body", tuningList);
-                leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "LeftArm", tuningList);
-                rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "RightArm", tuningList);
-            }
-            else{
-                Notify(msg_warning, "Robot type not supported");
-            }
-            servoParameters = SelectServoChainData();
-            servoParameters.set_labels(0, parametersToTune);
-            servoParameters.set_name("ServoParameters");
-            parameterValues.copy(servoParameters);
-        }
-
-
-
+    
         
         CalculateByteLengths(servoControlTable, readingList, tuningList);
         std::cout << "len_read_data: " << len_read_data << std::endl;
@@ -1232,7 +1332,30 @@ class ServoControlTuning : public Module
             Notify(msg_fatal_error, "Unable to set min/max limits\n");
         Notify(msg_debug, "Setting up min/max limits done\n");
         
-        
+        if (JsonFileExists(robot[robotName].type)){
+            std::cout << "File exists\n";
+
+            headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX,robot[robotName].type, "Head", tuningList);
+            headData.print();
+
+            
+            if (EpiMode){
+                bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body", tuningList);
+                leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "LeftArm", tuningList);
+                rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "RightArm", tuningList);
+            }
+            else{
+                Notify(msg_warning, "Robot type not supported");
+            }
+            servoParameters = SelectServoChainData();
+            servoParameters.set_labels(0, parametersToTune);
+            servoParameters.set_name("ServoParameters");
+            parameterValues.copy(servoParameters);
+            if(!SetServoSettings()){
+                Notify(msg_warning, "Failed to set servo settings");
+                return;
+            }
+        }
 
         //CheckIndirectAddressSettings(HEAD_ID_MIN, HEAD_ID_MAX);
         
@@ -1591,7 +1714,7 @@ class ServoControlTuning : public Module
             for (int id = idMin; id <= idMax; id++) 
             {
                 //min and max limits
-                param_default_4Byte = minLimitPosition[maxMinPositionLimitIndex[i]];
+                param_default_4Byte = minLimitPosition[maxMinPositionLimitIndex[i]] / 360.0 * 4096.0;
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
                     std::cout << "Failed to set indirect address for min position limit for servo ID: " 
                     << id << " of port:" 
@@ -1600,7 +1723,7 @@ class ServoControlTuning : public Module
                     
                     return false;
                 }
-                param_default_4Byte = maxLimitPosition[maxMinPositionLimitIndex[i]];
+                param_default_4Byte = maxLimitPosition[maxMinPositionLimitIndex[i]] / 360.0 * 4096.0;
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
                     std::cout << "Failed to set indirect address for max position limit for servo ID: " 
                     << id << " of port:" 
@@ -1896,7 +2019,7 @@ class ServoControlTuning : public Module
         current[1] = goalCurrent;
         position[1] = goalPosition;
 
-        
+        std::cout << "current ans position output set" << std::endl;
         
         if (servoToTuneName.compare_string("RightPupil") || servoToTuneName.compare_string("LeftPupil")) 
         {   
@@ -1929,7 +2052,7 @@ class ServoControlTuning : public Module
         if (!headThread.get())
             {
                 Notify(msg_warning, "Can not communicate with head");
-                portHandlerLeftArm->clearPort();
+                portHandlerHead->clearPort();
             }
             
         }
