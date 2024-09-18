@@ -33,7 +33,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Input resizing    |<div style="color:green">🟢 OK |     |  |
 | Delays            |<div style="color:#green">🟢 OK | copy not completed |
 | WebUI             |<div style="color:green">🟢 OK |  |
-| API               |<div style="color:green">🟢 OK | command & control missing |
+| API               |<div style="color:green">🟢 OK | |
 | BrainStudio       |<div style="color:green">🟢 OK | brain template missing |
 | Message queue     |<div style="color:green">🟢 OK |  |
 | Log               |<div style="color:green">🟢 OK |Log level not handled |  |
