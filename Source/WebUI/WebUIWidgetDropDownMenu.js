@@ -8,6 +8,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'index', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'parameter_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
             {'name':'list', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
@@ -33,12 +34,13 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             data_set.add(this.parameters.list_parameter);
     }
 
-    option_selected(index, value)
+    option_selected(index, value, text)
     {
-    //    if(this.parameters.parameter)
-    //        this.get("/control/"+this.parameters.parameter+"/"+index+"/0/"+value);
         if(this.parameters.parameter)
-            this.send_control_change(this.parameters.parameter, value)
+            if(this.parameters.parameter_type=='string')
+                this.send_control_change(this.parameters.parameter, text);
+            else
+                this.send_control_change(this.parameters.parameter, value);
     }
 
     changeOptions(options)
@@ -66,7 +68,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
  
         let selector = this.querySelector("select")
         selector.onchange = function (e) {
-            this.parentElement.option_selected(this.parentElement.parameters.index, e.target.value);
+            this.parentElement.option_selected(this.parentElement.parameters.index, e.target.value, e.target.selectedOptions[0].innerText);
         };
 
          this.changeOptions(this.parameters.list);
@@ -76,23 +78,35 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
     update()
     {
-         try {
+         try
+         {
             let d = this.getSource('parameter');
-            if(d)
+            if(!d)
+                return;
+            let selectElement = this.querySelector("select");
+            if(this.parameters.list_parameter)
             {
-                let size_y = d.length;
-                let size_x = d[0].length;
- 
-                let selector = this.querySelector("select");
-
-                if(this.parameters.list_parameter)
-                {
-                    let l = this.getSource('list_parameter');
-                    this.changeOptions(l)
-                }
- 
-                selector.value = d[this.parameters.index][0];
+                let l = this.getSource('list_parameter');
+                this.changeOptions(l)
             }
+                // FIXME: Check parameter type here
+                // FIXME: Populate menu from parameter here or at init
+
+                if(this.parameters.parameter_type=='number')
+            {
+                selectElement.value= d[this.parameters.index][0];
+                return;
+            }
+
+            for (let i = 0; i < selectElement.options.length; i++)
+            {
+                if (selectElement.options[i].text === d)
+                {    
+                    selectElement.selectedIndex = i;
+                    return;
+                }
+            }
+
         }
         catch(err)
         {

@@ -1,5 +1,5 @@
 //
-// matrix.h - new multidimensional matrix class
+// matrix.h - multidimensional matrix class
 // (c) Christian Balkenius 2023-02-05
 //
 
@@ -1131,5 +1131,6 @@ namespace ikaros
         // operator  
     };
 }
+
 #endif
 

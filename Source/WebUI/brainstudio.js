@@ -918,6 +918,8 @@ let controller =
             let top = network.network.name;
             selector.selectItems([], top);
             let v = getCookie('current_view');
+            if(!response.filename)
+                network.tainted = true;
        }
 
         // NEW SESSION

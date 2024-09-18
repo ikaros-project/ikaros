@@ -35,6 +35,20 @@ class KernelTestModule: public Module
     matrix output8;
     matrix output9;
 
+    parameter codeparam_1;
+    parameter codeparam_2;
+
+    void SetParameters()
+    {
+        // Testing setting parameters from code
+
+        Bind(codeparam_1, "codeparam_1");
+        Bind(codeparam_2, "codeparam_2");
+
+        codeparam_2 = 987;
+    }
+
+
     void Init()
     {
         Bind(a, "a");
@@ -66,6 +80,9 @@ class KernelTestModule: public Module
 
         data.print("data");
         mdata.print("mdata");
+
+        codeparam_1.print("codeparam_1");
+        codeparam_2.print("codeparam_2");
     }
 
 
