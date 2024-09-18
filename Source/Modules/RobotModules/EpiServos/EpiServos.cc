@@ -75,6 +75,14 @@
 
 #define MAX_TEMPERATURE 65
 
+#define ADDR_MIN_POSITION_LIMIT 48
+#define ADDR_MAX_POSITION_LIMIT 52
+
+#define INDIRECTADDRESS_FOR_WRITE      168                  
+#define INDIRECTADDRESS_FOR_READ       578                  
+#define INDIRECTDATA_FOR_WRITE         224
+#define INDIRECTDATA_FOR_READ          634
+
 // TODO:
 // Add fast sync write feature
 
@@ -112,6 +120,8 @@ class EpiServos : public Module
     // Paramteters
     int robotType = 0;
     parameter simulate;
+    matrix minLimitPosition;
+    matrix maxLimitPosition;
 
     // Ikaros IO
     matrix goalPosition;
@@ -155,6 +165,10 @@ class EpiServos : public Module
     dynamixel::GroupSyncRead *groupSyncReadBody;
     dynamixel::GroupSyncWrite *groupSyncWriteBody;
 
+    // Vectors for iteration
+    std::vector<dynamixel::PortHandler*> portHandlers;
+    std::vector<dynamixel::PacketHandler*> packetHandlers;
+
     std::string robotName;
     std::map<std::string, Robot_parameters> robot;
 
@@ -163,6 +177,8 @@ class EpiServos : public Module
     matrix leftArmData;
     matrix rightArmData;
     matrix servoParameters;
+    dictionary servoControlTable;
+    list parameter_lst;
 
     
 
@@ -260,7 +276,7 @@ class EpiServos : public Module
         // Check if data is available
         for (int i = IDMin; i <= IDMax; i++)
         {
-            dxl_comm_result = groupSyncRead->isAvailable(i, 634, 4 + 2 + 1);
+            dxl_comm_result = groupSyncRead->isAvailable(i, INDIRECTDATA_FOR_READ, 4 + 2 + 1);
             if (!dxl_comm_result)
             {
                 groupSyncWrite->clearParam();
@@ -273,8 +289,8 @@ class EpiServos : public Module
         index = IOIndex;
         for (int i = IDMin; i <= IDMax; i++)
         {
-            dxl_present_position = groupSyncRead->getData(i, 634, 4);    // Present position
-            dxl_present_current = groupSyncRead->getData(i, 638, 2); // Present current
+            dxl_present_position = groupSyncRead->getData(i, INDIRECTDATA_FOR_READ, 4);    // Present position
+            dxl_present_current = groupSyncRead->getData(i, INDIRECTDATA_FOR_READ +4, 2); // Present current
             
 
             presentPosition[index] = dxl_present_position / 4095.0 * 360.0; // degrees
@@ -346,7 +362,7 @@ class EpiServos : public Module
 
    
     bool ParameterJsonFileExists(std::string robotType){
-         // Construct the filename
+        // Construct the filename
         std::string filename = "ServoParameters" + robotType + ".json";
         std::string path = __FILE__;
         // Remove the filename from the path
@@ -384,7 +400,7 @@ class EpiServos : public Module
         // Determine the number of parameters
         for (auto& chain : servoChainData) {
             if (chain.contains("servoID")) {
-                numParameters = chain.size();
+                numParameters = chain.size() -1; // exclude servoID
                 break;
             }
         }
@@ -395,35 +411,33 @@ class EpiServos : public Module
         // Check if the servo ID 
         for (auto& chain : servoChainData) {
             int i = 0;
-            for (int ID = minID; ID <= maxID; ID++){
+            for (int ID = minID; ID < maxID; ID++){
                 if (chain["servoID"] == ID) {
                     //loop through all keys of the chain
                     int paramIndex = 0;
                     for (auto& it : chain.items()) {
-                        //only add to tuned parameter the one time
-                        if (ID == minID){
+                        if(it.key() != "servoID"){
+                            //only add to tuned parameter the one time
+                            if (ID == minID) {
+                            parameter_lst.push_back(it.key());
                             tunedParameters += "\"" + it.key() + "\", ";
-   
-                        } 
+                            } 
                         result(ID - minID, paramIndex) = it.value();
+                        }
                         paramIndex++;
                     }
                 }
-                i++;
-                
-            }  
-            
+                i++; 
+            }           
         }
         result.set_labels(0, tunedParameters);
         return result;
     }
 
     void CreateParameterMatrices(){
-        headData;
-        bodyData;
-        leftArmData;
-        rightArmData;
+
         headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX,robot[robotName].type, "Head");
+        std::cout << "Head data: " << headData << std::endl;
 
         if (EpiMode){
             bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body");
@@ -432,6 +446,7 @@ class EpiServos : public Module
         }
         
     }
+
 
     void Init()
     {
@@ -515,7 +530,128 @@ class EpiServos : public Module
 
         //Notify(msg_debug, "Connecting to %s (%s)\n", robotName.c_str(), robot[robotName].type.c_str());
 
-        std::cout << robot[robotName].type << std::endl;
+        std::string sTable = R"({"Torque Enable": {"Address": 64,"Bytes": 1},
+                                    "LED": {"Address": 65,"Bytes": 1},
+                                    "Status Return Level": {
+                                        "Address": 68,
+                                        "Bytes": 1
+                                    },
+                                    "Registered Instruction": {
+                                        "Address": 69,
+                                        "Bytes": 1
+                                    },
+                                    "Hardware Error Status": {
+                                        "Address": 70,
+                                        "Bytes": 1
+                                    },
+                                    "Velocity I Gain": {
+                                        "Address": 76,
+                                        "Bytes": 2
+                                    },
+                                    "Velocity P Gain": {
+                                        "Address": 78,
+                                        "Bytes": 2
+                                    },
+                                    "Position D Gain": {
+                                        "Address": 80,
+                                        "Bytes": 2
+                                    },
+                                    "Position I Gain": {
+                                        "Address": 82,
+                                        "Bytes": 2
+                                    },
+                                    "Position P Gain": {
+                                        "Address": 84,
+                                        "Bytes": 2
+                                    },
+                                    "Feedforward 2nd Gain": {
+                                        "Address": 88,
+                                        "Bytes": 2
+                                    },
+                                    "Feedforward 1st Gain": {
+                                        "Address": 90,
+                                        "Bytes": 2
+                                    },
+                                    "BUS Watchdog": {
+                                        "Address": 98,
+                                        "Bytes": 1
+                                    },
+                                    "Goal PWM": {
+                                        "Address": 100,
+                                        "Bytes": 2
+                                    },
+                                    "Goal Current": {
+                                        "Address": 102,
+                                        "Bytes": 2
+                                    },
+                                    "Goal Velocity": {
+                                        "Address": 104,
+                                        "Bytes": 4
+                                    },
+                                    "Profile Acceleration": {
+                                        "Address": 108,
+                                        "Bytes": 4
+                                    },
+                                    "Profile Velocity": {
+                                        "Address": 112,
+                                        "Bytes": 4
+                                    },
+                                    "Goal Position": {
+                                        "Address": 116,
+                                        "Bytes": 4
+                                    },
+                                    "Realtime Tick": {
+                                        "Address": 120,
+                                        "Bytes": 2
+                                    },
+                                    "Moving": {
+                                        "Address": 122,
+                                        "Bytes": 1
+                                    },
+                                    "Moving Status": {
+                                        "Address": 123,
+                                        "Bytes": 1
+                                    },
+                                    "Present PWM": {
+                                        "Address": 124,
+                                        "Bytes": 2
+                                    },
+                                    "Present Current": {
+                                        "Address": 126,
+                                        "Bytes": 2
+                                    },
+                                    "Present Velocity": {
+                                        "Address": 128,
+                                        "Bytes": 4
+                                    },
+                                    "Present Position": {
+                                        "Address": 132,
+                                        "Bytes": 4
+                                    },
+                                    "Velocity Trajectory": {
+                                        "Address": 136,
+                                        "Bytes": 4
+                                    },
+                                    "Position Trajectory": {
+                                        "Address": 140,
+                                        "Bytes": 4
+                                    },
+                                    "Present Input Voltage": {
+                                        "Address": 144,
+                                        "Bytes": 2
+                                    },
+                                    "Present Temperature": {
+                                        "Address": 146,
+                                        "Bytes": 1
+                                    }
+                                    }
+                                    )" ;
+        
+        servoControlTable = parse_json(sTable);  
+        //Ikaros parameters
+        Bind(minLimitPosition, "MinLimitPosition");
+        Bind(maxLimitPosition, "MaxLimitPosition");
+
         // Ikaros input
         Bind(goalPosition, "GOAL_POSITION");
         Bind(goalCurrent, "GOAL_CURRENT");
@@ -524,7 +660,8 @@ class EpiServos : public Module
         Bind(presentPosition, "PRESENT_POSITION");
         Bind(presentCurrent, "PRESENT_CURRENT");
 
-
+        std::cout << "EpiServos: " << robotName << std::endl;
+        std::cout << "Binding parameters" << std::endl;
        
 
         // Check if the input size are correct. We do not need to have an input at all!
@@ -575,6 +712,9 @@ class EpiServos : public Module
             // Init Dynaxmixel SDK
             portHandlerHead = dynamixel::PortHandler::getPortHandler(robot[robotName].serialPortHead.c_str());
             packetHandlerHead = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+
+            portHandlers = {portHandlerHead};
+            packetHandlers = {packetHandlerHead};
 
             // Open port
             if (portHandlerHead->openPort())
@@ -732,9 +872,10 @@ class EpiServos : public Module
             // if (dxl_comm_result != COMM_SUCCESS)
             //     Notify(msg_warning, "%s\n", packetHandlerBody->getTxRxResult(dxl_comm_result));
 
-            // Notify(msg_debug, "Detected Dynamixel (Body): \n");
-            // for (int i = 0; i < (int)vec.size(); i++)
-            //     Notify(msg_debug, "[ID:%03d]\n", vec.at(i));
+            Notify(msg_debug, "Detected Dynamixel (Body): \n");
+  
+            portHandlers = {portHandlerHead, portHandlerLeftArm, portHandlerRightArm, portHandlerBody};
+            packetHandlers = {packetHandlerHead, packetHandlerLeftArm, packetHandlerRightArm, packetHandlerBody};
         }
 
         // Create dynamixel objects
@@ -754,19 +895,27 @@ class EpiServos : public Module
             groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read..
         }
 
-     
-        headData= ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX, robot[robotName].type, "Head");
-        headData.info();
+        if(ParameterJsonFileExists(robot[robotName].type)){
+            std::cout << "Reading json parameter file" << std::endl;
+            
+            CreateParameterMatrices();
+            std::cout << "Setting servo settings" << std::endl;
+            SetServoSettings();
+            std::cout << "Setting min max limits" << std::endl;
+            SetMinMaxLimits();
+
+        }
+        else{
+            Notify(msg_warning, "No parameter file found for this robot type. Using default settings.");
+            if (!SetDefaultSettingServo())
+                Notify(msg_fatal_error, "Unable to write default settings on servos\n");
+        }
 
         AutoCalibratePupil();
 
         Notify(msg_debug, "torque down servos and prepering servos for write defualt settings\n");
         if (!PowerOffRobot())
             Notify(msg_fatal_error, "Unable torque down servos\n");
-
-        if (!SetDefaultSettingServo())
-            Notify(msg_fatal_error, "Unable to write default settings on servos\n");
-
         if (!PowerOnRobot())
             Notify(msg_fatal_error, "Unable torque up servos\n");
     }
@@ -799,13 +948,16 @@ class EpiServos : public Module
         // Special case. As pupil does not have any feedback we just return goal position
         presentPosition[PUPIL_INDEX_IO]    =     goalPosition[PUPIL_INDEX_IO];
         presentPosition[PUPIL_INDEX_IO+1]  =     goalPosition[PUPIL_INDEX_IO+1];
-    
+
+       
         
+        for (int i = 0; i < EPI_TORSO_NR_SERVOS -2; i++) // -2 for the pupils
+        {
+            goalPosition[i] = clip(goalPosition[i], minLimitPosition[i], maxLimitPosition[i]);
+        }
         
         if (simulate)
         {
-            
-           
 
             //reset_array(presentCurrent, presentCurrentSize); // 0 mA
 
@@ -856,7 +1008,6 @@ class EpiServos : public Module
             return;
         }
 
-        dictionary d;
 
         // Special case for pupil uses mm instead of degrees
         goalPosition[PUPIL_INDEX_IO] = PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO], AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
@@ -901,6 +1052,7 @@ class EpiServos : public Module
     // A function that set importat parameters in the control table.
     // Baud rate and ID needs to be set manually.
     bool SetDefaultSettingServo() {
+        
         uint32_t param_default_4Byte;
         uint32_t profile_acceleration = 0;
         uint32_t profile_velocity = 0;
@@ -1414,6 +1566,984 @@ class EpiServos : public Module
         }
         return true; // Yay we manage to set everything we needed.
     }
+
+    bool SetServoSettings() {
+        uint32_t param_default_4Byte;
+        uint16_t param_default_2Byte;
+        uint8_t param_default_1Byte;
+        uint8_t dxl_error = 0;
+        int default_value = 0;
+    
+        std::vector<int> maxMinPositionLimitIndex;
+        matrix data;
+      
+
+        int dxl_comm_result = COMM_TX_FAIL;
+        int idMin;
+        int idMax;
+        int addressRead = INDIRECTADDRESS_FOR_READ;
+        int addressWrite = INDIRECTADDRESS_FOR_WRITE;
+        int directAddress;
+
+        int byteLength;
+        value parameterName;
+
+        Notify(msg_debug, "Setting control table on servos\n");
+
+        //loop through all portHandlers
+        for (int p = 0; p < portHandlers.size(); p++) {
+
+            // Ensure p is within the valid range
+            if (p < 0 || p >= portHandlers.size() || p >= packetHandlers.size()) {
+                std::cout << "Invalid index for portHandlers or packetHandlers: " << p << std::endl;
+                return false;
+            }
+
+            // Ensure pointers are not null
+            if (!portHandlers[p] || !packetHandlers[p]) {
+                std::cout << "Null pointer encountered in portHandlers or packetHandlers at index: " << p << std::endl;
+                return false;
+            }
+            //switch statement for different p values. 
+            switch (p) {
+                case 0:
+                idMin = HEAD_ID_MIN;
+                idMax = HEAD_ID_MAX;
+                data = headData;
+                break;
+                //same for p==1 and p==2 (right and left arm)
+                case 1:
+                idMin = ARM_ID_MIN;
+                idMax = ARM_ID_MAX;
+                data = leftArmData;
+                break;
+                case 2:
+                idMin = ARM_ID_MIN;
+                idMax = ARM_ID_MAX;
+                data = rightArmData;
+                break;
+                case 3:
+                idMin = BODY_ID_MIN;
+                idMax = BODY_ID_MAX;
+                data = bodyData;
+                break;
+            }
+         
+            for (int id = idMin; id <= idMax; id++) 
+            {   
+                // Disable Dynamixel Torque :
+                // Indirect address would not accessible when the torque is already enabled
+                dxl_comm_result = packetHandlers[p]->write1ByteTxRx(portHandlers[p], id, ADDR_TORQUE_ENABLE, 0, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandlers[p]->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandlers[p]->getRxPacketError(dxl_error);
+                }
+                
+
+                //Setting indirect addresses for all servos
+                // Torque Enable
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+                    if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                        std::cout << "Failed to set torque enable for head servo ID: " << i << std::endl;
+                        return false;
+                    }
+                }
+                if (EpiMode) {
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
+                        if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                            std::cout << "Failed to set torque enable for left arm servo ID: " << i << std::endl;
+                            return false;
+                        }
+                    }
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
+                        if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                            std::cout << "Failed to set torque enable for right arm servo ID: " << i << std::endl;
+                            return false;
+                        }
+                    }
+                    for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++) {
+                        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                            std::cout << "Failed to set torque enable for body servo ID: " << i << std::endl;
+                            return false;
+                        }
+                    }
+                } 
+
+                // Goal Position
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+                    for (int j = 0; j < 4; j++) {
+                        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error)) {
+                            std::cout << "Failed to set goal position for head servo ID: " << i << ", byte: " << j << std::endl;
+                            return false;
+                        }
+                    }
+                }
+                if (EpiMode)
+                {
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                                return false;
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                                return false;
+                    for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                                return false;
+                }
+
+
+                // Goal Current
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+                    for (int j = 0; j < 2; j++) {
+                        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error)) {
+                            std::cout << "Goal current not set for head servo ID: " << i << ", byte: " << j << std::endl;
+                            return false;
+                        }
+                    }
+                }
+                if (EpiMode)
+                {
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error))
+                                return false;
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error))
+                                return false;
+                    for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error))
+                                return false;
+                }
+                // Indirect adress (present position). Feedback
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+                    for (int j = 0; j < 4; j++){
+                        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error)){
+                            std::cout << "Present position not set for head servo ID: " << i << ", byte: " << j << std::endl;
+                            return false;
+                        }
+                    }
+                }
+                if (EpiMode)
+                {
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error))
+                                return false;
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error))
+                                return false;
+                    for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error))
+                                return false;
+                }
+                // Indirect adress (present current). Feedback. MX28 does not support current mode.
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+                    for (int j = 0; j < 2; j++){
+                        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error)){
+                            std::cout << "Present current not set for head servo ID: " << i << ", byte: " << j << std::endl;
+                            return false;
+                        }
+                    }
+                }
+                if (EpiMode)
+                {
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error))
+                                return false;
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error))
+                                return false;
+                    for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error))
+                                return false;
+                }
+                // Indirect adress (present temperature).
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+                    if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error)){
+                        std::cout << "Present temperature indir not set for head servo ID: " << i << ", byte: " << std::endl;
+                        return false;
+                    }
+                }
+                if (EpiMode)
+                {
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                            return false;
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                            return false;
+                    for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                        if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                            return false;
+                }  
+                
+            }
+
+            //Write settings from json file to the servos            
+            for (int id = idMin; id <= idMax; id++) {
+                printf("Setting control table for servo ID: %d\n", id);
+                for (int param = 0; param < parameter_lst.size(); param++) {
+                    parameterName = parameter_lst[param];
+                    byteLength = servoControlTable[parameterName]["Bytes"];
+                    for (int byte = 0; byte < byteLength; byte++) {
+                        directAddress = servoControlTable[parameterName]["Address"] + byte;    
+                        //Writing settings to the servos
+                        if (!parameterName.equals("Present Current") && !parameterName.equals("Present Position")) { // Present current and present position is not used for writing
+                            // 2 bytes parameters
+                            if (byteLength==2){
+                                param_default_2Byte = data(id-2, param);
+                                if(parameterName.equals("Goal PWM"))
+                                    param_default_2Byte =  data(id-2, param)/0.11299;
+                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, directAddress, param_default_2Byte, &dxl_error)) {
+                                    std::cout << "Failed to set " << parameterName
+                                            << " for servo ID: " << id
+                                            << " of port:" << portHandlers[p]->getPortName()
+                                            << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
+                                            << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                    return false;
+                                }
+                            }
+                            if (byteLength==4){
+                                param_default_4Byte = data(id-2, param);
+                                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, directAddress, param_default_4Byte, &dxl_error)) {
+                                    std::cout << "Failed to set " << parameterName
+                                            << " for servo ID: " << id
+                                            << " of port:" << portHandlers[p]->getPortName()
+                                            << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
+                                            << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                    return false;
+                                }
+                            }
+                            
+                        }
+                        else {// Only present position and present current is used for reading
+                            // std::cout << "Setting indirect reading address for " 
+                            // << parameterName << " indirect address: "
+                            // << addressRead << " direct address: " 
+                            // << directAddress <<std::endl;
+                            // Reading Indirect Addresses
+                            
+                            if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, directAddress, &dxl_error)) {
+                                std::cout << "Failed to set indirect reading address for " << parameterName
+                                        << " for servo ID: " << id
+                                        << " of port:" << portHandlers[p]->getPortName()
+                                        << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
+                                        << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                return false;
+                            }
+
+                            // Increment address after each byte
+                            addressRead += 2;
+
+                        }
+                       
+
+                        
+                        
+                    }//for byte
+                }
+            }//for id
+            
+            
+           
+            
+        }//for portHandlers
+      
+        
+
+
+        return true; // Yay we manage to set everything we needed.
+    }
+
+    bool SetPupilParameters(){
+        Notify(msg_debug, "Settting parameters for pupils (servo XL320)\n");
+        uint16_t pupil_moving_speed = 150;
+        uint8_t pupil_p_gain = 100;
+        uint8_t pupil_i_gain = 20;
+        uint8_t pupil_d_gain = 5;
+        uint8_t dxl_error = 0;
+
+        Timer t;
+        double xlTimer = 0.01; // Timer in sec. XL320 need this. Not sure why.
+
+        // PUPIL ID 2 (Left pupil)
+        // Limit position min
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, AngleMinLimitPupil[0], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+        // Limit position max
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, AngleMaxLimitPupil[0], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // Moving speed
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 32, pupil_moving_speed, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // P
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, pupil_p_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // I
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 28, pupil_i_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // D
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 27, pupil_d_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // PUPIL ID 3 (Right pupil)
+        // Limit position in
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, AngleMinLimitPupil[1], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // Limit position max
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, AngleMaxLimitPupil[1], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // Moving speed
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 32, pupil_moving_speed, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // P
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, pupil_p_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // I
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 28, pupil_i_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // D
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, pupil_d_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+        std::cout << "Pupil parameters set" << std::endl;
+
+        Notify(msg_debug, "Pupil parameters done\n");
+
+        return true;
+    }
+
+    bool SetMinMaxLimits(){
+        uint32_t param_default_4Byte;
+        uint8_t dxl_error = 0;
+        int idMin;
+        int idMax;
+    
+        std::vector<int> maxMinPositionLimitIndex;
+        //min and max limits
+        for (int p = 0; p < portHandlers.size(); p++) {
+
+            // Ensure p is within the valid range
+            if (p < 0 || p >= portHandlers.size() || p >= packetHandlers.size()) {
+                std::cout << "Invalid index for portHandlers or packetHandlers: " << p << std::endl;
+                return false;
+            }
+
+            // Ensure pointers are not null
+            if (!portHandlers[p] || !packetHandlers[p]) {
+                std::cout << "Null pointer encountered in portHandlers or packetHandlers at index: " << p << std::endl;
+                return false;
+            }
+            //switch statement for different p values. 
+            switch (p) {
+                case 0:
+                maxMinPositionLimitIndex = {0, 1, 2, 3};
+                idMin = HEAD_ID_MIN;
+                idMax = HEAD_ID_MAX;
+                break;
+                //same for p==1 and p==2 (left and right arm)
+                case 1:
+                maxMinPositionLimitIndex = {4, 5, 6, 7, 8, 9};
+                idMin = ARM_ID_MIN;
+                idMax = ARM_ID_MAX;
+                break;
+                case 2:
+                maxMinPositionLimitIndex = {10, 11, 12, 13, 14, 15};
+                idMin = ARM_ID_MIN;
+                idMax = ARM_ID_MAX;
+                break;
+                case 3:
+                maxMinPositionLimitIndex = {16};
+                idMin = BODY_ID_MIN;
+                idMax = BODY_ID_MAX;
+                break;
+                }
+            int i = 0;
+            for (int id = idMin; id <= idMax; id++) 
+            {
+                //min and max limits
+                param_default_4Byte = minLimitPosition[maxMinPositionLimitIndex[i]] /360 * 4095;
+                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
+                    std::cout << "Failed to set indirect address for min position limit for servo ID: " 
+                    << id << " of port:" 
+                    << portHandlers[p]->getPortName() 
+                    << ", DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                    
+                    return false;
+                }
+                param_default_4Byte = maxLimitPosition[maxMinPositionLimitIndex[i]]/ 360.0 * 4096.0;
+                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
+                    std::cout << "Failed to set indirect address for max position limit for servo ID: " 
+                    << id << " of port:" 
+                    << portHandlers[p]->getPortName() 
+                    << ", DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                
+                    return false;
+                }
+                i++;
+            }
+        }
+        return true;
+    }
+    
+
+    bool SetDefaultServoSettings() {
+        
+        uint32_t param_default_4Byte;
+        uint32_t profile_acceleration = 0;
+        uint32_t profile_velocity = 0;
+        
+        uint16_t p_gain_head = 100;
+        uint16_t i_gain_head = 10;
+        uint16_t d_gain_head = 1200;
+        uint16_t goal_pwm = 30;
+        
+        uint16_t p_gain_arm = 100;
+        uint16_t i_gain_arm = 0;
+        uint16_t d_gain_arm = 1000;
+        
+        uint16_t p_gain_body = 100;
+        uint16_t i_gain_body = 0;
+        uint16_t d_gain_body = 1000;
+
+       
+        uint16_t pupil_moving_speed = 150;
+        uint8_t param_default_1Byte;
+        uint8_t pupil_p_gain = 100;
+        uint8_t pupil_i_gain = 20;
+        uint8_t pupil_d_gain = 5;
+
+
+        uint8_t dxl_error = 0; 
+        int dxl_comm_result = COMM_TX_FAIL;
+
+        Notify(msg_debug, "Setting control table on servos\n");
+
+        // Torque Enable
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                std::cout << "Failed to set torque enable for head servo ID: " << i << std::endl;
+                return false;
+            }
+        }
+        if (EpiMode) {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                    std::cout << "Failed to set torque enable for left arm servo ID: " << i << std::endl;
+                    return false;
+                }
+            }
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                    std::cout << "Failed to set torque enable for right arm servo ID: " << i << std::endl;
+                    return false;
+                }
+            }
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++) {
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                    std::cout << "Failed to set torque enable for body servo ID: " << i << std::endl;
+                    return false;
+                }
+            }
+        } 
+
+        // Goal Position
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error)) {
+                    std::cout << "Failed to set goal position for head servo ID: " << i << ", byte: " << j << std::endl;
+                    return false;
+                }
+            }
+        }
+         if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 4; j++)
+                    if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                        return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 4; j++)
+                    if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                        return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                for (int j = 0; j < 4; j++)
+                    if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
+                        return false;
+        }
+
+
+        // Goal Current
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+            for (int j = 0; j < 2; j++) {
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error)) {
+                    std::cout << "Goal current not set for head servo ID: " << i << ", byte: " << j << std::endl;
+                    return false;
+                }
+            }
+        }
+         // Indirect adress (present position). Feedback
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            for (int j = 0; j < 4; j++){
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error)){
+                    std::cout << "Present position not set for head servo ID: " << i << ", byte: " << j << std::endl;
+                    return false;
+                }
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 4; j++)
+                    if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error))
+                        return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 4; j++)
+                    if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error))
+                        return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                for (int j = 0; j < 4; j++)
+                    if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_POSITION + (2 * j), ADDR_PRESENT_POSITION + j, &dxl_error))
+                        return false;
+        }
+        // Indirect adress (present current). Feedback. MX28 does not support current mode.
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            for (int j = 0; j < 2; j++){
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error)){
+                    std::cout << "Present current not set for head servo ID: " << i << ", byte: " << j << std::endl;
+                    return false;
+                }
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 2; j++)
+                    if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error))
+                        return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 2; j++)
+                    if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error))
+                        return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                for (int j = 0; j < 2; j++)
+                    if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_CURRENT + (2 * j), ADDR_PRESENT_CURRENT + j, &dxl_error))
+                        return false;
+        }
+        // Indirect adress (present temperature).
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error)){
+                std::cout << "Present temperature indir not set for head servo ID: " << i << ", byte: " << std::endl;
+                return false;
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                    return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                    return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_PRESENT_TEMPERATURE, ADDR_PRESENT_TEMPERATURE, &dxl_error))
+                    return false;
+        }
+
+        // Profile acceleration
+
+    for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_PROFILE_ACCELERATION, profile_acceleration, &dxl_error)){
+                std::cout << "Profile acceleration for head servo ID: " << i << std::endl;
+                return false;
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_ACCELERATION, profile_acceleration, &dxl_error))
+                    return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_ACCELERATION, profile_acceleration, &dxl_error))
+                    return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_ACCELERATION, profile_acceleration, &dxl_error))
+                    return false;
+        }
+
+        // Common settings for the servos
+        // Profile velocity (210)
+
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, i, ADDR_PROFILE_VELOCITY, profile_velocity, &dxl_error)){
+                std::cout << "Profile velocity not set for head servo ID: " << i << std::endl;
+                return false;
+                }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, i, ADDR_PROFILE_VELOCITY, profile_velocity, &dxl_error))
+                    return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, i, ADDR_PROFILE_VELOCITY, profile_velocity, &dxl_error))
+                    return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, i, ADDR_PROFILE_VELOCITY, profile_velocity, &dxl_error))
+                    return false;
+        }
+
+        // P (100)
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_P, p_gain_head, &dxl_error)){
+                std::cout << "P (PID) not set for head servo ID: " << i <<std::endl;
+                return false;
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, ADDR_P, p_gain_arm, &dxl_error))
+                    return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, ADDR_P, p_gain_arm, &dxl_error))
+                    return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, ADDR_P, p_gain_body, &dxl_error))
+                    return false;
+        }
+
+        // I
+        // The I value almost killed Epi.
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_I, i_gain_head, &dxl_error)){
+                std::cout << "I (PID) not set for head servo ID: " << i<< std::endl;
+                return false;
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, ADDR_I, i_gain_arm, &dxl_error))
+                    return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, ADDR_I, i_gain_arm, &dxl_error))
+                    return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, ADDR_I, i_gain_body, &dxl_error))
+                    return false;
+        }
+
+        // D
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++){
+            if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, ADDR_D, d_gain_head, &dxl_error)){
+                std::cout << "D (PID) not set for head servo ID: " << i << std::endl;
+                return false;
+            }
+        }
+        if (EpiMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, ADDR_D, d_gain_arm, &dxl_error))
+                    return false;
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, ADDR_D, d_gain_arm, &dxl_error))
+                    return false;
+            for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, ADDR_D, d_gain_body, &dxl_error))
+                    return false;
+        }
+
+        // Specific setting for each servos
+        // HEAD ID 2
+        // Limit position max
+        uint32_t limit_pos_max_tilt = 2700;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 48, limit_pos_max_tilt, &dxl_error)){
+            std::cout << "Max limit not set for head servo ID: 2 " << std::endl;
+            return false;
+            }
+        // Limit position min
+        uint32_t limit_pos_min_tilt = 1300;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 2, 52, limit_pos_min_tilt, &dxl_error)){
+            std::cout << "Min limit not set for head servo ID: 2 " << std::endl;
+            return false;
+            }
+
+        // HEAD ID 3
+        // Limit position max
+        uint32_t limit_pos_max_pan = 2500;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 48, limit_pos_max_pan, &dxl_error))
+            return false;
+        // Limit position min
+        uint32_t limit_pos_min_pan = 1750;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 3, 52, limit_pos_min_pan, &dxl_error))
+            return false;
+
+        // HEAD ID 4 (Left eye)
+        // Limit position max
+        uint32_t limit_pos_max_left_eye = 2300;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 48, limit_pos_max_left_eye, &dxl_error))
+            return false;
+        // Limit position min
+        uint32_t limit_pos_min_left_eye = 1830;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 4, 52, limit_pos_min_left_eye, &dxl_error))
+            return false;
+
+        // HEAD ID 5 (Right eye)
+        // Limit position max
+        uint32_t limit_pos_max_right_eye = 2200;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 48, limit_pos_max_right_eye, &dxl_error))
+            return false;
+
+        // Limit position min
+        uint32_t limit_pos_min_right_eye = 1780;
+        if (COMM_SUCCESS != packetHandlerHead->write4ByteTxRx(portHandlerHead, 5, 52, limit_pos_min_right_eye, &dxl_error))
+            return false;
+
+        Timer t;
+        double xlTimer = 0.01; // Timer in sec. XL320 need this. Not sure why.
+
+        // PUPIL ID 2 (Left pupil)
+        // Limit position min
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 6, AngleMinLimitPupil[0], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // Limit position max
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 8, AngleMaxLimitPupil[0], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // Moving speed
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 2, 32, pupil_moving_speed, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // P
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 29, pupil_p_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // I
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 28, pupil_i_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // D
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 2, 27, pupil_d_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // PUPIL ID 3 (Right pupil)
+        // Limit position in
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 6, AngleMinLimitPupil[1], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // Limit position max
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 8, AngleMaxLimitPupil[1], &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // Moving speed
+        if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, 3, 32, pupil_moving_speed, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+        // P
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 29, pupil_p_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // I
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 28, pupil_i_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        // D
+        if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, 3, 27, pupil_d_gain, &dxl_error))
+            return false;
+        Sleep(xlTimer);
+
+
+        if (EpiMode)
+        {
+            // LEFT ARM ID 2
+            // Limit position max
+            param_default_4Byte = 3200;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 2, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 600;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 2, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // LEFT ARM ID 3
+            // Limit position max
+            param_default_4Byte = 3200;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 3, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 800;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 3, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // LEFT ARM ID 4
+            // Limit position max
+            param_default_4Byte = 3000;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 4, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 1000;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 4, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // LEFT ARM ID 5
+            // Limit position max
+            param_default_4Byte = 2300;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 5, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 600;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 5, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // LEFT ARM ID 6
+            // Limit position max
+            param_default_4Byte = 3900;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 6, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 800;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 6, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // LEFT ARM ID 7
+            // Limit position max
+            param_default_4Byte = 4095;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 7, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 0;
+            if (COMM_SUCCESS != packetHandlerLeftArm->write4ByteTxRx(portHandlerLeftArm, 7, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // RIGHT ARM ID 2
+            // Limit position max
+            param_default_4Byte = 3200;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 2, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 600;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 2, 52, param_default_4Byte, &dxl_error))
+                return false;
+            // RIGHT ARM ID 3
+            // Limit position max
+            param_default_4Byte = 3300;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 3, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 900;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 3, 52, param_default_4Byte, &dxl_error))
+                return false;
+            // RIGHT ARM ID 4
+            // Limit position max
+            param_default_4Byte = 3000;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 4, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 1000;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 4, 52, param_default_4Byte, &dxl_error))
+                return false;
+            // RIGHT ARM ID 5
+            // Limit position max
+            param_default_4Byte = 3600;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 5, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 1800;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 5, 52, param_default_4Byte, &dxl_error))
+                return false;
+            // RIGHT ARM ID 6
+            // Limit position max
+            param_default_4Byte = 3900;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 6, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 800;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 6, 52, param_default_4Byte, &dxl_error))
+                return false;
+            // RIGHT ARM ID 7
+            // Limit position max
+            param_default_4Byte = 4095;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 7, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 0;
+            if (COMM_SUCCESS != packetHandlerRightArm->write4ByteTxRx(portHandlerRightArm, 7, 52, param_default_4Byte, &dxl_error))
+                return false;
+
+            // BODY ID 2
+            // Limit position max
+            param_default_4Byte = 3900;
+            if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, 2, 48, param_default_4Byte, &dxl_error))
+                return false;
+            // Limit position min
+            param_default_4Byte = 100;
+            if (COMM_SUCCESS != packetHandlerBody->write4ByteTxRx(portHandlerBody, 2, 52, param_default_4Byte, &dxl_error))
+                return false;
+        }
+        return true; // Yay we manage to set everything we needed.
+    }
+
 
 
 
