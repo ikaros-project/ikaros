@@ -19,6 +19,8 @@ add_subdirectory(AmbientLight)
 
 add_subdirectory(SequenceRecorder)
 
+add_subdirectory(KernelTestModules)
+
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
 set(MODULES_LIBS ${MODULES_LIBS} PARENT_SCOPE)
