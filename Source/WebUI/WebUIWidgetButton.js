@@ -185,6 +185,12 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     update(d)
     {
+        if(this.parameters.color)
+            this.firstChild.style.color = this.parameters.color;
+
+        if(this.parameters.background)
+            this.firstChild.style.background = this.parameters.background;
+
         if(this.parameters.file_names)
             this.firstChild.file_names = this.getSource("file_names");
         if(this.parameters.icon)
