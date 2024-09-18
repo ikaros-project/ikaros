@@ -43,4 +43,5 @@
    </module>
    <widget _index_="0" _x="48" _y="552" class="drop-down-menu" frame-style="" height="200" index="0" label="" labelWidth="50" list="A,B,C" list_parameter="" max="1" min="" name="Widget_8" parameter="KT.f2" parameter_type="string" select="" show_frame="false" show_title="false" source="" style="" title="f1" width="200"/>
    <widget _index_="2" _x="264" _y="576" class="drop-down-menu" frame-style="" height="200" index="0" label="" labelWidth="50" list="X,Y,Z" list_parameter="" max="1" min="" name="Widget_9" parameter="KT.f1" parameter_type="number" select="" show_frame="false" show_title="false" source="" style="" title="f1" width="200"/>
+   <widget _index_="4" _x="456" _y="360" background="" class="button" color="" command="" commandUp="" enableSource="" file_names="" frame-style="" height="200" icon="" label="Button" max="1" min="" multiGroup="" name="Widget_10" parameter="KT.f1" radioGroup="" select="" show_frame="false" show_title="false" source="" style="" title="Widget_10" type="push" value="1" valueUp="0" width="200" xindex="0" yindex="0"/>
 </group>
