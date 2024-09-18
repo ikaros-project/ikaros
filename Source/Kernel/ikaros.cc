@@ -60,7 +60,8 @@ namespace ikaros
     parameter::parameter(dictionary info):
         info_(info), 
         type(no_type), 
-        has_options(info_.contains("options"))
+        has_options(info_.contains("options")),
+        resolved(std::make_shared<bool>(false))
     {
         std::string type_string = info_["type"];
 
@@ -107,6 +108,7 @@ namespace ikaros
     {
         info_ = p.info_;
         type = p.type;
+        resolved = p.resolved;
         has_options = p.has_options;
 
         number_value = p.number_value;
@@ -154,6 +156,7 @@ namespace ikaros
             default:
                 break; // FIXME: error?
         }
+        *resolved = true;
         return v;
     }
 
@@ -203,6 +206,7 @@ namespace ikaros
             default:
                 break; // FIXME: error? Handle matrix with single element
         }
+        *resolved = true;
         return v;
     }
 
@@ -382,6 +386,9 @@ namespace ikaros
     bool 
     Component::ResolveParameter(parameter & p,  std::string & name)
     {
+        if(*(p.resolved))
+            return true; // Already set from SetParameters
+
         //std::cout << "ResolveParameter: " << name << std::endl;
         try
         {
@@ -565,7 +572,7 @@ namespace ikaros
         Kernel & k = kernel();
         std::string pname = path_+"."+name;
         if(k.parameters.count(pname))
-            p = kernel().parameters[pname];
+            p = (parameter &)kernel().parameters[pname];
         else
             throw exception("Cannot bind to \""+name+"\"");
     };
@@ -1622,6 +1629,9 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::ResolveParameter(parameter & p,  std::string & name)
     {
+        if(*(p.resolved))
+            return; // Already set from SetParameters
+
         std::size_t i = name.rfind(".");
         if(i == std::string::npos)
             return; // FIXME: Is this an error?

@@ -135,6 +135,7 @@ private:
 public:
     dictionary                      info_;
     bool                            has_options;
+    std::shared_ptr<bool>           resolved;
     parameter_type                  type;
     std::shared_ptr<double>         number_value;
     std::shared_ptr<matrix>         matrix_value;
