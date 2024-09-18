@@ -20,7 +20,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Dictionary        |<div style="color:green">🟢 OK |  |
 | Options           |<div style="color:green">🟢 OK |
 | Maths             |<div style="color:#c60">🟡 Partial | only essential functions |
-| Parameters        |<div style="color:green">🟢 OK | conversions, dict |
+| Parameters        |<div style="color:green">🟢 OK | |
 | Expressions       |<div style="color:green">🟢 OK |  |
 | XML               |<div style="color:green">🟢 OK | |
 | Kernel            |<div style="color:green">🟢 OK |
@@ -32,7 +32,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | SetSizes    |     <div style="color:green">🟢 OK |
 | Input resizing    |<div style="color:green">🟢 OK |     |  |
 | Delays            |<div style="color:#green">🟢 OK | copy not completed |
-| WebUI             |<div style="color:green">🟢 OK | inconsistent modes |
+| WebUI             |<div style="color:green">🟢 OK |  |
 | API               |<div style="color:green">🟢 OK | command & control missing |
 | BrainStudio       |<div style="color:green">🟢 OK | brain template missing |
 | Message queue     |<div style="color:green">🟢 OK |  |
