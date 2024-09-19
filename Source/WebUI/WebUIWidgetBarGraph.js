@@ -132,6 +132,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
         if(this.data = this.getSource('source'))
         {
+            if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
+                this.data = [this.data];
+
             if(this.parameters.auto)
                 this.parameters.max = this.max(this.data) || 1;
 

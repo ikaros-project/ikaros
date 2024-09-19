@@ -123,6 +123,9 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
         if(this.data = this.getSource('source'))
         {
+            if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
+            this.data = [this.data];
+
             if(this.buffer.length < this.getBufferSize())
                 this.buffer.push(this.data);
             else
