@@ -2,7 +2,7 @@
 	<parameter name="NumberTransitions" description="Number of transitions to make" type="int" default="4"/>
 	<parameter name="MinLimits" default="114,153 " description="Minimum limits for the servos in degrees" type="matrix" />
 	<parameter name = "MaxLimits" default="237,219" description="Maximum limits for the servos in degrees" type="matrix" />
-	<parameter name="RobotType" default="Torso" description="Type of the robot" type="string" />
+	<parameter name="RobotType" default="Torso" description="Type of the robot" options="Torso, FullBody" type="string" control="meny" />
  
 	<input name="PresentPosition" description=""/>
 	<input name="PresentCurrent" description="" />

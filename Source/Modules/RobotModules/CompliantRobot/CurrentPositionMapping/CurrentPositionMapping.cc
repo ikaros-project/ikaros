@@ -1,7 +1,14 @@
 #include "ikaros.h"
 #include <random> // Include the header file that defines the 'Random' function
+#include <fstream>
+#include <vector>
+#include <memory>
+#include "json.hpp"
+#include <string>
+#include <algorithm>
 
 
+using json = nlohmann::json;
 using namespace ikaros;
 
 class CurrentPositionMapping: public Module
@@ -21,13 +28,11 @@ class CurrentPositionMapping: public Module
     matrix min_torque_current;
     matrix overshot_goal;
     matrix overshot_goal_temp;
+    std::vector<std::shared_ptr<std::vector<float>>> moving_trajectory;
    
+ 
 
-
-
-     
-
-    parameter number_num_transitions;
+    parameter num_transitions;
     parameter min_limits;
     parameter max_limits;
     parameter robotType;
@@ -35,7 +40,7 @@ class CurrentPositionMapping: public Module
 
     std::random_device rd;
     
-   
+    int number_transitions; //Will be used to add starting and ending position
     int position_margin = 4;
     int transition = 0;
     int current_increment = 2;
@@ -43,7 +48,8 @@ class CurrentPositionMapping: public Module
     int current_limit = 1200;
     bool find_minimum_torque_current = false;
     bool minimum_torque_current_finsih =false;
-    
+    bool stop = false;
+    int unique_id;
   
     
 
@@ -82,7 +88,6 @@ class CurrentPositionMapping: public Module
         // Initialize the random number generator with the seed
         std::mt19937 gen(rd());
         int num_columns = (robotType == "Torso") ? 2 : 12;
-        
         matrix goal_positions(num_transitions, present_position.size());
         goal_positions.set(0);
         if (num_columns != min_limits.size() && num_columns != max_limits.size()){
@@ -90,17 +95,21 @@ class CurrentPositionMapping: public Module
             Notify(msg_fatal_error, "Min and Max limits must have the same number of columns as the current controlled servos in the robot type (2 for Torso, 12 for full body)");
             return -1;
         }
+        
         if (robotType=="Torso"){
             for (int i = 0; i < num_transitions; i++) {
                 for (int j = 0; j < num_columns; j++) {
                     std::uniform_real_distribution<double> distr(min_limits(j), max_limits(j));
                     goal_positions(i, j) = int(distr(gen));
+                    if (i == num_transitions-1){
+                        goal_positions(i, j) = 180;
+                    }
                 }
             }
         }
         
-        
     
+
         return goal_positions;
     }
 
@@ -131,8 +140,8 @@ class CurrentPositionMapping: public Module
         return false;
     }   
     //saving starting position, goal position and current in json file
-    void SavePositionsJson(matrix goal_positions, matrix start_position, matrix max_current, matrix min_current, matrix min_torque, matrix overshot, std::string robotType, int transition){
-        Notify(msg_debug, "Inside SavePositionsJson()");
+    void SaveMetricsToJson(matrix goal_positions, matrix start_position, matrix max_current, matrix min_current, matrix min_torque, matrix overshot, std::string robotType, int transition, int unique_id){
+        Notify(msg_debug, "Inside SaveMetricsToJson()");
         std:: cout << "Saving positions in json file" << std::endl;
         std::ofstream file;
         std::string scriptPath = __FILE__;
@@ -150,8 +159,29 @@ class CurrentPositionMapping: public Module
             file << "{\n";
             file << "\"Mapping\": [\n";
         }
-        else if(transition>0){
-            file << "{\"StartingPosition\": [";
+       // If the file exists, remove the last "\n]\n}" and replace it with ","
+        else if (fileExists && transition==0){ 
+                std::ifstream inFile(filePath);
+                std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+                inFile.close();
+    
+                // Check if unique_id is already in the file
+                while (fileContent.find(std::to_string(unique_id)) != std::string::npos) {
+                    unique_id++;
+                }
+
+                size_t pos = fileContent.rfind("\n]\n}");
+                if (pos != std::string::npos) {
+                    fileContent.replace(pos, 4, ",");
+                    std::ofstream outFile(filePath);
+                    outFile << fileContent;
+                    outFile.close();
+                }
+            }
+        if(transition>0){
+            //Check if unique_id is already in the file
+            file << "{\"UniqueID\": [" << unique_id << "], ";
+            file << "\"StartingPosition\": [";
             for (int i = 0; i < current_controlled_servos.size(); i++){
                 file << int(start_position(current_controlled_servos(i)));
                 if (i < current_controlled_servos.size()-1){
@@ -201,7 +231,7 @@ class CurrentPositionMapping: public Module
                 }
             }
             //if transiiton is not the last one, add a comma
-            if (transition < number_num_transitions-1){
+            if (transition < number_transitions-1){
                 file << "]},";
             }
             else{
@@ -211,6 +241,113 @@ class CurrentPositionMapping: public Module
         file << std::endl;
     
         file.close();
+    }
+
+    void SaveTrajectory_old(std::vector<std::shared_ptr<std::vector<float>>> trajectory, std::string robotType, int unique_id){
+        std::ofstream file;
+        std::string scriptPath = __FILE__;
+        std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
+        std::string filePath = scriptDirectory + "/Trajectories" + robotType + ".json";
+        file.open(filePath, std::ios::app);
+        std::ifstream checkFile(filePath);
+        bool fileExists = checkFile.good();
+        checkFile.close();
+        std::ifstream inFile(filePath);
+        std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+        inFile.close();
+
+        if (!fileExists){
+            file << "{\n";
+            file << "\"Trajectories\": [\n";
+        }
+        // If the file exists, remove the last "\n]\n}" and replace it with ","
+        if(fileExists){
+            // Check if unique_id is already in the file
+            while (fileContent.find(std::to_string(unique_id)) != std::string::npos) {
+                unique_id++;
+            }
+
+            size_t pos = fileContent.rfind("\n]\n}");
+            if (pos != std::string::npos) {
+                fileContent.replace(pos, 4, ",");
+                std::ofstream outFile(filePath);
+                outFile << fileContent;
+                outFile.close();
+            }
+
+            while (fileContent.find(std::to_string(unique_id)) != std::string::npos) {
+                unique_id++;
+            }
+            file << "{\"UniqueID\": " << unique_id << ",\n";
+            file << "\"Trajectory\": [\n";
+        } else {
+            file << "{\"UniqueID\": " << unique_id << ",\n";
+            file << "\"Trajectory\": [\n";
+        }
+
+        for (int i = 0; i < trajectory.size(); i++){
+            file << "[";
+            for (int j = 0; j < trajectory[i]->size(); j++){
+                file << int((*trajectory[i])[j]);
+                if (j < trajectory[i]->size()-1){
+                    file << ", ";
+                }
+            }
+            if (i < trajectory.size()-1){
+                file << "],\n";
+            } else {
+                file << "]\n";
+            }
+        }
+        if (transition < number_transitions-1){
+            file << "]},";
+        } else {
+            file << "]}\n]\n}";
+        }
+
+        file << std::endl;
+        file.close();
+    }
+
+    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>> trajectory, std::string robotType, int unique_id) {
+        std::string scriptPath = __FILE__;
+        std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
+        std::string filePath = scriptDirectory + "/Trajectories" + robotType + ".json";
+
+        // Read existing file content
+        nlohmann::json root;
+        std::ifstream inFile(filePath);
+        if (inFile.good()) {
+            inFile >> root;
+        }
+        inFile.close();
+
+        // Ensure unique_id is unique
+        for (const auto& traj : root["Trajectories"]) {
+            if (traj["UniqueID"] == unique_id) {
+                unique_id++;
+            }
+        }
+   
+
+        // Create new trajectory entry
+        nlohmann::json newTrajectory;
+        newTrajectory["UniqueID"] = unique_id;
+        for (const auto& point : trajectory) {
+            nlohmann::json jsonPoint = nlohmann::json::array();
+            for (const auto& coord : *point) {
+                jsonPoint.push_back(coord);
+            }
+            newTrajectory["Trajectory"].push_back(jsonPoint);
+        }
+
+        // Add new trajectory to root
+        root["Trajectories"].push_back(newTrajectory);
+
+        // Write updated content to file
+        std::ofstream outFile(filePath);
+        outFile << root.dump(-1); // Pretty-print with 4 spaces indentation
+        outFile.close();
     }
 
     // FindMinimumTorqueCurrent(present_current, present_position, previous_position, current_limit), returns current and boolean value
@@ -237,6 +374,8 @@ class CurrentPositionMapping: public Module
 
         return std::make_pair(current_output, minimum_torque_current_found);
     }
+
+    
     
     //Check if the robot has overshot the goal by comparing the sign of the difference between the starting position and the goal position and the difference between the current position and the goal position
     matrix OvershotGoal (matrix position, matrix goal_position, matrix starting_position, matrix overshot_goal){
@@ -250,6 +389,12 @@ class CurrentPositionMapping: public Module
         return overshot_goal;
     }
     
+    int GenerateRandomNumber(int min, int max){
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> distr(min, max);
+        return distr(gen);
+    }
     
     void Init()
     {
@@ -257,19 +402,20 @@ class CurrentPositionMapping: public Module
         Bind(present_current, "PresentCurrent");
         Bind(present_position, "PresentPosition");
         Bind(goal_current, "GoalCurrent");
-        Bind(number_num_transitions, "NumberTransitions");
+        Bind(num_transitions, "NumberTransitions");
         Bind(goal_positions_out, "GoalPosition");
 
         Bind(min_limits, "MinLimits");
         Bind(max_limits, "MaxLimits");
         Bind(robotType, "RobotType");
+        
 
 
+        number_transitions = num_transitions.as_int()+1; // Add one to the number of transitions to include the ending position
        
         position_transitions.set_name("PositionTransitions");
-        position_transitions = RandomisePositions(present_position, number_num_transitions, min_limits, max_limits, robotType);
+        position_transitions = RandomisePositions(present_position, number_transitions, min_limits, max_limits, robotType);
         goal_positions_out.copy(position_transitions[0]);
-
         previous_position.set_name("PreviousPosition");
         previous_position.copy(present_position);
         position_transitions.print();
@@ -294,13 +440,13 @@ class CurrentPositionMapping: public Module
         }
         else{
             current_controlled_servos.set_name("CurrentControlledServosFullBody");
-            current_controlled_servos = {0, 1, 2, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 18};
-            overshot_goal_temp = {false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+            current_controlled_servos = {0, 1, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 18};
+            overshot_goal_temp = {false, false, false, false, false, false, false, false, false, false, false, false, false};
         }
         
         
         overshot_goal.set_name("OvershotGoal");
-        
+        unique_id = GenerateRandomNumber(0, 1000000);
         
     }
 
@@ -310,6 +456,10 @@ class CurrentPositionMapping: public Module
         if (present_current.connected() && present_position.connected()){
             
             if (ApproximatingGoal(present_position, previous_position, goal_positions_out, position_margin)){
+                //Save present positions into trajectory matrix
+               
+                moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
+
                 
                 //Check minumum current while approximating goal
                 for (int i = 0; i < current_controlled_servos.size(); i++){
@@ -332,10 +482,10 @@ class CurrentPositionMapping: public Module
                     goal_current(0) = (abs(min_torque_current(0)) +2);
                     
                     //save starting position, goal position and current in json file
-                    SavePositionsJson(goal_positions_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, robotType, transition);
+                    SaveMetricsToJson(goal_positions_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, robotType, transition, unique_id);
                     transition++;
                     std::cout << "Transition: " << transition << std::endl;
-                    if (transition < number_num_transitions){
+                    if (transition < number_transitions){
                         goal_positions_out.copy(position_transitions[transition]);
                         start_position.copy(present_position);
                         std::cout << "New goal position" << std::endl;
@@ -343,13 +493,15 @@ class CurrentPositionMapping: public Module
                         min_moving_current.set(starting_current);
                         max_present_current.set(starting_current);
                         overshot_goal_temp.reset();
-                        
-                        
+                        moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
+
+  
                         
                     }
                     else{
                         Notify(msg_end_of_file, "All transitions completed");
-                        std::exit(1); //terminate the program
+                        Sleep(1);
+                        Notify(msg_terminate, "Shutting down");
                     }
                 }
             }
@@ -357,6 +509,10 @@ class CurrentPositionMapping: public Module
             else if (ReachedGoal(present_position, goal_positions_out, position_margin)){
 
                 find_minimum_torque_current = true;
+                SaveTrajectory(moving_trajectory, robotType, unique_id);
+                unique_id = GenerateRandomNumber(0, 1000000);
+                
+                moving_trajectory.clear();
     
             }
             else{
@@ -366,14 +522,6 @@ class CurrentPositionMapping: public Module
             }
 
             
-            
-
-
-
-            //goal_positions_out.print();
-            //previous_position.print();
-            //present_position.print();
-            
             if(abs(time_prev_position - std::time(nullptr)) > position_sampling_interval){
                 time_prev_position = std::time(nullptr);
                 previous_position.copy(present_position);
@@ -381,6 +529,7 @@ class CurrentPositionMapping: public Module
             }
          
         }
+        
     }
 
 };

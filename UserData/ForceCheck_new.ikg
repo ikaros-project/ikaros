@@ -7,7 +7,7 @@
    <connection delay_range="1" source="ForceCheck.CurrentOutput" source_range="" target="Servos.GOAL_CURRENT" target_range=""/>
    <connection delay="1" source="GoalPosition.OUTPUT" target="ForceCheck.GoalPositionIn"/>
    <connection delay="1" source="PositionSelection.PositionOutput" target="Servos.GOAL_POSITION"/>
-   <module _x="168" _y="240" class="EpiServos" description="Robot servo control module" log_level="2" name="Servos" robot="EpiBlack" simulate="false">
+   <module _x="168" _y="240" class="EpiServos" description="Robot servo control module" log_level="7" name="Servos" robot="EpiBlack" simulate="false">
       <author>
          <affiliation/>
          <email/>
@@ -30,6 +30,8 @@
       <output description="Present current (if supported by the servo) in mA." name="PRESENT_CURRENT" size="19"/>
       <parameter control="textedit" default="EpiBlack" type="string" descrition="Robot to connect to." name="robot" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" value="EpiBlack"/>
       <parameter control="textedit" default="False" type="bool" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." name="simulate" type="bool" value="false"/>
+      <parameter control="textedit" data="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" default="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" description="The minimum limit of the position of the servos. Not including pupils" name="MinLimitPosition" type="matrix" value="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"/>
+      <parameter control="textedit" data="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" default="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" description="The maximum limit of the position of the servos. Not including pupils " name="MaxLimitPosition" type="matrix" value="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"/>
    </module>
    <module _x="0" _y="144" class="Constant" data="173,184,180,180,12,12,0,0,0,0,0,0,0,0,0,0,0,0,0" description="outputs a constant value" name="GoalPosition">
       <output description="The output" name="OUTPUT" size="data.size"/>
