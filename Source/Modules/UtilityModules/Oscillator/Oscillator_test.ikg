@@ -1,5 +1,5 @@
 <group  name="OscTest">
-   <module class="Oscillator"  frequency="1, 2, 3" name="Oscillator" type="sin" sample_rate="400" />
+   <module class="Oscillator"  frequency="1, 2, 3" name="Oscillator" type="sin" />
    <module class="Print" name="Print" />
    <module class="Logger" name="Logger" />
 
