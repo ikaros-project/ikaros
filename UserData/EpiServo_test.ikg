@@ -1,20 +1,20 @@
-<group filename="EpiServo_test.ikg" name="test" start="false" stop="-1" title="MinimalModule Example" webui_port="8000">
+<group filename="" log_level="5" name="test" start="false" stop="-1" title="MinimalModule Example" webui_port="8000">
    <_connection source="Torque_enable.OUTPUT" target="EpiServos.TORQUE_ENABLE"/>
    <connection source="Goal_position.OUTPUT" target="EpiServos.GOAL_POSITION"/>
    <connection source="Goal_current.OUTPUT" target="EpiServos.GOAL_CURRENT"/>
-   <module _data="    180, 180, 180, 180, 180, 180,    180, 180, 180, 180, 180, 180,    180, 180, 180, 180, 180, 180,    180" class="Constant" data="    180, 180, 180, 180, 12, 12    " description="outputs a constant value" name="Goal_position">
+   <module _data="    180, 180, 180, 180, 180, 180,    180, 180, 180, 180, 180, 180,    180, 180, 180, 180, 180, 180,    180" class="Constant" data="    180, 180, 180, 180, 12, 12    " description="outputs a constant value" log_level="5" name="Goal_position">
       <output description="The output" name="OUTPUT" size="data.size"/>
       <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="    180, 180, 180, 180, 12, 12    "/>
    </module>
-   <module class="Constant" data="    50, 50, 0, 0, 0, 0    " description="outputs a constant value" name="Goal_current">
+   <module class="Constant" data="    50, 50, 0, 0, 0, 0    " description="outputs a constant value" log_level="5" name="Goal_current">
       <output description="The output" name="OUTPUT" size="data.size"/>
       <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="    50, 50, 0, 0, 0, 0    "/>
    </module>
-   <module _data="    0 0 0 0 0 0    0 0 0 0 0 0    0 0 0 0 0 0    0" class="Constant" data="    1, 1, 1, 1, 1, 1    " description="outputs a constant value" name="Torque_enable">
+   <module _data="    0 0 0 0 0 0    0 0 0 0 0 0    0 0 0 0 0 0    0" class="Constant" data="    1, 1, 1, 1, 1, 1    " description="outputs a constant value" log_level="5" name="Torque_enable">
       <output description="The output" name="OUTPUT" size="data.size"/>
       <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="    1, 1, 1, 1, 1, 1    "/>
    </module>
-   <module class="EpiServos" description="Robot servo control module" log_level="8" name="EpiServos" robot="EpiBlack" simulate="true">
+   <module class="EpiServos" description="Robot servo control module" log_level="8" name="EpiServos" robot="EpiBlack" simulate="false">
       <author>
          <affiliation/>
          <email/>
@@ -36,10 +36,12 @@
       <link class="EpiServo"/>
       <output description="Present angle of the joints in degrees." name="PRESENT_POSITION" size="19"/>
       <output description="Present current (if supported by the servo) in mA." name="PRESENT_CURRENT" size="19"/>
-      <parameter control="textedit" default="EpiWhite" descrition="Robot to connect to." name="robot" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" type="options" value="EpiBlack"/>
+      <parameter control="textedit" default="EpiWhite" descrition="Robot to connect to." name="robot" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" type="string" value="EpiBlack"/>
       <parameter control="textedit" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." name="simulate" type="bool" value="false"/>
+      <parameter control="textedit" data="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" default="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" description="The minimum limit of the position of the servos. Not including pupils" name="MinLimitPosition" type="matrix" value="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"/>
+      <parameter control="textedit" data="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" default="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" description="The maximum limit of the position of the servos. Not including pupils " name="MaxLimitPosition" type="matrix" value="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"/>
    </module>
-   <module class="Logger" description="logs start to Ikaros site" name="Logger">
+   <module class="Logger" description="logs start to Ikaros site" log_level="5" name="Logger">
    </module>
    <widget _index_="0" _x="120" _y="480" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="73" label_x="" label_y="" name="Widget_7" scrollable="false" show_frame="false" show_title="true" source="EpiServos.PRESENT_POSITION" style="" title="Position" width="1201"/>
    <widget _index_="2" _x="384" _y="120" class="slider-horizontal" colorize="true" count="6" frame-style="" height="313" labels="NeckTilt, NeckPan,  LeftEye, RightEye,  LeftPupil, RightPupil" max="360" min="0" name="Widget_8" parameter="Goal_position.data" select="0" show_frame="false" show_title="true" show_values="true" source="GoalPosition.data" step="1" style="" title="GoalPosition" width="289"/>
