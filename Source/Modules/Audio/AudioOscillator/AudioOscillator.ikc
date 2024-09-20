@@ -1,0 +1,15 @@
+<class name="Oscillator" description="basic sin oscillator; one output per frequency value">
+	<description>
+		Different types of oscillators. The type of the oscillation is set by the type parameter. 
+		The frequencies are set by a matrix parameter and the output has the same size as that parameter.
+		If a sample_rate is set, the module will produce a buffer with a requred number of samples to fill upp between two ticks. For example, 
+		if the tick_duration is 0.1 and the sample_rate is 1000 then the output buffer will contin 100 elements for each oscillator arranged in
+		the same matrix structure as the frequency parameter.
+	</description>
+	<parameter name="type" type="number" options="sin, square" default="sin" />
+	<parameter name="frequency" type="matrix" default="1" description="frequency in Hz" />
+	<parameter name="sample_rate" type="rate" default="0" description="samples/s; default 0 means 1/tick_duration" />
+	<input name="INPUT" description="Frequency modulation added to base frequency"/>
+	<output name="OUTPUT" description="The output" size="frequency.size,@sample_rate*@tick_duration"/>
+</class>
+
