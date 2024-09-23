@@ -3,7 +3,7 @@
    <connection delay="1" source="Servos.PRESENT_CURRENT" target="Mapping.PresentCurrent"/>
    <connection delay="1" source="Mapping.GoalPosition" target="Servos.GOAL_POSITION"/>
    <connection delay="1" source="Mapping.GoalCurrent" target="Servos.GOAL_CURRENT"/>
-   <module MaxLimits="237, 219" MinLimits="114, 153" NumberTransitions="5" RobotType="Torso" _x="336" _y="96" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
+   <module MaxLimits="237, 219" MinLimits="114, 153" NumberTransitions="15" RobotType="Torso" _x="336" _y="96" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
       <author>
          <affiliation/>
          <email/>
@@ -17,7 +17,7 @@
       <input description="" name="PresentCurrent"/>
       <output description="" name="GoalPosition" size="PresentPosition.size"/>
       <output description="" name="GoalCurrent" size="PresentCurrent.size"/>
-      <parameter control="textedit" default="4" description="Number of transitions to make" name="NumberTransitions" type="int" value="5.000000"/>
+      <parameter control="textedit" default="4" description="Number of transitions to make" name="NumberTransitions" type="int" value="15.000000"/>
       <parameter control="textedit" default="114,153 " description="Minimum limits for the servos in degrees" name="MinLimits" type="matrix" value="114, 153"/>
       <parameter control="textedit" default="237,219" description="Maximum limits for the servos in degrees" name="MaxLimits" type="matrix" value="237, 219"/>
       <parameter control="textedit" default="Torso" description="Type of the robot" name="RobotType" type="string" value="Torso"/>
@@ -51,4 +51,6 @@
    </module>
    <widget _index_="0" _x="48" _y="336" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_10" scrollable="false" select="" show_frame="false" show_title="true" source="Servos.PRESENT_POSITION" style="" title="Positions" width="793"/>
    <widget _index_="2" _x="48" _y="384" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="" name="Widget_11" scrollable="false" select="" show_frame="false" show_title="false" source="Servos.GOAL_POSITION" style="" title="Widget_11" width="793"/>
+   <widget _index_="4" _x="48" _y="408" buffer_size="150" class="plot" color="blue" direction="vertical" frame-style="" height="433" max="1500" min="0" name="Widget_3" select="" show_frame="false" show_title="true" source="Servos.PRESENT_CURRENT" style="--decimals:0" title="Current" width="793"/>
+   <widget _index_="6" _x="48" _y="432" buffer_size="150" class="plot" color="green" direction="vertical" frame-style="" height="409" max="1500" min="0" name="Widget_4" select="" show_frame="true" show_title="false" source="Servos.GOAL_CURRENT" style="--decimals:0" title="Goal Current" width="793"/>
 </group>
