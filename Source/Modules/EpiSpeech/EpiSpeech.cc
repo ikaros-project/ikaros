@@ -102,6 +102,7 @@ SpeechSound::UpdateVolume(matrix rms, double lag)
 SpeechSound
 EpiSpeech::CreateSound(std::string text, std::string path, int id)
 {
+    std::cout << "EpiSpeech::CreateSound for \"" << text << "\"." << std::endl;
     std::string sound_path = path + std::to_string(id)+".aiff";
     SpeechSound sound(sound_path);
 
