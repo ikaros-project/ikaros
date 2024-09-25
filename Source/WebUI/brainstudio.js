@@ -270,6 +270,7 @@ let dialog =
 
     cancelOpen() 
     {
+        controller.open_mode = false;
         this.window.close(null);
     },
 
@@ -374,7 +375,13 @@ const network =
 
     uniqueID(name, list) // FIXME: Should check that it is really unique in list of names
     {
-        return name+this.component_count++;
+        let i=1;
+        while(true)
+        {
+
+            //let name = return name+i;
+        }
+       // return name+this.component_count++;
     },
 
     rebuildDict()
@@ -597,6 +604,7 @@ let controller =
     reconnect_interval: 1200, 
     reconnect_timer: null,
     request_timer: null,
+    open_mode: false,
 
     reconnect()
     {
@@ -687,6 +695,11 @@ let controller =
         controller.commandQueue.push([command, path, dictionary]);
     },
 
+    clearQueue()
+    {
+        controller.commandQueue = [];
+    },
+
     new() 
     {
         controller.queueCommand('new');
@@ -701,6 +714,7 @@ let controller =
     open() 
     {
 
+        controller.open_mode = true;
         dialog.showOpenDialog(controller.openCallback, "Select file to open");
     },
 
@@ -909,17 +923,23 @@ let controller =
 
         if(package_type == "network")
         {
+            controller.open_mode = false;
+            controller.clearQueue();
+            controller.session_id = session_id;
             document.querySelector("header").style.display="block"; // Show page when network is loaded
             document.querySelector("#load").style.display="none";
-            controller.session_id = session_id;
+   
             controller.tick = response.tick;
             network.init(response);
             nav.populate();
             let top = network.network.name;
             selector.selectItems([], top);
             let v = getCookie('current_view');
-            if(!response.filename)
+
+            if(response.filename=="")
                 network.tainted = true;
+            else
+                network.tainted = main.edit_mode;            
        }
 
         // NEW SESSION
@@ -964,6 +984,9 @@ let controller =
     {
         clearTimeout(controller.request_timer);
         controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schdeule next
+
+        if(controller.open_mode)
+            return;
 
         if(selector.selected_background == null)
             return;
@@ -2206,7 +2229,7 @@ const main =
     
     newModule()
     {
-        const name = network.uniqueID("Untitled_");
+        const name = network.uniqueID("Untitled_", network.dict[selector.selected_background].modules);
         const m =
         {
             name:name,
@@ -2236,7 +2259,7 @@ const main =
 
     newGroup() // FIXME: Move to network
     {
-        const name = network.uniqueID("Group_");
+        const name = network.uniqueID("Group_", network.dict[selector.selected_background].groups);
         const m =
         {
             name:name,
@@ -2268,7 +2291,7 @@ const main =
 
     newInput() // FIXME: Move to network
     {
-        const name = network.uniqueID("Input_");
+        const name = network.uniqueID("Input_", network.dict[selector.selected_background].inputs);
         const m =
         {
             name:name,
@@ -2292,7 +2315,7 @@ const main =
 
     newOutput() // FIXME: Move to network
     {
-        const name = network.uniqueID("Output_");
+        const name = network.uniqueID("Output_",network.dict[selector.selected_background].outputs);
         const m =
         {
             name:name,
@@ -2317,7 +2340,7 @@ const main =
 
     newWidget()
     {
-        const name = network.uniqueID("Widget_");
+        const name = network.uniqueID("Widget_",network.dict[selector.selected_background].widgets);
         const w = {
             "_tag": "widget",
             "name": name,
