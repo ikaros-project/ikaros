@@ -43,7 +43,7 @@ class CurrentPositionMapping: public Module
     std::random_device rd;
     
     int number_transitions; //Will be used to add starting and ending position
-    int position_margin = 4;
+    int position_margin = 3;
     int transition = 0;
     int current_increment = 2;
     int starting_current = 30;
