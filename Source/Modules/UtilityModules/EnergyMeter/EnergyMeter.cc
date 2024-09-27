@@ -36,7 +36,7 @@ class EnergyMeter: public Module
             //std::cout << "2\n";
         }
 
-        energy[0] += kernel().GetTickDuration()*(measured_power[0]) /(1000.0*1000.0*3600.0); // Convert time interval to hours and integrate to Wh
+        energy[0] += GetTickDuration()*(measured_power[0]) /(1000.0*1000.0*3600.0); // Convert time interval to hours and integrate to Wh
         //printf("ENERGY: %d, POWER: %d\n", energy[0], measured_power[0]);
         // std::cout << "Energy: " << (float)energy[0] << "; Power: " << (float)measured_power[0] << "\n";
     

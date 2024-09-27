@@ -256,7 +256,7 @@ namespace ikaros
     parameter::operator double()
     {
         if(type==rate_type)
-            return *number_value * kernel().tick_duration;
+            return *number_value * kernel().GetTickDuration();
         if(number_value) 
             return *number_value;
         else if(string_value) 
@@ -884,6 +884,12 @@ namespace ikaros
     }
 
 
+    tick_count Module::GetTick()        { return kernel().GetTick(); }
+    double Module::GetTickDuration()    { return kernel().GetTickDuration(); } // Time for each tick in seconds (s)
+    double Module::GetTime()            { return kernel().GetTime(); }
+    double Module::GetRealTime()        { return kernel().GetRealTime(); }
+    double Module::GetNominalTime()     { return kernel().GetNominalTime(); } 
+    double Module::GetLag()             { return kernel().GetLag(); }
 
     Module::Module()
     {
@@ -2521,6 +2527,10 @@ if(classes[classname].path.empty())
         bool
         Kernel::Notify(int msg, std::string message, std::string path)
         {
+
+            static std::mutex mtx;
+            std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
+
             log.push_back(Message(msg, message, path));
             if(msg <= msg_fatal_error)
             {

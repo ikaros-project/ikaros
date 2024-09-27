@@ -311,6 +311,15 @@ public:
     //int SetInputSizes(input_map ingoing_connections);
     int SetOutputSizes(input_map ingoing_connections); // Uses the size attribute
     int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
+
+
+    tick_count GetTick();
+    double GetTickDuration();
+    double GetTime();
+    double GetRealTime();
+    double GetNominalTime();
+    double GetLag();
+
 };
 
 //
@@ -452,10 +461,10 @@ public:
     double GetRealTime() { return (run_mode == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration; }
     double GetNominalTime() { return static_cast<double>(tick)*tick_duration; } 
     double GetLag() { return (run_mode == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0; }
+
     void CalculateCPUUsage();
 
     bool Notify(int msg, std::string message, std::string path="");
-
     bool Print(std::string message) { return Notify(msg_print, message); }
     bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
     bool Debug(std::string message) { return Notify(msg_debug, message); }

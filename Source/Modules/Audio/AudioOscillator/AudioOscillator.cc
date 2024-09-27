@@ -42,7 +42,7 @@ class Oscillator: public Module
 
     void Tick()
     {
-        float time = kernel().GetNominalTime();
+        float time = GetNominalTime();
 
         // If no buffer is used, apply function to every element of the output
 
@@ -56,7 +56,7 @@ class Oscillator: public Module
 
         double sr = sample_rate;
         double sx = output.size_x();
-        double time_increment = kernel().GetTickDuration()/double(output.size_x()); // Dimension of the last dimension that holds the buffer
+        double time_increment = GetTickDuration()/double(output.size_x()); // Dimension of the last dimension that holds the buffer
 
         if(output.rank() == 2)
         {

@@ -80,7 +80,7 @@ class AmbientLight: public Module
 
     void Tick()
     {
-        float time = kernel().GetTime();
+        float time = GetTime();
 
         double direct_normal_irradiance;
         double diffuse_sky_radiation;
