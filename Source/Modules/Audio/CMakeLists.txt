@@ -1,7 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(AudioSynth)
-# add_subdirectory(WaitingForFirstUserModule)
+# add_subdirectory(AudioOscillator)
 
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

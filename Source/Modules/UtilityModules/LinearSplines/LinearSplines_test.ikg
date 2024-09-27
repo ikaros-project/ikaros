@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<group title="Linear Splines - Example">
+
+    <module
+        class = "FunctionGenerator"
+        name = "F1"
+        type = "sin"
+        frequency = "0.1"
+        offset = "0.0"
+        amplitude = "1"
+        shift = "0.0"
+    />
+
+    <module
+        class = "FunctionGenerator"
+        name = "F2"
+        type = "sin"
+        frequency = "0.1"
+        offset = "0.0"
+        amplitude = "1"
+        shift = "0.0"
+    />
+
+
+    <module
+        class = "LinearSplines"
+        name = "LinearSplines"
+        points = "
+             -1  5  -0.5  -7;
+              0  0   0    10;
+              1  10  0     0"
+    />
+        
+    <connection
+        source = "F1.OUTPUT"
+        target = "LinearSplines.INPUT"
+    />
+
+    <connection
+        source = "F2.OUTPUT"
+        target = "LinearSplines.INPUT"
+    />
+
+    <view name="Plot">
+    
+        <object
+            class = "Plot"
+            title = "x"
+            x = "0"
+            y = "0"
+            w = "4"
+            min = "-1"
+            module = "F1"
+            source = "OUTPUT"
+        />
+        
+        <object
+            class = "Plot"
+            title = "f(x)"
+            x = "0"
+            y = "1"
+            w = "4"
+            module = "LinearSplines"
+            source = "OUTPUT"
+            min = "-10"
+            max = "10"
+        />
+        
+        <object
+        class = "Plot"
+        title = "f(x)"
+        x = "0"
+        y = "2"
+        w = "4"
+        select="1"
+        module = "LinearSplines"
+        source = "OUTPUT"
+        min = "-10"
+        max = "10"
+        />
+        
+    </view>
+    <module class = "Logger" name = "Logger" />
+</group>

@@ -7,6 +7,8 @@
 
 using namespace ikaros;
 
+int ccc = 0;
+
 int
 main(int argc, char *argv[])
 {
@@ -63,20 +65,59 @@ main(int argc, char *argv[])
         {
             try
             {
+                std::cout << "MAIN Loop " << ccc++ << std::endl;
+
+                if(k.options_.filename.empty())
+                    k.New();
+                else if(k.needs_reload)
+                    k.LoadFile();
+
+                if(k.info_.is_set("start"))
+                {
+                    if(k.info_.is_set("real_time"))
+                        k.run_mode = run_mode_realtime; // WAS RESTART_
+                    else
+                        k.run_mode = run_mode_play;
+                }
+
                 k.Run();
+
+                /*
                 if(k.run_mode < run_mode_quit) // Restart requested
                 {
                     k.Save();
                     k.Clear();
                 }
+                */
             }
+
+         catch(load_failed & e)
+            {
+                std::cout << "Load failed. "+e.message << std::endl;
+                k.options_.filename.clear();
+
+                //k.New();
+               // k.needs_reload = false; // SHOYLD PROABBLY NOT BE SET IN NEW
+                /*
+                k.run_mode = run_mode_stop;
+                k.tick = -1;
+                k.timer.Pause();
+                k.timer.SetPauseTime(0);
+                k.needs_reload = false;
+            */
+            }
+
             catch(fatal_error & e)
             {
                 std::cerr << "Ikaros:: Fatal error: " << e.what() << std::endl;
                 if(o.is_set("batch_mode"))
                     exit(1);
                 else
-                    k.New(); // Try again...
+                {   // Assuming load failed or other error that can be handled by WebUI
+                    // Stop if running but retain data for WebUI
+
+
+                }                    
             }
         }
     }

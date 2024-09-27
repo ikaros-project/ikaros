@@ -42,9 +42,9 @@ using namespace std::literals;
 
 namespace ikaros {
 
-const int run_mode_restart_pause = -2;
-const int run_mode_restart_play = -3;
-const int run_mode_restart_realtime = -4;
+//const int run_mode_restart_pause = -2;
+//const int run_mode_restart_play = -3;
+//const int run_mode_restart_realtime = -4;
 const int run_mode_quit = 0;
 const int run_mode_stop = 1;        // Kernel does not run and accepts open/save/save_as/pause/realtime
 const int run_mode_pause = 2;       // Kernel is paused and accepts stop/step/realtime

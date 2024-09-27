@@ -6,8 +6,13 @@ using namespace ikaros;
 using namespace std::chrono;
 using namespace std::literals;
 
+bool global_terminate = false;
+
 namespace ikaros
 {
+    // int main_counter = 0;
+    // int inner_counter = 0;
+
     std::string  validate_identifier(std::string s)
     {
         static std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
@@ -1118,7 +1123,7 @@ namespace ikaros
        Trace("\t\t\t\tComponent::SetOutputSize " + std::string(d["name"]));
 
         if(d.contains("size"))
-            throw fatal_error("Output in group can not have size attribute.");
+            throw setup_error("Output in group can not have size attribute.");
 
         range output_size; // FIXME: rename output_range
         std::string name = d.at("name");
@@ -1181,7 +1186,7 @@ namespace ikaros
              size = LookupKey("size");
 
             if(size.empty())
-                throw fatal_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
+                throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
             std::vector<int> shape = EvaluateSizeList(size);
             matrix o;
             Bind(o, d.at("name"));
@@ -1191,11 +1196,11 @@ namespace ikaros
         catch(const std::invalid_argument & e)
         {
             Notify(msg_fatal_error, e.what());
-            throw fatal_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
+            throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
         }
         catch(...)
         {
-            throw fatal_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
+            throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
         }
     }
 
@@ -1456,7 +1461,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Clear()
     {
-        std::cout << "Kernel::Clear" << std::endl;
+        // std::cout << "Kernel::Clear" << std::endl;
         // FIXME: retain persistent components
 
     
@@ -1484,8 +1489,8 @@ bool operator==(Request & r, const std::string s)
         //info_ = dictionary();
         //info_["filename"] = ""; //EMPTY FILENAME
 
-        needs_reload = true;
-        session_id = new_session_id();
+        // needs_reload = true; // FIXME: WEHERE SHOULD THIS BE SET ***********
+        //session_id = new_session_id();
     }
 
 
@@ -1516,7 +1521,7 @@ bool operator==(Request & r, const std::string s)
         info_ = d;
 
         run_mode = run_mode_stop;
-        session_id = new_session_id(); // FIXME: Probably not necessary - din in clear
+        session_id = new_session_id(); // FIXME: Probably not necessary - done in clear
         SetUp(); // FIXME: Catch exceptions if new fails
     }
 
@@ -1574,7 +1579,7 @@ bool operator==(Request & r, const std::string s)
                 run_mode = run_mode_pause;
             
         }
-        return (stop_after!= -1 &&  tick >= stop_after);
+        return (stop_after!= -1 &&  tick >= stop_after) || global_terminate;
     }
 
 
@@ -1665,7 +1670,7 @@ bool operator==(Request & r, const std::string s)
             }
         }
         if(!ok)
-            throw fatal_error("All parameters could not be resolved");
+            throw setup_error("All parameters could not be resolved");
     }
 
 
@@ -1687,11 +1692,11 @@ bool operator==(Request & r, const std::string s)
         catch(fatal_error & e)
         {
             Notify(msg_fatal_error, e.message);
-            throw fatal_error("Could not calculate input and output sizes.");
+            throw setup_error("Could not calculate input and output sizes.");
         }
         catch(...)
         {
-            throw fatal_error("Could not calculate input and output sizes.");
+            throw setup_error("Could not calculate input and output sizes.");
         }
     }
 
@@ -1885,7 +1890,7 @@ bool operator==(Request & r, const std::string s)
             throw exception("Class \""+classname+"\" does not exist.");
 
 if(classes[classname].path.empty())
-        throw fatal_error("Class file \""+classname+".ikc\" could not be found.");
+        throw setup_error("Class file \""+classname+".ikc\" could not be found.");
 
          info.merge(dictionary(classes[classname].path));  // merge with class data structure
 
@@ -1935,7 +1940,7 @@ if(classes[classname].path.empty())
     Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level, FIXME: rename AddGroup later
     {
         if(!d.contains("name"))
-            throw fatal_error("Groups must have a name.");
+            throw setup_error("Groups must have a name.");
 
         std::string name = validate_identifier(d["name"]);
         if(!path.empty())
@@ -1973,11 +1978,11 @@ if(classes[classname].path.empty())
             }
             catch(const fatal_error& e)
             {
-                throw fatal_error(u8"Fatal error. Init failed for \""+c.second->path_+"\": "+std::string(e.what()));
+                throw init_error(u8"Fatal error. Init failed for \""+c.second->path_+"\": "+std::string(e.what()));
             }
             catch(const std::exception& e)
             {
-                throw fatal_error(u8"Init failed for "+c.second->path_+": "+std::string(e.what()));
+                throw init_error(u8"Init failed for "+c.second->path_+": "+std::string(e.what()));
             }
     }
 
@@ -2002,6 +2007,13 @@ if(classes[classname].path.empty())
     void 
     Kernel::LoadFile()
     {
+        // std::cout << "Kernel::Loadfile" << std::endl;
+        if(components.size() > 0)
+            Clear();
+
+        if(!std::filesystem::exists(options_.filename))
+            throw load_failed(u8"File \""+options_.filename+"\" does not exist.");
+
             try
             {
                 dictionary d = dictionary(options_.filename);
@@ -2022,7 +2034,7 @@ if(classes[classname].path.empty())
                 Notify(msg_fatal_error, e.message);
                 Notify(msg_fatal_error, u8"Load file failed for "s+options_.filename);
                 //CalculateCheckSum();
-                throw fatal_error("Load failed");
+                throw load_failed("Load failed");
             }
     }
 
@@ -2082,7 +2094,7 @@ if(classes[classname].path.empty())
         file.open (filename);
         file << data;
         file.close();
-        needs_reload = true;
+        //needs_reload = true;
     }
 
 
@@ -2184,8 +2196,6 @@ if(classes[classname].path.empty())
  *  Task sorting
  * 
  *************************/
-
-
 
     bool 
     Kernel::dfsCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack) 
@@ -2313,7 +2323,7 @@ if(classes[classname].path.empty())
     Kernel::sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges)
     {
         if(hasCycle(nodes, edges)) 
-            throw fatal_error("Network has zero-delay loops");
+            throw setup_error("Network has zero-delay loops");
         else 
         {
 
@@ -2432,30 +2442,25 @@ if(classes[classname].path.empty())
         {
             Notify(msg_fatal_error, e.message);
             Notify(msg_fatal_error, "SetUp Failed");
-            throw fatal_error("SetUp Failed");
+            throw setup_error("SetUp Failed");
         }
     }
 
 
     void
-    Kernel::Run()
+    Kernel::Run() // START-UP + RUN MAIN LOOP => Two functions?? *************
     {
+           /*
         if(options_.filename.empty())
             New();
+
+
+
         else
         {
-            LoadFile();
+            // Check start-up arguments //FIXME: ADD NEW MECHANISM *********************
 
-            // Check start-up arguments
 
-            if(info_.is_set("start"))
-            {
-                if(info_.is_set("realtime"))
-                    run_mode = run_mode_restart_realtime;
-                else
-                    run_mode = run_mode_restart_play;
-            }
-            
             timer.Restart();
             tick = -1; // To make first tick 0 after increment
 
@@ -2464,52 +2469,54 @@ if(classes[classname].path.empty())
             else if(run_mode == run_mode_restart_play)
                 Play();
             else
-                Pause();
+                Pause();   
         }
-        
-            // Main loop
-            while(run_mode > run_mode_quit)  // Not quit or restart
+        */
+    
+        // Main loop
+        while(run_mode > run_mode_quit)  // Not quit
+        {
+            while (!Terminate() && run_mode > run_mode_quit)
             {
-                while (!Terminate() && run_mode > run_mode_quit)
+                while(sending_ui_data)
+                    {}
+                while(handling_request)
+                    {}
+
+                if(run_mode == run_mode_realtime)
+                    lag = timer.WaitUntil(double(tick+1)*tick_duration);
+                else if(run_mode == run_mode_play)
                 {
-                    while(sending_ui_data)
-                        {}
-                    while(handling_request)
-                        {}
-
-                    if(run_mode == run_mode_realtime)
-                        lag = timer.WaitUntil(double(tick+1)*tick_duration);
-                    else if(run_mode == run_mode_play)
-                    {
-                        timer.SetTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode
-                        Sleep(0.01);
-                    }
-                    else
-                        Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
-
-                    // Run_mode may have changed during the delay - needs to be checked again
-
-                    if(run_mode == run_mode_realtime || run_mode == run_mode_play) 
-                    {
-                        actual_tick_duration = intra_tick_timer.GetTime();
-                        intra_tick_timer.Restart();
-                        try
-                        {
-                            Tick();
-                        }
-                        catch(std::exception & e)
-                        {
-                            //std::cout << e.what() << std::endl;
-                            Notify(msg_fatal_error, (e.what()));
-                            return;
-                        }
-                        tick_time_usage = intra_tick_timer.GetTime();
-                        idle_time = tick_duration - tick_time_usage;
-                    }                    
+                    timer.SetTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode
+                    Sleep(0.01);
                 }
-                Sleep(0.1);
+                else
+                    Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
+
+                // Run_mode may have changed during the delay - needs to be checked again
+
+                if(run_mode == run_mode_realtime || run_mode == run_mode_play) 
+                {
+                    actual_tick_duration = intra_tick_timer.GetTime();
+                    intra_tick_timer.Restart();
+                    try
+                    {
+                        Tick();
+                    }
+                    catch(std::exception & e)
+                    {
+                        //std::cout << e.what() << std::endl;
+                        Notify(msg_fatal_error, (e.what()));
+                        return;
+                    }
+                    tick_time_usage = intra_tick_timer.GetTime();
+                    idle_time = tick_duration - tick_time_usage;
+                }    
             }
+            Stop();
+            Sleep(0.1);
         }
+    }
 
         bool
         Kernel::Notify(int msg, std::string message, std::string path)
@@ -2517,8 +2524,11 @@ if(classes[classname].path.empty())
             log.push_back(Message(msg, message, path));
             if(msg <= msg_fatal_error)
             {
+                    global_terminate = true;
                     std::cout << "ikaros: " << message << std::endl;
-                    run_mode = run_mode_quit;
+                    //run_mode = run_mode_quit;
+
+                    
             }
             return true;
         }
@@ -2557,12 +2567,9 @@ if(classes[classname].path.empty())
             return components.begin()->second->xml();
     }
 
-
-
     //
     // WebUI
     //
-
 
     void
     Kernel::SendImage(matrix & image, std::string & format) // Compress image to jpg and send from memory after base64 encoding
@@ -2599,6 +2606,7 @@ if(classes[classname].path.empty())
     void
     Kernel::Stop()
     {
+        // std::cout << "Kernel::Stop" << std::endl;
         while(tick_is_running)
             {}
 
@@ -2623,7 +2631,7 @@ if(classes[classname].path.empty())
 
         if(needs_reload)
         {
-            Clear();
+            // Clear(); // FIXME: Check that clear is already called
             LoadFile();
             run_mode = run_mode_pause;
         }
@@ -2646,7 +2654,7 @@ if(classes[classname].path.empty())
 
         if(needs_reload)
         {
-            Clear();
+            //Clear();
             LoadFile();
             run_mode = run_mode_realtime;
         }
@@ -2669,7 +2677,7 @@ if(classes[classname].path.empty())
 
         if(needs_reload)
         {
-            Clear();
+            //Clear();
             LoadFile();
             run_mode = run_mode_play;
         }
@@ -2859,16 +2867,29 @@ if(classes[classname].path.empty())
     void
     Kernel::DoOpen(Request & request)
     {
+        // std::cout << "Kernel::DoOpen" << std::endl;
         std::string file = request.parameters["file"];
         std::string where = request.parameters["where"];
         Stop();
-        Clear();
+        //Clear();
         if(where == "system")
             options_.filename = system_files.at(file);
         else
             options_.filename = user_files.at(file);
-        LoadFile();
-        DoUpdate(request);
+            try
+            {
+                //Stop(); // FIXME: Only if necessary
+                LoadFile();
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+                Notify(msg_warning, "File could not be loaded"); // FIXME: better error message - alert?
+                New();
+            }
+        
+        //DoUpdate(request);
+        DoSendNetwork(request);
     }
 
 
@@ -2920,6 +2941,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoStop(Request & request)
     {
+        // td::cout << "Kernel::DoStop" << std::endl;
         Notify(msg_print, "stop");
         Stop();
         DoUpdate(request);
@@ -2955,6 +2977,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendNetwork(Request & request)
     {
+            // std::cout << "Kernel::DoSendNetwork " << session_id <<std::endl;
         std::string s = json(); 
         Dictionary rtheader;
         rtheader.Set("Session-Id", std::to_string(session_id).c_str());
@@ -2969,6 +2992,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoPause(Request & request)
     {
+        // std::cout <<  "Kernel::DoPause" << std::endl;
         Notify(msg_print, "pause");
         Pause();
         DoSendData(request);
@@ -2978,6 +3002,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoStep(Request & request)
     {
+        // std::cout <<  "Kernel::DoStep" << std::endl;
         Notify(msg_print, "step");
         Pause();
         run_mode = run_mode_pause; // FIXME: Probably not necessary
@@ -2992,6 +3017,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoRealtime(Request & request)
     {
+        // std::cout <<  "Kernel::DoRealtime" << std::endl;
         Notify(msg_print, "realtime");
         Realtime();
         DoSendData(request);
@@ -3001,6 +3027,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoPlay(Request & request)
     {
+        // std::cout <<  "Kernel::DoPlay" << std::endl;
         Notify(msg_print, "play");
         Play();
         DoSendData(request);
@@ -3242,6 +3269,7 @@ if(classes[classname].path.empty())
     {
         if(request.session_id != session_id) // request.parameters.empty() ||  ( WAS not a data request - send network)
         {
+            //std::cout << request.session_id << " " << session_id << std::endl;
             DoSendNetwork(request);
         }
         /*
@@ -3260,6 +3288,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoNetwork(Request & request)
     {
+    // td::cout << "Kernel::DoNetwork" << std::endl;
         DoSendNetwork(request);
     }
 

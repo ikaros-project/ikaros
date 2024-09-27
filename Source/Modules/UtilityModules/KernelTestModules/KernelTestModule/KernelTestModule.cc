@@ -89,7 +89,16 @@ class KernelTestModule: public Module
     void Tick()
     {
         output.copy(input);
+
+        if(kernel().GetTick() >= 100)
+             Notify(msg_terminate, "Terminating after 100 ticks.");
     }
+
+    ~KernelTestModule()
+    {
+        std::cout << "KernelTestModule: destructor called" << std::endl;
+    }
+
 };
 
 INSTALL_CLASS(KernelTestModule)
