@@ -373,15 +373,19 @@ const network =
         this.component_count = Object.keys(this.dict).length+1;
     },
 
-    uniqueID(name, list) // FIXME: Should check that it is really unique in list of names
+    isUnique(name)  // test if name can be changed to this ******************************
     {
-        let i=1;
-        while(true)
-        {
+        return true;
+    },
 
-            //let name = return name+i;
-        }
-       // return name+this.component_count++;
+    uniqueID(name)
+    {
+        let bg = selector.selected_background;
+        let i = 1;
+        test_name = bg+'.'+name+i;
+        while(test_name in network.dict)
+            test_name = bg+'.'+name+(++i);
+        return name+i;
     },
 
     rebuildDict()
@@ -2229,7 +2233,7 @@ const main =
     
     newModule()
     {
-        const name = network.uniqueID("Untitled_", network.dict[selector.selected_background].modules);
+        const name = network.uniqueID("Untitled_");
         const m =
         {
             name:name,
@@ -2259,7 +2263,7 @@ const main =
 
     newGroup() // FIXME: Move to network
     {
-        const name = network.uniqueID("Group_", network.dict[selector.selected_background].groups);
+        const name = network.uniqueID("Group_");
         const m =
         {
             name:name,
@@ -2291,7 +2295,7 @@ const main =
 
     newInput() // FIXME: Move to network
     {
-        const name = network.uniqueID("Input_", network.dict[selector.selected_background].inputs);
+        const name = network.uniqueID("Input_");
         const m =
         {
             name:name,
@@ -2315,7 +2319,7 @@ const main =
 
     newOutput() // FIXME: Move to network
     {
-        const name = network.uniqueID("Output_",network.dict[selector.selected_background].outputs);
+        const name = network.uniqueID("Output_");
         const m =
         {
             name:name,
@@ -2340,7 +2344,7 @@ const main =
 
     newWidget()
     {
-        const name = network.uniqueID("Widget_",network.dict[selector.selected_background].widgets);
+        const name = network.uniqueID("Widget_");
         const w = {
             "_tag": "widget",
             "name": name,
