@@ -21,7 +21,7 @@ class CurrentPositionMapping: public Module
     matrix start_position;
     
     matrix goal_current;
-    matrix goal_positions_out;
+    matrix goal_position_out;
     matrix current_controlled_servos;
     matrix max_present_current;
     matrix min_moving_current;
@@ -74,9 +74,7 @@ class CurrentPositionMapping: public Module
             if ( goal_current(current_controlled_servos(i)) < limit && abs(goal_position(current_controlled_servos(i))- position(current_controlled_servos(i)))> margin){
                 Notify(msg_debug, "Increasing current");
                 current_output(current_controlled_servos(i)) = goal_current(current_controlled_servos(i))+ increment;
-                if(abs(present_current(current_controlled_servos(i))) > max_present_current(current_controlled_servos(i))){
-                    max_present_current(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i)));
-                }          
+                          
             }
             else
             {
@@ -408,7 +406,7 @@ class CurrentPositionMapping: public Module
         Bind(present_position, "PresentPosition");
         Bind(goal_current, "GoalCurrent");
         Bind(num_transitions, "NumberTransitions");
-        Bind(goal_positions_out, "GoalPosition");
+        Bind(goal_position_out, "GoalPosition");
 
         Bind(min_limits, "MinLimits");
         Bind(max_limits, "MaxLimits");
@@ -420,7 +418,7 @@ class CurrentPositionMapping: public Module
        
         position_transitions.set_name("PositionTransitions");
         position_transitions = RandomisePositions(present_position, number_transitions, min_limits, max_limits, robotType);
-        goal_positions_out.copy(position_transitions[0]);
+        goal_position_out.copy(position_transitions[0]);
         previous_position.set_name("PreviousPosition");
         previous_position.copy(present_position);
         position_transitions.print();
@@ -468,7 +466,7 @@ class CurrentPositionMapping: public Module
 
             
             
-            bool is_approximating_goal = ApproximatingGoal(present_position, previous_position, goal_positions_out, position_margin).sum() > 0;
+            bool is_approximating_goal = ApproximatingGoal(present_position, previous_position, goal_position_out, position_margin).sum() > 0;
         
             if (is_approximating_goal) {
                 
@@ -476,6 +474,7 @@ class CurrentPositionMapping: public Module
                     start_position.copy(present_position);
                     first_start_position = false;
                 }
+                
                 
                 // Save present positions into trajectory matrix
                 moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
@@ -490,6 +489,10 @@ class CurrentPositionMapping: public Module
                         min_moving_current(servo) = abs_current;
                         started_transition(servo) = 1;
                         min_moving_current.print();
+                    }
+                    // Update the max current for each servo
+                    if(abs(present_current(current_controlled_servos(i))) > max_present_current(current_controlled_servos(i))){
+                    max_present_current(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i)));
                     }
                 }
                 approximating_goal.print();
@@ -507,12 +510,12 @@ class CurrentPositionMapping: public Module
                     goal_current(0) = (abs(min_torque_current(0)) +5);
                     
                     //save starting position, goal position and current in json file
-                    SaveMetricsToJson(goal_positions_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, robotType, transition, unique_id);
+                    SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, robotType, transition, unique_id);
                     transition++;
                     std::cout << "Transition: " << transition << std::endl;
                     start_position.print();
                     if (transition < number_transitions){
-                        goal_positions_out.copy(position_transitions[transition]);
+                        goal_position_out.copy(position_transitions[transition]);
                         start_position.copy(present_position);
                         std::cout << "New goal position" << std::endl;
                         goal_current.copy(present_current);
@@ -532,7 +535,7 @@ class CurrentPositionMapping: public Module
                 }
             }
             
-            else if (ReachedGoal(present_position, goal_positions_out, position_margin)){
+            else if (ReachedGoal(present_position, goal_position_out, position_margin)){
 
                 find_minimum_torque_current = true;
                 SaveTrajectory(moving_trajectory, robotType, unique_id);
@@ -543,8 +546,8 @@ class CurrentPositionMapping: public Module
     
             }
             else{
-                goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit, present_position, goal_positions_out, position_margin));
-                overshot_goal.copy(OvershotGoal(present_position, goal_positions_out, start_position, overshot_goal_temp));
+                goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit, present_position, goal_position_out, position_margin));
+                overshot_goal.copy(OvershotGoal(present_position, goal_position_out, start_position, overshot_goal_temp));
                 overshot_goal_temp.copy(overshot_goal);
             }
 

@@ -61,13 +61,13 @@
 	
 	<parameter name="MinLimitPosition" type="matrix" description="The minimum limit of the position in degrees of the servos. Not including pupils"
 	control="slider"
-	default="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
-	data="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	default="122, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	data="122, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
 	/>
 	<parameter name="MaxLimitPosition" type="matrix" description="The maximum limit of the position of the servos in degrees. Not including pupils "
 	control="slider"
-	default="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
-	data="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	default="237, 225, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	data="237, 225, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
 	/>
 	<parameter name="Servo" type="string" description="The servo to tune" control="menu" 
 	options="NeckTilt, NeckPan, LeftEye, RightEye, LeftPupil, RightPupil, LeftArmJoint1, LeftArmJoint2, LeftArmJoint3, LeftArmJoint4, LeftArmJoint5, LeftHand, RightArmJoint1, RightArmJoint2, LeftArmJoint3, RightArmJoint4, RightArmJoint5, RightHand, Body" 

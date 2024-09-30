@@ -336,6 +336,8 @@ class ServoControlTuning : public Module
                     val = val / 360.0 * 4096.0; // convert to raw value
                     
                     std::cout << "Goal position: " << val * 360 /4096 << std::endl;
+                    std::cout << "Min limit: " << (float)minLimitPosition[servoIndex] << std::endl;
+                    std::cout << "Max limit: " << (float)maxLimitPosition[servoIndex] << std::endl;
                 }
                 else if (parameterToTune[i].equals("Goal Current")){
                     val = parameterValues[i] / 3.36;
@@ -1949,14 +1951,16 @@ class ServoControlTuning : public Module
         std::cout << "\n Run sequence: " << runSequence << std::endl;
         std::cout << "Save: " << save << std::endl;
         
-        int servoToTune = servoIDs[servoToTuneName];
+        servoToTune = servoIDs[servoToTuneName];
+        servoIndex = servoIndices[servoToTuneName];
         std::cout << "Servo to tune: " << servoToTuneName << std::endl;   
         
         if (servoToTune != previousServoToTune && tick > 0 && JsonFileExists(robot[robotName].type))
         {
             Notify(msg_debug, "Servo to tune changed\n");
             runSequence = false;
-             
+            servoTransitions = GenerateServoTransitions(numberTransitions, minLimitPosition[servoIndex], maxLimitPosition[servoIndex]);
+            transitionIndex = 0;
             switch (servoChain)
             {
             case HEAD:
