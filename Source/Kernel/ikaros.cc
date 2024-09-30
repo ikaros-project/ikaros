@@ -878,8 +878,11 @@ namespace ikaros
         if(info_.contains("log_level"))
             ll = info_["log_level"];
 
-        if(msg <= ll) 
+        if(msg <= ll)
+        {
              return kernel().Notify(msg, message);
+             std::cout << "Notify kernel: " << message << std::endl; // *****************************
+        }
         return true;
     }
 
@@ -1537,7 +1540,7 @@ bool operator==(Request & r, const std::string s)
     {
         tick_is_running = true; // Flag that state changes are not allowed
         tick++;
-        Trace("Tick: " +std::to_string(GetTick()));
+        //Trace("Tick: " +std::to_string(GetTick()));
 
 
             for(auto & task_group : tasks)
@@ -2442,7 +2445,7 @@ if(classes[classname].path.empty())
                 ListCircularBuffers();
             }
 
-            PrintLog();
+            //PrintLog();
         }
         catch(exception & e)
         {
@@ -2790,15 +2793,15 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendLog(Request & request)
     {
-    socket->Send(",\n\"log\": [");
-    std::string sep;
-    for(auto line : log)
-    {
-        socket->Send(sep +line.json());
-        sep = ",";
-    }
-    socket->Send("]");
-    log.clear();
+        socket->Send(",\n\"log\": [");
+        std::string sep;
+        for(auto line : log)
+        {
+            socket->Send(sep +line.json());
+            sep = ",";
+        }
+        socket->Send("]");
+        log.clear();
     }
 
 
