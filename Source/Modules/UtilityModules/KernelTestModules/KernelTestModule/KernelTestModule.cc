@@ -90,7 +90,7 @@ class KernelTestModule: public Module
     {
         output.copy(input);
 
-        if(kernel().GetTick() >= 100)
+        if(GetTick() >= 100)
              Notify(msg_terminate, "Terminating after 100 ticks.");
     }
 

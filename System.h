@@ -1,5 +1,5 @@
 //
-//	IKAROS_System.h		Definition of the target system for which to compile
+//	IKAROS_System.h 	Definition of the target system for which to compile
 //
 //    Copyright (C) 2001-2019  Christian Balkenius
 //

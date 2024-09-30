@@ -897,7 +897,7 @@ SequenceRecorder::AddKeypoint(float time)
     list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
     int n = keypoints.size();
 
-    float qtime = quantize(time, kernel().GetTickDuration());
+    float qtime = quantize(time, GetTickDuration());
     ///printf(">>> add: %f => %f\n", time, qtime);
 
     // Create the point data array
@@ -1026,7 +1026,7 @@ SequenceRecorder::DeleteKeypoint(float time)
     int i = max(0, find_index_for_time(keypoints, time)-1);
     
     float t = keypoints[i]["time"];
-    if(abs(t-time) < kernel().GetTickDuration()/2)
+    if(abs(t-time) < GetTickDuration()/2)
         ClearKeypointAtIndex(i);
 }
 
@@ -1215,7 +1215,7 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 void
 SequenceRecorder::Tick()
 {
-    long tl = kernel().GetTickDuration();
+    long tl = GetTickDuration();
     playing.reset();
     completed.reset();
 

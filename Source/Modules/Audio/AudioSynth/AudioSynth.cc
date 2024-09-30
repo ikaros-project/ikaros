@@ -60,10 +60,10 @@ void AudioSynth::Init()
 
 void AudioSynth::Tick()
 {
-    float time = kernel().GetNominalTime();
+    float time = GetNominalTime();
     double sr = sampleRate;
     double sx = output.size_x();
-    double time_increment = kernel().GetTickDuration()/double(output.size_x()); // Dimension of the last dimension that holds the buffer
+    double time_increment = GetTickDuration()/double(output.size_x()); // Dimension of the last dimension that holds the buffer
     float timeStep = 1.0f / sampleRate;
 
     float currentFreq = frequency.empty() ? 440.f : midiNoteToFrequency(frequency(0) * 88 + 21); // Map 0-1 to notes 21-109 (A0 to C8)
