@@ -1,9 +1,9 @@
-<group filename="" log_level="5" name="CurrentMapping" real_time="true" stop="-1" webui_port="8000">
+<group filename="" log_level="5" name="CurrentMapping" real_time="false" start="true" stop="-1" webui_port="8000">
    <connection delay="1" source="Servos.PRESENT_POSITION" target="Mapping.PresentPosition"/>
    <connection delay="1" source="Servos.PRESENT_CURRENT" target="Mapping.PresentCurrent"/>
    <connection delay="1" source="Mapping.GoalPosition" target="Servos.GOAL_POSITION"/>
    <connection delay="1" source="Mapping.GoalCurrent" target="Servos.GOAL_CURRENT"/>
-   <module MaxLimits="237, 219" MinLimits="114, 153" NumberTransitions="15" RobotType="Torso" _x="336" _y="96" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
+   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="15" RobotType="Torso" _x="336" _y="96" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
       <author>
          <affiliation/>
          <email/>
@@ -18,8 +18,8 @@
       <output description="" name="GoalPosition" size="PresentPosition.size"/>
       <output description="" name="GoalCurrent" size="PresentCurrent.size"/>
       <parameter control="textedit" default="4" description="Number of transitions to make" name="NumberTransitions" type="int" value="15.000000"/>
-      <parameter control="textedit" default="114,153 " description="Minimum limits for the servos in degrees" name="MinLimits" type="matrix" value="114, 153"/>
-      <parameter control="textedit" default="237,219" description="Maximum limits for the servos in degrees" name="MaxLimits" type="matrix" value="237, 219"/>
+      <parameter control="textedit" default="122,142 " description="Minimum limits for the servos in degrees" name="MinLimits" type="matrix" value="122, 142"/>
+      <parameter control="textedit" default="237,240" description="Maximum limits for the servos in degrees" name="MaxLimits" type="matrix" value="237, 240"/>
       <parameter control="textedit" default="Torso" description="Type of the robot" name="RobotType" type="string" value="Torso"/>
    </module>
    <module _x="72" _y="96" class="EpiServos" description="Robot servo control module" log_level="5" name="Servos" robot="EpiBlack">
@@ -46,11 +46,11 @@
       <output description="Present current (if supported by the servo) in mA." name="PRESENT_CURRENT" size="19"/>
       <parameter control="menu" default="EpiWhite" descrition="Robot to connect to." name="robot" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" type="string" value="EpiBlack"/>
       <parameter control="checkbox" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." name="simulate" type="bool" value="False"/>
-      <parameter control="textedit" data="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" default="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" description="The minimum limit of the position in degrees of the servos. Not including pupils" name="MinLimitPosition" type="matrix" value="114, 154, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"/>
-      <parameter control="textedit" data="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" default="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" description="The maximum limit of the position of the servos in degrees. Not including pupils " name="MaxLimitPosition" type="matrix" value="237, 218, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"/>
+      <parameter control="textedit" data="122, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" default="114, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" description="The minimum limit of the position in degrees of the servos. Not including pupils" name="MinLimitPosition" type="matrix" value="114, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"/>
+      <parameter control="textedit" data="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" default="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" description="The maximum limit of the position of the servos in degrees. Not including pupils " name="MaxLimitPosition" type="matrix" value="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"/>
    </module>
    <widget _index_="0" _x="48" _y="336" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_10" scrollable="false" select="" show_frame="false" show_title="true" source="Servos.PRESENT_POSITION" style="" title="Positions" width="793"/>
-   <widget _index_="2" _x="48" _y="384" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="" name="Widget_11" scrollable="false" select="" show_frame="false" show_title="false" source="Servos.GOAL_POSITION" style="" title="Widget_11" width="793"/>
-   <widget _index_="4" _x="48" _y="408" buffer_size="150" class="plot" color="blue" direction="vertical" frame-style="" height="433" max="1500" min="0" name="Widget_3" select="" show_frame="false" show_title="true" source="Servos.PRESENT_CURRENT" style="--decimals:0" title="Current" width="793"/>
-   <widget _index_="6" _x="48" _y="432" buffer_size="150" class="plot" color="green" direction="vertical" frame-style="" height="409" max="1500" min="0" name="Widget_4" select="" show_frame="true" show_title="false" source="Servos.GOAL_CURRENT" style="--decimals:0" title="Goal Current" width="793"/>
+   <widget _index_="2" _x="48" _y="384" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="" name="Widget_11" scrollable="false" select="" show_frame="true" show_title="false" source="Servos.GOAL_POSITION" style="" title="Widget_11" width="793"/>
+   <widget _index_="4" _x="48" _y="456" class="table" colorize="true" decimals="2" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1500" min="" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="false" source="Servos.PRESENT_CURRENT" style="" title="Current" width="793"/>
+   <widget _index_="6" _x="48" _y="408" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1500" min="" name="Widget_4" scrollable="false" select="" show_frame="true" show_title="true" source="Servos.GOAL_CURRENT" style="" title="Current" width="793"/>
 </group>

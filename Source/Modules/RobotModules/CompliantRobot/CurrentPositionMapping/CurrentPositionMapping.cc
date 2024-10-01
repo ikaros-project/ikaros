@@ -49,7 +49,7 @@ class CurrentPositionMapping: public Module
     int starting_current = 30;
     int current_limit = 1200;
     bool find_minimum_torque_current = false;
-    bool minimum_torque_current_finsih =false;
+    matrix minimum_torque_current_found;
     int unique_id;
     bool second_tick = false;
     bool first_start_position = true;
@@ -90,7 +90,7 @@ class CurrentPositionMapping: public Module
         std::mt19937 gen(rd());
         int num_columns = (robotType == "Torso") ? 2 : 12;
         matrix goal_positions(num_transitions, present_position.size());
-        goal_positions.set(0);
+        goal_positions.set(180);
         if (num_columns != min_limits.size() && num_columns != max_limits.size()){
     
             Notify(msg_fatal_error, "Min and Max limits must have the same number of columns as the current controlled servos in the robot type (2 for Torso, 12 for full body)");
@@ -352,26 +352,24 @@ class CurrentPositionMapping: public Module
     }
 
     // FindMinimumTorqueCurrent(present_current, present_position, previous_position, current_limit), returns current and boolean value
-    std::pair<matrix, bool> FindMinimumTorqueCurrent(matrix present_current, matrix present_position, matrix previous_position, int decreasing_step) {
+    std::pair<matrix, matrix> FindMinimumTorqueCurrent(matrix present_current, matrix present_position, matrix previous_position, int decreasing_step) {
         matrix current_output(present_current.size());
-        bool minimum_torque_current_found = false;
+        matrix minimum_torque_current_found(present_current.size());
 
         for (int i = 0; i < current_controlled_servos.size(); i++) {       
             
             if (abs(present_current(current_controlled_servos(i))) < decreasing_step) {
                 current_output(current_controlled_servos(i)) = 0;
-                minimum_torque_current_found = true;
-                break;
+                minimum_torque_current_found[i] = 1;
             }
             else if (abs(int(present_position(current_controlled_servos(i)))) == abs(int(previous_position(current_controlled_servos(i))))) {
-                current_output(i) = (abs(present_current(current_controlled_servos(i))) - decreasing_step);
+                current_output(i) = abs(present_current(current_controlled_servos(i))) - decreasing_step;
             
             } 
             else {
                 current_output(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i))) + decreasing_step;
                 std::cout << "Minimum Current for torque at goal: " << current_output(i) << std::endl;
-                minimum_torque_current_found = true;
-                break;
+                minimum_torque_current_found[i] = 1;
             }
         }
 
@@ -468,7 +466,7 @@ class CurrentPositionMapping: public Module
             
             bool is_approximating_goal = ApproximatingGoal(present_position, previous_position, goal_position_out, position_margin).sum() > 0;
         
-            if (is_approximating_goal) {
+            if (is_approximating_goal && !find_minimum_torque_current) {
                 
                 if(second_tick && first_start_position){
                     start_position.copy(present_position);
@@ -501,13 +499,13 @@ class CurrentPositionMapping: public Module
             
             else if (find_minimum_torque_current)
             {
-                std::pair<matrix, bool> result = FindMinimumTorqueCurrent(present_current, present_position, previous_position, 1);
+                std::pair<matrix, matrix> result = FindMinimumTorqueCurrent(present_current, present_position, previous_position, 1);
                 goal_current.copy(result.first);
-                minimum_torque_current_finsih = result.second;
-                if(minimum_torque_current_finsih){
+                minimum_torque_current_found.copy(result.second);
+                if(minimum_torque_current_found.sum() == current_controlled_servos.size()){
                     find_minimum_torque_current = false;
                     min_torque_current.copy(present_current);
-                    goal_current(0) = (abs(min_torque_current(0)) +5);
+                    
                     
                     //save starting position, goal position and current in json file
                     SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, robotType, transition, unique_id);
@@ -518,10 +516,11 @@ class CurrentPositionMapping: public Module
                         goal_position_out.copy(position_transitions[transition]);
                         start_position.copy(present_position);
                         std::cout << "New goal position" << std::endl;
-                        goal_current.copy(present_current);
+                        goal_current.copy(min_torque_current);
                         min_moving_current.copy(present_current);
                         max_present_current.reset();
                         overshot_goal_temp.reset();
+                        min_torque_current.reset();
                         moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
 
   
