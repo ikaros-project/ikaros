@@ -3,33 +3,12 @@
 // (c) Christian Balkenius 2024-09-13
 //
 
-    #include "matrix.h"
     #include "maths.h"
+    #include "matrix.h"
+
 
 namespace ikaros 
 {
-
-/*
-
-    h_matrix & reset();
-    h_matrix & eye();
-    h_matrix & set_rotation_matrix(axis a, float alpha);
-    h_matrix & set_translation_matrix(float tx, float ty, float tz);
-    h_matrix & set_reflection_matrix(axis a);
-    h_matrix & set_scaling_matrix(float sx, float sy, float sz);
-
-    void        get_translation(const h_matrix m, float & x, float & y, float &z);
-    void        get_euler_angles(const h_matrix m, float & x, float & y, float &z);
-    float       get_euler_angle(const h_matrix m, axis a);
-	void 		get_scale(const h_matrix m, float &x, float &y, float &z);
-    
-    float get_x();
-    float get_y();
-    float get_z();
-
-*/
-
-
     enum axis { X, Y, Z };
 
     class h_matrix : public matrix

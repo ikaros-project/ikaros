@@ -968,12 +968,14 @@ let controller =
         if(response.log)
         {
             let logElement = document.querySelector('.log');
+            if(response.log.length > 0)    
+                console.log(response.log);
             response.log.forEach((element) => {
-                if(element[0] == "M")
+                if(element[0] > 5)
                 logElement.innerHTML += "<p class='message'>"+element[1]+"</p>\n";
-                else if(element[0] == "W")
+                else if(element[0] == 5)
                     logElement.innerHTML += "<p class='warning'>"+element[1]+"</p>\n";
-                else if(element[0] == "E" || element[0] == "F")
+                else
                 {
                     logElement.innerHTML += "<p class='error'>"+element[1]+"</p>\n";
                     log.showView();
