@@ -29,6 +29,7 @@ class CurrentPositionMapping: public Module
     matrix overshot_goal;
     matrix overshot_goal_temp;
     std::vector<std::shared_ptr<std::vector<float>>> moving_trajectory;
+    std::vector<std::shared_ptr<std::vector<float>>> current_history;
     matrix approximating_goal;
     matrix started_transition;
    
@@ -310,7 +311,8 @@ class CurrentPositionMapping: public Module
         file.close();
     }
 
-    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>> trajectory, std::string robotType, int id) {
+    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>> trajectory, 
+    std::vector<std::shared_ptr<std::vector<float>>> current, std::string robotType, int id) {
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
         std::string filePath = scriptDirectory + "/Trajectories" + robotType + ".json";
@@ -333,14 +335,23 @@ class CurrentPositionMapping: public Module
 
         // Create new trajectory entry
         nlohmann::json newTrajectory;
-        for (const auto& point : trajectory) {
+        
+        for (const auto& pos : trajectory) {
             nlohmann::json jsonPoint = nlohmann::json::array();
-            for (const auto& coord : *point) {
+            for (const auto& coord : *pos) {
                 jsonPoint.push_back(std::round(coord * 100.0) / 100.0); // Round to 2 decimal places
             }
             newTrajectory["Trajectory"].push_back(jsonPoint);
-            newTrajectory["UniqueID"] = id;
         }
+        
+        for (const auto& curr : current) {
+            nlohmann::json jsonPoint2 = nlohmann::json::array();
+            for (const auto& coord : *curr) {
+                jsonPoint2.push_back(std::round(coord * 100.0) / 100.0); // Round to 2 decimal places
+            }
+            newTrajectory["Current"].push_back(jsonPoint2);
+        }
+        newTrajectory["UniqueID"] = id;
 
         // Add new trajectory to root
         root["Trajectories"].push_back(newTrajectory);
@@ -486,7 +497,7 @@ class CurrentPositionMapping: public Module
                 
                 moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
                 
-                
+                current_history.push_back(std::make_shared<std::vector<float>>(present_current.data_->begin(), present_current.data_->end()));
                 
 
                 // Update min_moving_current only at the start of movement for each servo
@@ -511,7 +522,6 @@ class CurrentPositionMapping: public Module
             
             else if (find_minimum_torque_current)
             {
-                minimum_torque_current_found.info();
                 std::pair<matrix, matrix> result = FindMinimumTorqueCurrent(present_current, present_position, previous_position, 1);
                 goal_current.copy(result.first);
                 minimum_torque_current_found.copy(result.second);
@@ -551,7 +561,7 @@ class CurrentPositionMapping: public Module
             else if (ReachedGoal(present_position, goal_position_out, position_margin)){
 
                 find_minimum_torque_current = true;
-                SaveTrajectory(moving_trajectory, robotType, unique_id);
+                SaveTrajectory(moving_trajectory, current_history, robotType, unique_id);
                 
                 // first row of the trajectory matrix is the starting position
                 if (!moving_trajectory.empty()) {
@@ -560,6 +570,7 @@ class CurrentPositionMapping: public Module
                 
 
                 moving_trajectory.clear();
+                current_history.clear();
                 started_transition.set(0);
     
             }
@@ -569,6 +580,7 @@ class CurrentPositionMapping: public Module
                 overshot_goal_temp.copy(overshot_goal);
                 // Save present positions into trajectory matrix
                 moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
+                current_history.push_back(std::make_shared<std::vector<float>>(present_current.data_->begin(), present_current.data_->end()));
             }
 
             
