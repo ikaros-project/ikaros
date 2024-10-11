@@ -3,7 +3,10 @@
    <connection delay="1" source="Servos.PRESENT_CURRENT" target="Mapping.PresentCurrent"/>
    <connection delay="1" source="Mapping.GoalPosition" target="Servos.GOAL_POSITION"/>
    <connection delay="1" source="Mapping.GoalCurrent" target="Servos.GOAL_CURRENT"/>
-   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="15" RobotType="Torso" _x="336" _y="96" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
+   <connection delay="1" source="UM7.ProcessedGyro" target="Mapping.GyroData"/>
+   <connection delay="1" source="UM7.ProcessedAccel" target="Mapping.AccelData"/>
+   <connection delay="1" source="UM7.EulerAngles" target="Mapping.EulerAngles"/>
+   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="3" RobotType="Torso" _x="648" _y="120" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
       <author>
          <affiliation/>
          <email/>
@@ -15,14 +18,17 @@
       </files>
       <input description="" name="PresentPosition"/>
       <input description="" name="PresentCurrent"/>
+      <input description="Gyro data (XYZ) degrees/s" name="GyroData"/>
+      <input description="Accelerometer data (XYZ) m/s^2" name="AccelData"/>
+      <input description="Euler angles (XYZ) degrees" name="EulerAngles"/>
       <output description="" name="GoalPosition" size="PresentPosition.size"/>
       <output description="" name="GoalCurrent" size="PresentCurrent.size"/>
-      <parameter control="textedit" default="4" description="Number of transitions to make" name="NumberTransitions" type="int" value="15.000000"/>
+      <parameter control="textedit" default="4" description="Number of transitions to make" name="NumberTransitions" type="int" value="3.000000"/>
       <parameter control="textedit" default="122,142 " description="Minimum limits for the servos in degrees" name="MinLimits" type="matrix" value="122, 142"/>
       <parameter control="textedit" default="237,240" description="Maximum limits for the servos in degrees" name="MaxLimits" type="matrix" value="237, 240"/>
       <parameter control="textedit" default="Torso" description="Type of the robot" name="RobotType" type="string" value="Torso"/>
    </module>
-   <module _x="72" _y="96" class="EpiServos" description="Robot servo control module" log_level="5" name="Servos" robot="EpiBlack">
+   <module _x="24" _y="144" class="EpiServos" description="Robot servo control module" log_level="5" name="Servos" robot="EpiBlack">
       <author>
          <affiliation/>
          <email/>
@@ -48,6 +54,31 @@
       <parameter control="checkbox" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." name="simulate" type="bool" value="False"/>
       <parameter control="textedit" data="122, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" default="114, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9" description="The minimum limit of the position in degrees of the servos. Not including pupils" name="MinLimitPosition" type="matrix" value="114, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"/>
       <parameter control="textedit" data="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" default="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343" description="The maximum limit of the position of the servos in degrees. Not including pupils " name="MaxLimitPosition" type="matrix" value="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"/>
+   </module>
+   <module _x="312" _y="24" class="UM7" description="connect to a UM7 orientation sensor via USB" log_level="5" name="UM7" port="/dev/cu.usbserial-AU04OIL4">
+      <author>
+         <affiliation/>
+         <email/>
+         <homepage/>
+         <name/>
+      </author>
+      <description type="text"/>
+      <example description="A simple example">
+         <module class="UM7" name="UM7"/>
+      </example>
+      <files>
+         <file/>
+         <file/>
+         <file/>
+      </files>
+      <link class="UM7"/>
+      <output description="Estimated Roll" name="ROLL" size="1"/>
+      <output description="Estimated Pitch" name="PITCH" size="1"/>
+      <output description="Estimated Yaw" name="YAW" size="1"/>
+      <output description="Processed Gyro data (XYZ)" name="ProcessedGyro" size="3"/>
+      <output description="Processed accelerometer data (XYZ)" name="ProcessedAccel" size="3"/>
+      <output description="Euler angles data (XYZ)" name="EulerAngles" size="3"/>
+      <parameter control="textedit" default="/dev/cu.usbserial-AU04OEIL" description="Serial port" name="port" type="string"/>
    </module>
    <widget _index_="0" _x="48" _y="336" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_10" scrollable="false" select="" show_frame="false" show_title="true" source="Servos.PRESENT_POSITION" style="" title="Positions" width="793"/>
    <widget _index_="2" _x="48" _y="384" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="" name="Widget_11" scrollable="false" select="" show_frame="true" show_title="false" source="Servos.GOAL_POSITION" style="" title="Widget_11" width="793"/>
