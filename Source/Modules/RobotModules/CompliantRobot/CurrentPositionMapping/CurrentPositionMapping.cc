@@ -6,10 +6,12 @@
 #include "json.hpp"
 #include <string>
 #include <algorithm>
-
+#include <chrono>
 
 using json = nlohmann::json;
 using namespace ikaros;
+using Clock = std::chrono::steady_clock;
+using TimePoint = std::chrono::time_point<Clock>;
 
 class CurrentPositionMapping: public Module
 {
@@ -19,6 +21,9 @@ class CurrentPositionMapping: public Module
     matrix position_transitions;
     matrix previous_position;
     matrix start_position;
+    matrix gyro;
+    matrix accel;
+    matrix eulerAngles;
     
     matrix goal_current;
     matrix goal_position_out;
@@ -30,8 +35,11 @@ class CurrentPositionMapping: public Module
     matrix overshot_goal_temp;
     std::vector<std::shared_ptr<std::vector<float>>> moving_trajectory;
     std::vector<std::shared_ptr<std::vector<float>>> current_history;
+    std::vector<std::shared_ptr<std::vector<float>>> gyro_history;
+    std::vector<std::shared_ptr<std::vector<float>>> accel_history;
+    std::vector<std::shared_ptr<std::vector<float>>> angles_history;
     matrix approximating_goal;
-    matrix started_transition;
+    matrix reached_goal;
    
  
 
@@ -54,13 +62,12 @@ class CurrentPositionMapping: public Module
     int unique_id;
     bool second_tick = false;
     bool first_start_position = true;
-    
-  
-    
 
+    matrix transition_start_time;
+    matrix transition_duration;
     double time_prev_position;
-    double position_sampling_interval = 0.05;
-
+    double position_sampling_interval = 50;
+    matrix number_ticks;
  
     matrix SetGoalCurrent(matrix present_current,  int increment, int limit, matrix position, matrix goal_position, int margin){
         matrix current_output(present_current.size());
@@ -115,16 +122,26 @@ class CurrentPositionMapping: public Module
         return goal_positions;
     }
 
-    bool ReachedGoal(matrix present_position, matrix goal_positions, int margin){
-        for (int i = 0; i < current_controlled_servos.size(); i++) {
-            if (abs(present_position(current_controlled_servos(i)) - goal_positions(current_controlled_servos(i))) > margin){
-                Notify(msg_debug, "Not reached goal");
-                return false;
+    void ReachedGoal(matrix present_position, matrix goal_positions, matrix reached_goal, int margin){
+        for (int i = 0; i < current_controlled_servos.size(); i++){
+            if (reached_goal(current_controlled_servos(i)) == 0 &&
+                abs(present_position(current_controlled_servos(i)) - goal_positions(current_controlled_servos(i))) < margin){
+
+                reached_goal(current_controlled_servos(i)) = 1;
+                std::cout << "Motor: " << i << " reached goal" << std::endl;
+
+                auto now = Clock::now();
+                float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+                transition_duration(current_controlled_servos(i)) = current_time_ms - transition_start_time[current_controlled_servos(i)];
+                // Reset start time for future transitions
+                transition_start_time(current_controlled_servos(i)) = current_time_ms;      
+
             }
+            else if (reached_goal(current_controlled_servos(i)) == 0){
+                number_ticks[current_controlled_servos(i)] ++;
+            }
+            number_ticks.print();
         }
-        std::cout << "Reached goal" << std::endl;
-        return true;
-        
     }
 
     matrix ApproximatingGoal(matrix present_position, matrix previous_position, matrix goal_position, int margin){
@@ -142,9 +159,12 @@ class CurrentPositionMapping: public Module
         return approximating_goal;
     }   
     //saving starting position, goal position and current in json file
-    void SaveMetricsToJson(matrix goal_positions, matrix start_position, matrix max_current, matrix min_current, matrix min_torque, matrix overshot, std::string robotType, int transition, int unique_id){
+    void SaveMetricsToJson(matrix goal_positions, matrix start_position, matrix max_current, matrix min_current, matrix min_torque, matrix overshot, matrix time, matrix ticks, std::string robotType, int transition, int unique_id)
+    {
         Notify(msg_debug, "Inside SaveMetricsToJson()");
         std:: cout << "Saving positions in json file" << std::endl;
+        transition_duration.print();
+        sleep(1);
         std::ofstream file;
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
@@ -232,6 +252,26 @@ class CurrentPositionMapping: public Module
                 file << ", ";
             }
         }
+        file << "],";
+        file << "\"Time(ms)\": [";
+        for (int i = 0; i < current_controlled_servos.size(); i++)
+        {
+            file << int(abs(time(current_controlled_servos(i))));
+            if (i < current_controlled_servos.size() - 1)
+            {
+                file << ", ";
+            }
+        }
+        file << "],";
+        file << "\"Number of Ticks\": [";
+        for (int i = 0; i < current_controlled_servos.size(); i++)
+        {
+            file << int(abs(ticks(current_controlled_servos(i))));
+            if (i < current_controlled_servos.size() - 1)
+            {
+                file << ", ";
+            }
+        }
         //if transiiton is not the last one, add a comma
         if (transition < number_transitions-1){
             file << "]},";
@@ -245,74 +285,12 @@ class CurrentPositionMapping: public Module
         file.close();
     }
 
-    void SaveTrajectory_old(std::vector<std::shared_ptr<std::vector<float>>> trajectory, std::string robotType, int id){
-        std::ofstream file;
-        std::string scriptPath = __FILE__;
-        std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/Trajectories" + robotType + ".json";
-        file.open(filePath, std::ios::app);
-        std::ifstream checkFile(filePath);
-        bool fileExists = checkFile.good();
-        checkFile.close();
-        std::ifstream inFile(filePath);
-        std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-        inFile.close();
-
-        if (!fileExists){
-            file << "{\n";
-            file << "\"Trajectories\": [\n";
-        }
-        // If the file exists, remove the last "\n]\n}" and replace it with ","
-        if(fileExists){
-            // Check if id is already in the file
-            while (fileContent.find(std::to_string(id)) != std::string::npos) {
-                id++;
-            }
-
-            size_t pos = fileContent.rfind("\n]\n}");
-            if (pos != std::string::npos) {
-                fileContent.replace(pos, 4, ",");
-                std::ofstream outFile(filePath);
-                outFile << fileContent;
-                outFile.close();
-            }
-
-            while (fileContent.find(std::to_string(id)) != std::string::npos) {
-                id++;
-            }
-            file << "{\"UniqueID\": " << id << ",\n";
-            file << "\"Trajectory\": [\n";
-        } else {
-            file << "{\"UniqueID\": " << id << ",\n";
-            file << "\"Trajectory\": [\n";
-        }
-
-        for (int i = 0; i < trajectory.size(); i++){
-            file << "[";
-            for (int j = 0; j < trajectory[i]->size(); j++){
-                file << std::fixed << std::setprecision(2) << (*trajectory[i])[j];
-                if (j < trajectory[i]->size()-1){
-                    file << ", ";
-                }
-            }
-            if (i < trajectory.size()-1){
-                file << "],\n";
-            } else {
-                file << "]\n";
-            }
-        }
-        if (transition < number_transitions-1){
-            file << "]},";
-        } else {
-            file << "]}\n]\n}";
-        }
-
-        file << std::endl;
-        file.close();
-    }
-
-    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>> trajectory, 
-    std::vector<std::shared_ptr<std::vector<float>>> current, std::string robotType, int id) {
+    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>> trajectory,
+                        std::vector<std::shared_ptr<std::vector<float>>> current,
+                        std::vector<std::shared_ptr<std::vector<float>>> gyro,
+                        std::vector<std::shared_ptr<std::vector<float>>> accel,
+                        std::vector<std::shared_ptr<std::vector<float>>> angles, std::string robotType, int id)
+    {
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
         std::string filePath = scriptDirectory + "/Trajectories" + robotType + ".json";
@@ -331,26 +309,78 @@ class CurrentPositionMapping: public Module
                 id++;
             }
         }
-   
+
+        // Create a vector of indices from current_controlled_servos
+        std::vector<int> controlled_indices;
+        for (int i = 0; i < current_controlled_servos.size(); ++i)
+        {
+            controlled_indices.push_back(static_cast<int>(current_controlled_servos(i)));
+        }
 
         // Create new trajectory entry
         nlohmann::json newTrajectory;
-        
-        for (const auto& pos : trajectory) {
+
+        for (const auto &g : gyro)
+        {
+            nlohmann::json jsonPoint3 = nlohmann::json::array();
+            for (const auto &index : controlled_indices)
+            {
+                if (index < g->size())
+                {                                                                  // Ensure index is within bounds
+                    jsonPoint3.push_back(std::round((*g)[index] * 100.0) / 100.0); // Round to 2 decimal places
+                }
+            }
+            newTrajectory["Gyro"].push_back(jsonPoint3);
+        }
+
+        for (const auto &a : accel)
+        {
+            nlohmann::json jsonPoint4 = nlohmann::json::array();
+            for (const auto &index : controlled_indices)
+            {
+                if (index < a->size())
+                {                                                                  // Ensure index is within bounds
+                    jsonPoint4.push_back(std::round((*a)[index] * 100.0) / 100.0); // Round to 2 decimal places
+                }
+            }
+            newTrajectory["Accel"].push_back(jsonPoint4);
+        }
+
+        for (const auto &ang : angles)
+        {
+            nlohmann::json jsonPoint5 = nlohmann::json::array();
+            for (const auto &index : controlled_indices)
+            {
+                if (index < ang->size())
+                {                                                                    // Ensure index is within bounds
+                    jsonPoint5.push_back(std::round((*ang)[index] * 100.0) / 100.0); // Round to 2 decimal places
+                }
+            }
+            newTrajectory["Angles"].push_back(jsonPoint5);
+        }
+
+        for (const auto &pos : trajectory) {
             nlohmann::json jsonPoint = nlohmann::json::array();
-            for (const auto& coord : *pos) {
-                jsonPoint.push_back(std::round(coord * 100.0) / 100.0); // Round to 2 decimal places
+            for (const auto &index : controlled_indices) {
+                if (index < pos->size()){                                                                   // Ensure index is within bounds
+                    jsonPoint.push_back(std::round((*pos)[index] * 100.0) / 100.0); // Round to 2 decimal places
+                }
             }
             newTrajectory["Trajectory"].push_back(jsonPoint);
         }
-        
-        for (const auto& curr : current) {
+
+        for(const auto& c : current){
             nlohmann::json jsonPoint2 = nlohmann::json::array();
-            for (const auto& coord : *curr) {
-                jsonPoint2.push_back(std::round(coord * 100.0) / 100.0); // Round to 2 decimal places
+            for (const auto &index : controlled_indices) {
+                if (index < c->size()){                                                                   // Ensure index is within bounds
+                    jsonPoint2.push_back(std::round((*c)[index] * 100.0) / 100.0); // Round to 2 decimal places
+                }
             }
             newTrajectory["Current"].push_back(jsonPoint2);
         }
+
+        
+        
         newTrajectory["UniqueID"] = id;
 
         // Add new trajectory to root
@@ -421,6 +451,9 @@ class CurrentPositionMapping: public Module
     
         Bind(present_current, "PresentCurrent");
         Bind(present_position, "PresentPosition");
+        Bind(gyro, "GyroData");
+        Bind(accel, "AccelData");
+        Bind(eulerAngles, "EulerAngles");
         Bind(goal_current, "GoalCurrent");
         Bind(num_transitions, "NumberTransitions");
         Bind(goal_position_out, "GoalPosition");
@@ -455,10 +488,16 @@ class CurrentPositionMapping: public Module
         approximating_goal.set_name("ApproximatingGoal");
         approximating_goal.copy(present_position);
         approximating_goal.set(0);
-        started_transition.set_name("StartedTransition");
-        started_transition.copy(approximating_goal);
+        transition_start_time.set_name("StartedTransitionTime");
+        transition_start_time.copy(approximating_goal);
+        transition_duration.set_name("TransitionDuration");
+        transition_duration.copy(approximating_goal);
+        number_ticks.set_name("NumberTicks");
 
-        time_prev_position= std::time(nullptr);
+
+
+        time_prev_position = std::chrono::duration<double, std::milli>(Clock::now().time_since_epoch()).count();
+        
 
         std::string robot = robotType;
 
@@ -466,38 +505,51 @@ class CurrentPositionMapping: public Module
             current_controlled_servos.set_name("CurrentControlledServosTorso");
             current_controlled_servos = {0, 1};
             overshot_goal_temp = {false, false};
+            reached_goal = {0, 0};
         }
         else{
             current_controlled_servos.set_name("CurrentControlledServosFullBody");
             current_controlled_servos = {0, 1, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 18};
             overshot_goal_temp = {false, false, false, false, false, false, false, false, false, false, false, false, false};
+            reached_goal = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         }
-        
-        
+
+        reached_goal.set_name("ReachedGoal");
+
         overshot_goal.set_name("OvershotGoal");
         unique_id = GenerateRandomNumber(0, 1000000);
-        
+        number_ticks.copy(reached_goal);
     }
 
 
     void Tick()
     {   
+        
         if (present_current.connected() && present_position.connected() && second_tick){
 
-            
+           
+
             approximating_goal = ApproximatingGoal(present_position, previous_position, goal_position_out, position_margin);
+            
             
         
             if (approximating_goal.sum()>0 && !find_minimum_torque_current) {
                 
                 if(second_tick && first_start_position){
                     start_position.copy(present_position);
+                    auto now = Clock::now();
+                    float now_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+
+                    transition_start_time.set(now_ms);
                     first_start_position = false;
                 }
                 
                 moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
                 
                 current_history.push_back(std::make_shared<std::vector<float>>(present_current.data_->begin(), present_current.data_->end()));
+                gyro_history.push_back(std::make_shared<std::vector<float>>(gyro.data_->begin(), gyro.data_->end()));
+                accel_history.push_back(std::make_shared<std::vector<float>>(accel.data_->begin(), accel.data_->end()));
+                angles_history.push_back(std::make_shared<std::vector<float>>(eulerAngles.data_->begin(), eulerAngles.data_->end()));
                 
 
                 // Update min_moving_current only at the start of movement for each servo
@@ -506,9 +558,12 @@ class CurrentPositionMapping: public Module
                     float abs_current = abs(present_current(servo));
                     
                     // Capture the current when the servo starts moving
-                    if (started_transition(servo) == 0 && abs_current > 0 && approximating_goal(servo) == 1) {
+                    if (min_moving_current(servo)==1000 && abs_current > 0 && approximating_goal(servo) == 1) {
                         min_moving_current(servo) = abs_current;
-                        started_transition(servo) = 1;
+                        auto now = Clock::now();
+                        float now_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+                        transition_start_time(current_controlled_servos(i)) = now_ms;
+
                         min_moving_current.print();
                     }
                     // Update the max current for each servo
@@ -533,8 +588,12 @@ class CurrentPositionMapping: public Module
                     
                     
                     //save starting position, goal position and current in json file
-                    SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, robotType, transition, unique_id);
+                    SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, transition_duration, number_ticks, robotType, transition, unique_id);
                     transition++;
+                    auto now = Clock::now();
+                    float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+                    transition_start_time.set(current_time_ms);
+                    transition_duration.set(0);
                     std::cout << "Transition: " << transition << std::endl;
 
                     if (transition < number_transitions){
@@ -546,7 +605,12 @@ class CurrentPositionMapping: public Module
                         overshot_goal_temp.reset();
                         min_torque_current.reset();
                         moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
-
+                        current_history.push_back(std::make_shared<std::vector<float>>(present_current.data_->begin(), present_current.data_->end()));
+                        gyro_history.push_back(std::make_shared<std::vector<float>>(gyro.data_->begin(), gyro.data_->end()));
+                        accel_history.push_back(std::make_shared<std::vector<float>>(accel.data_->begin(), accel.data_->end()));
+                        angles_history.push_back(std::make_shared<std::vector<float>>(eulerAngles.data_->begin(), eulerAngles.data_->end()));
+                        reached_goal.reset();
+                        number_ticks.set(0);
   
                         
                     }
@@ -558,10 +622,10 @@ class CurrentPositionMapping: public Module
                 }
             }
             
-            else if (ReachedGoal(present_position, goal_position_out, position_margin)){
+            else if (reached_goal.sum() == current_controlled_servos.size()){
 
                 find_minimum_torque_current = true;
-                SaveTrajectory(moving_trajectory, current_history, robotType, unique_id);
+                SaveTrajectory(moving_trajectory, current_history, gyro_history, accel_history, angles_history, robotType, unique_id);
                 
                 // first row of the trajectory matrix is the starting position
                 if (!moving_trajectory.empty()) {
@@ -571,25 +635,36 @@ class CurrentPositionMapping: public Module
 
                 moving_trajectory.clear();
                 current_history.clear();
-                started_transition.set(0);
-    
+                reached_goal.set(0);
+
+                // New start time for the next transition
+                //  Save the duration and reset start times for next transition
+                auto now = Clock::now();
+                float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+                
             }
             else{
                 goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit, present_position, goal_position_out, position_margin));
                 overshot_goal.copy(OvershotGoal(present_position, goal_position_out, start_position, overshot_goal_temp));
                 overshot_goal_temp.copy(overshot_goal);
+                ReachedGoal(present_position, goal_position_out, reached_goal, position_margin);
                 // Save present positions into trajectory matrix
                 moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
                 current_history.push_back(std::make_shared<std::vector<float>>(present_current.data_->begin(), present_current.data_->end()));
+                gyro_history.push_back(std::make_shared<std::vector<float>>(gyro.data_->begin(), gyro.data_->end()));
+                accel_history.push_back(std::make_shared<std::vector<float>>(accel.data_->begin(), accel.data_->end()));
             }
 
+            auto now = Clock::now();
+            float now_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+            transition_duration.print();
+
             
-            if(abs(time_prev_position - std::time(nullptr)) > position_sampling_interval){
-                time_prev_position = std::time(nullptr);
+            if (abs(now_ms - time_prev_position) > position_sampling_interval)
+            {
+                time_prev_position = now_ms;
                 previous_position.copy(present_position);
-            
             }
-         
         }
         
         second_tick = true;

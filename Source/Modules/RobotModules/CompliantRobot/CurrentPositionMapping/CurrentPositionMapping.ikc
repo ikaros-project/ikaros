@@ -6,6 +6,9 @@
  
 	<input name="PresentPosition" description=""/>
 	<input name="PresentCurrent" description="" />
+	<input name ="GyroData" description="Gyro data (XYZ) degrees/s" />
+	<input name="AccelData" description="Accelerometer data (XYZ) m/s^2" />
+	<input name="EulerAngles" description="Euler angles (XYZ) degrees" />
 	<output name="GoalPosition" description="" size="PresentPosition.size"/>
 	<output name="GoalCurrent" description="" size="PresentCurrent.size"/>
 	<author>
