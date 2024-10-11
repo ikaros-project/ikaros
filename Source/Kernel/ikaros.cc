@@ -891,8 +891,10 @@ namespace ikaros
     double Module::GetTickDuration()    { return kernel().GetTickDuration(); } // Time for each tick in seconds (s)
     double Module::GetTime()            { return kernel().GetTime(); }
     double Module::GetRealTime()        { return kernel().GetRealTime(); }
-    double Module::GetNominalTime()     { return kernel().GetNominalTime(); } 
+    double Module::GetNominalTime()     { return kernel().GetNominalTime(); }
+    double Module::GetTimeOfDay()       { return kernel().GetTimeOfDay(); }
     double Module::GetLag()             { return kernel().GetLag(); }
+
 
     Module::Module()
     {
@@ -3466,6 +3468,20 @@ if(classes[classname].path.empty())
         else 
             DoSendFile(request.url);
     }
+
+
+
+double
+Kernel::GetTimeOfDay()
+{
+    auto now = system_clock::now();
+    std::time_t now_time = system_clock::to_time_t(now);
+    std::tm now_tm;
+    localtime_r(&now_time, &now_tm); // thread-safe localtime
+    now_tm.tm_hour = now_tm.tm_min = now_tm.tm_sec = 0;
+    auto midnight = system_clock::from_time_t(std::mktime(&now_tm));
+    return duration<double>(now - midnight).count();
+}
 
 
 void
