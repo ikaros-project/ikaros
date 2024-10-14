@@ -4,12 +4,12 @@
             {
                 "Feedforward 1st Gain": 0,
                 "Feedforward 2nd Gain": 0,
-                "Goal Current": 929,
+                "Goal Current": 1124,
                 "Goal PWM": 29,
                 "Goal Position": 180,
                 "Position D Gain": 748,
                 "Position I Gain": 61,
-                "Position P Gain": 499,
+                "Position P Gain": 429,
                 "Profile Acceleration": 0,
                 "Profile Velocity": 0,
                 "servoID": 2

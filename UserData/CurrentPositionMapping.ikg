@@ -6,7 +6,7 @@
    <connection delay="1" source="UM7.ProcessedGyro" target="Mapping.GyroData"/>
    <connection delay="1" source="UM7.ProcessedAccel" target="Mapping.AccelData"/>
    <connection delay="1" source="UM7.EulerAngles" target="Mapping.EulerAngles"/>
-   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="3" RobotType="Torso" _x="648" _y="120" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
+   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="150" RobotType="Torso" _x="648" _y="120" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
       <author>
          <affiliation/>
          <email/>

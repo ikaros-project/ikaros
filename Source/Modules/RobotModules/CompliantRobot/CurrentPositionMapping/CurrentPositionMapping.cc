@@ -56,7 +56,7 @@ class CurrentPositionMapping: public Module
     int transition = 0;
     int current_increment = 2;
     int starting_current = 30;
-    int current_limit = 1200;
+    int current_limit = 1700;
     bool find_minimum_torque_current = false;
     matrix minimum_torque_current_found;
     int unique_id;
@@ -128,7 +128,6 @@ class CurrentPositionMapping: public Module
                 abs(present_position(current_controlled_servos(i)) - goal_positions(current_controlled_servos(i))) < margin){
 
                 reached_goal(current_controlled_servos(i)) = 1;
-                std::cout << "Motor: " << i << " reached goal" << std::endl;
 
                 auto now = Clock::now();
                 float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
@@ -140,7 +139,7 @@ class CurrentPositionMapping: public Module
             else if (reached_goal(current_controlled_servos(i)) == 0){
                 number_ticks[current_controlled_servos(i)] ++;
             }
-            number_ticks.print();
+
         }
     }
 
@@ -163,8 +162,6 @@ class CurrentPositionMapping: public Module
     {
         Notify(msg_debug, "Inside SaveMetricsToJson()");
         std:: cout << "Saving positions in json file" << std::endl;
-        transition_duration.print();
-        sleep(1);
         std::ofstream file;
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
@@ -323,12 +320,9 @@ class CurrentPositionMapping: public Module
         for (const auto &g : gyro)
         {
             nlohmann::json jsonPoint3 = nlohmann::json::array();
-            for (const auto &index : controlled_indices)
+            for (const auto &value : *g)
             {
-                if (index < g->size())
-                {                                                                  // Ensure index is within bounds
-                    jsonPoint3.push_back(std::round((*g)[index] * 100.0) / 100.0); // Round to 2 decimal places
-                }
+                jsonPoint3.push_back(std::round(value * 100.0) / 100.0); // Round to 2 decimal places
             }
             newTrajectory["Gyro"].push_back(jsonPoint3);
         }
@@ -336,12 +330,9 @@ class CurrentPositionMapping: public Module
         for (const auto &a : accel)
         {
             nlohmann::json jsonPoint4 = nlohmann::json::array();
-            for (const auto &index : controlled_indices)
+            for (const auto &value : *a)
             {
-                if (index < a->size())
-                {                                                                  // Ensure index is within bounds
-                    jsonPoint4.push_back(std::round((*a)[index] * 100.0) / 100.0); // Round to 2 decimal places
-                }
+                jsonPoint4.push_back(std::round(value * 100.0) / 100.0); // Round to 2 decimal places
             }
             newTrajectory["Accel"].push_back(jsonPoint4);
         }
@@ -349,12 +340,9 @@ class CurrentPositionMapping: public Module
         for (const auto &ang : angles)
         {
             nlohmann::json jsonPoint5 = nlohmann::json::array();
-            for (const auto &index : controlled_indices)
+            for (const auto &value : *ang)
             {
-                if (index < ang->size())
-                {                                                                    // Ensure index is within bounds
-                    jsonPoint5.push_back(std::round((*ang)[index] * 100.0) / 100.0); // Round to 2 decimal places
-                }
+                jsonPoint5.push_back(std::round(value * 100.0) / 100.0); // Round to 2 decimal places
             }
             newTrajectory["Angles"].push_back(jsonPoint5);
         }
@@ -405,7 +393,7 @@ class CurrentPositionMapping: public Module
             
                 if (int(present_position(current_controlled_servos(i))) == int(previous_position(current_controlled_servos(i))))  {
                     current_output(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i)))- decreasing_step;
-                    std::cout << "Decreasing goal current to: " << (float)current_output(current_controlled_servos(i)) << " of servo: " << current_controlled_servos(i)+2 << std::endl;
+                    //std::cout << "Decreasing goal current to: " << (float)current_output(current_controlled_servos(i)) << " of servo: " << current_controlled_servos(i)+2 << std::endl;
 
                     if (current_output(current_controlled_servos(i)) < 0) {
                         current_output(current_controlled_servos(i)) = 0;
@@ -444,6 +432,21 @@ class CurrentPositionMapping: public Module
         std::mt19937 gen(rd());
         std::uniform_int_distribution<int> distr(min, max);
         return distr(gen);
+    }
+
+    // FUnction to print a progress bar of the current transition
+    void PrintProgressBar(int transition, int number_transitions){
+        int barWidth = 70;
+        float progress = (float)transition/number_transitions;
+        std::cout << "[";
+        int pos = barWidth * progress;
+        for (int i = 0; i < barWidth; ++i) {
+            if (i < pos) std::cout << "=";
+            else if (i == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+        std::cout << "] " << int(progress * 100.0) << " %\r" << std::endl;
+        std::cout.flush();
     }
     
     void Init()
@@ -564,7 +567,7 @@ class CurrentPositionMapping: public Module
                         float now_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
                         transition_start_time(current_controlled_servos(i)) = now_ms;
 
-                        min_moving_current.print();
+                       
                     }
                     // Update the max current for each servo
                     if(abs(present_current(current_controlled_servos(i))) > max_present_current(current_controlled_servos(i))){
@@ -584,7 +587,7 @@ class CurrentPositionMapping: public Module
                     find_minimum_torque_current = false;
                     min_torque_current.copy(present_current);
                     goal_current.add(10);
-                    goal_current.print();
+                    Notify(msg_debug, "Minimum torque current found");
                     
                     
                     //save starting position, goal position and current in json file
@@ -594,7 +597,8 @@ class CurrentPositionMapping: public Module
                     float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
                     transition_start_time.set(current_time_ms);
                     transition_duration.set(0);
-                    std::cout << "Transition: " << transition << std::endl;
+                    
+                    PrintProgressBar(transition, number_transitions);
 
                     if (transition < number_transitions){
                         goal_position_out.copy(position_transitions[transition]);
@@ -635,6 +639,9 @@ class CurrentPositionMapping: public Module
 
                 moving_trajectory.clear();
                 current_history.clear();
+                gyro_history.clear();
+                accel_history.clear();
+                angles_history.clear();
                 reached_goal.set(0);
 
                 // New start time for the next transition
@@ -657,8 +664,6 @@ class CurrentPositionMapping: public Module
 
             auto now = Clock::now();
             float now_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
-            transition_duration.print();
-
             
             if (abs(now_ms - time_prev_position) > position_sampling_interval)
             {
