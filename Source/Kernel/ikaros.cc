@@ -881,7 +881,6 @@ namespace ikaros
         if(msg <= ll)
         {
              return kernel().Notify(msg, message);
-             std::cout << "Notify kernel: " << message << std::endl; // *****************************
         }
         return true;
     }
@@ -2427,7 +2426,6 @@ if(classes[classname].path.empty())
     {
         try
         {
-
             SortTasks();
             ResolveParameters();
             PruneConnections();
@@ -2537,10 +2535,11 @@ if(classes[classname].path.empty())
             std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
 
             log.push_back(Message(msg, message, path));
+            std::cout << "ikaros: " << message << std::endl;
             if(msg <= msg_fatal_error)
             {
                     global_terminate = true;
-                    std::cout << "ikaros: " << message << std::endl;
+
                     //run_mode = run_mode_quit;
 
                     
