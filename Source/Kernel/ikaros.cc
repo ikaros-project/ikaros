@@ -1570,6 +1570,7 @@ bool operator==(Request & r, const std::string s)
                 }
         }
 */
+        save_matrix_states();
         RotateBuffers();
         Propagate();
 
@@ -1745,6 +1746,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & it : circular_buffers)
             it.second.rotate(buffers[it.first]);
     }
+
 
 
     void 
