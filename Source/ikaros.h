@@ -216,10 +216,10 @@ public:
     // Shortcut function for messages and logging
 
 
-    bool Print(std::string message) { return Notify(msg_print, message); }
+    bool Print(std::string message, std::string path="") { return Notify(msg_print, message, path); }
     bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
-    bool Debug(std::string message) { return Notify(msg_debug, message); }
-    bool Trace(std::string message) { return Notify(msg_trace, message); }
+    bool Debug(std::string message, std::string path="") { return Notify(msg_debug, message, path); }
+    bool Trace(std::string message, std::string path="") { return Notify(msg_trace, message, path); }
 
     void AddInput(dictionary parameters);
     void AddOutput(dictionary parameters);
