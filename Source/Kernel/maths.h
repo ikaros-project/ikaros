@@ -7,8 +7,10 @@
 
 namespace ikaros
 {
-	const double pi = 3.14159265358979323846;  // Awaiting C++20
+	enum angle_unit {degrees, radians, tau};
 
+	const double pi = 3.14159265358979323846;  // Awaiting C++20
+	
 	double sgn(double x);
 
 	double min(double x, double y);
