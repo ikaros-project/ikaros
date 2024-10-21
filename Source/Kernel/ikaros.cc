@@ -860,8 +860,8 @@ namespace ikaros
         for(auto output: info_["outputs"])
             AddOutput(output);
 
-        if(!info_.contains("log_level"))
-            info_["log_level"] = "5";
+        //if(!info_.contains("log_level"))
+        //    info_["log_level"] = "5";
 
     // Set parent
 
