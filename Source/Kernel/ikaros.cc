@@ -915,7 +915,7 @@ namespace ikaros
     Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional buffers
     {
 
-    Trace("\t\t\tComponent::InputReady", path_ + std::string(d["name"]));
+    Trace("\t\t\tComponent::InputReady", path_  + "." +  std::string(d["name"]));
         Kernel& k = kernel();
 
         std::string n = d["name"];   // ["attributes"]
