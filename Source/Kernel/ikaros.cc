@@ -915,7 +915,7 @@ namespace ikaros
     Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional buffers
     {
 
-    Trace("\t\t\tComponent::InputReady", path_  + "." +  std::string(d["name"]));
+        Trace("\t\t\tComponent::InputReady", path_  + "." +  std::string(d["name"]));
         Kernel& k = kernel();
 
         std::string n = d["name"];   // ["attributes"]
@@ -978,7 +978,7 @@ namespace ikaros
         if(flattened_input_size != 0)
         {
             kernel().buffers[full_name].realloc(flattened_input_size); 
-          Trace("\t\t\t\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size), path_);
+          Trace("\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size), path_);
         }
 
         if(d.is_set("use_alias"))
@@ -1001,7 +1001,7 @@ namespace ikaros
     Component::SetInputSize_Index(dictionary d, input_map ingoing_connections)
     {
 
-       Trace("\t\t\t\t\tComponent::SetInputSize_Index " + std::string(d["name"]), path_);
+       Trace("\t\t\tComponent::SetInputSize_Index ", path_ + "." + std::string(d["name"]));
 
         range input_size;
         std::string name = d.at("name");
@@ -1018,7 +1018,7 @@ namespace ikaros
             input_size.extend(c->Resolve(output_matrix));
         }
         kernel().buffers[full_name].realloc(input_size.extent());
-      Trace("\t\t\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), path_);
+        Trace("\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), full_name);
 
         // Set alias if requested and there is only a single input
 
@@ -1073,7 +1073,7 @@ namespace ikaros
             r |= c->target_range;
 
         kernel().buffers[name].realloc(r.extent());  // STEP 2: Set input size // FIXME: Check empty input
-          Trace("\t\t\t\t\t\tComponent::SetInputSize_Index Alloc "+std::string(r));
+          Trace("\t\t\t\t\t\tComponent:: Alloc "+std::string(r));
 
         // Set alias
 
@@ -1100,7 +1100,7 @@ namespace ikaros
     int 
     Component::SetInputSize(dictionary d, input_map ingoing_connections)
     {
-        Trace("\t\t\t\tComponent::SetInputSize ", path_ + std::string(d["name"]));
+        Trace("\t\t\tComponent::SetInputSize", path_ + " "+ std::string(d["name"]));
 
         if(d.is_set("flatten"))
             SetInputSize_Flat(d, ingoing_connections);
@@ -1116,7 +1116,7 @@ namespace ikaros
     {
         Kernel& k = kernel();
 
-        Trace("\t\t\t\tComponent::SetInputSizes", path_);
+        Trace("\t\tComponent::SetInputSizes", path_);
 
         // Set input sizes (if possible)
 
@@ -1131,7 +1131,7 @@ namespace ikaros
     int 
     Component::SetOutputSize(dictionary d, input_map ingoing_connections)
     {
-       Trace("\t\t\t\tComponent::SetOutputSize " + std::string(d["name"]), path_);
+       Trace("\t\t\tComponent::SetOutputSize " + std::string(d["name"]), path_);
 
         if(d.contains("size"))
             throw setup_error("Output in group can not have size attribute.");
@@ -1153,7 +1153,7 @@ namespace ikaros
             output_size.extend(c->Resolve(output_matrix));
         }
         kernel().buffers[full_name].realloc(output_size.extent()); // FIXME: realloc with range argument
-      Trace("\t\t\t\t\tComponent::SetOutputSize Alloc" + std::string(output_size), path_);
+      Trace("\t\t\t\t\tComponent:: Alloc" + std::string(output_size), path_);
 
         return 1;
     }
@@ -1174,7 +1174,7 @@ namespace ikaros
     Component::SetSizes(input_map ingoing_connections)
     {
         
-        Trace("\tComponent::SetSizes",path_);
+        Trace("\t\t\tComponent::SetSizes",path_);
         SetInputSizes(ingoing_connections);
         SetOutputSizes(ingoing_connections);
 
