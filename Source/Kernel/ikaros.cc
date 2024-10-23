@@ -677,8 +677,9 @@ namespace ikaros
 // sensitive to variables and indirection
 // does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
 //
-
-    Component * Component::GetComponent(const std::string & s) 
+ 
+    Component * 
+    Component::GetComponent(const std::string & s) 
     {
         std::string path = SubstituteVariables(s);
         try
@@ -697,6 +698,14 @@ namespace ikaros
         {
             throw exception("Component \""+path+"\" does not exist.");
         }
+    }
+
+
+
+    matrix & 
+    Component::GetBuffer(const std::string & s)
+    {
+        return kernel().buffers.at(path_+'.'+s);
     }
 
 
@@ -741,14 +750,31 @@ namespace ikaros
 
 
     std::string
-    Component::EvaluateVariable(const std::string & s)
+    Component::EvaluateVariableOrFunction(const std::string & s)
     {
+        std::string ss = s;
+
+        // Check functions
+
+        if(ends_with(s, ".size_x"))
+            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: ADd nondestructuve rhead with string instead of string &
+
+        if(ends_with(s, ".size_y"))
+            return std::to_string(GetBuffer(rhead(ss,".")).size_y());
+
+        if(ends_with(s, ".rows"))
+            return std::to_string(GetBuffer(rhead(ss,".")).rows());
+
+        if(ends_with(s, ".cols"))
+            return std::to_string(GetBuffer(rhead(ss,".")).cols());
+            
+        // Get or evaluate bariables
+
         parameter p;
         if(LookupParameter(p, s.substr(1)))
             return p;
         else
             return Evaluate(s); // FIXME: Should probably not use full evaluation
-
     }
 
 
@@ -758,7 +784,7 @@ namespace ikaros
         expression e = expression(s);
         std::map<std::string, std::string> vars;
         for(auto v : e.variables())
-            vars[v] = EvaluateVariable(v);
+            vars[v] = EvaluateVariableOrFunction(v);
         return expression(s).evaluate(vars);
     }
 
