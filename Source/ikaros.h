@@ -216,10 +216,10 @@ public:
     // Shortcut function for messages and logging
 
 
-    bool Print(std::string message) { return Notify(msg_print, message); }
+    bool Print(std::string message, std::string path="") { return Notify(msg_print, message, path); }
     bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
-    bool Debug(std::string message) { return Notify(msg_debug, message); }
-    bool Trace(std::string message) { return Notify(msg_trace, message); }
+    bool Debug(std::string message, std::string path="") { return Notify(msg_debug, message, path); }
+    bool Trace(std::string message, std::string path="") { return Notify(msg_trace, message, path); }
 
     void AddInput(dictionary parameters);
     void AddOutput(dictionary parameters);
@@ -253,9 +253,10 @@ public:
     std::string GetBind(const std::string & name);
     std::string SubstituteVariables(const std::string & s);
     Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
+    matrix & GetBuffer(const std::string & s);
 
     std::string Evaluate(const std::string & s, bool is_string=false);     // Evaluate an expression in the current context
-    std::string EvaluateVariable(const std::string & s);
+    std::string EvaluateVariableOrFunction(const std::string & s);
     bool LookupParameter(parameter & p, const std::string & name);
     
     double EvaluateNumericalExpression(std::string & s);

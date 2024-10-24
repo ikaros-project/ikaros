@@ -71,5 +71,36 @@ matrix::average()
         return sum()/size();
 }
 
+
+    // Matrix saving list
+
+    std::vector<matrix *> saving_matrices;
+
+
+    void
+    save_matrix_states()
+    {
+        for(auto m : saving_matrices)
+        m->save();
+    }
+
+        void 
+        matrix::save()
+        {
+            if(last_!=nullptr)
+                last_->copy(*this);
+        }
+
+        matrix & 
+        matrix::last()
+        {
+            if(last_==nullptr)
+            {
+                saving_matrices.push_back(this);
+                last_ = std::make_shared<matrix>();
+                save();
+            }
+            return *last_;
+        }
 }
 

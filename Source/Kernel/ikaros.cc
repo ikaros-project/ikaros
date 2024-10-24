@@ -677,8 +677,9 @@ namespace ikaros
 // sensitive to variables and indirection
 // does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
 //
-
-    Component * Component::GetComponent(const std::string & s) 
+ 
+    Component * 
+    Component::GetComponent(const std::string & s) 
     {
         std::string path = SubstituteVariables(s);
         try
@@ -697,6 +698,14 @@ namespace ikaros
         {
             throw exception("Component \""+path+"\" does not exist.");
         }
+    }
+
+
+
+    matrix & 
+    Component::GetBuffer(const std::string & s)
+    {
+        return kernel().buffers.at(path_+'.'+s);
     }
 
 
@@ -741,14 +750,31 @@ namespace ikaros
 
 
     std::string
-    Component::EvaluateVariable(const std::string & s)
+    Component::EvaluateVariableOrFunction(const std::string & s)
     {
+        std::string ss = s;
+
+        // Check functions
+
+        if(ends_with(s, ".size_x"))
+            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: ADd nondestructuve rhead with string instead of string &
+
+        if(ends_with(s, ".size_y"))
+            return std::to_string(GetBuffer(rhead(ss,".")).size_y());
+
+        if(ends_with(s, ".rows"))
+            return std::to_string(GetBuffer(rhead(ss,".")).rows());
+
+        if(ends_with(s, ".cols"))
+            return std::to_string(GetBuffer(rhead(ss,".")).cols());
+            
+        // Get or evaluate bariables
+
         parameter p;
         if(LookupParameter(p, s.substr(1)))
             return p;
         else
             return Evaluate(s); // FIXME: Should probably not use full evaluation
-
     }
 
 
@@ -758,7 +784,7 @@ namespace ikaros
         expression e = expression(s);
         std::map<std::string, std::string> vars;
         for(auto v : e.variables())
-            vars[v] = EvaluateVariable(v);
+            vars[v] = EvaluateVariableOrFunction(v);
         return expression(s).evaluate(vars);
     }
 
@@ -860,8 +886,8 @@ namespace ikaros
         for(auto output: info_["outputs"])
             AddOutput(output);
 
-        if(!info_.contains("log_level"))
-            info_["log_level"] = "5";
+        //if(!info_.contains("log_level"))
+        //    info_["log_level"] = "5";
 
     // Set parent
 
@@ -880,8 +906,7 @@ namespace ikaros
 
         if(msg <= ll)
         {
-             return kernel().Notify(msg, message);
-             std::cout << "Notify kernel: " << message << std::endl; // *****************************
+             return kernel().Notify(msg, message, path);
         }
         return true;
     }
@@ -915,7 +940,8 @@ namespace ikaros
     bool
     Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional buffers
     {
-    Trace("\t\t\tComponent::InputReady");
+
+        Trace("\t\t\tComponent::InputReady", path_  + "." +  std::string(d["name"]));
         Kernel& k = kernel();
 
         std::string n = d["name"];   // ["attributes"]
@@ -943,7 +969,7 @@ namespace ikaros
     int 
     Component::SetInputSize_Flat(dictionary d, input_map ingoing_connections)
     {
-        Trace("\t\t\t\t\tComponent::SetInputSize_Flat");
+        Trace("\t\t\t\t\tComponent::SetInputSize_Flat", path_);
 
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
@@ -978,7 +1004,7 @@ namespace ikaros
         if(flattened_input_size != 0)
         {
             kernel().buffers[full_name].realloc(flattened_input_size); 
-          Trace("\t\t\t\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size));
+          Trace("\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size), path_);
         }
 
         if(d.is_set("use_alias"))
@@ -1001,7 +1027,7 @@ namespace ikaros
     Component::SetInputSize_Index(dictionary d, input_map ingoing_connections)
     {
 
-       Trace("\t\t\t\t\tComponent::SetInputSize_Index " + std::string(d["name"]));
+       Trace("\t\t\tComponent::SetInputSize_Index ", path_ + "." + std::string(d["name"]));
 
         range input_size;
         std::string name = d.at("name");
@@ -1018,7 +1044,7 @@ namespace ikaros
             input_size.extend(c->Resolve(output_matrix));
         }
         kernel().buffers[full_name].realloc(input_size.extent());
-      Trace("\t\t\t\t\tComponent::SetInputSize Alloc" + std::string(input_size));
+        Trace("\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), full_name);
 
         // Set alias if requested and there is only a single input
 
@@ -1073,7 +1099,7 @@ namespace ikaros
             r |= c->target_range;
 
         kernel().buffers[name].realloc(r.extent());  // STEP 2: Set input size // FIXME: Check empty input
-          Trace("\t\t\t\t\t\tComponent::SetInputSize_Index Alloc "+std::string(r));
+          Trace("\t\t\t\t\t\tComponent:: Alloc "+std::string(r));
 
         // Set alias
 
@@ -1100,7 +1126,7 @@ namespace ikaros
     int 
     Component::SetInputSize(dictionary d, input_map ingoing_connections)
     {
-        Trace("\t\t\t\tComponent::SetInputSize " + std::string(d["name"]));
+        Trace("\t\t\tComponent::SetInputSize", path_ + " "+ std::string(d["name"]));
 
         if(d.is_set("flatten"))
             SetInputSize_Flat(d, ingoing_connections);
@@ -1112,11 +1138,11 @@ namespace ikaros
 
 
     int
-    Component::SetInputSizes(input_map ingoing_connections)
+    Component:: SetInputSizes(input_map ingoing_connections)
     {
         Kernel& k = kernel();
 
-        Trace("\t\t\t\tComponent::SetInputSizes");
+        Trace("\t\tComponent::SetInputSizes", path_);
 
         // Set input sizes (if possible)
 
@@ -1131,7 +1157,7 @@ namespace ikaros
     int 
     Component::SetOutputSize(dictionary d, input_map ingoing_connections)
     {
-       Trace("\t\t\t\tComponent::SetOutputSize " + std::string(d["name"]));
+       Trace("\t\t\tComponent::SetOutputSize " + std::string(d["name"]), path_);
 
         if(d.contains("size"))
             throw setup_error("Output in group can not have size attribute.");
@@ -1153,7 +1179,7 @@ namespace ikaros
             output_size.extend(c->Resolve(output_matrix));
         }
         kernel().buffers[full_name].realloc(output_size.extent()); // FIXME: realloc with range argument
-      Trace("\t\t\t\t\tComponent::SetOutputSize Alloc" + std::string(output_size));
+      Trace("\t\t\t\t\tComponent:: Alloc" + std::string(output_size), path_);
 
         return 1;
     }
@@ -1162,7 +1188,7 @@ namespace ikaros
     int 
     Component::SetOutputSizes(input_map ingoing_connections)
     {
-        Trace("\t\tComponent::SetOutputSizes");
+        Trace("\t\tComponent::SetOutputSizes", path_);
         for(auto & d : info_["outputs"])
             SetOutputSize(d, ingoing_connections);
 
@@ -1173,7 +1199,8 @@ namespace ikaros
     int
     Component::SetSizes(input_map ingoing_connections)
     {
-        Trace("\tComponent::SetSizes");
+        
+        Trace("\t\t\tComponent::SetSizes",path_);
         SetInputSizes(ingoing_connections);
         SetOutputSizes(ingoing_connections);
 
@@ -1233,7 +1260,7 @@ namespace ikaros
     int 
     Module::SetSizes(input_map ingoing_connections)
     {
-            Trace("\tModule::SetSizes");
+            Trace("\tModule::SetSizes", path_);
             SetInputSizes(ingoing_connections);
             SetOutputSizes(ingoing_connections);
             return 0;
@@ -1571,6 +1598,7 @@ bool operator==(Request & r, const std::string s)
                 }
         }
 */
+        save_matrix_states();
         RotateBuffers();
         Propagate();
 
@@ -1746,6 +1774,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & it : circular_buffers)
             it.second.rotate(buffers[it.first]);
     }
+
 
 
     void 
@@ -2427,7 +2456,6 @@ if(classes[classname].path.empty())
     {
         try
         {
-
             SortTasks();
             ResolveParameters();
             PruneConnections();
@@ -2537,10 +2565,11 @@ if(classes[classname].path.empty())
             std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
 
             log.push_back(Message(msg, message, path));
+            std::cout << "ikaros: " << message << "("<<path << ")"<< std::endl;
             if(msg <= msg_fatal_error)
             {
                     global_terminate = true;
-                    std::cout << "ikaros: " << message << std::endl;
+
                     //run_mode = run_mode_quit;
 
                     

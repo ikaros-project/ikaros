@@ -40,8 +40,9 @@ namespace ikaros
         InitList(std::initializer_list<InitList> d) { value=d;}
     };
 
-
     class matrix;
+
+    void save_matrix_states();
 
 
     // Matrix info class
@@ -1068,21 +1069,9 @@ namespace ikaros
 
         // Last Functions
 
-        void save()
-        {
-            if(last_!=nullptr)
-                last_->copy(*this);
-        }
+        void save();
 
-        matrix & last()
-        {
-            if(last_==nullptr)
-            {
-                last_ = std::make_shared<matrix>();
-                save();
-            }
-            return *last_;
-        }
+        matrix & last();
 
         // Math Functions
 

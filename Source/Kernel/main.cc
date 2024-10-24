@@ -65,8 +65,6 @@ main(int argc, char *argv[])
         {
             try
             {
-                std::cout << "MAIN Loop " << ccc++ << std::endl;
-
                 if(k.options_.filename.empty())
                     k.New();
                 else if(k.needs_reload)
@@ -104,7 +102,7 @@ main(int argc, char *argv[])
                 k.timer.Pause();
                 k.timer.SetPauseTime(0);
                 k.needs_reload = false;
-            */
+                */
             }
 
             catch(fatal_error & e)
