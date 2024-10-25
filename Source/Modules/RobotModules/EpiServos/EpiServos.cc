@@ -411,8 +411,9 @@ class EpiServos : public Module
         // Check if the servo ID 
         for (auto& chain : servoChainData) {
             int i = 0;
-            for (int ID = minID; ID < maxID; ID++){
+            for (int ID = minID; ID <= maxID; ID++){
                 if (chain["servoID"] == ID) {
+                    printf("ID: %d\n", ID);
                     //loop through all keys of the chain
                     int paramIndex = 0;
                     for (auto& it : chain.items()) {
@@ -436,8 +437,8 @@ class EpiServos : public Module
 
     void CreateParameterMatrices(){
 
-        headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX,robot[robotName].type, "Head");
-        std::cout << "Head data: " << headData << std::endl;
+        headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX, robot[robotName].type, "Head");
+       
 
         if (EpiMode){
             bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body");
@@ -899,9 +900,9 @@ class EpiServos : public Module
             std::cout << "Reading json parameter file" << std::endl;
             
             CreateParameterMatrices();
-            std::cout << "Setting servo settings" << std::endl;
+            Notify(msg_trace, "Setting servo settings"); 
             SetServoSettings();
-            std::cout << "Setting min max limits" << std::endl;
+            Notify(msg_trace, "Setting min max limits");
             SetMinMaxLimits();
 
         }
@@ -2657,32 +2658,25 @@ class EpiServos : public Module
 
         // Get P values
         for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandler->read2ByteTxRx(portHandler, IDMin + i, 84, &start_p_value[i], &dxl_error))
+            if (COMM_SUCCESS != packetHandler->read2ByteTxRx(portHandler, IDMin + i, servoControlTable["Position P Gain"]["Address"], &start_p_value[i], &dxl_error))
                 return false;
 
         // t.Reset();
         Notify(msg_warning, "Power off servos. If needed, support the robot while power off the servos");
 
-        // Ramp down p value
-        // while (t.GetTime() < TIMER_POWER_OFF)
-        //     for (int i = 0; i < nrOfServos; i++)
-        //         if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, int(float(start_p_value[i]) * (float(TIMER_POWER_OFF) - t.GetTime()) / float(TIMER_POWER_OFF)), &dxl_error))
-        //             return false;
+       
         // Turn p to zero
         for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, 84, 0, &dxl_error))
+            if (COMM_SUCCESS != packetHandler->write2ByteTxRx(portHandler, IDMin + i, servoControlTable["Position P Gain"]["Address"], 0, &dxl_error))
                 return false;
 
         Sleep(TIMER_POWER_OFF);
 
-        // Get present position
-        for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandler->read4ByteTxRx(portHandler, IDMin + i, 132, &present_postition_value[i], &dxl_error))
-                return false;
-        // Set goal position to present postiion
-        for (int i = 0; i < nrOfServos; i++)
-            if (COMM_SUCCESS != packetHandler->write4ByteTxRx(portHandler, IDMin + i, 116, present_postition_value[i], &dxl_error))
-                return false;
+        
+        // // Set goal position to present postiion
+        // for (int i = 0; i < nrOfServos; i++)
+        //     if (COMM_SUCCESS != packetHandler->write4ByteTxRx(portHandler, IDMin + i, servoControlTable["Goal Position"]["Address"], present_postition_value[i], &dxl_error))
+        //         return false;
 
         // t.Restart();
         Sleep(TIMER_POWER_OFF_EXTENDED);
