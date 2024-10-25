@@ -217,6 +217,7 @@ public:
 
 
     bool Print(std::string message, std::string path="") { return Notify(msg_print, message, path); }
+    bool Error(std::string message, std::string path="") { return Notify(msg_fatal_error, message, path); }
     bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
     bool Debug(std::string message, std::string path="") { return Notify(msg_debug, message, path); }
     bool Trace(std::string message, std::string path="") { return Notify(msg_trace, message, path); }
