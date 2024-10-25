@@ -1,4 +1,4 @@
-<group filename="" log_level="7" name="Tuning" real_time="true" start="true" stop="-1" webui_port="8000">
+<group filename="" log_level="7" name="Tuning" real_time="true" start="true" stop="-1" webui_port="8000" tick_duration="0.025">
    <module NumberTransitions="10" ParameterValues="100,0,0,70, 0,0,0,0,50, 180" ParametersToRead="Present Current, Present Position" ParametersToTune="Position P Gain, Position I Gain, Position D Gain, Goal Current, Profile Acceleration, Profile Velocity, Feedforward 2nd Gain, Feedforward 1st Gain, Goal PWM, Goal Position" RunSequence="false" Servo="NeckPan" _x="48" _y="48" class="ServoControlTuning" description="Robot servo control module" log_level="7" name="ServoTuning" robot="EpiBlack">
       <author>
          <affiliation/>
