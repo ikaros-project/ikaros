@@ -165,7 +165,7 @@ class CurrentPositionMapping: public Module
         std::ofstream file;
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/CurrentPositionMapping" + robotType + ".json";
+        std::string filePath = scriptDirectory + "/data/CurrentPositionMapping" + robotType + ".json";
         
         // Check if file exists
         std::ifstream checkFile(filePath);
@@ -290,7 +290,7 @@ class CurrentPositionMapping: public Module
     {
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/Trajectories" + robotType + ".json";
+        std::string filePath = scriptDirectory + "/data/Trajectories" + robotType + ".json";
 
         // Read existing file content
         nlohmann::json root;
