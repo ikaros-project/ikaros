@@ -20,6 +20,8 @@
 
 namespace ikaros 
 {
+
+
     struct null;
     struct dictionary;
     struct list;
@@ -28,6 +30,7 @@ namespace ikaros
     using valueVariant = std::variant<bool, double, null, std::string, list, dictionary>;
     using mapPtr = std::shared_ptr<std::map<std::string, value>>;
     using listPtr = std::shared_ptr<std::vector<value>>;
+    using exclude_set = const std::set<std::string> &;
 
     static std::vector<value> empty;
 
@@ -35,7 +38,7 @@ namespace ikaros
     {
         operator std::string () const;
         std::string json() const;
-        std::string xml(std::string name, int depth=0, std::string exclude = "");
+        std::string xml(std::string name, int depth=0, exclude_set exclude={});
         friend std::ostream& operator<<(std::ostream& os, const null & v);
 
         void print() const { std::cout << "null" << std::endl; };
@@ -78,7 +81,7 @@ namespace ikaros
         int get_index(std::string key); // Returns the index of the key in the dictionary
 
         std::string json() const;
-        std::string xml(std::string name, int depth=0, std::string exclude = "");
+        std::string xml(std::string name, int depth=0, exclude_set exclude={});
         friend std::ostream& operator<<(std::ostream& os, const dictionary & v);
         //void print();
 
@@ -118,7 +121,7 @@ namespace ikaros
         list & erase(int index);
         operator std::string ()  const;
         std::string json() const;
-        std::string xml(std::string name, int depth=0, std::string exclude = "");
+        std::string xml(std::string name, int depth=0, exclude_set exclude={});
         friend std::ostream& operator<<(std::ostream& os, const list & v);
 
         list copy() const;
@@ -174,7 +177,7 @@ namespace ikaros
 
         operator std::string () const;
         std::string json() const;
-        std::string xml(std::string name, int depth=0, std::string exclude = "");
+        std::string xml(std::string name, int depth=0, exclude_set exclude={});
 
         operator double ();
         operator list ();

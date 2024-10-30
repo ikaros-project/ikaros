@@ -2956,7 +2956,7 @@ if(classes[classname].path.empty())
         //std::filesystem::path path = std::string(d["filename"]);
         std::string filename = add_extension(std::string(d["filename"]), ".ikg");
         d["filename"] = ""; // Do not include filename in file
-        std::string data = d.xml("group");
+        std::string data = d.xml("group", 0, {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"});
         std::ofstream file;
         file.open (filename);
         file << data;

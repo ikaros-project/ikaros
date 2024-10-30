@@ -39,7 +39,7 @@ namespace ikaros
     }
 
     std::string 
-    null::xml(std::string name, int depth, std::string exclude)
+    null::xml(std::string name, int depth,exclude_set exclude)
     {
         return tab(depth)+"<null/>\n";
     }
@@ -243,12 +243,12 @@ namespace ikaros
     // XML
 
     std::string 
-    list::xml(std::string name, int depth, std::string exclude)
+    list::xml(std::string name, int depth,exclude_set exclude)
     {
         std::string s;
         for(auto & v : *list_)
         {
-            s += v.xml(name, depth+1);
+            s += v.xml(name, depth+1, exclude);
         }
         return s;
     }
@@ -256,21 +256,27 @@ namespace ikaros
     // FIXME: Use _tag for elememt name
 
     std::string  
-    dictionary::xml(std::string name, int depth, std::string exclude)
+    dictionary::xml(std::string name, int depth,exclude_set exclude)
     {
         std::string s = tab(depth)+"<"+name;
         for(auto & a : *dict_)
-            if(!a.second.is_list())
+            if(exclude.count(name+"."+a.first))
+                continue;
+            else if(!a.second.is_list())
                 if(!a.second.is_null()) // Do not include null attributes - but include empty strings
                     if(a.first != "_tag") // Do not include tag attributes since the are used as element name
                         s += " "+a.first + "=\"" +std::string(a.second)+"\"";
 
         std::string sep = ">\n";
         for(auto & e : *dict_)
-            if(e.second.is_list()) //  && e.first!="inputs" && e.first!="outputs" && e.first!="parameters"
+            if(e.second.is_list() && !exclude.count(name+"/"+e.first))
             {
-                s += sep + e.second.xml(e.first.substr(0, e.first.size()-1), depth);
-                sep = "";
+                std::string sub = e.second.xml(e.first.substr(0, e.first.size()-1), depth, exclude);
+                if(!sub.empty())
+                {
+                    s += sep + sub;
+                    sep = "";
+                }
             }
         if(sep.empty())
             s += tab(depth)+"</"+name+">\n";
@@ -467,14 +473,14 @@ namespace ikaros
         }
 
         std::string  
-        value::xml(std::string name, int depth, std::string exclude)
+        value::xml(std::string name, int depth,exclude_set exclude)
         {
             if(std::holds_alternative<std::string>(value_))
                 return tab(depth)+"<string>"+std::get<std::string>(value_)+"</string>\n"; // FIXME: <'type' value="v" />    ???
             else if(std::holds_alternative<list>(value_))
-                return std::get<list>(value_).xml(name, depth);
+                return std::get<list>(value_).xml(name, depth, exclude);
             else if(std::holds_alternative<dictionary>(value_))
-                return std::get<dictionary>(value_).xml(name, depth);
+                return std::get<dictionary>(value_).xml(name, depth, exclude);
             else if(std::holds_alternative<null>(value_))
                 return tab(depth)+"<null/>\n";
             else
