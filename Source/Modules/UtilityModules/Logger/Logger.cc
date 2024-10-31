@@ -1,5 +1,4 @@
 #include "ikaros.h"
-//#include "../../IKAROS_Socket.h"
 
 using namespace ikaros;
 
@@ -26,7 +25,6 @@ public:
         // Send termination message with complete execution time
     }
 };
-
 
 INSTALL_CLASS(Logger)
 
