@@ -65,7 +65,7 @@ main(int argc, char *argv[])
         {
             try
             {
-                if(k.options_.filename.empty())
+                if(k.options_.filename().empty())
                     k.New();
                 else if(k.needs_reload)
                     k.LoadFile();
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
          catch(load_failed & e)
             {
                 std::cout << "Load failed. "+e.message << std::endl;
-                k.options_.filename.clear();
+                k.options_.path_.clear(); // FIXME: Add function for this
 
                 //k.New();
                // k.needs_reload = false; // SHOYLD PROABBLY NOT BE SET IN NEW

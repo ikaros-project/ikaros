@@ -2034,7 +2034,7 @@ if(classes[classname].path.empty())
         for(auto & x : options_.d)
             d[x.first] = x.second;
 
-        d["filename"] = options_.filename;
+        d["filename"] = options_.stem();
 
         if(d.contains("stop"))
             stop_after = d["stop"];
@@ -2047,22 +2047,21 @@ if(classes[classname].path.empty())
     void 
     Kernel::LoadFile()
     {
-        // std::cout << "Kernel::Loadfile" << std::endl;
         if(components.size() > 0)
             Clear();
 
-        if(!std::filesystem::exists(options_.filename))
-            throw load_failed(u8"File \""+options_.filename+"\" does not exist.");
+        if(!std::filesystem::exists(options_.full_path()))
+            throw load_failed(u8"File \""+options_.full_path()+"\" does not exist.");
 
             try
             {
-                dictionary d = dictionary(options_.filename);
+                dictionary d = dictionary(options_.full_path());
                 SetCommandLineParameters(d);
                 BuildGroup(d);
                 info_ = d;
                 session_id = new_session_id();
                 SetUp();
-                Notify(msg_print, u8"Loaded "s+options_.filename);
+                Notify(msg_print, u8"Loaded "s+options_.full_path());
 
                 CalculateCheckSum();
                 //ListBuffers();
@@ -2072,8 +2071,7 @@ if(classes[classname].path.empty())
             catch(const exception& e)
             {
                 Notify(msg_fatal_error, e.message);
-                Notify(msg_fatal_error, u8"Load file failed for "s+options_.filename);
-                //CalculateCheckSum();
+                Notify(msg_fatal_error, u8"Load file failed for "s+options_.full_path());
                 throw load_failed("Load failed");
             }
     }
@@ -2107,7 +2105,7 @@ if(classes[classname].path.empty())
             std::string msg = "Incorrect Check Sum: "+std::to_string(calculated_check_sum)+" != "+std::to_string(correct_check_sum);
             Notify(msg_fatal_error, msg);
             if(info_.is_set("batch_mode"))
-                exit(calculated_check_sum); // Return checksum if incorrect
+                exit(1);
         }
     }
 
@@ -2125,12 +2123,14 @@ if(classes[classname].path.empty())
     void 
     Kernel::Save() // Simple save function in present file from kernel data
     {
+        std::cout << "ERROR: SAVE SHOULD NEVER BE CALLED" << std::endl;
+
         std::string data = xml();
 
         //std::cout << data << std::endl;
 
         std::ofstream file;
-        std::string filename = add_extension(info_["filename"], ".ikg");
+        std::string filename = add_extension(info_["filename"], ".ikg");        // FIXME: ADD DIRECTORY PATH – USER DATA ********
         file.open (filename);
         file << data;
         file.close();
@@ -2751,7 +2751,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendDataStatus()
     {
-        std::string nm = std::string(info_["filename"]);
+        std::string nm = std::string(info_["filename"]);    // FIXME ******************************
         if(nm.find("/") != std::string::npos)
             nm = rtail(nm,"/");
 
@@ -2911,28 +2911,24 @@ if(classes[classname].path.empty())
     void
     Kernel::DoOpen(Request & request)
     {
-        // std::cout << "Kernel::DoOpen" << std::endl;
         std::string file = request.parameters["file"];
         std::string where = request.parameters["where"];
         Stop();
-        //Clear();
         if(where == "system")
-            options_.filename = system_files.at(file);
+            options_.path_ = system_files.at(file);
         else
-            options_.filename = user_files.at(file);
+            options_.path_ = user_files.at(file);
             try
             {
-                //Stop(); // FIXME: Only if necessary
                 LoadFile();
             }
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
-                Notify(msg_warning, "File could not be loaded"); // FIXME: better error message - alert?
+                Notify(msg_warning, "File \""+file+"\" could not be loaded"); // FIXME: better error message - alert? HTTP reply with error code
                 New();
             }
         
-        //DoUpdate(request);
         DoSendNetwork(request);
     }
 
@@ -2949,23 +2945,25 @@ if(classes[classname].path.empty())
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
-            std::cout << "SAVE FAILED FOR:\n" << request.body << std::endl;
+            std::cout << "INTERNAL ERROR: Could not parse json.\n" << request.body << std::endl;
             return;
         }
 
-        //std::filesystem::path path = std::string(d["filename"]);
-        std::string filename = add_extension(std::string(d["filename"]), ".ikg");
-        d["filename"] = ""; // Do not include filename in file
+        // Sanitize file name
+
+        std::filesystem::path path = add_extension(std::string(d["filename"]), ".ikg");
+        std::string filename = path.filename();
+
+        d["filename"] = ""; // Do not include filename in file // FIXME: Remove key from dict
         std::string data = d.xml("group", 0, {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"});
         std::ofstream file;
         file.open (filename);
         file << data;
         file.close();
-        //Clear();
-        options_.filename = filename;
+        options_.path_ = filename;
         needs_reload = true;
 
-        d["filename"] = filename;
+        d["filename"] = options_.stem();
         info_ = d;
 
         DoUpdate(request);
