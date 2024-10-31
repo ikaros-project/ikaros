@@ -18,8 +18,6 @@
 #include <unordered_set>
 #include <stack>
 
-
-
 using namespace std::literals;
 
 #define INSTALL_CLASS(class_name)  static InitClass init_##class_name(#class_name, []() { return new class_name(); });

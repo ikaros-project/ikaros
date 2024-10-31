@@ -2513,7 +2513,7 @@ if(classes[classname].path.empty())
         */
     
         // Main loop
-        while(run_mode > run_mode_quit)  // Not quit
+        while(run_mode > run_mode_quit && !global_terminate)  // Not quit
         {
             while (!Terminate() && run_mode > run_mode_quit)
             {
@@ -2955,7 +2955,7 @@ if(classes[classname].path.empty())
         std::string filename = path.filename();
 
         d["filename"] = ""; // Do not include filename in file // FIXME: Remove key from dict
-        std::string data = d.xml("group", 0, {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"});
+        std::string data = d.xml("group", {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"});
         std::ofstream file;
         file.open (filename);
         file << data;

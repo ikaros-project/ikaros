@@ -7,7 +7,9 @@
 
 using namespace ikaros;
 
-int ccc = 0;
+
+extern bool global_terminate;
+
 
 int
 main(int argc, char *argv[])
@@ -61,7 +63,7 @@ main(int argc, char *argv[])
         k.options_ = o;
         k.InitSocket(o.get_long("webui_port"));
 
-        while(k.run_mode != run_mode_quit)
+        while(k.run_mode != run_mode_quit && !global_terminate)
         {
             try
             {
