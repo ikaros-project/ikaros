@@ -39,7 +39,7 @@ namespace ikaros
     }
 
     std::string 
-    null::xml(std::string name, int depth,exclude_set exclude)
+    null::xml(std::string name,exclude_set exclude, int depth)
     {
         return tab(depth)+"<null/>\n";
     }
@@ -243,12 +243,12 @@ namespace ikaros
     // XML
 
     std::string 
-    list::xml(std::string name, int depth,exclude_set exclude)
+    list::xml(std::string name, exclude_set exclude, int depth)
     {
         std::string s;
         for(auto & v : *list_)
         {
-            s += v.xml(name, depth+1, exclude);
+            s += v.xml(name, exclude, depth+1);
         }
         return s;
     }
@@ -256,7 +256,7 @@ namespace ikaros
     // FIXME: Use _tag for elememt name
 
     std::string  
-    dictionary::xml(std::string name, int depth,exclude_set exclude)
+    dictionary::xml(std::string name,exclude_set exclude, int depth)
     {
         std::string s = tab(depth)+"<"+name;
         for(auto & a : *dict_)
@@ -271,7 +271,7 @@ namespace ikaros
         for(auto & e : *dict_)
             if(e.second.is_list() && !exclude.count(name+"/"+e.first))
             {
-                std::string sub = e.second.xml(e.first.substr(0, e.first.size()-1), depth, exclude);
+                std::string sub = e.second.xml(e.first.substr(0, e.first.size()-1), exclude, depth);
                 if(!sub.empty())
                 {
                     s += sep + sub;
@@ -473,14 +473,14 @@ namespace ikaros
         }
 
         std::string  
-        value::xml(std::string name, int depth,exclude_set exclude)
+        value::xml(std::string name,exclude_set exclude, int depth)
         {
             if(std::holds_alternative<std::string>(value_))
                 return tab(depth)+"<string>"+std::get<std::string>(value_)+"</string>\n"; // FIXME: <'type' value="v" />    ???
             else if(std::holds_alternative<list>(value_))
-                return std::get<list>(value_).xml(name, depth, exclude);
+                return std::get<list>(value_).xml(name, exclude, depth);
             else if(std::holds_alternative<dictionary>(value_))
-                return std::get<dictionary>(value_).xml(name, depth, exclude);
+                return std::get<dictionary>(value_).xml(name, exclude, depth);
             else if(std::holds_alternative<null>(value_))
                 return tab(depth)+"<null/>\n";
             else
