@@ -1,6 +1,7 @@
 # Folders
 
 /build/
+/.venv/
 # Compiled source #
 ###################
 *.com
@@ -58,3 +59,4 @@ Thumbs.db
 
 # Other
 .vscode
+.venv
