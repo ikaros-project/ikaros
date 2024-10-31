@@ -676,8 +676,17 @@ let controller =
               callback(xhr.response, xhr.getResponseHeader("Session-Id"), xhr.getResponseHeader("Package-Type"));
         }
         
+        xhr.ontimeout = function() 
+        {
+            log.print("Request timed out.");
+            controller.open_mode = false;
+            controller.requestUpdate();
+
+
+        }
+
         xhr.responseType = 'json';
-        xhr.timeout = 1000;
+        xhr.timeout = 2000;
         try {
             xhr.send();
         }
@@ -2075,6 +2084,12 @@ const log =
     showView()
     {
         log.view.style.display = 'block';
+    },
+
+    print(message)
+    {
+        let logElement = document.querySelector('.log');
+        logElement.innerHTML += "<p class='warning'>"+message+"</p>\n";
     }
 }
 
