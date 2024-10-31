@@ -7,9 +7,7 @@
 
 using namespace ikaros;
 
-
 extern bool global_terminate;
-
 
 int
 main(int argc, char *argv[])
