@@ -9,6 +9,14 @@ data_path = "/home/pierre/ikaros/Source/Modules/RobotModules/CompliantRobot/Curr
 std_data_table = fread(data_path)
 
 setwd("/home/pierre/ikaros/Source/Modules/RobotModules/CompliantRobot/CurrentPositionMapping/Rwork/")
+
+#split data into training and testing, by shuffling the indices and selecting 80% for training
+set.seed(123)
+train_indices <- sample(nrow(std_data_table), 0.8 * nrow(std_data_table))
+train_data <- std_data_table[train_indices, ]
+test_data <- std_data_table[-train_indices, ]
+
+
 # Define file paths for saved models
 tilt_model_path <- "tilt_model.rds"
 tilt_quad_model_path <- "tilt_quad_model.rds"
@@ -71,7 +79,9 @@ posterior_check_multi <- function(models, model_names, data, response_var, ndraw
     obs_vs_pred_plot <- ggplot(data, aes(x = observed, y = pred_means)) +
       geom_point(color = "blue") +
       geom_abline(intercept = 0, slope = 1, color = "red") +
-      geom_errorbar(aes(ymin = pred_intervals[1, ], ymax = pred_intervals[2, ]), width = 0.2, color = "gray") +
+      geom_errorbar(aes(ymin = pred_intervals[1, ], 
+      ymax = pred_intervals[2, ]), 
+      width = 0.2, color = "gray") +
       labs(x = "Observed", y = "Predicted", title = paste("Observed vs Predicted:", model_name)) +
       theme_minimal()
     
