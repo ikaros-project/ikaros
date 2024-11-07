@@ -1,13 +1,10 @@
 // Ikaros 3.0
 
-#include <string>
-
 #include "ikaros.h"
-#include "dictionary.h"
 
 using namespace ikaros;
 
-int ccc = 0;
+extern bool global_terminate;
 
 int
 main(int argc, char *argv[])
@@ -61,11 +58,11 @@ main(int argc, char *argv[])
         k.options_ = o;
         k.InitSocket(o.get_long("webui_port"));
 
-        while(k.run_mode != run_mode_quit)
+        while(k.run_mode != run_mode_quit && !global_terminate)
         {
             try
             {
-                if(k.options_.filename.empty())
+                if(k.options_.filename().empty())
                     k.New();
                 else if(k.needs_reload)
                     k.LoadFile();
@@ -73,36 +70,17 @@ main(int argc, char *argv[])
                 if(k.info_.is_set("start"))
                 {
                     if(k.info_.is_set("real_time"))
-                        k.run_mode = run_mode_realtime; // WAS RESTART_
+                        k.run_mode = run_mode_realtime;
                     else
                         k.run_mode = run_mode_play;
                 }
-
                 k.Run();
-
-                /*
-                if(k.run_mode < run_mode_quit) // Restart requested
-                {
-                    k.Save();
-                    k.Clear();
-                }
-                */
             }
 
          catch(load_failed & e)
             {
                 std::cout << "Load failed. "+e.message << std::endl;
-                k.options_.filename.clear();
-
-                //k.New();
-               // k.needs_reload = false; // SHOYLD PROABBLY NOT BE SET IN NEW
-                /*
-                k.run_mode = run_mode_stop;
-                k.tick = -1;
-                k.timer.Pause();
-                k.timer.SetPauseTime(0);
-                k.needs_reload = false;
-                */
+                k.options_.path_.clear();
             }
 
             catch(fatal_error & e)
@@ -111,10 +89,9 @@ main(int argc, char *argv[])
                 if(o.is_set("batch_mode"))
                     exit(1);
                 else
-                {   // Assuming load failed or other error that can be handled by WebUI
+                {   
+                    // Assuming load failed or other error that can be handled by WebUI
                     // Stop if running but retain data for WebUI
-
-
                 }                    
             }
         }
@@ -135,5 +112,4 @@ main(int argc, char *argv[])
 
     return 0;
 }
-
 

@@ -198,6 +198,9 @@ namespace ikaros
                 int x = row.size();
                 int y = rows.size();
 
+                if(data_string.back() == ';') // Allow trailing semicolon
+                    y--;
+
                 if(rows.size() == 1) // 1D - array
                 {
                     info_ = std::make_shared<matrix_info>(std::vector<int>{x});
@@ -211,7 +214,7 @@ namespace ikaros
                     info_ = std::make_shared<matrix_info>(std::vector<int>{y, x});
                     data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
 
-                    for(int j=0; j< rows.size(); j++)
+                    for(int j=0; j< y; j++)
                     {
                         auto r = split(rows.at(j), ",");
                         for(int i=0; i< row.size(); i++)
@@ -220,6 +223,10 @@ namespace ikaros
                 }
             }
             catch(std::out_of_range e)
+            {
+                throw std::invalid_argument("Invalid matrix string");
+            }
+            catch(std::invalid_argument e)
             {
                 throw std::invalid_argument("Invalid matrix string");
             }

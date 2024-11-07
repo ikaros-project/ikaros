@@ -1,5 +1,4 @@
 #include "ikaros.h"
-//#include "../../IKAROS_Socket.h"
 
 using namespace ikaros;
 
@@ -22,11 +21,10 @@ public:
 
     ~Logger()
     {
-        std::cout << "Logger terminating after XXX seconds" << std::endl;
+        std::cout << "Logger terminating." << std::endl;
         // Send termination message with complete execution time
     }
 };
-
 
 INSTALL_CLASS(Logger)
 
