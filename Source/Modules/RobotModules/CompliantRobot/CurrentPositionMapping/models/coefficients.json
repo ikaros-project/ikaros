@@ -1,38 +1,34 @@
 {
-    "tilt_linear":{
-        "mean":{
-            "intercept":-0.053,
-            "betas[Position]":-0.35,
-            "betas[DistanceToGoal]":0.387,
-            "sigma":0.781
+    "Linear": {
+        "Pan": {
+            "intercept": -0.115,
+            "betas[Position]": -0.013,
+            "betas[DistanceToGoal]": 0.016,
+            "sigma": 0.769
+        },
+        "Tilt": {
+            "intercept": -0.053,
+            "betas[Position]": -0.35,
+            "betas[DistanceToGoal]": 0.387,
+            "sigma": 0.781
         }
     },
-    "tilt_quadratic":{
-        "mean":{
-            "intercept":-0.694,
-            "betas_linear[Position]":-0.281,
-            "betas_linear[DistanceToGoal]":0.239,
-            "betas_quad[Position_squared]":0.823,
-            "betas_quad[DistanceToGoal_squared]":-0.13,
-            "sigma":0.545
-        }
-    },
-    "pan_linear":{
-        "mean":{
-            "intercept":-0.115,
-            "betas[Position]":-0.013,
-            "betas[DistanceToGoal]":0.016,
-            "sigma":0.769
-        }
-    },
-    "pan_quadratic":{
-        "mean":{
-            "intercept":-0.295,
-            "betas_linear[Position]":-0.024,
-            "betas_linear[DistanceToGoal]":-0.031,
-            "betas_quad[Position_squared]":0.223,
-            "betas_quad[DistanceToGoal_squared]":-0.021,
-            "sigma":0.764
+    "Quadratic": {
+        "Pan": {
+            "intercept": -0.295,
+            "betas_linear[Position]": -0.024,
+            "betas_linear[DistanceToGoal]": -0.031,
+            "betas_quad[Position_squared]": 0.223,
+            "betas_quad[DistanceToGoal_squared]": -0.021,
+            "sigma": 0.764
+        },
+        "Tilt": {
+            "intercept": -0.694,
+            "betas_linear[Position]": -0.281,
+            "betas_linear[DistanceToGoal]": 0.239,
+            "betas_quad[Position_squared]": 0.823,
+            "betas_quad[DistanceToGoal_squared]": -0.13,
+            "sigma": 0.545
         }
     }
 }
