@@ -81,6 +81,8 @@ namespace ikaros
         int get_index(const std::string key); // Returns the index of the key in the dictionary
 
         std::string json() const;
+        std::string read_json(std::string filename) const;
+       
         std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0);
         friend std::ostream& operator<<(std::ostream& os, const dictionary & v);
         //void print();
@@ -88,6 +90,7 @@ namespace ikaros
         void parse_url(std::string s);
         // void parse_json(std::string s);
         // void parse_xml(std::string s); // TODO
+        void load_json(std::string filename);
 
         dictionary copy() const;
 
