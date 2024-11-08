@@ -1,6 +1,6 @@
 {
     "Linear": {
-        "Pan": {
+        "NeckPan": {
             "intercept": -0.115,
             "betas[Position]": -0.013,
             "betas[DistanceToGoal]": 0.016,
@@ -8,7 +8,7 @@
             "CurrentMean": -14.715057550148602,
             "CurrentStd": 51.116866058517964
         },
-        "Tilt": {
+        "NeckTilt": {
             "intercept": -0.053,
             "betas[Position]": -0.35,
             "betas[DistanceToGoal]": 0.387,
@@ -18,7 +18,7 @@
         }
     },
     "Quadratic": {
-        "Pan": {
+        "NeckPan": {
             "intercept": -0.295,
             "betas_linear[Position]": -0.024,
             "betas_linear[DistanceToGoal]": -0.031,
@@ -28,7 +28,7 @@
             "CurrentMean": -14.715057550148602,
             "CurrentStd": 51.116866058517964
         },
-        "Tilt": {
+        "NeckTilt": {
             "intercept": -0.694,
             "betas_linear[Position]": -0.281,
             "betas_linear[DistanceToGoal]": 0.239,
