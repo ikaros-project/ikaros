@@ -6,6 +6,7 @@
 
 #include <cctype>
 #include <stdexcept>
+#include <fstream>
 
 using namespace ikaros;
 namespace ikaros 
@@ -250,7 +251,41 @@ namespace ikaros
         return s;
     }
 
+    std::string
+    dictionary::read_json(std::string filename) const
+    {
+        std::ifstream file(filename);
+        if (!file)
+            throw std::runtime_error("Could not open file " + filename);
 
+        // Read the entire file into a string
+        std::string json_content((std::istreambuf_iterator<char>(file)),
+                                 std::istreambuf_iterator<char>());
+
+        // For const correctness, we should return the content without modifying the dictionary
+        // The caller can use parse_json(content) if they want to populate a dictionary
+        return json_content;
+    }
+
+    // Add a new non-const method to load and parse JSON into the dictionary
+    void dictionary::load_json(std::string filename) 
+    {
+        std::string json_content = read_json(filename); // Use existing read_json method
+
+        // Parse the JSON content
+        value parsed = parse_json(json_content);
+
+        // If the parsed result is a dictionary, copy its contents to this dictionary
+        if (std::holds_alternative<dictionary>(parsed.value_))
+        {
+            dictionary parsed_dict = std::get<dictionary>(parsed.value_);
+            this->merge(parsed_dict, true); // Using the existing merge method with overwrite=true
+        }
+        else
+        {
+            throw std::runtime_error("Root JSON element must be an object");
+        }
+    }
     // XML
 
     std::string 
