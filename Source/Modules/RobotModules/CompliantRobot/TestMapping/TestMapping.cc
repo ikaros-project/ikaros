@@ -296,18 +296,14 @@ class TestMapping: public Module
                 try
                 {
                     
-                    // Extract parameters
-                    std::vector<double> values = extractModelParameters(coefficients, model_name);
-                  
-
-                    // Use the values (they are in the same order as parameter_labels)
-                    CurrentMean = values[0];
-                    CurrentStd = values[1];
-                    betas_linear_DistanceToGoal = values[2];
-                    betas_linear_Position = values[3];
-                    betas_DistanceToGoal_squared = values[4]; // Will be 0 for Linear model
-                    betas_Position_squared = values[5];       // Will be 0 for Linear model
-                    intercept = values[6];
+                    // Use row i of the coefficients matrix instead of row 0
+                    CurrentMean = coefficients(i, 0);
+                    CurrentStd = coefficients(i, 1);
+                    betas_linear_DistanceToGoal = coefficients(i, 2);
+                    betas_linear_Position = coefficients(i, 3);
+                    betas_DistanceToGoal_squared = coefficients(i, 4);
+                    betas_Position_squared = coefficients(i, 5);
+                    intercept = coefficients(i, 6);
                     distanceToGoal = goal_position(servo_indx) - position(servo_indx);
 
                     estimate_std = intercept + betas_linear_Position * position(servo_indx) +
@@ -325,7 +321,7 @@ class TestMapping: public Module
             }
             else
             {
-                current_output(i) = min(goal_current[i], limit);
+                current_output(servo_indx) = min(goal_current(servo_indx), limit);
             }
         }
         return current_output;
@@ -444,7 +440,7 @@ class TestMapping: public Module
                         goal_current.print();
                     }
                     else{
-                        Print("Approximating goal");
+                        Trace("Approximating goal");
                     }
                 }
                 
