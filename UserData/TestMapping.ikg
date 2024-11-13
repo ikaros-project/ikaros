@@ -3,12 +3,16 @@
    <connection delay="1" source="current.OUTPUT" target="Untitled_1.PresentCurrent"/>
    <connection delay="1" source="position.OUTPUT" target="TestCurrentFunction.PresentPosition"/>
    <connection delay="1" source="current.OUTPUT" target="TestCurrentFunction.PresentCurrent"/>
-   <module CurrentFunction="Quadratic" MaxLimits="237,219" MinLimits="114,153" NumberTransitions="3" _x="480" _y="168" class="TestMapping" log_level="7" name="TestCurrentFunction">
+   <module CurrentFunction="Quadratic" MaxLimits="237,219" MinLimits="114,153" NumberTransitions="3" _x="288" _y="72" class="TestMapping" log_level="7" name="TestCurrentFunction">
       <files>
          <file/>
          <file/>
       </files>
    </module>
-   <module _x="160" _y="160" class="Constant" data="180, 170" log_level="5" name="position"/>
-   <module _x="168" _y="240" class="Constant" data="180, 200" log_level="5" name="current"/>
+   <module _x="72" _y="120" class="Constant" data="180, 170" log_level="5" name="position"/>
+   <module _x="96" _y="192" class="Constant" data="180, 200" log_level="5" name="current"/>
+   <widget _index_="0" _x="24" _y="360" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.PresentPosition" style="" title="Position" width="817"/>
+   <widget _index_="2" _x="24" _y="408" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.GoalPositionOut" style="" title="Goal Position" width="817"/>
+   <widget _index_="4" _x="24" _y="456" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.PresentCurrent" style="" title="Current" width="817"/>
+   <widget _index_="6" _x="24" _y="504" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_4" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.PresentCurrent" style="" title="Goal Current" width="817"/>
 </group>
