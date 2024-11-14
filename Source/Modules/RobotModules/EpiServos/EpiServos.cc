@@ -521,7 +521,7 @@ class EpiServos : public Module
         // Check if robotname exist in configuration
         if (robot.find(robotName) == robot.end())
         {
-            Notify(msg_fatal_error, std::string("%s is not supported") + robotName);
+            Error(std::string("%s is not supported") + robotName);
             return;
         }
 
