@@ -1,4 +1,4 @@
-<group filename="" log_level="5" name="CurrentMapping" real_time="false" start="true" stop="-1" webui_port="8000">
+<group filename="" log_level="5" name="CurrentMapping" real_time="true" start="true" stop="-1" webui_port="8000" tick_duration="0.025">
    <connection delay="1" source="Servos.PRESENT_POSITION" target="Mapping.PresentPosition"/>
    <connection delay="1" source="Servos.PRESENT_CURRENT" target="Mapping.PresentCurrent"/>
    <connection delay="1" source="Mapping.GoalPosition" target="Servos.GOAL_POSITION"/>
@@ -6,7 +6,7 @@
    <connection delay="1" source="UM7.ProcessedGyro" target="Mapping.GyroData"/>
    <connection delay="1" source="UM7.ProcessedAccel" target="Mapping.AccelData"/>
    <connection delay="1" source="UM7.EulerAngles" target="Mapping.EulerAngles"/>
-   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="150" RobotType="Torso" _x="648" _y="120" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
+   <module MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="5" RobotType="Torso" _x="648" _y="120" class="CurrentPositionMapping" description="Randomises postions and maps the needed current to make the transisitons from the present position" log_level="7" name="Mapping">
       <author>
          <affiliation/>
          <email/>
