@@ -1,18 +1,31 @@
-<group filename="" name="Untitled" real_time="True" stop="-1" tick_duration="0.025" webui_port="8000">
-   <connection delay="1" source="position.OUTPUT" target="Untitled_1.PresentPosition"/>
-   <connection delay="1" source="current.OUTPUT" target="Untitled_1.PresentCurrent"/>
-   <connection delay="1" source="position.OUTPUT" target="TestCurrentFunction.PresentPosition"/>
-   <connection delay="1" source="current.OUTPUT" target="TestCurrentFunction.PresentCurrent"/>
-   <module CurrentFunction="Quadratic" MaxLimits="237,219" MinLimits="114,153" NumberTransitions="3" _x="288" _y="72" class="TestMapping" log_level="7" name="TestCurrentFunction">
+<group filename="" name="Untitled" real_time="True" start="true" stop="-1" tick_duration="0.025" webui_port="8000">
+   <connection delay="1" source="TestMapping.GoalPositionOut" target="EpiServos.GOAL_POSITION"/>
+   <connection delay="1" source="TestMapping.GoalCurrent" target="EpiServos.GOAL_CURRENT"/>
+   <connection delay="1" source="EpiServos.PRESENT_POSITION" target="TestMapping.PresentPosition"/>
+   <connection delay="1" source="EpiServos.PRESENT_CURRENT" target="TestMapping.PresentCurrent"/>
+   <module CurrentFunction="Quadratic" MaxLimits="237, 240" MinLimits="122, 142" NumberTransitions="3" _x="408" _y="48" class="TestMapping" log_level="7" name="TestMapping">
       <files>
          <file/>
          <file/>
       </files>
    </module>
-   <module _x="72" _y="120" class="Constant" data="180, 170" log_level="5" name="position"/>
-   <module _x="96" _y="192" class="Constant" data="180, 200" log_level="5" name="current"/>
-   <widget _index_="0" _x="24" _y="360" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.PresentPosition" style="" title="Position" width="817"/>
-   <widget _index_="2" _x="24" _y="408" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.GoalPositionOut" style="" title="Goal Position" width="817"/>
-   <widget _index_="4" _x="24" _y="456" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.PresentCurrent" style="" title="Current" width="817"/>
-   <widget _index_="6" _x="24" _y="504" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_4" scrollable="false" select="" show_frame="false" show_title="true" source="TestCurrentFunction.PresentCurrent" style="" title="Goal Current" width="817"/>
+   <module _x="24" _y="72" class="Constant" data="180, 170" log_level="5" name="position"/>
+   <module _x="0" _y="120" class="Constant" data="180, 200" log_level="5" name="current"/>
+   <module _x="120" _y="192" class="EpiServos" log_level="5" name="EpiServos" robot="EpiBlack" simulate="false">
+      <example description="A simple example">
+         <module class="EpiServo" name="EpiServo" robot="EpiBlack" simulate="false"/>
+      </example>
+      <files>
+         <file/>
+         <file/>
+         <file/>
+      </files>
+      <limitations/>
+      <link class="EpiServo"/>
+   </module>
+   <widget _index_="0" _x="24" _y="360" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="TestMapping.PresentPosition" style="" title="Position" width="817"/>
+   <widget _index_="2" _x="24" _y="408" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="true" source="TestMapping.GoalPositionOut" style="" title="Goal Position" width="817"/>
+   <widget _index_="4" _x="24" _y="456" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="true" source="TestMapping.PresentCurrent" style="" title="Current" width="817"/>
+   <widget _index_="6" _x="24" _y="504" class="table" colorize="true" decimals="0" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="" name="Widget_4" scrollable="false" select="" show_frame="false" show_title="true" source="TestMapping.GoalCurrent" style="" title="Goal Current" width="817"/>
+   <widget _index_="8" _x="624" _y="144" class="slider-horizontal" count="2" frame-style="" height="73" labels="tilt, pan" max="250" min="100" parameter="position.data" select="0" show_frame="false" show_title="true" show_values="true" step="1" style="" title="Position" width="265" x="700" y="30"/>
 </group>

@@ -63,32 +63,37 @@ class TestMapping: public Module
     double time_prev_position;
 
     std::vector<std::string> servo_names;
-  
-   
 
+    matrix initial_currents;
+    matrix current_differences;
 
-
-    matrix RandomisePositions(int num_transitions, matrix min_limits, matrix max_limits, std::string robotType){
+    matrix RandomisePositions(int num_transitions, matrix min_limits, matrix max_limits, std::string robotType)
+    {
         // Initialize the random number generator with the seed
         std::mt19937 gen(rd());
         int num_columns = (robotType == "Torso") ? 2 : 12;
-        matrix generated_positions(num_transitions, num_columns);
-        generated_positions.set(180);
-        generated_positions.info();
-        if (num_columns != min_limits.size() && num_columns != max_limits.size()){
-    
+        matrix generated_positions(num_transitions, present_position.size());
+        generated_positions.set(180); // Neutral position
+        // set pupil servos to 12 of all rows
+        for (int i = 0; i < generated_positions.rows(); i++)
+        {
+            generated_positions(i, 4) = 12;
+            generated_positions(i, 5) = 12;
+        }
+        if (num_columns != min_limits.size() || num_columns != max_limits.size())
+        {
             Error("Min and Max limits must have the same number of columns as the current controlled servos in the robot type (2 for Torso, 12 for full body)");
             return -1;
         }
-        
-        min_limits.print();
-        max_limits.print();
 
-        for (int i = 0; i < num_transitions; i++) {
-            for (int j = 0; j < num_columns; j++) {
+        for (int i = 0; i < num_transitions; i++)
+        {
+            for (int j = 0; j < num_columns; j++)
+            {
                 std::uniform_real_distribution<double> distr(min_limits(j), max_limits(j));
                 generated_positions(i, j) = int(distr(gen));
-                if (i == num_transitions-1){
+                if (i == num_transitions - 1)
+                {
                     generated_positions(i, j) = 180;
                 }
             }
@@ -263,7 +268,7 @@ class TestMapping: public Module
             }
         }
         coefficients_matrix.set_name("CoefficientMatrix");
-        coefficients_matrix.info();
+       
 
         return coefficients_matrix;
     }
@@ -272,61 +277,64 @@ class TestMapping: public Module
     {
         Debug("Inside SetGoalCurrent()");
         matrix current_output(present_current.size());
-        double estimate_std;
-        // Use the values (they are in the same order as parameter_labels)
-        double CurrentMean;
-        double CurrentStd;
-        double betas_linear_DistanceToGoal;
-        double betas_linear_Position;
-        double betas_DistanceToGoal_squared; 
-        double betas_Position_squared ;       
-        double intercept;
-        double distanceToGoal;;
+        current_output.copy(present_current);
+
         if (present_current.size() != current_output.size())
         {
             Error("Present current and Goal current must be the same size");
-            return -1;
+            return current_output;
         }
+
         for (int i = 0; i < current_controlled_servos.size(); i++)
         {
             int servo_indx = current_controlled_servos(i);
+
             if (goal_current(servo_indx) < limit && abs(goal_position(servo_indx) - position(servo_indx)) > margin)
             {
+                double estimated_current = 0.0;
 
-                try
+                if (model_name == "Linear" || model_name == "Quadratic")
                 {
-                    
-                    // Use row i of the coefficients matrix instead of row 0
-                    CurrentMean = coefficients(i, 0);
-                    CurrentStd = coefficients(i, 1);
-                    betas_linear_DistanceToGoal = coefficients(i, 2);
-                    betas_linear_Position = coefficients(i, 3);
-                    betas_DistanceToGoal_squared = coefficients(i, 4);
-                    betas_Position_squared = coefficients(i, 5);
-                    intercept = coefficients(i, 6);
-                    distanceToGoal = goal_position(servo_indx) - position(servo_indx);
+                    // Get standardization parameters
+                    double current_mean = coefficients(i, 0);
+                    double current_std = coefficients(i, 1);
 
-                    estimate_std = intercept + betas_linear_Position * position(servo_indx) +
-                                          betas_linear_DistanceToGoal * distanceToGoal +
-                                          betas_Position_squared * std::pow(position(servo_indx), 2) +
-                                          betas_DistanceToGoal_squared * std::pow(distanceToGoal, 2);
+                    // Calculate and standardize inputs
+                    double distance_to_goal = goal_position(servo_indx) - position(servo_indx);
+                    double std_position = (position(servo_indx) - current_mean) / current_std;
+                    double std_distance = (distance_to_goal - current_mean) / current_std;
+
+                    // Calculate base linear terms
+                    estimated_current = coefficients(i, 6) + // intercept
+                                        coefficients(i, 2) * std_distance +
+                                        coefficients(i, 3) * std_position;
+
+                    // Add quadratic terms if using quadratic model
+                    if (model_name == "Quadratic")
+                    {
+                        estimated_current += coefficients(i, 4) * std::pow(std_distance, 2) +
+                                             coefficients(i, 5) * std::pow(std_position, 2);
+                    }
+
+                    // Unstandardize the result
+                    estimated_current = estimated_current * current_std + current_mean;
                 }
-                catch (const std::exception &e)
+                // Add other model types here
+                else
                 {
-                    std::cerr << "Error: " << e.what() << std::endl;
+                    Error("Unsupported model type: %s", model_name.c_str());
+                    return current_output;
                 }
-                
-                // Convert the estimated current from standardised scale to the actual current
-                current_output(servo_indx) = estimate_std * CurrentStd + CurrentMean;
+
+                current_output(servo_indx) = estimated_current;
             }
             else
             {
-                current_output(servo_indx) = min(goal_current(servo_indx), limit);
+                current_output(servo_indx) = min(current_output(servo_indx), limit);
             }
         }
         return current_output;
     }
-
     void Init()
     {
         //IO
@@ -353,7 +361,7 @@ class TestMapping: public Module
         coefficientsPath = coefficientsPath + "/CurrentPositionMapping/models/coefficients.json";
         current_coefficients.load_json(coefficientsPath);
 
-        current_coefficients.print();
+
 
         number_transitions = num_transitions.as_int()+1; // Add one to the number of transitions to include the ending position
         position_transitions.set_name("PositionTransitions");
@@ -405,7 +413,13 @@ class TestMapping: public Module
         overshot_goal.set_name("OvershotGoal");
         unique_id = GenerateRandomNumber(0, 1000000);
 
-        position_transitions.print();
+
+
+        // Initialize with zeros
+        initial_currents = matrix(current_controlled_servos.size(), number_transitions);
+        current_differences = matrix(current_controlled_servos.size(), number_transitions);
+        initial_currents.set(0);
+        current_differences.set(0);
     }
 
     
@@ -415,44 +429,126 @@ class TestMapping: public Module
             ReachedGoal(present_position, goal_position_out, reached_goal, position_margin);
             approximating_goal = ApproximatingGoal(present_position, goal_position_out, position_margin);
 
-            if (GetTick() > 1){
+            if (GetTick() > 1)
+            {
                 if (reached_goal.sum() == current_controlled_servos.size())
                 {
-                    Debug("Reached goal");
+                    // Store the final current differences for this transition before moving to next
+                    for (int i = 0; i < current_controlled_servos.size(); i++)
+                    {
+                        int servo_idx = current_controlled_servos(i);
+                        if (current_differences(i, transition) == 0)
+                        {
+                            current_differences(i, transition) = present_current[servo_idx] - initial_currents(i, transition);
+                        }
+                    }
+                    
                     transition++;
                     if (transition < number_transitions)
                     {
                         goal_position_out.copy(position_transitions[transition]);
-                        Debug("New goal position");
-
                         reached_goal.set(0);
                         approximating_goal.set(0);
                         transition_start_time.set(GetTime());
                     }
                     else{
-                    Print( "All transitions completed");
+                        SaveCurrentData();
+                        Notify(msg_terminate, "Transition finished");
+                        return;
+                    }
                 }
 
-                }
-                for (int i = 0; i < current_controlled_servos.size(); i++){
-                    if (approximating_goal(current_controlled_servos(i)) == 0){
-                        goal_current = SetGoalCurrent(present_current, current_increment, current_limit, present_position, goal_position_out, position_margin, coeffcient_matrix, current_function);
-                        goal_current.print();
+                for (int i = 0; i < current_controlled_servos.size(); i++)
+                {
+                    int servo_idx = current_controlled_servos(i);
+                    bool timeout = GetNominalTime() - transition_start_time(servo_idx) > 7.0;
+
+                    if (approximating_goal(servo_idx) == 0 && reached_goal(servo_idx) == 0)
+                    {
+                        if (!timeout || GetTick() == 2)
+                        {
+                            goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit,
+                                                             present_position, goal_position_out, position_margin,
+                                                             coeffcient_matrix, current_function));
+                            if (initial_currents(i, transition) == 0)
+                            {
+                                initial_currents(i, transition) = goal_current[servo_idx];
+                            }
+                        }
+                        else
+                        {
+                            goal_current(servo_idx) = std::min(abs(goal_current[servo_idx]) + 2, (float)current_limit);
+                        }
                     }
-                    else{
-                        Trace("Approximating goal");
+                    // Update current differences continuously during movement
+                    if (initial_currents(i, transition) != 0)  // Only update if we have an initial current
+                    {
+                        current_differences(i, transition) = present_current[servo_idx] - initial_currents(i, transition);
                     }
                 }
-                
             }
         }
-
         else{
             Error("Present current and present position must be connected");
             return;
         }
     }
 
+    void SaveCurrentData()
+    {
+        try
+        {
+            std::string scriptPath = __FILE__;
+            std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
+            std::string filepath = scriptDirectory + "/current_data_" + std::to_string(unique_id) + ".json";
+            std::ofstream file(filepath);
+            file << "{\n";
+            file << "  \"transitions\": [\n";
+
+            file << "    {\n";
+            
+            for (int i = 0; i < current_controlled_servos.size(); i++)
+            {
+                file << "      \"" << servo_names[current_controlled_servos(i)] << "\": {\n";
+                
+                file << "        \"goal_positions\": [";
+                for (int t = 0; t < transition; t++) {
+                    file << position_transitions(t, current_controlled_servos(i));
+                    if (t < transition - 1) file << ", ";
+                }
+                file << "],\n";
+                
+                file << "        \"initial_currents\": [";
+                for (int t = 0; t < transition; t++) {
+                    file << initial_currents(i, t);
+                    if (t < transition - 1) file << ", ";
+                }
+                file << "],\n";
+                
+                file << "        \"current_differences\": [";
+                for (int t = 0; t < transition; t++) {
+                    file << current_differences(i, t);
+                    if (t < transition - 1) file << ", ";
+                }
+                file << "]\n";
+                
+                file << "      }";
+                if (i < current_controlled_servos.size() - 1) file << ",";
+                file << "\n";
+            }
+            
+            file << "    }";
+            file << "\n";
+            
+            file << "  ]\n";
+            file << "}\n";
+            file.close();
+        }
+        catch (const std::exception &e)
+        {
+            Error("Failed to save current data: " + std::string(e.what()));
+        }
+    }
 };
 
 
