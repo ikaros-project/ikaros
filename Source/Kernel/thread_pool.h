@@ -21,16 +21,20 @@ public:
 
 
 
-
-class TaskSequence  // Holds a list of tasks to be run sequentially within a single thread
+class TaskSequence // Holds a list of tasks to be run sequentially within a single thread
 {
 public:
-    TaskSequence() : running(false), completed(false) {}
+    TaskSequence(std::vector<Task *> & tasks): 
+        tasks_(tasks),
+        running(false), 
+        completed(false)
+    {}
+
     virtual ~TaskSequence() = default;
 
     void execute() {
         running = true;
-        run();
+        Tick();
         completed = true;
         running = false;
     }
@@ -44,13 +48,18 @@ public:
     }
 
 protected:
-    virtual void run() = 0;
+    virtual void Tick()
+    {
+        for(auto & task : tasks_)
+            task->Tick();
+    }
 
 private:
     std::atomic<bool> running;
     std::atomic<bool> completed;
-};
 
+    std::vector<Task *> & tasks_;
+};
 
 
 

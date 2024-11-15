@@ -15,7 +15,8 @@ ThreadPool::~ThreadPool()
 {
     stop = true;
     condition.notify_all();
-    for (std::thread &worker : workers) {
+    for (std::thread &worker : workers) 
+    {
         worker.join();
     }
 }
@@ -27,12 +28,12 @@ void ThreadPool::worker()
         TaskSequence * task_sequence;
         {
             std::unique_lock<std::mutex> lock(queueMutex);
-            condition.wait(lock, [this] { return stop || !tasks.empty(); });
-            if (stop && tasks.empty()) return;
-            task = std::move(tasks.front());
-            tasks.pop();
+            condition.wait(lock, [this] { return stop || !task_sequences.empty(); });
+            if (stop && task_sequences.empty()) return;
+            task_sequence = std::move(task_sequences.front());
+            task_sequences.pop();
         }
-        task->execute();
+        task_sequence->execute();
     }
 }
 
@@ -40,13 +41,13 @@ void ThreadPool::submit(TaskSequence* task_sequence)
 {
     {
         std::unique_lock<std::mutex> lock(queueMutex);
-        tasks.emplace(task);
+        task_sequences.emplace(task_sequence);
     }
     condition.notify_one();
 }
 
 void ThreadPool::status()
 {
-    std::cout << "Tasks running: " << tasks.size() << std::endl;
+    std::cout << "Tasks running: " << task_sequences.size() << std::endl;
 }
 

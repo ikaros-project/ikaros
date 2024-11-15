@@ -39,7 +39,8 @@ using namespace std::literals;
 #include "Kernel/serial.h"
 #include "Kernel/thread_pool.h"
 
-namespace ikaros {
+namespace ikaros 
+{
 
 //const int run_mode_restart_pause = -2;
 //const int run_mode_restart_play = -3;
@@ -403,6 +404,7 @@ public:
     std::map<std::string, parameter>        parameters;
 
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
+    ThreadPool *                            thread_pool;
 
     long                                    session_id;
     bool                                    needs_reload;
