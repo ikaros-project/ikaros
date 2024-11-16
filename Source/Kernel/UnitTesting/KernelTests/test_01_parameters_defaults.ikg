@@ -1,8 +1,9 @@
-<group name="Test_2"  check_sum = "58387" description="Test default parameters">
+<group name="Test_2"  check_sum = "222667" description="Test default parameters">
 
     <module 
         name="Test" 
         class="KernelTestModule"
+        codeparam_2 = "1000"
     />
 
     <module name="Const" class="Constant" data="9, 8, 7" />
