@@ -1569,12 +1569,14 @@ bool operator==(Request & r, const std::string s)
     {
         tick_is_running = true; // Flag that state changes are not allowed
         tick++;
-        //Trace("Tick: " +std::to_string(GetTick()));
 
+        RunTasks();
 
-            for(auto & task_group : tasks)
-                for(auto & task: task_group)
-                    task->Tick();
+    /*
+        for(auto & task_group : tasks)
+            for(auto & task: task_group)
+                task->Tick();
+    */
 
 /*
         }
@@ -1862,6 +1864,7 @@ bool operator==(Request & r, const std::string s)
         needs_reload(true)
     {
         cpu_cores = std::thread::hardware_concurrency();
+        thread_pool = new ThreadPool(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
     }
 
     // Functions for creating the network
@@ -2105,7 +2108,10 @@ if(classes[classname].path.empty())
             std::string msg = "Incorrect Check Sum: "+std::to_string(calculated_check_sum)+" != "+std::to_string(correct_check_sum);
             Notify(msg_fatal_error, msg);
             if(info_.is_set("batch_mode"))
+            {
+                delete socket;
                 exit(1);
+            }
         }
     }
 
@@ -2444,9 +2450,37 @@ if(classes[classname].path.empty())
     void
     Kernel::RunTasks()
     {
-        for(auto & task_group : tasks)
-            for(auto & task: task_group)
-                task->Tick();
+        if(options_.is_set("experimental"))
+        {
+            std::vector<TaskSequence *> sequences;
+
+            for(auto & task_sequence : tasks)
+            {
+                auto ts = new TaskSequence(task_sequence);
+                sequences.push_back(ts);
+                thread_pool->submit(ts);
+            }
+            // WAIT FOR COMPLETION
+
+            bool working = true;
+            while(working)
+            {
+                working =false;
+                for(auto ts: sequences)
+                    if(!ts->isCompleted())
+                        working = true;     
+            }
+
+            for(auto ts: sequences)
+                delete ts;
+        }
+
+        else
+        {
+            for(auto & task_group : tasks)
+                for(auto & task: task_group)
+                    task->Tick();
+        }
     }
 
 
@@ -2654,7 +2688,7 @@ if(classes[classname].path.empty())
         while(tick_is_running)
             {}
 
-        run_mode = run_mode_stop;
+        run_mode = std::min(run_mode_stop, run_mode);
         tick = -1;
         timer.Pause();
         timer.SetPauseTime(0);

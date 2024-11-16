@@ -22,7 +22,7 @@ def get_description(file_path):
 print(f"\n{bold}Running Ikaros Unit Tests{reset}\n")
 errors = 0
 current_directory = Path(__file__).resolve().parent
-ikaros_binary = current_directory / "../../../../Bin/ikaros_d"
+ikaros_binary = current_directory / "../../../../Bin/ikaros"
 
 test_files = [item for item in current_directory.iterdir() if item.name.startswith("test") and item.suffix.lower() == '.ikg']
 for item in sorted(test_files):
@@ -38,4 +38,4 @@ if errors > 0:
 else:
     print(f"\nIkaros passed all {len(test_files)} tests\n")
 
- 
+

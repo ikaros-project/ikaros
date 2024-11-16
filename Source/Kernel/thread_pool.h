@@ -70,7 +70,7 @@ public:
     ~ThreadPool();
 
     void submit(TaskSequence * task_seqauence); // Submit a task to be executed by the thread pool
-    void status();
+    bool working(); /// True if at least one worker is running
 
 private:
     void worker(); // Worker threads function

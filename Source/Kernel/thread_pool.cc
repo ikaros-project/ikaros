@@ -37,7 +37,7 @@ void ThreadPool::worker()
     }
 }
 
-void ThreadPool::submit(TaskSequence* task_sequence) 
+void ThreadPool::submit(TaskSequence * task_sequence) 
 {
     {
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -46,8 +46,8 @@ void ThreadPool::submit(TaskSequence* task_sequence)
     condition.notify_one();
 }
 
-void ThreadPool::status()
+bool ThreadPool::working()
 {
-    std::cout << "Tasks running: " << task_sequences.size() << std::endl;
+    return false;
 }
 
