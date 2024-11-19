@@ -78,9 +78,11 @@ namespace ikaros
         int get_int(std::string s);
         bool is_set(std::string s);    // Returns true if set and true, and false if not set or not set to true, bool or string
         bool is_not_set(std::string s);    // Negation of is_set
-        int get_index(std::string key); // Returns the index of the key in the dictionary
+        int get_index(const std::string key); // Returns the index of the key in the dictionary
 
         std::string json() const;
+        std::string read_json(std::string filename) const;
+       
         std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0);
         friend std::ostream& operator<<(std::ostream& os, const dictionary & v);
         //void print();
@@ -88,6 +90,7 @@ namespace ikaros
         void parse_url(std::string s);
         // void parse_json(std::string s);
         // void parse_xml(std::string s); // TODO
+        void load_json(std::string filename);
 
         dictionary copy() const;
 
@@ -125,6 +128,7 @@ namespace ikaros
         friend std::ostream& operator<<(std::ostream& os, const list & v);
 
         list copy() const;
+        int get_index(const std::string &str);// Returns the index of the key in the dictionary
 
         void print() const { std::cout << this->json() << std::endl; };
     };
@@ -156,8 +160,9 @@ namespace ikaros
         bool is_null()          { return std::holds_alternative<null>(value_); }
         bool is_true();
 
+        int as_int()            { return double(*this); };  // FIXME: CHECK THIS ONE
+        bool equals(const std::string& str) const;
         bool as_bool()              { return double(*this) != 0; };
-        int as_int()                { return double(*this); };
         float as_float()            { return double(*this); };
         double as_double()          { return double(*this); };
         std::string as_string()     { return std::string(*this); };
@@ -194,4 +199,3 @@ namespace ikaros
 
 
 #endif
-

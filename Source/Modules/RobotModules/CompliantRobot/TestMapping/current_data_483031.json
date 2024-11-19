@@ -1,0 +1,16 @@
+{
+  "transitions": [
+    {
+      "NeckTilt": {
+        "goal_positions": [216, 128, 195, 180],
+        "initial_currents": [-288.808, -310.987, -290.708, -297.418],
+        "current_differences": [319.048, 290.827, 300.788, 166.378]
+      },
+      "NeckPan": {
+        "goal_positions": [207, 160, 144, 180],
+        "initial_currents": [0, 177.789, 103.147, 76.0676],
+        "current_differences": [0, -177.789, -103.147, -76.0676]
+      }
+    }
+  ]
+}
