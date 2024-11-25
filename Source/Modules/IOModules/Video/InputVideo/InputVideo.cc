@@ -571,8 +571,14 @@ class InputVideo : public Module
                 // std::cout << "size_x: " << size_x.as_int();
                 // std::cout << " size_y: " << size_y.as_int() << std::endl;
 
+                Timer tick_timer;
+
                 // Put data in ikaros output
                 unsigned char *data = outputFrame->data[0];
+
+                
+                /* ORIGINAL VERSION: 1.4 s per frame */
+                /*
                 for (int row = 0; row < size_y.as_int(); row++)
                     for (int col = 0; col < size_x.as_int(); col++)
                     {
@@ -589,14 +595,48 @@ class InputVideo : public Module
                         intensity(row, col) += blue(row, col) = c1255 * data[yLineSize + x3 + 2];
                         intensity(row, col) *= c13;
                     }
+                */
+
+                /* VERSION WITH DIRECT DATA ACCESS: 0.003 s per frame */
+
+                float * r = output[0].data();
+                float * g = output[1].data();
+                float * b = output[2].data();
+                float * intens = intensity.data();
+
+                int sx = size_x.as_int();
+                int sy = size_y.as_int();
+                int p = 0;
+
+
+                for (int row = 0; row < sy; row++)
+                    for (int col = 0; col < sx; col++)
+                    {
+                        int yLineSize = row * outputFrame->linesize[0]; // y
+                        int y1 = row * sx;                              // y1 = y * size_x;
+                        int xy = col + y1;                              // xy = x + y1;
+                        int x3 = col * 3;                               // x3 = x * 3;
+
+                        // intensity(x,y) = red(x,y) = c1255 * y;
+                        intens[p] = r[p] = c1255 * data[yLineSize + x3 + 0];
+                        intens[p] += g[p] = c1255 * data[yLineSize + x3 + 1];
+                        intens[p] += b[p] = c1255 * data[yLineSize + x3 + 2];
+                        intens[p] *= c13;
+
+                        p++;
+                    }
+
                 av_packet_unref(&packet);
-                
-                output[0].copy(red);
-                output[1].copy(green);
-                output[2].copy(blue);
+
+                //output[0].copy(red);
+                //output[1].copy(green);
+                //output[2].copy(blue);
+
+                std::cout << tick_timer.GetTimeString() << std::endl;
             }
         }
     }
+
     int
     decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
     {

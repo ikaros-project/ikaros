@@ -10,6 +10,7 @@
 		_size_x = "1280"
 		_size_y = "720"
 	/>
+
 	<widget class="image" 
 		max_x = "1"
 		title = "Output"
@@ -29,5 +30,7 @@
 		class = "image"
 		scales = "no"
 		w = "4"
-		/>	
+	/>
+
 </group>
+
