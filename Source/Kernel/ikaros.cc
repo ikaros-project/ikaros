@@ -762,6 +762,9 @@ namespace ikaros
         if(ends_with(s, ".size_y"))
             return std::to_string(GetBuffer(rhead(ss,".")).size_y());
 
+        if(ends_with(s, ".size_z"))
+            return std::to_string(GetBuffer(rhead(ss,".")).size_z());
+
         if(ends_with(s, ".rows"))
             return std::to_string(GetBuffer(rhead(ss,".")).rows());
 
@@ -771,7 +774,7 @@ namespace ikaros
         // Get or evaluate bariables
 
         parameter p;
-        if(LookupParameter(p, s.substr(1)))
+        if(LookupParameter(p, s.substr(1))) // CHECK @ sign
             return p;
         else
             return Evaluate(s); // FIXME: Should probably not use full evaluation
@@ -809,6 +812,8 @@ namespace ikaros
                 int d = EvaluateNumericalExpression(e);
                 if(d>0)
                     shape.push_back(d);
+                else
+                    throw std::invalid_argument("Value of "+e+" is non-positive or not found.");
             }
         }
         return shape;
@@ -1233,8 +1238,8 @@ namespace ikaros
         }
         catch(const std::invalid_argument & e)
         {
-            Notify(msg_fatal_error, e.what());
-            throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.");
+            //Notify(msg_fatal_error, e.what());
+            throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what());
         }
         catch(...)
         {
@@ -1735,6 +1740,13 @@ bool operator==(Request & r, const std::string s)
             Notify(msg_fatal_error, e.message);
             throw setup_error("Could not calculate input and output sizes.");
         }
+
+        catch(setup_error & e)
+        {
+            Notify(msg_fatal_error, e.message);
+            throw setup_error("Could not calculate input and output sizes.");
+        }
+
         catch(...)
         {
             throw setup_error("Could not calculate input and output sizes.");
