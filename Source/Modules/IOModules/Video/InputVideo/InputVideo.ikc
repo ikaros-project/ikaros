@@ -29,29 +29,6 @@
 	<output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x"  _size="720,1280"/>
 	<output name="OUTPUT" description="RGB image." size="3,@size_y,@size_x"  _size="3,720,1280"/>
 
-	<view name = "View">
-		<image
-		max_x = "1"
-		title = "Output"
-		width = "381"
-		flipYCanvas = "no"
-		x = "60"
-		source = ".RED+GREEN+BLUE"
-		format = "rgb"
-		flipYAxis = "no"
-		flipXCanvas = "no"
-		h = "4"
-		height = "321"
-		max_y = "1"
-		y = "60"
-		flipXAxis = "no"
-		scale = "both"
-		class = "image"
-		scales = "no"
-		w = "4"
-		/>	
-	</view>
-	
 
     <author>
 		<name>Birger Johansson</name>

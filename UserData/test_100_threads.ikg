@@ -1,0 +1,11 @@
+<group _check_sum="93" description="Test paralelle threads" filename="" name="Test_Threads" stop="-1" webui_port="8000">
+   <connection source="A.OUTPUT" target="P.INPUT"/>
+   <connection source="B.OUTPUT" target="P.INPUT"/>
+   <connection source="C.OUTPUT" target="P.INPUT"/>
+   <connection source="D.OUTPUT" target="P.INPUT"/>
+   <module _x="72" _y="72" class="Constant" data="1" name="A"/>
+   <module _x="72" _y="144" class="Constant" data="2" name="B"/>
+   <module _x="72" _y="216" class="Constant" data="3" name="C"/>
+   <module _x="72" _y="288" class="Constant" data="4" name="D"/>
+   <module _x="432" _y="192" class="Print" name="P"/>
+</group>

@@ -37,8 +37,10 @@ using namespace std::literals;
 #include "Kernel/deprecated.h"
 #include "Kernel/image_file_formats.h"
 #include "Kernel/serial.h"
+#include "Kernel/thread_pool.h"
 
-namespace ikaros {
+namespace ikaros 
+{
 
 //const int run_mode_restart_pause = -2;
 //const int run_mode_restart_play = -3;
@@ -67,13 +69,6 @@ using tick_count = long long int;
 
 std::string  validate_identifier(std::string s);
 
-class Task         // Component or Connection
-{
-public:
-    virtual void Tick() = 0;
-    virtual std::string Info() = 0;
-    virtual bool Priority() { return false; }
-};
 
 class Component;
 class Module;
@@ -409,6 +404,7 @@ public:
     std::map<std::string, parameter>        parameters;
 
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
+    ThreadPool *                            thread_pool;
 
     long                                    session_id;
     bool                                    needs_reload;

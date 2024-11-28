@@ -1,7 +1,7 @@
 
 
-#include "../utilities.cc" 
-#include "../matrix.cc"
+#include "../../utilities.cc" 
+#include "../../matrix.cc"
 //#include "matrix.h"    
 #include <string>
 

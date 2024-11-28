@@ -775,6 +775,7 @@ namespace ikaros
         int cols() { return size(-1); }
         int size_x() { return cols(); }
         int size_y() { return rows(); }
+        int size_z() { return size(-3); }
 
         template <typename... Args>
         matrix & 
