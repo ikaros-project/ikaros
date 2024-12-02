@@ -6,6 +6,8 @@
 #ifndef MATRIX
 #define MATRIX
 
+#undef USE_BLAS
+
 #include <iostream>
 #include <cstddef>
 #include <stdexcept>
@@ -19,10 +21,9 @@
 
 //#include <cblas.h>
 
-#define ACCELERATE_NEW_LAPACK
-#include <Accelerate/Accelerate.h>
+//define ACCELERATE_NEW_LAPACK
+//include <Accelerate/Accelerate.h>
 
-// #define NO_MATRIX_CHECKS   // Define to remove checks of matrix size and index ranges
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -59,7 +60,7 @@ namespace ikaros
         std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
 
-        int calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
+        size_t calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
         {
             if(shape_.empty())
                 return 0;
@@ -132,10 +133,21 @@ namespace ikaros
 
         // Initialization
         
-            matrix(std::vector<int> shape): 
-            info_(std::make_shared<matrix_info>(shape)),
-            data_(std::make_shared<std::vector<float>>(info_->calculate_size()))
-            {}
+            matrix(std::vector<int> shape)
+            {
+                try
+                {
+                    {
+                        info_ = std::make_shared<matrix_info>(shape);
+                        data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
+                    }
+                }
+
+                catch(const std::exception& e)
+                {
+                    throw out_of_memory_matrix_error("Could not allocate memory for matrix");
+                }
+            }
 
 
         template <typename... Args> // Main creator function from matrix sizes as arguments
@@ -724,9 +736,11 @@ namespace ikaros
                 throw std::invalid_argument(get_name()+A.get_name()+"Matrix sizes must match.");
         }
 
+
         template <typename... Args>
         float& operator()(Args... indices)
         {
+
             #ifndef NO_MATRIX_CHECKS
             if (sizeof...(indices) != info_->shape_.size())
             throw std::invalid_argument(get_name()+"Number of indices must match matrix rank.");
@@ -742,13 +756,101 @@ namespace ikaros
         {
             #ifndef NO_MATRIX_CHECKS
             if (sizeof...(indices) != info_->shape_.size())
-                throw std::invalid_argument(get_name()+"Number of indices must match matrix rank."); // TODO nove to check bounds
+                throw std::invalid_argument(get_name()+"Number of indices must match matrix rank."); // TODO move to check bounds
                 check_bounds(indices...);
             #endif
 
             int index = compute_index(indices...);
             return (*data_)[index];
         }
+
+
+        float & 
+        operator()(int a)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 1)
+                throw exception("wrong number of indices");
+            if(a < 0 || a > shape[0])
+                    throw exception("out of bounds");
+            #endif
+
+            int index = info_->offset_ + a;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
+
+        float & 
+        operator()(int a, int b)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 2)
+                throw exception("wrong number of indices");
+            if(a < 0 || b < 0 || a > shape[0] || b > shape[1])
+                    throw exception("out of bounds");
+            #endif
+
+            int * s = info_->stride_.data();
+            int index = info_->offset_ + a * s[1] + b;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
+
+        float & 
+        operator()(int a, int b, int c)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 3)
+                throw exception("wrong number of indices");
+            if(a < 0 || b < 0 || c < 0 || a > shape[0] || b > shape[1] || c > shape[2])
+                    throw exception("out of bounds");
+            #endif
+
+            int * s = info_->stride_.data();
+            int index = info_->offset_ + (a * s[1] + b) * s[2] + c;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
+
+        float & 
+        operator()(int a, int b, int c, int d)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 4)
+                throw exception("wrong number of indices");
+            if(a < 0 || b < 0 || c < 0 || a > shape[0] || b > shape[1] || c > shape[2] || d > shape[3])
+                    throw exception("out of bounds");
+            #endif
+
+            int * s = info_->stride_.data();
+            int index = info_->offset_ + ((a * s[1] + b) * s[2] + c) * s[3] + d;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
 
         const std::vector<int>& shape() const
         { 
@@ -762,6 +864,9 @@ namespace ikaros
 
         int size(int dim)
         {
+            if(info_->shape_.size() == 0)
+                return 0;
+
             if(dim  < 0)
                 return  size(info_->shape_.size()+dim);
 
@@ -974,7 +1079,7 @@ namespace ikaros
             
             // blas version
 
-            #define USE_BLAS
+            //#define USE_BLAS
             #ifdef USE_BLAS
 
             cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 

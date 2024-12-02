@@ -758,7 +758,7 @@ namespace ikaros
         // Check functions
 
         if(ends_with(s, ".size_x"))
-            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: ADd nondestructuve rhead with string instead of string &
+            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: Add nondestructive rhead with string instead of string &
 
         if(ends_with(s, ".size_y"))
             return std::to_string(GetBuffer(rhead(ss,".")).size_y());
@@ -772,7 +772,7 @@ namespace ikaros
         if(ends_with(s, ".cols"))
             return std::to_string(GetBuffer(rhead(ss,".")).cols());
             
-        // Get or evaluate bariables
+        // Get or evaluate variables
 
         parameter p;
         if(LookupParameter(p, s.substr(1))) // CHECK @ sign
