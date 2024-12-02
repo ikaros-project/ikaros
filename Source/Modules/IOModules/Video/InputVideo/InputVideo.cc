@@ -531,8 +531,8 @@ class InputVideo : public Module
 
     void Tick()
     {
-        const float c13 = 1.0 / 3.0;
-        const float c1255 = 1.0 / 255.0;
+        constexpr float c13 = 1.0 / 3.0;
+        constexpr float c1255 = 1.0 / 255.0;
 
         int gotFrame = 0;
         while (!gotFrame) // Keep reading from source until we get a video packet
