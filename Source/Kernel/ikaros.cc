@@ -322,6 +322,7 @@ namespace ikaros
     void 
     parameter::info()
     {
+        std::cout << "name: " << info_["name"] << std::endl;
         std::cout << "type: " << type << std::endl;
         std::cout << "default: " << info_["default"] << std::endl;
         std::cout << "has_options: " << has_options << std::endl;
@@ -1131,7 +1132,7 @@ namespace ikaros
     int 
     Component::SetInputSize(dictionary d, input_map ingoing_connections)
     {
-        Trace("\t\t\tComponent::SetInputSize", path_ + " "+ std::string(d["name"]));
+        Trace("\t\t\tComponent::SetInputSize ", path_ + "."+ std::string(d["name"]));
 
         if(d.is_set("flatten"))
             SetInputSize_Flat(d, ingoing_connections);
@@ -1162,7 +1163,7 @@ namespace ikaros
     int 
     Component::SetOutputSize(dictionary d, input_map ingoing_connections)
     {
-       Trace("\t\t\tComponent::SetOutputSize " + std::string(d["name"]), path_);
+       Trace("\t\t\tComponent::SetOutputSize " , path_ + "." + std::string(d["name"]));
 
         if(d.contains("size"))
             throw setup_error("Output in group can not have size attribute.");
@@ -1205,7 +1206,7 @@ namespace ikaros
     Component::SetSizes(input_map ingoing_connections)
     {
         
-        Trace("\t\t\tComponent::SetSizes",path_);
+        Trace("\tComponent::SetSizes",path_);
         SetInputSizes(ingoing_connections);
         SetOutputSizes(ingoing_connections);
 
@@ -1265,8 +1266,10 @@ namespace ikaros
     int 
     Module::SetSizes(input_map ingoing_connections)
     {
-            Trace("\tModule::SetSizes", path_);
+            //Trace("\tModule::SetSizes", path_);
+            //Trace("\tModule::SetInputSizes", path_);
             SetInputSizes(ingoing_connections);
+            //Trace("\t", path_);
             SetOutputSizes(ingoing_connections);
             return 0;
     }   
@@ -1377,7 +1380,8 @@ namespace ikaros
             int delay_size = delay_range_.trim().b_[0];
             if(delay_size > 1)
                 target_range.push_front(0, delay_size);
-
+        // Debugging
+        // std::cout  << "Resolve debug size "<<  this->source << " " <<delay_size*source_range.size() << ":" <<  this->target << " " << target_range.size() << std::endl;
         if(delay_size*source_range.size() != target_range.size())
             throw exception("Connection could not be resolved");
 
@@ -1723,6 +1727,7 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::CalculateSizes()    
     {
+        //Trace("Kernel::CalculateSizes");
         try 
         {
         // Build input table
@@ -2504,9 +2509,14 @@ if(classes[classname].path.empty())
         {
             SortTasks();
             ResolveParameters();
+            //ListParameters();
             PruneConnections();
             CalculateDelays();
             CalculateSizes();
+            //ListConnections();
+            //ListInputs();
+            //ListOutputs();
+            
             InitCircularBuffers();
             InitComponents();
 
