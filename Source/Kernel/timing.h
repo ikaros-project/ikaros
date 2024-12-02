@@ -57,5 +57,21 @@ public:
     Timer();
 };
 
+
+
+class Profiler : public Timer
+{
+public:
+    Profiler &  Reset();                        // Reset accumulators
+    Profiler &  Start();                        // Start one sample
+    Profiler &  Stop();                         // Stop the sampe and add to accumulator
+    double  GetAverageTime();               // Get the avreage time over all samples
+
+    Profiler &  Print(std::string msg="");
+
+    long    number_of_samples = 0;          // The number of samples
+    double  accumulated_time = 0;           // Total time used (in seconds)
+};
+
 #endif
 

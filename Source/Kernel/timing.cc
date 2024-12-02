@@ -187,3 +187,52 @@ Timer::GetTimeString()
     return TimeString(GetTime());
 }
 
+
+    Profiler &      
+    Profiler::Reset()
+    {
+        number_of_samples = 0;
+        accumulated_time = 0;
+        return *this;
+    }
+
+
+    Profiler &      
+    Profiler::Start()
+    {
+        Restart();
+        return *this;
+    }
+
+
+
+    Profiler &     
+    Profiler::Stop()
+    {
+        accumulated_time += GetTime();
+        number_of_samples++;
+        return *this;
+    }
+
+
+    double  
+    Profiler::GetAverageTime()
+    {
+        if(number_of_samples > 0)  
+            return accumulated_time/double(number_of_samples);
+        else
+            return 0;
+    }
+    
+    
+    Profiler &  
+    Profiler::Print(std::string msg)
+    {
+        if(!msg.empty())
+            std::cout << msg << " ";
+        std::cout << number_of_samples << " " << TimeString(GetAverageTime()) << std::endl;
+        return *this;
+    }
+
+
+  
