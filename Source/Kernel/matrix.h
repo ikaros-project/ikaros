@@ -21,9 +21,10 @@
 
 //#include <cblas.h>
 
-//define ACCELERATE_NEW_LAPACK
-//include <Accelerate/Accelerate.h>
+#define USE_BLAS
+#define ACCELERATE_NEW_LAPACK
 
+#include <Accelerate/Accelerate.h>
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -1079,7 +1080,6 @@ namespace ikaros
             
             // blas version
 
-            //#define USE_BLAS
             #ifdef USE_BLAS
 
             cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
