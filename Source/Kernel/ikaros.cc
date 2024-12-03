@@ -409,6 +409,12 @@ namespace ikaros
             std::string value = LookupKey(name);
             if(value.empty())
             {
+                if(!p.info_.contains("default"))
+                {
+                    Error("Parameter \""+name+"\" has no default value in the ikc file.");   
+                    return false;
+                }
+
                 SetParameter(name, p.info_["default"]);
                 return true;
             }
@@ -1166,7 +1172,7 @@ namespace ikaros
        Trace("\t\t\tComponent::SetOutputSize " , path_ + "." + std::string(d["name"]));
 
         if(d.contains("size"))
-            throw setup_error("Output in group can not have size attribute.");
+            throw setup_error(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.");
 
         range output_size; // FIXME: rename output_range
         std::string name = d.at("name");
@@ -1999,6 +2005,9 @@ if(classes[classname].path.empty())
     void 
     Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level, FIXME: rename AddGroup later
     {
+        if(std::string(d["_tag"]) != "group")
+            throw setup_error("Main element is <"+std::string(d["_tag"])+"> but must be <group> for ikg-file.");
+
         if(!d.contains("name"))
             throw setup_error("Groups must have a name.");
 
@@ -2621,14 +2630,17 @@ if(classes[classname].path.empty())
             std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
 
             log.push_back(Message(msg, message, path));
-            std::cout << "ikaros: " << message << "("<<path << ")"<< std::endl;
+
+            std::cout << "ikaros: " << message;
+            if(!path.empty())
+                std::cout  << " ("<<path << ")";
+            std::cout << std::endl;
+
             if(msg <= msg_fatal_error)
             {
                     global_terminate = true;
 
                     //run_mode = run_mode_quit;
-
-                    
             }
             return true;
         }
