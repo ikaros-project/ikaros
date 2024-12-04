@@ -863,18 +863,18 @@ namespace ikaros
             return info_->size_;
         }
 
-        int size(int dim)
+        int size(int dim) // Size of one dimension; negative indices means from the back
         {
             if(info_->shape_.size() == 0)
-                return 0;
+                return 0; // range error
 
             if(dim  < 0)
-                return  size(info_->shape_.size()+dim);
+                dim = info_->shape_.size()+dim;
 
-            if(dim < info_->shape_.size()) 
-                return info_->shape_.at(dim); 
-            else
+            if(dim < 0 || dim > info_->shape_.size()-1) // range error - remove condition to throw exception instead
                 return 0;
+
+            return info_->shape_.at(dim); 
         }
 
         int rows() { return size(-2); }
