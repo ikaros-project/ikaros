@@ -57,6 +57,7 @@ namespace ikaros
         std::vector<int> stride_;                       // stride for jumping to the next row - necessary for submatrices
         std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
         int size_;                                      // the size of the data, is different from data_.size() for submatrices
+        bool continuous;                                // the data is continous in memory
         std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
         std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
@@ -72,7 +73,7 @@ namespace ikaros
         matrix_info() {}
 
         matrix_info(std::vector<int> shape):
-            offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), labels_(shape.size()) // NOTE: Actual initialization order depends on order in class definition
+            offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), labels_(shape.size()), continuous(true) // NOTE: Actual initialization order depends on order in class definition
         {}
 
         void
@@ -615,7 +616,13 @@ namespace ikaros
         matrix & 
         set(float v) // Set all element of the matrix to a value
         {
-            return apply([=](float x)->float {return v;});
+            if(info_->continuous)
+            {
+                std::fill(data_->begin()+info_->offset_, data_->begin()+info_->offset_+info_->offset_+info_->size_, 0);
+                return *this;
+            }
+            else
+                return apply([=](float x)->float {return v;});
         }
 
         matrix & 
