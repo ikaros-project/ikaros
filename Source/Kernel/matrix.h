@@ -628,13 +628,12 @@ namespace ikaros
         matrix & 
         copy(matrix m)  // asign matrix or submatrix - copy data
         {
-            if(rank()==0)   // Allow copy to empty matrix after reallocation - //TODO: Check if this is always appropriate
+            if(rank()==0)   // Allow copy to empty matrix after reallocation
                 realloc(m.shape());
 
-            #ifndef NO_MATRIX_CHECKS
-                if(info_->shape_ != m.info_->shape_)
-                    throw std::out_of_range("Assignment requires matrices of the same size");
-            #endif 
+            if(info_->shape_ != m.info_->shape_)
+                throw std::out_of_range("Assignment requires matrices of the same size");
+
             std::copy_n(
                     m.data_->begin()+m.info_->offset_, 
                     m.info_->size_, 
