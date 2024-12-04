@@ -628,9 +628,14 @@ namespace ikaros
                 if(info_->shape_ != m.info_->shape_)
                     throw std::out_of_range("Assignment requires matrices of the same size");
             #endif 
-            //std::copy_n(m.data_->begin()+offset_, m.size_, data_->begin()+offset_);
-            for(int i=0; i<m.info_->size_; i++)
-                data_->at(info_->offset_+i) = m.data_->at(m.info_->offset_+i);
+            std::copy_n(
+                    m.data_->begin()+m.info_->offset_, 
+                    m.info_->size_, 
+                    data_->begin()+info_->offset_);
+
+            //for(int i=0; i<m.info_->size_; i++)
+            //    data_->at(info_->offset_+i) = m.data_->at(m.info_->offset_+i);
+
             // TODO: must be updated for proper submatices
             return *this;
         }
