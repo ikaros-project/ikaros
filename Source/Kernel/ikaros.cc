@@ -38,10 +38,11 @@ namespace ikaros
         index_(0),
         buffer_(std::vector<matrix>(size))
     {
+        std::cout << "************ " << size << std::endl;
         for(int i=0; i<size;i++)
         {
-            buffer_[i].copy(m);
-            buffer_[i].reset(); // FIXME: use other function
+            buffer_[i].realloc(m.shape()); // copy(m);
+            buffer_[i].reset(); 
         }
     }
 
@@ -93,7 +94,15 @@ namespace ikaros
                 break;
 
             case matrix_type: 
-                matrix_value = std::make_shared<matrix>(); 
+                {
+                    if(info_.contains("size"))
+                    {
+                        std::cout << "HAS SIZE" << std::endl;
+                        matrix_value = std::make_shared<matrix>();
+                    }
+                    else
+                        matrix_value = std::make_shared<matrix>();
+                }
                 break;
 
             default: 
@@ -423,8 +432,8 @@ namespace ikaros
 
             if(p.type==number_type && !p.has_options)
             {
-                    SetParameter(name, std::to_string(EvaluateNumericalExpression(value))); //FIXME: HANDLE DEFAULTVALUES ALSO
-                    return true;
+                SetParameter(name, std::to_string(EvaluateNumericalExpression(value))); //FIXME: HANDLE DEFAULTVALUES ALSO
+                return true;
             }
 
             // Lookup normal value in current component-context
@@ -514,10 +523,18 @@ namespace ikaros
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
         if(path[0]=='@')
-            return GetValue(exchange_before_dot(path, LookupKey( before_dot(path).substr(1))));
-        
+        {
+            if(path.find('.') == std::string::npos)
+                return  LookupKey(path.substr(1));
+            else
+                return GetValue(exchange_before_dot(path, LookupKey( before_dot(path).substr(1))));
+        }
+
         if(path[0]=='.')
+        {
+            auto c = kernel().components.begin()->second;
             return kernel().components.begin()->second->GetValue(path.substr(1)); // Absolute path // FIXME: Scary - main_group -
+        }
 
         size_t pos = path.find('.');
         if(pos != std::string::npos)
@@ -1788,7 +1805,7 @@ bool operator==(Request & r, const std::string s)
             if(it.second <= 1)
                 continue;
           if(buffers.count(it.first))
-                circular_buffers.emplace(it.first, CircularBuffer(buffers[it.first], it.second)); // FIXME: Change to initialization list in C++20
+                circular_buffers.emplace(it.first, CircularBuffer(buffers[it.first], it.second));
         }
     }
 
@@ -2516,6 +2533,8 @@ if(classes[classname].path.empty())
     {
         try
         {
+
+
             SortTasks();
             ResolveParameters();
             //ListParameters();
@@ -2526,8 +2545,16 @@ if(classes[classname].path.empty())
             //ListInputs();
             //ListOutputs();
             
+            std::cout << "START" << std::endl;
+            Profiler p;
+            p.Reset().Start();
             InitCircularBuffers();
+            p.Stop().Print("CircularBuffer init time: ");
+            std::cout << "STOP" << std::endl;
+
             InitComponents();
+
+
 
             if(info_.is_set("info"))
             {
