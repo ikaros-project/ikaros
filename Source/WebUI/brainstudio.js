@@ -405,7 +405,10 @@ const network =
 
     buildDict(o, path)
     {
-        const new_path = (path+'.'+o.name).substring(1);
+        let new_path = (path+'.'+o.name); //.substring(1);
+        if(new_path[0]=='.')
+            new_path = new_path.substring(1);
+
         network.dict[new_path] = o;
 
         for(let g of o.groups || [])
