@@ -507,7 +507,7 @@ ServerSocket::GetRequest(bool block)
             int content_length = atoi(content_length_str);
             if (content_length > 0)
             {   
-                char buffer[4*65535];
+                char buffer[content_length+4];
                 long rr = Read(buffer, content_length+4);
                 //std::cout << buffer << std::endl;
                 body = std::string(buffer);
