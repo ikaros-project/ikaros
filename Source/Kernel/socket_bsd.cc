@@ -1,7 +1,7 @@
 //
 //    IKAROS_Socket.cc		Socket utilities for the IKAROS project
 //
-//    Copyright (C) 2001-2018  Christian Balkenius
+//    Copyright (C) 2001-2024  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -496,7 +496,7 @@ ServerSocket::GetRequest(bool block)
 		header.Set(k, v);
 		strsep(&p, "\n");
 	}
-	
+
 //	if(char * x = strpbrk(header.Get("URI"), "?#")) *x = '\0';	// Remove timestamp in request TODO: keep this later
 	
     if (equal_strings(header.Get("Method"), "PUT"))
