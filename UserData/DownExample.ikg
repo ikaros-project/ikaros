@@ -1,0 +1,22 @@
+<group filename="" info="true" name="Downsample_Example" stop="-1" webui_port="8000">
+   <connection _delay="1" delay="0" source="InputVideo.OUTPUT" target="Downsample.INPUT"/>
+   <connection delay="0" source="Downsample.OUTPUT" target="D2.INPUT"/>
+   <connection delay="0" source="D2.OUTPUT" target="D3.INPUT"/>
+   <connection delay="0" source="D3.OUTPUT" target="D4.INPUT"/>
+   <module _frame_rate="30" _size_x="1280" _size_y="720" _x="48" _y="72" class="InputVideo" list_devices="yes" name="InputVideo" size_x="640" size_y="480">
+      <example description="A simple example">
+         <module class="InputVideo" name="InputVideo"/>
+      </example>
+      <files>
+         <file/>
+         <file/>
+         <file/>
+      </files>
+      <link class="InputVideo"/>
+   </module>
+   <module _x="216" _y="72" class="Downsample" name="Downsample"/>
+   <module _x="432" _y="72" class="Downsample" log_level="5" name="D2"/>
+   <module _x="600" _y="72" class="Downsample" log_level="5" name="D3"/>
+   <module _x="864" _y="72" class="Downsample" log_level="5" name="D4"/>
+   <widget _index_="0" _x="288" _y="240" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="200" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_1" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="false" source="InputVideo.OUTPUT" style="" title="Widget_1" width="200"/>
+</group>

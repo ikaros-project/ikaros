@@ -38,7 +38,6 @@ namespace ikaros
         index_(0),
         buffer_(std::vector<matrix>(size))
     {
-        std::cout << "************ " << size << std::endl;
         for(int i=0; i<size;i++)
         {
             buffer_[i].realloc(m.shape()); // copy(m);
@@ -512,9 +511,10 @@ namespace ikaros
 //
 // GetValue
 //
-// Get value of a key/variable in the context of this component (ignores current parameter values)
+// Get value of a key/variable in the context of this component from dictionary (ignores current parameter values)
 // Throws and exception if value cannot be found
 // Does not handle default values - this is done by parameters
+
 
     std::string 
     Component::GetValue(const std::string & path) 
@@ -836,8 +836,8 @@ namespace ikaros
                 int d = EvaluateNumericalExpression(e);
                 if(d>0)
                     shape.push_back(d);
-                else
-                    throw std::invalid_argument("Value of "+e+" is non-positive or not found.");
+                // else
+                //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
             }
         }
         return shape;
@@ -2544,14 +2544,7 @@ if(classes[classname].path.empty())
             //ListConnections();
             //ListInputs();
             //ListOutputs();
-            
-            std::cout << "START" << std::endl;
-            Profiler p;
-            p.Reset().Start();
             InitCircularBuffers();
-            p.Stop().Print("CircularBuffer init time: ");
-            std::cout << "STOP" << std::endl;
-
             InitComponents();
 
 
