@@ -645,10 +645,17 @@ namespace ikaros
             // TODO: must be updated for proper submatices
             return *this;
         }
-    
+
         matrix &
         copy(matrix & m, range & target, range & source)
         {
+            // Use fast cpåy if possible
+
+            if(info_->continuous && m.info_->continuous && source == target)
+                return copy(m);
+
+    // Handle the general case // TODO: optimize common variants
+
             source.reset();
             target.reset();
 
@@ -658,13 +665,13 @@ namespace ikaros
                 //target.print_index();
                 //std::cout << std::endl;
 
-                m.check_bounds(source.index()); // FIXME: Do this once before starting instead e.g. matrix.check_bounds(range)
-                check_bounds(target.index());
+                // m.check_bounds(source.index()); // FIXME: Do this once before starting instead e.g. matrix.check_bounds(range)
+                // check_bounds(target.index());
 
                 int source_index = m.compute_index(source.index());
                 int target_index = compute_index(target.index());
 
-                (*data_)[target_index] = (*m.data_)[source_index];
+                (*data_).at(target_index) = (*m.data_)[source_index];
                         }
             return *this;
         }
