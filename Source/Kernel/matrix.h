@@ -649,7 +649,7 @@ namespace ikaros
         matrix &
         copy(matrix & m, range & target, range & source)
         {
-            // Use fast cpåy if possible
+            // Use fast copy if possible
 
             if(info_->continuous && m.info_->continuous && source == target)
                 return copy(m);
