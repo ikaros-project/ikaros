@@ -7,6 +7,6 @@
     </description>
 
     <input name="INPUT" description="The input image" />
-    <output name="OUTPUT" size="INPUT.size_y/2,INPUT.size_x/2" description="The downsampled image" /> 
+    <output name="OUTPUT" size="INPUT.size_z,INPUT.size_y/2,INPUT.size_x/2" description="The downsampled image" /> 
 
 </class>
