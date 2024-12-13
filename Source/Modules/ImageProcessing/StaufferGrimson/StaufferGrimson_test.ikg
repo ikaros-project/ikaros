@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<group name="StaufferGrimson_Example">
+
+	<module
+		class="InputVideo" 
+		name="InputVideo" 
+		_frame_rate="30" 
+		list_devices = "yes"
+		size_x = "640"
+		size_y = "480"
+		_size_x = "1280"
+		_size_y = "720"
+	/>
+
+	<module
+			class = "StaufferGrimson"
+			name = "StaufferGrimson" />
+
+
+	<connection  source = "InputVideo.OUTPUT"  target = "StaufferGrimson.INPUT" delay="0" />
+
+
+
+	<image  x = "60" y = "20" height = "461" width = "481" title = "Image" source = "StaufferGrimson.OUTPUT" file = "" index = "" module = "" command = "" format = "gray" scale = "both" opacity = "1" scales = "no" min_x = "0" max_x = "1" min_y = "0" max_y = "1" flipXAxis = "no" flipYAxis = "no" flipXCanvas = "no" flipYCanvas = "no" show_title = "false" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "560" y = "40" height = "81" width = "261" title = "Alpha" parameter = "StaufferGrimson.alpha" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "560" y = "140" height = "81" width = "261" title = "Background %" parameter = "StaufferGrimson.T" select = "0" count = "1" labels = "" min = "0" max = "1" step = "0.01" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+	<slider-horizontal  x = "560" y = "240" height = "81" width = "261" title = "Threshold" parameter = "StaufferGrimson.threshold" select = "0" count = "1" labels = "" min = "0" max = "10" step = "1" show_values = "true" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+
+</group>
+ 
