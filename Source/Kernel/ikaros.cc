@@ -1868,7 +1868,7 @@ bool operator==(Request & r, const std::string s)
     {
         std::cout << "\nCircularBuffers:" << std::endl;
         for(auto & i : circular_buffers)
-            std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << std::endl;
+            std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << " " << i.second.buffer_[0].rank() << i.second.buffer_[0].shape() <<  std::endl;
     }
 
 
