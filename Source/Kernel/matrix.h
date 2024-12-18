@@ -651,7 +651,7 @@ namespace ikaros
         {
             // Use fast copy if possible
 
-            if(info_->continuous && m.info_->continuous && source == target)
+            if(info_->continuous && m.info_->continuous && source == target && m.info_->shape_ == info_->shape_)
                 return copy(m);
 
     // Handle the general case // TODO: optimize common variants
