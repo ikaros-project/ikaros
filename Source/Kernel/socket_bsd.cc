@@ -328,9 +328,9 @@ ServerSocket::Poll(bool block)
 }
 
 
-
-long
-ServerSocket::Read(char * buffer, int maxSize)
+/*
+size_t
+ServerSocket::Read(char * buffer, int maxSize, bool fill)
 {
     if (data->new_fd == -1)
         return 0;
@@ -348,6 +348,66 @@ ServerSocket::Read(char * buffer, int maxSize)
 	
     return n;
 }
+*/
+
+
+
+#include <unistd.h>
+#include <cstring>  // For bzero
+#include <errno.h>
+#include <algorithm> // For std::min
+
+size_t ServerSocket::Read(char *buffer, int maxSize, bool fill) 
+{
+    if (data->new_fd == -1) {
+        return 0; // Invalid socket
+    }
+
+    size_t total_read = 0;  // Total bytes read
+    ssize_t n = 0;          // Bytes read in a single recv() call
+
+    if (fill) {
+        // Fill the buffer completely if requested
+        while (total_read < maxSize) {
+            n = recv(data->new_fd, buffer + total_read, maxSize - total_read, 0);
+
+            if (n > 0) {
+                total_read += n;
+                //std::cout << "Total read: " << total_read << std::endl;
+            } else if (n == 0) {
+                // Connection closed by the client
+                break;
+            } else if (n == -1) {
+                if (errno == EINTR) {
+                    // Interrupted system call, retry
+                    continue;
+                } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    // No data available, break out of the loop
+                    break;
+                } else {
+                    // Fatal error
+                    return -1;
+                }
+            }
+        }
+    } else {
+        // Single call to recv, do not enforce filling the buffer
+        n = recv(data->new_fd, buffer, maxSize, 0);
+
+        if (n > 0) {
+            total_read = n;
+        } else if (n == -1) {
+            if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
+                // Fatal error
+                return -1;
+            }
+        }
+    }
+
+    return 
+    total_read;
+}
+
 
 
 
@@ -497,19 +557,21 @@ ServerSocket::GetRequest(bool block)
 		strsep(&p, "\n");
 	}
 
-//	if(char * x = strpbrk(header.Get("URI"), "?#")) *x = '\0';	// Remove timestamp in request TODO: keep this later
+//	if(char * x = strpbrk(header.Get("URI"), "?#")) *x = '\0';	// Remove timestamp in request // TODO: keep this later
 	
     if (equal_strings(header.Get("Method"), "PUT"))
     {
                 const char* content_length_str = header.Get("Content-Length");
         if (content_length_str)
         {
-            int content_length = atoi(content_length_str);
+            size_t content_length = std::stoull(content_length_str);
+            //std::cout << "Socket: Content length " << content_length << std::endl;
+
             if (content_length > 0)
             {   
                 char buffer[content_length+4];
-                long rr = Read(buffer, content_length+4);
-                //std::cout << buffer << std::endl;
+                long rr = Read(buffer, content_length, true); // +4 removed
+               // std::cout << "Socket: Data read " << rr << std::endl;
                 body = std::string(buffer);
             }
         }
