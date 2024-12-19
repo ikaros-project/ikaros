@@ -1121,6 +1121,40 @@ namespace ikaros
             return *this;
         }
 
+
+        matrix & inv() // Invert matrix in place
+        {
+            if (rank() != 2) 
+                throw std::invalid_argument("Matrix must be two-dimensional.");
+
+            if (size_x() != size_y())
+                throw std::invalid_argument("Matrix must be square for inversion.");
+            
+            int n = size_x(); // Size of the square matrix
+            int lda = size_y();        // Leading dimension of the matrix // TODO: Check if this should involve strides
+            int info;
+
+            std::vector<int> ipiv(n); // Pivot indices
+
+            // Allocate workspace
+            int lwork = n * 64; // Can be optimized
+            std::vector<float> work(lwork);
+
+            // Perform LU decomposition
+            sgetrf_(&n, &n, data(), &lda, ipiv.data(), &info);
+
+            if (info != 0)
+                throw std::runtime_error("LU decomposition failed with info = " + std::to_string(info));
+
+            // Compute the inverse
+            sgetri_(&n, data(), &lda, ipiv.data(), work.data(), &lwork, &info);
+            if (info != 0) {
+                throw std::runtime_error("Matrix inversion failed with info = " + std::to_string(info));
+            }
+
+            return *this;
+        }
+
         matrix &
         corr(matrix & I, matrix & K) // correlation of I and K
         {
@@ -1219,7 +1253,7 @@ namespace ikaros
         float matrank() { throw std::logic_error("matrank(). Not implemented."); return 0; }
         float trace() { throw std::logic_error("Not implemented."); return 0; }
         float det() { throw std::logic_error("trace(). Not implemented."); return 0; }
-        matrix & inv(const matrix & m) { throw std::logic_error("det(). Not implemented."); return *this; }
+        matrix & inv(const matrix & m) { return copy(m); return inv(); }
         matrix & pinv(const matrix & m) { throw std::logic_error("pinv(). Not implemented."); return *this; }
 
         matrix & transpose(matrix &ret) 
