@@ -18,6 +18,8 @@ namespace ikaros
         h_matrix() : matrix(4,4) {};
 
         h_matrix & reset() { return reset(); }
+        
+        bool is_valid() { float * r = data(); return (r[15] > 0.1); } // Matrix is valid if bottom right element is 1 (but we do not want to make an exact match)
 
         h_matrix & 
         eye()
