@@ -3093,6 +3093,9 @@ const main =
             let comps = [...g.groups||[], ...g.modules||[], ...g.inputs||[], ...g.outputs||[], ...g.widgets||[]];
             selector.selectItems(comps.map((x) => bg+'.'+x.name), null, false, true);
         }
+  
+  /*
+  
         else if (evt.key=="c")
         {
             evt.preventDefault();
@@ -3108,6 +3111,8 @@ const main =
             evt.preventDefault();
             alert("Paste copied items. (NOT IMPLEMENTED YET)");
         }
+*/
+
         else if (evt.key=="d")
         {
             evt.preventDefault();
