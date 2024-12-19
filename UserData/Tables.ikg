@@ -1,0 +1,6 @@
+<group filename="" name="Untitled" stop="-1" webui_port="8000">
+   <module _x="100" _y="100" class="Constant" data="1, 2, 3,4, 5" log_level="5" name="Untitled_1"/>
+   <module _x="96" _y="360" class="Constant" data="1, 2; 3, 4" log_level="5" name="Untitled_2"/>
+   <widget _index_="0" _x="240" _y="96" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="121" label_x="" label_y="" max="1" min="" name="Widget_1" scrollable="false" select="" show_frame="true" show_title="false" source="Untitled_1.OUTPUT" style="" title="Widget_1" width="577"/>
+   <widget _index_="2" _x="336" _y="336" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="200" label_x="" label_y="" max="1" min="" name="Widget_2" scrollable="false" select="" show_frame="true" show_title="false" source="Untitled_2.OUTPUT" style="" title="Widget_2" width="200"/>
+</group>
