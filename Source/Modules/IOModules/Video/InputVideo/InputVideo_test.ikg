@@ -1,10 +1,11 @@
-<group start="true" name = "Example" title="InputVideo Example">
+<group name = "Example" title="InputVideo Example">
 
 	<module
 		class="InputVideo" 
 		name="InputVideo" 
 		_frame_rate="30" 
-		list_devices = "yes"
+		list_devices = "no"
+		id="0"
 		size_x = "640"
 		size_y = "480"
 		_size_x = "1280"
@@ -27,7 +28,6 @@
 		y = "60"
 		flipXAxis = "no"
 		scale = "both"
-		class = "image"
 		scales = "no"
 		w = "4"
 	/>

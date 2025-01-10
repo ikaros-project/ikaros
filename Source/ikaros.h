@@ -150,6 +150,8 @@ public:
     void info();
 
     int as_int();
+    std::string as_int_string(); // as_int() converted to string
+    
     const char* c_str() const noexcept;
 
     std::string json();    

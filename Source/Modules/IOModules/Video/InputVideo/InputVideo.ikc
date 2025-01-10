@@ -2,19 +2,6 @@
 
 <class name="InputVideo" description="grabs video using FFmpeg">
 
-	<description type="text">
-        Grabs the video from a camera using FFmpeg.
-	</description>
-
-	<example description="A simple example">
-		<module
-			class="InputVideo"
-			name="InputVideo"
-		/>
-	</example>
-
-	<link class="InputVideo" />
-    
 	<parameter name="size_x" type="int" default="1280" description="Size of the image" />
 	<parameter name="size_y" type="int" default="720" description="Size of the image" />
 	

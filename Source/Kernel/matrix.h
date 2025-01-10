@@ -26,6 +26,22 @@
 
 #include <Accelerate/Accelerate.h>
 
+
+#ifndef LAPACK_ROW_MAJOR
+#define LAPACK_ROW_MAJOR 101
+#endif
+
+#ifndef LAPACK_COL_MAJOR
+#define LAPACK_COL_MAJOR 102
+#endif
+
+
+        
+        extern "C" void sgesvd_(const char* jobu, const char* jobvt, const int* m, const int* n, float* a, const int* lda, float* s, float* u, const int* ldu, float* vt, const int* ldvt, float* work, const int* lwork, int* info);
+
+
+
+
 #include "exceptions.h"
 #include "utilities.h"
 #include "range.h"
@@ -1282,7 +1298,73 @@ namespace ikaros
         // operator<
         // operator>
         // operator<=
-        // operator  
+        // operator 
+
+
+
+    void 
+    singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt) 
+    {
+        // Retrieve dimensions
+        int m = inputMatrix.size_y();
+        int n = inputMatrix.size_x();
+
+        // Prepare data and dimensions
+        std::vector<float> a(inputMatrix.data(), inputMatrix.data() + m * n);
+        int min_mn = std::min(m, n);
+
+    /*
+        std::vector<float> singularValues(min_mn);
+        std::vector<float> u(m * m);
+        std::vector<float> vt(n * n);
+    */
+
+        matrix singularValues(min_mn);
+        matrix u(m, m);
+        matrix vt(n, n);
+
+        int lda = m;
+        int ldu = m;
+        int ldvt = n;
+        int info;
+
+        // Workspace query
+        int lwork = -1;
+        float work_size;
+        sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(), u.data(), &ldu, vt.data(), &ldvt, &work_size, &lwork, &info);
+
+        // Allocate workspace and compute SVD
+        lwork = static_cast<int>(work_size);
+        std::vector<float> work(lwork);
+        sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(),
+                u.data(), &ldu, vt.data(), &ldvt, work.data(), &lwork, &info);
+
+        if (info > 0)
+            throw std::runtime_error("SVD did not converge.");
+
+        // Assign outputs
+
+    /*
+        U = matrix(u.data(), m, m);
+        Vt = matrix(vt.data(), n, n);
+    */
+        U.copy(U);
+        Vt.copy(vt);
+
+        // Construct diagonal matrix S
+        std::vector<float> s(m * n, 0.0f);
+
+        for (size_t i = 0; i < min_mn; ++i) {
+            s[i * n + i] = singularValues[i];
+        }
+        
+        //S = matrix(s.data(), m, n);
+
+        S.resize(m,n);
+
+        // COPY DATA HERE
+    }
+
     };
 }
 
